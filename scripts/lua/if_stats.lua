@@ -94,6 +94,13 @@ if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
      interface.loadDumpPrefs()
    end
 end
+if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
+   if (tonumber(_GET["max_files"]) ~= nil) then
+     page = "packetdump"
+     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files',_GET["max_files"])
+     interface.loadDumpPrefs()
+   end
+end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
@@ -569,6 +576,26 @@ end
     <small>Maximum pcap file duration before creating a new file.<br>NOTE: a dump file is closed when it reaches first the maximum size or duration specified.</small>
     </td></tr>
        ]]
+   print("<tr><th width=250>Max Size of Dump Files</th>\n")
+   print [[<td>
+    <form class="form-inline" style="margin-bottom: 0px;">
+       <input type="hidden" name="if_name" value="]]
+      print(ifstats.name)
+      print [[">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print [[<input type="number" name="max_files" placeholder="" min="0" step="1000" max="500000000000" value="]]
+         max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
+	 if(max_files ~= nil and max_files ~= "") then
+           print(max_files.."")
+         else
+           print(interface.getInterfaceDumpMaxFiles().."")
+         end
+	 print [["></input>
+		  &nbsp; B &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+    </form>
+    <small>Maximum size of created pcap files.<br>NOTE: total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.</small>
+    </td></tr>
+      ]]
    print("</table>")
 end
 elseif(page == "config_historical") then

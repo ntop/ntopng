@@ -1636,6 +1636,22 @@ static int ntop_get_interface_dump_max_sec(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+static int ntop_get_interface_dump_max_files(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  int max_files;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  max_files = ntop_interface->getDumpTrafficMaxFiles();
+
+  lua_pushnumber(vm, max_files);
+
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 static int ntop_get_interface_endpoint(lua_State* vm) {
@@ -3274,11 +3290,15 @@ static int ntop_delete_dump_files(lua_State *vm) {
   if(ifid < 0)
     return(CONST_LUA_ERROR);
 
+  NetworkInterface *iface = ntop->getInterfaceById(ifid);
+
+  if (!iface) return CONST_LUA_ERROR;
+
   snprintf(pcap_path, sizeof(pcap_path), "%s/%u/pcap/",
            ntop->get_working_dir(), ifid);
   ntop->fixPath(pcap_path);
 
-  if (Utils::discardOldFilesExceeding(pcap_path, CONST_MAX_DUMP))
+  if (Utils::discardOldFilesExceeding(pcap_path, iface->getDumpTrafficMaxFiles()))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -4031,9 +4051,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setHostQuota",           ntop_set_host_quota },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
   { "getInterfaceDumpTapPolicy",      ntop_get_interface_dump_tap_policy },
-  { "getInterfaceDumpTapName",      ntop_get_interface_dump_tap_name },
-  { "getInterfaceDumpMaxPkts",      ntop_get_interface_dump_max_pkts },
-  { "getInterfaceDumpMaxSec",      ntop_get_interface_dump_max_sec },
+  { "getInterfaceDumpTapName",        ntop_get_interface_dump_tap_name },
+  { "getInterfaceDumpMaxPkts",        ntop_get_interface_dump_max_pkts },
+  { "getInterfaceDumpMaxSec",         ntop_get_interface_dump_max_sec },
+  { "getInterfaceDumpMaxFiles",       ntop_get_interface_dump_max_files },
   { "getEndpoint",            ntop_get_interface_endpoint },
   { "incrDrops",              ntop_increase_drops },
   { "isRunning",              ntop_interface_is_running },

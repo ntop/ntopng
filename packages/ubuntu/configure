@@ -585,9 +585,9 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 SUDO
 PFRING_DEP
-PFRING_SVN_RELEASE
+PFRING_GIT_RELEASE
 PFRING_VERS
-SVN_RELEASE
+GIT_RELEASE
 EXTRA_DEPS
 KERNEL
 DATE
@@ -1700,7 +1700,7 @@ ln -s control.$UBUNTU_RELEASE.in control.in
 cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
-SVN_RELEASE=`svn info ../.. | grep "^Last Changed Rev"| cut -d " " -f 4`
+GIT_RELEASE=`git rev-parse HEAD`
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 

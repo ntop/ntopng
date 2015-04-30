@@ -1,7 +1,7 @@
 Summary: Web-based network traffic monitoring
 Name: ntopng
 Version: @NTOPNG_VERSION@
-Release: @SVN_RELEASE@
+Release: @TODAY@
 License: GPL
 Group: Networking/Utilities
 URL: http://www.ntop.org/
@@ -70,7 +70,7 @@ else
    cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
 cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
-find $RPM_BUILD_ROOT -name ".svn" | xargs /bin/rm -rf
+find $RPM_BUILD_ROOT -name ".git" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name "*~"   | xargs /bin/rm -f
 #
 DST=$RPM_BUILD_ROOT/usr/ntopng
