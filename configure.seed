@@ -24,7 +24,7 @@ fi
 if test -d ".git"; then :
 GIT_TAG=`git rev-parse HEAD`
 GIT_DATE=`date +%Y%m%d`
-GIT_RELEASE="${PACKAGE_VERSION} (${GIT_TAG}:${GIT_DATE})"
+GIT_RELEASE="${GIT_TAG}:${GIT_DATE}"
 else
 GIT_RELEASE="${PACKAGE_VERSION}"
 GIT_DATE=`date`

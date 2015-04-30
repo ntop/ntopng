@@ -33,6 +33,7 @@ end
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    v = split(info["version"], " ")
+
    print(" [ SystemId: <A HREF=\"http://www.nmon.net/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
    
    if(info["version.embedded_edition"] == true) then
@@ -67,7 +68,12 @@ end
 
 print("</td></tr>")
 
-print("<tr><th>Version</th><td>"..info["version"])
+vers = string.split(info["version.git"], ":")
+v_hash = string.sub(vers[1], 2) 
+
+ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. v_hash ..">"..info["version"].."</A>"
+
+print("<tr><th>Version</th><td>"..ntopng_git_url)
 
 if(info["pro.release"] == false) then
    print(" - Community")
@@ -79,9 +85,7 @@ if(info["version.embedded_edition"] == true) then
    print("/Embedded")
 end
 
-
 print(" Edition</td></tr>\n")
-
 
 print("<tr><th>Platform</th><td>"..info["platform"].."</td></tr>\n")
 print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".._SESSION["user"].."</td></tr>\n")
