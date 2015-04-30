@@ -1,7 +1,7 @@
 Summary: Web-based network traffic monitoring
 Name: ntopng
 Version: @NTOPNG_VERSION@
-Release: @GIT_RELEASE@
+Release: @TODAY@
 License: GPL
 Group: Networking/Utilities
 URL: http://www.ntop.org/
