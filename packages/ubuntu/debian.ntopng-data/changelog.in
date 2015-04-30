@@ -1,4 +1,4 @@
-ntopng-data (@NTOPNG_VERS@-@SVN_RELEASE@) table; urgency=high
+ntopng-data (@NTOPNG_VERS@) table; urgency=high
    * Last packaged version
 
  -- Luca Deri <deri@ntop.org>  @DATE@
