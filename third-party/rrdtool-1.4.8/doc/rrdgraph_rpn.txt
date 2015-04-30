@@ -1,0 +1,392 @@
+RRDGRAPH_RPN(1)                     rrdtool                    RRDGRAPH_RPN(1)
+
+
+
+NNAAMMEE
+       rrdgraph_rpn - About RPN Math in rrdtool graph
+
+SSYYNNOOPPSSIISS
+       _R_P_N _e_x_p_r_e_s_s_i_o_n:=_v_n_a_m_e|_o_p_e_r_a_t_o_r|_v_a_l_u_e[,_R_P_N _e_x_p_r_e_s_s_i_o_n]
+
+DDEESSCCRRIIPPTTIIOONN
+       If you have ever used a traditional HP calculator you already know RRPPNN
+       (Reverse Polish Notation).  The idea behind RRPPNN is that you have a
+       stack and push your data onto this stack. Whenever you execute an
+       operation, it takes as many elements from the stack as needed. Pushing
+       is done implicitly, so whenever you specify a number or a variable, it
+       gets pushed onto the stack automatically.
+
+       At the end of the calculation there should be one and only one value
+       left on the stack.  This is the outcome of the function and this is
+       what is put into the _v_n_a_m_e.  For CCDDEEFF instructions, the stack is
+       processed for each data point on the graph. VVDDEEFF instructions work on
+       an entire data set in one run. Note, that currently VVDDEEFF instructions
+       only support a limited list of functions.
+
+       Example: "VDEF:maximum=mydata,MAXIMUM"
+
+       This will set variable "maximum" which you now can use in the rest of
+       your RRD script.
+
+       Example: "CDEF:mydatabits=mydata,8,*"
+
+       This means:  push variable _m_y_d_a_t_a, push the number 8, execute the
+       operator _*. The operator needs two elements and uses those to return
+       one value.  This value is then stored in _m_y_d_a_t_a_b_i_t_s.  As you may have
+       guessed, this instruction means nothing more than _m_y_d_a_t_a_b_i_t_s _= _m_y_d_a_t_a _*
+       _8.  The real power of RRPPNN lies in the fact that it is always clear in
+       which order to process the input.  For expressions like "a = b + 3 * 5"
+       you need to multiply 3 with 5 first before you add _b to get _a. However,
+       with parentheses you could change this order: "a = (b + 3) * 5". In
+       RRPPNN, you would do "a = b, 3, +, 5, *" without the need for parentheses.
+
+OOPPEERRAATTOORRSS
+       Boolean operators
+           LLTT,, LLEE,, GGTT,, GGEE,, EEQQ,, NNEE
+
+           Pop two elements from the stack, compare them for the selected
+           condition and return 1 for true or 0 for false. Comparing an
+           _u_n_k_n_o_w_n or an _i_n_f_i_n_i_t_e value will result in _u_n_k_n_o_w_n returned ...
+           which will also be treated as false by the IIFF call.
+
+           UUNN,, IISSIINNFF
+
+           Pop one element from the stack, compare this to _u_n_k_n_o_w_n
+           respectively to _p_o_s_i_t_i_v_e _o_r _n_e_g_a_t_i_v_e _i_n_f_i_n_i_t_y. Returns 1 for true
+           or 0 for false.
+
+           IIFF
+
+           Pops three elements from the stack.  If the element popped last is
+           0 (false), the value popped first is pushed back onto the stack,
+           otherwise the value popped second is pushed back. This does,
+           indeed, mean that any value other than 0 is considered to be true.
+
+           Example: "A,B,C,IF" should be read as "if (A) then (B) else (C)"
+
+
+
+       Comparing values
+           MMIINN,, MMAAXX
+
+           Pops two elements from the stack and returns the smaller or larger,
+           respectively.  Note that _i_n_f_i_n_i_t_e is larger than anything else.  If
+           one of the input numbers is _u_n_k_n_o_w_n then the result of the
+           operation will be _u_n_k_n_o_w_n too.
+
+           LLIIMMIITT
+
+           Pops two elements from the stack and uses them to define a range.
+           Then it pops another element and if it falls inside the range, it
+           is pushed back. If not, an _u_n_k_n_o_w_n is pushed.
+
+           The range defined includes the two boundaries (so: a number equal
+           to one of the boundaries will be pushed back). If any of the three
+           numbers involved is either _u_n_k_n_o_w_n or _i_n_f_i_n_i_t_e this function will
+           always return an _u_n_k_n_o_w_n
+
+           Example: "CDEF:a=alpha,0,100,LIMIT" will return _u_n_k_n_o_w_n if alpha is
+           lower than 0 or if it is higher than 100.
+
+
+
+       Arithmetics
+           ++,, --,, **,, //,, %%
+
+           Add, subtract, multiply, divide, modulo
+
+           AADDDDNNAANN
+
+           NAN-safe addition. If one parameter is NAN/UNKNOWN it'll be treated
+           as zero. If both parameters are NAN/UNKNOWN, NAN/UNKNOWN will be
+           returned.
+
+           SSIINN,, CCOOSS,, LLOOGG,, EEXXPP,, SSQQRRTT
+
+           Sine and cosine (input in radians), log and exp (natural
+           logarithm), square root.
+
+           AATTAANN
+
+           Arctangent (output in radians).
+
+           AATTAANN22
+
+           Arctangent of y,x components (output in radians).  This pops one
+           element from the stack, the x (cosine) component, and then a
+           second, which is the y (sine) component.  It then pushes the
+           arctangent of their ratio, resolving the ambiguity between
+           quadrants.
+
+           Example: "CDEF:angle=Y,X,ATAN2,RAD2DEG" will convert "X,Y"
+           components into an angle in degrees.
+
+           FFLLOOOORR,, CCEEIILL
+
+           Round down or up to the nearest integer.
+
+           DDEEGG22RRAADD,, RRAADD22DDEEGG
+
+           Convert angle in degrees to radians, or radians to degrees.
+
+           AABBSS
+
+           Take the absolute value.
+
+       Set Operations
+           SSOORRTT,, RREEVV
+
+           Pop one element from the stack.  This is the _c_o_u_n_t of items to be
+           sorted (or reversed).  The top _c_o_u_n_t of the remaining elements are
+           then sorted (or reversed) in place on the stack.
+
+           Example: "CDEF:x=v1,v2,v3,v4,v5,v6,6,SORT,POP,5,REV,POP,+,+,+,4,/"
+           will compute the average of the values v1 to v6 after removing the
+           smallest and largest.
+
+           AAVVGG
+
+           Pop one element (_c_o_u_n_t) from the stack. Now pop _c_o_u_n_t elements and
+           build the average, ignoring all UNKNOWN values in the process.
+
+           Example: "CDEF:x=a,b,c,d,4,AVG"
+
+           TTRREENNDD,, TTRREENNDDNNAANN
+
+           Create a "sliding window" average of another data series.
+
+           Usage: CDEF:smoothed=x,1800,TREND
+
+           This will create a half-hour (1800 second) sliding window average
+           of x.  The average is essentially computed as shown here:
+
+                            +---!---!---!---!---!---!---!---!--->
+                                                                now
+                                  delay     t0
+                            <--------------->
+                                    delay       t1
+                                <--------------->
+                                         delay      t2
+                                    <--------------->
+
+
+                Value at sample (t0) will be the average between (t0-delay) and (t0)
+                Value at sample (t1) will be the average between (t1-delay) and (t1)
+                Value at sample (t2) will be the average between (t2-delay) and (t2)
+
+           TRENDNAN is - in contrast to TREND - NAN-safe. If you use TREND and
+           one source value is NAN the complete sliding window is affected.
+           The TRENDNAN operation ignores all NAN-values in a sliding window
+           and computes the average of the remaining values.
+
+           PPRREEDDIICCTT,, PPRREEDDIICCTTSSIIGGMMAA
+
+           Create a "sliding window" average/sigma of another data series,
+           that also shifts the data series by given amounts of of time as
+           well
+
+           Usage - explicit stating shifts: CDEF:predict=<shift n>,...,<shift
+           1>,n,<window>,x,PREDICT CDEF:sigma=<shift n>,...,<shift
+           1>,n,<window>,x,PREDICTSIGMA
+
+           Usage - shifts defined as a base shift and a number of time this is
+           applied CDEF:predict=<shift multiplier>,-n,<window>,x,PREDICT
+           CDEF:sigma=<shift multiplier>,-n,<window>,x,PREDICTSIGMA
+
+           Example: CDEF:predict=172800,86400,2,1800,x,PREDICT
+
+           This will create a half-hour (1800 second) sliding window
+           average/sigma of x, that average is essentially computed as shown
+           here:
+
+            +---!---!---!---!---!---!---!---!---!---!---!---!---!---!---!---!---!--->
+                                                                                now
+                                                             shift 1        t0
+                                                    <----------------------->
+                                          window
+                                    <--------------->
+                                                  shift 2
+                            <----------------------------------------------->
+                  window
+            <--------------->
+                                                                 shift 1        t1
+                                                        <----------------------->
+                                              window
+                                        <--------------->
+                                                       shift 2
+                                <----------------------------------------------->
+                      window
+                <--------------->
+
+            Value at sample (t0) will be the average between (t0-shift1-window) and (t0-shift1)
+                                                 and between (t0-shift2-window) and (t0-shift2)
+            Value at sample (t1) will be the average between (t1-shift1-window) and (t1-shift1)
+                                                 and between (t1-shift2-window) and (t1-shift2)
+
+           The function is by design NAN-safe.  This also allows for
+           extrapolation into the future (say a few days) - you may need to
+           define the data series whit the optional start= parameter, so that
+           the source data series has enough data to provide prediction also
+           at the beginning of a graph...
+
+           Here an example, that will create a 10 day graph that also shows
+           the prediction 3 days into the future with its uncertainty value
+           (as defined by avg+-4*sigma) This also shows if the prediction is
+           exceeded at a certain point.
+
+           rrdtool graph image.png --imgformat=PNG \
+            --start=-7days --end=+3days --width=1000 --height=200
+           --alt-autoscale-max \
+            DEF:value=value.rrd:value:AVERAGE:start=-14days \
+            LINE1:value#ff0000:value \
+            CDEF:predict=86400,-7,1800,value,PREDICT \
+            CDEF:sigma=86400,-7,1800,value,PREDICTSIGMA \
+            CDEF:upper=predict,sigma,3,*,+ \
+            CDEF:lower=predict,sigma,3,*,- \
+            LINE1:predict#00ff00:prediction \
+            LINE1:upper#0000ff:upper\ certainty\ limit \
+            LINE1:lower#0000ff:lower\ certainty\ limit \
+            CDEF:exceeds=value,UN,0,value,lower,upper,LIMIT,UN,IF \
+            TICK:exceeds#aa000080:1
+
+           Note: Experience has shown that a factor between 3 and 5 to scale
+           sigma is a good discriminator to detect abnormal behavior. This
+           obviously depends also on the type of data and how "noisy" the data
+           series is.
+
+           This prediction can only be used for short term extrapolations -
+           say a few days into the future-
+
+       Special values
+           UUNNKKNN
+
+           Pushes an unknown value on the stack
+
+           IINNFF,, NNEEGGIINNFF
+
+           Pushes a positive or negative infinite value on the stack. When
+           such a value is graphed, it appears at the top or bottom of the
+           graph, no matter what the actual value on the y-axis is.
+
+           PPRREEVV
+
+           Pushes an _u_n_k_n_o_w_n value if this is the first value of a data set or
+           otherwise the result of this CCDDEEFF at the previous time step. This
+           allows you to do calculations across the data.  This function
+           cannot be used in VVDDEEFF instructions.
+
+           PPRREEVV((vvnnaammee))
+
+           Pushes an _u_n_k_n_o_w_n value if this is the first value of a data set or
+           otherwise the result of the vname variable at the previous time
+           step. This allows you to do calculations across the data. This
+           function cannot be used in VVDDEEFF instructions.
+
+           CCOOUUNNTT
+
+           Pushes the number 1 if this is the first value of the data set, the
+           number 2 if it is the second, and so on. This special value allows
+           you to make calculations based on the position of the value within
+           the data set. This function cannot be used in VVDDEEFF instructions.
+
+       Time
+           Time inside RRDtool is measured in seconds since the epoch. The
+           epoch is defined to be "Thu Jan  1 00:00:00 UTC 1970".
+
+           NNOOWW
+
+           Pushes the current time on the stack.
+
+           TTIIMMEE
+
+           Pushes the time the currently processed value was taken at onto the
+           stack.
+
+           LLTTIIMMEE
+
+           Takes the time as defined by TTIIMMEE, applies the time zone offset
+           valid at that time including daylight saving time if your OS
+           supports it, and pushes the result on the stack.  There is an
+           elaborate example in the examples section below on how to use this.
+
+       Processing the stack directly
+           DDUUPP,, PPOOPP,, EEXXCC
+
+           Duplicate the top element, remove the top element, exchange the two
+           top elements.
+
+
+
+VVAARRIIAABBLLEESS
+       These operators work only on VVDDEEFF statements. Note that currently ONLY
+       these work for VVDDEEFF.
+
+       MAXIMUM, MINIMUM, AVERAGE
+           Return the corresponding value, MAXIMUM and MINIMUM also return the
+           first occurrence of that value in the time component.
+
+           Example: "VDEF:avg=mydata,AVERAGE"
+
+       STDEV
+           Returns the standard deviation of the values.
+
+           Example: "VDEF:stdev=mydata,STDEV"
+
+       LAST, FIRST
+           Return the last/first non-nan or infinite value for the selected
+           data stream, including its timestamp.
+
+           Example: "VDEF:first=mydata,FIRST"
+
+       TOTAL
+           Returns the rate from each defined time slot multiplied with the
+           step size.  This can, for instance, return total bytes transferred
+           when you have logged bytes per second. The time component returns
+           the number of seconds.
+
+           Example: "VDEF:total=mydata,TOTAL"
+
+       PERCENT, PERCENTNAN
+           This should follow a DDEEFF or CCDDEEFF _v_n_a_m_e. The _v_n_a_m_e is popped,
+           another number is popped which is a certain percentage (0..100).
+           The data set is then sorted and the value returned is chosen such
+           that _p_e_r_c_e_n_t_a_g_e percent of the values is lower or equal than the
+           result.  For PERCENTNAN _U_n_k_n_o_w_n values are ignored, but for PERCENT
+           _U_n_k_n_o_w_n values are considered lower than any finite number for this
+           purpose so if this operator returns an _u_n_k_n_o_w_n you have quite a lot
+           of them in your data.  IInnffinite numbers are lesser, or more, than
+           the finite numbers and are always more than the _U_n_k_n_o_w_n numbers.
+           (NaN < -INF < finite values < INF)
+
+           Example: "VDEF:perc95=mydata,95,PERCENT"
+                    "VDEF:percnan95=mydata,95,PERCENTNAN"
+
+       LSLSLOPE, LSLINT, LSLCORREL
+           Return the parameters for a LLeast SSquares LLine _(_y _= _m_x _+_b_) which
+           approximate the provided dataset.  LSLSLOPE is the slope _(_m_) of the
+           line related to the COUNT position of the data.  LSLINT is the
+           y-intercept _(_b_), which happens also to be the first data point on
+           the graph. LSLCORREL is the Correlation Coefficient (also know as
+           Pearson's Product Moment Correlation Coefficient).  It will range
+           from 0 to +/-1 and represents the quality of fit for the
+           approximation.
+
+           Example: "VDEF:slope=mydata,LSLSLOPE"
+
+SSEEEE AALLSSOO
+       rrdgraph gives an overview of how rrrrddttooooll ggrraapphh works.  rrdgraph_data
+       describes DDEEFF,CCDDEEFF and VVDDEEFF in detail.  rrdgraph_rpn describes the RRPPNN
+       language used in the ??DDEEFF statements.  rrdgraph_graph page describes
+       all of the graph and print functions.
+
+       Make sure to read rrdgraph_examples for tips&tricks.
+
+AAUUTTHHOORR
+       Program by Tobias Oetiker <tobi@oetiker.ch>
+
+       This manual page by Alex van den Bogaerdt <alex@vandenbogaerdt.nl> with
+       corrections and/or additions by several people
+
+
+
+1.4.8                             2013-05-23                   RRDGRAPH_RPN(1)

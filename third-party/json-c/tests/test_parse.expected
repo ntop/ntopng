@@ -1,0 +1,57 @@
+new_obj.to_string()="\u0003"
+new_obj.to_string()="foo"
+new_obj.to_string()="foo"
+new_obj.to_string()="ABC"
+new_obj.to_string()=null
+new_obj.to_string()=true
+new_obj.to_string()=12
+new_obj.to_string()=12.300000
+new_obj.to_string()=[ "\n" ]
+new_obj.to_string()=[ "\nabc\n" ]
+new_obj.to_string()=[ null ]
+new_obj.to_string()=[ ]
+new_obj.to_string()=[ false ]
+new_obj.to_string()=[ "abc", null, "def", 12 ]
+new_obj.to_string()={ }
+new_obj.to_string()={ "foo": "bar" }
+new_obj.to_string()={ "foo": "bar", "baz": null, "bool0": true }
+new_obj.to_string()={ "foo": [ null, "foo" ] }
+new_obj.to_string()={ "abc": 12, "foo": "bar", "bool0": false, "bool1": true, "arr": [ 1, 2, 3, null, 5 ] }
+==================================
+json_tokener_parse_versbose() OK
+==================================
+Starting incremental tests.
+Note: quotes and backslashes seen in the output here are literal values passed
+     to the parse functions.  e.g. this is 4 characters: "\f"
+json_tokener_parse({ "foo) ... got error as expected
+json_tokener_parse_ex(tok, { "foo": 123 },  14) ... OK: got object of type [object]: { "foo": 123 }
+json_tokener_parse_ex(tok, { "foo": 456 },  14) ... OK: got object of type [object]: { "foo": 456 }
+json_tokener_parse_ex(tok, { "foo": 789 },  14) ... OK: got object of type [object]: { "foo": 789 }
+json_tokener_parse_ex(tok, { "foo      ,   6) ... OK: got correct error: continue
+json_tokener_parse_ex(tok, ": {"bar    ,   8) ... OK: got correct error: continue
+json_tokener_parse_ex(tok, ":13}}      ,   6) ... OK: got object of type [object]: { "foo": { "bar": 13 } }
+json_tokener_parse_ex(tok, { "foo      ,   6) ... OK: got correct error: continue
+json_tokener_parse_ex(tok, : "bar"}    ,   8) ... OK: got correct error: unexpected character
+json_tokener_parse_ex(tok, { "foo      ,   6) ... OK: got correct error: continue
+json_tokener_parse_ex(tok, ": {"bar    ,   8) ... OK: got correct error: continue
+json_tokener_parse_ex(tok, ":13}}XXXX  ,  10) ... OK: got object of type [object]: { "foo": { "bar": 13 } }
+json_tokener_parse_ex(tok, XXXX        ,   4) ... OK: got correct error: unexpected character
+json_tokener_parse_ex(tok, {"x": 123 }"X",  14) ... OK: got object of type [object]: { "x": 123 }
+json_tokener_parse_ex(tok, "Y"         ,   3) ... OK: got object of type [string]: "Y"
+json_tokener_parse_ex(tok, 1           ,   1) ... OK: got correct error: continue
+json_tokener_parse_ex(tok, 2           ,   2) ... OK: got object of type [int]: 12
+json_tokener_parse_ex(tok, "blue"      ,   6) ... OK: got object of type [string]: "blue"
+json_tokener_parse_ex(tok, "\""        ,   4) ... OK: got object of type [string]: "\""
+json_tokener_parse_ex(tok, "\\"        ,   4) ... OK: got object of type [string]: "\\"
+json_tokener_parse_ex(tok, "\b"        ,   4) ... OK: got object of type [string]: "\b"
+json_tokener_parse_ex(tok, "\f"        ,   4) ... OK: got object of type [string]: "\f"
+json_tokener_parse_ex(tok, "\n"        ,   4) ... OK: got object of type [string]: "\n"
+json_tokener_parse_ex(tok, "\r"        ,   4) ... OK: got object of type [string]: "\r"
+json_tokener_parse_ex(tok, "\t"        ,   4) ... OK: got object of type [string]: "\t"
+json_tokener_parse_ex(tok, [1,2,3]     ,   7) ... OK: got object of type [array]: [ 1, 2, 3 ]
+json_tokener_parse_ex(tok, [1,2,3,]    ,   8) ... OK: got object of type [array]: [ 1, 2, 3 ]
+json_tokener_parse_ex(tok, [1,2,,3,]   ,   9) ... OK: got correct error: unexpected character
+json_tokener_parse_ex(tok, [1,2,3,]    ,   8) ... OK: got correct error: unexpected character
+json_tokener_parse_ex(tok, {"a":1,}    ,   8) ... OK: got correct error: unexpected character
+End Incremental Tests OK=29 ERROR=0
+==================================

@@ -1,0 +1,33 @@
+RRDRESTORE(1)                       rrdtool                      RRDRESTORE(1)
+
+
+
+NNAAMMEE
+       rrdrestore - Restore the contents of an RRD from its XML dump format
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll rreessttoorree _f_i_l_e_n_a_m_e_._x_m_l _f_i_l_e_n_a_m_e_._r_r_d [----rraannggee--cchheecckk|--rr]
+
+DDEESSCCRRIIPPTTIIOONN
+       The rreessttoorree function reads the XML representation of an RRD and
+       converts it to the native RRRRDD format.
+
+       _f_i_l_e_n_a_m_e_._x_m_l
+               The name of the XXMMLL file you want to restore.
+
+       _f_i_l_e_n_a_m_e_._r_r_d
+               The name of the RRRRDD to restore.
+
+       ----rraannggee--cchheecckk|--rr
+               Make sure the values in the RRAs do not exceed the limits
+               defined for the various data sources.
+
+       ----ffoorrccee--oovveerrwwrriittee|--ff
+               Allows RRRRDDttooooll to overwrite the destination RRRRDD.
+
+AAUUTTHHOORR
+       Tobias Oetiker <tobi@oetiker.ch>
+
+
+
+1.4.8                             2013-05-23                     RRDRESTORE(1)

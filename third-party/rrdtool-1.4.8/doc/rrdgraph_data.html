@@ -1,0 +1,170 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrdgraph_data</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#def">DEF</a></li>
+	<li><a href="#vdef">VDEF</a></li>
+	<li><a href="#cdef">CDEF</a></li>
+	<li><a href="#about_cdef_versus_vdef">About CDEF versus VDEF</a></li>
+	<ul>
+
+		<li><a href="#when_do_you_use_vdef_versus_cdef">When do you use <strong>VDEF</strong> versus <strong>CDEF</strong>?</a></li>
+	</ul>
+
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rrdgraph_data - preparing data for graphing in rrdtool graph</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>DEF:</strong><em>&lt;vname&gt;</em>=<em>&lt;rrdfile&gt;</em>:<em>&lt;ds-name&gt;</em>:<em>&lt;CF&gt;</em>[:step=<em>&lt;step&gt;</em>][:start=<em>&lt;time&gt;</em>][:end=<em>&lt;time&gt;</em>][:reduce=<em>&lt;<strong>CF</strong>&gt;</em>]</p>
+<p><strong>VDEF</strong>:<em>vname</em>=<em>RPN expression</em></p>
+<p><strong>CDEF</strong>:<em>vname</em>=<em>RPN expression</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>These three instructions extract data values out of the <strong>RRD</strong> files,
+optionally altering them (think, for example, of a bytes to bits
+conversion). If so desired, you can also define variables containing
+useful information such as maximum, minimum etcetera. Two of the
+instructions use a language called <strong>RPN</strong> which is described in its
+own manual page.</p>
+<p>Variable names (<em>vname</em>) must be made up strings of the following characters
+<code>A-Z, a-z, 0-9, -,_</code> and a maximum length of 255 characters.</p>
+<p>When picking variable names, make sure you do not choose a name that is
+already taken by an RPN operator. A safe bet it to use lowercase or
+mixed case names for variables since operators will always be in uppercase.</p>
+<p>
+</p>
+<hr />
+<h1><a name="def">DEF</a></h1>
+<p><strong>DEF:</strong><em>&lt;vname&gt;</em>=<em>&lt;rrdfile&gt;</em>:<em>&lt;ds-name&gt;</em>:<em>&lt;CF&gt;</em>[:step=<em>&lt;step&gt;</em>][:start=<em>&lt;time&gt;</em>][:end=<em>&lt;time&gt;</em>][:reduce=<em>&lt;<strong>CF</strong>&gt;</em>]</p>
+<p>This command fetches data from an <strong>RRD</strong> file.  The virtual name
+<em>vname</em> can then be used throughout the rest of the script. By
+default, an <strong>RRA</strong> which contains the correct consolidated data
+at an appropriate resolution will be chosen.  The resolution can
+be overridden with the <a href="././rrdgraph.html#item_time">--step</a> option.
+The resolution can again be overridden by specifying the <strong>step size</strong>.
+The time span of this data is the same as for the graph by default,
+you can override this by specifying <strong>start and end</strong>.  Remember to
+escape colons in the time specification!</p>
+<p>If the resolution of the data is higher than the resolution of the
+graph, the data will be further consolidated. This may result in
+a graph that spans slightly more time than requested.
+Ideally each point in the graph should correspond with one <strong>CDP</strong>
+from an <strong>RRA</strong>.  For instance, if your <strong>RRD</strong> has an <strong>RRA</strong> with
+a resolution of 1800 seconds per <strong>CDP</strong>, you should create an
+image with width 400 and time span 400*1800 seconds (use appropriate
+start and end times, such as <code>--start end-8days8hours</code>).</p>
+<p>If consolidation needs to be done, the <strong>CF</strong> of the <strong>RRA</strong> specified in the
+<strong>DEF</strong> itself will be used to reduce the data density. This behavior can
+be changed using <code>:reduce=&lt;CF&gt;</code>.  This optional parameter
+specifies the <strong>CF</strong> to use during the data reduction phase.</p>
+<p>Example:</p>
+<pre>
+        DEF:ds0=router.rrd:ds0:AVERAGE
+        DEF:ds0weekly=router.rrd:ds0:AVERAGE:step=7200
+        DEF:ds0weekly=router.rrd:ds0:AVERAGE:start=end-1h
+        DEF:ds0weekly=router.rrd:ds0:AVERAGE:start=11\:00:end=start+1h</pre>
+<p>
+</p>
+<hr />
+<h1><a name="vdef">VDEF</a></h1>
+<p><strong>VDEF</strong>:<em>vname</em>=<em>RPN expression</em></p>
+<p>This command returns a value and/or a time according to the <strong>RPN</strong>
+statements used. The resulting <em>vname</em> will, depending on the
+functions used, have a value and a time component.  When you use
+this <em>vname</em> in another <strong>RPN</strong> expression, you are effectively
+inserting its value just as if you had put a number at that place.
+The variable can also be used in the various graph and print
+elements.</p>
+<p>Example: <code>VDEF:avg=mydata,AVERAGE</code></p>
+<p>Note that currently only aggregation functions work in VDEF rpn expressions.
+Patches to change this are welcome.</p>
+<p>
+</p>
+<hr />
+<h1><a name="cdef">CDEF</a></h1>
+<p><strong>CDEF</strong>:<em>vname</em>=<em>RPN expression</em></p>
+<p>This command creates a new set of data points (in memory only, not
+in the <strong>RRD</strong> file) out of one or more other data series. The <strong>RPN</strong>
+instructions are used to evaluate a mathematical function on each
+data point. The resulting <em>vname</em> can then be used further on in
+the script, just as if it were generated by a <strong>DEF</strong> instruction.</p>
+<p>Example: <code>CDEF:mydatabits=mydata,8,*</code></p>
+<p>
+</p>
+<hr />
+<h1><a name="about_cdef_versus_vdef">About CDEF versus VDEF</a></h1>
+<p>At some point in processing, <strong>RRDtool</strong> has gathered an array of rates
+ready to display.</p>
+<p><strong>CDEF</strong> works on such an array.  For example, <em>CDEF:new=ds0,8,*</em>
+would multiply each of the array members by eight (probably
+transforming bytes into bits). The result is an array containing the
+new values.</p>
+<p><strong>VDEF</strong> also works on such an array but in a different way.  For
+example, <em>VDEF:max=ds0,MAXIMUM</em> would scan each of the array members
+and store the maximum value.</p>
+<p>
+</p>
+<h2><a name="when_do_you_use_vdef_versus_cdef">When do you use <strong>VDEF</strong> versus <strong>CDEF</strong>?</a></h2>
+<p>Use <strong>CDEF</strong> to transform your data prior to graphing.  In the above
+example, we'd use a <strong>CDEF</strong> to transform bytes to bits before
+graphing the bits.</p>
+<p>You use a <strong>VDEF</strong> if you want <em>max(1,5,3,2,4)</em> to return five which
+would be displayed in the graph's legend (to answer, what was the
+maximum value during the graph period).</p>
+<p>If you want to apply 'complex' operations to the result of a VDEF you have
+to use a CDEF again since VDEFs only look like RPN expressions, they aren't
+really.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="././rrdgraph.html">the rrdgraph manpage</a> gives an overview of how <strong>rrdtool graph</strong> works.
+<a href="././rrdgraph_data.html">the rrdgraph_data manpage</a> describes <strong>DEF</strong>,<strong>CDEF</strong> and <strong>VDEF</strong> in detail.
+<a href="././rrdgraph_rpn.html">the rrdgraph_rpn manpage</a> describes the <strong>RPN</strong> language used in the <strong>?DEF</strong> statements.
+<a href="././rrdgraph_graph.html">the rrdgraph_graph manpage</a> page describes all of the graph and print functions.</p>
+<p>Make sure to read <a href="././rrdgraph_examples.html">the rrdgraph_examples manpage</a> for tips&amp;tricks.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Program by Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;</p>
+<p>This manual page by Alex van den Bogaerdt &lt;<a href="mailto:alex@vandenbogaerdt.nl">alex@vandenbogaerdt.nl</a>&gt;
+with corrections and/or additions by several people</p>
+
+</body>
+
+</html>

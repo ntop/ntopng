@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrdrestore</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rrdrestore - Restore the contents of an RRD from its XML dump format</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>rrdtool</strong> <strong>restore</strong> <em>filename.xml</em> <em>filename.rrd</em>
+[<strong>--range-check</strong>|<strong>-r</strong>]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>The <strong>restore</strong> function reads the XML representation of an RRD and converts
+it to the native <strong>RRD</strong> format.</p>
+<dl>
+<dt><strong><a name="filename_xml" class="item"><em>filename.xml</em></a></strong></dt>
+
+<dd>
+<p>The name of the <strong>XML</strong> file you want to restore.</p>
+</dd>
+<dt><strong><a name="filename_rrd" class="item"><em>filename.rrd</em></a></strong></dt>
+
+<dd>
+<p>The name of the <strong>RRD</strong> to restore.</p>
+</dd>
+<dt><strong><a name="range_check_r" class="item"><strong>--range-check</strong>|<strong>-r</strong></a></strong></dt>
+
+<dd>
+<p>Make sure the values in the RRAs do not exceed the limits defined for
+the various data sources.</p>
+</dd>
+<dt><strong><a name="force_overwrite_f" class="item"><strong>--force-overwrite</strong>|<strong>-f</strong></a></strong></dt>
+
+<dd>
+<p>Allows <strong>RRDtool</strong> to overwrite the destination <strong>RRD</strong>.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;</p>
+
+</body>
+
+</html>

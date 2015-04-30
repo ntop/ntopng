@@ -1,0 +1,527 @@
+RRDGRAPH(1)                         rrdtool                        RRDGRAPH(1)
+
+
+
+NNAAMMEE
+       rrdgraph - Round Robin Database tool graphing functions
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll ggrraapphh||ggrraapphhvv _f_i_l_e_n_a_m_e [_o_p_t_i_o_n ...]  [_d_a_t_a _d_e_f_i_n_i_t_i_o_n ...]
+       [_d_a_t_a _c_a_l_c_u_l_a_t_i_o_n ...]  [_v_a_r_i_a_b_l_e _d_e_f_i_n_i_t_i_o_n ...]  [_g_r_a_p_h _e_l_e_m_e_n_t ...]
+       [_p_r_i_n_t _e_l_e_m_e_n_t ...]
+
+DDEESSCCRRIIPPTTIIOONN
+       The ggrraapphh function of RRRRDDttooooll is used to present the data from an RRRRDD
+       to a human viewer.  Its main purpose is to create a nice graphical
+       representation, but it can also generate a numerical report.
+
+OOVVEERRVVIIEEWW
+       rrrrddttooooll ggrraapphh needs data to work with, so you must use one or more ddaattaa
+       ddeeffiinniittiioonn statements to collect this data.  You are not limited to one
+       database, it's perfectly legal to collect data from two or more
+       databases (one per statement, though).
+
+       If you want to display averages, maxima, percentiles, etcetera it is
+       best to collect them now using the vvaarriiaabbllee ddeeffiinniittiioonn statement.
+       Currently this makes no difference, but in a future version of RRDtool
+       you may want to collect these values before consolidation.
+
+       The data fetched from the RRRRAA is then ccoonnssoolliiddaatteedd so that there is
+       exactly one data point per pixel in the graph. If you do not take care
+       yourself, RRRRDDttooooll will expand the range slightly if necessary. Note, in
+       that case the first and/or last pixel may very well become unknown!
+
+       Sometimes data is not exactly in the format you would like to display
+       it. For instance, you might be collecting bbyytteess per second, but want to
+       display bbiittss per second. This is what the ddaattaa ccaallccuullaattiioonn command is
+       designed for. After ccoonnssoolliiddaattiinngg the data, a copy is made and this
+       copy is modified using a rather powerful RRPPNN command set.
+
+       When you are done fetching and processing the data, it is time to graph
+       it (or print it).  This ends the rrrrddttooooll ggrraapphh sequence.
+
+       Use ggrraapphhvv instead of ggrraapphh to get detailed information about the graph
+       geometry and data once it is drawn. See the bottom of the document for
+       more information.
+
+OOPPTTIIOONNSS
+   _f_i_l_e_n_a_m_e
+       The name and path of the graph to generate. It is recommended to end
+       this in ".png", ".svg" or ".eps", but RRRRDDttooooll does not enforce this.
+
+       _f_i_l_e_n_a_m_e can be '"-"' to send the image to "stdout". In this case, no
+       other output is generated.
+
+   TTiimmee rraannggee
+       [--ss|----ssttaarrtt _t_i_m_e] [--ee|----eenndd _t_i_m_e] [--SS|----sstteepp _s_e_c_o_n_d_s]
+
+       The start and end of the time series you would like to display, and
+       which RRRRAA the data should come from.  Defaults are: 1 day ago until
+       now, with the best possible resolution. SSttaarrtt and eenndd can be specified
+       in several formats, see AT-STYLE TIME SPECIFICATION and
+       rrdgraph_examples.  By default, rrrrddttooooll ggrraapphh calculates the width of
+       one pixel in the time domain and tries to get data from an RRRRAA with
+       that resolution.  With the sstteepp option you can alter this behavior.  If
+       you want rrrrddttooooll ggrraapphh to get data at a one-hour resolution from the
+       RRRRDD, set sstteepp to 3'600. Note: a step smaller than one pixel will
+       silently be ignored.
+
+   LLaabbeellss
+       [--tt|----ttiittllee _s_t_r_i_n_g] [--vv|----vveerrttiiccaall--llaabbeell _s_t_r_i_n_g]
+
+       A horizontal string at the top of the graph and/or a vertically placed
+       string at the left hand side of the graph.
+
+   SSiizzee
+       [--ww|----wwiiddtthh _p_i_x_e_l_s] [--hh|----hheeiigghhtt _p_i_x_e_l_s] [--jj|----oonnllyy--ggrraapphh]
+       [--DD|----ffuullll--ssiizzee--mmooddee]
+
+       By default, the width and height of the ccaannvvaass (the part with the
+       actual data and such). This defaults to 400 pixels by 100 pixels.
+
+       If you specify the ----ffuullll--ssiizzee--mmooddee option, the width and height
+       specify the final dimensions of the output image and the canvas is
+       automatically resized to fit.
+
+       If you specify the ----oonnllyy--ggrraapphh option and set the height < 32 pixels
+       you will get a tiny graph image (thumbnail) to use as an icon for use
+       in an overview, for example. All labeling will be stripped off the
+       graph.
+
+   LLiimmiittss
+       [--uu|----uuppppeerr--lliimmiitt _v_a_l_u_e] [--ll|----lloowweerr--lliimmiitt _v_a_l_u_e] [--rr|----rriiggiidd]
+
+       By default the graph will be autoscaling so that it will adjust the
+       y-axis to the range of the data. You can change this behavior by
+       explicitly setting the limits. The displayed y-axis will then range at
+       least from lloowweerr--lliimmiitt to uuppppeerr--lliimmiitt. Autoscaling will still permit
+       those boundaries to be stretched unless the rriiggiidd option is set.
+
+       [--AA|----aalltt--aauuttoossccaallee]
+
+       Sometimes the default algorithm for selecting the y-axis scale is not
+       satisfactory. Normally the scale is selected from a predefined set of
+       ranges and this fails miserably when you need to graph something like
+       "260 + 0.001 * sin(x)". This option calculates the minimum and maximum
+       y-axis from the actual minimum and maximum data values. Our example
+       would display slightly less than "260-0.001" to slightly more than
+       "260+0.001" (this feature was contributed by Sasha Mikheev).
+
+       [--JJ|----aalltt--aauuttoossccaallee--mmiinn]
+
+       Where "--alt-autoscale" will modify both the absolute maximum AND
+       minimum values, this option will only affect the minimum value. The
+       maximum value, if not defined on the command line, will be 0. This
+       option can be useful when graphing router traffic when the WAN line
+       uses compression, and thus the throughput may be higher than the WAN
+       line speed.
+
+       [--MM|----aalltt--aauuttoossccaallee--mmaaxx]
+
+       Where "--alt-autoscale" will modify both the absolute maximum AND
+       minimum values, this option will only affect the maximum value. The
+       minimum value, if not defined on the command line, will be 0. This
+       option can be useful when graphing router traffic when the WAN line
+       uses compression, and thus the throughput may be higher than the WAN
+       line speed.
+
+       [--NN|----nnoo--ggrriiddffiitt]
+
+       In order to avoid anti-aliasing blurring effects RRDtool snaps points
+       to device resolution pixels, this results in a crisper appearance. If
+       this is not to your liking, you can use this switch to turn this
+       behavior off.
+
+       Grid-fitting is turned off for PDF, EPS, SVG output by default.
+
+   XX--AAxxiiss
+       [--xx|----xx--ggrriidd _G_T_M::_G_S_T::_M_T_M::_M_S_T::_L_T_M::_L_S_T::_L_P_R::_L_F_M]
+
+       [--xx|----xx--ggrriidd nnoonnee]
+
+       The x-axis label is quite complex to configure. If you don't have very
+       special needs it is probably best to rely on the auto configuration to
+       get this right. You can specify the string "none" to suppress the grid
+       and labels altogether.
+
+       The grid is defined by specifying a certain amount of time in the _?_T_M
+       positions. You can choose from "SECOND", "MINUTE", "HOUR", "DAY",
+       "WEEK", "MONTH" or "YEAR". Then you define how many of these should
+       pass between each line or label.  This pair (_?_T_M_:_?_S_T) needs to be
+       specified for the base grid (_G_?_?), the major grid (_M_?_?) and the labels
+       (_L_?_?). For the labels you also must define a precision in _L_P_R and a
+       _s_t_r_f_t_i_m_e format string in _L_F_M.  _L_P_R defines where each label will be
+       placed. If it is zero, the label will be placed right under the
+       corresponding line (useful for hours, dates etcetera).  If you specify
+       a number of seconds here the label is centered on this interval (useful
+       for Monday, January etcetera).
+
+        --x-grid MINUTE:10:HOUR:1:HOUR:4:0:%X
+
+       This places grid lines every 10 minutes, major grid lines every hour,
+       and labels every 4 hours. The labels are placed under the major grid
+       lines as they specify exactly that time.
+
+        --x-grid HOUR:8:DAY:1:DAY:1:86400:%A
+
+       This places grid lines every 8 hours, major grid lines and labels each
+       day. The labels are placed exactly between two major grid lines as they
+       specify the complete day and not just midnight.
+
+   YY--AAxxiiss
+       [--yy|----yy--ggrriidd _g_r_i_d _s_t_e_p::_l_a_b_e_l _f_a_c_t_o_r]
+
+       [--yy|----yy--ggrriidd nnoonnee]
+
+       Y-axis grid lines appear at each _g_r_i_d _s_t_e_p interval.  Labels are placed
+       every _l_a_b_e_l _f_a_c_t_o_r lines.  You can specify "-y none" to suppress the
+       grid and labels altogether.  The default for this option is to
+       automatically select sensible values.
+
+       If you have set --y-grid to 'none' not only the labels get suppressed,
+       also the space reserved for the labels is removed. You can still add
+       space manually if you use the --units-length command to explicitly
+       reserve space.
+
+       [--YY|----aalltt--yy--ggrriidd]
+
+       Place the Y grid dynamically based on the graph's Y range. The
+       algorithm ensures that you always have a grid, that there are enough
+       but not too many grid lines, and that the grid is metric. That is the
+       grid lines are placed every 1, 2, 5 or 10 units. This parameter will
+       also ensure that you get enough decimals displayed even if your graph
+       goes from 69.998 to 70.001.  (contributed by Sasha Mikheev).
+
+       [--oo|----llooggaarriitthhmmiicc]
+
+       Logarithmic y-axis scaling.
+
+       [--XX|----uunniittss--eexxppoonneenntt _v_a_l_u_e]
+
+       This sets the 10**exponent scaling of the y-axis values. Normally,
+       values will be scaled to the appropriate units (k, M, etc.).  However,
+       you may wish to display units always in k (Kilo, 10e3) even if the data
+       is in the M (Mega, 10e6) range, for instance. Value should be an
+       integer which is a multiple of 3 between -18 and 18 inclusively.  It is
+       the exponent on the units you wish to use. For example, use 3 to
+       display the y-axis values in k (Kilo, 10e3, thousands), use -6 to
+       display the y-axis values in u (Micro, 10e-6, millionths).  Use a value
+       of 0 to prevent any scaling of the y-axis values.
+
+       This option is very effective at confusing the heck out of the default
+       RRDtool autoscaling function and grid painter. If RRDtool detects that
+       it is not successful in labeling the graph under the given
+       circumstances, it will switch to the more robust ----aalltt--yy--ggrriidd mode.
+
+       [--LL|----uunniittss--lleennggtthh _v_a_l_u_e]
+
+       How many digits should RRDtool assume the y-axis labels to be? You may
+       have to use this option to make enough space once you start fiddling
+       with the y-axis labeling.
+
+       [----uunniittss==ssii]
+
+       With this option y-axis values on logarithmic graphs will be scaled to
+       the appropriate units (k, M, etc.) instead of using exponential
+       notation.  Note that for linear graphs, SI notation is used by default.
+
+   RRiigghhtt YY AAxxiiss
+       [----rriigghhtt--aaxxiiss _s_c_a_l_e::_s_h_i_f_t] [----rriigghhtt--aaxxiiss--llaabbeell _l_a_b_e_l]
+
+       A second axis will be drawn to the right of the graph. It is tied to
+       the left axis via the scale and shift parameters. You can also define a
+       label for the right axis.
+
+       [----rriigghhtt--aaxxiiss--ffoorrmmaatt _f_o_r_m_a_t_-_s_t_r_i_n_g]
+
+       By default the format of the axis labels gets determined automatically.
+       If you want to do this your self, use this option with the same %lf
+       arguments you know from the PRINT and GPRINT commands.
+
+   LLeeggeenndd
+       [--gg|----nnoo--lleeggeenndd]
+
+       Suppress generation of the legend; only render the graph.
+
+       [--FF|----ffoorrccee--rruulleess--lleeggeenndd]
+
+       Force the generation of HRULE and VRULE legends even if those HRULE or
+       VRULE will not be drawn because out of graph boundaries (mimics
+       behavior of pre 1.0.42 versions).
+
+       [----lleeggeenndd--ppoossiittiioonn=(north|south|west|east)]
+
+       Place the legend at the given side of the graph. The default is south.
+       In west or east position it is necessary to add line breaks manually.
+
+       [----lleeggeenndd--ddiirreeccttiioonn=(topdown|bottomup)]
+
+       Place the legend items in the given vertical order. The default is
+       topdown.  Using bottomup the legend items appear in the same vertical
+       order as a stack of lines or areas.
+
+   MMiisscceellllaanneeoouuss
+       [--zz|----llaazzyy]
+
+       Only generate the graph if the current graph is out of date or not
+       existent.  Note, that all the calculations will happen regardless so
+       that the output of PRINT and graphv will be complete regardless. Note
+       that the behavior of lazy in this regard has seen several changes over
+       time. The only thing you can really rely on before RRDtool 1.3.7 is
+       that lazy will not generate the graph when it is already there and up
+       to date, and also that it will output the size of the graph.
+
+       [----ddaaeemmoonn _a_d_d_r_e_s_s]
+
+       Address of the rrdcached daemon. If specified, a "flush" command is
+       sent to the server before reading the RRD files. This allows the graph
+       to contain fresh data even if the daemon is configured to cache values
+       for a long time.  For a list of accepted formats, see the --ll option in
+       the rrdcached manual.
+
+        rrdtool graph [...] --daemon unix:/var/run/rrdcached.sock [...]
+
+       [--ff|----iimmggiinnffoo _p_r_i_n_t_f_s_t_r]
+
+       After the image has been created, the graph function uses printf
+       together with this format string to create output similar to the PRINT
+       function, only that the printf function is supplied with the parameters
+       _f_i_l_e_n_a_m_e, _x_s_i_z_e and _y_s_i_z_e. In order to generate an IIMMGG tag suitable for
+       including the graph into a web page, the command line would look like
+       this:
+
+        --imginfo '<IMG SRC="/img/%s" WIDTH="%lu" HEIGHT="%lu" ALT="Demo">'
+
+       [--cc|----ccoolloorr _C_O_L_O_R_T_A_G#_r_r_g_g_b_b[_a_a]]
+
+       Override the default colors for the standard elements of the graph. The
+       _C_O_L_O_R_T_A_G is one of "BACK" background, "CANVAS" for the background of
+       the actual graph, "SHADEA" for the left and top border, "SHADEB" for
+       the right and bottom border, "GRID", "MGRID" for the major grid, "FONT"
+       for the color of the font, "AXIS" for the axis of the graph, "FRAME"
+       for the line around the color spots, and finally "ARROW" for the arrow
+       head pointing up and forward. Each color is composed out of three
+       hexadecimal numbers specifying its rgb color component (00 is off, FF
+       is maximum) of red, green and blue. Optionally you may add another
+       hexadecimal number specifying the transparency (FF is solid). You may
+       set this option several times to alter multiple defaults.
+
+       A green arrow is made by: "--color ARROW#00FF00"
+
+       [----ggrriidd--ddaasshh _o_n::_o_f_f]
+
+       by default the grid is drawn in a 1 on, 1 off pattern. With this option
+       you can set this yourself
+
+        --grid-dash 1:3    for a dot grid
+
+        --grid-dash 1:0    for uninterrupted grid lines
+
+       [----bboorrddeerr _w_i_d_t_h]]
+
+       Width in pixels for the 3d border drawn around the image. Default 2, 0
+       disables the border. See "SHADEA" and "SHADEB" above for setting the
+       border color.
+
+       [----ddyynnaammiicc--llaabbeellss]
+
+       Pick the shape of the color marker next to the label according to the
+       element drawn on the graph.
+
+       [--mm|----zzoooomm _f_a_c_t_o_r]
+
+       Zoom the graphics by the given amount. The factor must be > 0
+
+       [--nn|----ffoonntt _F_O_N_T_T_A_G::_s_i_z_e::[_f_o_n_t]]
+
+       This lets you customize which font to use for the various text elements
+       on the RRD graphs. "DEFAULT" sets the default value for all elements,
+       "TITLE" for the title, "AXIS" for the axis labels, "UNIT" for the
+       vertical unit label, "LEGEND" for the graph legend, "WATERMARK" for the
+       watermark on the edge of the graph.
+
+       Use Times for the title: "--font TITLE:13:Times"
+
+       Note that you need to quote the argument to ----ffoonntt if the font-name
+       contains whitespace: --font "TITLE:13:Some Font"
+
+       If you do not give a font string you can modify just the size of the
+       default font: "--font TITLE:13:".
+
+       If you specify the size 0 then you can modify just the font without
+       touching the size. This is especially useful for altering the default
+       font without resetting the default fontsizes: "--font
+       DEFAULT:0:Courier".
+
+       RRDtool comes with a preset default font. You can set the environment
+       variable "RRD_DEFAULT_FONT" if you want to change this.
+
+       RRDtool uses Pango for its font handling. This means you can to use the
+       full Pango syntax when selecting your font:
+
+       The font name has the form "[_F_A_M_I_L_Y_-_L_I_S_T] [_S_T_Y_L_E_-_O_P_T_I_O_N_S] [_S_I_Z_E]",
+       where _F_A_M_I_L_Y_-_L_I_S_T is a comma separated list of families optionally
+       terminated by a comma, _S_T_Y_L_E___O_P_T_I_O_N_S is a whitespace separated list of
+       words where each WORD describes one of style, variant, weight, stretch,
+       or gravity, and _S_I_Z_E is a decimal number (size in points) or optionally
+       followed by the unit modifier "px" for absolute size. Any one of the
+       options may be absent.
+
+       [--RR|----ffoonntt--rreennddeerr--mmooddee {nnoorrmmaall,lliigghhtt,mmoonnoo}]
+
+       There are 3 font render modes:
+
+       nnoorrmmaall: Full Hinting and Anti-aliasing (default)
+
+       lliigghhtt: Slight Hinting and Anti-aliasing
+
+       mmoonnoo: Full Hinting and NO Anti-aliasing
+
+       [--BB|----ffoonntt--ssmmooootthhiinngg--tthhrreesshhoolldd _s_i_z_e]
+
+       (this gets ignored in 1.3 for now!)
+
+       This specifies the largest font size which will be rendered bitmapped,
+       that is, without any font smoothing. By default, no text is rendered
+       bitmapped.
+
+       [--PP|----ppaannggoo--mmaarrkkuupp]
+
+       All text in RRDtool is rendered using Pango. With the ----ppaannggoo--mmaarrkkuupp
+       option, all text will be processed by pango markup. This allows to
+       embed some simple html like markup tags using
+
+        <span key="value">text</span>
+
+       Apart from the verbose syntax, there are also the following short tags
+       available.
+
+        b     Bold
+        big   Makes font relatively larger, equivalent to <span size="larger">
+        i     Italic
+        s     Strikethrough
+        sub   Subscript
+        sup   Superscript
+        small Makes font relatively smaller, equivalent to <span size="smaller">
+        tt    Monospace font
+        u     Underline
+
+       More details on
+       <http://developer.gnome.org/pango/stable/PangoMarkupFormat.html>.
+
+       [--GG|----ggrraapphh--rreennddeerr--mmooddee {nnoorrmmaall,mmoonnoo}]
+
+       There are 2 render modes:
+
+       nnoorrmmaall: Graphs are fully Anti-aliased (default)
+
+       mmoonnoo: No Anti-aliasing
+
+       [--EE|----ssllooppee--mmooddee]
+
+       RRDtool graphs are composed of stair case curves by default. This is in
+       line with the way RRDtool calculates its data. Some people favor a more
+       'organic' look for their graphs even though it is not all that true.
+
+       [--aa|----iimmggffoorrmmaatt PPNNGG|SSVVGG|EEPPSS|PPDDFF]
+
+       Image format for the generated graph. For the vector formats you can
+       choose among the standard Postscript fonts Courier-Bold, Courier-
+       BoldOblique, Courier-Oblique, Courier, Helvetica-Bold, Helvetica-
+       BoldOblique, Helvetica-Oblique, Helvetica, Symbol, Times-Bold, Times-
+       BoldItalic, Times-Italic, Times-Roman, and ZapfDingbats.
+
+       [--ii|----iinntteerrllaacceedd]
+
+       (this gets ignored in 1.3 for now!)
+
+       If images are interlaced they become visible on browsers more quickly.
+
+       [--TT|----ttaabbwwiiddtthh _v_a_l_u_e]
+
+       By default the tab-width is 40 pixels, use this option to change it.
+
+       [--bb|----bbaassee _v_a_l_u_e]
+
+       If you are graphing memory (and NOT network traffic) this switch should
+       be set to 1024 so that one Kb is 1024 byte. For traffic measurement, 1
+       kb/s is 1000 b/s.
+
+       [--WW|----wwaatteerrmmaarrkk _s_t_r_i_n_g]
+
+       Adds the given string as a watermark, horizontally centered, at the
+       bottom of the graph.
+
+   DDaattaa aanndd vvaarriiaabblleess
+       DDEEFF::_v_n_a_m_e==_r_r_d_f_i_l_e::_d_s_-_n_a_m_e::_C_F[::sstteepp==_s_t_e_p][::ssttaarrtt==_t_i_m_e][::eenndd==_t_i_m_e]
+
+       CCDDEEFF::_v_n_a_m_e==_R_P_N _e_x_p_r_e_s_s_i_o_n
+
+       VVDDEEFF::_v_n_a_m_e==_R_P_N _e_x_p_r_e_s_s_i_o_n
+
+       You need at least one DDEEFF and one LLIINNEE, AARREEAA, GGPPRRIINNTT, PPRRIINNTT statement
+       to generate anything useful.
+
+       See rrdgraph_data and rrdgraph_rpn for the exact format.
+
+       NOTE: GGrraapphh aanndd pprriinntt eelleemmeennttss
+
+       You need at least one graph element to generate an image and/or at
+       least one print statement to generate a report.  See rrdgraph_graph for
+       the exact format.
+
+   ggrraapphhvv
+       Calling RRDtool with the graphv option will return information in the
+       RRDtool info format. On the command line this means that all output
+       will be in key=value format. When used from the Perl and Ruby bindings
+       a hash pointer will be returned from the call.
+
+       When the filename '-' is given, the contents of the graph itself will
+       also be returned through this interface (hash key 'image'). On the
+       command line the output will look like this:
+
+        print[0] = "0.020833"
+        print[1] = "0.0440833"
+        graph_left = 51
+        graph_top = 22
+        graph_width = 400
+        graph_height = 100
+        graph_start = 1232908800
+        graph_end = 1232914200
+        image_width = 481
+        image_height = 154
+        value_min = 0.0000000000e+00
+        value_max = 4.0000000000e-02
+        image = BLOB_SIZE:8196
+        [... 8196 bytes of image data ...]
+
+       There is more information returned than in the standard interface.
+       Especially the 'graph_*' keys are new. They help applications that want
+       to know what is where on the graph.
+
+EENNVVIIRROONNMMEENNTT VVAARRIIAABBLLEESS
+       The following environment variables may be used to change the behavior
+       of "rrdtool graph":
+
+       RRRRDDCCAACCHHEEDD__AADDDDRREESSSS
+           If this environment variable is set it will have the same effect as
+           specifying the "--daemon" option on the command line. If both are
+           present, the command line argument takes precedence.
+
+SSEEEE AALLSSOO
+       rrdgraph gives an overview of how rrrrddttooooll ggrraapphh works.  rrdgraph_data
+       describes DDEEFF,CCDDEEFF and VVDDEEFF in detail.  rrdgraph_rpn describes the RRPPNN
+       language used in the ??DDEEFF statements.  rrdgraph_graph page describes
+       all of the graph and print functions.
+
+       Make sure to read rrdgraph_examples for tips&tricks.
+
+AAUUTTHHOORR
+       Program by Tobias Oetiker <tobi@oetiker.ch>
+
+       This manual page by Alex van den Bogaerdt <alex@vandenbogaerdt.nl> with
+       corrections and/or additions by several people
+
+
+
+1.4.8                             2013-05-23                       RRDGRAPH(1)

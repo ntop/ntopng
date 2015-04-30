@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrdresize</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#notes">NOTES</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rrdresize - alters the size of an RRA and creates a new .rrd file</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>rrdtool</strong> <strong>resize</strong> <em>filename</em> <em>rra-num</em>  <strong>GROW</strong><em>|</em><strong>SHRINK</strong> <em>rows</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>The <strong>resize</strong> function is used to modify the number of rows in
+an <strong>RRA</strong>.</p>
+<dl>
+<dt><strong><a name="filename" class="item"><em>filename</em></a></strong></dt>
+
+<dd>
+<p>the name of the <strong>RRD</strong> you want to alter.</p>
+</dd>
+<dt><strong><a name="rra_num" class="item"><em>rra-num</em></a></strong></dt>
+
+<dd>
+<p>the <strong>RRA</strong> you want to alter. You can find the number using <strong>rrdtool info</strong>.</p>
+</dd>
+<dt><strong><a name="grow" class="item"><strong>GROW</strong></a></strong></dt>
+
+<dd>
+<p>used if you want to add extra rows to an RRA. The extra rows will be inserted
+as the rows that are oldest.</p>
+</dd>
+<dt><strong><a name="shrink" class="item"><strong>SHRINK</strong></a></strong></dt>
+
+<dd>
+<p>used if you want to remove rows from an RRA. The rows that will be removed
+are the oldest rows.</p>
+</dd>
+<dt><strong><a name="rows" class="item"><em>rows</em></a></strong></dt>
+
+<dd>
+<p>the number of rows you want to add or remove.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<p>The new .rrd file, with the modified RRAs, is written to the file
+<strong>resize.rrd</strong> in the current directory.  <strong>The original .rrd file is not
+modified</strong>.</p>
+<p>It is possible to abuse this tool and get strange results
+by first removing some rows and then reinserting the same amount (effectively
+clearing them to be Unknown). You may thus end up with unknown data in one
+RRA while at the same timestamp this data is available in another RRA.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Alex van den Bogaerdt &lt;<a href="mailto:alex@vandenbogaerdt.nl">alex@vandenbogaerdt.nl</a>&gt;</p>
+
+</body>
+
+</html>

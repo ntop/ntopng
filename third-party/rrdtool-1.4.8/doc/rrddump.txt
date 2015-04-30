@@ -1,0 +1,70 @@
+RRDDUMP(1)                          rrdtool                         RRDDUMP(1)
+
+
+
+NNAAMMEE
+       rrddump - dump the contents of an RRD to XML format
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll dduummpp _f_i_l_e_n_a_m_e_._r_r_d [_f_i_l_e_n_a_m_e_._x_m_l] [----hheeaaddeerr|--hh {none,xsd,dtd}]
+       [----nnoo--hheeaaddeerr] [----ddaaeemmoonn _a_d_d_r_e_s_s] > _f_i_l_e_n_a_m_e_._x_m_l
+
+DDEESSCCRRIIPPTTIIOONN
+       The dduummpp function writes the contents of an RRRRDD in human readable (?)
+       XML format to a file or to stdout. This format can be read by
+       rrdrestore. Together they allow you to transfer your files from one
+       computer architecture to another as well to manipulate the contents of
+       an RRRRDD file in a somewhat more convenient manner.
+
+       _f_i_l_e_n_a_m_e_._r_r_d
+               The name of the RRRRDD you want to dump.
+
+       _f_i_l_e_n_a_m_e_._x_m_l
+               The (optional) filename that you want to write the XML output
+               to.  If not specified, the XML will be printed to stdout.
+
+       ----hheeaaddeerr|--hh {none,xsd,dtd}
+               By default RRDtool will add a dtd header to the xml file. Here
+               you can customize this to and xsd header or no header at all.
+
+       ----nnoo--hheeaaddeerr
+               A shortcut for --header=none.
+
+               If you want to restore the dump with RRDtool 1.2 you should use
+               the --no-header option since 1.2 can not deal with xml headers.
+
+       ----ddaaeemmoonn _a_d_d_r_e_s_s
+               Address of the rrdcached daemon. If specified, a "flush"
+               command is sent to the server before reading the RRD files.
+               This allows rrrrddttooooll to return fresh data even if the daemon is
+               configured to cache values for a long time.  For a list of
+               accepted formats, see the --ll option in the rrdcached manual.
+
+                rrdtool dump --daemon unix:/var/run/rrdcached.sock /var/lib/rrd/foo.rrd
+
+EEXXAAMMPPLLEESS
+       To transfer an RRD between architectures, follow these steps:
+
+       1.  On the same system where the RRD was created, use rrrrddttooooll dduummpp to
+           export the data to XML format.
+
+       2.  Transfer the XML dump to the target system.
+
+       3.  Run rrrrddttooooll rreessttoorree to create a new RRD from the XML dump. See
+           rrrrddrreessttoorree for details.
+
+EENNVVIIRROONNMMEENNTT VVAARRIIAABBLLEESS
+       The following environment variables may be used to change the behavior
+       of "rrdtool dump":
+
+       RRRRDDCCAACCHHEEDD__AADDDDRREESSSS
+           If this environment variable is set it will have the same effect as
+           specifying the "--daemon" option on the command line. If both are
+           present, the command line argument takes precedence.
+
+AAUUTTHHOORR
+       Tobias Oetiker <tobi@oetiker.ch>
+
+
+
+1.4.8                             2013-05-23                        RRDDUMP(1)

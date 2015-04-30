@@ -1,0 +1,52 @@
+=head1 NAME
+
+rrdlast - Return the date of the last data sample in an RRD
+
+=head1 SYNOPSIS
+
+B<rrdtool> B<last> I<filename>
+S<[B<--daemon> I<address>]>
+
+=head1 DESCRIPTION
+
+The B<last> function returns the UNIX timestamp of the most recent
+update of the RRD.
+
+=over 8
+
+=item I<filename>
+
+The name of the B<RRD> that contains the data.
+
+=item B<--daemon> I<address>
+
+Address of the L<rrdcached> daemon. If specified, a C<flush> command is sent
+to the server before reading the RRD files. This allows B<rrdtool> to return
+fresh data even if the daemon is configured to cache values for a long time.
+For a list of accepted formats, see the B<-l> option in the L<rrdcached> manual.
+
+ rrdtool last --daemon unix:/var/run/rrdcached.sock /var/lib/rrd/foo.rrd
+
+=back
+
+=head1 ENVIRONMENT VARIABLES
+
+The following environment variables may be used to change the behavior of
+C<rrdtoolE<nbsp>last>:
+
+=over 4
+
+=item B<RRDCACHED_ADDRESS>
+
+If this environment variable is set it will have the same effect as specifying
+the C<--daemon> option on the command line. If both are present, the command
+line argument takes precedence.
+
+=back
+
+=head1 AUTHOR
+
+Russ Wright <rwwright@home.com>
+
+
+

@@ -1,0 +1,12 @@
+#bubble_chart {
+  background-color: #ffffff;
+  border: 3px dotted #dddddd;
+  font: 10px sans-serif;
+  height: 400px;
+  text-shadow: none;
+  width: 600px;
+}
+
+.bubble {
+  position: relative;
+}

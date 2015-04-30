@@ -1,0 +1,405 @@
+=head1 NAME
+
+rrdgraph_rpn - About RPN Math in rrdtool graph
+
+=head1 SYNOPSIS
+
+I<RPN expression>:=I<vname>|I<operator>|I<value>[,I<RPN expression>]
+
+=head1 DESCRIPTION
+
+If you have ever used a traditional HP calculator you already know
+B<RPN> (Reverse Polish Notation).
+The idea behind B<RPN> is that you have a stack and push
+your data onto this stack. Whenever you execute an operation, it
+takes as many elements from the stack as needed. Pushing is done
+implicitly, so whenever you specify a number or a variable, it gets
+pushed onto the stack automatically.
+
+At the end of the calculation there should be one and only one value left on
+the stack.  This is the outcome of the function and this is what is put into
+the I<vname>.  For B<CDEF> instructions, the stack is processed for each
+data point on the graph. B<VDEF> instructions work on an entire data set in
+one run. Note, that currently B<VDEF> instructions only support a limited
+list of functions.
+
+Example: C<VDEF:maximum=mydata,MAXIMUM>
+
+This will set variable "maximum" which you now can use in the rest
+of your RRD script.
+
+Example: C<CDEF:mydatabits=mydata,8,*>
+
+This means:  push variable I<mydata>, push the number 8, execute
+the operator I<*>. The operator needs two elements and uses those
+to return one value.  This value is then stored in I<mydatabits>.
+As you may have guessed, this instruction means nothing more than
+I<mydatabits = mydata * 8>.  The real power of B<RPN> lies in the
+fact that it is always clear in which order to process the input.
+For expressions like C<a = b + 3 * 5> you need to multiply 3 with
+5 first before you add I<b> to get I<a>. However, with parentheses
+you could change this order: C<a = (b + 3) * 5>. In B<RPN>, you
+would do C<a = b, 3, +, 5, *> without the need for parentheses.
+
+=head1 OPERATORS
+
+=over 4
+
+=item Boolean operators
+
+B<LT, LE, GT, GE, EQ, NE>
+
+Pop two elements from the stack, compare them for the selected condition
+and return 1 for true or 0 for false. Comparing an I<unknown> or an
+I<infinite> value will result in I<unknown> returned ... which will also be
+treated as false by the B<IF> call.
+
+B<UN, ISINF>
+
+Pop one element from the stack, compare this to I<unknown> respectively
+to I<positive or negative infinity>. Returns 1 for true or 0 for false.
+
+B<IF>
+
+Pops three elements from the stack.  If the element popped last is 0
+(false), the value popped first is pushed back onto the stack,
+otherwise the value popped second is pushed back. This does, indeed,
+mean that any value other than 0 is considered to be true.
+
+Example: C<A,B,C,IF> should be read as C<if (A) then (B) else (C)>
+
+Z<>
+
+=item Comparing values
+
+B<MIN, MAX>
+
+Pops two elements from the stack and returns the smaller or larger,
+respectively.  Note that I<infinite> is larger than anything else.
+If one of the input numbers is I<unknown> then the result of the operation will be
+I<unknown> too.
+
+B<LIMIT>
+
+Pops two elements from the stack and uses them to define a range.
+Then it pops another element and if it falls inside the range, it
+is pushed back. If not, an I<unknown> is pushed.
+
+The range defined includes the two boundaries (so: a number equal
+to one of the boundaries will be pushed back). If any of the three
+numbers involved is either I<unknown> or I<infinite> this function
+will always return an I<unknown>
+
+Example: C<CDEF:a=alpha,0,100,LIMIT> will return I<unknown> if
+alpha is lower than 0 or if it is higher than 100.
+
+Z<>
+
+=item Arithmetics
+
+B<+, -, *, /, %>
+
+Add, subtract, multiply, divide, modulo
+
+B<ADDNAN>
+
+NAN-safe addition. If one parameter is NAN/UNKNOWN it'll be treated as
+zero. If both parameters are NAN/UNKNOWN, NAN/UNKNOWN will be returned.
+
+B<SIN, COS, LOG, EXP, SQRT>
+
+Sine and cosine (input in radians), log and exp (natural logarithm),
+square root.
+
+B<ATAN>
+
+Arctangent (output in radians).
+
+B<ATAN2>
+
+Arctangent of y,x components (output in radians).
+This pops one element from the stack, the x (cosine) component, and then
+a second, which is the y (sine) component.
+It then pushes the arctangent of their ratio, resolving the ambiguity between
+quadrants.
+
+Example: C<CDEF:angle=Y,X,ATAN2,RAD2DEG> will convert C<X,Y>
+components into an angle in degrees.
+
+B<FLOOR, CEIL>
+
+Round down or up to the nearest integer.
+
+B<DEG2RAD, RAD2DEG>
+
+Convert angle in degrees to radians, or radians to degrees.
+
+B<ABS>
+
+Take the absolute value.
+
+=item Set Operations
+
+B<SORT, REV>
+
+Pop one element from the stack.  This is the I<count> of items to be sorted
+(or reversed).  The top I<count> of the remaining elements are then sorted
+(or reversed) in place on the stack.
+
+Example: C<CDEF:x=v1,v2,v3,v4,v5,v6,6,SORT,POP,5,REV,POP,+,+,+,4,/> will
+compute the average of the values v1 to v6 after removing the smallest and
+largest.
+
+B<AVG>
+
+Pop one element (I<count>) from the stack. Now pop I<count> elements and build the
+average, ignoring all UNKNOWN values in the process.
+
+Example: C<CDEF:x=a,b,c,d,4,AVG>
+
+B<TREND, TRENDNAN>
+
+Create a "sliding window" average of another data series.
+
+Usage:
+CDEF:smoothed=x,1800,TREND
+
+This will create a half-hour (1800 second) sliding window average of x.  The
+average is essentially computed as shown here:
+
+                 +---!---!---!---!---!---!---!---!--->
+                                                     now
+                       delay     t0
+                 <--------------->
+                         delay       t1
+                     <--------------->
+                              delay      t2
+                         <--------------->
+
+
+     Value at sample (t0) will be the average between (t0-delay) and (t0)
+     Value at sample (t1) will be the average between (t1-delay) and (t1)
+     Value at sample (t2) will be the average between (t2-delay) and (t2)
+
+TRENDNAN is - in contrast to TREND - NAN-safe. If you use TREND and one 
+source value is NAN the complete sliding window is affected. The TRENDNAN 
+operation ignores all NAN-values in a sliding window and computes the 
+average of the remaining values.
+
+B<PREDICT, PREDICTSIGMA>
+
+Create a "sliding window" average/sigma of another data series, that also
+shifts the data series by given amounts of of time as well
+
+Usage - explicit stating shifts:
+CDEF:predict=<shift n>,...,<shift 1>,n,<window>,x,PREDICT
+CDEF:sigma=<shift n>,...,<shift 1>,n,<window>,x,PREDICTSIGMA
+
+Usage - shifts defined as a base shift and a number of time this is applied
+CDEF:predict=<shift multiplier>,-n,<window>,x,PREDICT
+CDEF:sigma=<shift multiplier>,-n,<window>,x,PREDICTSIGMA
+
+Example:
+CDEF:predict=172800,86400,2,1800,x,PREDICT
+
+This will create a half-hour (1800 second) sliding window average/sigma of x, that
+average is essentially computed as shown here:
+
+ +---!---!---!---!---!---!---!---!---!---!---!---!---!---!---!---!---!--->
+                                                                     now
+                                                  shift 1        t0
+                                         <----------------------->
+                               window
+                         <--------------->
+                                       shift 2
+                 <----------------------------------------------->
+       window
+ <--------------->
+                                                      shift 1        t1
+                                             <----------------------->
+                                   window
+                             <--------------->
+                                            shift 2
+                     <----------------------------------------------->
+           window
+     <--------------->
+
+ Value at sample (t0) will be the average between (t0-shift1-window) and (t0-shift1)
+                                      and between (t0-shift2-window) and (t0-shift2)
+ Value at sample (t1) will be the average between (t1-shift1-window) and (t1-shift1)
+                                      and between (t1-shift2-window) and (t1-shift2)
+
+
+The function is by design NAN-safe. 
+This also allows for extrapolation into the future (say a few days)
+- you may need to define the data series whit the optional start= parameter, so that 
+the source data series has enough data to provide prediction also at the beginning of a graph...
+
+Here an example, that will create a 10 day graph that also shows the 
+prediction 3 days into the future with its uncertainty value (as defined by avg+-4*sigma)
+This also shows if the prediction is exceeded at a certain point.
+
+rrdtool graph image.png --imgformat=PNG \
+ --start=-7days --end=+3days --width=1000 --height=200 --alt-autoscale-max \
+ DEF:value=value.rrd:value:AVERAGE:start=-14days \
+ LINE1:value#ff0000:value \
+ CDEF:predict=86400,-7,1800,value,PREDICT \
+ CDEF:sigma=86400,-7,1800,value,PREDICTSIGMA \
+ CDEF:upper=predict,sigma,3,*,+ \
+ CDEF:lower=predict,sigma,3,*,- \
+ LINE1:predict#00ff00:prediction \
+ LINE1:upper#0000ff:upper\ certainty\ limit \
+ LINE1:lower#0000ff:lower\ certainty\ limit \
+ CDEF:exceeds=value,UN,0,value,lower,upper,LIMIT,UN,IF \
+ TICK:exceeds#aa000080:1
+
+Note: Experience has shown that a factor between 3 and 5 to scale sigma is a good 
+discriminator to detect abnormal behavior. This obviously depends also on the type 
+of data and how "noisy" the data series is.
+
+This prediction can only be used for short term extrapolations - say a few days into the future-
+
+=item Special values
+
+B<UNKN>
+
+Pushes an unknown value on the stack
+
+B<INF, NEGINF>
+
+Pushes a positive or negative infinite value on the stack. When
+such a value is graphed, it appears at the top or bottom of the
+graph, no matter what the actual value on the y-axis is.
+
+B<PREV>
+
+Pushes an I<unknown> value if this is the first value of a data
+set or otherwise the result of this B<CDEF> at the previous time
+step. This allows you to do calculations across the data.  This
+function cannot be used in B<VDEF> instructions.
+
+B<PREV(vname)>
+
+Pushes an I<unknown> value if this is the first value of a data
+set or otherwise the result of the vname variable at the previous time
+step. This allows you to do calculations across the data. This
+function cannot be used in B<VDEF> instructions.
+
+B<COUNT>
+
+Pushes the number 1 if this is the first value of the data set, the
+number 2 if it is the second, and so on. This special value allows
+you to make calculations based on the position of the value within
+the data set. This function cannot be used in B<VDEF> instructions.
+
+=item Time
+
+Time inside RRDtool is measured in seconds since the epoch. The
+epoch is defined to be S<C<Thu Jan  1 00:00:00 UTC 1970>>.
+
+B<NOW>
+
+Pushes the current time on the stack.
+
+B<TIME>
+
+Pushes the time the currently processed value was taken at onto the stack.
+
+B<LTIME>
+
+Takes the time as defined by B<TIME>, applies the time zone offset
+valid at that time including daylight saving time if your OS supports
+it, and pushes the result on the stack.  There is an elaborate example
+in the examples section below on how to use this.
+
+=item Processing the stack directly
+
+B<DUP, POP, EXC>
+
+Duplicate the top element, remove the top element, exchange the two
+top elements.
+
+Z<>
+
+=back
+
+=head1 VARIABLES
+
+These operators work only on B<VDEF> statements. Note that currently ONLY these work for B<VDEF>.
+
+=over 4
+
+=item MAXIMUM, MINIMUM, AVERAGE
+
+Return the corresponding value, MAXIMUM and MINIMUM also return
+the first occurrence of that value in the time component.
+
+Example: C<VDEF:avg=mydata,AVERAGE>
+
+=item STDEV
+
+Returns the standard deviation of the values.
+
+Example: C<VDEF:stdev=mydata,STDEV>
+
+=item LAST, FIRST
+
+Return the last/first non-nan or infinite value for the selected data
+stream, including its timestamp.
+
+Example: C<VDEF:first=mydata,FIRST>
+
+=item TOTAL
+
+Returns the rate from each defined time slot multiplied with the
+step size.  This can, for instance, return total bytes transferred
+when you have logged bytes per second. The time component returns
+the number of seconds.
+
+Example: C<VDEF:total=mydata,TOTAL>
+
+=item PERCENT, PERCENTNAN
+
+This should follow a B<DEF> or B<CDEF> I<vname>. The I<vname> is popped,
+another number is popped which is a certain percentage (0..100). The
+data set is then sorted and the value returned is chosen such that
+I<percentage> percent of the values is lower or equal than the result.
+For PERCENTNAN I<Unknown> values are ignored, but for PERCENT
+I<Unknown> values are considered lower than any finite number for this
+purpose so if this operator returns an I<unknown> you have quite a lot
+of them in your data.  B<Inf>inite numbers are lesser, or more, than the
+finite numbers and are always more than the I<Unknown> numbers.
+(NaN E<lt> -INF E<lt> finite values E<lt> INF)
+
+Example: C<VDEF:perc95=mydata,95,PERCENT>
+         C<VDEF:percnan95=mydata,95,PERCENTNAN>
+
+=item LSLSLOPE, LSLINT, LSLCORREL
+
+Return the parameters for a B<L>east B<S>quares B<L>ine I<(y = mx +b)> 
+which approximate the provided dataset.  LSLSLOPE is the slope I<(m)> of
+the line related to the COUNT position of the data.  LSLINT is the 
+y-intercept I<(b)>, which happens also to be the first data point on the 
+graph. LSLCORREL is the Correlation Coefficient (also know as Pearson's 
+Product Moment Correlation Coefficient).  It will range from 0 to +/-1 
+and represents the quality of fit for the approximation.   
+
+Example: C<VDEF:slope=mydata,LSLSLOPE>
+
+=back
+
+=head1 SEE ALSO
+
+L<rrdgraph> gives an overview of how B<rrdtool graph> works.
+L<rrdgraph_data> describes B<DEF>,B<CDEF> and B<VDEF> in detail.
+L<rrdgraph_rpn> describes the B<RPN> language used in the B<?DEF> statements.
+L<rrdgraph_graph> page describes all of the graph and print functions.
+
+Make sure to read L<rrdgraph_examples> for tipsE<amp>tricks.
+
+=head1 AUTHOR
+
+Program by Tobias Oetiker E<lt>tobi@oetiker.chE<gt>
+
+This manual page by Alex van den Bogaerdt E<lt>alex@vandenbogaerdt.nlE<gt>
+with corrections and/or additions by several people

@@ -1,0 +1,172 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>librrd</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#core_functions">CORE FUNCTIONS</a></li>
+	<li><a href="#utility_functions">UTILITY FUNCTIONS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<hr />
+<h1><a name="name">NAME</a></h1>
+<p>librrd - RRD library functions</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><strong>librrd</strong> contains most of the functionality in <strong>RRDTool</strong>.  The command
+line utilities and language bindings are often just wrappers around the
+code contained in <strong>librrd</strong>.</p>
+<p>This manual page documents the <strong>librrd</strong> API.</p>
+<p><strong>NOTE:</strong> This document is a work in progress, and should be considered
+incomplete as long as this warning persists.  For more information about
+the <strong>librrd</strong> functions, always consult the source code.</p>
+<p>
+</p>
+<hr />
+<h1><a name="core_functions">CORE FUNCTIONS</a></h1>
+<dl>
+<dt><strong><a name="rrd_dump_cb_r" class="item"><strong>rrd_dump_cb_r(char *filename, int opt_header, rrd_output_callback_t cb, void *user)</strong></a></strong></dt>
+
+<dd>
+<p>In some situations it is necessary to get the output of <code>rrd_dump</code> without
+writing it to a file or the standard output. In such cases an application
+can ask <strong>rrd_dump_cb_r</strong> to call an user-defined function each time there
+is output to be stored somewhere. This can be used, to e.g. directly feed
+an XML parser with the dumped output or transfer the resulting string
+in memory.</p>
+<p>The arguments for <strong>rrd_dump_cb_r</strong> are the same as for <strong>rrd_dump_opt_r</strong>
+except that the output filename parameter is replaced by the user-defined
+callback function and an additional parameter for the callback function
+that is passed untouched, i.e. to store information about the callback state
+needed for the user-defined callback to function properly.</p>
+<p>Recent versions of <strong>rrd_dump_opt_r</strong> internally use this callback mechanism
+to write their output to the file provided by the user.</p>
+<pre>
+    size_t rrd_dump_opt_cb_fileout(
+        const void *data,
+        size_t len,
+        void *user)
+    {
+        return fwrite(data, 1, len, (FILE *)user);
+    }</pre>
+<p>The associated call for <strong>rrd_dump_cb_r</strong> looks like</p>
+<pre>
+    res = rrd_dump_cb_r(filename, opt_header,
+        rrd_dump_opt_cb_fileout, (void *)out_file);</pre>
+<p>where the last parameter specifies the file handle <strong>rrd_dump_opt_cb_fileout</strong>
+should write to. There's no specific condition for the callback to detect
+when it is called for the first time, nor for the last time. If you require
+this for initialization and cleanup you should do those tasks before and
+after calling <strong>rrd_dump_cr_r</strong> respectively.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="utility_functions">UTILITY FUNCTIONS</a></h1>
+<dl>
+<dt><strong><a name="rrd_random" class="item"><strong>rrd_random()</strong></a></strong></dt>
+
+<dd>
+<p>Generates random numbers just like <code>random()</code>.  This further ensures that
+the random number generator is seeded exactly once per process.</p>
+</dd>
+<dt><strong><a name="rrd_add_ptr" class="item"><strong>rrd_add_ptr(void ***dest, size_t *dest_size, void *src)</strong></a></strong></dt>
+
+<dd>
+<p>Dynamically resize the array pointed to by <code>dest</code>.  <code>dest_size</code> is a
+pointer to the current size of <code>dest</code>.  Upon successful <code>realloc()</code>, the
+<code>dest_size</code> is incremented by 1 and the <code>src</code> pointer is stored at the
+end of the new <code>dest</code>.  Returns 1 on success, 0 on failure.</p>
+<pre>
+    type **arr = NULL;
+    type *elem = &quot;whatever&quot;;
+    size_t arr_size = 0;
+    if (!rrd_add_ptr(&amp;arr, &amp;arr_size, elem))
+        handle_failure();</pre>
+</dd>
+<dt><strong><a name="rrd_add_strdup" class="item"><strong>rrd_add_strdup(char ***dest, size_t *dest_size, char *src)</strong></a></strong></dt>
+
+<dd>
+<p>Like <a href="#rrd_add_ptr"><code>rrd_add_ptr</code></a>, except adds a <code>strdup</code> of the source string.</p>
+<pre>
+    char **arr = NULL;
+    size_t arr_size = NULL;
+    char *str  = &quot;example text&quot;;
+    if (!rrd_add_strdup(&amp;arr, &amp;arr_size, str))
+        handle_failure();</pre>
+</dd>
+<dt><strong><a name="rrd_free_ptrs" class="item"><strong>rrd_free_ptrs(void ***src, size_t *cnt)</strong></a></strong></dt>
+
+<dd>
+<p>Free an array of pointers allocated by <a href="#rrd_add_ptr"><code>rrd_add_ptr</code></a> or
+<a href="#rrd_add_strdup"><code>rrd_add_strdup</code></a>.  Also frees the array pointer itself.  On return, the
+source pointer will be NULL and the count will be zero.</p>
+<pre>
+    /* created as above */
+    rrd_free_ptrs(&amp;arr, &amp;arr_size);
+    /* here, arr == NULL &amp;&amp; arr_size == 0 */</pre>
+</dd>
+<dt><strong><a name="rrd_mkdir_p" class="item"><strong>rrd_mkdir_p(const char *pathname, mode_t mode)</strong></a></strong></dt>
+
+<dd>
+<p>Create the directory named <code>pathname</code> including all of its parent
+directories (similar to <code>mkdir -p</code> on the command line - see <em>mkdir(1)</em> for
+more information). The argument <code>mode</code> specifies the permissions to use. It
+is modified by the process's <code>umask</code>. See <em>mkdir(2)</em> for more details.</p>
+<p>The function returns 0 on success, a negative value else. In case of an error,
+<code>errno</code> is set accordingly. Aside from the errors documented in <em>mkdir(2)</em>,
+the function may fail with the following errors:</p>
+<dl>
+<dt><strong><a name="einval" class="item"><strong>EINVAL</strong></a></strong></dt>
+
+<dd>
+<p><code>pathname</code> is <code>NULL</code> or the empty string.</p>
+</dd>
+<dt><strong><a name="enomem" class="item"><strong>ENOMEM</strong></a></strong></dt>
+
+<dd>
+<p>Insufficient memory was available.</p>
+</dd>
+<dt><strong><a name="stat" class="item"><strong>any error returned by <a href="#stat">stat(2)</a></strong></a></strong></dt>
+
+</dl>
+<p>In contrast to <em>mkdir(2)</em>, the function does <strong>not</strong> fail if <code>pathname</code>
+already exists and is a directory.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>RRD Contributors &lt;<a href="mailto:rrd-developers@lists.oetiker.ch">rrd-developers@lists.oetiker.ch</a>&gt;</p>
+
+</body>
+
+</html>

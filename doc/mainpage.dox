@@ -1,0 +1,15 @@
+/**
+\mainpage ntopng documentation
+
+
+[ntopng] is the next generation version of the original ntop, a network traffic probe that shows the network usage, similar to what the popular top Unix command does. ntopng is based on libpcap and it has been written in a portable way in order to virtually run on every Unix platform, MacOSX and on Win32 as well.
+
+
+For more information please visit the [ntop] web site.
+
+
+
+
+[ntop]:   http://www.ntop.org/        "ntop"
+[ntopng]:   http://www.ntop.org/products/ntop/        "ntopng"
+*/

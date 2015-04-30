@@ -1,0 +1,355 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Tobias Oetiker
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: rrdtool 1.4.8\n"
+"Report-Msgid-Bugs-To: http://oss.oetiker.ch/rrdtool-trac/newticket\n"
+"POT-Creation-Date: 2013-05-23 09:55+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/rrd_getopt.c:624
+#, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr ""
+
+#: src/rrd_getopt.c:646
+#, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr ""
+
+#: src/rrd_getopt.c:652
+#, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr ""
+
+#: src/rrd_getopt.c:667 src/rrd_getopt.c:820
+#, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr ""
+
+#: src/rrd_getopt.c:693
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr ""
+
+#: src/rrd_getopt.c:697
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr ""
+
+#: src/rrd_getopt.c:721
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr ""
+
+#: src/rrd_getopt.c:724
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr ""
+
+#: src/rrd_getopt.c:750 src/rrd_getopt.c:858
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr ""
+
+#: src/rrd_getopt.c:792
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr ""
+
+#: src/rrd_getopt.c:807
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr ""
+
+#: src/rrd_tool.c:51
+#, c-format
+msgid ""
+"RRDtool %s  Copyright 1997-2013 by Tobias Oetiker <tobi@oetiker.ch>\n"
+"               Compiled %s %s\n"
+"\n"
+"Usage: rrdtool [options] command command_options\n"
+msgstr ""
+
+#: src/rrd_tool.c:58
+msgid ""
+"Valid commands: create, update, updatev, graph, graphv,  dump, restore,\n"
+"\t\tlast, lastupdate, first, info, fetch, tune,\n"
+"\t\tresize, xport, flushcached\n"
+msgstr ""
+
+#: src/rrd_tool.c:63
+msgid "Valid remote commands: quit, ls, cd, mkdir, pwd\n"
+msgstr ""
+
+#: src/rrd_tool.c:67
+msgid ""
+"* create - create a new RRD\n"
+"\n"
+"\trrdtool create filename [--start|-b start time]\n"
+"\t\t[--step|-s step]\n"
+"\t\t[--no-overwrite|-O]\n"
+"\t\t[DS:ds-name:DST:dst arguments]\n"
+"\t\t[RRA:CF:cf arguments]\n"
+msgstr ""
+
+#: src/rrd_tool.c:75
+msgid ""
+"* dump - dump an RRD to XML\n"
+"\n"
+"\trrdtool dump filename.rrd >filename.xml\n"
+msgstr ""
+
+#: src/rrd_tool.c:79
+msgid ""
+"* info - returns the configuration and status of the RRD\n"
+"\n"
+"\trrdtool info filename.rrd\n"
+msgstr ""
+
+#: src/rrd_tool.c:83
+msgid ""
+"* restore - restore an RRD file from its XML form\n"
+"\n"
+"\trrdtool restore [--range-check|-r] [--force-overwrite|-f] filename.xml "
+"filename.rrd\n"
+msgstr ""
+
+#: src/rrd_tool.c:87
+msgid ""
+"* last - show last update time for RRD\n"
+"\n"
+"\trrdtool last filename.rrd\n"
+msgstr ""
+
+#: src/rrd_tool.c:91
+msgid ""
+"* lastupdate - returns the most recent datum stored for\n"
+"  each DS in an RRD\n"
+"\n"
+"\trrdtool lastupdate filename.rrd\n"
+msgstr ""
+
+#: src/rrd_tool.c:95
+msgid ""
+"* first - show first update time for RRA within an RRD\n"
+"\n"
+"\trrdtool first filename.rrd [--rraindex number]\n"
+msgstr ""
+
+#: src/rrd_tool.c:99
+msgid ""
+"* update - update an RRD\n"
+"\n"
+"\trrdtool update filename\n"
+"\t\t[--template|-t ds-name:ds-name:...]\n"
+"\t\t[--daemon <address>]\n"
+"\t\ttime|N:value[:value...]\n"
+"\n"
+"\t\tat-time@value[:value...]\n"
+"\n"
+"\t\t[ time:value[:value...] ..]\n"
+msgstr ""
+
+#: src/rrd_tool.c:108
+msgid ""
+"* updatev - a verbose version of update\n"
+"\treturns information about values, RRAs, and datasources updated\n"
+"\n"
+"\trrdtool updatev filename\n"
+"\t\t[--template|-t ds-name:ds-name:...]\n"
+"\t\ttime|N:value[:value...]\n"
+"\n"
+"\t\tat-time@value[:value...]\n"
+"\n"
+"\t\t[ time:value[:value...] ..]\n"
+msgstr ""
+
+#: src/rrd_tool.c:117
+msgid ""
+"* fetch - fetch data out of an RRD\n"
+"\n"
+"\trrdtool fetch filename.rrd CF\n"
+"\t\t[-r|--resolution resolution]\n"
+"\t\t[-s|--start start] [-e|--end end]\n"
+"\t\t[--daemon <address>]\n"
+msgstr ""
+
+#: src/rrd_tool.c:124
+msgid ""
+"* flushcached - flush cached data out to an RRD file\n"
+"\n"
+"\trrdtool flushcached filename.rrd\n"
+"\t\t[--daemon <address>]\n"
+msgstr ""
+
+#: src/rrd_tool.c:131
+msgid ""
+"* graph - generate a graph from one or several RRD\n"
+"\n"
+"\trrdtool graph filename [-s|--start seconds] [-e|--end seconds]\n"
+msgstr ""
+
+#: src/rrd_tool.c:134
+msgid ""
+"* graphv - generate a graph from one or several RRD\n"
+"           with meta data printed before the graph\n"
+"\n"
+"\trrdtool graphv filename [-s|--start seconds] [-e|--end seconds]\n"
+msgstr ""
+
+#: src/rrd_tool.c:138
+msgid ""
+"\t\t[-x|--x-grid x-axis grid and label]\n"
+"\t\t[-Y|--alt-y-grid] [--full-size-mode]\n"
+"\t\t[-y|--y-grid y-axis grid and label]\n"
+"\t\t[-v|--vertical-label string] [-w|--width pixels]\n"
+"\t\t[--right-axis scale:shift] [--right-axis-label label]\n"
+"\t\t[--right-axis-format format]\n"
+"\t\t[-h|--height pixels] [-o|--logarithmic]\n"
+"\t\t[-u|--upper-limit value] [-z|--lazy]\n"
+"\t\t[-l|--lower-limit value] [-r|--rigid]\n"
+"\t\t[-g|--no-legend] [--daemon <address>]\n"
+"\t\t[-F|--force-rules-legend]\n"
+"\t\t[-j|--only-graph]\n"
+msgstr ""
+
+#: src/rrd_tool.c:150
+msgid ""
+"\t\t[-n|--font FONTTAG:size:font]\n"
+"\t\t[-m|--zoom factor]\n"
+"\t\t[-A|--alt-autoscale]\n"
+"\t\t[-M|--alt-autoscale-max]\n"
+"\t\t[-G|--graph-render-mode {normal,mono}]\n"
+"\t\t[-R|--font-render-mode {normal,light,mono}]\n"
+"\t\t[-B|--font-smoothing-threshold size]\n"
+"\t\t[-T|--tabwidth width]\n"
+"\t\t[-E|--slope-mode]\n"
+"\t\t[-P|--pango-markup]\n"
+"\t\t[-N|--no-gridfit]\n"
+"\t\t[-X|--units-exponent value]\n"
+"\t\t[-L|--units-length value]\n"
+"\t\t[-S|--step seconds]\n"
+"\t\t[-f|--imginfo printfstr]\n"
+"\t\t[-a|--imgformat PNG]\n"
+"\t\t[-c|--color COLORTAG#rrggbb[aa]]\n"
+"\t\t[--border width\n"
+"\t\t[-t|--title string]\n"
+"\t\t[-W|--watermark string]\n"
+"\t\t[DEF:vname=rrd:ds-name:CF]\n"
+msgstr ""
+
+#: src/rrd_tool.c:172
+msgid ""
+"\t\t[CDEF:vname=rpn-expression]\n"
+"\t\t[VDEF:vdefname=rpn-expression]\n"
+"\t\t[PRINT:vdefname:format]\n"
+"\t\t[GPRINT:vdefname:format]\n"
+"\t\t[COMMENT:text]\n"
+"\t\t[SHIFT:vname:offset]\n"
+"\t\t[TEXTALIGN:{left|right|justified|center}]\n"
+"\t\t[TICK:vname#rrggbb[aa][:[fraction][:legend]]]\n"
+"\t\t[HRULE:value#rrggbb[aa][:legend]]\n"
+"\t\t[VRULE:value#rrggbb[aa][:legend]]\n"
+"\t\t[LINE[width]:vname[#rrggbb[aa][:[legend][:STACK]]]]\n"
+"\t\t[AREA:vname[#rrggbb[aa][:[legend][:STACK]]]]\n"
+"\t\t[PRINT:vname:CF:format] (deprecated)\n"
+"\t\t[GPRINT:vname:CF:format] (deprecated)\n"
+"\t\t[STACK:vname[#rrggbb[aa][:legend]]] (deprecated)\n"
+msgstr ""
+
+#: src/rrd_tool.c:187
+msgid ""
+" * tune -  Modify some basic properties of an RRD\n"
+"\n"
+"\trrdtool tune filename\n"
+"\t\t[--heartbeat|-h ds-name:heartbeat]\n"
+"\t\t[--data-source-type|-d ds-name:DST]\n"
+"\t\t[--data-source-rename|-r old-name:new-name]\n"
+"\t\t[--minimum|-i ds-name:min] [--maximum|-a ds-name:max]\n"
+"\t\t[--deltapos scale-value] [--deltaneg scale-value]\n"
+"\t\t[--failure-threshold integer]\n"
+"\t\t[--window-length integer]\n"
+"\t\t[--alpha adaptation-parameter]\n"
+msgstr ""
+
+#: src/rrd_tool.c:198
+msgid ""
+"\t\t[--beta adaptation-parameter]\n"
+"\t\t[--gamma adaptation-parameter]\n"
+"\t\t[--gamma-deviation adaptation-parameter]\n"
+"\t\t[--aberrant-reset ds-name]\n"
+msgstr ""
+
+#: src/rrd_tool.c:204
+msgid ""
+" * resize - alter the length of one of the RRAs in an RRD\n"
+"\n"
+"\trrdtool resize filename rranum GROW|SHRINK rows\n"
+msgstr ""
+
+#: src/rrd_tool.c:207
+msgid ""
+"* xport - generate XML dump from one or several RRD\n"
+"\n"
+"\trrdtool xport [-s|--start seconds] [-e|--end seconds]\n"
+"\t\t[-m|--maxrows rows]\n"
+"\t\t[--step seconds]\n"
+"\t\t[--enumds] [--json]\n"
+"\t\t[DEF:vname=rrd:ds-name:CF]\n"
+"\t\t[CDEF:vname=rpn-expression]\n"
+"\t\t[XPORT:vname:legend]\n"
+msgstr ""
+
+#: src/rrd_tool.c:214
+msgid ""
+" * quit - closing a session in remote mode\n"
+"\n"
+"\trrdtool quit\n"
+msgstr ""
+
+#: src/rrd_tool.c:217
+msgid ""
+" * ls - lists all *.rrd files in current directory\n"
+"\n"
+"\trrdtool ls\n"
+msgstr ""
+
+#: src/rrd_tool.c:220
+msgid ""
+" * cd - changes the current directory\n"
+"\n"
+"\trrdtool cd new directory\n"
+msgstr ""
+
+#: src/rrd_tool.c:223
+msgid ""
+" * mkdir - creates a new directory\n"
+"\n"
+"\trrdtool mkdir newdirectoryname\n"
+msgstr ""
+
+#: src/rrd_tool.c:226
+msgid ""
+" * pwd - returns the current working directory\n"
+"\n"
+"\trrdtool pwd\n"
+msgstr ""
+
+#: src/rrd_tool.c:229
+msgid ""
+"RRDtool is distributed under the Terms of the GNU General\n"
+"Public License Version 2. (www.gnu.org/copyleft/gpl.html)\n"
+"\n"
+"For more information read the RRD manpages\n"
+msgstr ""

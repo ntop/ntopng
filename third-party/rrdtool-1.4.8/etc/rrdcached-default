@@ -1,0 +1,14 @@
+
+RUN_RRDCACHED=0
+
+RRDCACHED_USER="rrdcached"
+
+OPTS="-w 300 -z 300"
+
+PIDFILE="/var/run/rrdcached/rrdcached.pid"
+
+SOCKFILE="/var/run/rrdcached/rrdcached.sock"
+
+SOCKPERMS=0660
+
+

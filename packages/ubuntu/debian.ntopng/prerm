@@ -1,0 +1,16 @@
+#!/bin/sh -e
+
+# Only shut the daemon down if we're really removing the package.  If this is
+# an upgrade, we will instead do a restart in the postinst... this keeps ntopng
+# from being left shut down for a long time, which could pose problems.
+case "$1" in
+upgrade)
+	;;
+*)
+         if [ `pidof ntopng|wc -l` -gt 0 ]; then
+            /etc/init.d/ntopng stop
+         fi
+	;;
+esac
+
+exit 0

@@ -1,0 +1,7 @@
+README         - This README
+ntopng.spec    - An RPM spec file specific for the NST Distribution- with RPM system service control nomenclature
+ntopng         - The systemd service environmental file for ntopng. Put it in directory: "/etc/sysconfig"
+ntopng.service - A system service control file for ntopng. Put it in directory: "/usr/lib/system/system"
+ntopng.conf    - NST's default ntopng startup configuration file. Put it in directory: "/etc/ntopng"
+
+Ronald Henderson <rwhalb@verizon.net>

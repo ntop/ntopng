@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title>JSON-C - A JSON implementation in C - Win32 specific notes</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	</head>
+	<body>
+		<h2>Windows specific notes for JSON-C</h2>
+		<p>Please send Win32 bug reports to <a href="mailto:christopher.watford@gmail.com">christopher.watford@gmail.com</a></p>
+		<p><b>Win32 Specific Changes:</b></p>
+		<ul>
+			<li>
+				Various functions have been redefined to their Win32 version (i.e. <tt>open</tt>
+				on win32 is <tt>_open</tt>)</li>
+			<li>
+				Implemented missing functions from MS's libc (i.e. <tt>vasprintf</tt> and <tt>strndup</tt>)</li>
+			<li>
+				Added code to allow Win64 support without integer resizing issues, this 
+				probably makes it much nicer on 64bit machines everywhere (i.e. using <tt>ptrdiff_t</tt>
+				for pointer math)</li>
+		</ul>
+		<p><b>Porting Changelog:</b></p>
+		<dl>
+			<dt><tt>printbuf.c</tt> - C. Watford (christopher.watford@gmail.com)</dt>
+			<dd>
+				Added a Win32/Win64 compliant implementation of <tt>vasprintf</tt></dd>
+			<dt><tt>debug.c</tt> - C. Watford (christopher.watford@gmail.com)</dt>
+			<dd>
+				Removed usage of <tt>vsyslog</tt> on Win32/Win64 systems, needs to be handled 
+				by a configure script</dd>
+			<dt><tt>json_object.c</tt> - C. Watford (christopher.watford@gmail.com)</dt>
+			<dd>
+				Added scope operator to wrap usage of <tt>json_object_object_foreach</tt>, this needs to be
+				rethought to be more ANSI C friendly</dd>
+			<dt><tt>json_object.h</tt> - C. Watford (christopher.watford@gmail.com)</dt>
+			<dd>
+				Added Microsoft C friendly version of <tt>json_object_object_foreach</tt></dd>
+			<dt><tt>json_tokener.c</tt> - C. Watford (christopher.watford@gmail.com)</dt>
+			<dd>
+				Added a Win32/Win64 compliant implementation of <tt>strndup</tt></dd>
+			<dt><tt>json_util.c</tt> - C. Watford (christopher.watford@gmail.com)</dt>
+			<dd>
+				Added cast and mask to suffice <tt>size_t</tt> v. <tt>unsigned int</tt>
+				conversion correctness</dd>
+		</dl>
+		<p>This program is free software; you can redistribute it and/or modify it under 
+			the terms of the MIT License. See COPYING for details.</p>
+		<hr />
+	</body>
+</html>

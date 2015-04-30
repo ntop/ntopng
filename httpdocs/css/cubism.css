@@ -1,0 +1,91 @@
+#body {
+  position: relative;
+}
+
+#body > p, li > p {
+  line-height: 1.5em;
+}
+
+#body > p {
+  width: 720px;
+}
+
+#body > blockquote {
+  width: 640px;
+}
+
+#body > pre {
+  border-left: solid 2px #ccc;
+  padding-left: 18px;
+  margin: 2em 0 2em -20px;
+}
+
+svg {
+  font: 10px sans-serif;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis text {
+  -webkit-transition: fill-opacity 250ms linear;
+}
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.horizon {
+  border-bottom: solid 1px #000;
+  overflow: hidden;
+  position: relative;
+}
+
+.horizon {
+  border-top: solid 1px #000;
+  border-bottom: solid 1px #000;
+}
+
+.horizon + .horizon {
+  border-top: none;
+}
+
+.horizon canvas {
+  display: block;
+}
+
+.horizon .title,
+.horizon .value {
+  bottom: 0;
+  line-height: 30px;
+  margin: 0 6px;
+  position: absolute;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  white-space: nowrap;
+}
+
+.horizon .title {
+  left: 0;
+}
+
+.horizon .value {
+  right: 0;
+}
+
+.line {
+  background: #000;
+  opacity: .2;
+  z-index: 2;
+}

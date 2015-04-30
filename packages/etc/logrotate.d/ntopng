@@ -1,0 +1,7 @@
+/var/log/ntopng/*.log {
+	daily
+	missingok
+	rotate 4
+	copytruncate
+}
+

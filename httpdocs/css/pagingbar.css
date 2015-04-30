@@ -1,0 +1,210 @@
+.pagingbar {
+  *position: relative;
+  *z-index: 2;
+  overflow: visible;
+  margin-bottom: 18px;
+}
+.pagingbar-inner {
+  background-color: #EEEEEE;
+  background-image: -moz-linear-gradient(top, #F5F5F5, #EEEEEE);
+  background-image: -ms-linear-gradient(top, #F5F5F5, #EEEEEE);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#F5F5F5), to(#EEEEEE));
+  background-image: -webkit-linear-gradient(top, #F5F5F5, #EEEEEE);
+  background-image: -o-linear-gradient(top, #F5F5F5, #EEEEEE);
+  background-image: linear-gradient(top, #F5F5F5, #EEEEEE);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F5F5F5', endColorstr='#EEEEEE', GradientType=0);
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+.pagingbar .container {
+  width: auto;
+}
+.pagingbar {
+  color: #555;
+  height: 36px;
+}
+.pagingbar .navbar-text {
+  margin-bottom: 0;
+  line-height: 40px;
+}
+.pagingbar .nav {
+  position: relative;
+  left: 0;
+  display: block;
+  float: left;
+  margin: 0 10px 0 0;
+}
+.pagingbar .nav-pills > li > a {
+  margin: 0;
+}
+.pagingbar .nav-pills .open .dropdown-toggle {
+  color: #555;
+}
+.pagingbar .nav.pull-right {
+  float: right;
+}
+.pagingbar .nav > li {
+  display: block;
+  float: left;
+}
+.pagingbar .nav > li > a {
+  float: none;
+  padding: 8px;
+  line-height: 19px;
+  color: #555;
+  text-decoration: none;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+.pagingbar .nav > li > a:hover {
+  background-color: transparent;
+  color: #000;
+  text-decoration: none;
+}
+.pagingbar .nav .active > a,
+.pagingbar .nav .active > a:hover {
+  color: #000;
+  text-decoration: none;
+  background-color: #222222;
+}
+.pagingbar .nav > li:first-child > a, .pagingbar .nav > li:first-child > a:hover {
+  border-left: 0 none;
+  border-radius: 4px 0 0 4px;
+  padding-left: 12px;
+}
+.pagingbar .nav > li > a.disabled {
+  color: #CCC;
+  cursor: default;
+}
+.pagingbar .divider-vertical {
+  height: 40px;
+  width: 1px;
+  margin: 0 3px;
+  overflow: hidden;
+  background-color: #999;
+  border-right: 1px solid #eee;
+}
+.pagingbar .nav.pull-right {
+  margin-left: 10px;
+  margin-right: 0;
+}
+.pagingbar .dropdown-menu {
+  margin-top: 1px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+.pagingbar .dropdown-menu:before {
+  content: '';
+  display: inline-block;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #ccc;
+  border-bottom-color: rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: -7px;
+  left: 9px;
+}
+.pagingbar .dropdown-menu:after {
+  content: '';
+  display: inline-block;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #ffffff;
+  position: absolute;
+  top: -6px;
+  left: 10px;
+}
+.pagingbar .nav .dropdown-toggle .caret,
+.navbar .nav .open.dropdown .caret {
+  border-top-color: #222;
+  border-bottom-color: #222;
+}
+.pagingbar .nav .open .caret, .pagingbar .nav .open.active .caret, .pagingbar .nav .open a:hover .caret {
+  border-bottom-color: #555;
+  border-top-color: #555;
+  opacity: 1;
+}
+.pagingbar .nav .active .caret {
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
+.pagingbar .nav .open > .dropdown-toggle,
+.pagingbar .nav .active > .dropdown-toggle,
+.pagingbar .nav .open.active > .dropdown-toggle {
+  background-color: transparent;
+}
+.pagingbar .nav .active > .dropdown-toggle:hover {
+  color: #ffffff;
+}
+.pagingbar .nav.pull-right .dropdown-menu,
+.pagingbar .nav .dropdown-menu.pull-right {
+  left: auto;
+  right: 0;
+}
+.pagingbar .nav.pull-right .dropdown-menu:before,
+.pagingbar .nav .dropdown-menu.pull-right:before {
+  left: auto;
+  right: 12px;
+}
+.pagingbar .nav.pull-right .dropdown-menu:after,
+.pagingbar .nav .dropdown-menu.pull-right:after {
+  left: auto;
+  right: 13px;
+}
+.pagingbar .navbar-form {
+  line-height: 36px;
+}
+.pagingbar .navbar-form input {
+  margin-top: 0;
+}
+.pagingContent {
+	padding: 10px;
+}
+.striped-row {
+	background-color: #E5E5E5;
+}
+.data-row {
+	/*padding: 5px 10px 5px 10px;*/
+	padding-left: 5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+.component-backdrop {
+  background-color: #CCCCCC;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+.component-backdrop.fade {
+  opacity: 0;
+}
+.component-backdrop,
+.component-backdrop.fade.in {
+  opacity: 0.8;
+  filter: alpha(opacity=80);
+}
+.masked {
+	position: relative !important;
+}
+.mask-msg {
+    z-index: 20001;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border:1px solid #6593cf;
+}
+.mask-msg div {
+    background: url('/ntop/img/loading.gif') no-repeat 5px 5px;
+    line-height: 18px;
+    padding: 2px;
+    text-indent: 24px;
+    cursor:wait;
+}

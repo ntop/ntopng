@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual C++ Express 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rrdlib", "rrdlib.vcproj", "{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rrdtool", "rrdtool.vcproj", "{11CD05F8-E5E1-476E-A75F-A112655D4E94}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rrdupdate", "rrdupdate.vcproj", "{3AAE1E07-78D7-420D-968B-D2087D732D3B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94} = {11CD05F8-E5E1-476E-A75F-A112655D4E94}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		DebugDLL|Win32 = DebugDLL|Win32
+		Release|Win32 = Release|Win32
+		ReleaseDLL|Win32 = ReleaseDLL|Win32
+		Static Debug|Win32 = Static Debug|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.Debug|Win32.Build.0 = Debug|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.DebugDLL|Win32.ActiveCfg = DebugDLL|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.DebugDLL|Win32.Build.0 = DebugDLL|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.Release|Win32.ActiveCfg = Release|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.Release|Win32.Build.0 = Release|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.ReleaseDLL|Win32.ActiveCfg = ReleaseDLL|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.ReleaseDLL|Win32.Build.0 = ReleaseDLL|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.Static Debug|Win32.ActiveCfg = Static Debug|Win32
+		{CC158E1D-1364-43CA-9B2D-4AF54225C7CA}.Static Debug|Win32.Build.0 = Static Debug|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.Debug|Win32.ActiveCfg = Debug|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.Debug|Win32.Build.0 = Debug|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.DebugDLL|Win32.ActiveCfg = Debug|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.Release|Win32.ActiveCfg = Release|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.Release|Win32.Build.0 = Release|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.ReleaseDLL|Win32.ActiveCfg = Release|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.Static Debug|Win32.ActiveCfg = Static Debug|Win32
+		{11CD05F8-E5E1-476E-A75F-A112655D4E94}.Static Debug|Win32.Build.0 = Static Debug|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.Debug|Win32.Build.0 = Debug|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.DebugDLL|Win32.ActiveCfg = Debug|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.Release|Win32.ActiveCfg = Release|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.Release|Win32.Build.0 = Release|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.ReleaseDLL|Win32.ActiveCfg = Release|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.Static Debug|Win32.ActiveCfg = Static Debug|Win32
+		{3AAE1E07-78D7-420D-968B-D2087D732D3B}.Static Debug|Win32.Build.0 = Static Debug|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

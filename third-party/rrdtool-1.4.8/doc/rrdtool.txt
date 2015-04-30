@@ -1,0 +1,281 @@
+RRDTOOL(1)                          rrdtool                         RRDTOOL(1)
+
+
+
+NNAAMMEE
+       rrdtool - Round Robin Database Tool
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll -- [workdir]| _f_u_n_c_t_i_o_n
+
+DDEESSCCRRIIPPTTIIOONN
+   OOVVEERRVVIIEEWW
+       It is pretty easy to gather status information from all sorts of
+       things, ranging from the temperature in your office to the number of
+       octets which have passed through the FDDI interface of your router. But
+       it is not so trivial to store this data in an efficient and systematic
+       manner. This is where RRRRDDttooooll comes in handy. It lets you _l_o_g _a_n_d
+       _a_n_a_l_y_z_e the data you gather from all kinds of data-sources (DDSS). The
+       data analysis part of RRDtool is based on the ability to quickly
+       generate graphical representations of the data values collected over a
+       definable time period.
+
+       In this man page you will find general information on the design and
+       functionality of the Round Robin Database Tool (RRDtool). For a more
+       detailed description of how to use the individual functions of RRRRDDttooooll
+       check the corresponding man page.
+
+       For an introduction to the usage of RRDtool make sure you consult the
+       rrdtutorial.
+
+   FFUUNNCCTTIIOONNSS
+       While the man pages talk of command line switches you have to set in
+       order to make RRRRDDttooooll work it is important to note that RRRRDDttooooll can be
+       remotely controlled through a set of pipes. This saves a considerable
+       amount of startup time when you plan to make RRRRDDttooooll do a lot of things
+       quickly. Check the section on Remote_Control further down. There is
+       also a number of language bindings for RRDtool which allow you to use
+       it directly from Perl, python, Tcl, PHP, etc.
+
+       ccrreeaattee  Set up a new Round Robin Database (RRD). Check rrdcreate.
+
+       uuppddaattee  Store new data values into an RRD. Check rrdupdate.
+
+       uuppddaatteevv Operationally equivalent to uuppddaattee except for output. Check
+               rrdupdate.
+
+       ggrraapphh   Create a graph from data stored in one or several RRDs. Apart
+               from generating graphs, data can also be extracted to stdout.
+               Check rrdgraph.
+
+       dduummpp    Dump the contents of an RRD in plain ASCII. In connection with
+               restore you can use this to move an RRD from one computer
+               architecture to another.  Check rrddump.
+
+       rreessttoorree Restore an RRD in XML format to a binary RRD. Check rrdrestore
+
+       ffeettcchh   Get data for a certain time period from a RRD. The graph
+               function uses fetch to retrieve its data from an RRD. Check
+               rrdfetch.
+
+       ttuunnee    Alter setup of an RRD. Check rrdtune.
+
+       llaasstt    Find the last update time of an RRD. Check rrdlast.
+
+       iinnffoo    Get information about an RRD. Check rrdinfo.
+
+       rrrrddrreessiizzee
+               Change the size of individual RRAs. This is dangerous! Check
+               rrdresize.
+
+       xxppoorrtt   Export data retrieved from one or several RRDs. Check rrdxport.
+
+       fflluusshhccaacchheedd
+               Flush the values for a specific RRD file from memory. Check
+               rrdflushcached.
+
+       rrrrddccggii  This is a standalone tool for producing RRD graphs on the fly.
+               Check rrdcgi.
+
+   HHOOWW DDOOEESS RRRRDDTTOOOOLL WWOORRKK??
+       Data Acquisition
+               When monitoring the state of a system, it is convenient to have
+               the data available at a constant time interval. Unfortunately,
+               you may not always be able to fetch data at exactly the time
+               you want to. Therefore RRRRDDttooooll lets you update the log file at
+               any time you want. It will automatically interpolate the value
+               of the data-source (DDSS) at the latest official time-slot
+               (interval) and write this interpolated value to the log. The
+               original value you have supplied is stored as well and is also
+               taken into account when interpolating the next log entry.
+
+       Consolidation
+               You may log data at a 1 minute interval, but you might also be
+               interested to know the development of the data over the last
+               year. You could do this by simply storing the data in 1 minute
+               intervals for the whole year. While this would take
+               considerable disk space it would also take a lot of time to
+               analyze the data when you wanted to create a graph covering the
+               whole year. RRRRDDttooooll offers a solution to this problem through
+               its data consolidation feature. When setting up an Round Robin
+               Database (RRRRDD), you can define at which interval this
+               consolidation should occur, and what consolidation function
+               (CCFF) (average, minimum, maximum, total, last) should be used to
+               build the consolidated values (see rrdcreate). You can define
+               any number of different consolidation setups within one RRRRDD.
+               They will all be maintained on the fly when new data is loaded
+               into the RRRRDD.
+
+       Round Robin Archives
+               Data values of the same consolidation setup are stored into
+               Round Robin Archives (RRRRAA). This is a very efficient manner to
+               store data for a certain amount of time, while using a known
+               and constant amount of storage space.
+
+               It works like this: If you want to store 1'000 values in 5
+               minute interval, RRRRDDttooooll will allocate space for 1'000 data
+               values and a header area. In the header it will store a pointer
+               telling which slots (value) in the storage area was last
+               written to. New values are written to the Round Robin Archive
+               in, you guessed it, a round robin manner. This automatically
+               limits the history to the last 1'000 values (in our example).
+               Because you can define several RRRRAAs within a single RRRRDD, you
+               can setup another one, for storing 750 data values at a 2 hour
+               interval, for example, and thus keep a log for the last two
+               months at a lower resolution.
+
+               The use of RRRRAAs guarantees that the RRRRDD does not grow over time
+               and that old data is automatically eliminated. By using the
+               consolidation feature, you can still keep data for a very long
+               time, while gradually reducing the resolution of the data along
+               the time axis.
+
+               Using different consolidation functions (CCFF) allows you to
+               store exactly the type of information that actually interests
+               you: the maximum one minute traffic on the LAN, the minimum
+               temperature of your wine cellar, the total minutes of down
+               time, etc.
+
+       Unknown Data
+               As mentioned earlier, the RRRRDD stores data at a constant
+               interval. Sometimes it may happen that no new data is available
+               when a value has to be written to the RRRRDD. Data acquisition may
+               not be possible for one reason or other. With RRRRDDttooooll you can
+               handle these situations by storing an _*_U_N_K_N_O_W_N_* value into the
+               database. The value '_*_U_N_K_N_O_W_N_*' is supported through all the
+               functions of the tool. When consolidating a data set, the
+               amount of _*_U_N_K_N_O_W_N_* data values is accounted for and when a new
+               consolidated value is ready to be written to its Round Robin
+               Archive (RRRRAA), a validity check is performed to make sure that
+               the percentage of unknown values in the data point is above a
+               configurable level. If not, an _*_U_N_K_N_O_W_N_* value will be written
+               to the RRRRAA.
+
+       Graphing
+               RRRRDDttooooll allows you to generate reports in numerical and
+               graphical form based on the data stored in one or several RRRRDDs.
+               The graphing feature is fully configurable. Size, color and
+               contents of the graph can be defined freely. Check rrdgraph for
+               more information on this.
+
+       Aberrant Behavior Detection
+               by Jake Brutlag
+
+               RRRRDDttooooll provides the building blocks for near real-time
+               aberrant behavior detection. These components include:
+
+               ·   An algorithm for predicting the value of a time series one
+                   time step into the future.
+
+               ·   A measure of deviation between predicted and observed
+                   values.
+
+               ·   A mechanism to decide if and when an observed value or
+                   sequence of observed values is _t_o_o _d_e_v_i_a_n_t from the
+                   predicted value(s).
+
+               Here is a brief explanation of these components:
+
+               The Holt-Winters time series forecasting algorithm is an on-
+               line (or incremental) algorithm that adaptively predicts future
+               observations in a time series. Its forecast is the sum of three
+               components: a baseline (or intercept), a linear trend over time
+               (or slope), and a seasonal coefficient (a periodic effect, such
+               as a daily cycle). There is one seasonal coefficient for each
+               time point in the period (cycle). After a value is observed,
+               each of these components is updated via exponential smoothing.
+               This means that the algorithm "learns" from past values and
+               uses them to predict the future. The rate of adaptation is
+               governed by 3 parameters, alpha (intercept), beta (slope), and
+               gamma (seasonal). The prediction can also be viewed as a
+               smoothed value for the time series.
+
+               The measure of deviation is a seasonal weighted absolute
+               deviation. The term _s_e_a_s_o_n_a_l means deviation is measured
+               separately for each time point in the seasonal cycle. As with
+               Holt-Winters forecasting, deviation is predicted using the
+               measure computed from past values (but only at that point in
+               the seasonal cycle). After the value is observed, the algorithm
+               learns from the observed value via exponential smoothing.
+               Confidence bands for the observed time series are generated by
+               scaling the sequence of predicted deviation values (we usually
+               think of the sequence as a continuous line rather than a set of
+               discrete points).
+
+               Aberrant behavior (a potential failure) is reported whenever
+               the number of times the observed value violates the confidence
+               bands meets or exceeds a specified threshold within a specified
+               temporal window (e.g. 5 violations during the past 45 minutes
+               with a value observed every 5 minutes).
+
+               This functionality is embedded in a set of related RRRRAAss. In
+               particular, a FAILURES RRRRAA logs potential failures. With these
+               data you could, for example, use a front-end application to
+               RRRRDDttooooll to initiate real-time alerts.
+
+               For a detailed description on how to set this up, see
+               rrdcreate.
+
+   RREEMMOOTTEE CCOONNTTRROOLL
+       When you start RRRRDDttooooll with the command line option '--' it waits for
+       input via standard input (STDIN). With this feature you can improve
+       performance by attaching RRRRDDttooooll to another process (MRTG is one
+       example) through a set of pipes. Over these pipes RRRRDDttooooll accepts the
+       same arguments as on the command line and some special commands like
+       qquuiitt,, ccdd,, mmkkddiirr and llss. For detailed help on the server commands type:
+
+          rrdtool help cd|mkdir|pwd|ls|quit
+
+       When a command is completed, RRDtool will print the string  '"OK"',
+       followed by timing information of the form uu::_u_s_e_r_t_i_m_e ss::_s_y_s_t_e_m_t_i_m_e.
+       Both values are the running totals of seconds since RRDtool was
+       started. If an error occurs, a line of the form '"ERROR:" _D_e_s_c_r_i_p_t_i_o_n
+       _o_f _e_r_r_o_r' will be printed instead. RRRRDDttooooll will not abort, unless
+       something really serious happens. If a wwoorrkkddiirr is specified and the UID
+       is 0, RRDtool will do a chroot to that workdir. If the UID is not 0,
+       RRDtool only changes the current directory to wwoorrkkddiirr.
+
+   RRRRDD SSeerrvveerr
+       If you want to create a RRD-Server, you must choose a TCP/IP Service
+       number and add them to _/_e_t_c_/_s_e_r_v_i_c_e_s like this:
+
+        rrdsrv      13900/tcp                       # RRD server
+
+       Attention: the TCP port 13900 isn't officially registered for rrdsrv.
+       You can use any unused port in your services file, but the server and
+       the client system must use the same port, of course.
+
+       With this configuration you can add RRDtool as meta-server to
+       _/_e_t_c_/_i_n_e_t_d_._c_o_n_f. For example:
+
+        rrdsrv stream tcp nowait root /opt/rrd/bin/rrdtool rrdtool - /var/rrd
+
+       Don't forget to create the database directory /var/rrd and reinitialize
+       your inetd.
+
+       If all was setup correctly, you can access the server with Perl
+       sockets, tools like netcat, or in a quick interactive test by using
+       'telnet localhost rrdsrv'.
+
+       NNOOTTEE:: that there is no authentication with this feature! Do not setup
+       such a port unless you are sure what you are doing.
+
+RRRRDDCCAACCHHEEDD,, TTHHEE CCAACCHHIINNGG DDAAEEMMOONN
+       For very big setups, updating thousands of RRD files often becomes a
+       serious IO problem. If you run into such problems, you might want to
+       take a look at rrdcached, a caching daemon for RRDtool which may help
+       you lessen the stress on your disks.
+
+SSEEEE AALLSSOO
+       rrdcreate, rrdupdate, rrdgraph, rrddump, rrdfetch, rrdtune, rrdlast,
+       rrdxport, rrdflushcached, rrdcached
+
+BBUUGGSS
+       Bugs? Features!
+
+AAUUTTHHOORR
+       Tobias Oetiker <tobi@oetiker.ch>
+
+
+
+1.4.8                             2013-05-23                        RRDTOOL(1)

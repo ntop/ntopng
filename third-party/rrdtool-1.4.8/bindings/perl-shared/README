@@ -1,0 +1,24 @@
+These are the Perl bindings for rrdtool as a shared library. To compile do
+the following:
+
+perl Makefile.PL
+make test
+
+For Windows Users, make sure you have the following requirements:
+
+- ActiveState Perl (32bit version Only)
+- Microsoft Visual C++
+- The following binaries in your path: mt.exe, nmake.exe, link.exe, perl.exe
+- Make the project rrdlib.vcproj in Release mode to create rrdlib.lib
+
+To build:
+
+perl Makefile.PL
+nmake 
+
+To Install:
+
+nmake install
+
+NOTE: If using anything other than Visual C++ 9, edit Makefile.PL and modify
+      your paths appropriately.

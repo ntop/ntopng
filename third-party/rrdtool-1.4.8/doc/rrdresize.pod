@@ -1,0 +1,54 @@
+=head1 NAME
+
+rrdresize - alters the size of an RRA and creates a new .rrd file
+
+=head1 SYNOPSIS
+
+B<rrdtool> B<resize> I<filename> I<rra-num>  B<GROW>I<|>B<SHRINK> I<rows>
+
+=head1 DESCRIPTION
+
+The B<resize> function is used to modify the number of rows in
+an B<RRA>.
+
+=over 8
+
+=item I<filename>
+
+the name of the B<RRD> you want to alter.
+
+=item I<rra-num>
+
+the B<RRA> you want to alter. You can find the number using B<rrdtool info>.
+
+=item B<GROW>
+
+used if you want to add extra rows to an RRA. The extra rows will be inserted
+as the rows that are oldest.
+
+=item B<SHRINK>
+
+used if you want to remove rows from an RRA. The rows that will be removed
+are the oldest rows.
+
+=item I<rows>
+
+the number of rows you want to add or remove.
+
+=back
+
+=head1 NOTES
+
+The new .rrd file, with the modified RRAs, is written to the file
+B<resize.rrd> in the current directory.  B<The original .rrd file is not
+modified>.
+
+It is possible to abuse this tool and get strange results
+by first removing some rows and then reinserting the same amount (effectively
+clearing them to be Unknown). You may thus end up with unknown data in one
+RRA while at the same timestamp this data is available in another RRA.
+
+=head1 AUTHOR
+
+Alex van den Bogaerdt <alex@vandenbogaerdt.nl>
+

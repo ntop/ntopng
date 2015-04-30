@@ -1,0 +1,56 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+# export DH_VERBOSE=1
+
+#
+# debian/compat
+# We should use at least comparibily version 5
+# but this requires the whole building process
+# to be remade and this is something we leave
+# to when we will have more time
+# http://www.tin.org/bin/man.cgi?section=7&topic=debhelper
+#
+
+package=ntopng
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	dh_installinit
+	dh_installman
+# install the files into debian/tmp.
+	cp -r ./usr/ ./debian/tmp
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

@@ -1,0 +1,234 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrdtune</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example_1">EXAMPLE 1</a></li>
+	<li><a href="#example_2">EXAMPLE 2</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rrdtune - Modify some basic properties of a Round Robin Database</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>rrdtool</strong> <strong>tune</strong> <em>filename</em>
+[<strong>--heartbeat</strong>|<strong>-h</strong>&nbsp;<em>ds-name</em>:<em>heartbeat</em>]
+[<strong>--minimum</strong>|<strong>-i</strong>&nbsp;<em>ds-name</em>:<em>min</em>]
+[<strong>--maximum</strong>|<strong>-a</strong>&nbsp;<em>ds-name</em>:<em>max</em>]
+[<strong>--data-source-type</strong>|<strong>-d</strong>&nbsp;<em>ds-name</em>:<em>DST</em>]
+[<strong>--data-source-rename</strong>|<strong>-r</strong>&nbsp;<em>old-name</em>:<em>new-name</em>]
+[<strong>--deltapos</strong>&nbsp;<em>scale-value</em>]
+[<strong>--deltaneg</strong>&nbsp;<em>scale-value</em>]
+[<strong>--failure-threshold</strong>&nbsp;<em>failure-threshold</em>]
+[<strong>--window-length</strong>&nbsp;<em>window-length</em>]
+[<strong>--alpha</strong>&nbsp;<em>adaption-parameter</em>]
+[<strong>--beta</strong>&nbsp;<em>adaption-parameter</em>]
+[<strong>--gamma</strong>&nbsp;<em>adaption-parameter</em>]
+[<strong>--gamma-deviation</strong>&nbsp;<em>adaption-parameter</em>]
+[<strong>--smoothing-window</strong>&nbsp;<em>fraction-of-season</em>]
+[<strong>--smoothing-window-deviation</strong>&nbsp;<em>fraction-of-season</em>]
+[<strong>--aberrant-reset</strong>&nbsp;<em>ds-name</em>]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>The tune option allows you to alter some of the basic configuration
+values stored in the header area of a Round Robin Database (<strong>RRD</strong>).</p>
+<p>One application of the <strong>tune</strong> function is to relax the
+validation rules on an <strong>RRD</strong>. This allows to fill a new <strong>RRD</strong> with
+data available in larger intervals than what you would normally want
+to permit. Be very careful with tune operations for COMPUTE data sources.
+Setting the <em>min</em>, <em>max</em>, and  <em>heartbeat</em> for a COMPUTE data source
+without changing the data source type to a non-COMPUTE <strong>DST</strong> WILL corrupt
+the data source header in the <strong>RRD</strong>.</p>
+<p>A second application of the <strong>tune</strong> function is to set or alter parameters
+used by the specialized function <strong>RRAs</strong> for aberrant behavior detection.</p>
+<dl>
+<dt><strong><a name="filename" class="item"><em>filename</em></a></strong></dt>
+
+<dd>
+<p>The name of the <strong>RRD</strong> you want to tune.</p>
+</dd>
+<dt><strong><a name="heartbeat_h_ds_name_heartbeat" class="item"><strong>--heartbeat</strong>|<strong>-h</strong>&nbsp;<em>ds-name</em>:<em>heartbeat</em></a></strong></dt>
+
+<dd>
+<p>modify the <em>heartbeat</em> of a data source. By setting this to a high
+value the RRD will accept things like one value per day.</p>
+</dd>
+<dt><strong><a name="minimum_i_ds_name_min" class="item"><strong>--minimum</strong>|<strong>-i</strong>&nbsp;<em>ds-name</em>:<em>min</em></a></strong></dt>
+
+<dd>
+<p>alter the minimum value acceptable as input from the data source.
+Setting <em>min</em> to 'U' will disable this limit.</p>
+</dd>
+<dt><strong><a name="maximum_a_ds_name_max" class="item"><strong>--maximum</strong>|<strong>-a</strong>&nbsp;<em>ds-name</em>:<em>max</em></a></strong></dt>
+
+<dd>
+<p>alter the maximum value acceptable as input from the data source.
+Setting <em>max</em> to 'U' will disable this limit.</p>
+</dd>
+<dt><strong><a name="data_source_type_d_ds_name_dst" class="item"><strong>--data-source-type</strong>|<strong>-d</strong>&nbsp;<em>ds-name</em>:<em>DST</em></a></strong></dt>
+
+<dd>
+<p>alter the type <strong>DST</strong> of a data source.</p>
+</dd>
+<dt><strong><a name="data_source_rename_r_old_name_new_name" class="item"><strong>--data-source-rename</strong>|<strong>-r</strong>&nbsp;<em>old-name</em>:<em>new-name</em></a></strong></dt>
+
+<dd>
+<p>rename a data source.</p>
+</dd>
+<dt><strong><a name="deltapos_scale_value" class="item"><strong>--deltapos</strong>&nbsp;<em>scale-value</em></a></strong></dt>
+
+<dd>
+<p>Alter the deviation scaling factor for the upper bound of the
+confidence band used internally to calculate violations for the
+FAILURES <strong>RRA</strong>. The default value is 2. Note that this parameter is
+not related to graphing confidence bounds which must be specified as a
+CDEF argument to generate a graph with confidence bounds. The graph
+scale factor need not to agree with the value used internally by the
+FAILURES <strong>RRA</strong>.</p>
+</dd>
+<dt><strong><a name="deltaneg_scale_value" class="item"><strong>--deltaneg</strong>&nbsp;<em>scale-value</em></a></strong></dt>
+
+<dd>
+<p>Alter the deviation scaling factor for the lower bound of the confidence band
+used internally to calculate violations for the FAILURES <strong>RRA</strong>. The default
+value is 2. As with <strong>--deltapos</strong>, this argument is unrelated to the scale
+factor chosen when graphing confidence bounds.</p>
+</dd>
+<dt><strong><a name="failure_threshold_failure_threshold" class="item"><strong>--failure-threshold</strong>&nbsp;<em>failure-threshold</em></a></strong></dt>
+
+<dd>
+<p>Alter the number of confidence bound violations that constitute a failure for
+purposes of the FAILURES <strong>RRA</strong>. This must be an integer less than or equal to
+the window length of the FAILURES <strong>RRA</strong>. This restriction is not verified by
+the tune option, so one can reset failure-threshold and window-length
+simultaneously. Setting this option will reset the count of violations to 0.</p>
+</dd>
+<dt><strong><a name="window_length_window_length" class="item"><strong>--window-length</strong>&nbsp;<em>window-length</em></a></strong></dt>
+
+<dd>
+<p>Alter the number of time points in the temporal window for determining
+failures. This must be an integer greater than or equal to the window
+length of the FAILURES <strong>RRA</strong> and less than or equal to 28. Setting
+this option will reset the count of violations to 0.</p>
+</dd>
+<dt><strong><a name="alpha_adaption_parameter" class="item"><strong>--alpha</strong>&nbsp;<em>adaption-parameter</em></a></strong></dt>
+
+<dd>
+<p>Alter the intercept adaptation parameter for the Holt-Winters
+forecasting algorithm. This parameter must be between 0 and 1.</p>
+</dd>
+<dt><strong><a name="beta_adaption_parameter" class="item"><strong>--beta</strong>&nbsp;<em>adaption-parameter</em></a></strong></dt>
+
+<dd>
+<p>Alter the slope adaptation parameter for the Holt-Winters forecasting
+algorithm. This parameter must be between 0 and 1.</p>
+</dd>
+<dt><strong><a name="gamma_adaption_parameter" class="item"><strong>--gamma</strong>&nbsp;<em>adaption-parameter</em></a></strong></dt>
+
+<dd>
+<p>Alter the seasonal coefficient adaptation parameter for the SEASONAL
+<strong>RRA</strong>. This parameter must be between 0 and 1.</p>
+</dd>
+<dt><strong><a name="gamma_deviation_adaption_parameter" class="item"><strong>--gamma-deviation</strong>&nbsp;<em>adaption-parameter</em></a></strong></dt>
+
+<dd>
+<p>Alter the seasonal deviation adaptation parameter for the DEVSEASONAL
+<strong>RRA</strong>. This parameter must be between 0 and 1.</p>
+</dd>
+<dt><strong><a name="smoothing_window_fraction_of_season" class="item"><strong>--smoothing-window</strong>&nbsp;<em>fraction-of-season</em></a></strong></dt>
+
+<dd>
+<p>Alter the size of the smoothing window for the SEASONAL <strong>RRA</strong>. This must
+be between 0 and 1.</p>
+</dd>
+<dt><strong><a name="smoothing_window_deviation_fraction_of_season" class="item"><strong>--smoothing-window-deviation</strong>&nbsp;<em>fraction-of-season</em></a></strong></dt>
+
+<dd>
+<p>Alter the size of the smoothing window for the DEVSEASONAL <strong>RRA</strong>. This must
+be between 0 and 1.</p>
+</dd>
+<dt><strong><a name="aberrant_reset_ds_name" class="item"><strong>--aberrant-reset</strong>&nbsp;<em>ds-name</em></a></strong></dt>
+
+<dd>
+<p>This option causes the aberrant behavior detection algorithm to reset
+for the specified data source; that is, forget all it is has learnt so far.
+Specifically, for the HWPREDICT or MHWPREDICT <strong>RRA</strong>, it sets the intercept and
+slope coefficients to unknown. For the SEASONAL <strong>RRA</strong>, it sets all seasonal
+coefficients to unknown. For the DEVSEASONAL <strong>RRA</strong>, it sets all seasonal
+deviation coefficients to unknown. For the FAILURES <strong>RRA</strong>, it erases the
+violation history. Note that reset does not erase past predictions
+(the values of the HWPREDICT or MHWPREDICT <strong>RRA</strong>), predicted deviations (the
+values of the DEVPREDICT <strong>RRA</strong>), or failure history (the values of the 
+FAILURES <strong>RRA</strong>).  This option will function even if not all the listed 
+<strong>RRAs</strong> are present.</p>
+<p>Due to the implementation of this option, there is an indirect impact on
+other data sources in the RRD. A smoothing algorithm is applied to
+SEASONAL and DEVSEASONAL values on a periodic basis. During bootstrap
+initialization this smoothing is deferred. For efficiency, the implementation
+of smoothing is not data source specific. This means that utilizing
+reset for one data source will delay running the smoothing algorithm
+for all data sources in the file. This is unlikely to have serious
+consequences, unless the data being collected for the non-reset data sources
+is unusually volatile during the reinitialization period of the reset
+data source.</p>
+<p>Use of this tuning option is advised when the behavior of the data source
+time series changes in a drastic and permanent manner.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="example_1">EXAMPLE 1</a></h1>
+<p><code>rrdtool tune data.rrd -h in:100000 -h out:100000 -h through:100000</code></p>
+<p>Set the minimum required heartbeat for data sources 'in', 'out'
+and 'through' to 10'000 seconds which is a little over one day in data.rrd.
+This would allow to feed old data from MRTG-2.0 right into
+RRDtool without generating *UNKNOWN* entries.</p>
+<p>
+</p>
+<hr />
+<h1><a name="example_2">EXAMPLE 2</a></h1>
+<p><code>rrdtool tune monitor.rrd --window-length 5 --failure-threshold 3</code></p>
+<p>If the FAILURES <strong>RRA</strong> is implicitly created, the default
+window-length is 9 and the default failure-threshold is 7. This
+command now defines a failure as 3 or more violations in a temporal
+window of 5 time points.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;</p>
+
+</body>
+
+</html>

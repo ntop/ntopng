@@ -1,0 +1,75 @@
+#
+# Change it according to your setup
+#
+NTOPNG_HOME=$(PWD)/../..
+NTOPNG_BUILD=${NTOPNG_HOME}/packages/ubuntu
+
+all: clean ntopng ntopng-data
+
+
+ntopng:
+	if test -e "./debian"; then /bin/rm -f debian; fi
+	ln -s ./debian.ntopng ./debian
+	@SUDO@ /bin/rm -rf ./usr ./debian/tmp
+	\mkdir -p ${NTOPNG_BUILD}/usr/bin ${NTOPNG_BUILD}/usr/share/man/man8 ${NTOPNG_BUILD}/usr/share/ntopng ./debian/tmp
+	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/bin/
+	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8
+	cp -r $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
+	cp -r $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/share/ntopng
+	if test -d "$(NTOPNG_HOME)/pro"; then \
+		mkdir ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
+		cp -r $(NTOPNG_HOME)/pro/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
+		cp -r $(NTOPNG_HOME)/pro/scripts ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
+		cd ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro; \
+		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
+		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
+		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
+	fi
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
+	@echo
+	@find . -name "*~" -exec /bin/rm {} ';'
+	@/bin/rm -f ../ntopng_*deb
+	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc -b
+	@SUDO@ dpkg-sig --sign builder -k 7921DF34 ../ntopng_*deb
+	@\rm -f ../ntopng_*dsc ../ntopng_*.gz ../ntopng_*changes
+	@/bin/mv ../ntopng_*deb .
+	@echo
+	@echo "Package built."
+	@/bin/ls ntopng_*deb
+	@echo "-------------------------------"
+	-dpkg --contents ntopng_*deb
+	@echo "-------------------------------"
+
+ntopng-data:
+	if test -e "./debian"; then /bin/rm -f debian; fi
+	ln -s ./debian.ntopng-data ./debian
+	\rm -rf ./usr ./debian/tmp
+	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/tmp
+	cd ../../ ; ./configure; make geoip
+	cp ../../httpdocs/geoip/* ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
+	-gunzip ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/*.gz
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
+	@echo
+	@find . -name "*~" -exec /bin/rm {} ';'
+	@/bin/rm -f ../ntopng-data_*deb
+	dpkg-buildpackage -rfakeroot -d -us -uc
+	dpkg-sig --sign builder -k 7921DF34 ../ntopng-data_*deb
+	@\rm -f ../ntopng-data_*dsc ../ntopng-data_*.gz ../ntopng-data_*changes
+	@/bin/mv ../ntopng-data_*deb .
+	@echo
+	@echo "Package built."
+	@/bin/ls ntopng-data_*deb
+	@echo "-------------------------------"
+	-dpkg --contents ntopng-data_*deb
+	@echo "-------------------------------"
+
+distclean:
+	echo "dummy distclean"
+
+install:
+	echo "dummy install"
+
+clean:
+	-rm -rf *~ *deb debian/tmp ./usr

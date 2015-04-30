@@ -1,0 +1,93 @@
+$Id$
+
+I would like to thank to following people for helping to
+bring RRDtool into existence.
+
+Alan Lichty <alan_lichty with eli.net> 
+Alan Milligan <alan.milligan@last-bastion.net> Python bindings
+Alex van den Bogaerdt <alex with ergens.op.het.net> (rrd_resize.c and more)
+Amos Shapira <amos with gezernet.co.il>
+Andreas Kroomaa <andre with ml.ee>
+Andrew Turner <turner with mint.net> (LAST consolidator)
+Benny Baumann <benbe with geshi.org) rrd_dump with callback support
+Bernard Fischer <bfischer with syslog.ch> 64bit stuff, --alt-autoscale-max
+Bernhard Fischer <rep dot dot dot nop with gmail.com> MMAP rewrite
+Bill Fenner <fenner with research.att.com>
+Blair Zajac <bzajac with geostaff.com>
+Bruce Campbell <bruce.campbell with apnic.net>
+Chin-A-Young <china with thewrittenword.com>
+Christophe VG <Christophe.VanGinneken with ubizen.com>
+Christophe Van Ginneken <Christophe.VanGinneken with ubizen.com> (--no-legend)
+Dan Dunn <dandunn with computer.org>
+Daniel Pocock <daniel in pocock.com.au> rrd_create to mmap port
+Dave Bodenstab <dave@bodenstab.org> AT style time in update, tclfixes
+David Grimes <dgrimes with navisite.com> SQRT/SORT/REV/SHIFT/TREND
+David L. Barker <dave with ncomtech.com> xport function bug fixes
+Evan Miller <emiller with imvu.com> Multiplicative HW Enhancements
+Frank Strauss <strauss with escape.de> TCL bindings
+Florian octo Forster <rrdtool nospam.verplant.org> rrd_restore libxml2 rewrite, deprecated function export, rrdcached
+Fidelis Assis <fidelis pobox.com> lua bindings
+Henrik Storner <henrik with hswn.dk> functions for min/max values of data in graph
+Hermann Hueni <hueni with glue.ch> (SunOS porting)
+Jakob Ilves <jilves with se.oracle.com> HPUX 11
+Jeff R. Allen <jeff.allen with acm.org> (autoconfigure, portability)  
+Jeremy Fischer <jeremy with pobox.com> (Makefile changes & RPM builds)
+Jesús Couto Fandiño
+Joel Becker <jlbec with raleigh.ibm.com> AIX
+Joey Miller <joeym with inficad.com>php3 and php4 bindings
+Jost.Krieger <Jost.Krieger with ruhr-uni-bochum.de>
+Kai Siering <kai.siering with mediaways.net>
+Kevin Brintnall <kbrint with rufus.net> bugfixes in and additions to rrdcached, including journaling support
+Larry Leszczynski <larryl with furph.com>
+Mark Plaksin <happy@usg.edu> rrd_graph_v
+Matt Chambers <matthew.chambers with vanderbilt.edu> --full-size-mode for rrdgraph
+Melchior Rabe <rrdtool at mrab.de> -- legend position patch
+McCreary mccreary with xoanon.colorado.edu
+Mike Mitchell <mcm with unx.sas.com>
+Mike Slifcak <slif with bellsouth.net> many rrdtool-1.1.x fixes
+Oleg Cherevko <olwi with icyb.kiev.ua>
+Otmar Lendl <O.Lendl with Austria.EU.net> (lots of bugfixes)
+Pablo Sanchez <pablo at blueoakdb.com> (CDEF vs VDEF)
+Patrick Cherry <patrick with bytemark.co.uk>
+Paul Joslin <Paul.Joslin with sdrc.com>
+Peter Speck <speck with vitality.dk> eps/svg/pdf file format code in rrdtool-1.x
+Peter Stamfest <peter with stamfest.at> initial multi-thread support
+Peter Breitenlohner <peb with mppmu.mpg.de>  many patches for rrdtool 1.2.x
+Philippe.Simonet <Philippe.Simonet with swisscom.com> (NT porting)
+Poul-Henning Kamp <phk with freebsd.org> CDEF enhancements
+REIBENSCHUH Alfred <alfred.reibenschuh with it-austria.com> AIX
+Radoslaw Karas <rkaras with tyndall.ie>
+Rainer Bawidamann <Rainer.Bawidamann with informatik.uni-ulm.de>
+Roman Hoogant <rhoogant with ee.ethz.ch>
+Ronan Mullally <ronan in 4L.ie>
+Roger J. Meier <roger.meier in terreactive.ch> (arbitrary linelength in rrdtool)
+Russ Wright <rwwright with home.com>
+Sean Summers <sean with Fenstermaker.com> (RPM .spec)
+Selena M Brewington <smbrewin with ichips.intel.com> add_ds
+Shane O'Donnell <shaneo with opennms.org>
+Simon Leinen <simon with switch.ch>
+Steen Linden <Steen.Linden with ebone.net>
+Sebastian Harl <sh at tokkee.org> debian packaging, rrdcached fixes and ehancements
+Stefan Ludewig <Stefan.Ludewig at exitgames.com> 1.3 WIN32 Port
+Stefan Mueller <s.mueller with computer.org> HPUX 11
+Steve Harris <steveh with wesley.com.au> AIX portability
+Steve Rader <rader with teak.wiscnet.net> (rrd_cgi debugging and LAST)
+Terminator rAT <karl_schilke with eli.net>
+Tobias Weingartner <weingart with cs.ualberta.ca>
+Thomas Gutzler <thomas.gutzler with gmail.com> dashed lines
+Tom Crawley <Tom.Crawley with hi.riotinto.com.au> (GCC&HP configuration)
+Travis Brown <tebrown with csh.rit.edu> 
+Tuc <ttsg with ttsg.com>
+Ulf Lilleengen <lulf with pvv.ntnu.no> Python binding for 'rrdtool first'
+Ulrich Schilling <schilling with netz.uni-essen.de> AIX
+Wim Heirman <wim.heirman elis.ugent.be> --units=si option
+Wolfgang Schrimm <wschrimm with uni-hd.de> xport function
+Wrolf Courtney <wrolf with wrolf.net> (HP-UX)
+hendrik visage <hvisage with is.co.za>
+Vytautas Zdanavicius <vytaszd@yahoo.com> -- python argument list exander
+Martin Sperl <rrdtool martin.sperl.org> (CDEF prediction functions, libdbi)
+Philippe Simonet <philippe.simonet with swisscom.ch> (Windows Binaries)
+Alexander Lucke (lucke with dns-net.de) of DNS:NET Internet Services (www.dns-net.de) http://rrdtool.org
+Hedley Simons <heds@metahusky.net>
+Nicola Worthington <nicolaw@cpan.org>
+Wegmann, Christof <Christof.Wegmann@exitgames.com> 1.3/trunk win32 port

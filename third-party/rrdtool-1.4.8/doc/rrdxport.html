@@ -1,0 +1,223 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrdxport</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#output_format">Output format</a></li>
+	<li><a href="#example_1">EXAMPLE 1</a></li>
+	<li><a href="#example_2">EXAMPLE 2</a></li>
+	<li><a href="#environment_variables">ENVIRONMENT VARIABLES</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rrdxport - Export data in XML format based on data from one or several RRD</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>rrdtool</strong> <strong>xport</strong>
+[<strong>-s</strong>|<strong>--start</strong>&nbsp;<em>seconds</em>]
+[<strong>-e</strong>|<strong>--end</strong>&nbsp;<em>seconds</em>]
+[<strong>-m</strong>|<strong>--maxrows</strong>&nbsp;<em>rows</em>]
+[<strong>--step</strong>&nbsp;<em>value</em>]
+[<strong>--json</strong>]
+[<strong>--daemon</strong>&nbsp;<em>address</em>]
+[<strong>DEF:</strong><em>vname</em><strong>=</strong><em>rrd</em><strong>:</strong><em>ds-name</em><strong>:</strong><em>CF</em>]
+[<strong>CDEF:</strong><em>vname</em><strong>=</strong><em>rpn-expression</em>]
+[<strong>XPORT</strong><strong>:</strong><em>vname</em>[<strong>:</strong><em>legend</em>]]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>The <strong>xport</strong> function's main purpose is to write an XML formatted
+representation of the data stored in one or several <strong>RRD</strong>s. It
+can also extract numerical reports.</p>
+<p>If no <em>XPORT</em> statements are found, there will be no output.</p>
+<dl>
+<dt><strong><a name="seconds" class="item"><strong>-s</strong>|<strong>--start</strong> <em>seconds</em> (default end-1day)</a></strong></dt>
+
+<dd>
+<p>The time when the exported range should begin. Time in seconds since
+epoch (1970-01-01) is required. Negative numbers are relative to the
+current time. By default one day worth of data will be printed.
+See also AT-STYLE TIME SPECIFICATION section in the <em>rrdfetch</em>
+documentation for a detailed explanation on how to specify time.</p>
+</dd>
+<dt><strong><strong>-e</strong>|<strong>--end</strong> <em>seconds</em> (default now)</strong></dt>
+
+<dd>
+<p>The time when the exported range should end. Time in seconds since epoch.
+See also AT-STYLE TIME SPECIFICATION section in the <em>rrdfetch</em>
+documentation for a detailed explanation of ways to specify time.</p>
+</dd>
+<dt><strong><a name="rows" class="item"><strong>-m</strong>|<strong>--maxrows</strong> <em>rows</em> (default 400 rows)</a></strong></dt>
+
+<dd>
+<p>This works like the <strong>-w</strong>|<strong>--width</strong> parameter of <em>rrdgraph</em>.
+In fact it is exactly the same, but the parameter was renamed to
+describe its purpose in this module. See <em>rrdgraph</em> documentation
+for details.</p>
+</dd>
+<dt><strong><a name="value" class="item"><strong>--step</strong> <em>value</em> (default automatic)</a></strong></dt>
+
+<dd>
+<p>See <a href="././rrdgraph.html">the rrdgraph manpage</a> documentation.</p>
+</dd>
+<dt><strong><a name="daemon_address" class="item"><strong>--daemon</strong> <em>address</em></a></strong></dt>
+
+<dd>
+<p>Address of the <a href="././rrdcached.html">the rrdcached manpage</a> daemon. If specified, a <code>flush</code> command is sent
+to the server before reading the RRD files. This allows <strong>rrdtool</strong> to return
+fresh data even if the daemon is configured to cache values for a long time.
+For a list of accepted formats, see the <strong>-l</strong> option in the <a href="././rrdcached.html">the rrdcached manpage</a> manual.</p>
+<pre>
+  rrdtool xport --daemon unix:/var/run/rrdcached.sock ...</pre>
+</dd>
+<dt><strong><a name="json" class="item"><strong>--json</strong></a></strong></dt>
+
+<dd>
+<p>produce json formated output (instead of xml)</p>
+</dd>
+<dt><strong><a name="enumds" class="item"><strong>--enumds</strong></a></strong></dt>
+
+<dd>
+<p>The generated xml should contain the data values in enumerated tags.</p>
+<pre>
+ &lt;v0&gt;val&lt;/v0&gt;&lt;v1&gt;val&lt;/v1&gt;</pre>
+</dd>
+<dt><strong><a name="def_vname_rrd_ds_name_cf" class="item"><strong>DEF:</strong><em>vname</em><strong>=</strong><em>rrd</em><strong>:</strong><em>ds-name</em><strong>:</strong><em>CF</em></a></strong></dt>
+
+<dd>
+<p>See <em>rrdgraph</em> documentation.</p>
+</dd>
+<dt><strong><a name="cdef_vname_rpn_expression" class="item"><strong>CDEF:</strong><em>vname</em><strong>=</strong><em>rpn-expression</em></a></strong></dt>
+
+<dd>
+<p>See <em>rrdgraph</em> documentation.</p>
+</dd>
+<dt><strong><a name="xport_vname_legend" class="item"><strong>XPORT:</strong><em>vname</em><strong>:</strong><strong>:</strong><em>legend</em></a></strong></dt>
+
+<dd>
+<p>At least one <em>XPORT</em> statement should be present. The values
+referenced by <em>vname</em> are printed. Optionally add a legend.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="output_format">Output format</a></h1>
+<p>The output is enclosed in an <strong>xport</strong> element and contains two
+blocks. The first block is enclosed by a <strong>meta</strong> element and
+contains some meta data. The second block is enclosed by a
+<strong>data</strong> element and contains the data rows.</p>
+<p>Let's assume that the <em>xport</em> command looks like this:</p>
+<pre>
+  rrdtool xport \
+          --start now-1h --end now \
+          DEF:xx=host-inout.lo.rrd:output:AVERAGE \
+          DEF:yy=host-inout.lo.rrd:input:AVERAGE \
+          CDEF:aa=xx,yy,+,8,* \
+          XPORT:xx:&quot;out bytes&quot; \
+          XPORT:aa:&quot;in and out bits&quot;</pre>
+<p>The resulting meta data section is (the values will depend on the
+RRD characteristics):</p>
+<pre>
+  &lt;meta&gt;
+    &lt;start&gt;1020611700&lt;/start&gt;
+    &lt;step&gt;300&lt;/step&gt;
+    &lt;end&gt;1020615600&lt;/end&gt;
+    &lt;rows&gt;14&lt;/rows&gt;
+    &lt;columns&gt;2&lt;/columns&gt;
+    &lt;legend&gt;
+      &lt;entry&gt;out bytes&lt;/entry&gt;
+      &lt;entry&gt;in and out bits&lt;/entry&gt;
+    &lt;/legend&gt;
+  &lt;/meta&gt;</pre>
+<p>The resulting data section is:</p>
+<pre>
+  &lt;data&gt;
+    &lt;row&gt;&lt;t&gt;1020611700&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020612000&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020612300&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020612600&lt;/t&gt;&lt;v&gt;3.4113333333e+00&lt;/v&gt;&lt;v&gt;5.4581333333e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020612900&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020613200&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020613500&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020613800&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020614100&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020614400&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020614700&lt;/t&gt;&lt;v&gt;3.7333333333e+00&lt;/v&gt;&lt;v&gt;5.9733333333e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020615000&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020615300&lt;/t&gt;&lt;v&gt;3.4000000000e+00&lt;/v&gt;&lt;v&gt;5.4400000000e+01&lt;/v&gt;&lt;/row&gt;
+    &lt;row&gt;&lt;t&gt;1020615600&lt;/t&gt;&lt;v&gt;NaN&lt;/v&gt;&lt;v&gt;NaN&lt;/v&gt;&lt;/row&gt;
+  &lt;/data&gt;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="example_1">EXAMPLE 1</a></h1>
+<pre>
+  rrdtool xport \
+          DEF:out=if1-inouts.rrd:outoctets:AVERAGE \
+          XPORT:out:&quot;out bytes&quot;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="example_2">EXAMPLE 2</a></h1>
+<pre>
+  rrdtool xport \
+          DEF:out1=if1-inouts.rrd:outoctets:AVERAGE \
+          DEF:out2=if2-inouts.rrd:outoctets:AVERAGE \
+          CDEF:sum=out1,out2,+ \
+          XPORT:out1:&quot;if1 out bytes&quot; \
+          XPORT:out2:&quot;if2 out bytes&quot; \
+          XPORT:sum:&quot;output sum&quot;</pre>
+<p>
+</p>
+<hr />
+<h1><a name="environment_variables">ENVIRONMENT VARIABLES</a></h1>
+<p>The following environment variables may be used to change the behavior of
+<code>rrdtoolxport</code>:</p>
+<dl>
+<dt><strong><a name="rrdcached_address" class="item"><strong>RRDCACHED_ADDRESS</strong></a></strong></dt>
+
+<dd>
+<p>If this environment variable is set it will have the same effect as specifying
+the <code>--daemon</code> option on the command line. If both are present, the command
+line argument takes precedence.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;</p>
+
+</body>
+
+</html>

@@ -1,0 +1,225 @@
+=head1 NAME
+
+rrdcgi - Create web pages containing RRD graphs based on templates
+
+=head1 SYNOPSIS
+
+C<#!/path/to/>B<rrdcgi> S<[B<--filter>]>
+
+=head1 DESCRIPTION
+
+B<rrdcgi> is a sort of very limited script interpreter. Its purpose
+is to run as a cgi-program and parse a web page template containing special
+E<lt>RRD:: tags. B<rrdcgi> will interpret and act according to these tags.
+In the end it will printout a web page including the necessary CGI headers.
+
+B<rrdcgi> parses the contents of the template in 3 steps. In each step it looks
+only for a subset of tags. This allows nesting of tags.
+
+The argument parser uses the same semantics as you are used from your C-shell.
+
+=over 8
+
+=item B<--filter>
+
+Assume that rrdcgi is run as a filter and not as a cgi.
+
+=back
+
+=head2 Keywords
+
+=over 8
+
+=item RRD::CV I<name>
+
+Inserts the CGI variable of the given name.
+
+=item RRD::CV::QUOTE I<name>
+
+Inserts the CGI variable of the given name but quotes it, ready for
+use as an argument in another RRD:: tag. So even when there are spaces in the
+value of the CGI variable it will still be considered to be one argument.
+
+=item RRD::CV::PATH I<name>
+
+Inserts the CGI variable of the given name, quotes it and makes sure
+it starts neither with a '/' nor contains '..'. This is to make
+sure that no problematic pathnames can be introduced through the
+CGI interface.
+
+=item RRD::GETENV I<variable>
+
+Get the value of an environment variable.
+
+ <RRD::GETENV REMOTE_USER>
+
+might give you the name of the remote user given you are using
+some sort of access control on the directory.
+
+
+=item RRD::GOODFOR I<seconds>
+
+Specify the number of seconds this page should remain valid. This will prompt
+the rrdcgi to output a Last-Modified, an Expire and if the number of
+seconds is I<negative> a Refresh header.
+
+=item RRD::INCLUDE I<filename>
+
+Include the contents of the specified file into the page returned from the cgi.
+
+=item RRD::SETENV I<variable> I<value>
+
+If you want to present your graphs in another time zone than your own, you
+could use
+
+ <RRD::SETENV TZ UTC>
+
+to make sure everything is presented in Universal Time. Note that the
+values permitted to TZ depend on your OS.
+
+=item RRD::SETVAR I<variable> I<value>
+
+Analog to SETENV but for local variables.
+
+=item RRD::GETVAR I<variable>
+
+Analog to GETENV but for local variables.
+
+=item RRD::TIME::LAST I<rrd-file> I<strftime-format>
+
+This gets replaced by the last modification time of the selected RRD. The
+time is I<strftime>-formatted with the string specified in the second argument.
+
+=item RRD::TIME::NOW I<strftime-format>
+
+This gets replaced by the current time of day. The time is
+I<strftime>-formatted with the string specified in the argument.
+
+Note that if you return : (colons) from your strftime format you may
+have to escape them using \ if the time is to be used as an argument
+to a GRAPH command.
+
+=item RRD::TIME::STRFTIME I<START|END> I<start-spec> I<end-spec> I<strftime-format>
+
+This gets replaced by a strftime-formatted time using the format
+I<strftime-format> on either I<start-spec> or I<end-spec> depending on
+whether I<START> or I<END> is specified.  Both I<start-spec> and I<end-spec>
+must be supplied as either could be relative to the other.  This is intended
+to allow pretty titles on graphs with times that are easier for non RRDtool
+folks to figure out than "-2weeks".
+
+Note that again, if you return : (colon) from your strftime format,
+you may have to escape them using \ if the time is to be used as an
+argument to a GRAPH command.
+
+=item RRD::GRAPH I<rrdgraph arguments>
+
+This tag creates the RRD graph defined by its argument and then is
+replaced by an appropriate E<lt>IMG ... E<gt> tag referring to the graph.
+The B<--lazy> option in RRD graph can be used to make sure that graphs
+are only regenerated when they are out of date. The arguments
+to the B<RRD::GRAPH> tag work as described in the B<rrdgraph> manual page.
+
+Use the B<--lazy> option in your RRD::GRAPH tags, to reduce the load
+on your server. This option makes sure that graphs are only regenerated when
+the old ones are out of date.
+
+If you do not specify your own B<--imginfo> format, the following will
+be used:
+
+ <IMG SRC="%s" WIDTH="%lu" HEIGHT="%lu">
+
+Note that %s stands for the filename part of the graph generated, all
+directories given in the PNG file argument will get dropped.
+
+=item RRD::PRINT I<number>
+
+If the preceding  B<RRD::GRAPH> tag contained and B<PRINT> arguments,
+then you can access their output with this tag. The I<number> argument refers to the
+number of the B<PRINT> argument. This first B<PRINT> has I<number> 0.
+
+=item RRD::INTERNAL <var>
+
+This tag gets replaced by an internal var. Currently these vars are known:
+VERSION, COMPILETIME.
+These vars represent the compiled-in values. 
+
+=back
+
+=head1 EXAMPLE 1
+
+The example below creates a web pages with a single RRD graph.
+
+ #!/usr/local/bin/rrdcgi
+ <HTML>
+ <HEAD><TITLE>RRDCGI Demo</TITLE></HEAD>
+ <BODY>
+ <H1>RRDCGI Example Page</H1>
+ <P>
+ <RRD::GRAPH demo.png --lazy --title="Temperatures"
+          DEF:cel=demo.rrd:exhaust:AVERAGE
+          LINE2:cel#00a000:"D. Celsius">
+
+ </P>
+ </BODY>
+ </HTML>
+
+=head1 EXAMPLE 2
+
+This script is slightly more elaborate, it allows you to run it from
+a form which sets RRD_NAME. RRD_NAME is then used to select which RRD
+you want to use as source for your graph.
+
+ #!/usr/local/bin/rrdcgi
+ <HTML>
+ <HEAD><TITLE>RRDCGI Demo</TITLE></HEAD>
+ <BODY>
+ <H1>RRDCGI Example Page for <RRD::CV RRD_NAME></H1>
+ <H2>Selection</H2>
+ <FORM><INPUT NAME=RRD_NAME TYPE=RADIO VALUE=roomA> Room A,
+       <INPUT NAME=RRD_NAME TYPE=RADIO VALUE=roomB> Room B.
+       <INPUT TYPE=SUBMIT></FORM>
+ <H2>Graph</H2>
+ <P>
+ <RRD::GRAPH <RRD::CV::PATH RRD_NAME>.png --lazy
+          --title "Temperatures for "<RRD::CV::QUOTE RRD_NAME>
+          DEF:cel=<RRD::CV::PATH RRD_NAME>.rrd:exhaust:AVERAGE
+          LINE2:cel#00a000:"D. Celsius">
+
+ </P>
+ </BODY>
+ </HTML>
+
+=head1 EXAMPLE 3
+
+This example shows how to handle the case where the RRD, graphs and
+cgi-bins are separate directories
+
+ #!/.../bin/rrdcgi
+ <HTML>
+ <HEAD><TITLE>RRDCGI Demo</TITLE></HEAD>
+ <BODY>
+ <H1>RRDCGI test Page</H1>
+ <RRD::GRAPH
+  /.../web/pngs/testhvt.png
+  --imginfo '<IMG SRC=/.../pngs/%s WIDTH=%lu HEIGHT=%lu >'
+  --lazy --start -1d --end now
+  DEF:http_src=/.../rrds/test.rrd:http_src:AVERAGE
+  AREA:http_src#00ff00:http_src
+ >
+ </BODY>
+ </HTML>
+
+Note 1: Replace /.../ with the relevant directories
+
+Note 2: The SRC=/.../pngs should be paths from the view of the
+webserver/browser
+
+=head1 AUTHOR
+
+Tobias Oetiker E<lt>tobi@oetiker.chE<gt>
+
+
+
+
+

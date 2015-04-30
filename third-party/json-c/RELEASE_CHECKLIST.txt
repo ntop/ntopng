@@ -1,0 +1,117 @@
+
+Release checklist:
+
+release=0.11
+git clone https://github.com/json-c/json-c json-c-${release}
+cd json-c-${release}
+
+Check that the compile works on Linux
+Check that the compile works on NetBSD
+Check that the compile works on Windows
+Check ChangeLog to see if anything should be added.
+Make any fixes/changes *before* branching.
+
+  git branch json-c-${release}
+  git checkout json-c-${release}
+
+------------
+
+Update the version in json_c_version.h
+Update the version in Doxyfile
+Update the version in configure.in
+	Use ${release}.
+
+Update the libjson_la_LDFLAGS line in Makefile.am to the new version.
+	Generally, unless we're doing a major release, change:
+		-version-info x:y:z
+	to
+		-version-info x:y+1:z
+
+------------
+
+Generate the configure script and other files:
+  sh autogen.sh
+  git add -f Makefile.in aclocal.m4 config.guess \
+       config.sub configure depcomp install-sh \
+       ltmain.sh missing tests/Makefile.in \
+       INSTALL
+
+  # check for anything else to be added:
+  git status --ignored
+  git commit
+
+------------
+
+Generate the doxygen documentation:
+  doxygen
+  git add -f doc
+  git commit doc
+
+------------
+
+cd ..
+echo .git > excludes
+echo autom4te.cache >> excludes
+tar -czf json-c-${release}.tar.gz -X excludes json-c-${release}
+
+echo doc >> excludes
+tar -czf json-c-${release}-nodoc.tar.gz -X excludes json-c-${release}
+
+------------
+
+Tag the branch:
+cd json-c-${release}
+git tag -a json-c-${release}-$(date +%Y%m%d) -m "Release json-c-${release}"
+
+git push origin json-c-${release}
+git push --tags
+
+------------
+
+Go to Amazon S3 service at:
+    https://console.aws.amazon.com/s3/
+
+Upload the two tarballs in the json-c_releases folder.
+	When uploading, use "Reduced Redundancy", and make the uploaded files publicly accessible.
+
+Logout of Amazon S3, and verify that the files are visible.
+    https://s3.amazonaws.com/json-c_releases/releases/index.html
+
+===================================
+
+Post-release checklist:
+
+git checkout master
+Add new section to ChangeLog
+Update the version in json_c_version.h
+Update the version in Doxyfile
+Update the version in configure.in
+    Use ${release}.99 to indicate a version "newer" than anything on the branch.
+
+Leave the libjson_la_LDFLAGS line in Makefile.am alone.
+	For more details see:
+	http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+
+------------
+
+Update the gh-pages branch with new docs:
+
+cd json-c-${release}
+git checkout json-c-${release}
+cd ..
+
+git clone -b gh-pages https://github.com/json-c/json-c json-c-pages
+cd json-c-pages
+mkdir json-c-${release}
+cp -R ../json-c-${release}/doc json-c-${release}/.
+cp ../json-c-${release}/README-WIN32.html json-c-${release}/.
+git add json-c-${release}
+git commit
+
+vi index.html
+    Add/change links to current release.
+
+------------
+
+Send an email to the mailing list.
+

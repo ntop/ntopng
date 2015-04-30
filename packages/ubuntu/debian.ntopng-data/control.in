@@ -1,0 +1,18 @@
+Source: ntopng-data
+Section: free
+Priority: optional
+Maintainer: Luca Deri <deri@ntop.org>
+Standards-Version: @NTOPNG_VERS@
+Build-Depends:
+Build-Conflicts:
+
+Depends:
+Package: ntopng-data
+Architecture: all
+Recommends:
+Suggests:
+Pre-Depends:
+Conflicts:
+Provides:
+Replaces:
+Description: Data files (geoip) for ntopng.

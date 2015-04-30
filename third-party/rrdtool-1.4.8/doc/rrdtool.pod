@@ -1,0 +1,324 @@
+=head1 NAME
+
+rrdtool - Round Robin Database Tool
+
+=head1 SYNOPSIS
+
+B<rrdtool> B<-> [workdir]| I<function>
+
+=head1 DESCRIPTION
+
+=head2 OVERVIEW
+
+It is pretty easy to gather status information from all sorts of
+things, ranging from the temperature in your office to the number of
+octets which have passed through the FDDI interface of your
+router. But it is not so trivial to store this data in an efficient and
+systematic manner. This is where B<RRDtool> comes in handy. It lets you
+I<log and analyze> the data you gather from all kinds of data-sources
+(B<DS>). The data analysis part of RRDtool is based on the ability to
+quickly generate graphical representations of the data values
+collected over a definable time period.
+
+In this man page you will find general information on the design and
+functionality of the Round Robin Database Tool (RRDtool). For a more
+detailed description of how to use the individual functions of
+B<RRDtool> check the corresponding man page.
+
+For an introduction to the usage of RRDtool make sure you consult the
+L<rrdtutorial>.
+
+=head2 FUNCTIONS
+
+While the man pages talk of command line switches you have to set in
+order to make B<RRDtool> work it is important to note that
+B<RRDtool> can be remotely controlled through a set of pipes. This
+saves a considerable amount of startup time when you plan to make
+B<RRDtool> do a lot of things quickly. Check the section on L<Remote_Control>
+further down. There is also a number of language bindings
+for RRDtool which allow you to use it directly from Perl, python, Tcl,
+PHP, etc.
+
+=over 8
+
+=item B<create>
+
+Set up a new Round Robin Database (RRD). Check L<rrdcreate>.
+
+=item B<update>
+
+Store new data values into an RRD. Check L<rrdupdate>.
+
+=item B<updatev>
+
+Operationally equivalent to B<update> except for output. Check L<rrdupdate>.
+
+=item B<graph>
+
+Create a graph from data stored in one or several RRDs. Apart from
+generating graphs, data can also be extracted to stdout. Check L<rrdgraph>.
+
+=item B<dump>
+
+Dump the contents of an RRD in plain ASCII. In connection with restore
+you can use this to move an RRD from one computer architecture to
+another.  Check L<rrddump>.
+
+=item B<restore>
+
+Restore an RRD in XML format to a binary RRD. Check L<rrdrestore>
+
+=item B<fetch>
+
+Get data for a certain time period from a RRD. The graph function
+uses fetch to retrieve its data from an RRD. Check L<rrdfetch>.
+
+=item B<tune>
+
+Alter setup of an RRD. Check L<rrdtune>.
+
+=item B<last>
+
+Find the last update time of an RRD. Check L<rrdlast>.
+
+=item B<info>
+
+Get information about an RRD. Check L<rrdinfo>.
+
+=item B<rrdresize>
+
+Change the size of individual RRAs. This is dangerous! Check L<rrdresize>.
+
+=item B<xport>
+
+Export data retrieved from one or several RRDs. Check L<rrdxport>.
+
+=item B<flushcached>
+
+Flush the values for a specific RRD file from memory. Check L<rrdflushcached>.
+
+=item B<rrdcgi>
+
+This is a standalone tool for producing RRD graphs on the fly. Check
+L<rrdcgi>.
+
+=back
+
+=head2 HOW DOES RRDTOOL WORK?
+
+=over 8
+
+=item Data Acquisition
+
+When monitoring the state of a system, it is convenient to have the
+data available at a constant time interval. Unfortunately, you may not
+always be able to fetch data at exactly the time you want
+to. Therefore B<RRDtool> lets you update the log file at any time you
+want. It will automatically interpolate the value of the data-source
+(B<DS>) at the latest official time-slot (interval) and write this
+interpolated value to the log. The original value you have supplied is
+stored as well and is also taken into account when interpolating the
+next log entry.
+
+=item Consolidation
+
+You may log data at a 1 minute interval, but you might also be
+interested to know the development of the data over the last year. You
+could do this by simply storing the data in 1 minute intervals for the
+whole year. While this would take considerable disk space it would
+also take a lot of time to analyze the data when you wanted to create
+a graph covering the whole year. B<RRDtool> offers a solution to this
+problem through its data consolidation feature. When setting up an
+Round Robin Database (B<RRD>), you can define at which interval this
+consolidation should occur, and what consolidation function (B<CF>)
+(average, minimum, maximum, total, last) should be used to build the
+consolidated values (see rrdcreate). You can define any number of
+different consolidation setups within one B<RRD>. They will all be
+maintained on the fly when new data is loaded into the B<RRD>.
+
+=item Round Robin Archives
+
+Data values of the same consolidation setup are stored into Round
+Robin Archives (B<RRA>). This is a very efficient manner to store data
+for a certain amount of time, while using a known and constant amount
+of storage space.
+
+It works like this: If you want to store 1'000 values in 5 minute
+interval, B<RRDtool> will allocate space for 1'000 data values and a
+header area. In the header it will store a pointer telling which slots
+(value) in the storage area was last written to. New values are
+written to the Round Robin Archive in, you guessed it, a round robin
+manner. This automatically limits the history to the last 1'000 values
+(in our example). Because you can define several B<RRA>s within a
+single B<RRD>, you can setup another one, for storing 750 data values
+at a 2 hour interval, for example, and thus keep a log for the last
+two months at a lower resolution.
+
+The use of B<RRA>s guarantees that the B<RRD> does not grow over
+time and that old data is automatically eliminated. By using the
+consolidation feature, you can still keep data for a very long time,
+while gradually reducing the resolution of the data along the time
+axis.
+
+Using different consolidation functions (B<CF>) allows you to store
+exactly the type of information that actually interests you: the maximum
+one minute traffic on the LAN, the minimum temperature of your wine cellar,
+the total minutes of down time, etc.
+
+=item Unknown Data
+
+As mentioned earlier, the B<RRD> stores data at a constant
+interval. Sometimes it may happen that no new data is available when a
+value has to be written to the B<RRD>. Data acquisition may not be
+possible for one reason or other. With B<RRDtool> you can handle these
+situations by storing an I<*UNKNOWN*> value into the database. The
+value 'I<*UNKNOWN*>' is supported through all the functions of the
+tool. When consolidating a data set, the amount of I<*UNKNOWN*> data
+values is accounted for and when a new consolidated value is ready to
+be written to its Round Robin Archive (B<RRA>), a validity check is
+performed to make sure that the percentage of unknown values in the
+data point is above a configurable level. If not, an I<*UNKNOWN*> value
+will be written to the B<RRA>.
+
+=item Graphing
+
+B<RRDtool> allows you to generate reports in numerical and
+graphical form based on the data stored in one or several
+B<RRD>s. The graphing feature is fully configurable. Size, color and
+contents of the graph can be defined freely. Check L<rrdgraph>
+for more information on this.
+
+=item Aberrant Behavior Detection
+
+by Jake Brutlag
+
+B<RRDtool> provides the building blocks for near real-time aberrant
+behavior detection. These components include:
+
+=over
+
+=item *
+
+An algorithm for predicting the value of a time series one time step
+into the future.
+
+=item *
+
+A measure of deviation between predicted and observed values.
+
+=item *
+
+A mechanism to decide if and when an observed value or sequence of
+observed values is I<too deviant> from the predicted value(s).
+
+=back
+
+Here is a brief explanation of these components:
+
+The Holt-Winters time series forecasting algorithm is an on-line (or
+incremental) algorithm that adaptively predicts future observations in
+a time series. Its forecast is the sum of three components: a baseline
+(or intercept), a linear trend over time (or slope), and a seasonal
+coefficient (a periodic effect, such as a daily cycle). There is one
+seasonal coefficient for each time point in the period (cycle). After
+a value is observed, each of these components is updated via
+exponential smoothing. This means that the algorithm "learns" from
+past values and uses them to predict the future. The rate of
+adaptation is governed by 3 parameters, alpha (intercept), beta
+(slope), and gamma (seasonal). The prediction can also be viewed as a
+smoothed value for the time series.
+
+The measure of deviation is a seasonal weighted absolute
+deviation. The term I<seasonal> means deviation is measured separately
+for each time point in the seasonal cycle. As with Holt-Winters
+forecasting, deviation is predicted using the measure computed from
+past values (but only at that point in the seasonal cycle). After the
+value is observed, the algorithm learns from the observed value via
+exponential smoothing. Confidence bands for the observed time series
+are generated by scaling the sequence of predicted deviation values
+(we usually think of the sequence as a continuous line rather than a
+set of discrete points).
+
+Aberrant behavior (a potential failure) is reported whenever the
+number of times the observed value violates the confidence bands meets
+or exceeds a specified threshold within a specified temporal window
+(e.g. 5 violations during the past 45 minutes with a value observed
+every 5 minutes).
+
+This functionality is embedded in a set of related B<RRAs>. In
+particular, a FAILURES B<RRA> logs potential failures. With these data
+you could, for example, use a front-end application to B<RRDtool> to
+initiate real-time alerts.
+
+For a detailed description on how to set this up, see L<rrdcreate>.
+
+=back
+
+=head2 REMOTE CONTROL
+
+When you start B<RRDtool> with the command line option 'B<->' it waits
+for input via standard input (STDIN). With this feature you can
+improve performance by attaching B<RRDtool> to another process (MRTG
+is one example) through a set of pipes. Over these pipes B<RRDtool>
+accepts the same arguments as on the command line and some special
+commands like B<quit, cd, mkdir> and B<ls>. For detailed help on the
+server commands type:
+
+   rrdtool help cd|mkdir|pwd|ls|quit
+
+When a command is completed, RRDtool will print the string  'C<OK>',
+followed by timing information of the form B<u:>I<usertime>
+B<s:>I<systemtime>. Both values are the running totals of seconds since
+RRDtool was started. If an error occurs, a line of the form 'C<ERROR:>
+I<Description of error>' will be printed instead. B<RRDtool> will not abort,
+unless something really serious happens. If
+a B<workdir> is specified and the UID is 0, RRDtool will do a chroot to that
+workdir. If the UID is not 0, RRDtool only changes the current directory to
+B<workdir>.
+
+=head2 RRD Server
+
+If you want to create a RRD-Server, you must choose a TCP/IP Service
+number and add them to I</etc/services> like this:
+
+ rrdsrv      13900/tcp                       # RRD server
+
+Attention: the TCP port 13900 isn't officially registered for
+rrdsrv. You can use any unused port in your services file, but the
+server and the client system must use the same port, of course.
+
+With this configuration you can add RRDtool as meta-server to
+I</etc/inetd.conf>. For example:
+
+ rrdsrv stream tcp nowait root /opt/rrd/bin/rrdtool rrdtool - /var/rrd
+
+Don't forget to create the database directory /var/rrd and
+reinitialize your inetd.
+
+If all was setup correctly, you can access the server with Perl
+sockets, tools like netcat, or in a quick interactive test by using
+'telnet localhost rrdsrv'.
+
+B<NOTE:> that there is no authentication with this feature! Do not setup
+such a port unless you are sure what you are doing.
+
+=head1 RRDCACHED, THE CACHING DAEMON
+
+For very big setups, updating thousands of RRD files often becomes a serious IO
+problem. If you run into such problems, you might want to take a look at
+L<rrdcached>, a caching daemon for RRDtool which may help you lessen the
+stress on your disks.
+
+=head1 SEE ALSO
+
+rrdcreate, rrdupdate, rrdgraph, rrddump, rrdfetch, rrdtune, rrdlast, rrdxport,
+rrdflushcached, rrdcached
+
+=head1 BUGS
+
+Bugs? Features!
+
+=head1 AUTHOR
+
+Tobias Oetiker <tobi@oetiker.ch>
+

@@ -1,0 +1,22 @@
+#
+# ruby librrd bindings
+# author: Miles Egan <miles@caddr.com>
+#
+
+- Introduction 
+
+This module provides ruby bindings for librrd, with functionality
+comparable to the native perl bindings.  See test.rb for a script that
+exercises all ruby-librrd functionality.
+
+- Installation
+
+Installation is standard.  Simply run:
+
+ruby extconf.rb
+make
+make install
+
+I hope this works for you.  Please let me know if you have any
+problems or suggestions.  Someday when I'm feeling less lazy I'll
+actually document this thing.  Thanks to Tobi for rrdtool!

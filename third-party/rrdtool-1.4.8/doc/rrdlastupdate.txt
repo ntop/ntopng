@@ -1,0 +1,41 @@
+RRDLASTUPDATE(1)                    rrdtool                   RRDLASTUPDATE(1)
+
+
+
+NNAAMMEE
+       rrdlastupdate - Return the most recent update to an RRD
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll llaassttuuppddaattee _f_i_l_e_n_a_m_e [----ddaaeemmoonn _a_d_d_r_e_s_s]
+
+DDEESSCCRRIIPPTTIIOONN
+       The llaassttuuppddaattee function returns the UNIX timestamp and the value stored
+       for each datum in the most recent update of an RRD.
+
+       _f_i_l_e_n_a_m_e
+               The name of the RRRRDD that contains the data.
+
+       ----ddaaeemmoonn _a_d_d_r_e_s_s
+               Address of the rrdcached daemon. If specified, a "flush"
+               command is sent to the server before reading the RRD files.
+               This allows rrrrddttooooll to return fresh data even if the daemon is
+               configured to cache values for a long time.  For a list of
+               accepted formats, see the --ll option in the rrdcached manual.
+
+                rrdtool lastupdate --daemon unix:/var/run/rrdcached.sock /var/lib/rrd/foo.rrd
+
+EENNVVIIRROONNMMEENNTT VVAARRIIAABBLLEESS
+       The following environment variables may be used to change the behavior
+       of "rrdtool lastupdate":
+
+       RRRRDDCCAACCHHEEDD__AADDDDRREESSSS
+           If this environment variable is set it will have the same effect as
+           specifying the "--daemon" option on the command line. If both are
+           present, the command line argument takes precedence.
+
+AAUUTTHHOORR
+       Andy Riebs <andy.riebs@hp.com>
+
+
+
+1.4.8                             2013-05-23                  RRDLASTUPDATE(1)

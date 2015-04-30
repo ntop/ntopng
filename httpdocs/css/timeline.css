@@ -1,0 +1,120 @@
+div, span, p, td {
+  font-family: Arial, sans-serif;
+}
+#content {
+  width: 1200px;
+}
+#chart {
+  display: inline-block;
+}
+#chart path {
+  -webkit-transition: opacity 0.2s linear;
+}
+#preview {
+  margin-top: 10px;
+}
+#legend {
+  display: inline-block;
+  position: relative;
+  left: 8px;
+}
+#legend_container {
+  position: absolute;
+  right: 0;
+  bottom: 26px;
+  width: 0;
+}
+#chart_container {
+  position: relative;
+  display: inline-block;
+}
+.rickshaw_graph .detail {
+  left: -1000;
+}
+#chart {
+  border: 1px solid #f0f0f0;
+}
+#side_panel {
+  padding: 0 20px 20px 0;
+  width: 240px;
+  display: inline-block;
+  vertical-align: top;
+}
+#side_panel section {
+  color: #505050;
+  font-size: 12px;
+}
+#side_panel section h6 {
+  margin: 0 0 1em 0;
+  font-size: 12px;
+  font-weight: normal;
+}
+#side_panel .ui-slider-horizontal {
+  height: 1px !important;
+  border-color: #e0e0e0;
+  margin-bottom: 10px;
+}
+#side_panel .ui-slider-handle {
+  border-color: #a0a0a0;
+  height: 9px !important;
+  width: 9px !important;
+  top: -5px !important;
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+}
+#legend {
+  background-color: white;
+  margin-left: 0;
+  padding: 0;
+  left: 0;
+}
+#legend .label {
+  color: #404040;
+}
+#legend .action {
+  color: black;
+  opacity: 0.5;
+}
+#legend ul {
+  padding: 0;
+}
+h1 {
+  font-family: Franklin Gothic Medium, UnDotum, Helvetica, Arial;
+  font-weight: normal;
+  font-size: 20px;
+}
+section {
+  border: none;
+  border-top: 1px solid #eaeaea;
+  padding: 15px 0;
+}
+
+#renderer_form.toggler {
+  display: block;
+  margin: 0;
+}
+#renderer_form.toggler input[type=radio]:checked {
+  outline: 2px solid steelblue;
+}
+#renderer_form.toggler input[type=radio] {
+  -moz-appearance: button;
+  background: white;
+  margin: 0 7px;
+  width: 39px;
+  height: 26px;
+  position: absolute;
+}
+#renderer_form.toggler label {
+  display: inline-block;
+  padding: 0;
+  width: 39px;
+  padding-top: 27px;
+  text-align: center;
+  font-size: 10px;
+  color: #808080;
+  background-repeat: no-repeat;
+  position: relative;
+  margin: 0 7px;
+  cursor: pointer;
+}

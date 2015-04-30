@@ -1,0 +1,32 @@
+<!-- rrdtool-xport.dtd                                     -->
+<!-- the attributes of the row and the t elements are used -->
+<!-- in the examples/shared-demo.pl, but not in the output -->
+<!-- of the native xport command.                          -->
+<!-- wolfgang{dot}schrimm{at}urz{dot}uni-heidelberg{dot}de -->
+
+<!-- root element -->
+<!ELEMENT xport (meta, data)>
+
+<!-- root's children -->
+<!ELEMENT meta (start, step, end, rows, columns, legend)>
+<!ELEMENT data (row+)>
+
+<!-- meta's children -->
+<!ELEMENT start (#PCDATA)>
+<!ELEMENT step (#PCDATA)>
+<!ELEMENT end (#PCDATA)>
+<!ELEMENT rows (#PCDATA)>
+<!ELEMENT columns (#PCDATA)>
+<!ELEMENT legend (entry+)>
+
+<!-- legend's children -->
+<!ELEMENT entry (#PCDATA)>
+
+<!-- data's children -->
+<!ELEMENT row (t, v+)>
+<!ATTLIST row id CDATA #IMPLIED>
+
+<!-- row's children -->
+<!ELEMENT t (#PCDATA)>
+<!ATTLIST t is CDATA #IMPLIED>
+<!ELEMENT v (#PCDATA)>

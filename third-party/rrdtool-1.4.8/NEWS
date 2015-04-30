@@ -1,0 +1,240 @@
+#####################################
+Major Changes between 1.3.x and 1.4.x
+-------------------------------------
+$Id$
+
+RRD Caching Daemon (rrdcached)
+------------------------------
+by Florian Forster and Kevin Brintnall
+
+The RRD Caching Daemon can dramatically improve the 'update' performance
+of your system.  Due to file handling overheads, the time it takes todo one
+update is virtually the same as to doing two updates in a row.
+
+The Cache Daemon intercepts rrdtool update calls, assembling multiple
+updates before writing them to the actual rrd file. When calling rrdtool
+graph in such a setup, the command will tell the daemon to flush out all
+pending updates for the rrd files, required to draw the graph.
+
+See rrdcached documentation.
+
+RRD Dumping and Restoring (rrdtool dump/restore)
+------------------------------------------------
+by Tobi Oetiker
+
+The output of rrdtool dump has been adjusted to be simpler to parse by
+existing xml parsers.
+
+The restore core has been completely re-written yet again and is now relying
+on an incremental xml parser. This has the advantage that the memory
+consumption while restoring xml files is only slightly larger than the
+resulting rrd file. Which is much less than the requirements of the 1.3 and
+even 1.2
+
+RRD Graphing functions (rrdtool graph)
+--------------------------------------
+by Martin Sperl
+
+* VDEF PERCENTNAN (a PRECENT that ignores NAN)
+
+* CDEF PREDICT and PREDICTSIGMA functions for on-the-fly
+  data prediction without the need to modify existing rrd files as it is
+  required for HoltWinters.
+
+* LibDBI integration provides a path to read data directly of a supported
+  SQL database into rrdtool graph. See rrdgraph_libdbi documentation.
+
+Miscellaneous Changes
+---------------------
+* graph legends can now be placed left, right or above the graph with the
+  new --legend-direction and --legend-positon placement options. 
+  by Melchior Rabe
+
+* switched to using automake 1.11 which provides a 'silent' build process,
+  causing errors and warnings to stand out much more than before.
+  by Tobi Oetiker
+
+* switched from intltoolize to autopoint for the i18n configuration.
+  by Tobi Oetiker
+
+* new graph option --grid-dash on:off to configure the dash length
+  in the grid painted over the graph by Tobi Oetiker
+
+* lua bindings for rrdtool
+  by Fidelis Assis
+
+* various improvements to rrd_open functions and mmap handling
+  by Daniel Pocock
+
+* allow the HW smoothing window size to be set to 0 with rrdtool tune
+  by sylvain luiset
+
+* new graph option --border to set the 3d border width 
+  by Bernhard Reutner-Fischer
+
+* draw different color markers (enable with --dynamic-labels) depending on the
+  type of element in the graph by Loïc Tortay
+
+for more detail see the CHANGES file.
+
+#####################################
+Major Changes between 1.2.x and 1.3.x
+-------------------------------------
+
+NEW Fast file access methods (Bernhard Fischer / Tobi Oetiker)
+----------------------------
+* introduced file-accessor functions rrd_read/rrd_seek/rrd_write
+
+* implemented full mmap-based file access with madvise hints for
+  improved scalability, much reduced memory-footprint and much less
+  blocking while accessing the disk
+
+* implemented optional full file-descriptor access instead of FILE*
+  access
+
+NEW Graphing (Tobi Oetiker)
+------------
+* libart has been replaced by cairo/pango
+
+* pango markup is supported (--pango-markup)
+
+* full grid fitting
+
+* --graph-render-mode=mono for non anti aliased graphing
+
+* --font-render-mode=mono for non anti aliased fonts
+
+* fonts come through fontconfig, use the Pango font naming scheme
+  -> 'Times 20' ... it is not possible to use true-type fonts
+  directly anymore.
+
+* Tabs are position independent.
+
+* TRENDNAN filter that ignores NAN values while calculating the
+  TREND data. (Timo Stripf)
+
+* --full-size-mode to specify the outer border of the image and not
+  just of the graphing canvas (Matthew Chambers)
+
+* TEXTALIGN command to alter default text alignment behavior
+
+* C API in-memory graphing with rrd_graph_v (Evan Miller)
+
+* draw dashed lines in graphs (Thomas Gutzler)
+
+* new interface graphv which returns information using the rrd_info
+  interface (Tobi Oetiker and Mark Plaksin)
+
+* improved horizontal grid. Have a bit more grid lines and y-axis
+  labels while keeping them far enough apart to not run into each
+  other.
+
+NEW Forecasting (Evan Miller)
+---------------
+* the new MHWPREDICT consolidation function uses a variation of the
+  Holt-Winters method. It is a drop-in replacement for HWPREDICT,
+  and is better suited for data whose seasonal variations grow or
+  shrink in proportion to the average.
+
+* If you create an RRD with the new MHWPREDICT function, the
+  resulting rrd file will be version 0004 and can only be used in
+  rrdtool 1.3.
+
+Rewrites
+--------
+* rrd_restore now uses libxml for parsing which makes things much
+  more tolerant towards xml variations. The old code could mostly
+  just parse the XML as it was output by rrdtool dump. See also:
+  the note at the bottom of this document. (by Florian octo
+  Forster)
+
+* rrd_update rewritten to make it more modular. Fixed two
+  longstanding HW bugs in the process (Evan Miller)
+
+Internationalization (Takao Fujiwara and Tobi Oetiker)
+--------------------
+* The help output by rrdtool has been internationalized. There are
+  no real translations included with rrdtool yet, contributions are
+  welcome.
+
+* The internationalization will only be compiled if libintl and
+  friends are available on your system. Use the configure option
+  --disable-libintl if you want to disable this feature
+
+Language Bindings
+-----------------
+* ruby rrd_fetch will return step as a last property -- Mike Perham
+
+RRDtool dump / restore incompatibility
+--------------------------------------
+* rrdtool dump 1.3 does emit completely legal XML. Basically this
+  means that it contains an XML header and a DOCTYPE definition.
+  Unfortunately this causes older versions of rrdtool restore to be
+  unhappy.
+
+* To restore a new dump with an old rrdtool restore version, either
+  remove the XML header and the doctype by hand (both on the first
+  line of the dump) or use rrdtool dump --no-header.
+
+
+######################################################################################
+Major Changes between 1.0.x and 1.2.x
+======================================================================================
+Graphing
+--------
+
+* rewritten graphics generation based on libart.
+  - anti-aliased output
+  - alpha transparency support
+  - truetype fonts
+ 
+* additional graphics formats: EPS, PDF, SVG
+
+* extended multi-part documentation
+
+* VDEF support; define and use variables.  Find, and use, the
+  maximum rate seen by rrdtool; compute and show the average
+
+* Sliding window (trend) analysis
+  Compute a smoother average, for instance over the last 6 CDPs
+
+* percentile (95th or other)
+  Remove peaks, 95 percent of all rates are at or below the
+  returned value
+
+Logging
+-------
+* a second logging interface: rrdtool updatev
+  Verbose updating of the database; show CPDs being created
+
+* Aberrant Behavior Detection with Holt-Winters Forecasting
+  Compare current data with expected data, detect and log when
+  the rates are outside expected levels
+
+* COMPUTE data type for artificial data-sources calculating their
+  input using RPN math and data from the other data-sources.
+ 
+Incompatibilities
+-----------------
+* Colons in COMMENT arguments to rrdtool graph must be escaped with a backslash
+
+* the --alt-y-mrtg option is gone or rather since 1.2.7 it is back but
+  without functionality.
+
+* In pipe mode, rrdtool answers with OK only if it was successful with the
+  command. Otherwhise the answer will be ERROR...
+
+
+Behind the Scenes
+-----------------
+* In order to support Holt-Winters and Calculated Datasources,
+  the rrdtool data format has changed. While the new version of rrdtool can
+  read files created with rrdtool 1.0.x. It is not possible to read files
+  created by rrdtool-1.2.x with rrdtool-1.0.x
+
+* External libraries are not included with rrdtool anymore. This is in line
+  with todays trend of using shared libraries everywhere. With the exception
+  of the cgi library most things required by rrdtool will be found on every recent
+  system.
+
+* Memory Mapped IO support for faster logging.

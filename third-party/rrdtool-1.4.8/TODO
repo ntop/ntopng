@@ -1,0 +1,18 @@
+Random Feature Ideas for RRDtool
+--------------------------------
+$Id$
+
+make it possible to define order of legend items independant of their order
+on the commandline ...
+
+architecture independant storage format.
+
+micro second precision
+
+2036 stable time
+
+add configurable counter wrap
+
+align data points not to GMT but some free offset
+
+allow starting through symlinks called rrdcreate rrdtune and the like

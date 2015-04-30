@@ -1,0 +1,124 @@
+librrd(3)                           rrdtool                          librrd(3)
+
+
+
+NNAAMMEE
+       librrd - RRD library functions
+
+DDEESSCCRRIIPPTTIIOONN
+       lliibbrrrrdd contains most of the functionality in RRRRDDTTooooll.  The command line
+       utilities and language bindings are often just wrappers around the code
+       contained in lliibbrrrrdd.
+
+       This manual page documents the lliibbrrrrdd API.
+
+       NNOOTTEE:: This document is a work in progress, and should be considered
+       incomplete as long as this warning persists.  For more information
+       about the lliibbrrrrdd functions, always consult the source code.
+
+CCOORREE FFUUNNCCTTIIOONNSS
+       rrrrdd__dduummpp__ccbb__rr((cchhaarr **ffiilleennaammee,, iinntt oopptt__hheeaaddeerr,, rrrrdd__oouuttppuutt__ccaallllbbaacckk__tt ccbb,,
+       vvooiidd **uusseerr))
+           In some situations it is necessary to get the output of "rrd_dump"
+           without writing it to a file or the standard output. In such cases
+           an application can ask rrrrdd__dduummpp__ccbb__rr to call an user-defined
+           function each time there is output to be stored somewhere. This can
+           be used, to e.g. directly feed an XML parser with the dumped output
+           or transfer the resulting string in memory.
+
+           The arguments for rrrrdd__dduummpp__ccbb__rr are the same as for rrrrdd__dduummpp__oopptt__rr
+           except that the output filename parameter is replaced by the user-
+           defined callback function and an additional parameter for the
+           callback function that is passed untouched, i.e. to store
+           information about the callback state needed for the user-defined
+           callback to function properly.
+
+           Recent versions of rrrrdd__dduummpp__oopptt__rr internally use this callback
+           mechanism to write their output to the file provided by the user.
+
+               size_t rrd_dump_opt_cb_fileout(
+                   const void *data,
+                   size_t len,
+                   void *user)
+               {
+                   return fwrite(data, 1, len, (FILE *)user);
+               }
+
+           The associated call for rrrrdd__dduummpp__ccbb__rr looks like
+
+               res = rrd_dump_cb_r(filename, opt_header,
+                   rrd_dump_opt_cb_fileout, (void *)out_file);
+
+           where the last parameter specifies the file handle
+           rrrrdd__dduummpp__oopptt__ccbb__ffiilleeoouutt should write to. There's no specific
+           condition for the callback to detect when it is called for the
+           first time, nor for the last time. If you require this for
+           initialization and cleanup you should do those tasks before and
+           after calling rrrrdd__dduummpp__ccrr__rr respectively.
+
+UUTTIILLIITTYY FFUUNNCCTTIIOONNSS
+       _rr_rr_dd____rr_aa_nn_dd_oo_mm_((_))
+           Generates random numbers just like _r_a_n_d_o_m_(_).  This further ensures
+           that the random number generator is seeded exactly once per
+           process.
+
+       rrrrdd__aadddd__ppttrr((vvooiidd ******ddeesstt,, ssiizzee__tt **ddeesstt__ssiizzee,, vvooiidd **ssrrcc))
+           Dynamically resize the array pointed to by "dest".  "dest_size" is
+           a pointer to the current size of "dest".  Upon successful
+           _r_e_a_l_l_o_c_(_), the "dest_size" is incremented by 1 and the "src"
+           pointer is stored at the end of the new "dest".  Returns 1 on
+           success, 0 on failure.
+
+               type **arr = NULL;
+               type *elem = "whatever";
+               size_t arr_size = 0;
+               if (!rrd_add_ptr(&arr, &arr_size, elem))
+                   handle_failure();
+
+       rrrrdd__aadddd__ssttrrdduupp((cchhaarr ******ddeesstt,, ssiizzee__tt **ddeesstt__ssiizzee,, cchhaarr **ssrrcc))
+           Like "rrd_add_ptr", except adds a "strdup" of the source string.
+
+               char **arr = NULL;
+               size_t arr_size = NULL;
+               char *str  = "example text";
+               if (!rrd_add_strdup(&arr, &arr_size, str))
+                   handle_failure();
+
+       rrrrdd__ffrreeee__ppttrrss((vvooiidd ******ssrrcc,, ssiizzee__tt **ccnntt))
+           Free an array of pointers allocated by "rrd_add_ptr" or
+           "rrd_add_strdup".  Also frees the array pointer itself.  On return,
+           the source pointer will be NULL and the count will be zero.
+
+               /* created as above */
+               rrd_free_ptrs(&arr, &arr_size);
+               /* here, arr == NULL && arr_size == 0 */
+
+       rrrrdd__mmkkddiirr__pp((ccoonnsstt cchhaarr **ppaatthhnnaammee,, mmooddee__tt mmooddee))
+           Create the directory named "pathname" including all of its parent
+           directories (similar to "mkdir -p" on the command line - see
+           _m_k_d_i_r(1) for more information). The argument "mode" specifies the
+           permissions to use. It is modified by the process's "umask". See
+           _m_k_d_i_r(2) for more details.
+
+           The function returns 0 on success, a negative value else. In case
+           of an error, "errno" is set accordingly. Aside from the errors
+           documented in _m_k_d_i_r(2), the function may fail with the following
+           errors:
+
+           EEIINNVVAALL
+               "pathname" is "NULL" or the empty string.
+
+           EENNOOMMEEMM
+               Insufficient memory was available.
+
+           aannyy eerrrroorr rreettuurrnneedd bbyy _ss_tt_aa_tt((22))
+
+           In contrast to _m_k_d_i_r(2), the function does nnoott fail if "pathname"
+           already exists and is a directory.
+
+AAUUTTHHOORR
+       RRD Contributors <rrd-developers@lists.oetiker.ch>
+
+
+
+1.4.8                             2013-05-23                         librrd(3)

@@ -1,0 +1,163 @@
+RRDTUNE(1)                          rrdtool                         RRDTUNE(1)
+
+
+
+NNAAMMEE
+       rrdtune - Modify some basic properties of a Round Robin Database
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll ttuunnee _f_i_l_e_n_a_m_e [----hheeaarrttbbeeaatt|--hh _d_s_-_n_a_m_e:_h_e_a_r_t_b_e_a_t]
+       [----mmiinniimmuumm|--ii _d_s_-_n_a_m_e:_m_i_n] [----mmaaxxiimmuumm|--aa _d_s_-_n_a_m_e:_m_a_x]
+       [----ddaattaa--ssoouurrccee--ttyyppee|--dd _d_s_-_n_a_m_e:_D_S_T] [----ddaattaa--ssoouurrccee--rreennaammee|--rr _o_l_d_-
+       _n_a_m_e:_n_e_w_-_n_a_m_e] [----ddeellttaappooss _s_c_a_l_e_-_v_a_l_u_e] [----ddeellttaanneegg _s_c_a_l_e_-_v_a_l_u_e]
+       [----ffaaiilluurree--tthhrreesshhoolldd _f_a_i_l_u_r_e_-_t_h_r_e_s_h_o_l_d] [----wwiinnddooww--lleennggtthh _w_i_n_d_o_w_-_l_e_n_g_t_h]
+       [----aallpphhaa _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r] [----bbeettaa _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r]
+       [----ggaammmmaa _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r] [----ggaammmmaa--ddeevviiaattiioonn _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r]
+       [----ssmmooootthhiinngg--wwiinnddooww _f_r_a_c_t_i_o_n_-_o_f_-_s_e_a_s_o_n]
+       [----ssmmooootthhiinngg--wwiinnddooww--ddeevviiaattiioonn _f_r_a_c_t_i_o_n_-_o_f_-_s_e_a_s_o_n] [----aabbeerrrraanntt--rreesseett _d_s_-
+       _n_a_m_e]
+
+DDEESSCCRRIIPPTTIIOONN
+       The tune option allows you to alter some of the basic configuration
+       values stored in the header area of a Round Robin Database (RRRRDD).
+
+       One application of the ttuunnee function is to relax the validation rules
+       on an RRRRDD. This allows to fill a new RRRRDD with data available in larger
+       intervals than what you would normally want to permit. Be very careful
+       with tune operations for COMPUTE data sources.  Setting the _m_i_n, _m_a_x,
+       and  _h_e_a_r_t_b_e_a_t for a COMPUTE data source without changing the data
+       source type to a non-COMPUTE DDSSTT WILL corrupt the data source header in
+       the RRRRDD.
+
+       A second application of the ttuunnee function is to set or alter parameters
+       used by the specialized function RRRRAAss for aberrant behavior detection.
+
+       _f_i_l_e_n_a_m_e
+               The name of the RRRRDD you want to tune.
+
+       ----hheeaarrttbbeeaatt|--hh _d_s_-_n_a_m_e:_h_e_a_r_t_b_e_a_t
+               modify the _h_e_a_r_t_b_e_a_t of a data source. By setting this to a
+               high value the RRD will accept things like one value per day.
+
+       ----mmiinniimmuumm|--ii _d_s_-_n_a_m_e:_m_i_n
+               alter the minimum value acceptable as input from the data
+               source.  Setting _m_i_n to 'U' will disable this limit.
+
+       ----mmaaxxiimmuumm|--aa _d_s_-_n_a_m_e:_m_a_x
+               alter the maximum value acceptable as input from the data
+               source.  Setting _m_a_x to 'U' will disable this limit.
+
+       ----ddaattaa--ssoouurrccee--ttyyppee|--dd _d_s_-_n_a_m_e:_D_S_T
+               alter the type DDSSTT of a data source.
+
+       ----ddaattaa--ssoouurrccee--rreennaammee|--rr _o_l_d_-_n_a_m_e:_n_e_w_-_n_a_m_e
+               rename a data source.
+
+       ----ddeellttaappooss _s_c_a_l_e_-_v_a_l_u_e
+               Alter the deviation scaling factor for the upper bound of the
+               confidence band used internally to calculate violations for the
+               FAILURES RRRRAA. The default value is 2. Note that this parameter
+               is not related to graphing confidence bounds which must be
+               specified as a CDEF argument to generate a graph with
+               confidence bounds. The graph scale factor need not to agree
+               with the value used internally by the FAILURES RRRRAA.
+
+       ----ddeellttaanneegg _s_c_a_l_e_-_v_a_l_u_e
+               Alter the deviation scaling factor for the lower bound of the
+               confidence band used internally to calculate violations for the
+               FAILURES RRRRAA. The default value is 2. As with ----ddeellttaappooss, this
+               argument is unrelated to the scale factor chosen when graphing
+               confidence bounds.
+
+       ----ffaaiilluurree--tthhrreesshhoolldd _f_a_i_l_u_r_e_-_t_h_r_e_s_h_o_l_d
+               Alter the number of confidence bound violations that constitute
+               a failure for purposes of the FAILURES RRRRAA. This must be an
+               integer less than or equal to the window length of the FAILURES
+               RRRRAA. This restriction is not verified by the tune option, so
+               one can reset failure-threshold and window-length
+               simultaneously. Setting this option will reset the count of
+               violations to 0.
+
+       ----wwiinnddooww--lleennggtthh _w_i_n_d_o_w_-_l_e_n_g_t_h
+               Alter the number of time points in the temporal window for
+               determining failures. This must be an integer greater than or
+               equal to the window length of the FAILURES RRRRAA and less than or
+               equal to 28. Setting this option will reset the count of
+               violations to 0.
+
+       ----aallpphhaa _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r
+               Alter the intercept adaptation parameter for the Holt-Winters
+               forecasting algorithm. This parameter must be between 0 and 1.
+
+       ----bbeettaa _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r
+               Alter the slope adaptation parameter for the Holt-Winters
+               forecasting algorithm. This parameter must be between 0 and 1.
+
+       ----ggaammmmaa _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r
+               Alter the seasonal coefficient adaptation parameter for the
+               SEASONAL RRRRAA. This parameter must be between 0 and 1.
+
+       ----ggaammmmaa--ddeevviiaattiioonn _a_d_a_p_t_i_o_n_-_p_a_r_a_m_e_t_e_r
+               Alter the seasonal deviation adaptation parameter for the
+               DEVSEASONAL RRRRAA. This parameter must be between 0 and 1.
+
+       ----ssmmooootthhiinngg--wwiinnddooww _f_r_a_c_t_i_o_n_-_o_f_-_s_e_a_s_o_n
+               Alter the size of the smoothing window for the SEASONAL RRRRAA.
+               This must be between 0 and 1.
+
+       ----ssmmooootthhiinngg--wwiinnddooww--ddeevviiaattiioonn _f_r_a_c_t_i_o_n_-_o_f_-_s_e_a_s_o_n
+               Alter the size of the smoothing window for the DEVSEASONAL RRRRAA.
+               This must be between 0 and 1.
+
+       ----aabbeerrrraanntt--rreesseett _d_s_-_n_a_m_e
+               This option causes the aberrant behavior detection algorithm to
+               reset for the specified data source; that is, forget all it is
+               has learnt so far.  Specifically, for the HWPREDICT or
+               MHWPREDICT RRRRAA, it sets the intercept and slope coefficients to
+               unknown. For the SEASONAL RRRRAA, it sets all seasonal
+               coefficients to unknown. For the DEVSEASONAL RRRRAA, it sets all
+               seasonal deviation coefficients to unknown. For the FAILURES
+               RRRRAA, it erases the violation history. Note that reset does not
+               erase past predictions (the values of the HWPREDICT or
+               MHWPREDICT RRRRAA), predicted deviations (the values of the
+               DEVPREDICT RRRRAA), or failure history (the values of the FAILURES
+               RRRRAA).  This option will function even if not all the listed
+               RRRRAAss are present.
+
+               Due to the implementation of this option, there is an indirect
+               impact on other data sources in the RRD. A smoothing algorithm
+               is applied to SEASONAL and DEVSEASONAL values on a periodic
+               basis. During bootstrap initialization this smoothing is
+               deferred. For efficiency, the implementation of smoothing is
+               not data source specific. This means that utilizing reset for
+               one data source will delay running the smoothing algorithm for
+               all data sources in the file. This is unlikely to have serious
+               consequences, unless the data being collected for the non-reset
+               data sources is unusually volatile during the reinitialization
+               period of the reset data source.
+
+               Use of this tuning option is advised when the behavior of the
+               data source time series changes in a drastic and permanent
+               manner.
+
+EEXXAAMMPPLLEE 11
+       "rrdtool tune data.rrd -h in:100000 -h out:100000 -h through:100000"
+
+       Set the minimum required heartbeat for data sources 'in', 'out' and
+       'through' to 10'000 seconds which is a little over one day in data.rrd.
+       This would allow to feed old data from MRTG-2.0 right into RRDtool
+       without generating *UNKNOWN* entries.
+
+EEXXAAMMPPLLEE 22
+       "rrdtool tune monitor.rrd --window-length 5 --failure-threshold 3"
+
+       If the FAILURES RRRRAA is implicitly created, the default window-length is
+       9 and the default failure-threshold is 7. This command now defines a
+       failure as 3 or more violations in a temporal window of 5 time points.
+
+AAUUTTHHOORR
+       Tobias Oetiker <tobi@oetiker.ch>
+
+
+
+1.4.8                             2013-05-23                        RRDTUNE(1)

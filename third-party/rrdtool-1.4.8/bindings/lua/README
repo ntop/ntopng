@@ -1,0 +1,68 @@
+RRDLua is a Lua module for RRD functions.
+
+- Configuration
+
+  From the top dir of RRDtool package, run "./configure", or
+  "./configure --enable-lua-site-install" if you prefer to install in
+  Lua's search path.
+
+ You should have lua 5.0, or superior, and respective lua-dev packages
+ installed before executing configure.
+
+- Compilation and installation
+
+ Run 'make' and 'sudo make install'. If you don't enable lua-site-install,
+ the Lua modules will be installed together with RRDtool, under the subdir
+ <INSTALL_PREFIX>lib/lua/<lua_version>.
+
+- Testing
+
+ Install RRDtool first, as above. Then, enter the bindings/lua dir, run
+ 'make test' and use your preferred viewer to display the just created
+ 'test.png'. If you can read "Enjoy Lua RRDtool module!" on the picture,
+ everything went fine.
+
+- Using with Lua 5.1
+
+ Start your programs with:
+
+  ------..-----------------------------------------------------------
+  package.cpath = '<INSTALL_PREFIX/lib/lua/5.1/?.so;' ..
+                  package.cpath
+  require 'rrd'
+  -------------------------------------------------------------------
+
+ OBS: If you use the option --enable-lua-site-install you won't need
+      to change package.cpath like above. 
+
+- Using with Lua 5.0
+
+ The Lua binding for RRDtool needs the compat-5.1 module to work with
+ Lua 5.0. Some Linux distros, like Ubuntu gutsy and hardy, have it
+ already integrated in Lua 5.0 -dev packages, so you just have to
+ require:
+
+  require 'compat-5.1'
+
+ For other platforms, the compat-5.1 module that comes with this Lua
+ binding will be installed for you in the same dir where RRDtool was
+ installed, under the subdir .../lib/lua/5.0. In this case, you must
+ tell your Lua programs where to find it by changing the Lua var
+ LUA_PATH:
+
+  --- compat-5.1.lua is only necessary for Lua 5.0 ------------------
+  original_LUA_PATH = LUA_PATH
+  -- try only compat-5.1 installed with RRDtool package
+  LUA_PATH = '<INSTALL_PREFIX>/lib/lua/5.0/?.lua'
+  require 'compat-5.1'
+  LUA_PATH = original_LUA_PATH
+  original_LUA_PATH = nil
+  --- end of code to require compat-5.1 -----------------------------
+
+  Now we can require the rrd module just like we did for 5.1 above:
+
+  -------------------------------------------------------------------
+  package.cpath = '<INSTALL_PREFIX>/lib/lua/5.0/?.so;' ..
+                  package.cpath
+  require 'rrd'
+  -------------------------------------------------------------------

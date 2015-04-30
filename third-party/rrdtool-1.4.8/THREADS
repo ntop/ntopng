@@ -1,0 +1,60 @@
+In order to use the librrd in multi-threaded programs you must:
+
+  * Link with librrd_th instead of with librrd
+  * Use the *_r function instead or the *-functions
+  * Never use non *_r functions unless it is explicitly documented that the 
+    function is tread-safe
+
+Every thread SHOULD call rrd_get_context() before the first call to
+any librrd function in order to set up thread specific data. This is
+not strictly required, but it is the only way to test if memory
+allocation can be done by this function. Otherwise the program may die
+with a SIGSEGV in a low-memory situation.
+
+
+IMPORTANT NOTE FOR RRD CONTRIBUTORS:
+
+Some precautions must be followed when developing rrd from now on:
+
+* Only use thread-safe functions in library code. Many often used libc
+  functions aren't thread-safe. Take care if you want to use any of
+  the following functions:
+
+    + direct strerror calls must be avoided: use rrd_strerror instead,
+      it provides a per-thread error message
+    + the getpw*, getgr*, gethost* function families (and some more get*
+      functions): use the *_r variants
+    + Time functions: asctime, ctime, gmtime, localtime: use *_r variants
+    + strtok: use strtok_r
+    + tmpnam: use tmpnam_r
+    + many other (lookup documentation)
+
+As an aide(?) a header file named "rrd_is_thread_safe.h" is provided
+that works with the GNU C-preprocessor to "poison" some of the most
+common non-thread-safe functions using the "#pragma GCC poison"
+directive. Just include this header in source files you want to keep
+thread-safe.
+    
+* Do not introduce global variables!
+
+  If you really, really have to use a global variable you may add a 
+  new field to the rrd_context structure and modify rrd_error.c,
+  rrd_thread_safe.c and rrd_non_thread_safe.c
+
+* Do not use "getopt" or "getopt_long" in *_r (directly or indirectly)
+
+  getopt uses global variables and behaves badly in a multithreaded
+  application when called concurrently. Instead provide a *_r function
+  taking all options as function parameters. You may provide argc and
+  **argv arguments for variable length argument lists. See
+  rrd_update_r as an example. 
+
+* Do not use the parsetime function!
+
+  It uses lots of global vars. You may use it in functions not
+  designed to be thread-safe like functions wrapping the _r version of some
+  operation (eg. rrd_create, but not in rrd_create_r)
+
+WIN32 Platform Note (added 04/01/03):
+
+Both rrdtool.vcproj (MSVC++ 7.0) and rrd.dsw (MSVC++ 6.0) are configured to compile with rrd_thread_safe_nt.c.

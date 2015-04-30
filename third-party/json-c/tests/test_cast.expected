@@ -1,0 +1,56 @@
+Parsed input: {
+		"string_of_digits": "123",
+		"regular_number": 222,
+		"decimal_number": 99.55,
+		"boolean_true": true,
+		"boolean_false": false,
+		"big_number": 2147483649,
+		"a_null": null,
+	}
+Result is not NULL
+new_obj.string_of_digits json_object_get_type()=string
+new_obj.string_of_digits json_object_get_int()=123
+new_obj.string_of_digits json_object_get_int64()=123
+new_obj.string_of_digits json_object_get_boolean()=1
+new_obj.string_of_digits json_object_get_double()=123.000000
+new_obj.regular_number json_object_get_type()=int
+new_obj.regular_number json_object_get_int()=222
+new_obj.regular_number json_object_get_int64()=222
+new_obj.regular_number json_object_get_boolean()=1
+new_obj.regular_number json_object_get_double()=222.000000
+new_obj.decimal_number json_object_get_type()=double
+new_obj.decimal_number json_object_get_int()=99
+new_obj.decimal_number json_object_get_int64()=99
+new_obj.decimal_number json_object_get_boolean()=1
+new_obj.decimal_number json_object_get_double()=99.550000
+new_obj.boolean_true json_object_get_type()=boolean
+new_obj.boolean_true json_object_get_int()=1
+new_obj.boolean_true json_object_get_int64()=1
+new_obj.boolean_true json_object_get_boolean()=1
+new_obj.boolean_true json_object_get_double()=1.000000
+new_obj.boolean_false json_object_get_type()=boolean
+new_obj.boolean_false json_object_get_int()=0
+new_obj.boolean_false json_object_get_int64()=0
+new_obj.boolean_false json_object_get_boolean()=0
+new_obj.boolean_false json_object_get_double()=0.000000
+new_obj.big_number json_object_get_type()=int
+new_obj.big_number json_object_get_int()=2147483647
+new_obj.big_number json_object_get_int64()=2147483649
+new_obj.big_number json_object_get_boolean()=1
+new_obj.big_number json_object_get_double()=2147483649.000000
+new_obj.a_null json_object_get_type()=null
+new_obj.a_null json_object_get_int()=0
+new_obj.a_null json_object_get_int64()=0
+new_obj.a_null json_object_get_boolean()=0
+new_obj.a_null json_object_get_double()=0.000000
+
+================================
+json_object_is_type: null,boolean,double,int,object,array,string
+new_obj                   : 0,0,0,0,1,0,0
+new_obj.string_of_digits  : 0,0,0,0,0,0,1
+new_obj.regular_number    : 0,0,0,1,0,0,0
+new_obj.decimal_number    : 0,0,1,0,0,0,0
+new_obj.boolean_true      : 0,1,0,0,0,0,0
+new_obj.boolean_false     : 0,1,0,0,0,0,0
+new_obj.big_number        : 0,0,0,1,0,0,0
+new_obj.a_null            : 1,0,0,0,0,0,0

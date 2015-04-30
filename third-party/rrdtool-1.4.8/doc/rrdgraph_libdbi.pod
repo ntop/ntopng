@@ -1,0 +1,170 @@
+=head1 NAME
+
+rrdgraph_libdbi - fetching data for graphing in rrdtool graph via libdbi
+
+=head1 SYNOPSIS
+
+E<lt>rrdfileE<gt> = B<sql//E<lt>libdbi driverE<gt>/E<lt>driver-option-nameE<gt>=E<lt>driver-option-valueE<gt>/...[/rrdminstepsize=E<lt>stepsizeE<gt>][/rrdfillmissing=E<lt>fill missing n samplesE<gt>]//E<lt>tableE<gt>/E<lt>unixtimestamp columnE<gt>/E<lt>data value columnE<gt>[/derive]/E<lt>where clause 1E<gt>/.../E<lt>where clause nE<gt>>
+
+=head1 DESCRIPTION
+
+This pseudo-rrd-filename defines a sql datasource:
+
+=over 8
+
+=item B<sql//>
+
+  magic cookie-prefix for a libdbi type datasource
+
+=item B<E<lt>libdbi driverE<gt>>
+
+  which libdbi driver to use (e.g: mysql)
+
+=item B<E<lt>driver-option-nameE<gt>>=B<E<lt>driver-option-valueE<gt>>
+
+  defines the parameters that are required to connect to the database with the given libdbi driver
+  (These drivers are libdbi dependent - for details please look at the driver documentation of libdbi!)
+
+=item B</rrdminstepsize>=B<E<lt>minimum step sizeE<gt>>
+
+  defines the minimum number of the step-length used for graphing (default: 300 seconds)
+
+=item B</rrdfillmissing>=B<E<lt>fill missing stepsE<gt>>
+
+  defines the number of steps to fill with the last value to avoid NaN boxes due to data-insertation jitter (default: 0 steps)
+
+=item B<E<lt>tableE<gt>>
+
+  defines the table from which to fetch the resultset.
+
+  If there is a need to fetch data from several tables, these tables can be defined by separating the tablenames with a "+"
+
+  hex-type-encoding via %xx are translated to the actual value, use %% to use %
+
+=item B<E<lt>[*]unixtimestamp columnE<gt>>
+
+  defines the column of E<lt>tableE<gt> which contains the unix-timestamp 
+  - if this is a DATETIME field in the database, then prefix with leading '*'
+
+  hex-type-encoding via %xx are translated to the actual value, use %% to use %
+
+=item B<E<lt>data value columnE<gt>>
+
+  defines the column of E<lt>tableE<gt> which contains the value column, which should be graphed
+
+  hex-type-encoding via %xx are translated to the actual value, use %% to use %
+
+=item B</derive>
+
+  defines that the data value used should be the delta of the 2 consecutive values (to simulate COUNTER or DERIVE type datasources)
+
+=item B</E<lt>where clause(s)E<gt>>
+
+  defines one (ore more) where clauses that are joined with AND to filter the entries in the <lt>table<gt>
+
+  hex-type-encoding via %xx are translated to the actual value, use %% to use %
+
+=back
+
+the returned value column-names, which can be used as ds-names, are:
+
+=over 8
+
+=item B<min>, B<avg>, B<max>, B<count> and B<sigma>
+
+  are returned to be used as ds-names in your DS definition.
+  The reason for using this is that if the consolidation function is used for min/avg and max, then the engine is used several times.
+  And this results in the same SQL Statements used several times
+
+=back
+
+=head1 EXAMPLES
+
+Here an example of a table in a MySQL database:
+
+  DB connect information
+    dbhost=127.0.0.1
+    user=rrd
+    password=secret
+    database=rrd
+
+  here the table:
+    CREATE TABLE RRDValue (
+      RRDKeyID      bigint(20) NOT NULL,
+      UnixTimeStamp int(11) NOT NULL,
+      value         double default NOT NULL,
+      PRIMARY KEY  (RRDKeyID,UnixTimeStamp)
+    );
+
+and the RRDKeyID we want to graph for is: 1141942900757789274
+
+The pseudo rrd-filename to access this is:
+"sql//mysql/host=127.0.0.1/dbname=rrd/username=rrd/password=secret//RRDValue/UnixTimeStamp/value/RRDKeyID=1141464142203608274"
+
+To illustrate this here a command to create a graph that contains the actual values.
+
+  DS_BASE="sql//mysql/host=127.0.0.1/dbname=rrd/username=rrd/password=passwd//RRDValue/UnixTimeStamp/value/RRDKeyID=1141942900757789274"
+  rrdtool graph test.png --imgformat=PNG --start=-1day --end=+3hours --width=1000 --height=600 \
+    "DEF:min=$DS_BASE:min:AVERAGE" \
+    "LINE1:min#FF0000:value" \
+    "DEF:avg=$DS_BASE:avg:AVERAGE" \
+    "LINE1:avg#00FF00:average" \
+    "DEF:max=$DS_BASE:max:AVERAGE" \
+    "LINE1:max#FF0000:max" \
+    "DEF:sigma=$DS_BASE:sigma:AVERAGE" \
+    "CDEF:upper=avg,4,sigma,*,+" \
+    "LINE1:upper#0000FF:+4 sigma" \
+    "CDEF:lower=avg,4,sigma,*,-" \
+    "LINE1:lower#0000FF:-4 sigma"
+
+=head1 NOTES
+
+* Naturally you can also use any other kind of driver that libdbi supports - e.g postgres, ...
+
+* From the way the data source is joined, it should also be possible to do joins over different tables 
+  (separate tables with "," in table and add in the WHERE Clauses the table equal joins. 
+  This has not been tested!!!)
+
+* It should also be relatively simple to add to the database using the same data source string.
+  This has not been implemented...
+
+* The aggregation functions are ignored and several data columns are used instead 
+  to avoid querying the same SQL several times when minimum, average and maximum are needed for graphing...
+
+* for DB efficiency you should think of having 2 tables, one containing historic values and the other containing the latest data.
+  This second table should be kept small to allow for the least ammount of blocking SQL statements.
+  Whith mysql you can even use myisam table-type for the first and InnoDB for the second. 
+  This is especially interresting as with tables with +100M rows myisam is much smaller then InnoDB.
+
+* To debug the SQL statements set the environment variable RRDDEBUGSQL and the actual SQL statements and the timing is printed to stderr.
+
+
+
+=head1 Performance issues with MySQL backend
+
+LibDBI has a big performance issue when you retrieve data from a MySQL server. Performance impact is exponentially based on the number of 
+values you retrieve from the database. 
+For example, it would take more than 2 seconds to graph 5DS on 150 hours of data with a precision of 5 minutes 
+(against 100ms when data comes from a RRD file). This bug has been fixed on latest version of LibDBI (not release yet). 
+At that time, you would need to compile libdbi and libdbi-drivers from CVS repository to fix it.
+You can find more informations on this libdbi-users mailing list thread : http://sourceforge.net/mailarchive/message.php?msg_id=30320894
+
+
+=head1 BUGS
+
+* at least on Linux please make sure that the libdbi driver is explicitly linked against libdbi.so.0 
+  check via ldd /usr/lib/dbd/libmysql.so, that there is a line with libdbi.so.0. 
+  otherwise at least the perl module RRDs will fail because the dynamic linker can not find some symbols from libdbi.so.
+  (this only happens when the libdbi driver is actually used the first time!)
+  This is KNOWN to be the case with RHEL4 and FC4 and FC5! (But actually this is a bug with libdbi make files!)
+
+* at least version 0.8.1 of libdbiexhibits a bug with BINARY fields
+  (shorttext,text,mediumtext,longtext and possibly also BINARY and BLOB fields), 
+  that can result in coredumps of rrdtool. 
+  The tool will tell you on stderr if this occures, so that you know what may be the reason.
+  If you are not experiencing these coredumps, then set the environment variable RRD_NO_LIBDBI_BUG_WARNING, 
+  and then the message will not get shown.
+
+=head1 AUTHOR
+
+Martin Sperl <rrdtool@martin.sperl.org>

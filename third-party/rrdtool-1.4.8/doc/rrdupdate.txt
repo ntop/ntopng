@@ -1,0 +1,149 @@
+RRDUPDATE(1)                        rrdtool                       RRDUPDATE(1)
+
+
+
+NNAAMMEE
+       rrdupdate - Store a new set of values into the RRD
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll {uuppddaattee | uuppddaatteevv} _f_i_l_e_n_a_m_e [----tteemmppllaattee|--tt _d_s_-_n_a_m_e[::_d_s_-
+       _n_a_m_e]...]  [----ddaaeemmoonn _a_d_d_r_e_s_s] [----] NN|_t_i_m_e_s_t_a_m_p::_v_a_l_u_e[::_v_a_l_u_e...]  _a_t_-
+       _t_i_m_e_s_t_a_m_p@@_v_a_l_u_e[::_v_a_l_u_e...]  [_t_i_m_e_s_t_a_m_p::_v_a_l_u_e[::_v_a_l_u_e...] ...]
+
+DDEESSCCRRIIPPTTIIOONN
+       The uuppddaattee function feeds new data values into an RRRRDD. The data is time
+       aligned (interpolated) according to the properties of the RRRRDD to which
+       the data is written.
+
+       uuppddaatteevv This alternate version of uuppddaattee takes the same arguments and
+               performs the same function. The _v stands for _v_e_r_b_o_s_e, which
+               describes the output returned. uuppddaatteevv returns a list of any
+               and all consolidated data points (CDPs) written to disk as a
+               result of the invocation of update. The values are indexed by
+               timestamp (time_t), RRA (consolidation function and PDPs per
+               CDP), and data source (name).  Note that depending on the
+               arguments of the current and previous call to update, the list
+               may have no entries or a large number of entries.
+
+               Since uuppddaatteevv requires direct disk access, the ----ddaaeemmoonn option
+               cannot be used with this command.
+
+       _f_i_l_e_n_a_m_e
+               The name of the RRRRDD you want to update.
+
+       ----tteemmppllaattee|--tt _d_s_-_n_a_m_e[::_d_s_-_n_a_m_e]...
+               By default, the uuppddaattee function expects its data input in the
+               order the data sources are defined in the RRD, excluding any
+               COMPUTE data sources (i.e. if the third data source DDSSTT is
+               COMPUTE, the third input value will be mapped to the fourth
+               data source in the RRRRDD and so on). This is not very error
+               resistant, as you might be sending the wrong data into an RRD.
+
+               The template switch allows you to specify which data sources
+               you are going to update and in which order. If the data sources
+               specified in the template are not available in the RRD file,
+               the update process will abort with an error message.
+
+               While it appears possible with the template switch to update
+               data sources asynchronously, RRRRDDttooooll implicitly assigns non-
+               COMPUTE data sources missing from the template the _*_U_N_K_N_O_W_N_*
+               value.
+
+               Do not specify a value for a COMPUTE DDSSTT in the uuppddaattee
+               function. If this is done accidentally (and this can only be
+               done using the template switch), RRRRDDttooooll will ignore the value
+               specified for the COMPUTE DDSSTT.
+
+       ----ddaaeemmoonn _a_d_d_r_e_s_s
+               If given, RRRRDDTTooooll will try to connect to the caching daemon
+               rrdcached at _a_d_d_r_e_s_s and will fail if the connection cannot be
+               established. If the connection is successfully established the
+               values will be sent to the daemon instead of accessing the
+               files directly.
+
+               For a list of accepted formats, see the --ll option in the
+               rrdcached manual.
+
+       NN|_t_i_m_e_s_t_a_m_p::_v_a_l_u_e[::_v_a_l_u_e...]
+               The data used for updating the RRD was acquired at a certain
+               time. This time can either be defined in seconds since
+               1970-01-01 or by using the letter 'N', in which case the update
+               time is set to be the current time. Negative time values are
+               subtracted from the current time. An AT_STYLE TIME
+               SPECIFICATION (see the _r_r_d_f_e_t_c_h documentation) may also be used
+               by delimiting the end of the time specification with the '@'
+               character instead of a ':'. Getting the timing right to the
+               second is especially important when you are working with data-
+               sources of type CCOOUUNNTTEERR, DDEERRIIVVEE or AABBSSOOLLUUTTEE.
+
+               When using negative time values, options and data have to be
+               separated by two dashes (----), else the time value would be
+               parsed as an option.  See below for an example.
+
+               When using negative time values, options and data have to be
+               separated by two dashes (----), else the time value would be
+               parsed as an option.  See below for an example.
+
+               The remaining elements of the argument are DS updates. The
+               order of this list is the same as the order the data sources
+               were defined in the RRA. If there is no data for a certain
+               data-source, the letter UU (e.g., N:0.1:U:1) can be specified.
+
+               The format of the value acquired from the data source is
+               dependent on the data source type chosen. Normally it will be
+               numeric, but the data acquisition modules may impose their very
+               own parsing of this parameter as long as the colon (::) remains
+               the data source value separator.
+
+EENNVVIIRROONNMMEENNTT VVAARRIIAABBLLEESS
+       The following environment variables may be used to change the behavior
+       of "rrdtool update":
+
+       RRRRDDCCAACCHHEEDD__AADDDDRREESSSS
+           If this environment variable is set it will have the same effect as
+           specifying the "--daemon" option on the command line. If both are
+           present, the command line argument takes precedence.
+
+EEXXAAMMPPLLEESS
+       ·   "rrdtool update demo1.rrd N:3.44:3.15:U:23"
+
+           Update the database file demo1.rrd with 3 known and one _*_U_N_K_N_O_W_N_*
+           value. Use the current time as the update time.
+
+       ·   "rrdtool update demo2.rrd 887457267:U 887457521:22 887457903:2.7"
+
+           Update the database file demo2.rrd which expects data from a single
+           data-source, three times. First with an _*_U_N_K_N_O_W_N_* value then with
+           two regular readings. The update interval seems to be around 300
+           seconds.
+
+       ·   "rrdtool update demo3.rrd -- -5:21 N:42"
+
+           Update the database file demo3.rrd two times, using five seconds in
+           the past and the current time as the update times.
+
+       ·   "rrdtool update --cache /var/lib/rrd/demo3.rrd N:42"
+
+           Update the file "/var/lib/rrd/demo3.rrd" with a single data source,
+           using the current time. If the caching daemon cannot be reached, do
+           nnoott fall back to direct file access.
+
+       ·   "rrdtool update --daemon unix:/tmp/rrdd.sock demo4.rrd N:23"
+
+           Use the UNIX domain socket "/tmp/rrdd.sock" to contact the caching
+           daemon. If the caching daemon is not available, update the file
+           "demo4.rrd" directly.  WWAARRNNIINNGG:: Since a relative path is specified,
+           the following disturbing effect may occur: If the daemon is
+           available, the file relative to the working directory ooff tthhee ddaaeemmoonn
+           is used. If the daemon is not available, the file relative to the
+           current working directory of the invoking process is used.  TThhiiss
+           mmaayy uuppddaattee ttwwoo ddiiffffeerreenntt ffiilleess ddeeppeennddiinngg oonn wwhheetthheerr tthhee ddaaeemmoonn
+           ccoouulldd bbee rreeaacchheedd oorr nnoott.. Don't do relative paths, kids!
+
+AAUUTTHHOORRSS
+       Tobias Oetiker <tobi@oetiker.ch>, Florian Forster
+       <octo at verplant.org>
+
+
+
+1.4.8                             2013-05-23                      RRDUPDATE(1)

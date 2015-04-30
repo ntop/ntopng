@@ -1,0 +1,21 @@
+https://github.com/ejrh/snmp
+
+------
+
+On 15 Oct 2014, at 01:28, Edmund Horner <.....> wrote:
+
+Hello Luca, I'm pleased to have received your email.  I generally use the GPL (when I remember to include a license, that is).
+
+GPL might not be compatible with ntopng's license, but I think I would be happy to grant permission to ntopng to use parts of the code.
+
+....
+
+Edmund
+
+
+On 15 October 2014 11:00, Luca Deri <deri@ntop.org> wrote:
+Hi Edmund,
+I have looked at your https://github.com/ejrh/snmp and I would like to use code portions for ntopng, an open-source GPLV3 traffic monitoring application. I have not been able to understand what is the license you have used for distributing the code: can you please let me know?
+
+Thanks Luca
+

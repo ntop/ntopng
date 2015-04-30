@@ -1,0 +1,13 @@
+http://www.gnu.org/software/libmicrohttpd/
+http://luajit.org
+http://code.google.com/p/credis/
+https://github.com/nrk/redis-lua
+https://github.com/valenok/mongoose
+https://github.com/MJPA/SimpleJSON
+https://github.com/lemire/EWAHBoolArray
+https://github.com/redis/hiredis
+
+LuaJIT on Windows
+See "Building with MSVC" at http://luajit.org/install.html
+- cd src
+- msvcbuild

@@ -1,0 +1,385 @@
+Compiling RRDtool on Win32 with Microsoft Visual C++:
+---------------------------------------------------------------
+2010-06-04 Chris Larsen clarsen@euphoriaaudio.com
+2008-03-12 Stefan Ludewig stefan.ludewig@exitgames.com
+
+Here are step by step instructions for building rrdlib.lib and rrdtool.exe
+version 1.3.5 and newer with Microsoft Visual Studio 2008 (9.0.x).
+
+(1) Create a folder named "contrib" in the directory where this text file is located.
+
+(2) Download the following libraries that rrdtool depends on into this folder:
+
+    - cairo:    http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/cairo_1.8.10-3_win32.zip 
+      and       http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/cairo-dev_1.8.10-3_win32.zip
+
+    - glib:     http://ftp.gnome.org/pub/gnome/binaries/win32/glib/2.24/glib_2.24.1-1_win32.zip
+      and       http://ftp.gnome.org/pub/gnome/binaries/win32/glib/2.24/glib-dev_2.24.1-1_win32.zip
+
+    - libpng:   http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/libpng_1.4.0-1_win32.zip
+      and       http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/libpng-dev_1.4.0-1_win32.zip
+
+    - libxml2:  http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/libxml2_2.7.7-1_win32.zip
+      and       http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/libxml2-dev_2.7.7-1_win32.zip
+
+    - pango:    http://ftp.gnome.org/pub/gnome/binaries/win32/pango/1.28/pango_1.28.0-1_win32.zip
+      and       http://ftp.gnome.org/pub/gnome/binaries/win32/pango/1.28/pango-dev_1.28.0-1_win32.zip
+
+    - zlib:     http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/zlib_1.2.4-2_win32.zip
+      and       http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/zlib-dev_1.2.4-2_win32.zip
+      
+    - fontconfig:  http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/fontconfig_2.8.0-2_win32.zip
+    
+    - freetype: http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/freetype_2.3.12-1_win32.zip
+    
+    - expat:    http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/expat_2.0.1-1_win32.zip
+
+(3) Extract all of the .zip files into the contrib folder. Do not extract each library into it's own
+    directory. We want all of the files merged into a structure consisting of "bin, include, lib..."
+    etc folders.
+
+(4) Open the Visual Studio 2008 Solution "rrd.sln" in the win32 folder of
+    your rrdtool-folder and build either the project rrdlib (for the
+    rrdtool-library), rrdtool (for the rrdtool-executable depending on the
+    libraray) or the complete solution. A post-build event automatically copies
+    all the dlls, needed by rrdtool, next to the .exe, when you build the
+    executable. These DLLs must be available on all hosts where rrdtool will
+    run.
+
+6/10/10 Chris
+Updated project to include latest files and libraries. 
+Builds static or dynamic rrdlib
+
+5/1/05 Tobi
+to help windows deal with the reentrant versions of many unix
+calls link with win32comp.c
+
+4/10/05 Tobi
+The windows implementation of strftime does not seem to support
+the ISO 8601 week number (%V) I have therfore included the file
+strftime.[ch] which provides strftime_ ... if you compile rrdtool
+with -Dstrftime=_strftime and link strftime.o then you will
+get propper support for %V.
+
+7/29/04 Jake Brutlag
+
+As of Jan 2004, code for libraries utilized by rrdtool 
+(png, libart, freetype, and zlib) is no longer distributed with
+rrdtool. This requires some changes to the compile process on
+Win32. The solution described here is to compile rrdtool to
+link against these libraries dynamically. There is an advantage
+to this approach: namely the rrdtool distribution doesn't have to
+worry about how to compile these libraries on Win32. In theory,
+since others already provide and maintain Win32 binaries for these
+libraries the users don't have to worry about how to compile them
+either. The disadvantage of this approach is that the DLLs for
+these libraries must be available on the hosts where rrdtool will run.
+
+Here are step by step instructions for compiling rrdtool.exe and
+the perl shared library (RRDS.dll) with Microsoft Visual C++ 6.0.
+(1) Download libraries rrdtool depends on from GnuWin32:
+http://gnuwin32.sourceforge.net/
+For freetype, libpng, and zlib download the "Complete Package"; each of
+these will be a self-extracting self-installing executable.
+For libart, download both the "Binaries" and "Developer Files" packages.
+Unfortunately at this time GnuWin32 doesn't provide the "Complete Package"
+installer for libart. Perhaps by the time you are following these
+instructions GnuWin32 will have a "Complete Package" for libart.
+(2) Install the GnuWin32 libraries by running the executables for freetype,
+libpng, and zlib. These instructions and the Visual C++ project files
+distributed with rrdtool assume that you will use the default install
+location: C:\Program Files\GnuWin32. Extract the two zip files for libart,
+libart-2.3.3-bin.zip and libart-2.3.3-1-lib.zip into the GnuWin32 directory;
+the appropriate libart files will be added to the include, lib, and bin
+subdirectories.
+(3) Add C:\Program Files\GnuWin32\bin to the PATH (Control Panel ->
+System -> Advanced -> Environment Variables).
+(4) Start Microsoft Visual C++ 6.0. Load the workspace file, rrdtool.dsw,
+from the src subdirectory of your rrdtool code directory.
+(5) Compile the Release build of the rrdtool project (since rrdtool depends
+on the rrd project, the rrd library will also be compiled). At this
+time, the compile will fail in zconf.h, a zlib header file. The problem
+is a preprocessor directive that loads unistd.h. Open zconf.h in VC++
+(this file is in C:\Program Files\GnuWin32\include) and find the following
+code block:
+
+#if 1           /* HAVE_UNISTD_H -- this line is updated by ./configure */
+#  include <sys/types.h> /* for off_t */
+#  include <unistd.h>    /* for SEEK_* and off_t */
+#  ifdef VMS
+#    include <unixio.h>   /* for off_t */
+#  endif
+#  define z_off_t  off_t
+#endif 
+
+Change it to reads as follows (this is code from zlib-1.1.4):
+
+#if HAVE_UNISTD_H
+#  include <sys/types.h> /* for off_t */
+#  include <unistd.h>    /* for SEEK_* and off_t */
+#  ifdef VMS
+#    include <unixio.h>   /* for off_t */
+#  endif
+#  define z_off_t  off_t
+#endif 
+
+Note that it is actually just a one line change. Save the file and
+recompile rrdtool. By the time you are following these instructions
+this issue with zconf.h may be resolved.
+(6) At this point, you can run the executable rrdtool.exe in the
+src\toolrelease subdirectory. Note that if you wish to run rrdtool
+on other machines, you will need the following DLLs installed (on the
+path) on those machines:
+zlib1.dll
+libpng12.dll
+libart_lgpl.dll
+freetype6.dll
+msvcrt.dll
+The names of the first four DLLs might vary from what is listed here
+depending on the versions of the packages you downloaded from GnuWin32.
+The fifth DLL, msvcrt.dll, is a system DLL for most versions of Windows.
+If you are running on old version of Windows, you can install/upgrade to
+IE4.0 to get this DLL.
+(7) To compile the perl-shared library, open a Command Prompt (DOS box)
+and cd to the bindings\perl-shared subdirectory.
+(8) Run vcvars32.bat; this batch file, in your vc98\bin directory will
+set necessary environment options for command line compiling.
+(9) In bindings\perl-shared, run
+perl ntmake-build
+nmake
+nmake test
+If nmake test succeeds, you are good to go. RRDs.dll is in 
+blib\arch\auto\RRDs. If you plan to install via the Active State ppm
+tool, tar and gzip the blib directory. You can use the RRDs.ppd file
+in bindings\perl-shared directory. Remember that as in the case of
+rrdtool.exe you will need the DLLs listed in (6) on the machine where
+you are going to use RRDs.dll.
+
+Microsoft Visual C++ 7.1 (.NET 2003):
+
+Unfortunately, this is more difficult than with VC++ 6.0. The problem
+is that by default the C runtime dll for VC++ 7.1 is msvcr71.dll rather
+than msvcrt.dll. The GnuWin32 library binaries are all compiled
+to use msvcrt.dll and you can't mix msvcr71.dll and msvcrt.dll in the
+same process. One option is to download the source code for the libraries
+(available from http://gnuwin32.sourceforge.net) recompile them with
+VC++ 7.l. Then all the components will use msvcr71.dll. Once you are
+going to go this route, you can also use static multi-threaded libraries
+and use static linking between rrdtool (or RRDs.dll) and its dependencies.
+
+To use the GnuWin32 library binaries, you need to trick VC++ 7.1 into
+compiling rrdtool to use the older msvcrt.dll. Follow steps (1) - (3)
+as above, then:
+(4) Obtain a different version of the msvcrt.lib import library that
+is compatible with vc7 and points to msvcrt.dll:
+msvcrtlib_for_vc7.zip from http://xchat.org/win32/testing
+Backup msvcrt.lib in your vc7\lib directory 
+(\Program Files\Microsoft Visual Studio .NET 2003\vc7\lib)
+Then extract the msvcrt.lib from the zip file into the vc7\lib directory.
+WARNING: Use this msvcrt.lib at your own risk! This is not a Microsoft
+supplied file nor a file supported by anyone associated with rrdtool.
+(5) Start Microsoft Visual C++ 7.1. Load the solution file, rrdtool.sln,
+from the src subdirectory of your rrdtool code directory. Edit zconf.h,
+as needed, as described under (5) above. Compile the release build of
+the rrdtool project.
+Proceed with steps (6) - (9) as above, if you are using/picking up
+the wrong msvcrt.lib import library then nmake test for perl-shared
+will fail.
+
+Note: it is possible in the future that GnuWin32 will provide Win32
+binaries that utilize msvcr71.dll rather than msvcrt.dll.
+
+5/14/02 Jake Brutlag
+
+These notes share some insight I gained compiling 1.1.x with
+MS Visual C++ 6.0 (using project files). This information may or
+may not be accurate at the time you are reading this.
+
+(1) freetype and rrdtool cannot use precompiled headers (which are
+enabled by default for MSVC++ projects).  MSVC++ 6.0 does not
+support precompiled headers if #include directives contain MACROS.
+(2) Compile Release build with Default optimization, not the
+Maximize Speed optimization. I encountered some strange errors
+(related to argument processing for complex commands like graph--
+perhaps the getopt stuff is too blame) with Maximize Speed.
+(3) libart relies upon config.h (ostensibly generated by the
+configure script-- but of course not on Win32 platforms). ..\..\confignt
+(which contains a static Win32 version of config.h) should be on
+the include path.
+(4) Fonts are located in the %windir%\fonts, so the default font
+is c:\winnt\fonts\cour.ttf. (6/19/02) At Kerry Calvert's suggestion
+this setting was moved to confignt\config.h.
+(5) libart requires a custom build step to generate art_config.h; this
+is done manually via the commands:
+cl -I..\..\confignt gen_art_config.c
+gen_art_config.exe > art_config.h
+
+Currently, to compile rrd.lib and rrdtool.exe using
+the MSVC++ project files, first start MSVC++ 6.0. Open the rrdtool
+workspace (rrdtool.dsw in the src directory). The active project/
+configuration should be rrdtool-Win32 Release. Select Rebuild All
+from the Build menu. The static link library (rrd.lib) will
+be generated in src\release directory and executable will be generated
+in the src\toolrelease directory.
+
+Compiling RRDtool on NT ... work in progress
+---------------------------------------------------------------
+                         by Tamas Kovacshazy (khazy@mit.bme.hu)
+
+Persisting Problems with the current NT port:
+
+Unfortunately, the RRD perl modules does not work with Perl
+(ActivePerl) using the current distribution.
+
+The RRD shared perl module can be compiled after some
+modification...
+
+Follow these steps:
+
+0. Install perl if you do not have it!
+   Visit http://www.ActiveState.com/pw32/ for a complete distribution.
+
+1. Copy ..\gd1.2\release\gd.lib  to ..\gd1.2\
+2. Copy ..\src\release\rrd.lib to ..\src
+3. perl Makefile.pl
+
+In this step the system complains about something I do not
+understand. The error message is the following:
+
+Note (probably harmless): No library found for '-lm'
+
+Is a library missing? But it does not stop with an error...
+
+4. nmake test (You must have Visual C++ on the machine!)
+
+After these steps it generates the test files (svgs and rrds),
+and they seem to be good.
+
+The real problem in the shared perl modul is the following:
+
+I do not know how this installation stuff works. The problem is
+that the installation stuff looks for the gd.lib and the
+rrd.lib in the ..\gd1.2 and ..\src directory. The UNIX compile
+puts the files into these directories, but the NT compile does
+not.
+
+It is all for today,
+
+khazy
+
+Tamas Kovacshazy  E-mail: khazy@mit.bme.hu  
+WWW: http://www.mit.bme.hu/~khazy
+Technical University of Budapest 
+Department of Measurement and Information Systems
+
+
+Compiling RRDtool 1.2.x on Win32 with MingW32 gcc:
+---------------------------------------------------------------
+
+1. Obtain and install the current version of the MingW package.
+
+     http://www.mingw.org/download.shtml
+
+   In the MinGW set you will need the gcc and binutils as a minimum.
+
+2. Obtain either of the following awk versions and install in a directory
+   on your System Path:
+
+   - awk.exe
+
+     http://cm.bell-labs.com/cm/cs/awkbook/index.html
+
+     Note: This version has no dependencies to other libs.
+
+   - gawk.exe  (GnuWin32 version)
+
+     http://gnuwin32.sourceforge.net/packages/gawk.htm
+
+     Note: Also fetch the dependant libraries for it from the same page.
+
+3. If you plan to create a 'distribution' release of the RRD Tools, the
+   Makefile.Win32 will copy all the needed files to an output directory and
+   then zip the entire directory. A suitable zip utility can be obtained here:
+
+     http://www.info-zip.org/
+
+   Install in a directory on your System Path.
+
+4. Obtain the following libraries, ideally install them all under a common
+   directory:
+
+   = zlib
+
+     http://oss.oetiker.ch/rrdtool/pub/libs/zlib-1.2.3.tar.gz
+     http://www.zlib.net/
+
+   = libpng
+
+     http://oss.oetiker.ch/rrdtool/pub/libs/libpng-1.2.12.tar.gz
+     http://libpng.sourceforge.net/
+
+   = freetype
+
+     http://oss.oetiker.ch/rrdtool/pub/libs/freetype-2.2.1.tar.gz
+     http://freetype.sourceforge.net/index2.html
+ 
+   = libart_lgpl
+
+     http://oss.oetiker.ch/rrdtool/pub/libs/libart_lgpl-2.3.17.tar.gz
+     http://www.levien.com/libart/
+
+     Note: libart_lgpl needs a special tweak because the archive contains
+     only the base directory, but the libart headers are usually included with
+     a directory prefix; therefore create a subfolder 'libart_lgpl' and move
+     all files into this subfolder.
+
+5. Set up for DOS environment.
+
+   Add MingW\bin and MSYS\bin directories to your System path.
+
+   If the libraries share a common directory set the following environment var:
+
+     set LIBBASE=<shared director>
+     e.g set LIBBASE=C:\Libraries
+
+   If the libraries are scattered, set the following environment vers:
+
+     set ZLIBSDK=<path to zlib>
+     e.g set ZLIBSDK=C:\mytest\zlib-1.2.3
+     set LIBPNG=<path to libpng>
+     set LIBFT2=<path to freetype>
+     set LIBART=<path to libart>
+
+   If using the Gnu Awk (gawk.exe), edit the Makefile.Win32 and change the line:
+
+      AWK	= awk
+
+   to
+
+      AWK	= gawk
+
+6. Compile the project.
+
+   All dependent libs are statically linked in. This has the benefit that the
+   binaries do not depend on any other DLLs.
+   In order to build the static freetype lib enter the freetype base directory
+   and type 'make'. If everything is fine a message appears that gcc is detected,
+   and that you should again type 'make'. Follow that in order to build freetype.
+   All other libs are build from the sources with the RRDTool Makefile.Win32.
+
+   Switch to the RRDTOOL .\src directory. Then:
+
+      make -f Makefile.Win32 help
+
+   to see the build options, or
+
+      make -f Makefile.Win32 all
+
+   should build the entire package.
+
+6. Happy Graphing!
+
+
+written by normw & gk.
+
+

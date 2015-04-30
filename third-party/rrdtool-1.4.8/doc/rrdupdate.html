@@ -1,0 +1,198 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrdupdate</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#environment_variables">ENVIRONMENT VARIABLES</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#authors">AUTHORS</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rrdupdate - Store a new set of values into the RRD</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>rrdtool</strong> {<strong>update</strong> | <strong>updatev</strong>} <em>filename</em>
+[<strong>--template</strong>|<strong>-t</strong>&nbsp;<em>ds-name</em>[<strong>:</strong><em>ds-name</em>]...]
+[<strong>--daemon</strong>&nbsp;<em>address</em>] [<strong>--</strong>]
+<strong>N</strong>|<em>timestamp</em><strong>:</strong><em>value</em>[<strong>:</strong><em>value</em>...]
+<em>at-timestamp</em><strong>@</strong><em>value</em>[<strong>:</strong><em>value</em>...]
+[<em>timestamp</em><strong>:</strong><em>value</em>[<strong>:</strong><em>value</em>...]&nbsp;...]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>The <strong>update</strong> function feeds new data values into an <strong>RRD</strong>. The data
+is time aligned (interpolated) according to the properties of the
+<strong>RRD</strong> to which the data is written.</p>
+<dl>
+<dt><strong><a name="updatev" class="item"><strong>updatev</strong></a></strong></dt>
+
+<dd>
+<p>This alternate version of <strong>update</strong> takes the same arguments and
+performs the same function. The <em>v</em> stands for <em>verbose</em>, which
+describes the output returned. <strong>updatev</strong> returns a list of any and all
+consolidated data points (CDPs) written to disk as a result of the
+invocation of update. The values are indexed by timestamp (time_t),
+RRA (consolidation function and PDPs per CDP), and data source (name).
+Note that depending on the arguments of the current and previous call to
+update, the list may have no entries or a large number of entries.</p>
+<p>Since <strong>updatev</strong> requires direct disk access, the <strong>--daemon</strong> option cannot be
+used with this command.</p>
+</dd>
+<dt><strong><a name="filename" class="item"><em>filename</em></a></strong></dt>
+
+<dd>
+<p>The name of the <strong>RRD</strong> you want to update.</p>
+</dd>
+<dt><strong><a name="template_t_ds_name_ds_name" class="item"><strong>--template</strong>|<strong>-t</strong> <em>ds-name</em>[<strong>:</strong><em>ds-name</em>]...</a></strong></dt>
+
+<dd>
+<p>By default, the <strong>update</strong> function expects its data input in the order
+the data sources are defined in the RRD, excluding any COMPUTE data
+sources (i.e. if the third data source <strong>DST</strong> is COMPUTE, the third
+input value will be mapped to the fourth data source in the <strong>RRD</strong> and
+so on). This is not very error resistant, as you might be sending the
+wrong data into an RRD.</p>
+<p>The template switch allows you to specify which data sources you are
+going to update and in which order. If the data sources specified in
+the template are not available in the RRD file, the update process
+will abort with an error message.</p>
+<p>While it appears possible with the template switch to update data sources
+asynchronously, <strong>RRDtool</strong> implicitly assigns non-COMPUTE data sources missing
+from the template the <em>*UNKNOWN*</em> value.</p>
+<p>Do not specify a value for a COMPUTE <strong>DST</strong> in the <strong>update</strong>
+function. If this is done accidentally (and this can only be done
+using the template switch), <strong>RRDtool</strong> will ignore the value specified
+for the COMPUTE <strong>DST</strong>.</p>
+</dd>
+<dt><strong><a name="daemon_address" class="item"><strong>--daemon</strong> <em>address</em></a></strong></dt>
+
+<dd>
+<p>If given, <strong>RRDTool</strong> will try to connect to the caching daemon <a href="././rrdcached.html">the rrdcached manpage</a>
+at <em>address</em> and will fail if the connection cannot be established. If the
+connection is successfully established the values will be sent to the daemon
+instead of accessing the files directly.</p>
+<p>For a list of accepted formats, see the <strong>-l</strong> option in the <a href="././rrdcached.html">the rrdcached manpage</a> manual.</p>
+</dd>
+<dt><strong><a name="n_timestamp_value_value" class="item"><strong>N</strong>|<em>timestamp</em><strong>:</strong><em>value</em>[<strong>:</strong><em>value</em>...]</a></strong></dt>
+
+<dd>
+<p>The data used for updating the RRD was acquired at a certain
+time. This time can either be defined in seconds since 1970-01-01 or
+by using the letter 'N', in which case the update time is set to be
+the current time. Negative time values are subtracted from the current
+time. An AT_STYLE TIME SPECIFICATION (see the <em>rrdfetch</em>
+documentation) may also be used by delimiting the end of the time
+specification with the '@' character instead of a ':'. Getting the
+timing right to the second is especially important when you are
+working with data-sources of type <strong>COUNTER</strong>, <strong>DERIVE</strong> or
+<strong>ABSOLUTE</strong>.</p>
+<p>When using negative time values, options and data have to be separated
+by two dashes (<strong>--</strong>), else the time value would be parsed as an option.
+See below for an example.</p>
+<p>When using negative time values, options and data have to be separated
+by two dashes (<strong>--</strong>), else the time value would be parsed as an option.
+See below for an example.</p>
+<p>The remaining elements of the argument are DS updates. The order of
+this list is the same as the order the data sources were defined in
+the RRA. If there is no data for a certain data-source, the letter
+<strong>U</strong> (e.g., N:0.1:U:1) can be specified.</p>
+<p>The format of the value acquired from the data source is dependent on
+the data source type chosen. Normally it will be numeric, but the data
+acquisition modules may impose their very own parsing of this
+parameter as long as the colon (<strong>:</strong>) remains the data source value
+separator.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="environment_variables">ENVIRONMENT VARIABLES</a></h1>
+<p>The following environment variables may be used to change the behavior of
+<code>rrdtoolupdate</code>:</p>
+<dl>
+<dt><strong><a name="rrdcached_address" class="item"><strong>RRDCACHED_ADDRESS</strong></a></strong></dt>
+
+<dd>
+<p>If this environment variable is set it will have the same effect as specifying
+the <code>--daemon</code> option on the command line. If both are present, the command
+line argument takes precedence.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<ul>
+<li>
+<p><code>rrdtool update demo1.rrd N:3.44:3.15:U:23</code></p>
+<p>Update the database file demo1.rrd with 3 known and one <em>*UNKNOWN*</em>
+value. Use the current time as the update time.</p>
+</li>
+<li>
+<p><code>rrdtool update demo2.rrd 887457267:U 887457521:22 887457903:2.7</code></p>
+<p>Update the database file demo2.rrd which expects data from a single
+data-source, three times. First with an <em>*UNKNOWN*</em> value then with two
+regular readings. The update interval seems to be around 300 seconds.</p>
+</li>
+<li>
+<p><code>rrdtool update demo3.rrd -- -5:21 N:42</code></p>
+<p>Update the database file demo3.rrd two times, using five seconds in the
+past and the current time as the update times.</p>
+</li>
+<li>
+<p><code>rrdtool update --cache /var/lib/rrd/demo3.rrd N:42</code></p>
+<p>Update the file <code>/var/lib/rrd/demo3.rrd</code> with a single data source, using the
+current time. If the caching daemon cannot be reached, do <strong>not</strong> fall back to
+direct file access.</p>
+</li>
+<li>
+<p><code>rrdtool update --daemon unix:/tmp/rrdd.sock demo4.rrd N:23</code></p>
+<p>Use the UNIX domain socket <code>/tmp/rrdd.sock</code> to contact the caching daemon. If
+the caching daemon is not available, update the file <code>demo4.rrd</code> directly.
+<strong>WARNING:</strong> Since a relative path is specified, the following disturbing effect
+may occur: If the daemon is available, the file relative to the working
+directory <strong>of the daemon</strong> is used. If the daemon is not available, the file
+relative to the current working directory of the invoking process is used.
+<strong>This may update two different files depending on whether the daemon could be
+reached or not.</strong> Don't do relative paths, kids!</p>
+</li>
+</ul>
+<p>
+</p>
+<hr />
+<h1><a name="authors">AUTHORS</a></h1>
+<p>Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;,
+Florian Forster &lt;octo&nbsp;at&nbsp;verplant.org&gt;</p>
+
+</body>
+
+</html>

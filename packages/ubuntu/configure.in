@@ -1,0 +1,73 @@
+AC_INIT([Makefile.in], 1.0)
+
+if test -f /usr/bin/lsb_release; then
+  EXTRA_DEPS=", libnuma1, libzmq3"
+  PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+  PFRING_SVN_RELEASE=`svn info $HOME/PF_RING | grep "^Last Changed Rev"|cut -d " " -f 2`
+  PFRING_DEP=", pfring (=$PFRING_VERS-$PFRING_SVN_RELEASE)"
+  UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
+  if test "$UBUNTU_RELEASE" = "12.04"; then
+     EXTRA_DEPS=", libnuma1"
+  fi
+  EXTRA_DEPS="$EXTRA_DEPS, libhiredis0.10"
+  SUDO=""
+else
+  # Looks like an embedded system
+  EXTRA_DEPS=""
+  PFRING_VERS=""
+  PFRING_SVN_RELEASE=""
+  PFRING_DEP=""
+  UBUNTU_RELEASE="debian"
+  SUDO="sudo"
+fi
+
+/bin/rm -f debian.ntopng/control.in
+cd debian.ntopng
+ln -s control.$UBUNTU_RELEASE.in control.in
+cd -
+
+NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
+SVN_RELEASE=`svn info ../.. | grep "^Last Changed Rev"| cut -d " " -f 4`
+MACHINE=`uname -m`
+SHORT_MACHINE=`uname -m | cut -b1-3`
+
+if test $MACHINE = "x86_64"; then
+   EXTN="amd64"
+else
+  if test $SHORT_MACHINE = "arm"; then
+     EXTN="armhf"
+     EXTRA_DEPS=""
+  else
+    if test $SHORT_MACHINE = "mip"; then
+       EXTN="mips"
+       EXTRA_DEPS=""
+    else	
+       EXTN="i386"
+    fi
+  fi
+fi
+
+DATE=`date -R`
+KERNEL=`uname -r`
+
+AC_SUBST(NTOPNG_VERS)
+AC_SUBST(MACHINE)
+AC_SUBST(EXTN)
+AC_SUBST(DATE)
+AC_SUBST(KERNEL)
+AC_SUBST(EXTRA_DEPS)
+AC_SUBST(SVN_RELEASE)
+AC_SUBST(PFRING_VERS)
+AC_SUBST(PFRING_SVN_RELEASE)
+AC_SUBST(PFRING_DEP)
+AC_SUBST(SUDO)
+
+AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES(debian.ntopng/changelog)
+AC_CONFIG_FILES(debian.ntopng/files)
+AC_CONFIG_FILES(debian.ntopng/control)
+AC_CONFIG_FILES(debian.ntopng-data/changelog)
+AC_CONFIG_FILES(debian.ntopng-data/files)
+AC_CONFIG_FILES(debian.ntopng-data/control)
+
+AC_OUTPUT

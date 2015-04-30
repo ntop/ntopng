@@ -1,0 +1,34 @@
+#!/bin/sh -e
+
+case "$1" in
+    configure)
+	# continue below
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+	exit 0
+    ;;
+
+    *)
+	echo "postinst called with unknown argument \`$1'" >&2
+	exit 0
+    ;;
+esac
+
+umask 022
+
+echo "Rebuilding ld cache..."
+/sbin/ldconfig
+
+echo "Adding the ntopng startup script"
+update-rc.d ntopng defaults 93 >/dev/null
+
+echo "Making the /etc/ntopng directory..."
+
+mkdir -p /etc/ntopng/
+
+if [ ! -f /usr/local/bin/ntopng ] && [ ! -L /usr/local/bin/ntopng ] ; then
+   ln -s /usr/bin/ntopng /usr/local/bin/ntopng
+fi
+
+exit 0

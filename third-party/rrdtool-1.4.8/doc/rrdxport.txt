@@ -1,0 +1,150 @@
+RRDXPORT(1)                         rrdtool                        RRDXPORT(1)
+
+
+
+NNAAMMEE
+       rrdxport - Export data in XML format based on data from one or several
+       RRD
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll xxppoorrtt [--ss|----ssttaarrtt _s_e_c_o_n_d_s] [--ee|----eenndd _s_e_c_o_n_d_s]
+       [--mm|----mmaaxxrroowwss _r_o_w_s] [----sstteepp _v_a_l_u_e] [----jjssoonn] [----ddaaeemmoonn _a_d_d_r_e_s_s]
+       [DDEEFF::_v_n_a_m_e==_r_r_d::_d_s_-_n_a_m_e::_C_F] [CCDDEEFF::_v_n_a_m_e==_r_p_n_-_e_x_p_r_e_s_s_i_o_n]
+       [XXPPOORRTT::_v_n_a_m_e[::_l_e_g_e_n_d]]
+
+DDEESSCCRRIIPPTTIIOONN
+       The xxppoorrtt function's main purpose is to write an XML formatted
+       representation of the data stored in one or several RRRRDDs. It can also
+       extract numerical reports.
+
+       If no _X_P_O_R_T statements are found, there will be no output.
+
+       --ss|----ssttaarrtt _s_e_c_o_n_d_s (default end-1day)
+           The time when the exported range should begin. Time in seconds
+           since epoch (1970-01-01) is required. Negative numbers are relative
+           to the current time. By default one day worth of data will be
+           printed.  See also AT-STYLE TIME SPECIFICATION section in the
+           _r_r_d_f_e_t_c_h documentation for a detailed explanation on how to specify
+           time.
+
+       --ee|----eenndd _s_e_c_o_n_d_s (default now)
+           The time when the exported range should end. Time in seconds since
+           epoch.  See also AT-STYLE TIME SPECIFICATION section in the
+           _r_r_d_f_e_t_c_h documentation for a detailed explanation of ways to
+           specify time.
+
+       --mm|----mmaaxxrroowwss _r_o_w_s (default 400 rows)
+           This works like the --ww|----wwiiddtthh parameter of _r_r_d_g_r_a_p_h.  In fact it
+           is exactly the same, but the parameter was renamed to describe its
+           purpose in this module. See _r_r_d_g_r_a_p_h documentation for details.
+
+       ----sstteepp _v_a_l_u_e (default automatic)
+           See rrdgraph documentation.
+
+       ----ddaaeemmoonn _a_d_d_r_e_s_s
+           Address of the rrdcached daemon. If specified, a "flush" command is
+           sent to the server before reading the RRD files. This allows
+           rrrrddttooooll to return fresh data even if the daemon is configured to
+           cache values for a long time.  For a list of accepted formats, see
+           the --ll option in the rrdcached manual.
+
+             rrdtool xport --daemon unix:/var/run/rrdcached.sock ...
+
+       ----jjssoonn
+           produce json formated output (instead of xml)
+
+       ----eennuummddss
+           The generated xml should contain the data values in enumerated
+           tags.
+
+            <v0>val</v0><v1>val</v1>
+
+       DDEEFF::_v_n_a_m_e==_r_r_d::_d_s_-_n_a_m_e::_C_F
+           See _r_r_d_g_r_a_p_h documentation.
+
+       CCDDEEFF::_v_n_a_m_e==_r_p_n_-_e_x_p_r_e_s_s_i_o_n
+           See _r_r_d_g_r_a_p_h documentation.
+
+       XXPPOORRTT::_v_n_a_m_e::::_l_e_g_e_n_d
+           At least one _X_P_O_R_T statement should be present. The values
+           referenced by _v_n_a_m_e are printed. Optionally add a legend.
+
+OOuuttppuutt ffoorrmmaatt
+       The output is enclosed in an xxppoorrtt element and contains two blocks. The
+       first block is enclosed by a mmeettaa element and contains some meta data.
+       The second block is enclosed by a ddaattaa element and contains the data
+       rows.
+
+       Let's assume that the _x_p_o_r_t command looks like this:
+
+         rrdtool xport \
+                 --start now-1h --end now \
+                 DEF:xx=host-inout.lo.rrd:output:AVERAGE \
+                 DEF:yy=host-inout.lo.rrd:input:AVERAGE \
+                 CDEF:aa=xx,yy,+,8,* \
+                 XPORT:xx:"out bytes" \
+                 XPORT:aa:"in and out bits"
+
+       The resulting meta data section is (the values will depend on the RRD
+       characteristics):
+
+         <meta>
+           <start>1020611700</start>
+           <step>300</step>
+           <end>1020615600</end>
+           <rows>14</rows>
+           <columns>2</columns>
+           <legend>
+             <entry>out bytes</entry>
+             <entry>in and out bits</entry>
+           </legend>
+         </meta>
+
+       The resulting data section is:
+
+         <data>
+           <row><t>1020611700</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020612000</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020612300</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020612600</t><v>3.4113333333e+00</v><v>5.4581333333e+01</v></row>
+           <row><t>1020612900</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020613200</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020613500</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020613800</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020614100</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020614400</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020614700</t><v>3.7333333333e+00</v><v>5.9733333333e+01</v></row>
+           <row><t>1020615000</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020615300</t><v>3.4000000000e+00</v><v>5.4400000000e+01</v></row>
+           <row><t>1020615600</t><v>NaN</v><v>NaN</v></row>
+         </data>
+
+EEXXAAMMPPLLEE 11
+         rrdtool xport \
+                 DEF:out=if1-inouts.rrd:outoctets:AVERAGE \
+                 XPORT:out:"out bytes"
+
+EEXXAAMMPPLLEE 22
+         rrdtool xport \
+                 DEF:out1=if1-inouts.rrd:outoctets:AVERAGE \
+                 DEF:out2=if2-inouts.rrd:outoctets:AVERAGE \
+                 CDEF:sum=out1,out2,+ \
+                 XPORT:out1:"if1 out bytes" \
+                 XPORT:out2:"if2 out bytes" \
+                 XPORT:sum:"output sum"
+
+EENNVVIIRROONNMMEENNTT VVAARRIIAABBLLEESS
+       The following environment variables may be used to change the behavior
+       of "rrdtool xport":
+
+       RRRRDDCCAACCHHEEDD__AADDDDRREESSSS
+           If this environment variable is set it will have the same effect as
+           specifying the "--daemon" option on the command line. If both are
+           present, the command line argument takes precedence.
+
+AAUUTTHHOORR
+       Tobias Oetiker <tobi@oetiker.ch>
+
+
+
+1.4.8                             2013-05-23                       RRDXPORT(1)

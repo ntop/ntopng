@@ -1,0 +1,14 @@
+[Unit]
+Description=Start/stop ntopng program
+After=network.target syslog.target
+
+
+[Service]
+Type=forking
+ExecStart=/etc/systemd/scripts/ntopng start
+ExecStop=/etc/systemd/scripts/ntopng stop
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

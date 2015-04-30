@@ -1,0 +1,90 @@
+
+local rrd = require 'rrd'
+
+local name = 'test.rrd'
+local start = 300 * math.floor(os.time() / 300)
+
+io.write('\n-- Creating ', name, '\n')
+rrd.create(
+    name,
+    '--start', start-1,
+    '--step', '300',
+    'DS:a:GAUGE:600:U:U',
+    'DS:b:GAUGE:600:U:U',
+    'RRA:AVERAGE:0.5:1:300')
+
+local num_points = 0
+for t=start, start+300*300, 300 do
+  local s = string.format('%d:%d:%f', t,
+                          math.random(100), math.sin(t/800)*50+50)
+  rrd.update(name, s)
+  num_points = num_points + 1
+end
+
+io.write('rrd file created with ', num_points, ' points, from ', start,
+         ' to ', start+300*300, '\n')
+
+io.write('\n-- Testing rrd.info\n')
+local info = rrd.info(name)
+for k,v in pairs(info) do
+  io.write(k, '=', v, '\n')
+end
+io.write('\n')
+
+io.write('-- Testing rrd.fetch\n') 
+io.write('fetching data from ', name, ' - interval: ', start, ' to ',
+         start+300*300, '\n') 
+local fstart, fstep, fnames, fdata =
+  rrd.fetch(name, '--start', start, '--end', start+300*300+10, 'AVERAGE')
+io.write('got ', table.getn(fdata[1]), ' data sources with ', table.getn(fdata),
+         ' data points each.\n')
+
+io.write('\n-- Printing fetched data\n') 
+io.write('            ')
+for i, n in ipairs(fnames) do
+  io.write(n, '            ')
+end
+io.write('\n')
+for i, v in ipairs(fdata) do
+  local time = fstart + (i-1)*fstep
+  io.write(string.format('%s (%d): ', os.date('%c', time), time))
+  for _, w in ipairs(v) do
+    io.write(string.format('%e ', w))
+  end
+  io.write('\n')
+end
+io.write('\n')
+
+io.write('\n-- Testing rrd.graphv - creates test.png and returns values\n') 
+local t = rrd.graphv(
+   'test.png',
+   '--title', 'Enjoy Lua RRDtool module!',
+   '--start', start+3600,
+   '--end', 'start + 1000 min',
+   '--interlace',
+   '--imgformat', 'PNG',
+   '--width=450',
+   'DEF:a=' .. name .. ':a:AVERAGE',
+   'DEF:b=' .. name .. ':b:AVERAGE',
+   'CDEF:line=TIME,2400,%,300,LT,a,UNKN,IF',
+   'AREA:b#00b6e4:beta',
+   'AREA:line#0022e9:alpha',
+   'LINE3:line#ff0000',
+   'VDEF:va=a,AVERAGE',
+   'VDEF:vb=b,AVERAGE',
+   'PRINT:va:%5.2lf',
+   'PRINT:vb:%5.2lf')
+
+io.write('\n-- Returned values:\n') 
+io.write('print[0]: ', t['print[0]'], '\n')
+io.write('print[1]: ', t['print[1]'], '\n')
+for k, v in pairs(t) do
+  if not string.find(k, '^print%[%d+%]') then
+    io.write(k, ': ', v, '\n')
+  end
+end
+io.write('\n')
+
+io.write('-- The graph "test.png" was created.\n')
+io.write('-- Use your preferred viewer to display it.\n\n')
+

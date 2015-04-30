@@ -1,0 +1,11 @@
+Win32 Build Instructions:
+
+1) Make sure that the contrib file has all the required files for RRDtool
+2) Open rrd.sln from Visual Studio
+3) Select the 'Release' Build Type
+4) Build the Solution
+5) rrdtool.exe, and rrdupdate.exe will be located in the Release directory
+6) To install, copy the two binaries, along with the host of DLL files to
+   their permanent location
+7) To build the ActiveState perl module.  Follow the instructions under
+   the README file under 'binding/perl-shared'

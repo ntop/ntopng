@@ -1,0 +1,608 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrdgraph_graph</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#print">PRINT</a></li>
+		<ul>
+
+			<li><a href="#print_vname_format__strftime_"><strong>PRINT:</strong><em>vname</em><strong>:</strong><em>format</em>[<strong>:strftime</strong>]</a></li>
+			<li><a href="#print_vname_cf_format"><strong>PRINT:</strong><em>vname</em><strong>:</strong><em>CF</em><strong>:</strong><em>format</em></a></li>
+		</ul>
+
+		<li><a href="#graph">GRAPH</a></li>
+		<ul>
+
+			<li><a href="#gprint_vname_format"><strong>GPRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>format</em></a></li>
+			<li><a href="#gprint_vname_cf_format"><strong>GPRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>CF</em><strong>:</strong><em>format</em></a></li>
+			<li><a href="#comment_text"><strong>COMMENT</strong><strong>:</strong><em>text</em></a></li>
+			<li><a href="#vrule_time_color__legend___dashes__on_s__off_s__on_s_off_s________dash_offset_offset__"><strong>VRULE</strong><strong>:</strong><em>time</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</a></li>
+			<li><a href="#hrule_value_color__legend___dashes__on_s__off_s__on_s_off_s________dash_offset_offset__"><strong>HRULE</strong><strong>:</strong><em>value</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</a></li>
+			<li><a href="#line_width__value__color____legend___stack___skipscale____dashes__on_s__off_s__on_s_off_s________dash_offset_offset__"><strong>LINE</strong>[<em>width</em>]<strong>:</strong><em>value</em>[<strong>#</strong><em>color</em>][<strong>:</strong>[<em>legend</em>][<strong>:STACK</strong>][<strong>:skipscale</strong>]][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</a></li>
+			<li><a href="#area_value__color____legend___stack___skipscale__"><strong>AREA</strong><strong>:</strong><em>value</em>[<strong>#</strong><em>color</em>][<strong>:</strong>[<em>legend</em>][<strong>:STACK</strong>][<strong>:skipscale</strong>]]</a></li>
+			<li><a href="#tick_vname_rrggbb_aa___fraction__legend__"><strong>TICK</strong><strong>:</strong><em>vname</em><strong>#</strong><em>rrggbb</em>[<em>aa</em>][<strong>:</strong><em>fraction</em>[<strong>:</strong><em>legend</em>]]</a></li>
+			<li><a href="#shift_vname_offset"><strong>SHIFT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>offset</em></a></li>
+			<li><a href="#textalign__left_right_justified_center_"><strong>TEXTALIGN</strong><strong>:</strong>{<strong>left</strong>|<strong>right</strong>|<strong>justified</strong>|<strong>center</strong>}</a></li>
+			<li><a href="#stack_vname_color__legend_"><strong>STACK</strong><strong>:</strong><em>vname</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>]</a></li>
+		</ul>
+
+	</ul>
+
+	<li><a href="#notes_on_legend_arguments">NOTES on legend arguments</a></li>
+	<ul>
+
+		<li><a href="#escaping_the_colon">Escaping the colon</a></li>
+		<li><a href="#string_formatting">String Formatting</a></li>
+	</ul>
+
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<hr />
+<h1><a name="name">NAME</a></h1>
+<p>rrdgraph_graph - rrdtool graph command reference</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>PRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>format</em></p>
+<p><strong>GPRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>format</em></p>
+<p><strong>COMMENT</strong><strong>:</strong><em>text</em></p>
+<p><strong>VRULE</strong><strong>:</strong><em>time</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</p>
+<p><strong>HRULE</strong><strong>:</strong><em>value</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</p>
+<p><strong>LINE</strong>[<em>width</em>]<strong>:</strong><em>value</em>[<strong>#</strong><em>color</em>][<strong>:</strong>[<em>legend</em>][<strong>:STACK</strong>][<strong>:skipscale</strong>][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</p>
+<p><strong>AREA</strong><strong>:</strong><em>value</em>[<strong>#</strong><em>color</em>][<strong>:</strong>[<em>legend</em>][<strong>:STACK</strong>][<strong>:skipscale</strong>]]</p>
+<p><strong>TICK</strong><strong>:</strong><em>vname</em><strong>#</strong><em>rrggbb</em>[<em>aa</em>][<strong>:</strong><em>fraction</em>[<strong>:</strong><em>legend</em>]]</p>
+<p><strong>SHIFT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>offset</em></p>
+<p><strong>TEXTALIGN</strong><strong>:</strong>{<strong>left</strong>|<strong>right</strong>|<strong>justified</strong>|<strong>center</strong>}</p>
+<p><strong>PRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>CF</em><strong>:</strong><em>format</em> (deprecated)</p>
+<p><strong>GPRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>CF</em><strong>:</strong><em>format</em> (deprecated)</p>
+<p><strong>STACK</strong><strong>:</strong><em>vname</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>] (deprecated)</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>These instructions allow you to generate your image or report.
+If you don't use any graph elements, no graph is generated.
+Similarly, no report is generated if you don't use print options.</p>
+<p>
+</p>
+<h2><a name="print">PRINT</a></h2>
+<p>
+</p>
+<h3><a name="print_vname_format__strftime_"><strong>PRINT:</strong><em>vname</em><strong>:</strong><em>format</em>[<strong>:strftime</strong>]</a></h3>
+<p>Depending on the context, either the value component or the time
+component of a <strong>VDEF</strong> is printed using <em>format</em>. It is an error
+to specify a <em>vname</em> generated by a <strong>DEF</strong> or <strong>CDEF</strong>.</p>
+<p>Any text in <em>format</em> is printed literally with one exception:
+The percent character introduces a formatter string. This string
+can be:</p>
+<p>For printing values:</p>
+<dl>
+<dt><strong><a name="__" class="item"><strong>%%</strong></a></strong></dt>
+
+<dd>
+<p>just prints a literal '%' character</p>
+</dd>
+<dt><strong><a name="____le" class="item"><strong>%#.#le</strong></a></strong></dt>
+
+<dd>
+<p>prints numbers like 1.2346e+04. The optional integers # denote field
+width and decimal precision.</p>
+</dd>
+<dt><strong><a name="____lf" class="item"><strong>%#.#lf</strong></a></strong></dt>
+
+<dd>
+<p>prints numbers like 12345.6789, with optional field width
+and precision.</p>
+</dd>
+<dt><strong><a name="_s" class="item"><strong>%s</strong></a></strong></dt>
+
+<dd>
+<p>place this after <strong>%le</strong>, <strong>%lf</strong> or <strong>%lg</strong>. This will be replaced by the
+appropriate SI magnitude unit and the value will be scaled
+accordingly (123456 -&gt; 123.456 k).</p>
+</dd>
+<dt><strong><a name="_s" class="item"><strong>%S</strong></a></strong></dt>
+
+<dd>
+<p>is similar to <strong>%s</strong>. It does, however, use a previously defined
+magnitude unit. If there is no such unit yet, it tries to define
+one (just like <strong>%s</strong>) unless the value is zero, in which case the magnitude
+unit stays undefined. Thus, formatter strings using <strong>%S</strong> and no <strong>%s</strong>
+will all use the same magnitude unit except for zero values.</p>
+</dd>
+</dl>
+<p>If you PRINT a VDEF value, you can also print the time associated with it by appending the string
+<strong>:strftime</strong> to the format. Note that RRDtool uses the strftime function of your OSs C library. This means that
+the conversion specifier may vary. Check the manual page if you are uncertain. The following is a list of
+conversion specifiers usually supported across the board.</p>
+<dl>
+<dt><strong><a name="_a" class="item"><strong>%a</strong></a></strong></dt>
+
+<dd>
+<p>The abbreviated weekday name according to the current locale.</p>
+</dd>
+<dt><strong><a name="_a" class="item"><strong>%A</strong></a></strong></dt>
+
+<dd>
+<p>The full weekday name according to the current locale.</p>
+</dd>
+<dt><strong><a name="_b" class="item"><strong>%b</strong></a></strong></dt>
+
+<dd>
+<p>The abbreviated month name according to the current locale.</p>
+</dd>
+<dt><strong><a name="_b" class="item"><strong>%B</strong></a></strong></dt>
+
+<dd>
+<p>The full month name according to the current locale.</p>
+</dd>
+<dt><strong><a name="_c" class="item"><strong>%c</strong></a></strong></dt>
+
+<dd>
+<p>The preferred date and time representation for the current locale.</p>
+</dd>
+<dt><strong><a name="_d" class="item"><strong>%d</strong></a></strong></dt>
+
+<dd>
+<p>The day of the month as a decimal number (range 01 to 31).</p>
+</dd>
+<dt><strong><a name="_h" class="item"><strong>%H</strong></a></strong></dt>
+
+<dd>
+<p>The hour as a decimal number using a 24-hour clock (range 00 to 23).</p>
+</dd>
+<dt><strong><a name="_i" class="item"><strong>%I</strong></a></strong></dt>
+
+<dd>
+<p>The hour as a decimal number using a 12-hour clock (range 01 to 12).</p>
+</dd>
+<dt><strong><a name="_j" class="item"><strong>%j</strong></a></strong></dt>
+
+<dd>
+<p>The day of the year as a decimal number (range 001 to 366).</p>
+</dd>
+<dt><strong><a name="_m" class="item"><strong>%m</strong></a></strong></dt>
+
+<dd>
+<p>The month as a decimal number (range 01 to 12).</p>
+</dd>
+<dt><strong><a name="_m" class="item"><strong>%M</strong></a></strong></dt>
+
+<dd>
+<p>The minute as a decimal number (range 00 to 59).</p>
+</dd>
+<dt><strong><a name="_p" class="item"><strong>%p</strong></a></strong></dt>
+
+<dd>
+<p>Either `AM' or `PM' according to the given time value, or the corresponding
+strings for the current locale.  Noon is treated as `pm' and midnight as
+`am'.  Note that in many locales and `pm' notation is unsupported and in
+such cases %p will return an empty string.</p>
+</dd>
+<dt><strong><strong>%s</strong></strong></dt>
+
+<dd>
+<p>The second as a decimal number (range 00 to 61).</p>
+</dd>
+<dt><strong><strong>%S</strong></strong></dt>
+
+<dd>
+<p>The seconds since the epoch (1.1.1970) (libc dependent non standard!)</p>
+</dd>
+<dt><strong><a name="_u" class="item"><strong>%U</strong></a></strong></dt>
+
+<dd>
+<p>The  week  number  of  the current year as a decimal number, range 00 to 53, starting with the
+first Sunday as the first day of week 01. See also %V and %W.</p>
+</dd>
+<dt><strong><a name="_v" class="item"><strong>%V</strong></a></strong></dt>
+
+<dd>
+<p>The ISO 8601:1988 week number of the current year as a decimal number, range 01 to  53,  where
+week  1 is the first week that has at least 4 days in the current year, and with Monday as the
+first day of the week. See also %U and %W.</p>
+</dd>
+<dt><strong><a name="_w" class="item"><strong>%w</strong></a></strong></dt>
+
+<dd>
+<p>The day of the week as a decimal, range 0 to 6, Sunday being 0.  See also %u.</p>
+</dd>
+<dt><strong><a name="_w" class="item"><strong>%W</strong></a></strong></dt>
+
+<dd>
+<p>The week number of the current year as a decimal number, range 00 to  53,  starting  with  the
+first Monday as the first day of week 01.</p>
+</dd>
+<dt><strong><a name="_x" class="item"><strong>%x</strong></a></strong></dt>
+
+<dd>
+<p>The preferred date representation for the current locale without the time.</p>
+</dd>
+<dt><strong><a name="_x" class="item"><strong>%X</strong></a></strong></dt>
+
+<dd>
+<p>The preferred time representation for the current locale without the date.</p>
+</dd>
+<dt><strong><a name="_y" class="item"><strong>%y</strong></a></strong></dt>
+
+<dd>
+<p>The year as a decimal number without a century (range 00 to 99).</p>
+</dd>
+<dt><strong><a name="_y" class="item"><strong>%Y</strong></a></strong></dt>
+
+<dd>
+<p>The year as a decimal number including the century.</p>
+</dd>
+<dt><strong><a name="_z" class="item"><strong>%Z</strong></a></strong></dt>
+
+<dd>
+<p>The time zone or name or abbreviation.</p>
+</dd>
+<dt><strong><strong>%%</strong></strong></dt>
+
+<dd>
+<p>A literal `%' character.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h3><a name="print_vname_cf_format"><strong>PRINT:</strong><em>vname</em><strong>:</strong><em>CF</em><strong>:</strong><em>format</em></a></h3>
+<p><em>Deprecated. Use the new form of this command in new scripts.</em>
+The first form of this command is to be used with <strong>CDEF</strong> <em>vname</em>s.</p>
+<p>
+</p>
+<h2><a name="graph">GRAPH</a></h2>
+<p>
+</p>
+<h3><a name="gprint_vname_format"><strong>GPRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>format</em></a></h3>
+<p>This is the same as <code>PRINT</code>, but printed inside the graph.</p>
+<p>
+</p>
+<h3><a name="gprint_vname_cf_format"><strong>GPRINT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>CF</em><strong>:</strong><em>format</em></a></h3>
+<p><em>Deprecated. Use the new form of this command in new scripts.</em>
+This is the same as <code>PRINT</code>, but printed inside the graph.</p>
+<p>
+</p>
+<h3><a name="comment_text"><strong>COMMENT</strong><strong>:</strong><em>text</em></a></h3>
+<p>Text is printed literally in the legend section of the graph. Note that in
+RRDtool 1.2 you have to escape colons in COMMENT text in the same way you
+have to escape them in <strong>*PRINT</strong> commands by writing <strong>'\:'</strong>.</p>
+<p>
+</p>
+<h3><a name="vrule_time_color__legend___dashes__on_s__off_s__on_s_off_s________dash_offset_offset__"><strong>VRULE</strong><strong>:</strong><em>time</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</a></h3>
+<p>Draw a vertical line at <em>time</em>.  Its color is composed from three
+hexadecimal numbers specifying the rgb color components (00 is off, FF is
+maximum) red, green and blue followed by an optional alpha. Optionally, a legend box and string is
+printed in the legend section. <em>time</em> may be a number or a variable
+from a <strong>VDEF</strong>. It is an error to use <em>vname</em>s from <strong>DEF</strong> or <strong>CDEF</strong> here.
+Dashed lines can be drawn using the <strong>dashes</strong> modifier. See <strong>LINE</strong> for more
+details.</p>
+<p>
+</p>
+<h3><a name="hrule_value_color__legend___dashes__on_s__off_s__on_s_off_s________dash_offset_offset__"><strong>HRULE</strong><strong>:</strong><em>value</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</a></h3>
+<p>Draw a horizontal line at <em>value</em>.  HRULE acts much like LINE except that
+will have no effect on the scale of the graph. If a HRULE is outside the
+graphing area it will just not be visible.</p>
+<p>
+</p>
+<h3><a name="line_width__value__color____legend___stack___skipscale____dashes__on_s__off_s__on_s_off_s________dash_offset_offset__"><strong>LINE</strong>[<em>width</em>]<strong>:</strong><em>value</em>[<strong>#</strong><em>color</em>][<strong>:</strong>[<em>legend</em>][<strong>:STACK</strong>][<strong>:skipscale</strong>]][<strong>:dashes</strong>[<strong>=</strong><em>on_s</em>[,<em>off_s</em>[,<em>on_s</em>,<em>off_s</em>]...]][<strong>:dash-offset=</strong><em>offset</em>]]</a></h3>
+<p>Draw a line of the specified width onto the graph. <em>width</em> can be a
+floating point number. If the color is not specified, the drawing is done
+'invisibly'. This is useful when stacking something else on top of this
+line. Also optional is the legend box and string which will be printed in
+the legend section if specified. The <strong>value</strong> can be generated by <strong>DEF</strong>,
+<strong>VDEF</strong>, and <strong>CDEF</strong>.  If the optional <strong>STACK</strong> modifier is used, this line
+is stacked on top of the previous element which can be a <strong>LINE</strong> or an
+<strong>AREA</strong>.</p>
+<p>Normally the graphing function makes sure that the entire <strong>LINE</strong> or <strong>AREA</strong>
+is visible in the chart. The scaling of the chart will be modified
+accordingly if necessary. Any <strong>LINE</strong> or <strong>AREA</strong> can be excluded from this
+process by adding the option <strong>skipscale</strong>.</p>
+<p>The <strong>dashes</strong> modifier enables dashed line style. Without any further options
+a symmetric dashed line with a segment length of 5 pixels will be drawn. The
+dash pattern can be changed if the <strong>dashes=</strong> parameter is followed by either
+one value or an even number (1, 2, 4, 6, ...) of positive values. Each value
+provides the length of alternate <em>on_s</em> and <em>off_s</em> portions of the
+stroke. The <strong>dash-offset</strong> parameter specifies an <em>offset</em> into the pattern
+at which the stroke begins.</p>
+<p>When you do not specify a color, you cannot specify a legend.  Should
+you want to use <strong>STACK</strong>, use the &quot;LINEx:&lt;value&gt;::STACK&quot; form.</p>
+<p>
+</p>
+<h3><a name="area_value__color____legend___stack___skipscale__"><strong>AREA</strong><strong>:</strong><em>value</em>[<strong>#</strong><em>color</em>][<strong>:</strong>[<em>legend</em>][<strong>:STACK</strong>][<strong>:skipscale</strong>]]</a></h3>
+<p>See <strong>LINE</strong>, however the area between the x-axis and the line will
+be filled.</p>
+<p>
+</p>
+<h3><a name="tick_vname_rrggbb_aa___fraction__legend__"><strong>TICK</strong><strong>:</strong><em>vname</em><strong>#</strong><em>rrggbb</em>[<em>aa</em>][<strong>:</strong><em>fraction</em>[<strong>:</strong><em>legend</em>]]</a></h3>
+<p>Plot a tick mark (a vertical line) for each value of <em>vname</em> that is
+non-zero and not *UNKNOWN*. The <em>fraction</em> argument specifies the length of
+the tick mark as a fraction of the y-axis; the default value is 0.1 (10% of
+the axis). Note that the color specification is not optional. The TICK marks normally
+start at the lower edge of the graphing area. If the fraction is negative they start
+at the upper border of the graphing area.</p>
+<p>
+</p>
+<h3><a name="shift_vname_offset"><strong>SHIFT</strong><strong>:</strong><em>vname</em><strong>:</strong><em>offset</em></a></h3>
+<p>Using this command <strong>RRDtool</strong> will graph the following elements
+with the specified offset.  For instance, you can specify an
+offset of (&nbsp;7*24*60*60&nbsp;=&nbsp;)&nbsp;604'800&nbsp;seconds to &quot;look back&quot; one
+week. Make sure to tell the viewer of your graph you did this ...
+As with the other graphing elements, you can specify a number or
+a variable here.</p>
+<p>
+</p>
+<h3><a name="textalign__left_right_justified_center_"><strong>TEXTALIGN</strong><strong>:</strong>{<strong>left</strong>|<strong>right</strong>|<strong>justified</strong>|<strong>center</strong>}</a></h3>
+<p>Labels are placed below the graph. When they overflow to the left, they wrap
+to the next line. By default, lines are justified left and right. The
+<strong>TEXTALIGN</strong> function lets you change this default. This is a command and
+not an option, so that you can change the default several times in your
+argument list.</p>
+<p>
+</p>
+<h3><a name="stack_vname_color__legend_"><strong>STACK</strong><strong>:</strong><em>vname</em><strong>#</strong><em>color</em>[<strong>:</strong><em>legend</em>]</a></h3>
+<p><em>Deprecated.  Use the <strong>STACK</strong> modifiers on the other commands instead!</em></p>
+<p><strong>Some notes on stacking</strong></p>
+<p>When stacking, an element is not placed above the X-axis but rather
+on top of the previous element.  There must be something to stack
+upon.</p>
+<p>You can use an <strong>invisible</strong> LINE or AREA to stacked upon.</p>
+<p>An <strong>unknown</strong> value makes the entire stack unknown from that moment on.
+You don't know where to begin (the unknown value) and therefore do
+not know where to end.</p>
+<p>If you want to make sure you will be displaying a certain variable,
+make sure never to stack upon the unknown value.  Use a CDEF instruction
+with <strong>IF</strong> and <strong>UN</strong> to do so.</p>
+<p>
+</p>
+<hr />
+<h1><a name="notes_on_legend_arguments">NOTES on legend arguments</a></h1>
+<p>
+</p>
+<h2><a name="escaping_the_colon">Escaping the colon</a></h2>
+<p>A colon ':' in a <em>legend</em> argument will mark the end of the
+legend. To enter a ':' as part of a legend, the colon must be escaped
+with a backslash '\:'.  Beware that many environments process
+backslashes themselves, so it may be necessary to write two
+backslashes in order to one being passed onto rrd_graph.</p>
+<p>
+</p>
+<h2><a name="string_formatting">String Formatting</a></h2>
+<p>The text printed below the actual graph can be formatted by appending special
+escape characters at the end of a text. When ever such a character occurs,
+all pending text is pushed onto the graph according to the character
+specified.</p>
+<p>Valid markers are: <strong>\j</strong> for justified, <strong>\l</strong> for left aligned, <strong>\r</strong> for
+right aligned, and <strong>\c</strong> for centered. In the next section there is an
+example showing how to use centered formatting.</p>
+<p><strong>\n</strong> is a valid alias for <strong>\l</strong> since incomplete parsing in earlier
+versions of RRDtool lead to this behavior and a number of people has been using it.</p>
+<p>Normally there are two space characters inserted between every two items
+printed into the graph. The space following a string can be suppressed by
+putting a <strong>\g</strong> at the end of the string. The <strong>\g</strong> also ignores any space
+inside the string if it is at the very end of the string. This can be used
+in connection with <strong>%s</strong> to suppress empty unit strings.</p>
+<pre>
+ GPRINT:a:MAX:%lf%s\g</pre>
+<p>A special case is COMMENT:<strong>\s</strong> which inserts some additional vertical space
+before placing the next row of legends.</p>
+<p>If you want to have left and right aligned legends on the same line use COMMENT:<strong>\u</strong>
+to go one line back like this:</p>
+<pre>
+ COMMENT:left\l
+ COMMENT:\u
+ COMMENT:right\r</pre>
+<p>There is also a 'nop' control for situations where you want a string to
+actually end in a backslash character sequence <strong>\.</strong></p>
+<pre>
+ COMMENT:OS\2\.</pre>
+<p>When using a proportional font in your graph, the tab
+characters or the sequence <strong>\t</strong> will line-up legend elements. Note that
+the tabs inserted are relative to the start of the current legend
+element!</p>
+<p>Since RRDtool 1.3 is using Pango for rending text, you can use Pango markup.
+Pango uses the xml <strong>span</strong> tags for inline formatting instructions.:</p>
+<p>A simple example of a marked-up string might be:</p>
+<pre>
+ &lt;span foreground=&quot;blue&quot; size=&quot;x-large&quot;&gt;Blue text&lt;/span&gt; is &lt;i&gt;cool&lt;/i&gt;!</pre>
+<p>The complete list of attributes for the span tag (taken from the pango documentation):</p>
+<dl>
+<dt><strong><a name="font_desc" class="item"><strong>font_desc</strong></a></strong></dt>
+
+<dd>
+<p>A font description string, such as &quot;Sans Italic 12&quot;; note that any other span attributes will override this description. So if you have &quot;Sans Italic&quot; and also a style=&quot;normal&quot; attribute, you will get Sans normal, not italic.</p>
+</dd>
+<dt><strong><a name="font_family" class="item"><strong>font_family</strong></a></strong></dt>
+
+<dd>
+<p>A font family name</p>
+</dd>
+<dt><strong><a name="face" class="item"><strong>face</strong></a></strong></dt>
+
+<dd>
+<p>Synonym for font_family</p>
+</dd>
+<dt><strong><a name="size" class="item"><strong>size</strong></a></strong></dt>
+
+<dd>
+<p>Font size in 1024ths of a point, or one of the absolute sizes 'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', or one of the relative sizes 'smaller' or 'larger'. If you want to specify a absolute size, it's usually easier to take advantage of the ability to specify a partial font description using 'font_desc'; you can use font_desc='12.5' rather than size='12800'.</p>
+</dd>
+<dt><strong><a name="style" class="item"><strong>style</strong></a></strong></dt>
+
+<dd>
+<p>One of 'normal', 'oblique', 'italic'</p>
+</dd>
+<dt><strong><a name="weight" class="item"><strong>weight</strong></a></strong></dt>
+
+<dd>
+<p>One of 'ultralight', 'light', 'normal', 'bold', 'ultrabold', 'heavy', or a numeric weight</p>
+</dd>
+<dt><strong><a name="variant" class="item"><strong>variant</strong></a></strong></dt>
+
+<dd>
+<p>'normal' or 'smallcaps'</p>
+</dd>
+<dt><strong><a name="stretch" class="item"><strong>stretch</strong></a></strong></dt>
+
+<dd>
+<p>One of 'ultracondensed', 'extracondensed', 'condensed', 'semicondensed', 'normal', 'semiexpanded', 'expanded', 'extraexpanded', 'ultraexpanded'</p>
+</dd>
+<dt><strong><a name="foreground" class="item"><strong>foreground</strong></a></strong></dt>
+
+<dd>
+<p>An RGB color specification such as '#00FF00' or a color name such as 'red'</p>
+</dd>
+<dt><strong><a name="background" class="item"><strong>background</strong></a></strong></dt>
+
+<dd>
+<p>An RGB color specification such as '#00FF00' or a color name such as 'red'</p>
+</dd>
+<dt><strong><a name="underline" class="item"><strong>underline</strong></a></strong></dt>
+
+<dd>
+<p>One of 'none', 'single', 'double', 'low', 'error'</p>
+</dd>
+<dt><strong><a name="underline_color" class="item"><strong>underline_color</strong></a></strong></dt>
+
+<dd>
+<p>The color of underlines; an RGB color specification such as '#00FF00' or a color name such as 'red'</p>
+</dd>
+<dt><strong><a name="rise" class="item"><strong>rise</strong></a></strong></dt>
+
+<dd>
+<p>Vertical displacement, in 10000ths of an em. Can be negative for subscript, positive for superscript.</p>
+</dd>
+<dt><strong><a name="strikethrough" class="item"><strong>strikethrough</strong></a></strong></dt>
+
+<dd>
+<p>'true' or 'false' whether to strike through the text</p>
+</dd>
+<dt><strong><a name="strikethrough_color" class="item"><strong>strikethrough_color</strong></a></strong></dt>
+
+<dd>
+<p>The color of crossed out lines; an RGB color specification such as '#00FF00' or a color name such as 'red'</p>
+</dd>
+<dt><strong><a name="fallback" class="item"><strong>fallback</strong></a></strong></dt>
+
+<dd>
+<p>'true' or 'false' whether to enable fallback. If disabled, then characters will only be used from the closest matching font on the system. No fallback will be done to other fonts on the system that might contain the characters in the text. Fallback is enabled by default. Most applications should not disable fallback.</p>
+</dd>
+<dt><strong><a name="lang" class="item"><strong>lang</strong></a></strong></dt>
+
+<dd>
+<p>A language code, indicating the text language</p>
+</dd>
+<dt><strong><a name="letter_spacing" class="item"><strong>letter_spacing</strong></a></strong></dt>
+
+<dd>
+<p>Inter-letter spacing in 1024ths of a point.</p>
+</dd>
+<dt><strong><a name="gravity" class="item"><strong>gravity</strong></a></strong></dt>
+
+<dd>
+<p>One of 'south', 'east', 'north', 'west', 'auto'.</p>
+</dd>
+<dt><strong><a name="gravity_hint" class="item"><strong>gravity_hint</strong></a></strong></dt>
+
+<dd>
+<p>One of 'natural', 'strong', 'line'.</p>
+</dd>
+</dl>
+<p>To save you some typing, there are also some shortcuts:</p>
+<dl>
+<dt><strong><a name="b" class="item"><strong>b</strong></a></strong></dt>
+
+<dd>
+<p>Bold</p>
+</dd>
+<dt><strong><a name="big" class="item"><strong>big</strong></a></strong></dt>
+
+<dd>
+<p>Makes font relatively larger, equivalent to &lt;span size=&quot;larger&quot;&gt;</p>
+</dd>
+<dt><strong><a name="i" class="item"><strong>i</strong></a></strong></dt>
+
+<dd>
+<p>Italic</p>
+</dd>
+<dt><strong><a name="s" class="item"><strong>s</strong></a></strong></dt>
+
+<dd>
+<p>Strike through</p>
+</dd>
+<dt><strong><a name="sub" class="item"><strong>sub</strong></a></strong></dt>
+
+<dd>
+<p>Subscript</p>
+</dd>
+<dt><strong><a name="sup" class="item"><strong>sup</strong></a></strong></dt>
+
+<dd>
+<p>Superscript</p>
+</dd>
+<dt><strong><a name="small" class="item"><strong>small</strong></a></strong></dt>
+
+<dd>
+<p>Makes font relatively smaller, equivalent to &lt;span size=&quot;smaller&quot;&gt;</p>
+</dd>
+<dt><strong><a name="tt" class="item"><strong>tt</strong></a></strong></dt>
+
+<dd>
+<p>Monospace font</p>
+</dd>
+<dt><strong><a name="u" class="item"><strong>u</strong></a></strong></dt>
+
+<dd>
+<p>Underline</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="././rrdgraph.html">the rrdgraph manpage</a> gives an overview of how <strong>rrdtool graph</strong> works.
+<a href="././rrdgraph_data.html">the rrdgraph_data manpage</a> describes <strong>DEF</strong>,<strong>CDEF</strong> and <strong>VDEF</strong> in detail.
+<a href="././rrdgraph_rpn.html">the rrdgraph_rpn manpage</a> describes the <strong>RPN</strong> language used in the <strong>?DEF</strong> statements.
+<a href="././rrdgraph_graph.html">the rrdgraph_graph manpage</a> page describes all of the graph and print functions.</p>
+<p>Make sure to read <a href="././rrdgraph_examples.html">the rrdgraph_examples manpage</a> for tips&amp;tricks.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Program by Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;</p>
+<p>This manual page by Alex van den Bogaerdt &lt;<a href="mailto:alex@vandenbogaerdt.nl">alex@vandenbogaerdt.nl</a>&gt;
+with corrections and/or additions by several people</p>
+
+</body>
+
+</html>

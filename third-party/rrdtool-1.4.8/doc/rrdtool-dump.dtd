@@ -1,0 +1,39 @@
+<!-- rrdtool-dump.dtd -->
+<!-- wolfgang{dot}schrimm{at}urz{dot}uni-heidelberg{dot}de -->
+
+<!-- root element -->
+<!ELEMENT rrd (version, step, lastupdate, ds+, rra+)>
+
+<!-- rrd's children -->
+<!ELEMENT version (#PCDATA)>
+<!ELEMENT step (#PCDATA)>
+<!ELEMENT lastupdate (#PCDATA)>
+<!-- There are two different elements with the same name -->
+<!-- /rrd/ds and /rrd/rra/cdp_prep/ds                    -->
+<!ELEMENT ds ((name, type, minimal_heartbeat, min, max, last_ds, value, 
+unknown_sec)|(value, unknown_datapoints))>
+<!ELEMENT rra (cf, pdp_per_row, xff, cdp_prep, database)>
+
+<!-- ds's children -->
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT minimal_heartbeat (#PCDATA)>
+<!ELEMENT min (#PCDATA)>
+<!ELEMENT max (#PCDATA)>
+<!ELEMENT last_ds (#PCDATA)>
+<!ELEMENT unknown_sec (#PCDATA)>
+<!ELEMENT unknown_datapoints (#PCDATA)>
+<!-- There are two different elements with the same name -->
+<!-- /rrd/ds/value and /rrd/rra/cdp_prep/ds/value        -->
+<!ELEMENT value (#PCDATA)>
+
+<!-- rra's children -->
+<!ELEMENT cf (#PCDATA)>
+<!ELEMENT pdp_per_row (#PCDATA)>
+<!ELEMENT xff (#PCDATA)>
+<!ELEMENT cdp_prep (ds+)>
+<!ELEMENT database (row+)>
+
+<!-- database's children -->
+<!ELEMENT row (v+)>
+<!ELEMENT v (#PCDATA)>

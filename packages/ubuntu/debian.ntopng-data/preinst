@@ -1,0 +1,6 @@
+#! /bin/sh
+# preinst script for nbox
+#
+# see: dh_installdeb(1)
+
+exit 0

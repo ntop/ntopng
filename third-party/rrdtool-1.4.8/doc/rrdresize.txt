@@ -1,0 +1,44 @@
+RRDRESIZE(1)                        rrdtool                       RRDRESIZE(1)
+
+
+
+NNAAMMEE
+       rrdresize - alters the size of an RRA and creates a new .rrd file
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll rreessiizzee _f_i_l_e_n_a_m_e _r_r_a_-_n_u_m  GGRROOWW_|SSHHRRIINNKK _r_o_w_s
+
+DDEESSCCRRIIPPTTIIOONN
+       The rreessiizzee function is used to modify the number of rows in an RRRRAA.
+
+       _f_i_l_e_n_a_m_e
+               the name of the RRRRDD you want to alter.
+
+       _r_r_a_-_n_u_m the RRRRAA you want to alter. You can find the number using
+               rrrrddttooooll iinnffoo.
+
+       GGRROOWW    used if you want to add extra rows to an RRA. The extra rows
+               will be inserted as the rows that are oldest.
+
+       SSHHRRIINNKK  used if you want to remove rows from an RRA. The rows that will
+               be removed are the oldest rows.
+
+       _r_o_w_s    the number of rows you want to add or remove.
+
+NNOOTTEESS
+       The new .rrd file, with the modified RRAs, is written to the file
+       rreessiizzee..rrrrdd in the current directory.  TThhee oorriiggiinnaall ..rrrrdd ffiillee iiss nnoott
+       mmooddiiffiieedd.
+
+       It is possible to abuse this tool and get strange results by first
+       removing some rows and then reinserting the same amount (effectively
+       clearing them to be Unknown). You may thus end up with unknown data in
+       one RRA while at the same timestamp this data is available in another
+       RRA.
+
+AAUUTTHHOORR
+       Alex van den Bogaerdt <alex@vandenbogaerdt.nl>
+
+
+
+1.4.8                             2013-05-23                      RRDRESIZE(1)

@@ -1,0 +1,31 @@
+TCLRRD -- A TCL interpreter extension to access the RRD library,
+	  contributed to Tobias Oetiker's RRD tools.
+
+Copyright (c) 1999,2000 Frank Strauss, Technical University of Braunschweig.
+
+See the file "COPYING" for information on usage and redistribution
+of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+TCLRRD adds a dynamically loadable package to the Tcl 8.x interpreter
+to access all RRD functions as of RRDtool 1.0.13. All command names
+and arguments are equal to those of RRDtool. They are assigned to the
+namespace `Rrd', e.g.  `Rrd::create'. Return values are a bit
+different from plain RRDtool behavior to enable more native Tcl
+usage. Errors are mapped to the TCL_ERROR return code together with
+the RRD error strings.
+
+TCLRRD makes it easy to combine RRD use with advanced SNMP functionality
+of scotty (http://wwwsnmp.cs.utwente.nl/~schoenw/scotty/). E.g., it's easy
+to use some scotty code to get the counters of some interfaces by their
+interface name and then use Rrd::update to store the values. Furthermore,
+data source types (see RRD::create documentation) and integer value ranges
+could be easily retrieved from MIB information.
+
+TCLRRD has been written on a Linux system for use with Tcl 8.x. It should
+work on many other platforms, although it has not been tested. There are
+no fool proof installation procedures. Take a look at Makefile.am and
+adapt it, if required.
+
+TCLRRD has been written for RRD 1.0.13.
+
+	Frank Strauss <strauss@ibr.cs.tu-bs.de>, 09-Mar-2000

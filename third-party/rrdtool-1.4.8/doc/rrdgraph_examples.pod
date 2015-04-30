@@ -1,0 +1,210 @@
+=head1 NAME
+
+rrdgraph_examples - Examples for rrdtool graph
+
+=head1 SYNOPSIS
+
+B<rrdtool graph /home/httpd/html/test.png --img-format PNG>
+
+followed by any of the examples below
+
+=head1 DESCRIPTION
+
+For your convenience some of the commands are explained here
+by using detailed examples. They are not always cut-and-paste
+ready because comments are intermixed with the examples.
+
+=head1 EXAMPLES
+
+=head2 Data with multiple resolutions
+
+    --end now --start end-120000s --width 400
+    DEF:ds0a=/home/rrdtool/data/router1.rrd:ds0:AVERAGE
+    DEF:ds0b=/home/rrdtool/data/router1.rrd:ds0:AVERAGE:step=1800
+    DEF:ds0c=/home/rrdtool/data/router1.rrd:ds0:AVERAGE:step=7200
+    LINE1:ds0a#0000FF:"default resolution\l"
+    LINE1:ds0b#00CCFF:"resolution 1800 seconds per interval\l"
+    LINE1:ds0c#FF00FF:"resolution 7200 seconds per interval\l"
+
+=head2 Nicely formatted legend section
+
+    DEF:ds0=/home/rrdtool/data/router1.rrd:ds0:AVERAGE
+    DEF:ds1=/home/rrdtool/data/router1.rrd:ds1:AVERAGE
+    VDEF:ds0max=ds0,MAXIMUM
+    VDEF:ds0avg=ds0,AVERAGE
+    VDEF:ds0min=ds0,MINIMUM
+    VDEF:ds0pct=ds0,95,PERCENT
+    VDEF:ds1max=ds1,MAXIMUM
+    VDEF:ds1avg=ds1,AVERAGE
+    VDEF:ds1min=ds1,MINIMUM
+    VDEF:ds1pct=ds1,95,PERCENT
+
+Note: consolidation occurs here.
+
+    CDEF:ds0bits=ds0,8,*
+    CDEF:ds1bits=ds1,8,*
+
+Note: 10 spaces to move text to the right
+
+    COMMENT:"          "
+
+Note: the column titles have to be as wide as the columns
+
+    COMMENT:"Maximum    "
+    COMMENT:"Average    "
+    COMMENT:"Minimum    "
+
+    COMMENT:"95th percentile\l"
+    AREA:ds0bits#00C000:"Inbound "
+    GPRINT:ds0max:"%6.2lf %Sbps"
+    GPRINT:ds0avg:"%6.2lf %Sbps"
+    GPRINT:ds0min:"%6.2lf %Sbps"
+    GPRINT:ds0pct:"%6.2lf %Sbps\l"
+    LINE1:ds1bits#0000FF:"Outbound"
+    GPRINT:ds1max:"%6.2lf %Sbps"
+    GPRINT:ds1avg:"%6.2lf %Sbps"
+    GPRINT:ds1min:"%6.2lf %Sbps"
+    GPRINT:ds1pct:"%6.2lf %Sbps\l"
+
+=head2 Offsetting a line on the y-axis
+
+Depending on your needs you can do this in two ways:
+
+=over
+
+=item *
+
+Offset the data, then graph this
+
+    DEF:mydata=my.rrd:ds:AVERAGE
+
+Note: this will also influence any other command that uses "data"
+
+    CDEF:data=mydata,100,+
+    LINE1:data#FF0000:"Data with offset"
+
+=item *
+
+Graph the original data, with an offset
+
+    DEF:mydata=my.rrd:ds:AVERAGE
+
+Note: no color in the first line so it is not visible
+
+    LINE1:100
+
+Note: the second line gets stacked on top of the first one
+
+    LINE1:data#FF0000:"Data with offset":STACK
+
+=back
+
+=head2 Drawing dashed lines
+
+Also works for HRULE and VRULE
+
+=over
+
+=item *
+
+default style: - - - - -
+    LINE1:data#FF0000:"dashed line":dashes
+
+=item *
+
+more fancy style with offset: - -  --- -  --- -
+    LINE1:data#FF0000:"another dashed line":dashes=15,5,5,10:dash-offset=10
+
+=back
+
+=head2 Time ranges
+
+    Last four weeks: --start end-4w --end 00:00
+    January 2001:    --start 20010101 --end start+31d
+    January 2001:    --start 20010101 --end 20010201
+    Last hour:       --start end-1h
+    Last 24 hours:   <nothing at all>
+    Yesterday:       --end 00:00
+
+=head2 Viewing the current and previous week together
+
+    --end now --start end-1w
+    DEF:thisweek=router.rrd:ds0:AVERAGE
+    DEF:lastweek=router.rrd:ds0:AVERAGE:end=now-1w:start=end-1w
+
+Shift the data forward by one week (604800 seconds)
+
+    SHIFT:lastweek:604800
+    [ more of the usual VDEF and CDEF stuff if you like ]
+    AREA:lastweek#0000FF:Last\ week
+    LINE1:thisweek#FF0000:This\ week
+
+=head2 Aberrant Behaviour Detection
+
+If the specialized function B<RRAs> exist for aberrant behavior detection, they
+can be used to generate the graph of a time series with confidence bands and
+failures.
+
+   rrdtool graph example.png \
+          DEF:obs=monitor.rrd:ifOutOctets:AVERAGE \
+          DEF:pred=monitor.rrd:ifOutOctets:HWPREDICT \
+          DEF:dev=monitor.rrd:ifOutOctets:DEVPREDICT \
+          DEF:fail=monitor.rrd:ifOutOctets:FAILURES \
+          TICK:fail#ffffa0:1.0:"Failures\: Average bits out" \
+          CDEF:scaledobs=obs,8,* \
+          CDEF:upper=pred,dev,2,*,+ \
+          CDEF:lower=pred,dev,2,*,- \
+          CDEF:scaledupper=upper,8,* \
+          CDEF:scaledlower=lower,8,* \
+          LINE2:scaledobs#0000ff:"Average bits out" \
+          LINE1:scaledupper#ff0000:"Upper Confidence Bound: Average bits out" \
+          LINE1:scaledlower#ff0000:"Lower Confidence Bound: Average bits out"
+
+This example generates a graph of the data series in blue (LINE2 with the scaledobs
+virtual data source), confidence bounds in red (scaledupper and scaledlower virtual
+data sources), and potential failures (i.e. potential aberrant aberrant behavior)
+marked by vertical yellow lines (the fail data source).
+
+The raw data comes from an AVERAGE B<RRA>, the finest resolution of the observed
+time series (one consolidated data point per primary data point). The predicted
+(or smoothed) values are stored in the HWPREDICT B<RRA>. The predicted deviations
+(think standard deviation) values are stored in the DEVPREDICT B<RRA>. Finally,
+the FAILURES B<RRA> contains indicators, with 1 denoting a potential failure.
+
+All of the data is rescaled to bits (instead of Octets) by multiplying by 8.
+The confidence bounds are computed by an offset of 2 deviations both above
+and below the predicted values (the CDEFs upper and lower). Vertical lines
+indicated potential failures are graphed via the TICK graph element, which
+converts non-zero values in an B<RRA> into tick marks. Here an axis-fraction
+argument of 1.0 means the tick marks span the entire y-axis, and hence become
+vertical lines on the graph.
+
+The choice of 2 deviations (a scaling factor) matches the default used internally
+by the FAILURES B<RRA>. If the internal value is changed (see L<rrdtune>), this
+graphing command should be changed to be consistent.
+
+=head3 A note on data reduction:
+
+The B<rrdtool> I<graph> command is designed to plot data at a specified temporal
+resolution, regardless of the actually resolution of the data in the RRD file.
+This can present a problem for the specialized consolidation functions which
+maintain a one-to-one mapping between primary data points and consolidated
+data points. If a graph insists on viewing the contents of these B<RRAs> on a
+coarser temporal scale, the I<graph> command tries to do something intelligent,
+but the confidence bands and failures no longer have the same meaning and may
+be misleading.
+
+
+=head1 SEE ALSO
+
+L<rrdgraph> gives an overview of how B<rrdtool graph> works.
+L<rrdgraph_data> describes B<DEF>,B<CDEF> and B<VDEF> in detail.
+L<rrdgraph_rpn> describes the B<RPN> language used in the B<xDEF> statements.
+L<rrdgraph_graph> page describes all the graph and print functions.
+
+=head1 AUTHOR
+
+Program by Tobias Oetiker E<lt>tobi@oetiker.chE<gt>
+
+This manual page by Alex van den Bogaerdt E<lt>alex@vandenbogaerdt.nlE<gt>
+with corrections and/or additions by several people

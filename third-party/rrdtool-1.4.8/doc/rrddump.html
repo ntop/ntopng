@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>rrddump</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#environment_variables">ENVIRONMENT VARIABLES</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>rrddump - dump the contents of an RRD to XML format</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>rrdtool</strong> <strong>dump</strong> <em>filename.rrd</em> [<em>filename.xml</em>]
+[<strong>--header</strong>|<strong>-h</strong>&nbsp;{none,xsd,dtd}]
+[<strong>--no-header</strong>]
+[<strong>--daemon</strong>&nbsp;<em>address</em>]
+&gt;&nbsp;<em>filename.xml</em></p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>The <strong>dump</strong> function writes the contents of an <strong>RRD</strong> in human
+readable (?) XML format to a file or to stdout. This format can
+be read by rrdrestore. Together they allow you to transfer your
+files from one computer architecture to another as well to
+manipulate the contents of an <strong>RRD</strong> file in a somewhat more
+convenient manner.</p>
+<dl>
+<dt><strong><a name="filename_rrd" class="item"><em>filename.rrd</em></a></strong></dt>
+
+<dd>
+<p>The name of the <strong>RRD</strong> you want to dump.</p>
+</dd>
+<dt><strong><a name="filename_xml" class="item"><em>filename.xml</em></a></strong></dt>
+
+<dd>
+<p>The (optional) filename that you want to write the XML output to.
+If not specified, the XML will be printed to stdout.</p>
+</dd>
+<dt><strong><a name="header_h_none_xsd_dtd" class="item"><strong>--header</strong>|<strong>-h</strong> {none,xsd,dtd}</a></strong></dt>
+
+<dd>
+<p>By default RRDtool will add a dtd header to the xml file. Here
+you can customize this to and xsd header or no header at all.</p>
+</dd>
+<dt><strong><a name="no_header" class="item"><strong>--no-header</strong></a></strong></dt>
+
+<dd>
+<p>A shortcut for --header=none.</p>
+<p>If you want to restore the dump with RRDtool 1.2 you should use the
+--no-header option since 1.2 can not deal with xml headers.</p>
+</dd>
+<dt><strong><a name="daemon_address" class="item"><strong>--daemon</strong> <em>address</em></a></strong></dt>
+
+<dd>
+<p>Address of the <a href="././rrdcached.html">the rrdcached manpage</a> daemon. If specified, a <code>flush</code> command is sent
+to the server before reading the RRD files. This allows <strong>rrdtool</strong> to return
+fresh data even if the daemon is configured to cache values for a long time.
+For a list of accepted formats, see the <strong>-l</strong> option in the <a href="././rrdcached.html">the rrdcached manpage</a> manual.</p>
+<pre>
+ rrdtool dump --daemon unix:/var/run/rrdcached.sock /var/lib/rrd/foo.rrd</pre>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p>To transfer an RRD between architectures, follow these steps:</p>
+<ol>
+<li>
+<p>On the same system where the RRD was created, use <strong>rrdtool</strong> <strong>dump</strong>
+to export the data to XML format.</p>
+</li>
+<li>
+<p>Transfer the XML dump to the target system.</p>
+</li>
+<li>
+<p>Run <strong>rrdtool</strong> <strong>restore</strong> to create a new RRD from the XML dump. See
+<strong>rrdrestore</strong> for details.</p>
+</li>
+</ol>
+<p>
+</p>
+<hr />
+<h1><a name="environment_variables">ENVIRONMENT VARIABLES</a></h1>
+<p>The following environment variables may be used to change the behavior of
+<code>rrdtooldump</code>:</p>
+<dl>
+<dt><strong><a name="rrdcached_address" class="item"><strong>RRDCACHED_ADDRESS</strong></a></strong></dt>
+
+<dd>
+<p>If this environment variable is set it will have the same effect as specifying
+the <code>--daemon</code> option on the command line. If both are present, the command
+line argument takes precedence.</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;</p>
+
+</body>
+
+</html>

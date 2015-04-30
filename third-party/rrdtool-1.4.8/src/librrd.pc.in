@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: librrd
+Description: Library for the RRDtool
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lrrd
+Cflags: -I${includedir}

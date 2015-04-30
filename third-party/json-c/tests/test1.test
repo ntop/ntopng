@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Common definitions
+if test -z "$srcdir"; then
+    srcdir="${0%/*}"
+    test "$srcdir" = "$0" && srcdir=.
+    test -z "$srcdir" && srcdir=.
+fi
+. "$srcdir/test-defs.sh"
+
+run_output_test test1
+_err=$?
+
+for flag in plain spaced pretty ; do
+	run_output_test -o test1Formatted_${flag} test1Formatted ${flag}
+	_err2=$?
+	if [ $_err -eq 0 ] ; then
+		_err=$_err2
+	fi
+done
+
+exit $_err

@@ -1,0 +1,144 @@
+=head1 NAME
+
+rrdthreads - Provisions for linking the RRD library to use in multi-threaded programs
+
+=head1 SYNOPSIS
+
+Using librrd in multi-threaded programs requires some extra
+precautions, as the RRD library in its original form was not
+thread-safe at all. This document describes requirements and pitfalls
+on the way to use the multi-threaded version of librrd in your own
+programs. It also gives hints for future RRD development to keep the
+library thread-safe.
+
+Currently only some RRD operations are implemented in a thread-safe
+way. They all end in the usual "C<_r>" suffix.
+
+=head1 DESCRIPTION
+
+In order to use librrd in multi-threaded programs you must:
+
+=over
+
+=item *
+
+Link with F<librrd_th> instead of F<librrd> (use C<-lrrd_th> when
+linking)
+
+=item *
+
+Use the "C<_r>" functions instead of the normal API-functions
+
+=item *
+
+Do not use any at-style time specifications. Parsing of such time
+specifications is terribly non-thread-safe.
+
+=item *
+
+Never use non *C<_r> functions unless it is explicitly documented that
+the function is tread-safe.
+
+=item *
+
+Every thread SHOULD call C<rrd_get_context()> before its first call to
+any C<librrd_th> function in order to set up thread specific data. This
+is not strictly required, but it is the only way to test if memory
+allocation can be done by this function. Otherwise the program may die
+with a SIGSEGV in a low-memory situation.
+
+=item *
+
+Always call C<rrd_error_clear()> before any call to the
+library. Otherwise the call might fail due to some earlier error.
+
+=back
+
+=head2 NOTES FOR RRD CONTRIBUTORS
+
+Some precautions must be followed when developing RRD from now on:
+
+=over
+
+=item *
+
+Only use thread-safe functions in library code. Many often used libc
+functions aren't thread-safe. Take care in the following
+situations or when using the following library functions:
+
+=over
+
+=item *
+
+Direct calls to C<strerror()> must be avoided: use C<rrd_strerror()>
+instead, it provides a per-thread error message.
+
+=item *
+
+The C<getpw*>, C<getgr*>, C<gethost*> function families (and some more
+C<get*> functions) are not thread-safe: use the *C<_r> variants
+
+=item *
+
+Time functions: C<asctime>, C<ctime>, C<gmtime>, C<localtime>: use
+*C<_r> variants
+
+=item *
+
+C<strtok>: use C<strtok_r>
+
+=item *
+
+C<tmpnam>: use C<tmpnam_r>
+
+=item *
+
+Many others (lookup documentation)
+
+=back
+
+=item *
+
+A header file named F<rrd_is_thread_safe.h> is provided
+that works with the GNU C-preprocessor to "poison" some of the most
+common non-thread-safe functions using the C<#pragma GCC poison>
+directive. Just include this header in source files you want to keep
+thread-safe.
+
+=item *
+
+Do not introduce global variables!
+
+If you really, really have to use a global variable you may add a new
+field to the C<rrd_context> structure and modify F<rrd_error.c>,
+F<rrd_thread_safe.c> and F<rrd_non_thread_safe.c>
+
+=item *
+
+Do not use C<getopt> or C<getopt_long> in *C<_r> (neither directly nor
+indirectly).
+
+C<getopt> uses global variables and behaves badly in a multi-threaded
+application when called concurrently. Instead provide a *_r function
+taking all options as function parameters. You may provide argc and
+**argv arguments for variable length argument lists. See
+C<rrd_update_r> as an example.
+
+=item *
+
+Do not use the C<rrd_parsetime> function!
+
+It uses lots of global variables. You may use it in functions not designed
+to be thread-safe, like in functions wrapping the C<_r> version of some
+operation (e.g., C<rrd_create>, but not in C<rrd_create_r>)
+
+=back
+
+=head2 CURRENTLY IMPLEMENTED THREAD SAFE FUNCTIONS
+
+Currently there exist thread-safe variants of C<rrd_update>,
+C<rrd_create>, C<rrd_dump>, C<rrd_info>, C<rrd_last>, and C<rrd_fetch>.
+
+=head1 AUTHOR
+
+Peter Stamfest E<lt>peter@stamfest.atE<gt>

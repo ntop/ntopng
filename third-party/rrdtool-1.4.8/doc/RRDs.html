@@ -1,0 +1,170 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>RRDs</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+<!--
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#calling_sequence">Calling Sequence</a></li>
+		<li><a href="#error_handling">Error Handling</a></li>
+		<li><a href="#return_values">Return Values</a></li>
+	</ul>
+
+	<li><a href="#note">NOTE</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+
+-->
+
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>RRDs - Access RRDtool as a shared module</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+  use RRDs;
+  RRDs::error
+  RRDs::last ...
+  RRDs::info ...
+  RRDs::create ...
+  RRDs::update ...
+  RRDs::updatev ...
+  RRDs::graph ...
+  RRDs::fetch ...
+  RRDs::tune ...
+  RRDs::times(start, end)
+  RRDs::dump ...
+  RRDs::restore ...
+  RRDs::flushcached ...</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>
+</p>
+<h2><a name="calling_sequence">Calling Sequence</a></h2>
+<p>This module accesses RRDtool functionality directly from within Perl. The
+arguments to the functions listed in the SYNOPSIS are explained in the regular
+RRDtool documentation. The command line call</p>
+<pre>
+ rrdtool update mydemo.rrd --template in:out N:12:13</pre>
+<p>gets turned into</p>
+<pre>
+ RRDs::update (&quot;mydemo.rrd&quot;, &quot;--template&quot;, &quot;in:out&quot;, &quot;N:12:13&quot;);</pre>
+<p>Note that</p>
+<pre>
+ --template=in:out</pre>
+<p>is also valid.</p>
+<p>The RRDs::times function takes two parameters:  a &quot;start&quot; and &quot;end&quot; time.
+These should be specified in the <strong>AT-STYLE TIME SPECIFICATION</strong> format
+used by RRDtool.  See the <strong>rrdfetch</strong> documentation for a detailed
+explanation on how to specify time.</p>
+<p>
+</p>
+<h2><a name="error_handling">Error Handling</a></h2>
+<p>The RRD functions will not abort your program even when they can not make
+sense out of the arguments you fed them.</p>
+<p>The function RRDs::error should be called to get the error status
+after each function call. If RRDs::error does not return anything
+then the previous function has completed its task successfully.</p>
+<pre>
+ use RRDs;
+ RRDs::update (&quot;mydemo.rrd&quot;,&quot;N:12:13&quot;);
+ my $ERR=RRDs::error;
+ die &quot;ERROR while updating mydemo.rrd: $ERR\n&quot; if $ERR;</pre>
+<p>
+</p>
+<h2><a name="return_values">Return Values</a></h2>
+<p>The functions RRDs::last, RRDs::graph, RRDs::info, RRDs::fetch and RRDs::times
+return their findings.</p>
+<p><strong>RRDs::last</strong> returns a single INTEGER representing the last update time.</p>
+<pre>
+ $lastupdate = RRDs::last ...</pre>
+<p><strong>RRDs::graph</strong> returns an ARRAY containing the x-size and y-size of the
+created image and a pointer to an array with the results of the PRINT arguments.</p>
+<pre>
+ ($result_arr,$xsize,$ysize) = RRDs::graph ...
+ print &quot;Imagesize: ${xsize}x${ysize}\n&quot;;
+ print &quot;Averages: &quot;, (join &quot;, &quot;, @$averages);</pre>
+<p><strong>RRDs::info</strong> returns a pointer to a hash. The keys of the hash
+represent the property names of the RRD and the values of the hash are
+the values of the properties.</p>
+<pre>
+ $hash = RRDs::info &quot;example.rrd&quot;;
+ foreach my $key (keys %$hash){
+   print &quot;$key = $$hash{$key}\n&quot;;
+ }</pre>
+<p><strong>RRDs::graphv</strong> takes the same parameters as <strong>RRDs::graph</strong> but it returns a
+pointer to hash. The hash returned contains meta information about the
+graph. Like its size as well as the position of the graph area on the image.
+When calling with and empty filename than the contents of the graph will be
+returned in the hash as well (key 'image').</p>
+<p><strong>RRDs::updatev</strong> also returns a pointer to hash. The keys of the hash
+are concatenated strings of a timestamp, RRA index, and data source name for
+each consolidated data point (CDP) written to disk as a result of the
+current update call. The hash values are CDP values.</p>
+<p><strong>RRDs::fetch</strong> is the most complex of
+the pack regarding return values. There are 4 values. Two normal
+integers, a pointer to an array and a pointer to a array of pointers.</p>
+<pre>
+  my ($start,$step,$names,$data) = RRDs::fetch ... 
+  print &quot;Start:       &quot;, scalar localtime($start), &quot; ($start)\n&quot;;
+  print &quot;Step size:   $step seconds\n&quot;;
+  print &quot;DS names:    &quot;, join (&quot;, &quot;, @$names).&quot;\n&quot;;
+  print &quot;Data points: &quot;, $#$data + 1, &quot;\n&quot;;
+  print &quot;Data:\n&quot;;
+  for my $line (@$data) {
+    print &quot;  &quot;, scalar localtime($start), &quot; ($start) &quot;;
+    $start += $step;
+    for my $val (@$line) {
+      printf &quot;%12.1f &quot;, $val;
+    }
+    print &quot;\n&quot;;
+  }</pre>
+<p><strong>RRDs::times</strong> returns two integers which are the number of seconds since
+epoch (1970-01-01) for the supplied &quot;start&quot; and &quot;end&quot; arguments, respectively.</p>
+<p>See the examples directory for more ways to use this extension.</p>
+<p>
+</p>
+<hr />
+<h1><a name="note">NOTE</a></h1>
+<p>If you are manipulating the TZ variable you should also call the POSIX
+function <em>tzset(3)</em> to initialize all internal state of the library for properly
+operating in the timezone of your choice.</p>
+<pre>
+ use POSIX qw(tzset);
+ $ENV{TZ} = 'CET';   
+ POSIX::tzset();</pre>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Tobias Oetiker &lt;<a href="mailto:tobi@oetiker.ch">tobi@oetiker.ch</a>&gt;</p>
+
+</body>
+
+</html>

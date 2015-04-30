@@ -1,0 +1,47 @@
+#sequence_sunburst {
+  background-color: #ffffff;
+  border: 3px dotted #dddddd;
+  font: 10px sans-serif;
+  text-shadow: none;
+  width: 594px; /*380px;*/
+
+}
+
+#chart {
+  position: relative;
+}
+
+#chart path {
+  stroke: #fff;
+}
+
+.sequence {
+  width: 594px;
+  height: 40px;
+}
+
+.sequence text{
+  font-weight: 800;
+  fill: #fff;
+  font-size: 12px;
+}
+
+.info {
+  font-size: 12px;
+  font-weight: bold;
+  width: 594px;
+}
+.label_sunburst{
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.total{
+  font-size: 20px;
+  font-weight: bold;
+}
+.units{
+  fill: gray;
+  font-size: 14px;
+  width: 40px;
+}

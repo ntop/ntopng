@@ -1,0 +1,174 @@
+=head1 NAME
+
+rrdupdate - Store a new set of values into the RRD
+
+=head1 SYNOPSIS
+
+B<rrdtool> {B<update> | B<updatev>} I<filename>
+S<[B<--template>|B<-t> I<ds-name>[B<:>I<ds-name>]...]>
+S<[B<--daemon> I<address>]> [B<-->]
+S<B<N>|I<timestamp>B<:>I<value>[B<:>I<value>...]>
+S<I<at-timestamp>B<@>I<value>[B<:>I<value>...]>
+S<[I<timestamp>B<:>I<value>[B<:>I<value>...] ...]>
+
+=head1 DESCRIPTION
+
+The B<update> function feeds new data values into an B<RRD>. The data
+is time aligned (interpolated) according to the properties of the
+B<RRD> to which the data is written.
+
+=over 8
+
+=item B<updatev>
+
+This alternate version of B<update> takes the same arguments and
+performs the same function. The I<v> stands for I<verbose>, which
+describes the output returned. B<updatev> returns a list of any and all
+consolidated data points (CDPs) written to disk as a result of the
+invocation of update. The values are indexed by timestamp (time_t),
+RRA (consolidation function and PDPs per CDP), and data source (name).
+Note that depending on the arguments of the current and previous call to
+update, the list may have no entries or a large number of entries.
+
+Since B<updatev> requires direct disk access, the B<--daemon> option cannot be
+used with this command.
+
+=item I<filename>
+
+The name of the B<RRD> you want to update.
+
+=item B<--template>|B<-t> I<ds-name>[B<:>I<ds-name>]...
+
+By default, the B<update> function expects its data input in the order
+the data sources are defined in the RRD, excluding any COMPUTE data
+sources (i.e. if the third data source B<DST> is COMPUTE, the third
+input value will be mapped to the fourth data source in the B<RRD> and
+so on). This is not very error resistant, as you might be sending the
+wrong data into an RRD.
+
+The template switch allows you to specify which data sources you are
+going to update and in which order. If the data sources specified in
+the template are not available in the RRD file, the update process
+will abort with an error message.
+
+While it appears possible with the template switch to update data sources
+asynchronously, B<RRDtool> implicitly assigns non-COMPUTE data sources missing
+from the template the I<*UNKNOWN*> value.
+
+Do not specify a value for a COMPUTE B<DST> in the B<update>
+function. If this is done accidentally (and this can only be done
+using the template switch), B<RRDtool> will ignore the value specified
+for the COMPUTE B<DST>.
+
+=item B<--daemon> I<address>
+
+If given, B<RRDTool> will try to connect to the caching daemon L<rrdcached>
+at I<address> and will fail if the connection cannot be established. If the
+connection is successfully established the values will be sent to the daemon
+instead of accessing the files directly.
+
+For a list of accepted formats, see the B<-l> option in the L<rrdcached> manual.
+
+=item B<N>|I<timestamp>B<:>I<value>[B<:>I<value>...]
+
+The data used for updating the RRD was acquired at a certain
+time. This time can either be defined in seconds since 1970-01-01 or
+by using the letter 'N', in which case the update time is set to be
+the current time. Negative time values are subtracted from the current
+time. An AT_STYLE TIME SPECIFICATION (see the I<rrdfetch>
+documentation) may also be used by delimiting the end of the time
+specification with the '@' character instead of a ':'. Getting the
+timing right to the second is especially important when you are
+working with data-sources of type B<COUNTER>, B<DERIVE> or
+B<ABSOLUTE>.
+
+When using negative time values, options and data have to be separated
+by two dashes (B<-->), else the time value would be parsed as an option.
+See below for an example.
+
+When using negative time values, options and data have to be separated
+by two dashes (B<-->), else the time value would be parsed as an option.
+See below for an example.
+
+The remaining elements of the argument are DS updates. The order of
+this list is the same as the order the data sources were defined in
+the RRA. If there is no data for a certain data-source, the letter
+B<U> (e.g., N:0.1:U:1) can be specified.
+
+The format of the value acquired from the data source is dependent on
+the data source type chosen. Normally it will be numeric, but the data
+acquisition modules may impose their very own parsing of this
+parameter as long as the colon (B<:>) remains the data source value
+separator.
+
+=back
+
+=head1 ENVIRONMENT VARIABLES
+
+The following environment variables may be used to change the behavior of
+C<rrdtoolE<nbsp>update>:
+
+=over
+
+=item B<RRDCACHED_ADDRESS>
+
+If this environment variable is set it will have the same effect as specifying
+the C<--daemon> option on the command line. If both are present, the command
+line argument takes precedence.
+
+=back
+
+=head1 EXAMPLES
+
+=over
+
+=item *
+
+C<rrdtool update demo1.rrd N:3.44:3.15:U:23>
+
+Update the database file demo1.rrd with 3 known and one I<*UNKNOWN*>
+value. Use the current time as the update time.
+
+=item *
+
+C<rrdtool update demo2.rrd 887457267:U 887457521:22 887457903:2.7>
+
+Update the database file demo2.rrd which expects data from a single
+data-source, three times. First with an I<*UNKNOWN*> value then with two
+regular readings. The update interval seems to be around 300 seconds.
+
+=item *
+
+C<rrdtool update demo3.rrd -- -5:21 N:42>
+
+Update the database file demo3.rrd two times, using five seconds in the
+past and the current time as the update times.
+
+=item *
+
+C<rrdtool update --cache /var/lib/rrd/demo3.rrd N:42>
+
+Update the file C</var/lib/rrd/demo3.rrd> with a single data source, using the
+current time. If the caching daemon cannot be reached, do B<not> fall back to
+direct file access.
+
+=item *
+
+C<rrdtool update --daemon unix:/tmp/rrdd.sock demo4.rrd N:23>
+
+Use the UNIX domain socket C</tmp/rrdd.sock> to contact the caching daemon. If
+the caching daemon is not available, update the file C<demo4.rrd> directly.
+B<WARNING:> Since a relative path is specified, the following disturbing effect
+may occur: If the daemon is available, the file relative to the working
+directory B<of the daemon> is used. If the daemon is not available, the file
+relative to the current working directory of the invoking process is used.
+B<This may update two different files depending on whether the daemon could be
+reached or not.> Don't do relative paths, kids!
+
+=back
+
+=head1 AUTHORS
+
+Tobias Oetiker <tobi@oetiker.ch>,
+Florian Forster <octoE<nbsp>atE<nbsp>verplant.org>
+

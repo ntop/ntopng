@@ -1,0 +1,3 @@
+JSON write result is correct: " \u0000 "
+PASS
+Re-parsed object string len=3, chars=[32, 0, 32]

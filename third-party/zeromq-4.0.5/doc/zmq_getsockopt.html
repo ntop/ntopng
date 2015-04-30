@@ -1,0 +1,2870 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.6" />
+<title>zmq_getsockopt(3)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+tt {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+.monospaced {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+zmq_getsockopt(3) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>zmq_getsockopt -
+   get 0MQ socket options
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><strong>int zmq_getsockopt (void <em>*socket</em>, int <em>option_name</em>, void <em>*option_value</em>, size_t <em>*option_len</em>);</strong></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <em>zmq_getsockopt()</em> function shall retrieve the value for the option
+specified by the <em>option_name</em> argument for the ØMQ socket pointed to by the
+<em>socket</em> argument, and store it in the buffer pointed to by the <em>option_value</em>
+argument. The <em>option_len</em> argument is the size in bytes of the buffer pointed
+to by <em>option_value</em>; upon successful completion <em>zmq_getsockopt()</em> shall
+modify the <em>option_len</em> argument to indicate the actual size of the option
+value stored in the buffer.</p></div>
+<div class="paragraph"><p>The following options can be retrieved with the <em>zmq_getsockopt()</em> function:</p></div>
+<div class="sect2">
+<h3 id="_zmq_type_retrieve_socket_type">ZMQ_TYPE: Retrieve socket type</h3>
+<div class="paragraph"><p>The <em>ZMQ_TYPE</em> option shall retrieve the socket type for the specified
+<em>socket</em>.  The socket type is specified at socket creation time and
+cannot be modified afterwards.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_rcvmore_more_message_data_parts_to_follow">ZMQ_RCVMORE: More message data parts to follow</h3>
+<div class="paragraph"><p>The <em>ZMQ_RCVMORE</em> option shall return True (1) if the message part last
+received from the <em>socket</em> was a data part with more parts to follow. If there
+are no data parts to follow, this option shall return False (0).</p></div>
+<div class="paragraph"><p>Refer to <a href="zmq_send.html">zmq_send(3)</a> and <a href="zmq_recv.html">zmq_recv(3)</a> for a detailed description
+of multi-part messages.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+boolean
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_sndhwm_retrieves_high_water_mark_for_outbound_messages">ZMQ_SNDHWM: Retrieves high water mark for outbound messages</h3>
+<div class="paragraph"><p>The <em>ZMQ_SNDHWM</em> option shall return the high water mark for outbound messages
+on the specified <em>socket</em>. The high water mark is a hard limit on the maximum
+number of outstanding messages ØMQ shall queue in memory for any single peer
+that the specified <em>socket</em> is communicating with. A value of zero means no
+limit.</p></div>
+<div class="paragraph"><p>If this limit has been reached the socket shall enter an exceptional state and
+depending on the socket type, ØMQ shall take appropriate action such as
+blocking or dropping sent messages. Refer to the individual socket descriptions
+in <a href="zmq_socket.html">zmq_socket(3)</a> for details on the exact action taken for each socket
+type.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+messages
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+1000
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_rcvhwm_retrieve_high_water_mark_for_inbound_messages">ZMQ_RCVHWM: Retrieve high water mark for inbound messages</h3>
+<div class="paragraph"><p>The <em>ZMQ_RCVHWM</em> option shall return the high water mark for inbound messages on
+the specified <em>socket</em>. The high water mark is a hard limit on the maximum
+number of outstanding messages ØMQ shall queue in memory for any single peer
+that the specified <em>socket</em> is communicating with. A value of zero means no
+limit.</p></div>
+<div class="paragraph"><p>If this limit has been reached the socket shall enter an exceptional state and
+depending on the socket type, ØMQ shall take appropriate action such as
+blocking or dropping sent messages. Refer to the individual socket descriptions
+in <a href="zmq_socket.html">zmq_socket(3)</a> for details on the exact action taken for each socket
+type.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+messages
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+1000
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_affinity_retrieve_i_o_thread_affinity">ZMQ_AFFINITY: Retrieve I/O thread affinity</h3>
+<div class="paragraph"><p>The <em>ZMQ_AFFINITY</em> option shall retrieve the I/O thread affinity for newly
+created connections on the specified <em>socket</em>.</p></div>
+<div class="paragraph"><p>Affinity determines which threads from the ØMQ I/O thread pool associated with
+the socket&#8217;s <em>context</em> shall handle newly created connections.  A value of zero
+specifies no affinity, meaning that work shall be distributed fairly among all
+ØMQ I/O threads in the thread pool. For non-zero values, the lowest bit
+corresponds to thread 1, second lowest bit to thread 2 and so on.  For example,
+a value of 3 specifies that subsequent connections on <em>socket</em> shall be handled
+exclusively by I/O threads 1 and 2.</p></div>
+<div class="paragraph"><p>See also <a href="zmq_init.html">zmq_init(3)</a> for details on allocating the number of I/O
+threads for a specific <em>context</em>.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+uint64_t
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A (bitmap)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_identity_retrieve_socket_identity">ZMQ_IDENTITY: Retrieve socket identity</h3>
+<div class="paragraph"><p>The <em>ZMQ_IDENTITY</em> option shall retrieve the identity of the specified <em>socket</em>.
+Socket identity is used only by request/reply pattern. Namely, it can be used
+in tandem with ROUTER socket to route messages to the peer with specific
+identity.</p></div>
+<div class="paragraph"><p>Identity should be at least one byte and at most 255 bytes long. Identities
+starting with binary zero are reserved for use by ØMQ infrastructure.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+binary data
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_REP, ZMQ_REQ, ZMQ_ROUTER, ZMQ_DEALER.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_rate_retrieve_multicast_data_rate">ZMQ_RATE: Retrieve multicast data rate</h3>
+<div class="paragraph"><p>The <em>ZMQ_RATE</em> option shall retrieve the maximum send or receive data rate for
+multicast transports using the specified <em>socket</em>.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+kilobits per second
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+100
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using multicast transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_recovery_ivl_get_multicast_recovery_interval">ZMQ_RECOVERY_IVL: Get multicast recovery interval</h3>
+<div class="paragraph"><p>The <em>ZMQ_RECOVERY_IVL</em> option shall retrieve the recovery interval for
+multicast transports using the specified <em>socket</em>.  The recovery interval
+determines the maximum time in milliseconds that a receiver can be absent from a
+multicast group before unrecoverable data loss will occur.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+milliseconds
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+10000
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using multicast transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_sndbuf_retrieve_kernel_transmit_buffer_size">ZMQ_SNDBUF: Retrieve kernel transmit buffer size</h3>
+<div class="paragraph"><p>The <em>ZMQ_SNDBUF</em> option shall retrieve the underlying kernel transmit buffer
+size for the specified <em>socket</em>. A value of zero means that the OS default is
+in effect. For details refer to your operating system documentation for the
+<em>SO_SNDBUF</em> socket option.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+bytes
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_rcvbuf_retrieve_kernel_receive_buffer_size">ZMQ_RCVBUF: Retrieve kernel receive buffer size</h3>
+<div class="paragraph"><p>The <em>ZMQ_RCVBUF</em> option shall retrieve the underlying kernel receive buffer
+size for the specified <em>socket</em>. A value of zero means that the OS default is
+in effect. For details refer to your operating system documentation for the
+<em>SO_RCVBUF</em> socket option.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+bytes
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_linger_retrieve_linger_period_for_socket_shutdown">ZMQ_LINGER: Retrieve linger period for socket shutdown</h3>
+<div class="paragraph"><p>The <em>ZMQ_LINGER</em> option shall retrieve the linger period for the specified
+<em>socket</em>.  The linger period determines how long pending messages which have
+yet to be sent to a peer shall linger in memory after a socket is closed with
+<a href="zmq_close.html">zmq_close(3)</a>, and further affects the termination of the socket&#8217;s
+context with <a href="zmq_term.html">zmq_term(3)</a>. The following outlines the different
+behaviours:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The default value of <em>-1</em> specifies an infinite linger period. Pending
+  messages shall not be discarded after a call to <em>zmq_close()</em>; attempting to
+  terminate the socket&#8217;s context with <em>zmq_term()</em> shall block until all
+  pending messages have been sent to a peer.
+</p>
+</li>
+<li>
+<p>
+The value of <em>0</em> specifies no linger period. Pending messages shall be
+  discarded immediately when the socket is closed with <em>zmq_close()</em>.
+</p>
+</li>
+<li>
+<p>
+Positive values specify an upper bound for the linger period in milliseconds.
+  Pending messages shall not be discarded after a call to <em>zmq_close()</em>;
+  attempting to terminate the socket&#8217;s context with <em>zmq_term()</em> shall block
+  until either all pending messages have been sent to a peer, or the linger
+  period expires, after which any pending messages shall be discarded.
+</p>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+milliseconds
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1 (infinite)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_reconnect_ivl_retrieve_reconnection_interval">ZMQ_RECONNECT_IVL: Retrieve reconnection interval</h3>
+<div class="paragraph"><p>The <em>ZMQ_RECONNECT_IVL</em> option shall retrieve the initial reconnection interval
+for the specified <em>socket</em>.  The reconnection interval is the period ØMQ shall
+wait between attempts to reconnect disconnected peers when using
+connection-oriented transports. The value -1 means no reconnection.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The reconnection interval may be randomized by ØMQ to prevent
+reconnection storms in topologies with a large number of peers per socket.</td>
+</tr></table>
+</div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+milliseconds
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+100
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, only for connection-oriented transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_reconnect_ivl_max_retrieve_maximum_reconnection_interval">ZMQ_RECONNECT_IVL_MAX: Retrieve maximum reconnection interval</h3>
+<div class="paragraph"><p>The <em>ZMQ_RECONNECT_IVL_MAX</em> option shall retrieve the maximum reconnection
+interval for the specified <em>socket</em>.  This is the maximum period ØMQ shall wait
+between attempts to reconnect. On each reconnect attempt, the previous interval
+shall be doubled untill ZMQ_RECONNECT_IVL_MAX is reached. This allows for
+exponential backoff strategy. Default value means no exponential backoff is
+performed and reconnect interval calculations are only based on
+ZMQ_RECONNECT_IVL.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Values less than ZMQ_RECONNECT_IVL will be ignored.</td>
+</tr></table>
+</div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+milliseconds
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0 (only use ZMQ_RECONNECT_IVL)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, only for connection-oriented transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_backlog_retrieve_maximum_length_of_the_queue_of_outstanding_connections">ZMQ_BACKLOG: Retrieve maximum length of the queue of outstanding connections</h3>
+<div class="paragraph"><p>The <em>ZMQ_BACKLOG</em> option shall retrieve the maximum length of the queue of
+outstanding peer connections for the specified <em>socket</em>; this only applies to
+connection-oriented transports. For details refer to your operating system
+documentation for the <em>listen</em> function.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+connections
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+100
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, only for connection-oriented transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_maxmsgsize_maximum_acceptable_inbound_message_size">ZMQ_MAXMSGSIZE: Maximum acceptable inbound message size</h3>
+<div class="paragraph"><p>The option shall retrieve limit for the inbound messages. If a peer sends
+a message larger than ZMQ_MAXMSGSIZE it is disconnected. Value of -1 means
+<em>no limit</em>.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int64_t
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+bytes
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_multicast_hops_maximum_network_hops_for_multicast_packets">ZMQ_MULTICAST_HOPS: Maximum network hops for multicast packets</h3>
+<div class="paragraph"><p>The option shall retrieve time-to-live used for outbound multicast packets.
+The default of 1 means that the multicast packets don&#8217;t leave the local network.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+network hops
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using multicast transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_rcvtimeo_maximum_time_before_a_socket_operation_returns_with_eagain">ZMQ_RCVTIMEO: Maximum time before a socket operation returns with EAGAIN</h3>
+<div class="paragraph"><p>Retrieve the timeout for recv operation on the socket.  If the value is <tt>0</tt>,
+<em>zmq_recv(3)</em> will return immediately, with a EAGAIN error if there is no
+message to receive. If the value is <tt>-1</tt>, it will block until a message is
+available. For all other values, it will wait for a message for that amount
+of time before returning with an EAGAIN error.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+milliseconds
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1 (infinite)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_sndtimeo_maximum_time_before_a_socket_operation_returns_with_eagain">ZMQ_SNDTIMEO: Maximum time before a socket operation returns with EAGAIN</h3>
+<div class="paragraph"><p>Retrieve the timeout for send operation on the socket. If the value is <tt>0</tt>,
+<em>zmq_send(3)</em> will return immediately, with a EAGAIN error if the message
+cannot be sent. If the value is <tt>-1</tt>, it will block until the message is sent.
+For all other values, it will try to send the message for that amount of time
+before returning with an EAGAIN error.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+milliseconds
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1 (infinite)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_ipv6_retrieve_ipv6_socket_status">ZMQ_IPV6: Retrieve IPv6 socket status</h3>
+<div class="paragraph"><p>Retrieve the IPv6 option for the socket. A value of <tt>1</tt> means IPv6 is
+enabled on the socket, while <tt>0</tt> means the socket will use only IPv4.
+When IPv6 is enabled the socket will connect to, or accept connections
+from, both IPv4 and IPv6 hosts.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+boolean
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0 (false)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_ipv4only_retrieve_ipv4_only_socket_override_status">ZMQ_IPV4ONLY: Retrieve IPv4-only socket override status</h3>
+<div class="paragraph"><p>Retrieve the IPv4-only option for the socket. This option is deprecated.
+Please use the ZMQ_IPV6 option.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+boolean
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+1 (true)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_immediate_retrieve_attach_on_connect_value">ZMQ_IMMEDIATE: Retrieve attach-on-connect value</h3>
+<div class="paragraph"><p>Retrieve the state of the attach on connect value. If set to <tt>1</tt>, will delay the
+attachment of a pipe on connect until the underlying connection has completed.
+This will cause the socket to block if there are no other connections, but will
+prevent queues from filling on pipes awaiting connection.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+boolean
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0 (false)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, primarily when using TCP/IPC transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_fd_retrieve_file_descriptor_associated_with_the_socket">ZMQ_FD: Retrieve file descriptor associated with the socket</h3>
+<div class="paragraph"><p>The <em>ZMQ_FD</em> option shall retrieve the file descriptor associated with the
+specified <em>socket</em>. The returned file descriptor can be used to integrate the
+socket into an existing event loop; the ØMQ library shall signal any pending
+events on the socket in an <em>edge-triggered</em> fashion by making the file
+descriptor become ready for reading.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The ability to read from the returned file descriptor does not
+necessarily indicate that messages are available to be read from, or can be
+written to, the underlying socket; applications must retrieve the actual event
+state with a subsequent retrieval of the <em>ZMQ_EVENTS</em> option.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The returned file descriptor is also used internally by the <em>zmq_send</em>
+and <em>zmq_recv</em> functions. As the descriptor is edge triggered, applications
+must update the state of <em>ZMQ_EVENTS</em> after each invocation of <em>zmq_send</em>
+or <em>zmq_recv</em>.To be more explicit: after calling <em>zmq_send</em> the socket may
+become readable (and vice versa) without triggering a read event on the
+file descriptor.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">The returned file descriptor is intended for use with a <em>poll</em> or
+similar system call only. Applications must never attempt to read or write data
+to it directly, neither should they try to close it.</td>
+</tr></table>
+</div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int on POSIX systems, SOCKET on Windows
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_events_retrieve_socket_event_state">ZMQ_EVENTS: Retrieve socket event state</h3>
+<div class="paragraph"><p>The <em>ZMQ_EVENTS</em> option shall retrieve the event state for the specified
+<em>socket</em>.  The returned value is a bit mask constructed by OR&#8217;ing a combination
+of the following event flags:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<strong>ZMQ_POLLIN</strong>
+</dt>
+<dd>
+<p>
+Indicates that at least one message may be received from the specified socket
+without blocking.
+</p>
+</dd>
+<dt class="hdlist1">
+<strong>ZMQ_POLLOUT</strong>
+</dt>
+<dd>
+<p>
+Indicates that at least one message may be sent to the specified socket without
+blocking.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The combination of a file descriptor returned by the <em>ZMQ_FD</em> option being
+ready for reading but no actual events returned by a subsequent retrieval of
+the <em>ZMQ_EVENTS</em> option is valid; applications should simply ignore this case
+and restart their polling operation/event loop.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A (flags)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_last_endpoint_retrieve_the_last_endpoint_set">ZMQ_LAST_ENDPOINT: Retrieve the last endpoint set</h3>
+<div class="paragraph"><p>The <em>ZMQ_LAST_ENDPOINT</em> option shall retrieve the last endpoint bound for
+TCP and IPC transports. The returned value will be a string in the form of
+a ZMQ DSN. Note that if the TCP host is INADDR_ANY, indicated by a *, then
+the returned address will be 0.0.0.0 (for IPv4).</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL-terminated character string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when binding TCP or IPC transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_tcp_keepalive_override_so_keepalive_socket_option">ZMQ_TCP_KEEPALIVE: Override SO_KEEPALIVE socket option</h3>
+<div class="paragraph"><p>Override <em>SO_KEEPALIVE</em> socket option(where supported by OS).
+The default value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1,0,1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1 (leave to OS default)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_tcp_keepalive_idle_override_tcp_keepcnt_or_tcp_keepalive_on_some_os">ZMQ_TCP_KEEPALIVE_IDLE: Override TCP_KEEPCNT(or TCP_KEEPALIVE on some OS)</h3>
+<div class="paragraph"><p>Override <em>TCP_KEEPCNT</em>(or <em>TCP_KEEPALIVE</em> on some OS) socket option (where
+supported by OS). The default value of <tt>-1</tt> means to skip any overrides and
+leave it to OS default.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1,&gt;0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1 (leave to OS default)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_tcp_keepalive_cnt_override_tcp_keepcnt_socket_option">ZMQ_TCP_KEEPALIVE_CNT: Override TCP_KEEPCNT socket option</h3>
+<div class="paragraph"><p>Override <em>TCP_KEEPCNT</em> socket option(where supported by OS).
+The default value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1,&gt;0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1 (leave to OS default)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_tcp_keepalive_intvl_override_tcp_keepintvl_socket_option">ZMQ_TCP_KEEPALIVE_INTVL: Override TCP_KEEPINTVL socket option</h3>
+<div class="paragraph"><p>Override <em>TCP_KEEPINTVL</em> socket option(where supported by OS).
+The default value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1,&gt;0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+-1 (leave to OS default)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_mechanism_retrieve_current_security_mechanism">ZMQ_MECHANISM: Retrieve current security mechanism</h3>
+<div class="paragraph"><p>The <em>ZMQ_MECHANISM</em> option shall retrieve the current security mechanism
+for the socket.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_NULL, ZMQ_PLAIN, or ZMQ_CURVE
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_NULL
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP or IPC transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_plain_server_retrieve_current_plain_server_role">ZMQ_PLAIN_SERVER: Retrieve current PLAIN server role</h3>
+<div class="paragraph"><p>Returns the <em>ZMQ_PLAIN_SERVER</em> option, if any, previously set on the socket.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0, 1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP or IPC transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_plain_username_retrieve_current_plain_username">ZMQ_PLAIN_USERNAME: Retrieve current PLAIN username</h3>
+<div class="paragraph"><p>The <em>ZMQ_PLAIN_USERNAME</em> option shall retrieve the last username set for
+the PLAIN security mechanism. The returned value shall be a NULL-terminated
+string and MAY be empty. The returned size SHALL include the terminating
+null byte.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL-terminated character string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+null string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP or IPC transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_plain_password_retrieve_current_password">ZMQ_PLAIN_PASSWORD: Retrieve current password</h3>
+<div class="paragraph"><p>The <em>ZMQ_PLAIN_PASSWORD</em> option shall retrieve the last password set for
+the PLAIN security mechanism. The returned value shall be a NULL-terminated
+string and MAY be empty. The returned size SHALL include the terminating
+null byte.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL-terminated character string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+null string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP or IPC transports
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_curve_publickey_retrieve_current_curve_public_key">ZMQ_CURVE_PUBLICKEY: Retrieve current CURVE public key</h3>
+<div class="paragraph"><p>Retrieves the current long term public key for the socket. You can
+provide either a 32 byte buffer, to retrieve the binary key value, or
+a 41 byte buffer, to retrieve the key in a printable Z85 format.
+NOTE: to fetch a printable key, the buffer must be 41 bytes large
+to hold the 40-char key value and one null byte.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+binary data or Z85 text string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value size
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+32 or 41
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+null
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_curve_secretkey_retrieve_current_curve_secret_key">ZMQ_CURVE_SECRETKEY: Retrieve current CURVE secret key</h3>
+<div class="paragraph"><p>Retrieves the current long term secret key for the socket. You can
+provide either a 32 byte buffer, to retrieve the binary key value, or
+a 41 byte buffer, to retrieve the key in a printable Z85 format.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+binary data or Z85 text string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value size
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+32 or 41
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+null
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_curve_serverkey_retrieve_current_curve_server_key">ZMQ_CURVE_SERVERKEY: Retrieve current CURVE server key</h3>
+<div class="paragraph"><p>Retrieves the current server key for the client socket. You can
+provide either a 32 byte buffer, to retrieve the binary key value, or
+a 40 byte buffer, to retrieve the key in a printable Z85 format.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+binary data or Z85 text string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value size
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+32 or 41
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+null
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_zap_domain_retrieve_rfc_27_authentication_domain">ZMQ_ZAP_DOMAIN: Retrieve RFC 27 authentication domain</h3>
+<div class="paragraph"><p>The <em>ZMQ_ZAP_DOMAIN</em> option shall retrieve the last ZAP domain set for
+the socket. The returned value shall be a NULL-terminated string and MAY
+be empty. The returned size SHALL include the terminating null byte.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+character string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+not set
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_return_value">RETURN VALUE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <em>zmq_getsockopt()</em> function shall return zero if successful. Otherwise it
+shall return <tt>-1</tt> and set <em>errno</em> to one of the values defined below.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_errors">ERRORS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<strong>EINVAL</strong>
+</dt>
+<dd>
+<p>
+The requested option <em>option_name</em> is unknown, or the requested <em>option_len</em> or
+<em>option_value</em> is invalid, or the size of the buffer pointed to by
+<em>option_value</em>, as specified by <em>option_len</em>, is insufficient for storing the
+option value.
+</p>
+</dd>
+<dt class="hdlist1">
+<strong>ETERM</strong>
+</dt>
+<dd>
+<p>
+The ØMQ <em>context</em> associated with the specified <em>socket</em> was terminated.
+</p>
+</dd>
+<dt class="hdlist1">
+<strong>ENOTSOCK</strong>
+</dt>
+<dd>
+<p>
+The provided <em>socket</em> was invalid.
+</p>
+</dd>
+<dt class="hdlist1">
+<strong>EINTR</strong>
+</dt>
+<dd>
+<p>
+The operation was interrupted by delivery of a signal.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example">EXAMPLE</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">Retrieving the high water mark for outgoing messages</div>
+<div class="content">
+<pre><tt>/* Retrieve high water mark into sndhwm */
+int sndhwm;
+size_t sndhwm_size = sizeof (sndhwm);
+rc = zmq_getsockopt (socket, ZMQ_SNDHWM, &amp;sndhwm, &amp;sndhwm_size);
+assert (rc == 0);</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="zmq_setsockopt.html">zmq_setsockopt(3)</a>
+<a href="zmq_socket.html">zmq_socket(3)</a>
+<a href="zmq.html">zmq(7)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_authors">AUTHORS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
+</div>
+</div>
+</body>
+</html>

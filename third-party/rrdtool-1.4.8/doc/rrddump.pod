@@ -1,0 +1,97 @@
+=head1 NAME
+
+rrddump - dump the contents of an RRD to XML format
+
+=head1 SYNOPSIS
+
+B<rrdtool> B<dump> I<filename.rrd> [I<filename.xml>]
+S<[B<--header>|B<-h> {none,xsd,dtd}]>
+S<[B<--no-header>]>
+S<[B<--daemon> I<address>]>
+S<E<gt> I<filename.xml>>
+
+=head1 DESCRIPTION
+
+The B<dump> function writes the contents of an B<RRD> in human
+readable (?) XML format to a file or to stdout. This format can
+be read by rrdrestore. Together they allow you to transfer your
+files from one computer architecture to another as well to
+manipulate the contents of an B<RRD> file in a somewhat more
+convenient manner.
+
+=over 8
+
+=item I<filename.rrd>
+
+The name of the B<RRD> you want to dump.
+
+=item I<filename.xml>
+
+The (optional) filename that you want to write the XML output to.
+If not specified, the XML will be printed to stdout.
+
+=item B<--header>|B<-h> {none,xsd,dtd}
+
+By default RRDtool will add a dtd header to the xml file. Here
+you can customize this to and xsd header or no header at all.
+
+
+=item B<--no-header>
+
+A shortcut for S<--header=none>.
+
+If you want to restore the dump with RRDtool 1.2 you should use the
+S<--no-header> option since 1.2 can not deal with xml headers.
+
+=item B<--daemon> I<address>
+
+Address of the L<rrdcached> daemon. If specified, a C<flush> command is sent
+to the server before reading the RRD files. This allows B<rrdtool> to return
+fresh data even if the daemon is configured to cache values for a long time.
+For a list of accepted formats, see the B<-l> option in the L<rrdcached> manual.
+
+ rrdtool dump --daemon unix:/var/run/rrdcached.sock /var/lib/rrd/foo.rrd
+
+=back
+
+=head1 EXAMPLES
+
+To transfer an RRD between architectures, follow these steps:
+
+=over 4
+
+=item 1.
+
+On the same system where the RRD was created, use B<rrdtool> B<dump>
+to export the data to XML format.
+
+=item 2.
+
+Transfer the XML dump to the target system.
+
+=item 3.
+
+Run B<rrdtool> B<restore> to create a new RRD from the XML dump. See
+B<rrdrestore> for details.
+
+=back
+
+=head1 ENVIRONMENT VARIABLES
+
+The following environment variables may be used to change the behavior of
+C<rrdtoolE<nbsp>dump>:
+
+=over 4
+
+=item B<RRDCACHED_ADDRESS>
+
+If this environment variable is set it will have the same effect as specifying
+the C<--daemon> option on the command line. If both are present, the command
+line argument takes precedence.
+
+=back
+
+=head1 AUTHOR
+
+Tobias Oetiker E<lt>tobi@oetiker.chE<gt>
+

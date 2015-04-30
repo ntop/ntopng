@@ -1,0 +1,29 @@
+RRDFIRST(1)                         rrdtool                        RRDFIRST(1)
+
+
+
+NNAAMMEE
+       rrdfirst - Return the date of the first data sample in an RRA within an
+       RRD
+
+SSYYNNOOPPSSIISS
+       rrrrddttooooll ffiirrsstt _f_i_l_e_n_a_m_e [_-_-_r_r_a_i_n_d_e_x _n_u_m_b_e_r]
+
+DDEESSCCRRIIPPTTIIOONN
+       The ffiirrsstt function returns the UNIX timestamp of the first data sample
+       entered into the specified RRA of the RRD file.
+
+       _f_i_l_e_n_a_m_e
+               The name of the RRRRDD that contains the data.
+
+       _-_-_r_r_a_i_n_d_e_x _n_u_m_b_e_r
+               The index number of the RRRRAA that is to be examined. If not
+               specified, the index defaults to zero. RRRRAA index numbers can be
+               determined through rrrrddttooooll iinnffoo.
+
+AAUUTTHHOORR
+       Burton Strauss <Burton@ntopSupport.com>
+
+
+
+1.4.8                             2013-05-23                       RRDFIRST(1)

@@ -1,0 +1,136 @@
+=pod
+
+=head1 NAME
+
+librrd - RRD library functions
+
+=head1 DESCRIPTION
+
+B<librrd> contains most of the functionality in B<RRDTool>.  The command
+line utilities and language bindings are often just wrappers around the
+code contained in B<librrd>.
+
+This manual page documents the B<librrd> API.
+
+B<NOTE:> This document is a work in progress, and should be considered
+incomplete as long as this warning persists.  For more information about
+the B<librrd> functions, always consult the source code.
+
+=head1 CORE FUNCTIONS
+
+=over 4
+
+=item B<rrd_dump_cb_r(char *filename, int opt_header, rrd_output_callback_t cb, void *user)>
+
+In some situations it is necessary to get the output of C<rrd_dump> without
+writing it to a file or the standard output. In such cases an application
+can ask B<rrd_dump_cb_r> to call an user-defined function each time there
+is output to be stored somewhere. This can be used, to e.g. directly feed
+an XML parser with the dumped output or transfer the resulting string
+in memory.
+
+The arguments for B<rrd_dump_cb_r> are the same as for B<rrd_dump_opt_r>
+except that the output filename parameter is replaced by the user-defined
+callback function and an additional parameter for the callback function
+that is passed untouched, i.e. to store information about the callback state
+needed for the user-defined callback to function properly.
+
+Recent versions of B<rrd_dump_opt_r> internally use this callback mechanism
+to write their output to the file provided by the user.
+
+    size_t rrd_dump_opt_cb_fileout(
+        const void *data,
+        size_t len,
+        void *user)
+    {
+        return fwrite(data, 1, len, (FILE *)user);
+    }
+
+The associated call for B<rrd_dump_cb_r> looks like
+
+    res = rrd_dump_cb_r(filename, opt_header,
+        rrd_dump_opt_cb_fileout, (void *)out_file);
+
+where the last parameter specifies the file handle B<rrd_dump_opt_cb_fileout>
+should write to. There's no specific condition for the callback to detect
+when it is called for the first time, nor for the last time. If you require
+this for initialization and cleanup you should do those tasks before and
+after calling B<rrd_dump_cr_r> respectively.
+
+=back
+
+=head1 UTILITY FUNCTIONS
+
+=over 4
+
+=item B<rrd_random()>
+
+Generates random numbers just like random().  This further ensures that
+the random number generator is seeded exactly once per process.
+
+=item B<rrd_add_ptr(void ***dest, size_t *dest_size, void *src)>
+
+Dynamically resize the array pointed to by C<dest>.  C<dest_size> is a
+pointer to the current size of C<dest>.  Upon successful realloc(), the
+C<dest_size> is incremented by 1 and the C<src> pointer is stored at the
+end of the new C<dest>.  Returns 1 on success, 0 on failure.
+
+    type **arr = NULL;
+    type *elem = "whatever";
+    size_t arr_size = 0;
+    if (!rrd_add_ptr(&arr, &arr_size, elem))
+        handle_failure();
+
+=item B<rrd_add_strdup(char ***dest, size_t *dest_size, char *src)>
+
+Like C<rrd_add_ptr>, except adds a C<strdup> of the source string.
+
+    char **arr = NULL;
+    size_t arr_size = NULL;
+    char *str  = "example text";
+    if (!rrd_add_strdup(&arr, &arr_size, str))
+        handle_failure();
+
+=item B<rrd_free_ptrs(void ***src, size_t *cnt)>
+
+Free an array of pointers allocated by C<rrd_add_ptr> or
+C<rrd_add_strdup>.  Also frees the array pointer itself.  On return, the
+source pointer will be NULL and the count will be zero.
+
+    /* created as above */
+    rrd_free_ptrs(&arr, &arr_size);
+    /* here, arr == NULL && arr_size == 0 */
+
+=item B<rrd_mkdir_p(const char *pathname, mode_t mode)>
+
+Create the directory named C<pathname> including all of its parent
+directories (similar to C<mkdir -p> on the command line - see L<mkdir(1)> for
+more information). The argument C<mode> specifies the permissions to use. It
+is modified by the process's C<umask>. See L<mkdir(2)> for more details.
+
+The function returns 0 on success, a negative value else. In case of an error,
+C<errno> is set accordingly. Aside from the errors documented in L<mkdir(2)>,
+the function may fail with the following errors:
+
+=over 4
+
+=item B<EINVAL>
+
+C<pathname> is C<NULL> or the empty string.
+
+=item B<ENOMEM>
+
+Insufficient memory was available.
+
+=item B<any error returned by L<stat(2)>>
+
+=back
+
+In contrast to L<mkdir(2)>, the function does B<not> fail if C<pathname>
+already exists and is a directory.
+
+=back
+
+=head1 AUTHOR
+
+RRD Contributors <rrd-developers@lists.oetiker.ch>
