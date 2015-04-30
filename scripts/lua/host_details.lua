@@ -111,10 +111,12 @@ print [[
 if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host["ip"] .. ", Vlan: "..host["vlan"].."\n") end
 url=ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info)
 
+print("<li><a href=\"#\">Host: "..host_info["host"].."</A> </li>")
+
 if((page == "overview") or (page == nil)) then
-  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i> Host: "..host_info["host"].." </a></li>\n")
+   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 else
-  print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i> Host: "..host_info["host"].." </a></li>")
+   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
 end
 
 if(page == "traffic") then
@@ -1865,7 +1867,7 @@ print [[
     <h3 id="myModalLabel">Confirm Action</h3>
   </div>
   <div class="modal-body">
-	 <p>Do you really want to delele all configured alerts for host ]] print(hostinfo2hostkey(host_info)) print [[?</p>
+	 <p>Do you really want to delete all configured alerts for host ]] print(hostinfo2hostkey(host_info)) print [[?</p>
   </div>
   <div class="modal-footer">
     <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">

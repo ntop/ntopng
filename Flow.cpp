@@ -1297,6 +1297,9 @@ json_object* Flow::flow2json(bool partial_dump) {
   if(client_proc != NULL) processJson(true, my_object, client_proc);
   if(server_proc != NULL) processJson(false, my_object, server_proc);
 
+  json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(cli_host->get_country() ? cli_host->get_country() : (char*)""));
+  json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(srv_host->get_country() ? srv_host->get_country() : (char*)""));
+
   if(0) { /* TODO */
     json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
     json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));

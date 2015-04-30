@@ -134,7 +134,7 @@ Prefs::~Prefs() {
 void usage() {
   NetworkInterface n("dummy");
 
-  printf("ntopng %s v.%s (%s) - "NTOP_COPYRIGHT"\n\n"
+  printf("ntopng %s v.%s - "NTOP_COPYRIGHT"\n\n"
 	 "Usage:\n"
 	 "  ntopng <configuration file path>\n"
 	 "  or\n"
@@ -253,7 +253,7 @@ void usage() {
 	 "[--verbose|-v]                      | Verbose tracing\n"
 	 "[--version|-V]                      | Print version and quit\n"
 	 "[--help|-h]                         | Help\n"
-	 , PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_GIT_RELEASE,
+	 , PACKAGE_MACHINE, PACKAGE_VERSION,
 #ifndef WIN32
 	 ntop->get_working_dir(),
 #endif
@@ -679,7 +679,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printf("v.%s (%s)\n", PACKAGE_VERSION, NTOPNG_GIT_RELEASE);
+    printf("v.%s\n", PACKAGE_VERSION);
     _exit(0);
     break;
 
