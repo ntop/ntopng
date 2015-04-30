@@ -27,7 +27,7 @@ ln -s control.$UBUNTU_RELEASE.in control.in
 cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
-SVN_RELEASE=`svn info ../.. | grep "^Last Changed Rev"| cut -d " " -f 4`
+GIT_RELEASE=`git rev-parse HEAD`
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
@@ -56,9 +56,9 @@ AC_SUBST(EXTN)
 AC_SUBST(DATE)
 AC_SUBST(KERNEL)
 AC_SUBST(EXTRA_DEPS)
-AC_SUBST(SVN_RELEASE)
+AC_SUBST(GIT_RELEASE)
 AC_SUBST(PFRING_VERS)
-AC_SUBST(PFRING_SVN_RELEASE)
+AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_DEP)
 AC_SUBST(SUDO)
 
