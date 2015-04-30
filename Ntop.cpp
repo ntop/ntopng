@@ -264,7 +264,7 @@ void Ntop::start() {
 
   getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to ntopng %s v.%s (%s) - (C) 1998-15 ntop.org",
-			 PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_SVN_RELEASE);
+			 PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_GIT_RELEASE);
 
   start_time = time(NULL);
 

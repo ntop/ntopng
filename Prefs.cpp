@@ -253,7 +253,7 @@ void usage() {
 	 "[--verbose|-v]                      | Verbose tracing\n"
 	 "[--version|-V]                      | Print version and quit\n"
 	 "[--help|-h]                         | Help\n"
-	 , PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_SVN_RELEASE,
+	 , PACKAGE_MACHINE, PACKAGE_VERSION, NTOPNG_GIT_RELEASE,
 #ifndef WIN32
 	 ntop->get_working_dir(),
 #endif
@@ -679,7 +679,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printf("v.%s (%s)\n", PACKAGE_VERSION, NTOPNG_SVN_RELEASE);
+    printf("v.%s (%s)\n", PACKAGE_VERSION, NTOPNG_GIT_RELEASE);
     _exit(0);
     break;
 

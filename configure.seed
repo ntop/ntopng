@@ -21,12 +21,13 @@ else
 LIBNUMA="-lnuma"
 fi
 
-if test -d ".svn"; then :
-SVN_RELEASE=`svn info . | grep "^Revision"|cut -d " " -f 2`
-SVN_DATE=`svn info . | grep "^Last Changed Date"|cut -d " " -f 4-`
+if test -d ".git"; then :
+GIT_TAG=`git rev-parse HEAD`
+GIT_DATE=`date +%Y%m%d`
+GIT_RELEASE="${PACKAGE_VERSION} (${GIT_TAG}:${GIT_DATE})"
 else
-SVN_RELEASE="${PACKAGE_VERSION}"
-SVN_DATE=`date`
+GIT_RELEASE="${PACKAGE_VERSION}"
+GIT_DATE=`date`
 fi
 
 if test -d "pro"; then :
@@ -56,15 +57,15 @@ PRO_HEADERS=
 PRO_LIBS=
 fi
 
-AC_DEFINE_UNQUOTED(NTOPNG_SVN_RELEASE, "r${SVN_RELEASE}", [SVN Release])
-AC_DEFINE_UNQUOTED(NTOPNG_SVN_DATE, "${SVN_DATE}", [Last SVN change])
+AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "r${GIT_RELEASE}", [GIT Release])
+AC_DEFINE_UNQUOTED(NTOPNG_GIT_DATE, "${GIT_DATE}", [Last GIT change])
 
 if test -z `which pkg-config`; then
    echo "#!/bin/sh\n" > pkg-config
 fi
 
-if test -f ".svn/wc.db"; then
-   SVN_WC_DB=".svn/wc.db"
+if test -f ".git/index"; then
+   GIT_INDEX=".git/index"
 fi
 
 MACHINE=`uname -m`
@@ -227,10 +228,10 @@ then
 	GPP="g++"
 fi
 
-SVN=`which svn`
-if test x$SVN = x
+GIT=`which git`
+if test x$GIT = x
 then
-	AC_MSG_RESULT(FATAL ERROR: svn is not installed on your host)
+	AC_MSG_RESULT(FATAL ERROR: git is not installed on your host)
 fi
 
 WGET=`which wget`
@@ -258,29 +259,28 @@ INSTALL_DIR=${prefix}
 MAN_DIR=${prefix}
 fi
 
-AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$SVN_RELEASE", [SVN release of this package])
+AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)
 AC_SUBST(EXTN)
 AC_SUBST(DATE)
 AC_SUBST(KERNEL)
-AC_SUBST(SVN_RELEASE)
+AC_SUBST(GIT_RELEASE)
 AC_SUBST(LINK_OPTS)
 AC_SUBST(GEOIP_LIB)
 AC_SUBST(SQLITE_LIB)
 AC_SUBST(GMAKE)
 AC_SUBST(GPP)
-AC_SUBST(SVN)
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(PACKAGE_VERSION)
 AC_SUBST(NTOPNG_VERSION)
-AC_SUBST(SVN_RELEASE)
-AC_SUBST(SVN_DATE)
-AC_SUBST(SVN_WC_DB)
+AC_SUBST(GIT_RELEASE)
+AC_SUBST(GIT_DATE)
+AC_SUBST(GIT_INDEX)
 AC_SUBST(INSTALL_DIR)
 AC_SUBST(MAN_DIR)
 AC_SUBST(HIREDIS_INC)

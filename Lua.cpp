@@ -2461,7 +2461,7 @@ static int ntop_get_info(lua_State* vm) {
   snprintf(rsp, sizeof(rsp), "%s %s%s%s",
 	   PACKAGE_VERSION,
            svn ? "(" : "",
-           svn ? NTOPNG_SVN_RELEASE : "",
+           svn ? NTOPNG_GIT_RELEASE : "",
            svn ? ")" : "");
   lua_push_str_table_entry(vm, "version", rsp);
   snprintf(rsp, sizeof(rsp), "%s (%s)", PACKAGE_OSNAME, PACKAGE_MACHINE);

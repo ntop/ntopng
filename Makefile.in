@@ -79,7 +79,7 @@ CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(L
 ######
 # ntopng-1.0_1234.x86_64.rpm
 PLATFORM = `uname -p`
-REVISION = @SVN_RELEASE@
+REVISION = @GIT_RELEASE@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 NTOPNG_VERSION = @NTOPNG_VERSION@
 RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-$(REVISION).$(PLATFORM).rpm
@@ -150,7 +150,7 @@ $(JSON_LIB):
 	cd $(JSON_HOME); ./autogen.sh; ./configure; @GMAKE@
 
 clean:
-	-rm -f *.o *~ svn-commit.* #config.h
+	-rm -f *.o *~ #config.h
 	-rm -f $(TARGET)
 
 cert:
@@ -185,7 +185,7 @@ build-rpm-ntopng:
 	mkdir ntopng-@NTOPNG_VERSION@
 	cp -r doc *.cpp *.h configure COPYING README.* *.in ntopng.8 httpdocs scripts packages third-party ntopng-@NTOPNG_VERSION@
 	if test -d "pro"; then cp -r pro ntopng-@NTOPNG_VERSION@; fi
-	find ntopng-@NTOPNG_VERSION@ -name ".svn" | xargs /bin/rm -rf
+	find ntopng-@NTOPNG_VERSION@ -name ".git" | xargs /bin/rm -rf
 	-rm ntopng-@NTOPNG_VERSION@/httpdocs/geoip/*
 	tar cvfz ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
 	#
@@ -229,7 +229,7 @@ docs:
 dist:
 	rm -rf ntopng-@NTOPNG_VERSION@
 	mkdir ntopng-@NTOPNG_VERSION@
-	cd ntopng-@NTOPNG_VERSION@; svn co https://svn.ntop.org/svn/ntop/trunk/ntopng/; cd ntopng; git clone https://github.com/ntop/nDPI.git; cd ..; find ntopng -name .svn | xargs rm -rf ; mv ntopng ntopng-@NTOPNG_VERSION@; tar cvfz ../ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
+	cd ntopng-@NTOPNG_VERSION@; git clone https://github.com/ntop/ntopng.git; cd ntopng; git clone https://github.com/ntop/nDPI.git; cd ..; find ntopng -name .git | xargs rm -rf ; mv ntopng ntopng-@NTOPNG_VERSION@; tar cvfz ../ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
 
 install: ntopng
 	@echo "Make sure you have already run 'make geoip' to also install geoip dat files"
@@ -243,23 +243,18 @@ install: ntopng
 	cp -r ./httpdocs $(INSTALL_DIR)/share/ntopng
 	cp -r ./scripts $(INSTALL_DIR)/share/ntopng
 	find $(INSTALL_DIR)/share/ntopng -name "*~"   | xargs /bin/rm -f
-	find $(INSTALL_DIR)/share/ntopng -name ".svn" | xargs /bin/rm -rf
+	find $(INSTALL_DIR)/share/ntopng -name ".git" | xargs /bin/rm -rf
 
 uninstall:
 	if test -f $(INSTALL_DIR)/bin/ntopng; then rm $(INSTALL_DIR)/bin/ntopng; fi;
 	if test -f $(MAN_DIR)/man/man8/ntopng.8; then rm $(MAN_DIR)/man/man8/ntopng.8; fi;
 	if test -d $(INSTALL_DIR)/share/ntopng; then rm -r $(INSTALL_DIR)/share/ntopng; fi;
 
-Makefile: @SVN_WC_DB@
+Makefile: @GIT_INDEX@
 	@echo ""
-	@echo "Re-running configure as the SVN release has changed"
+	@echo "Re-running configure as the git release has changed"
 	@echo ""
 	./configure
-
-changelog:
-	echo "Generating changelog for recent activites..."
-	@./tools/svn2changelog.py > Changelog
-	echo "Changelog file is ready"
 
 cppcheck:
 	cppcheck --template='{file}:{line}:{severity}:{message}' --quiet --enable=all --force @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) -I$(EWH_INC) *.cpp
