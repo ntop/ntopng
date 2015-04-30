@@ -76,6 +76,7 @@ NetworkInterface::NetworkInterface() {
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
+  dump_max_files = CONST_MAX_DUMP;
 }
 
 /* **************************************************** */
@@ -192,6 +193,7 @@ void NetworkInterface::loadDumpPrefs() {
     updateDumpTrafficSamplingRate();
     updateDumpTrafficMaxPktsPerFile();
     updateDumpTrafficMaxSecPerFile();
+    updateDumpTrafficMaxFiles();
   }
 }
 
@@ -300,6 +302,26 @@ int NetworkInterface::updateDumpTrafficMaxSecPerFile(void) {
   retval = retval > 0 ? retval : CONST_MAX_DUMP_DURATION;
 
   dump_max_duration = retval;
+
+  return retval;
+}
+
+/* **************************************************** */
+
+int NetworkInterface::updateDumpTrafficMaxFiles(void) {
+  int retval = 0;
+
+  if(ifname != NULL) {
+    char rkey[128], rsp[16];
+
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_max_files", ifname);
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+      retval = atoi(rsp);
+  }
+
+  retval = retval > 0 ? retval : CONST_MAX_DUMP;
+
+  dump_max_files = retval;
 
   return retval;
 }

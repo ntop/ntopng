@@ -90,6 +90,7 @@ class NetworkInterfaceView {
   string getDumpTrafficTapName(void);
   int getDumpTrafficMaxPktsPerFile(void);
   int getDumpTrafficMaxSecPerFile(void);
+  int getDumpTrafficMaxFiles(void);
   void getnDPIFlowsCount(lua_State *vm);
   void lua(lua_State *vm);
 #ifdef NTOPNG_PRO

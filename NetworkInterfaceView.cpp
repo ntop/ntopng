@@ -594,6 +594,15 @@ int NetworkInterfaceView::getDumpTrafficMaxSecPerFile(void) {
   return 0;
 }
 
+int NetworkInterfaceView::getDumpTrafficMaxFiles(void) {
+  list<NetworkInterface *>::iterator p;
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    return (*p)->getDumpTrafficMaxFiles();
+
+  return 0;
+}
+
 /* *************************************** */
 
 char *NetworkInterfaceView::get_descr(void) {

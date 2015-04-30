@@ -134,7 +134,7 @@ class NetworkInterface {
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
     dump_to_tap, dump_to_disk, dump_unknown_to_disk, dump_security_to_disk;
   DB *db;
-  u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration;
+  u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager *statsManager;
   NetworkInterfaceView *view;
   bool has_vlan_packets;
@@ -299,11 +299,13 @@ class NetworkInterface {
   int updateDumpTrafficSamplingRate();
   int updateDumpTrafficMaxPktsPerFile();
   int updateDumpTrafficMaxSecPerFile();
+  int updateDumpTrafficMaxFiles(void);
   inline bool getDumpTrafficDiskPolicy()      { return(dump_to_disk); }
   inline bool getDumpTrafficTapPolicy()       { return(dump_to_tap); }
   inline u_int getDumpTrafficSamplingRate()   { return(dump_sampling_rate); }
   inline u_int getDumpTrafficMaxPktsPerFile() { return(dump_max_pkts_file); }
   inline u_int getDumpTrafficMaxSecPerFile()  { return(dump_max_duration); }
+  inline u_int getDumpTrafficMaxFiles()       { return(dump_max_files); }
 
   string getDumpTrafficTapName();
   void loadDumpPrefs();
