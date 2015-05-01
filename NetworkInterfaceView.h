@@ -85,12 +85,16 @@ class NetworkInterfaceView {
   bool idle(void);
   void setIdleState(bool new_state);
   void getnDPIProtocols(lua_State *vm);
+
+  PacketDumper *getPacketDumper(void);
+  PacketDumperTuntap *getPacketDumperTap(void);
   bool getDumpTrafficDiskPolicy(void);
   bool getDumpTrafficTapPolicy(void);
   string getDumpTrafficTapName(void);
   int getDumpTrafficMaxPktsPerFile(void);
   int getDumpTrafficMaxSecPerFile(void);
   int getDumpTrafficMaxFiles(void);
+
   void getnDPIFlowsCount(lua_State *vm);
   void lua(lua_State *vm);
 #ifdef NTOPNG_PRO

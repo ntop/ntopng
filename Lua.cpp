@@ -1652,6 +1652,46 @@ static int ntop_get_interface_dump_max_files(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  int num_pkts;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  PacketDumper *dumper = ntop_interface->getPacketDumper();
+  if (!dumper)
+    return CONST_LUA_ERROR;
+
+  num_pkts = dumper->get_num_dumped_packets();
+
+  lua_pushnumber(vm, num_pkts);
+
+  return(CONST_LUA_OK);
+}
+
+static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  int num_pkts;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  PacketDumperTuntap *dumper = ntop_interface->getPacketDumperTap();
+  if (!dumper)
+    return CONST_LUA_ERROR;
+
+  num_pkts = dumper->get_num_dumped_packets();
+
+  lua_pushnumber(vm, num_pkts);
+
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 static int ntop_get_interface_endpoint(lua_State* vm) {
@@ -4055,6 +4095,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getInterfaceDumpMaxPkts",        ntop_get_interface_dump_max_pkts },
   { "getInterfaceDumpMaxSec",         ntop_get_interface_dump_max_sec },
   { "getInterfaceDumpMaxFiles",       ntop_get_interface_dump_max_files },
+  { "getInterfacePacketsDumpedFile",  ntop_get_interface_pkts_dumped_file },
+  { "getInterfacePacketsDumpedTap",   ntop_get_interface_pkts_dumped_tap },
   { "getEndpoint",            ntop_get_interface_endpoint },
   { "incrDrops",              ntop_increase_drops },
   { "isRunning",              ntop_interface_is_running },

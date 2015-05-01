@@ -603,6 +603,24 @@ int NetworkInterfaceView::getDumpTrafficMaxFiles(void) {
   return 0;
 }
 
+PacketDumper *NetworkInterfaceView::getPacketDumper(void) {
+  list<NetworkInterface *>::iterator p;
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    return (*p)->getPacketDumper();
+
+  return NULL;
+}
+
+PacketDumperTuntap *NetworkInterfaceView::getPacketDumperTap(void) {
+  list<NetworkInterface *>::iterator p;
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    return (*p)->getPacketDumperTap();
+
+  return NULL;
+}
+
 /* *************************************** */
 
 char *NetworkInterfaceView::get_descr(void) {

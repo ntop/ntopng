@@ -293,6 +293,9 @@ class NetworkInterface {
   void refreshL7Rules();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
+
+  PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
+  PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
   void updateHostsL7Policy();
   bool updateDumpTrafficDiskPolicy();
   bool updateDumpTrafficTapPolicy();

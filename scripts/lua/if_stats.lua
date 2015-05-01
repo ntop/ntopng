@@ -471,7 +471,12 @@ if (isAdministrator()) then
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
          <input type="hidden" name="host" value="]]
                print(ifstats.name)
-               print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk </input>')
+               print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
+               if (dump_traffic_checked ~= "") then
+                 dumped = interface.getInterfacePacketsDumpedFile()
+                 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+               end
+               print('</input>')
                print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
                print('</form>')
    print("</td></tr>\n")
@@ -504,6 +509,10 @@ if (isAdministrator()) then
                print(ifstats.name)
                print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
+               if (dump_traffic_tap_checked ~= "") then
+                 dumped = interface.getInterfacePacketsDumpedTap()
+                 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+               end
 	       print(' </input>')
                print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
                print('</form>')
