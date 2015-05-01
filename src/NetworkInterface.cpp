@@ -72,7 +72,7 @@ NetworkInterface::NetworkInterface() {
 
   view = NULL, statsManager = NULL;
   checkIdle();
-  dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false; 
+  dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false; 
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
@@ -188,6 +188,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 
 void NetworkInterface::loadDumpPrefs() {
   if(ntop->getRedis() != NULL) {
+    updateDumpAllTrafficPolicy();
     updateDumpTrafficDiskPolicy();
     updateDumpTrafficTapPolicy();
     updateDumpTrafficSamplingRate();
@@ -223,6 +224,23 @@ string NetworkInterface::getDumpTrafficTapName(void) {
     return pkt_dumper_tap->getName();
   else
     return "";
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::updateDumpAllTrafficPolicy(void) {
+  bool retval = false;
+
+  if(ifname != NULL) {
+    char rkey[128], rsp[16];
+
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.dump_all_traffic", ifname);
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+      retval = !strncmp(rsp, "true", 5);
+  }
+
+  dump_all_traffic = retval;
+  return retval;
 }
 
 /* **************************************************** */
@@ -921,10 +939,10 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
       (!flow->isDetectionCompleted() ||
        flow->get_detected_protocol() == NDPI_PROTOCOL_UNKNOWN);
     if (dump_is_unknown ||
-        (flow->dumpFlowTraffic() &&
+        ((dump_all_traffic || flow->dumpFlowTraffic()) &&
          (dump_security_to_disk || getDumpTrafficDiskPolicy())))
       dumpPacketDisk(h, packet, dump_is_unknown ? UNKNOWN : GUI);
-    if (flow->dumpFlowTraffic() && getDumpTrafficTapPolicy())
+    if ((dump_all_traffic || flow->dumpFlowTraffic()) && getDumpTrafficTapPolicy())
       dumpPacketTap(h, packet, GUI);
 
     pass_verdict = flow->isPassVerdict();

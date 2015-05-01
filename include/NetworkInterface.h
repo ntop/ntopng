@@ -132,7 +132,7 @@ class NetworkInterface {
   /* String hash (Aggregation) */
   StringHash *strings_hash; /**< Hash used to memorize the aggregation information.*/
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
-    dump_to_tap, dump_to_disk, dump_unknown_to_disk, dump_security_to_disk;
+    dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_to_disk, dump_security_to_disk;
   DB *db;
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager *statsManager;
@@ -297,6 +297,7 @@ class NetworkInterface {
   PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
   void updateHostsL7Policy();
+  bool updateDumpAllTrafficPolicy(void);
   bool updateDumpTrafficDiskPolicy();
   bool updateDumpTrafficTapPolicy();
   int updateDumpTrafficSamplingRate();

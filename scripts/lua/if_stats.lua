@@ -51,6 +51,12 @@ if(_GET["custom_name"] ~=nil) then
       ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_GET["custom_name"])
    end
 end
+
+if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
+   page = "packetdump"
+   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
+   interface.loadDumpPrefs()
+end
 if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
    page = "packetdump"
    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
@@ -431,11 +437,19 @@ elseif(page == "historical") then
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
 elseif (page == "packetdump") then
 if (isAdministrator()) then
+  dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
   dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
   dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
   dump_unknown_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk')
   dump_security_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk')
 
+  if(dump_all_traffic == "true") then
+    dump_all_traffic_checked = 'checked="checked"'
+    dump_all_traffic_value = "false" -- Opposite
+  else
+    dump_all_traffic_checked = ""
+    dump_all_traffic_value = "true" -- Opposite
+  end
   if(dump_status_disk == "true") then
     dump_traffic_checked = 'checked="checked"'
     dump_traffic_value = "false" -- Opposite
@@ -466,6 +480,18 @@ if (isAdministrator()) then
   end
 
    print("<table class=\"table table-striped table-bordered\">\n")
+
+   print("<tr><th width=30%>Packet Dump</th><td>")
+   print [[
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
+         <input type="hidden" name="host" value="]]
+               print(ifstats.name)
+               print('"><input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
+               print('</input>')
+               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+               print('</form>')
+   print("</td></tr>\n")
+
    print("<tr><th width=30%>Packet Dump To Disk</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
