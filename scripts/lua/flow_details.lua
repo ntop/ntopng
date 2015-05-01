@@ -117,6 +117,10 @@ else
       interface.dropFlowTraffic(tonumber(flow_key))
       flow["verdict.pass"] = false
    end
+   if(_GET["dump_flow_to_disk"] ~= nil) then
+      interface.dumpFlowTraffic(tonumber(flow_key), ternary(_GET["dump_flow_to_disk"] == "true", 1, 0))
+      flow["dump.disk"] = ternary(_GET["dump_flow_to_disk"] == "true", true, false)
+   end
 
    ifstats = interface.getStats()
    print("<table class=\"table table-bordered table-striped\">\n")
@@ -320,6 +324,26 @@ else
 	 print("<tr><th width=30%>Server Name</th><td colspan=2>"..flow["host_server_name"].."</td></tr>\n")
       end
    end
+
+   dump_flow_to_disk = flow["dump.disk"]
+   if(dump_flow_to_disk == true) then
+    dump_flow_to_disk_checked = 'checked="checked"'
+    dump_flow_to_disk_value = "false" -- Opposite
+   else
+    dump_flow_to_disk_checked = ""
+    dump_flow_to_disk_value = "true" -- Opposite
+   end
+
+   print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
+   print [[
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
+         <input type="hidden" name="flow_key" value="]]
+               print(flow_key)
+               print('"><input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
+               print(' </input>')
+               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+               print('</form>')
+   print("</td></tr>\n")
 
    if (flow["moreinfo.json"] ~= nil) then
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)

@@ -33,6 +33,7 @@ Flow::Flow(NetworkInterface *_iface,
     cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0;
 
   l7_protocol_guessed = detection_completed = false;
+  dump_flow_traffic = false;
 
   switch(protocol) {
   case IPPROTO_ICMP:
@@ -1020,6 +1021,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
   lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
   lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
   lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
+  lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
 
   if(protocol == IPPROTO_TCP) {
     lua_push_bool_table_entry(vm, "tcp.seq_problems",
@@ -1678,9 +1680,9 @@ bool Flow::isPassVerdict() {
 /* *************************************** */
 
 bool Flow::dumpFlowTraffic() {
+  if(dump_flow_traffic) return true;
   if(cli_host && srv_host)
     return(cli_host->dumpHostTraffic() || srv_host->dumpHostTraffic());
-  else
-    return(false);
+  return(false);
 }
 
