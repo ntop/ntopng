@@ -203,3 +203,12 @@ void PacketDumperTuntap::closeTap() {
   if(init_ok)
     close(this->fd);
 }
+
+void PacketDumperTuntap::lua(lua_State *vm) {
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "num_dumped_pkts", get_num_dumped_packets());
+
+  lua_pushstring(vm, "pkt_dumper_tuntap");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}

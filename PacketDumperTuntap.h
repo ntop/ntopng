@@ -42,7 +42,7 @@ class PacketDumperTuntap {
   uint16_t      mtu;
   char          dev_name[DUMP_IFNAMSIZ];
   bool		init_ok;
-  unsigned int	num_dumped_packets;
+  u_int32_t     num_dumped_packets;
 
   void readMac(char *ifname, dump_mac_t mac_addr);
   int getIPAddress(struct ifreq *ifr, char *if_name);
@@ -60,6 +60,10 @@ class PacketDumperTuntap {
                unsigned int sampling_rate);
   char *getName(void) { return dev_name; }
   void closeTap();
+
+  u_int32_t get_num_dumped_packets(void) { return num_dumped_packets; }
+
+  void lua(lua_State *vm);
 };
 
 #endif /* _PACKET_DUMPER_TUNTAP_H_ */
