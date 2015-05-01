@@ -7,7 +7,7 @@ compiler:
 install: 
   - sudo apt-get update || true
   - sudo apt-get install build-essential
-  - apt-get install subversion libglib2.0 libxml2-dev libpcap-dev libtool rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev git
+  - sudo apt-get install subversion libglib2.0 libxml2-dev libpcap-dev libtool rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev git
 
 script:
   - ./autogen.sh
