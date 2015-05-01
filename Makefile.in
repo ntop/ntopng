@@ -75,7 +75,7 @@ EWH_INC=$(EWH_HOME)/headers
 ######
 TARGET = ntopng
 LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(ZEROMQ_LIB) $(JSON_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
-CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @CPPFLAGS@ -I$(HTTPCLIENT_INC) -I$(EWH_INC) @PRO_INC@ -DDATA_DIR='"$(datadir)"'  # -D_GLIBCXX_DEBUG
+CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ -I . -I ./include $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @CPPFLAGS@ -I$(HTTPCLIENT_INC) -I$(EWH_INC) @PRO_INC@ -DDATA_DIR='"$(datadir)"'  # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm
 PLATFORM = `uname -p`
@@ -116,8 +116,8 @@ default: $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
 
 all: default
 
-OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp)) @PRO_OBJECTS@
-HEADERS = $(wildcard *.h) @PRO_HEADERS@
+OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) @PRO_OBJECTS@
+HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 
 %.o: %.c $(HEADERS) Makefile
 	$(GPP) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
@@ -150,7 +150,7 @@ $(JSON_LIB):
 	cd $(JSON_HOME); ./autogen.sh; ./configure; @GMAKE@
 
 clean:
-	-rm -f *.o *~ #config.h
+	-rm -f src/*.o src/*~ include/*~ *~ #config.h
 	-rm -f $(TARGET)
 
 cert:

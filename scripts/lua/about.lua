@@ -69,9 +69,12 @@ end
 print("</td></tr>")
 
 vers = string.split(info["version.git"], ":")
-v_hash = string.sub(vers[1], 2) 
-
-ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. v_hash ..">"..info["version"].."</A>"
+if((vers ~= nil) and (vers[1] ~= nil)) then
+   v_hash = string.sub(vers[1], 2) 
+   ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. v_hash ..">"..info["version"].."</A>"
+else
+   ntopng_git_url = info["version"]
+end
 
 print("<tr><th>Version</th><td>"..ntopng_git_url)
 
