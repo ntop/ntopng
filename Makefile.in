@@ -183,7 +183,7 @@ build-rpm: geoip build-rpm-ntopng build-rpm-ntopng-data
 build-rpm-ntopng:
 	rm -rf ntopng-@NTOPNG_VERSION@
 	mkdir ntopng-@NTOPNG_VERSION@
-	cp -r doc *.cpp *.h configure COPYING README.* *.in ntopng.8 httpdocs scripts packages third-party ntopng-@NTOPNG_VERSION@
+	cp -r doc src include configure COPYING README.* *.in ntopng.8 httpdocs scripts packages third-party ntopng-@NTOPNG_VERSION@
 	if test -d "pro"; then cp -r pro ntopng-@NTOPNG_VERSION@; fi
 	find ntopng-@NTOPNG_VERSION@ -name ".git" | xargs /bin/rm -rf
 	-rm ntopng-@NTOPNG_VERSION@/httpdocs/geoip/*
