@@ -52,6 +52,7 @@ static void free_wrapper(void *freeable)
 
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
+  flow_dump=true;
   ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
     strings_hash = NULL, ndpi_struct = NULL,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -82,6 +83,7 @@ NetworkInterface::NetworkInterface() {
 /* **************************************************** */
 
 NetworkInterface::NetworkInterface(const char *name) {
+  flow_dump=true;
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64];
 
@@ -440,7 +442,17 @@ int NetworkInterface::dumpFlow(time_t when, bool partial_dump, Flow *f) {
     return(-1);
   }
 }
+/* **************************************************** */
 
+bool NetworkInterface::getdumpFlowPreference()
+{
+  return flow_dump;
+}
+
+void NetworkInterface::setdumpFlowPreference(bool b)
+{
+  flow_dump=b;
+}
 /* **************************************************** */
 
 int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
