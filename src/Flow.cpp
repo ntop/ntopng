@@ -1243,7 +1243,7 @@ json_object* Flow::flow2es(json_object *flow_object) {
 
 json_object* Flow::flow2json(bool partial_dump) {
   json_object *my_object;
-  char buf[64], jsonbuf[64];
+  char buf[64], jsonbuf[64], *c;
 
   my_object = json_object_new_object();
   json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
@@ -1283,7 +1283,12 @@ json_object* Flow::flow2json(bool partial_dump) {
   json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "LAST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int((u_int32_t)last_seen));
 
-  if(json_info && strcmp(json_info, "{}")) json_object_object_add(my_object, "json", json_object_new_string(json_info));
+  if(json_info && strcmp(json_info, "{}")) {
+    json_object *o;
+
+    if((o = json_tokener_parse(json_info)) != NULL)
+      json_object_object_add(my_object, "json", o);
+  }
 
   if(vlanId > 0) json_object_object_add(my_object,
 					Utils::jsonLabel(SRC_VLAN, "SRC_VLAN", jsonbuf, sizeof(jsonbuf)),
@@ -1299,8 +1304,11 @@ json_object* Flow::flow2json(bool partial_dump) {
   if(client_proc != NULL) processJson(true, my_object, client_proc);
   if(server_proc != NULL) processJson(false, my_object, server_proc);
 
-  json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(cli_host->get_country() ? cli_host->get_country() : (char*)""));
-  json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(srv_host->get_country() ? srv_host->get_country() : (char*)""));
+  c = cli_host->get_country() ? cli_host->get_country() : NULL;
+  if(c) json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
+
+  c = srv_host->get_country() ? srv_host->get_country() : NULL;
+  if(c) json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
 
   if(0) { /* TODO */
     json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
