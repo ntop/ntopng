@@ -1417,11 +1417,15 @@ end
 function prefsInputField(label, comment, key, value)
   if(_GET[key] ~= nil) then
     k = "ntopng.prefs."..key
-    v = tonumber(_GET[key])
-    if((v > 0) and (v < 86400)) then
+    v_s = _GET[key]
+    v = tonumber(v_s)
+    if(v ~= nil and (v > 0) and (v < 86400)) then
       -- print(k.."="..v)
       ntop.setCache(k, tostring(v))
       value = v
+    elseif (v_s ~= nil) then
+      ntop.setCache(k, v_s)
+      value = v_s
     end
   end
 
