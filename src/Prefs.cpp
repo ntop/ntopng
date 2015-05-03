@@ -916,6 +916,8 @@ void Prefs::add_default_interfaces() {
 /* *************************************** */
 
 void Prefs::lua(lua_State* vm) {
+  char HTTP_stats_base_dir[MAX_PATH];
+
   lua_newtable(vm);
 
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
@@ -938,6 +940,11 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "nagios_host", nagios_host);
   lua_push_str_table_entry(vm, "nagios_port", nagios_port);
   lua_push_str_table_entry(vm, "nagios_config", nagios_config);
+
+  memset(HTTP_stats_base_dir, '\0', MAX_PATH);
+  strncat(HTTP_stats_base_dir, ntop->get_working_dir(), MAX_PATH);
+  strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);
+  lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
 }
 
