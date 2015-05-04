@@ -60,6 +60,10 @@ class NetworkInterfaceView {
   void getnDPIStats(NdpiStats *stats);
   void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details);
   void getFlowsStats(lua_State* vm);
+  bool getInterfaceFlowDumpPolicy();
+  void setInterfaceFlowDumpPolicy(bool b);
+
+
   void getActiveAggregatedHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, u_int16_t proto_family, char *host);
   u_int getNumAggregatedHosts(void);
   bool hasSeenVlanTaggedPackets(void);

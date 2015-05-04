@@ -1720,6 +1720,13 @@ static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+static int ntop_get_interface_flow_dump_policy(lua_State * vm)
+{
+    NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+    lua_push_bool_table_entry(vm,"if_flow_dump_policy",ntop_interface->getInterfaceFlowDumpPolicy());
+    return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 static int ntop_get_interface_endpoint(lua_State* vm) {
@@ -4126,6 +4133,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getInterfaceDumpMaxFiles",       ntop_get_interface_dump_max_files },
   { "getInterfacePacketsDumpedFile",  ntop_get_interface_pkts_dumped_file },
   { "getInterfacePacketsDumpedTap",   ntop_get_interface_pkts_dumped_tap },
+  { "getInterfaceFlowDumpPolicy",   ntop_get_interface_flow_dump_policy },
   { "getEndpoint",            ntop_get_interface_endpoint },
   { "incrDrops",              ntop_increase_drops },
   { "isRunning",              ntop_interface_is_running },

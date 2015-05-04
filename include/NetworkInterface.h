@@ -252,7 +252,6 @@ class NetworkInterface {
   void getFlowsStats(lua_State* vm);
   void getActiveFlowsList(lua_State* vm, char *host_ip, u_int vlan_id, patricia_tree_t *allowed_hosts);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts, char *numIP, u_int16_t vlanId);
-
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
   u_int purgeIdleHosts();
