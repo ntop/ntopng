@@ -208,8 +208,8 @@ class NetworkInterface {
   int dumpFlow(time_t when, bool partial_dump, Flow *f);
   int dumpDBFlow(time_t when, bool partial_dump, Flow *f);
   int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
-  bool getdumpFlowPreference();
-  void setdumpFlowPreference(bool b);
+  inline bool getInterfaceFlowDumpPolicy(){return flow_dump;}
+  inline void setInterfaceFlowDumpPolicy(bool b){flow_dump=b;}
   inline void incStats(u_int16_t eth_proto, u_int16_t ndpi_proto, u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(ndpi_proto, 0, 0, 1, pkt_len);

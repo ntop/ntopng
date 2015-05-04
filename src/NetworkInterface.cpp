@@ -444,17 +444,6 @@ int NetworkInterface::dumpFlow(time_t when, bool partial_dump, Flow *f) {
 }
 /* **************************************************** */
 
-bool NetworkInterface::getdumpFlowPreference()
-{
-  return flow_dump;
-}
-
-void NetworkInterface::setdumpFlowPreference(bool b)
-{
-  flow_dump=b;
-}
-/* **************************************************** */
-
 int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
   char *json = f->serialize(partial_dump, true);
   int rc;
