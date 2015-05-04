@@ -96,6 +96,8 @@ bool NetworkInterfaceView::hasNamesAs(const char *names) {
   return res.empty();
 }
 
+/* **************************************************** */
+
 /* FIXME: slow */
 bool NetworkInterfaceView::hasIdsAs(const char *names) {
   istringstream ss(names);
