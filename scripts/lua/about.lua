@@ -96,14 +96,16 @@ print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTi
 print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
 v = string.split(info["version.ndpi"], " ")
-ndpi_vers = v[1]
-v_all = string.sub(v[2], 2, -2)
+if(v ~= nil) then
+   ndpi_vers = v[1]
+   v_all = string.sub(v[2], 2, -2)
+   
+   vers = string.split(v_all, ":")
+   ndpi_hash = vers[1]
+   ndpi_date = vers[2]
+   print("<tr><th><a href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</A></th><td> <A HREF=https://github.com/ntop/nDPI/commit/".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+end
 
-vers = string.split(v_all, ":")
-ndpi_hash = vers[1]
-ndpi_date = vers[2]
-
-print("<tr><th><a href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</A></th><td> <A HREF=https://github.com/ntop/nDPI/commit/".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
 print("<tr><th><a href=http://twitter.github.io/ target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
 print("<tr><th><a href=http://fortawesome.github.io/Font-Awesome/ target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
 print("<tr><th><a href=http://www.rrdtool.org/ target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")

@@ -43,6 +43,8 @@ class Flow : public GenericHashEntry {
   void *cli_id, *srv_id;
   char *json_info, *host_server_name;
 
+  bool dump_flow_traffic;
+
   struct {
     char *last_url, *last_method;
     u_int16_t last_return_code;
@@ -206,6 +208,9 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); };
   void dissectHTTP(bool src2dst_direction, char *payload, u_int payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
+
+  void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
+  bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
 };
 
 #endif /* _FLOW_H_ */

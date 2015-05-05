@@ -83,7 +83,7 @@ REVISION = @GIT_RELEASE@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 NTOPNG_VERSION = @NTOPNG_VERSION@
 RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@TODAY@.$(PLATFORM).rpm
-RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION).noarch.rpm
+RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@TODAY@.noarch.rpm
 ######
 
 ifeq ($(OS),Darwin)
@@ -183,9 +183,10 @@ build-rpm: geoip build-rpm-ntopng build-rpm-ntopng-data
 build-rpm-ntopng:
 	rm -rf ntopng-@NTOPNG_VERSION@
 	mkdir ntopng-@NTOPNG_VERSION@
-	cp -r doc *.cpp *.h configure COPYING README.* *.in ntopng.8 httpdocs scripts packages third-party ntopng-@NTOPNG_VERSION@
+	cp -r doc src include configure COPYING README.* *.in ntopng.8 httpdocs scripts packages third-party ntopng-@NTOPNG_VERSION@
 	if test -d "pro"; then cp -r pro ntopng-@NTOPNG_VERSION@; fi
 	find ntopng-@NTOPNG_VERSION@ -name ".git" | xargs /bin/rm -rf
+	find ntopng-@NTOPNG_VERSION@ -name ".svn" | xargs /bin/rm -rf
 	-rm ntopng-@NTOPNG_VERSION@/httpdocs/geoip/*
 	tar cvfz ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
 	#
