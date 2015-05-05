@@ -16,11 +16,11 @@ Prerequisites
 
 On Ubuntu/Debian
 - apt-get install build-essential
-- apt-get install subversion libglib2.0 libxml2-dev libpcap-dev libtool rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev git
+- apt-get install libglib2.0 libxml2-dev libpcap-dev libtool rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev git
 
 On Fedora/CentOS
 - yum groupinstall "Development tools"
-- yum install subversion autoconf automake autogen libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel git
+- yum install git autoconf automake autogen libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel
 
 On MacOSX (using http://brew.sh)
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git
