@@ -70,6 +70,18 @@ if test -f ".git/index"; then
    GIT_INDEX=".git/index"
 fi
 
+AC_MSG_CHECKING(for ../nDPI/src/lib/.libs/libndpi.a presence)
+if test -f "../nDPI/src/lib/.libs/libndpi.a"; then
+   AC_MSG_RESULT(found)
+else
+   AC_MSG_RESULT(not found)
+   echo ""
+   echo "Please do:"
+   echo "git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make"
+   echo "and try again"
+   exit
+fi
+
 MACHINE=`uname -m`
 SYSTEM=`uname -s`
 
