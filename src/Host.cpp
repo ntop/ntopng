@@ -951,6 +951,8 @@ bool Host::deserialize(char *json_str) {
 /* *************************************** */
 
 void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
+  if (!localHost) return; /* don't print alerts for remote hosts */
+
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
   if(counter->incHits(when)) {
@@ -968,17 +970,27 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 
     h = ip->print(ip_buf, sizeof(ip_buf));
 
-    if(syn_sent)
+    if(syn_sent) {
       error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
-    else
-      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is under SYN flood attack [%u SYNs received in the last %u sec] %s";
-
-    snprintf(msg, sizeof(msg),
+      snprintf(msg, sizeof(msg),
 	     error_msg, ntop->getPrefs()->get_http_prefix(),
 	     h, iface->get_name(), h,
 	     counter->getCurrentHits(),
 	     counter->getOverThresholdDuration(),
 	     f->print(flow_buf, sizeof(flow_buf)));
+    } else {
+      Host *attacker = f->get_srv_host();
+      IpAddress *aip = attacker->get_ip();
+      char aip_buf[48], *aip_ptr;
+      aip_ptr = aip->print(aip_buf, sizeof(aip_buf));
+      error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is under SYN flood attack by host %s [%u SYNs received in the last %u sec] %s";
+      snprintf(msg, sizeof(msg),
+	     error_msg, ntop->getPrefs()->get_http_prefix(),
+	     h, iface->get_name(), h, aip_ptr,
+	     counter->getCurrentHits(),
+	     counter->getOverThresholdDuration(),
+	     f->print(flow_buf, sizeof(flow_buf)));
+    }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
     ntop->getRedis()->queueAlert(alert_level_error, alert_syn_flood, msg);
@@ -989,6 +1001,8 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
+  if (!localHost) return; /* don't print alerts for remote hosts */
+
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
@@ -1010,7 +1024,7 @@ void Host::incNumFlows(bool as_client) {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
     if(num_active_flows_as_server == ntop->getPrefs()->get_host_max_active_flows()) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possibly under scan attack [%u active flows]";
+      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possibly under scan attack by %s [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
       h = ip->print(ip_buf, sizeof(ip_buf));
@@ -1029,6 +1043,8 @@ void Host::incNumFlows(bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(bool as_client) {
+  if (!localHost) return; /* don't print alerts for remote hosts */
+
   if(as_client) {
     if(num_active_flows_as_client) {
       num_active_flows_as_client--;
@@ -1094,6 +1110,8 @@ bool Host::isAboveQuota() {
 }
 
 void Host::updateStats(struct timeval *tv) {
+  if (!localHost) return; /* don't print alerts for remote hosts */
+
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
 
