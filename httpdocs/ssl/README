@@ -1,0 +1,4 @@
+SSL certificates will be installed on this directory.
+
+If you have compiled ntopng from source, please type "make cert"
+to generate your certificate.

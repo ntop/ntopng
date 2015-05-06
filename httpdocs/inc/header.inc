@@ -3,6 +3,7 @@
   <head>
     <title>Welcome to ntopng</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="@HTTP_PREFIX@/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/font-awesome/css/font-awesome.css" rel="stylesheet">
