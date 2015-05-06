@@ -136,6 +136,7 @@
 #define CONST_ALLOWED_NETS        "allowed_nets"
 #define CONST_USER                "user"
 #define CONST_ES_QUEUE_NAME       "ntopng.es"
+#define CONST_NTOP_INTERFACE      "ntop_interface"
 
 #define CONST_INTERFACE_TYPE_PCAP      "pcap"
 #define CONST_INTERFACE_TYPE_PCAP_DUMP "pcap dump"
