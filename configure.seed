@@ -44,7 +44,7 @@ if ! test -f "./nDPI" ; then :
         AC_MSG_RESULT(found in $NDPI_HOME)
       else		       
         AC_MSG_RESULT(not found)
-        echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; ./autogen.sh; make"
+        echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
         echo " and try again"
         exit
       fi
