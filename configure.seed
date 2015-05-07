@@ -8,7 +8,7 @@ dnl> Add /usr/local/ /opt/local
 CFLAGS=""
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
-TODAY=`date +%y%m%d`
+REVISION=`git rev-list --all |wc -l`
 
 if test -d "/usr/local/include"; then
 CFLAGS="${CFLAGS} -I/usr/local/include"
@@ -35,10 +35,12 @@ fi
 if ! test -f "./nDPI" ; then :
    AC_MSG_CHECKING(for nDPI)
    if test -d "../nDPI"; then :
-      ln -s ../nDPI .
       AC_MSG_RESULT(found in ../nDPI)
    else		       
-      AC_MSG_RESULT(not found: it will be checkdout from repository)
+      AC_MSG_RESULT(not found)
+      echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; ./autogen.sh; make"
+      echo " and try again"
+      exit
    fi
 fi
 
@@ -303,7 +305,7 @@ AC_SUBST(PRO_HEADERS)
 AC_SUBST(PRO_MAKEFILE_INC)
 AC_SUBST(PRO_LIBS)
 AC_SUBST(PRO_INC)
-AC_SUBST(TODAY)
+AC_SUBST(REVISION)
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)

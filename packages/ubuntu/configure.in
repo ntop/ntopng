@@ -3,8 +3,8 @@ AC_INIT([Makefile.in], 1.0)
 if test -f /usr/bin/lsb_release; then
   EXTRA_DEPS=", libnuma1, libzmq3"
   PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
-  PFRING_SVN_RELEASE=`svn info $HOME/PF_RING | grep "^Last Changed Rev"|cut -d " " -f 2`
-  PFRING_DEP=", pfring (=$PFRING_VERS-$PFRING_SVN_RELEASE)"
+  PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+  PFRING_DEP=", pfring (=$PFRING_VERS-$PFRING_RELEASE)"
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   if test "$UBUNTU_RELEASE" = "12.04"; then
      EXTRA_DEPS=", libnuma1"
@@ -15,7 +15,7 @@ else
   # Looks like an embedded system
   EXTRA_DEPS=""
   PFRING_VERS=""
-  PFRING_SVN_RELEASE=""
+  PFRING_RELEASE=""
   PFRING_DEP=""
   UBUNTU_RELEASE="debian"
   SUDO="sudo"
@@ -58,7 +58,7 @@ AC_SUBST(KERNEL)
 AC_SUBST(EXTRA_DEPS)
 AC_SUBST(GIT_RELEASE)
 AC_SUBST(PFRING_VERS)
-AC_SUBST(PFRING_GIT_RELEASE)
+AC_SUBST(PFRING_RELEASE)
 AC_SUBST(PFRING_DEP)
 AC_SUBST(SUDO)
 
