@@ -32,15 +32,22 @@ GIT_RELEASE="${PACKAGE_VERSION}"
 GIT_DATE=`date`
 fi
 
+NDPI_HOME=
 if ! test -f "./nDPI" ; then :
    AC_MSG_CHECKING(for nDPI)
    if test -d "../nDPI"; then :
-      AC_MSG_RESULT(found in ../nDPI)
+      NDPI_HOME=../nDPI
+      AC_MSG_RESULT(found in $NDPI_HOME)
    else		       
-      AC_MSG_RESULT(not found)
-      echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; ./autogen.sh; make"
-      echo " and try again"
-      exit
+      if test -d "$HOME/nDPI"; then :
+        NDPI_HOME=$HOME/nDPI
+        AC_MSG_RESULT(found in $NDPI_HOME)
+      else		       
+        AC_MSG_RESULT(not found)
+        echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; ./autogen.sh; make"
+        echo " and try again"
+        exit
+      fi
    fi
 fi
 
@@ -298,6 +305,7 @@ AC_SUBST(GIT_DATE)
 AC_SUBST(GIT_INDEX)
 AC_SUBST(INSTALL_DIR)
 AC_SUBST(MAN_DIR)
+AC_SUBST(NDPI_HOME)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
 AC_SUBST(PRO_OBJECTS)

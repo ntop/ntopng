@@ -13,8 +13,8 @@ ifeq ($(HAS_NDPI), 0)
     NDPI_LIB = $(shell pkg-config --libs libndpi)
     NDPI_LIB_DEP =
 else
-    NDPI_INC=-I./nDPI/src/include
-    NDPI_LIB=./nDPI/src/lib/.libs/libndpi.a
+    NDPI_INC=-I@NDPI_HOME@/src/include
+    NDPI_LIB=@NDPI_HOME@/src/lib/.libs/libndpi.a
     NDPI_LIB_DEP=$(NDPI_LIB)
 endif
 ######
