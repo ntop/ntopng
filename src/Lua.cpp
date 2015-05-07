@@ -1525,10 +1525,16 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
   h->updateHostTrafficPolicy(host_ip);
   return(CONST_LUA_OK);
 }
-
+/* ****************************************** */
+static int ntop_set_host_dump_policy(lua_State* vm) 
+{
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  ntop_interface->updateDumpFlowPolicy();
+  return(CONST_LUA_OK);
+}
 /* ****************************************** */
 
-static int ntop_set_host_dump_policy(lua_State* vm) {
+static int ntop_update_interface_flow_dump_policy(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -1718,13 +1724,6 @@ static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
   lua_pushnumber(vm, num_pkts);
 
   return(CONST_LUA_OK);
-}
-
-static int ntop_get_interface_flow_dump_policy(lua_State * vm)
-{
-    NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-    lua_push_bool_table_entry(vm,"if_flow_dump_policy",ntop_interface->getInterfaceFlowDumpPolicy());
-    return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -4123,6 +4122,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "listHTTPhosts",          ntop_list_http_hosts },
   { "findHost",               ntop_get_interface_find_host },
   { "updateHostTrafficPolicy", ntop_update_host_traffic_policy },
+  { "updateInterfaceFlowDumpPolicy", ntop_update_interface_flow_dump_policy},
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
   { "setHostQuota",           ntop_set_host_quota },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
@@ -4133,7 +4133,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getInterfaceDumpMaxFiles",       ntop_get_interface_dump_max_files },
   { "getInterfacePacketsDumpedFile",  ntop_get_interface_pkts_dumped_file },
   { "getInterfacePacketsDumpedTap",   ntop_get_interface_pkts_dumped_tap },
-  { "getInterfaceFlowDumpPolicy",   ntop_get_interface_flow_dump_policy },
   { "getEndpoint",            ntop_get_interface_endpoint },
   { "incrDrops",              ntop_increase_drops },
   { "isRunning",              ntop_interface_is_running },

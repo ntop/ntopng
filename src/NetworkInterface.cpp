@@ -52,7 +52,6 @@ static void free_wrapper(void *freeable)
 
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
-  flow_dump=true;
   ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
     strings_hash = NULL, ndpi_struct = NULL,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
@@ -78,12 +77,12 @@ NetworkInterface::NetworkInterface() {
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
   dump_max_files = CONST_MAX_DUMP;
+  loadDumpFlowPolicy();
 }
 
 /* **************************************************** */
 
 NetworkInterface::NetworkInterface(const char *name) {
-  flow_dump=true;
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64];
 
@@ -184,6 +183,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 #endif
 
   loadDumpPrefs();
+  loadDumpFlowPolicy();
 }
 
 /* **************************************************** */
@@ -326,6 +326,21 @@ int NetworkInterface::updateDumpTrafficMaxSecPerFile(void) {
   return retval;
 }
 
+void NetworkInterface::loadDumpFlowPolicy()
+{
+  flow_dump_policy=true;
+  if(ifname != NULL) {
+
+    char rkey[128], rsp[16];
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.flow_dump_policy", ifname);
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    {
+      if(strncmp(rsp, "false", 5))
+        flow_dump_policy=false;
+    }
+  }
+}
+
 /* **************************************************** */
 
 int NetworkInterface::updateDumpTrafficMaxFiles(void) {
@@ -442,6 +457,7 @@ int NetworkInterface::dumpFlow(time_t when, bool partial_dump, Flow *f) {
     return(-1);
   }
 }
+
 /* **************************************************** */
 
 int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
@@ -1890,6 +1906,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 
 void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "type", (char*)get_type());
+  lua_push_bool_table_entry(vm, "flow_dump_policy", flow_dump_policy);
 
   ethStats.lua(vm);
   localStats.lua(vm);

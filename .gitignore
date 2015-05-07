@@ -3,3 +3,15 @@
 *.obj
 
 nDPI/
+
+*.o
+
+dump.rdb
+
+test.txt
+
+t?
+
+Makefile
+
+ntopng

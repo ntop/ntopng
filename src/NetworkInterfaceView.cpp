@@ -239,24 +239,6 @@ void NetworkInterfaceView::getFlowsStats(lua_State* vm) {
     (*p)->getFlowsStats(vm);
 }
 
-bool NetworkInterfaceView::getInterfaceFlowDumpPolicy()
-{
-  list<NetworkInterface *>::iterator p;
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-  {
-    if((*p)->get_id()==id)
-      return(*p)->getInterfaceFlowDumpPolicy();
-  }
-}
-void NetworkInterfaceView::setInterfaceFlowDumpPolicy(bool b)
-{
-  list<NetworkInterface *>::iterator p;
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-  {
-    if((*p)->get_id()==id)
-      return (*p)->setInterfaceFlowDumpPolicy(b);
-  }
-}
 /* **************************************************** */
 
 bool NetworkInterfaceView::getHostInfo(lua_State* vm,
@@ -548,7 +530,14 @@ void NetworkInterfaceView::getnDPIProtocols(lua_State *vm) {
   for(p = physIntf.begin() ; p != physIntf.end() ; p++)
     (*p)->getnDPIProtocols(vm);
 }
-
+/***************************************** */
+void NetworkInterfaceView::updateDumpFlowPolicy()
+{
+  list<NetworkInterface *>::iterator p;
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,"flow_dump_policy UPDATED");
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    (*p)->updateDumpFlowPolicy();
+}
 /* *************************************** */
 
 bool NetworkInterfaceView::getDumpTrafficDiskPolicy(void) {

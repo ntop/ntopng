@@ -229,9 +229,12 @@ if((page == "overview") or (page == nil)) then
       end
 
       interface.setInterfaceIdleState(on_state)
-
       print("</td></tr>\n")
    end
+   print("<tr><th width=250>Dump flow</th><td colspan=3>")
+   toggleTableButton("", "", "On", "1","primary", "Off", "0","primary", "toggle_local_1", "ntopng.prefs."..if_name..".flow_dump_policy")
+   interface.updateInterfaceFlowDumpPolicy()
+   print("</td></tr>\n")
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
 
    if(ifstats.name ~= nil) then

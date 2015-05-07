@@ -707,7 +707,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 /* *************************************** */
 
 void Flow::dumpFlow(bool partial_dump) {
-  if(!iface->getInterfaceFlowDumpPolicy())
+  if(iface->getDumpFlowPolicy())
   {
     if(ntop->getPrefs()->do_dump_flows_on_db()
        || ntop->getPrefs()->do_dump_flows_on_es()
