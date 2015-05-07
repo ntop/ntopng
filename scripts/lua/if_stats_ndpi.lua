@@ -68,8 +68,8 @@ for _k in pairsByKeys(vals, rev) do
      print(" <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."><i class=\"fa fa-search-plus\"></i></A></th>")
      print("<td class=\"text-right\" style=\"width: 20%;\">" .. bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
-     percentageBar(total, ifstats["ndpi"][k]["bytes.rcvd"], "") -- k
-     --         print("</td>\n")
+     percentageBar(total, t, "") -- k
+     -- print("</td>\n")
      print("</span><span style=\"width: 40%; margin-left: 15px;\" >" ..round((t * 100)/total, 2).. " %</span></td></tr>\n")
   else
      print('"bytes": '..t..' }')
