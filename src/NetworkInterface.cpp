@@ -2354,7 +2354,7 @@ bool NetworkInterface::isInterfaceUp(char *name) {
   return(true);
 #else
   struct ifreq ifr;
-  int sock = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
+  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
   memset(&ifr, 0, sizeof(ifr));
   strcpy(ifr.ifr_name, name);
@@ -2381,8 +2381,10 @@ void NetworkInterface::addAllAvailableInterfaces() {
 	 && isInterfaceUp(devpointer->name)) {
 	ntop->getPrefs()->add_network_interface(devpointer->name,
 						devpointer->description);
-      }
-
+      } else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Interface [%s][%s] not valid or down: discarded", 
+				     devpointer->name, devpointer->description);
+      
       devpointer = devpointer->next;
     } /* for */
   }

@@ -13,8 +13,8 @@ ifeq ($(HAS_NDPI), 0)
     NDPI_LIB = $(shell pkg-config --libs libndpi)
     NDPI_LIB_DEP =
 else
-    NDPI_INC=-I./nDPI/src/include
-    NDPI_LIB=./nDPI/src/lib/.libs/libndpi.a
+    NDPI_INC=-I@NDPI_HOME@/src/include
+    NDPI_LIB=@NDPI_HOME@/src/lib/.libs/libndpi.a
     NDPI_LIB_DEP=$(NDPI_LIB)
 endif
 ######
@@ -82,8 +82,8 @@ PLATFORM = `uname -p`
 REVISION = @GIT_RELEASE@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 NTOPNG_VERSION = @NTOPNG_VERSION@
-RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@TODAY@.$(PLATFORM).rpm
-RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@TODAY@.noarch.rpm
+RPM_PKG = $(TARGET)-$(NTOPNG_VERSION)-@REVISION@.$(PLATFORM).rpm
+RPM_DATA_PKG = $(TARGET)-data-$(NTOPNG_VERSION)-@REVISION@.noarch.rpm
 ######
 
 ifeq ($(OS),Darwin)
@@ -129,12 +129,6 @@ HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 
 $(TARGET): $(OBJECTS) $(LIBRRDTOOL) Makefile
 	$(GPP) $(OBJECTS) -Wall $(LIBS) -o $@
-
-$(NDPI_LIB): nDPI
-	cd nDPI; if test ! -f Makefile; then ./autogen.sh ; ./configure; fi; make
-
-nDPI:
-	git clone https://github.com/ntop/nDPI.git
 
 $(LUAJIT_LIB):
 	cd $(LUAJIT_HOME); @GMAKE@

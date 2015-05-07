@@ -1,3 +1,5 @@
 *~
 .o
 *.obj
+third-party/json-c/config.h.in
+third-party/rrdtool-1.4.8/libtool
