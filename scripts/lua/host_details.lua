@@ -31,31 +31,6 @@ if(host_ip == nil) then
    return
 end
 
-if(_GET["flow_rate_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["flow_rate_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_GET["flow_rate_alert_threshold"] ~= "0", _GET["flow_rate_alert_threshold"], "25")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.flow_rate_alert_threshold', val)
-     --interface.loadDumpPrefs()
-   end
-end
-if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["syn_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_GET["syn_alert_threshold"] ~= "0", _GET["syn_alert_threshold"], "10")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.syn_alert_threshold', val)
-     --interface.loadDumpPrefs()
-   end
-end
-if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["flows_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_GET["flows_alert_threshold"] ~= "0", _GET["flows_alert_threshold"], "32768")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.flows_alert_threshold', val)
-     --interface.loadDumpPrefs()
-   end
-end
-
 if(protocol_id == nil) then protocol_id = "" end
 
 interface.select(ifname)
@@ -327,15 +302,6 @@ if(host["ip"] ~= nil) then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    else
       print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
-   end
-end
-
-if(host["ip"] ~= nil) then
-   if(page == "config") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-
-   else
-      print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
 end
 
@@ -1937,90 +1903,9 @@ else
 
 
 
-<<<<<<< HEAD
    </tbody> </table>
    ]]
 end
-=======
-elseif (page == "config") then
-
-      print("<table class=\"table table-striped table-bordered\">\n")
-
-<<<<<<< HEAD
-=======
-elseif (page == "config") then
-
-      print("<table class=\"table table-striped table-bordered\">\n")
-
->>>>>>> ntop/dev
-       print("<tr><th width=250>Host Flow Alert Threshold</th>\n")
-      print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host["ip"])
-      print [[">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.flow_rate_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 25 end
-         print(tostring(thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-       print("<tr><th width=250>Host SYN Alert Threshold</th>\n")
-      print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host["ip"])
-      print [[">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.syn_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 10 end
-         print(tostring(thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-       print("<tr><th width=250>Host Flows Threshold</th>\n")
-      print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host["ip"])
-      print [[">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.flows_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 32768 end
-         print(tostring(thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of flows over which a host is considered a flooder. Default: 32768.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-    print("</table>")
-<<<<<<< HEAD
->>>>>>> ntop/dev
-=======
->>>>>>> ntop/dev
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then

@@ -620,7 +620,7 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-TODAY
+REVISION
 PRO_INC
 PRO_LIBS
 PRO_MAKEFILE_INC
@@ -628,6 +628,7 @@ PRO_HEADERS
 PRO_OBJECTS
 HIREDIS_LIB
 HIREDIS_INC
+NDPI_HOME
 MAN_DIR
 INSTALL_DIR
 GIT_INDEX
@@ -2965,7 +2966,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 CFLAGS=""
 NTOPNG_VERSION="1.99.150507"
 NTOPNG_SHORT_VERSION="1.99"
-TODAY=`date +%y%m%d`
+REVISION=`git rev-list --all |wc -l`
 
 if test -d "/usr/local/include"; then
 CFLAGS="${CFLAGS} -I/usr/local/include"
@@ -2989,17 +2990,42 @@ GIT_RELEASE="${PACKAGE_VERSION}"
 GIT_DATE=`date`
 fi
 
-if ! test -f "./nDPI" ; then :
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for nDPI" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for nDPI" >&5
 $as_echo_n "checking for nDPI... " >&6; }
-   if test -d "../nDPI"; then :
-      ln -s ../nDPI .
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: found in ../nDPI" >&5
-$as_echo "found in ../nDPI" >&6; }
+NDPI_HOME=./nDPI
+if test -d "$NDPI_HOME" ; then :
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: found in $NDPI_HOME" >&5
+$as_echo "found in $NDPI_HOME" >&6; }
+else
+   NDPI_HOME=../nDPI
+   if test -d "$NDPI_HOME"; then :
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: found in $NDPI_HOME" >&5
+$as_echo "found in $NDPI_HOME" >&6; }
    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found: it will be checkdout from repository" >&5
-$as_echo "not found: it will be checkdout from repository" >&6; }
+      NDPI_HOME=$HOME/nDPI
+      if test -d "$NDPI_HOME"; then :
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found in $NDPI_HOME" >&5
+$as_echo "found in $NDPI_HOME" >&6; }
+      else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+$as_echo "not found" >&6; }
+        echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
+        echo " and try again"
+        exit
+      fi
    fi
+fi
+
+NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $NDPI_LIB" >&5
+$as_echo_n "checking for $NDPI_LIB... " >&6; }
+if test -f "$NDPI_LIB" ; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found $NDPI_LIB" >&5
+$as_echo "found $NDPI_LIB" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found $NDPI_LIB: compiling" >&5
+$as_echo "not found $NDPI_LIB: compiling" >&6; }
+  cd $NDPI_HOME; ./autogen.sh; make; cd -
 fi
 
 if test -d "pro"; then :
@@ -3967,6 +3993,7 @@ _ACEOF
 cat >>confdefs.h <<_ACEOF
 #define PACKAGE_MACHINE "$MACHINE"
 _ACEOF
+
 
 
 
