@@ -1946,6 +1946,13 @@ elseif (page == "config") then
 
       print("<table class=\"table table-striped table-bordered\">\n")
 
+<<<<<<< HEAD
+=======
+elseif (page == "config") then
+
+      print("<table class=\"table table-striped table-bordered\">\n")
+
+>>>>>>> ntop/dev
        print("<tr><th width=250>Host Flow Alert Threshold</th>\n")
       print [[<td>]]
    print[[<form class="form-inline" style="margin-bottom: 0px;">
@@ -2010,6 +2017,9 @@ elseif (page == "config") then
        ]]
 
     print("</table>")
+<<<<<<< HEAD
+>>>>>>> ntop/dev
+=======
 >>>>>>> ntop/dev
 
 elseif(page == "historical") then
