@@ -78,9 +78,6 @@ Prefs::Prefs(Ntop *_ntop) {
   non_local_host_max_idle = MAX_REMOTE_HOST_IDLE /* sec */;
   local_host_max_idle     = MAX_LOCAL_HOST_IDLE /* sec */;
   flow_max_idle           = MAX_FLOW_IDLE /* sec */;
-  host_max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND; /* flows/sec */
-  host_max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND; /* syn/sec */
-  host_max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"), 
     es_url = strdup((char*)"http://localhost:9200/_bulk"), 
@@ -300,9 +297,6 @@ void Prefs::loadIdleDefaults() {
   local_host_max_idle = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
   non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
   flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
-  host_max_new_flows_sec_threshold = getDefaultPrefsValue(CONST_MAX_NEW_FLOWS_PREFS, CONST_MAX_NEW_FLOWS_SECOND);
-  host_max_num_syn_sec_threshold = getDefaultPrefsValue(CONST_MAX_NUM_SYN_PREFS, CONST_MAX_NUM_SYN_PER_SECOND);
-  host_max_num_active_flows = getDefaultPrefsValue(CONST_MAX_NUM_FLOWS_PREFS, CONST_MAX_NUM_HOST_ACTIVE_FLOWS);
 #ifdef NTOPNG_PRO
   save_http_flows_traffic = getDefaultPrefsValue(CONST_SAVE_HTTP_FLOWS_TRAFFIC, false);
 #endif
@@ -935,9 +929,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_db);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
   lua_push_int_table_entry(vm, "dump_aggregation", dump_aggregations_to_db);
-  lua_push_int_table_entry(vm, "host_max_new_flows_sec_threshold", host_max_new_flows_sec_threshold);
-  lua_push_int_table_entry(vm, "host_max_num_syn_sec_threshold", host_max_num_syn_sec_threshold);
-  lua_push_int_table_entry(vm, "host_max_num_active_flows", host_max_num_active_flows);
 #ifdef NTOPNG_PRO
   lua_push_str_table_entry(vm, "nagios_host", nagios_host);
   lua_push_str_table_entry(vm, "nagios_port", nagios_port);

@@ -163,8 +163,12 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   drop_all_host_traffic = false,  dump_host_traffic = false;
 
-  syn_flood_attacker_alert = new AlertCounter(ntop->getPrefs()->get_host_max_new_syn_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
-  syn_flood_victim_alert = new AlertCounter(ntop->getPrefs()->get_host_max_new_syn_sec(), CONST_MAX_THRESHOLD_CROSS_DURATION);
+  max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
+  max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
+  max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
+
+  syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+  syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   category[0] = '\0', os[0] = '\0', httpbl[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId,
     ingress_shaper_id = egress_shaper_id = DEFAULT_SHAPER_ID,
@@ -180,6 +184,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), "%s.%d.json", k, vlan_id);
   dns = NULL, http = NULL, epp = NULL;
+
 #ifdef NTOPNG_PRO
   l7Policy = NULL;
 #endif
@@ -1006,7 +1011,7 @@ void Host::incNumFlows(bool as_client) {
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
-    if(num_active_flows_as_client == ntop->getPrefs()->get_host_max_active_flows()) {
+    if(num_active_flows_as_client == max_num_active_flows) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possible scanner [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
@@ -1023,7 +1028,7 @@ void Host::incNumFlows(bool as_client) {
   } else {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
-    if(num_active_flows_as_server == ntop->getPrefs()->get_host_max_active_flows()) {
+    if(num_active_flows_as_server == max_num_active_flows) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possibly under scan attack by %s [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
@@ -1049,7 +1054,7 @@ void Host::decNumFlows(bool as_client) {
     if(num_active_flows_as_client) {
       num_active_flows_as_client--;
 
-      if(num_active_flows_as_client == ntop->getPrefs()->get_host_max_active_flows()) {
+      if(num_active_flows_as_client == max_num_active_flows) {
 	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer a possible scanner [%u active flows]";
 	char ip_buf[48], *h, msg[512];
 	
@@ -1069,7 +1074,7 @@ void Host::decNumFlows(bool as_client) {
     if(num_active_flows_as_server) {
       num_active_flows_as_server--;
 
-      if(num_active_flows_as_server == ntop->getPrefs()->get_host_max_active_flows()) {
+      if(num_active_flows_as_server == max_num_active_flows) {
 	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer under scan attack [%u active flows]";
 	char ip_buf[48], *h, msg[512];
 	
@@ -1125,6 +1130,62 @@ void Host::updateStats(struct timeval *tv) {
              h, iface->get_name(), h, host_quota_mb);
     ntop->getRedis()->queueAlert(alert_level_warning, alert_quota, msg);
   }
+}
+
+/* *************************************** */
+
+void Host::loadAlertPrefs() {
+  loadFlowRateAlertPrefs();
+  loadSynAlertPrefs();
+  loadFlowsAlertPrefs();
+}
+
+void Host::loadFlowRateAlertPrefs() {
+  int retval = CONST_MAX_NEW_FLOWS_SECOND;
+
+  if(ip != NULL) {
+    char rkey[128], rsp[16];
+    char ip_buf[48];
+
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.flow_rate_alert_threshold",
+             ip->print(ip_buf, sizeof(ip_buf)));
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+      retval = atoi(rsp);
+  }
+
+  max_new_flows_sec_threshold = retval;
+}
+
+void Host::loadSynAlertPrefs() {
+  int retval = CONST_MAX_NUM_SYN_PER_SECOND;
+
+  if(ip != NULL) {
+    char rkey[128], rsp[16];
+    char ip_buf[48];
+
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.syn_alert_threshold",
+             ip->print(ip_buf, sizeof(ip_buf)));
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+      retval = atoi(rsp);
+  }
+
+  max_num_syn_sec_threshold = retval;
+}
+
+void Host::loadFlowsAlertPrefs() {
+  int retval = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
+
+  if(ip != NULL) {
+    char rkey[128], rsp[16];
+    char ip_buf[48];
+
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.flows_alert_threshold",
+             ip->print(ip_buf, sizeof(ip_buf)));
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+      retval = atoi(rsp);
+  }
+
+  max_num_active_flows = retval;
 }
 
 /* *************************************** */

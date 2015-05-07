@@ -48,6 +48,9 @@ class Host : public GenericHost {
   DnsStats *dns;
   HTTPStats *http;
   EppStats *epp;
+
+  u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
+
 #ifdef NTOPNG_PRO
   NDPI_PROTOCOL_BITMASK *l7Policy;
 #endif
@@ -60,6 +63,10 @@ class Host : public GenericHost {
   void refreshHTTPBL();
   void refreshCategory();
   void computeHostSerial();
+
+  void loadFlowRateAlertPrefs(void);
+  void loadSynAlertPrefs(void);
+  void loadFlowsAlertPrefs(void);
 
  public:
   Host(NetworkInterface *_iface);
@@ -146,6 +153,7 @@ class Host : public GenericHost {
   void setDumpTrafficPolicy(bool new_policy);
   bool isAboveQuota(void);
   void setQuota(u_int32_t new_quota);
+  void loadAlertPrefs(void);
 };
 
 #endif /* _HOST_H_ */
