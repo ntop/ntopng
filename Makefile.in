@@ -130,12 +130,6 @@ HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 $(TARGET): $(OBJECTS) $(LIBRRDTOOL) Makefile
 	$(GPP) $(OBJECTS) -Wall $(LIBS) -o $@
 
-$(NDPI_LIB): nDPI
-	cd nDPI; if test ! -f Makefile; then ./autogen.sh ; ./configure; fi; make
-
-nDPI:
-	git clone https://github.com/ntop/nDPI.git
-
 $(LUAJIT_LIB):
 	cd $(LUAJIT_HOME); @GMAKE@
 

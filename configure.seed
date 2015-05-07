@@ -32,9 +32,11 @@ GIT_RELEASE="${PACKAGE_VERSION}"
 GIT_DATE=`date`
 fi
 
-NDPI_HOME=
-if ! test -f "./nDPI" ; then :
-   AC_MSG_CHECKING(for nDPI)
+AC_MSG_CHECKING(for nDPI)
+if test -f "./nDPI" ; then :
+      NDPI_HOME=./nDPI
+      AC_MSG_RESULT(found in $NDPI_HOME)
+else
    if test -d "../nDPI"; then :
       NDPI_HOME=../nDPI
       AC_MSG_RESULT(found in $NDPI_HOME)
@@ -49,6 +51,15 @@ if ! test -f "./nDPI" ; then :
         exit
       fi
    fi
+fi
+
+NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
+AC_MSG_CHECKING(for $NDPI_LIB)	
+if test -f "$NDPI_LIB" ; then :
+  AC_MSG_RESULT(found $NDPI_LIB)
+else
+  AC_MSG_RESULT(not found $NDPI_LIB: compiling)
+  cd $NDPI_HOME; ./autogen.sh; make; cd -
 fi
 
 if test -d "pro"; then :
