@@ -1263,6 +1263,8 @@ json_object* Flow::flow2json(bool partial_dump) {
      || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN))
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(get_detected_protocol()));
+    json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf, sizeof(jsonbuf)),
+                           json_object_new_string(get_detected_protocol_name()));
 
   if(protocol == IPPROTO_TCP)
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
