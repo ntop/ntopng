@@ -33,18 +33,18 @@ GIT_DATE=`date`
 fi
 
 AC_MSG_CHECKING(for nDPI)
-if test -f "./nDPI" ; then :
-      NDPI_HOME=./nDPI
-      AC_MSG_RESULT(found in $NDPI_HOME)
+NDPI_HOME=./nDPI
+if test -d "$NDPI_HOME" ; then :
+   AC_MSG_RESULT(found in $NDPI_HOME)
 else
-   if test -d "../nDPI"; then :
-      NDPI_HOME=../nDPI
+   NDPI_HOME=../nDPI
+   if test -d "$NDPI_HOME"; then :
       AC_MSG_RESULT(found in $NDPI_HOME)
-   else		       
-      if test -d "$HOME/nDPI"; then :
-        NDPI_HOME=$HOME/nDPI
+   else
+      NDPI_HOME=$HOME/nDPI
+      if test -d "$NDPI_HOME"; then :
         AC_MSG_RESULT(found in $NDPI_HOME)
-      else		       
+      else
         AC_MSG_RESULT(not found)
         echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
         echo " and try again"
@@ -54,7 +54,7 @@ else
 fi
 
 NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
-AC_MSG_CHECKING(for $NDPI_LIB)	
+AC_MSG_CHECKING(for $NDPI_LIB)
 if test -f "$NDPI_LIB" ; then :
   AC_MSG_RESULT(found $NDPI_LIB)
 else
@@ -172,7 +172,7 @@ if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a"
 	  exit
         fi
       fi
-    fi 
+    fi
   else
   LDFLAGS="${LDFLAGS} -lpfring"
   echo "Compiling ntopng with PF_RING support"
