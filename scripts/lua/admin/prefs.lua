@@ -53,15 +53,6 @@ if(haveAdminPrivileges()) then
 		     "Toggle the dump of alerts on syslog.",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_alert_syslog", "ntopng.prefs.alerts_syslog")
 
-   -- CONST_MAX_NEW_FLOWS_SECOND
-   prefsInputField("Host Flow Alert Threshold", "Max number of new flows/sec over which a host is considered a flooder. Default: 25.", "host_max_new_flows_sec_threshold", prefs.host_max_new_flows_sec_threshold)
-
-   -- CONST_MAX_NUM_SYN_PER_SECOND
-   prefsInputField("Host SYN Alert Threshold", "Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.", "host_max_num_syn_sec_threshold", prefs.host_max_num_syn_sec_threshold)
-
-   -- CONST_MAX_NUM_HOST_ACTIVE_FLOWS
-   prefsInputField("Host Flows Threshold", "Max number of flows over which a host is considered a flooder. Default: 32768.", "host_max_num_active_flows", prefs.host_max_num_active_flows)
-
 if (ntop.isPro()) then
    -- ================================================================================
    print('<tr><th colspan=2 class="info">Nagios Alerts Configuration</th></tr>')

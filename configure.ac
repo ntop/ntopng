@@ -1,14 +1,14 @@
 dnl> Do not add anything above
-AC_INIT([ntopng],[@VERSION@])
+AC_INIT([ntopng],[1.99.150507])
 dnl> Do not add anything above
 
 AC_PROG_CPP
 
 dnl> Add /usr/local/ /opt/local
 CFLAGS=""
-NTOPNG_VERSION="@VERSION@"
-NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
-REVISION=`git rev-list --all |wc -l`
+NTOPNG_VERSION="1.99.150507"
+NTOPNG_SHORT_VERSION="1.99"
+TODAY=`date +%y%m%d`
 
 if test -d "/usr/local/include"; then
 CFLAGS="${CFLAGS} -I/usr/local/include"
@@ -32,34 +32,14 @@ GIT_RELEASE="${PACKAGE_VERSION}"
 GIT_DATE=`date`
 fi
 
-AC_MSG_CHECKING(for nDPI)
-NDPI_HOME=./nDPI
-if test -d "$NDPI_HOME" ; then :
-   AC_MSG_RESULT(found in $NDPI_HOME)
-else
-   NDPI_HOME=../nDPI
-   if test -d "$NDPI_HOME"; then :
-      AC_MSG_RESULT(found in $NDPI_HOME)
-   else
-      NDPI_HOME=$HOME/nDPI
-      if test -d "$NDPI_HOME"; then :
-        AC_MSG_RESULT(found in $NDPI_HOME)
-      else
-        AC_MSG_RESULT(not found)
-        echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
-        echo " and try again"
-        exit
-      fi
+if ! test -f "./nDPI" ; then :
+   AC_MSG_CHECKING(for nDPI)
+   if test -d "../nDPI"; then :
+      ln -s ../nDPI .
+      AC_MSG_RESULT(found in ../nDPI)
+   else		       
+      AC_MSG_RESULT(not found: it will be checkdout from repository)
    fi
-fi
-
-NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
-AC_MSG_CHECKING(for $NDPI_LIB)
-if test -f "$NDPI_LIB" ; then :
-  AC_MSG_RESULT(found $NDPI_LIB)
-else
-  AC_MSG_RESULT(not found $NDPI_LIB: compiling)
-  cd $NDPI_HOME; ./autogen.sh; make; cd -
 fi
 
 if test -d "pro"; then :
@@ -172,7 +152,7 @@ if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a"
 	  exit
         fi
       fi
-    fi
+    fi 
   else
   LDFLAGS="${LDFLAGS} -lpfring"
   echo "Compiling ntopng with PF_RING support"
@@ -316,7 +296,6 @@ AC_SUBST(GIT_DATE)
 AC_SUBST(GIT_INDEX)
 AC_SUBST(INSTALL_DIR)
 AC_SUBST(MAN_DIR)
-AC_SUBST(NDPI_HOME)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
 AC_SUBST(PRO_OBJECTS)
@@ -324,7 +303,7 @@ AC_SUBST(PRO_HEADERS)
 AC_SUBST(PRO_MAKEFILE_INC)
 AC_SUBST(PRO_LIBS)
 AC_SUBST(PRO_INC)
-AC_SUBST(REVISION)
+AC_SUBST(TODAY)
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)

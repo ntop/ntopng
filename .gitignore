@@ -1,6 +1,7 @@
 *~
 .o
 *.obj
+<<<<<<< HEAD
 
 nDPI/
 
@@ -15,3 +16,31 @@ t?
 Makefile
 
 ntopng
+=======
+third-party/json-c/config.h.in
+third-party/rrdtool-1.4.8/libtool
+>>>>>>> ntop/dev
+
+autom4te.cache/output.0
+
+autom4te.cache/output.1
+
+autom4te.cache/requests
+
+autom4te.cache/traces.0
+
+autom4te.cache/traces.1
+
+config.status
+
+config.h.in
+
+config.h
+
+.travis.yml
+
+.travis.yml
+
+config.log
+
+.travis.yml
