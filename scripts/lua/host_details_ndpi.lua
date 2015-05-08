@@ -13,6 +13,7 @@ ifid = _GET["ifid"]
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
+interface.select(ifid)
 host_info = hostkey2hostinfo(host_ip)
 host_vlan = host_info["vlan"]
 host = interface.getHostInfo(host_info["host"], host_vlan)
