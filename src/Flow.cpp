@@ -1318,6 +1318,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "HTTP_URL", json_object_new_string(http.last_url));
     json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(http.last_method));
     json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)http.last_return_code));
+    json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
   }
 
   if(ssl.certificate)
