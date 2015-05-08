@@ -297,7 +297,7 @@ else
 end
 end
 
-if(host["ip"] ~= nil) then
+if((host["ip"] ~= nil) and (host["localhost"] == false)) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    else
@@ -1821,7 +1821,7 @@ if(tab == "alerts_preferences") then
     ]]
    if((host["ip"] ~= nil) and (host["localhost"] == false)) then
          print [[<tr>
-      <th>Host Alert</th>
+      <th>Host Alerts</th>
    <td nowrap>
    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
       <input type="hidden" name="tab" value="alerts_preferences">
