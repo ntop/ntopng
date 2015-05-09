@@ -116,6 +116,7 @@ class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name.*/
   int id;
+  bool flow_dump_policy;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #endif
@@ -250,7 +251,7 @@ class NetworkInterface {
   void getFlowsStats(lua_State* vm);
   void getActiveFlowsList(lua_State* vm, char *host_ip, u_int vlan_id, patricia_tree_t *allowed_hosts);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts, char *numIP, u_int16_t vlanId);
-
+  void loadDumpFlowPolicy();
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
   u_int purgeIdleHosts();
@@ -304,6 +305,8 @@ class NetworkInterface {
   int updateDumpTrafficMaxPktsPerFile();
   int updateDumpTrafficMaxSecPerFile();
   int updateDumpTrafficMaxFiles(void);
+  inline void updateDumpFlowPolicy(){if(flow_dump_policy) flow_dump_policy=false; else flow_dump_policy=true;}
+  inline bool getDumpFlowPolicy(){return flow_dump_policy;}
   inline bool getDumpTrafficDiskPolicy()      { return(dump_to_disk); }
   inline bool getDumpTrafficTapPolicy()       { return(dump_to_tap); }
   inline u_int getDumpTrafficSamplingRate()   { return(dump_sampling_rate); }

@@ -1,0 +1,351 @@
+dnl> Do not add anything above
+AC_INIT([ntopng],[1.99.150507])
+dnl> Do not add anything above
+
+AC_PROG_CPP
+
+dnl> Add /usr/local/ /opt/local
+CFLAGS=""
+NTOPNG_VERSION="1.99.150507"
+NTOPNG_SHORT_VERSION="1.99"
+REVISION=`git rev-list --all |wc -l`
+
+if test -d "/usr/local/include"; then
+CFLAGS="${CFLAGS} -I/usr/local/include"
+CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
+LDFLAGS="${LDFLAGS} -L/usr/local/lib"
+fi
+
+SHORT_MACHINE=`uname -m | cut -b1-3`
+if test $SHORT_MACHINE = "arm"; then
+LIBNUMA=""
+else
+LIBNUMA="-lnuma"
+fi
+
+if test -d ".git"; then :
+GIT_TAG=`git rev-parse HEAD`
+GIT_DATE=`date +%Y%m%d`
+GIT_RELEASE="${GIT_TAG}:${GIT_DATE}"
+else
+GIT_RELEASE="${PACKAGE_VERSION}"
+GIT_DATE=`date`
+fi
+
+AC_MSG_CHECKING(for nDPI)
+NDPI_HOME=./nDPI
+if test -d "$NDPI_HOME" ; then :
+   AC_MSG_RESULT(found in $NDPI_HOME)
+else
+   NDPI_HOME=../nDPI
+   if test -d "$NDPI_HOME"; then :
+      AC_MSG_RESULT(found in $NDPI_HOME)
+   else
+      NDPI_HOME=$HOME/nDPI
+      if test -d "$NDPI_HOME"; then :
+        AC_MSG_RESULT(found in $NDPI_HOME)
+      else
+        AC_MSG_RESULT(not found)
+        echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
+        echo " and try again"
+        exit
+      fi
+   fi
+fi
+
+NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
+AC_MSG_CHECKING(for $NDPI_LIB)
+if test -f "$NDPI_LIB" ; then :
+  AC_MSG_RESULT(found $NDPI_LIB)
+else
+  AC_MSG_RESULT(not found $NDPI_LIB: compiling)
+  cd $NDPI_HOME; ./autogen.sh; make; cd -
+fi
+
+if test -d "pro"; then :
+PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
+PRO_HEADERS='$(wildcard pro/*.h)'
+PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
+PWD=`pwd`
+CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/pro"
+PRO_SVN_RELEASE=`svn info pro | grep "^Revision"|cut -d " " -f 2`
+SVN_PRO_DATE=`svn info pro | grep "^Last Changed Date"|cut -d " " -f 4-`
+AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_RELEASE, "r${PRO_SVN_RELEASE}", [ntopng professional release])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_DATE, "${SVN_PRO_DATE}", [ntopng professional date])
+PRO_LIBS='$(PRO_LIBS)'
+PRO_INC='$(PRO_INC)'
+DUMMY=`cd pro; make build`
+
+if test -r "pro/license/systemId.c"; then :
+ AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
+fi
+else
+PRO_MAKEFILE_INC=
+PRO_INC=
+PRO_LIBS=
+PRO_OBJECTS=
+PRO_HEADERS=
+PRO_LIBS=
+fi
+
+AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "r${GIT_RELEASE}", [GIT Release])
+AC_DEFINE_UNQUOTED(NTOPNG_GIT_DATE, "${GIT_DATE}", [Last GIT change])
+
+if test -z `which pkg-config`; then
+   echo "#!/bin/sh\n" > pkg-config
+fi
+
+if test -f ".git/index"; then
+   GIT_INDEX=".git/index"
+fi
+
+MACHINE=`uname -m`
+SYSTEM=`uname -s`
+
+if test $SYSTEM = "Linux"; then
+   if test -f /etc/debian_version; then
+      DEBIAN_VERSION=`cat /etc/debian_version`
+      OSNAME="Debian $DEBIAN_VERSION"
+   else
+      OSNAME=`./linux.guess`
+   fi
+else
+   OSNAME=`./config.guess`
+fi
+AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
+
+if test $MACHINE = "x86_64"; then
+   EXTN="amd64"
+else
+   EXTN="i386"
+fi
+
+DATE=`date +"%Y-%m-%d"`
+
+if test -d "/usr/include/hiredis"; then
+ AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
+ HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
+ HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
+else
+ HIREDIS_INC="-I ./third-party/hiredis"
+fi
+
+PF_RING_HOME=${HOME}/PF_RING
+if test -d ${PF_RING_HOME}; then
+  AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
+fi
+
+if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a" || test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
+  AC_DEFINE_UNQUOTED(HAVE_PF_RING, 1, [Native PF_RING support])
+  if test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
+     echo "${PF_RING_HOME}/userland/libpcap/libpcap.a"
+     if test -f "${PF_RING_HOME}/userland/libpcap/libpcap.a"; then
+       LDFLAGS="${LDFLAGS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ ${LIBNUMA}"
+       CPPFLAGS="${CPPFLAGS} -I${PF_RING_HOME}/kernel -I${PF_RING_HOME}/userland/lib -I${PF_RING_HOME}/userland/libpcap"
+       echo "Using PF_RING installed in ${PF_RING_HOME}"
+     else
+       echo "Found PF_RING but the userland libs have not been compiled"
+       exit
+     fi
+  else
+     if test -d "/opt/pfring"; then
+       if test -f "/opt/pfring/lib/libpfring.a"; then
+         echo "/opt/pfring/lib/libpfring.a"
+         LDFLAGS="${LDFLAGS} /opt/pfring/lib/libpfring.a -L/opt/pfring/lib"
+         CPPFLAGS="${CPPFLAGS} -I/opt/pfring/include"
+         echo "Using PF_RING installed in /opt/pfring"
+      else
+       if test -f "/usr/local/lib/libpfring.a"; then
+        if test -f "/usr/local/lib/libpcap.a"; then
+    	  LDFLAGS="${LDFLAGS} /usr/local/lib/libpfring.a"
+          echo "Using PF_RING installed in /usr/local/lib"
+	  AC_CHECK_LIB([pcap], [pcap_open_live], pcap=true)
+	  if test x$pcap = x
+	  then
+	    echo "Found /usr/local/lib/libpfring.a but missing header files."
+	    exit
+	  fi
+	else
+	  echo "Found /usr/local/lib/libpfring.a  but missing libpcap.a in the same directory"
+	  echo "Please make sure you have installed your PF_RING libraries and try again"
+	  exit
+        fi
+      fi
+    fi
+  else
+  LDFLAGS="${LDFLAGS} -lpfring"
+  echo "Compiling ntopng with PF_RING support"
+ fi
+ fi
+ AC_CHECK_LIB([numa], [numa_available], [LDFLAGS="${LDFLAGS} -lnuma"])
+else
+  AC_CHECK_LIB([pcap], [pcap_open_live], pcap=true)
+  if test x$pcap = x
+  then
+    echo "Please install libpcap(-dev) (http://tcpdump.org)"
+    exit
+  fi
+fi
+
+AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
+AC_CHECK_LIB([rt], [clock_gettime],   [LDFLAGS="${LDFLAGS} -lrt"])
+
+dnl> ldl (used by edjdb)
+AC_CHECK_LIB([dl], [dlopen], [LDFLAGS="${LDFLAGS} -ldl"])
+
+AC_CHECK_LIB([curl], [curl_easy_perform], [LDFLAGS="${LDFLAGS} -lcurl"])
+if test ${ac_cv_lib_curl_curl_easy_perform} = "no"; then
+    echo "Please install libcurl(-dev) (http://curl.haxx.se/)"
+    exit
+fi
+
+CFLAGS="-Wall $CFLAGS"
+
+dnl> http://luajit.org/install.html
+if test $SYSTEM = "Darwin"; then
+   if test $MACHINE = "x86_64"; then
+      LINK_OPTS="-pagezero_size 10000 -image_base 100000000"
+      RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
+      if test $RES -eq 0; then
+            CFLAGS="-fno-color-diagnostics $CFLAGS"
+      fi
+   fi
+fi
+
+dnl> Check for package install
+DOWNLOAD_GEOIP=0
+AC_CHECK_LIB([GeoIP], [GeoIP_record_by_ipnum])
+AC_HAVE_HEADERS(GeoIP.h)
+if test ".${ac_cv_lib_GeoIP_GeoIP_record_by_ipnum}" = ".yes" &&
+   test ".${ac_cv_header_GeoIP_h}" = ".yes"; then
+
+   AC_CHECK_LIB([GeoIP], [GeoIP_lib_version])
+   if test ".${ac_cv_lib_GeoIP_GeoIP_lib_version}" = ".yes"; then
+     AC_DEFINE_UNQUOTED(HAVE_GEOIP_IPv6, 1, [GeoIP IPv6 support is present])
+     dnl> LIBS="$LIBS -lGeoIP"
+     AC_DEFINE_UNQUOTED(HAVE_GEOIP, 1, [GeoIP support is present])
+     GEOIP_LIB="-lGeoIP"
+     dnl> Download databases
+     DOWNLOAD_GEOIP=1
+   else
+     AC_DEFINE_UNQUOTED(HAVE_GEOIP_IPv6, 1, [GeoIP not supported: library too old, plase upgrade first])
+   fi
+else
+AC_MSG_RESULT(Build ntop without geolocation - GeoIP (http://www.maxmind.com/))
+GEOIP_DEP=""
+fi
+
+AC_CHECK_LIB([sqlite3], [sqlite3_open], sqlite=true)
+if test x$sqlite = xtrue
+then
+  AC_DEFINE_UNQUOTED([HAVE_SQLITE], 1, [We have sqlite])
+  SQLITE_LIB="-lsqlite3"
+else
+  echo "SQLite 3.x missing (libsqlite3-dev): please install it and try again"
+  exit
+fi
+
+AC_DEFINE_UNQUOTED(_CRT_SECURE_NO_WARNINGS, 1, [Disable warning on windows])
+
+GMAKE=`which gmake`
+if test x$GMAKE = x
+then
+	GMAKE="make"
+fi
+
+GPP=`which clang++`
+if test x$GPP = x
+then
+	GPP="g++"
+fi
+
+GIT=`which git`
+if test x$GIT = x
+then
+	AC_MSG_RESULT(FATAL ERROR: git is not installed on your host)
+fi
+
+WGET=`which wget`
+if test x$WGET = x
+then
+	AC_MSG_RESULT(ERROR. wget is not installed on your host: you cannot download GeoIP data)
+fi
+
+umask 002
+
+INSTALL_DIR=${prefix}
+if test $INSTALL_DIR = "NONE"
+then
+ INSTALL_DIR=${ac_default_prefix}
+fi
+
+if test $SYSTEM = "Darwin"; then
+  MAN_DIR=$INSTALL_DIR/share
+else
+  MAN_DIR=$INSTALL_DIR
+fi
+
+if test $SYSTEM = "OpenBSD"; then
+INSTALL_DIR=${prefix}
+MAN_DIR=${prefix}
+fi
+
+AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
+AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
+AC_SUBST(MACHINE)
+AC_SUBST(SYSTEM)
+AC_SUBST(EXTN)
+AC_SUBST(DATE)
+AC_SUBST(KERNEL)
+AC_SUBST(GIT_RELEASE)
+AC_SUBST(LINK_OPTS)
+AC_SUBST(GEOIP_LIB)
+AC_SUBST(SQLITE_LIB)
+AC_SUBST(GMAKE)
+AC_SUBST(GPP)
+AC_SUBST(CFLAGS)
+AC_SUBST(CXXFLAGS)
+AC_SUBST(CPPFLAGS)
+AC_SUBST(LDFLAGS)
+AC_SUBST(PACKAGE_VERSION)
+AC_SUBST(NTOPNG_VERSION)
+AC_SUBST(NTOPNG_SHORT_VERSION)
+AC_SUBST(GIT_RELEASE)
+AC_SUBST(GIT_DATE)
+AC_SUBST(GIT_INDEX)
+AC_SUBST(INSTALL_DIR)
+AC_SUBST(MAN_DIR)
+AC_SUBST(NDPI_HOME)
+AC_SUBST(HIREDIS_INC)
+AC_SUBST(HIREDIS_LIB)
+AC_SUBST(PRO_OBJECTS)
+AC_SUBST(PRO_HEADERS)
+AC_SUBST(PRO_MAKEFILE_INC)
+AC_SUBST(PRO_LIBS)
+AC_SUBST(PRO_INC)
+AC_SUBST(REVISION)
+AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_FILES(packages/ntopng.spec)
+AC_CONFIG_FILES(packages/ntopng-data.spec)
+AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES(doc/doxygen.conf)
+
+AC_OUTPUT
+
+echo ""
+echo "You are now ready to compile typing $GMAKE"
+
+if test $DOWNLOAD_GEOIP = "1"
+then
+  echo "Please do not forget to download GeoIP databases doing: $GMAKE geoip"
+fi
+
+dnl>
+dnl> ntopng release history
+dnl>
+dnl> 0.1    	r6089	2013-03-25
+dnl> 1.0	r6533	2013-06-30
+dnl> 1.1	r6929	2013-11-03
+dnl> 1.2	r8114	2014-15-08-13
+dnl> 1.2.1	r8202	2014-15-09-06

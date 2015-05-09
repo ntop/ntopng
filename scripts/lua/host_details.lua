@@ -31,31 +31,6 @@ if(host_ip == nil) then
    return
 end
 
-if(_GET["flow_rate_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["flow_rate_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_GET["flow_rate_alert_threshold"] ~= "0", _GET["flow_rate_alert_threshold"], "25")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.flow_rate_alert_threshold', val)
-     --interface.loadDumpPrefs()
-   end
-end
-if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["syn_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_GET["syn_alert_threshold"] ~= "0", _GET["syn_alert_threshold"], "10")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.syn_alert_threshold', val)
-     --interface.loadDumpPrefs()
-   end
-end
-if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["flows_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_GET["flows_alert_threshold"] ~= "0", _GET["flows_alert_threshold"], "32768")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.flows_alert_threshold', val)
-     --interface.loadDumpPrefs()
-   end
-end
-
 if(protocol_id == nil) then protocol_id = "" end
 
 interface.select(ifname)
@@ -136,12 +111,10 @@ print [[
 if((debug_hosts) and (host["ip"] ~= nil)) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host["ip"] .. ", Vlan: "..host["vlan"].."\n") end
 url=ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info)
 
-print("<li><a href=\"#\">Host: "..host_info["host"].."</A> </li>")
-
 if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
+  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i> Host: "..host_info["host"].." </a></li>\n")
 else
-   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i>\n")
+  print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i> Host: "..host_info["host"].." </a></li>")
 end
 
 if(page == "traffic") then
@@ -324,20 +297,11 @@ else
 end
 end
 
-if(host["ip"] ~= nil) then
+if((host["ip"] ~= nil) and (host["localhost"] == false)) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    else
       print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
-   end
-end
-
-if(host["ip"] ~= nil) then
-   if(page == "config") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-
-   else
-      print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
 end
 
@@ -409,14 +373,7 @@ if((page == "overview") or (page == nil)) then
       print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
    end
 
-   trigger_alerts = _GET["trigger_alerts"]
-   if(trigger_alerts ~= nil) then
-      if(trigger_alerts == "true") then
-	 ntop.delHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info))
-      else
-	 ntop.setHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info), trigger_alerts)
-      end
-   end
+   
 
    drop_host_traffic = _GET["drop_host_traffic"]
    host_key = hostinfo2hostkey(host_info)
@@ -431,29 +388,6 @@ if((page == "overview") or (page == nil)) then
    else
       drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
       if(drop_host_traffic == nil) then drop_host_traffic = "false" end
-   end
-
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info))
-   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-      alerts_checked = 'checked="checked"'
-      alerts_value = "false" -- Opposite
-   else
-      alerts_checked = ""
-      alerts_value = "true" -- Opposite
-   end
-
-   if(host["ip"] ~= nil) then
-      print [[
-</td>
-<td nowrap>
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-
-      print(host_info["host"])
-      print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger Host Alerts</input>')
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('</form>')
-      print('</td></tr>')
    end
 
    if(ifstats.iface_vlan and (host["vlan"] ~= nil)) then
@@ -1800,6 +1734,11 @@ for _,e in pairs(alerts_granularity) do
    if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
    print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
 end
+--Preferences Tab for alerts (only for remote hosts)
+if(host["localhost"] == false) then
+   if ( tab == "alerts_preferences" )  then print("\t<li class=active>") else print("\t<li>") end
+   print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab=alerts_preferences\">Preferences</a></li>\n")
+end
 
 -- Before doing anything we need to check if we need to save values
 
@@ -1853,143 +1792,120 @@ if(alerts ~= nil) then
    end
 end
 
-print [[
- </ul>
- <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
- <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
+
+--Print Trigger Host Alerts in alert section
+if(tab == "alerts_preferences") then 
+   if(isAdministrator()) then
+      trigger_alerts = _GET["trigger_alerts"]
+      if(trigger_alerts ~= nil) then
+         if(trigger_alerts == "true") then
+       ntop.delHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info))
+         else
+       ntop.setHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info), trigger_alerts)
+         end
+      end
+   end
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info))
+   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+      alerts_checked = 'checked="checked"'
+      alerts_value = "false" -- Opposite
+   else
+      alerts_checked = ""
+      alerts_value = "true" -- Opposite
+   end
+
+   
+   print [[ </ul>
+    <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
+    <tr><th width=20%>Preferences</th><th>Value</th></tr>
+    ]]
+   if((host["ip"] ~= nil) and (host["localhost"] == false)) then
+         print [[<tr>
+      <th>Host Alerts</th>
+   <td nowrap>
+   <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
+      <input type="hidden" name="tab" value="alerts_preferences">
+       <input type="hidden" name="host" value="]]
+
+         print(host_info["host"])
+         print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger Host Alerts</input>')
+         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         print('<input type="hidden" name="page" value="alerts">')
+         print('</form>')
+         print('</td>')
+   print [[</tr>]]
+   end
+   print [[</table>]]
+
+else
+   print [[
+    </ul>
+    <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
+    <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>]]
+
+   print [[<form>
+    <input type=hidden name=page value=alerts>
+   ]]
+
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print("<input type=hidden name=host value=\""..hostinfo2hostkey(host_info).."\">\n")
+   print("<input type=hidden name=tab value="..tab..">\n")
+
+   for k,v in pairsByKeys(alert_functions_description, asc) do
+      print("<tr><th>"..k.."</th><td>\n")
+      print("<select name=operator-".. k ..">\n")
+      if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
+      print("value=\"gt\">&gt;</option>\n")
+
+      if((vals[k] ~= nil) and (vals[k][1] == "eq")) then print("<option selected=\"selected\"") else print("<option ") end
+      print("value=\"eq\">=</option>\n")
+
+      if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
+      print("value=\"lt\">&lt;</option>\n")
+      print("</select>\n")
+      print("<input type=text name=\"value-"..k.."\" value=\"")
+      if(vals[k] ~= nil) then print(vals[k][2]) end
+      print("\">\n\n")
+      print("<br><small>"..v.."</small>\n")
+      print("</td></tr>\n")
+   end
+
+   print [[
+   <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
+
+   <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
+
+   <a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> Delete All Host Configured Alerts ]</button></a>
+   <!-- Modal -->
+   <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+     <div class="modal-dialog">
+       <div class="modal-content">
+         <div class="modal-header">
+       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+       <h3 id="myModalLabel">Confirm Action</h3>
+     </div>
+     <div class="modal-body">
+   	 <p>Do you really want to delele all configured alerts for host ]] print(hostinfo2hostkey(host_info)) print [[?</p>
+     </div>
+     <div class="modal-footer">
+       <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">
+   ]]
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+       <button class="btn btn-primary" type="submit">Delete All</button>
+
+     </div>
+   </form>
+   </div>
+   </div>
+
+   </th> </tr>
 
 
-<form>
- <input type=hidden name=page value=alerts>
-]]
 
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-print("<input type=hidden name=host value=\""..hostinfo2hostkey(host_info).."\">\n")
-print("<input type=hidden name=tab value="..tab..">\n")
-
-for k,v in pairsByKeys(alert_functions_description, asc) do
-   print("<tr><th>"..k.."</th><td>\n")
-   print("<select name=operator-".. k ..">\n")
-   if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
-   print("value=\"gt\">&gt;</option>\n")
-
-   if((vals[k] ~= nil) and (vals[k][1] == "eq")) then print("<option selected=\"selected\"") else print("<option ") end
-   print("value=\"eq\">=</option>\n")
-
-   if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
-   print("value=\"lt\">&lt;</option>\n")
-   print("</select>\n")
-   print("<input type=text name=\"value-"..k.."\" value=\"")
-   if(vals[k] ~= nil) then print(vals[k][2]) end
-   print("\">\n\n")
-   print("<br><small>"..v.."</small>\n")
-   print("</td></tr>\n")
+   </tbody> </table>
+   ]]
 end
-
-print [[
-<tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
-
-<input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
-
-<a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> Delete All Host Configured Alerts ]</button></a>
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
-    <h3 id="myModalLabel">Confirm Action</h3>
-  </div>
-  <div class="modal-body">
-	 <p>Do you really want to delete all configured alerts for host ]] print(hostinfo2hostkey(host_info)) print [[?</p>
-  </div>
-  <div class="modal-footer">
-    <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">
-]]
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" type="submit">Delete All</button>
-
-  </div>
-</form>
-</div>
-</div>
-
-</th> </tr>
-
-
-
-</tbody> </table>
-]]
-
-elseif (page == "config") then
-
-      print("<table class=\"table table-striped table-bordered\">\n")
-
-       print("<tr><th width=250>Host Flow Alert Threshold</th>\n")
-      print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host["ip"])
-      print [[">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.flow_rate_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 25 end
-         print(tostring(thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-       print("<tr><th width=250>Host SYN Alert Threshold</th>\n")
-      print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host["ip"])
-      print [[">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.syn_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 10 end
-         print(tostring(thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-       print("<tr><th width=250>Host Flows Threshold</th>\n")
-      print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host["ip"])
-      print [[">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.flows_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 32768 end
-         print(tostring(thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of flows over which a host is considered a flooder. Default: 32768.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-    print("</table>")
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then

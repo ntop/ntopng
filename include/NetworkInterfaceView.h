@@ -85,6 +85,7 @@ class NetworkInterfaceView {
   bool idle(void);
   void setIdleState(bool new_state);
   void getnDPIProtocols(lua_State *vm);
+  void updateDumpFlowPolicy();
 
   PacketDumper *getPacketDumper(void);
   PacketDumperTuntap *getPacketDumperTap(void);

@@ -707,29 +707,32 @@ char* Flow::print(char *buf, u_int buf_len) {
 /* *************************************** */
 
 void Flow::dumpFlow(bool partial_dump) {
-  if(ntop->getPrefs()->do_dump_flows_on_db()
-     || ntop->getPrefs()->do_dump_flows_on_es()
-     || ntop->get_export_interface()) {
+  if(iface->getDumpFlowPolicy())
+  {
+    if(ntop->getPrefs()->do_dump_flows_on_db()
+       || ntop->getPrefs()->do_dump_flows_on_es()
+       || ntop->get_export_interface()) {
 
-    if(partial_dump) {
-      time_t now = time(NULL);
+      if(partial_dump) {
+        time_t now = time(NULL);
 
-      if((now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
-	return;
-    }
+        if((now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
+  	return;
+      }
 
-    if(ntop->getPrefs()->do_dump_flows_on_db()) {
-      cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, this);
-    } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
-      cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
-    }
+      if(ntop->getPrefs()->do_dump_flows_on_db()) {
+        cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, this);
+      } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
+        cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
+      }
 
-    if(ntop->get_export_interface()) {
-      char *json = serialize(partial_dump, false);
+      if(ntop->get_export_interface()) {
+        char *json = serialize(partial_dump, false);
 
-      if(json) {
-	ntop->get_export_interface()->export_data(json);
-	free(json);
+        if(json) {
+  	ntop->get_export_interface()->export_data(json);
+  	free(json);
+        }
       }
     }
   }

@@ -530,7 +530,14 @@ void NetworkInterfaceView::getnDPIProtocols(lua_State *vm) {
   for(p = physIntf.begin() ; p != physIntf.end() ; p++)
     (*p)->getnDPIProtocols(vm);
 }
-
+/***************************************** */
+void NetworkInterfaceView::updateDumpFlowPolicy()
+{
+  list<NetworkInterface *>::iterator p;
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,"flow_dump_policy UPDATED");
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    (*p)->updateDumpFlowPolicy();
+}
 /* *************************************** */
 
 bool NetworkInterfaceView::getDumpTrafficDiskPolicy(void) {

@@ -1525,10 +1525,16 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
   h->updateHostTrafficPolicy(host_ip);
   return(CONST_LUA_OK);
 }
-
+/* ****************************************** */
+static int ntop_set_host_dump_policy(lua_State* vm) 
+{
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  ntop_interface->updateDumpFlowPolicy();
+  return(CONST_LUA_OK);
+}
 /* ****************************************** */
 
-static int ntop_set_host_dump_policy(lua_State* vm) {
+static int ntop_update_interface_flow_dump_policy(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -4116,6 +4122,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "listHTTPhosts",          ntop_list_http_hosts },
   { "findHost",               ntop_get_interface_find_host },
   { "updateHostTrafficPolicy", ntop_update_host_traffic_policy },
+  { "updateInterfaceFlowDumpPolicy", ntop_update_interface_flow_dump_policy},
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
   { "setHostQuota",           ntop_set_host_quota },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
