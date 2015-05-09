@@ -40,7 +40,7 @@ class Prefs {
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
     categorization_enabled, httpbl_enabled, resolve_all_host_ip, change_user, daemonize,
-    dump_timeline, shorten_aggregation_names, enable_auto_logout,
+    dump_timeline, shorten_aggregation_names, enable_auto_logout, use_promiscuous_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login;
   LocationPolicy dump_hosts_to_db, dump_aggregations_to_db, sticky_hosts;
@@ -187,6 +187,8 @@ class Prefs {
   inline char* get_es_pwd()   { return(es_pwd);   };
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
   inline bool are_taps_enabled() { return(enable_taps); };
+  inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
+  inline bool use_promiscuous()  { return(use_promiscuous_mode); };
 };
 
 #endif /* _PREFS_H_ */

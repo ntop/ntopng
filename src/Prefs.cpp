@@ -30,7 +30,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks = strdup(CONST_DEFAULT_HOME_NET","CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
-  enable_dns_resolution = sniff_dns_responses = true;
+  enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
   categorization_enabled = false, httpbl_enabled = false, resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
@@ -160,6 +160,7 @@ void usage() {
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
 	 "                                    | Default: %s\n"
 	 "[--dump-timeline|-C]                | Enable timeline dump.\n"
+	 "[--no-promisc|-u]                   | Don't set the interface in promiscuous mode.\n"
 	 "[--categorization-key|-c] <key>     | Key used to access host categorization\n"
 	 "                                    | services (default: disabled). \n"
 	 "                                    | Please read README.categorization for\n"
@@ -319,22 +320,23 @@ void Prefs::loadNagiosDefaults() {
 /* ******************************************* */
 
 static const struct option long_options[] = {
-  { "dns-mode",                          required_argument, NULL, 'n' },
-  { "interface",                         required_argument, NULL, 'i' },
+  { "categorization-key",                required_argument, NULL, 'c' },
 #ifndef WIN32
   { "data-dir",                          required_argument, NULL, 'd' },
 #endif
-  { "categorization-key",                required_argument, NULL, 'c' },
-  { "httpbl-key",                        required_argument, NULL, 'k' },
   { "daemon",                            no_argument,       NULL, 'e' },
   { "core-affinity",                     required_argument, NULL, 'g' },
   { "help",                              no_argument,       NULL, 'h' },
-  { "disable-login",                     required_argument, NULL, 'l' },
+  { "interface",                         required_argument, NULL, 'i' },
   { "local-networks",                    required_argument, NULL, 'm' },
+  { "dns-mode",                          required_argument, NULL, 'n' },
+  { "httpbl-key",                        required_argument, NULL, 'k' },
+  { "disable-login",                     required_argument, NULL, 'l' },
   { "ndpi-protocols",                    required_argument, NULL, 'p' },
   { "disable-autologout",                no_argument,       NULL, 'q' },
   { "redis",                             required_argument, NULL, 'r' },
   { "dont-change-user",                  no_argument,       NULL, 's' },
+  { "no-promisc",                        no_argument,       NULL, 'u' },
   { "verbose",                           no_argument,       NULL, 'v' },
   { "max-num-hosts",                     required_argument, NULL, 'x' },
   { "http-port",                         required_argument, NULL, 'w' },
@@ -412,6 +414,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'C':
     dump_timeline = true;
+    break;
+
+  case 'u':
+    use_promiscuous_mode = false;
     break;
 
 #ifndef WIN32
@@ -756,7 +762,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "c:k:eg:hi:w:r:sg:m:n:p:qd:x:1:2:3:l:vA:B:CD:E:F:G:HI:S:TU:X:W:VZ:",
+			 "c:k:eg:hi:w:r:sg:m:n:p:qd:x:1:2:3:l:uvA:B:CD:E:F:G:HI:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);

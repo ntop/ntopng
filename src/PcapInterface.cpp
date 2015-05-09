@@ -60,7 +60,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
     }
   } else {
     pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(),
-				 ntop->getGlobals()->getPromiscuousMode(),
+				 ntop->getPrefs()->use_promiscuous(),
 				 500, pcap_error_buffer);  
 
     if(pcap_handle) {
