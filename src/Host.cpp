@@ -785,7 +785,7 @@ char* Host::serialize() {
   json_object *my_object;
   char *rsp, buf[32];
 
-  my_object = json_object_new_object();
+  if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   json_object_object_add(my_object, "mac_address", json_object_new_string(get_mac(buf, sizeof(buf))));
 

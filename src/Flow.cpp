@@ -1245,7 +1245,8 @@ json_object* Flow::flow2json(bool partial_dump) {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
 
-  my_object = json_object_new_object();
+  if((my_object = json_object_new_object()) == NULL) return(NULL);
+
   json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
   json_object_object_add(my_object, Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
@@ -1308,10 +1309,30 @@ json_object* Flow::flow2json(bool partial_dump) {
   if(server_proc != NULL) processJson(false, my_object, server_proc);
 
   c = cli_host->get_country() ? cli_host->get_country() : NULL;
-  if(c) json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
+  if(c) {
+    json_object *location = json_object_new_array();
+
+    json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
+
+    if(location) {
+      json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
+      json_object_array_add(location, json_object_new_double(cli_host->get_longitude()));
+      json_object_object_add(my_object, "SRC_IP_LOCATION", location);
+    }
+  }
 
   c = srv_host->get_country() ? srv_host->get_country() : NULL;
-  if(c) json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
+  if(c) {
+    json_object *location = json_object_new_array();
+
+    json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
+
+    if(location) {
+      json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
+      json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
+      json_object_object_add(my_object, "DST_IP_LOCATION", location);
+    }
+  }
 
   if(0) { /* TODO */
     json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
