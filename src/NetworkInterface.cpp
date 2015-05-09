@@ -824,7 +824,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, rawsize);
+    flow->incStats(src2dst_direction, h->len);
 
     if(l4_proto == IPPROTO_TCP) {
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -933,7 +933,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
       flow->deleteFlowMemory();
 
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_to_disk &&
       (!flow->isDetectionCompleted() ||
@@ -952,7 +952,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     }
   } else
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   return(pass_verdict);
 }
