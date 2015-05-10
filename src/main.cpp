@@ -159,6 +159,14 @@ int main(int argc, char *argv[])
 	if(strncmp(ifName, "bridge:", 7) == 0)
 	  iface = new PacketBridge(ifName);
 #endif
+
+#ifdef HAVE_NETFILTER
+        if (iface == NULL && strncmp(ifName, "nf:", 3) == 0) {
+          iface = new NetfilterInterface(ifName);
+          NetfilterInterface *n = (NetfilterInterface *)iface;
+          n->attachToNetFilter();
+        }
+#endif
 	
 #ifdef HAVE_PF_RING
 	if(iface == NULL)
