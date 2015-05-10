@@ -62,6 +62,9 @@ NetfilterInterface::NetfilterInterface(const char *name) : NetworkInterface(name
 /* **************************************************** */
 
 NetfilterInterface::~NetfilterInterface() {
+#ifdef NTOPNG_PRO
+  delete handler;
+#endif
   if (nfQHandle)
     nfq_destroy_queue(nfQHandle);
   if (nfHandle)
