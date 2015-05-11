@@ -19,24 +19,36 @@
  *
  */
 
+#ifdef HAVE_NETFILTER
+
+#ifndef _NETFILTER_NETWORK_INTERFACE_H_
+#define _NETFILTER_NETWORK_INTERFACE_H_
+
 #include "ntop_includes.h"
 
-/* **************************************** */
+class NetfilterHandler;
 
-NtopGlobals::NtopGlobals() {
-  start_time = time(NULL);
-  ifMTU = snaplen = 1514;
-  file_id = 0;
-  detection_tick_resolution = 1000;
-  trace = new Trace();  
-  mutex = new Mutex();
-  is_shutdown = false, do_decode_tunnels = true;
+class NetfilterInterface : public NetworkInterface {
+ private:
+  int queueId;
+  struct nfq_handle *nfHandle;
+  struct nfq_q_handle *nfQHandle;
+  int nf_fd;
+
+ public:
+  NetfilterInterface(const char *name);
+  ~NetfilterInterface();
+
+  int attachToNetFilter(void);
+
+#ifdef NTOPNG_PRO
+  NetfilterHandler *handler;
+#endif
+
+  inline const char* get_type()      { return(CONST_INTERFACE_TYPE_NETFILTER);     };
 };
 
-/* **************************************** */
+#endif /* _NETFILTER_NETWORK_INTERFACE_H_ */
 
-NtopGlobals::~NtopGlobals() {
-  delete trace;
-  delete mutex;
-};
+#endif /* HAVE_NETFILTER */
 

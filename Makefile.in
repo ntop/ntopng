@@ -3,6 +3,7 @@ prefix = @prefix@
 datadir = @datadir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
+HERE=@PWD@
 GPP=@GPP@
 INSTALL_DIR=$(DESTDIR)@INSTALL_DIR@
 MAN_DIR=$(DESTDIR)@MAN_DIR@
@@ -20,7 +21,7 @@ endif
 ######
 LIBPCAP=-lpcap
 ######
-MONGOOSE_HOME=./third-party/mongoose
+MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
 HAS_LUAJIT=$(shell pkg-config --exists luajit; echo $$?)
@@ -28,12 +29,12 @@ ifeq ($(HAS_LUAJIT), 0)
 	LUAJIT_INC = $(shell pkg-config --cflags luajit)
 	LUAJIT_LIB = $(shell pkg-config --libs luajit)
 else
-	LUAJIT_HOME=./third-party/LuaJIT-2.0.3
+	LUAJIT_HOME=${PWD}/third-party/LuaJIT-2.0.3
 	LUAJIT_INC=-I$(LUAJIT_HOME)/src
 	LUAJIT_LIB=$(LUAJIT_HOME)/src/libluajit.a
 endif
 ######
-LIBRRDTOOL_HOME=third-party/rrdtool-1.4.8
+LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
 HAS_LIBRRDTOOL=$(shell pkg-config --exists librrd; echo $$?)
 ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_INC = $(shell pkg-config --cflags librrd)
@@ -43,14 +44,14 @@ else
 	LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0
 endif
 ######
-HTTPCLIENT_INC=third-party/http-client-c/src/
+HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/
 ######
 HAS_JSON=$(shell pkg-config --exists json-c; echo $$?)
 ifeq ($(HAS_JSON), 0)
 	JSON_INC = $(shell pkg-config --cflags json-c)
 	JSON_LIB = $(shell pkg-config --libs json-c)
 else
-	JSON_HOME=third-party/json-c
+	JSON_HOME=${PWD}/third-party/json-c
 	JSON_INC=-I$(JSON_HOME)
 	JSON_LIB=$(JSON_HOME)/.libs/libjson-c.a
 endif
@@ -65,17 +66,17 @@ ifeq ($(HAS_ZEROMQ), 0)
 		ZEROMQ_LIB = $(ZMQ_STATIC)
 	endif
 else
-	ZEROMQ_HOME=./third-party/zeromq-4.0.5
+	ZEROMQ_HOME=${PWD}/third-party/zeromq-4.0.5
 	ZEROMQ_INC=-I$(ZEROMQ_HOME)/include
 	ZEROMQ_LIB=$(ZEROMQ_HOME)/src/.libs/libzmq.a
 endif
 ######
-EWH_HOME=third-party/EWAHBoolArray
+EWH_HOME=${PWD}/third-party/EWAHBoolArray
 EWH_INC=$(EWH_HOME)/headers
 ######
 TARGET = ntopng
 LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(ZEROMQ_LIB) $(JSON_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
-CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ -I . -I ./include $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @CPPFLAGS@ -I$(HTTPCLIENT_INC) -I$(EWH_INC) @PRO_INC@ -DDATA_DIR='"$(datadir)"'  # -D_GLIBCXX_DEBUG
+CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @CPPFLAGS@ -I$(HTTPCLIENT_INC) -I$(EWH_INC) @PRO_INC@ -DDATA_DIR='"$(datadir)"'  # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm
 PLATFORM = `uname -p`

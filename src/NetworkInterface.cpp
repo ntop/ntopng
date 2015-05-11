@@ -448,7 +448,7 @@ int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
   int rc;
 
   if(json) {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "[ES] %s", es_rsp);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] %s", json);
 
     rc = ntop->getRedis()->lpush(CONST_ES_QUEUE_NAME, (char*)json, CONST_MAX_ES_MSG_QUEUE_LEN);
     free(json);
@@ -824,7 +824,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, rawsize);
+    flow->incStats(src2dst_direction, h->len);
 
     if(l4_proto == IPPROTO_TCP) {
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -933,7 +933,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
       flow->deleteFlowMemory();
 
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_to_disk &&
       (!flow->isDetectionCompleted() ||
@@ -952,7 +952,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     }
   } else
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   return(pass_verdict);
 }

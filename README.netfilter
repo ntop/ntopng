@@ -1,0 +1,8 @@
+If you use ntopng over netfilter you need to: 
+
+# 1- Create queueId (0 in the example below) and divert traffic to it
+iptables -A OUTPUT -p icmp -j NFQUEUE --queue-num 0
+
+# 2 - start ntopng on device nf:X
+ntopng -i nf:0
+

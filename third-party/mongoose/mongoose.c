@@ -4408,6 +4408,9 @@ static int parse_port_string(const struct vec *vec, struct socket *so) {
   if(is_ip6_enabled) {
     so->lsa.sin6.sin6_family = AF_INET6;
     so->lsa.sin6.sin6_port = htons((uint16_t) port);
+  } else { /* NTOP - fall back to IPv4 */
+    so->lsa.sin.sin_family = AF_INET;
+    so->lsa.sin.sin_port = htons((uint16_t) port);
   }
 #else
   so->lsa.sin.sin_family = AF_INET;

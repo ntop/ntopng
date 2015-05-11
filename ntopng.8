@@ -40,6 +40,7 @@ or
 .IR <categorization_key> ]
 .RB [ \-m
 .IR <local_subnets> ]
+.RB [ \-u | \-\-no\-promisc ]
 .RB [ \-p
 .IR <protocols> ]
 .RB [ \-P ]
@@ -80,7 +81,7 @@ or
 .IR <mode> ]
 .RB [ \-Z
 .IR <prefix> ]
-.RB [ \-\-shutdown-when-done ]
+.RB [ \-\-shutdown\-when\-done ]
 .RB [ \-v ]
 .RB [ \-V ]
 .RB [ \-h ]
@@ -224,6 +225,9 @@ set to 192.168.1.0/24.
 Commas separate multiple network values.
 Both netmask and CIDR notation may be used, even mixed together, for instance
 "131.114.21.0/24,10.0.0.0/255.0.0.0".
+
+.It \-u|\-\-no\-promisc
+Disable promiscous mode when capturing from network interfaces (by default promiscuous mode is used).
 
 .It \-p|\-\-ndpi\-protocols\ <file>.protos
 This parameter is used to specify a nDPI protocol file.
