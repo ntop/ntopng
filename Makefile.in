@@ -3,6 +3,7 @@ prefix = @prefix@
 datadir = @datadir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
+HERE=@PWD@
 GPP=@GPP@
 INSTALL_DIR=$(DESTDIR)@INSTALL_DIR@
 MAN_DIR=$(DESTDIR)@MAN_DIR@
@@ -20,7 +21,7 @@ endif
 ######
 LIBPCAP=-lpcap
 ######
-MONGOOSE_HOME=./third-party/mongoose
+MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
 HAS_LUAJIT=$(shell pkg-config --exists luajit; echo $$?)
@@ -28,7 +29,7 @@ ifeq ($(HAS_LUAJIT), 0)
 	LUAJIT_INC = $(shell pkg-config --cflags luajit)
 	LUAJIT_LIB = $(shell pkg-config --libs luajit)
 else
-	LUAJIT_HOME=./third-party/LuaJIT-2.0.3
+	LUAJIT_HOME=${PWD}/third-party/LuaJIT-2.0.3
 	LUAJIT_INC=-I$(LUAJIT_HOME)/src
 	LUAJIT_LIB=$(LUAJIT_HOME)/src/libluajit.a
 endif
@@ -65,7 +66,7 @@ ifeq ($(HAS_ZEROMQ), 0)
 		ZEROMQ_LIB = $(ZMQ_STATIC)
 	endif
 else
-	ZEROMQ_HOME=./third-party/zeromq-4.0.5
+	ZEROMQ_HOME=${PWD}/third-party/zeromq-4.0.5
 	ZEROMQ_INC=-I$(ZEROMQ_HOME)/include
 	ZEROMQ_LIB=$(ZEROMQ_HOME)/src/.libs/libzmq.a
 endif
@@ -75,7 +76,7 @@ EWH_INC=$(EWH_HOME)/headers
 ######
 TARGET = ntopng
 LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(ZEROMQ_LIB) $(JSON_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
-CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ -I . -I ./include $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @CPPFLAGS@ -I$(HTTPCLIENT_INC) -I$(EWH_INC) @PRO_INC@ -DDATA_DIR='"$(datadir)"'  # -D_GLIBCXX_DEBUG
+CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @CPPFLAGS@ -I$(HTTPCLIENT_INC) -I$(EWH_INC) @PRO_INC@ -DDATA_DIR='"$(datadir)"'  # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm
 PLATFORM = `uname -p`
