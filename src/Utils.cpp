@@ -747,7 +747,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
   curl = curl_easy_init();
   if(curl) {
     curl_version_info_data *v;
-    DownloadState *state;
+    DownloadState *state = NULL;
     long response_code;
     char *content_type, *redirection;
     char ua[64], auth[64];
@@ -809,7 +809,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
       lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
 
-    if(return_content)
+    if(return_content && state)
       free(state);
     
     /* always cleanup */

@@ -118,8 +118,9 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
           (IFNAMSIZ < DUMP_IFNAMSIZ ? IFNAMSIZ : DUMP_IFNAMSIZ) );
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d",
            ifr.ifr_name, DUMP_MTU);
-  system(buf);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Bringing up: %s", buf);
+  rc = system(buf);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Bringing up: %s [%d]", buf,rc);
   readMac(this->dev_name, this->mac_addr);
   free(tuntap_device);
   return(this->fd);

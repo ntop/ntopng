@@ -891,6 +891,7 @@ print [[
  <tr><th width=10%>Shaper Id</th><th>Max Rate (Kbps)</th><th>Presets</th></tr>
 ]]
 
+
 for i=1,max_num_shapers do
    max_rate = ntop.getHashCache(shaper_key, i)
    if(max_rate == "") then max_rate = -1 end
