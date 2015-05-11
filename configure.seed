@@ -124,13 +124,24 @@ fi
 
 DATE=`date +"%Y-%m-%d"`
 
+# Check for IPv6 support
+
 AC_MSG_CHECKING(for ipv6)
-if test -f "/proc/net/if_inet6"; then
-  AC_DEFINE_UNQUOTED(USE_IPV6, 1, [ipv6 support present])
+AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <unistd.h>
+#include <sys/socket.h>],
+[int sock6 = socket (AF_INET6, SOCK_DGRAM, 0); 
+u_int8_t is_ip6_enabled = (sock6 >= 0) ? 1 : 0;
+close (sock6);
+return(!(is_ip6_enabled)); ])],
+  [ac_cv_ipv6_support=yes], [ac_cv_ipv6_support=no])
+
+if test "$ac_cv_ipv6_support" = yes; then
+  AC_DEFINE_UNQUOTED(USE_IPV6, 1, [ipv6 support])
   AC_MSG_RESULT([yes])
-else 
+else
   AC_MSG_RESULT([no])
 fi
+
 
 if test -d "/usr/include/hiredis"; then
  AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
