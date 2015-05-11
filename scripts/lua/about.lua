@@ -95,15 +95,19 @@ print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".
 print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTime(info["uptime"]).."</td></tr>\n")
 print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
-v = string.split(info["version.ndpi"], " ")
-if(v ~= nil) then
-   ndpi_vers = v[1]
-   v_all = string.sub(v[2], 2, -2)
-   
-   vers = string.split(v_all, ":")
-   ndpi_hash = vers[1]
-   ndpi_date = vers[2]
-   print("<tr><th><a href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</A></th><td> <A HREF=https://github.com/ntop/nDPI/commit/".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+ndpi_ver = info["version.ndpi"]
+if (ndpi_ver ~= nil) then
+  v = string.split(ndpi_ver, " ")
+  if (v ~= nil) then
+    ndpi_vers = v[1]
+     v_all = string.sub(v[2], 2, -2)
+     vers = string.split(v_all, ":")
+     ndpi_hash = vers[1]
+     ndpi_date = vers[2]
+     print("<tr><th><A href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</a></th><td> <A HREF=https://github.com/ntop/nDPI/commit/".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+  else
+     print("<tr><th><A href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</A></th><td> <A HREF=https://github.com/ntop/nDPI/>"..ndpi_ver.."</A></td></tr>\n")
+  end
 end
 
 print("<tr><th><a href=http://twitter.github.io/ target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
