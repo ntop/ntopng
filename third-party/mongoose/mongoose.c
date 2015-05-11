@@ -554,12 +554,10 @@ struct mg_connection {
 
 char* http_prefix = NULL; /* ntop */
 u_int http_prefix_len = 0; /* ntop */
-
+u_int8_t is_ip6_enabled = 0; /* ntop */
 
 /* ntop */
 #if defined(USE_IPV6)
-u_int8_t is_ip6_enabled = 1;
-
 static void check_ipv6_enabled() {
   const int sock6 = socket (AF_INET6, SOCK_DGRAM, 0);  
   is_ip6_enabled = (sock6 >= 0) ? 1 : 0;
@@ -4408,10 +4406,7 @@ static int parse_port_string(const struct vec *vec, struct socket *so) {
   if(is_ip6_enabled) {
     so->lsa.sin6.sin6_family = AF_INET6;
     so->lsa.sin6.sin6_port = htons((uint16_t) port);
-  } else { /* NTOP - fall back to IPv4 */
-    so->lsa.sin.sin_family = AF_INET;
-    so->lsa.sin.sin_port = htons((uint16_t) port);
-  }
+  } 
 #else
   so->lsa.sin.sin_family = AF_INET;
   so->lsa.sin.sin_port = htons((uint16_t) port);

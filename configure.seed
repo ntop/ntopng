@@ -5,8 +5,7 @@ dnl> Do not add anything above
 AC_PROG_CPP
 
 dnl> Add /usr/local/ /opt/local
-CFLAGS="${CFLAGS} -I${PWD} -I${PWD}/include"
-CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
+CFLAGS=""
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 REVISION=`git rev-list --all |wc -l`
@@ -68,7 +67,7 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
-CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
+CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/pro"
 PRO_SVN_RELEASE=`svn info pro | grep "^Revision"|cut -d " " -f 2`
 SVN_PRO_DATE=`svn info pro | grep "^Last Changed Date"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
@@ -124,12 +123,20 @@ fi
 
 DATE=`date +"%Y-%m-%d"`
 
+AC_MSG_CHECKING(for ipv6)
+if test -f "/proc/net/if_inet6"; then
+  AC_DEFINE_UNQUOTED(USE_IPV6, 1, [ipv6 support present])
+  AC_MSG_RESULT([yes])
+else 
+  AC_MSG_RESULT([no])
+fi
+
 if test -d "/usr/include/hiredis"; then
  AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
  HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
  HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
 else
- HIREDIS_INC="-I ${PWD}/third-party/hiredis"
+ HIREDIS_INC="-I ./third-party/hiredis"
 fi
 
 PF_RING_HOME=${HOME}/PF_RING
@@ -187,15 +194,6 @@ else
     echo "Please install libpcap(-dev) (http://tcpdump.org)"
     exit
   fi
-fi
-
-AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
-AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
-AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
-
-if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" = xyes; then
-  AC_DEFINE_UNQUOTED(HAVE_NETFILTER, 1, [NFQ is present])
-  LDFLAGS="${LDFLAGS} -lnetfilter_queue"
 fi
 
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
@@ -303,7 +301,6 @@ fi
 
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
-AC_SUBST(PWD)
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)
 AC_SUBST(EXTN)
@@ -336,7 +333,7 @@ AC_SUBST(PRO_MAKEFILE_INC)
 AC_SUBST(PRO_LIBS)
 AC_SUBST(PRO_INC)
 AC_SUBST(REVISION)
-AC_CONFIG_HEADERS(include/config.h)
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
 AC_CONFIG_FILES(Makefile)
