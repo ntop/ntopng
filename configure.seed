@@ -5,7 +5,8 @@ dnl> Do not add anything above
 AC_PROG_CPP
 
 dnl> Add /usr/local/ /opt/local
-CFLAGS=""
+CFLAGS="${CFLAGS} -I${PWD} -I${PWD}/include"
+CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 REVISION=`git rev-list --all |wc -l`
@@ -67,7 +68,7 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
-CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include -I${PWD}/pro"
+CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
 PRO_SVN_RELEASE=`svn info pro | grep "^Revision"|cut -d " " -f 2`
 SVN_PRO_DATE=`svn info pro | grep "^Last Changed Date"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])

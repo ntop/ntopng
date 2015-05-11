@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 	  iface = new PacketBridge(ifName);
 #endif
 
-#ifdef HAVE_NETFILTER
+#if defined(HAVE_NETFILTER)
         if (iface == NULL && strncmp(ifName, "nf:", 3) == 0) {
           iface = new NetfilterInterface(ifName);
           NetfilterInterface *n = (NetfilterInterface *)iface;
