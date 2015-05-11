@@ -324,7 +324,7 @@ else
 end
 end
 
-if ((host["ip"] ~= nil) and (not host['localhost'])) then
+if ((host["ip"] ~= nil) and host['localhost']) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    else
@@ -1800,7 +1800,7 @@ for _,e in pairs(alerts_granularity) do
    print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
 end
 --Preferences Tab for alerts (only for remote hosts)
-if(host["localhost"] == false) then
+if(host["localhost"]) then
    if ( tab == "alerts_preferences" )  then print("\t<li class=active>") else print("\t<li>") end
    print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab=alerts_preferences\">Preferences</a></li>\n")
 end
@@ -1879,7 +1879,7 @@ if(tab == "alerts_preferences") then
     <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
     <tr><th width=20%>Preferences</th><th>Value</th></tr>
     ]]
-   if((host["ip"] ~= nil) and (host["localhost"] == false)) then
+   if((host["ip"] ~= nil) and host["localhost"]) then
          print [[<tr>
       <th>Host Alerts</th>
    <td nowrap>
