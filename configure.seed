@@ -124,6 +124,14 @@ fi
 
 DATE=`date +"%Y-%m-%d"`
 
+AC_MSG_CHECKING(for ipv6)
+if test -f "/proc/net/if_inet6"; then
+  AC_DEFINE_UNQUOTED(USE_IPV6, 1, [ipv6 support present])
+  AC_MSG_RESULT([yes])
+else 
+  AC_MSG_RESULT([no])
+fi
+
 if test -d "/usr/include/hiredis"; then
  AC_DEFINE_UNQUOTED(HAVE_HIREDIS, 1, [Local hiredis package present])
  HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"

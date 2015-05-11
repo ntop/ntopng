@@ -554,12 +554,10 @@ struct mg_connection {
 
 char* http_prefix = NULL; /* ntop */
 u_int http_prefix_len = 0; /* ntop */
-
+u_int8_t is_ip6_enabled = 0; /* ntop */
 
 /* ntop */
 #if defined(USE_IPV6)
-u_int8_t is_ip6_enabled = 1;
-
 static void check_ipv6_enabled() {
   const int sock6 = socket (AF_INET6, SOCK_DGRAM, 0);  
   is_ip6_enabled = (sock6 >= 0) ? 1 : 0;
