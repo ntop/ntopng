@@ -17,13 +17,14 @@ require "alert_utils"
 debug_hosts = false
 page        = _GET["page"]
 protocol_id = _GET["protocol"]
-host_info = url2hostinfo(_GET)
-host_ip   = hostinfo2hostkey(host_info)
-host_vlan = host_info["vlan"]
+host_info   = url2hostinfo(_GET)
+host_ip     = host_info["host"]
+host_name   = hostinfo2hostkey(host_info)
+host_vlan   = host_info["vlan"]
 
 active_page = "hosts"
 
-if(host_ip == nil) then
+if(host_name == nil) then
    sendHTTPHeader('text/html; charset=iso-8859-1')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -35,7 +36,7 @@ if(_GET["flow_rate_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
    if (tonumber(_GET["flow_rate_alert_threshold"]) ~= nil) then
      page = "config"
      val = ternary(_GET["flow_rate_alert_threshold"] ~= "0", _GET["flow_rate_alert_threshold"], "25")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.flow_rate_alert_threshold', val)
+     ntop.setCache('ntopng.prefs.'..host_name..'.flow_rate_alert_threshold', val)
      --interface.loadDumpPrefs()
    end
 end
@@ -43,7 +44,7 @@ if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
    if (tonumber(_GET["syn_alert_threshold"]) ~= nil) then
      page = "config"
      val = ternary(_GET["syn_alert_threshold"] ~= "0", _GET["syn_alert_threshold"], "10")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.syn_alert_threshold', val)
+     ntop.setCache('ntopng.prefs.'..host_name..'.syn_alert_threshold', val)
      --interface.loadDumpPrefs()
    end
 end
@@ -51,7 +52,7 @@ if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
    if (tonumber(_GET["flows_alert_threshold"]) ~= nil) then
      page = "config"
      val = ternary(_GET["flows_alert_threshold"] ~= "0", _GET["flows_alert_threshold"], "32768")
-     ntop.setCache('ntopng.prefs.'..host_ip..'.flows_alert_threshold', val)
+     ntop.setCache('ntopng.prefs.'..host_name..'.flows_alert_threshold', val)
      --interface.loadDumpPrefs()
    end
 end
@@ -115,7 +116,7 @@ else
    end
 
    if(host["ip"] ~= nil) then
-      host_ip = hostinfo2hostkey(host)
+      host_name = hostinfo2hostkey(host)
       host_info["host"] = host["ip"]
    end
 
@@ -1793,10 +1794,11 @@ if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
    alerts = nil
 else
    for k,_ in pairs(alert_functions_description) do
-      value    = _GET["value-"..k]
-      operator = _GET["operator-"..k]
+      value    = _GET["value_"..k]
+      operator = _GET["operator_"..k]
 
       if((value ~= nil) and (operator ~= nil)) then
+	 --io.write("\t"..k.."\n")
 	 to_save = true
 	 value = tonumber(value)
 	 if(value ~= nil) then
@@ -1810,12 +1812,12 @@ else
 
    if(to_save) then
       if(alerts == "") then
-	 ntop.delHashCache("ntopng.prefs.alerts_"..tab, hostinfo2hostkey(host))
+	 ntop.delHashCache("ntopng.prefs.alerts_"..tab, host_ip)
       else
-	 ntop.setHashCache("ntopng.prefs.alerts_"..tab, hostinfo2hostkey(host), alerts)
+	 ntop.setHashCache("ntopng.prefs.alerts_"..tab, host_ip, alerts)
       end
    else
-      alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, hostinfo2hostkey(host))
+      alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, host_ip)
    end
 end
 
@@ -1835,7 +1837,7 @@ if(alerts ~= nil) then
 end
 
 if(tab == "alerts_preferences") then 
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info))
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       alerts_checked = 'checked="checked"'
       alerts_value = "false" -- Opposite
@@ -1861,7 +1863,7 @@ else
 
    for k,v in pairsByKeys(alert_functions_description, asc) do
       print("<tr><th>"..k.."</th><td>\n")
-      print("<select name=operator-".. k ..">\n")
+      print("<select name=operator_".. k ..">\n")
       if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
       print("value=\"gt\">&gt;</option>\n")
 
@@ -1871,7 +1873,7 @@ else
       if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
       print("value=\"lt\">&lt;</option>\n")
       print("</select>\n")
-      print("<input type=text name=\"value-"..k.."\" value=\"")
+      print("<input type=text name=\"value_"..k.."\" value=\"")
       if(vals[k] ~= nil) then print(vals[k][2]) end
       print("\">\n\n")
       print("<br><small>"..v.."</small>\n")
@@ -1919,9 +1921,9 @@ elseif (page == "config") then
       trigger_alerts = _GET["trigger_alerts"]
       if(trigger_alerts ~= nil) then
          if(trigger_alerts == "true") then
-       ntop.delHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info))
+	    ntop.delHashCache("ntopng.prefs.alerts", host_ip)
          else
-       ntop.setHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info), trigger_alerts)
+	    ntop.setHashCache("ntopng.prefs.alerts", host_ip, trigger_alerts)
          end
       end
    end
@@ -1932,11 +1934,11 @@ elseif (page == "config") then
    print [[<td>]]
    print[[<form class="form-inline" style="margin-bottom: 0px;">
 	    <input type="hidden" name="host" value="]]
-	 print(host["ip"])
+	 print(host_ip)
 	 print [[">]]
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print [[<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-		     thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.flow_rate_alert_threshold')
+		     thresh = ntop.getCache('ntopng.prefs.'..host_ip..'.flow_rate_alert_threshold')
 		     if (thresh == nil or thresh == "") then thresh = 25 end
 		     print(tostring(thresh))
 		     print [["></input>
@@ -1953,11 +1955,11 @@ elseif (page == "config") then
       print [[<td>]]
    print[[<form class="form-inline" style="margin-bottom: 0px;">
        <input type="hidden" name="host" value="]]
-      print(host["ip"])
+      print(host_ip)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.syn_alert_threshold')
+         thresh = ntop.getCache('ntopng.prefs.'..host_ip..'.syn_alert_threshold')
          if (thresh == nil or thresh == "") then thresh = 10 end
          print(tostring(thresh))
          print [["></input>
@@ -1974,11 +1976,11 @@ elseif (page == "config") then
       print [[<td>]]
    print[[<form class="form-inline" style="margin-bottom: 0px;">
        <input type="hidden" name="host" value="]]
-      print(host["ip"])
+      print(host_ip)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host["ip"]..'.flows_alert_threshold')
+         thresh = ntop.getCache('ntopng.prefs.'..host_ip..'.flows_alert_threshold')
          if (thresh == nil or thresh == "") then thresh = 32768 end
          print(tostring(thresh))
          print [["></input>
@@ -1992,8 +1994,8 @@ elseif (page == "config") then
        ]]
 
 
-    if((host["ip"] ~= nil) and host["localhost"]) then
-       suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", hostinfo2hostkey(host_info))
+    if((host_ip ~= nil) and host["localhost"]) then
+       suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
        if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
 	  alerts_checked = 'checked="checked"'
 	  alerts_value = "false" -- Opposite

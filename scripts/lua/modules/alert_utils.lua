@@ -1,5 +1,5 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2014-15 - ntop.org
 --
 
 -- This file contains the description of all functions
@@ -114,9 +114,17 @@ end
 
 -- #################################
 
-function check_host_threshold(ifname, hostname, mode)
+function check_host_threshold(ifname, host_ip, mode)
+   
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
+   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+      if(verbose) then print("Alert check for ("..ifname..", "..host_ip..", "..mode..")<br>\n") end
+   else
+      if(verbose) then print("Skipping alert check for("..ifname..", "..host_ip..", "..mode.."): disabled in preferences<br>\n") end
+      return
+   end
 
-   if(verbose) then print("check_host_threshold("..ifname..", "..hostname..", "..mode..")<br>\n") end
+   if(verbose) then print("check_host_threshold("..ifname..", "..host_ip..", "..mode..")<br>\n") end
    basedir = fixPath(dirs.workingdir .. "/" .. ifname .. "/json/" .. mode)
    if(not(ntop.exists(basedir))) then
       ntop.mkdir(basedir)
@@ -124,10 +132,10 @@ function check_host_threshold(ifname, hostname, mode)
 
    --if(verbose) then print(basedir.."<br>\n") end
    interface.select(ifname)
-   json = interface.getHostInfo(hostname)
+   json = interface.getHostInfo(host_ip)
 
    if(json ~= nil) then
-      fname = fixPath(basedir.."/".. hostname ..".json")
+      fname = fixPath(basedir.."/".. host_ip ..".json")
 
       if(verbose) then print(fname.."<p>\n") end
       -- Read old version
@@ -135,7 +143,7 @@ function check_host_threshold(ifname, hostname, mode)
       if(f ~= nil) then
 	 old_json = f:read("*all")
 	 f:close()
-	 check_host_alert(ifname, hostname, mode, hostname, old_json, json["json"])
+	 check_host_alert(ifname, host_ip, mode, host_ip, old_json, json["json"])
       end
       
       -- Write new version
@@ -161,6 +169,7 @@ function scanAlerts(granularity)
       
       if(hosts ~= nil) then
 	 for h in pairs(hosts) do
+	    if(verbose) then print("[minute.lua] Checking host " .. h.." alerts<p>\n") end
 	    check_host_threshold(ifname, h, granularity)
 	 end
       end

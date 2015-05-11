@@ -1,7 +1,8 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2014-15 - ntop.org
 --
 require "lua_trace"
+
 
 function getInterfaceName(interface_id)
    local ifnames = interface.getIfNames()
@@ -1155,6 +1156,7 @@ end
 --
 function url2hostinfo(get_info)
   local host = {}
+  
   -- Catch when the host key is using as host url parameter
   if((get_info["host"] ~= nil) and (string.find(get_info["host"],"@"))) then
     get_info = hostkey2hostinfo(get_info["host"])
@@ -1171,6 +1173,7 @@ function url2hostinfo(get_info)
   else
     host["vlan"] = 0
   end
+
   return host
 end
 
