@@ -21,12 +21,7 @@
 
 #include "ntop_includes.h"
 
-#ifdef HAVE_NETFILTER
-#include "NetfilterHandler.h"
-
-#ifdef __APPLE__
-#include <uuid/uuid.h>
-#endif
+#if defined(HAVE_NETFILTER)
 
 /* **************************************************** */
 
@@ -83,7 +78,9 @@ static int netfilter_callback(struct nfq_q_handle *qh,
   u_int32_t nf_verdict, nf_mark;
   struct nfqnl_msg_packet_hdr *ph = nfq_get_msg_packet_hdr(nfa);
   int last_rcvd_packet_id, rc;
+#ifdef NTOPNG_PRO
   NetfilterInterface *iface = (NetfilterInterface *)data;
+#endif
 
   last_rcvd_packet_id = ph ? ntohl(ph->packet_id) : 0;
   payload_len = nfq_get_payload(nfa, (unsigned char **)&payload);
