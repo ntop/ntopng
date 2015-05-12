@@ -3141,10 +3141,10 @@ static int ntop_stats_delete_day_older_than(lua_State *vm) {
  */
 static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
   time_t epoch_start, epoch_end;
-  char **vals;
-  int ifid, num_vals;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3166,16 +3166,13 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
-  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
@@ -3193,10 +3190,10 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
 static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
   time_t epoch_start, epoch_end;
   int num_minutes;
-  char **vals;
-  int ifid, num_vals = 0;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3221,16 +3218,13 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
 
   epoch_start = epoch_end - (60 * num_minutes);
 
-  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  if (num_vals > 0) free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
@@ -3248,10 +3242,10 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
 static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
   time_t epoch_start, epoch_end;
   int num_hours;
-  char **vals;
-  int ifid, num_vals = 0;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3276,16 +3270,13 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
 
   epoch_start = epoch_end - (num_hours * 60 * 60);
 
-  if(sm->retrieveHourStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveHourStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  if (num_vals > 0) free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
@@ -3303,10 +3294,10 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
 static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
   time_t epoch_start, epoch_end;
   int num_days;
-  char **vals;
-  int ifid, num_vals = 0;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3331,16 +3322,13 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
 
   epoch_start = epoch_end - (num_days * 24 * 60 * 60);
 
-  if(sm->retrieveDayStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveDayStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  if (num_vals > 0) free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
