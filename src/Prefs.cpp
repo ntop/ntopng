@@ -917,7 +917,7 @@ void Prefs::add_default_interfaces() {
 
 void Prefs::lua(lua_State* vm) {
 #ifdef NTOPNG_PRO
-  char HTTP_stats_base_dir[MAX_PATH];
+  char HTTP_stats_base_dir[MAX_PATH*2];
 #endif
 
   lua_newtable(vm);
