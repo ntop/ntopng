@@ -647,7 +647,7 @@ int Redis::setHTTPBLAddress(char *numeric_ip, char *httpbl) {
 
 int Redis::setResolvedAddress(char *numeric_ip, char *symbolic_ip) {
   char key[CONST_MAX_LEN_REDIS_KEY], numeric[256], *w, *h;
-  int rc;
+  int rc = 0;
 
 #if 0
   if(strcmp(symbolic_ip, "broadcasthost") == 0)
