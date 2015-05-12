@@ -50,7 +50,7 @@ public:
     int deleteHourStatsOlderThan(unsigned num_days);
     int deleteDayStatsOlderThan(unsigned num_days);
 private:
-    static const int MAX_QUERY = 10000;
+    static const int MAX_QUERY = 500;
     static const int MAX_KEY = 20;
     const char *MINUTE_CACHE_NAME,
 	       *HOUR_CACHE_NAME, *DAY_CACHE_NAME; // see constructor for initialization
