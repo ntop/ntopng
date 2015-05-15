@@ -1204,20 +1204,14 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
 /* *************************************** */
 
 json_object* Flow::flow2es(json_object *flow_object) {
-  //json_object *es_object;
-  struct timeval tv;
   char buf[64];
   struct tm* tm_info;
-  int len;
   time_t t;
 
-  gettimeofday(&tv, NULL);
-  t = tv.tv_sec;
+  t = last_seen;
   tm_info = gmtime(&t);
 
-  strftime(buf, sizeof(buf), "%FT%T", tm_info);
-  len = strlen(buf);
-  snprintf(&buf[len], sizeof(buf)-len, ".%03uZ", (unsigned int)(tv.tv_usec/1000));
+  strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
   json_object_object_add(flow_object, "@timestamp", json_object_new_string(buf));
   json_object_object_add(flow_object, "@version", json_object_new_int(1));
 

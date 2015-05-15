@@ -25,6 +25,11 @@
 #include "ntop_includes.h"
 #include <map>
 
+struct statsManagerRetrieval {
+  vector<string> rows;
+  int num_vals;
+};
+
 class StatsManager {
 public:
     StatsManager(int ifid, const char *dbname);
@@ -36,16 +41,16 @@ public:
     int getMinuteRealEpoch(time_t epoch, string *real_epoch);
     int openCache(const char *cache_name);
     int retrieveMinuteStatsInterval(time_t epoch_start, time_t epoch_end,
-			            char ***vals, int *num_vals);
+                                    struct statsManagerRetrieval *retvals);
     int retrieveHourStatsInterval(time_t epoch_start, time_t epoch_end,
-			          char ***vals, int *num_vals);
+                                  struct statsManagerRetrieval *retvals);
     int retrieveDayStatsInterval(time_t epoch_start, time_t epoch_end,
-			         char ***vals, int *num_vals);
+                                 struct statsManagerRetrieval *retvals);
     int deleteMinuteStatsOlderThan(unsigned num_days);
     int deleteHourStatsOlderThan(unsigned num_days);
     int deleteDayStatsOlderThan(unsigned num_days);
 private:
-    static const int MAX_QUERY = 10000;
+    static const int MAX_QUERY = 500;
     static const int MAX_KEY = 20;
     const char *MINUTE_CACHE_NAME,
 	       *HOUR_CACHE_NAME, *DAY_CACHE_NAME; // see constructor for initialization
@@ -64,7 +69,7 @@ private:
     int getSampling(string *sampling, const char *cache_name, const int key_low, const int key_high);
     int getRealEpoch(string *real_epoch, const char *cache_name, const int key_low, const int key_high);
     int deleteStatsOlderThan(const char *cache_name, const int key);
-    int retrieveStatsInterval(char ***vals, int *num_vals, const char *cache_name,
+    int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char *cache_name,
                               const int key_start, const int key_end);
 };
 

@@ -103,7 +103,9 @@ end
 if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
    if (tonumber(_GET["max_files"]) ~= nil) then
      page = "packetdump"
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files',_GET["max_files"])
+     local max_files_size = tonumber(_GET["max_files"])
+     max_files_size = max_files_size * 1000000
+     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
      interface.loadDumpPrefs()
    end
 end
@@ -618,15 +620,15 @@ end
       print(ifstats.name)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="max_files" placeholder="" min="0" step="1000" max="500000000000" value="]]
+      print [[<input type="number" name="max_files" placeholder="" min="0" step="1" max="100000000" value="]]
          max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
 	 if(max_files ~= nil and max_files ~= "") then
-           print(max_files.."")
+           print(tostring(tonumber(max_files)/1000000).."")
          else
-           print(interface.getInterfaceDumpMaxFiles().."")
+           print(tostring(tonumber(interface.getInterfaceDumpMaxFiles())/1000000).."")
          end
 	 print [["></input>
-		  &nbsp; B &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
     <small>Maximum size of created pcap files.<br>NOTE: total file size is checked daily and old dump files are automatically overwritten after reaching the threshold.</small>
     </td></tr>
@@ -888,6 +890,7 @@ print [[
 <table class="table table-striped table-bordered">
  <tr><th width=10%>Shaper Id</th><th>Max Rate (Kbps)</th><th>Presets</th></tr>
 ]]
+
 
 for i=1,max_num_shapers do
    max_rate = ntop.getHashCache(shaper_key, i)

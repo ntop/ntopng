@@ -240,11 +240,6 @@ int StatsManager::deleteDayStatsOlderThan(unsigned num_days) {
   return deleteStatsOlderThan(DAY_CACHE_NAME, rawtime);
 }
 
-struct statsManagerRetrieval {
-  vector<string> rows;
-  int num_vals;
-};
-
 /**
  * @brief Callback for completion of retrieval of an interval of stats
  *
@@ -272,9 +267,8 @@ static int get_samplings_db(void *data, int argc,
  * @details This function implements the database-specific code
  *          to retrieve an interval of samplings.
  *
- * @param vals Pointer to a string array that will keep the result.
- * @param num_vals Pointer to an integer that will keep the number
- *        of retrieved sampling points.
+ * @param retvals Pointer to a statsManagerRetrieval object keeping
+ *        the result of the query.
  * @param cache_name Pointer to the name of the cache to retrieve
  *        stats from.
  * @param key_start Key to use as left boundary.
@@ -282,14 +276,11 @@ static int get_samplings_db(void *data, int argc,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::retrieveStatsInterval(char ***vals,
-                                        int *num_vals,
+int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
 					const char *cache_name,
                                         const int key_start,
                                         const int key_end) {
   char query[MAX_QUERY];
-  struct statsManagerRetrieval retvals;
-  vector<string> rows;
   int rc;
 
   if(!db)
@@ -298,7 +289,7 @@ int StatsManager::retrieveStatsInterval(char ***vals,
   if(openCache(cache_name))
     return -1;
 
-  memset(&retvals, 0, sizeof(retvals));
+  memset(retvals, 0, sizeof(*retvals));
 
   snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE TSTAMP >= %d "
 	   "AND TSTAMP <= %d",
@@ -306,16 +297,9 @@ int StatsManager::retrieveStatsInterval(char ***vals,
 
   m.lock(__FILE__, __LINE__);
 
-  rc = exec_query(query, get_samplings_db, (void *)&retvals);
+  rc = exec_query(query, get_samplings_db, (void *)retvals);
 
   m.unlock(__FILE__, __LINE__);
-
-  if(retvals.num_vals > 0)
-    *vals = (char**) malloc(retvals.num_vals * sizeof(char*));
-  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
-    (*vals)[i] = strndup(retvals.rows[i].c_str(), MAX_QUERY);
-
-  *num_vals = retvals.num_vals;
 
   return rc;
 }
@@ -328,20 +312,18 @@ int StatsManager::retrieveStatsInterval(char ***vals,
  *
  * @param epoch_start Left boundary of the interval.
  * @param epoch_end Right boundary of the interval.
- * @param vals Pointer to a string array that will keep the result.
- * @param num_vals Pointer to an integer that will keep the number
- *        of retrieved sampling points.
+ * @param retvals pointer to a statsManagerRetrieval object keeping
+ *        the result of the query.
  *
  * @return Zero in case of success, nonzero in case of error.
  */
 int StatsManager::retrieveMinuteStatsInterval(time_t epoch_start,
 				              time_t epoch_end,
-					      char ***vals,
-                                              int *num_vals) {
-  if(!vals || !num_vals)
+                                              struct statsManagerRetrieval *retvals) {
+  if(!retvals)
     return -1;
 
-  return retrieveStatsInterval(vals, num_vals, MINUTE_CACHE_NAME, epoch_start, epoch_end);
+  return retrieveStatsInterval(retvals, MINUTE_CACHE_NAME, epoch_start, epoch_end);
 }
 
 /**
@@ -352,20 +334,18 @@ int StatsManager::retrieveMinuteStatsInterval(time_t epoch_start,
  *
  * @param epoch_start Left boundary of the interval.
  * @param epoch_end Right boundary of the interval.
- * @param vals Pointer to a string array that will keep the result.
- * @param num_vals Pointer to an integer that will keep the number
- *        of retrieved sampling points.
+ * @param retvals pointer to a statsManagerRetrieval object keeping
+ *        the result of the query.
  *
  * @return Zero in case of success, nonzero in case of error.
  */
 int StatsManager::retrieveHourStatsInterval(time_t epoch_start,
 					    time_t epoch_end,
-					    char ***vals,
-                                            int *num_vals) {
-  if(!vals || !num_vals)
+                                            struct statsManagerRetrieval *retvals) {
+  if(!retvals)
     return -1;
 
-  return retrieveStatsInterval(vals, num_vals, HOUR_CACHE_NAME, epoch_start, epoch_end);
+  return retrieveStatsInterval(retvals, HOUR_CACHE_NAME, epoch_start, epoch_end);
 }
 
 /**
@@ -376,20 +356,18 @@ int StatsManager::retrieveHourStatsInterval(time_t epoch_start,
  *
  * @param epoch_start Left boundary of the interval.
  * @param epoch_end Right boundary of the interval.
- * @param vals Pointer to a string array that will keep the result.
- * @param num_vals Pointer to an integer that will keep the number
- *        of retrieved sampling points.
+ * @param retvals pointer to a statsManagerRetrieval object keeping
+ *        the result of the query.
  *
  * @return Zero in case of success, nonzero in case of error.
  */
 int StatsManager::retrieveDayStatsInterval(time_t epoch_start,
 					   time_t epoch_end,
-					   char ***vals,
-                                           int *num_vals) {
-  if(!vals || !num_vals)
+                                           struct statsManagerRetrieval *retvals) {
+  if(!retvals)
     return -1;
 
-  return retrieveStatsInterval(vals, num_vals, DAY_CACHE_NAME, epoch_start, epoch_end);
+  return retrieveStatsInterval(retvals, DAY_CACHE_NAME, epoch_start, epoch_end);
 }
 
 /**

@@ -917,7 +917,7 @@ void Prefs::add_default_interfaces() {
 
 void Prefs::lua(lua_State* vm) {
 #ifdef NTOPNG_PRO
-  char HTTP_stats_base_dir[MAX_PATH];
+  char HTTP_stats_base_dir[MAX_PATH*2];
 #endif
 
   lua_newtable(vm);
@@ -941,7 +941,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "nagios_config", nagios_config);
 
   memset(HTTP_stats_base_dir, '\0', MAX_PATH);
-  strncat(HTTP_stats_base_dir, ntop->get_working_dir(), MAX_PATH);
+  strncat(HTTP_stats_base_dir, (const char*)ntop->get_working_dir(), MAX_PATH);
   strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
