@@ -9,29 +9,48 @@ local verbose = false
 
 j = require("dkjson")
 
-function ndpival_bytes(json, protoname) 
-   if((json["ndpiStats"] == nil) or (json["ndpiStats"][protoname] == nil)) then
+function ndpival_bytes(json, protoname)
+   key = "ndpiStats"
+
+   -- Host
+   if((json[key] == nil) or (json[key][protoname] == nil)) then
       if(verbose) then print("## ("..protoname..") Empty<br>\n") end
       return(0)
    else
-      local v = json["ndpiStats"][protoname]["bytes"]["sent"]+json["ndpiStats"][protoname]["bytes"]["rcvd"]
+      local v = json[key][protoname]["bytes"]["sent"]+json[key][protoname]["bytes"]["rcvd"]
       if(verbose) then print("##  ("..protoname..") "..v.."<br>\n") end
       return(v)
    end
 end
 
-function proto_bytes(old, new, protoname)   
-   return(ndpival_bytes(new, protoname)-ndpival_bytes(old, protoname)) 
+function proto_bytes(old, new, protoname)
+   return(ndpival_bytes(new, protoname)-ndpival_bytes(old, protoname))
 end
 -- =====================================================
 
-function bytes(old, new)   return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))         end
-function packets(old, new) return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"])) end
+function bytes(old, new)
+   if(new["sent"] ~= nil) then
+      -- Host
+      return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
+   else
+      -- Interface
+      return(new["stats.bytes"]-old["stats.bytes"])
+   end
+end
+function packets(old, new)
+   if(new["sent"] ~= nil) then
+      -- Host
+      return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
+   else
+      -- Interface
+      return(new["stats.packets"]-old["stats.packets"])
+   end
+end
 function dns(old, new)   return(proto_bytes(old, new, "DNS")) end
 function p2p(old, new)   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype")) end
 
 
-alerts_granularity = { 
+alerts_granularity = {
    { "min", "Every Minute" },
    { "5mins", "Every 5 Minutes" },
    { "hour", "Hourly" },
@@ -56,8 +75,8 @@ end
 end
 
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
-   if(verbose) then 
-      print("check_host_alert("..ifname..", "..hostname..", "..mode..", "..key..")<br>\n") 
+   if(verbose) then
+      print("check_host_alert("..ifname..", "..hostname..", "..mode..", "..key..")<br>\n")
 
       print("<p>--------------------------------------------<p>\n")
       print("NEW<br>"..new_json.."<br>\n")
@@ -78,17 +97,17 @@ end
    -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
    if((str ~= nil) and (str ~= "")) then
       tokens = split(str, ",")
-      
+
       for _,s in pairs(tokens) do
 	 -- if(verbose) then ("<b>"..s.."</b><br>\n") end
 	 t = string.split(s, ";")
-	 
+
 	 if(t[2] == "gt") then
 	    op = ">"
-	 else 
-	    if(t[2] == "lt") then 
+	 else
+	    if(t[2] == "lt") then
 	       op = "<"
-	    else 
+	    else
 	       op = "=="
 	    end
 	 end
@@ -96,7 +115,7 @@ end
 	 local what = "val = "..t[1].."(old, new); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
 	 local f = loadstring(what)
 	 local rc = f()
-	
+
 
 	 if(rc) then
 	    local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key.."</A> [".. val .." ".. op .. " " .. t[3].."]"
@@ -114,8 +133,56 @@ end
 
 -- #################################
 
+function check_interface_alert(ifname, mode, key, old_json, new_json)
+   -- TODO
+end
+
+-- #################################
+
+function check_interface_threshold(ifname, mode)
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..ifname)
+   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+      if(verbose) then print("Alert check for ("..ifname..", "..mode..")<br>\n") end
+   else
+      if(verbose) then print("Skipping alert check for("..ifname..", "..mode.."): disabled in preferences<br>\n") end
+      return
+   end
+
+   if(verbose) then print("check_interface_threshold("..ifname..", "..host_ip..", "..mode..")<br>\n") end
+   basedir = fixPath(dirs.workingdir .. "/" .. ifname .. "/json/" .. mode)
+   if(not(ntop.exists(basedir))) then
+      ntop.mkdir(basedir)
+   end
+
+   --if(verbose) then print(basedir.."<br>\n") end
+   interface.select(ifname)
+   -- json = interface.getHostInfo(host_ip) -- FIX: get interface JSON
+
+   if(json ~= nil) then
+      fname = fixPath(basedir.."/interface.json")
+
+      if(verbose) then print(fname.."<p>\n") end
+      -- Read old version
+      f = io.open(fname, "r")
+      if(f ~= nil) then
+	 old_json = f:read("*all")
+	 f:close()
+	 check_interface_alert(ifname, mode, old_json, json["json"])
+      end
+
+      -- Write new version
+      f = io.open(fname, "w")
+
+      if(f ~= nil) then
+	 f:write(json["json"])
+	 f:close()
+      end
+   end
+end
+
+-- #################################
+
 function check_host_threshold(ifname, host_ip, mode)
-   
    suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       if(verbose) then print("Alert check for ("..ifname..", "..host_ip..", "..mode..")<br>\n") end
@@ -145,10 +212,10 @@ function check_host_threshold(ifname, host_ip, mode)
 	 f:close()
 	 check_host_alert(ifname, host_ip, mode, host_ip, old_json, json["json"])
       end
-      
+
       -- Write new version
       f = io.open(fname, "w")
-      
+
       if(f ~= nil) then
 	 f:write(json["json"])
 	 f:close()
@@ -163,10 +230,12 @@ function scanAlerts(granularity)
    for _,_ifname in pairs(ifnames) do
       ifname = purifyInterfaceName(_ifname)
       if(verbose) then print("[minute.lua] Processing interface " .. ifname.."<p>\n") end
-      
+
+      check_interface_threshold(ifname, granularity)
+
       hash_key = "ntopng.prefs.alerts_"..granularity
       hosts = ntop.getHashKeysCache(hash_key)
-      
+
       if(hosts ~= nil) then
 	 for h in pairs(hosts) do
 	    if(verbose) then print("[minute.lua] Checking host " .. h.." alerts<p>\n") end
