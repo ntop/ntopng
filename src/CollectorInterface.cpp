@@ -150,6 +150,7 @@ static void* packetPollLoop(void* ptr) {
 
 void CollectorInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+  pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
 
