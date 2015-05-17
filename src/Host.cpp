@@ -1029,7 +1029,7 @@ void Host::incNumFlows(bool as_client) {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
     if(num_active_flows_as_server == max_num_active_flows) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possibly under scan attack [%u active flows]";
+      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is possibly under scan attack [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
       h = ip->print(ip_buf, sizeof(ip_buf));
