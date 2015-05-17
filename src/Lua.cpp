@@ -2490,6 +2490,22 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_shapers(lua_State *vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+#ifdef NTOPNG_PRO
+    ntop_interface->refreshShapers();
+#endif
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -4132,7 +4148,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* L7 */
   { "reloadL7Rules",          ntop_reload_l7_rules },
-
+  { "reloadShapers",          ntop_reload_shapers },
   { NULL,                     NULL }
 };
 

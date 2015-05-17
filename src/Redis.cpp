@@ -167,7 +167,7 @@ int Redis::hashSet(char *key, char *field, char *value) {
   reply = (redisReply*)redisCommand(redis, "HSET %s %s %s", key, field, value);
   if(!reply) reconnectRedis();
   if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [HSET %s %s %s]", reply->str ? reply->str : "???", key, field, value), rc = -1;
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
 
@@ -337,7 +337,7 @@ int Redis::hashKeys(const char *pattern, char ***keys_p) {
   reply = (redisReply*)redisCommand(redis, "HKEYS %s", pattern);
   if(!reply) reconnectRedis();
   if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [HKEYS %s]", reply->str ? reply->str : "???", pattern);
 
   (*keys_p) = NULL;
 

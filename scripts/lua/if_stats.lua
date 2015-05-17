@@ -42,7 +42,7 @@ if(if_name == nil) then if_name = ifname end
 max_num_shapers = 10
 interface.select(if_name)
 ifid = interface.name2id(ifname)
-shaper_key = "ntopng.prefs."..ifid..".queue_max_rate"
+shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
 is_historical = interface.isHistoricalInterface(ifid)
 ifstats = interface.getStats()
 
@@ -139,6 +139,7 @@ print [[
     <ul class="nav navbar-nav">
 ]]
 
+--io.write(ifname.."\n")
 short_name = getHumanReadableInterfaceName(ifname)
 if(short_name ~= ifname) then
    short_name = short_name .. "..."
@@ -879,10 +880,11 @@ max_rate = _GET["max_rate"]
 if((shaper_id ~= nil) and (max_rate ~= nil)) then
    shaper_id = tonumber(shaper_id)
    max_rate = tonumber(max_rate)
-   if((shaper_id > 0) and (shaper_id < max_num_shapers)) then
+   if((shaper_id >= 0) and (shaper_id < max_num_shapers)) then
       if(max_rate > 1048576) then max_rate = -1 end
       if(max_rate < -1) then max_rate = -1 end
       ntop.setHashCache(shaper_key, shaper_id, max_rate.."")
+      interface.reloadShapers()
    end
 end
 
@@ -892,7 +894,7 @@ print [[
 ]]
 
 
-for i=1,max_num_shapers do
+for i=0,max_num_shapers-1 do
    max_rate = ntop.getHashCache(shaper_key, i)
    if(max_rate == "") then max_rate = -1 end
    print('<tr><th style=\"text-align: center;\">'..i)
@@ -934,17 +936,17 @@ print [[</table>
 ]]
 
 elseif(page == "filtering") then
-   key = "ntopng.prefs.".. ifid ..".l7_policy"
+   policy_key = "ntopng.prefs.".. ifid ..".l7_policy"
 
    -- ====================================
 
    if((_GET["new_vlan"] ~= nil) and (_GET["new_network"] ~= nil)) then
       network_key = _GET["new_network"].."@".._GET["new_vlan"]
-      ntop.setHashCache(key, network_key, "")
+      ntop.setHashCache(policy_key, network_key, "")
    end
 
    if(_GET["delete_network"] ~= nil) then
-      ntop.delHashCache(key, _GET["delete_network"])
+      ntop.delHashCache(policy_key, _GET["delete_network"])
    end
 
    net = _GET["network"]
@@ -954,15 +956,16 @@ elseif(page == "filtering") then
 	 net = net.."@0"
       end
 
-      if(ntop.getHashCache(key, net) == "") then
-	 ntop.setHashCache(key, net, "")
+      if(ntop.getHashCache(policy_key, net) == "") then
+	 ntop.setHashCache(policy_key, net, "")
       end
    end
 
    -- io.write(net.."\n")
 
    if((net ~= nil) and (_GET["blacklist"] ~= nil)) then
-      ntop.setHashCache(key, net, _GET["blacklist"])
+      ntop.setHashCache(policy_key, net, _GET["blacklist"])
+
       -- ****************************** 
       ingress_shaper_id = _GET["ingress_shaper_id"]
       if(ingress_shaper_id == nil) then ingress_shaper_id = 0 end
@@ -981,8 +984,8 @@ elseif(page == "filtering") then
    nets = ntop.getHashKeysCache(key)
 
    if((nets == nil) or (nets == "")) then
-      ntop.setHashCache(key, any_net, "")
-      nets = ntop.getHashKeysCache(key)
+      ntop.setHashCache(policy_key, any_net, "")
+      nets = ntop.getHashKeysCache(policy_key)
    end
 
    selected_network = net
@@ -1044,10 +1047,10 @@ print [[
 
    key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
    ingress_shaper_id = ntop.getHashCache(key, selected_network)
-   if(ingress_shaper_id == "") then ingress_shaper_id = 1 else ingress_shaper_id = tonumber(ingress_shaper_id) end
-   if((ingress_shaper_id < 0) or (ingress_shaper_id > max_num_shapers)) then ingress_shaper_id = 1 end
+   if(ingress_shaper_id == "") then ingress_shaper_id = 0 else ingress_shaper_id = tonumber(ingress_shaper_id) end
+   if((ingress_shaper_id < 0) or (ingress_shaper_id > max_num_shapers)) then ingress_shaper_id = 0 end
 
-   for i=1,max_num_shapers do
+   for i=0,max_num_shapers-1 do
       print("<option value="..i)
       if(i == ingress_shaper_id) then print(" selected") end
       print(">"..i.." (")
@@ -1070,10 +1073,10 @@ print [[
 
    key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
    egress_shaper_id = ntop.getHashCache(key, selected_network)
-   if(egress_shaper_id == "") then egress_shaper_id = 1 else egress_shaper_id = tonumber(egress_shaper_id) end
-   if((egress_shaper_id < 0) or (egress_shaper_id > max_num_shapers)) then egress_shaper_id = 1 end
+   if(egress_shaper_id == "") then egress_shaper_id = 0 else egress_shaper_id = tonumber(egress_shaper_id) end
+   if((egress_shaper_id < 0) or (egress_shaper_id > max_num_shapers)) then egress_shaper_id = 0 end
 
-   for i=1,max_num_shapers do
+   for i=0,max_num_shapers-1 do
       print("<option value="..i)
       if(i == egress_shaper_id) then print(" selected") end
       print(">"..i.." (")
@@ -1113,7 +1116,7 @@ print [[
 ]]
 
 blacklist = { }
-rules = ntop.getHashCache(key, selected_network)
+rules = ntop.getHashCache(policy_key, selected_network)
 if(rules ~= nil) then
    local protos = split(rules, ",")
    for k,v in pairs(protos) do

@@ -2398,3 +2398,12 @@ void NetworkInterface::refreshL7Rules() {
     policer->refreshL7Rules(); 
 }
 #endif
+
+/* **************************************** */
+
+#ifdef NTOPNG_PRO
+void NetworkInterface::refreshShapers() { 
+  if(ntop->getPro()->has_valid_license() && policer)
+    policer->refreshShapers(); 
+}
+#endif

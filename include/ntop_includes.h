@@ -162,8 +162,7 @@ extern "C" {
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "PacketBridge.h"
-#include "TokenBucket.h"
-#include "TokenBucketRing.h"
+#include "TrafficShaper.h"
 #include "L7Policer.h"
 #include "LuaHandler.h"
 #include "NagiosManager.h"

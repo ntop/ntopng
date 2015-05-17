@@ -182,7 +182,7 @@
 #define MAX_NUM_PACKETS             5000
 
 #define MAX_NUM_VLAN                4096
-#define DEFAULT_SHAPER_ID              1
+#define DEFAULT_SHAPER_ID              0
 #define NUM_TRAFFIC_SHAPERS           10
 #define MAX_SHAPER_RATE_KBPS       10240
 #define HOUSEKEEPING_FREQUENCY         5

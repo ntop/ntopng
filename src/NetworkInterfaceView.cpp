@@ -150,6 +150,17 @@ void NetworkInterfaceView::refreshL7Rules() {
 
 /* **************************************************** */
 
+#ifdef NTOPNG_PRO
+void NetworkInterfaceView::refreshShapers() {
+  list<NetworkInterface *>::iterator p;
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    (*p)->refreshShapers();
+}
+#endif
+
+/* **************************************************** */
+
 void NetworkInterfaceView::getnDPIStats(NdpiStats *stats) {
   list<NetworkInterface *>::iterator p;
 

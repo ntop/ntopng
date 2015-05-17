@@ -291,6 +291,7 @@ class NetworkInterface {
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
+  void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
 

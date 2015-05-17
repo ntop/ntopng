@@ -5,7 +5,7 @@ dnl> Do not add anything above
 AC_PROG_CPP
 
 dnl> Add /usr/local/ /opt/local
-CFLAGS="${CFLAGS} -I${PWD} -I${PWD}/include"
+CFLAGS="-I${PWD} -I${PWD}/include"
 CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
