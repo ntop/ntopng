@@ -180,6 +180,7 @@ void HistoricalInterface::startLoadData(time_t  p_from_epoch, time_t p_to_epoch,
     interface_id = p_interface_id;
 
     pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+    pollLoopCreated = true;
     NetworkInterface::startPacketPolling();
   }
 }

@@ -38,15 +38,15 @@ NetfilterInterface::NetfilterInterface(const char *name) : NetworkInterface(name
   nfHandle = nfq_open();
   if (nfHandle == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get netfilter handle [%d]", queueId);
-    return;
+    throw 1;
   }
   if (nfq_unbind_pf(nfHandle, AF_INET) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to unbind [%d]", queueId);
-    return;
+    throw 1;
   }
   if (nfq_bind_pf(nfHandle, AF_INET) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind [%d]", queueId);
-    return;
+    throw 1;
   }
 
 #ifdef NTOPNG_PRO

@@ -123,6 +123,7 @@ class NetworkInterface {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap.*/
   pthread_t pollLoop;
+  bool pollLoopCreated;
   int cpu_affinity; /**< Index of physical core where the network interface works.*/
   NdpiStats ndpiStats;
   PacketStats pktStats;

@@ -59,6 +59,7 @@ NetworkInterface::NetworkInterface() {
     pcap_datalink_type = 0, cpu_affinity = 0,
     inline_interface = false, running = false,
     pkt_dumper = NULL;
+    pollLoopCreated = false;
   if(ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -164,6 +165,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
     last_pkt_rcvd = 0;
+    pollLoopCreated = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_aggregated_host_purge = 0;
     cpu_affinity = -1, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
@@ -1170,7 +1172,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
-  if(cpu_affinity >= 0) {
+  if(pollLoopCreated && cpu_affinity >= 0) {
     if (Utils::setThreadAffinity(pollLoop, cpu_affinity))
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
                                    get_name(), cpu_affinity);

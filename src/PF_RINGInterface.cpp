@@ -116,6 +116,7 @@ static void* packetPollLoop(void* ptr) {
 
 void PF_RINGInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+  pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
 
