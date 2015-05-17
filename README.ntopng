@@ -144,6 +144,9 @@ Using Interface Views
 ---------------------
 Suppose you want to start ntopng as follows "-i eth0 -i eth1". ntopng will show you traffic of these two interfaces without any merge so you can see exactly what happens on each inteface. If you also need an aggregated view of both interfaces you can start ntopng as "-i eth0 -i eth1 -i view:eth0,eth1" so ntopng will create a virtual interface that merges information from the two physical interfaces.
 
+Using ntopng behind a Proxy
+---------------------------
+If you have many ntopng instances that you want to mask behind a proxy the -Z is what you look for. See the man page for more information.
 
 Debugging ntopng
 ----------------
