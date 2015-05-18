@@ -956,15 +956,13 @@ bool Host::deserialize(char *json_str) {
 /* *************************************** */
 
 void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
-  if (!localHost) return; /* don't print alerts for remote hosts */
+  if (!localHost || !triggerAlerts()) return;
 
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
   if(counter->incHits(when)) {
     char ip_buf[48], flow_buf[256], msg[512], *h;
     const char *error_msg;
-
-    if(!triggerAlerts()) return;
 
 #if 0
     /*
@@ -1006,7 +1004,7 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  if (!localHost) return; /* don't print alerts for remote hosts */
+  if (!localHost || !triggerAlerts()) return;
 
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
@@ -1048,7 +1046,7 @@ void Host::incNumFlows(bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(bool as_client) {
-  if (!localHost) return; /* don't print alerts for remote hosts */
+  if (!localHost || !triggerAlerts()) return;
 
   if(as_client) {
     if(num_active_flows_as_client) {
@@ -1115,7 +1113,7 @@ bool Host::isAboveQuota() {
 }
 
 void Host::updateStats(struct timeval *tv) {
-  if (!localHost) return; /* don't print alerts for remote hosts */
+  if (!localHost || !triggerAlerts()) return;
 
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
