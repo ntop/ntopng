@@ -156,7 +156,7 @@ Ntop::~Ntop() {
     ifaceViews[i] = NULL;
   }
 
-  if(udp_socket != -1) _close(udp_socket);
+  if(udp_socket != -1) close(udp_socket);
 
   if(httpbl) delete httpbl;
   if(httpd)  delete httpd;
