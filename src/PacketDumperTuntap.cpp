@@ -23,7 +23,9 @@
 #ifdef __linux__
 #include <linux/if_tun.h>
 #endif
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 /* ********************************************* */
 

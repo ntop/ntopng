@@ -162,8 +162,7 @@ int StatsManager::openCache(const char *cache_name)
  * @param key Key to use as boundary.
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::deleteStatsOlderThan(const char *cache_name,
-				       const int key) {
+int StatsManager::deleteStatsOlderThan(const char *cache_name, const time_t key) {
   char query[MAX_QUERY];
   int rc;
 
@@ -278,8 +277,8 @@ static int get_samplings_db(void *data, int argc,
  */
 int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
 					const char *cache_name,
-                                        const int key_start,
-                                        const int key_end) {
+                                        const time_t key_start,
+										const time_t key_end) {
   char query[MAX_QUERY];
   int rc;
 

@@ -616,7 +616,7 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
   if(zflow->l4_proto == IPPROTO_TCP) {
     struct timeval when;
 
-    when.tv_sec = last_pkt_rcvd, when.tv_usec = 0;
+    when.tv_sec = (long)last_pkt_rcvd, when.tv_usec = 0;
     flow->updateTcpFlags((const struct timeval*)&when,
 			 zflow->tcp_flags, src2dst_direction);
   }
@@ -1714,8 +1714,8 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
 
   stats->num_flows++,
-    stats->ndpi_bytes[flow->get_detected_protocol()] += flow->get_bytes(),
-    stats->breeds_bytes[flow->get_protocol_breed()] += flow->get_bytes();
+    stats->ndpi_bytes[flow->get_detected_protocol()] += (u_int32_t)flow->get_bytes(),
+	stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
   return(false); /* false = keep on walking */
 }

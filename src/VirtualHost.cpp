@@ -38,7 +38,7 @@ VirtualHost::~VirtualHost() {
 /* ************************************************** */
 
 void VirtualHost::update_stats() {
-  u_int32_t diff = num_requests.getNumBytes()-last_num_requests;
+  u_int64_t diff = num_requests.getNumBytes()-last_num_requests;
 
   trend = (diff > last_diff) ? trend_up : ((diff < last_diff) ? trend_down : trend_stable);
   /*

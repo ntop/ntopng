@@ -183,7 +183,7 @@ float Utils::timeval2ms(struct timeval *tv) {
 
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
-  int ret = infile.good();
+  bool ret = infile.good();
   infile.close();
   return ret;
 }

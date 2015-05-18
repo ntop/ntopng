@@ -68,9 +68,9 @@ private:
     int insertSampling(char *sampling, const char *cache_name, const int key);
     int getSampling(string *sampling, const char *cache_name, const int key_low, const int key_high);
     int getRealEpoch(string *real_epoch, const char *cache_name, const int key_low, const int key_high);
-    int deleteStatsOlderThan(const char *cache_name, const int key);
+    int deleteStatsOlderThan(const char *cache_name, const time_t key);
     int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char *cache_name,
-                              const int key_start, const int key_end);
+		const time_t key_start, const time_t key_end);
 };
 
 #endif /* _STATS_MANAGER_H_ */

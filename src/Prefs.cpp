@@ -299,7 +299,7 @@ void Prefs::loadIdleDefaults() {
   non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
   flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
 #ifdef NTOPNG_PRO
-  save_http_flows_traffic = getDefaultPrefsValue(CONST_SAVE_HTTP_FLOWS_TRAFFIC, false);
+  save_http_flows_traffic = (bool)getDefaultPrefsValue(CONST_SAVE_HTTP_FLOWS_TRAFFIC, false);
 #endif
 }
 

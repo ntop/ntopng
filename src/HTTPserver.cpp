@@ -22,7 +22,7 @@
 #include "ntop_includes.h"
 
 #define USE_LUA
-#include "./third-party/mongoose/mongoose.c"
+#include "../third-party/mongoose/mongoose.c"
 #undef USE_LUA
 
 extern "C" {
@@ -128,7 +128,7 @@ static void set_cookie(const struct mg_connection *conn,
               "Location: %s%s\r\n\r\n",
               session_id, HTTP_SESSION_DURATION,
               user, HTTP_SESSION_DURATION,
-              ntop->getPrefs()->get_http_prefix(), referer ? : "/");
+			  ntop->getPrefs()->get_http_prefix(), referer ? referer : "/");
 
     /* Save session in redis */
     snprintf(key, sizeof(key), "sessions.%s", session_id);
@@ -169,7 +169,7 @@ static int is_authorized(const struct mg_connection *conn,
 
   /* Try to decode Authorization header if present */
   auth_header_p = mg_get_header(conn, "Authorization");
-  string auth_header = auth_header_p ? : "";
+  string auth_header = auth_header_p ? auth_header_p  : "";
   istringstream iss(auth_header);
   getline(iss, auth_type, ' ');
   if (auth_type == "Basic") {

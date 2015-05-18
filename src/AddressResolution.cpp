@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#include "third-party/patricia/patricia.c"
+#include "../third-party/patricia/patricia.c"
 
 /* **************************************** */
 

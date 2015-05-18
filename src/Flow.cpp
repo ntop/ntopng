@@ -22,7 +22,7 @@
 #include "ntop_includes.h"
 
 extern "C" {
-#include "geohash.c"
+#include "../third-party/libgeohash/geohash.c"
 };
 
 /* *************************************** */

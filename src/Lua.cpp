@@ -35,12 +35,12 @@ extern "C" {
   extern const char * GeoIP_lib_version(void);
 #endif
 
-#include "third-party/snmp/snmp.c"
-#include "third-party/snmp/asn1.c"
-#include "third-party/snmp/net.c"
+#include "../third-party/snmp/snmp.c"
+#include "../third-party/snmp/asn1.c"
+#include "../third-party/snmp/net.c"
 };
 
-#include "third-party/lsqlite3/lsqlite3.c"
+#include "../third-party/lsqlite3/lsqlite3.c"
 
 
 /* ******************************* */
