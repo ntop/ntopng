@@ -270,6 +270,7 @@ class NetworkInterface {
   Host* getHost(char *host_ip, u_int16_t vlan_id);
   StringHost* getAggregatedHost(char *host_name);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void getActiveAggregatedHostsList(lua_State* vm, struct aggregation_walk_hosts_info *info);
   bool getAggregatedHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip);
   bool getAggregationFamilies(lua_State* vm, struct ndpi_protocols_aggregation *agg);

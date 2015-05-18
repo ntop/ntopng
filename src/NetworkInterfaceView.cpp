@@ -268,6 +268,22 @@ bool NetworkInterfaceView::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+bool NetworkInterfaceView::loadHostAlertPrefs(lua_State* vm,
+				              patricia_tree_t *allowed_hosts,
+				              char *host_ip, u_int16_t vlan_id) {
+  list<NetworkInterface *>::iterator p;
+  bool ret = false;
+
+  lua_newtable(vm);
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    if((*p)->loadHostAlertPrefs(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
+
+  return ret;
+}
+
+/* **************************************************** */
+
 bool NetworkInterfaceView::correlateHostActivity(lua_State* vm,
 			                         patricia_tree_t *allowed_hosts,
 					         char *host_ip, u_int16_t vlan_id) {

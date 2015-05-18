@@ -37,7 +37,7 @@ if(_GET["flow_rate_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
      page = "config"
      val = ternary(_GET["flow_rate_alert_threshold"] ~= "0", _GET["flow_rate_alert_threshold"], "25")
      ntop.setCache('ntopng.prefs.'..host_name..'.flow_rate_alert_threshold', val)
-     --interface.loadDumpPrefs()
+     interface.loadHostAlertPrefs(host_ip, host_vlan)
    end
 end
 if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
@@ -45,7 +45,7 @@ if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
      page = "config"
      val = ternary(_GET["syn_alert_threshold"] ~= "0", _GET["syn_alert_threshold"], "10")
      ntop.setCache('ntopng.prefs.'..host_name..'.syn_alert_threshold', val)
-     --interface.loadDumpPrefs()
+     interface.loadHostAlertPrefs(host_ip, host_vlan)
    end
 end
 if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
@@ -53,7 +53,7 @@ if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
      page = "config"
      val = ternary(_GET["flows_alert_threshold"] ~= "0", _GET["flows_alert_threshold"], "32768")
      ntop.setCache('ntopng.prefs.'..host_name..'.flows_alert_threshold', val)
-     --interface.loadDumpPrefs()
+     interface.loadHostAlertPrefs(host_ip, host_vlan)
    end
 end
 
@@ -1937,7 +1937,7 @@ elseif (page == "config") then
 	 print(host_ip)
 	 print [[">]]
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print [[<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
+	       print [[<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
 		     thresh = ntop.getCache('ntopng.prefs.'..host_ip..'.flow_rate_alert_threshold')
 		     if (thresh == nil or thresh == "") then thresh = 25 end
 		     print(tostring(thresh))

@@ -1572,6 +1572,20 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+bool NetworkInterface::loadHostAlertPrefs(lua_State* vm,
+				          patricia_tree_t *allowed_hosts,
+				          char *host_ip, u_int16_t vlan_id) {
+  Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
+
+  if(h) {
+    h->loadAlertPrefs();
+    return(true);
+  }
+  return(false);
+}
+
+/* **************************************************** */
+
 Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
