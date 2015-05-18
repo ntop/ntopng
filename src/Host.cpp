@@ -1147,8 +1147,8 @@ void Host::loadFlowRateAlertPrefs() {
     char rkey[128], rsp[16];
     char ip_buf[48];
 
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.flow_rate_alert_threshold",
-             ip->print(ip_buf, sizeof(ip_buf)));
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flow_rate_alert_threshold",
+             ip->print(ip_buf, sizeof(ip_buf)), vlan_id);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
       retval = atoi(rsp);
   }
@@ -1163,8 +1163,8 @@ void Host::loadSynAlertPrefs() {
     char rkey[128], rsp[16];
     char ip_buf[48];
 
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.syn_alert_threshold",
-             ip->print(ip_buf, sizeof(ip_buf)));
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.syn_alert_threshold",
+             ip->print(ip_buf, sizeof(ip_buf)), vlan_id);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
       retval = atoi(rsp);
   }
@@ -1179,8 +1179,8 @@ void Host::loadFlowsAlertPrefs() {
     char rkey[128], rsp[16];
     char ip_buf[48];
 
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.flows_alert_threshold",
-             ip->print(ip_buf, sizeof(ip_buf)));
+    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flows_alert_threshold",
+             ip->print(ip_buf, sizeof(ip_buf)), vlan_id);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
       retval = atoi(rsp);
   }
