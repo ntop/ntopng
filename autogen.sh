@@ -10,6 +10,8 @@ VERSION="$SHORT_VERSION.$TODAY"
 
 cat configure.seed | sed "s/@VERSION@/$VERSION/g" | sed "s/@SHORT_VERSION@/$SHORT_VERSION/g" > configure.ac
 
+/bin/rm -f config.h config.h.in *~ #*
+
 autoreconf -ivf
 echo ""
 echo "Now run ./configure"
