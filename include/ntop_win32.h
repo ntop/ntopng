@@ -101,12 +101,19 @@ extern int win_inet_pton(int af, const char *src, void *dst);
 
 struct dirent {
   char d_name[PATH_MAX];
+  u_char d_type;
 };
+
+#ifndef DT_DIR
+#define DT_UNKNOWN       0
+#define DT_DIR           4
+#endif
 
 typedef struct DIR {
   HANDLE   handle;
   WIN32_FIND_DATAW info;
   struct dirent  result;
+  char dir_path[MAX_PATH];
 } DIR;
 
 extern struct dirent *readdir(DIR *dir);

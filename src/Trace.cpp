@@ -54,7 +54,6 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
     char theDate[32], *file = (char*)_file;
     const char *extra_msg = "";
     time_t theTime = time(NULL);
-    char *syslogMsg;
 #ifdef WIN32
     char filebuf[MAX_PATH];
     const char *backslash = strrchr(_file, '\\');
@@ -63,6 +62,8 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
       snprintf(filebuf, sizeof(filebuf), "%s", &backslash[1]);
       file = (char*)filebuf;
     } 
+#else
+	char *syslogMsg;
 #endif
 
     va_start (va_ap, format);

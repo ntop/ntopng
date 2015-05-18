@@ -971,7 +971,7 @@ static int ntop_send_udp_data(lua_State* vm) {
   if(strchr(host, ':') != NULL) {
     struct sockaddr_in6 server_addr;
 
-    bzero(&server_addr, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin6_family = AF_INET6;
     inet_pton(AF_INET6, host, &server_addr.sin6_addr);
     server_addr.sin6_port = htons(port);
@@ -982,7 +982,7 @@ static int ntop_send_udp_data(lua_State* vm) {
   } else {
     struct sockaddr_in server_addr;
 
-    bzero(&server_addr, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(host); /* FIX: add IPv6 support */
     server_addr.sin_port = htons(port);

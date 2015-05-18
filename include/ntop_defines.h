@@ -75,6 +75,7 @@
 /* ***************************************************** */
 
 #ifdef WIN32
+#undef PACKAGE_OSNAME
 #ifdef _WIN64
 #define PACKAGE_OSNAME            "Win64"
 #else
