@@ -312,9 +312,9 @@ else
       if(flow["http.last_url"] ~= "") then 	 
 	 print("<A HREF=\"http://"..s)
 	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-	 print(flow["http.last_url"].."\">"..flow["http.last_url"].."</A> <i class=\"fa fa-external-link fa-lg\">")
+	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link fa-lg\">")
       else
-	 print(flow["http.last_url"])
+	 print(shortenString(flow["http.last_url"]))
       end
 
       print("</td></tr>\n")
