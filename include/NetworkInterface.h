@@ -229,7 +229,7 @@ class NetworkInterface {
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
   void flushHostContacts();
   bool packet_dissector(const struct pcap_pkthdr *h, const u_char *packet,
-			int *egress_shaper_id);
+			int *a_shaper_id, int *b_shaper_id);
   bool packetProcessing(const struct timeval *when,
 			const u_int64_t time,
 			struct ndpi_ethhdr *eth,
@@ -239,7 +239,8 @@ class NetworkInterface {
 			u_int16_t ipsize, u_int16_t rawsize,
 			const struct pcap_pkthdr *h,
 			const u_char *packet,
-			int *egress_shaper_id);
+			int *a_shaper_id,
+			int *b_shaper_id);
   void flow_processing(ZMQ_Flow *zflow);
   void dumpFlows();
   void getnDPIStats(NdpiStats *stats);

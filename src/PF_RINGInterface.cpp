@@ -89,10 +89,11 @@ static void* packetPollLoop(void* ptr) {
 
       if(pfring_recv(pd, &buffer, 0, &hdr, 0 /* wait_for_packet */) > 0) {
 	try {
-	  int egress_shaper_id;
+	  int a_shaper_id, b_shaper_id;
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  iface->packet_dissector((const struct pcap_pkthdr *) &hdr, buffer, &egress_shaper_id);
+	  iface->packet_dissector((const struct pcap_pkthdr *) &hdr, buffer,
+				  &a_shaper_id, &b_shaper_id);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 	  

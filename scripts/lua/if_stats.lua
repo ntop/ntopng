@@ -890,7 +890,7 @@ end
 
 print [[
 <table class="table table-striped table-bordered">
- <tr><th width=10%>Shaper Id</th><th>Max Rate (Kbps)</th><th>Presets</th></tr>
+ <tr><th width=10%>Shaper Id</th><th>Max Rate</th></tr>
 ]]
 
 
@@ -901,38 +901,25 @@ for i=0,max_num_shapers-1 do
 
    print [[
 	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
-	    <input type="hidden" name="if_name" value="]] print(ifname) print[[">
-	    <input type="hidden" name="page" value="shaping">
-         <input type="hidden" name="shaper_id" value="]]
-	 print(i)
-	 print [[">]]
+         <input type="hidden" name="page" value="shaping">
+	 <input type="hidden" name="if_name" value="]] print(ifname) print[[">
+         <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
 
       if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print [[&nbsp;<input type=hidden readonly name=max_rate id="max_rate_]] print(i.."") print [[" value="]] print(max_rate.."") print [[">
-	 &nbsp;&nbsp;&nbsp;&nbsp;<input size=32 id="slider_rate]] print(i.."") print [[" type="text" data-slider-min="-1" data-slider-max="10240" data-slider-step="1" data-slider-value="]] print(max_rate.."") print [[" size="4">&nbsp;&nbsp;&nbsp;
 
-        &nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate</button>   
-
-        </td><td><button type="button" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs" onclick="$('#slider_rate]] print(i.."") print [[').slider('setValue', -1);">No Rate Limit</button>   
-	&nbsp;<button type="button" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs" onclick="$('#slider_rate]] print(i.."") print [[').slider('setValue', 0);">Drop All Traffic</button></td>
-        <script>
-     $('#slider_rate]] print(i.."") print [[').slider({	 
-	 formater: function(value) {
-  		      $("#max_rate_]] print(i.."") print [[").val(value);
-		      if(value == -1) { return 'No rate limit'; }
-		      else if(value == 0) { return 'Drop all traffic'; }
-		      else if(value < 1024) { return value+' Kbit'; } 
-		      else { return (Math.round((value/1024)*100)/100)+' Mbit'; } }} );
-	 </script>
-        </form></td></tr>
-       ]]
+	 print('<input type="number" name="max_rate" placeholder="" min="-1" step="1000" value="'.. max_rate ..'">&nbsp;Kbps')
+	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
       else
 	 print("</td></tr>")
       end
 end
 print [[</table>
-  NOTE: the shaper 1 is the default shaper used for local hosts that have no shaper defined.
+  NOTES
+<ul>
+<li>Shaper 0 is the default shaper used for local hosts that have no shaper defined.
+<li>Set max rate to:<ul><li>-1 for no shaping<li>0 for dropping all traffic</ul>
+</ul>
 ]]
 
 elseif(page == "filtering") then

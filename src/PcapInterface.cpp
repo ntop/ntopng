@@ -154,8 +154,8 @@ static void* packetPollLoop(void* ptr) {
 
       if((pkt = pcap_next(pd, &hdr)) != NULL) {
 	if((hdr.caplen > 0) && (hdr.len > 0)) {
-	  int egress_shaper_id;
-	  iface->packet_dissector(&hdr, pkt, &egress_shaper_id);
+	  int a_shaper_id, b_shaper_id;
+	  iface->packet_dissector(&hdr, pkt, &a_shaper_id, &b_shaper_id);
 	}
       } else {
 	if(iface->read_from_pcap_dump())

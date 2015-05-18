@@ -694,7 +694,8 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 					u_int16_t rawsize,
 					const struct pcap_pkthdr *h,
 					const u_char *packet,
-					int *egress_shaper_id) {
+					int *a_shaper_id,
+					int *b_shaper_id) {
   bool src2dst_direction;
   u_int8_t l4_proto;
   Flow *flow;
@@ -950,7 +951,10 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     pass_verdict = flow->isPassVerdict();
 
     if(flow->get_cli_host() && flow->get_srv_host()) {
-      *egress_shaper_id = (src2dst_direction ? flow->get_cli_host() : flow->get_srv_host())->get_egress_shaper_id();
+      if(src2dst_direction) 
+	*a_shaper_id = flow->get_cli_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_srv_host()->get_ingress_shaper_id();
+      else
+	*a_shaper_id = flow->get_srv_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_cli_host()->get_ingress_shaper_id();
     }
   } else
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
@@ -988,7 +992,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 					const u_char *packet,
-					int *egress_shaper_id) {
+					int *a_shaper_id, int *b_shaper_id) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   static u_int64_t lasttime = 0;
@@ -1109,7 +1113,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
       try {
 	pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id, iph,
 					NULL, h->caplen - ip_offset, h->caplen,
-					h, packet, egress_shaper_id);
+					h, packet, a_shaper_id, b_shaper_id);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -1132,7 +1136,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	try {
 	  pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id,
 					  NULL, ip6, h->len - ip_offset, h->len,
-					  h, packet, egress_shaper_id);
+					  h, packet, a_shaper_id, b_shaper_id);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
