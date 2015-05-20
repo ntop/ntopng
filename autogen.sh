@@ -12,6 +12,7 @@ cat configure.seed | sed "s/@VERSION@/$VERSION/g" | sed "s/@SHORT_VERSION@/$SHOR
 
 /bin/rm -f config.h config.h.in *~ #*
 
-autoreconf -ivf
+echo "Wait please..."
+autoreconf -if
 echo ""
 echo "Now run ./configure"

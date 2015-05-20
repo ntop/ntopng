@@ -66,7 +66,7 @@ fi
 AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
 if test -d "../nProbe"; then :
-AC_MSG_RESULT(found)
+AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
@@ -85,6 +85,7 @@ if test -r "pro/license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
 fi
 else
+AC_MSG_RESULT(not found [missing ../nProbe])
 PRO_MAKEFILE_INC=
 PRO_INC=
 PRO_LIBS=
