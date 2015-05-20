@@ -8,6 +8,7 @@
 local verbose = false
 
 j = require("dkjson")
+require "persistence"
 
 function ndpival_bytes(json, protoname)
    key = "ndpiStats"
@@ -74,6 +75,14 @@ for k,v in pairs(alerts_granularity) do
 end
 end
 
+function delete_interface_alert_configuration(if_name)
+for k,v in pairs(alerts_granularity) do
+   key = "ntopng.prefs.alerts_"..v[1]
+   -- print(key.."<br>\n")
+   ntop.delHashCache(key, if_name)
+end
+end
+
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
    if(verbose) then
       print("check_host_alert("..ifname..", "..hostname..", "..mode..", "..key..")<br>\n")
@@ -83,8 +92,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
       print("<p>--------------------------------------------<p>\n")
       print("OLD<br>"..old_json.."<br>\n")
       print("<p>--------------------------------------------<p>\n")
-end
-
+   end
 
    old = j.decode(old_json, 1, nil)
    new = j.decode(new_json, 1, nil)
@@ -133,8 +141,55 @@ end
 
 -- #################################
 
-function check_interface_alert(ifname, mode, key, old_json, new_json)
-   -- TODO
+function check_interface_alert(ifname, mode, old_table, new_table)
+   if(verbose) then
+      print("check_interface_alert("..ifname..", "..mode..", "..key..")<br>\n")
+   end
+
+   -- Needed because Lua. loadstring() won't work otherwise.
+   old = old_table
+   new = new_table
+
+   -- str = "bytes;>;123,packets;>;12"
+   hkey = "ntopng.prefs.alerts_"..mode
+
+   str = ntop.getHashCache(hkey, ifname)
+
+   -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
+   if((str ~= nil) and (str ~= "")) then
+      tokens = split(str, ",")
+
+      for _,s in pairs(tokens) do
+	 -- if(verbose) then ("<b>"..s.."</b><br>\n") end
+	 t = string.split(s, ";")
+
+	 if(t[2] == "gt") then
+	    op = ">"
+	 else
+	    if(t[2] == "lt") then
+	       op = "<"
+	    else
+	       op = "=="
+	    end
+	 end
+
+	 local what = "val = "..t[1].."(old, new); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
+	 local f = loadstring(what)
+	 local rc = f()
+
+	 if(rc) then
+	    local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..ifname..
+                              ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	    local alert_level = 1 -- alert_level_warning
+	    local alert_type = 2 -- alert_threshold_exceeded
+
+	    ntop.queueAlert(alert_level, alert_type, alert_msg)
+	    if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
+	 else
+	    if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+	 end
+      end
+   end
 end
 
 -- #################################
@@ -156,27 +211,20 @@ function check_interface_threshold(ifname, mode)
 
    --if(verbose) then print(basedir.."<br>\n") end
    interface.select(ifname)
-   -- json = interface.getHostInfo(host_ip) -- FIX: get interface JSON
+   ifstats = interface.getStats()
 
-   if(json ~= nil) then
-      fname = fixPath(basedir.."/interface.json")
+   if (ifstats ~= nil) then
+     fname = fixPath(basedir.."/iface_"..ifname.."_lastdump")
 
-      if(verbose) then print(fname.."<p>\n") end
-      -- Read old version
-      f = io.open(fname, "r")
-      if(f ~= nil) then
-	 old_json = f:read("*all")
-	 f:close()
-	 check_interface_alert(ifname, mode, old_json, json["json"])
-      end
+     if(verbose) then print(fname.."<p>\n") end
+     -- Read old version
+     old_dump = persistence.load(fname)
+     if (old_dump ~= nil) then
+       check_interface_alert(ifname, mode, old_dump, ifstats)
+     end
 
-      -- Write new version
-      f = io.open(fname, "w")
-
-      if(f ~= nil) then
-	 f:write(json["json"])
-	 f:close()
-      end
+     -- Write new version
+     persistence.store(fname, ifstats)
    end
 end
 
