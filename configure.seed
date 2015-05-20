@@ -63,7 +63,10 @@ else
   cd $NDPI_HOME; ./autogen.sh; make; cd -
 fi
 
+AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
+if test -d "../nProbe"; then :
+AC_MSG_RESULT(found)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
@@ -88,6 +91,9 @@ PRO_LIBS=
 PRO_OBJECTS=
 PRO_HEADERS=
 PRO_LIBS=
+fi
+else
+AC_MSG_RESULT(not found [missing ../nProbe])
 fi
 
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "r${GIT_RELEASE}", [GIT Release])
@@ -349,7 +355,9 @@ echo "You are now ready to compile typing $GMAKE"
 
 if test $DOWNLOAD_GEOIP = "1"
 then
+if ! test -f "./httpdocs/geoip/GeoIPASNum.dat"; then
   echo "Please do not forget to download GeoIP databases doing: $GMAKE geoip"
+fi
 fi
 
 dnl>
