@@ -142,6 +142,7 @@ end
 -- #################################
 
 function check_interface_alert(ifname, mode, old_table, new_table)
+   local ifname_clean = string.gsub(ifname, "/", "_")
    if(verbose) then
       print("check_interface_alert("..ifname..", "..mode..", "..key..")<br>\n")
    end
@@ -153,7 +154,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
    -- str = "bytes;>;123,packets;>;12"
    hkey = "ntopng.prefs.alerts_"..mode
 
-   str = ntop.getHashCache(hkey, ifname)
+   str = ntop.getHashCache(hkey, ifname_clean)
 
    -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
    if((str ~= nil) and (str ~= "")) then
@@ -195,16 +196,18 @@ end
 -- #################################
 
 function check_interface_threshold(ifname, mode)
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..ifname)
+   local ifname_clean = string.gsub(ifname, "/", "_")
+
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-      if(verbose) then print("Alert check for ("..ifname..", "..mode..")<br>\n") end
+      if(verbose) then print("Alert check for ("..ifname_clean..", "..mode..")<br>\n") end
    else
-      if(verbose) then print("Skipping alert check for("..ifname..", "..mode.."): disabled in preferences<br>\n") end
+      if(verbose) then print("Skipping alert check for("..ifname_clean..", "..mode.."): disabled in preferences<br>\n") end
       return
    end
 
-   if(verbose) then print("check_interface_threshold("..ifname..", "..host_ip..", "..mode..")<br>\n") end
-   basedir = fixPath(dirs.workingdir .. "/" .. ifname .. "/json/" .. mode)
+   if(verbose) then print("check_interface_threshold("..ifname_clean..", "..host_ip..", "..mode..")<br>\n") end
+   basedir = fixPath(dirs.workingdir .. "/" .. ifname_clean .. "/json/" .. mode)
    if(not(ntop.exists(basedir))) then
       ntop.mkdir(basedir)
    end
@@ -214,7 +217,7 @@ function check_interface_threshold(ifname, mode)
    ifstats = interface.getStats()
 
    if (ifstats ~= nil) then
-     fname = fixPath(basedir.."/iface_"..ifname.."_lastdump")
+     fname = fixPath(basedir.."/iface_"..ifname_clean.."_lastdump")
 
      if(verbose) then print(fname.."<p>\n") end
      if (ntop.exists(fname)) then

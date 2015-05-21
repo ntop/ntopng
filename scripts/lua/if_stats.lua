@@ -655,6 +655,7 @@ end
 end
 elseif(page == "alerts") then
 local if_name = ifstats.name
+local ifname_clean = string.gsub(ifname, "/", "_")
 local tab = _GET["tab"]
 
 if(tab == nil) then tab = alerts_granularity[1][1] end
@@ -677,7 +678,7 @@ alerts = ""
 to_save = false
 
 if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
-   delete_interface_alert_configuration(if_name)
+   delete_interface_alert_configuration(ifname_clean)
    alerts = nil
 else
    for k,_ in pairs(alert_functions_description) do
@@ -699,12 +700,12 @@ else
 
    if(to_save) then
       if(alerts == "") then
-	 ntop.delHashCache("ntopng.prefs.alerts_"..tab, if_name)
+	 ntop.delHashCache("ntopng.prefs.alerts_"..tab, ifname_clean)
       else
-	 ntop.setHashCache("ntopng.prefs.alerts_"..tab, if_name, alerts)
+	 ntop.setHashCache("ntopng.prefs.alerts_"..tab, ifname_clean, alerts)
       end
    else
-      alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, if_name)
+      alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, ifname_clean)
    end
 end
 
@@ -724,7 +725,7 @@ if(alerts ~= nil) then
 end
 
 if(tab == "alerts_preferences") then 
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", if_name)
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", ifname_clean)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       alerts_checked = 'checked="checked"'
       alerts_value = "false" -- Opposite
@@ -805,20 +806,21 @@ else
 end
 elseif (page == "config") then
 local if_name = ifstats.name
+local ifname_clean = string.gsub(ifname, "/", "_")
 
    if(isAdministrator()) then
       trigger_alerts = _GET["trigger_alerts"]
       if(trigger_alerts ~= nil) then
          if(trigger_alerts == "true") then
-	    ntop.delHashCache("ntopng.prefs.alerts", "iface_"..if_name)
+	    ntop.delHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean)
          else
-	    ntop.setHashCache("ntopng.prefs.alerts", "iface_"..if_name, trigger_alerts)
+	    ntop.setHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean, trigger_alerts)
          end
       end
    end
 
    print("<table class=\"table table-striped table-bordered\">\n")
-       suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", if_name)
+       suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", ifname_clean)
        if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
 	  alerts_checked = 'checked="checked"'
 	  alerts_value = "false" -- Opposite
