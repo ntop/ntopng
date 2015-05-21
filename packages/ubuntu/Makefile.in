@@ -45,7 +45,7 @@ ntopng:
 ntopng-data:
 	if test -e "./debian"; then /bin/rm -f debian; fi
 	ln -s ./debian.ntopng-data ./debian
-	\rm -rf ./usr ./debian/tmp
+	@SUDO@ \rm -rf ./usr ./debian/tmp
 	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/tmp
 	cd ../../ ; ./configure; make geoip
 	cp ../../httpdocs/geoip/* ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
@@ -56,8 +56,8 @@ ntopng-data:
 	@echo
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng-data_*deb
-	dpkg-buildpackage -rfakeroot -d -us -uc
-	dpkg-sig --sign builder -k 7921DF34 ../ntopng-data_*deb
+	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc
+	@SUDO@ dpkg-sig --sign builder -k 7921DF34 ../ntopng-data_*deb
 	@\rm -f ../ntopng-data_*dsc ../ntopng-data_*.gz ../ntopng-data_*changes
 	@/bin/mv ../ntopng-data_*deb .
 	@echo
