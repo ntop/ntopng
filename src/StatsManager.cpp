@@ -174,12 +174,12 @@ int StatsManager::deleteStatsOlderThan(const char *cache_name, const time_t key)
 
   snprintf(query, sizeof(query), "DELETE FROM %s WHERE "
 	   "CAST(TSTAMP AS INTEGER) < %d",
-	   cache_name, key);
-
+	   cache_name, (int)key);
+  
   m.lock(__FILE__, __LINE__);
-
+  
   rc = exec_query(query, NULL, NULL);
-
+  
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -278,7 +278,7 @@ static int get_samplings_db(void *data, int argc,
 int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
 					const char *cache_name,
                                         const time_t key_start,
-										const time_t key_end) {
+					const time_t key_end) {
   char query[MAX_QUERY];
   int rc;
 
@@ -292,7 +292,7 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
 
   snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE TSTAMP >= %d "
 	   "AND TSTAMP <= %d",
-           cache_name, key_start, key_end);
+           cache_name, (int)key_start, (int)key_end);
 
   m.lock(__FILE__, __LINE__);
 
@@ -398,8 +398,8 @@ int StatsManager::insertSampling(char *sampling, const char *cache_name,
   m.lock(__FILE__, __LINE__);
 
   if(sqlite3_prepare(db, query, -1, &stmt, 0) ||
-      sqlite3_bind_int(stmt, 1, key) ||
-      sqlite3_bind_text(stmt, 2, sampling, strlen(sampling), SQLITE_TRANSIENT)) {
+     sqlite3_bind_int(stmt, 1, key) ||
+     sqlite3_bind_text(stmt, 2, sampling, strlen(sampling), SQLITE_TRANSIENT)) {
     rc = 1;
     goto out;
   }

@@ -120,28 +120,48 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
   const char *create_flows_db = "BEGIN; CREATE TABLE IF NOT EXISTS flows (ID INTEGER PRIMARY KEY   AUTOINCREMENT, vlan_id number, cli_ip string KEY, cli_port number, "
     "srv_ip string KEY, srv_port number, proto number, bytes number, first_seen number, last_seen number, duration number, json string);";
   char sql[4096], cli_str[64], srv_str[64];
+  sqlite3_stmt *stmt = NULL;
+  char *j = json ? : strndup("", 1);
+  int rc = 1;
 
   snprintf(sql, sizeof(sql),
-	   "INSERT INTO flows VALUES (NULL, %u, '%s', %u, '%s', %u, %u, %lu, %u, %u, %u, '%s');",
-	   f->get_vlan_id(),
-	   f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
-	   f->get_cli_port(),
-	   f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
-	   f->get_srv_port(),
-	   f->get_protocol(),
-	   (unsigned long)f->get_bytes(),
-	   (unsigned) f->get_first_seen(),
-	   (unsigned) f->get_last_seen(),
-	   f->get_duration(), json ? json : "");
+	   "INSERT INTO flows VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Dump Flow: %s", json);
 
   if(m) m->lock(__FILE__, __LINE__);
   initDB(when, create_flows_db);
-  execSQL(db, sql);
+
+  if (sqlite3_prepare(db, sql, -1, &stmt, 0) ||
+      sqlite3_bind_int(stmt, 1, f->get_vlan_id()) ||
+      sqlite3_bind_text(stmt, 2, f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)), sizeof(cli_str), SQLITE_TRANSIENT) ||
+      sqlite3_bind_int(stmt, 3, f->get_cli_port()) ||
+      sqlite3_bind_text(stmt, 4, f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)), sizeof(srv_str), SQLITE_TRANSIENT) ||
+      sqlite3_bind_int(stmt, 5, f->get_srv_port()) ||
+      sqlite3_bind_int(stmt, 6,  f->get_protocol()) ||
+      sqlite3_bind_int(stmt, 7, (unsigned long)f->get_bytes()) ||
+      sqlite3_bind_int(stmt, 8, (unsigned) f->get_first_seen()) ||
+      sqlite3_bind_int(stmt, 9, (unsigned) f->get_last_seen()) ||
+      sqlite3_bind_int(stmt, 10, f->get_duration()) ||
+      sqlite3_bind_text(stmt, 11, j, strlen(j), SQLITE_TRANSIENT)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "[DB] Dump Flow query build failed: %s", sqlite3_errmsg(db));
+    rc = 0;
+    goto out;
+  }
+
+  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(rc == SQLITE_ERROR) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[DB] SQL Error: step");
+      rc = 0;
+      goto out;
+    }
+  }
+
+out:
+  if (stmt) sqlite3_finalize(stmt);
   if(m) m->unlock(__FILE__, __LINE__);
 
-  return(true);
+  return rc;
 }
 
 /* ******************************************* */

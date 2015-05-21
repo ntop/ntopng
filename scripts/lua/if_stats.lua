@@ -8,6 +8,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 require "lua_utils"
 require "graph_utils"
+require "alert_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
@@ -193,6 +194,22 @@ if(not(ifstats.iface_view)) then
       else
 	 print("<li><a href=\""..url.."&page=packetdump\">Packet Dump</a></li>")
       end
+   end
+end
+
+if (not is_historical and isAdministrator()) then
+   if(page == "alerts") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+   end
+end
+
+if(not is_historical and isAdministrator()) then
+   if(page == "config") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
 end
 
@@ -636,6 +653,197 @@ end
       ]]
    print("</table>")
 end
+elseif(page == "alerts") then
+local if_name = ifstats.name
+local ifname_clean = string.gsub(ifname, "/", "_")
+local tab = _GET["tab"]
+
+if(tab == nil) then tab = alerts_granularity[1][1] end
+
+print [[ <ul class="nav nav-tabs">
+]]
+
+for _,e in pairs(alerts_granularity) do
+   k = e[1]
+   l = e[2]
+
+   if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
+   print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..if_name.."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
+end
+
+-- Before doing anything we need to check if we need to save values
+
+vals = { }
+alerts = ""
+to_save = false
+
+if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
+   delete_interface_alert_configuration(ifname_clean)
+   alerts = nil
+else
+   for k,_ in pairs(alert_functions_description) do
+      value    = _GET["value_"..k]
+      operator = _GET["operator_"..k]
+
+      if((value ~= nil) and (operator ~= nil)) then
+	 --io.write("\t"..k.."\n")
+	 to_save = true
+	 value = tonumber(value)
+	 if(value ~= nil) then
+	    if(alerts ~= "") then alerts = alerts .. "," end
+	    alerts = alerts .. k .. ";" .. operator .. ";" .. value
+	 end
+      end
+   end
+
+   --print(alerts)
+
+   if(to_save) then
+      if(alerts == "") then
+	 ntop.delHashCache("ntopng.prefs.alerts_"..tab, ifname_clean)
+      else
+	 ntop.setHashCache("ntopng.prefs.alerts_"..tab, ifname_clean, alerts)
+      end
+   else
+      alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, ifname_clean)
+   end
+end
+
+if(alerts ~= nil) then
+   --print(alerts)
+   --tokens = string.split(alerts, ",")
+   tokens = split(alerts, ",")
+
+   --print(tokens)
+   if(tokens ~= nil) then
+      for _,s in pairs(tokens) do
+	 t = string.split(s, ";")
+	 --print("-"..t[1].."-")
+	 if(t ~= nil) then vals[t[1]] = { t[2], t[3] } end
+      end
+   end
+end
+
+if(tab == "alerts_preferences") then 
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", ifname_clean)
+   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+      alerts_checked = 'checked="checked"'
+      alerts_value = "false" -- Opposite
+   else
+      alerts_checked = ""
+      alerts_value = "true" -- Opposite
+   end
+
+else
+   print [[
+    </ul>
+    <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
+    <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
+
+
+   <form>
+    <input type=hidden name=page value=alerts>
+   ]]
+
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print("<input type=hidden name=host value=\""..if_name.."\">\n")
+   print("<input type=hidden name=tab value="..tab..">\n")
+
+   for k,v in pairsByKeys(alert_functions_description, asc) do
+      print("<tr><th>"..k.."</th><td>\n")
+      print("<select name=operator_".. k ..">\n")
+      if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
+      print("value=\"gt\">&gt;</option>\n")
+
+      if((vals[k] ~= nil) and (vals[k][1] == "eq")) then print("<option selected=\"selected\"") else print("<option ") end
+      print("value=\"eq\">=</option>\n")
+
+      if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
+      print("value=\"lt\">&lt;</option>\n")
+      print("</select>\n")
+      print("<input type=text name=\"value_"..k.."\" value=\"")
+      if(vals[k] ~= nil) then print(vals[k][2]) end
+      print("\">\n\n")
+      print("<br><small>"..v.."</small>\n")
+      print("</td></tr>\n")
+   end
+
+   print [[
+   <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
+
+   <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
+
+   <a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> Delete All Interface Configured Alerts ]</button></a>
+   <!-- Modal -->
+   <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+     <div class="modal-dialog">
+       <div class="modal-content">
+         <div class="modal-header">
+       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+       <h3 id="myModalLabel">Confirm Action</h3>
+     </div>
+     <div class="modal-body">
+   	 <p>Do you really want to delete all configured alerts for interface ]] print(if_name) print [[?</p>
+     </div>
+     <div class="modal-footer">
+       <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">
+   ]]
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+       <button class="btn btn-primary" type="submit">Delete All</button>
+
+     </div>
+   </form>
+   </div>
+   </div>
+
+   </th> </tr>
+
+
+
+   </tbody> </table>
+   ]]
+end
+elseif (page == "config") then
+local if_name = ifstats.name
+local ifname_clean = string.gsub(ifname, "/", "_")
+
+   if(isAdministrator()) then
+      trigger_alerts = _GET["trigger_alerts"]
+      if(trigger_alerts ~= nil) then
+         if(trigger_alerts == "true") then
+	    ntop.delHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean)
+         else
+	    ntop.setHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean, trigger_alerts)
+         end
+      end
+   end
+
+   print("<table class=\"table table-striped table-bordered\">\n")
+       suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", ifname_clean)
+       if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+	  alerts_checked = 'checked="checked"'
+	  alerts_value = "false" -- Opposite
+       else
+	  alerts_checked = ""
+	  alerts_value = "true" -- Opposite
+       end
+       
+       print [[
+	    <tr><th>Interface Alerts</th><td nowrap>
+	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
+	    <input type="hidden" name="tab" value="alerts_preferences">
+	    <input type="hidden" name="host" value="]]
+	 
+         print(if_name)
+         print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
+         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         print('<input type="hidden" name="page" value="config">')
+         print('</form>')
+         print('</td>')
+	 print [[</tr>]]
+
+    print("</table>")
 elseif(page == "config_historical") then
    --
    --  Historical Interface configuration page
@@ -890,7 +1098,7 @@ end
 
 print [[
 <table class="table table-striped table-bordered">
- <tr><th width=10%>Shaper Id</th><th>Max Rate (Kbps)</th><th>Presets</th></tr>
+ <tr><th width=10%>Shaper Id</th><th>Max Rate</th></tr>
 ]]
 
 
@@ -901,38 +1109,25 @@ for i=0,max_num_shapers-1 do
 
    print [[
 	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
-	    <input type="hidden" name="if_name" value="]] print(ifname) print[[">
-	    <input type="hidden" name="page" value="shaping">
-         <input type="hidden" name="shaper_id" value="]]
-	 print(i)
-	 print [[">]]
+         <input type="hidden" name="page" value="shaping">
+	 <input type="hidden" name="if_name" value="]] print(ifname) print[[">
+         <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
 
       if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print [[&nbsp;<input type=hidden readonly name=max_rate id="max_rate_]] print(i.."") print [[" value="]] print(max_rate.."") print [[">
-	 &nbsp;&nbsp;&nbsp;&nbsp;<input size=32 id="slider_rate]] print(i.."") print [[" type="text" data-slider-min="-1" data-slider-max="10240" data-slider-step="1" data-slider-value="]] print(max_rate.."") print [[" size="4">&nbsp;&nbsp;&nbsp;
 
-        &nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate</button>   
-
-        </td><td><button type="button" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs" onclick="$('#slider_rate]] print(i.."") print [[').slider('setValue', -1);">No Rate Limit</button>   
-	&nbsp;<button type="button" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs" onclick="$('#slider_rate]] print(i.."") print [[').slider('setValue', 0);">Drop All Traffic</button></td>
-        <script>
-     $('#slider_rate]] print(i.."") print [[').slider({	 
-	 formater: function(value) {
-  		      $("#max_rate_]] print(i.."") print [[").val(value);
-		      if(value == -1) { return 'No rate limit'; }
-		      else if(value == 0) { return 'Drop all traffic'; }
-		      else if(value < 1024) { return value+' Kbit'; } 
-		      else { return (Math.round((value/1024)*100)/100)+' Mbit'; } }} );
-	 </script>
-        </form></td></tr>
-       ]]
+	 print('<input type="number" name="max_rate" placeholder="" min="-1" step="1000" value="'.. max_rate ..'">&nbsp;Kbps')
+	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
       else
 	 print("</td></tr>")
       end
 end
 print [[</table>
-  NOTE: the shaper 1 is the default shaper used for local hosts that have no shaper defined.
+  NOTES
+<ul>
+<li>Shaper 0 is the default shaper used for local hosts that have no shaper defined.
+<li>Set max rate to:<ul><li>-1 for no shaping<li>0 for dropping all traffic</ul>
+</ul>
 ]]
 
 elseif(page == "filtering") then
