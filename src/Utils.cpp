@@ -20,8 +20,14 @@
  */
 
 #include "ntop_includes.h"
-
 #include <curl/curl.h>
+
+// A simple struct for strings.
+typedef struct {
+  char *s;
+  size_t l;
+} String;
+
 
 typedef struct {
   char outbuf[16384];
@@ -136,7 +142,7 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
    u_int num_cores = ntop->getNumCPUs();
    u_long core = core_id % num_cores;
    cpu_set_t cpu_set;
- 
+
    if(num_cores > 1) {
      CPU_ZERO(&cpu_set);
      CPU_SET(core, &cpu_set);
@@ -677,7 +683,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(username || password) {
-      snprintf(auth, sizeof(auth), "%s:%s", 
+      snprintf(auth, sizeof(auth), "%s:%s",
 	       username ? username : "",
 	       password ? password : "");
       curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
@@ -689,7 +695,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
 
-    curl_easy_setopt(curl, CURLOPT_POST, 1L); 
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
@@ -699,14 +705,14 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, 
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
       ret = false;
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
     }
-    
+
     /* always cleanup */
     curl_easy_cleanup(curl);
   }
@@ -722,10 +728,10 @@ static size_t curl_get_writefunc(char *buffer, size_t size,
   DownloadState *state = (DownloadState*)userp;
   int len = size*nitems;
   int diff = sizeof(state->outbuf) - state->num_bytes - 1;
-  
+
   if(diff > 0) {
     int buff_diff = min(diff, len);
-    
+
     if(buff_diff > 0) {
       strncpy(&state->outbuf[state->num_bytes], buffer, buff_diff);
       state->num_bytes += buff_diff;
@@ -738,14 +744,12 @@ static size_t curl_get_writefunc(char *buffer, size_t size,
 
 /* **************************************** */
 
-bool Utils::httpGet(lua_State* vm, char *url, char *username, 
-		    char *password, int timeout, 
-		    bool return_content) {
+bool Utils::httpGet(lua_State* vm, char *url, char *username, char *password, int timeout, bool return_content) {
   CURL *curl;
   bool ret = true;
 
   curl = curl_easy_init();
-  if(curl) {
+  if (curl) {
     curl_version_info_data *v;
     DownloadState *state = NULL;
     long response_code;
@@ -755,7 +759,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(username || password) {
-      snprintf(auth, sizeof(auth), "%s:%s", 
+      snprintf(auth, sizeof(auth), "%s:%s",
 	       username ? username : "",
 	       password ? password : "");
       curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
@@ -771,9 +775,9 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
       state = (DownloadState*)malloc(sizeof(DownloadState));
       if(state != NULL) {
 	memset(state, 0, sizeof(DownloadState));
-	  
+
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc); 
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
 	curl_easy_cleanup(curl);
@@ -802,7 +806,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 
     if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
       lua_push_int_table_entry(vm, "RESPONSE_CODE", response_code);
-    
+
     if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
       lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
 
@@ -811,7 +815,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 
     if(return_content && state)
       free(state);
-    
+
     /* always cleanup */
     curl_easy_cleanup(curl);
   }
@@ -828,18 +832,118 @@ char* Utils::getURL(char *url, char *buf, u_int buf_len) {
     return(url);
 
   snprintf(buf, buf_len, "%s/lua/pro%s",
-	   ntop->get_HTTPserver()->get_scripts_dir(), 
+	   ntop->get_HTTPserver()->get_scripts_dir(),
 	   &url[4]);
 
   ntop->fixPath(buf);
   if((stat(buf, &s) == 0) && (S_ISREG(s.st_mode))) {
     u_int l = strlen(ntop->get_HTTPserver()->get_scripts_dir());
     char *new_url = &buf[l];
-    
+
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> %s", new_url);
     return(new_url);
   } else
     return(url);
+}
+
+/* **************************************** */
+
+// Support functions for 'urlEncode'.
+
+static char to_hex(char code) {
+  static char hex[] = "0123456789ABCDEF";
+  return hex[code & 15];
+}
+
+static int alphanum(char code) {
+  int i;
+  static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+  for (i = 0; i < 36; i++) {
+    if (code == alnum[i]) return 1;
+  }
+  return 0;
+}
+
+// Encodes a URL to hexadecimal format.
+char* Utils::urlEncode(char *url) {
+  char *pstr = url;
+  char *buf = (char *) malloc(strlen(url) * 3 + 1);
+  char *pbuf = buf;
+  while (*pstr) {
+    if (alphanum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
+      *pbuf++ = *pstr;
+    }
+    else {
+      if (*pstr == ' ') *pbuf++ = '+';
+      else {
+        *pbuf++ = '%';
+        *pbuf++ = to_hex(*pstr >> 4);
+        *pbuf++ = to_hex(*pstr & 15);
+      }
+    }
+    pstr++;
+  }
+  *pbuf = '\0';
+  return buf;
+}
+
+/* **************************************** */
+
+// The following one initializes a new string.
+static void newString(String *str) {
+  str->l = 0;
+  str->s = (char *) malloc((str->l) + 1);
+  if (str->s == NULL) {
+    fprintf(stderr, "ERROR: malloc() failed!\n");
+    exit(EXIT_FAILURE);
+  }
+  else {
+    str->s[0] = '\0';
+  }
+  return;
+}
+
+// This callback function will be passed to 'curl_easy_setopt' in order to write curl output to a variable.
+static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
+  size_t new_len = str->l + (size * nmemb);
+  str->s = (char *) realloc(str->s, new_len + 1);
+  if (str->s == NULL) {
+    fprintf(stderr, "ERROR: realloc() failed!\n");
+    exit(EXIT_FAILURE);
+  }
+  memcpy(str->s+str->l, ptr, size * nmemb);
+  str->s[new_len] = '\0';
+  str->l = new_len;
+
+  return (size * nmemb);
+}
+
+// Adding this function that performs a simple HTTP GET request using libcurl.
+// The function returns a string that contains the reply.
+char* Utils::curlHTTPGet(char *url, long *http_code) {
+  CURL *curl;
+  CURLcode res;
+  String replyString;
+  long replyCode = 0;
+
+  curl = curl_easy_init();
+  if (curl) {
+    newString(&replyString);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    // Uncomment the following line for redirection support.
+    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &replyString);
+    res = curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &replyCode);
+    if (res != CURLE_OK) {
+      fprintf(stderr, "ERROR: curl_easy_perform failed with code %s.\n", curl_easy_strerror(res));
+    }
+    *http_code = replyCode;
+    curl_easy_cleanup(curl);
+    return replyString.s;
+  }
+  return NULL;
 }
 
 /* **************************************** */
@@ -864,15 +968,15 @@ bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len) {
     state = (DownloadState*)malloc(sizeof(DownloadState));
     if(state != NULL) {
       memset(state, 0, sizeof(DownloadState));
-	
+
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc); 
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
     } else {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
       curl_easy_cleanup(curl);
       return(false);
     }
-      
+
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10 /* sec */);
@@ -887,11 +991,11 @@ bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len) {
       ret_buf[0] = '\0';
 
     free(state);
-    
+
     /* always cleanup */
     curl_easy_cleanup(curl);
   }
-  
+
   return(ret);
 }
 

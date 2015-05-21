@@ -345,8 +345,8 @@ int Redis::hashKeys(const char *pattern, char ***keys_p) {
     rc = (int)reply->elements;
 
     if(rc > 0) {
-      if(((*keys_p) = (char**)malloc(reply->elements * sizeof(char*))) != NULL) {    
-	
+      if(((*keys_p) = (char**)malloc(reply->elements * sizeof(char*))) != NULL) {
+
 	for(i = 0; i < reply->elements; i++)
 	  (*keys_p)[i] = strdup(reply->element[i]->str);
       }
@@ -553,7 +553,6 @@ char* Redis::getFlowCategory(char *domainname, char *buf,
   }
 
   l->unlock(__FILE__, __LINE__);
-
   return(buf);
 }
 

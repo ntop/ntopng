@@ -401,7 +401,7 @@ void Flow::processDetectedProtocol() {
 	doublecol[0] = '\0';
 
       if(srv_host) {
-	char buf[64];
+	char buf[64]; // buf declared here!
 	Host *srv = get_real_server();
 
 	/* Check if the name isn't numeric */
@@ -410,8 +410,7 @@ void Flow::processDetectedProtocol() {
 	  aggregateInfo((char*)ndpi_flow->host_server_name, ndpi_detected_protocol,
 			aggregation_domain_name, true);
 
-	  if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
-					       buf, sizeof(buf), true) != NULL) {
+	  if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name, buf, sizeof(buf), true) != NULL) {
 	    categorization.flow_categorized = true;
 	    categorization.category = strdup(buf);
 	  }
@@ -478,7 +477,7 @@ void Flow::guessProtocol() {
 							      ntohl(srv_host->get_ip()->get_ipv4()),
 							      ntohs(srv_port));
     }
-    
+
     l7_protocol_guessed = true;
   }
 }
@@ -1062,7 +1061,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
 
   if(http.last_method && http.last_url)
     lua_push_str_table_entry(vm, "http.last_url", http.last_url);
-  
+
   if(host_server_name)
     lua_push_str_table_entry(vm, "http.server_name", host_server_name);
 
@@ -1312,7 +1311,7 @@ json_object* Flow::flow2json(bool partial_dump) {
 
     if(0) {
       json_object *location = json_object_new_array();
-      
+
       if(location) {
 	json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
 	json_object_array_add(location, json_object_new_double(cli_host->get_longitude()));
@@ -1332,7 +1331,7 @@ json_object* Flow::flow2json(bool partial_dump) {
 
     if(0) {
       json_object *location = json_object_new_array();
-      
+
       if(location) {
 	json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
 	json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
@@ -1398,7 +1397,7 @@ void Flow::updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pk
   Host *from = src2dst_direction ? cli_host : srv_host;
   Host *to = src2dst_direction ? srv_host : cli_host;
 
-  iface->updateLocalStats(num_pkts, pkt_len, 
+  iface->updateLocalStats(num_pkts, pkt_len,
 			  from ? from->isLocalHost() : false,
 			  to ? to->isLocalHost() : false);
 }
@@ -1729,4 +1728,3 @@ bool Flow::dumpFlowTraffic() {
     return(cli_host->dumpHostTraffic() || srv_host->dumpHostTraffic());
   return(false);
 }
-

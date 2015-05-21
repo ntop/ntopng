@@ -21,6 +21,10 @@
 
 #include "ntop_includes.h"
 
+// Categorization macros section. Change these settings according to your needs.
+// More settings in "Categorization.cpp".
+#define DEFAULT_CATEGORIZATION_KEY "ABQIAAAAXvY7RNqD0ZXs1w0jW2CGTRS9IRPbEtejJMhL9X_PdOU4Y_zLPg"
+
 /* ******************************************* */
 
 Prefs::Prefs(Ntop *_ntop) {
@@ -31,7 +35,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
-  categorization_enabled = false, httpbl_enabled = false, resolve_all_host_ip = false;
+  categorization_enabled = true, httpbl_enabled = false, resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -44,7 +48,7 @@ Prefs::Prefs(Ntop *_ntop) {
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
-  categorization_key = NULL;
+  categorization_key = strdup(DEFAULT_CATEGORIZATION_KEY);
   httpbl_key = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
@@ -79,8 +83,8 @@ Prefs::Prefs(Ntop *_ntop) {
   local_host_max_idle     = MAX_LOCAL_HOST_IDLE /* sec */;
   flow_max_idle           = MAX_FLOW_IDLE /* sec */;
 
-  es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"), 
-    es_url = strdup((char*)"http://localhost:9200/_bulk"), 
+  es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
+    es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
 #ifdef NTOPNG_PRO
@@ -289,7 +293,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
   if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
     *buffer = strdup(rsp);
   else
-    *buffer = strdup(default_value);  
+    *buffer = strdup(default_value);
 }
 
 /* ******************************************* */
@@ -595,8 +599,8 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "All HTTP user login disabled");
       break;
     default:
-      ntop->getTrace()->traceEvent(TRACE_ERROR, 
-				   "Invalid '%s' value specified for -l: ignored", 
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Invalid '%s' value specified for -l: ignored",
 				   optarg);
     }
     break;
@@ -609,7 +613,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
-    if((strncmp(optarg, "es", 2) == 0) 
+    if((strncmp(optarg, "es", 2) == 0)
        && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
@@ -631,8 +635,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  }
 	}
       }
-      
-      if(elastic_index_type 
+
+      if(elastic_index_type
 	 && elastic_index_name
 	 && elastic_url) {
 	free(es_type), free(es_index), free(es_url), free(es_user), free(es_pwd);
@@ -648,15 +652,15 @@ int Prefs::setOption(int optkey, char *optarg) {
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Discarding -F: invalid format for es");
-	ntop->getTrace()->traceEvent(TRACE_WARNING, 
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     } else if(!strcmp(optarg, "db"))
       dump_flows_on_db = true;
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, 
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Discarding -F %s: value out of range",
-				   optarg);    
+				   optarg);
     break;
 
 #ifndef WIN32
@@ -716,7 +720,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
     _exit(0);
   }
-  
+
   return(0);
 }
 
@@ -977,7 +981,7 @@ void Prefs::registerNetworkInterfaces() {
 /* *************************************** */
 
 bool Prefs::is_pro_edition() {
-  return 
+  return
 #ifdef NTOPNG_PRO
     ntop->getPro()->has_valid_license()
 #else
@@ -989,7 +993,7 @@ bool Prefs::is_pro_edition() {
 /* *************************************** */
 
 time_t Prefs::pro_edition_demo_ends_at() {
-  return 
+  return
 #ifdef NTOPNG_PRO
     ntop->getPro()->demo_ends_at()
 #else
