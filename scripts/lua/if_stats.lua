@@ -187,7 +187,7 @@ else
    end
 end
 
-if(not(ifstats.iface_view)) then
+if(not(ifstats.iface_view) and not is_historical) then
    if (isAdministrator()) then
       if (page == "packetdump") then
 	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\">Packet Dump</a></li>")
@@ -455,7 +455,7 @@ elseif(page == "historical") then
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
 
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
-elseif (page == "packetdump") then
+elseif (page == "packetdump" and not is_historical) then
 if (isAdministrator()) then
   dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
   dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
