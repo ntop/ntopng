@@ -9,7 +9,7 @@ CFLAGS="-I${PWD} -I${PWD}/include"
 CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
-REVISION=`git rev-list --all |wc -l`
+REVISION=`git rev-list HEAD --count`
 
 if test -d "/usr/local/include"; then
 CFLAGS="${CFLAGS} -I/usr/local/include"
