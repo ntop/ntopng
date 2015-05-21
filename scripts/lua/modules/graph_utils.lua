@@ -303,12 +303,17 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 
       step = fstep
       num = 0
+      names_cache = {}
       for i, n in ipairs(fnames) do
-	 names[num] = prefixLabel
-	 -- if(prefixLabel ~= firstToUpper(n)) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
-	 num = num + 1
-	 --io.write(prefixLabel.."\n")
-	 --print(num.."\n")
+         -- handle duplicates
+         if (names_cache[prefixLabel] == nil) then
+	   names[num] = prefixLabel
+           names_cache[prefixLabel] = true
+	   -- if(prefixLabel ~= firstToUpper(n)) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
+	   num = num + 1
+	   --io.write(prefixLabel.."\n")
+	   --print(num.."\n")
+         end
       end
 
       id = 0
@@ -438,7 +443,7 @@ end
   </ul>
 </div><!-- /btn-group -->
 ]]
-end
+end -- show_timeseries == 1
 
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
 
@@ -469,17 +474,21 @@ print [[
 <div id="chart_container" style="display: table-row">
 
    <table style="border: 0">
+]]
+if(string.contains(rrdFile, "num_")) then
+   formatter_fctn = "fint"
+else
+   formatter_fctn = "fpackets"
+end
+
+if (topArray ~= nil) then
+print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
    ]]
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
-   if(string.contains(rrdFile, "num_")) then
-      formatter_fctn = "fint"
-   else
-      formatter_fctn = "fpackets"
-   end
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. formatValue(round(maxval_bits/step), 1) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(lastval_bits/step), 1) .. '</td></tr>\n')
@@ -502,6 +511,10 @@ print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div>
 print [[
 
    </table>
+]]
+end -- topArray ~= nil
+
+print[[
    </td></tr>
    <tr><td><div id="legend"></div></td><td><div id="chart_legend"></div></td></tr>
    <tr><td colspan=2>
@@ -535,7 +548,9 @@ if(names ~= nil) then
 	 print ","
       end
 
-      print ("{\nname: '".. names[elemId] .. "',\n")
+      name = strsplit(names[elemId], "/")
+      name = name[#name]
+      print ("{\nname: '".. name .. "',\n")
 
       print("color: palette.color(),\ndata: [\n")
 
@@ -625,6 +640,10 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 	  print(formatter_fctn) 
 	  print [[(point.value.y); // point.formattedYValue;
 		var infoHTML = "";
+]]
+
+if(topArray ~= nil) then
+print[[
 var seconds;
 
 $.ajax ({
@@ -643,7 +662,6 @@ print[[
    infoHTML += "<ul>";
 ]]
 
-if(topArray ~= nil) then
    for n,v in pairs(topArray) do
       modulename = n
       sectionname = v["name"]
@@ -662,7 +680,7 @@ if(topArray ~= nil) then
 		      type: 'GET',
 		      url: ']]
 		      print(ntop.getHttpPrefix().."/lua/top_generic.lua?m="..modulename.."&epoch='+point.value.x+'&addvlan=true")
-		      if (levels == 2) then
+      if (levels == 2) then
 			 print [[',
 			       data: { epoch: point.value.x },
 			       async: false,
@@ -729,10 +747,11 @@ if(topArray ~= nil) then
 			}
 		});
     ]]
-    end
+    end -- levels
     ::continue::
-end
+  end -- for
     print[[infoHTML += "</ul>";]]
+end -- topArray
 print [[
 		this.element.innerHTML = '';
 		this.element.style.left = graph.x(point.value.x) + 'px';
@@ -806,7 +825,6 @@ print[['+hover.selected_epoch;
 </script>
 
 ]]
-end
 else
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> File "..rrdname.." cannot be found</div>")
 end
