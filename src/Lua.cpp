@@ -4074,7 +4074,7 @@ static int ntop_load_historical_file(lua_State* vm) {
     cleanup = lua_toboolean(vm, 2) ? true : false;
 
   if(cleanup) iface->cleanup();
-  lua_pushnumber(vm, iface->loadData(file_name));
+  lua_pushnumber(vm, iface->loadData(file_name, -1));
 
   return(CONST_LUA_OK);
 }

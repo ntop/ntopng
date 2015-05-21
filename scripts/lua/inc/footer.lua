@@ -322,7 +322,7 @@ print [[/lua/show_alerts.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B9
                 msg += "<font color=gray>Loaded Interface: " + rsp.historical_if_name + " </font></br>";
               
               if(rsp.on_load)
-                msg += "&nbsp;<i class=\"fa fa-cog fa-spin\"></i> Load in progress ... </br>";
+                msg += "&nbsp;<i class=\"fa fa-cog fa-spin\"></i> Load in progress (max 20960 rows)... </br>";
               
               if(rsp.success_pctg < historical_alarm_threshold_low) {
               msg += "<span class=\"label label-danger\">";

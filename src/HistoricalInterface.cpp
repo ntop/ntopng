@@ -78,7 +78,7 @@ int HistoricalInterface::sqlite_callback(void *data, int argc,
 
 /* **************************************************** */
 
-int HistoricalInterface::loadData(char* p_file_name) {
+int HistoricalInterface::loadData(char* p_file_name, int limit) {
   struct stat buf;
   char *zErrMsg = 0;
   sqlite3 *db;
@@ -102,8 +102,12 @@ int HistoricalInterface::loadData(char* p_file_name) {
     } else
       ntop->getTrace()->traceEvent(TRACE_DEBUG, "Open db %s", p_file_name);
 
+    char sql[256], sql_limit[20];
+    snprintf(sql_limit, sizeof(sql_limit), "LIMIT %d", limit);
+    snprintf(sql, sizeof(sql), "SELECT * FROM flows ORDER BY first_seen, srv_ip, srv_port, cli_ip, cli_port ASC %s",
+             (limit == -1 ? "" : sql_limit));
     // Correctly open db, so now we can extract the contained flows via the sqlite_callback
-    if(sqlite3_exec(db, "SELECT * FROM flows ORDER BY first_seen, srv_ip, srv_port, cli_ip, cli_port ASC", sqlite_callback, this, &zErrMsg)) {
+    if(sqlite3_exec(db, sql, sqlite_callback, this, &zErrMsg)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "SQL Error: %s from %s", zErrMsg, p_file_name);
       sqlite3_free(zErrMsg);
       num_query_error++;
@@ -133,6 +137,9 @@ int HistoricalInterface::loadData() {
     iface_dump_id = iface->get_id();
     actual_epoch = from_epoch;
     adjust_to_epoch = to_epoch - 300; // Adjust to epoch each file contains 5 minute of data
+    int num_steps = (from_epoch - adjust_to_epoch) / 300;
+    int limit = CONST_HISTORICAL_ROWS_LIMIT / num_steps;
+    if (limit < 1) limit = 1;
     while (actual_epoch <= adjust_to_epoch && isRunning()) {
       char path[MAX_PATH];
       char db_path[MAX_PATH];
@@ -144,7 +151,7 @@ int HistoricalInterface::loadData() {
       snprintf(db_path, sizeof(db_path), "%s/%u/flows/%s.sqlite",
                     ntop->get_working_dir(), iface_dump_id , path);
 
-     loadData(db_path);
+     loadData(db_path, limit);
 
       num_historicals++;
       actual_epoch += 300; // 5 minute steps

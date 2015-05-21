@@ -143,9 +143,10 @@ class HistoricalInterface : public ParserInterface {
    * @details Check if the file exists and then load flows from it.
    *
    * @param p_file_name Path to the historical data file
+   * @param limit Max number of rows to load from the DB (-1 for no limit)
    * @return CONST_HISTORICAL_OK in case of success, CONST_HISTORICAL_FILE_ERROR or CONST_HISTORICAL_OPEN_ERROR in case of error.
    */
-  int loadData(char * p_file_name);
+  int loadData(char * p_file_name, int limit);
   /**
    * @brief Load historical data
    * @details Loop on the interval, with step of 5 minute. For each step make a correct file path and the load flows form it.

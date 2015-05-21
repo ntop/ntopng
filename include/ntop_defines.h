@@ -233,6 +233,7 @@
 #define CONST_HISTORICAL_OK               1
 #define CONST_HISTORICAL_FILE_ERROR       0
 #define CONST_HISTORICAL_OPEN_ERROR      -1
+#define CONST_HISTORICAL_ROWS_LIMIT       20960
 
 #define CONST_AGGREGATIONS            "aggregations"
 #define CONST_HOST_CONTACTS           "host_contacts"
