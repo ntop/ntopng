@@ -217,10 +217,12 @@ function check_interface_threshold(ifname, mode)
      fname = fixPath(basedir.."/iface_"..ifname.."_lastdump")
 
      if(verbose) then print(fname.."<p>\n") end
-     -- Read old version
-     old_dump = persistence.load(fname)
-     if (old_dump ~= nil) then
-       check_interface_alert(ifname, mode, old_dump, ifstats)
+     if (ntop.exists(fname)) then
+       -- Read old version
+       old_dump = persistence.load(fname)
+       if (old_dump ~= nil) then
+         check_interface_alert(ifname, mode, old_dump, ifstats)
+       end
      end
 
      -- Write new version
