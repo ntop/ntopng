@@ -9,7 +9,12 @@ CFLAGS="-I${PWD} -I${PWD}/include"
 CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
-REVISION=`git rev-list HEAD --count`
+
+#
+# On CentOS 6 `git rev-list HEAD --count` does not work
+# 
+#
+REVISION=`git log --pretty=oneline | wc -l`
 
 if test -d "/usr/local/include"; then
 CFLAGS="${CFLAGS} -I/usr/local/include"
