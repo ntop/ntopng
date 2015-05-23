@@ -121,8 +121,9 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
     "srv_ip string KEY, srv_port number, proto number, bytes number, first_seen number, last_seen number, duration number, json string);";
   char sql[4096], cli_str[64], srv_str[64];
   sqlite3_stmt *stmt = NULL;
-  char *j = json ? json : "";
+  char *j = json ? json : (char*)"";
   bool rc = true;
+  int int_rc;
 
   snprintf(sql, sizeof(sql),
 	   "INSERT INTO flows VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
@@ -149,8 +150,8 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
     goto out;
   }
 
-  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if(rc == SQLITE_ERROR) {
+  while((int_rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(int_rc == SQLITE_ERROR) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[DB] SQL Error: step");
       rc = false;
       goto out;

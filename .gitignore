@@ -3,7 +3,12 @@ src/*.o
 src/*.obj
 third-party/json-c/*
 third-party/rrdtool-1.4.8/*
-third-party/LuaJIT-2.0.3/*
+third-party/LuaJIT-2.0.3/src/*o
+third-party/LuaJIT-2.0.3/src/host/*o
+third-party/LuaJIT-2.0.3/src/host/build*
+third-party/LuaJIT-2.0.3/src/lua*
+third-party/LuaJIT-2.0.3/src/liblua*
+third-party/LuaJIT-2.0.3/src/*/*lua
 httpdocs/geoip/*
 httpdocs/ssl/ntopng-cert.pem
 autom4te.cache*
