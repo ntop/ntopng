@@ -1015,3 +1015,5 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
   return true;
 }
+
+/* **************************************** */

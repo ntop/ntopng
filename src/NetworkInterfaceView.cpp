@@ -667,9 +667,9 @@ void NetworkInterfaceView::lua(lua_State *vm) {
   lua_newtable(vm);
 
   for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-	  sprobe_interface += (*p)->get_sprobe_interface(); /* FIX */
-	  inline_interface += (*p)->get_inline_interface(); /* FIX */
-	  has_vlan_packets += (*p)->get_has_vlan_packets(); /* FIX */
+	sprobe_interface |= (*p)->get_sprobe_interface();
+	inline_interface |= (*p)->get_inline_interface();
+	has_vlan_packets |= (*p)->get_has_vlan_packets();
     stats_packets += (*p)->getNumPackets();
     stats_bytes += (*p)->getNumBytes();
     stats_flows += (*p)->getNumFlows();

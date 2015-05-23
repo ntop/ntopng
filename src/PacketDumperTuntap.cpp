@@ -157,6 +157,16 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 
 /* ********************************************* */
 
+#ifdef WIN32
+
+int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg. edge0 */ int mtu) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "TAP interface not yet supported on windows");
+	return(-1);
+}
+#endif
+	
+	/* ********************************************* */
+
 #ifdef __APPLE__
 #define OSX_TAPDEVICE_SIZE 32
 

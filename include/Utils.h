@@ -26,6 +26,12 @@
 
 typedef unsigned long long ticks;
 
+#ifdef WIN32
+#define _usleep(a) win_usleep(a)
+#else
+#define _usleep(a) usleep(a)
+#endif
+
 /* ******************************* */
 
 class Utils {

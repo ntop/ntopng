@@ -589,7 +589,7 @@ static int ntop_get_file_last_change(lua_State* vm) {
   path = (char*)lua_tostring(vm, 1);
 
   if(stat(path, &buf) == 0)
-    lua_pushnumber(vm, buf.st_mtime);
+    lua_pushnumber(vm, (lua_Number)buf.st_mtime);
   else
     lua_pushnumber(vm, -1); /* not found */
 
@@ -1588,7 +1588,7 @@ static int ntop_set_host_quota(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  quota = lua_tonumber(vm, 1);
+  quota = (u_int32_t)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
@@ -2173,7 +2173,7 @@ static int ntop_http_get(lua_State* vm) {
 	  it just matters to time (for instance when use for testing HTTP services)
 	*/
 	if(lua_type(vm, 4) == LUA_TBOOLEAN) {
-	  return_content = lua_toboolean(vm, 5);
+	  return_content = lua_toboolean(vm, 5) ? true : false;
 	}
       }
     }
@@ -2664,7 +2664,7 @@ static int ntop_get_resolved_address(lua_State* vm) {
 
 static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   char *agent_host, *oid, *community;
-  u_int agent_port = 161, timeout = 5, request_id = time(NULL);
+  u_int agent_port = 161, timeout = 5, request_id = (u_int)time(NULL);
   int sock, i = 0, rc = CONST_LUA_OK;
   SNMPMessage *message;
   int len;

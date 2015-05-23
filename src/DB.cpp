@@ -121,8 +121,8 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
     "srv_ip string KEY, srv_port number, proto number, bytes number, first_seen number, last_seen number, duration number, json string);";
   char sql[4096], cli_str[64], srv_str[64];
   sqlite3_stmt *stmt = NULL;
-  char *j = json ? : strndup("", 1);
-  int rc = 1;
+  char *j = json ? json : "";
+  bool rc = true;
 
   snprintf(sql, sizeof(sql),
 	   "INSERT INTO flows VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
@@ -145,14 +145,14 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
       sqlite3_bind_int(stmt, 10, f->get_duration()) ||
       sqlite3_bind_text(stmt, 11, j, strlen(j), SQLITE_TRANSIENT)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "[DB] Dump Flow query build failed: %s", sqlite3_errmsg(db));
-    rc = 0;
+    rc = false;
     goto out;
   }
 
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
     if(rc == SQLITE_ERROR) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[DB] SQL Error: step");
-      rc = 0;
+      rc = false;
       goto out;
     }
   }
