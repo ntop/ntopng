@@ -130,6 +130,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     }
   }
 
+  pkt_dumper_tap = NULL;
   ifname = strdup(name);
 
   if(id != DUMMY_IFACE_ID) {
@@ -170,14 +171,19 @@ NetworkInterface::NetworkInterface(const char *name) {
     cpu_affinity = -1, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
-    else
-      pkt_dumper_tap = NULL;
+   
+      
     running = false, sprobe_interface = false, inline_interface = false;
 
     db = new DB(this);
-    statsManager = NULL, view = NULL;
     checkIdle();
+  } else {
+	  flows_hash = NULL, hosts_hash = NULL, strings_hash = NULL;
+	  ndpi_struct = NULL, db = NULL;
+	  pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
+
+  statsManager = NULL, view = NULL;
 
 #ifdef NTOPNG_PRO
   policer = new L7Policer(this);

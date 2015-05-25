@@ -1904,7 +1904,7 @@ static int ntop_rrd_create(lua_State* vm) {
   argv = make_argv(vm, offset);
 
   reset_rrd_state();
-  status = rrd_create_r(filename, pdp_step, time(NULL)-31536000 /* 1 year */, argc, argv);
+  status = rrd_create_r(filename, pdp_step, time(NULL)-86400 /* 1 day */, argc, argv);
   free(argv);
 
   if(status != 0) {
@@ -1924,7 +1924,6 @@ static int ntop_rrd_create(lua_State* vm) {
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *update_arg;
   int status;
-  const char *argv[1];
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
@@ -1934,9 +1933,8 @@ static int ntop_rrd_update(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s) %s", __FUNCTION__, filename, update_arg);
 
-  argv[0] = update_arg;
   reset_rrd_state();
-  status = rrd_update_r(filename, NULL, 1, argv);
+  status = rrd_update_r(filename, NULL, 1, &update_arg);
 
   if(status != 0) {
     char *err = rrd_get_error();
