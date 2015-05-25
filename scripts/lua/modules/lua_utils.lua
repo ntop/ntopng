@@ -354,7 +354,7 @@ function bytesToSize(bytes)
   terabyte = gigabyte * 1024;
 
   if((bytes >= 0) and (bytes < kilobyte)) then
-    return bytes .. " Bytes";
+    return round(bytes, precision) .. " B";
   elseif((bytes >= kilobyte) and (bytes < megabyte)) then
     return round(bytes / kilobyte, precision) .. ' KB';
   elseif((bytes >= megabyte) and (bytes < gigabyte)) then
@@ -364,7 +364,7 @@ function bytesToSize(bytes)
   elseif(bytes >= terabyte) then
     return round(bytes / terabyte, precision) .. ' TB';
   else
-    return bytes .. ' B';
+    return round(bytes, precision) .. ' B';
   end
 end
 
