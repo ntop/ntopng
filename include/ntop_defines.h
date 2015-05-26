@@ -352,4 +352,8 @@
 #define unlink(a) _unlink(a)
 #endif
 
+#if defined(__arm__) || defined(__mips__) 
+#define NTOPNG_EMBEDDED_EDITION         1
+#endif
+
 #endif /* _NTOP_DEFINES_H_ */

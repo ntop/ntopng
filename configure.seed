@@ -12,7 +12,7 @@ NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 
 #
 # On CentOS 6 `git rev-list HEAD --count` does not work
-# 
+#
 #
 REVISION=`git log --pretty=oneline | wc -l`
 
@@ -124,6 +124,7 @@ if test $SYSTEM = "Linux"; then
       OSNAME=`./linux.guess`
    fi
 else
+dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
    OSNAME=`./config.guess`
 fi
 AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])

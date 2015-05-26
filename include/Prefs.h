@@ -93,7 +93,7 @@ class Prefs {
 
   bool is_pro_edition();
   inline bool is_embedded_edition() {
-#if defined(__arm__) || defined(__mips__)
+#ifdef NTOPNG_EMBEDDED_EDITION
     return(true);
 #else
     return(false);

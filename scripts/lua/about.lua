@@ -25,8 +25,9 @@ print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th>Copyright</th><td>"..info["copyright"].."</td></tr>\n")
 print("<tr><th>License</th><td>")
 
+info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
-   print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">"..info["license"].."</A>")
+   print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">".. info["ntopng.license"] .."</A>")
 else
    print("<A HREF=https://svn.ntop.org/svn/ntop/trunk/legal/EULA.txt target=\"_blank\">EULA</A>")
 end
@@ -53,7 +54,7 @@ print [[
 
    if(isAdministrator()) then
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=60 value="')
+      print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=70 value="')
       print(info["ntopng.license"])
 
       print [["></input>

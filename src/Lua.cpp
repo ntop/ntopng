@@ -2629,8 +2629,10 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
 #endif
 
+#if 0
   ntop->getRedis()->get((char*)CONST_STR_NTOPNG_LICENSE, rsp, sizeof(rsp));
   lua_push_str_table_entry(vm, "ntopng.license", rsp);
+#endif
 
   zmq_version(&major, &minor, &patch);
   snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);

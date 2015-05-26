@@ -1222,15 +1222,17 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 /* *************************************** */
 
 void Host::readAlertPrefs() {
-  if(ntop->getPrefs()->are_alerts_disabled()) 
-    trigger_host_alerts = false;
-  else {
+  trigger_host_alerts = false;
+  
+  if(!localHost) return;
+
+  if(!ntop->getPrefs()->are_alerts_disabled()) {
     char *key, ip_buf[48], rsp[32];
-      
+    
     key = get_string_key(ip_buf, sizeof(ip_buf));
     if(key) {
       ntop->getRedis()->hashGet((char*)CONST_ALERT_PREFS, key, rsp, sizeof(rsp));
-	
+      
       trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
     } else
       trigger_host_alerts = false;
