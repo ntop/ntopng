@@ -1,6 +1,25 @@
 AC_INIT([Makefile.in], 1.0)
 
-if test -f /usr/bin/lsb_release; then
+MACHINE=`uname -m`
+SHORT_MACHINE=`uname -m | cut -b1-3`
+
+if test $MACHINE = "x86_64"; then
+   EXTN="amd64"
+else
+  if test $SHORT_MACHINE = "arm"; then
+     EXTN="armhf"
+     EXTRA_DEPS=""
+  else
+     if test $SHORT_MACHINE = "mip"; then
+       EXTN="mips"
+       EXTRA_DEPS=""
+     else	
+       EXTN="i386"
+     fi
+  fi
+fi
+
+if [ test -f /usr/bin/lsb_release ] && [ test -n "$EXTRA_DEPS" ]; then
   EXTRA_DEPS=", libnuma1, libzmq3"
   PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
   PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
@@ -28,24 +47,6 @@ cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
 GIT_RELEASE=`git rev-parse HEAD`
-MACHINE=`uname -m`
-SHORT_MACHINE=`uname -m | cut -b1-3`
-
-if test $MACHINE = "x86_64"; then
-   EXTN="amd64"
-else
-  if test $SHORT_MACHINE = "arm"; then
-     EXTN="armhf"
-     EXTRA_DEPS=""
-  else
-    if test $SHORT_MACHINE = "mip"; then
-       EXTN="mips"
-       EXTRA_DEPS=""
-    else	
-       EXTN="i386"
-    fi
-  fi
-fi
 
 DATE=`date -R`
 KERNEL=`uname -r`
