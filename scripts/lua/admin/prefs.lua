@@ -95,6 +95,24 @@ end
 
    -- ================================================================================
 
+   -- ================================================================================
+   print('<tr><th colspan=2 class="info">Network Interface Stats RRDs</th></tr>')
+   prefsInputField("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days)
+   prefsInputField("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days)
+   prefsInputField("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "intf_rrd_1h_days", prefs.intf_rrd_1h_days)
+   prefsInputField("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "intf_rrd_1d_days", prefs.intf_rrd_1d_days)
+
+   -- ================================================================================
+
+   -- ================================================================================
+   print('<tr><th colspan=2 class="info">Protocol/Networks Stats RRDs</th></tr>')
+   prefsInputField("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "other_rrd_raw_days", prefs.other_rrd_raw_days)
+   --prefsInputField("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "other_rrd_1min_days", prefs.other_rrd_1min_days)
+   prefsInputField("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "other_rrd_1h_days", prefs.other_rrd_1h_days)
+   prefsInputField("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "other_rrd_1d_days", prefs.other_rrd_1d_days)
+
+   -- ================================================================================
+
 if (ntop.isPro()) then
    -- ================================================================================
    print('<tr><th colspan=2 class="info">HTTP Traffic Statistics</th></tr>')

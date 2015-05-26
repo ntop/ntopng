@@ -79,6 +79,15 @@ Prefs::Prefs(Ntop *_ntop) {
   local_host_max_idle     = MAX_LOCAL_HOST_IDLE /* sec */;
   flow_max_idle           = MAX_FLOW_IDLE /* sec */;
 
+  intf_rrd_raw_days       = INTF_RRD_RAW_DAYS;
+  intf_rrd_1min_days      = INTF_RRD_1MIN_DAYS;
+  intf_rrd_1h_days        = INTF_RRD_1H_DAYS;
+  intf_rrd_1d_days        = INTF_RRD_1D_DAYS;
+  other_rrd_raw_days      = OTHER_RRD_RAW_DAYS;
+  other_rrd_1min_days     = OTHER_RRD_1MIN_DAYS;
+  other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
+  other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
+
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"), 
     es_url = strdup((char*)"http://localhost:9200/_bulk"), 
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
@@ -298,6 +307,15 @@ void Prefs::loadIdleDefaults() {
   local_host_max_idle = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
   non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
   flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
+
+  intf_rrd_raw_days = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS);
+  intf_rrd_1min_days = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS);
+  intf_rrd_1h_days = getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS);
+  intf_rrd_1d_days = getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS);
+  other_rrd_raw_days = getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS);
+  other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
+  other_rrd_1h_days = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
+  other_rrd_1d_days = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
 #ifdef NTOPNG_PRO
   save_http_flows_traffic = (bool)getDefaultPrefsValue(CONST_SAVE_HTTP_FLOWS_TRAFFIC, false);
 #endif
@@ -935,6 +953,17 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_db);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
   lua_push_int_table_entry(vm, "dump_aggregation", dump_aggregations_to_db);
+
+  /* RRD prefs */
+  lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
+  lua_push_int_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
+  lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
+  lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
+  lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+
 #ifdef NTOPNG_PRO
   lua_push_str_table_entry(vm, "nagios_host", nagios_host);
   lua_push_str_table_entry(vm, "nagios_port", nagios_port);

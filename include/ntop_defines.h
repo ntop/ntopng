@@ -103,6 +103,14 @@
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */
+#define INTF_RRD_RAW_DAYS        1
+#define INTF_RRD_1MIN_DAYS       30
+#define INTF_RRD_1H_DAYS         100
+#define INTF_RRD_1D_DAYS         365
+#define OTHER_RRD_RAW_DAYS       1
+#define OTHER_RRD_1MIN_DAYS      30
+#define OTHER_RRD_1H_DAYS        100
+#define OTHER_RRD_1D_DAYS        365
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
@@ -247,6 +255,14 @@
 #define CONST_MAX_NEW_FLOWS_PREFS     "ntopng.prefs.host_max_new_flows_sec_threshold"
 #define CONST_MAX_NUM_SYN_PREFS       "ntopng.prefs.host_max_num_syn_sec_threshold"
 #define CONST_MAX_NUM_FLOWS_PREFS     "ntopng.prefs.host_max_num_active_flows"
+#define CONST_INTF_RRD_RAW_DAYS       "ntopng.prefs.intf_rrd_raw_days"
+#define CONST_INTF_RRD_1MIN_DAYS      "ntopng.prefs.intf_rrd_1min_days"
+#define CONST_INTF_RRD_1H_DAYS        "ntopng.prefs.intf_rrd_1h_days"
+#define CONST_INTF_RRD_1D_DAYS        "ntopng.prefs.intf_rrd_1d_days"
+#define CONST_OTHER_RRD_RAW_DAYS      "ntopng.prefs.other_rrd_raw_days"
+#define CONST_OTHER_RRD_1MIN_DAYS     "ntopng.prefs.other_rrd_1min_days"
+#define CONST_OTHER_RRD_1H_DAYS       "ntopng.prefs.other_rrd_1h_days"
+#define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
 
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
