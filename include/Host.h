@@ -48,7 +48,7 @@ class Host : public GenericHost {
   DnsStats *dns;
   HTTPStats *http;
   EppStats *epp;
-
+  bool trigger_host_alerts;
   u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
 
 #ifdef NTOPNG_PRO
@@ -142,8 +142,10 @@ class Host : public GenericHost {
   inline void incNumEPPQueriesSent(u_int16_t query_type) { if(epp) epp->incNumEPPQueriesSent(query_type); };
   inline void incNumEPPQueriesRcvd(u_int16_t query_type) { if(epp) epp->incNumEPPQueriesRcvd(query_type); };
   inline void incNumEPPResponsesSent(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesSent(ret_code); };
-  inline void incNumEPPResponsesRcvd(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesRcvd(ret_code); };
+  inline void incNumEPPResponsesRcvd(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesRcvd(ret_code); };  
+  inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
 
+  void readAlertPrefs();
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
 
   bool match(patricia_tree_t *ptree) { return(get_ip() ? get_ip()->match(ptree) : false); };

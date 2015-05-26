@@ -258,6 +258,8 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
     if((localHost || systemHost) && ip)
       readStats();
+
+    readAlertPrefs();
   }
 
   if(!host_serial) computeHostSerial();
@@ -1216,3 +1218,21 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
 			    (char*)(dump_host_traffic ? "true" : "false"));
 };
 
+
+/* *************************************** */
+
+void Host::readAlertPrefs() {
+  if(ntop->getPrefs()->are_alerts_disabled()) 
+    trigger_host_alerts = false;
+  else {
+    char *key, ip_buf[48], rsp[32];
+      
+    key = get_string_key(ip_buf, sizeof(ip_buf));
+    if(key) {
+      ntop->getRedis()->hashGet((char*)CONST_ALERT_PREFS, key, rsp, sizeof(rsp));
+	
+      trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
+    } else
+      trigger_host_alerts = false;
+  }  
+}

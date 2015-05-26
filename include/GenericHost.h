@@ -88,9 +88,8 @@ class GenericHost : public GenericHashEntry {
   inline ValueTrend getThptTrend()    { return(bytes_thpt_trend);          };
   inline char* getJsonActivityMap()   { return(activityStats.serialize()); };
   inline u_int8_t getSourceId()       { return(source_id);                 };
-  bool triggerAlerts();
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };
-  virtual bool match(patricia_tree_t *ptree)  { return(true);              };
+  virtual bool match(patricia_tree_t *ptree)             { return(true);   };
 };
 
 #endif /* _GENERIC_HOST_H_ */

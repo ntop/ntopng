@@ -176,19 +176,3 @@ void GenericHost::resetPeriodicStats() {
   last_bytes_periodic = 0;
 }
 
-/* *************************************** */
-
-/**
- * @brief Check if trigger alerts for this host
- * @details It is posisble to disable alert triggering For specific hosts. This method checks if in the preferences for this host, alerts have been disabled. See scripts/lua/host_details.lua.
- */
-bool GenericHost::triggerAlerts() {
-  char *key, ip_buf[48], rsp[32];
-
-  if(ntop->getPrefs()->are_alerts_disabled()) return(false);
-
-  key = get_string_key(ip_buf, sizeof(ip_buf));
-  ntop->getRedis()->hashGet((char*)CONST_ALERT_PREFS, key, rsp, sizeof(rsp));
-
-  return((strcmp(rsp, "false") == 0) ? 0 : 1);
-}
