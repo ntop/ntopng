@@ -128,10 +128,15 @@ else
 fi
 AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
 
+CHECK_PF_RING=1
 if test $MACHINE = "x86_64"; then
    EXTN="amd64"
 else
-   EXTN="i386"
+   if test $MACHINE = "i686"; then
+     EXTN="i386"
+   else
+     CHECK_PF_RING=0
+   fi
 fi
 
 DATE=`date +"%Y-%m-%d"`
@@ -144,6 +149,7 @@ else
  HIREDIS_INC="-I ${PWD}/third-party/hiredis"
 fi
 
+if test $CHECK_PF_RING -eq 1; then
 PF_RING_HOME=${HOME}/PF_RING
 if test -d ${PF_RING_HOME}; then
   AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
@@ -199,6 +205,7 @@ else
     echo "Please install libpcap(-dev) (http://tcpdump.org)"
     exit
   fi
+fi
 fi
 
 AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
