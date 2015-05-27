@@ -26,7 +26,6 @@ active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 prefs = ntop.getPrefs()
-if(prefs.is_categorization_enabled) then print ()end
 
 ifstats = interface.getStats()
 
@@ -130,6 +129,7 @@ else
    print('title: "Local Networks'..country..'",\n')
 end
 print ('rowCallback: function ( row ) { return host_table_setID(row); },')
+
 
 -- Set the preference table
 preference = tablePreferences("rows_number",_GET["perPage"])

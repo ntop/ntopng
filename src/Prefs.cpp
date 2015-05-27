@@ -20,7 +20,6 @@
  */
 
 #include "ntop_includes.h"
-#define DEFAULT_CATEGORIZATION_KEY "ABQIAAAA-zy5a_ooOC8VqaHxkSPawhT1uswGm4z-VSCfFfgZYd_KmmkKbQ"
 
 /* ******************************************* */
 
@@ -45,7 +44,7 @@ Prefs::Prefs(Ntop *_ntop) {
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
-  categorization_key = strdup(DEFAULT_CATEGORIZATION_KEY);
+  categorization_key = NULL;
   httpbl_key = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");

@@ -42,7 +42,6 @@ class Flow : public GenericHashEntry {
   u_int16_t ndpi_detected_protocol, diff_num_http_requests;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name;
-
   bool dump_flow_traffic;
 
   struct {
@@ -59,7 +58,7 @@ class Flow : public GenericHashEntry {
   } ssl;
 
   struct {
-    char *category;
+    char category[8];
     bool flow_categorized;
   } categorization;
 
@@ -122,7 +121,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  char *getDomainCategory();
+  char *getFlowCategory();
   void deleteFlowMemory();
   char* serialize(bool partial_dump = false, bool es_json = false);
   json_object* flow2json(bool partial_dump);

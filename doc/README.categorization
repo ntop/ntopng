@@ -1,13 +1,16 @@
-ntopng categorizes hosts using services are provided by http://block.si
 
-In order to use these categorization services you need to mail info@block.si and
-ask for a test key to be used in ntopng or go to http://www.blocksi.net/blocksi-api.php
+ntopng categorizes hosts in good/malware hosts by exploiting the google safe browsing API
+http://en.wikipedia.org/wiki/Google_Safe_Browsing
+
+In order to use these categorization services you need to obtain a key from Google
+at https://developers.google.com/safe-browsing/key_signup
 
 Once you have the key available, you can start
 ntopng -c KEY ...
 
+You can test a malware site by visiting (at your risk) ianfette.org
 
 NOTES:
 - THIS IS AN EXPERIMENTAL SERVICE
-- NTOPNG WILL CONTACT DIRECTLY BLOCK.SI (NO TRAFFIC WILL PASS THROUGH NTOP.ORG)
-- NTOP HAS NO BUSINESS RELATIONSHIP WITH BLOCK.SI
+- NTOPNG WILL CONTACT DIRECTLY GOOGLE (NO TRAFFIC WILL PASS THROUGH NTOP.ORG)
+- NTOP HAS NO BUSINESS RELATIONSHIP WITH GOOGLE.COM

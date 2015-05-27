@@ -140,7 +140,7 @@ print ('";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 -- Set the flow table option
-if(prefs.is_categorization_enabled) then print ('flow_rows_option["categorization"] = true;\n') end
+
 if(ifstats.iface_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 if(is_historical) then print ('clearInterval(flow_table_interval);\n') end
    print [[
@@ -213,21 +213,6 @@ print [[
 end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_middle.inc")
-
-if(prefs.is_categorization_enabled) then
-print [[
-
-			     {
-			     title: "Category",
-				 field: "column_category",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			       }
-			       },
-
-		       ]]
-end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_bottom.inc")
 end

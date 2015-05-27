@@ -150,9 +150,6 @@ else
       print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["srv.port"].. "\">" .. flow["srv.port"].. "</A>")
    end
    print("</td></tr>\n")
-   if ((flow["category"] ~= "") and (flow["category"] ~= nil))then
-      print("<tr><th width=30%>Category</th><td colspan=2>" .. getCategory(flow["category"]) .. "</td></tr>\n")
-   end
 
    print("<tr><th width=30%>Protocol</th>")
    if(ifstats.iface_inline and flow["verdict.pass"]) then
@@ -299,6 +296,11 @@ else
       else
 	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link fa-lg'></i>")
       end
+
+      if(flow["category"] ~= nil) then
+	 print(" "..getCategoryIcon(flow["dns.last_query"], flow["category"]))
+      end
+
       print("</td></tr>\n")
    end
 

@@ -72,7 +72,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); if(cli_host) srv_host->incrContact(cli_host, false); }
   pass_verdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
-  categorization.category = NULL, categorization.flow_categorized = false;
+  categorization.category[0] = '\0', categorization.flow_categorized = false;
   bytes_thpt_trend = trend_unknown;
   pkts_thpt_trend = trend_unknown;
   protocol_processed = false, blacklist_alarm_emitted = false;
@@ -153,7 +153,6 @@ Flow::~Flow() {
 #endif
   if(cli_host) { cli_host->decUses(); cli_host->decNumFlows(true);  }
   if(srv_host) { srv_host->decUses(); srv_host->decNumFlows(false); }
-  if(categorization.category != NULL) free(categorization.category);
   if(json_info)        free(json_info);
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);
@@ -319,6 +318,12 @@ void Flow::processDetectedProtocol() {
 
 	      if(at != NULL)
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpi_flow->host_server_name);
+	      
+	      if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
+						   categorization.category,
+						   sizeof(categorization.category),
+						   true) != NULL)
+		categorization.flow_categorized = true;
 	    }
 	  }
 
@@ -411,10 +416,9 @@ void Flow::processDetectedProtocol() {
 			aggregation_domain_name, true);
 
 	  if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
-					       buf, sizeof(buf), true) != NULL) {
-	    categorization.flow_categorized = true;
-	    categorization.category = strdup(buf);
-	  }
+					       categorization.category,
+					       sizeof(categorization.category), true) != NULL)
+	    categorization.flow_categorized = true;	  
 
 #if 0
 	  if(ndpi_detected_protocol != NDPI_PROTOCOL_HTTP_PROXY) {
@@ -1011,6 +1015,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
   }
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
+  lua_push_str_table_entry(vm, "category", categorization.category);
+
   lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
   lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
   lua_push_int_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);
@@ -1040,10 +1046,10 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
     lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
   }
 
+  
   if(detailed_dump) {
     if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
     lua_push_int_table_entry(vm, "tcp_flags", getTcpFlags());
-    lua_push_str_table_entry(vm, "category", categorization.category ? categorization.category : (char*)"");
 
     if(protocol == IPPROTO_TCP) {
       lua_push_int_table_entry(vm, "cli2srv.retransmissions", tcp_stats_s2d.pktRetr);
@@ -1150,7 +1156,7 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
-char* Flow::getDomainCategory() {
+char* Flow::getFlowCategory() {
   if(!categorization.flow_categorized) {
     if(ndpi_flow == NULL)
       categorization.flow_categorized = true;

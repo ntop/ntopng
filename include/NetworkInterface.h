@@ -116,6 +116,7 @@ class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name.*/
   int id;
+  bool bridge_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #endif
@@ -324,7 +325,8 @@ class NetworkInterface {
   inline void updateLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) { 
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver); }
 
-  inline HostHash* get_hosts_hash() { return(hosts_hash); }
+  inline HostHash* get_hosts_hash() { return(hosts_hash);       }
+  inline bool is_bridge_interface() { return(bridge_interface); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

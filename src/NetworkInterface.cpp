@@ -59,7 +59,7 @@ NetworkInterface::NetworkInterface() {
     pcap_datalink_type = 0, cpu_affinity = 0,
     inline_interface = false, running = false,
     pkt_dumper = NULL;
-    pollLoopCreated = false;
+  pollLoopCreated = false, bridge_interface = 0;
   if(ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
