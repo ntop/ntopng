@@ -72,7 +72,7 @@ fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
-if test -d "../nProbe"; then :
+if test -d "$HOME/nProbe"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
@@ -92,7 +92,7 @@ if test -r "pro/license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
 fi
 else
-AC_MSG_RESULT(not found [missing ../nProbe])
+AC_MSG_RESULT(not found [missing $HOME/nProbe])
 PRO_MAKEFILE_INC=
 PRO_INC=
 PRO_LIBS=
@@ -101,7 +101,7 @@ PRO_HEADERS=
 PRO_LIBS=
 fi
 else
-AC_MSG_RESULT(not found [missing ../nProbe])
+AC_MSG_RESULT(not found [missing $HOME/nProbe])
 fi
 
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
@@ -123,7 +123,7 @@ if test $SYSTEM = "Linux"; then
       DEBIAN_VERSION=`cat /etc/debian_version`
       OSNAME="Debian $DEBIAN_VERSION"
    else
-      OSNAME=`./linux.guess`
+      OSNAME=`./config.guess`
    fi
 else
 dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
