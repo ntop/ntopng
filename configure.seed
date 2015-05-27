@@ -72,15 +72,21 @@ fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
-if test -d "$HOME/nProbe"; then :
+NPROBE_HOME="$HOME/nProbe"
+
+if ! test -d "$HOME/nProbe"; then :
+  NPROBE_HOME="$HOME/network/nProbe"
+fi
+
+if test -d "$NPROBE_HOME"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
 CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
-PRO_SVN_RELEASE=`svn info pro | grep "^Revision"|cut -d " " -f 2`
-SVN_PRO_DATE=`svn info pro | grep "^Last Changed Date"|cut -d " " -f 4-`
+PRO_SVN_RELEASE=`cd pro; svn info . | grep "^Revision"|cut -d " " -f 2`
+SVN_PRO_DATE=`cd pro; svn info . | grep "^Last Changed Date"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_RELEASE, "r${PRO_SVN_RELEASE}", [ntopng professional release])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_DATE, "${SVN_PRO_DATE}", [ntopng professional date])
@@ -92,7 +98,7 @@ if test -r "pro/license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
 fi
 else
-AC_MSG_RESULT(not found [missing $HOME/nProbe])
+AC_MSG_RESULT(not found [missing $NPROBE_HOME])
 PRO_MAKEFILE_INC=
 PRO_INC=
 PRO_LIBS=
@@ -101,7 +107,7 @@ PRO_HEADERS=
 PRO_LIBS=
 fi
 else
-AC_MSG_RESULT(not found [missing $HOME/nProbe])
+AC_MSG_RESULT(not found [missing $NPROBE_HOME])
 fi
 
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
