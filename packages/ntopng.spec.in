@@ -14,11 +14,18 @@ Requires: redis >= 2.4.0, GeoIP >= 1.4.8, rrdtool >= 1.3.8, numactl, libcurl, nt
 %description
 Web-based traffic monitoring
 
-%prep
-
 %setup -q
 
 %build
+/bin/rm -rf $HOME/rpmbuild/BUILD/ntopng $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
+cd $HOME/rpmbuild/BUILD/
+git clone https://github.com/ntop/ntopng.git
+ln -s $HOME/rpmbuild/BUILD/ntopng $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
+if test -d $HOME/ntopng/pro; then
+    ln -s $HOME/ntopng/pro $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
+fi
+cd $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
+./autogen.sh
 PATH=/usr/bin:/bin:/usr/sbin:/sbin
 CFLAGS="$RPM_OPT_FLAGS" ./configure
 make
