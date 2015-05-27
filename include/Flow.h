@@ -108,6 +108,7 @@ class Flow : public GenericHashEntry {
   void checkBlacklistedFlow();
   void allocFlowMemory();
   bool checkTor(char *hostname);
+  void checkFlowCategory();
 
  public:
   Flow(NetworkInterface *_iface,

@@ -47,7 +47,8 @@ typedef enum {
   alert_threshold_exceeded,
   alert_dangerous_host,
   alert_periodic_activity,
-  alert_quota
+  alert_quota,
+  alert_malware_detection
 } AlertType;
 
 typedef enum {

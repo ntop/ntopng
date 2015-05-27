@@ -285,7 +285,8 @@ alert_type_keys = {
   { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",  2 },
   { "<i class='fa fa-frown-o'></i> Blacklist Host",  3 },
   { "<i class='fa fa-clock-o'></i> Periodic Activity",  4 },
-  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",  5 }
+  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",  5 },
+  { "<i class='fa fa-ban'></i> Malware Detected",  6 }
 }
 
 function alertSeverityLabel(v)

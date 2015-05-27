@@ -44,6 +44,8 @@ sqlite = _GET["sqlite"]
 -- Get from redis the throughput type bps or pps
 throughput_type = getThroughputType()
 
+prefs = ntop.getPrefs()
+
 if(network_id ~= nil) then
    network_id = tonumber(network_id)
 end
@@ -523,8 +525,12 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    print ("\", \"column_info\" : \"".. value["info"])
 
-   if(value["category"] ~= "") then
-      print(" ".. getCategoryIcon(value["info"], value["category"]))
+   if(prefs.is_categorization_enabled) then
+      flow = interface.findFlowByKey(tonumber(key))
+      if(flow ~= nil) then value["category"] = flow["category"] end
+      if(value["category"] ~= "") then
+	 print(" ".. getCategoryIcon(value["info"], value["category"]))
+      end
    end
 
    print(" \" }\n")
