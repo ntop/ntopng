@@ -98,7 +98,7 @@ void Categorization::categorizeHostName(char *_url, char *buf, u_int buf_len) {
         APPVER, PVER, ENCODED_URL);
 
       // 2.5 Print some information.
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Performing GET request with URL: %s", REQUEST_URL);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Performing GET request with URL: %s", REQUEST_URL);
 
       // 3. Perform request and save the output to REQUEST_REPLY.
       snprintf(REQUEST_REPLY, sizeof(REQUEST_REPLY), "%s", (char *) Utils::curlHTTPGet(REQUEST_URL, &replyCode));
@@ -110,27 +110,27 @@ void Categorization::categorizeHostName(char *_url, char *buf, u_int buf_len) {
       }
       else { // GET request was performed.
         if (replyCode == 200) {
-          ntop->getTrace()->traceEvent(TRACE_NORMAL, "GET request performed with code: 200 OK.");
+          ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: 200 OK.");
         }
         else {
           if (replyCode == 204) {
-            ntop->getTrace()->traceEvent(TRACE_NORMAL, "GET request performed with code: 204 NO CONTENT.");
+            ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: 204 NO CONTENT.");
             if (REQUEST_REPLY[0] == '\0') {
               snprintf(REQUEST_REPLY, sizeof(REQUEST_REPLY), "%s", "reliable");
             }
           }
           else {
             if (replyCode == 400) {
-              ntop->getTrace()->traceEvent(TRACE_NORMAL, "GET request performed with code: 400 BAD REQUEST.");
+              ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: 400 BAD REQUEST.");
             }
-            else ntop->getTrace()->traceEvent(TRACE_NORMAL, "GET request performed with code: %ld.", replyCode);
+            else ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: %ld.", replyCode);
             return;
           }
         }
       }
 
       // 4.5 Printing some results.
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "REPLY: It seems that %s is %s.\n", _url, REQUEST_REPLY);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "REPLY: It seems that %s is %s.\n", _url, REQUEST_REPLY);
       snprintf(buf, buf_len, "%s", REQUEST_REPLY);
       //std::cout << "Buf in categorizeHostName is " << buf << std::endl;
 
