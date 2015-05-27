@@ -33,9 +33,11 @@ if test -d ".git"; then :
 GIT_TAG=`git rev-parse HEAD`
 GIT_DATE=`date +%Y%m%d`
 GIT_RELEASE="${GIT_TAG}:${GIT_DATE}"
+GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 else
 GIT_RELEASE="${PACKAGE_VERSION}"
 GIT_DATE=`date`
+GIT_BRANCH=""
 fi
 
 AC_MSG_CHECKING(for nDPI)
@@ -102,7 +104,7 @@ else
 AC_MSG_RESULT(not found [missing ../nProbe])
 fi
 
-AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "r${GIT_RELEASE}", [GIT Release])
+AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_DATE, "${GIT_DATE}", [Last GIT change])
 
 if test -z `which pkg-config`; then

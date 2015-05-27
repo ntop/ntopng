@@ -335,7 +335,7 @@ static void* resolveLoop(void* ptr) {
 
 void AddressResolution::startResolveAddressLoop() {
   if(ntop->getPrefs()->is_dns_resolution_enabled()) {
-    u_int num_resolvers =
+    int num_resolvers =
 #ifdef NTOPNG_EMBEDDED_EDITION
       1
 #else

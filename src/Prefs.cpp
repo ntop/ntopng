@@ -697,7 +697,23 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printf("v.%s\n", PACKAGE_VERSION);
+    printf("v.%s [%s%s Edition]\n", PACKAGE_VERSION,
+#ifdef NTOPNG_PRO
+	   "Professional"
+#else
+	   "Community"
+#endif
+	   ,
+#ifdef NTOPNG_EMBEDDED_EDITION
+	   "/Embedded"
+#else
+	   ""
+#endif
+	   );
+    printf("GIT rev: %s\n", NTOPNG_GIT_RELEASE);
+#ifdef NTOPNG_PRO
+    printf("Pro rev: %s\n", NTOPNG_PRO_SVN_RELEASE);
+#endif
     _exit(0);
     break;
 
