@@ -27,10 +27,10 @@ print("<tr><th>License</th><td>")
 
 info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
-   print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">".. info["ntopng.license"] .."</A>")
+   print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">".. info["license"] .."</A>")
 else
    print("<A HREF=https://svn.ntop.org/svn/ntop/trunk/legal/EULA.txt target=\"_blank\">EULA</A>")
-end
+
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    v = split(info["version"], " ")
@@ -58,13 +58,11 @@ print [[
       print(info["ntopng.license"])
 
       print [["></input>
-	       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save License</button>
-
-	       
-    </form>
-   ]]
-
+	       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save License</button>	       
+	       </form>
+	    ]]
    end
+end
 end
 
 print("</td></tr>")
