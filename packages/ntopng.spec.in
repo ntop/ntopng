@@ -22,7 +22,7 @@ cd $HOME/rpmbuild/BUILD/
 git clone https://github.com/ntop/ntopng.git
 ln -s $HOME/rpmbuild/BUILD/ntopng $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
 if test -d $HOME/ntopng/pro; then
-    ln -s $HOME/ntopng/pro $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
+    cp -r $HOME/ntopng/pro $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
 fi
 cd $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
 ./autogen.sh
