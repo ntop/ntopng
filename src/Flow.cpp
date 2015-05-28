@@ -1022,7 +1022,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
   if(detailed_dump && ntop->get_categorization() 
      && categorization.flow_categorized && (categorization.category[0] == '\0')) {
     /* Refresh category */
-    ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
+    ntop->getRedis()->getFlowCategory(host_server_name,
 				      categorization.category,
 				      sizeof(categorization.category), false);
   }
