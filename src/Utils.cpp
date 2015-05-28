@@ -123,6 +123,9 @@ bool Utils::isIPAddress(char *ip) {
   struct in_addr addr4;
   struct in6_addr addr6;
 
+  if((ip == NULL) || (ip[0] == '\0'))
+    return(false);
+  
   if(strchr(ip, ':') != NULL) { /* IPv6 */
     if(inet_pton(AF_INET6, ip, &addr6) == 1)
       return(true);
