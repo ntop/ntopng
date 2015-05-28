@@ -647,7 +647,10 @@ void Host::refreshCategory() {
      && ntop->get_categorization()
      ) {
     ntop->get_categorization()->findCategory(symbolic_name, category, sizeof(category), false);
-  }
+  } 
+
+  if(category[0] == '\0')
+    snprintf(category, sizeof(category), "%s", CATEGORIZATION_SAFE_SITE);  
 }
 
 /* ***************************************** */

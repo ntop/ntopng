@@ -285,6 +285,7 @@ void Flow::processDetectedProtocol() {
     }
 
     host_server_name = strdup((char*)ndpi_flow->host_server_name);
+    getFlowCategory(true);
   }
 
   switch(ndpi_detected_protocol) {
@@ -318,17 +319,9 @@ void Flow::processDetectedProtocol() {
 
 	      if(at != NULL)
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpi_flow->host_server_name);
-
-	      if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
-						   categorization.category,
-						   sizeof(categorization.category),
-						   true) != NULL) {
-		categorization.flow_categorized = true;
-		checkFlowCategory();
-	      }
 	    }
 	  }
-
+	  
 	  aggregateInfo((char*)ndpi_flow->host_server_name,
 			ndpi_detected_protocol, aggregation_domain_name, to_track);
 	}
@@ -416,13 +409,6 @@ void Flow::processDetectedProtocol() {
 		  srv->get_ip()->print(buf, sizeof(buf)))) {
 	  aggregateInfo((char*)ndpi_flow->host_server_name, ndpi_detected_protocol,
 			aggregation_domain_name, true);
-
-	  if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
-					       categorization.category,
-					       sizeof(categorization.category), true) != NULL) {
-	    categorization.flow_categorized = true;
-	    checkFlowCategory();
-	  }
 
 #if 0
 	  if(ndpi_detected_protocol != NDPI_PROTOCOL_HTTP_PROXY) {
@@ -1166,15 +1152,17 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
-char* Flow::getFlowCategory() {
+char* Flow::getFlowCategory(bool force_categorization) {
   if(!categorization.flow_categorized) {
     if(ndpi_flow == NULL)
       categorization.flow_categorized = true;
-    else if(ndpi_flow->host_server_name[0] != '\0') {
-      if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
-					   categorization.category, sizeof(categorization.category),
-					   false) != NULL)
+    else if(host_server_name && (host_server_name[0] != '\0')) {
+      if(ntop->get_categorization()->findCategory(host_server_name,
+						  categorization.category, sizeof(categorization.category),
+						  force_categorization) != NULL) {
 	categorization.flow_categorized = true;
+	checkFlowCategory();
+      }
     }
   }
 
@@ -1765,8 +1753,7 @@ void Flow::checkFlowCategory() {
 	     " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
 	     c, iface->get_name(), c, cli_port,
 	     s, iface->get_name(), s, srv_port,
-	     ndpi_flow->host_server_name,
-	     ndpi_flow->host_server_name);
+	     host_server_name, host_server_name);
     
     ntop->getRedis()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
   }  

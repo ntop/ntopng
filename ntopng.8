@@ -188,11 +188,10 @@ Set the key used to access httpbl services (default: disabled).  Please read REA
 .It \-c|\-\-categorization\-key\ <key>
 Sets the key used to access host categorization services.
 .B ntopng
-categorizes hosts using services provided by http://block.si
-In order to use these categorization services you need to mail info@block.si and
-ask for a test key to be used in ntopng.
-For test driving the service please use as key 9hoAtewwpC2tXRMJBfifrY24B
-(example ntopng \-c 9hoAtewwpC2tXRMJBfifrY24B .....).
+categorizes hosts using services provided by Google.
+In order to use these categorization services you need sign uo at 
+https://developers.google.com/safe-browsing/key_signup and use the
+generated key with this command line option.
 
 .It \-e|\-\-daemon
 This parameter causes ntop to become a daemon, i.e. a task which runs in the background without connection to a specific terminal. To use ntop other than as a casual monitoring tool, you probably will want to use this option.

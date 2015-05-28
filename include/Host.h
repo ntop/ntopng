@@ -99,7 +99,7 @@ class Host : public GenericHost {
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_country()                   { return(country);          }
   inline char* get_city()                      { return(city);             }
-  inline char* get_category()                  { refreshCategory(); return(category); }
+  inline char* get_category()                  { if(category[0] == '\0') refreshCategory(); return(category); }
   inline char* get_httpbl()                    { refreshHTTPBL();   return(httpbl); }
   inline int get_ingress_shaper_id()           { return(ingress_shaper_id); }
   inline int get_egress_shaper_id()            { return(egress_shaper_id);  }

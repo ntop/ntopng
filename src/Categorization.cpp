@@ -37,10 +37,13 @@ char* Categorization::findCategory(char *name, char *buf, u_int buf_len, bool ad
 				 __FUNCTION__, name, add_if_needed ? "true" : "false");
     
     if((name[0] == '\0')
+       || (strchr(name, '.') == NULL) /* Missing domain */
        || (!strcmp(name, "Broadcast"))
        || (!strcmp(name, "localhost"))
        || strchr((const char*)name, ':') /* IPv6 */
-       || (strstr(name, ".in-addr.arpa.")))
+       || (strstr(name, ".in-addr.arpa"))
+       || (strstr(name, ".ip6.arpa"))
+       )
       return((char*)CATEGORIZATION_SAFE_SITE);
     else {
       char *ret = ntop->getRedis()->getFlowCategory(name, buf, buf_len, add_if_needed);

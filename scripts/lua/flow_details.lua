@@ -224,6 +224,7 @@ else
    if(flow["ssl.certificate"] ~= nil) then
       print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td colspan=2>")
       print(flow["ssl.certificate"])
+      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["ssl.certificate"], flow["category"])) end
       print("</td></tr>\n")      
    end
 
@@ -308,7 +309,10 @@ else
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
       if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.iface_vlan) end 
-      print(s.."</td></tr>\n")
+      print(s)
+      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
+
+      print("</td></tr>\n")
       print("<tr><th>URL</th><td>")
 
       if(flow["http.last_url"] ~= "") then 	 

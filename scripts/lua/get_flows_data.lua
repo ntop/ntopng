@@ -525,7 +525,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    print ("\", \"column_info\" : \"".. value["info"])
 
-   if(prefs.is_categorization_enabled) then
+   if(prefs.is_categorization_enabled and (value["info"] ~= "")) then
       flow = interface.findFlowByKey(tonumber(key))
       if(flow ~= nil) then value["category"] = flow["category"] end
       if(value["category"] ~= "") then

@@ -122,7 +122,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  char *getFlowCategory();
+  char *getFlowCategory(bool force_categorization);
   void deleteFlowMemory();
   char* serialize(bool partial_dump = false, bool es_json = false);
   json_object* flow2json(bool partial_dump);
