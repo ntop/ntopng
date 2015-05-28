@@ -98,7 +98,7 @@ bool IpAddress::isEmpty() {
 
 /* ******************************************* */
 
-void IpAddress::checkPrivate() {
+void IpAddress::checkIP() {
   u_int32_t a;
 
   addr.privateIP = false; /* Default */
@@ -123,6 +123,10 @@ void IpAddress::checkPrivate() {
      || ((a & 0xFF000000) == 0x7F000000 /* 127.0.0.0/8 */)
      )
     addr.privateIP = true;
+  else if((a & 0xF0000000) == 0xE0000000 /* 224.0.0.0/4 */)
+    addr.multicastIP = true;
+  else if((a == 0xFFFFFFFF) || (a == 0))
+    addr.broadcastIP = true;
 }
 
 /* ******************************************* */
@@ -167,7 +171,7 @@ bool IpAddress::isLocalInterfaceAddress() {
 void IpAddress::compute_key() {
   if(ip_key != 0) return; /* Already computed */
 
-  checkPrivate();
+  checkIP();
 
   if(addr.ipVersion == 4) {
     ip_key = ntohl(addr.ipType.ipv4);

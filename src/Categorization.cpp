@@ -33,12 +33,23 @@ Categorization::Categorization(char *_api_key) {
 
 char* Categorization::findCategory(char *name, char *buf, u_int buf_len, bool add_if_needed) {
   if(ntop->getPrefs()->is_categorization_enabled()) {
-    char *ret = ntop->getRedis()->getFlowCategory(name, buf, buf_len, add_if_needed);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[Categorization] %s(%s, %s)", 
+				 __FUNCTION__, name, add_if_needed ? "true" : "false");
     
-    if(ret[0] && strcmp(ret, CATEGORIZATION_SAFE_SITE))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "[Categorization] Site %s detected as %s", name, ret);
-
-    return(ret);
+    if((name[0] == '\0')
+       || (!strcmp(name, "Broadcast"))
+       || (!strcmp(name, "localhost"))
+       || strchr((const char*)name, ':') /* IPv6 */
+       || (strstr(name, ".in-addr.arpa.")))
+      return((char*)CATEGORIZATION_SAFE_SITE);
+    else {
+      char *ret = ntop->getRedis()->getFlowCategory(name, buf, buf_len, add_if_needed);
+      
+      if(ret[0] && strcmp(ret, CATEGORIZATION_SAFE_SITE))
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[Categorization] Site %s detected as %s", name, ret);
+      
+      return(ret);
+    }
   } else {
     buf[0] = '\0';
     return(buf);

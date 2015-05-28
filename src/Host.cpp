@@ -627,16 +627,25 @@ void Host::setName(char *name, bool update_categorization) {
     to_categorize = true;
   }
   if(m) m->unlock(__FILE__, __LINE__);
-
-  if(to_categorize && ntop->get_categorization())
-    ntop->get_categorization()->findCategory(symbolic_name, category, sizeof(category),
-					     update_categorization);
+  
+  refreshCategory();
 }
 
 /* ***************************************** */
 
 void Host::refreshCategory() {
-  if((symbolic_name != NULL) && (category[0] == '\0') && ntop->get_categorization()) {
+  char buf[128] =  { 0 };
+  char* ip_addr = ip->print(buf, sizeof(buf));
+  
+  if((symbolic_name != NULL)
+     && strcmp(ip_addr, symbolic_name)
+     && (category[0] == '\0')
+     && ip
+     && ip->isIPv4()
+     && (!ip->isMulticastAddress())
+     && (!ip->isBroadcastAddress())
+     && ntop->get_categorization()
+     ) {
     ntop->get_categorization()->findCategory(symbolic_name, category, sizeof(category), false);
   }
 }

@@ -26,8 +26,8 @@
 
 struct ipAddress {
   u_int8_t ipVersion:3 /* Either 4 or 6 */, 
-    localHost:1, privateIP:1,
-    notUsed:4 /* Future use */;
+    localHost:1, privateIP:1, multicastIP:1, broadcastIP:1,
+    notUsed:1 /* Future use */;
 
   union {
     struct ndpi_in6_addr ipv6;
@@ -44,7 +44,7 @@ class IpAddress {
 
   char* _intoaV4(unsigned int addr, char* buf, u_short bufLen);
   char* _intoa(char* buf, u_short bufLen);
-  void checkPrivate();
+  void checkIP();
   void compute_key();
   
  public:
@@ -71,6 +71,8 @@ class IpAddress {
   inline u_int32_t key()                               { return(ip_key);         };
   void set(IpAddress *ip);
   inline bool isPrivateAddress()                       { return(addr.privateIP); };
+  inline bool isMulticastAddress()                     { return(addr.multicastIP); };
+  inline bool isBroadcastAddress()                     { return(addr.broadcastIP); };
   char* print(char *str, u_int str_len);
   bool isLocalHost(int16_t *network_id);
   bool isLocalInterfaceAddress();

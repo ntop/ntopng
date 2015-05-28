@@ -8,7 +8,10 @@ at https://developers.google.com/safe-browsing/key_signup
 Once you have the key available, you can start
 ntopng -c KEY ...
 
-You can test a malware site by visiting (at your risk) ianfette.org
+You can test a malware site by visiting (at your risk) 
+- ianfette.org
+- 1doi3.ro
+
 
 NOTES:
 - THIS IS AN EXPERIMENTAL SERVICE
