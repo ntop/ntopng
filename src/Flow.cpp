@@ -1750,24 +1750,29 @@ bool Flow::dumpFlowTraffic() {
 /* *************************************** */
 
 void Flow::checkFlowCategory() {
-  if((categorization.category[0] == '\0')
-     || (!strcmp(categorization.category, CATEGORIZATION_SAFE_SITE)))
+  if ((categorization.category[0] == '\0')
+    || (strcmp(categorization.category, CATEGORIZATION_SAFE_SITE)) == 0) {
     return;
-  else {
+  } else {
     char c_buf[64], s_buf[64], *c, *s, alert_msg[1024];
 
     /* Emit alarm */
     c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
     s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
     
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Flow <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
-	     " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
-	     c, iface->get_name(), c, cli_port,
-	     s, iface->get_name(), s, srv_port,
-	     ndpi_flow->host_server_name,
-	     ndpi_flow->host_server_name);
-    
-    ntop->getRedis()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
+    // Do not generate alerts if hostname is "localhost" and flow ID is "::1".
+    if ((strcmp((char *) ndpi_flow->host_server_name, (char *) "localhost") != 0) 
+      && (strcmp((char *) c, (char *) "::1") != 0)) {
+
+      snprintf(alert_msg, sizeof(alert_msg),
+       "Flow <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
+       " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
+       c, iface->get_name(), c, cli_port,
+       s, iface->get_name(), s, srv_port,
+       ndpi_flow->host_server_name,
+       ndpi_flow->host_server_name);
+
+      ntop->getRedis()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
+    }
   }  
 }
