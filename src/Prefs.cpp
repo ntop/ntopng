@@ -88,8 +88,8 @@ Prefs::Prefs(Ntop *_ntop) {
   other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
   other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
 
-  es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"), 
-    es_url = strdup((char*)"http://localhost:9200/_bulk"), 
+  es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
+    es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
 #ifdef NTOPNG_PRO
@@ -298,7 +298,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
   if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
     *buffer = strdup(rsp);
   else
-    *buffer = strdup(default_value);  
+    *buffer = strdup(default_value);
 }
 
 /* ******************************************* */
@@ -567,19 +567,41 @@ int Prefs::setOption(int optkey, char *optarg) {
     {
       char buf[64], *r;
 
-      snprintf(buf, sizeof(buf), "%s", optarg);
-      r = strtok(buf, ":");
-      if(r) {
-	char *c = strtok(NULL, "@");
-	if(c) redis_port = atoi(c);
+      /*
+	Supported formats for --redis
 
-	if(redis_host) free(redis_host);
-	redis_host = strdup(r);
+	host:port
+	host@redis_instance
+	host:port@redis_instance
+       */
+      snprintf(buf, sizeof(buf), "%s", optarg);
+      r = strtok(buf, "@");
+      if(r) {
+	char *c;
+
+	if(strchr(r, ':')) {
+	  char *w;
+
+	  c = strtok_r(r, ":", &w);
+
+	  if(redis_host) free(redis_host);
+	  redis_host = strdup(c);
+	
+	  c = strtok_r(NULL, ":", &w);
+	  if(c) redis_port = atoi(c);
+	} else {
+	  if(redis_host) free(redis_host);
+	  redis_host = strdup(r);
+	}
 
 	c = strtok(NULL, "@");
 	if(c != NULL)
 	  redis_db_id = atoi((const char*)c);
       }
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "ntopng will use redis %s:%u@%u",
+				   redis_host, redis_port, redis_db_id);
     }
     break;
 
@@ -613,8 +635,8 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "All HTTP user login disabled");
       break;
     default:
-      ntop->getTrace()->traceEvent(TRACE_ERROR, 
-				   "Invalid '%s' value specified for -l: ignored", 
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Invalid '%s' value specified for -l: ignored",
 				   optarg);
     }
     break;
@@ -627,7 +649,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
-    if((strncmp(optarg, "es", 2) == 0) 
+    if((strncmp(optarg, "es", 2) == 0)
        && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
@@ -649,8 +671,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  }
 	}
       }
-      
-      if(elastic_index_type 
+
+      if(elastic_index_type
 	 && elastic_index_name
 	 && elastic_url) {
 	free(es_type), free(es_index), free(es_url), free(es_user), free(es_pwd);
@@ -666,15 +688,15 @@ int Prefs::setOption(int optkey, char *optarg) {
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Discarding -F: invalid format for es");
-	ntop->getTrace()->traceEvent(TRACE_WARNING, 
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     } else if(!strcmp(optarg, "db"))
       dump_flows_on_db = true;
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, 
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Discarding -F %s: value out of range",
-				   optarg);    
+				   optarg);
     break;
 
 #ifndef WIN32
@@ -750,7 +772,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
     _exit(0);
   }
-  
+
   return(0);
 }
 
@@ -1022,7 +1044,7 @@ void Prefs::registerNetworkInterfaces() {
 /* *************************************** */
 
 bool Prefs::is_pro_edition() {
-  return 
+  return
 #ifdef NTOPNG_PRO
     ntop->getPro()->has_valid_license()
 #else
@@ -1034,7 +1056,7 @@ bool Prefs::is_pro_edition() {
 /* *************************************** */
 
 time_t Prefs::pro_edition_demo_ends_at() {
-  return 
+  return
 #ifdef NTOPNG_PRO
     ntop->getPro()->demo_ends_at()
 #else

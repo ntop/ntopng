@@ -91,7 +91,7 @@ void Redis::reconnectRedis() {
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Successfully connected to Redis %s:%u@%u",
+			       "Successfully connected to redis %s:%u@%u",
 			       redis_host, redis_port, redis_db_id);
 }
 
