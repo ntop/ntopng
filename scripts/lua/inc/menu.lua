@@ -30,7 +30,7 @@ end
 
 print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-        Home <b class="caret"></b>
+        <i class="fa fa-home fa-lg"></i> <b class="caret"></b>
       </a>
     <ul class="dropdown-menu">
       <li><a href="]]

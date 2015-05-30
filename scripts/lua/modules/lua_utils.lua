@@ -348,25 +348,29 @@ end
 
 -- Convert bytes to human readable format
 function bytesToSize(bytes)
-  precision = 2
-  kilobyte = 1024;
-  megabyte = kilobyte * 1024;
-  gigabyte = megabyte * 1024;
-  terabyte = gigabyte * 1024;
-
-  if((bytes >= 0) and (bytes < kilobyte)) then
-    return round(bytes, precision) .. " B";
-  elseif((bytes >= kilobyte) and (bytes < megabyte)) then
-    return round(bytes / kilobyte, precision) .. ' KB';
-  elseif((bytes >= megabyte) and (bytes < gigabyte)) then
-    return round(bytes / megabyte, precision) .. ' MB';
-  elseif((bytes >= gigabyte) and (bytes < terabyte)) then
-    return round(bytes / gigabyte, precision) .. ' GB';
-  elseif(bytes >= terabyte) then
-    return round(bytes / terabyte, precision) .. ' TB';
-  else
-    return round(bytes, precision) .. ' B';
-  end
+   if(bytes == nil) then
+      return("0")
+   else
+      precision = 2
+      kilobyte = 1024;
+      megabyte = kilobyte * 1024;
+      gigabyte = megabyte * 1024;
+      terabyte = gigabyte * 1024;
+      
+      if((bytes >= 0) and (bytes < kilobyte)) then
+	 return round(bytes, precision) .. " B";
+	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
+	 return round(bytes / kilobyte, precision) .. ' KB';
+	 elseif((bytes >= megabyte) and (bytes < gigabyte)) then
+	 return round(bytes / megabyte, precision) .. ' MB';
+	 elseif((bytes >= gigabyte) and (bytes < terabyte)) then
+	 return round(bytes / gigabyte, precision) .. ' GB';
+	 elseif(bytes >= terabyte) then
+	 return round(bytes / terabyte, precision) .. ' TB';
+      else
+	 return round(bytes, precision) .. ' B';
+      end
+   end
 end
 
 -- Convert bits to human readable format

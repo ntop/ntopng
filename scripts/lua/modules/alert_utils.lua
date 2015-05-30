@@ -196,18 +196,20 @@ end
 -- #################################
 
 function check_interface_threshold(ifname, mode)
-   local ifname_clean = string.gsub(ifname, "/", "_")
+   interface.select(ifname)
+   local ifstats = interface.getStats()
+   ifname_id = ifstats.id
 
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean)
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..ifname_id)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-      if(verbose) then print("Alert check for ("..ifname_clean..", "..mode..")<br>\n") end
+      if(verbose) then print("Alert check for ("..ifname_id..", "..mode..")<br>\n") end
    else
-      if(verbose) then print("Skipping alert check for("..ifname_clean..", "..mode.."): disabled in preferences<br>\n") end
+      if(verbose) then print("Skipping alert check for("..ifname_id..", "..mode.."): disabled in preferences<br>\n") end
       return
    end
 
-   if(verbose) then print("check_interface_threshold("..ifname_clean..", "..host_ip..", "..mode..")<br>\n") end
-   basedir = fixPath(dirs.workingdir .. "/" .. ifname_clean .. "/json/" .. mode)
+   if(verbose) then print("check_interface_threshold("..ifname_id..", "..host_ip..", "..mode..")<br>\n") end
+   basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
    if(not(ntop.exists(basedir))) then
       ntop.mkdir(basedir)
    end
@@ -217,7 +219,7 @@ function check_interface_threshold(ifname, mode)
    ifstats = interface.getStats()
 
    if (ifstats ~= nil) then
-     fname = fixPath(basedir.."/iface_"..ifname_clean.."_lastdump")
+     fname = fixPath(basedir.."/iface_"..ifname_id.."_lastdump")
 
      if(verbose) then print(fname.."<p>\n") end
      if (ntop.exists(fname)) then
@@ -236,22 +238,24 @@ end
 -- #################################
 
 function check_host_threshold(ifname, host_ip, mode)
+   interface.select(ifname)
+   local ifstats = interface.getStats()
+   ifname_id = ifstats.id
+
    suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-      if(verbose) then print("Alert check for ("..ifname..", "..host_ip..", "..mode..")<br>\n") end
+      if(verbose) then print("Alert check for ("..ifname_id..", "..host_ip..", "..mode..")<br>\n") end
    else
-      if(verbose) then print("Skipping alert check for("..ifname..", "..host_ip..", "..mode.."): disabled in preferences<br>\n") end
+      if(verbose) then print("Skipping alert check for("..ifname_id..", "..host_ip..", "..mode.."): disabled in preferences<br>\n") end
       return
    end
 
-   if(verbose) then print("check_host_threshold("..ifname..", "..host_ip..", "..mode..")<br>\n") end
-   basedir = fixPath(dirs.workingdir .. "/" .. ifname .. "/json/" .. mode)
+   if(verbose) then print("check_host_threshold("..ifname_id..", "..host_ip..", "..mode..")<br>\n") end
+   basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
    if(not(ntop.exists(basedir))) then
       ntop.mkdir(basedir)
    end
 
-   --if(verbose) then print(basedir.."<br>\n") end
-   interface.select(ifname)
    json = interface.getHostInfo(host_ip)
 
    if(json ~= nil) then
