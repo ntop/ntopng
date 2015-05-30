@@ -192,6 +192,8 @@ float Utils::timeval2ms(struct timeval *tv) {
 
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
+
+ /*  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): %s", __FUNCTION__, path); */
   bool ret = infile.good();
   infile.close();
   return ret;

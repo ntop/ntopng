@@ -3885,6 +3885,7 @@ static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex)
   return rc;
 }
 
+/* This function is called by Lua scripts when the call require(...) */
 static int ntop_lua_require(lua_State* L)
 {
   char *script_name;
@@ -3899,9 +3900,10 @@ static int ntop_lua_require(lua_State* L)
   string cur_path = lua_tostring( L, -1 ), parsed, script_path = "";
   stringstream input_stringstream(cur_path);
   while(getline(input_stringstream, parsed, ';')) {
-    unsigned found = parsed.find_last_of(CONST_PATH_SEP);
+    /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path */
+    unsigned found = parsed.find_last_of("?");
     if (found) {
-      string s = parsed.substr(0, found) + CONST_PATH_SEP + script_name + ".lua";
+      string s = parsed.substr(0, found) + script_name + ".lua";
       if (Utils::file_exists(s.c_str())) {
         script_path = s;
         break;
@@ -4447,6 +4449,9 @@ int Lua::run_script(char *script_path, char *ifname) {
       lua_pushstring(L, ifname);
       lua_setglobal(L, "ifname");
     }
+
+	if (strstr(script_path, "nv_graph"))
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", script_path);
 
 #ifndef NTOPNG_PRO
     rc = luaL_dofile(L, script_path);
