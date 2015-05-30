@@ -355,7 +355,7 @@ bool NetworkInterfaceView::getAggregatedHostInfo(lua_State* vm,
 					         patricia_tree_t *ptree,
 					         char *host_name) {
   list<NetworkInterface *>::iterator p;
-  bool ret;
+  bool ret = false;
 
   lua_newtable(vm);
 
