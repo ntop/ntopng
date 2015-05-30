@@ -30,7 +30,7 @@ if(info["pro.release"] == false) then
    print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">".. info["license"] .."</A>")
 else
    print("<A HREF=https://svn.ntop.org/svn/ntop/trunk/legal/EULA.txt target=\"_blank\">EULA</A>")
-
+end
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    v = split(info["version"], " ")
@@ -62,7 +62,6 @@ print [[
 	       </form>
 	    ]]
    end
-end
 end
 
 print("</td></tr>")
