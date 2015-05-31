@@ -11,6 +11,9 @@ In order to use SSL with ntopng (i.e. HTTPS) you need to
 
    - Linux
    ln -s /usr/lib/x86_64-linux-gnu/libssl.so .
+   Note that this symbolic link is NOT necessary on all linux
+   distros. Example it is not required on Fedora Linux.
+   Please check this according to your distribution.
 
    - OSX
    ln -s /usr/local/Cellar/openssl/1.0.1i/lib/libcrypto.dylib .
