@@ -96,6 +96,8 @@ bool NetworkInterfaceView::hasNamesAs(const char *names) {
   return res.empty();
 }
 
+/* **************************************************** */
+
 /* FIXME: slow */
 bool NetworkInterfaceView::hasIdsAs(const char *names) {
   istringstream ss(names);
@@ -143,6 +145,17 @@ void NetworkInterfaceView::refreshL7Rules() {
 
   for(p = physIntf.begin() ; p != physIntf.end() ; p++)
     (*p)->refreshL7Rules();
+}
+#endif
+
+/* **************************************************** */
+
+#ifdef NTOPNG_PRO
+void NetworkInterfaceView::refreshShapers() {
+  list<NetworkInterface *>::iterator p;
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    (*p)->refreshShapers();
 }
 #endif
 
@@ -255,6 +268,22 @@ bool NetworkInterfaceView::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+bool NetworkInterfaceView::loadHostAlertPrefs(lua_State* vm,
+				              patricia_tree_t *allowed_hosts,
+				              char *host_ip, u_int16_t vlan_id) {
+  list<NetworkInterface *>::iterator p;
+  bool ret = false;
+
+  lua_newtable(vm);
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    if((*p)->loadHostAlertPrefs(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
+
+  return ret;
+}
+
+/* **************************************************** */
+
 bool NetworkInterfaceView::correlateHostActivity(lua_State* vm,
 			                         patricia_tree_t *allowed_hosts,
 					         char *host_ip, u_int16_t vlan_id) {
@@ -326,7 +355,7 @@ bool NetworkInterfaceView::getAggregatedHostInfo(lua_State* vm,
 					         patricia_tree_t *ptree,
 					         char *host_name) {
   list<NetworkInterface *>::iterator p;
-  bool ret;
+  bool ret = false;
 
   lua_newtable(vm);
 
@@ -638,9 +667,9 @@ void NetworkInterfaceView::lua(lua_State *vm) {
   lua_newtable(vm);
 
   for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    sprobe_interface += (*p)->get_sprobe_interface();
-    inline_interface += (*p)->get_inline_interface();
-    has_vlan_packets += (*p)->get_has_vlan_packets();
+	sprobe_interface |= (*p)->get_sprobe_interface();
+	inline_interface |= (*p)->get_inline_interface();
+	has_vlan_packets |= (*p)->get_has_vlan_packets();
     stats_packets += (*p)->getNumPackets();
     stats_bytes += (*p)->getNumBytes();
     stats_flows += (*p)->getNumFlows();

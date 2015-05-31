@@ -84,6 +84,7 @@ extern void pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
 extern char* strtok_r(char *s, const char *delim, char **save_ptr);
 extern int win_inet_pton(int af, const char *src, void *dst);
+extern void win_usleep(__int64 usec);
 #ifdef __cplusplus
 }
 #endif
@@ -101,12 +102,20 @@ extern int win_inet_pton(int af, const char *src, void *dst);
 
 struct dirent {
   char d_name[PATH_MAX];
+  u_char d_type;
 };
+
+#ifndef DT_DIR
+#define DT_UNKNOWN       0
+#define DT_DIR           4
+#endif
+
 
 typedef struct DIR {
   HANDLE   handle;
   WIN32_FIND_DATAW info;
   struct dirent  result;
+  char dir_path[MAX_PATH];
 } DIR;
 
 extern struct dirent *readdir(DIR *dir);
@@ -202,6 +211,7 @@ struct ip6_ext
 #define localtime_r(a, b) localtime(a)
 
 extern unsigned int sleep(unsigned int seconds);
+
 
 extern int inet_aton(const char *cp, struct in_addr *addr);
 //extern int inet_pton(int af, const char *src, void *dst);

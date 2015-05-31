@@ -75,6 +75,7 @@
 /* ***************************************************** */
 
 #ifdef WIN32
+#undef PACKAGE_OSNAME
 #ifdef _WIN64
 #define PACKAGE_OSNAME            "Win64"
 #else
@@ -102,6 +103,14 @@
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */
+#define INTF_RRD_RAW_DAYS        1
+#define INTF_RRD_1MIN_DAYS       30
+#define INTF_RRD_1H_DAYS         100
+#define INTF_RRD_1D_DAYS         365
+#define OTHER_RRD_RAW_DAYS       1
+#define OTHER_RRD_1MIN_DAYS      30
+#define OTHER_RRD_1H_DAYS        100
+#define OTHER_RRD_1D_DAYS        365
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
@@ -143,6 +152,7 @@
 #define CONST_INTERFACE_TYPE_ZMQ       "zmq"
 #define CONST_INTERFACE_TYPE_SQLITE    "sqlite"
 #define CONST_INTERFACE_TYPE_PF_RING   "PF_RING"
+#define CONST_INTERFACE_TYPE_NETFILTER "netfilter"
 #define CONST_INTERFACE_TYPE_UNKNOWN   "unknown"
 
 
@@ -182,7 +192,7 @@
 #define MAX_NUM_PACKETS             5000
 
 #define MAX_NUM_VLAN                4096
-#define DEFAULT_SHAPER_ID              1
+#define DEFAULT_SHAPER_ID              0
 #define NUM_TRAFFIC_SHAPERS           10
 #define MAX_SHAPER_RATE_KBPS       10240
 #define HOUSEKEEPING_FREQUENCY         5
@@ -232,6 +242,7 @@
 #define CONST_HISTORICAL_OK               1
 #define CONST_HISTORICAL_FILE_ERROR       0
 #define CONST_HISTORICAL_OPEN_ERROR      -1
+#define CONST_HISTORICAL_ROWS_LIMIT       20960
 
 #define CONST_AGGREGATIONS            "aggregations"
 #define CONST_HOST_CONTACTS           "host_contacts"
@@ -245,6 +256,14 @@
 #define CONST_MAX_NEW_FLOWS_PREFS     "ntopng.prefs.host_max_new_flows_sec_threshold"
 #define CONST_MAX_NUM_SYN_PREFS       "ntopng.prefs.host_max_num_syn_sec_threshold"
 #define CONST_MAX_NUM_FLOWS_PREFS     "ntopng.prefs.host_max_num_active_flows"
+#define CONST_INTF_RRD_RAW_DAYS       "ntopng.prefs.intf_rrd_raw_days"
+#define CONST_INTF_RRD_1MIN_DAYS      "ntopng.prefs.intf_rrd_1min_days"
+#define CONST_INTF_RRD_1H_DAYS        "ntopng.prefs.intf_rrd_1h_days"
+#define CONST_INTF_RRD_1D_DAYS        "ntopng.prefs.intf_rrd_1d_days"
+#define CONST_OTHER_RRD_RAW_DAYS      "ntopng.prefs.other_rrd_raw_days"
+#define CONST_OTHER_RRD_1MIN_DAYS     "ntopng.prefs.other_rrd_1min_days"
+#define CONST_OTHER_RRD_1H_DAYS       "ntopng.prefs.other_rrd_1h_days"
+#define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
 
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
@@ -281,6 +300,12 @@
 #define NULL_BL                        "''"
 //#define DEBUG_HTTPBL
 
+#define CATEGORIZATION_URL             "https://sb-ssl.google.com/safebrowsing/api/lookup"
+#define CATEGORIZATION_CLIENT          "ntopng"
+#define CATEGORIZATION_APPVER          "1.0"
+#define CATEGORIZATION_PVER            "3.0"
+#define CATEGORIZATION_NULL_CATEGORY   "''"
+#define CATEGORIZATION_SAFE_SITE       "safe"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
@@ -332,6 +357,10 @@
 
 #ifdef WIN32
 #define unlink(a) _unlink(a)
+#endif
+
+#if defined(__arm__) || defined(__mips__) 
+#define NTOPNG_EMBEDDED_EDITION         1
 #endif
 
 #endif /* _NTOP_DEFINES_H_ */

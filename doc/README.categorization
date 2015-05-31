@@ -1,0 +1,19 @@
+
+ntopng categorizes hosts in good/malware hosts by exploiting the google safe browsing API
+http://en.wikipedia.org/wiki/Google_Safe_Browsing
+
+In order to use these categorization services you need to obtain a key from Google
+at https://developers.google.com/safe-browsing/key_signup
+
+Once you have the key available, you can start
+ntopng -c KEY ...
+
+You can test a malware site by visiting (at your risk) 
+- ianfette.org
+- 1doi3.ro
+
+
+NOTES:
+- THIS IS AN EXPERIMENTAL SERVICE
+- NTOPNG WILL CONTACT DIRECTLY GOOGLE (NO TRAFFIC WILL PASS THROUGH NTOP.ORG)
+- NTOP HAS NO BUSINESS RELATIONSHIP WITH GOOGLE.COM

@@ -393,7 +393,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 	    if(value["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. value["active_http_hosts"] .."</span>") end
 
-	    if(value["category"] ~= nil) then print("\", \"column_category\" : \"".. getCategory(value["category"])) end
+	    if(value["category"] ~= nil) then print("\", \"column_category\" : \"".. getCategoryIcon(value["category"])) end
 	    if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then print("\", \"column_httpbl\" : \"".. value["httpbl"]) end
 
 	    if (value["vlan"] ~= nil) then

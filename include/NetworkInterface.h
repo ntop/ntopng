@@ -116,6 +116,7 @@ class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name.*/
   int id;
+  bool bridge_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #endif
@@ -123,6 +124,7 @@ class NetworkInterface {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap.*/
   pthread_t pollLoop;
+  bool pollLoopCreated;
   int cpu_affinity; /**< Index of physical core where the network interface works.*/
   NdpiStats ndpiStats;
   PacketStats pktStats;
@@ -228,7 +230,7 @@ class NetworkInterface {
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
   void flushHostContacts();
   bool packet_dissector(const struct pcap_pkthdr *h, const u_char *packet,
-			int *egress_shaper_id);
+			int *a_shaper_id, int *b_shaper_id);
   bool packetProcessing(const struct timeval *when,
 			const u_int64_t time,
 			struct ndpi_ethhdr *eth,
@@ -238,7 +240,8 @@ class NetworkInterface {
 			u_int16_t ipsize, u_int16_t rawsize,
 			const struct pcap_pkthdr *h,
 			const u_char *packet,
-			int *egress_shaper_id);
+			int *a_shaper_id,
+			int *b_shaper_id);
   void flow_processing(ZMQ_Flow *zflow);
   void dumpFlows();
   void getnDPIStats(NdpiStats *stats);
@@ -269,6 +272,7 @@ class NetworkInterface {
   Host* getHost(char *host_ip, u_int16_t vlan_id);
   StringHost* getAggregatedHost(char *host_name);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void getActiveAggregatedHostsList(lua_State* vm, struct aggregation_walk_hosts_info *info);
   bool getAggregatedHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip);
   bool getAggregationFamilies(lua_State* vm, struct ndpi_protocols_aggregation *agg);
@@ -291,6 +295,7 @@ class NetworkInterface {
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
+  void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
 
@@ -320,7 +325,8 @@ class NetworkInterface {
   inline void updateLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) { 
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver); }
 
-  inline HostHash* get_hosts_hash() { return(hosts_hash); }
+  inline HostHash* get_hosts_hash() { return(hosts_hash);       }
+  inline bool is_bridge_interface() { return(bridge_interface); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

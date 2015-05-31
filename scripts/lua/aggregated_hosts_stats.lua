@@ -19,9 +19,9 @@ print [[
       <hr>
       <div id="table-hosts"></div>
 	 <script>
-   var url_update =]]
+   var url_update ="]]
 print(ntop.getHttpPrefix())
-print[["/lua/get_hosts_data.lua?aggregated=1]]
+print[[/lua/get_hosts_data.lua?aggregated=1]]
           if(_GET["protocol"]) then print("&protocol=".._GET["protocol"]) end
           if(_GET["client"]) then print("&client=".._GET["client"]) end
           if(_GET["aggregation"] ~= nil) then print("&aggregation=".._GET["aggregation"]) end

@@ -91,7 +91,7 @@ void Redis::reconnectRedis() {
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Successfully connected to Redis %s:%u@%u",
+			       "Successfully connected to redis %s:%u@%u",
 			       redis_host, redis_port, redis_db_id);
 }
 
@@ -167,7 +167,7 @@ int Redis::hashSet(char *key, char *field, char *value) {
   reply = (redisReply*)redisCommand(redis, "HSET %s %s %s", key, field, value);
   if(!reply) reconnectRedis();
   if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [HSET %s %s %s]", reply->str ? reply->str : "???", key, field, value), rc = -1;
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
 
@@ -337,7 +337,7 @@ int Redis::hashKeys(const char *pattern, char ***keys_p) {
   reply = (redisReply*)redisCommand(redis, "HKEYS %s", pattern);
   if(!reply) reconnectRedis();
   if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [HKEYS %s]", reply->str ? reply->str : "???", pattern);
 
   (*keys_p) = NULL;
 
@@ -647,7 +647,7 @@ int Redis::setHTTPBLAddress(char *numeric_ip, char *httpbl) {
 
 int Redis::setResolvedAddress(char *numeric_ip, char *symbolic_ip) {
   char key[CONST_MAX_LEN_REDIS_KEY], numeric[256], *w, *h;
-  int rc;
+  int rc = 0;
 
 #if 0
   if(strcmp(symbolic_ip, "broadcasthost") == 0)
@@ -749,7 +749,7 @@ int Redis::hashIncr(char *key, char *field, u_int32_t value) {
   int rc;
   redisReply *reply;
 
-  if (key == NULL || field == NULL) return 0;
+  if(key == NULL || field == NULL) return 0;
 
   l->lock(__FILE__, __LINE__);
   reply = (redisReply*)redisCommand(redis, "HINCRBY %s %s %u", key, field, value);
@@ -910,7 +910,7 @@ bool Redis::createOpenDB(sqlite3 **db, char *day, char **zErrMsg)
   char path[MAX_PATH];
   char buf[256];
 
-  if (*db)
+  if(*db)
     return true;
 
   snprintf(path, sizeof(path), "%s/datadump",
@@ -1183,7 +1183,7 @@ bool Redis::dumpDailyStatsKeys(char *day) {
   snprintf(buf, sizeof(buf), "%s.keys", day);
   del(buf);
 
-  if (db)
+  if(db)
     sqlite3_close(db);
 
   return(rc);
@@ -1241,7 +1241,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
 void Redis::queueAlert(AlertLevel level, AlertType t, char *msg) {
   char what[1024];
 
-  if (ntop->getPrefs()->are_alerts_disabled()) return;
+  if(ntop->getPrefs()->are_alerts_disabled()) return;
 
   snprintf(what, sizeof(what), "%u|%u|%u|%s",
 	   (unsigned int)time(NULL), (unsigned int)level,
@@ -1251,15 +1251,15 @@ void Redis::queueAlert(AlertLevel level, AlertType t, char *msg) {
   // Print alerts into syslog
   if(ntop->getRuntimePrefs()->are_alerts_syslog_enable()) {
     if( alert_level_info == level) syslog(LOG_INFO, "%s", what);
-    else if ( alert_level_warning == level) syslog(LOG_WARNING, "%s", what);
-    else if ( alert_level_error == level) syslog(LOG_ALERT, "%s", what);
+    else if( alert_level_warning == level) syslog(LOG_WARNING, "%s", what);
+    else if( alert_level_error == level) syslog(LOG_ALERT, "%s", what);
   }
 #endif
 
   lpush(CONST_ALERT_MSG_QUEUE, what, CONST_MAX_ALERT_MSG_QUEUE_LEN);
 
 #ifdef NTOPNG_PRO
-  if (ntop->getNagios())
+  if(ntop->getNagios())
     ntop->getNagios()->sendEvent(level, t, msg);
 #endif
 

@@ -99,6 +99,12 @@ extern "C" {
 #include "pfring.h"
 #include "pfring_zc.h"
 #endif
+#ifdef HAVE_NETFILTER
+#include <linux/types.h>
+#include <linux/netfilter.h> /* for NF_ACCEPT */
+#include <libnfnetlink/libnfnetlink.h>
+#include <libnetfilter_queue/libnetfilter_queue.h>
+#endif
 #include "json.h"
 #include <sqlite3.h>
 #include "hiredis.h"
@@ -109,7 +115,7 @@ extern "C" {
 #include "mongoose.h"
 #include "ntop_defines.h"
 #include "ntop_typedefs.h"
-#include "third-party/patricia/patricia.h"
+#include "patricia.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
 #include "Prefs.h"
@@ -147,10 +153,16 @@ extern "C" {
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
 #endif
+#ifdef HAVE_NETFILTER
+#ifdef NTOPNG_PRO
+#include "NetfilterHandler.h"
+#endif
+#include "NetfilterInterface.h"
+#endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "PacketBridge.h"
-#include "TokenBucket.h"
+#include "TrafficShaper.h"
 #include "L7Policer.h"
 #include "LuaHandler.h"
 #include "NagiosManager.h"

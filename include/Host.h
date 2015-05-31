@@ -48,6 +48,9 @@ class Host : public GenericHost {
   DnsStats *dns;
   HTTPStats *http;
   EppStats *epp;
+  bool trigger_host_alerts;
+  u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
+
 #ifdef NTOPNG_PRO
   NDPI_PROTOCOL_BITMASK *l7Policy;
 #endif
@@ -60,6 +63,10 @@ class Host : public GenericHost {
   void refreshHTTPBL();
   void refreshCategory();
   void computeHostSerial();
+
+  void loadFlowRateAlertPrefs(void);
+  void loadSynAlertPrefs(void);
+  void loadFlowsAlertPrefs(void);
 
  public:
   Host(NetworkInterface *_iface);
@@ -92,9 +99,10 @@ class Host : public GenericHost {
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_country()                   { return(country);          }
   inline char* get_city()                      { return(city);             }
-  inline char* get_category()                  { refreshCategory(); return(category); }
+  inline char* get_category()                  { if(category[0] == '\0') refreshCategory(); return(category); }
   inline char* get_httpbl()                    { refreshHTTPBL();   return(httpbl); }
-  inline int get_egress_shaper_id()            { return(egress_shaper_id); }
+  inline int get_ingress_shaper_id()           { return(ingress_shaper_id); }
+  inline int get_egress_shaper_id()            { return(egress_shaper_id);  }
   inline u_int32_t get_asn()                   { return(asn);              }
   inline bool isPrivateHost()                  { return((ip && ip->isPrivateAddress()) ? true : false); }
   inline float get_latitude()                  { return(latitude);         }
@@ -134,8 +142,10 @@ class Host : public GenericHost {
   inline void incNumEPPQueriesSent(u_int16_t query_type) { if(epp) epp->incNumEPPQueriesSent(query_type); };
   inline void incNumEPPQueriesRcvd(u_int16_t query_type) { if(epp) epp->incNumEPPQueriesRcvd(query_type); };
   inline void incNumEPPResponsesSent(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesSent(ret_code); };
-  inline void incNumEPPResponsesRcvd(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesRcvd(ret_code); };
+  inline void incNumEPPResponsesRcvd(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesRcvd(ret_code); };  
+  inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
 
+  void readAlertPrefs();
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
 
   bool match(patricia_tree_t *ptree) { return(get_ip() ? get_ip()->match(ptree) : false); };
@@ -146,6 +156,7 @@ class Host : public GenericHost {
   void setDumpTrafficPolicy(bool new_policy);
   bool isAboveQuota(void);
   void setQuota(u_int32_t new_quota);
+  void loadAlertPrefs(void);
 };
 
 #endif /* _HOST_H_ */

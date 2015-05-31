@@ -14,6 +14,7 @@
 @if not defined INCLUDE goto :FAIL
 
 @setlocal
+@set LJARCH=x64
 @set LJCOMPILE=cl /nologo /c /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE
 @set LJLINK=link /nologo
 @set LJMT=mt /nologo

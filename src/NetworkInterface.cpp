@@ -59,6 +59,7 @@ NetworkInterface::NetworkInterface() {
     pcap_datalink_type = 0, cpu_affinity = 0,
     inline_interface = false, running = false,
     pkt_dumper = NULL;
+  pollLoopCreated = false, bridge_interface = 0;
   if(ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -129,6 +130,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     }
   }
 
+  pkt_dumper_tap = NULL;
   ifname = strdup(name);
 
   if(id != DUMMY_IFACE_ID) {
@@ -164,18 +166,24 @@ NetworkInterface::NetworkInterface(const char *name) {
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
     last_pkt_rcvd = 0;
+    pollLoopCreated = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_aggregated_host_purge = 0;
     cpu_affinity = -1, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
-    else
-      pkt_dumper_tap = NULL;
+   
+      
     running = false, sprobe_interface = false, inline_interface = false;
 
     db = new DB(this);
-    statsManager = NULL, view = NULL;
     checkIdle();
+  } else {
+	  flows_hash = NULL, hosts_hash = NULL, strings_hash = NULL;
+	  ndpi_struct = NULL, db = NULL;
+	  pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
+
+  statsManager = NULL, view = NULL;
 
 #ifdef NTOPNG_PRO
   policer = new L7Policer(this);
@@ -448,7 +456,7 @@ int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
   int rc;
 
   if(json) {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "[ES] %s", es_rsp);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] %s", json);
 
     rc = ntop->getRedis()->lpush(CONST_ES_QUEUE_NAME, (char*)json, CONST_MAX_ES_MSG_QUEUE_LEN);
     free(json);
@@ -614,7 +622,7 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
   if(zflow->l4_proto == IPPROTO_TCP) {
     struct timeval when;
 
-    when.tv_sec = last_pkt_rcvd, when.tv_usec = 0;
+    when.tv_sec = (long)last_pkt_rcvd, when.tv_usec = 0;
     flow->updateTcpFlags((const struct timeval*)&when,
 			 zflow->tcp_flags, src2dst_direction);
   }
@@ -692,7 +700,8 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 					u_int16_t rawsize,
 					const struct pcap_pkthdr *h,
 					const u_char *packet,
-					int *egress_shaper_id) {
+					int *a_shaper_id,
+					int *b_shaper_id) {
   bool src2dst_direction;
   u_int8_t l4_proto;
   Flow *flow;
@@ -824,7 +833,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, rawsize);
+    flow->incStats(src2dst_direction, h->len);
 
     if(l4_proto == IPPROTO_TCP) {
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -933,7 +942,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
       flow->deleteFlowMemory();
 
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_to_disk &&
       (!flow->isDetectionCompleted() ||
@@ -948,11 +957,14 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     pass_verdict = flow->isPassVerdict();
 
     if(flow->get_cli_host() && flow->get_srv_host()) {
-      *egress_shaper_id = (src2dst_direction ? flow->get_cli_host() : flow->get_srv_host())->get_egress_shaper_id();
+      if(src2dst_direction) 
+	*a_shaper_id = flow->get_cli_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_srv_host()->get_ingress_shaper_id();
+      else
+	*a_shaper_id = flow->get_srv_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_cli_host()->get_ingress_shaper_id();
     }
   } else
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   return(pass_verdict);
 }
@@ -986,7 +998,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 					const u_char *packet,
-					int *egress_shaper_id) {
+					int *a_shaper_id, int *b_shaper_id) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   static u_int64_t lasttime = 0;
@@ -1107,7 +1119,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
       try {
 	pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id, iph,
 					NULL, h->caplen - ip_offset, h->caplen,
-					h, packet, egress_shaper_id);
+					h, packet, a_shaper_id, b_shaper_id);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -1130,7 +1142,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	try {
 	  pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id,
 					  NULL, ip6, h->len - ip_offset, h->len,
-					  h, packet, egress_shaper_id);
+					  h, packet, a_shaper_id, b_shaper_id);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
@@ -1170,7 +1182,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
-  if(cpu_affinity >= 0) {
+  if(pollLoopCreated && cpu_affinity >= 0) {
     if (Utils::setThreadAffinity(pollLoop, cpu_affinity))
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
                                    get_name(), cpu_affinity);
@@ -1570,6 +1582,20 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+bool NetworkInterface::loadHostAlertPrefs(lua_State* vm,
+				          patricia_tree_t *allowed_hosts,
+				          char *host_ip, u_int16_t vlan_id) {
+  Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
+
+  if(h) {
+    h->loadAlertPrefs();
+    return(true);
+  }
+  return(false);
+}
+
+/* **************************************************** */
+
 Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
@@ -1698,8 +1724,8 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
 
   stats->num_flows++,
-    stats->ndpi_bytes[flow->get_detected_protocol()] += flow->get_bytes(),
-    stats->breeds_bytes[flow->get_protocol_breed()] += flow->get_bytes();
+    stats->ndpi_bytes[flow->get_detected_protocol()] += (u_int32_t)flow->get_bytes(),
+	stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
   return(false); /* false = keep on walking */
 }
@@ -2354,7 +2380,7 @@ bool NetworkInterface::isInterfaceUp(char *name) {
   return(true);
 #else
   struct ifreq ifr;
-  int sock = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
+  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
   memset(&ifr, 0, sizeof(ifr));
   strcpy(ifr.ifr_name, name);
@@ -2381,8 +2407,10 @@ void NetworkInterface::addAllAvailableInterfaces() {
 	 && isInterfaceUp(devpointer->name)) {
 	ntop->getPrefs()->add_network_interface(devpointer->name,
 						devpointer->description);
-      }
-
+      } else
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Interface [%s][%s] not valid or down: discarded", 
+				     devpointer->name, devpointer->description);
+      
       devpointer = devpointer->next;
     } /* for */
   }
@@ -2394,5 +2422,14 @@ void NetworkInterface::addAllAvailableInterfaces() {
 void NetworkInterface::refreshL7Rules() { 
   if(ntop->getPro()->has_valid_license() && policer)
     policer->refreshL7Rules(); 
+}
+#endif
+
+/* **************************************** */
+
+#ifdef NTOPNG_PRO
+void NetworkInterface::refreshShapers() { 
+  if(ntop->getPro()->has_valid_license() && policer)
+    policer->refreshShapers(); 
 }
 #endif

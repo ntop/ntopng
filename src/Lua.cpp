@@ -35,12 +35,12 @@ extern "C" {
   extern const char * GeoIP_lib_version(void);
 #endif
 
-#include "third-party/snmp/snmp.c"
-#include "third-party/snmp/asn1.c"
-#include "third-party/snmp/net.c"
+#include "../third-party/snmp/snmp.c"
+#include "../third-party/snmp/asn1.c"
+#include "../third-party/snmp/net.c"
 };
 
-#include "third-party/lsqlite3/lsqlite3.c"
+#include "../third-party/lsqlite3/lsqlite3.c"
 
 
 /* ******************************* */
@@ -589,7 +589,7 @@ static int ntop_get_file_last_change(lua_State* vm) {
   path = (char*)lua_tostring(vm, 1);
 
   if(stat(path, &buf) == 0)
-    lua_pushnumber(vm, buf.st_mtime);
+    lua_pushnumber(vm, (lua_Number)buf.st_mtime);
   else
     lua_pushnumber(vm, -1); /* not found */
 
@@ -971,7 +971,7 @@ static int ntop_send_udp_data(lua_State* vm) {
   if(strchr(host, ':') != NULL) {
     struct sockaddr_in6 server_addr;
 
-    bzero(&server_addr, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin6_family = AF_INET6;
     inet_pton(AF_INET6, host, &server_addr.sin6_addr);
     server_addr.sin6_port = htons(port);
@@ -982,7 +982,7 @@ static int ntop_send_udp_data(lua_State* vm) {
   } else {
     struct sockaddr_in server_addr;
 
-    bzero(&server_addr, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(host); /* FIX: add IPv6 support */
     server_addr.sin_port = htons(port);
@@ -1086,6 +1086,28 @@ static int ntop_get_interface_host_info(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if((!ntop_interface) || !ntop_interface->getHostInfo(vm, get_allowed_nets(vm), host_ip, vlan_id))
+    return(CONST_LUA_ERROR);
+  else
+    return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_load_host_alert_prefs(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  /* Optional VLAN id */
+  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
+  if((!ntop_interface) || !ntop_interface->loadHostAlertPrefs(vm, get_allowed_nets(vm), host_ip, vlan_id))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -1528,6 +1550,31 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_update_host_alert_policy(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+  Host *h;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  /* Optional VLAN id */
+  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
+  if((!ntop_interface) 
+     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
+    return(CONST_LUA_ERROR);
+  
+  h->readAlertPrefs();
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_set_host_dump_policy(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
@@ -1566,7 +1613,7 @@ static int ntop_set_host_quota(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  quota = lua_tonumber(vm, 1);
+  quota = (u_int32_t)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
@@ -1882,7 +1929,7 @@ static int ntop_rrd_create(lua_State* vm) {
   argv = make_argv(vm, offset);
 
   reset_rrd_state();
-  status = rrd_create_r(filename, pdp_step, time(NULL)-31536000 /* 1 year */, argc, argv);
+  status = rrd_create_r(filename, pdp_step, time(NULL)-86400 /* 1 day */, argc, argv);
   free(argv);
 
   if(status != 0) {
@@ -1902,7 +1949,6 @@ static int ntop_rrd_create(lua_State* vm) {
 static int ntop_rrd_update(lua_State* vm) {
   const char *filename, *update_arg;
   int status;
-  const char *argv[1];
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
@@ -1912,9 +1958,8 @@ static int ntop_rrd_update(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s) %s", __FUNCTION__, filename, update_arg);
 
-  argv[0] = update_arg;
   reset_rrd_state();
-  status = rrd_update_r(filename, NULL, 1, argv);
+  status = rrd_update_r(filename, NULL, 1, &update_arg);
 
   if(status != 0) {
     char *err = rrd_get_error();
@@ -2151,7 +2196,7 @@ static int ntop_http_get(lua_State* vm) {
 	  it just matters to time (for instance when use for testing HTTP services)
 	*/
 	if(lua_type(vm, 4) == LUA_TBOOLEAN) {
-	  return_content = lua_toboolean(vm, 5);
+	  return_content = lua_toboolean(vm, 5) ? true : false;
 	}
       }
     }
@@ -2490,6 +2535,22 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_shapers(lua_State *vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+#ifdef NTOPNG_PRO
+    ntop_interface->refreshShapers();
+#endif
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2568,8 +2629,10 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
 #endif
 
+#if 0
   ntop->getRedis()->get((char*)CONST_STR_NTOPNG_LICENSE, rsp, sizeof(rsp));
   lua_push_str_table_entry(vm, "ntopng.license", rsp);
+#endif
 
   zmq_version(&major, &minor, &patch);
   snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);
@@ -2626,7 +2689,7 @@ static int ntop_get_resolved_address(lua_State* vm) {
 
 static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   char *agent_host, *oid, *community;
-  u_int agent_port = 161, timeout = 5, request_id = time(NULL);
+  u_int agent_port = 161, timeout = 5, request_id = (u_int)time(NULL);
   int sock, i = 0, rc = CONST_LUA_OK;
   SNMPMessage *message;
   int len;
@@ -2695,7 +2758,11 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
     if(!added)
       lua_pushnil(vm), rc = CONST_LUA_ERROR;
   }
+#ifdef WIN32
+  closesocket(sock);
+#else
   close(sock);
+#endif
 
   return(rc);
 }
@@ -3141,10 +3208,10 @@ static int ntop_stats_delete_day_older_than(lua_State *vm) {
  */
 static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
   time_t epoch_start, epoch_end;
-  char **vals;
-  int ifid, num_vals;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3166,16 +3233,13 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
-  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
@@ -3193,10 +3257,10 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
 static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
   time_t epoch_start, epoch_end;
   int num_minutes;
-  char **vals;
-  int ifid, num_vals = 0;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3221,16 +3285,13 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
 
   epoch_start = epoch_end - (60 * num_minutes);
 
-  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveMinuteStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  if (num_vals > 0) free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
@@ -3248,10 +3309,10 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
 static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
   time_t epoch_start, epoch_end;
   int num_hours;
-  char **vals;
-  int ifid, num_vals = 0;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3276,16 +3337,13 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
 
   epoch_start = epoch_end - (num_hours * 60 * 60);
 
-  if(sm->retrieveHourStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveHourStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  if (num_vals > 0) free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
@@ -3303,10 +3361,10 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
 static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
   time_t epoch_start, epoch_end;
   int num_days;
-  char **vals;
-  int ifid, num_vals = 0;
+  int ifid;
   NetworkInterface* iface;
   StatsManager *sm;
+  struct statsManagerRetrieval retvals;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3331,16 +3389,13 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
 
   epoch_start = epoch_end - (num_days * 24 * 60 * 60);
 
-  if(sm->retrieveDayStatsInterval(epoch_start, epoch_end, &vals, &num_vals))
+  if(sm->retrieveDayStatsInterval(epoch_start, epoch_end, &retvals))
     return(CONST_LUA_ERROR);
 
   lua_newtable(vm);
 
-  for(int i = 0; i < num_vals; i++) {
-    lua_push_str_table_entry(vm, vals[i], (char*)"");
-    free(vals[i]);
-  }
-  if (num_vals > 0) free(vals);
+  for (unsigned i = 0 ; i < retvals.rows.size() ; i++)
+    lua_push_str_table_entry(vm, retvals.rows[i].c_str(), (char*)"");
 
   return(CONST_LUA_OK);
 }
@@ -3834,6 +3889,7 @@ static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex)
   return rc;
 }
 
+/* This function is called by Lua scripts when the call require(...) */
 static int ntop_lua_require(lua_State* L)
 {
   char *script_name;
@@ -3848,9 +3904,10 @@ static int ntop_lua_require(lua_State* L)
   string cur_path = lua_tostring( L, -1 ), parsed, script_path = "";
   stringstream input_stringstream(cur_path);
   while(getline(input_stringstream, parsed, ';')) {
-    unsigned found = parsed.find_last_of(CONST_PATH_SEP);
+    /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path */
+    unsigned found = parsed.find_last_of("?");
     if (found) {
-      string s = parsed.substr(0, found) + CONST_PATH_SEP + script_name + ".lua";
+      string s = parsed.substr(0, found) + script_name + ".lua";
       if (Utils::file_exists(s.c_str())) {
         script_path = s;
         break;
@@ -4048,7 +4105,7 @@ static int ntop_load_historical_file(lua_State* vm) {
     cleanup = lua_toboolean(vm, 2) ? true : false;
 
   if(cleanup) iface->cleanup();
-  lua_pushnumber(vm, iface->loadData(file_name));
+  lua_pushnumber(vm, iface->loadData(file_name, -1));
 
   return(CONST_LUA_OK);
 }
@@ -4116,6 +4173,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "listHTTPhosts",          ntop_list_http_hosts },
   { "findHost",               ntop_get_interface_find_host },
   { "updateHostTrafficPolicy", ntop_update_host_traffic_policy },
+  { "updateHostAlertPolicy",  ntop_update_host_alert_policy },
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
   { "setHostQuota",           ntop_set_host_quota },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
@@ -4134,6 +4192,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "name2id",                ntop_interface_name2id },
   { "getnDPIProtocols",       ntop_get_ndpi_protocols },
   { "loadDumpPrefs",          ntop_load_dump_prefs },
+  { "loadHostAlertPrefs",     ntop_interface_load_host_alert_prefs },
 
   /* Historical Interface */
   { "getHistorical",          ntop_get_historical_info },
@@ -4144,7 +4203,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* L7 */
   { "reloadL7Rules",          ntop_reload_l7_rules },
-
+  { "reloadShapers",          ntop_reload_shapers },
   { NULL,                     NULL }
 };
 
@@ -4394,6 +4453,9 @@ int Lua::run_script(char *script_path, char *ifname) {
       lua_pushstring(L, ifname);
       lua_setglobal(L, "ifname");
     }
+
+	if (strstr(script_path, "nv_graph"))
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", script_path);
 
 #ifndef NTOPNG_PRO
     rc = luaL_dofile(L, script_path);

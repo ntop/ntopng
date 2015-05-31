@@ -40,13 +40,13 @@ class Prefs {
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
     categorization_enabled, httpbl_enabled, resolve_all_host_ip, change_user, daemonize,
-    dump_timeline, shorten_aggregation_names, enable_auto_logout,
+    dump_timeline, shorten_aggregation_names, enable_auto_logout, use_promiscuous_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login;
   LocationPolicy dump_hosts_to_db, dump_aggregations_to_db, sticky_hosts;
-  u_int16_t non_local_host_max_idle, local_host_max_idle, flow_max_idle,
-    host_max_new_flows_sec_threshold, host_max_num_syn_sec_threshold,
-    host_max_num_active_flows;
+  u_int16_t non_local_host_max_idle, local_host_max_idle, flow_max_idle;
+  u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
+  u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int32_t max_num_hosts, max_num_flows;
   u_int http_port, https_port;
   u_int8_t num_interfaces, num_interface_views;
@@ -93,7 +93,7 @@ class Prefs {
 
   bool is_pro_edition();
   inline bool is_embedded_edition() {
-#if defined(__arm__) || defined(__mips__)
+#ifdef NTOPNG_EMBEDDED_EDITION
     return(true);
 #else
     return(false);
@@ -157,9 +157,6 @@ class Prefs {
   inline u_int16_t get_flow_max_idle()                  { return(flow_max_idle);  };
   inline u_int32_t get_max_num_hosts()                  { return(max_num_hosts);  };
   inline u_int32_t get_max_num_flows()                  { return(max_num_flows);  };
-  inline u_int16_t get_host_max_new_flows_sec()         { return(host_max_new_flows_sec_threshold); };
-  inline u_int16_t get_host_max_new_syn_sec()           { return(host_max_num_syn_sec_threshold);   };
-  inline u_int16_t get_host_max_active_flows()          { return(host_max_num_active_flows);        };
   inline bool daemonize_ntopng()                        { return(daemonize);                        };
   void add_default_interfaces();
   int loadFromCLI(int argc, char *argv[]);
@@ -192,6 +189,8 @@ class Prefs {
   inline char* get_es_pwd()   { return(es_pwd);   };
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
   inline bool are_taps_enabled() { return(enable_taps); };
+  inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
+  inline bool use_promiscuous()  { return(use_promiscuous_mode); };
 };
 
 #endif /* _PREFS_H_ */

@@ -31,7 +31,7 @@ class PacketDumper {
   pcap_dumper_t *dumper;
   u_int32_t num_dumped_packets, file_id;
   u_int16_t iface_type;
-  unsigned int sec_start;
+  time_t sec_start;
   int sampling_rate;
   unsigned int max_pkts_per_file, max_sec_per_file;
 

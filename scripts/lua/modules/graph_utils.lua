@@ -303,12 +303,17 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 
       step = fstep
       num = 0
+      names_cache = {}
       for i, n in ipairs(fnames) do
-	 names[num] = prefixLabel
-	 -- if(prefixLabel ~= firstToUpper(n)) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
-	 num = num + 1
-	 --io.write(prefixLabel.."\n")
-	 --print(num.."\n")
+         -- handle duplicates
+         if (names_cache[prefixLabel] == nil) then
+	   names[num] = prefixLabel
+           names_cache[prefixLabel] = true
+	   -- if(prefixLabel ~= firstToUpper(n)) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
+	   num = num + 1
+	   --io.write(prefixLabel.."\n")
+	   --print(num.."\n")
+         end
       end
 
       id = 0
@@ -438,7 +443,7 @@ end
   </ul>
 </div><!-- /btn-group -->
 ]]
-end
+end -- show_timeseries == 1
 
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
 
@@ -469,17 +474,21 @@ print [[
 <div id="chart_container" style="display: table-row">
 
    <table style="border: 0">
+]]
+if(string.contains(rrdFile, "num_")) then
+   formatter_fctn = "fint"
+else
+   formatter_fctn = "fpackets"
+end
+
+if (topArray ~= nil) then
+print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
    ]]
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
-   if(string.contains(rrdFile, "num_")) then
-      formatter_fctn = "fint"
-   else
-      formatter_fctn = "fpackets"
-   end
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. formatValue(round(maxval_bits/step), 1) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(lastval_bits/step), 1) .. '</td></tr>\n')
@@ -502,6 +511,10 @@ print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div>
 print [[
 
    </table>
+]]
+end -- topArray ~= nil
+
+print[[
    </td></tr>
    <tr><td><div id="legend"></div></td><td><div id="chart_legend"></div></td></tr>
    <tr><td colspan=2>
@@ -535,7 +548,9 @@ if(names ~= nil) then
 	 print ","
       end
 
-      print ("{\nname: '".. names[elemId] .. "',\n")
+      name = strsplit(names[elemId], "/")
+      name = name[#name]
+      print ("{\nname: '".. name .. "',\n")
 
       print("color: palette.color(),\ndata: [\n")
 
@@ -625,6 +640,10 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 	  print(formatter_fctn) 
 	  print [[(point.value.y); // point.formattedYValue;
 		var infoHTML = "";
+]]
+
+if(topArray ~= nil) then
+print[[
 var seconds;
 
 $.ajax ({
@@ -643,7 +662,6 @@ print[[
    infoHTML += "<ul>";
 ]]
 
-if(topArray ~= nil) then
    for n,v in pairs(topArray) do
       modulename = n
       sectionname = v["name"]
@@ -662,7 +680,7 @@ if(topArray ~= nil) then
 		      type: 'GET',
 		      url: ']]
 		      print(ntop.getHttpPrefix().."/lua/top_generic.lua?m="..modulename.."&epoch='+point.value.x+'&addvlan=true")
-		      if (levels == 2) then
+      if (levels == 2) then
 			 print [[',
 			       data: { epoch: point.value.x },
 			       async: false,
@@ -729,10 +747,11 @@ if(topArray ~= nil) then
 			}
 		});
     ]]
-    end
+    end -- levels
     ::continue::
-end
+  end -- for
     print[[infoHTML += "</ul>";]]
+end -- topArray
 print [[
 		this.element.innerHTML = '';
 		this.element.style.left = graph.x(point.value.x) + 'px';
@@ -806,7 +825,6 @@ print[['+hover.selected_epoch;
 </script>
 
 ]]
-end
 else
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> File "..rrdname.." cannot be found</div>")
 end
@@ -817,14 +835,15 @@ end
 function create_rrd(name, step, ds)
    if(not(ntop.exists(name))) then
       if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
+      local prefs = ntop.getPrefs()
       ntop.rrd_create(
 	 name,
 	 step,   -- step
 	 'DS:' .. ds .. ':DERIVE:5:U:U',
-	 'RRA:AVERAGE:0.5:1:86400',   -- raw: 1 day = 86400
-	 'RRA:AVERAGE:0.5:60:8096',   -- 1 min resolution = 1 month
-	 'RRA:AVERAGE:0.5:3600:2400', -- 1h resolution (3600 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:86400:365' -- 1d resolution (86400 points)  365 days
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*60*60),   -- raw: 1 day = 86400
+	 'RRA:AVERAGE:0.5:60:'..tostring(prefs.intf_rrd_1min_days*24*60),   -- 1 min resolution = 1 month
+	 'RRA:AVERAGE:0.5:3600:'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
+	 'RRA:AVERAGE:0.5:86400:'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
 	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
       )
    end
@@ -833,13 +852,14 @@ end
 function create_rrd_num(name, ds)
    if(not(ntop.exists(name))) then
       if(enable_second_debug == 1) then io.write('Creating RRD ', name, '\n') end
+      local prefs = ntop.getPrefs()
       ntop.rrd_create(
 	 name,
 	 1,   -- step
 	 'DS:' .. ds .. ':GAUGE:5:0:U',
-	 'RRA:AVERAGE:0.5:1:86400',   -- raw: 1 day = 86400
-	 'RRA:AVERAGE:0.5:3600:2400', -- 1h resolution (3600 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:86400:365' -- 1d resolution (86400 points)  365 days
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.intf_rrd_raw_days*24*60*60),   -- raw: 1 day = 86400
+	 'RRA:AVERAGE:0.5:3600:'..tostring(prefs.intf_rrd_1h_days*24), -- 1h resolution (3600 points)   2400 hours = 100 days
+	 'RRA:AVERAGE:0.5:86400:'..tostring(prefs.intf_rrd_1d_days) -- 1d resolution (86400 points)  365 days
 	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
       )
    end
@@ -860,14 +880,15 @@ end
 function createRRDcounter(path, step, verbose)
    if(not(ntop.exists(name))) then
       if(verbose) then print('Creating RRD ', name, '\n') end
+      local prefs = ntop.getPrefs()
       ntop.rrd_create(
 	 name,
 	 step, -- step
 	 'DS:sent:DERIVE:600:U:U',
 	 'DS:rcvd:DERIVE:600:U:U',
-	 'RRA:AVERAGE:0.5:1:7200',  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
-	 'RRA:AVERAGE:0.5:12:2400', -- 1h resolution (12 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:288:365' -- 1d resolution (288 points)  365 days
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
+	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
+	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days) -- 1d resolution (288 points)  365 days
 	 --'RRA:HWPREDICT:1440:0.1:0.0035:20'
       )
    end
@@ -878,13 +899,14 @@ end
 function createSingleRRDcounter(path, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
+      local prefs = ntop.getPrefs()
       ntop.rrd_create(
 	 path,
 	 300, -- step
 	 'DS:num:DERIVE:600:U:U',
-	 'RRA:AVERAGE:0.5:1:7200',  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
-	 'RRA:AVERAGE:0.5:12:2400', -- 1h resolution (12 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:288:365', -- 1d resolution (288 points)  365 days
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
+	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
+	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days), -- 1d resolution (288 points)  365 days
 	 'RRA:HWPREDICT:1440:0.1:0.0035:20')
    end
 end

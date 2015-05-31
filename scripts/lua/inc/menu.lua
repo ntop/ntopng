@@ -30,14 +30,14 @@ end
 
 print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-        Home <b class="caret"></b>
+        <i class="fa fa-home fa-lg"></i> <b class="caret"></b>
       </a>
     <ul class="dropdown-menu">
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/about.lua"><i class="fa fa-question-circle"></i> About ntopng</a></li>
       <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-globe"></i> ntop Blog <i class="fa fa-external-link"></i></a></li>
-      <li><a href="http://bugzilla.ntop.org/" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>
+      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>
       <li class="divider"></li>
       <li><a href="]]
 

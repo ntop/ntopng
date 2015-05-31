@@ -155,17 +155,17 @@ void HTTPStats::deserialize(json_object *o) {
 
   memset(&query, 0, sizeof(query)), memset(&response, 0, sizeof(response));
 
-  if(json_object_object_get_ex(o, "query.num_get", &obj))   query.num_get = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "query.num_post", &obj))  query.num_post = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "query.num_head", &obj))  query.num_head = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "query.num_put", &obj))   query.num_put = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "query.num_other", &obj)) query.num_other = json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "query.num_get", &obj))   query.num_get = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "query.num_post", &obj))  query.num_post = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "query.num_head", &obj))  query.num_head = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "query.num_put", &obj))   query.num_put = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "query.num_other", &obj)) query.num_other = (u_int32_t)json_object_get_int64(obj);
 
-  if(json_object_object_get_ex(o, "response.num_1xx", &obj)) response.num_1xx = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "response.num_2xx", &obj)) response.num_2xx = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "response.num_3xx", &obj)) response.num_3xx = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "response.num_4xx", &obj)) response.num_4xx = json_object_get_int64(obj);
-  if(json_object_object_get_ex(o, "response.num_1xx", &obj)) response.num_1xx = json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "response.num_1xx", &obj)) response.num_1xx = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "response.num_2xx", &obj)) response.num_2xx = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "response.num_3xx", &obj)) response.num_3xx = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "response.num_4xx", &obj)) response.num_4xx = (u_int32_t)json_object_get_int64(obj);
+  if (json_object_object_get_ex(o, "response.num_1xx", &obj)) response.num_1xx = (u_int32_t)json_object_get_int64(obj);
 }
 
 /* ******************************************* */

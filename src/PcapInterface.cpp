@@ -60,7 +60,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
     }
   } else {
     pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(),
-				 ntop->getGlobals()->getPromiscuousMode(),
+				 ntop->getPrefs()->use_promiscuous(),
 				 500, pcap_error_buffer);  
 
     if(pcap_handle) {
@@ -154,8 +154,8 @@ static void* packetPollLoop(void* ptr) {
 
       if((pkt = pcap_next(pd, &hdr)) != NULL) {
 	if((hdr.caplen > 0) && (hdr.len > 0)) {
-	  int egress_shaper_id;
-	  iface->packet_dissector(&hdr, pkt, &egress_shaper_id);
+	  int a_shaper_id, b_shaper_id;
+	  iface->packet_dissector(&hdr, pkt, &a_shaper_id, &b_shaper_id);
 	}
       } else {
 	if(iface->read_from_pcap_dump())
@@ -179,6 +179,7 @@ static void* packetPollLoop(void* ptr) {
 
 void PcapInterface::startPacketPolling() { 
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);  
+  pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
 

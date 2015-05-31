@@ -1,9 +1,0 @@
-http:bl is a system offered by the honeypot project[1] that provides
-information about malicious IP addresses of visitors of web sites.
-
-To enable the service in ntopng a key is required and has to be specified from
-the command line using the '-k <api_key>' parameter.
-
-The key can be obtained by signin up to the service[1].
-
-[1] http://www.projecthoneypot.org/httpbl.php

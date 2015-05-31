@@ -53,15 +53,6 @@ if(haveAdminPrivileges()) then
 		     "Toggle the dump of alerts on syslog.",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_alert_syslog", "ntopng.prefs.alerts_syslog")
 
-   -- CONST_MAX_NEW_FLOWS_SECOND
-   prefsInputField("Host Flow Alert Threshold", "Max number of new flows/sec over which a host is considered a flooder. Default: 25.", "host_max_new_flows_sec_threshold", prefs.host_max_new_flows_sec_threshold)
-
-   -- CONST_MAX_NUM_SYN_PER_SECOND
-   prefsInputField("Host SYN Alert Threshold", "Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.", "host_max_num_syn_sec_threshold", prefs.host_max_num_syn_sec_threshold)
-
-   -- CONST_MAX_NUM_HOST_ACTIVE_FLOWS
-   prefsInputField("Host Flows Threshold", "Max number of flows over which a host is considered a flooder. Default: 32768.", "host_max_num_active_flows", prefs.host_max_num_active_flows)
-
 if (ntop.isPro()) then
    -- ================================================================================
    print('<tr><th colspan=2 class="info">Nagios Alerts Configuration</th></tr>')
@@ -104,12 +95,32 @@ end
 
    -- ================================================================================
 
+   -- ================================================================================
+   print('<tr><th colspan=2 class="info">Network Interface Stats RRDs</th></tr>')
+   prefsInputField("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days)
+   prefsInputField("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days)
+   prefsInputField("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "intf_rrd_1h_days", prefs.intf_rrd_1h_days)
+   prefsInputField("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "intf_rrd_1d_days", prefs.intf_rrd_1d_days)
+
+   -- ================================================================================
+
+   -- ================================================================================
+   print('<tr><th colspan=2 class="info">Protocol/Networks Stats RRDs</th></tr>')
+   prefsInputField("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "other_rrd_raw_days", prefs.other_rrd_raw_days)
+   --prefsInputField("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "other_rrd_1min_days", prefs.other_rrd_1min_days)
+   prefsInputField("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "other_rrd_1h_days", prefs.other_rrd_1h_days)
+   prefsInputField("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "other_rrd_1d_days", prefs.other_rrd_1d_days)
+
+   -- ================================================================================
+
 if (ntop.isPro()) then
    -- ================================================================================
    print('<tr><th colspan=2 class="info">HTTP Traffic Statistics</th></tr>')
    toggleTableButton("Dump HTTP Servers Traffic Statistics On Disk",
-                     "Toggle dumping on disk virtual HTTP server traffic statistics. Turn it off to save storage space.",
+                     "Toggle dumping on disk daily virtual HTTP server traffic statistics. Turn it off to save storage space.",
                      "Off", "0", "danger", "On", "1", "success", "toggle_http_traffic_dump", "ntopng.prefs.http_traffic_dump")
+   prefsInputField("Base Directory For Virtual HTTP Server Aggregated Stats", "Directory to dump virtual HTTP server aggregated stats. Default is ntopng's working dir.",
+                   "http_stats_base_dir", prefs.http_stats_base_dir)
 
    -- ================================================================================
 end

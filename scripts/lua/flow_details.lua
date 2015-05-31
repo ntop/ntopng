@@ -150,9 +150,6 @@ else
       print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["srv.port"].. "\">" .. flow["srv.port"].. "</A>")
    end
    print("</td></tr>\n")
-   if ((flow["category"] ~= "") and (flow["category"] ~= nil))then
-      print("<tr><th width=30%>Category</th><td colspan=2>" .. getCategory(flow["category"]) .. "</td></tr>\n")
-   end
 
    print("<tr><th width=30%>Protocol</th>")
    if(ifstats.iface_inline and flow["verdict.pass"]) then
@@ -227,6 +224,7 @@ else
    if(flow["ssl.certificate"] ~= nil) then
       print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td colspan=2>")
       print(flow["ssl.certificate"])
+      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["ssl.certificate"], flow["category"])) end
       print("</td></tr>\n")      
    end
 
@@ -299,6 +297,11 @@ else
       else
 	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link fa-lg'></i>")
       end
+
+      if(flow["category"] ~= nil) then
+	 print(" "..getCategoryIcon(flow["dns.last_query"], flow["category"]))
+      end
+
       print("</td></tr>\n")
    end
 
@@ -306,15 +309,18 @@ else
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
       if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.iface_vlan) end 
-      print(s.."</td></tr>\n")
+      print(s)
+      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
+
+      print("</td></tr>\n")
       print("<tr><th>URL</th><td>")
 
       if(flow["http.last_url"] ~= "") then 	 
 	 print("<A HREF=\"http://"..s)
 	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-	 print(flow["http.last_url"].."\">"..flow["http.last_url"].."</A> <i class=\"fa fa-external-link fa-lg\">")
+	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link fa-lg\">")
       else
-	 print(flow["http.last_url"])
+	 print(shortenString(flow["http.last_url"]))
       end
 
       print("</td></tr>\n")

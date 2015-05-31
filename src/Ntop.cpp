@@ -34,7 +34,7 @@ static const char* dirs[] = {
 #ifndef WIN32
   CONST_DEFAULT_INSTALL_DIR,
 #else
-  ntop->get_install_dir(),
+  NULL,
 #endif
   CONST_ALT_INSTALL_DIR,
   NULL
@@ -80,8 +80,10 @@ Ntop::Ntop(char *appName) {
       }
   }
 
+  snprintf(install_dir, sizeof(install_dir), "%s", startup_dir);
+
   dirs[0] = startup_dir;
-  strcpy(install_dir, startup_dir);
+  dirs[1] = install_dir;
 #else
   /* Folder will be created lazily, avoid creating it now */
   snprintf(working_dir, sizeof(working_dir), "%s/ntopng", CONST_DEFAULT_WRITABLE_DIR);
@@ -262,7 +264,7 @@ void Ntop::start() {
   char daybuf[64], buf[32];
   time_t when = time(NULL);
 
-  getTrace()->traceEvent(TRACE_NORMAL,
+  getTrace()->traceEvent(TRACE_NORMAL, 
 			 "Welcome to ntopng %s v.%s - (C) 1998-15 ntop.org",
 			 PACKAGE_MACHINE, PACKAGE_VERSION);
 

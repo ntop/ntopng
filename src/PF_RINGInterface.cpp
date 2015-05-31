@@ -30,7 +30,7 @@
 /* **************************************************** */
 
 PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
-  u_int flags = ntop->getGlobals()->getPromiscuousMode() ? PF_RING_PROMISC : 0;
+  u_int flags = ntop->getPrefs()->use_promiscuous() ? PF_RING_PROMISC : 0;
 
   flags |= PF_RING_LONG_HEADER;
   flags |= PF_RING_DNA_SYMMETRIC_RSS;  /* Note that symmetric RSS is ignored by non-DNA drivers */
@@ -89,10 +89,11 @@ static void* packetPollLoop(void* ptr) {
 
       if(pfring_recv(pd, &buffer, 0, &hdr, 0 /* wait_for_packet */) > 0) {
 	try {
-	  int egress_shaper_id;
+	  int a_shaper_id, b_shaper_id;
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  iface->packet_dissector((const struct pcap_pkthdr *) &hdr, buffer, &egress_shaper_id);
+	  iface->packet_dissector((const struct pcap_pkthdr *) &hdr, buffer,
+				  &a_shaper_id, &b_shaper_id);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 	  
@@ -116,6 +117,7 @@ static void* packetPollLoop(void* ptr) {
 
 void PF_RINGInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+  pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
 

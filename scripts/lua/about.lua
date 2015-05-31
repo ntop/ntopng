@@ -25,8 +25,9 @@ print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th>Copyright</th><td>"..info["copyright"].."</td></tr>\n")
 print("<tr><th>License</th><td>")
 
+info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
-   print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">"..info["license"].."</A>")
+   print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">".. info["license"] .."</A>")
 else
    print("<A HREF=https://svn.ntop.org/svn/ntop/trunk/legal/EULA.txt target=\"_blank\">EULA</A>")
 end
@@ -53,16 +54,13 @@ print [[
 
    if(isAdministrator()) then
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=60 value="')
+      print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=70 value="')
       print(info["ntopng.license"])
 
       print [["></input>
-	       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save License</button>
-
-	       
-    </form>
-   ]]
-
+	       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save License</button>	       
+	       </form>
+	    ]]
    end
 end
 
@@ -95,15 +93,19 @@ print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".
 print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTime(info["uptime"]).."</td></tr>\n")
 print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
-v = string.split(info["version.ndpi"], " ")
-if(v ~= nil) then
-   ndpi_vers = v[1]
-   v_all = string.sub(v[2], 2, -2)
-   
-   vers = string.split(v_all, ":")
-   ndpi_hash = vers[1]
-   ndpi_date = vers[2]
-   print("<tr><th><a href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</A></th><td> <A HREF=https://github.com/ntop/nDPI/commit/".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+ndpi_ver = info["version.ndpi"]
+if (ndpi_ver ~= nil) then
+  v = string.split(ndpi_ver, " ")
+  if (v ~= nil) then
+    ndpi_vers = v[1]
+     v_all = string.sub(v[2], 2, -2)
+     vers = string.split(v_all, ":")
+     ndpi_hash = vers[1]
+     ndpi_date = vers[2]
+     print("<tr><th><A href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</a></th><td> <A HREF=https://github.com/ntop/nDPI/commit/".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+  else
+     print("<tr><th><A href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</A></th><td> <A HREF=https://github.com/ntop/nDPI/>"..ndpi_ver.."</A></td></tr>\n")
+  end
 end
 
 print("<tr><th><a href=http://twitter.github.io/ target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")

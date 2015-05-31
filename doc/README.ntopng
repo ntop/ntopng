@@ -1,0 +1,153 @@
+Prerequisites for Compilation
+-----------------------------
+
+Prerequisites
+- glib2
+- GNU autotools/libtool
+- libgeoip
+- libpcap or PF_RING (optional but recommended)
+- redis (redis server) 2.2 or newer
+- GeoIP (optional) 1.4.8 or newer
+- wget (for 'make geoip')
+- libxml2-dev
+- libglib2.0-dev
+- libsqlite3-dev
+- libcurl-dev
+
+On Ubuntu/Debian
+- apt-get install build-essential git libglib2.0 libxml2-dev libpcap-dev libtool rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev
+
+On Fedora/CentOS
+- yum groupinstall "Development tools"
+- yum install git autoconf automake autogen libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel
+
+On MacOSX (using http://brew.sh)
+brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git
+
+On FreeBSD
+- pkg install autoconf automake libtool wget pkgconf rrdtool gmake redis git
+
+Note that you need to edit third-party/LuaJIT-2.0.3/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
+
+On Mac OSX please install macports and do
+- port install XXX
+  Example: port install geoip
+
+On Windows you can download the redis server from
+- https://github.com/rgl/redis/downloads
+
+
+Compilation
+-----------
+Once you have installed all the prerequisites do
+
+# ./autogen.sh
+# ./configure
+# make
+
+
+Binary Packages
+---------------
+- Debian/CentOS   http://packages.ntop.org
+- OSX
+                  http://sourceforge.net/projects/ntop/files/ntopng/
+                  Homebrew
+                    brew update
+                    brew install ntopng
+- Windows         http://shop.ntop.org or build it from source using the code in SVN
+
+
+Prior to Start ntopng
+---------------------
+Please make sure that you have redis server installed and active on the same host
+where ntopng will be running. If you plan to use a remote redis, please consider
+using the --redis option to specify the remote redis server IP address and port.
+We suggest you to run redis as a service so that you do not have to start it
+every time you want to use ntopng.
+
+
+Using ntopng as a flow collector
+--------------------------------
+In order to use ntopng as a flow collector with nprobe you need to start the
+apps as follows:
+
+- collector
+  ntopng -i tcp://127.0.0.1:5556
+
+- probe (nProbe)
+nprobe --zmq "tcp://*:5556" -i ethX -n none -b 2
+
+You can instruct ntopng to merge onto the same interface multiple endpoints by
+seperating them with a comma. Example:
+
+ntopng -i tcp://127.0.0.1:5556,tcp://192.168.0.1:5556
+
+
+Creating Hierarchies of ntopng Instances
+----------------------------------------
+You can create a hierarchy of ntopngs (e.g. on a star topology, where you have many
+ntopng processes on the edge of a network and a central collector) as follows:
+
+- Remote ntopng's
+  Host 1.2.3.4		ntopng -i ethX -I "tcp://*:3456"
+  Host 1.2.3.5		ntopng -i ethX -I "tcp://*:3457"
+  Host 1.2.3.6		ntopng -i ethX -I "tcp://*:3458"
+
+- Central ntopng
+  ntopng -i "tcp://1.2.3.4:3456" -i "tcp://1.2.3.5:3457" -i "tcp://1.2.3.6:3458"
+
+Note that on the central ntopng you can add "-i ethX" if you want the central ntopng
+monitor a local interface as well.
+
+
+Accessing ntopng URLs from command line tools (no web browser)
+--------------------------------------------------------------
+You need to specify the user and password as specified below (please note the space in the cookie).
+Note that you can optionally also specify the interface name.
+
+curl --cookie "user=admin; password=admin" "http://127.0.0.1:3000/lua/network_load.lua?ifname=en0"
+
+
+Using ntopng from Windows
+-------------------------
+1. Remember to start the redis server prior to start ntopng
+2. You must start ntopng as a service using the "Services" control panel
+
+
+Defaults
+--------
+The ntopng default user is 'admin' (without ') and the default
+passoword is also 'admin' (without ').
+
+
+Resetting admin user password
+-----------------------------
+1. shutdown ntopng
+2. redis-cli del user.admin.password
+3. restart ntopng and now the admin password has been reset
+
+
+Running multiple ntopng instances on the same host
+--------------------------------------------------
+In order to run multiple ntopng instances independently (i.e.
+they do not interfere each other), each instance must:
+1. Set a different value for -d
+2. Set a different database id for -r
+3. Use a different http port iwth -w
+
+Example:
+ntopng -d /path1 -r 127.0.0.1:6379@1 -w 3001
+ntopng -d /path2 -r 127.0.0.1:6379@2 -w 3002
+...
+
+Using Interface Views
+---------------------
+Suppose you want to start ntopng as follows "-i eth0 -i eth1". ntopng will show you traffic of these two interfaces without any merge so you can see exactly what happens on each inteface. If you also need an aggregated view of both interfaces you can start ntopng as "-i eth0 -i eth1 -i view:eth0,eth1" so ntopng will create a virtual interface that merges information from the two physical interfaces.
+
+Using ntopng behind a Proxy
+---------------------------
+If you have many ntopng instances that you want to mask behind a proxy the -Z is what you look for. See the man page for more information.
+
+Debugging ntopng
+----------------
+handle SIGPIPE nostop noprint pass

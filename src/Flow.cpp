@@ -21,6 +21,10 @@
 
 #include "ntop_includes.h"
 
+extern "C" {
+#include "../third-party/libgeohash/geohash.c"
+};
+
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
@@ -68,7 +72,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); if(cli_host) srv_host->incrContact(cli_host, false); }
   pass_verdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
-  categorization.category = NULL, categorization.flow_categorized = false;
+  categorization.category[0] = '\0', categorization.flow_categorized = false;
   bytes_thpt_trend = trend_unknown;
   pkts_thpt_trend = trend_unknown;
   protocol_processed = false, blacklist_alarm_emitted = false;
@@ -149,7 +153,6 @@ Flow::~Flow() {
 #endif
   if(cli_host) { cli_host->decUses(); cli_host->decNumFlows(true);  }
   if(srv_host) { srv_host->decUses(); srv_host->decNumFlows(false); }
-  if(categorization.category != NULL) free(categorization.category);
   if(json_info)        free(json_info);
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);
@@ -282,6 +285,7 @@ void Flow::processDetectedProtocol() {
     }
 
     host_server_name = strdup((char*)ndpi_flow->host_server_name);
+    getFlowCategory(true);
   }
 
   switch(ndpi_detected_protocol) {
@@ -317,7 +321,7 @@ void Flow::processDetectedProtocol() {
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpi_flow->host_server_name);
 	    }
 	  }
-
+	  
 	  aggregateInfo((char*)ndpi_flow->host_server_name,
 			ndpi_detected_protocol, aggregation_domain_name, to_track);
 	}
@@ -406,12 +410,6 @@ void Flow::processDetectedProtocol() {
 	  aggregateInfo((char*)ndpi_flow->host_server_name, ndpi_detected_protocol,
 			aggregation_domain_name, true);
 
-	  if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
-					       buf, sizeof(buf), true) != NULL) {
-	    categorization.flow_categorized = true;
-	    categorization.category = strdup(buf);
-	  }
-
 #if 0
 	  if(ndpi_detected_protocol != NDPI_PROTOCOL_HTTP_PROXY) {
 	    srv->setName((char*)ndpi_flow->host_server_name, true);
@@ -474,7 +472,7 @@ void Flow::guessProtocol() {
 							      ntohl(srv_host->get_ip()->get_ipv4()),
 							      ntohs(srv_port));
     }
-    
+
     l7_protocol_guessed = true;
   }
 }
@@ -1007,6 +1005,15 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
   }
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
+  if(detailed_dump && ntop->get_categorization() 
+     && categorization.flow_categorized && (categorization.category[0] == '\0')) {
+    /* Refresh category */
+    ntop->getRedis()->getFlowCategory(host_server_name,
+				      categorization.category,
+				      sizeof(categorization.category), false);
+  }
+  lua_push_str_table_entry(vm, "category", categorization.category);
+
   lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
   lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
   lua_push_int_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);
@@ -1023,23 +1030,22 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
   lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
   lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
 
-  if(protocol == IPPROTO_TCP) {
-    lua_push_bool_table_entry(vm, "tcp.seq_problems",
-			      (tcp_stats_s2d.pktRetr
-			       | tcp_stats_s2d.pktOOO
-			       | tcp_stats_s2d.pktLost
-			       | tcp_stats_d2s.pktRetr
-			       | tcp_stats_d2s.pktOOO
-			       | tcp_stats_d2s.pktLost) ? true : false);
-
-    lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
-    lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
-  }
-
   if(detailed_dump) {
+    if(protocol == IPPROTO_TCP) {
+      lua_push_bool_table_entry(vm, "tcp.seq_problems",
+				(tcp_stats_s2d.pktRetr
+				 | tcp_stats_s2d.pktOOO
+				 | tcp_stats_s2d.pktLost
+				 | tcp_stats_d2s.pktRetr
+				 | tcp_stats_d2s.pktOOO
+				 | tcp_stats_d2s.pktLost) ? true : false);
+      
+      lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
+      lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
+    }
+    
     if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
     lua_push_int_table_entry(vm, "tcp_flags", getTcpFlags());
-    lua_push_str_table_entry(vm, "category", categorization.category ? categorization.category : (char*)"");
 
     if(protocol == IPPROTO_TCP) {
       lua_push_int_table_entry(vm, "cli2srv.retransmissions", tcp_stats_s2d.pktRetr);
@@ -1058,7 +1064,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
 
   if(http.last_method && http.last_url)
     lua_push_str_table_entry(vm, "http.last_url", http.last_url);
-  
+
   if(host_server_name)
     lua_push_str_table_entry(vm, "http.server_name", host_server_name);
 
@@ -1146,15 +1152,17 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
-char* Flow::getDomainCategory() {
+char* Flow::getFlowCategory(bool force_categorization) {
   if(!categorization.flow_categorized) {
     if(ndpi_flow == NULL)
       categorization.flow_categorized = true;
-    else if(ndpi_flow->host_server_name[0] != '\0') {
-      if(ntop->getRedis()->getFlowCategory((char*)ndpi_flow->host_server_name,
-					   categorization.category, sizeof(categorization.category),
-					   false) != NULL)
+    else if(host_server_name && (host_server_name[0] != '\0')) {
+      if(ntop->get_categorization()->findCategory(host_server_name,
+						  categorization.category, sizeof(categorization.category),
+						  force_categorization) != NULL) {
 	categorization.flow_categorized = true;
+	checkFlowCategory();
+      }
     }
   }
 
@@ -1204,20 +1212,14 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
 /* *************************************** */
 
 json_object* Flow::flow2es(json_object *flow_object) {
-  //json_object *es_object;
-  struct timeval tv;
   char buf[64];
   struct tm* tm_info;
-  int len;
   time_t t;
 
-  gettimeofday(&tv, NULL);
-  t = tv.tv_sec;
+  t = last_seen;
   tm_info = gmtime(&t);
 
-  strftime(buf, sizeof(buf), "%FT%T", tm_info);
-  len = strlen(buf);
-  snprintf(&buf[len], sizeof(buf)-len, ".%03uZ", (unsigned int)(tv.tv_usec/1000));
+  strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
   json_object_object_add(flow_object, "@timestamp", json_object_new_string(buf));
   json_object_object_add(flow_object, "@version", json_object_new_int(1));
 
@@ -1243,9 +1245,10 @@ json_object* Flow::flow2es(json_object *flow_object) {
 
 json_object* Flow::flow2json(bool partial_dump) {
   json_object *my_object;
-  char buf[64], jsonbuf[64];
+  char buf[64], jsonbuf[64], *c;
 
-  my_object = json_object_new_object();
+  if((my_object = json_object_new_object()) == NULL) return(NULL);
+
   json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
   json_object_object_add(my_object, Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
@@ -1260,11 +1263,12 @@ json_object* Flow::flow2json(bool partial_dump) {
 			 json_object_new_int(protocol));
 
   if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-     || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN))
+     || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN)) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(get_detected_protocol()));
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf, sizeof(jsonbuf)),
                            json_object_new_string(get_detected_protocol_name()));
+  }
 
   if(protocol == IPPROTO_TCP)
     json_object_object_add(my_object, Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
@@ -1285,7 +1289,12 @@ json_object* Flow::flow2json(bool partial_dump) {
   json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "LAST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int((u_int32_t)last_seen));
 
-  if(json_info && strcmp(json_info, "{}")) json_object_object_add(my_object, "json", json_object_new_string(json_info));
+  if(json_info && strcmp(json_info, "{}")) {
+    json_object *o;
+
+    if((o = json_tokener_parse(json_info)) != NULL)
+      json_object_object_add(my_object, "json", o);
+  }
 
   if(vlanId > 0) json_object_object_add(my_object,
 					Utils::jsonLabel(SRC_VLAN, "SRC_VLAN", jsonbuf, sizeof(jsonbuf)),
@@ -1301,8 +1310,45 @@ json_object* Flow::flow2json(bool partial_dump) {
   if(client_proc != NULL) processJson(true, my_object, client_proc);
   if(server_proc != NULL) processJson(false, my_object, server_proc);
 
-  json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(cli_host->get_country() ? cli_host->get_country() : (char*)""));
-  json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(srv_host->get_country() ? srv_host->get_country() : (char*)""));
+  c = cli_host->get_country() ? cli_host->get_country() : NULL;
+  if(c) {
+    json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
+
+    if(0) {
+      json_object *location = json_object_new_array();
+
+      if(location) {
+	json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
+	json_object_array_add(location, json_object_new_double(cli_host->get_longitude()));
+	json_object_object_add(my_object, "SRC_IP_LOCATION", location);
+      }
+    } else {
+      char *geohash = geohash_encode(cli_host->get_latitude(), cli_host->get_longitude(), 8);
+
+      json_object_object_add(my_object, "SRC_IP_LOCATION", json_object_new_string(geohash));
+      free(geohash);
+    }
+  }
+
+  c = srv_host->get_country() ? srv_host->get_country() : NULL;
+  if(c) {
+    json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
+
+    if(0) {
+      json_object *location = json_object_new_array();
+
+      if(location) {
+	json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
+	json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
+	json_object_object_add(my_object, "DST_IP_LOCATION", location);
+      }
+    } else {
+      char *geohash = geohash_encode(srv_host->get_latitude(), srv_host->get_longitude(), 8);
+
+      json_object_object_add(my_object, "DST_IP_LOCATION", json_object_new_string(geohash));
+      free(geohash);
+    }
+  }
 
   if(0) { /* TODO */
     json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
@@ -1310,9 +1356,10 @@ json_object* Flow::flow2json(bool partial_dump) {
 
     json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
     json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
-
-    if(categorization.flow_categorized) json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
   }
+
+  if(categorization.flow_categorized)
+    json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
 
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 
@@ -1357,7 +1404,7 @@ void Flow::updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pk
   Host *from = src2dst_direction ? cli_host : srv_host;
   Host *to = src2dst_direction ? srv_host : cli_host;
 
-  iface->updateLocalStats(num_pkts, pkt_len, 
+  iface->updateLocalStats(num_pkts, pkt_len,
 			  from ? from->isLocalHost() : false,
 			  to ? to->isLocalHost() : false);
 }
@@ -1689,3 +1736,26 @@ bool Flow::dumpFlowTraffic() {
   return(false);
 }
 
+/* *************************************** */
+
+void Flow::checkFlowCategory() {
+  if((categorization.category[0] == '\0')
+     || (!strcmp(categorization.category, CATEGORIZATION_SAFE_SITE)))
+    return;
+  else {
+    char c_buf[64], s_buf[64], *c, *s, alert_msg[1024];
+
+    /* Emit alarm */
+    c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+    s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+    
+    snprintf(alert_msg, sizeof(alert_msg),
+	     "Flow <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
+	     " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
+	     c, iface->get_name(), c, cli_port,
+	     s, iface->get_name(), s, srv_port,
+	     host_server_name, host_server_name);
+    
+    ntop->getRedis()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
+  }  
+}

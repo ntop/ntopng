@@ -1,0 +1,6 @@
+ntopng can be built as a docker container. You can read more about this
+at http://www.ntop.org/ntopng/using-ntop-applications-with-docker-and-openstack/
+where it is also explained how to download the container.
+
+OpenStack users, at the same URL, can instead learn how to use ntop apps (including
+ntopng) using the pre-built OpenStack VM image.

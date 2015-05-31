@@ -23,7 +23,9 @@
 #ifdef __linux__
 #include <linux/if_tun.h>
 #endif
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 /* ********************************************* */
 
@@ -118,8 +120,9 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
           (IFNAMSIZ < DUMP_IFNAMSIZ ? IFNAMSIZ : DUMP_IFNAMSIZ) );
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d",
            ifr.ifr_name, DUMP_MTU);
-  system(buf);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Bringing up: %s", buf);
+  rc = system(buf);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Bringing up: %s [%d]", buf,rc);
   readMac(this->dev_name, this->mac_addr);
   free(tuntap_device);
   return(this->fd);
@@ -153,6 +156,16 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 #endif
 
 /* ********************************************* */
+
+#ifdef WIN32
+
+int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg. edge0 */ int mtu) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "TAP interface not yet supported on windows");
+	return(-1);
+}
+#endif
+	
+	/* ********************************************* */
 
 #ifdef __APPLE__
 #define OSX_TAPDEVICE_SIZE 32

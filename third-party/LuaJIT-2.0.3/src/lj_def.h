@@ -10,7 +10,9 @@
 
 #if defined(_MSC_VER)
 /* MSVC is stuck in the last century and doesn't have C99's stdint.h. */
+#ifndef WIN32
 typedef __int8 int8_t;
+#endif
 typedef __int16 int16_t;
 typedef __int32 int32_t;
 typedef __int64 int64_t;
@@ -339,8 +341,12 @@ static LJ_AINLINE uint32_t lj_getu32(const void *v)
 #define LJ_ASSERT_NAME2(name, line)	name ## line
 #define LJ_ASSERT_NAME(line)		LJ_ASSERT_NAME2(lj_assert_, line)
 #ifdef __COUNTER__
+#ifndef WIN32
 #define LJ_STATIC_ASSERT(cond) \
   extern void LJ_ASSERT_NAME(__COUNTER__)(int STATIC_ASSERTION_FAILED[(cond)?1:-1])
+#else
+#define LJ_STATIC_ASSERT(cond)	;
+#endif
 #else
 #define LJ_STATIC_ASSERT(cond) \
   extern void LJ_ASSERT_NAME(__LINE__)(int STATIC_ASSERTION_FAILED[(cond)?1:-1])

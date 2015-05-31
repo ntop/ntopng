@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "graph_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -29,6 +30,43 @@ is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 ifstats = interface.getStats()
 ndpistats = interface.getNdpiStats()
 
+if (network_id ~= nil) then
+
+url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network_id='..network_id.."&network_name=".._GET["network_name"]
+
+print [[
+  <nav class="navbar navbar-default" role="navigation">
+  <div class="navbar-collapse collapse">
+    <ul class="nav navbar-nav">
+]]
+print("<li><a href=\"#\"> Overview ")
+if(_GET["network_name"] ~= nil) then
+   print(" [".._GET["network_name"].."]")
+end
+print("</a></li>\n")
+
+page = _GET["page"]
+
+if(page == "flows") then
+  print("<li class=\"active\"><a href=\"#\">Flows</a></li>\n")
+else
+  print("<li><a href=\""..url.."&page=flows\">Flows</a></li>")
+end
+if (page == "historical") then
+  print("<li class=\"active\"><a href=\"#\">Historical</a></li>\n")
+else
+  print("<li><a href=\""..url.."&page=historical\">Historical</a></li>")
+end
+
+print [[
+<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
+</ul>
+</div>
+</nav>
+   ]]
+end
+
+if (page == "flows" or page == nil) then
 num_param = 0
 print [[
       <hr>
@@ -102,7 +140,7 @@ print ('";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 -- Set the flow table option
-if(prefs.is_categorization_enabled) then print ('flow_rows_option["categorization"] = true;\n') end
+
 if(ifstats.iface_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 if(is_historical) then print ('clearInterval(flow_table_interval);\n') end
    print [[
@@ -176,20 +214,13 @@ end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_middle.inc")
 
-if(prefs.is_categorization_enabled) then
-print [[
-
-			     {
-			     title: "Category",
-				 field: "column_category",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			       }
-			       },
-
-		       ]]
+ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_bottom.inc")
 end
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_bottom.inc")
+if (page == "historical" and _GET["network_name"] ~= nil) then
+  local netname_format = string.gsub(_GET["network_name"], "_", "/")
+  local rrd_file = getPathFromKey(netname_format).."/bytes.rrd"
+  drawRRD(ifstats.id, nil, rrd_file, "1d", url.."&page=historical", 0, os.time() , "", nil)
+end
+
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

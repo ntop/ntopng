@@ -30,8 +30,8 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks = strdup(CONST_DEFAULT_HOME_NET","CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
-  enable_dns_resolution = sniff_dns_responses = true;
-  categorization_enabled = false, httpbl_enabled = false, resolve_all_host_ip = false;
+  enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
+  categorization_enabled = true, httpbl_enabled = false, resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
@@ -78,12 +78,18 @@ Prefs::Prefs(Ntop *_ntop) {
   non_local_host_max_idle = MAX_REMOTE_HOST_IDLE /* sec */;
   local_host_max_idle     = MAX_LOCAL_HOST_IDLE /* sec */;
   flow_max_idle           = MAX_FLOW_IDLE /* sec */;
-  host_max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND; /* flows/sec */
-  host_max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND; /* syn/sec */
-  host_max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
 
-  es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"), 
-    es_url = strdup((char*)"http://localhost:9200/_bulk"), 
+  intf_rrd_raw_days       = INTF_RRD_RAW_DAYS;
+  intf_rrd_1min_days      = INTF_RRD_1MIN_DAYS;
+  intf_rrd_1h_days        = INTF_RRD_1H_DAYS;
+  intf_rrd_1d_days        = INTF_RRD_1D_DAYS;
+  other_rrd_raw_days      = OTHER_RRD_RAW_DAYS;
+  other_rrd_1min_days     = OTHER_RRD_1MIN_DAYS;
+  other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
+  other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
+
+  es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
+    es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
 #ifdef NTOPNG_PRO
@@ -163,6 +169,7 @@ void usage() {
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
 	 "                                    | Default: %s\n"
 	 "[--dump-timeline|-C]                | Enable timeline dump.\n"
+	 "[--no-promisc|-u]                   | Don't set the interface in promiscuous mode.\n"
 	 "[--categorization-key|-c] <key>     | Key used to access host categorization\n"
 	 "                                    | services (default: disabled). \n"
 	 "                                    | Please read README.categorization for\n"
@@ -291,7 +298,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
   if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
     *buffer = strdup(rsp);
   else
-    *buffer = strdup(default_value);  
+    *buffer = strdup(default_value);
 }
 
 /* ******************************************* */
@@ -300,11 +307,17 @@ void Prefs::loadIdleDefaults() {
   local_host_max_idle = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
   non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
   flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
-  host_max_new_flows_sec_threshold = getDefaultPrefsValue(CONST_MAX_NEW_FLOWS_PREFS, CONST_MAX_NEW_FLOWS_SECOND);
-  host_max_num_syn_sec_threshold = getDefaultPrefsValue(CONST_MAX_NUM_SYN_PREFS, CONST_MAX_NUM_SYN_PER_SECOND);
-  host_max_num_active_flows = getDefaultPrefsValue(CONST_MAX_NUM_FLOWS_PREFS, CONST_MAX_NUM_HOST_ACTIVE_FLOWS);
+
+  intf_rrd_raw_days = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS);
+  intf_rrd_1min_days = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS);
+  intf_rrd_1h_days = getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS);
+  intf_rrd_1d_days = getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS);
+  other_rrd_raw_days = getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS);
+  other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
+  other_rrd_1h_days = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
+  other_rrd_1d_days = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
 #ifdef NTOPNG_PRO
-  save_http_flows_traffic = getDefaultPrefsValue(CONST_SAVE_HTTP_FLOWS_TRAFFIC, false);
+  save_http_flows_traffic = (bool)getDefaultPrefsValue(CONST_SAVE_HTTP_FLOWS_TRAFFIC, false);
 #endif
 }
 
@@ -325,22 +338,23 @@ void Prefs::loadNagiosDefaults() {
 /* ******************************************* */
 
 static const struct option long_options[] = {
-  { "dns-mode",                          required_argument, NULL, 'n' },
-  { "interface",                         required_argument, NULL, 'i' },
+  { "categorization-key",                required_argument, NULL, 'c' },
 #ifndef WIN32
   { "data-dir",                          required_argument, NULL, 'd' },
 #endif
-  { "categorization-key",                required_argument, NULL, 'c' },
-  { "httpbl-key",                        required_argument, NULL, 'k' },
   { "daemon",                            no_argument,       NULL, 'e' },
   { "core-affinity",                     required_argument, NULL, 'g' },
   { "help",                              no_argument,       NULL, 'h' },
-  { "disable-login",                     required_argument, NULL, 'l' },
+  { "interface",                         required_argument, NULL, 'i' },
   { "local-networks",                    required_argument, NULL, 'm' },
+  { "dns-mode",                          required_argument, NULL, 'n' },
+  { "httpbl-key",                        required_argument, NULL, 'k' },
+  { "disable-login",                     required_argument, NULL, 'l' },
   { "ndpi-protocols",                    required_argument, NULL, 'p' },
   { "disable-autologout",                no_argument,       NULL, 'q' },
   { "redis",                             required_argument, NULL, 'r' },
   { "dont-change-user",                  no_argument,       NULL, 's' },
+  { "no-promisc",                        no_argument,       NULL, 'u' },
   { "verbose",                           no_argument,       NULL, 'v' },
   { "max-num-hosts",                     required_argument, NULL, 'x' },
   { "http-port",                         required_argument, NULL, 'w' },
@@ -418,6 +432,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'C':
     dump_timeline = true;
+    break;
+
+  case 'u':
+    use_promiscuous_mode = false;
     break;
 
 #ifndef WIN32
@@ -549,19 +567,41 @@ int Prefs::setOption(int optkey, char *optarg) {
     {
       char buf[64], *r;
 
-      snprintf(buf, sizeof(buf), "%s", optarg);
-      r = strtok(buf, ":");
-      if(r) {
-	char *c = strtok(NULL, "@");
-	if(c) redis_port = atoi(c);
+      /*
+	Supported formats for --redis
 
-	if(redis_host) free(redis_host);
-	redis_host = strdup(r);
+	host:port
+	host@redis_instance
+	host:port@redis_instance
+       */
+      snprintf(buf, sizeof(buf), "%s", optarg);
+      r = strtok(buf, "@");
+      if(r) {
+	char *c;
+
+	if(strchr(r, ':')) {
+	  char *w;
+
+	  c = strtok_r(r, ":", &w);
+
+	  if(redis_host) free(redis_host);
+	  redis_host = strdup(c);
+	
+	  c = strtok_r(NULL, ":", &w);
+	  if(c) redis_port = atoi(c);
+	} else {
+	  if(redis_host) free(redis_host);
+	  redis_host = strdup(r);
+	}
 
 	c = strtok(NULL, "@");
 	if(c != NULL)
 	  redis_db_id = atoi((const char*)c);
       }
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "ntopng will use redis %s:%u@%u",
+				   redis_host, redis_port, redis_db_id);
     }
     break;
 
@@ -595,8 +635,8 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "All HTTP user login disabled");
       break;
     default:
-      ntop->getTrace()->traceEvent(TRACE_ERROR, 
-				   "Invalid '%s' value specified for -l: ignored", 
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Invalid '%s' value specified for -l: ignored",
 				   optarg);
     }
     break;
@@ -609,7 +649,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
-    if((strncmp(optarg, "es", 2) == 0) 
+    if((strncmp(optarg, "es", 2) == 0)
        && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
@@ -631,8 +671,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	  }
 	}
       }
-      
-      if(elastic_index_type 
+
+      if(elastic_index_type
 	 && elastic_index_name
 	 && elastic_url) {
 	free(es_type), free(es_index), free(es_url), free(es_user), free(es_pwd);
@@ -648,15 +688,15 @@ int Prefs::setOption(int optkey, char *optarg) {
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Discarding -F: invalid format for es");
-	ntop->getTrace()->traceEvent(TRACE_WARNING, 
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     } else if(!strcmp(optarg, "db"))
       dump_flows_on_db = true;
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, 
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Discarding -F %s: value out of range",
-				   optarg);    
+				   optarg);
     break;
 
 #ifndef WIN32
@@ -679,7 +719,23 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printf("v.%s\n", PACKAGE_VERSION);
+    printf("v.%s [%s%s Edition]\n", PACKAGE_VERSION,
+#ifdef NTOPNG_PRO
+	   "Professional"
+#else
+	   "Community"
+#endif
+	   ,
+#ifdef NTOPNG_EMBEDDED_EDITION
+	   "/Embedded"
+#else
+	   ""
+#endif
+	   );
+    printf("GIT rev: %s\n", NTOPNG_GIT_RELEASE);
+#ifdef NTOPNG_PRO
+    printf("Pro rev: %s\n", NTOPNG_PRO_SVN_RELEASE);
+#endif
     _exit(0);
     break;
 
@@ -716,7 +772,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
     _exit(0);
   }
-  
+
   return(0);
 }
 
@@ -762,7 +818,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "c:k:eg:hi:w:r:sg:m:n:p:qd:x:1:2:3:l:vA:B:CD:E:F:G:HI:S:TU:X:W:VZ:",
+			 "c:k:eg:hi:w:r:sg:m:n:p:qd:x:1:2:3:l:uvA:B:CD:E:F:G:HI:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
@@ -916,6 +972,10 @@ void Prefs::add_default_interfaces() {
 /* *************************************** */
 
 void Prefs::lua(lua_State* vm) {
+#ifdef NTOPNG_PRO
+  char HTTP_stats_base_dir[MAX_PATH*2];
+#endif
+
   lua_newtable(vm);
 
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
@@ -931,13 +991,26 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_db);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
   lua_push_int_table_entry(vm, "dump_aggregation", dump_aggregations_to_db);
-  lua_push_int_table_entry(vm, "host_max_new_flows_sec_threshold", host_max_new_flows_sec_threshold);
-  lua_push_int_table_entry(vm, "host_max_num_syn_sec_threshold", host_max_num_syn_sec_threshold);
-  lua_push_int_table_entry(vm, "host_max_num_active_flows", host_max_num_active_flows);
+
+  /* RRD prefs */
+  lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1min_days", intf_rrd_1min_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1h_days", intf_rrd_1h_days);
+  lua_push_int_table_entry(vm, "intf_rrd_1d_days", intf_rrd_1d_days);
+  lua_push_int_table_entry(vm, "other_rrd_raw_days", other_rrd_raw_days);
+  lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
+  lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
+  lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+
 #ifdef NTOPNG_PRO
   lua_push_str_table_entry(vm, "nagios_host", nagios_host);
   lua_push_str_table_entry(vm, "nagios_port", nagios_port);
   lua_push_str_table_entry(vm, "nagios_config", nagios_config);
+
+  memset(HTTP_stats_base_dir, '\0', MAX_PATH);
+  strncat(HTTP_stats_base_dir, (const char*)ntop->get_working_dir(), MAX_PATH);
+  strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);
+  lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
 }
 
@@ -971,7 +1044,7 @@ void Prefs::registerNetworkInterfaces() {
 /* *************************************** */
 
 bool Prefs::is_pro_edition() {
-  return 
+  return
 #ifdef NTOPNG_PRO
     ntop->getPro()->has_valid_license()
 #else
@@ -983,7 +1056,7 @@ bool Prefs::is_pro_edition() {
 /* *************************************** */
 
 time_t Prefs::pro_edition_demo_ends_at() {
-  return 
+  return
 #ifdef NTOPNG_PRO
     ntop->getPro()->demo_ends_at()
 #else

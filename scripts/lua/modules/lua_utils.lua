@@ -1,7 +1,8 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2014-15 - ntop.org
 --
 require "lua_trace"
+
 
 function getInterfaceName(interface_id)
    local ifnames = interface.getIfNames()
@@ -284,7 +285,8 @@ alert_type_keys = {
   { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",  2 },
   { "<i class='fa fa-frown-o'></i> Blacklist Host",  3 },
   { "<i class='fa fa-clock-o'></i> Periodic Activity",  4 },
-  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",  5 }
+  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",  5 },
+  { "<i class='fa fa-ban'></i> Malware Detected",  6 }
 }
 
 function alertSeverityLabel(v)
@@ -346,25 +348,29 @@ end
 
 -- Convert bytes to human readable format
 function bytesToSize(bytes)
-  precision = 2
-  kilobyte = 1024;
-  megabyte = kilobyte * 1024;
-  gigabyte = megabyte * 1024;
-  terabyte = gigabyte * 1024;
-
-  if((bytes >= 0) and (bytes < kilobyte)) then
-    return bytes .. " Bytes";
-  elseif((bytes >= kilobyte) and (bytes < megabyte)) then
-    return round(bytes / kilobyte, precision) .. ' KB';
-  elseif((bytes >= megabyte) and (bytes < gigabyte)) then
-    return round(bytes / megabyte, precision) .. ' MB';
-  elseif((bytes >= gigabyte) and (bytes < terabyte)) then
-    return round(bytes / gigabyte, precision) .. ' GB';
-  elseif(bytes >= terabyte) then
-    return round(bytes / terabyte, precision) .. ' TB';
-  else
-    return bytes .. ' B';
-  end
+   if(bytes == nil) then
+      return("0")
+   else
+      precision = 2
+      kilobyte = 1024;
+      megabyte = kilobyte * 1024;
+      gigabyte = megabyte * 1024;
+      terabyte = gigabyte * 1024;
+      
+      if((bytes >= 0) and (bytes < kilobyte)) then
+	 return round(bytes, precision) .. " B";
+	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
+	 return round(bytes / kilobyte, precision) .. ' KB';
+	 elseif((bytes >= megabyte) and (bytes < gigabyte)) then
+	 return round(bytes / megabyte, precision) .. ' MB';
+	 elseif((bytes >= gigabyte) and (bytes < terabyte)) then
+	 return round(bytes / gigabyte, precision) .. ' GB';
+	 elseif(bytes >= terabyte) then
+	 return round(bytes / terabyte, precision) .. ' TB';
+      else
+	 return round(bytes, precision) .. ' B';
+      end
+   end
 end
 
 -- Convert bits to human readable format
@@ -532,263 +538,17 @@ end
 
 -- #################################################################
 
-categories = {
-  {"1_1", "Drug Abuse", {
-    {"Websites that feature information on illegal drug activities including: drug promotion, preparation, cultivation, trafficking, distribution, solicitation, etc."},
-  }},
-  {"1_2", "Hacking", {
-    {"Websites that depict illicit activities surrounding the unauthorized modification or access to programs, computers, equipment and websites."},
-  }},
-  {"1_3", "Illegal or Unethical", {
-    {"Websites that feature information, methods, or instructions on fraudulent actions or unlawful conduct (non-violent) such as scams, counterfeiting, tax evasion, petty theft, blackmail, etc."},
-  }},
-  {"1_4", "Discrimination", {
-    {"Sites that promote the identification of racial groups, the denigration or subjection of groups, or the superiority of any group."},
-  }},
-  {"1_5", "Violence", {
-    {"This category includes sites that depict offensive material on brutality, death, cruelty, acts of abuse, mutilation, etc."},
-  }},
-  {"1_6", "Proxy Avoidance", {
-    {"Websites that provide information or tools on how to bypass Internet access controls and browse the Web anonymously, includes anonymous proxy servers."},
-  }},
-  {"1_7", "Plagiarism", {
-    {"Websites that provide, distribute or sell school essays, projects, or diplomas."},
-  }},
-  {"1_8", "Child Abuse", {
-    {"Websites that have been verified by the Internet Watch Foundation to contain or distribute images of non-adult children that are depicted in a state of abuse"},
-  }},
-  {"2_1", "Alternative Beliefs", {
-    {"Websites that provide information about or promote religions not specified in Traditional Religions or other unconventional, cultic, or folkloric beliefs and practices. Sites that promote or offer methods, means of instruction, or other resources to affect or influence real events through the use of spells, curses, magic powers, satanic or supernatural beings."},
-  }},
-  {"2_2", "Abortion", {
-    {"Websites pertaining to abortion data, information, legal issues, and organizations."},
-  }},
-  {"2_3", "Adult Materials", {
-    {"Mature content websites (18+ years and over) that feature or promote sexuality, strip clubs, sex shops, etc. excluding sex education, without the intent to sexually arouse."},
-  }},
-  {"2_4", "Advocacy Groups", {
-    {"This category caters to organizations that campaign or lobby for a cause by building public awareness, raising support, influencing public policy, etc."},
-  }},
-  {"2_5", "Gambling", {
-    {"Sites that cater to gambling activities such as betting, lotteries, casinos, including gaming information, instruction, and statistics."},
-  }},
-  {"2_6", "Extremist Groups", {
-    {"Sites that feature radical militia groups or movements with aggressive anti-government convictions or beliefs."},
-  }},
-  {"2_7", "Nudity and Risque", {
-    {"Mature content websites (18+ years and over) that depict the human body in full or partial nudity without the intent to sexually arouse."},
-  }},
-  {"2_8", "Pornography", {
-    {"Mature content websites (18+ years and over) which present or display sexual acts with the intent to sexually arouse and excite."},
-  }},
-  {"2_9", "Tasteless", {
-    {"Tasteless"},
-  }},
-  {"2_10", "Weapons", {
-    {"Websites that feature the legal promotion or sale of weapons such as hand guns, knives, rifles, explosives, etc."},
-  }},
-  {"2_11", "Homosexuality", {
-    {"Homosexuality"},
-  }},
-  {"2_12", "Marijuana", {
-    {"Sites that provide information about or promote the cultivation, preparation, or use of marijuana."},
-  }},
-  {"2_13", "Sex Education", {
-    {"Educational websites that provide information or discuss sex and sexuality, without utilizing pornographic materials."},
-  }},
-  {"2_14", "Alcohol", {
-    {"Websites which legally promote or sell alcohol products and accessories."},
-  }},
-  {"2_15", "Tobacco", {
-    {"Websites which legally promote or sell tobacco products and accessories."},
-  }},
-  {"2_16", "Lingerie and Swimsuit", {
-    {"Websites that utilizes images of semi-nude models in lingerie, undergarments and swimwear for the purpose of selling or promoting such items."},
-  }},
-  {"2_17", "Sports Hunting and War Games", {
-    {"Web pages that feature sport hunting, war games, paintball facilities, etc. Includes all related clubs, organizations and groups."},
-  }},
-  {"3_1", "Feeware and Software Downloads", {
-    {"Sites whose primary function is to provide freeware and software downloads. Cell phone ringtones/images/games, computer software updates for free downloads are all included in this category."},
-  }},
-  {"3_2", "File Sharing and Storage", {
-    {"Websites that permit users to utilize Internet servers to store personal files or for sharing, such as with photos."},
-  }},
-  {"3_3", "Streaming Media", {
-    {"Websites that allow the downloading of MP3 or other multimedia files."},
-  }},
-  {"3_4", "Peer-to-peer File Sharing", {
-    {"Websites that allow users to share files and data storage between each other."},
-  }},
-  {"3_5", "Internet Radio and TV", {
-    {"Websites that broadcast radio or TV communications over the Internet."},
-  }},
-  {"3_6", "Internet Telephony", {
-    {"Websites that enable telephone communications over the Internet."},
-  }},
-  {"4_1", "Malicious Websites", {
-    {"Sites that host software that is covertly downloaded to a user's machine to collect information and monitor user activity, and sites that are infected with destructive or malicious software, specifically designed to damage, disrupt, attack or manipulate computer systems without the user's consent, such as virus or trojan horse."},
-  }},
-  {"4_2", "Phishing", {
-    {"Counterfeit web pages that duplicate legitimate business web pages for the purpose of eliciting financial, personal or other private information from the users."},
-  }},
-  {"4_3", "Spam URLs", {
-    {"Websites or webpages whose URLs are found in spam emails. These webpages often advertise sex sites, fraudulent wares, and other potentially offensive materials."},
-  }},
-  {"5_1", "Finance and Banking", {
-    {"Financial Data and Services -- Sites that offer news and quotations on stocks, bonds, and other investment vehicles, investment advice, but not online trading. Includes banks, credit unions, credit cards, and insurance. Mortgage/insurance brokers apply here as opposed to Brokerage and Trading."},
-  }},
-  {"5_2", "Search Engines and Portals", {
-    {"Sites that support searching the Web, news groups, or indices/directories. Sites of search engines that provide info exclusively for shopping or comparing prices, however, fall in Shopping and Auction."},
-  }},
-  {"5_3", "General Organizations", {
-    {"Sites that cater to groups, clubs or organisations of individuals with similar interests, either professional, social, humanitarian or recreational in nature. Social and Affiliation Organizations: Sites sponsored by or that support or offer information about organizations devoted chiefly to socializing or common interests other than philanthropy or professional advancement. Not to be be confused with Advocacy Groups and Political Groups."},
-  }},
-  {"5_4", "Business", {
-    {"Sites sponsored by or devoted to business firms, business associations, industry groups, or business in general. Information Technology companies are excluded in this category and fall in Information Technology."},
-  }},
-  {"5_5", "Information Technology", {
-    {"Information Technology peripherals and services, cell phone services, cable TV/Internet suppliers."},
-  }},
-  {"5_6", "Government and Legal Organizations", {
-    {"Government: Sites sponsored by branches, bureaus, or agencies of any level of government, except for the armed forces, including courts, police institutions, city-level government institutions. Legal Organizations: Sites that discuss or explain laws of various government entities."},
-  }},
-  {"5_7", "Armed Forces", {
-    {"Websites related to organized military and armed forces, excluding civil and extreme military organizations."},
-  }},
-  {"5_8", "Web Hosting", {
-    {"Sites of organizations that provide hosting services, or top-level domain pages of Web communities."},
-  }},
-  {"5_9", "Secure Websites", {
-    {"Sites that institute security measures such as authentication, passwords, registration, etc."},
-  }},
-  {"5_10", "Web-based Applications", {
-    {"Sites that mimic desktop applications such as word processing, spreadsheets, and slide-show presentations."},
-  }},
-  {"6_1", "Advertising", {
-    {"Sites that provide advertising graphics or other ad content files, including ad servers (domain name often with “ad.” , such as ad.yahoo.com). If a site is mainly for online transactions, it is rated as Shopping and Auctions. Includes pay-to-surf and affiliated advertising programs."},
-  }},
-  {"6_2", "Brokerage and Trading", {
-    {"Sites that support active trading of securities and management of investments. Real estate broker does not apply here, and falls within Shopping and Auction. Sites that provide supplier and buyer info/ads do not apply here either since they do not provide trading activities."},
-  }},
-  {"6_3", "Games", {
-    {"Sites that provide information about or promote electronic games, video games, computer games, role-playing games, or online games. Includes sweepstakes and giveaways. Sport games are not included in this category, but time consuming mathematic game sites that serve little education purpose are included in this category."},
-  }},
-  {"6_4", "Web-based Email", {
-    {"Sites that allow users to utilize electronic mail services."},
-  }},
-  {"6_5", "Entertainment", {
-    {"Sites that provide information about or promote motion pictures, non-news radio and television, music and programming guides, books, humor, comics, movie theatres, galleries, artists or review on entertainment, and magazines. Includes book sites that have personal flavor or extra-material by authors to promote the books."},
-  }},
-  {"6_6", "Arts and Culture", {
-    {"Websites that cater to fine arts, cultural behaviors and backgrounds including conventions, artwork and paintings, music, languages, customs, etc. Also includes institutions such as museums, libraries and historic sites. Sites that promote historical, cultural heritage of certain area, but not purposely promoting travel."},
-  }},
-  {"6_7", "Education", {
-    {"Educational Institutions: Sites sponsored by schools, other educational facilities and non-academic research institutions, and sites that relate to educational events and activities. Educational Materials: Sites that provide information about, sell, or provide curriculum materials. Sites that direct instruction, as well as academic journals and similar publications where scholars and professors submit academic/research articles."},
-  }},
-  {"6_8", "Health and Wellness", {
-    {"Sites that provide information or advice on personal health or medical services, procedures, or devices, but not drugs. Includes self-help groups. This category includes cosmetic surgery providers, children's hospitals, but not sites of medical care for pets, which fall in Society and Lifestyle."},
-  }},
-  {"6_9", "Job Search", {
-    {"Sites that offer information about or support the seeking of employment or employees. Includes career agents and consulting services that provide job postings."},
-  }},
-  {"6_10", "Medicine", {
-    {"Prescribed Medications: Sites that provide information about approved drugs and their medical use. Supplements and Unregulated Compounds: Sites that provide information about or promote the sale or use of chemicals not regulated by the FDA (such as naturally occurring compounds). This category includes sites of online shopping for medicine, as it is a sensitive category separated from regular shopping."},
-  }},
-  {"6_11", "News and Media", {
-    {"Sites that offer current news and opinion, including those sponsored by newspapers, general-circulation magazines, or other media. This category includes TV and Radio sites, as long as they are not exclusively for entertainment purpose, but excludes academic journals. Alternative Journals: Online equivalents to supermarket tabloids and other fringe publications."},
-  }},
-  {"6_12", "Social Networking", {
-    {"Includes websites that aid in the coordination of heterosexual relationships and companionship. Includes legal and non-sexual sites related to on-line dating, personal ads, dating services, clubs, etc."},
-  }},
-  {"6_13", "Political Organizations", {
-    {"Sites that are sponsored by or provide information about political parties and interest groups focused on elections or legislation. This is not to be confused with Government and Legal Organizations, and Advocacy Groups."},
-  }},
-  {"6_14", "Reference", {
-    {"Websites that provide general reference data in the form of libraries, dictionaries, thesauri, encyclopedias, maps, directories, standards, etc."},
-  }},
-  {"6_15", "Global Religion", {
-    {"Sites that provide information about or promote Buddhism, Bahai, Christianity, Christian Science, Hinduism, Islam, Judaism, Mormonism, Shinto, and Sikhism, as well as atheism."},
-  }},
-  {"6_16", "Shopping and Auction", {
-    {"Websites that feature on-line promotion or sale of general goods and services such as electronics, flowers, jewelry, music, etc, excluding real estate. Also includes on-line auction services such as eBay, Amazon, Priceline."},
-  }},
-  {"6_17", "Society and Lifestyles", {
-    {"This category contains sites that deal with everyday life issues and preferences such as passive hobbies (gardening, stamp collecting, pets), journals, blogs, etc."},
-  }},
-  {"6_18", "Sports Travel", {
-    {"Includes sites that pertain to recreational sports and active hobbies such as fishing, hunting, jogging, canoeing, archery, chess, as well as organized, professional and competitive sports. Websites feature travel related resources such as accommodations, transportation (rail, airlines, cruise ships), agencies, resort locations, tourist attractions, advisories, etc."},
-  }},
-  {"6_19", "Personal Vehicles", {
-    {"Websites that contain information on private use or sale of autos, boats, planes, motorcycles, etc., including parts and accessories."},
-  }},
-  {"6_20", "Dynamic Content", {
-    {"URLs that are generated dynamically by a Web server."},
-  }},
-  {"6_21", "Miscellaneous", {
-    {"This category houses URLs that cannot be definitively categorized due to lack of or ambiguous content."},
-  }},
-  {"6_22", "Folklore", {
-    {"UFOs, fortune telling, horoscopes, fen shui, palm reading, tarot reading, and ghost stories."},
-  }},
-  {"6_23", "Web Chat", {
-    {"Sites that host Web chat services, or that support or provide information about chat via HTTP or IRC."},
-  }},
-  {"6_24", "Instant Messaging", {
-    {"Sites that allow users to communicate in real-time over the Internet."},
-  }},
-  {"6_25", "Newsgroups and Message Boards", {
-    {"Sites for online personal and business clubs, discussion groups, message boards, and list servers; includes 'blogs' and 'mail magazines.'"},
-  }},
-  {"6_26", "Digital Postcards", {
-    {"Sites for sending/viewing digital post cards."},
-  }},
-  {"6_27", "Child Education", {
-    {"Websites developed for children age 12 and under. Includes educational games, tools, organizations and schools. Note that children's hospitals are rated as Health."},
-  }},
-  {"6_28", "Real Estate", {
-    {"Websites that promote the sale or renting of real estate properties."},
-  }},
-  {"6_29", "Restaurant and Dining", {
-    {"Websites related to restaurants and dining, includes locations, food reviews, recipes, catering services, etc."},
-  }},
-  {"6_30", "Personal Websites and Blogs", {
-    {"Private web pages that host personal information, opinions and ideas of the owners."},
-  }},
-  {"6_31", "Content Servers", {
-    {"Websites that host servers that distribute content for subscribing websites. Includes image and Web servers."},
-  }},
-  {"6_32", "Domain Parking", {
-    {"Sites that simply are place holders of domains without meaningful content."},
-  }},
-  {"6_33", "Personal Privacy", {
-    {"Sites providing online banking, trading, health care, and others that contain personal privacy information."},
-  }},
-  {"7_0", "Unrated", {
-    {"Unrated site."},
-  }}
-};
-
-function getCategory(_cat)
-  if(_cat == nil) then return "" end
-  cat = string.gsub(_cat, "\n", "")
-
-  if(starts(cat, "error") or (cat == "''") or (cat == "") or starts(cat, "-") or starts(cat, "Local")) then
-    return("")
-  else
-    for id, _ in ipairs(categories) do
-      local key = categories[id][1]
-      local name = categories[id][2]
-
-      if(key == cat) then
-        return(name)
-      end
-    end
-
-    return(cat)
-  end
+function getCategoryIcon(what, cat)
+   if((cat == "") or (cat == nil)) then
+      return("")
+   elseif(cat == "safe") then
+   return("<A HREF=http://google.com/safebrowsing/diagnostic?site="..what.."&hl=en-us><font color=green><i class=\'fa fa-check\'></i></font></A>")
+   elseif(cat == "malware") then
+      return("<A HREF=http://google.com/safebrowsing/diagnostic?site="..what.."&hl=en-us><font color=red><i class=\'fa fa-ban\'></i></font></A>")
+   else
+      return(cat)
+   end
 end
-
 
 function abbreviateString(str, len)
   if(str == nil) then
@@ -1155,6 +915,7 @@ end
 --
 function url2hostinfo(get_info)
   local host = {}
+  
   -- Catch when the host key is using as host url parameter
   if((get_info["host"] ~= nil) and (string.find(get_info["host"],"@"))) then
     get_info = hostkey2hostinfo(get_info["host"])
@@ -1171,6 +932,7 @@ function url2hostinfo(get_info)
   else
     host["vlan"] = 0
   end
+
   return host
 end
 
@@ -1417,22 +1179,26 @@ end
 function prefsInputField(label, comment, key, value)
   if(_GET[key] ~= nil) then
     k = "ntopng.prefs."..key
-    v = tonumber(_GET[key])
-    if((v > 0) and (v < 86400)) then
+    v_s = _GET[key]
+    v = tonumber(v_s)
+    if(v ~= nil and (v > 0) and (v < 86400)) then
       -- print(k.."="..v)
       ntop.setCache(k, tostring(v))
       value = v
+    elseif (v_s ~= nil) then
+      ntop.setCache(k, v_s)
+      value = v_s
     end
   end
 
-  print('<tr><td><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
+  print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
 
   print [[
 	   <td class="input-group col-lg-3" align=right><form class="navbar-form navbar-right">]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
  <div class="input-group" >
-      <input type="text" class="form-control" name="]] print(key) print [[" value="]] print(value.."") print [[">
+      <input type="text" class="form-control"  name="]] print(key) print [[" value="]] print(value.."") print [[">
       <span class="input-group-btn">
         <button class="btn btn-default" type="submit">Save</button>
       </span>
@@ -1466,7 +1232,7 @@ function toggleTableButton(label, comment, on_label, on_value, on_color , off_la
     off_active = "btn-default"
   end
 
-  if(label ~= "") then print('<tr><td><strong>'..label..'</strong><p><small>'..comment..'</small></td><td with=250 align=right>\n') end
+  if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
   print('<form>\n<div class="btn-group btn-toggle">')
   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
   print('<input type=hidden name='..submit_field..' value='..rev_value..'>\n')

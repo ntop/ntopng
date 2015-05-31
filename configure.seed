@@ -5,10 +5,16 @@ dnl> Do not add anything above
 AC_PROG_CPP
 
 dnl> Add /usr/local/ /opt/local
-CFLAGS=""
+CFLAGS="-I${PWD} -I${PWD}/include"
+CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
-REVISION=`git rev-list --all |wc -l`
+
+#
+# On CentOS 6 `git rev-list HEAD --count` does not work
+#
+#
+REVISION=`git log --pretty=oneline | wc -l`
 
 if test -d "/usr/local/include"; then
 CFLAGS="${CFLAGS} -I/usr/local/include"
@@ -27,9 +33,11 @@ if test -d ".git"; then :
 GIT_TAG=`git rev-parse HEAD`
 GIT_DATE=`date +%Y%m%d`
 GIT_RELEASE="${GIT_TAG}:${GIT_DATE}"
+GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 else
 GIT_RELEASE="${PACKAGE_VERSION}"
 GIT_DATE=`date`
+GIT_BRANCH=""
 fi
 
 AC_MSG_CHECKING(for nDPI)
@@ -62,14 +70,23 @@ else
   cd $NDPI_HOME; ./autogen.sh; make; cd -
 fi
 
+AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
+NPROBE_HOME="$HOME/nProbe"
+
+if ! test -d "$HOME/nProbe"; then :
+  NPROBE_HOME="$HOME/network/nProbe"
+fi
+
+if test -d "$NPROBE_HOME"; then :
+AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
-CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/pro"
-PRO_SVN_RELEASE=`svn info pro | grep "^Revision"|cut -d " " -f 2`
-SVN_PRO_DATE=`svn info pro | grep "^Last Changed Date"|cut -d " " -f 4-`
+CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
+PRO_SVN_RELEASE=`cd pro; svn info . | grep "^Revision"|cut -d " " -f 2`
+SVN_PRO_DATE=`cd pro; svn info . | grep "^Last Changed Date"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_RELEASE, "r${PRO_SVN_RELEASE}", [ntopng professional release])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_DATE, "${SVN_PRO_DATE}", [ntopng professional date])
@@ -81,6 +98,7 @@ if test -r "pro/license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
 fi
 else
+AC_MSG_RESULT(not found [missing $NPROBE_HOME])
 PRO_MAKEFILE_INC=
 PRO_INC=
 PRO_LIBS=
@@ -88,8 +106,11 @@ PRO_OBJECTS=
 PRO_HEADERS=
 PRO_LIBS=
 fi
+else
+AC_MSG_RESULT(not found [missing $NPROBE_HOME])
+fi
 
-AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "r${GIT_RELEASE}", [GIT Release])
+AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_DATE, "${GIT_DATE}", [Last GIT change])
 
 if test -z `which pkg-config`; then
@@ -108,9 +129,10 @@ if test $SYSTEM = "Linux"; then
       DEBIAN_VERSION=`cat /etc/debian_version`
       OSNAME="Debian $DEBIAN_VERSION"
    else
-      OSNAME=`./linux.guess`
+      OSNAME=`./config.guess`
    fi
 else
+dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
    OSNAME=`./config.guess`
 fi
 AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
@@ -118,7 +140,9 @@ AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
 if test $MACHINE = "x86_64"; then
    EXTN="amd64"
 else
-   EXTN="i386"
+   if test $MACHINE = "i686"; then
+     EXTN="i386"
+   fi
 fi
 
 DATE=`date +"%Y-%m-%d"`
@@ -128,7 +152,7 @@ if test -d "/usr/include/hiredis"; then
  HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
  HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
 else
- HIREDIS_INC="-I ./third-party/hiredis"
+ HIREDIS_INC="-I ${PWD}/third-party/hiredis"
 fi
 
 PF_RING_HOME=${HOME}/PF_RING
@@ -186,6 +210,15 @@ else
     echo "Please install libpcap(-dev) (http://tcpdump.org)"
     exit
   fi
+fi
+
+AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
+AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
+AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
+
+if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" = xyes; then
+  AC_DEFINE_UNQUOTED(HAVE_NETFILTER, 1, [NFQ is present])
+  LDFLAGS="${LDFLAGS} -lnetfilter_queue"
 fi
 
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
@@ -293,6 +326,7 @@ fi
 
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
+AC_SUBST(PWD)
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)
 AC_SUBST(EXTN)
@@ -325,7 +359,7 @@ AC_SUBST(PRO_MAKEFILE_INC)
 AC_SUBST(PRO_LIBS)
 AC_SUBST(PRO_INC)
 AC_SUBST(REVISION)
-AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
 AC_CONFIG_FILES(Makefile)
@@ -338,7 +372,9 @@ echo "You are now ready to compile typing $GMAKE"
 
 if test $DOWNLOAD_GEOIP = "1"
 then
+if ! test -f "./httpdocs/geoip/GeoIPASNum.dat"; then
   echo "Please do not forget to download GeoIP databases doing: $GMAKE geoip"
+fi
 fi
 
 dnl>

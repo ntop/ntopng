@@ -23,6 +23,12 @@
 
 #include <curl/curl.h>
 
+// A simple struct for strings.
+typedef struct {
+  char *s;
+  size_t l;
+} String;
+
 typedef struct {
   char outbuf[16384];
   u_int num_bytes;
@@ -117,6 +123,9 @@ bool Utils::isIPAddress(char *ip) {
   struct in_addr addr4;
   struct in6_addr addr6;
 
+  if((ip == NULL) || (ip[0] == '\0'))
+    return(false);
+  
   if(strchr(ip, ':') != NULL) { /* IPv6 */
     if(inet_pton(AF_INET6, ip, &addr6) == 1)
       return(true);
@@ -183,7 +192,9 @@ float Utils::timeval2ms(struct timeval *tv) {
 
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
-  int ret = infile.good();
+
+ /*  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): %s", __FUNCTION__, path); */
+  bool ret = infile.good();
   infile.close();
   return ret;
 }
@@ -747,7 +758,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
   curl = curl_easy_init();
   if(curl) {
     curl_version_info_data *v;
-    DownloadState *state;
+    DownloadState *state = NULL;
     long response_code;
     char *content_type, *redirection;
     char ua[64], auth[64];
@@ -809,7 +820,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
       lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
 
-    if(return_content)
+    if(return_content && state)
       free(state);
     
     /* always cleanup */
@@ -840,6 +851,106 @@ char* Utils::getURL(char *url, char *buf, u_int buf_len) {
     return(new_url);
   } else
     return(url);
+}
+
+/* **************************************** */
+
+// Support functions for 'urlEncode'.
+
+static char to_hex(char code) {
+  static char hex[] = "0123456789ABCDEF";
+  return hex[code & 15];
+}
+
+static int alphanum(char code) {
+  int i;
+  static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+  for (i = 0; i < 36; i++) {
+    if (code == alnum[i]) return 1;
+  }
+  return 0;
+}
+
+// Encodes a URL to hexadecimal format.
+char* Utils::urlEncode(char *url) {
+  char *pstr = url;
+  char *buf = (char *) malloc(strlen(url) * 3 + 1);
+  char *pbuf = buf;
+  while (*pstr) {
+    if (alphanum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
+      *pbuf++ = *pstr;
+    }
+    else {
+      if (*pstr == ' ') *pbuf++ = '+';
+      else {
+        *pbuf++ = '%';
+        *pbuf++ = to_hex(*pstr >> 4);
+        *pbuf++ = to_hex(*pstr & 15);
+      }
+    }
+    pstr++;
+  }
+  *pbuf = '\0';
+  return buf;
+}
+
+/* **************************************** */
+
+// The following one initializes a new string.
+static void newString(String *str) {
+  str->l = 0;
+  str->s = (char *) malloc((str->l) + 1);
+  if (str->s == NULL) {
+    fprintf(stderr, "ERROR: malloc() failed!\n");
+    exit(EXIT_FAILURE);
+  }
+  else {
+    str->s[0] = '\0';
+  }
+  return;
+}
+
+// This callback function will be passed to 'curl_easy_setopt' in order to write curl output to a variable.
+static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
+  size_t new_len = str->l + (size * nmemb);
+  str->s = (char *) realloc(str->s, new_len + 1);
+  if (str->s == NULL) {
+    fprintf(stderr, "ERROR: realloc() failed!\n");
+    exit(EXIT_FAILURE);
+  }
+  memcpy(str->s+str->l, ptr, size * nmemb);
+  str->s[new_len] = '\0';
+  str->l = new_len;
+
+  return (size * nmemb);
+}
+
+// Adding this function that performs a simple HTTP GET request using libcurl.
+// The function returns a string that contains the reply.
+char* Utils::curlHTTPGet(char *url, long *http_code) {
+  CURL *curl;
+  CURLcode res;
+  String replyString;
+  long replyCode = 0;
+
+  curl = curl_easy_init();
+  if (curl) {
+    newString(&replyString);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    // Uncomment the following line for redirection support.
+    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &replyString);
+    res = curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &replyCode);
+    if (res != CURLE_OK) {
+      fprintf(stderr, "ERROR: curl_easy_perform failed with code %s.\n", curl_easy_strerror(res));
+    }
+    *http_code = replyCode;
+    curl_easy_cleanup(curl);
+    return replyString.s;
+  }
+  return NULL;
 }
 
 /* **************************************** */
@@ -1015,3 +1126,5 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
   return true;
 }
+
+/* **************************************** */

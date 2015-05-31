@@ -40,6 +40,7 @@ or
 .IR <categorization_key> ]
 .RB [ \-m
 .IR <local_subnets> ]
+.RB [ \-u | \-\-no\-promisc ]
 .RB [ \-p
 .IR <protocols> ]
 .RB [ \-P ]
@@ -80,7 +81,7 @@ or
 .IR <mode> ]
 .RB [ \-Z
 .IR <prefix> ]
-.RB [ \-\-shutdown-when-done ]
+.RB [ \-\-shutdown\-when\-done ]
 .RB [ \-v ]
 .RB [ \-V ]
 .RB [ \-h ]
@@ -187,11 +188,10 @@ Set the key used to access httpbl services (default: disabled).  Please read REA
 .It \-c|\-\-categorization\-key\ <key>
 Sets the key used to access host categorization services.
 .B ntopng
-categorizes hosts using services provided by http://block.si
-In order to use these categorization services you need to mail info@block.si and
-ask for a test key to be used in ntopng.
-For test driving the service please use as key 9hoAtewwpC2tXRMJBfifrY24B
-(example ntopng \-c 9hoAtewwpC2tXRMJBfifrY24B .....).
+categorizes hosts using services provided by Google.
+In order to use these categorization services you need sign uo at 
+https://developers.google.com/safe-browsing/key_signup and use the
+generated key with this command line option.
 
 .It \-e|\-\-daemon
 This parameter causes ntop to become a daemon, i.e. a task which runs in the background without connection to a specific terminal. To use ntop other than as a casual monitoring tool, you probably will want to use this option.
@@ -224,6 +224,9 @@ set to 192.168.1.0/24.
 Commas separate multiple network values.
 Both netmask and CIDR notation may be used, even mixed together, for instance
 "131.114.21.0/24,10.0.0.0/255.0.0.0".
+
+.It \-u|\-\-no\-promisc
+Disable promiscous mode when capturing from network interfaces (by default promiscuous mode is used).
 
 .It \-p|\-\-ndpi\-protocols\ <file>.protos
 This parameter is used to specify a nDPI protocol file.

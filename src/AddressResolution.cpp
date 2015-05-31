@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#include "third-party/patricia/patricia.c"
+#include "../third-party/patricia/patricia.c"
 
 /* **************************************** */
 
@@ -325,7 +325,7 @@ static void* resolveLoop(void* ptr) {
       if(numeric_ip[0] != '\0')
 	a->resolveHostName(numeric_ip);
     } else
-      sleep(1);
+      sleep(1);    
   }
 
   return(NULL);
@@ -335,7 +335,15 @@ static void* resolveLoop(void* ptr) {
 
 void AddressResolution::startResolveAddressLoop() {
   if(ntop->getPrefs()->is_dns_resolution_enabled()) {
-    for(int i=0; i<CONST_NUM_RESOLVERS; i++)
+    int num_resolvers =
+#ifdef NTOPNG_EMBEDDED_EDITION
+      1
+#else
+      CONST_NUM_RESOLVERS
+#endif
+      ;
+
+    for(int i=0; i<num_resolvers; i++)
       pthread_create(&resolveThreadLoop, NULL, resolveLoop, (void*)this);
   }
 }

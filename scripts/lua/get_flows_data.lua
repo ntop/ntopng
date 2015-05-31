@@ -44,6 +44,8 @@ sqlite = _GET["sqlite"]
 -- Get from redis the throughput type bps or pps
 throughput_type = getThroughputType()
 
+prefs = ntop.getPrefs()
+
 if(network_id ~= nil) then
    network_id = tonumber(network_id)
 end
@@ -330,10 +332,6 @@ for key, value in pairs(flows_stats) do
    else
       vkey = postfix
    end
-   elseif(sortColumn == "column_category") then
-   c = flows_stats[key]["category"]
-   if(c == nil) then c = "" end
-     vkey = c..postfix
    elseif(sortColumn == "column_duration") then
    vkey = flows_stats[key]["duration"]+postfix
    elseif(sortColumn == "column_thpt") then
@@ -469,10 +467,8 @@ for _key, _value in pairsByKeys(vals, funct) do
       print("\", \"column_vlan\" : \"\"")
    end
 
-   if(value["category"] ~= nil) then print (", \"column_category\" : \"" .. getCategory(value["category"])) else print (",") end
-   -- if (debug) then io.write(value["category"].."[" .. getCategory(value["category"]).. "]\n")   end
-   print ("\"column_proto_l4\" : \"")
-
+   -- if(value["category"] ~= nil) then print (", \"column_category\" : \"" .. value["category"] .. "\", ") else print (",") end
+   print (", \"column_proto_l4\" : \"")
 
    if(value["tcp.seq_problems"] == true) then
       print("<font color=#B94A48>"..value["proto.l4"].."</font>")
@@ -527,7 +523,17 @@ for _key, _value in pairsByKeys(vals, funct) do
    cli2srv = round((value["cli2srv.bytes"] * 100) / value["bytes"], 0)
    print (", \"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: " .. cli2srv .."%;'>Client</div><div class='progress-bar progress-bar-info' style='width: " .. (100-cli2srv) .. "%;'>Server</div></div>")
 
-   print ("\", \"column_info\" : \"".. value["info"] .. "\" }\n")
+   print ("\", \"column_info\" : \"".. value["info"])
+
+   if(prefs.is_categorization_enabled and (value["info"] ~= "")) then
+      flow = interface.findFlowByKey(tonumber(key))
+      if(flow ~= nil) then value["category"] = flow["category"] end
+      if(value["category"] ~= "") then
+	 print(" ".. getCategoryIcon(value["info"], value["category"]))
+      end
+   end
+
+   print(" \" }\n")
    
    num = num + 1
 end
