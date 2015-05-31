@@ -618,13 +618,10 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   we need to lock/unlock
 */
 void Host::setName(char *name, bool update_categorization) {
-  bool to_categorize = false;
-
   if(m) m->lock(__FILE__, __LINE__);
   if((symbolic_name == NULL) || (symbolic_name && strcmp(symbolic_name, name))) {
     if(symbolic_name) free(symbolic_name);
     symbolic_name = strdup(name);
-    to_categorize = true;
   }
   if(m) m->unlock(__FILE__, __LINE__);
   
