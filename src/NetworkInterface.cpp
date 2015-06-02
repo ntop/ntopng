@@ -623,7 +623,11 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
     struct timeval when;
 
     when.tv_sec = (long)last_pkt_rcvd, when.tv_usec = 0;
+#ifdef __OpenBSD__
+    flow->updateTcpFlags((const struct bpf_timeval*)&when,
+#else
     flow->updateTcpFlags((const struct timeval*)&when,
+#endif
 			 zflow->tcp_flags, src2dst_direction);
   }
 
@@ -690,7 +694,11 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 
 /* **************************************************** */
 
+#ifdef __OpenBSD__
+bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
+#else
 bool NetworkInterface::packetProcessing(const struct timeval *when,
+#endif
 					const u_int64_t time,
 					struct ndpi_ethhdr *eth,
 					u_int16_t vlan_id,

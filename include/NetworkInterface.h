@@ -231,7 +231,11 @@ class NetworkInterface {
   void flushHostContacts();
   bool packet_dissector(const struct pcap_pkthdr *h, const u_char *packet,
 			int *a_shaper_id, int *b_shaper_id);
+#ifdef __OpenBSD__
+  bool packetProcessing(const struct bpf_timeval *when,
+#else
   bool packetProcessing(const struct timeval *when,
+#endif
 			const u_int64_t time,
 			struct ndpi_ethhdr *eth,
 			u_int16_t vlan_id,
