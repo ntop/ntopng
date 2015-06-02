@@ -1089,10 +1089,10 @@ function version2int(v)
     major = e[1]
     minor = e[2]
     veryminor = e[3]
-
-    if(major == nil or type(major) ~= "number")     then major = 0 end
-    if(minor == nil or type(minor) ~= "number")     then minor = 0 end
-    if(veryminor == nil or type(veryminor) ~= "number") then veryminor = 0 end
+    
+    if(major == nil or type(major) ~= "string")     then major = 0 end
+    if(minor == nil or type(minor) ~= "string")     then minor = 0 end
+    if(veryminor == nil or type(veryminor) ~= "string") then veryminor = 0 end
 
     version = tonumber(major)*1000 + tonumber(minor)*100 + tonumber(veryminor)
     return(version)
@@ -1101,6 +1101,29 @@ function version2int(v)
   end
 end
 
+function ntop_version_check()
+   _rsp = ntop.getCache("ntopng.version")
+
+   if((_rsp == nil) or (_rsp == "")) then
+      _rsp = ntop.httpGet("http://www.ntop.org/ntopng.version", "", "", 10)
+      if((_rsp == nil) or (_rsp["CONTENT"] == nil)) then rsp = "0.0.0" else rsp = _rsp["CONTENT"] end
+      ntop.setCache("ntopng.version", rsp, 86400)
+   else
+      rsp = _rsp
+   end
+
+   if(rsp ~= nil) then
+      info = ntop.getInfo()
+      stable_version = version2int(rsp)
+
+      version_elems  = split(info["version"], " ");
+      this_version   = version2int(version_elems[1])
+
+      if(stable_version > this_version) then
+	 print("<p><div class=\"alert alert-warning\"><font color=red><i class=\"fa fa-cloud-download fa-lg\"></i> A new "..info["product"].." (v." .. rsp .. ") is available for <A HREF=http://www.ntop.org/get-started/download/>download</A>: please upgrade.</font></div></p>")
+      end
+   end
+end
 
 
 -- Print contents of `tbl`, with indentation.

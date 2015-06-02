@@ -203,20 +203,4 @@ print [[/lua/if_stats.lua?if_name=Historical&page=config_historical">configurati
   end
 end
 
-if(page == "TopFlowTalkers") then
-   -- TODO: one day this should be asynchronous
-   rsp = ntop.httpGet("http://www.ntop.org/ntopng.version", "", "", 1)
-
-   if((rsp ~= nil) and (rsp["CONTENT"] ~= nil)) then
-      info = ntop.getInfo()
-      stable_version = version2int(rsp["CONTENT"])
-      version_elems  = split(info["version"], " ");
-      this_version   = version2int(version_elems[1])
-
-      if(stable_version > this_version) then
-	 print("<p><div class=\"alert alert-warning\"><font color=red><i class=\"fa fa-cloud-download fa-lg\"></i> A new "..info["product"].." (v." .. rsp .. ") is available for <A HREF=http://www.ntop.org>download</A>: please upgrade.</font></div></p>")
-      end
-   end
-end
-
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -9,6 +9,8 @@ print [[
       <hr>
    ]]
 
+ntop_version_check()
+
 info = ntop.getInfo()
 
 print [[
