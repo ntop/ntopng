@@ -2814,8 +2814,13 @@ static int ntop_generate_csrf_value(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
+#ifdef __OpenBSD__
+  snprintf(random_a, sizeof(random_a), "%d", arc4random());
+  snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*arc4random());
+#else
   snprintf(random_a, sizeof(random_a), "%d", rand());
   snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*rand());
+#endif
 
   mg_md5(csrf, random_a, random_b, NULL);
 
