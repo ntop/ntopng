@@ -173,6 +173,7 @@ class NetworkInterface {
   NetworkInterface(const char *name);
   virtual ~NetworkInterface();
 
+  void setCPUAffinity(int core_id);
   virtual void startPacketPolling();
   virtual void shutdown();
   virtual void cleanup();
@@ -219,7 +220,6 @@ class NetworkInterface {
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
   inline int isRunning()	   { return running;             };
-  inline void set_cpu_affinity(int core_id) { cpu_affinity = core_id; if (running) Utils::setThreadAffinity(pollLoop, cpu_affinity); };
   bool restoreHost(char *host_ip);
   void enableInterfaceView();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);

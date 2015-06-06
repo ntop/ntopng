@@ -1189,15 +1189,20 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
 /* **************************************************** */
 
+void NetworkInterface::setCPUAffinity(int core_id) {
+  cpu_affinity = core_id; 
+
+  if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
+				 get_name(), cpu_affinity);
+  else
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
+				 get_name(), cpu_affinity);
+}
+
+/* **************************************************** */
+
 void NetworkInterface::startPacketPolling() {
-  if(pollLoopCreated && cpu_affinity >= 0) {
-    if (Utils::setThreadAffinity(pollLoop, cpu_affinity))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
-                                   get_name(), cpu_affinity);
-    else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
-                                   get_name(), cpu_affinity);
-  }
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
 			       get_name(), get_id());
