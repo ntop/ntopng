@@ -173,7 +173,7 @@ class NetworkInterface {
   NetworkInterface(const char *name);
   virtual ~NetworkInterface();
 
-  void setCPUAffinity(int core_id);
+  inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   virtual void startPacketPolling();
   virtual void shutdown();
   virtual void cleanup();

@@ -83,8 +83,7 @@ int HistoricalInterface::loadData(char* p_file_name, int limit) {
   char *zErrMsg = 0;
   sqlite3 *db;
 
-  if(p_file_name && isRunning()){
-
+  if(p_file_name && isRunning()) {
     // if(running == false)
     //   NetworkInterface::startPacketPolling();
 

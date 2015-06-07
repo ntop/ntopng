@@ -140,20 +140,24 @@ bool Utils::isIPAddress(char *ip) {
 /* ****************************************************** */
 
 int Utils::setThreadAffinity(pthread_t thread, int core_id) {
-   int ret = -1;
+  if(core_id < 0)
+    return(0);
+  else {
+    int ret = -1;
 #ifdef linux
-   u_int num_cores = ntop->getNumCPUs();
-   u_long core = core_id % num_cores;
-   cpu_set_t cpu_set;
- 
-   if(num_cores > 1) {
-     CPU_ZERO(&cpu_set);
-     CPU_SET(core, &cpu_set);
-     ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpu_set);
-   }
-
+    u_int num_cores = ntop->getNumCPUs();
+    u_long core = core_id % num_cores;
+    cpu_set_t cpu_set;
+    
+    if(num_cores > 1) {
+      CPU_ZERO(&cpu_set);
+      CPU_SET(core, &cpu_set);
+      ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpu_set);
+    }
+    
 #endif
-  return ret;
+    return ret;
+  }
 }
 
 /* ****************************************************** */
