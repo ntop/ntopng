@@ -105,7 +105,11 @@ Ntop::Ntop(char *appName) {
     fixPath(path);
 
     if(stat(path, &statbuf) == 0) {
+#ifdef __OpenBSD__
+      strlcpy(install_dir, dirs[i], sizeof(install_dir));
+#else
       strcpy(install_dir, dirs[i]);
+#endif
       break;
     }
   }
@@ -1049,7 +1053,7 @@ void Ntop::runHousekeepingTasks() {
 
 void Ntop::sanitizeInterfaceView(NetworkInterfaceView *view) {
   for (int i = 0 ; i < num_defined_interface_views ; i++)
-    if (strcmp(ifaceViews[i]->get_name(), view->get_name()) == 0)
+    if(ifaceViews[i] && (strcmp(ifaceViews[i]->get_name(), view->get_name()) == 0))
       ifaceViews[i] = NULL;
   num_defined_interface_views--;
 }

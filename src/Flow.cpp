@@ -1431,8 +1431,11 @@ void Flow::addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes,
 }
 
 /* *************************************** */
-
+#ifdef __OpenBSD__
+void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags, bool src2dst_direction) {
+#else
 void Flow::updateTcpFlags(const struct timeval *when, u_int8_t flags, bool src2dst_direction) {
+#endif
 #if 0
   if((flags == TH_SYN)
      && ((src2dst_tcp_flags | dst2src_tcp_flags) == TH_SYN) /* SYN was already received */
@@ -1519,7 +1522,11 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 
 /* *************************************** */
 
+#ifdef __OpenBSD__
+void Flow::updateTcpSeqNum(const struct bpf_timeval *when, u_int32_t seq_num,
+#else
 void Flow::updateTcpSeqNum(const struct timeval *when, u_int32_t seq_num,
+#endif
 			   u_int32_t ack_seq_num, u_int8_t flags,
 			   u_int16_t payload_Len, bool src2dst_direction) {
   u_int32_t next_seq_num;

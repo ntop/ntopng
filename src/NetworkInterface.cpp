@@ -56,10 +56,10 @@ NetworkInterface::NetworkInterface() {
     strings_hash = NULL, ndpi_struct = NULL,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     sprobe_interface = false, has_vlan_packets = false,
-    pcap_datalink_type = 0, cpu_affinity = 0,
+    pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false,
     pkt_dumper = NULL;
-  pollLoopCreated = false, bridge_interface = 0;
+  pollLoopCreated = false, bridge_interface = false;
   if(ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -165,10 +165,9 @@ NetworkInterface::NetworkInterface(const char *name) {
     NDPI_BITMASK_SET_ALL(all);
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
-    last_pkt_rcvd = 0;
-    pollLoopCreated = false;
+    last_pkt_rcvd = 0, pollLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_aggregated_host_purge = 0;
-    cpu_affinity = -1, has_vlan_packets = false, pkt_dumper = NULL;
+    cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
    
@@ -623,7 +622,11 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
     struct timeval when;
 
     when.tv_sec = (long)last_pkt_rcvd, when.tv_usec = 0;
+#ifdef __OpenBSD__
+    flow->updateTcpFlags((const struct bpf_timeval*)&when,
+#else
     flow->updateTcpFlags((const struct timeval*)&when,
+#endif
 			 zflow->tcp_flags, src2dst_direction);
   }
 
@@ -690,7 +693,11 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 
 /* **************************************************** */
 
+#ifdef __OpenBSD__
+bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
+#else
 bool NetworkInterface::packetProcessing(const struct timeval *when,
+#endif
 					const u_int64_t time,
 					struct ndpi_ethhdr *eth,
 					u_int16_t vlan_id,
@@ -1182,14 +1189,15 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
-  if(pollLoopCreated && cpu_affinity >= 0) {
-    if (Utils::setThreadAffinity(pollLoop, cpu_affinity))
+  if(cpu_affinity > 0) {
+    if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
-                                   get_name(), cpu_affinity);
+				   get_name(), cpu_affinity);
     else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
-                                   get_name(), cpu_affinity);
+				   get_name(), cpu_affinity);
   }
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
 			       get_name(), get_id());

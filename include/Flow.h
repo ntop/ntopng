@@ -139,9 +139,17 @@ class Flow : public GenericHashEntry {
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two) ;
 
+#ifdef __OpenBSD__
+  void updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags, bool src2dst_direction);
+#else
   void updateTcpFlags(const struct timeval *when, u_int8_t flags, bool src2dst_direction);
+#endif
 
+#ifdef __OpenBSD__
+  void updateTcpSeqNum(const struct bpf_timeval *when, u_int32_t seq_num,
+#else
   void updateTcpSeqNum(const struct timeval *when, u_int32_t seq_num,
+#endif
 		       u_int32_t ack_seq_num, u_int8_t flags,
 		       u_int16_t payload_len, bool src2dst_direction);
 
