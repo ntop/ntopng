@@ -587,6 +587,7 @@ SUDO
 PFRING_DEP
 PFRING_RELEASE
 PFRING_VERS
+GIT_COMMITS
 GIT_RELEASE
 EXTRA_DEPS
 KERNEL
@@ -1695,7 +1696,7 @@ fi
 if  test -f /usr/bin/lsb_release  &&  test -n "$EXTRA_DEPS" ; then
   EXTRA_DEPS=", libnuma1, libzmq3"
   PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
-  PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+  PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[:space:]'`
   PFRING_DEP=", pfring (=$PFRING_VERS-$PFRING_RELEASE)"
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   if test "$UBUNTU_RELEASE" = "12.04"; then
@@ -1720,9 +1721,11 @@ cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
 GIT_RELEASE=`git rev-parse HEAD`
+GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[:space:]'`
 
 DATE=`date -R`
 KERNEL=`uname -r`
+
 
 
 
