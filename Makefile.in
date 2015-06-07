@@ -3,10 +3,10 @@ prefix = @prefix@
 datadir = @datadir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
-HERE=@PWD@
+PWD=@PWD@
 GPP=@GPP@
-INSTALL_DIR=$(DESTDIR)@INSTALL_DIR@
-MAN_DIR=$(DESTDIR)@MAN_DIR@
+INSTALL_DIR=$(prefix)
+MAN_DIR=$(prefix)
 ######
 HAS_NDPI=$(shell pkg-config --exists libndpi; echo $$?)
 ifeq ($(HAS_NDPI), 0)
@@ -41,7 +41,11 @@ ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_LIB = $(shell pkg-config --libs librrd)
 else
 	LIBRRDTOOL_INC=-I$(LIBRRDTOOL_HOME)/src/
-	LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0
+	ifeq ($(OS), OpenBSD)
+		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm -lgobject-2.0 -lgmodule-2.0 -lglib-2.0	
+	else
+		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0
+	endif
 endif
 ######
 HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/

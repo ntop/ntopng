@@ -190,7 +190,8 @@ int main(int argc, char *argv[])
       core_id = atoi(core_id_s);
     else
       core_id = i;
-    iface->set_cpu_affinity(core_id);
+
+    iface->setCPUAffinity(core_id);
     affinity = NULL;
 #endif
 
@@ -244,9 +245,9 @@ int main(int argc, char *argv[])
 #endif
 
   ntop->loadGeolocation(prefs->get_docs_dir());
-  ntop->registerHTTPserver( new HTTPserver(prefs->get_http_port(),
-					   prefs->get_docs_dir(),
-					   prefs->get_scripts_dir()));
+  ntop->registerHTTPserver(new HTTPserver(prefs->get_http_port(),
+					  prefs->get_docs_dir(),
+					  prefs->get_scripts_dir()));
   /*
     We have created the network interface and thus changed user. Let's not check
     if we can write on the data directory

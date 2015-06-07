@@ -157,6 +157,32 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 
 /* ********************************************* */
 
+#ifdef __OpenBSD__
+#define OPENBSD_TAPDEVICE_SIZE 32
+int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg. edge0 */ int mtu) {
+  int i;
+  char tap_device[OPENBSD_TAPDEVICE_SIZE];
+
+  for (i = 0; i < 255; i++) {
+    snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
+    this->fd = open(tap_device, O_RDWR);
+    if(this->fd > 0) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully open %s", tap_device);
+      break;
+    }
+  }
+  if(this->fd < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open tap device");
+    return(-1);
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface tap%d up and running", i);
+  return(this->fd);
+}
+#endif
+
+/* ********************************************* */
+
 #ifdef WIN32
 
 int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg. edge0 */ int mtu) {

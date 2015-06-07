@@ -78,6 +78,7 @@ else
 fi
 cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
 find $RPM_BUILD_ROOT -name ".git" | xargs /bin/rm -rf
+find $RPM_BUILD_ROOT -name ".svn" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name "*~"   | xargs /bin/rm -f
 #
 DST=$RPM_BUILD_ROOT/usr/ntopng
