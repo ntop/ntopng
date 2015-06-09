@@ -1553,3 +1553,26 @@ function maxRateToString(max_rate)
       end
    end
 end
+
+function makeTopStatsScriptsArray()
+   path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
+   path = fixPath(path)
+   local files = ntop.readdir(path)
+   topArray = {}
+
+   for k,v in pairs(files) do
+      if(v ~= nil) then
+	 value = {}
+	 fn,ext = v:match("([^.]+).([^.]+)")
+	 mod = require("top_scripts."..fn)
+	 if(type(mod) ~= type(true)) then
+            value["name"] = mod.name
+            value["script"] = mod.infoScript
+            value["key"] = mod.infoScriptKey
+            value["levels"] = mod.numLevels
+            topArray[fn] = value
+	 end
+      end
+   end
+   return(topArray)
+end
