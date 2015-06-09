@@ -2029,7 +2029,7 @@ else
    rrdfile=_GET["rrd_file"]
 end
 
-drawRRD(ifId, hostinfo2hostkey(host_info), rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..hostinfo2url(host_info)..'&page=historical', 1, _GET["epoch"], nil, nil)
+drawRRD(ifId, hostinfo2hostkey(host_info), rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..hostinfo2url(host_info)..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
 elseif(page == "aggregations") then
 print [[
