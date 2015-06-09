@@ -244,7 +244,7 @@ static NetworkInterfaceView* get_ntop_interface(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  lua_getglobal(vm, "ntop_interface");
+  lua_getglobal(vm, CONST_NTOP_INTERFACE);
   if((ntop_interface = (NetworkInterfaceView*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
     ntop_interface = handle_null_interface_view(vm);
   }
@@ -292,7 +292,7 @@ static int ntop_select_interface(lua_State* vm) {
   ifname = (char*)lua_tostring(vm, 1);
 
   lua_pushlightuserdata(vm, (char*)ntop->getNetworkInterfaceView(ifname));
-  lua_setglobal(vm, "ntop_interface");
+  lua_setglobal(vm, CONST_NTOP_INTERFACE);
 
   return(CONST_LUA_OK);
 }
