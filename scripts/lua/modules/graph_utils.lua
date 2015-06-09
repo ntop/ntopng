@@ -306,13 +306,13 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       names_cache = {}
       for i, n in ipairs(fnames) do
          -- handle duplicates
-         if (names_cache[prefixLabel] == nil) then
-	   names[num] = prefixLabel
-           names_cache[prefixLabel] = true
-	   -- if(prefixLabel ~= firstToUpper(n)) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
-	   num = num + 1
-	   --io.write(prefixLabel.."\n")
-	   --print(num.."\n")
+         if (names_cache[n] == nil) then
+           names_cache[n] = true
+           names[num] = prefixLabel
+           if(host ~= nil) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
+           num = num + 1
+           --io.write(prefixLabel.."\n")
+           --print(num.."\n")
          end
       end
 
