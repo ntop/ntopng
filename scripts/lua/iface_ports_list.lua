@@ -13,23 +13,25 @@ interface.select(ifname)
 
 host = _GET["host"]
 
-flows_stats = interface.getFlowsInfo()
+client_ports = nil
+server_ports = nil
 
-client_ports = { }
-server_ports = { }
-
-for key, value in pairs(flows_stats) do
-    if((host == nil) or (flows_stats[key]["cli.ip"] == host)) then
-     	p = flows_stats[key]["cli.port"]
-	if(client_ports[p] == nil) then client_ports[p] = 0 end
-        client_ports[p] = client_ports[p] + flows_stats[key]["bytes"]
+function fill_ports_array(field_key, flows_stats, host)
+    local ports_array = {}
+    for key, value in pairs(flows_stats) do
+      if ((host == nil) or (flows_stats[key][field_key..".ip"] == host)) then
+        p = flows_stats[key][field_key..".port"]
+        if(ports_array[p] == nil) then ports_array[p] = 0 end
+        ports_array[p] = ports_array[p] + flows_stats[key]["bytes"]
+      end
     end
-    if((host == nil) or (flows_stats[key]["srv.ip"] == host)) then
-     	p = flows_stats[key]["srv.port"]
-	if(server_ports[p] == nil) then server_ports[p] = 0 end
-        server_ports[p] = server_ports[p] + flows_stats[key]["bytes"]
-    end
+    return ports_array
 end
+
+if (host == nil) then flows_stats = interface.getFlowsInfo()
+else flows_stats = interface.getFlowsInfo(host) end
+client_ports = fill_ports_array("cli", flows_stats, host)
+server_ports = fill_ports_array("srv", flows_stats, host)
 
 if(_GET["mode"] == "server") then
   ports = server_ports
