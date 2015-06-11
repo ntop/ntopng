@@ -131,7 +131,7 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 
 /* ********************************************* */
 
-#ifdef __FreeBSD
+#ifdef __FreeBSD__
 #define FREEBSD_TAPDEVICE_SIZE 32
 int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg. edge0 */ int mtu) {
   int i;
