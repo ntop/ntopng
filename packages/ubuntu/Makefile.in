@@ -76,4 +76,4 @@ install:
 	echo "dummy install"
 
 clean:
-	-rm -rf *~ *deb debian/tmp ./usr
+	-@SUDO@ rm -rf *~ *deb debian/tmp ./usr
