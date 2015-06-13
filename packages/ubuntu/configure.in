@@ -40,6 +40,12 @@ else
   SUDO="sudo"
 fi
 
+if [ -n "$USER" ]; then
+CHOWN="$SUDO chown ${USER}{$GROUP} ../ntopng_*deb"
+else
+CHOWN="@echo \"\""
+fi
+
 /bin/rm -f debian.ntopng/control.in
 cd debian.ntopng
 ln -s control.$UBUNTU_RELEASE.in control.in
@@ -64,6 +70,7 @@ AC_SUBST(PFRING_VERS)
 AC_SUBST(PFRING_RELEASE)
 AC_SUBST(PFRING_DEP)
 AC_SUBST(SUDO)
+AC_SUBST(CHOWN)
 
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(debian.ntopng/changelog)
