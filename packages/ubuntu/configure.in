@@ -19,7 +19,7 @@ else
   fi
 fi
 
-if [ test -f /usr/bin/lsb_release ] && [ test -n "$EXTRA_DEPS" ]; then
+if [ test -f /usr/bin/lsb_release ]; then
   EXTRA_DEPS=", libnuma1, libzmq3"
   PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
   PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[[:space:]]'`
