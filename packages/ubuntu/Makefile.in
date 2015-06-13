@@ -3,6 +3,7 @@
 #
 NTOPNG_HOME=$(PWD)/../..
 NTOPNG_BUILD=${NTOPNG_HOME}/packages/ubuntu
+CHOWN=$(USER):$(GROUP)
 
 all: clean ntopng ntopng-data
 
@@ -32,7 +33,7 @@ ntopng:
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng_*deb
 	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc -b
-	@SUDO@ chown ${USER}:${GROUP} ../ntopng_*deb
+	@SUDO@ chown ${CHOWN} ../ntopng_*deb
 	dpkg-sig --sign builder -k 7921DF34 ../ntopng_*deb
 	@\rm -f ../ntopng_*dsc ../ntopng_*.gz ../ntopng_*changes
 	@/bin/mv ../ntopng_*deb .
