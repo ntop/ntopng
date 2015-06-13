@@ -1039,7 +1039,11 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
     if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
   }
 
-  if(ntop_interface) ntop_interface->getActiveFlowsList(vm, get_allowed_nets(vm), FF_HOST, host_ip, &vlan_id, 0);
+  if (host_ip) {
+    if(ntop_interface) ntop_interface->getActiveFlowsList(vm, get_allowed_nets(vm), FF_HOST, host_ip, &vlan_id, 0);
+  } else {
+    if(ntop_interface) ntop_interface->getActiveFlowsList(vm, get_allowed_nets(vm), FF_NONE, NULL, NULL, 0);
+  }
 
   return(CONST_LUA_OK);
 }

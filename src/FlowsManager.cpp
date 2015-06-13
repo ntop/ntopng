@@ -33,6 +33,7 @@ static bool flows_select_walker(GenericHashEntry *h, void *user_data)
   Flow *flow = (Flow*)h;
 
   switch(info->field) {
+    case FF_NONE: break;
     case FF_HOST: if((info->host != flow->get_cli_host())
                      && (info->host != flow->get_srv_host()))
                     return false;

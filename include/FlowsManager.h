@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-enum flowsField { FF_CLIHOST, FF_SRVHOST, FF_HOST, FF_PROTOCOL, FF_NDPIPROTOCOL };
+enum flowsField { FF_NONE, FF_CLIHOST, FF_SRVHOST, FF_HOST, FF_PROTOCOL, FF_NDPIPROTOCOL };
 
 struct flow_details_info {
   lua_State* vm;
