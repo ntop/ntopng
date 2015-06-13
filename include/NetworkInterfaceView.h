@@ -63,7 +63,8 @@ class NetworkInterfaceView {
   void getActiveAggregatedHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, u_int16_t proto_family, char *host);
   u_int getNumAggregatedHosts(void);
   bool hasSeenVlanTaggedPackets(void);
-  void getActiveFlowsList(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int vlan_id);
+  void getActiveFlowsList(lua_State* vm, patricia_tree_t *allowed_hosts, enum flowsField field,
+                                          void *value, void *auxiliary_value, unsigned long limit);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool correlateHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);

@@ -148,6 +148,7 @@ extern "C" {
 #include "StringHost.h"
 #include "StringHash.h"
 #include "StatsManager.h"
+#include "FlowsManager.h"
 #include "NetworkInterfaceView.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"

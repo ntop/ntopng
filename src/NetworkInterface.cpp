@@ -72,6 +72,7 @@ NetworkInterface::NetworkInterface() {
 #endif
 
   view = NULL, statsManager = NULL;
+  flowsManager = NULL;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false; 
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
@@ -183,6 +184,7 @@ NetworkInterface::NetworkInterface(const char *name) {
   }
 
   statsManager = NULL, view = NULL;
+  flowsManager = NULL;
 
 #ifdef NTOPNG_PRO
   policer = new L7Policer(this);
@@ -358,6 +360,10 @@ void NetworkInterface::enableInterfaceView() {
   if(!statsManager)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate StatsManager");
 
+  flowsManager = new FlowsManager(this);
+  if (!flowsManager)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate FlowsManager");
+
   /* Create view for this interface */
   view = new NetworkInterfaceView(this);
   if(!view)
@@ -422,6 +428,7 @@ NetworkInterface::~NetworkInterface() {
 
   if(db) delete db;
   if(statsManager) delete statsManager;
+  if(flowsManager) delete flowsManager;
 
   if(pkt_dumper) delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
@@ -1694,35 +1701,12 @@ bool NetworkInterface::compareAggregationFamilies(lua_State* vm,
 
 /* **************************************************** */
 
-static bool flows_get_list_details(GenericHashEntry *h, void *user_data) {
-  struct flow_details_info *info = (struct flow_details_info*)user_data;
-  Flow *flow = (Flow*)h;
-
-  if(info->h != NULL) {
-    if((info->h != flow->get_cli_host())
-       && (info->h != flow->get_srv_host()))
-      return(false);
-  }
-
-  flow->lua(info->vm, info->allowed_hosts, false /* Minimum details */);
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
 void NetworkInterface::getActiveFlowsList(lua_State* vm,
-                                          char *host_ip, u_int vlan_id,
-                                          patricia_tree_t *allowed_hosts) {
-  struct flow_details_info info;
-  info.vm = vm, info.allowed_hosts = allowed_hosts;
-
-  if(host_ip == NULL)
-    info.h = NULL;
-  else
-    info.h = getHost(host_ip, vlan_id);
-
-  if((info.h == NULL) || (info.h->match(allowed_hosts)))
-    flows_hash->walk(flows_get_list_details, (void*)&info);
+                                          patricia_tree_t *allowed_hosts,
+                                          enum flowsField field,
+                                          void *value, void *auxiliary_value,
+                                          unsigned long limit) {
+  flowsManager->select(vm, allowed_hosts, field, value, auxiliary_value, limit);
 }
 
 /* **************************************************** */
