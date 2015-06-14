@@ -1,4 +1,4 @@
-ntopng (@NTOPNG_VERS@) table; urgency=high
+ntopng (@NTOPNG_VERS@-@GIT_COMMITS@) table; urgency=high
    * Last packaged version
 
  -- Luca Deri <deri@ntop.org>  @DATE@

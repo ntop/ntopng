@@ -2611,6 +2611,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "version", rsp);
   snprintf(rsp, sizeof(rsp), "%s (%s)", PACKAGE_OSNAME, PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "platform", rsp);
+  lua_push_int_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
   lua_push_int_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());
   lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion(rsp, sizeof(rsp)));

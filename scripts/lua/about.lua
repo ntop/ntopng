@@ -45,8 +45,9 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fa fa-external-link fa-lg'></i> ]")
 
 print [[
-    <br><small>Click on the above URL to generate your professional version license, 
-	       <br>purchase a license at <A HREF=http://shop.ntop.org/>e-shop</A>, or <A HREF=mailto:testing@ntop.org>mail us</A> for a free evaluation license.</small>
+    <br><small>Click on the above URL to generate your professional version license, or 
+	       <br>purchase a license at <A HREF=http://shop.ntop.org/>e-shop</A>. If you are no-profit, research or an education<br>
+institution please read <A HREF=http://www.ntop.org/about/about-us-2/>this</A>.</small>
 	 <p>
    ]]
 
@@ -67,9 +68,8 @@ end
 print("</td></tr>")
 
 vers = string.split(info["version.git"], ":")
-if((vers ~= nil) and (vers[1] ~= nil)) then
-   v_hash = string.sub(vers[1], 2) 
-   ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. v_hash ..">"..info["version"].."</A>"
+if((vers ~= nil) and (vers[2] ~= nil)) then
+   ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. vers[2] ..">"..info["version"].."</A>"
 else
    ntopng_git_url = info["version"]
 end
@@ -88,7 +88,7 @@ end
 
 print(" Edition</td></tr>\n")
 
-print("<tr><th>Platform</th><td>"..info["platform"].."</td></tr>\n")
+print("<tr><th>Platform</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
 print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".._SESSION["user"].."</td></tr>\n")
 print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTime(info["uptime"]).."</td></tr>\n")
 print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")

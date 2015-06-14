@@ -19,10 +19,10 @@ else
   fi
 fi
 
-if [ test -f /usr/bin/lsb_release ] && [ test -n "$EXTRA_DEPS" ]; then
+if [ test -f /usr/bin/lsb_release ]; then
   EXTRA_DEPS=", libnuma1, libzmq3"
   PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
-  PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+  PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[[:space:]]'`
   PFRING_DEP=", pfring (=$PFRING_VERS-$PFRING_RELEASE)"
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   if test "$UBUNTU_RELEASE" = "12.04"; then
@@ -40,6 +40,12 @@ else
   SUDO="sudo"
 fi
 
+if [ -n "$USER" ]; then
+CHOWN="$SUDO chown ${USER}{$GROUP} ../ntopng_*deb"
+else
+CHOWN="@echo \"\""
+fi
+
 /bin/rm -f debian.ntopng/control.in
 cd debian.ntopng
 ln -s control.$UBUNTU_RELEASE.in control.in
@@ -47,6 +53,7 @@ cd -
 
 NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
 GIT_RELEASE=`git rev-parse HEAD`
+GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
 
 DATE=`date -R`
 KERNEL=`uname -r`
@@ -58,10 +65,12 @@ AC_SUBST(DATE)
 AC_SUBST(KERNEL)
 AC_SUBST(EXTRA_DEPS)
 AC_SUBST(GIT_RELEASE)
+AC_SUBST(GIT_COMMITS)
 AC_SUBST(PFRING_VERS)
 AC_SUBST(PFRING_RELEASE)
 AC_SUBST(PFRING_DEP)
 AC_SUBST(SUDO)
+AC_SUBST(CHOWN)
 
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(debian.ntopng/changelog)
