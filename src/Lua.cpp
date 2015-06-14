@@ -1025,6 +1025,7 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  */
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  char SQL[60];
   char *host_ip = NULL;
   u_int16_t vlan_id = 0;
 
@@ -1040,9 +1041,16 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   }
 
   if (host_ip) {
-    if(ntop_interface) ntop_interface->getActiveFlowsList(vm, get_allowed_nets(vm), FF_HOST, host_ip, &vlan_id, 0);
+    char ip[64];
+    strncpy(ip, host_ip, 64); /* don't rely on host_ip as strtok_r() doesn't always behave correctly */
+    snprintf(SQL, 60, "SELECT * FROM FLOWS WHERE host = %s AND vlan = %u", ip, vlan_id);
   } else {
-    if(ntop_interface) ntop_interface->getActiveFlowsList(vm, get_allowed_nets(vm), FF_NONE, NULL, NULL, 0);
+    snprintf(SQL, 60, "SELECT * FROM FLOWS");
+  }
+
+  if(ntop_interface) {
+    if (ntop_interface->retrieve(vm, get_allowed_nets(vm), SQL))
+      return CONST_LUA_ERROR;
   }
 
   return(CONST_LUA_OK);

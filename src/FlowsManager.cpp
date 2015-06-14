@@ -96,7 +96,7 @@ void FlowsManager::select(lua_State* vm,
   case FF_CLIHOST:
   case FF_SRVHOST:
     host_ip = (char *)value;
-    vlan_id = *((u_int *)auxiliary_value);
+    vlan_id = auxiliary_value ? *((u_int *)auxiliary_value) : 0;
     info.host = intf->getHost(host_ip, vlan_id);
     break;
 
@@ -116,4 +116,132 @@ void FlowsManager::select(lua_State* vm,
   if((field != FF_HOST && field != FF_CLIHOST && field != FF_SRVHOST) ||
      (info.host != NULL && info.host->match(allowed_hosts)))
     intf->get_flows_hash()->walk(flows_select_walker, (void*)&info);
+}
+
+enum SQLfield { SF_NONE, SF_SELECT, SF_FROM, SF_WHERE, SF_AND, SF_LIMIT, SF_TOK };
+#define BUFSIZE 20
+
+int FlowsManager::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL) {
+  char *where;
+  bool twhere = false;
+  enum SQLfield previous = SF_NONE;
+  char *tok = NULL;
+  int toknum = 0, where_toknum = 0;
+
+  enum flowsField field = FF_NONE;
+  /* XXX unify types */
+  char value[BUFSIZE];
+  u_int8_t svalue;
+  u_int16_t lvalue;
+  u_int auxiliary_value;
+  void *pvalue = NULL;
+  void *pauxiliary_value = NULL;
+  unsigned limit = 0;
+
+  tok = strtok_r(SQL, " ", &where);
+  while (tok != NULL) {
+    /* First token: we must have SELECT */
+    if (toknum == 0) {
+      int selcmp = strncmp(tok, "SELECT", 6);
+      if (previous != SF_NONE || selcmp != 0)
+        return 1;
+      if (selcmp == 0)
+        previous = SF_SELECT;
+      goto ahead;
+    }
+
+    /* Check if we are processing a keyword */
+    if (strncmp(tok, "FROM", 4) == 0) {
+      previous = SF_FROM;
+      goto ahead;
+    } else if (strncmp(tok, "WHERE", 5) == 0) {
+      previous = SF_WHERE;
+      twhere = true;
+      goto ahead;
+    } else if (strncmp(tok, "AND", 3) == 0) {
+      previous = SF_AND;
+      goto ahead;
+    } else if (strncmp(tok, "LIMIT", 5) == 0) {
+      previous = SF_LIMIT;
+      goto ahead;
+    }
+
+    /* Else must be a token */
+    switch(previous) {
+    case SF_SELECT:
+      /* XXX as of now we handle only selecting all */
+      if (strncmp(tok, "*", 1) != 0)
+        return 2;
+      break;
+    case SF_FROM:
+      /* XXX implement aggregations */
+      break;
+    case SF_WHERE:
+    case SF_AND:
+      switch (where_toknum) {
+      case 0:  /* must be a keyword */
+        if (previous == SF_WHERE) {
+          if (strncmp(tok, "host", 4) == 0) {
+            field = FF_HOST;
+          } else if (strncmp(tok, "clihost", 7) == 0)
+            field = FF_CLIHOST;
+          else if (strncmp(tok, "srvhost", 7) == 0)
+            field = FF_SRVHOST;
+          else if (strncmp(tok, "protocol", 8) == 0)
+            field = FF_PROTOCOL;
+          else if (strncmp(tok, "ndpiprotocol", 12) == 0)
+            field = FF_NDPIPROTOCOL;
+          else
+            return 3;
+        } else if (twhere == true) {
+          if (strncmp(tok, "vlan", 4) != 0)
+            return 3;
+        }
+        where_toknum++;
+        break;
+      case 1:
+        /* XXX handle also other operators */
+        if (strncmp(tok, "=", 1) != 0)
+          return 2;
+        where_toknum++;
+        break;
+      case 2:
+        if (previous == SF_WHERE) {
+          if (field == FF_HOST || field == FF_CLIHOST || field == FF_SRVHOST) {
+            strncpy(value, tok, sizeof(value));
+            pvalue = value;
+          } else if (field == FF_PROTOCOL) {
+            svalue = atoi(tok);
+            pvalue = &svalue;
+          } else if (field == FF_NDPIPROTOCOL) {
+            lvalue = atoi(tok);
+            pvalue = &lvalue;
+          } else
+            return 3;
+        } else if (twhere == true) {
+          /* Valid only if WHERE clause specified */
+          auxiliary_value = atoi(tok);
+          pauxiliary_value = &auxiliary_value;
+        }
+        where_toknum = 0;
+        break;
+      default:
+        return 2;
+      }
+      break;
+    case SF_LIMIT:
+      limit = atoi(tok);
+      break;
+    default:
+      return 2;
+    }
+
+ahead:
+    tok = strtok_r(NULL, " ", &where);
+    toknum++;
+  }
+
+  select(vm, allowed_hosts, field, pvalue, pauxiliary_value, limit);
+
+  return 0;
 }

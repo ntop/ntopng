@@ -1701,12 +1701,8 @@ bool NetworkInterface::compareAggregationFamilies(lua_State* vm,
 
 /* **************************************************** */
 
-void NetworkInterface::getActiveFlowsList(lua_State* vm,
-                                          patricia_tree_t *allowed_hosts,
-                                          enum flowsField field,
-                                          void *value, void *auxiliary_value,
-                                          unsigned long limit) {
-  flowsManager->select(vm, allowed_hosts, field, value, auxiliary_value, limit);
+int NetworkInterface::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL) {
+  return flowsManager->retrieve(vm, allowed_hosts, SQL);
 }
 
 /* **************************************************** */

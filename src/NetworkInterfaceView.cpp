@@ -227,15 +227,19 @@ bool NetworkInterfaceView::hasSeenVlanTaggedPackets() {
 
 /* **************************************************** */
 
-void NetworkInterfaceView::getActiveFlowsList(lua_State* vm, patricia_tree_t *allowed_hosts,
-                        enum flowsField field, void *value, void *auxiliary_value,
-                        unsigned long limit) {
+int NetworkInterfaceView::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts,
+                                   char *SQL) {
   list<NetworkInterface *>::iterator p;
+  int ret = 0;
 
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getActiveFlowsList(vm, allowed_hosts, field, value, auxiliary_value, limit);
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
+    if ((ret = (*p)->retrieve(vm, allowed_hosts, SQL)))
+      return ret;
+  }
+
+  return ret;
 }
 
 /* **************************************************** */

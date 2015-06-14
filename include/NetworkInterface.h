@@ -251,8 +251,7 @@ class NetworkInterface {
   void getnDPIProtocols(lua_State *vm);
   void getActiveHostsList(lua_State* vm, vm_ptree *vp, bool host_details);
   void getFlowsStats(lua_State* vm);
-  void getActiveFlowsList(lua_State* vm, patricia_tree_t *allowed_hosts, enum flowsField field,
-                                          void *value, void *auxiliary_value,unsigned long limit);
+  int  retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts, char *numIP, u_int16_t vlanId);
 
   void purgeIdle(time_t when);

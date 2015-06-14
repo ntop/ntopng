@@ -46,13 +46,15 @@ class FlowsManager {
 public:
   FlowsManager(NetworkInterface *intf);
 
+  int retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
+
+private:
+  NetworkInterface *intf;
+
   void select(lua_State* vm, patricia_tree_t *allowed_hosts,
               enum flowsField field,
               void *value, void *auxiliary_value,
               unsigned long limit);
-
-private:
-  NetworkInterface *intf;
 };
 
 #endif /* _FLOWS_MANAGER_H_ */
