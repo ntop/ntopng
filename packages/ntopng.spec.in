@@ -54,7 +54,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/logrotate.d
 cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng $RPM_BUILD_ROOT/usr/bin
 cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
 cp -r $RPM_BUILD_DIR/ntopng-%{version}/httpdocs $RPM_BUILD_DIR/ntopng-%{version}/scripts $RPM_BUILD_ROOT/usr/share/ntopng
-
+mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 if test -d "$RPM_BUILD_DIR/ntopng-%{version}/pro"; then
    cd $RPM_BUILD_DIR/ntopng-%{version}/pro; make; cd -
    mkdir $RPM_BUILD_ROOT/usr/share/ntopng/pro

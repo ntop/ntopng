@@ -15,6 +15,7 @@ ntopng:
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8
 	cp -r $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
 	cp -r $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/share/ntopng
+	mv ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 	if test -d "$(NTOPNG_HOME)/pro"; then \
 		mkdir ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
 		cp -r $(NTOPNG_HOME)/pro/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
