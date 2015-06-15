@@ -476,10 +476,9 @@ print [[
       print('">Modify Host Traffic Policy</A></div>')
 
       if(host["bridge.ingress_shaper_id"] ~= nil) then
-	 shaper_key = "ntopng.prefs.".. ifId ..".queue_max_rate"
+	 shaper_key = "ntopng.prefs.".. ifId ..".shaper_max_rate"
 	 ingress_max_rate = ntop.getHashCache(shaper_key, host["bridge.ingress_shaper_id"])
 	 egress_max_rate = ntop.getHashCache(shaper_key, host["bridge.egress_shaper_id"])
-
 	 print("<p><table class=\"table table-bordered table-striped\"width=100%>")
 	 print("<tr><th>Ingress Policer</th><td>"..maxRateToString(ingress_max_rate).."</td></tr>")
 	 print("<tr><th>Egress Policer</th><td>"..maxRateToString(egress_max_rate).."</td></tr>")
