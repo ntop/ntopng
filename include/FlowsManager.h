@@ -24,6 +24,7 @@
 
 #include "ntop_includes.h"
 
+enum flowsSelector { FS_ALL, FS_PORTS };
 enum flowsField { FF_NONE, FF_CLIHOST, FF_SRVHOST, FF_HOST, FF_PROTOCOL, FF_NDPIPROTOCOL };
 
 struct flow_details_info {
@@ -32,6 +33,8 @@ struct flow_details_info {
 
   /* Selectors */
   enum flowsField field;
+  enum flowsSelector selector;
+
   Host *host;
   u_int8_t protocol;
   u_int16_t ndpi_protocol;
@@ -52,7 +55,7 @@ private:
   NetworkInterface *intf;
 
   void select(lua_State* vm, patricia_tree_t *allowed_hosts,
-              enum flowsField field,
+              enum flowsField field, enum flowsSelector selector,
               void *value, void *auxiliary_value,
               unsigned long limit);
 };

@@ -953,10 +953,12 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
 
 /* *************************************** */
 
-void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
+void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
+               enum flowsSelector selector) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
   bool src_match, dst_match;
+  lua_Integer k;
 
   if((src == NULL) || (dst == NULL)) return;
 
@@ -965,139 +967,164 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump) {
 
   lua_newtable(vm);
 
-  if(get_cli_host()) {
-    if(detailed_dump) lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
-    lua_push_int_table_entry(vm, "cli.source_id", get_cli_host()->getSourceId());
-    lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
-    lua_push_bool_table_entry(vm, "cli.systemhost", get_cli_host()->isSystemHost());
-    lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
-    lua_push_int32_table_entry(vm, "cli.network_id", get_cli_host()->get_local_network_id());
-  } else {
-    lua_push_nil_table_entry(vm, "cli.host");
-    lua_push_nil_table_entry(vm, "cli.ip");
-  }
+  switch(selector) {
+  case FS_PORTS:
+    if(get_cli_host())
+      lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
+    else
+      lua_push_nil_table_entry(vm, "cli.ip");
+    lua_push_int_table_entry(vm, "cli.port", get_cli_port());
+    if (get_srv_host())
+      lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
+    else
+      lua_push_nil_table_entry(vm, "srv.ip");
+    lua_push_int_table_entry(vm, "srv.port", get_srv_port());
+    lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
 
-  lua_push_int_table_entry(vm, "cli.port", get_cli_port());
-
-  if(get_srv_host()) {
-    if(detailed_dump) lua_push_str_table_entry(vm, "srv.host", get_srv_host()->get_name(buf, sizeof(buf), false));
-    lua_push_int_table_entry(vm, "srv.source_id", get_cli_host()->getSourceId());
-    lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
-    lua_push_bool_table_entry(vm, "srv.systemhost", get_srv_host()->isSystemHost());
-    lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
-    lua_push_int32_table_entry(vm, "srv.network_id", get_srv_host()->get_local_network_id());
-  } else {
-    lua_push_nil_table_entry(vm, "srv.host");
-    lua_push_nil_table_entry(vm, "srv.ip");
-  }
-
-  lua_push_int_table_entry(vm, "srv.port", get_srv_port());
-  lua_push_int_table_entry(vm, "vlan", get_vlan_id());
-  lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
-
-  if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-     || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN)
-     || iface->is_ndpi_enabled()
-     || iface->is_sprobe_interface()) {
-    lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
-  } else {
-    lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
-  }
-  lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
-
-  if(detailed_dump && ntop->get_categorization() 
-     && categorization.flow_categorized && (categorization.category[0] == '\0')) {
-    /* Refresh category */
-    ntop->getRedis()->getFlowCategory(host_server_name,
-				      categorization.category,
-				      sizeof(categorization.category), false);
-  }
-  lua_push_str_table_entry(vm, "category", categorization.category);
-
-  lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
-  lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
-  lua_push_int_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);
-  lua_push_int_table_entry(vm, "packets.last", get_current_packets_cli2srv() + get_current_packets_srv2cli());
-  lua_push_int_table_entry(vm, "seen.first", get_first_seen());
-  lua_push_int_table_entry(vm, "seen.last", get_last_seen());
-  lua_push_int_table_entry(vm, "duration", get_duration());
-
-  lua_push_int_table_entry(vm, "cli2srv.bytes", cli2srv_bytes);
-  lua_push_int_table_entry(vm, "srv2cli.bytes", srv2cli_bytes);
-
-  lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
-  lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
-  lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
-  lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
-
-  if(detailed_dump) {
-    if(protocol == IPPROTO_TCP) {
-      lua_push_bool_table_entry(vm, "tcp.seq_problems",
-				(tcp_stats_s2d.pktRetr
-				 | tcp_stats_s2d.pktOOO
-				 | tcp_stats_s2d.pktLost
-				 | tcp_stats_d2s.pktRetr
-				 | tcp_stats_d2s.pktOOO
-				 | tcp_stats_d2s.pktLost) ? true : false);
-      
-      lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
-      lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
-    }
-    
-    if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
-    lua_push_int_table_entry(vm, "tcp_flags", getTcpFlags());
-
-    if(protocol == IPPROTO_TCP) {
-      lua_push_int_table_entry(vm, "cli2srv.retransmissions", tcp_stats_s2d.pktRetr);
-      lua_push_int_table_entry(vm, "cli2srv.out_of_order", tcp_stats_s2d.pktOOO);
-      lua_push_int_table_entry(vm, "cli2srv.lost", tcp_stats_s2d.pktLost);
-      lua_push_int_table_entry(vm, "srv2cli.retransmissions", tcp_stats_d2s.pktRetr);
-      lua_push_int_table_entry(vm, "srv2cli.out_of_order", tcp_stats_d2s.pktOOO);
-      lua_push_int_table_entry(vm, "srv2cli.lost", tcp_stats_d2s.pktLost);
-    }
-
-    if(http.last_method && http.last_url) {
-      lua_push_str_table_entry(vm, "http.last_method", http.last_method);
-      lua_push_int_table_entry(vm, "http.last_return_code", http.last_return_code);
-    }
-  }
-
-  if(http.last_method && http.last_url)
-    lua_push_str_table_entry(vm, "http.last_url", http.last_url);
-
-  if(host_server_name)
-    lua_push_str_table_entry(vm, "http.server_name", host_server_name);
-
-  if(dns.last_query)
-    lua_push_str_table_entry(vm, "dns.last_query", dns.last_query);
-
-  if(ssl.certificate)
-    lua_push_str_table_entry(vm, "ssl.certificate", ssl.certificate);
-
-  lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
-
-  if(client_proc) processLua(vm, client_proc, true);
-  if(server_proc) processLua(vm, server_proc, false);
-
-  lua_push_float_table_entry(vm, "top_throughput_bps", top_bytes_thpt);
-  lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
-  lua_push_int_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
-
-  lua_push_float_table_entry(vm, "top_throughput_pps", top_pkts_thpt);
-  lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt);
-  lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
-
-  if(!detailed_dump) {
-    lua_Integer k = key();
-
+    k = key();
     lua_pushinteger(vm, k); // Index
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-  } else {
+
+    break;
+  case FS_ALL:
+    if(get_cli_host()) {
+      if(detailed_dump) lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
+      lua_push_int_table_entry(vm, "cli.source_id", get_cli_host()->getSourceId());
+      lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_bool_table_entry(vm, "cli.systemhost", get_cli_host()->isSystemHost());
+      lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
+      lua_push_int32_table_entry(vm, "cli.network_id", get_cli_host()->get_local_network_id());
+    } else {
+      lua_push_nil_table_entry(vm, "cli.host");
+      lua_push_nil_table_entry(vm, "cli.ip");
+    }
+
+    lua_push_int_table_entry(vm, "cli.port", get_cli_port());
+
+    if(get_srv_host()) {
+      if(detailed_dump) lua_push_str_table_entry(vm, "srv.host", get_srv_host()->get_name(buf, sizeof(buf), false));
+      lua_push_int_table_entry(vm, "srv.source_id", get_cli_host()->getSourceId());
+      lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_bool_table_entry(vm, "srv.systemhost", get_srv_host()->isSystemHost());
+      lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
+      lua_push_int32_table_entry(vm, "srv.network_id", get_srv_host()->get_local_network_id());
+    } else {
+      lua_push_nil_table_entry(vm, "srv.host");
+      lua_push_nil_table_entry(vm, "srv.ip");
+    }
+
+    lua_push_int_table_entry(vm, "srv.port", get_srv_port());
+    lua_push_int_table_entry(vm, "vlan", get_vlan_id());
+    lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
+
+    if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
+       || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN)
+       || iface->is_ndpi_enabled()
+       || iface->is_sprobe_interface()) {
+      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
+    } else {
+      lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
+    }
+    lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
+
+    if(detailed_dump && ntop->get_categorization()
+       && categorization.flow_categorized && (categorization.category[0] == '\0')) {
+      /* Refresh category */
+      ntop->getRedis()->getFlowCategory(host_server_name,
+				        categorization.category,
+				        sizeof(categorization.category), false);
+    }
+    lua_push_str_table_entry(vm, "category", categorization.category);
+
+    lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
+    lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
+    lua_push_int_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);
+    lua_push_int_table_entry(vm, "packets.last", get_current_packets_cli2srv() + get_current_packets_srv2cli());
+    lua_push_int_table_entry(vm, "seen.first", get_first_seen());
+    lua_push_int_table_entry(vm, "seen.last", get_last_seen());
+    lua_push_int_table_entry(vm, "duration", get_duration());
+
+    lua_push_int_table_entry(vm, "cli2srv.bytes", cli2srv_bytes);
+    lua_push_int_table_entry(vm, "srv2cli.bytes", srv2cli_bytes);
+
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
+    lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
+    lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
+
+    if(detailed_dump) {
+      if(protocol == IPPROTO_TCP) {
+        lua_push_bool_table_entry(vm, "tcp.seq_problems",
+				  (tcp_stats_s2d.pktRetr
+				   | tcp_stats_s2d.pktOOO
+				   | tcp_stats_s2d.pktLost
+				   | tcp_stats_d2s.pktRetr
+				   | tcp_stats_d2s.pktOOO
+				   | tcp_stats_d2s.pktLost) ? true : false);
+
+        lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
+        lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
+      }
+
+      if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
+      lua_push_int_table_entry(vm, "tcp_flags", getTcpFlags());
+
+      if(protocol == IPPROTO_TCP) {
+        lua_push_int_table_entry(vm, "cli2srv.retransmissions", tcp_stats_s2d.pktRetr);
+        lua_push_int_table_entry(vm, "cli2srv.out_of_order", tcp_stats_s2d.pktOOO);
+        lua_push_int_table_entry(vm, "cli2srv.lost", tcp_stats_s2d.pktLost);
+        lua_push_int_table_entry(vm, "srv2cli.retransmissions", tcp_stats_d2s.pktRetr);
+        lua_push_int_table_entry(vm, "srv2cli.out_of_order", tcp_stats_d2s.pktOOO);
+        lua_push_int_table_entry(vm, "srv2cli.lost", tcp_stats_d2s.pktLost);
+      }
+
+      if(http.last_method && http.last_url) {
+        lua_push_str_table_entry(vm, "http.last_method", http.last_method);
+        lua_push_int_table_entry(vm, "http.last_return_code", http.last_return_code);
+      }
+    }
+
+    if(http.last_method && http.last_url)
+      lua_push_str_table_entry(vm, "http.last_url", http.last_url);
+
+    if(host_server_name)
+      lua_push_str_table_entry(vm, "http.server_name", host_server_name);
+
+    if(dns.last_query)
+      lua_push_str_table_entry(vm, "dns.last_query", dns.last_query);
+
+    if(ssl.certificate)
+      lua_push_str_table_entry(vm, "ssl.certificate", ssl.certificate);
+
+    lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
+
+    if(client_proc) processLua(vm, client_proc, true);
+    if(server_proc) processLua(vm, server_proc, false);
+
+    lua_push_float_table_entry(vm, "top_throughput_bps", top_bytes_thpt);
+    lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
+    lua_push_int_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
+
+    lua_push_float_table_entry(vm, "top_throughput_pps", top_pkts_thpt);
+    lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt);
+    lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
+
+    if(!detailed_dump) {
+      k = key();
+
+      lua_pushinteger(vm, k); // Index
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    } else {
+      lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
+      lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
+    }
+    break;
+  default:
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad selector to flow lua()");
   }
 }
 

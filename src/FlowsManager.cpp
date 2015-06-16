@@ -64,7 +64,7 @@ static bool flows_select_walker(GenericHashEntry *h, void *user_data) {
     return true;
   }
 
-  flow->lua(info->vm, info->allowed_hosts, false /* Minimum details */);
+  flow->lua(info->vm, info->allowed_hosts, false /* Minimum details */, info->selector);
 
   info->count++;
   if (info->limit > 0 && info->count > info->limit)
@@ -78,6 +78,7 @@ static bool flows_select_walker(GenericHashEntry *h, void *user_data) {
 void FlowsManager::select(lua_State* vm,
                           patricia_tree_t *allowed_hosts,
                           enum flowsField field,
+                          enum flowsSelector selector,
                           void *value,
                           void *auxiliary_value,
                           unsigned long limit) {
@@ -87,6 +88,7 @@ void FlowsManager::select(lua_State* vm,
 
   memset(&info, 0, sizeof(info));
   info.vm = vm, info.allowed_hosts = allowed_hosts, info.field = field;
+  info.selector = selector;
 
   switch(field) {
   case FF_NONE:
@@ -125,6 +127,7 @@ int FlowsManager::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *
   char *where;
   bool twhere = false;
   enum SQLfield previous = SF_NONE;
+  enum flowsSelector selector = FS_ALL;
   char *tok = NULL;
   int toknum = 0, where_toknum = 0;
 
@@ -169,8 +172,11 @@ int FlowsManager::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *
     /* Else must be a token */
     switch(previous) {
     case SF_SELECT:
-      /* XXX as of now we handle only selecting all */
-      if (strncmp(tok, "*", 1) != 0)
+      if (strncmp(tok, "*", 1) == 0)
+        selector = FS_ALL;
+      else if (strncmp(tok, "PORTS", 5) == 0)
+        selector = FS_PORTS;
+      else
         return 2;
       break;
     case SF_FROM:
@@ -241,7 +247,7 @@ ahead:
     toknum++;
   }
 
-  select(vm, allowed_hosts, field, pvalue, pauxiliary_value, limit);
+  select(vm, allowed_hosts, field, selector, pvalue, pauxiliary_value, limit);
 
   return 0;
 }

@@ -2243,7 +2243,7 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
     user = f->get_username(false);
 
   if(user && (strcmp(user, info->username) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
 
   return(false); /* false = keep on walking */
 }
@@ -2268,12 +2268,12 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
   char *name = f->get_proc_name(true);
 
   if(name && (strcmp(name, info->proc_name) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
   else {
     name = f->get_proc_name(false);
 
     if(name && (strcmp(name, info->proc_name) == 0))
-      f->lua(info->vm, NULL, false /* Minimum details */);
+      f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
   }
 
   return(false); /* false = keep on walking */
@@ -2298,7 +2298,7 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
   struct pid_flows *info = (struct pid_flows*)pid_data;
 
   if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
 
   return(false); /* false = keep on walking */
 }
@@ -2319,7 +2319,7 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
   struct pid_flows *info = (struct pid_flows*)father_pid_data;
 
   if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
 
   return(false); /* false = keep on walking */
 }

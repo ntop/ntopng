@@ -28,8 +28,8 @@ function fill_ports_array(field_key, flows_stats, host)
     return ports_array
 end
 
-if (host == nil) then flows_stats = interface.getFlowsInfo()
-else flows_stats = interface.getFlowsInfo(host) end
+if (host == nil) then flows_stats = interface.getFlowsInfo(nil, nil, "PORTS")
+else flows_stats = interface.getFlowsInfo(host, nil, "PORTS") end
 client_ports = fill_ports_array("cli", flows_stats, host)
 server_ports = fill_ports_array("srv", flows_stats, host)
 

@@ -202,7 +202,7 @@ class Flow : public GenericHashEntry {
   void update_hosts_stats(struct timeval *tv);
   void print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose);
   u_int32_t key();
-  void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump);
+  void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump, enum flowsSelector selector);
   bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,

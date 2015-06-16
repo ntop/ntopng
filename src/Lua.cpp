@@ -1025,8 +1025,8 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  */
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  char SQL[60];
-  char *host_ip = NULL;
+  char SQL[100];
+  char *host_ip = NULL, *key = NULL;
   u_int16_t vlan_id = 0;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1040,12 +1040,15 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
     if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
   }
 
+  if (lua_type(vm, 3) == LUA_TSTRING)
+    key = (char*)lua_tostring(vm, 3);
+
   if (host_ip) {
     char ip[64];
     strncpy(ip, host_ip, 64); /* don't rely on host_ip as strtok_r() doesn't always behave correctly */
-    snprintf(SQL, 60, "SELECT * FROM FLOWS WHERE host = %s AND vlan = %u", ip, vlan_id);
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? : "*", ip, vlan_id);
   } else {
-    snprintf(SQL, 60, "SELECT * FROM FLOWS");
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS", key ? : "*");
   }
 
   if(ntop_interface) {
@@ -1366,7 +1369,7 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
   if(f == NULL)
     return(CONST_LUA_ERROR);
   else {
-    f->lua(vm, ptree, true);
+    f->lua(vm, ptree, true, FS_ALL);
     return(CONST_LUA_OK);
   }
 }
