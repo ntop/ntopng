@@ -1062,6 +1062,34 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 /* ****************************************** */
 
 /**
+ * @brief Query the flow information of network interface.
+ * @details Get the ntop interface global variable of lua and push the requested information of flows into the lua stack as a new hashtable.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_query_interface_flows_info(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  char *SQL = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) != LUA_TSTRING)
+    return CONST_LUA_ERROR;
+
+  SQL = (char*)lua_tostring(vm, 1);
+
+  if(ntop_interface || !SQL) {
+    if (ntop_interface->retrieve(vm, get_allowed_nets(vm), SQL))
+      return CONST_LUA_ERROR;
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/**
  * @brief Get nDPI stats for flows
  * @details Compute nDPI flow statistics
  *
@@ -4182,6 +4210,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getAggregatedHostInfo",  ntop_get_interface_aggregated_host_info },
   { "getAggregationsForHost", ntop_get_aggregregations_for_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
+  { "queryFlowsInfo",         ntop_query_interface_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowPeers",           ntop_get_interface_flows_peers },
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },

@@ -10,11 +10,13 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 -- Table parameters
 all = _GET["all"]
-host         = _GET["host"]
+host        = _GET["host"]
+vlan        = _GET["vlan"]
 key         = _GET["key"]
 
 -- table_id = _GET["table"]
 
+if (vlan == nil) then vlan = 0 end
 
 if((sortColumn == nil) or (sortColumn == "column_")) then
    sortColumn = getDefaultTableSort("http_hosts")
@@ -52,7 +54,11 @@ end
 interface.select(ifname)
 
 hosts_stats = interface.listHTTPhosts(nil)
-flows_stats = interface.getFlowsInfo(nil)
+if (host == nil) then
+  flows_stats = interface.queryFlowsInfo("SELECT * FROM FLOWS")
+else
+  flows_stats = interface.queryFlowsInfo("SELECT * FROM FLOWS WHERE host = "..host.." AND vlan = "..vlan)
+end
 
 to_skip = (currentPage-1) * perPage
 
