@@ -969,12 +969,12 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
 
   switch(selector) {
   case FS_PORTS:
-    if(get_cli_host())
+    if(src)
       lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
     else
       lua_push_nil_table_entry(vm, "cli.ip");
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
-    if (get_srv_host())
+    if (dst)
       lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
     else
       lua_push_nil_table_entry(vm, "srv.ip");
@@ -988,7 +988,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
 
     break;
   case FS_ALL:
-    if(get_cli_host()) {
+    if(src) {
       if(detailed_dump) lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "cli.source_id", get_cli_host()->getSourceId());
       lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
@@ -1002,7 +1002,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
 
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
-    if(get_srv_host()) {
+    if(dst) {
       if(detailed_dump) lua_push_str_table_entry(vm, "srv.host", get_srv_host()->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "srv.source_id", get_cli_host()->getSourceId());
       lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
