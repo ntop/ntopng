@@ -112,7 +112,7 @@ if ((num == 0) and (tracked_host == nil)) then
    hosts_stats = interface.getHosts()
    for key, value in pairs(hosts_stats) do
       value = hosts_stats[key]["traffic"]
-      if(value > top_value) then
+      if((value ~= nil) and (value > top_value)) then
 	 top_host = key
 	 top_value = value
       end -- if
