@@ -19,6 +19,7 @@ function makeTopJSON(ifid, ifname)
   path = fixPath(path)
   local files = ntop.readdir(path)
   local file_cnt = 0
+  local vlan_cnt = 0
 
   vlan_list = getVLANList(ifid, ifname)
   if (next(vlan_list) == nil) then return "[ ]\n" end
@@ -46,7 +47,12 @@ function makeTopJSON(ifid, ifname)
       -- Remove last return and comma to comply with JSON format
       rsp = string.sub(rsp, 1, -3)
     end
-    rsp = rsp.."}\n"
+    rsp = rsp.."},\n"
+    vlan_cnt = vlan_cnt + 1
+  end
+  if (vlan_cnt > 0) then
+    -- Remove last return and comma to comply with JSON format
+    rsp = string.sub(rsp, 1, -3)
   end
   rsp = rsp.."\n]\n}"
 
