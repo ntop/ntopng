@@ -40,7 +40,7 @@ Prefs::Prefs(Ntop *_ntop) {
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
-  https_port = CONST_DEFAULT_NTOP_PORT+1;
+  https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
