@@ -16,6 +16,11 @@ Web-based traffic monitoring
 
 %setup -q
 
+# Disable stripping
+%global _enable_debug_package 0
+%global debug_package %{nil}
+%global __os_install_post /usr/lib/rpm/brp-compress %{nil}
+
 %build
 /bin/rm -rf $HOME/rpmbuild/BUILD/ntopng $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
 cd $HOME/rpmbuild/BUILD/
@@ -39,15 +44,6 @@ PATH=/usr/bin:/bin:/usr/sbin:/sbin
 if [ -d $RPM_BUILD_ROOT ]; then
 	\rm -rf $RPM_BUILD_ROOT
 fi
-#
-# "T.J. Yang" <tjyang2001@gmail.com>
-#
-#mkdir -p $RPM_BUILD_ROOT/etc/ntopng
-#cat >$RPM_BUILD_ROOT/etc/ntopng/ntopng.conf.sample <<_EOT_
-#-G=/var/tmp/ntopng.pid
-#_EOT_
-#cat >$RPM_BUILD_ROOT/etc/ntopng/ntopng.start <<_EOT_
-#_EOT_
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8 
 mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/logrotate.d
