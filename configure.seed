@@ -287,12 +287,11 @@ then
 	GMAKE="make"
 fi
 
-GPP=`which g++`
+GPP=`which clang++`
 if test x$GPP = x
 then
-       AC_MSG_RESULT(FATAL ERROR: g++ is not installed on your host) 
+	GPP="g++"
 fi
-
 
 GIT=`which git`
 if test x$GIT = x
