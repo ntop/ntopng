@@ -92,6 +92,7 @@ class Redis {
   int rpush(const char *queue_name, char *msg, u_int queue_trim_size);
   u_int llen(const char *queue_name);
   int lpop(const char *queue_name, char *buf, u_int buf_len);
+  void startFlowDump();
 
   /**
    * @brief Increment a redis key and return its new value

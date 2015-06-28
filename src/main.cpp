@@ -202,6 +202,8 @@ int main(int argc, char *argv[])
   }
 
   ntop->createExportInterface();
+  
+  ntop->getRedis()->startFlowDump();
 
   if(prefs->do_dump_flows_on_db())
     ntop->createHistoricalInterface();

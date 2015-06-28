@@ -44,9 +44,6 @@ Redis::Redis(char *_redis_host, u_int16_t _redis_port, u_int8_t _redis_db_id) {
 
   l = new Mutex();
   setDefaults();
-
-  if(ntop->getPrefs()->do_dump_flows_on_es())
-    pthread_create(&esThreadLoop, NULL, esLoop, (void*)this);
 }
 
 /* **************************************** */
@@ -54,6 +51,13 @@ Redis::Redis(char *_redis_host, u_int16_t _redis_port, u_int8_t _redis_db_id) {
 Redis::~Redis() {
   redisFree(redis);
   delete l;
+}
+
+/* **************************************** */
+
+void Redis::startFlowDump() {
+  if(ntop->getPrefs()->do_dump_flows_on_es())
+    pthread_create(&esThreadLoop, NULL, esLoop, (void*)this);
 }
 
 /* **************************************** */
