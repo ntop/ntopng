@@ -878,11 +878,11 @@ function makeRRD(basedir, ifname, rrdname, step, value)
 end
 
 function createRRDcounter(path, step, verbose)
-   if(not(ntop.exists(name))) then
-      if(verbose) then print('Creating RRD ', name, '\n') end
+   if(not(ntop.exists(path))) then
+      if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
       ntop.rrd_create(
-	 name,
+	 path,
 	 step, -- step
 	 'DS:sent:DERIVE:600:U:U',
 	 'DS:rcvd:DERIVE:600:U:U',
