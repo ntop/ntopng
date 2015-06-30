@@ -1214,14 +1214,16 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
     json_object *es_object;
 
     ntop->getPrefs()->set_json_symbolic_labels_format(true);
-    my_object = flow2json(partial_dump);
-    es_object = flow2es(my_object);
-
-    /* JSON string */
-    rsp = strdup(json_object_to_json_string(es_object));
-
-    /* Free memory (it will also free enclosed object my_object) */
-    json_object_put(es_object);
+    if((my_object = flow2json(partial_dump)) != NULL) {
+      es_object = flow2es(my_object);
+      
+      /* JSON string */
+      rsp = strdup(json_object_to_json_string(es_object));
+      
+      /* Free memory (it will also free enclosed object my_object) */
+      json_object_put(es_object);
+    } else
+      rsp = NULL;
   } else {
     /* JSON string */
     ntop->getPrefs()->set_json_symbolic_labels_format(false);
@@ -1273,6 +1275,10 @@ json_object* Flow::flow2es(json_object *flow_object) {
 json_object* Flow::flow2json(bool partial_dump) {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
+
+  if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
+     && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
+    return(NULL); 
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
