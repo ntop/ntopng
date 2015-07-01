@@ -219,8 +219,13 @@ end
 
 if (page == "historical" and _GET["network_name"] ~= nil) then
   local netname_format = string.gsub(_GET["network_name"], "_", "/")
-  local rrd_file = getPathFromKey(netname_format).."/bytes.rrd"
-  drawRRD(ifstats.id, nil, rrd_file, "1d", url.."&page=historical", 0, os.time() , "", nil)
+  local rrd_file = _GET["rrd_file"]
+  if (rrd_file == nil or rrd_file == "all") then
+    rrd_file = "all"
+  else
+    rrd_file = getPathFromKey(netname_format).."/"..rrd_file
+  end
+  drawRRD(ifstats.id, nil, rrd_file, "1d", url.."&page=historical", 1, os.time() , "", nil)
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
