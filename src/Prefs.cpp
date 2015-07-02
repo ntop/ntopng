@@ -769,11 +769,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     return(-1);
   }
 
-  if((http_port == 0) && (https_port == 0)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
-    _exit(0);
-  }
-
   return(0);
 }
 
@@ -823,6 +818,11 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
+  }
+
+  if((http_port == 0) && (https_port == 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
+    _exit(0);
   }
 
   return(checkOptions());
