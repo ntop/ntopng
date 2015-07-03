@@ -339,6 +339,8 @@ ids = {}
 num = 0
 links = 0
 local host
+local max_num_hosts = 50
+local host_idx = 0
 
 for key, values in pairs(hosts_stats) do
   
@@ -400,6 +402,11 @@ for key, values in pairs(hosts_stats) do
         links = links + 1
       end
     end
+  end
+
+  host_idx = host_idx + 1
+  if (host_idx > max_num_hosts) then
+    break
   end
 end
 
