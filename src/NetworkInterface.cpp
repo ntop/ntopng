@@ -1058,6 +1058,20 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
     eth_type = (packet[14] << 8) + packet[15];
     ip_offset = 16;
     incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+  } else if(pcap_datalink_type == 101 /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
+    switch((packet[0] & 0xf0) >> 4) {
+    case 4:
+      eth_type = ETHERTYPE_IP;
+      break;
+    case 6:
+      eth_type = ETHERTYPE_IPV6;
+      break;
+    default:
+      return(pass_verdict); /* Unknown IP protocol version */
+    }
+    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+    ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+    ip_offset = 0;
   } else {
     incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
