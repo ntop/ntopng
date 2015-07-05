@@ -57,7 +57,7 @@ class Prefs {
   InterfaceInfo ifViewNames[MAX_NUM_INTERFACES];
   char *local_networks;
   bool local_networks_set, shutdown_when_done;
-  char *data_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
+  char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
   char *http_prefix;

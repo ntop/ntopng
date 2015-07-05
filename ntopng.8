@@ -23,6 +23,8 @@ or
 .IR <interface|pcap> ]
 .RB [ \-d
 .IR <data_directory> ]
+.RB [ \-t
+.IR <install_directory> ]
 .RB [ \-n
 .IR <mode> ]
 .RB [ \-e ]
@@ -175,6 +177,9 @@ can be instructed to act as a publisher delivering flows to a ZeroMQ endpoint us
 
 .It \-d|\-\-data\-dir\ <path>
 Specifies the data directory (it must be writable). Default directory is /var/tmp/ntopng
+
+.It \-d|\-\-install\-dir\ <path>
+Specifies the installation directory. Default directory is retrieved from common install paths.
 
 .It \-G|\-\-pid\-path\ <path>
 Specifies the path where the PID (process ID) is saved. Default is /var/tmp/ntopng.pid

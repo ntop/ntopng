@@ -34,6 +34,7 @@ Prefs::Prefs(Ntop *_ntop) {
   categorization_enabled = false, httpbl_enabled = false, resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
+  install_dir = NULL;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
@@ -111,6 +112,7 @@ Prefs::~Prefs() {
 
   if(logFd)            fclose(logFd);
   if(data_dir)         free(data_dir);
+  if(install_dir)      free(install_dir);
   if(docs_dir)         free(docs_dir);
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
@@ -160,6 +162,7 @@ void usage() {
 #ifndef WIN32
 	 "[--data-dir|-d] <path>              | Data directory (must be writable).\n"
 	 "                                    | Default: %s\n"
+	 "[--install-dir|-d] <path>           | ntopng installation directory\n"
 	 "[--daemon|-e]                       | Daemonize ntopng\n"
 #endif
 	 "[--httpdocs-dir|-1] <path>          | HTTP documents root directory.\n"
@@ -341,6 +344,7 @@ static const struct option long_options[] = {
   { "categorization-key",                required_argument, NULL, 'c' },
 #ifndef WIN32
   { "data-dir",                          required_argument, NULL, 'd' },
+  { "install-dir",                       required_argument, NULL, 't' },
 #endif
   { "daemon",                            no_argument,       NULL, 'e' },
   { "core-affinity",                     required_argument, NULL, 'g' },
@@ -441,6 +445,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifndef WIN32
   case 'd':
     ntop->setWorkingDir(optarg);
+    break;
+
+  case 't':
+    install_dir = strndup(optarg, MAX_PATH);
     break;
 #endif
 
@@ -791,6 +799,8 @@ int Prefs::checkOptions() {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", path);
     }
 
+  if (strnlen(ntop->get_install_dir(), MAX_PATH) == 0 && install_dir)
+    ntop->set_install_dir(install_dir);
   free(data_dir); data_dir = strdup(ntop->get_install_dir());
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
@@ -814,7 +824,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "c:k:eg:hi:w:r:sg:m:n:p:qd:x:1:2:3:l:uvA:B:CD:E:F:G:HI:S:TU:X:W:VZ:",
+			 "c:k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:G:HI:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
@@ -912,6 +922,7 @@ int Prefs::save() {
     fprintf(fd, "\n");
   }
   if(data_dir)            fprintf(fd, "data-dir=%s\n", data_dir);
+  if(install_dir)         fprintf(fd, "install-dir=%s\n", install_dir);
   if(categorization_key)  fprintf(fd, "categorization-key=%s\n", categorization_key);
   if(httpbl_key)          fprintf(fd, "httpbl-key=%s\n", httpbl_key);
   if(local_networks)      fprintf(fd, "local-networks=%s\n", local_networks);
