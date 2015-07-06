@@ -190,7 +190,7 @@ extern "C" {
 #include "HTTPserver.h"
 #include "RuntimePrefs.h"
 #include "Ntop.h"
-#include "template.h"
+
 
 #ifdef WIN32
 extern "C" {

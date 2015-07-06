@@ -1334,9 +1334,9 @@ json_object* Flow::flow2json(bool partial_dump) {
 					json_object_new_int(vlanId));
 
   if(protocol == IPPROTO_TCP) {
-    json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "CLIENT_NW_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
+    json_object_object_add(my_object, Utils::jsonLabel(CLIENT_NW_LATENCY_MS, "CLIENT_NW_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_double(toMs(&clientNwLatency)));
-    json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "SERVER_NW_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
+    json_object_object_add(my_object, Utils::jsonLabel(SERVER_NW_LATENCY_MS, "SERVER_NW_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_double(toMs(&serverNwLatency)));
   }
 
