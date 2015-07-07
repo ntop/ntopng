@@ -55,7 +55,7 @@ static bool flows_select_walker(GenericHashEntry *h, void *user_data) {
       return false;
     break;
   case FF_NDPIPROTOCOL: 
-    if (info->ndpi_protocol != flow->get_detected_protocol())
+    if (info->ndpi_protocol != flow->get_detected_protocol().protocol)
       return false;
     break;
   default: 

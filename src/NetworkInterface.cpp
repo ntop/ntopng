@@ -609,6 +609,7 @@ void NetworkInterface::process_epp_flow(ZMQ_Flow *zflow, Flow *flow) {
 void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
+  ndpi_protocol p;
 
   if((time_t)zflow->last_switched > (time_t)last_pkt_rcvd)
     last_pkt_rcvd = zflow->last_switched;
@@ -643,14 +644,15 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
 		     zflow->pkt_sampling_rate*zflow->out_pkts,
 		     zflow->pkt_sampling_rate*zflow->out_bytes,
 		     zflow->last_switched);
-  flow->setDetectedProtocol(zflow->l7_proto);
-  flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
+    p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    flow->setDetectedProtocol(p);
+    flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
   flow->updateInterfaceStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));			     
   incStats(zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow->get_detected_protocol(),
+	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
@@ -879,7 +881,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
      && flow->get_srv_host()) {
     /* Handle aggregations here */
 
-    switch(flow->get_detected_protocol()) {
+    switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_HTTP:
       if(payload_len > 0)
 	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
@@ -952,15 +954,16 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     flow->processDetectedProtocol();
 
     /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
-    if(flow->get_detected_protocol() != NDPI_PROTOCOL_DNS)
+    if(ndpi_is_proto(flow->get_detected_protocol(), NDPI_PROTOCOL_DNS))
       flow->deleteFlowMemory();
 
-    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
+    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, 
+	     flow->get_detected_protocol().protocol,
 	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_to_disk &&
       (!flow->isDetectionCompleted() ||
-       flow->get_detected_protocol() == NDPI_PROTOCOL_UNKNOWN);
+       flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
     if (dump_is_unknown ||
         ((dump_all_traffic || flow->dumpFlowTraffic()) &&
          (dump_security_to_disk || getDumpTrafficDiskPolicy())))
@@ -977,7 +980,8 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 	*a_shaper_id = flow->get_srv_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_cli_host()->get_ingress_shaper_id();
     }
   } else
-    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
+    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, 
+	     flow->get_detected_protocol().protocol,
 	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   return(pass_verdict);
@@ -1726,8 +1730,8 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
 
   stats->num_flows++,
-    stats->ndpi_bytes[flow->get_detected_protocol()] += (u_int32_t)flow->get_bytes(),
-	stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
+    stats->ndpi_bytes[flow->get_detected_protocol().protocol] += (u_int32_t)flow->get_bytes(),
+    stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
   return(false); /* false = keep on walking */
 }
@@ -1889,7 +1893,7 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
-  num_flows[flow->get_detected_protocol()]++;
+  num_flows[flow->get_detected_protocol().protocol]++;
 
   return(false /* keep walking */);
 }

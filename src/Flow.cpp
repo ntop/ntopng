@@ -37,19 +37,23 @@ Flow::Flow(NetworkInterface *_iface,
     cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0;
 
   l7_protocol_guessed = detection_completed = false;
-  dump_flow_traffic = false;
+  dump_flow_traffic = false, ndpi_proto_name = NULL,
+    ndpi_detected_protocol.protocol = NDPI_PROTOCOL_UNKNOWN,
+    ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
 
   switch(protocol) {
   case IPPROTO_ICMP:
-    ndpi_detected_protocol = NDPI_PROTOCOL_IP_ICMP;
+    ndpi_detected_protocol.protocol = NDPI_PROTOCOL_IP_ICMP,
+      ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
     break;
 
   case IPPROTO_ICMPV6:
-    ndpi_detected_protocol = NDPI_PROTOCOL_IP_ICMPV6;
+    ndpi_detected_protocol.protocol = NDPI_PROTOCOL_IP_ICMPV6,
+      ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
     break;
 
   default:
-    ndpi_detected_protocol = NDPI_PROTOCOL_UNKNOWN;
+    ndpi_detected_protocol.protocol = ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
     break;
   }
 
@@ -140,19 +144,21 @@ void Flow::deleteFlowMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
-  struct timeval tv = { 0, 0};
+  struct timeval tv = { 0, 0 };
 
   checkBlacklistedFlow();
   update_hosts_stats(&tv);
   dumpFlow(true /* Dump only the last part of the flow */);
+
 #ifdef NTOPNG_PRO
   if (ntop->getPrefs()->get_save_http_flows_traffic() &&
       srv_host && srv_host->getHTTP() && srv_host->isLocalHost())
     ntop->getRedisPro()->incrHttpTraffic(srv_host->get_name(),
                                          cli2srv_bytes + srv2cli_bytes);
 #endif
-  if(cli_host) { cli_host->decUses(); cli_host->decNumFlows(true);  }
-  if(srv_host) { srv_host->decUses(); srv_host->decNumFlows(false); }
+
+  if(cli_host)         { cli_host->decUses(); cli_host->decNumFlows(true);  }
+  if(srv_host)         { srv_host->decUses(); srv_host->decNumFlows(false); }
   if(json_info)        free(json_info);
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);
@@ -162,6 +168,8 @@ Flow::~Flow() {
   if(dns.last_query)   free(dns.last_query);
   if(ssl.certificate)  free(ssl.certificate);
   if(aggregationInfo.name) free(aggregationInfo.name);
+  if(ndpi_proto_name)  free(ndpi_proto_name);
+  
   deleteFlowMemory();
 }
 
@@ -272,13 +280,15 @@ void Flow::aggregateInfo(char *_name, u_int16_t ndpi_proto_id,
 /* *************************************** */
 
 void Flow::processDetectedProtocol() {
+  u_int16_t l7proto;
+
   if(protocol_processed || (ndpi_flow == NULL)) return;
 
   if((ndpi_flow->host_server_name[0] != '\0')
      && (host_server_name == NULL)) {
     Utils::sanitizeHostName((char*)ndpi_flow->host_server_name);
 
-    if(ndpi_detected_protocol == NDPI_PROTOCOL_HTTP) {
+    if(ndpi_is_proto(ndpi_detected_protocol, NDPI_PROTOCOL_HTTP)) {
       char *double_column = strrchr((char*)ndpi_flow->host_server_name, ':');
 
       if(double_column) double_column[0] = '\0';
@@ -288,7 +298,9 @@ void Flow::processDetectedProtocol() {
     getFlowCategory(true);
   }
 
-  switch(ndpi_detected_protocol) {
+  l7proto = ndpi_get_lower_proto(ndpi_detected_protocol);
+
+  switch(l7proto) {
   case NDPI_PROTOCOL_DNS:
     if(ndpi_flow->host_server_name[0] != '\0') {
       if(dns.last_query) free(dns.last_query);
@@ -322,8 +334,8 @@ void Flow::processDetectedProtocol() {
 	    }
 	  }
 	  
-	  aggregateInfo((char*)ndpi_flow->host_server_name,
-			ndpi_detected_protocol, aggregation_domain_name, to_track);
+	  aggregateInfo((char*)ndpi_flow->host_server_name, l7proto,
+			aggregation_domain_name, to_track);
 	}
       }
     }
@@ -340,7 +352,7 @@ void Flow::processDetectedProtocol() {
     if(ndpi_flow->host_server_name[0] != '\0') {
       protocol_processed = true;
       aggregateInfo((char*)ndpi_flow->host_server_name,
-		    ndpi_detected_protocol, aggregation_domain_name, true);
+		    l7proto, aggregation_domain_name, true);
     }
     break;
 
@@ -357,14 +369,16 @@ void Flow::processDetectedProtocol() {
       ssl.certificate = strdup(ndpi_flow->protos.ssl.client_certificate);
 
       if(ssl.certificate && (strncmp(ssl.certificate, "www.", 4) == 0)) {
-	if(ndpi_detected_protocol == NDPI_PROTOCOL_TOR) check_tor = true;
+	if(ndpi_is_proto(ndpi_detected_protocol, NDPI_PROTOCOL_TOR))
+	  check_tor = true;
       }
     } else if((ssl.certificate == NULL)
 	      && (ndpi_flow->protos.ssl.server_certificate[0] != '\0')) {
       ssl.certificate = strdup(ndpi_flow->protos.ssl.server_certificate);
 
       if(ssl.certificate && (strncmp(ssl.certificate, "www.", 4) == 0)) {
-	if(ndpi_detected_protocol == NDPI_PROTOCOL_TOR) check_tor = true;
+	if(ndpi_is_proto(ndpi_detected_protocol, NDPI_PROTOCOL_TOR))
+	  check_tor = true;
       }
     }
 
@@ -373,7 +387,7 @@ void Flow::processDetectedProtocol() {
 
       if(ntop->getRedis()->getAddress(ssl.certificate, rsp, sizeof(rsp), false) == 0) {
 	if(rsp[0] == '\0') /* Cached failed resolution */
-	  ndpi_detected_protocol = NDPI_PROTOCOL_TOR;
+	  ndpi_detected_protocol.protocol = NDPI_PROTOCOL_TOR;
 
 	check_tor = false; /* This is a valid host */
       } else {
@@ -385,10 +399,9 @@ void Flow::processDetectedProtocol() {
     /* No break here !*/
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
-  case NDPI_SERVICE_GOOGLE:
     if(ndpi_flow->nat_ip[0] != '\0') {
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> %s", (char*)ndpi_flow->nat_ip);
-      aggregateInfo((char*)ndpi_flow->nat_ip, ndpi_detected_protocol, aggregation_client_name, true);
+      aggregateInfo((char*)ndpi_flow->nat_ip, l7proto, aggregation_client_name, true);
     }
 
     if(ndpi_flow->host_server_name[0] != '\0') {
@@ -407,8 +420,7 @@ void Flow::processDetectedProtocol() {
 	/* Check if the name isn't numeric */
 	if(strcmp((const char*)ndpi_flow->host_server_name,
 		  srv->get_ip()->print(buf, sizeof(buf)))) {
-	  aggregateInfo((char*)ndpi_flow->host_server_name, ndpi_detected_protocol,
-			aggregation_domain_name, true);
+	  aggregateInfo((char*)ndpi_flow->host_server_name, l7proto, aggregation_domain_name, true);
 
 #if 0
 	  if(ndpi_detected_protocol != NDPI_PROTOCOL_HTTP_PROXY) {
@@ -432,7 +444,7 @@ void Flow::processDetectedProtocol() {
 
   if(protocol_processed
      /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
-     && (ndpi_detected_protocol != NDPI_PROTOCOL_DNS))
+     && (l7proto != NDPI_PROTOCOL_DNS))
     deleteFlowMemory();
 
   makeVerdict();
@@ -479,10 +491,10 @@ void Flow::guessProtocol() {
 
 /* *************************************** */
 
-void Flow::setDetectedProtocol(u_int16_t proto_id) {
+void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
   if((ndpi_flow != NULL)
      || (!iface->is_ndpi_enabled())) {
-    if(proto_id != NDPI_PROTOCOL_UNKNOWN) {
+    if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpi_detected_protocol = proto_id;
       processDetectedProtocol();
       detection_completed = true;
@@ -645,7 +657,7 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
 
     if(verbose) {
       if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-	 || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN)
+	 || (ndpi_detected_protocol.protocol != NDPI_PROTOCOL_UNKNOWN)
 	 || iface->is_ndpi_enabled()
 	 || iface->is_sprobe_interface())
 	lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
@@ -694,8 +706,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
-	   ndpi_detected_protocol,
-	   ndpi_get_proto_name(iface->get_ndpi_struct(), ndpi_detected_protocol),
+	   ndpi_detected_protocol.protocol, get_detected_protocol_name(),
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes);
 
@@ -745,7 +756,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
     if(ntop->getRedis()->getAddress(ssl.certificate, rsp, sizeof(rsp), false) == 0) {
       if(rsp[0] == '\0') /* Cached failed resolution */
-	ndpi_detected_protocol = NDPI_PROTOCOL_TOR;
+	ndpi_detected_protocol.protocol = NDPI_PROTOCOL_TOR;
 
       check_tor = false; /* This is a valid host */
     } else {
@@ -767,33 +778,35 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
   if(diff_sent_packets || diff_rcvd_packets) {
     if(cli_host)
-      cli_host->incStats(protocol, ndpi_detected_protocol, diff_sent_packets, diff_sent_bytes,
+      cli_host->incStats(protocol, ndpi_detected_protocol.protocol,
+			 diff_sent_packets, diff_sent_bytes,
 			 diff_rcvd_packets, diff_rcvd_bytes);
     if(srv_host) {
-      srv_host->incStats(protocol, ndpi_detected_protocol, diff_rcvd_packets, diff_rcvd_bytes,
+      srv_host->incStats(protocol, ndpi_detected_protocol.protocol,
+			 diff_rcvd_packets, diff_rcvd_bytes,
 			 diff_sent_packets, diff_sent_bytes);
 
       if(host_server_name
-	 && ((ndpi_detected_protocol == NDPI_PROTOCOL_HTTP)
-	     || (ndpi_detected_protocol == NDPI_PROTOCOL_HTTP_PROXY)
-	     )
-	 ) {
+	 && (ndpi_is_proto(ndpi_detected_protocol, NDPI_PROTOCOL_HTTP)
+	     || ndpi_is_proto(ndpi_detected_protocol, NDPI_PROTOCOL_HTTP_PROXY))) {
 	srv_host->updateHTTPHostRequest(host_server_name,
 					diff_num_http_requests,
 					diff_sent_bytes, diff_rcvd_bytes);
 	diff_num_http_requests = 0; /*
-				       As this is a difference it is reset
-				       whenever we update the counters
+				      As this is a difference it is reset
+				      whenever we update the counters
 				    */
       }
     }
   }
 
   if(aggregationInfo.name) {
-    StringHost *host = iface->findHostByString(NULL /* all hosts */, aggregationInfo.name, ndpi_detected_protocol, true);
+    StringHost *host = iface->findHostByString(NULL /* all hosts */, aggregationInfo.name, 
+					       ndpi_detected_protocol.protocol, true);
 
     if(host)
-      host->incStats(protocol, ndpi_detected_protocol, diff_rcvd_packets, diff_rcvd_bytes,
+      host->incStats(protocol, ndpi_detected_protocol.protocol,
+		     diff_rcvd_packets, diff_rcvd_bytes,
 		     diff_sent_packets, diff_sent_bytes);
   }
 
@@ -1019,7 +1032,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 
     if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-       || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN)
+       || (ndpi_detected_protocol.protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
@@ -1199,9 +1212,9 @@ char* Flow::getFlowCategory(bool force_categorization) {
 /* *************************************** */
 
 void Flow::sumStats(NdpiStats *stats) {
-  stats-> incStats(ndpi_detected_protocol,
-		   cli2srv_packets, cli2srv_bytes,
-		   srv2cli_packets, srv2cli_bytes);
+  stats->incStats(ndpi_detected_protocol.protocol,
+		  cli2srv_packets, cli2srv_bytes,
+		  srv2cli_packets, srv2cli_bytes);
 }
 
 /* *************************************** */
@@ -1296,9 +1309,9 @@ json_object* Flow::flow2json(bool partial_dump) {
 			 json_object_new_int(protocol));
 
   if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-     || (ndpi_detected_protocol != NDPI_PROTOCOL_UNKNOWN)) {
+     || (ndpi_detected_protocol.protocol != NDPI_PROTOCOL_UNKNOWN)) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_int(get_detected_protocol()));
+			   json_object_new_int(ndpi_detected_protocol.protocol));
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf, sizeof(jsonbuf)),
                            json_object_new_string(get_detected_protocol_name()));
   }
@@ -1798,3 +1811,17 @@ void Flow::checkFlowCategory() {
     ntop->getRedis()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
   }  
 }
+			   
+/* *************************************** */
+			   
+char* Flow::get_detected_protocol_name() {  
+  if(!ndpi_proto_name) {
+    char buf[64];
+    
+    ndpi_proto_name = strdup(ndpi_protocol2name(iface->get_ndpi_struct(),
+						ndpi_detected_protocol,
+						buf, sizeof(buf)));
+  }
+
+  return(ndpi_proto_name);
+};

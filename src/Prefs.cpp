@@ -254,6 +254,9 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "                                    | vss   - Timestamped packets by vssmonitoring.com\n"
 	 "                                    |         hardware devices\n"
+#ifndef WIN32
+	 "[--install-dir|-t] <dir>            | Set the installation directory to <dir>. Testing only.\n"
+#endif
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
@@ -799,9 +802,12 @@ int Prefs::checkOptions() {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", path);
     }
 
-  if (strnlen(ntop->get_install_dir(), MAX_PATH) == 0 && install_dir)
+  if(install_dir)
     ntop->set_install_dir(install_dir);
-  free(data_dir); data_dir = strdup(ntop->get_install_dir());
+
+  free(data_dir);
+  data_dir = strdup(ntop->get_install_dir());
+
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
@@ -958,7 +964,7 @@ void Prefs::add_network_interface(char *name, char *description) {
 /* ******************************************* */
 
 char *Prefs::getInterfaceViewAt(int id) {
-  if (id >= MAX_NUM_INTERFACES) return NULL;
+  if(id >= MAX_NUM_INTERFACES) return NULL;
   return ifViewNames[id].name;
 }
 
@@ -1032,8 +1038,8 @@ bool Prefs::isView(char *name) {
   istringstream ss(name);
   string cmdtok;
 
-  if (std::getline(ss, cmdtok, ':')) {
-    if (cmdtok != "view") return false;
+  if(std::getline(ss, cmdtok, ':')) {
+    if(cmdtok != "view") return false;
     return true;
   }
 
@@ -1045,7 +1051,7 @@ bool Prefs::isView(char *name) {
 void Prefs::registerNetworkInterfaces() {
   for(int i=0; i<num_deferred_interfaces_to_register; i++) {
     if(deferred_interfaces_to_register[i] != NULL) {
-      if (isView(deferred_interfaces_to_register[i]))
+      if(isView(deferred_interfaces_to_register[i]))
         add_network_interface_view(deferred_interfaces_to_register[i], NULL);
       else
         add_network_interface(deferred_interfaces_to_register[i], NULL);

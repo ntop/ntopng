@@ -76,6 +76,8 @@ or
 .IR <dump\-aggregations> ]
 .RB [ \-S
 .IR <sticky\-hosts> ]
+.RB [ \-t
+.IR <dir> ]
 .RB [ \-T
 .IR <enable-taps> ]
 .RB [ \-H ]
@@ -323,6 +325,9 @@ not to purge the hosts specified by \-S. This parameter requires an argument tha
 Enable hw timestamping/stripping. Supported TS modes are:
 .br
 ixia \(em Timestamped packets by ixiacom.com hardware devices.
+
+.It \-t|\-\-install-dir\ <dir>
+Force ntopng to use the HTML/lua files installed on the specified directory. This option should not be used unless under testing or development, as packaging systems should place the files at the right place.
 
 .It \-T|\-\-enable-taps\ <mode>
 Enable tap interfaces to dump packets on. If not specified, traffic can bedumped only on disk but not sent live to apps.
