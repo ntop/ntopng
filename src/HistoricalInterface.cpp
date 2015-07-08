@@ -34,6 +34,10 @@ HistoricalInterface::HistoricalInterface(const char *_endpoint)
     resetStats();
     purge_idle_flows_hosts = false;
 
+  flowsManager = new FlowsManager(this);
+  if (!flowsManager)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate FlowsManager for Historical interface");
+
   /* Create view for this interface so that it is visible in the GUI */
   view = new NetworkInterfaceView(this);
   if (!view)
