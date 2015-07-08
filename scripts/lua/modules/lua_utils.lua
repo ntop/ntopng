@@ -1590,7 +1590,7 @@ function get_mac_classification(mac_address)
         t = split(mac_line, "\t")
         if (string.match(mac_address, t[1]..".*") ~= nil) then
            file_mac.close()
-           return split(t[2], " ")[1]
+           return "("..split(t[2], " ")[1]..")"
         end
       end
       mac_line = file_mac:read("*l")
