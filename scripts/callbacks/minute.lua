@@ -245,10 +245,12 @@ for _,_ifname in pairs(ifnames) do
               name = fixPath(base .. "/bytes.rrd")
               createRRDcounter(name, 300, verbose)
               ntop.rrd_update(name, "N:".. m["bytes.sent"] .. ":" .. m["bytes.rcvd"])
-              for k in pairs(m["ndpi"]) do
-                 ndpiname = fixPath(base.."/"..k..".rrd")
-                 createRRDcounter(ndpiname, 300, verbose)
-                 ntop.rrd_update(ndpiname, "N:"..m["ndpi"][k]["bytes.sent"]..":"..m["ndpi"][k]["bytes.rcvd"])
+              if (m["ndpi"]) then -- nDPI data could be disabled
+                for k in pairs(m["ndpi"]) do
+                  ndpiname = fixPath(base.."/"..k..".rrd")
+                  createRRDcounter(ndpiname, 300, verbose)
+                  ntop.rrd_update(ndpiname, "N:"..m["ndpi"][k]["bytes.sent"]..":"..m["ndpi"][k]["bytes.rcvd"])
+                end
               end
             end
 	 end -- if rrd
