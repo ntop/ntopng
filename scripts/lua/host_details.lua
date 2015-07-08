@@ -362,7 +362,7 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
 
    if(host["ip"] ~= nil) then
-      print("<tr><th width=35%>(Router) MAC Address</th><td>" .. host["mac"].. "</td><td>")
+      print("<tr><th width=35%>(Router) MAC Address</th><td>" .. host["mac"].." ("..get_mac_classification(host["mac"]).. ")</td><td>")
 
       if(host["localhost"] == true) then
 	 dump_status = host["dump_host_traffic"]

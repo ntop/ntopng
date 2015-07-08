@@ -1505,6 +1505,10 @@ function split(s, delimiter)
     return result;
 end
 
+function startswith(s, char)
+   return string.sub(s, 1, string.len(s)) == char
+end
+
 function strsplit(inputstr, sep)
   if (inputstr == nil or inputstr == "") then return {} end
   if sep == nil then
@@ -1576,3 +1580,22 @@ function makeTopStatsScriptsArray()
    end
    return(topArray)
 end
+
+function get_mac_classification(mac_address)
+   local file_mac = io.open(fixPath(dirs.installdir.."/third-party/well-known-MAC.txt"))
+   if (file_mac == nil) then return "" end
+   local mac_line = file_mac:read("*l")
+   while (mac_line ~= nil) do
+      if (not startswith(mac_line, "#") and mac_line ~= "") then
+        t = split(mac_line, "\t")
+        if (string.match(mac_address, t[1]..".*") ~= nil) then
+           file_mac.close()
+           return split(t[2], " ")[1]
+        end
+      end
+      mac_line = file_mac:read("*l")
+   end
+   file_mac.close()
+   return ""
+end
+
