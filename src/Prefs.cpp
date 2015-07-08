@@ -162,7 +162,7 @@ void usage() {
 #ifndef WIN32
 	 "[--data-dir|-d] <path>              | Data directory (must be writable).\n"
 	 "                                    | Default: %s\n"
-	 "[--install-dir|-d] <path>           | ntopng installation directory\n"
+	 "[--install-dir|-t] <path>           | Set the installation directory to <dir>. Testing only.\n"
 	 "[--daemon|-e]                       | Daemonize ntopng\n"
 #endif
 	 "[--httpdocs-dir|-1] <path>          | HTTP documents root directory.\n"
@@ -254,9 +254,6 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "                                    | vss   - Timestamped packets by vssmonitoring.com\n"
 	 "                                    |         hardware devices\n"
-#ifndef WIN32
-	 "[--install-dir|-t] <dir>            | Set the installation directory to <dir>. Testing only.\n"
-#endif
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
