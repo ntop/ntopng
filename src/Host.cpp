@@ -977,10 +977,11 @@ bool Host::deserialize(char *json_str) {
 
 void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
   if (!localHost || !triggerAlerts()) return;
+  bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
 
-  if(counter->incHits(when)) {
+  if(counter->incHits(when) && !historical) {
     char ip_buf[48], flow_buf[256], msg[512], *h;
     const char *error_msg;
 
@@ -1025,11 +1026,12 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 
 void Host::incNumFlows(bool as_client) {
   if (!localHost || !triggerAlerts()) return;
+  bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
-    if(num_active_flows_as_client == max_num_active_flows) {
+    if(!historical && num_active_flows_as_client == max_num_active_flows) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possible scanner [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
@@ -1046,7 +1048,7 @@ void Host::incNumFlows(bool as_client) {
   } else {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
-    if(num_active_flows_as_server == max_num_active_flows) {
+    if(!historical && num_active_flows_as_server == max_num_active_flows) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is possibly under scan attack [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
@@ -1067,12 +1069,13 @@ void Host::incNumFlows(bool as_client) {
 
 void Host::decNumFlows(bool as_client) {
   if (!localHost || !triggerAlerts()) return;
+  bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   if(as_client) {
     if(num_active_flows_as_client) {
       num_active_flows_as_client--;
 
-      if(num_active_flows_as_client == max_num_active_flows) {
+      if(!historical && num_active_flows_as_client == max_num_active_flows) {
 	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer a possible scanner [%u active flows]";
 	char ip_buf[48], *h, msg[512];
 
@@ -1092,7 +1095,7 @@ void Host::decNumFlows(bool as_client) {
     if(num_active_flows_as_server) {
       num_active_flows_as_server--;
 
-      if(num_active_flows_as_server == max_num_active_flows) {
+      if(!historical && num_active_flows_as_server == max_num_active_flows) {
 	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer under scan attack [%u active flows]";
 	char ip_buf[48], *h, msg[512];
 
@@ -1134,11 +1137,12 @@ bool Host::isAboveQuota() {
 
 void Host::updateStats(struct timeval *tv) {
   if (!localHost || !triggerAlerts()) return;
+  bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
 
-  if (isAboveQuota()) {
+  if (!historical && isAboveQuota()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
     char ip_buf[48], *h, msg[512];
     h = ip->print(ip_buf, sizeof(ip_buf));
