@@ -32,7 +32,7 @@ PacketDumper::PacketDumper(NetworkInterface *i) {
   if((name[0] == 'l') && (name[1] == 'o'))
     iface_type = DLT_NULL;
   else
-    iface_type = DLT_EN10MB;
+    iface_type = i->get_datalink();
 }
 
 /* ********************************************* */
