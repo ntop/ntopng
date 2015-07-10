@@ -92,11 +92,12 @@ print [[
 if not is_historical then
  print [[  <A href="]]
 print (ntop.getHttpPrefix())
-print [[/lua/if_stats.lua">
-	 <span class="network-load-chart">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+
+print [[/lua/if_stats.lua">	 
+	 <span class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span><br>
+	 <span class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
 </div>
 <div class="col-xs-6 col-sm-4">
-	 <span class="local-traffic-chart" class="bar-colours-2">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
 </a> ]]
 end
 print [[
@@ -119,8 +120,9 @@ print [[
 if is_historical then print('var is_historical = true;') else print('var is_historical = false;') end
 print [[
 
-var updatingChart = $(".network-load-chart").peity("line", { width: 64 });
-var localUpdatingChart = $(".local-traffic-chart").peity("bar", { width: 64, fill: function(value) { return value >= 0 ? "blue" : "red" } });
+var updatingChart = $(".network-load-chart-upload").peity("line", { width: 64 });
+var updatingChart1 = $(".network-load-chart-download").peity("line", { width: 64, fill: "lightgreen"});
+
 var prev_bytes   = 0;
 var prev_packets = 0;
 var prev_local   = 0;
@@ -276,7 +278,7 @@ print [[/lua/logout.lua");  }, */
 	      }
 
 	      var values = updatingChart.text().split(",")
-	      var local_values = localUpdatingChart.text().split(",")
+	      var values1 = updatingChart1.text().split(",")
 	      var bytes_diff = rsp.bytes-prev_bytes;
 	      var packets_diff = rsp.packets-prev_packets;
 	      var local_diff = rsp.local2remote-prev_local;
@@ -287,13 +289,13 @@ print [[/lua/logout.lua");  }, */
 		if(bytes_diff > 0) {
 		   var v = local_diff-remote_diff;
 		   var v_label;
-		  values.shift();
-		  values.push(bytes_diff);
-		  updatingChart.text(values.join(",")).change();
 
-		  local_values.shift();
-		  local_values.push(v);
-		  localUpdatingChart.text(local_values.join(",")).change();
+		  values.shift();
+		  values.push(local_diff);
+		  updatingChart.text(values.join(",")).change();
+		  values1.shift();
+		  values1.push(-remote_diff);
+		  updatingChart1.text(values1.join(",")).change();
 		}
 
 		var pps = Math.floor(packets_diff / epoch_diff);
@@ -314,8 +316,7 @@ print [[/lua/show_alerts.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B9
 		var alarm_threshold_high = 90; /* 90% */
 		var alert = 0;
      
-            if (is_historical) {
-            
+            if (is_historical) {            
             var historical_alarm_threshold_low = 10;  /* 10% */
             var historical_alarm_threshold_high = 40; /* 40% */
               
