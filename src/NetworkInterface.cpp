@@ -1435,10 +1435,38 @@ static bool hosts_get_list_details(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
+static bool hosts_get_local_list(GenericHashEntry *h, void *user_data) {
+  struct vm_ptree *vp = (struct vm_ptree*)user_data;
+  IpAddress *ip = ((Host*)h)->get_ip();
+
+  if (ip && ((Host*)h)->isLocalHost())
+    ((Host*)h)->lua(vp->vm, vp->ptree, false, false, false);
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool hosts_get_local_list_details(GenericHashEntry *h, void *user_data) {
+  struct vm_ptree *vp = (struct vm_ptree*)user_data;
+  IpAddress *ip = ((Host*)h)->get_ip();
+
+  if (ip && ((Host*)h)->isLocalHost())
+    ((Host*)h)->lua(vp->vm, vp->ptree, true, false, false);
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 void NetworkInterface::getActiveHostsList(lua_State* vm,
 					  vm_ptree *vp,
-					  bool host_details) {
-  hosts_hash->walk(host_details ? hosts_get_list_details : hosts_get_list, (void*)vp);
+					  bool host_details,
+					  bool local_only) {
+  if (local_only)
+    hosts_hash->walk(host_details ? hosts_get_local_list_details : hosts_get_local_list, (void*)vp);
+  else
+    hosts_hash->walk(host_details ? hosts_get_list_details : hosts_get_list, (void*)vp);
 }
 
 /* **************************************************** */

@@ -417,7 +417,24 @@ static int ntop_get_interface_hosts(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false);
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, false);
+
+  return(CONST_LUA_OK);
+}
+
+/**
+ * @brief Get all local hosts of network interface.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of local host information (Host name and number of bytes sent and received).
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_local_hosts(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, true);
 
   return(CONST_LUA_OK);
 }
@@ -443,7 +460,31 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
   else
     show_details = lua_toboolean(vm, 1) ? true : false;
 
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details);
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, false);
+
+  return(CONST_LUA_OK);
+}
+
+/**
+ * @brief Get local hosts information of network interface.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host information.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_local_hosts_info(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  bool show_details;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  /* Optional */
+  if(lua_type(vm, 1) != LUA_TBOOLEAN)
+    show_details = true;
+  else
+    show_details = lua_toboolean(vm, 1) ? true : false;
+
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, true);
 
   return(CONST_LUA_OK);
 }
@@ -4197,7 +4238,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNdpiFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getNdpiProtoBreed",      ntop_get_ndpi_protocol_breed },
   { "getHosts",               ntop_get_interface_hosts },
+  { "getLocalHosts",          ntop_get_interface_local_hosts },
   { "getHostsInfo",           ntop_get_interface_hosts_info },
+  { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getAggregatedHostsInfo", ntop_get_interface_aggregated_hosts_info },
   { "getAggregationFamilies", ntop_get_interface_aggregation_families },
   { "getNumAggregatedHosts",  ntop_get_interface_num_aggregated_hosts },

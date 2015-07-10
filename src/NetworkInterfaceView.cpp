@@ -173,7 +173,8 @@ void NetworkInterfaceView::getnDPIStats(NdpiStats *stats) {
 
 void NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 					      patricia_tree_t *allowed_hosts,
-					      bool host_details) {
+					      bool host_details,
+					      bool local_only) {
   struct vm_ptree vp;
   list<NetworkInterface *>::iterator p;
 
@@ -181,7 +182,7 @@ void NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 
   lua_newtable(vm);
   for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getActiveHostsList(vm, &vp, host_details);
+    (*p)->getActiveHostsList(vm, &vp, host_details, local_only);
 }
 
 /* **************************************************** */
