@@ -154,12 +154,14 @@
 #define CONST_INTERFACE_TYPE_NETFILTER "netfilter"
 #define CONST_INTERFACE_TYPE_UNKNOWN   "unknown"
 
-
 #define CONST_DEMO_MODE_DURATION       600 /* 10 min */
 #define CONST_MAX_DUMP_DURATION        300 /* 5 min */
 #define CONST_DUMP_SAMPLING_RATE       1000 /* 1/ */
 #define CONST_MAX_NUM_PACKETS_PER_DUMP 1000000
 #define CONST_MAX_DUMP                 500000000
+
+#define CONST_EST_MAX_FLOWS            200000
+#define CONST_EST_MAX_HOSTS            200000
 
 #ifndef TH_FIN
 #define	TH_FIN	0x01
