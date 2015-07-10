@@ -131,7 +131,7 @@ for _,_ifname in pairs(ifnames) do
 
 	 -- Save hosts stats
 	 if(host_rrd_creation ~= "0") then
-	    hosts_stats = interface.getHostsInfo()
+	    hosts_stats = interface.getLocalHostsInfo()
             local networks_aggr = {}
 	    for key, value in pairs(hosts_stats) do
 	       host = interface.getHostInfo(key)
@@ -232,7 +232,7 @@ for _,_ifname in pairs(ifnames) do
 			if(host["dns"]) then dumpSingleTreeCounters(basedir, "dns", host, verbose) end
 		     end
 		  else
-		     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] Skipping non local host "..key.."\n") end
+		     print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..key.."\n")
 		  end
 	       end -- if
 	    end -- for
