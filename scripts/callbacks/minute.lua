@@ -141,7 +141,7 @@ for _,_ifname in pairs(ifnames) do
 	       else
 		  if(verbose) then
 		     print ("["..__FILE__()..":"..__LINE__().."] [" .. key .. "][local: ")
-		     print(host["localhost"])
+		     print(tostring(host["localhost"]))
 		     print("]" .. (hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]) .. "]\n")
 		  end
 
