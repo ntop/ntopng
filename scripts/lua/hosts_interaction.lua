@@ -333,6 +333,7 @@ else
    hosts_stats[host_info["host"]] = interface.getHostInfo(host_info["host"],host_info["vlan"])
 end
 
+hosts_ctx = {}
 hosts_id = {}
 ids = {}
 
@@ -342,7 +343,28 @@ local host
 local max_num_hosts = 50
 local host_idx = 0
 
+local num_contacts
+
+-- Enumerate contacts of each host
 for key, values in pairs(hosts_stats) do
+  host = interface.getHostInfo(key)
+  if (host ~= nil) then
+    num_contacts = 0
+    if (host["contacts"]["client"] ~= nil) then
+      for k,v in pairs(host["contacts"]["client"]) do
+        num_contacts = num_contacts + 1
+      end
+    end
+    if (host["contacts"]["server"] ~= nil) then
+      for k,v in pairs(host["contacts"]["server"]) do
+        num_contacts = num_contacts + 1
+      end
+    end
+  end
+  hosts_ctx[key] = num_contacts
+end
+
+for key, values in pairsByValues(hosts_ctx, rev) do
   
   host = interface.getHostInfo(key)
 
