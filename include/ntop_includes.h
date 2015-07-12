@@ -185,6 +185,7 @@ extern "C" {
 #include "PeriodicActivities.h"
 #include "Lua.h"
 #include "AddressResolution.h"
+#include "CommunitiesManager.h"
 #include "Categorization.h"
 #include "HTTPBL.h"
 #include "HTTPserver.h"
