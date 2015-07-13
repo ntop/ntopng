@@ -52,7 +52,7 @@ DB::~DB() {
 /* ******************************************* */
 
 void DB::termDB() {
-  if(!ntop->getPrefs()->do_dump_flows_on_db()) return;
+  if(!ntop->getPrefs()->do_dump_flows_on_sqlite()) return;
 
   if(db) {
     execSQL(db, (char*)"COMMIT;");
@@ -77,7 +77,7 @@ void DB::termDB() {
 void DB::initDB(time_t when, const char *create_sql_string) {
   char path[MAX_PATH];
 
-  if(!ntop->getPrefs()->do_dump_flows_on_db()) return;
+  if(!ntop->getPrefs()->do_dump_flows_on_sqlite()) return;
 
   if(db != NULL) {
     if(when < end_dump)
@@ -117,7 +117,7 @@ void DB::initDB(time_t when, const char *create_sql_string) {
 /* ******************************************* */
 
 bool DB::dumpFlow(time_t when, Flow *f, char *json) {
-  const char *create_flows_db = "BEGIN; CREATE TABLE IF NOT EXISTS flows (ID INTEGER PRIMARY KEY   AUTOINCREMENT, vlan_id number, cli_ip string KEY, cli_port number, "
+  const char *create_flows_db = "BEGIN; CREATE TABLE IF NOT EXISTS flows (ID INTEGER PRIMARY KEY AUTOINCREMENT, vlan_id number, cli_ip string KEY, cli_port number, "
     "srv_ip string KEY, srv_port number, proto number, bytes number, first_seen number, last_seen number, duration number, json string);";
   char sql[4096], cli_str[64], srv_str[64];
   sqlite3_stmt *stmt = NULL;
@@ -168,7 +168,7 @@ out:
 /* ******************************************* */
 
 bool DB::execSQL(sqlite3 *_db, char* sql) {
-  if(ntop->getPrefs()->do_dump_flows_on_db()) {
+  if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
     int rc;
     char *zErrMsg = 0;
 

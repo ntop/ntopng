@@ -58,7 +58,7 @@ Prefs::Prefs(Ntop *_ntop) {
   packet_filter = NULL;
   disable_host_persistency = false;
   num_interfaces = 0, num_interface_views = 0, enable_auto_logout = true;
-  dump_flows_on_db = false, dump_flows_on_es = false;
+  dump_flows_on_sqlite = dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
   enable_aggregations = aggregations_disabled;
   memset(ifNames, 0, sizeof(ifNames));
@@ -222,13 +222,20 @@ void usage() {
 	 "                                    | 2 - Enable aggregations, with timeline\n"
 	 "                                    |     dump (see -C)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
-	 "                                    | db - Dump in SQLite DB\n"
-	 "                                    | es - Dump in Redis "CONST_ES_QUEUE_NAME" queue\n"
-	 "                                    |      Format:\n"
-	 "                                    |      es;<idx type>;<idx name>;<es URL>;<es pwd>\n"
-	 "                                    |      Example:\n"
-	 "                                    |      es;flows;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
-	 "                                    |      Note: the <idx name> accepts the strftime() format.\n"
+	 "                                    | sqlite Dump in SQLite DB\n"
+	 "                                    | es     Dump in ElasticSearch database\n"
+	 "                                    |        Format:\n"
+	 "                                    |        es;<idx type>;<idx name>;<es URL>;<es pwd>\n"
+	 "                                    |        Example:\n"
+	 "                                    |        es;flows;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
+	 "                                    |        Note: the <idx name> accepts the strftime() format.\n"
+#ifdef HAVE_MYSQL
+	 "                                    | mysql  Dump in MySQL database\n"
+	 "                                    |        Format:\n"
+	 "                                    |        mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw>\n"
+	 "                                    |        mysql;localhost;ntopng;flows-%%Y.%%m.%%d;root;\n"
+	 "                                    |        Note: the <table name> accepts the strftime() format.\n"
+#endif
 	 "[--export-flows|-I] <endpoint>      | Export flows using the specified endpoint.\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
 	 "                                    | Values:\n"
@@ -657,8 +664,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
-    if((strncmp(optarg, "es", 2) == 0)
-       && (strlen(optarg) > 3)) {
+    if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
       /* es;<index type>;<index name>;<es URL>;<es pwd> */
@@ -699,9 +705,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
-    } else if(!strcmp(optarg, "db"))
-      dump_flows_on_db = true;
-    else
+    } else if(!strcmp(optarg, "sqlite"))
+      dump_flows_on_sqlite = true;
+    else if(!strcmp(optarg, "mysql")) {
+
+    } else
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Discarding -F %s: value out of range",
 				   optarg);
@@ -1003,7 +1011,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
-  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_db);
+  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_sqlite);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
   lua_push_int_table_entry(vm, "dump_aggregation", dump_aggregations_to_db);
 

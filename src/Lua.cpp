@@ -4039,7 +4039,7 @@ static int ntop_lua_dofile(lua_State* L)
 static int ntop_is_historical_interface(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop->getPrefs()->do_dump_flows_on_db()) {
+  if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
     u_int32_t id, historical_id;
 
     historical_id = ntop->getHistoricalInterfaceId();

@@ -178,11 +178,11 @@ NetworkInterface::NetworkInterface(const char *name) {
     db = new DB(this);
     checkIdle();
   } else {
-	  flows_hash = NULL, hosts_hash = NULL, strings_hash = NULL;
-	  ndpi_struct = NULL, db = NULL;
-	  pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
+    flows_hash = NULL, hosts_hash = NULL, strings_hash = NULL;
+    ndpi_struct = NULL, db = NULL;
+    pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
-
+  
   statsManager = NULL, view = NULL;
   flowsManager = NULL;
 
@@ -445,7 +445,7 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, bool partial_dump, Flow *f) {
-  if(ntop->getPrefs()->do_dump_flows_on_db()) {
+  if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
     return(dumpDBFlow(when, partial_dump, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es())
     return(dumpEsFlow(when, partial_dump, f));
