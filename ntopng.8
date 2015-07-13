@@ -72,6 +72,8 @@ or
 .IR <dump\-hosts> ]
 .RB [ \-I
 .IR <export\-flows> ]
+.RB [ \-O
+.IR <communities\-list> ]
 .RB [ \-E
 .IR <dump\-aggregations> ]
 .RB [ \-S
@@ -310,6 +312,14 @@ Export the expired flows on the specified endpoint. For instance supposing to st
 1.2.3.4 as ntopng \-I "tcp://*:3456", it exports flows on this endpoint so that you can create a
 hierarchy of ntopng's. You can achieve that by starting a collector ntopng as
 ntopng \-i tcp://1.2.3.4:3456
+
+.It \-O|\-\-communities\-list\ <filename>
+Parse the specified file and retrieve a list of communities, that are a logical representation of
+clusters of hosts that fall under the same administrative domain. The file must be in the following
+format:
+    communityX@id1=net1,net2,net3
+    communityY@id2=net4,net5,net6
+    ...
 
 .It \-E|\-\-dump\-aggregations\ <mode>
 If ntopng is compiled with sqlite support, hosts contacts can dumped persistently on disk using this option.

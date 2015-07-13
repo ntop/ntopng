@@ -52,6 +52,7 @@ Ntop::Ntop(char *appName) {
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
   num_cpus = -1;
+  communitiesManager = NULL;
 #ifdef NTOPNG_PRO
   redis_pro = NULL;
 #endif
@@ -176,6 +177,7 @@ Ntop::~Ntop() {
   delete globals;
   delete prefs;
   delete runtimeprefs;
+  delete communitiesManager;
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
@@ -225,6 +227,12 @@ void Ntop::registerPrefs(Prefs *_prefs) {
   memset(iface, 0, sizeof(iface));
 
   redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
+
+  if (prefs->getCommunitiesFile()) {
+    communitiesManager = new CommunitiesManager();
+    communitiesManager->parseCommunitiesFile(prefs->getCommunitiesFile());
+  }
+
 #ifdef NTOPNG_PRO
   redis_pro = new RedisPro();
   pro->check_license(true);

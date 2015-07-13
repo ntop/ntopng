@@ -1599,3 +1599,8 @@ function get_mac_classification(mac_address)
    return ""
 end
 
+function rrd_exists(host_ip, rrdname)
+   dirs = ntop.getDirs()
+   rrdpath = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host_ip) .. "/" .. rrdname
+   return ntop.exists(rrdpath)
+end

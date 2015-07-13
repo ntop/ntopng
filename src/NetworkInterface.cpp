@@ -1437,9 +1437,8 @@ static bool hosts_get_list_details(GenericHashEntry *h, void *user_data) {
 
 static bool hosts_get_local_list(GenericHashEntry *h, void *user_data) {
   struct vm_ptree *vp = (struct vm_ptree*)user_data;
-  IpAddress *ip = ((Host*)h)->get_ip();
 
-  if (ip && ((Host*)h)->isLocalHost())
+  if (((Host*)h)->isLocalHost())
     ((Host*)h)->lua(vp->vm, vp->ptree, false, false, false);
 
   return(false); /* false = keep on walking */
@@ -1449,9 +1448,8 @@ static bool hosts_get_local_list(GenericHashEntry *h, void *user_data) {
 
 static bool hosts_get_local_list_details(GenericHashEntry *h, void *user_data) {
   struct vm_ptree *vp = (struct vm_ptree*)user_data;
-  IpAddress *ip = ((Host*)h)->get_ip();
 
-  if (ip && ((Host*)h)->isLocalHost())
+  if (((Host*)h)->isLocalHost())
     ((Host*)h)->lua(vp->vm, vp->ptree, true, false, false);
 
   return(false); /* false = keep on walking */
