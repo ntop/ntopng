@@ -5,8 +5,7 @@
 require "os"
 
 print [[
-      <div id="footer">
-      <hr>
+      <div id="footer"> <hr>
    ]]
 
 ntop_version_check()

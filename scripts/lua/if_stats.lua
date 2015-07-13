@@ -270,17 +270,6 @@ if((page == "overview") or (page == nil)) then
       print(" (Aggregated Interface View)")
    end
    print("</td></tr>\n")
-   print("<tr><th>Bytes</th><td colspan=3><div id=if_bytes>" .. bytesToSize(ifstats.stats_bytes) .. "</div>");
-
-   print [[
-   <p>
-   <small>
-   <div class="alert alert-info">
-      <b>NOTE</b>: In ethernet networks, each packet has an <A HREF=https://en.wikipedia.org/wiki/Ethernet_frame>overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=http://en.wikipedia.org/wiki/Interframe_gap>IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values.
-         </div></small>
-   </td></tr>
-   ]]
-
    if(ifstats["pkt_dumper"] ~= nil) then
       print("<tr><th rowspan=2>Packet Dumper</th><th colspan=2>Dumped Packets</th><th>Dumped Files</th></tr>\n")
       print("<tr><td colspan=2><div id=dumped_pkts>".. formatValue(ifstats["pkt_dumper"]["num_dumped_pkts"]) .."</div></td>")
@@ -288,11 +277,7 @@ if((page == "overview") or (page == nil)) then
    end
 
 
-   if(ifstats.type ~= "zmq") then
-      label = "Pkts"
-   else
-      label = "Flows"
-   end
+   label = "Pkts"
 
 print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=3><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr>
 
@@ -305,7 +290,7 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
       print ("}\n</script>\n")
 
    print("<tr><th colspan=4>Ingress Traffic</th></tr>\n")
-   print("<tr><th>Received Packets</th><td width=20%><span if=if_bytes>"..bytesToSize(ifstats.stats_bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats_packets) .. " ".. label .."</span>] <span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
+   print("<tr><th>Received Traffic</th><td width=20%><span if=if_bytes_1>"..bytesToSize(ifstats.stats_bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats_packets) .. " ".. label .."</span>] <span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
 
    if(ifstats.stats_drops > 0) then print('<span class="label label-danger">') end
    print(formatValue(ifstats.stats_drops).. " " .. label)
@@ -326,6 +311,10 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
       print("<tr><th>".. ifstats["bridge.device_b"] .. " -> ".. ifstats["bridge.device_a"] .."</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span></td>")
       print("<td><span id=b_to_a_out_pkts>"..formatPackets( ifstats["bridge.b_to_a.out_pkts"]) .."</span></td><td><span id=b_to_a_filtered_pkts>".. formatPackets(ifstats["bridge.b_to_a.filtered_pkts"]) .."</span></td></tr>\n")
    end
+
+   print [[
+   <tr><td colspan=4> <small> <b>NOTE</b>:<p>In ethernet networks, each packet has an <A HREF=https://en.wikipedia.org/wiki/Ethernet_frame>overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=http://en.wikipedia.org/wiki/Interframe_gap>IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values. </small> </td></tr>
+   ]]
 
    print("</table>\n")
 elseif((page == "packets")) then
@@ -1406,11 +1395,13 @@ print [[/lua/network_load.lua',
           data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
           success: function(content) {
         var rsp = jQuery.parseJSON(content);
-        $('#if_bytes').html(bytesToVolume(rsp.bytes));
+	var v = bytesToVolume(rsp.bytes);
+        $('#if_bytes').html(v);
+        $('#if_bytes').html(v);
         $('#if_pkts').html(addCommas(rsp.packets)+"]]
 
 
-if(ifstats.type == "zmq") then print(" Flows\");") else print(" Pkts\");") end
+print(" Pkts\");")
 print [[
         var pctg = 0;
         var drops = "";
@@ -1424,7 +1415,7 @@ print [[
         if(rsp.drops > 0) { drops = '<span class="label label-danger">'; }
         drops = drops + addCommas(rsp.drops)+" ]]
 
-if(ifstats.type == "zmq") then print("Flows") else print("Pkts") end
+print("Pkts")
 print [[";
 
         if(pctg > 0)      { drops = drops + " [ "+pctg+" % ]"; }
