@@ -131,7 +131,7 @@ for _,_ifname in pairs(ifnames) do
 
 	 -- Save hosts stats
 	 if(host_rrd_creation ~= "0") then
-	    hosts_stats = interface.getHostsInfo()
+	    hosts_stats = interface.getLocalHostsInfo()
             local networks_aggr = {}
 	    for key, value in pairs(hosts_stats) do
 	       host = interface.getHostInfo(key)
@@ -141,7 +141,7 @@ for _,_ifname in pairs(ifnames) do
 	       else
 		  if(verbose) then
 		     print ("["..__FILE__()..":"..__LINE__().."] [" .. key .. "][local: ")
-		     print(host["localhost"])
+		     print(tostring(host["localhost"]))
 		     print("]" .. (hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]) .. "]\n")
 		  end
 
@@ -201,6 +201,29 @@ for _,_ifname in pairs(ifnames) do
 			   name = fixPath(basedir .. "/".. k .. ".rrd")
 			   createRRDcounter(name, 300, verbose)
 			   ntop.rrd_update(name, "N:".. host["ndpi"][k]["bytes.sent"] .. ":" .. host["ndpi"][k]["bytes.rcvd"])
+
+                           -- Aggregate network NDPI stats
+                           if (networks_aggr[host["local_network_name"]]["ndpi"] == nil) then
+                              networks_aggr[host["local_network_name"]]["ndpi"] = {}
+                           end
+                           if (networks_aggr[host["local_network_name"]]["ndpi"][k] == nil) then
+                              networks_aggr[host["local_network_name"]]["ndpi"][k] = {}
+                           end
+                           if (networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] == nil) then
+                              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] = host["ndpi"][k]["bytes.sent"]
+                           else
+                              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] =
+                                 networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.sent"] +
+                                 host["ndpi"][k]["bytes.sent"]
+                           end
+                           if (networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] == nil) then
+                              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] = host["ndpi"][k]["bytes.rcvd"]
+                           else
+                              networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] =
+                                 networks_aggr[host["local_network_name"]]["ndpi"][k]["bytes.rcvd"] +
+                                 host["ndpi"][k]["bytes.rcvd"]
+                           end
+
 			   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
 			   influx_add_host_point(_ifname, key, "l7."..k, host["ndpi"][k]["bytes.sent"], host["ndpi"][k]["bytes.rcvd"])
 			end
@@ -209,7 +232,7 @@ for _,_ifname in pairs(ifnames) do
 			if(host["dns"]) then dumpSingleTreeCounters(basedir, "dns", host, verbose) end
 		     end
 		  else
-		     if(verbose) then print("["..__FILE__()..":"..__LINE__().."] Skipping non local host "..key.."\n") end
+		     print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..key.."\n")
 		  end
 	       end -- if
 	    end -- for
@@ -222,6 +245,13 @@ for _,_ifname in pairs(ifnames) do
               name = fixPath(base .. "/bytes.rrd")
               createRRDcounter(name, 300, verbose)
               ntop.rrd_update(name, "N:".. m["bytes.sent"] .. ":" .. m["bytes.rcvd"])
+              if (m["ndpi"]) then -- nDPI data could be disabled
+                for k in pairs(m["ndpi"]) do
+                  ndpiname = fixPath(base.."/"..k..".rrd")
+                  createRRDcounter(ndpiname, 300, verbose)
+                  ntop.rrd_update(ndpiname, "N:"..m["ndpi"][k]["bytes.sent"]..":"..m["ndpi"][k]["bytes.rcvd"])
+                end
+              end
             end
 	 end -- if rrd
       end -- if(diff

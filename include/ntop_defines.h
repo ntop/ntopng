@@ -154,12 +154,14 @@
 #define CONST_INTERFACE_TYPE_NETFILTER "netfilter"
 #define CONST_INTERFACE_TYPE_UNKNOWN   "unknown"
 
-
 #define CONST_DEMO_MODE_DURATION       600 /* 10 min */
 #define CONST_MAX_DUMP_DURATION        300 /* 5 min */
 #define CONST_DUMP_SAMPLING_RATE       1000 /* 1/ */
 #define CONST_MAX_NUM_PACKETS_PER_DUMP 1000000
 #define CONST_MAX_DUMP                 500000000
+
+#define CONST_EST_MAX_FLOWS            200000
+#define CONST_EST_MAX_HOSTS            200000
 
 #ifndef TH_FIN
 #define	TH_FIN	0x01
@@ -199,6 +201,7 @@
 #define CONST_DEFAULT_NTOP_PORT     3000
 #define CONST_DB_DUMP_FREQUENCY      300
 #define CONST_MAX_NUM_NETWORKS       255
+#define CONST_MAX_NUM_COMMUNITIES    255
 #define CONST_NUM_OPEN_DB_CACHE        8
 #define CONST_NUM_CONTACT_DBS          8
 #define CONST_MAX_NUM_ZMQ_SUBSCRIBERS 32

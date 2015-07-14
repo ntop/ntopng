@@ -9,7 +9,7 @@
 .TP 1.2
 .B "\\$1 | \\$2"
 ..
-.TH NTOPNG 8 "Mar 2015 (ntopng 1.2.2)"
+.TH NTOPNG 8 "Jul 2015 (ntopng 2.0.1)"
 .SH NAME
 ntopng \- display top network users
 .SH SYNOPSIS
@@ -23,6 +23,8 @@ or
 .IR <interface|pcap> ]
 .RB [ \-d
 .IR <data_directory> ]
+.RB [ \-t
+.IR <install_directory> ]
 .RB [ \-n
 .IR <mode> ]
 .RB [ \-e ]
@@ -70,10 +72,14 @@ or
 .IR <dump\-hosts> ]
 .RB [ \-I
 .IR <export\-flows> ]
+.RB [ \-O
+.IR <communities\-list> ]
 .RB [ \-E
 .IR <dump\-aggregations> ]
 .RB [ \-S
 .IR <sticky\-hosts> ]
+.RB [ \-t
+.IR <dir> ]
 .RB [ \-T
 .IR <enable-taps> ]
 .RB [ \-H ]
@@ -175,6 +181,9 @@ can be instructed to act as a publisher delivering flows to a ZeroMQ endpoint us
 
 .It \-d|\-\-data\-dir\ <path>
 Specifies the data directory (it must be writable). Default directory is /var/tmp/ntopng
+
+.It \-d|\-\-install\-dir\ <path>
+Specifies the installation directory. Default directory is retrieved from common install paths.
 
 .It \-G|\-\-pid\-path\ <path>
 Specifies the path where the PID (process ID) is saved. Default is /var/tmp/ntopng.pid
@@ -288,8 +297,9 @@ detected they will be discarded.
 
 .It \-F|\-\-dump\-flows\ <mode>
 If ntopng is compiled with sqlite support, flows can dumped persistently on disk using this option. The mode can be set to 
-db - Dump on local SQLite dabatase. Databases are created daily under <data directory>/<interface>/db. Using this option you can reload the dumped flows via the Historical Interface specify the time interval and the interface.
+sqlite - Dump on local SQLite dabatase. Databases are created daily under <data directory>/<interface>/db. Using this option you can reload the dumped flows via the Historical Interface specify the time interval and the interface.
 es - Dump on ntopng.es queue in Elasticsearch format that be insert on a ES database. In this case the format is "es;<idx type>;<idx name>;<es URL>;<es user>:<es pwd>". Example: -F "es;flows;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;user:pwd". The <idx name> accepts the strftime() format.
+mysql - Dump flows in MySQL tables. In this case the format is "<host[@port]|unix socket>:<dbname>:<table>:<user>:<pw>". Example -F "mysql;localhost;ntopng;flows-%Y.%m.%d;root;".
 
 .It \-D|\-\-dump\-hosts\ <mode>
 If ntopng is compiled with sqlite support, hosts contacts can dumped persistently on disk using this option.
@@ -302,6 +312,14 @@ Export the expired flows on the specified endpoint. For instance supposing to st
 1.2.3.4 as ntopng \-I "tcp://*:3456", it exports flows on this endpoint so that you can create a
 hierarchy of ntopng's. You can achieve that by starting a collector ntopng as
 ntopng \-i tcp://1.2.3.4:3456
+
+.It \-O|\-\-communities\-list\ <filename>
+Parse the specified file and retrieve a list of communities, that are a logical representation of
+clusters of hosts that fall under the same administrative domain. The file must be in the following
+format:
+    communityX@id1=net1,net2,net3
+    communityY@id2=net4,net5,net6
+    ...
 
 .It \-E|\-\-dump\-aggregations\ <mode>
 If ntopng is compiled with sqlite support, hosts contacts can dumped persistently on disk using this option.
@@ -318,6 +336,9 @@ not to purge the hosts specified by \-S. This parameter requires an argument tha
 Enable hw timestamping/stripping. Supported TS modes are:
 .br
 ixia \(em Timestamped packets by ixiacom.com hardware devices.
+
+.It \-t|\-\-install-dir\ <dir>
+Force ntopng to use the HTML/lua files installed on the specified directory. This option should not be used unless under testing or development, as packaging systems should place the files at the right place.
 
 .It \-T|\-\-enable-taps\ <mode>
 Enable tap interfaces to dump packets on. If not specified, traffic can bedumped only on disk but not sent live to apps.

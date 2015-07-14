@@ -34,6 +34,10 @@ HistoricalInterface::HistoricalInterface(const char *_endpoint)
     resetStats();
     purge_idle_flows_hosts = false;
 
+  flowsManager = new FlowsManager(this);
+  if (!flowsManager)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate FlowsManager for Historical interface");
+
   /* Create view for this interface so that it is visible in the GUI */
   view = new NetworkInterfaceView(this);
   if (!view)
@@ -137,6 +141,7 @@ int HistoricalInterface::loadData() {
     actual_epoch = from_epoch;
     adjust_to_epoch = to_epoch - 300; // Adjust to epoch each file contains 5 minute of data
     int num_steps = (from_epoch - adjust_to_epoch) / 300;
+    if (num_steps < 1) num_steps = 1; /* avoid arithmetic exceptions */
     int limit = CONST_HISTORICAL_ROWS_LIMIT / num_steps;
     if (limit < 1) limit = 1;
     while (actual_epoch <= adjust_to_epoch && isRunning()) {

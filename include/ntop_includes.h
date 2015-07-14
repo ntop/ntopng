@@ -148,6 +148,7 @@ extern "C" {
 #include "StringHost.h"
 #include "StringHash.h"
 #include "StatsManager.h"
+#include "FlowsManager.h"
 #include "NetworkInterfaceView.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"
@@ -184,12 +185,13 @@ extern "C" {
 #include "PeriodicActivities.h"
 #include "Lua.h"
 #include "AddressResolution.h"
+#include "CommunitiesManager.h"
 #include "Categorization.h"
 #include "HTTPBL.h"
 #include "HTTPserver.h"
 #include "RuntimePrefs.h"
 #include "Ntop.h"
-#include "template.h"
+
 
 #ifdef WIN32
 extern "C" {

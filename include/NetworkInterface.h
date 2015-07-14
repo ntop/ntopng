@@ -84,12 +84,6 @@ struct aggregation_walk_hosts_info {
   patricia_tree_t *allowed_hosts;
 };
 
-struct flow_details_info {
-  lua_State* vm;
-  patricia_tree_t *allowed_hosts;
-  Host *h;
-};
-
 struct active_flow_stats {
   u_int32_t num_flows, 
     ndpi_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS],
@@ -138,6 +132,7 @@ class NetworkInterface {
   DB *db;
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager *statsManager;
+  FlowsManager *flowsManager;
   NetworkInterfaceView *view;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
@@ -184,6 +179,7 @@ class NetworkInterface {
   virtual void incrDrops(u_int32_t num)        { ; }
   inline virtual bool is_packet_interface()    { return(true); }
   inline virtual const char* get_type()        { return(CONST_INTERFACE_TYPE_UNKNOWN); }
+  inline FlowHash *get_flows_hash()           { return flows_hash; }
   inline virtual bool is_ndpi_enabled()        { return(true); }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd); };
@@ -211,7 +207,8 @@ class NetworkInterface {
   int dumpDBFlow(time_t when, bool partial_dump, Flow *f);
   int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
 
-  inline void incStats(u_int16_t eth_proto, u_int16_t ndpi_proto, u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+  inline void incStats(u_int16_t eth_proto, u_int16_t ndpi_proto,
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(ndpi_proto, 0, 0, 1, pkt_len);
     pktStats.incStats(pkt_len);
@@ -253,9 +250,9 @@ class NetworkInterface {
   void updateHostStats();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
-  void getActiveHostsList(lua_State* vm, vm_ptree *vp, bool host_details);
+  void getActiveHostsList(lua_State* vm, vm_ptree *vp, bool host_details, bool local_only);
   void getFlowsStats(lua_State* vm);
-  void getActiveFlowsList(lua_State* vm, char *host_ip, u_int vlan_id, patricia_tree_t *allowed_hosts);
+  int  retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts, char *numIP, u_int16_t vlanId);
 
   void purgeIdle(time_t when);

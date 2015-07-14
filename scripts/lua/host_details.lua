@@ -21,6 +21,7 @@ host_info   = url2hostinfo(_GET)
 host_ip     = host_info["host"]
 host_name   = hostinfo2hostkey(host_info)
 host_vlan   = host_info["vlan"]
+always_show_hist = _GET["always_show_hist"]
 
 active_page = "hosts"
 
@@ -80,35 +81,59 @@ if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host_info[
       restoreFailed = true
    end
 
+only_historical = false
+
 if(host == nil) then
-   -- We need to check if this is an aggregated host
-   host = interface.getAggregatedHostInfo(host_info["host"])
-   if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Aggregated Host Info\n") end
-   if(host == nil) then
-      if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
+   if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
+      page = "historical"
+      only_historical = true
       sendHTTPHeader('text/html; charset=iso-8859-1')
       ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host ".. hostinfo2hostkey(host_info) .. " cannot be found.")
-      if((json ~= nil) and (json ~= "")) then
-	 print('<p>Such host as been purged from memory due to inactivity. Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
-      else
-	 print('<p>Perhaps this host has been previously purged from memory or it has never been observed by this instance.</p>\n')
-      end
-
-      print("</div>")
-      dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+      print [[
+         <div class="bs-docs-example">
+         <nav class="navbar navbar-default" role="navigation">
+         <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+      ]]
+      print("\n<li class=\"active\"><a href=\"#\">Historical</a></li>\n")
+      print [[
+         <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
+         </ul>
+         </div>
+         </nav>
+         </div>
+      ]]
    else
-      print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/aggregated_host_details.lua?ifname=".. ifId.."&"..hostinfo2url(host_info)))
+      -- We need to check if this is an aggregated host
+      host = interface.getAggregatedHostInfo(host_info["host"])
+      if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Aggregated Host Info\n") end
+      if(host == nil) then
+         if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
+         sendHTTPHeader('text/html; charset=iso-8859-1')
+         ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+         dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+         print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host ".. hostinfo2hostkey(host_info) .. " cannot be found.")
+         if((json ~= nil) and (json ~= "")) then
+	    print('<p>Such host as been purged from memory due to inactivity. Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
+         else
+	    print('<p>Perhaps this host has been previously purged from memory or it has never been observed by this instance.</p>\n')
+         end
+
+         print("</div>")
+         dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+      else
+         print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/aggregated_host_details.lua?ifname=".. ifId.."&"..hostinfo2url(host_info)))
+      end
+      return
    end
-   return
 else
    sendHTTPHeader('text/html; charset=iso-8859-1')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
---   Added global javascript variable, in order to disable the refresh of pie chart in case
---  of historical interface
+   --   Added global javascript variable, in order to disable the refresh of pie chart in case
+   --  of historical interface
    if not is_historical then
     print('\n<script>var refresh = 3000 /* ms */;</script>\n')
    else
@@ -362,7 +387,7 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
 
    if(host["ip"] ~= nil) then
-      print("<tr><th width=35%>(Router) MAC Address</th><td>" .. host["mac"].. "</td><td>")
+      print("<tr><th width=35%>(Router) MAC Address</th><td>" .. host["mac"].." "..get_mac_classification(host["mac"]).. "</td><td>")
 
       if(host["localhost"] == true) then
 	 dump_status = host["dump_host_traffic"]
@@ -476,10 +501,9 @@ print [[
       print('">Modify Host Traffic Policy</A></div>')
 
       if(host["bridge.ingress_shaper_id"] ~= nil) then
-	 shaper_key = "ntopng.prefs.".. ifId ..".queue_max_rate"
+	 shaper_key = "ntopng.prefs.".. ifId ..".shaper_max_rate"
 	 ingress_max_rate = ntop.getHashCache(shaper_key, host["bridge.ingress_shaper_id"])
 	 egress_max_rate = ntop.getHashCache(shaper_key, host["bridge.egress_shaper_id"])
-
 	 print("<p><table class=\"table table-bordered table-striped\"width=100%>")
 	 print("<tr><th>Ingress Policer</th><td>"..maxRateToString(ingress_max_rate).."</td></tr>")
 	 print("<tr><th>Egress Policer</th><td>"..maxRateToString(egress_max_rate).."</td></tr>")
@@ -2029,7 +2053,13 @@ else
    rrdfile=_GET["rrd_file"]
 end
 
-drawRRD(ifId, hostinfo2hostkey(host_info), rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..hostinfo2url(host_info)..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+host_url = "host="..host_ip
+host_key = host_ip
+if (host_vlan) then
+   host_url = host_url.."&vlan="..host_vlan
+   hpst_key = host_key.."@"..host_vlan
+end
+drawRRD(ifId, host_key, rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
 elseif(page == "aggregations") then
 print [[
@@ -2321,301 +2351,304 @@ print [[ </script>]]
 end
 end
 
-print [[ <script>]]
-print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
-print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
-print("var last_num_alerts = " .. host["num_alerts"] .. ";\n")
-print("var last_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
-print("var last_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
-print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
-print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
-print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
-
-if(host["dns"] ~= nil) then
-   print("var last_dns_sent_num_queries = " .. host["dns"]["sent"]["num_queries"] .. ";\n")
-   print("var last_dns_sent_num_replies_ok = " .. host["dns"]["sent"]["num_replies_ok"] .. ";\n")
-   print("var last_dns_sent_num_replies_error = " .. host["dns"]["sent"]["num_replies_error"] .. ";\n")
-   print("var last_dns_rcvd_num_queries = " .. host["dns"]["rcvd"]["num_queries"] .. ";\n")
-   print("var last_dns_rcvd_num_replies_ok = " .. host["dns"]["rcvd"]["num_replies_ok"] .. ";\n")
-   print("var last_dns_rcvd_num_replies_error = " .. host["dns"]["rcvd"]["num_replies_error"] .. ";\n")
-end
-
-if(host["http"] ~= nil) then
-   print("var last_http_query_num_get = " .. host["http"]["query.num_get"] .. ";\n")
-   print("var last_http_query_num_post = " .. host["http"]["query.num_post"] .. ";\n")
-   print("var last_http_query_num_head = " .. host["http"]["query.num_head"] .. ";\n")
-   print("var last_http_query_num_put = " .. host["http"]["query.num_put"] .. ";\n")
-   print("var last_http_query_num_other = " .. host["http"]["query.num_other"] .. ";\n")
-   print("var last_http_response_num_1xx = " .. host["http"]["response.num_1xx"] .. ";\n")
-   print("var last_http_response_num_2xx = " .. host["http"]["response.num_2xx"] .. ";\n")
-   print("var last_http_response_num_3xx = " .. host["http"]["response.num_3xx"] .. ";\n")
-   print("var last_http_response_num_4xx = " .. host["http"]["response.num_4xx"] .. ";\n")
-   print("var last_http_response_num_5xx = " .. host["http"]["response.num_5xx"] .. ";\n")
-end
-
-if(host["epp"] ~= nil) then
-   print("var last_epp_sent_num_queries = " .. host["epp"]["sent"]["num_queries"] .. ";\n")
-   print("var last_epp_sent_num_replies_ok = " .. host["epp"]["sent"]["num_replies_ok"] .. ";\n")
-   print("var last_epp_sent_num_replies_error = " .. host["epp"]["sent"]["num_replies_error"] .. ";\n")
-   print("var last_epp_rcvd_num_queries = " .. host["epp"]["rcvd"]["num_queries"] .. ";\n")
-   print("var last_epp_rcvd_num_replies_ok = " .. host["epp"]["rcvd"]["num_replies_ok"] .. ";\n")
-   print("var last_epp_rcvd_num_replies_error = " .. host["epp"]["rcvd"]["num_replies_error"] .. ";\n")
-end
-
-print [[
-var host_detalis_interval = window.setInterval(function() {
-	  $.ajax({
-		    type: 'GET',
-		    url: ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_stats.lua',
-		    data: { ifname: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
-		    /* error: function(content) { alert("JSON Error: inactive host purged or ntopng terminated?"); }, */
-		    success: function(content) {
-			var host = jQuery.parseJSON(content);
-			$('#first_seen').html(epoch2Seen(host["seen.first"]));
-			$('#last_seen').html(epoch2Seen(host["seen.last"]));
-			$('#pkts_sent').html(formatPackets(host["packets.sent"]));
-			$('#pkts_rcvd').html(formatPackets(host["packets.rcvd"]));
-			$('#bytes_sent').html(bytesToVolume(host["bytes.sent"]));
-			$('#bytes_rcvd').html(bytesToVolume(host["bytes.rcvd"]));
-			$('#pkt_retransmissions').html(formatPackets(host["tcp.packets.retransmissions"]));
-			$('#pkt_ooo').html(formatPackets(host["tcp.packets.out_of_order"]));
-			$('#pkt_lost').html(formatPackets(host["tcp.packets.lost"]));
-			if(!host["name"]) {
-			   $('#name').html(host["ip"]);
-			} else {
-			   $('#name').html(host["name"]);
-			}
-			$('#num_alerts').html(host["num_alerts"]);
-			$('#flows_as_client').html(addCommas(host["active_flows.as_client"]));
-			$('#flows_as_server').html(addCommas(host["active_flows.as_server"]));
-		  ]]
-
-if(host["dns"] ~= nil) then
-print [[
-			   $('#dns_sent_num_queries').html(addCommas(host["dns"]["sent"]["num_queries"]));
-			   $('#dns_sent_num_replies_ok').html(addCommas(host["dns"]["sent"]["num_replies_ok"]));
-			   $('#dns_sent_num_replies_error').html(addCommas(host["dns"]["sent"]["num_replies_error"]));
-			   $('#dns_rcvd_num_queries').html(addCommas(host["dns"]["rcvd"]["num_queries"]));
-			   $('#dns_rcvd_num_replies_ok').html(addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
-			   $('#dns_rcvd_num_replies_error').html(addCommas(host["dns"]["rcvd"]["num_replies_error"]));
-
-			   if(host["dns"]["sent"]["num_queries"] == last_dns_sent_num_queries) {
-			      $('#trend_sent_num_queries').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_dns_sent_num_queries = host["dns"]["sent"]["num_queries"];
-			      $('#trend_sent_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["dns"]["sent"]["num_replies_ok"] == last_dns_sent_num_replies_ok) {
-			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_dns_sent_num_replies_ok = host["dns"]["sent"]["num_replies_ok"];
-			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["dns"]["sent"]["num_replies_error"] == last_dns_sent_num_replies_error) {
-			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_dns_sent_num_replies_error = host["dns"]["sent"]["num_replies_error"];
-			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["dns"]["rcvd"]["num_queries"] == last_dns_rcvd_num_queries) {
-			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_dns_rcvd_num_queries = host["dns"]["rcvd"]["num_queries"];
-			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["dns"]["rcvd"]["num_replies_ok"] == last_dns_rcvd_num_replies_ok) {
-			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_dns_rcvd_num_replies_ok = host["dns"]["rcvd"]["num_replies_ok"];
-			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["dns"]["rcvd"]["num_replies_error"] == last_dns_rcvd_num_replies_error) {
-			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_dns_rcvd_num_replies_error = host["dns"]["rcvd"]["num_replies_error"];
-			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-		     ]]
-end
-
-if((host ~= nil) and (host["http"] ~= nil)) then
-   vh = host["http"]["virtual_hosts"]
-   if(vh ~= nil) then
-      num = table.len(vh)
-      if(num > 0) then
-	 print [[
-	       var last_http_val = {};
-	       if((host !== undefined) && (host["http"] !== undefined)) {
-		  $.each(host["http"]["virtual_hosts"], function(idx, obj) {
-		      var key = idx.replace(/\./g,'___');
-		      $('#'+key+'_bytes_vhost_rcvd').html(bytesToVolume(obj["bytes.rcvd"])+" "+get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
-		      $('#'+key+'_bytes_vhost_sent').html(bytesToVolume(obj["bytes.sent"])+" "+get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
-		      $('#'+key+'_num_vhost_req_serv').html(addCommas(obj["http.requests"])+" "+get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
-		      last_http_val[key+"_rcvd"] = obj["bytes.rcvd"];
-		      last_http_val[key+"_sent"] = obj["bytes.sent"];
-		      last_http_val[key+"_req_serv"] = obj["bytes.http_requests"];
-		   });
-	      }
-	 ]]
+if (host ~= nil) then
+   print [[ <script>]]
+   print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
+   print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
+   print("var last_num_alerts = " .. host["num_alerts"] .. ";\n")
+   print("var last_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
+   print("var last_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
+   print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
+   print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
+   print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
+   
+   if(host["dns"] ~= nil) then
+      print("var last_dns_sent_num_queries = " .. host["dns"]["sent"]["num_queries"] .. ";\n")
+      print("var last_dns_sent_num_replies_ok = " .. host["dns"]["sent"]["num_replies_ok"] .. ";\n")
+      print("var last_dns_sent_num_replies_error = " .. host["dns"]["sent"]["num_replies_error"] .. ";\n")
+      print("var last_dns_rcvd_num_queries = " .. host["dns"]["rcvd"]["num_queries"] .. ";\n")
+      print("var last_dns_rcvd_num_replies_ok = " .. host["dns"]["rcvd"]["num_replies_ok"] .. ";\n")
+      print("var last_dns_rcvd_num_replies_error = " .. host["dns"]["rcvd"]["num_replies_error"] .. ";\n")
+   end
+   
+   if(host["http"] ~= nil) then
+      print("var last_http_query_num_get = " .. host["http"]["query.num_get"] .. ";\n")
+      print("var last_http_query_num_post = " .. host["http"]["query.num_post"] .. ";\n")
+      print("var last_http_query_num_head = " .. host["http"]["query.num_head"] .. ";\n")
+      print("var last_http_query_num_put = " .. host["http"]["query.num_put"] .. ";\n")
+      print("var last_http_query_num_other = " .. host["http"]["query.num_other"] .. ";\n")
+      print("var last_http_response_num_1xx = " .. host["http"]["response.num_1xx"] .. ";\n")
+      print("var last_http_response_num_2xx = " .. host["http"]["response.num_2xx"] .. ";\n")
+      print("var last_http_response_num_3xx = " .. host["http"]["response.num_3xx"] .. ";\n")
+      print("var last_http_response_num_4xx = " .. host["http"]["response.num_4xx"] .. ";\n")
+      print("var last_http_response_num_5xx = " .. host["http"]["response.num_5xx"] .. ";\n")
+   end
+   
+   if(host["epp"] ~= nil) then
+      print("var last_epp_sent_num_queries = " .. host["epp"]["sent"]["num_queries"] .. ";\n")
+      print("var last_epp_sent_num_replies_ok = " .. host["epp"]["sent"]["num_replies_ok"] .. ";\n")
+      print("var last_epp_sent_num_replies_error = " .. host["epp"]["sent"]["num_replies_error"] .. ";\n")
+      print("var last_epp_rcvd_num_queries = " .. host["epp"]["rcvd"]["num_queries"] .. ";\n")
+      print("var last_epp_rcvd_num_replies_ok = " .. host["epp"]["rcvd"]["num_replies_ok"] .. ";\n")
+      print("var last_epp_rcvd_num_replies_error = " .. host["epp"]["rcvd"]["num_replies_error"] .. ";\n")
+   end
+   
+   print [[
+   var host_detalis_interval = window.setInterval(function() {
+   	  $.ajax({
+   		    type: 'GET',
+   		    url: ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/host_stats.lua',
+   		    data: { ifname: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
+   		    /* error: function(content) { alert("JSON Error: inactive host purged or ntopng terminated?"); }, */
+   		    success: function(content) {
+   			var host = jQuery.parseJSON(content);
+   			$('#first_seen').html(epoch2Seen(host["seen.first"]));
+   			$('#last_seen').html(epoch2Seen(host["seen.last"]));
+   			$('#pkts_sent').html(formatPackets(host["packets.sent"]));
+   			$('#pkts_rcvd').html(formatPackets(host["packets.rcvd"]));
+   			$('#bytes_sent').html(bytesToVolume(host["bytes.sent"]));
+   			$('#bytes_rcvd').html(bytesToVolume(host["bytes.rcvd"]));
+   			$('#pkt_retransmissions').html(formatPackets(host["tcp.packets.retransmissions"]));
+   			$('#pkt_ooo').html(formatPackets(host["tcp.packets.out_of_order"]));
+   			$('#pkt_lost').html(formatPackets(host["tcp.packets.lost"]));
+   			if(!host["name"]) {
+   			   $('#name').html(host["ip"]);
+   			} else {
+   			   $('#name').html(host["name"]);
+   			}
+   			$('#num_alerts').html(host["num_alerts"]);
+   			$('#flows_as_client').html(addCommas(host["active_flows.as_client"]));
+   			$('#flows_as_server').html(addCommas(host["active_flows.as_server"]));
+   		  ]]
+   
+   if(host["dns"] ~= nil) then
+   print [[
+   			   $('#dns_sent_num_queries').html(addCommas(host["dns"]["sent"]["num_queries"]));
+   			   $('#dns_sent_num_replies_ok').html(addCommas(host["dns"]["sent"]["num_replies_ok"]));
+   			   $('#dns_sent_num_replies_error').html(addCommas(host["dns"]["sent"]["num_replies_error"]));
+   			   $('#dns_rcvd_num_queries').html(addCommas(host["dns"]["rcvd"]["num_queries"]));
+   			   $('#dns_rcvd_num_replies_ok').html(addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
+   			   $('#dns_rcvd_num_replies_error').html(addCommas(host["dns"]["rcvd"]["num_replies_error"]));
+   
+   			   if(host["dns"]["sent"]["num_queries"] == last_dns_sent_num_queries) {
+   			      $('#trend_sent_num_queries').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_dns_sent_num_queries = host["dns"]["sent"]["num_queries"];
+   			      $('#trend_sent_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["dns"]["sent"]["num_replies_ok"] == last_dns_sent_num_replies_ok) {
+   			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_dns_sent_num_replies_ok = host["dns"]["sent"]["num_replies_ok"];
+   			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["dns"]["sent"]["num_replies_error"] == last_dns_sent_num_replies_error) {
+   			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_dns_sent_num_replies_error = host["dns"]["sent"]["num_replies_error"];
+   			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["dns"]["rcvd"]["num_queries"] == last_dns_rcvd_num_queries) {
+   			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_dns_rcvd_num_queries = host["dns"]["rcvd"]["num_queries"];
+   			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["dns"]["rcvd"]["num_replies_ok"] == last_dns_rcvd_num_replies_ok) {
+   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_dns_rcvd_num_replies_ok = host["dns"]["rcvd"]["num_replies_ok"];
+   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["dns"]["rcvd"]["num_replies_error"] == last_dns_rcvd_num_replies_error) {
+   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_dns_rcvd_num_replies_error = host["dns"]["rcvd"]["num_replies_error"];
+   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   		     ]]
+   end
+   
+   if((host ~= nil) and (host["http"] ~= nil)) then
+      vh = host["http"]["virtual_hosts"]
+      if(vh ~= nil) then
+         num = table.len(vh)
+         if(num > 0) then
+   	 print [[
+   	       var last_http_val = {};
+   	       if((host !== undefined) && (host["http"] !== undefined)) {
+   		  $.each(host["http"]["virtual_hosts"], function(idx, obj) {
+   		      var key = idx.replace(/\./g,'___');
+   		      $('#'+key+'_bytes_vhost_rcvd').html(bytesToVolume(obj["bytes.rcvd"])+" "+get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
+   		      $('#'+key+'_bytes_vhost_sent').html(bytesToVolume(obj["bytes.sent"])+" "+get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
+   		      $('#'+key+'_num_vhost_req_serv').html(addCommas(obj["http.requests"])+" "+get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
+   		      last_http_val[key+"_rcvd"] = obj["bytes.rcvd"];
+   		      last_http_val[key+"_sent"] = obj["bytes.sent"];
+   		      last_http_val[key+"_req_serv"] = obj["bytes.http_requests"];
+   		   });
+   	      }
+   	 ]]
+         end
+   
+      methods = { "get", "post", "head", "put", "other" }
+      for i, method in ipairs(methods) do
+         print('\t$("#http_query_num_'..method..'").html(addCommas(host["http"]["query.num_'..method..'"]));\n')
+         print('\tif(host["http"]["query.num_'..method..'"] == last_http_query_num_'..method..') {\n\t$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
+         print('} else {\n\tlast_http_query_num_'..method..' = host["http"]["query.num_'..method..'"];$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
       end
-
-   methods = { "get", "post", "head", "put", "other" }
-   for i, method in ipairs(methods) do
-      print('\t$("#http_query_num_'..method..'").html(addCommas(host["http"]["query.num_'..method..'"]));\n')
-      print('\tif(host["http"]["query.num_'..method..'"] == last_http_query_num_'..method..') {\n\t$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
-      print('} else {\n\tlast_http_query_num_'..method..' = host["http"]["query.num_'..method..'"];$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
+   
+      retcodes = { "1xx", "2xx", "3xx", "4xx", "5xx" }
+      for i, retcode in ipairs(retcodes) do
+         print('\t$("#http_response_num_'..retcode..'").html(addCommas(host["http"]["response.num_'..retcode..'"]));\n')
+         print('\tif(host["http"]["response.num_'..retcode..'"] == last_http_response_num_'..retcode..') {\n\t$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
+         print('} else {\n\tlast_http_response_num_'..retcode..' = host["http"]["response.num_'..retcode..'"];$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
+      end
    end
-
-   retcodes = { "1xx", "2xx", "3xx", "4xx", "5xx" }
-   for i, retcode in ipairs(retcodes) do
-      print('\t$("#http_response_num_'..retcode..'").html(addCommas(host["http"]["response.num_'..retcode..'"]));\n')
-      print('\tif(host["http"]["response.num_'..retcode..'"] == last_http_response_num_'..retcode..') {\n\t$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
-      print('} else {\n\tlast_http_response_num_'..retcode..' = host["http"]["response.num_'..retcode..'"];$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
    end
+   
+   if(host["epp"] ~= nil) then
+   print [[
+   			   $('#epp_sent_num_queries').html(addCommas(host["epp"]["sent"]["num_queries"]));
+   			   $('#epp_sent_num_replies_ok').html(addCommas(host["epp"]["sent"]["num_replies_ok"]));
+   			   $('#epp_sent_num_replies_error').html(addCommas(host["epp"]["sent"]["num_replies_error"]));
+   			   $('#epp_rcvd_num_queries').html(addCommas(host["epp"]["rcvd"]["num_queries"]));
+   			   $('#epp_rcvd_num_replies_ok').html(addCommas(host["epp"]["rcvd"]["num_replies_ok"]));
+   			   $('#epp_rcvd_num_replies_error').html(addCommas(host["epp"]["rcvd"]["num_replies_error"]));
+   
+   			   if(host["epp"]["sent"]["num_queries"] == last_epp_sent_num_queries) {
+   			      $('#trend_sent_num_queries').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_epp_sent_num_queries = host["epp"]["sent"]["num_queries"];
+   			      $('#trend_sent_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["epp"]["sent"]["num_replies_ok"] == last_epp_sent_num_replies_ok) {
+   			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_epp_sent_num_replies_ok = host["epp"]["sent"]["num_replies_ok"];
+   			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["epp"]["sent"]["num_replies_error"] == last_epp_sent_num_replies_error) {
+   			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_epp_sent_num_replies_error = host["epp"]["sent"]["num_replies_error"];
+   			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["epp"]["rcvd"]["num_queries"] == last_epp_rcvd_num_queries) {
+   			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_epp_rcvd_num_queries = host["epp"]["rcvd"]["num_queries"];
+   			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["epp"]["rcvd"]["num_replies_ok"] == last_epp_rcvd_num_replies_ok) {
+   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_epp_rcvd_num_replies_ok = host["epp"]["rcvd"]["num_replies_ok"];
+   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   
+   			   if(host["epp"]["rcvd"]["num_replies_error"] == last_epp_rcvd_num_replies_error) {
+   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
+   			   } else {
+   			      last_epp_rcvd_num_replies_error = host["epp"]["rcvd"]["num_replies_error"];
+   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
+   			   }
+   		     ]]
+   end
+   
+   print [[
+   			/* **************************************** */
+   
+   			if(host["active_flows.as_client"] == last_flows_as_client) {
+   			   $('#as_client_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#as_client_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+   			}
+   
+   			if(host["active_flows.as_server"] == last_flows_as_server) {
+   			   $('#as_server_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#as_server_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+   			}
+   
+   			if(last_num_alerts == host["num_alerts"]) {
+   			   $('#alerts_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#alerts_trend').html("<i class=\"fa fa-arrow-up\" style=\"color: #B94A48;\"></i>");
+   			}
+   
+   			if(last_pkts_sent == host["packets.sent"]) {
+   			   $('#sent_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#sent_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+   			}
+   
+   			if(last_pkts_rcvd == host["packets.rcvd"]) {
+   			   $('#rcvd_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#rcvd_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+   			}
+   
+   			if(host["tcp.packets.retransmissions"] == last_tcp_retransmissions) {
+   			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+   			}
+   
+   			if(host["tcp.packets.out_of_order"] == last_tcp_ooo) {
+   			   $('#pkt_ooo_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#pkt_ooo_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+   			}
+   
+   			if(host["tcp.packets.lost"] == last_tcp_lost) {
+   			   $('#pkt_lost_trend').html("<i class=\"fa fa-minus\"></i>");
+   			} else {
+   			   $('#pkt_lost_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+   			}
+   
+   			last_num_alerts = host["num_alerts"];
+   			last_pkts_sent = host["packets.sent"];
+   			last_pkts_rcvd = host["packets.rcvd"];
+   			last_flows_as_server = host["active_flows.as_server"];
+   			last_flows_as_client = host["active_flows.as_client"];
+   
+   			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
+   			last_tcp_ooo = host["tcp.packets.out_of_order"];
+   			last_tcp_lost = host["tcp.packets.lost"];
+   		  ]]
+   
+   
+   print [[
+   
+   			/* **************************************** */
+   
+   			/*
+   			$('#throughput').html(rsp.throughput);
+   
+   			var values = thptChart.text().split(",");
+   			values.shift();
+   			values.push(rsp.throughput_raw);
+   			thptChart.text(values.join(",")).change();
+   			*/
+   		     }
+   	           });
+   		 }, 3000);
+   
+   </script>
+    ]]
 end
-end
 
-if(host["epp"] ~= nil) then
-print [[
-			   $('#epp_sent_num_queries').html(addCommas(host["epp"]["sent"]["num_queries"]));
-			   $('#epp_sent_num_replies_ok').html(addCommas(host["epp"]["sent"]["num_replies_ok"]));
-			   $('#epp_sent_num_replies_error').html(addCommas(host["epp"]["sent"]["num_replies_error"]));
-			   $('#epp_rcvd_num_queries').html(addCommas(host["epp"]["rcvd"]["num_queries"]));
-			   $('#epp_rcvd_num_replies_ok').html(addCommas(host["epp"]["rcvd"]["num_replies_ok"]));
-			   $('#epp_rcvd_num_replies_error').html(addCommas(host["epp"]["rcvd"]["num_replies_error"]));
-
-			   if(host["epp"]["sent"]["num_queries"] == last_epp_sent_num_queries) {
-			      $('#trend_sent_num_queries').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_epp_sent_num_queries = host["epp"]["sent"]["num_queries"];
-			      $('#trend_sent_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["epp"]["sent"]["num_replies_ok"] == last_epp_sent_num_replies_ok) {
-			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_epp_sent_num_replies_ok = host["epp"]["sent"]["num_replies_ok"];
-			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["epp"]["sent"]["num_replies_error"] == last_epp_sent_num_replies_error) {
-			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_epp_sent_num_replies_error = host["epp"]["sent"]["num_replies_error"];
-			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["epp"]["rcvd"]["num_queries"] == last_epp_rcvd_num_queries) {
-			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_epp_rcvd_num_queries = host["epp"]["rcvd"]["num_queries"];
-			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["epp"]["rcvd"]["num_replies_ok"] == last_epp_rcvd_num_replies_ok) {
-			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_epp_rcvd_num_replies_ok = host["epp"]["rcvd"]["num_replies_ok"];
-			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-
-			   if(host["epp"]["rcvd"]["num_replies_error"] == last_epp_rcvd_num_replies_error) {
-			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
-			   } else {
-			      last_epp_rcvd_num_replies_error = host["epp"]["rcvd"]["num_replies_error"];
-			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
-			   }
-		     ]]
-end
-
-print [[
-			/* **************************************** */
-
-			if(host["active_flows.as_client"] == last_flows_as_client) {
-			   $('#as_client_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#as_client_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-			}
-
-			if(host["active_flows.as_server"] == last_flows_as_server) {
-			   $('#as_server_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#as_server_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-			}
-
-			if(last_num_alerts == host["num_alerts"]) {
-			   $('#alerts_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#alerts_trend').html("<i class=\"fa fa-arrow-up\" style=\"color: #B94A48;\"></i>");
-			}
-
-			if(last_pkts_sent == host["packets.sent"]) {
-			   $('#sent_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#sent_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-			}
-
-			if(last_pkts_rcvd == host["packets.rcvd"]) {
-			   $('#rcvd_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#rcvd_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-			}
-
-			if(host["tcp.packets.retransmissions"] == last_tcp_retransmissions) {
-			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-			}
-
-			if(host["tcp.packets.out_of_order"] == last_tcp_ooo) {
-			   $('#pkt_ooo_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#pkt_ooo_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-			}
-
-			if(host["tcp.packets.lost"] == last_tcp_lost) {
-			   $('#pkt_lost_trend').html("<i class=\"fa fa-minus\"></i>");
-			} else {
-			   $('#pkt_lost_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-			}
-
-			last_num_alerts = host["num_alerts"];
-			last_pkts_sent = host["packets.sent"];
-			last_pkts_rcvd = host["packets.rcvd"];
-			last_flows_as_server = host["active_flows.as_server"];
-			last_flows_as_client = host["active_flows.as_client"];
-
-			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
-			last_tcp_ooo = host["tcp.packets.out_of_order"];
-			last_tcp_lost = host["tcp.packets.lost"];
-		  ]]
-
-
-print [[
-
-			/* **************************************** */
-
-			/*
-			$('#throughput').html(rsp.throughput);
-
-			var values = thptChart.text().split(",");
-			values.shift();
-			values.push(rsp.throughput_raw);
-			thptChart.text(values.join(",")).change();
-			*/
-		     }
-	           });
-		 }, 3000);
-
-</script>
- ]]
 if(is_historical) then print ('\n<script>clearInterval(host_detalis_interval);</script>\n') end
 
 

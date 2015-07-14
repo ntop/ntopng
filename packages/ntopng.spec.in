@@ -16,6 +16,11 @@ Web-based traffic monitoring
 
 %setup -q
 
+# Disable stripping
+%global _enable_debug_package 0
+%global debug_package %{nil}
+%global __os_install_post /usr/lib/rpm/brp-compress %{nil}
+
 %build
 /bin/rm -rf $HOME/rpmbuild/BUILD/ntopng $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
 cd $HOME/rpmbuild/BUILD/
@@ -39,22 +44,13 @@ PATH=/usr/bin:/bin:/usr/sbin:/sbin
 if [ -d $RPM_BUILD_ROOT ]; then
 	\rm -rf $RPM_BUILD_ROOT
 fi
-#
-# "T.J. Yang" <tjyang2001@gmail.com>
-#
-#mkdir -p $RPM_BUILD_ROOT/etc/ntopng
-#cat >$RPM_BUILD_ROOT/etc/ntopng/ntopng.conf.sample <<_EOT_
-#-G=/var/tmp/ntopng.pid
-#_EOT_
-#cat >$RPM_BUILD_ROOT/etc/ntopng/ntopng.start <<_EOT_
-#_EOT_
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8 
 mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/logrotate.d
 cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng $RPM_BUILD_ROOT/usr/bin
 cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
 cp -r $RPM_BUILD_DIR/ntopng-%{version}/httpdocs $RPM_BUILD_DIR/ntopng-%{version}/scripts $RPM_BUILD_ROOT/usr/share/ntopng
-
+mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 if test -d "$RPM_BUILD_DIR/ntopng-%{version}/pro"; then
    cd $RPM_BUILD_DIR/ntopng-%{version}/pro; make; cd -
    mkdir $RPM_BUILD_ROOT/usr/share/ntopng/pro
@@ -125,6 +121,7 @@ if test ! -e /usr/local/bin/ntopng ; then ln -s /usr/bin/ntopng /usr/local/bin/n
 %endif
 
 %postun
-echo 'Removing /usr/local/bin/ntopng link'
-rm -f /usr/local/bin/ntopng > /dev/null 2>&1
-
+if [ $1 == 0 ] ; then
+    echo 'Removing /usr/local/bin/ntopng link'
+    rm -f /usr/local/bin/ntopng > /dev/null 2>&1
+fi

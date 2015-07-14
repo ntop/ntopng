@@ -51,7 +51,7 @@ class NdpiStats {
 
   void sumStats(NdpiStats *stats);
 
-  void incStats(u_int proto_id,
+  void incStats(u_int16_t proto_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
 

@@ -39,9 +39,10 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, pass_verdict,
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
-  u_int16_t ndpi_detected_protocol, diff_num_http_requests;
+  u_int16_t diff_num_http_requests;
+  ndpi_protocol ndpi_detected_protocol;
   void *cli_id, *srv_id;
-  char *json_info, *host_server_name;
+  char *json_info, *host_server_name, *ndpi_proto_name;
   bool dump_flow_traffic;
 
   struct {
@@ -52,7 +53,7 @@ class Flow : public GenericHashEntry {
   struct {
     char *last_query;
   } dns;
-
+  
   struct {
     char *certificate;
   } ssl;
@@ -155,7 +156,7 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
-  void setDetectedProtocol(u_int16_t proto_id);
+  void setDetectedProtocol(ndpi_protocol proto_id);
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len);
@@ -175,15 +176,15 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
 
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
-  inline u_int16_t get_detected_protocol()        { return(ndpi_detected_protocol);          };
-  inline char* get_detected_protocol_name()       { return(ndpi_get_proto_name(iface->get_ndpi_struct(), ndpi_detected_protocol)); };
+  inline ndpi_protocol get_detected_protocol()    { return(ndpi_detected_protocol);          };
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
   inline char* get_json_info()			  { return(json_info);                       };
-  inline ndpi_protocol_breed_t get_protocol_breed() { return(ndpi_get_proto_breed(iface->get_ndpi_struct(), ndpi_detected_protocol)); };
+  inline ndpi_protocol_breed_t get_protocol_breed() { return(ndpi_get_proto_breed(iface->get_ndpi_struct(), ndpi_detected_protocol.protocol)); };
   inline char* get_protocol_breed_name()            { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(),
 										       ndpi_get_proto_breed(iface->get_ndpi_struct(),
-													    ndpi_detected_protocol))); };
+													    ndpi_detected_protocol.protocol))); };
+  char* get_detected_protocol_name();
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
   u_int32_t get_packetsOOO();
@@ -202,7 +203,7 @@ class Flow : public GenericHashEntry {
   void update_hosts_stats(struct timeval *tv);
   void print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose);
   u_int32_t key();
-  void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump);
+  void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump, enum flowsSelector selector);
   bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,

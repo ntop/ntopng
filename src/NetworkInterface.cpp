@@ -72,6 +72,7 @@ NetworkInterface::NetworkInterface() {
 #endif
 
   view = NULL, statsManager = NULL;
+  flowsManager = NULL;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false; 
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
@@ -177,12 +178,13 @@ NetworkInterface::NetworkInterface(const char *name) {
     db = new DB(this);
     checkIdle();
   } else {
-	  flows_hash = NULL, hosts_hash = NULL, strings_hash = NULL;
-	  ndpi_struct = NULL, db = NULL;
-	  pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
+    flows_hash = NULL, hosts_hash = NULL, strings_hash = NULL;
+    ndpi_struct = NULL, db = NULL;
+    pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
-
+  
   statsManager = NULL, view = NULL;
+  flowsManager = NULL;
 
 #ifdef NTOPNG_PRO
   policer = new L7Policer(this);
@@ -358,6 +360,10 @@ void NetworkInterface::enableInterfaceView() {
   if(!statsManager)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate StatsManager");
 
+  flowsManager = new FlowsManager(this);
+  if (!flowsManager)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate FlowsManager");
+
   /* Create view for this interface */
   view = new NetworkInterfaceView(this);
   if(!view)
@@ -422,6 +428,7 @@ NetworkInterface::~NetworkInterface() {
 
   if(db) delete db;
   if(statsManager) delete statsManager;
+  if(flowsManager) delete flowsManager;
 
   if(pkt_dumper) delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
@@ -438,7 +445,7 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, bool partial_dump, Flow *f) {
-  if(ntop->getPrefs()->do_dump_flows_on_db()) {
+  if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
     return(dumpDBFlow(when, partial_dump, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es())
     return(dumpEsFlow(when, partial_dump, f));
@@ -602,6 +609,7 @@ void NetworkInterface::process_epp_flow(ZMQ_Flow *zflow, Flow *flow) {
 void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
+  ndpi_protocol p;
 
   if((time_t)zflow->last_switched > (time_t)last_pkt_rcvd)
     last_pkt_rcvd = zflow->last_switched;
@@ -636,14 +644,15 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
 		     zflow->pkt_sampling_rate*zflow->out_pkts,
 		     zflow->pkt_sampling_rate*zflow->out_bytes,
 		     zflow->last_switched);
-  flow->setDetectedProtocol(zflow->l7_proto);
-  flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
+    p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    flow->setDetectedProtocol(p);
+    flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
   flow->updateInterfaceStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));			     
   incStats(zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow->get_detected_protocol(),
+	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
@@ -872,7 +881,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
      && flow->get_srv_host()) {
     /* Handle aggregations here */
 
-    switch(flow->get_detected_protocol()) {
+    switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_HTTP:
       if(payload_len > 0)
 	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
@@ -945,15 +954,16 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     flow->processDetectedProtocol();
 
     /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
-    if(flow->get_detected_protocol() != NDPI_PROTOCOL_DNS)
+    if(ndpi_is_proto(flow->get_detected_protocol(), NDPI_PROTOCOL_DNS))
       flow->deleteFlowMemory();
 
-    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
+    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, 
+	     flow->get_detected_protocol().protocol,
 	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_to_disk &&
       (!flow->isDetectionCompleted() ||
-       flow->get_detected_protocol() == NDPI_PROTOCOL_UNKNOWN);
+       flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
     if (dump_is_unknown ||
         ((dump_all_traffic || flow->dumpFlowTraffic()) &&
          (dump_security_to_disk || getDumpTrafficDiskPolicy())))
@@ -970,7 +980,8 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 	*a_shaper_id = flow->get_srv_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_cli_host()->get_ingress_shaper_id();
     }
   } else
-    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, flow->get_detected_protocol(),
+    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, 
+	     flow->get_detected_protocol().protocol,
 	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   return(pass_verdict);
@@ -1051,6 +1062,22 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
     eth_type = (packet[14] << 8) + packet[15];
     ip_offset = 16;
     incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+#ifdef DLT_RAW
+  } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
+    switch((packet[0] & 0xf0) >> 4) {
+    case 4:
+      eth_type = ETHERTYPE_IP;
+      break;
+    case 6:
+      eth_type = ETHERTYPE_IPV6;
+      break;
+    default:
+      return(pass_verdict); /* Unknown IP protocol version */
+    }
+    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+    ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+    ip_offset = 0;
+#endif /* DLT_RAW */
   } else {
     incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
@@ -1408,10 +1435,36 @@ static bool hosts_get_list_details(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
+static bool hosts_get_local_list(GenericHashEntry *h, void *user_data) {
+  struct vm_ptree *vp = (struct vm_ptree*)user_data;
+
+  if (((Host*)h)->isLocalHost())
+    ((Host*)h)->lua(vp->vm, vp->ptree, false, false, false);
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool hosts_get_local_list_details(GenericHashEntry *h, void *user_data) {
+  struct vm_ptree *vp = (struct vm_ptree*)user_data;
+
+  if (((Host*)h)->isLocalHost())
+    ((Host*)h)->lua(vp->vm, vp->ptree, true, false, false);
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 void NetworkInterface::getActiveHostsList(lua_State* vm,
 					  vm_ptree *vp,
-					  bool host_details) {
-  hosts_hash->walk(host_details ? hosts_get_list_details : hosts_get_list, (void*)vp);
+					  bool host_details,
+					  bool local_only) {
+  if (local_only)
+    hosts_hash->walk(host_details ? hosts_get_local_list_details : hosts_get_local_list, (void*)vp);
+  else
+    hosts_hash->walk(host_details ? hosts_get_list_details : hosts_get_list, (void*)vp);
 }
 
 /* **************************************************** */
@@ -1694,35 +1747,8 @@ bool NetworkInterface::compareAggregationFamilies(lua_State* vm,
 
 /* **************************************************** */
 
-static bool flows_get_list_details(GenericHashEntry *h, void *user_data) {
-  struct flow_details_info *info = (struct flow_details_info*)user_data;
-  Flow *flow = (Flow*)h;
-
-  if(info->h != NULL) {
-    if((info->h != flow->get_cli_host())
-       && (info->h != flow->get_srv_host()))
-      return(false);
-  }
-
-  flow->lua(info->vm, info->allowed_hosts, false /* Minimum details */);
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::getActiveFlowsList(lua_State* vm,
-                                          char *host_ip, u_int vlan_id,
-                                          patricia_tree_t *allowed_hosts) {
-  struct flow_details_info info;
-  info.vm = vm, info.allowed_hosts = allowed_hosts;
-
-  if(host_ip == NULL)
-    info.h = NULL;
-  else
-    info.h = getHost(host_ip, vlan_id);
-
-  if((info.h == NULL) || (info.h->match(allowed_hosts)))
-    flows_hash->walk(flows_get_list_details, (void*)&info);
+int NetworkInterface::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL) {
+  return flowsManager->retrieve(vm, allowed_hosts, SQL);
 }
 
 /* **************************************************** */
@@ -1732,8 +1758,8 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
 
   stats->num_flows++,
-    stats->ndpi_bytes[flow->get_detected_protocol()] += (u_int32_t)flow->get_bytes(),
-	stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
+    stats->ndpi_bytes[flow->get_detected_protocol().protocol] += (u_int32_t)flow->get_bytes(),
+    stats->breeds_bytes[flow->get_protocol_breed()] += (u_int32_t)flow->get_bytes();
 
   return(false); /* false = keep on walking */
 }
@@ -1895,7 +1921,7 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
 
-  num_flows[flow->get_detected_protocol()]++;
+  num_flows[flow->get_detected_protocol().protocol]++;
 
   return(false /* keep walking */);
 }
@@ -2263,7 +2289,7 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
     user = f->get_username(false);
 
   if(user && (strcmp(user, info->username) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
 
   return(false); /* false = keep on walking */
 }
@@ -2288,12 +2314,12 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
   char *name = f->get_proc_name(true);
 
   if(name && (strcmp(name, info->proc_name) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
   else {
     name = f->get_proc_name(false);
 
     if(name && (strcmp(name, info->proc_name) == 0))
-      f->lua(info->vm, NULL, false /* Minimum details */);
+      f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
   }
 
   return(false); /* false = keep on walking */
@@ -2318,7 +2344,7 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
   struct pid_flows *info = (struct pid_flows*)pid_data;
 
   if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
 
   return(false); /* false = keep on walking */
 }
@@ -2339,7 +2365,7 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
   struct pid_flows *info = (struct pid_flows*)father_pid_data;
 
   if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */);
+    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
 
   return(false); /* false = keep on walking */
 }

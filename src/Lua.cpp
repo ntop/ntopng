@@ -417,7 +417,24 @@ static int ntop_get_interface_hosts(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false);
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, false);
+
+  return(CONST_LUA_OK);
+}
+
+/**
+ * @brief Get all local hosts of network interface.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of local host information (Host name and number of bytes sent and received).
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_local_hosts(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, true);
 
   return(CONST_LUA_OK);
 }
@@ -443,7 +460,31 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
   else
     show_details = lua_toboolean(vm, 1) ? true : false;
 
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details);
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, false);
+
+  return(CONST_LUA_OK);
+}
+
+/**
+ * @brief Get local hosts information of network interface.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host information.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_local_hosts_info(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  bool show_details;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  /* Optional */
+  if(lua_type(vm, 1) != LUA_TBOOLEAN)
+    show_details = true;
+  else
+    show_details = lua_toboolean(vm, 1) ? true : false;
+
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, true);
 
   return(CONST_LUA_OK);
 }
@@ -1025,7 +1066,8 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  */
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  char *host_ip = NULL;
+  char SQL[100];
+  char *host_ip = NULL, *key = NULL;
   u_int16_t vlan_id = 0;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1039,7 +1081,49 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
     if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
   }
 
-  if(ntop_interface) ntop_interface->getActiveFlowsList(vm, get_allowed_nets(vm), host_ip, vlan_id);
+  if (lua_type(vm, 3) == LUA_TSTRING)
+    key = (char*)lua_tostring(vm, 3);
+
+  if (host_ip) {
+    char ip[64];
+    strncpy(ip, host_ip, 64); /* don't rely on host_ip as strtok_r() doesn't always behave correctly */
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? : "*", ip, vlan_id);
+  } else {
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS", key ? : "*");
+  }
+
+  if(ntop_interface) {
+    if (ntop_interface->retrieve(vm, get_allowed_nets(vm), SQL))
+      return CONST_LUA_ERROR;
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/**
+ * @brief Query the flow information of network interface.
+ * @details Get the ntop interface global variable of lua and push the requested information of flows into the lua stack as a new hashtable.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_query_interface_flows_info(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  char *SQL = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) != LUA_TSTRING)
+    return CONST_LUA_ERROR;
+
+  SQL = (char*)lua_tostring(vm, 1);
+
+  if(ntop_interface || !SQL) {
+    if (ntop_interface->retrieve(vm, get_allowed_nets(vm), SQL))
+      return CONST_LUA_ERROR;
+  }
 
   return(CONST_LUA_OK);
 }
@@ -1354,7 +1438,7 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
   if(f == NULL)
     return(CONST_LUA_ERROR);
   else {
-    f->lua(vm, ptree, true);
+    f->lua(vm, ptree, true, FS_ALL);
     return(CONST_LUA_OK);
   }
 }
@@ -3955,7 +4039,7 @@ static int ntop_lua_dofile(lua_State* L)
 static int ntop_is_historical_interface(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop->getPrefs()->do_dump_flows_on_db()) {
+  if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
     u_int32_t id, historical_id;
 
     historical_id = ntop->getHistoricalInterfaceId();
@@ -4154,7 +4238,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNdpiFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getNdpiProtoBreed",      ntop_get_ndpi_protocol_breed },
   { "getHosts",               ntop_get_interface_hosts },
+  { "getLocalHosts",          ntop_get_interface_local_hosts },
   { "getHostsInfo",           ntop_get_interface_hosts_info },
+  { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getAggregatedHostsInfo", ntop_get_interface_aggregated_hosts_info },
   { "getAggregationFamilies", ntop_get_interface_aggregation_families },
   { "getNumAggregatedHosts",  ntop_get_interface_num_aggregated_hosts },
@@ -4167,6 +4253,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getAggregatedHostInfo",  ntop_get_interface_aggregated_host_info },
   { "getAggregationsForHost", ntop_get_aggregregations_for_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
+  { "queryFlowsInfo",         ntop_query_interface_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowPeers",           ntop_get_interface_flows_peers },
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },

@@ -1090,9 +1090,9 @@ function version2int(v)
     minor = e[2]
     veryminor = e[3]
     
-    if(major == nil or type(major) ~= "string")     then major = 0 end
-    if(minor == nil or type(minor) ~= "string")     then minor = 0 end
-    if(veryminor == nil or type(veryminor) ~= "string") then veryminor = 0 end
+    if(major == nil or tonumber(major) == nil or type(major) ~= "string")     then major = 0 end
+    if(minor == nil or tonumber(minor) == nil or type(minor) ~= "string")     then minor = 0 end
+    if(veryminor == nil or tonumber(veryminor) == nil or type(veryminor) ~= "string") then veryminor = 0 end
 
     version = tonumber(major)*1000 + tonumber(minor)*100 + tonumber(veryminor)
     return(version)
@@ -1505,6 +1505,10 @@ function split(s, delimiter)
     return result;
 end
 
+function startswith(s, char)
+   return string.sub(s, 1, string.len(s)) == char
+end
+
 function strsplit(inputstr, sep)
   if (inputstr == nil or inputstr == "") then return {} end
   if sep == nil then
@@ -1575,4 +1579,28 @@ function makeTopStatsScriptsArray()
       end
    end
    return(topArray)
+end
+
+function get_mac_classification(mac_address)
+   local file_mac = io.open(fixPath(dirs.installdir.."/third-party/well-known-MAC.txt"))
+   if (file_mac == nil) then return "" end
+   local mac_line = file_mac:read("*l")
+   while (mac_line ~= nil) do
+      if (not startswith(mac_line, "#") and mac_line ~= "") then
+        t = split(mac_line, "\t")
+        if (string.match(mac_address, t[1]..".*") ~= nil) then
+           file_mac.close()
+           return "("..split(t[2], " ")[1]..")"
+        end
+      end
+      mac_line = file_mac:read("*l")
+   end
+   file_mac.close()
+   return ""
+end
+
+function rrd_exists(host_ip, rrdname)
+   dirs = ntop.getDirs()
+   rrdpath = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host_ip) .. "/" .. rrdname
+   return ntop.exists(rrdpath)
 end

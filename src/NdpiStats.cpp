@@ -113,7 +113,7 @@ void NdpiStats::lua(NetworkInterfaceView *iface, lua_State* vm) {
 
 /* *************************************** */
 
-void NdpiStats::incStats(u_int proto_id,
+void NdpiStats::incStats(u_int16_t proto_id,
 			 u_int64_t sent_packets, u_int64_t sent_bytes,
 			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
   if(proto_id < (MAX_NDPI_PROTOS)) {

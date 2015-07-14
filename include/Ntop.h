@@ -59,6 +59,7 @@ class Ntop {
   PeriodicActivities *pa; /**< Instance of periodical activities.*/
   AddressResolution *address;
   Prefs *prefs;
+  CommunitiesManager *communitiesManager;
   RuntimePrefs *runtimeprefs;
   Geolocation *geo;
   Categorization *categorization;
@@ -314,6 +315,7 @@ class Ntop {
    * @return The path of installed directory.
    */
   inline char* get_install_dir()                     { return(install_dir);      };
+  inline void  set_install_dir(char *id)             { snprintf(install_dir, MAX_PATH, "%s", id); };
 
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };

@@ -31,16 +31,17 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
-  categorization_enabled = true, httpbl_enabled = false, resolve_all_host_ip = false;
+  categorization_enabled = false, httpbl_enabled = false, resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
+  install_dir = NULL;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
-  https_port = CONST_DEFAULT_NTOP_PORT+1;
+  https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
@@ -52,12 +53,13 @@ Prefs::Prefs(Ntop *_ntop) {
   redis_db_id = 0;
   dns_mode = 0;
   logFd = NULL;
+  communities_file = NULL;
   disable_alerts = false;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   disable_host_persistency = false;
   num_interfaces = 0, num_interface_views = 0, enable_auto_logout = true;
-  dump_flows_on_db = false, dump_flows_on_es = false;
+  dump_flows_on_sqlite = dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
   enable_aggregations = aggregations_disabled;
   memset(ifNames, 0, sizeof(ifNames));
@@ -111,6 +113,7 @@ Prefs::~Prefs() {
 
   if(logFd)            fclose(logFd);
   if(data_dir)         free(data_dir);
+  if(install_dir)      free(install_dir);
   if(docs_dir)         free(docs_dir);
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
@@ -123,6 +126,7 @@ Prefs::~Prefs() {
   if(es_index)         free(es_index);
   if(es_url)           free(es_url);
   if(es_pwd)           free(es_pwd);
+  if(communities_file) free(communities_file);
   free(http_prefix);
   free(redis_host);
   free(local_networks);
@@ -160,6 +164,7 @@ void usage() {
 #ifndef WIN32
 	 "[--data-dir|-d] <path>              | Data directory (must be writable).\n"
 	 "                                    | Default: %s\n"
+	 "[--install-dir|-t] <path>           | Set the installation directory to <dir>. Testing only.\n"
 	 "[--daemon|-e]                       | Daemonize ntopng\n"
 #endif
 	 "[--httpdocs-dir|-1] <path>          | HTTP documents root directory.\n"
@@ -219,13 +224,20 @@ void usage() {
 	 "                                    | 2 - Enable aggregations, with timeline\n"
 	 "                                    |     dump (see -C)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
-	 "                                    | db - Dump in SQLite DB\n"
-	 "                                    | es - Dump in Redis "CONST_ES_QUEUE_NAME" queue\n"
-	 "                                    |      Format:\n"
-	 "                                    |      es;<idx type>;<idx name>;<es URL>;<es pwd>\n"
-	 "                                    |      Example:\n"
-	 "                                    |      es;flows;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
-	 "                                    |      Note: the <idx name> accepts the strftime() format.\n"
+	 "                                    | sqlite Dump in SQLite DB\n"
+	 "                                    | es     Dump in ElasticSearch database\n"
+	 "                                    |        Format:\n"
+	 "                                    |        es;<idx type>;<idx name>;<es URL>;<es pwd>\n"
+	 "                                    |        Example:\n"
+	 "                                    |        es;flows;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
+	 "                                    |        Note: the <idx name> accepts the strftime() format.\n"
+#ifdef HAVE_MYSQL
+	 "                                    | mysql  Dump in MySQL database\n"
+	 "                                    |        Format:\n"
+	 "                                    |        mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw>\n"
+	 "                                    |        mysql;localhost;ntopng;flows-%%Y.%%m.%%d;root;\n"
+	 "                                    |        Note: the <table name> accepts the strftime() format.\n"
+#endif
 	 "[--export-flows|-I] <endpoint>      | Export flows using the specified endpoint.\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
 	 "                                    | Values:\n"
@@ -237,6 +249,7 @@ void usage() {
 	 "                                    | all    - Dump all hosts\n"
 	 "                                    | local  - Dump only local hosts\n"
 	 "                                    | remote - Dump only remote hosts\n"
+         "[--communities-list] <filename>     | Parse given file to get host communities\n"
 	 "[--sticky-hosts|-S] <mode>          | Don't flush hosts (default: none).\n"
 	 "                                    | Values:\n"
 	 "                                    | all    - Keep all hosts in memory\n"
@@ -341,6 +354,7 @@ static const struct option long_options[] = {
   { "categorization-key",                required_argument, NULL, 'c' },
 #ifndef WIN32
   { "data-dir",                          required_argument, NULL, 'd' },
+  { "install-dir",                       required_argument, NULL, 't' },
 #endif
   { "daemon",                            no_argument,       NULL, 'e' },
   { "core-affinity",                     required_argument, NULL, 'g' },
@@ -369,6 +383,7 @@ static const struct option long_options[] = {
 #endif
   { "disable-alerts",                    no_argument,       NULL, 'H' },
   { "export-flows",                      required_argument, NULL, 'I' },
+  { "communities-list",                  required_argument, NULL, 'O' },
   { "disable-host-persistency",          no_argument,       NULL, 'P' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
   { "enable-taps",                       no_argument,       NULL, 'T' },
@@ -442,6 +457,10 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 'd':
     ntop->setWorkingDir(optarg);
     break;
+
+  case 't':
+    install_dir = strndup(optarg, MAX_PATH);
+    break;
 #endif
 
   case 'D':
@@ -500,6 +519,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     default:
       help();
     }
+    break;
+
+  case 'O':
+    communities_file = strdup(optarg);
     break;
 
   case 'p':
@@ -649,8 +672,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'F':
-    if((strncmp(optarg, "es", 2) == 0)
-       && (strlen(optarg) > 3)) {
+    if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
       /* es;<index type>;<index name>;<es URL>;<es pwd> */
@@ -691,9 +713,11 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
-    } else if(!strcmp(optarg, "db"))
-      dump_flows_on_db = true;
-    else
+    } else if(!strcmp(optarg, "sqlite"))
+      dump_flows_on_sqlite = true;
+    else if(!strcmp(optarg, "mysql")) {
+
+    } else
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Discarding -F %s: value out of range",
 				   optarg);
@@ -769,11 +793,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     return(-1);
   }
 
-  if((http_port == 0) && (https_port == 0)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
-    _exit(0);
-  }
-
   return(0);
 }
 
@@ -796,7 +815,12 @@ int Prefs::checkOptions() {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create log %s", path);
     }
 
-  free(data_dir); data_dir = strdup(ntop->get_install_dir());
+  if(install_dir)
+    ntop->set_install_dir(install_dir);
+
+  free(data_dir);
+  data_dir = strdup(ntop->get_install_dir());
+
   docs_dir      = ntop->getValidPath(docs_dir);
   scripts_dir   = ntop->getValidPath(scripts_dir);
   callbacks_dir = ntop->getValidPath(callbacks_dir);
@@ -819,10 +843,15 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "c:k:eg:hi:w:r:sg:m:n:p:qd:x:1:2:3:l:uvA:B:CD:E:F:G:HI:S:TU:X:W:VZ:",
+			 "c:k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:G:HI:O:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
+  }
+
+  if((http_port == 0) && (https_port == 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
+    _exit(0);
   }
 
   return(checkOptions());
@@ -912,6 +941,7 @@ int Prefs::save() {
     fprintf(fd, "\n");
   }
   if(data_dir)            fprintf(fd, "data-dir=%s\n", data_dir);
+  if(install_dir)         fprintf(fd, "install-dir=%s\n", install_dir);
   if(categorization_key)  fprintf(fd, "categorization-key=%s\n", categorization_key);
   if(httpbl_key)          fprintf(fd, "httpbl-key=%s\n", httpbl_key);
   if(local_networks)      fprintf(fd, "local-networks=%s\n", local_networks);
@@ -947,7 +977,7 @@ void Prefs::add_network_interface(char *name, char *description) {
 /* ******************************************* */
 
 char *Prefs::getInterfaceViewAt(int id) {
-  if (id >= MAX_NUM_INTERFACES) return NULL;
+  if(id >= MAX_NUM_INTERFACES) return NULL;
   return ifViewNames[id].name;
 }
 
@@ -989,7 +1019,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
-  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_db);
+  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_sqlite);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
   lua_push_int_table_entry(vm, "dump_aggregation", dump_aggregations_to_db);
 
@@ -1021,8 +1051,8 @@ bool Prefs::isView(char *name) {
   istringstream ss(name);
   string cmdtok;
 
-  if (std::getline(ss, cmdtok, ':')) {
-    if (cmdtok != "view") return false;
+  if(std::getline(ss, cmdtok, ':')) {
+    if(cmdtok != "view") return false;
     return true;
   }
 
@@ -1034,7 +1064,7 @@ bool Prefs::isView(char *name) {
 void Prefs::registerNetworkInterfaces() {
   for(int i=0; i<num_deferred_interfaces_to_register; i++) {
     if(deferred_interfaces_to_register[i] != NULL) {
-      if (isView(deferred_interfaces_to_register[i]))
+      if(isView(deferred_interfaces_to_register[i]))
         add_network_interface_view(deferred_interfaces_to_register[i], NULL);
       else
         add_network_interface(deferred_interfaces_to_register[i], NULL);

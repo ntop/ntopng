@@ -150,7 +150,7 @@ class Host : public GenericHost {
 
   bool match(patricia_tree_t *ptree) { return(get_ip() ? get_ip()->match(ptree) : false); };
   void updateHostL7Policy();
-  bool doDropProtocol(u_int l7_proto);
+  bool doDropProtocol(ndpi_protocol l7_proto);
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);

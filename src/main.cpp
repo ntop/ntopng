@@ -202,8 +202,10 @@ int main(int argc, char *argv[])
   }
 
   ntop->createExportInterface();
+  
+  ntop->getRedis()->startFlowDump();
 
-  if(prefs->do_dump_flows_on_db())
+  if(prefs->do_dump_flows_on_sqlite())
     ntop->createHistoricalInterface();
   
   if(ntop->getInterfaceAtId(0) == NULL) {
