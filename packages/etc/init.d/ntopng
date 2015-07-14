@@ -220,6 +220,7 @@ status_ntopng() {
         echo "ntopng running as ${PID}"
     else
 	echo "ntopng is not running"
+	exit 1
     fi
 
     return 0
