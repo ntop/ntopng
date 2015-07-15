@@ -159,6 +159,8 @@ void Host::flushContacts(bool freeHost) {
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
 
+  memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
+
   if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
 
   //if(_vlanId > 0) ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN => %d", _vlanId);
@@ -390,12 +392,12 @@ void Host::updateLocal() {
 
 /* *************************************** */
 
-char* Host::get_mac(char *buf, u_int buf_len) {
+char* Host::get_mac(char *buf, u_int buf_len, u_int8_t *mac) {
   snprintf(buf, buf_len,
 	   "%02X:%02X:%02X:%02X:%02X:%02X",
-	   mac_address[0] & 0xFF, mac_address[1] & 0xFF,
-	   mac_address[2] & 0xFF, mac_address[3] & 0xFF,
-	   mac_address[4] & 0xFF, mac_address[5] & 0xFF);
+	   mac[0] & 0xFF, mac[1] & 0xFF,
+	   mac[2] & 0xFF, mac[3] & 0xFF,
+	   mac[4] & 0xFF, mac[5] & 0xFF);
 
   return(buf);
 }
@@ -428,8 +430,9 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_str_table_entry(vm, "ip", (ipaddr = ip->print(ip_buf, sizeof(ip_buf))));
   else
     lua_push_nil_table_entry(vm, "ip");
-
-  lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf)));
+  
+  lua_push_str_table_entry(vm, "antenna_mac", get_mac(buf, sizeof(buf), antenna_mac_address));
+  lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf), mac_address));
   lua_push_int_table_entry(vm, "vlan", vlan_id);
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
@@ -587,9 +590,9 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
       /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
 
       if (vlan_id == 0) {
-        sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf)));
+        sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address));
       } else {
-        sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf)),vlan_id );
+        sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address), vlan_id );
       }
 
       lua_pushstring(vm,buf_id);
@@ -599,9 +602,9 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   } else {
     /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
     if (vlan_id == 0) {
-      sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf)));
+      sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address));
     } else {
-      sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf)),vlan_id );
+      sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address),vlan_id );
     }
     lua_pushstring(vm, buf_id);
     lua_insert(vm, -2);
@@ -666,7 +669,7 @@ void Host::refreshHTTPBL() {
 
 char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found) {
   if(ip == NULL) {
-    return(get_mac(buf, buf_len));
+    return(get_mac(buf, buf_len, mac_address));
   } else {
     char *addr, redis_buf[64];
     int rc;
@@ -794,7 +797,7 @@ char* Host::get_string_key(char *buf, u_int buf_len) {
   if(ip != NULL)
     return(ip->print(buf, buf_len));
   else
-    return(get_mac(buf, buf_len));
+    return(get_mac(buf, buf_len, mac_address));
 }
 
 /* *************************************** */
@@ -805,7 +808,7 @@ char* Host::serialize() {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  json_object_object_add(my_object, "mac_address", json_object_new_string(get_mac(buf, sizeof(buf))));
+  json_object_object_add(my_object, "mac_address", json_object_new_string(get_mac(buf, sizeof(buf), mac_address)));
 
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
@@ -867,7 +870,7 @@ bool Host::addIfMatching(lua_State* vm, patricia_tree_t *ptree, char *key) {
 
   // if(symbolic_name) ntop->getTrace()->traceEvent(TRACE_WARNING, "%s/%s", symbolic_name, ip->print(keybuf, sizeof(keybuf)));
 
-  if(strcasestr((r = get_mac(keybuf, sizeof(keybuf))), key)) {
+  if(strcasestr((r = get_mac(keybuf, sizeof(keybuf), mac_address)), key)) {
     lua_push_str_table_entry(vm, get_string_key(keybuf, sizeof(keybuf)), r);
     return(true);
   } else if(ip && strcasestr((r = ip->print(keybuf, sizeof(keybuf))), key)) {

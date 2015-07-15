@@ -387,6 +387,9 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
 
    if(host["ip"] ~= nil) then
+      if((host["antenna_mac"] ~= nil) and (host["antenna_mac"] ~= "00:00:00:00:00:00")) then
+	 print("<tr><th width=35%>Antenna MAC Address</th><td colspan=2>" .. host["antenna_mac"].." "..get_mac_classification(host["antenna_mac"]).. "</td></tr>")
+      end
       print("<tr><th width=35%>(Router) MAC Address</th><td>" .. host["mac"].." "..get_mac_classification(host["mac"]).. "</td><td>")
 
       if(host["localhost"] == true) then

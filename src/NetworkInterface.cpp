@@ -1103,6 +1103,15 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
   }
 
  decode_packet_eth:
+
+  if(eth_type == ETHERTYPE_BATMAN) {
+    /* ethernet now contains the L2 layer of the antennas */
+    ip_offset += 10;
+    ethernet = (struct ndpi_ethhdr *) &packet[ip_offset];
+    eth_type = (packet[ip_offset + 12] << 8) + packet[ip_offset + 13];
+    ip_offset += sizeof(struct ndpi_ethhdr);
+  }
+
   switch(eth_type) {
   case ETHERTYPE_PPOE:
     eth_type = ETHERTYPE_IP;
