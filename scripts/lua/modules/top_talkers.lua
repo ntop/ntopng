@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "persistence"
 
+other_stats_id = "Other"
+
 -- #################################################
 
 function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_key, use_threshold)
@@ -65,17 +67,23 @@ function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_k
 
    -- build a new hashtable sorted by the required field
    top_stats = {}
+   other_stats = 0
    counter = 0
    for _value,_id in pairsByKeys(filtered_stats, rev) do
-      if ((_value == 0) or (use_threshold == true and ((_value < low_threshold or
-          _value < threshold) and (counter > max_num_entries / 2)))) then
-         break
+      if (counter < max_num_entries) then
+         if ((_value == 0) or (use_threshold == true and ((_value < low_threshold or
+             _value < threshold) and (counter > max_num_entries / 2)))) then
+            break
+         end
+         top_stats[_value] = _id -- still keep it in order
+         counter = counter + 1
+      else
+         other_stats = other_stats + _value
       end
-      top_stats[_value] = _id -- still keep it in order
-      counter = counter + 1
-      if (counter == max_num_entries) then
-        break
-      end
+   end
+
+   if (other_stats > 0) then
+     top_stats[other_stats] = other_stats_id
    end
 
    return top_stats
@@ -127,14 +135,24 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
    if((mode == nil) or (mode == "senders")) then
       top_talkers = getTop(hosts_stats, "bytes.sent", max_num_entries, talkers_dir, lastdump_key, use_threshold)
       num = 0
+      other_stats = 0
       for value,id in pairsByKeys(top_talkers, rev) do
-	 if(num > 0) then rsp = rsp .. " }," end
-	 rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
-	    ..hosts_stats[id]["name"]..'", "url": "'
-               ..ntop.getHttpPrefix()..
-	    '/lua/host_details.lua?host='..id..'", "value": '..value..
-	    ', "local": "'..tostring(hosts_stats[id]["localhost"])..'"'
-	 num = num + 1
+         if (id == other_stats_id) then
+            other_stats = value
+         else
+	    if(num > 0) then rsp = rsp .. " }," end
+	    rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
+	       ..hosts_stats[id]["name"]..'", "url": "'
+                  ..ntop.getHttpPrefix()..
+	       '/lua/host_details.lua?host='..id..'", "value": '..value..
+	       ', "local": "'..tostring(hosts_stats[id]["localhost"])..'"'
+	    num = num + 1
+         end
+      end
+      if (other_stats > 0) then
+         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+            ..other_stats_id..'", "url": "", "value": '..other_stats..
+            ', "local": "false"'
       end
    end
 
@@ -147,15 +165,25 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
    if((mode == nil) or (mode == "receivers")) then
       top_listeners = getTop(hosts_stats, "bytes.rcvd", max_num_entries, talkers_dir, lastdump_key, use_threshold)
       num = 0
+      other_stats = 0
       for value,id in pairsByKeys(top_listeners, rev) do
-	 if(num > 0) then rsp = rsp .. " }," end
-	 rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
-               ..hosts_stats[id]["name"]..'", "url": "'
-               ..ntop.getHttpPrefix()..
-               '/lua/host_details.lua?host='..id..'", "value": '..value..
-               ', "local": "'..tostring(hosts_stats[id]["localhost"])..'"'
-	 num = num + 1
+         if (id == other_stats_id) then
+            other_stats = value
+         else
+	    if(num > 0) then rsp = rsp .. " }," end
+	    rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
+                  ..hosts_stats[id]["name"]..'", "url": "'
+                  ..ntop.getHttpPrefix()..
+                  '/lua/host_details.lua?host='..id..'", "value": '..value..
+                  ', "local": "'..tostring(hosts_stats[id]["localhost"])..'"'
+	    num = num + 1
+         end
       end
+      if (other_stats > 0) then
+         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+            ..other_stats_id..'", "url": "", "value": '..other_stats..
+            ', "local": "false"'
+      end    
    end
 
    if(mode == nil) then
@@ -275,13 +303,23 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
    if((mode == nil) or (mode == "senders")) then
       top_talkers = getTop(_group, col.."_bytes.sent", max_num_entries, talkers_dir, lastdump_key)
       num = 0
+      other_stats = 0
       for value,id in pairsByKeys(top_talkers, rev) do
-	 if(num > 0) then rsp = rsp .. " }," end
-	 rsp = rsp .. '\n\t\t { "label": "'.._group[id]["name"].. '", "url": "'
-               ..ntop.getHttpPrefix()..
-               '/lua/hosts_stats.lua?'..col..'='..id..'", "address": "'
-               ..id..'", "value": '..value
-	 num = num + 1
+         if (id == other_stats_id) then
+            other_stats = value
+         else
+	    if(num > 0) then rsp = rsp .. " }," end
+	    rsp = rsp .. '\n\t\t { "label": "'.._group[id]["name"].. '", "url": "'
+                  ..ntop.getHttpPrefix()..
+                  '/lua/hosts_stats.lua?'..col..'='..id..'", "address": "'
+                  ..id..'", "value": '..value
+	    num = num + 1
+         end
+      end
+      if (other_stats > 0) then
+         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+            ..other_stats_id..'", "url": "", "value": '..other_stats..
+            ', "local": "false"'
       end
    end
 
@@ -294,13 +332,23 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
    if((mode == nil) or (mode == "receivers")) then
       top_listeners = getTop(_group, col.."_bytes.rcvd", max_num_entries, talkers_dir, lastdump_key)
       num = 0
+      other_stats = 0
       for value,id in pairsByKeys(top_listeners, rev) do
-	 if(num > 0) then rsp = rsp .. " }," end
-	 rsp = rsp .. '\n\t\t { "label": "'.._group[id]["name"].. '", "url": "'
-               ..ntop.getHttpPrefix()..
-               '/lua/hosts_stats.lua?'..col..'='..id..'", "address": "'
-               ..id..'", "value": '..value
-	 num = num + 1
+         if (id == other_stats_id) then
+            other_stats = value
+         else
+	    if(num > 0) then rsp = rsp .. " }," end
+	    rsp = rsp .. '\n\t\t { "label": "'.._group[id]["name"].. '", "url": "'
+                  ..ntop.getHttpPrefix()..
+                  '/lua/hosts_stats.lua?'..col..'='..id..'", "address": "'
+                  ..id..'", "value": '..value
+	    num = num + 1
+         end
+      end
+      if (other_stats > 0) then
+         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+            ..other_stats_id..'", "url": "", "value": '..other_stats..
+            ', "local": "false"'
       end
    end
 
@@ -348,13 +396,23 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
    top_groups = getTop(_group, col.."_bytes", max_num_entries, talkers_dir, lastdump_key, use_threshold)
 
    num = 0
+   other_stats = 0
    for _value,_key in pairsByKeys(top_groups, rev) do
-      if(num > 0) then rsp = rsp .. " }," end
-      rsp = rsp .. '\n\t\t { "label": "'.._key..'", "url": "'
-            ..ntop.getHttpPrefix()..
-            '/lua/hosts_stats.lua?'..col..'='.._key..'", "name": "'
-            .._group[_key]["name"]..'", "value": '.._value
-      num = num + 1
+      if (key == other_stats_id) then
+         other_stats = value
+      else
+         if(num > 0) then rsp = rsp .. " }," end
+         rsp = rsp .. '\n\t\t { "label": "'.._key..'", "url": "'
+               ..ntop.getHttpPrefix()..
+               '/lua/hosts_stats.lua?'..col..'='.._key..'", "name": "'
+               .._group[_key]["name"]..'", "value": '.._value
+         num = num + 1
+      end
+   end
+   if (other_stats > 0) then
+      rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+         ..other_stats_id..'", "url": "", "value": '..other_stats..
+         ', "local": "false"'
    end
 
    if (num > 0) then
