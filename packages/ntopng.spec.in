@@ -26,8 +26,8 @@ Web-based traffic monitoring
 cd $HOME/rpmbuild/BUILD/
 git clone https://github.com/ntop/ntopng.git
 ln -s $HOME/rpmbuild/BUILD/ntopng $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
-if test -d $HOME/ntopng/pro; then
-    cp -r $HOME/ntopng/pro $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
+if test -d $HOME/ntopng/ntopng-pro; then
+    cp -r $HOME/ntopng/ntopng-pro $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
 fi
 cd $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
 ./autogen.sh
@@ -51,15 +51,15 @@ cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng $RPM_BUILD_ROOT/usr/bin
 cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
 cp -r $RPM_BUILD_DIR/ntopng-%{version}/httpdocs $RPM_BUILD_DIR/ntopng-%{version}/scripts $RPM_BUILD_ROOT/usr/share/ntopng
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
-if test -d "$RPM_BUILD_DIR/ntopng-%{version}/pro"; then
-   cd $RPM_BUILD_DIR/ntopng-%{version}/pro; make; cd -
-   mkdir $RPM_BUILD_ROOT/usr/share/ntopng/pro
-   cp -r $RPM_BUILD_DIR/ntopng-%{version}/pro/httpdocs $RPM_BUILD_ROOT/usr/share/ntopng/pro
-   cp -r $RPM_BUILD_DIR/ntopng-%{version}/pro/scripts $RPM_BUILD_ROOT/usr/share/ntopng/pro
-   cd $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro
-   find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec $RPM_BUILD_DIR/ntopng-%{version}/pro/utils/snzip -c -i {} -o {}r \;
-   find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'
-   find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.luar" | xargs rename .luar .lua
+if test -d "$RPM_BUILD_DIR/ntopng-%{version}/ntopng-pro"; then
+   cd $RPM_BUILD_DIR/ntopng-%{version}/ntopng-pro; make; cd -
+   mkdir $RPM_BUILD_ROOT/usr/share/ntopng/ntopng-pro
+   cp -r $RPM_BUILD_DIR/ntopng-%{version}/ntopng-pro/httpdocs $RPM_BUILD_ROOT/usr/share/ntopng/ntopng-pro
+   cp -r $RPM_BUILD_DIR/ntopng-%{version}/ntopng-pro/scripts $RPM_BUILD_ROOT/usr/share/ntopng/ntopng-pro
+   cd $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua; ln -s ../../ntopng-pro/scripts/lua pro
+   find $RPM_BUILD_ROOT/usr/share/ntopng/ntopng-pro -name "*.lua" -type f -exec $RPM_BUILD_DIR/ntopng-%{version}/ntopng-pro/utils/snzip -c -i {} -o {}r \;
+   find $RPM_BUILD_ROOT/usr/share/ntopng/ntopng-pro -name "*.lua" -type f -exec /bin/rm  {} ';'
+   find $RPM_BUILD_ROOT/usr/share/ntopng/ntopng-pro -name "*.luar" | xargs rename .luar .lua
 fi
 
 
