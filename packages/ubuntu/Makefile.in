@@ -16,14 +16,14 @@ ntopng:
 	cp -r $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
 	cp -r $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/share/ntopng
 	mv ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
-	if test -d "$(NTOPNG_HOME)/ntopng-pro"; then \
-		mkdir ${NTOPNG_BUILD}/usr/share/ntopng/ntopng-pro; \
-		cp -r $(NTOPNG_HOME)/ntopng-pro/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng/ntopng-pro; \
-		cp -r $(NTOPNG_HOME)/ntopng-pro/scripts ${NTOPNG_BUILD}/usr/share/ntopng/ntopng-pro; \
-		cd ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua; ln -s ../../ntopng-pro/scripts/lua pro; \
-		find ${NTOPNG_BUILD}/usr/share/ntopng/ntopng-pro -name "*.lua" -type f -exec $(NTOPNG_HOME)/ntopng-pro/utils/snzip -c -i {} -o {}r \;; \
-		find ${NTOPNG_BUILD}/usr/share/ntopng/ntopng-pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
-		find ${NTOPNG_BUILD}/usr/share/ntopng/ntopng-pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
+	if test -d "$(NTOPNG_HOME)/pro"; then \
+		mkdir ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
+		cp -r $(NTOPNG_HOME)/pro/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
+		cp -r $(NTOPNG_HOME)/pro/scripts ${NTOPNG_BUILD}/usr/share/ntopng/pro; \
+		cd ${NTOPNG_BUILD}/usr/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro; \
+		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
+		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
+		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
 	fi
 	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
