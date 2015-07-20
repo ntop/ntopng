@@ -758,7 +758,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	   );
     printf("GIT rev:   %s\n", NTOPNG_GIT_RELEASE);
 #ifdef NTOPNG_PRO
-    printf("Pro rev:   %s\n", NTOPNG_PRO_SVN_RELEASE);
+    printf("Pro rev:   %s\n", NTOPNG_PRO_GIT_RELEASE);
     printf("System Id: %s\n", ntop->getPro()->get_system_id());
 #endif
     _exit(0);
