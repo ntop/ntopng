@@ -170,7 +170,7 @@ for _v,k in pairsByKeys(sortTable, rev) do
    v = host["contacts"]["client"][k]
    if(name ~= nil) then
       if(name["name"] == nil) then name["name"] = ntop.getResolvedAddress(name["ip"]) end
-      url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/hiioset_details.lua?host="..k.."\">"..name["name"].."</A>"
+      url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k.."\">"..name["name"].."</A>"
    else
       url = k
    end
