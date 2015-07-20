@@ -71,7 +71,7 @@ else
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
-if test -d "pro"; then :
+if test -d "ntopng-pro"; then :
 NPROBE_HOME="$HOME/nProbe"
 
 if ! test -d "$HOME/nProbe"; then :
@@ -84,7 +84,7 @@ PRO_OBJECTS='$(patsubst ntopng-pro/%.cpp, ntopng-pro/%.o, $(wildcard ntopng-pro/
 PRO_HEADERS='$(wildcard ntopng-pro/*.h)'
 PRO_MAKEFILE_INC="include ./ntopng-pro/inc.Makefile"
 PWD=`pwd`
-CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
+CPPFLAGS="${CPPFLAGS} -I${PWD}/ntopng-pro"
 PRO_GIT_RELEASE=`cd ntopng-pro; git log --pretty=oneline | wc -l`
 GIT_PRO_DATE=`cd ntopng-pro; git log --pretty=medium -1 | grep "^Date:"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
@@ -92,7 +92,7 @@ AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng profes
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${GIT_PRO_DATE}", [ntopng professional date])
 PRO_LIBS='$(PRO_LIBS)'
 PRO_INC='$(PRO_INC)'
-DUMMY=`cd pro; make build`
+DUMMY=`cd ntopng-pro; make build`
 
 if test -r "ntopng-pro/license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
