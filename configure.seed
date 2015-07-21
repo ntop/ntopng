@@ -85,11 +85,11 @@ PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
 CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
-PRO_SVN_RELEASE=`cd pro; svn info . | grep "^Revision"|cut -d " " -f 2`
-SVN_PRO_DATE=`cd pro; svn info . | grep "^Last Changed Date"|cut -d " " -f 4-`
+PRO_GIT_RELEASE=`cd pro; git log --pretty=oneline | wc -l`
+GIT_PRO_DATE=`cd pro; git log --pretty=medium -1 | grep "^Date:"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
-AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_RELEASE, "r${PRO_SVN_RELEASE}", [ntopng professional release])
-AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_DATE, "${SVN_PRO_DATE}", [ntopng professional date])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${GIT_PRO_DATE}", [ntopng professional date])
 PRO_LIBS='$(PRO_LIBS)'
 PRO_INC='$(PRO_INC)'
 DUMMY=`cd pro; make build`
