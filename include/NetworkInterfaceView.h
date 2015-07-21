@@ -59,6 +59,7 @@ class NetworkInterfaceView {
   void flushHostContacts();
   void getnDPIStats(NdpiStats *stats);
   void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, bool local_only);
+  void getCommunityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, int community_id);
   void getFlowsStats(lua_State* vm);
   void getActiveAggregatedHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, u_int16_t proto_family, char *host);
   u_int getNumAggregatedHosts(void);

@@ -1265,3 +1265,18 @@ void Host::readAlertPrefs() {
     }
   }
 }
+
+/* *************************************** */
+
+bool Host::isInCommunity(int community_id) {
+  CommunitiesManager *cm = ntop->getCommunitiesManager();
+  struct ipAddress *ip = NULL;
+
+  if (get_ip() == NULL)
+    return false;
+  ip = get_ip()->getIP();
+  assert(ip);
+
+  return cm->findAddress(community_id, ip->ipVersion,
+                         ip->ipVersion == 4 ? (void *)&ip->ipType.ipv4 : (void *)&ip->ipType.ipv6);
+}

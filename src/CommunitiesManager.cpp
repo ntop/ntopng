@@ -72,6 +72,18 @@ void CommunitiesManager::addNetwork(int community_id, string community_name, cha
   num_communities++;
 }
 
+int CommunitiesManager::findAddress(int community_id, int family, void *addr) {
+  patricia_node_t *node = NULL;
+
+  if (community_id < num_communities)
+    node = ptree_match(communities.at(community_id), family, addr, (family == AF_INET) ? 32 : 128);
+
+  if (node == NULL)
+    return -1;
+  else
+    return node->user_data;
+}
+
 /* Format:
    communityX@id1=net1,net2,net3
    communityY@id2=net4,net5,net6

@@ -41,10 +41,12 @@ public:
   ~CommunitiesManager();
 
   void parseCommunitiesFile(char *fname);
+  int findAddress(int community_id, int family, void *addr);
 };
 
 extern patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
 extern patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
 extern void free_ptree_data(void *data);
+extern patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
 
 #endif /* _COMMUNITIES_MANAGER_H_ */

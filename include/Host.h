@@ -158,6 +158,7 @@ class Host : public GenericHost {
   bool isAboveQuota(void);
   void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
+  bool isInCommunity(int community_id);
 };
 
 #endif /* _HOST_H_ */

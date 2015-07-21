@@ -104,6 +104,8 @@ class Ntop {
   inline FlowChecker *getFlowChecker() { return(flow_checker); };
 #endif
 
+  inline CommunitiesManager *getCommunitiesManager() { return communitiesManager; }
+
   /**
    * @brief Set the path of custom nDPI protocols file.
    * @details Set the path of protos.txt containing the defined custom protocols. For more information please read the nDPI quick start (cd ntopng source code directory/nDPI/doc/).

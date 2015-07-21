@@ -187,6 +187,22 @@ void NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 
 /* **************************************************** */
 
+void NetworkInterfaceView::getCommunityHostsList(lua_State* vm,
+					      patricia_tree_t *allowed_hosts,
+					      bool host_details,
+					      int community_id) {
+  struct vm_ptree vp;
+  list<NetworkInterface *>::iterator p;
+
+  vp.vm = vm, vp.ptree = allowed_hosts;
+
+  lua_newtable(vm);
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    (*p)->getCommunityHostsList(vm, &vp, host_details, community_id);
+}
+
+/* **************************************************** */
+
 void NetworkInterfaceView::getActiveAggregatedHostsList(lua_State* vm,
 						        patricia_tree_t *allowed_hosts,
 						        u_int16_t proto_family,

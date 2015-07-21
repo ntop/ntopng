@@ -439,6 +439,27 @@ static int ntop_get_interface_local_hosts(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/**
+ * @brief Get all hosts for a given community and network interface.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of host information (Host name and number of bytes sent and received).
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_community_hosts(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  int community_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  community_id = (int)lua_tonumber(vm, 1);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) ntop_interface->getCommunityHostsList(vm, get_allowed_nets(vm), false, community_id);
+
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 /**
@@ -4239,6 +4260,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNdpiProtoBreed",      ntop_get_ndpi_protocol_breed },
   { "getHosts",               ntop_get_interface_hosts },
   { "getLocalHosts",          ntop_get_interface_local_hosts },
+  { "getCommunityHosts",      ntop_get_interface_community_hosts },
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getAggregatedHostsInfo", ntop_get_interface_aggregated_hosts_info },
