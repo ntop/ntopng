@@ -100,6 +100,14 @@ start_ntopng() {
     if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
 	echo "Generating configuration file /etc/ntopng/ntopng.conf"
 	echo "-G=/var/tmp/ntopng.pid" > /etc/ntopng/ntopng.conf
+        if [ -d /storage ]; then
+            if [ ! -d /storage/ntopng ]; then
+                mkdir /storage/ntopng
+                chmod gou+rxw /storage/ntopng
+            fi
+
+            echo "-d=/storage/ntopng" >> /etc/ntopng/ntopng.conf
+        fi
 	CHECK_P4P1=`grep p4p1 /proc/net/dev|wc -l`
         if [ $CHECK_P4P1 -eq 1 ]; then
             echo "-i=p4p1" >> /etc/ntopng/ntopng.conf
