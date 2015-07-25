@@ -224,7 +224,7 @@ for key, value in pairs(hosts_stats) do
    if((protocol ~= nil) and (ok == true)) then
       info = interface.getHostInfo(key)
 
-      if(info["ndpi"][protocol] == nil) then
+      if((info == nil) or (info["ndpi"][protocol] == nil)) then
 	 ok = false
       end
    end
