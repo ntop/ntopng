@@ -37,6 +37,9 @@ class Host : public GenericHost {
   float latitude, longitude;
   IpAddress *ip;
   Mutex *m;
+#ifdef NTOPNG_PRO
+  CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
+#endif
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
   TrafficStats tcp_sent, tcp_rcvd;
   TrafficStats udp_sent, udp_rcvd;
@@ -125,6 +128,7 @@ class Host : public GenericHost {
   void incStats(u_int8_t l4_proto, u_int ndpi_proto, 
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+  void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   void updateHostTrafficPolicy(char *key);
   char* serialize();
   bool deserialize(char *json_str);
@@ -159,6 +163,7 @@ class Host : public GenericHost {
   void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
   bool isInCommunity(int community_id);
+  void getPeerBytes(lua_State* vm, u_int32_t peer_key);    
 };
 
 #endif /* _HOST_H_ */

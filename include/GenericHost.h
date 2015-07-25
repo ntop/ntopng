@@ -59,7 +59,7 @@ class GenericHost : public GenericHashEntry {
 
   void dumpHostContacts(u_int16_t family_id);
   inline double pearsonCorrelation(GenericHost *h) { return(activityStats.pearsonCorrelation(h->getActivityStats())); };
-  inline bool isLocalHost()                { return(localHost); };
+  inline bool isLocalHost()                { return(localHost || systemHost); };
   inline bool isSystemHost()               { return(systemHost); };
   inline void setSystemHost()              { systemHost = true;  };
   inline NdpiStats* get_ndpi_stats()       { return(ndpiStats); };

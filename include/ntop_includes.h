@@ -121,6 +121,9 @@ extern "C" {
 #include "NtopGlobals.h"
 #include "Prefs.h"
 #include "Mutex.h"
+#ifdef NTOPNG_PRO
+#include "CountMinSketch.h"
+#endif
 #include "IpAddress.h"
 #include "Utils.h"
 #include "ActivityStats.h"

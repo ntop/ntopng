@@ -777,14 +777,22 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes;
 
   if(diff_sent_packets || diff_rcvd_packets) {
-    if(cli_host)
+    if(cli_host) {
       cli_host->incStats(protocol, ndpi_detected_protocol.protocol,
 			 diff_sent_packets, diff_sent_bytes,
 			 diff_rcvd_packets, diff_rcvd_bytes);
+
+      if(srv_host && cli_host->isLocalHost())
+	cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
+    }
+
     if(srv_host) {
       srv_host->incStats(protocol, ndpi_detected_protocol.protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes,
 			 diff_sent_packets, diff_sent_bytes);
+
+      if(cli_host && srv_host->isLocalHost())
+	srv_host->incHitter(cli_host, diff_rcvd_bytes, diff_sent_bytes);
 
       if(host_server_name
 	 && (ndpi_is_proto(ndpi_detected_protocol, NDPI_PROTOCOL_HTTP)
@@ -982,15 +990,23 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
 
   switch(selector) {
   case FS_PORTS:
-    if(src)
+    if(src) {
       lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
-    else
+      lua_push_int_table_entry(vm, "cli.key", get_cli_host()->key());
+    } else {
       lua_push_nil_table_entry(vm, "cli.ip");
+      lua_push_nil_table_entry(vm, "cli.key");
+    }
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
-    if (dst)
+
+    if (dst) {
       lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
-    else
+      lua_push_int_table_entry(vm, "srv.key", get_srv_host()->key());
+    } else {
       lua_push_nil_table_entry(vm, "srv.ip");
+      lua_push_nil_table_entry(vm, "srv.key");
+    }
+
     lua_push_int_table_entry(vm, "srv.port", get_srv_port());
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
 
@@ -1005,12 +1021,15 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
       if(detailed_dump) lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "cli.source_id", get_cli_host()->getSourceId());
       lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_int_table_entry(vm, "cli.key", get_cli_host()->key());
+
       lua_push_bool_table_entry(vm, "cli.systemhost", get_cli_host()->isSystemHost());
       lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
       lua_push_int32_table_entry(vm, "cli.network_id", get_cli_host()->get_local_network_id());
     } else {
       lua_push_nil_table_entry(vm, "cli.host");
       lua_push_nil_table_entry(vm, "cli.ip");
+      lua_push_nil_table_entry(vm, "cli.key");
     }
 
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
@@ -1019,6 +1038,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
       if(detailed_dump) lua_push_str_table_entry(vm, "srv.host", get_srv_host()->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "srv.source_id", get_cli_host()->getSourceId());
       lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_int_table_entry(vm, "srv.key", get_srv_host()->key());
       lua_push_bool_table_entry(vm, "srv.systemhost", get_srv_host()->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
       lua_push_int32_table_entry(vm, "srv.network_id", get_srv_host()->get_local_network_id());

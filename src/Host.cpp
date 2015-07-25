@@ -96,6 +96,11 @@ Host::~Host() {
     free(json);
   }
 
+#ifdef NTOPNG_PRO
+  if(sent_to_sketch)   delete sent_to_sketch;
+  if(rcvd_from_sketch) delete rcvd_from_sketch;
+#endif
+
   if(dns)  delete dns;
   if(epp)  delete epp;
   if(http) delete http;
@@ -158,6 +163,10 @@ void Host::flushContacts(bool freeHost) {
 
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
+
+#ifdef NTOPNG_PRO
+  sent_to_sketch = rcvd_from_sketch = NULL;
+#endif
 
   memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
 
@@ -260,8 +269,13 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
       localHost = true;
     }
 
-    if((localHost || systemHost) && ip)
+    if((localHost || systemHost) && ip) {
+#ifdef NTOPNG_PRO
+      sent_to_sketch   = new CountMinSketch();
+      rcvd_from_sketch = new CountMinSketch();
+#endif
       readStats();
+    }
 
     readAlertPrefs();
   }
@@ -367,7 +381,7 @@ bool Host::doDropProtocol(ndpi_protocol l7_proto) {
 #ifdef NTOPNG_PRO
   if(ntop->getPro()->has_valid_license()) {
     if(l7Policy)
-      return((NDPI_ISSET(l7Policy, l7_proto.protocol) 
+      return((NDPI_ISSET(l7Policy, l7_proto.protocol)
 	      || NDPI_ISSET(l7Policy, l7_proto.master_protocol)) ? true : false);
     else
       return(false);
@@ -430,7 +444,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_str_table_entry(vm, "ip", (ipaddr = ip->print(ip_buf, sizeof(ip_buf))));
   else
     lua_push_nil_table_entry(vm, "ip");
-  
+
   lua_push_str_table_entry(vm, "antenna_mac", get_mac(buf, sizeof(buf), antenna_mac_address));
   lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf), mac_address));
   lua_push_int_table_entry(vm, "vlan", vlan_id);
@@ -610,9 +624,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-
-
-
 }
 
 /* ***************************************** */
@@ -628,7 +639,7 @@ void Host::setName(char *name, bool update_categorization) {
     symbolic_name = strdup(name);
   }
   if(m) m->unlock(__FILE__, __LINE__);
-  
+
   refreshCategory();
 }
 
@@ -637,7 +648,7 @@ void Host::setName(char *name, bool update_categorization) {
 void Host::refreshCategory() {
   char buf[128] =  { 0 };
   char* ip_addr = ip->print(buf, sizeof(buf));
-  
+
   if((symbolic_name != NULL)
      && strcmp(ip_addr, symbolic_name)
      && (category[0] == '\0')
@@ -648,10 +659,10 @@ void Host::refreshCategory() {
      && ntop->get_categorization()
      ) {
     ntop->get_categorization()->findCategory(symbolic_name, category, sizeof(category), false);
-  } 
+  }
 
   if(category[0] == '\0')
-    snprintf(category, sizeof(category), "%s", CATEGORIZATION_SAFE_SITE);  
+    snprintf(category, sizeof(category), "%s", CATEGORIZATION_SAFE_SITE);
 }
 
 /* ***************************************** */
@@ -1138,6 +1149,8 @@ bool Host::isAboveQuota() {
     ((GenericHost*)this)->getPeriodicStats() > (host_quota_mb * 1000000);
 }
 
+/* *************************************** */
+
 void Host::updateStats(struct timeval *tv) {
   bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
@@ -1255,11 +1268,11 @@ void Host::readAlertPrefs() {
   if(ip && (!ip->isEmpty())) {
     if(!ntop->getPrefs()->are_alerts_disabled()) {
       char *key, ip_buf[48], rsp[32];
-      
+
       key = get_string_key(ip_buf, sizeof(ip_buf));
       if(key) {
 	ntop->getRedis()->hashGet((char*)CONST_ALERT_PREFS, key, rsp, sizeof(rsp));
-	
+
 	trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);
       } else
 	trigger_host_alerts = false;
@@ -1280,4 +1293,30 @@ bool Host::isInCommunity(int community_id) {
 
   return cm->findAddress(community_id, ip->ipVersion,
                          ip->ipVersion == 4 ? (void *)&ip->ipType.ipv4 : (void *)&ip->ipType.ipv6);
+}
+
+/* *************************************** */
+
+void Host::incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
+#ifdef NTOPNG_PRO
+  if(sent_bytes) sent_to_sketch->update(peer->key(), sent_bytes);
+  if(rcvd_bytes) rcvd_from_sketch->update(peer->key(), rcvd_bytes);
+#endif
+}
+
+/* *************************************** */
+
+void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
+  lua_newtable(vm);
+  
+#ifdef NTOPNG_PRO
+  if(sent_to_sketch && rcvd_from_sketch) {
+    lua_push_int_table_entry(vm, "sent", sent_to_sketch->estimate(peer_key));
+    lua_push_int_table_entry(vm, "rcvd", rcvd_from_sketch->estimate(peer_key));
+    return;
+  }
+#endif
+
+  lua_push_int_table_entry(vm, "sent", 0);
+  lua_push_int_table_entry(vm, "rcvd", 0);
 }
