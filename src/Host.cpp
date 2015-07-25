@@ -158,8 +158,14 @@ void Host::flushContacts(bool freeHost) {
 
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
-
+	
+	
   memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
+
+  u_char* ant_mac=0;
+  ant_mac =  iface->getAntennaMac();
+  
+  if(ant_mac) memcpy(antenna_mac_address, ant_mac, 6); else memset(antenna_mac_address, 0, 6);
 
   if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
 
@@ -413,6 +419,19 @@ void Host::set_mac(char *m) {
   mac_address[0] = mac[0], mac_address[1] = mac[1],
     mac_address[2] = mac[2], mac_address[3] = mac[3],
     mac_address[4] = mac[4], mac_address[5] = mac[5];
+}
+
+/* *************************************** */
+
+void Host::set_antenna_mac(char *m) {
+  u_int32_t mac[6] = { 0 };
+
+  sscanf(m, "%u:%u:%u:%u:%u:%u",
+         &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+
+  antenna_mac_address[0] = mac[0], antenna_mac_address[1] = mac[1],
+  antenna_mac_address[2] = mac[2], antenna_mac_address[3] = mac[3],
+  antenna_mac_address[4] = mac[4], antenna_mac_address[5] = mac[5];
 }
 
 /* *************************************** */
@@ -868,8 +887,6 @@ bool Host::addIfMatching(lua_State* vm, patricia_tree_t *ptree, char *key) {
 
   if(!match(ptree)) return(false);
 
-  // if(symbolic_name) ntop->getTrace()->traceEvent(TRACE_WARNING, "%s/%s", symbolic_name, ip->print(keybuf, sizeof(keybuf)));
-
   if(strcasestr((r = get_mac(keybuf, sizeof(keybuf), mac_address)), key)) {
     lua_push_str_table_entry(vm, get_string_key(keybuf, sizeof(keybuf)), r);
     return(true);
@@ -1139,12 +1156,11 @@ bool Host::isAboveQuota() {
 }
 
 void Host::updateStats(struct timeval *tv) {
+  if (!localHost || !triggerAlerts()) return;
   bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
-
-  if (!localHost || !triggerAlerts()) return;
 
   if (!historical && isAboveQuota()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
@@ -1265,19 +1281,4 @@ void Host::readAlertPrefs() {
 	trigger_host_alerts = false;
     }
   }
-}
-
-/* *************************************** */
-
-bool Host::isInCommunity(int community_id) {
-  CommunitiesManager *cm = ntop->getCommunitiesManager();
-  struct ipAddress *ip = NULL;
-
-  if (get_ip() == NULL)
-    return false;
-  ip = get_ip()->getIP();
-  assert(ip);
-
-  return cm->findAddress(community_id, ip->ipVersion,
-                         ip->ipVersion == 4 ? (void *)&ip->ipType.ipv4 : (void *)&ip->ipType.ipv6);
 }
