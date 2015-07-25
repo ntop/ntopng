@@ -1139,11 +1139,12 @@ bool Host::isAboveQuota() {
 }
 
 void Host::updateStats(struct timeval *tv) {
-  if (!localHost || !triggerAlerts()) return;
   bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
+
+  if (!localHost || !triggerAlerts()) return;
 
   if (!historical && isAboveQuota()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
