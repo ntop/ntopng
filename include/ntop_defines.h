@@ -169,6 +169,35 @@
 #define CONST_EST_MAX_FLOWS            200000
 #define CONST_EST_MAX_HOSTS            200000
 
+#define BATADV_COMPAT_VERSION_15 15
+#define BATADV_COMPAT_VERSION_14 14
+
+//batman-adv compat version 14 packet types
+#define BATADV14_IV_OGM		 0x01
+#define BATADV14_ICMP		 0x02
+#define BATADV14_UNICAST	 0x03
+#define BATADV14_BCAST		 0x04
+#define BATADV14_VIS		 0x05
+#define BATADV14_UNICAST_FRAG	 0x06
+#define BATADV14_TT_QUERY	 0x07 
+#define BATADV14_ROAM_ADV	 0x08 
+#define BATADV14_UNICAST_4ADDR	 0x09
+#define BATADV14_CODED		 0x0a
+
+
+// batman-adv compat version 15 packet types
+#define BATADV15_IV_OGM          0x00
+#define BATADV15_BCAST           0x01
+#define BATADV15_CODED           0x02
+#define BATADV15_UNICAST_MIN     0x40
+#define BATADV15_UNICAST         0x40
+#define BATADV15_UNICAST_FRAG    0x41
+#define BATADV15_UNICAST_4ADDR   0x42
+#define BATADV15_ICMP            0x43
+#define BATADV15_UNICAST_TVLV    0x44
+#define BATADV15_UNICAST_MAX     0x7f
+
+
 #ifndef TH_FIN
 #define	TH_FIN	0x01
 #endif
