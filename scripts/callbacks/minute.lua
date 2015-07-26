@@ -133,6 +133,7 @@ for _,_ifname in pairs(ifnames) do
 	 if(host_rrd_creation ~= "0") then
 	    hosts_stats = interface.getLocalHostsInfo()
             local networks_aggr = {}
+            local communities_aggr = {}
 	    for key, value in pairs(hosts_stats) do
 	       host = interface.getHostInfo(key)
 
@@ -153,6 +154,25 @@ for _,_ifname in pairs(ifnames) do
 			if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", basedir, '\n') end
 			ntop.mkdir(basedir)
 		     end
+
+                     -- Aggregate communities
+                     communities = interface.getHostCommunities(0, hosts_stats[key]["ip"])
+                     if (communities ~= nil) then
+                        for ckey,cvalue in pairs(communities) do
+                          if (communities_aggr[cvalue] == nil) then
+                            communities_aggr[cvalue] = {}
+                          end
+                          if (communities_aggr[cvalue]["bytes.sent"] == nil) then
+                            communities_aggr[cvalue]["bytes.sent"] = hosts_stats[key]["bytes.sent"]
+                            communities_aggr[cvalue]["bytes.rcvd"] = hosts_stats[key]["bytes.rcvd"]
+                          else
+                            communities_aggr[cvalue]["bytes.sent"] = communities_aggr[cvalue]["bytes.sent"] +
+                                                                     hosts_stats[key]["bytes.sent"]
+                            communities_aggr[cvalue]["bytes.rcvd"] = communities_aggr[cvalue]["bytes.rcvd"] +
+                                                                     hosts_stats[key]["bytes.rcvd"]
+                          end
+                        end
+                     end
 
                      -- Aggregate network stats
                      if (networks_aggr[hosts_stats[key]["local_network_name"]] == nil) then
@@ -252,6 +272,15 @@ for _,_ifname in pairs(ifnames) do
                   ntop.rrd_update(ndpiname, "N:"..m["ndpi"][k]["bytes.sent"]..":"..m["ndpi"][k]["bytes.rcvd"])
                 end
               end
+            end
+            --- Create RRD for communities
+            for n,m in pairs(communities_aggr) do
+              local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/community-".. n
+              base = fixPath(base)
+              if(not(ntop.exists(base))) then ntop.mkdir(base) end
+              name = fixPath(base .. "/bytes.rrd")
+              createRRDcounter(name, 300, verbose)
+              ntop.rrd_update(name, "N:".. m["bytes.sent"] .. ":" .. m["bytes.rcvd"])
             end
 	 end -- if rrd
       end -- if(diff

@@ -84,6 +84,33 @@ int CommunitiesManager::findAddress(int community_id, int family, void *addr) {
     return node->user_data;
 }
 
+void CommunitiesManager::listAddressCommunitiesLua(lua_State* vm, int family, void *addr) {
+  int i = 0;
+  int num_communities = 0;
+
+  for (std::vector<patricia_tree_t *>::iterator it = communities.begin() ; it != communities.end(); ++it)
+     if (community_names.at(i) != "" && findAddress(i, family, addr) != -1) num_communities++;
+
+  if (num_communities == 0) {
+    lua_pushnil(vm);
+    return;
+  }
+
+  lua_newtable(vm);
+
+  for (std::vector<patricia_tree_t *>::iterator it = communities.begin() ; it != communities.end(); ++it) {
+    /* default value for string is "" */
+    if (community_names.at(i) != "" && findAddress(i, family, addr) != -1) {
+      cout<<"pushing"<<endl;
+      lua_push_int_table_entry(vm, community_names.at(i).c_str(), i);
+     }
+  }
+
+  lua_pushstring(vm, (char *)addr);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
 /* Format:
    communityX@id1=net1,net2,net3
    communityY@id2=net4,net5,net6
