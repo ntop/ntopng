@@ -95,6 +95,7 @@ class Host : public GenericHost {
   char* getJSON();
   inline void setOS(char *_os)                 { if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os); }
   inline IpAddress* get_ip()                   { return(ip);               }
+  void set_antenna_mac(char *m);  
   void set_mac(char *m);
   inline bool is_blacklisted()                 { return(blacklisted_host); }
   inline u_int8_t*  get_mac()                  { return(mac_address);      }
