@@ -170,6 +170,10 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
 
+  u_char* ant_mac =  iface->getAntennaMac();
+
+  if(ant_mac) memcpy(antenna_mac_address, ant_mac, 6); 
+  
   if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
 
   //if(_vlanId > 0) ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN => %d", _vlanId);
@@ -427,6 +431,19 @@ void Host::set_mac(char *m) {
   mac_address[0] = mac[0], mac_address[1] = mac[1],
     mac_address[2] = mac[2], mac_address[3] = mac[3],
     mac_address[4] = mac[4], mac_address[5] = mac[5];
+}
+
+/* *************************************** */
+
+void Host::set_antenna_mac(char *m) {
+  u_int32_t mac[6] = { 0 };
+
+  sscanf(m, "%u:%u:%u:%u:%u:%u",
+         &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+
+  antenna_mac_address[0] = mac[0], antenna_mac_address[1] = mac[1],
+  antenna_mac_address[2] = mac[2], antenna_mac_address[3] = mac[3],
+  antenna_mac_address[4] = mac[4], antenna_mac_address[5] = mac[5];
 }
 
 /* *************************************** */
