@@ -84,65 +84,68 @@ stats_by_group_col = {}
 for key,value in pairs(hosts_stats) do
    -- Convert grouping identifier to string to avoid type mismatches if the
    -- value is 0 (which would mean that the AS is private)
-   value[group_col] = tostring(value[group_col])
+   if(value[group_col] ~= nil) then
+      value[group_col] = tostring(value[group_col])
 
-   id = value[group_col]
-   existing = stats_by_group_col[id]
-   if (existing == nil) then
-      stats_by_group_col[id] = {}
-      stats_by_group_col[id]["id"] = id
-      if (group_col == "asn") then
-         if (id ~= "0") then
-            stats_by_group_col[id]["name"] = value["asname"]
-         else
-            stats_by_group_col[id]["name"] = "Private ASN"
-         end
-      elseif (group_col == "local_network_id") then
-         stats_by_group_col[id]["name"] = value["local_network_name"]
-         if (stats_by_group_col[id]["name"] == nil) then
-            stats_by_group_col[id]["name"] = "Unknown network"
-         end
+      id = value[group_col]
+      existing = stats_by_group_col[id]
+      if (existing == nil) then
+	 stats_by_group_col[id] = {}
+	 stats_by_group_col[id]["id"] = id
+	 if (group_col == "asn") then
+	    if (id ~= "0") then
+	       stats_by_group_col[id]["name"] = value["asname"]
+	    else
+	       stats_by_group_col[id]["name"] = "Private ASN"
+	    end
+	 elseif (group_col == "local_network_id") then
+	    stats_by_group_col[id]["name"] = value["local_network_name"]
+	    if (stats_by_group_col[id]["name"] == nil) then
+	       stats_by_group_col[id]["name"] = "Unknown network"
+	    end
 
-      elseif (group_col == "os") then
-         stats_by_group_col[id]["name"] = value["os"]
-         if (stats_by_group_col[id]["name"] == nil) then
-            stats_by_group_col[id]["name"] = "Unknown OS"
-         end
+	 elseif (group_col == "os") then
+	    stats_by_group_col[id]["name"] = value["os"]
+	    if (stats_by_group_col[id]["name"] == nil) then
+	       stats_by_group_col[id]["name"] = "Unknown OS"
+	    end
 
-      elseif (group_col == "country") then
-         stats_by_group_col[id]["name"] = value["country"]
-         if (stats_by_group_col[id]["name"] == nil) then
-            stats_by_group_col[id]["name"] = "Unknown country"
-         end
+	 elseif (group_col == "country") then
+	    stats_by_group_col[id]["name"] = value["country"]
+	    if (stats_by_group_col[id]["name"] == nil) then
+	       stats_by_group_col[id]["name"] = "Unknown country"
+	    end
 
+	 else
+	    stats_by_group_col[id]["name"] = "VLAN"
+	 end
+	 stats_by_group_col[id]["seen.first"] = value["seen.first"]
+	 stats_by_group_col[id]["seen.last"] = value["seen.last"]
       else
-         stats_by_group_col[id]["name"] = "VLAN"
+	 stats_by_group_col[id]["seen.first"] =
+	    math.min(stats_by_group_col[id]["seen.first"], value["seen.first"])
+	 stats_by_group_col[id]["seen.last"] =
+	    math.max(stats_by_group_col[id]["seen.last"], value["seen.last"])
       end
-      stats_by_group_col[id]["seen.first"] = value["seen.first"]
-      stats_by_group_col[id]["seen.last"] = value["seen.last"]
-   else
-      stats_by_group_col[id]["seen.first"] =
-         math.min(stats_by_group_col[id]["seen.first"], value["seen.first"])
-      stats_by_group_col[id]["seen.last"] =
-         math.max(stats_by_group_col[id]["seen.last"], value["seen.last"])
-   end
-   stats_by_group_col[id]["num_hosts"] = 1 +
+
+      stats_by_group_col[id]["num_hosts"] = 1 +
          ternary(existing, stats_by_group_col[id]["num_hosts"], 0)
-   stats_by_group_col[id]["num_alerts"] = value["num_alerts"] +
+      stats_by_group_col[id]["num_alerts"] = value["num_alerts"] +
          ternary(existing, stats_by_group_col[id]["num_alerts"], 0)
-   stats_by_group_col[id]["throughput_bps"] = value["throughput_bps"] +
+      stats_by_group_col[id]["throughput_bps"] = value["throughput_bps"] +
          ternary(existing, stats_by_group_col[id]["throughput_bps"], 0)
-   stats_by_group_col[id]["throughput_pps"] = value["throughput_pps"] +
+      stats_by_group_col[id]["throughput_pps"] = value["throughput_pps"] +
          ternary(existing, stats_by_group_col[id]["throughput_pps"], 0)
-   stats_by_group_col[id]["throughput_trend_bps_diff"] =
+      stats_by_group_col[id]["throughput_trend_bps_diff"] =
          math.floor(value["throughput_trend_bps_diff"]) +
-         ternary(existing,
-                 stats_by_group_col[id]["throughput_trend_bps_diff"], 0)
+      ternary(existing,
+	      stats_by_group_col[id]["throughput_trend_bps_diff"], 0)
    stats_by_group_col[id]["bytes.sent"] = value["bytes.sent"] +
-         ternary(existing, stats_by_group_col[id]["bytes.sent"], 0)
+      ternary(existing, stats_by_group_col[id]["bytes.sent"], 0)
    stats_by_group_col[id]["bytes.rcvd"] = value["bytes.rcvd"] +
-         ternary(existing, stats_by_group_col[id]["bytes.rcvd"], 0)
+      ternary(existing, stats_by_group_col[id]["bytes.rcvd"], 0)
    stats_by_group_col[id]["country"] = value["country"]
+end
 end
 
 
@@ -162,13 +165,15 @@ function print_single_group(value)
       print("hosts_stats.lua?os=".. string.gsub(value["id"], " ", '%%20')  .."'>")
       if ( value["id"] ~= nil ) then
 	 print("".. getOSIcon(value["id"]) .."")
-      end
-      
+      end      
    elseif (group_col == "local_network_id" or network_n ~= nil) then
       print("hosts_stats.lua?network="..value["id"].."'>")
+   elseif (group_col == "antenna_mac") then
+      print("hosts_stats.lua?antenna_mac="..value["id"].."'>")
    else
       print("hosts_stats.lua'>")
    end
+
    if (group_col == "local_network_id" or network_n ~= nil) then
       print(value["name"]..'</A>", ')
    else
@@ -228,7 +233,7 @@ end
 
 if (as_n ~= nil) then
    as_val = stats_by_group_col[as_n]
-   if (as_val == nil) then
+   if (as_val == nil)then
       print('{}')
    else
       print_single_group(as_val)

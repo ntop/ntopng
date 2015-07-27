@@ -151,9 +151,14 @@ print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/hosts_matrix.lua"><i class="fa fa-th-large"></i> Local Matrix</a></li>
+   ]]
+
+print [[
+      <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/antenna_stats.lua"><i class="fa fa-wifi"></i> Antenna Stats</a></li>
     </ul>
   </li>
    ]]
+
 
 -- Protocols
 
