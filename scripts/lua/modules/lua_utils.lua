@@ -1581,22 +1581,35 @@ function makeTopStatsScriptsArray()
    return(topArray)
 end
 
-function get_mac_classification(mac_address)
+function get_mac_classification(m)   
    local file_mac = io.open(fixPath(dirs.installdir.."/third-party/well-known-MAC.txt"))
-   if (file_mac == nil) then return "" end
+   if (file_mac == nil) then return m end
    local mac_line = file_mac:read("*l")
    while (mac_line ~= nil) do
       if (not startswith(mac_line, "#") and mac_line ~= "") then
-        t = split(mac_line, "\t")
-        if (string.match(mac_address, t[1]..".*") ~= nil) then
+	 b = string.sub(mac_line, 1, 8)
+	 if (m == b) then
+	   t = split(mac_line, "\t")
            file_mac.close()
-           return "("..split(t[2], " ")[1]..")"
+           return split(t[2], " ")[1]
         end
       end
       mac_line = file_mac:read("*l")
    end
    file_mac.close()
-   return ""
+   return m
+end
+
+function get_symbolic_mac(mac_address)   
+   local m = string.sub(mac_address, 1, 8)
+   local t = string.sub(mac_address, 10, 17)
+   local s = get_mac_classification(m)
+
+   if(m == s) then
+      return(get_mac_classification(m)..":"..t)
+   else
+      return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+   end
 end
 
 function rrd_exists(host_ip, rrdname)

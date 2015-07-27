@@ -35,7 +35,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "Antenna",\n')
+print('title: "Antenna List",\n')
 print ('rowCallback: function ( row ) { return network_table_setID(row); },')
 
 -- Set the preference table

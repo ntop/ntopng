@@ -163,13 +163,17 @@ void Host::flushContacts(bool freeHost) {
 
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
+  u_char* ant_mac =  iface->getAntennaMac();
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
 #endif
 
-  memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
-
+  if(ant_mac)
+    memcpy(antenna_mac_address, ant_mac, 6); 
+  else
+    memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
+    
   if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
 
   //if(_vlanId > 0) ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN => %d", _vlanId);
@@ -431,6 +435,19 @@ void Host::set_mac(char *m) {
 
 /* *************************************** */
 
+void Host::set_antenna_mac(char *m) {
+  u_int32_t mac[6] = { 0 };
+
+  sscanf(m, "%u:%u:%u:%u:%u:%u",
+         &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+
+  antenna_mac_address[0] = mac[0], antenna_mac_address[1] = mac[1],
+  antenna_mac_address[2] = mac[2], antenna_mac_address[3] = mac[3],
+  antenna_mac_address[4] = mac[4], antenna_mac_address[5] = mac[5];
+}
+
+/* *************************************** */
+
 void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 	       bool host_details, bool verbose, bool returnHost) {
   char buf[64], ip_buf[64];
@@ -444,8 +461,15 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_str_table_entry(vm, "ip", (ipaddr = ip->print(ip_buf, sizeof(ip_buf))));
   else
     lua_push_nil_table_entry(vm, "ip");
+  
+  if((antenna_mac_address[0] != 0)
+     && (antenna_mac_address[1] != 0)
+     && (antenna_mac_address[2] != 0)
+     && (antenna_mac_address[3] != 0)
+     && (antenna_mac_address[4] != 0)
+     && (antenna_mac_address[5] != 0))  
+    lua_push_str_table_entry(vm, "antenna_mac", get_mac(buf, sizeof(buf), antenna_mac_address));
 
-  lua_push_str_table_entry(vm, "antenna_mac", get_mac(buf, sizeof(buf), antenna_mac_address));
   lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf), mac_address));
   lua_push_int_table_entry(vm, "vlan", vlan_id);
   lua_push_bool_table_entry(vm, "localhost", localHost);

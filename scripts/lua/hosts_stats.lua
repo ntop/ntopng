@@ -11,13 +11,14 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-protocol = _GET["protocol"]
-net      = _GET["net"]
-asn      = _GET["asn"]
-vlan     = _GET["vlan"]
-network  = _GET["network"]
-country  = _GET["country"]
-os_ 		= _GET["os"]
+protocol     = _GET["protocol"]
+net          = _GET["net"]
+asn          = _GET["asn"]
+vlan         = _GET["vlan"]
+network      = _GET["network"]
+country      = _GET["country"]
+antenna_mac  = _GET["antenna_mac"]
+os_   	     = _GET["os"]
 
 mode = _GET["mode"]
 if(mode == nil) then mode = "all" end
@@ -62,9 +63,12 @@ if(country ~= nil) then
    print('&country='..country)
 end
 
-
 if(network ~= nil) then
    print('&network='..network)
+end
+
+if(antenna_mac ~= nil) then
+   print('&antenna_mac='..antenna_mac)
 end
 
 print ('";')
@@ -79,10 +83,18 @@ if(prefs.is_httpbl_enabled) then print ('host_rows_option["httpbl"] = true;\n') 
 if(show_vlan) then print ('host_rows_option["vlan"] = true;\n') end
 if(is_historical) then print ('clearInterval(host_table_interval);\n') end
 
+if(antenna_mac ~= nil) then
+   am = "antenna_mac="..antenna_mac
+   am_str = " [Antenna "..antenna_mac.."]"
+else
+   am = nil
+   am_str = ""
+end
+
 print [[
 	 host_rows_option["ip"] = true;
 	 $("#table-hosts").datatable({
-	 		title: "Hosts List",
+			title: "Hosts List]] print(am_str) print [[",
 			url: url_update ,
 	 ]]
 
@@ -111,18 +123,21 @@ if(mode == "all") then
 	if ( country ~= "" ) then print('title: "All '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "All '..protocol..' Hosts'..asn..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n') 
+	elseif ( am_str ~= "" ) then print('title: "All '..os_..' Hosts'..am_str..'",\n') 
 	else print('title: "All '..protocol..' Hosts'..asn..'",\n')
 	end
 elseif(mode == "local") then
 	if ( country ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Local '..protocol..' Hosts'..asn..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n') 
+	elseif ( am_str ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..am_str..'",\n')
 	else  print('title: "Local '..protocol..' Hosts'..country..'",\n')
 	end
 elseif(mode == "remote") then
 	if ( country ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Remote '..protocol..' Hosts'..asn..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n') 
+	elseif ( am_str ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..am_str..'",\n')
 	else print('title: "Remote '..protocol..' Hosts'..country..'",\n')
 	end
 else
@@ -137,7 +152,6 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 -- Automatic default sorted. NB: the column must exist.
 print ('sort: [ ["' .. getDefaultTableSort("hosts") ..'","' .. getDefaultTableSortOrder("hosts").. '"] ],')
-
 
 print [[
 	       showPagination: true,
