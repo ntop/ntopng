@@ -156,6 +156,7 @@ class NetworkInterface {
   bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
+  u_char* antenna_mac; 
 
  public:
   /**
@@ -329,6 +330,7 @@ class NetworkInterface {
 
   inline HostHash* get_hosts_hash() { return(hosts_hash);       }
   inline bool is_bridge_interface() { return(bridge_interface); }
+  u_char* getAntennaMac()			{return (antenna_mac);}
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
