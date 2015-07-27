@@ -727,9 +727,9 @@ void Flow::dumpFlow(bool partial_dump) {
 	return;
     }
 
-    if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
+    if(cli_host && ntop->getPrefs()->do_dump_flows_on_sqlite()) {
       cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, this);
-    } else if(ntop->getPrefs()->do_dump_flows_on_es()) {
+    } else if(cli_host && ntop->getPrefs()->do_dump_flows_on_es()) {
       cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
     }
 
