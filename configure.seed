@@ -249,15 +249,13 @@ if test $SYSTEM = "Darwin"; then
    fi
 else	
   if test $SYSTEM = "Linux"; then
-    if [ test -f /usr/bin/lsb_release ]; then
-       OS=`/usr/bin/lsb_release -a`
-    else
-      if [ test -f /etc/redhat-release ]; then
+    if [ test -f /etc/redhat-release ]; then
         OS=`cat /etc/redhat-release`
-      fi
+    else  
+        if [ test -f /usr/bin/lsb_release ]; then
+         OS=`/usr/bin/lsb_release -a`
+        fi
     fi
-  else
-    OS = ""
   fi
 fi
 
@@ -371,7 +369,7 @@ fi
 
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
-AC_DEFINE_UNQUOTED(PACKAGE_OS, " [$OS] ", [OS Name])
+AC_DEFINE_UNQUOTED(PACKAGE_OS, "${OS}", [OS Name])
 AC_SUBST(PWD)
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)
