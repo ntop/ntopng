@@ -86,6 +86,8 @@ PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
 CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
 PRO_GIT_RELEASE=`cd pro; git log --pretty=oneline | wc -l`
+dnl> Remove heading spaces
+PRO_GIT_RELEASE="${PRO_GIT_RELEASE#"${PRO_GIT_RELEASE%%[![:space:]]*}"}"
 GIT_PRO_DATE=`cd pro; git log --pretty=medium -1 | grep "^Date:"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
@@ -235,8 +237,9 @@ fi
 
 CFLAGS="-Wall $CFLAGS"
 
-dnl> http://luajit.org/install.html
+OS=""
 if test $SYSTEM = "Darwin"; then
+   OS="MacOSX"
    if test $MACHINE = "x86_64"; then
       LINK_OPTS="-pagezero_size 10000 -image_base 100000000"
       RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
@@ -244,6 +247,18 @@ if test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
+else	
+  if test $SYSTEM = "Linux"; then
+    if [ test -f /usr/bin/lsb_release ]; then
+       OS=`/usr/bin/lsb_release -a`
+    else
+      if [ test -f /etc/redhat-release ]; then
+        OS=`cat /etc/redhat-release`
+      fi
+    fi
+  else
+    OS = ""
+  fi
 fi
 
 dnl> Check for package install
@@ -356,6 +371,7 @@ fi
 
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
+AC_DEFINE_UNQUOTED(PACKAGE_OS, " [$OS] ", [OS Name])
 AC_SUBST(PWD)
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)

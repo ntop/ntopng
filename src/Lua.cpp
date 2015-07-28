@@ -2800,6 +2800,13 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "version", rsp);
   snprintf(rsp, sizeof(rsp), "%s (%s)", PACKAGE_OSNAME, PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "platform", rsp);
+  lua_push_str_table_entry(vm, "OS", 
+#ifdef WIN32
+			   (char*)"Windows"
+#else
+			   (char*)PACKAGE_OS
+#endif
+);
   lua_push_int_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
   lua_push_int_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());
@@ -2814,6 +2821,8 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
 
   lua_push_bool_table_entry(vm, "pro.release", ntop->getPrefs()->is_pro_edition());
+  lua_push_bool_table_entry(vm, "pro.use_redis_license", ntop->getPro()->use_redis_license());
+  lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());
   lua_push_int_table_entry(vm, "pro.demo_ends_at", ntop->getPrefs()->pro_edition_demo_ends_at());
 #ifdef NTOPNG_PRO
   lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
