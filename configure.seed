@@ -253,11 +253,14 @@ else
         OS=`cat /etc/redhat-release`
     else  
         if [ test -f /usr/bin/lsb_release ]; then
-         OS=`/usr/bin/lsb_release -a`
+         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
         fi
     fi
   fi
 fi
+
+dnl> Remove spaces
+OS="${OS#"${OS%%[![:space:]]*}"}"
 
 dnl> Check for package install
 DOWNLOAD_GEOIP=0
