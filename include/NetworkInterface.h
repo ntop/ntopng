@@ -330,7 +330,7 @@ class NetworkInterface {
 
   inline HostHash* get_hosts_hash() { return(hosts_hash);       }
   inline bool is_bridge_interface() { return(bridge_interface); }
-  u_char* getAntennaMac()			{return (antenna_mac);}
+  u_char* getAntennaMac()	    { return (antenna_mac);     }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
