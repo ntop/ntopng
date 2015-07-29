@@ -70,6 +70,7 @@ class Utils {
   static ticks getticks();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
+  static void readMac(char *ifname, dump_mac_t mac_addr);
 };
 
 #endif /* _UTILS_H_ */

@@ -51,42 +51,6 @@ PacketDumperTuntap::~PacketDumperTuntap() {
 
 /* ********************************************* */
 
-char* macaddr_str (const char *mac, char *buf) {
-  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
-          mac[0] & 0xFF, mac[1] & 0xFF, mac[2] & 0xFF,
-          mac[3] & 0xFF, mac[4] & 0xFF, mac[5] & 0xFF);
-  return(buf);
-}
-
-#ifdef linux
-void PacketDumperTuntap::readMac(char *ifname, dump_mac_t mac_addr) {
-  int _sock, res;
-  struct ifreq ifr;
-  macstr_t mac_addr_buf;
-
-  memset (&ifr, 0, sizeof(struct ifreq));
-
-  /* Dummy socket, just to make ioctls with */
-  _sock = socket(PF_INET, SOCK_DGRAM, 0);
-  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
-  res = ioctl(_sock, SIOCGIFHWADDR, &ifr);
-  if(res < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr");
-  } else
-    memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s has MAC %s",
-			       ifname,
-			       macaddr_str((char *)mac_addr, mac_addr_buf));
-  close(_sock);
-}
-#else
-void PacketDumperTuntap::readMac(char *ifname, dump_mac_t mac_addr) {
-}
-#endif
-
-/* ********************************************* */
-
 #ifdef linux
 #define LINUX_SYSTEMCMD_SIZE 128
 
@@ -123,7 +87,7 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   rc = system(buf);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Bringing up: %s [%d]", buf,rc);
-  readMac(this->dev_name, this->mac_addr);
+  Utils::readMac(this->dev_name, this->mac_addr);
   free(tuntap_device);
   return(this->fd);
 }
