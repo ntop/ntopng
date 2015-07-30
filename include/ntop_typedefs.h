@@ -119,4 +119,7 @@ struct zmq_msg_hdr {
   u_int32_t size;
 };
 
+typedef uint8_t dump_mac_t[DUMP_MAC_SIZE];
+typedef char macstr_t[MACSTR_SIZE];
+
 #endif /* _NTOP_TYPEDEFS_H_ */

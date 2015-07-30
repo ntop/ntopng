@@ -64,7 +64,7 @@ NetworkInterface::NetworkInterface() {
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
     pkt_dumper_tap = NULL;
-  
+
   db = new DB(this);
 
 #ifdef NTOPNG_PRO
@@ -74,7 +74,7 @@ NetworkInterface::NetworkInterface() {
   view = NULL, statsManager = NULL;
   flowsManager = NULL;
   checkIdle();
-  dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false; 
+  dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
@@ -138,7 +138,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     u_int32_t num_hashes;
     ndpi_port_range d_port[MAX_DEFAULT_PORTS];
     u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
-    
+
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
     flows_hash = new FlowHash(this, num_hashes, ntop->getPrefs()->get_max_num_flows());
 
@@ -171,8 +171,8 @@ NetworkInterface::NetworkInterface(const char *name) {
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
-   
-      
+
+
     running = false, sprobe_interface = false, inline_interface = false;
 
     db = new DB(this);
@@ -182,7 +182,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     ndpi_struct = NULL, db = NULL;
     pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
-  
+
   statsManager = NULL, view = NULL;
   flowsManager = NULL;
 
@@ -650,7 +650,7 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
   flow->updateActivities();
   flow->updateInterfaceStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
-			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));			     
+			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
   incStats(zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
@@ -957,7 +957,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     if(ndpi_is_proto(flow->get_detected_protocol(), NDPI_PROTOCOL_DNS))
       flow->deleteFlowMemory();
 
-    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, 
+    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
 	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
@@ -974,13 +974,13 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
     pass_verdict = flow->isPassVerdict();
 
     if(flow->get_cli_host() && flow->get_srv_host()) {
-      if(src2dst_direction) 
+      if(src2dst_direction)
 	*a_shaper_id = flow->get_cli_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_srv_host()->get_ingress_shaper_id();
       else
 	*a_shaper_id = flow->get_srv_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_cli_host()->get_ingress_shaper_id();
     }
   } else
-    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, 
+    incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
 	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
@@ -1114,116 +1114,114 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
     if(version == BATADV_COMPAT_VERSION_15){
       switch(bp_type){
-        case BATADV15_IV_OGM:
-          ip_offset += 24;
-          break;
-        case BATADV15_BCAST: 
-          orig_src[0] = packet[ip_offset+8];
-          orig_src[1] = packet[ip_offset+9];
-          orig_src[2] = packet[ip_offset+10];
-          orig_src[3] = packet[ip_offset+11];
-          orig_src[4] = packet[ip_offset+12];
-          orig_src[5] = packet[ip_offset+13];
-          ip_offset += 14;
-          break;
-        case BATADV15_CODED: 
-          ip_offset += 46;
-          break;    
-        case BATADV15_UNICAST:
-          orig_dest[0] = packet[ip_offset+4];
-          orig_dest[1] = packet[ip_offset+5];
-          orig_dest[2] = packet[ip_offset+6];
-          orig_dest[3] = packet[ip_offset+7];
-          orig_dest[4] = packet[ip_offset+8];
-          orig_dest[5] = packet[ip_offset+9];
-          ip_offset += 10;		
-          break;         
-        case BATADV15_UNICAST_FRAG:
-          ip_offset += 20;
-          break;    
-        case BATADV15_UNICAST_4ADDR:   
-          ip_offset += 18;
-          break;
-        case BATADV15_ICMP:            
-          ip_offset += 20;
-          break;
-        case BATADV15_UNICAST_TVLV:    
-          ip_offset += 20;	
-          break;
-        default:
-          fprintf(stderr,"Unknown packet type for batman-adv 2014");
-	  exit(EXIT_FAILURE);
-	  break;
+      case BATADV15_IV_OGM:
+	ip_offset += 24;
+	break;
+      case BATADV15_BCAST:
+	orig_src[0] = packet[ip_offset+8];
+	orig_src[1] = packet[ip_offset+9];
+	orig_src[2] = packet[ip_offset+10];
+	orig_src[3] = packet[ip_offset+11];
+	orig_src[4] = packet[ip_offset+12];
+	orig_src[5] = packet[ip_offset+13];
+	ip_offset += 14;
+	break;
+      case BATADV15_CODED:
+	ip_offset += 46;
+	break;
+      case BATADV15_UNICAST:
+	orig_dest[0] = packet[ip_offset+4];
+	orig_dest[1] = packet[ip_offset+5];
+	orig_dest[2] = packet[ip_offset+6];
+	orig_dest[3] = packet[ip_offset+7];
+	orig_dest[4] = packet[ip_offset+8];
+	orig_dest[5] = packet[ip_offset+9];
+	ip_offset += 10;
+	break;
+      case BATADV15_UNICAST_FRAG:
+	ip_offset += 20;
+	break;
+      case BATADV15_UNICAST_4ADDR:
+	ip_offset += 18;
+	break;
+      case BATADV15_ICMP:
+	ip_offset += 20;
+	break;
+      case BATADV15_UNICAST_TVLV:
+	ip_offset += 20;
+	break;
+      default:
+	fprintf(stderr,"Unknown packet type for batman-adv 2014");
+	exit(EXIT_FAILURE);
+	break;
       }
     }else if(version == BATADV_COMPAT_VERSION_14){
-       switch(bp_type){
-         case BATADV14_IV_OGM:
-           ip_offset += 26;
-           break;
-         case BATADV14_ICMP:            
-           ip_offset += 20;
-           break;
-         case BATADV14_UNICAST:
-           orig_dest[0] = packet[ip_offset+4];
-           orig_dest[1] = packet[ip_offset+5];
-           orig_dest[2] = packet[ip_offset+6];
-           orig_dest[3] = packet[ip_offset+7];
-           orig_dest[4] = packet[ip_offset+8];
-           orig_dest[5] = packet[ip_offset+9];
-           ip_offset += 10;		
-           break;         
-         case BATADV14_BCAST: 
-           orig_src[0] = packet[ip_offset+8];
-           orig_src[1] = packet[ip_offset+9];
-           orig_src[2] = packet[ip_offset+10];
-           orig_src[3] = packet[ip_offset+11];
-           orig_src[4] = packet[ip_offset+12];
-           orig_src[5] = packet[ip_offset+13];
-           ip_offset += 14;
-           break;
-         case BATADV14_VIS: 
-           ip_offset += 28;
-           break;
-         case BATADV14_UNICAST_FRAG:
-           ip_offset += 20;
-           break;    
-         case BATADV14_TT_QUERY:
-           ip_offset += 19;
-           break;
-         case BATADV14_ROAM_ADV:
-           ip_offset += 22;
-           break;
-         case BATADV14_UNICAST_4ADDR:   
-           ip_offset += 18;
-           break;
-         case BATADV14_CODED: 
-           ip_offset += 46;
-           break;    
-         default:
-           fprintf(stderr,"Unknown packet type for batman-adv 2013");
-           exit(EXIT_FAILURE);
-           break;
-       }
-     }else{
-       fprintf(stderr,"ntopng supports only batman-adv version 2013 and 2014");
-       exit(EXIT_FAILURE);
+      switch(bp_type){
+      case BATADV14_IV_OGM:
+	ip_offset += 26;
+	break;
+      case BATADV14_ICMP:
+	ip_offset += 20;
+	break;
+      case BATADV14_UNICAST:
+	orig_dest[0] = packet[ip_offset+4];
+	orig_dest[1] = packet[ip_offset+5];
+	orig_dest[2] = packet[ip_offset+6];
+	orig_dest[3] = packet[ip_offset+7];
+	orig_dest[4] = packet[ip_offset+8];
+	orig_dest[5] = packet[ip_offset+9];
+	ip_offset += 10;
+	break;
+      case BATADV14_BCAST:
+	orig_src[0] = packet[ip_offset+8];
+	orig_src[1] = packet[ip_offset+9];
+	orig_src[2] = packet[ip_offset+10];
+	orig_src[3] = packet[ip_offset+11];
+	orig_src[4] = packet[ip_offset+12];
+	orig_src[5] = packet[ip_offset+13];
+	ip_offset += 14;
+	break;
+      case BATADV14_VIS:
+	ip_offset += 28;
+	break;
+      case BATADV14_UNICAST_FRAG:
+	ip_offset += 20;
+	break;
+      case BATADV14_TT_QUERY:
+	ip_offset += 19;
+	break;
+      case BATADV14_ROAM_ADV:
+	ip_offset += 22;
+	break;
+      case BATADV14_UNICAST_4ADDR:
+	ip_offset += 18;
+	break;
+      case BATADV14_CODED:
+	ip_offset += 46;
+	break;
+      default:
+	fprintf(stderr,"Unknown packet type for batman-adv 2013");
+	exit(EXIT_FAILURE);
+	break;
       }
-
+    } else {
+      fprintf(stderr,"ntopng supports only batman-adv version 2013 and 2014");
+      exit(EXIT_FAILURE);
+    }
 
     ethernet = (struct ndpi_ethhdr *) &packet[ip_offset];
     eth_type = (packet[ip_offset + 12] << 8) + packet[ip_offset + 13];
     ip_offset += sizeof(struct ndpi_ethhdr);
 
-    if( ((bp_type == BATADV14_BCAST) || (bp_type == BATADV15_BCAST)) && memcmp(orig_src,ethernet->h_source,6) != 0 ){
-	antenna_mac=orig_src;
-    }  	
-    if(((bp_type == BATADV14_UNICAST) || (bp_type == BATADV15_UNICAST)) &&  memcmp(orig_dest,ethernet->h_dest,6) != 0  ){
-	antenna_mac=orig_dest;
-    }
+    if(((bp_type == BATADV14_BCAST) || (bp_type == BATADV15_BCAST)) 
+       && memcmp(orig_src,ethernet->h_source,6) != 0)
+      antenna_mac = orig_src;    
 
-
-  }
-
+    if(((bp_type == BATADV14_UNICAST) || (bp_type == BATADV15_UNICAST)) 
+       &&  memcmp(orig_dest,ethernet->h_dest,6) != 0)
+      antenna_mac = orig_dest;    
+  } else
+    antenna_mac = NULL;
 
   switch(eth_type) {
   case ETHERTYPE_PPOE:
@@ -2100,7 +2098,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
       if(num_flows[i] > 0)
 	lua_push_int_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, num_flows[i]);
     }
-    
+
     free(num_flows);
   }
 }
@@ -2114,7 +2112,7 @@ void NetworkInterface::lua(lua_State *vm) {
   localStats.lua(vm);
   ndpiStats.lua(this->view, vm);
   pktStats.lua(vm, "pktSizeDistribution");
-  
+
   if(pkt_dumper)
     pkt_dumper->lua(vm);
 }
@@ -2126,7 +2124,7 @@ void NetworkInterface::runHousekeepingTasks() {
 
      This task runs asynchronously with respect to ntopng
      so if you need to allocate memory you must LOCK
-     
+
      Example HTTPStats::updateHTTPHostRequest() is called
      by both this function and the main thread
   */
@@ -2552,7 +2550,7 @@ static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data) {
   struct virtual_host_valk_info *info = (struct virtual_host_valk_info*)data;
   HTTPStats *s = h->getHTTPStats();
 
-  if(s) 
+  if(s)
     info->num += s->luaVirtualHosts(info->vm, info->key, h);
 
   return(false); /* false = keep on walking */
@@ -2602,9 +2600,9 @@ void NetworkInterface::addAllAvailableInterfaces() {
 	ntop->getPrefs()->add_network_interface(devpointer->name,
 						devpointer->description);
       } else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Interface [%s][%s] not valid or down: discarded", 
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Interface [%s][%s] not valid or down: discarded",
 				     devpointer->name, devpointer->description);
-      
+
       devpointer = devpointer->next;
     } /* for */
   }
@@ -2613,17 +2611,17 @@ void NetworkInterface::addAllAvailableInterfaces() {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshL7Rules() { 
+void NetworkInterface::refreshL7Rules() {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshL7Rules(); 
+    policer->refreshL7Rules();
 }
 #endif
 
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshShapers() { 
+void NetworkInterface::refreshShapers() {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshShapers(); 
+    policer->refreshShapers();
 }
 #endif

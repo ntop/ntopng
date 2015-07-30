@@ -180,6 +180,17 @@ build-rpm: geoip build-rpm-ntopng build-rpm-ntopng-data
 
 
 build-rpm-ntopng:
+	rm -rf ntopng-@NTOPNG_VERSION@
+	mkdir ntopng-@NTOPNG_VERSION@
+	cp -r doc src include configure COPYING README.* *.in ntopng.8 httpdocs scripts packages third-party ntopng-@NTOPNG_VERSION@
+	if test -d "pro"; then cp -r pro ntopng-@NTOPNG_VERSION@; if test -d "../license"; then rm ntopng-@NTOPNG_VERSION@/pro/license; cp -r ../license ntopng-@NTOPNG_VERSION@/pro; fi fi
+	find ntopng-@NTOPNG_VERSION@ -name ".git" | xargs /bin/rm -rf
+	-rm ntopng-@NTOPNG_VERSION@/httpdocs/geoip/*
+	tar cvfz ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
+	#
+	rm -f $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
+	cp ntopng-@NTOPNG_VERSION@.tgz $(HOME)/rpmbuild/SOURCES/
+	#	
 	rpmbuild -bb ./packages/ntopng.spec
 	@./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
 	@echo ""

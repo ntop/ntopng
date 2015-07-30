@@ -400,4 +400,9 @@
 #define NTOPNG_EMBEDDED_EDITION         1
 #endif
 
+#define DUMP_MAC_SIZE	6
+#define DUMP_IFNAMSIZ	16
+#define MACSTR_SIZE     32
+#define DUMP_MTU	16384
+
 #endif /* _NTOP_DEFINES_H_ */

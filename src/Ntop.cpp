@@ -159,7 +159,7 @@ Ntop::~Ntop() {
     delete(iface[i]);
   }
   for(int i = 0 ; i < num_defined_interface_views ; i++) {
-    if (ifaceViews[i]) delete(ifaceViews[i]);
+    if(ifaceViews[i]) delete(ifaceViews[i]);
     ifaceViews[i] = NULL;
   }
 
@@ -228,7 +228,7 @@ void Ntop::registerPrefs(Prefs *_prefs) {
 
   redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
 
-  if (prefs->getCommunitiesFile()) {
+  if(prefs->getCommunitiesFile()) {
     communitiesManager = new CommunitiesManager();
     communitiesManager->parseCommunitiesFile(prefs->getCommunitiesFile());
   }
@@ -276,9 +276,12 @@ void Ntop::start() {
   char daybuf[64], buf[32];
   time_t when = time(NULL);
 
-  getTrace()->traceEvent(TRACE_NORMAL, 
+  getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to ntopng %s v.%s - (C) 1998-15 ntop.org",
 			 PACKAGE_MACHINE, PACKAGE_VERSION);
+
+  if(PACKAGE_OS[0] != '\0')
+    getTrace()->traceEvent(TRACE_NORMAL, "Built on %s", PACKAGE_OS);
 
   start_time = time(NULL);
 
@@ -383,13 +386,13 @@ void Ntop::loadLocalInterfaceAddress() {
       struct sockaddr_in6 *s6 =(struct sockaddr_in6 *)(ifa->ifa_netmask);
       u_int8_t *b = (u_int8_t *)&(s6->sin6_addr);
       cidr = 0;
-      
+
       for(int i=0; i<16; i++) {
 	u_int8_t num_bits = __builtin_popcount(b[i]);
-	
+
 	if(num_bits == 0) break;
 	cidr += num_bits;
-      }    
+      }
 
       s6 =(struct sockaddr_in6 *)(ifa->ifa_addr);
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
@@ -522,7 +525,7 @@ void Ntop::getUserGroup(lua_State* vm) {
 
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
-  if (!strncmp(username, NTOP_NOLOGIN_USER, sizeof(username))) {
+  if(!strncmp(username, NTOP_NOLOGIN_USER, sizeof(username))) {
     lua_pushstring(vm, "administrator");
     return;
   }
@@ -1030,7 +1033,7 @@ void Ntop::registerInterfaceView(NetworkInterfaceView *_view) {
     if(strcmp(ifaceViews[i]->get_name(), _view->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Skipping duplicated interface %s", _view->get_name());
-      if (_view->get_num_intfs() == 1 && _view->get_iface()) /* per-interface view */
+      if(_view->get_num_intfs() == 1 && _view->get_iface()) /* per-interface view */
         _view->get_iface()->set_view(ifaceViews[i]); /* redirect before clearing */
       delete _view;
       return;

@@ -54,14 +54,20 @@ institution please read <A HREF=http://www.ntop.org/about/about-us-2/>this</A>.<
    print('<form class="form-inline" style="margin-bottom: 0px;">')
 
    if(isAdministrator()) then
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=70 value="')
-      print(info["ntopng.license"])
-
-      print [["></input>
-	       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save License</button>	       
-	       </form>
+      if(info["pro.use_redis_license"]) then
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=70 value="')
+	 print(info["ntopng.license"])
+	 
+	 print [["></input>
+		  &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save License</button>	       
+		  </form>
 	    ]]
+      else
+	 if(info["pro.license"]) then
+	    print("License: ".. info["pro.license"] .."\n")
+	 end
+      end
    end
 end
 
@@ -89,6 +95,9 @@ end
 print(" Edition</td></tr>\n")
 
 print("<tr><th>Platform</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
+if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
+   print("<tr><th>Built on</th><td>"..info["OS"].."</td></tr>\n") 
+end
 print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".._SESSION["user"].."</td></tr>\n")
 print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTime(info["uptime"]).."</td></tr>\n")
 print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")

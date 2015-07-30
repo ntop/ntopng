@@ -24,15 +24,6 @@
 
 #include "ntop_includes.h"
 
-#define DUMP_IFNAMSIZ	16
-
-#define DUMP_MAC_SIZE	6
-typedef uint8_t dump_mac_t[DUMP_MAC_SIZE];
-
-#define MACSTR_SIZE 32
-typedef char macstr_t[MACSTR_SIZE];
-
-#define DUMP_MTU	16384
 
 class PacketDumperTuntap {
  private:
@@ -44,7 +35,6 @@ class PacketDumperTuntap {
   bool		init_ok;
   u_int32_t     num_dumped_packets;
 
-  void readMac(char *ifname, dump_mac_t mac_addr);
   int getIPAddress(struct ifreq *ifr, char *if_name);
   int getNetmask(struct ifreq *ifr, char *if_name);
   int getHwAddress(struct ifreq *ifr, char *if_name);

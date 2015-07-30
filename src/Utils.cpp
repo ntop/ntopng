@@ -1132,3 +1132,42 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 }
 
 /* **************************************** */
+
+#ifdef linux
+
+static char* macaddr_str (const char *mac, char *buf) {
+  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
+          mac[0] & 0xFF, mac[1] & 0xFF, mac[2] & 0xFF,
+          mac[3] & 0xFF, mac[4] & 0xFF, mac[5] & 0xFF);
+  return(buf);
+}
+
+/* **************************************** */
+
+void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
+  int _sock, res;
+  struct ifreq ifr;
+  macstr_t mac_addr_buf;
+
+  memset (&ifr, 0, sizeof(struct ifreq));
+
+  /* Dummy socket, just to make ioctls with */
+  _sock = socket(PF_INET, SOCK_DGRAM, 0);
+  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
+  res = ioctl(_sock, SIOCGIFHWADDR, &ifr);
+  if(res < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr");
+  } else
+    memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC %s",
+			       ifname,
+			       macaddr_str((char *)mac_addr, mac_addr_buf));
+  close(_sock);
+}
+#else
+void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
+  memset(mac_addr, 0, 6);
+}
+#endif
+

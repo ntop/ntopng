@@ -29,16 +29,11 @@ else
 LIBNUMA="-lnuma"
 fi
 
-if test -d ".git"; then :
-GIT_TAG=`git rev-parse HEAD`
-GIT_DATE=`date +%Y%m%d`
-GIT_RELEASE="${GIT_TAG}:${GIT_DATE}"
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-else
-GIT_RELEASE="${PACKAGE_VERSION}"
-GIT_DATE=`date`
-GIT_BRANCH=""
-fi
+GIT_RELEASE="@GIT_RELEASE@"
+GIT_DATE="@GIT_DATE@"
+GIT_BRANCH="@GIT_BRANCH@"
+PRO_GIT_RELEASE="@PRO_GIT_RELEASE@"
+PRO_GIT_DATE="@PRO_GIT_DATE@"
 
 AC_MSG_CHECKING(for nDPI)
 NDPI_HOME=./nDPI
@@ -85,11 +80,10 @@ PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
 CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
-PRO_GIT_RELEASE=`cd pro; git log --pretty=oneline | wc -l`
-GIT_PRO_DATE=`cd pro; git log --pretty=medium -1 | grep "^Date:"|cut -d " " -f 4-`
+dnl> Remove heading spaces
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
-AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${GIT_PRO_DATE}", [ntopng professional date])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional date])
 PRO_LIBS='$(PRO_LIBS)'
 PRO_INC='$(PRO_INC)'
 DUMMY=`cd pro; make build`
@@ -235,8 +229,10 @@ fi
 
 CFLAGS="-Wall $CFLAGS"
 
-dnl> http://luajit.org/install.html
+OS=""
 if test $SYSTEM = "Darwin"; then
+   OSXV=`sw_vers -productVersion`
+   OS="MacOSX $OSXV"
    if test $MACHINE = "x86_64"; then
       LINK_OPTS="-pagezero_size 10000 -image_base 100000000"
       RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
@@ -244,7 +240,20 @@ if test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
+else	
+  if test $SYSTEM = "Linux"; then
+    if [ test -f /etc/redhat-release ]; then
+        OS=`cat /etc/redhat-release`
+    else  
+        if [ test -f /usr/bin/lsb_release ]; then
+         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
+        fi
+    fi
+  fi
 fi
+
+dnl> Remove spaces
+OS="${OS#"${OS%%[![:space:]]*}"}"
 
 dnl> Check for package install
 DOWNLOAD_GEOIP=0
@@ -356,6 +365,7 @@ fi
 
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
+AC_DEFINE_UNQUOTED(PACKAGE_OS, "${OS}", [OS Name])
 AC_SUBST(PWD)
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)
