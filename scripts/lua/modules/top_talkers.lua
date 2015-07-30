@@ -73,13 +73,15 @@ function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_k
       if (counter < max_num_entries) then
          if ((_value == 0) or (use_threshold == true and ((_value < low_threshold or
              _value < threshold) and (counter > max_num_entries / 2)))) then
-            break
+            other_stats = other_stats + _value
+            goto loop_more_top
          end
          top_stats[_value] = _id -- still keep it in order
          counter = counter + 1
       else
          other_stats = other_stats + _value
       end
+   ::loop_more_top::
    end
 
    if (other_stats > 0) then

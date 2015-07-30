@@ -704,14 +704,18 @@ print[[
                                   if (nonempty != 0)
 				    infoHTML += "<li>"+capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
 				  var items = 0;
+                                  var other_traffic = 0;
 				  $.each(n, function(j, m) {
 				    if(items < 3) {
 				      infoHTML += "<li><a href=']]
     print(scriptname.."?"..key.."=")
     print[["+m.address+"'>"+m.label; if ("]]print(sectionname)print[[".toLowerCase() == "Operating Systems") infoHTML += getOSIcon(m.label); if ("]]print(sectionname)print[[".toLowerCase() == "countries") infoHTML += " <img src=']] print(ntop.getHttpPrefix()) print [[/img/blank.gif' class='flag flag-"+m.label.toLowerCase()+"'>"; infoHTML += "</a>"; if (m.vlan != "0") infoHTML += " ("+m.vlanm+")"; infoHTML += " ("+]] print(formatter_fctn) print [[((m.value*8)/seconds)+")</li>";
 				      items++;
-                                    }
+                                    } else
+                                      other_traffic += m.value;
 				  });
+                                  if (other_traffic > 0)
+                                      infoHTML += "<li>Other ("+]]print(formatter_fctn)print[[((other_traffic*8)/seconds)+")</li>";
                                   if (nonempty != 0)
 				    infoHTML += "</ol></li>";
 				});
