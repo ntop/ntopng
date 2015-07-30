@@ -29,16 +29,11 @@ else
 LIBNUMA="-lnuma"
 fi
 
-if test -d ".git"; then :
-GIT_TAG=`git rev-parse HEAD`
-GIT_DATE=`date +%Y%m%d`
-GIT_RELEASE="${GIT_TAG}:${GIT_DATE}"
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-else
-GIT_RELEASE="${PACKAGE_VERSION}"
-GIT_DATE=`date`
-GIT_BRANCH=""
-fi
+GIT_RELEASE="@GIT_RELEASE@"
+GIT_DATE="@GIT_DATE@"
+GIT_BRANCH="@GIT_BRANCH@"
+PRO_GIT_RELEASE="@PRO_GIT_RELEASE@"
+PRO_GIT_DATE="@PRO_GIT_DATE@"
 
 AC_MSG_CHECKING(for nDPI)
 NDPI_HOME=./nDPI
@@ -85,13 +80,10 @@ PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
 CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
-PRO_GIT_RELEASE=`cd pro; git log --pretty=oneline | wc -l`
 dnl> Remove heading spaces
-PRO_GIT_RELEASE="${PRO_GIT_RELEASE#"${PRO_GIT_RELEASE%%[![:space:]]*}"}"
-GIT_PRO_DATE=`cd pro; git log --pretty=medium -1 | grep "^Date:"|cut -d " " -f 4-`
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
-AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${GIT_PRO_DATE}", [ntopng professional date])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional date])
 PRO_LIBS='$(PRO_LIBS)'
 PRO_INC='$(PRO_INC)'
 DUMMY=`cd pro; make build`
