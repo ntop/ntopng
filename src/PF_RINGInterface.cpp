@@ -40,8 +40,10 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
   if(ntop->getPrefs()->are_ixia_timestamps_enabled())
     flags |= PF_RING_IXIA_TIMESTAMP;
+#if 0
   else if(ntop->getPrefs()->are_vss_apcon_timestamps_enabled())
     flags |= PF_RING_VSS_APCON_TIMESTAMP;
+#endif
 
   if((pfring_handle = pfring_open(ifname, ntop->getGlobals()->getSnaplen(), flags)) == NULL) {
     throw 1;
