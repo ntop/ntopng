@@ -133,6 +133,9 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
   if(m) m->lock(__FILE__, __LINE__);
   initDB(when, create_flows_db);
 
+  if((db == NULL) || (f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
+    goto out;
+
   if (sqlite3_prepare(db, sql, -1, &stmt, 0) ||
       sqlite3_bind_int(stmt, 1, f->get_vlan_id()) ||
       sqlite3_bind_text(stmt, 2, f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)), sizeof(cli_str), SQLITE_TRANSIENT) ||
