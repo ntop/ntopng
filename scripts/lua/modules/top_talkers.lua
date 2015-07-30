@@ -150,7 +150,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
          end
       end
       if (other_stats > 0) then
-         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+         rsp = rsp .. '},\n\t\t { "address": "'..other_stats_id.. '", "label": "'
             ..other_stats_id..'", "url": "", "value": '..other_stats..
             ', "local": "false"'
       end
@@ -180,7 +180,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
          end
       end
       if (other_stats > 0) then
-         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+         rsp = rsp .. '},\n\t\t { "address": "'..other_stats_id.. '", "label": "'
             ..other_stats_id..'", "url": "", "value": '..other_stats..
             ', "local": "false"'
       end    
@@ -317,7 +317,7 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
          end
       end
       if (other_stats > 0) then
-         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+         rsp = rsp .. '},\n\t\t { "address": "'..other_stats_id.. '", "label": "'
             ..other_stats_id..'", "url": "", "value": '..other_stats..
             ', "local": "false"'
       end
@@ -346,7 +346,7 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
          end
       end
       if (other_stats > 0) then
-         rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+         rsp = rsp .. '},\n\t\t { "address": "'..other_stats_id.. '", "label": "'
             ..other_stats_id..'", "url": "", "value": '..other_stats..
             ', "local": "false"'
       end
@@ -410,7 +410,7 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
       end
    end
    if (other_stats > 0) then
-      rsp = rsp .. '\n\t\t { "address": "'..other_stats_id.. '", "label": "'
+      rsp = rsp .. '},\n\t\t { "address": "'..other_stats_id.. '", "label": "'
          ..other_stats_id..'", "url": "", "value": '..other_stats..
          ', "local": "false"'
    end
