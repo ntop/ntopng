@@ -484,6 +484,23 @@ static int ntop_get_interface_host_communities(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/**
+ * @brief Get all communities for a given network interface.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of communities.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_communities(lua_State* vm) {
+  CommunitiesManager *cm = ntop->getCommunitiesManager();
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if (cm) cm->listCommunitiesLua(vm);
+  else return(CONST_LUA_ERROR);
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 /**
@@ -728,6 +745,26 @@ static int ntop_has_vlans(lua_State* vm) {
   else
     lua_pushboolean(vm, 0);
 
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/**
+ * @brief Check if ntopng has communities enabled.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_has_communities(lua_State* vm) {
+  CommunitiesManager *cm = ntop->getCommunitiesManager();
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if (cm)
+     lua_pushboolean(vm, 1);
+  else
+     lua_pushboolean(vm, 0);
   return(CONST_LUA_OK);
 }
 
@@ -4392,6 +4429,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getLocalHosts",          ntop_get_interface_local_hosts },
   { "getCommunityHosts",      ntop_get_interface_community_hosts },
   { "getHostCommunities",     ntop_get_interface_host_communities },
+  { "getCommunities",         ntop_get_interface_communities },
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getCommunityHostsInfo",  ntop_get_interface_community_hosts_info },
@@ -4583,6 +4621,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Runtime */
   { "hasVLANs",       ntop_has_vlans },
+  { "hasCommunities", ntop_has_communities },
   { "hasGeoIP",       ntop_has_geoip },
   { "isWindows",      ntop_is_windows },
 

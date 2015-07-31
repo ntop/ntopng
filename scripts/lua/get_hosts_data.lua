@@ -34,6 +34,7 @@ network      = _GET["network"]
 country      = _GET["country"]
 os_    	     = _GET["os"]
 antenna_mac  = _GET["antenna_mac"]
+community    = _GET["community"]
 
 -- table_id = _GET["table"]
 
@@ -287,9 +288,25 @@ num = 0
 for _key, _value in pairsByKeys(vals, funct) do
    key = vals[_key]
 
+   community_found = false
+   if (community ~= nil) then
+     communities = interface.getHostCommunities(hosts_stats[key]["ip"], hosts_stats[key]["vlan"])
+     if (communities) then
+        for ck,cv in pairs(communities) do
+          if (tostring(cv) == community) then
+            community_found = true
+            break
+          end
+        end
+     end
+   else
+     community_found = true
+   end
+
    if((key ~= nil) and (not(key == "")) and
       ((asn == nil) or (asn == tostring(hosts_stats[key]["asn"]))) and
 		((os_ == nil) or (os_ == tostring(hosts_stats[key]["os"]))) and
+      (community_found == true) and
       ((country == nil) or (country == tostring(hosts_stats[key]["country"]))) and
       ((antenna_mac == nil) or (antenna_mac == tostring(hosts_stats[key]["antenna_mac"]))) and
       ((vlan == nil) or (vlan == tostring(hosts_stats[key]["vlan"]))) and

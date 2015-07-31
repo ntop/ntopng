@@ -43,6 +43,7 @@ public:
   void parseCommunitiesFile(char *fname);
   int findAddress(int community_id, int family, void *addr);
   void listAddressCommunitiesLua(lua_State* vm, int family, void *addr);
+  void listCommunitiesLua(lua_State*);
 };
 
 extern patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);

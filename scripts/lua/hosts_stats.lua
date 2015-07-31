@@ -19,6 +19,7 @@ network      = _GET["network"]
 country      = _GET["country"]
 antenna_mac  = _GET["antenna_mac"]
 os_   	     = _GET["os"]
+community    = _GET["community"]
 
 mode = _GET["mode"]
 if(mode == nil) then mode = "all" end
@@ -53,6 +54,10 @@ end
 
 if(asn ~= nil) then
    print('&asn='..asn)
+end
+
+if(community ~= nil) then
+   print('&community='..community)
 end
 
 if(vlan ~= nil) then
@@ -106,6 +111,11 @@ else
 	asn = "" 
 end
 
+if(_GET["community"] ~= nil) then 
+	community = " for Community ".._GET["community"]
+else 
+	community = "" 
+end
 
 if(_GET["country"] ~= nil) then 
 	country = " for Country ".._GET["country"] 
@@ -122,6 +132,7 @@ end
 if(mode == "all") then
 	if ( country ~= "" ) then print('title: "All '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "All '..protocol..' Hosts'..asn..'",\n')
+	elseif ( community ~= "" ) then print('title: "All '..protocol..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "All '..os_..' Hosts'..am_str..'",\n') 
 	else print('title: "All '..protocol..' Hosts'..asn..'",\n')
@@ -129,6 +140,7 @@ if(mode == "all") then
 elseif(mode == "local") then
 	if ( country ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Local '..protocol..' Hosts'..asn..'",\n')
+	elseif ( community ~= "" ) then print('title: "Local '..protocol..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..am_str..'",\n')
 	else  print('title: "Local '..protocol..' Hosts'..country..'",\n')
@@ -136,6 +148,7 @@ elseif(mode == "local") then
 elseif(mode == "remote") then
 	if ( country ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Remote '..protocol..' Hosts'..asn..'",\n')
+	elseif ( community ~= "" ) then print('title: "Remote '..protocol..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..am_str..'",\n')
 	else print('title: "Remote '..protocol..' Hosts'..country..'",\n')
