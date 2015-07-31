@@ -785,7 +785,7 @@ static int ntop_getservbyname(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  port = (int)lua_tonumber(vm, 1);
+  port = htons((int)lua_tonumber(vm, 1));
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   proto = (char*)lua_tostring(vm, 2);
