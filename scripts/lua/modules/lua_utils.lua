@@ -1617,3 +1617,13 @@ function rrd_exists(host_ip, rrdname)
    rrdpath = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host_ip) .. "/" .. rrdname
    return ntop.exists(rrdpath)
 end
+
+function getservbyname(port_num, proto)
+   if(proto == nil) then proto = "TCP" end
+   port_num = tonumber(port_num)   
+   
+   proto = string.lower(proto)
+
+   -- io.write(port_num.."@"..proto.."\n")
+   return(ntop.getservbyname(port_num, proto))
+end

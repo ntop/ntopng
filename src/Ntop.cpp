@@ -134,6 +134,8 @@ Ntop::Ntop(char *appName) {
   initTimezone();
 
   udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+
+  setservent(1);
 }
 
 /* ******************************************* */
