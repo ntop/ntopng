@@ -100,10 +100,9 @@ void CommunitiesManager::listAddressCommunitiesLua(lua_State* vm, int family, vo
 
   for (std::vector<patricia_tree_t *>::iterator it = communities.begin() ; it != communities.end(); ++it) {
     /* default value for string is "" */
-    if (community_names.at(i) != "" && findAddress(i, family, addr) != -1) {
-      cout<<"pushing"<<endl;
+    if (community_names.at(i) != "" && findAddress(i, family, addr) != -1)
       lua_push_int_table_entry(vm, community_names.at(i).c_str(), i);
-     }
+    i++;
   }
 
   lua_pushstring(vm, (char *)addr);
