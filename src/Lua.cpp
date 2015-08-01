@@ -512,7 +512,7 @@ static int ntop_get_interface_communities(lua_State* vm) {
  */
 static int ntop_get_interface_hosts_info(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  bool show_details;
+  bool show_details, show_local_only;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -522,7 +522,13 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
   else
     show_details = lua_toboolean(vm, 1) ? true : false;
 
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, false);
+  /* Optional */
+  if(lua_type(vm, 2) != LUA_TBOOLEAN)
+    show_local_only = false;
+  else
+    show_local_only = lua_toboolean(vm, 2) ? true : false;
+
+  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, show_local_only);
 
   return(CONST_LUA_OK);
 }
