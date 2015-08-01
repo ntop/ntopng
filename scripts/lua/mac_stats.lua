@@ -26,6 +26,10 @@ print [[
 print (ntop.getHttpPrefix())
 print [[/lua/get_grouped_hosts_data.lua?grouped_by=mac]]
 
+if(_GET["mac"] ~= nil) then
+   print("&mac=".._GET["mac"])
+end
+
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
 

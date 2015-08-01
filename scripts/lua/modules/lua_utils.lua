@@ -1588,10 +1588,22 @@ function makeTopStatsScriptsArray()
    return(topArray)
 end
 
+local mac_cache = { }
 -- get_mac_classification
 function get_mac_classification(m)   
-   local file_mac = io.open(fixPath(dirs.installdir.."/third-party/well-known-MAC.txt"))
+   local path = fixPath(dirs.installdir.."/third-party/well-known-MAC.txt")
+   local file_mac
+
+   if(string.len(m) > 8) then m = string.sub(m, 1, 8) end
+
+   if(mac_cache[m] ~= nil) then
+      -- io.write("Cached "..m.."\n")
+      return(mac_cache[m])
+   end
+
+   file_mac = io.open(path)
    if (file_mac == nil) then return m end
+
    local mac_line = file_mac:read("*l")
    while (mac_line ~= nil) do
       if (not startswith(mac_line, "#") and mac_line ~= "") then
@@ -1599,12 +1611,15 @@ function get_mac_classification(m)
 	 if (m == b) then
 	   t = split(mac_line, "\t")
            file_mac.close()
-           return split(t[2], " ")[1]
+	   rsp = split(t[2], " ")[1]
+	   mac_cache[m] = rsp
+           return rsp
         end
       end
       mac_line = file_mac:read("*l")
    end
    file_mac.close()
+
    return m
 end
 

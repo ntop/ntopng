@@ -34,6 +34,7 @@ network      = _GET["network"]
 country      = _GET["country"]
 os_    	     = _GET["os"]
 antenna_mac  = _GET["antenna_mac"]
+mac          = _GET["mac"]
 community    = _GET["community"]
 
 -- table_id = _GET["table"]
@@ -309,6 +310,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       (community_found == true) and
       ((country == nil) or (country == tostring(hosts_stats[key]["country"]))) and
       ((antenna_mac == nil) or (antenna_mac == tostring(hosts_stats[key]["antenna_mac"]))) and
+      ((mac == nil) or (mac == tostring(hosts_stats[key]["mac"]))) and
       ((vlan == nil) or (vlan == tostring(hosts_stats[key]["vlan"]))) and
       ((network == nil) or (network == tostring(hosts_stats[key]["local_network_id"])))) then
       value = hosts_stats[key]

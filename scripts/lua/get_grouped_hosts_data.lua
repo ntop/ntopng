@@ -62,7 +62,12 @@ else
 end
 
 interface.select(ifname)
-hosts_stats = interface.getHostsInfo()
+
+if(group_col == "mac") then
+   hosts_stats = interface.getLocalHostsInfo()
+else
+   hosts_stats = interface.getHostsInfo()
+end
 
 to_skip = (currentPage-1) * perPage
 
@@ -176,12 +181,16 @@ function print_single_group(value)
       print("hosts_stats.lua?network="..value["id"].."'>")
    elseif (group_col == "antenna_mac") then
       print("hosts_stats.lua?antenna_mac="..value["id"].."'>")
+   elseif (group_col == "mac") then
+      print("hosts_stats.lua?mac="..value["id"].."'>")
    else
       print("hosts_stats.lua'>")
    end
 
    if (group_col == "local_network_id" or network_n ~= nil) then
       print(value["name"]..'</A>", ')
+   elseif(group_col == "mac") then
+      print(get_symbolic_mac(value["id"])..'</A>", ')
    else
       print(value["id"]..'</A>", ')
    end
