@@ -1301,7 +1301,7 @@ function processColor(proc)
   end
 end
 
--- Table preferences
+ -- Table preferences
 
 function getDefaultTableSort(table_type)
   table_key = getRedisPrefix("ntopng.prefs.table")
@@ -1401,7 +1401,7 @@ function harvestUnusedDir(path, min_epoch)
    end
 end
 
--- ############################################## 
+ -- ############################################## 
 
 function harvestJSONTopTalkers(days)
    local when = os.time() - 86400 * days
@@ -1418,7 +1418,7 @@ function harvestJSONTopTalkers(days)
    end
 end
 
--- ############################################## 
+ -- ############################################## 
 
 function isAdministrator()
       local user_group = ntop.getUserGroup()
@@ -1430,7 +1430,7 @@ function isAdministrator()
       end
 end
 
--- ############################################## 
+ -- ############################################## 
 
 function haveAdminPrivileges()
    if(isAdministrator) then
@@ -1443,7 +1443,7 @@ function haveAdminPrivileges()
    end
 end
 
--- ############################################## 
+ -- ############################################## 
 
 function getKeysSortedByValue(tbl, sortFunction)
   local keys = {}
@@ -1464,7 +1464,7 @@ function getKeys(t, col)
   return keys
 end
 
--- ##############################################                                                                                                                                                  
+ -- ##############################################                                                                                                                                                  
 
 function formatBreed(breed)
    if(breed == "Safe") then
@@ -1492,11 +1492,12 @@ end
 
 -- GENERIC UTILS
 
+-- ternary
 function ternary(cond, T, F)
    if cond then return T else return F end
 end
 
---
+-- split
 function split(s, delimiter)
    result = {};
    for match in (s..delimiter):gmatch("(.-)"..delimiter) do
@@ -1505,10 +1506,12 @@ function split(s, delimiter)
     return result;
 end
 
+-- startswith
 function startswith(s, char)
    return string.sub(s, 1, string.len(s)) == char
 end
 
+-- strsplit
 function strsplit(inputstr, sep)
   if (inputstr == nil or inputstr == "") then return {} end
   if sep == nil then
@@ -1522,6 +1525,7 @@ function strsplit(inputstr, sep)
   return t
 end
 
+-- isempty
 function isempty(array)
   local count = 0
   for _,__ in pairs(array) do
@@ -1530,6 +1534,7 @@ function isempty(array)
   return (count == 0)
 end
 
+-- isin
 function isin(s, array)
   if (s == nil or s == "" or array == nil or isempty(array)) then return false end
   for _, v in pairs(array) do
@@ -1538,6 +1543,7 @@ function isin(s, array)
   return false
 end
 
+-- maxRateToString
 function maxRateToString(max_rate)
    if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
    max_rate = tonumber(max_rate)
@@ -1558,6 +1564,7 @@ function maxRateToString(max_rate)
    end
 end
 
+-- makeTopStatsScriptsArray
 function makeTopStatsScriptsArray()
    path = dirs.installdir .. "/scripts/lua/modules/top_scripts"
    path = fixPath(path)
@@ -1581,6 +1588,7 @@ function makeTopStatsScriptsArray()
    return(topArray)
 end
 
+-- get_mac_classification
 function get_mac_classification(m)   
    local file_mac = io.open(fixPath(dirs.installdir.."/third-party/well-known-MAC.txt"))
    if (file_mac == nil) then return m end
@@ -1600,6 +1608,7 @@ function get_mac_classification(m)
    return m
 end
 
+-- get_symbolic_mac
 function get_symbolic_mac(mac_address)   
    local m = string.sub(mac_address, 1, 8)
    local t = string.sub(mac_address, 10, 17)
@@ -1612,18 +1621,21 @@ function get_symbolic_mac(mac_address)
    end
 end
 
+-- rrd_exists
 function rrd_exists(host_ip, rrdname)
    dirs = ntop.getDirs()
    rrdpath = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host_ip) .. "/" .. rrdname
    return ntop.exists(rrdpath)
 end
 
-function getservbyname(port_num, proto)
+-- getservbyport
+function getservbyport(port_num, proto)
    if(proto == nil) then proto = "TCP" end
-   port_num = tonumber(port_num)   
+
+   port_num = tonumber(port_num)
    
    proto = string.lower(proto)
 
    -- io.write(port_num.."@"..proto.."\n")
-   return(ntop.getservbyname(port_num, proto))
+   return(ntop.getservbyport(port_num, proto))
 end

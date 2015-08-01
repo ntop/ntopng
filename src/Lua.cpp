@@ -809,13 +809,14 @@ static int ntop_is_windows(lua_State* vm) {
 /* ****************************************** */
 
 /**
- * @brief Wrapper for the libc call getservbyname()
- * @details Wrapper for the libc call getservbyname()  
+ * @brief Wrapper for the libc call getservbyport()
+ * @details Wrapper for the libc call getservbyport()  
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
  */
-static int ntop_getservbyname(lua_State* vm) {
+static int ntop_getservbyport(lua_State* vm) {
+
   int port;
   char *proto;
 
@@ -4625,7 +4626,7 @@ static const luaL_Reg ntop_reg[] = {
   { "hasGeoIP",       ntop_has_geoip },
   { "isWindows",      ntop_is_windows },
 
-  { "getservbyname",  ntop_getservbyname },
+  { "getservbyport",  ntop_getservbyport },
 
   { NULL,          NULL}
 };
