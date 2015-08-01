@@ -110,6 +110,12 @@ for key,value in pairs(hosts_stats) do
 	       stats_by_group_col[id]["name"] = "Unknown OS"
 	    end
 
+	 elseif (group_col == "mac") then
+	    stats_by_group_col[id]["name"] = value["mac"]
+	    if (stats_by_group_col[id]["name"] == nil) then
+	       stats_by_group_col[id]["name"] = "Unknown MAC"
+	    end
+
 	 elseif (group_col == "country") then
 	    stats_by_group_col[id]["name"] = value["country"]
 	    if (stats_by_group_col[id]["name"] == nil) then

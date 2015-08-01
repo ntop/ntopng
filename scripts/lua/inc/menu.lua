@@ -92,6 +92,8 @@ print [[/lua/hosts_stats.lua">Hosts</a></li>
 
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">Networks</a></li>')
 
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">MAC Addresses</a></li>')
+
   if(ntop.hasGeoIP()) then
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">Autonomous Systems</a></li>')
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">Countries</a></li>')
