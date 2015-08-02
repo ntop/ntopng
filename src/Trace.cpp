@@ -49,7 +49,7 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
   struct tm result;
 #endif
 
-  if(eventTraceLevel <= traceLevel) {
+  if((eventTraceLevel <= traceLevel) && (traceLevel > 0)) {
     char buf[8192], out_buf[8192];
     char theDate[32], *file = (char*)_file;
     const char *extra_msg = "";

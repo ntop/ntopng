@@ -788,11 +788,17 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 #ifdef NTOPNG_PRO
   case 252:
+    /* Disable tracing messages */
+    ntop->getTrace()->set_trace_level(0);
+    ntop->registerPrefs(this);
     ntop->getPro()->check_maintenance_duration();
     _exit(0);
     break;
 
   case 253:
+    /* Disable tracing messages */
+    ntop->getTrace()->set_trace_level(0); 					  
+    ntop->registerPrefs(this);
     ntop->getPro()->check_license_validity();
     _exit(0);
     break;

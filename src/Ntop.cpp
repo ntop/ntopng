@@ -228,7 +228,7 @@ void Ntop::registerPrefs(Prefs *_prefs) {
 
   memset(iface, 0, sizeof(iface));
 
-  redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
+  initRedis();
 
   if(prefs->getCommunitiesFile()) {
     communitiesManager = new CommunitiesManager();
@@ -247,6 +247,12 @@ void Ntop::registerNagios(void) {
   nagios_manager = new NagiosManager();
 }
 #endif
+
+/* ******************************************* */
+
+void Ntop::initRedis() {
+  redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
+}
 
 /* ******************************************* */
 

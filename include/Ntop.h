@@ -350,6 +350,7 @@ class Ntop {
   bool isLocalInterfaceAddress(int family, void *addr);
   inline char* getLocalNetworkName(int16_t local_network_id) { return(address->get_local_network((u_int8_t)local_network_id)); };
   void createExportInterface();
+  void initRedis();
 
 // Historical Interface
 /**
