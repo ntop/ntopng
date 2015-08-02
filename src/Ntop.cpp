@@ -304,6 +304,7 @@ void Ntop::start() {
 
   prefs->loadIdleDefaults();
 #ifdef NTOPNG_PRO
+  pro->printLicenseInfo();
   prefs->loadNagiosDefaults();
 #endif
   loadLocalInterfaceAddress();
