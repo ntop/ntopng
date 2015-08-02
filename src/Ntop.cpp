@@ -237,7 +237,7 @@ void Ntop::registerPrefs(Prefs *_prefs) {
 
 #ifdef NTOPNG_PRO
   redis_pro = new RedisPro();
-  pro->check_license(true);
+  pro->check_license(true, false);
 #endif
 }
 /* ******************************************* */

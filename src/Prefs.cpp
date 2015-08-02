@@ -269,6 +269,8 @@ void usage() {
 	 "                                    | useful when using ntopng behind a proxy.\n"
 #ifdef NTOPNG_PRO
 	 "[--community]                       | Start ntopng in community edition (debug only).\n"
+	 "[--check-license]                   | Check if the license is valid.\n"
+	 "[--check-maintenance]               | Check until maintenance is included in the license.\n"
 #endif
 	 "[--verbose|-v]                      | Verbose tracing\n"
 	 "[--version|-V]                      | Print version and quit\n"
@@ -398,7 +400,9 @@ static const struct option long_options[] = {
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
 #ifdef NTOPNG_PRO
-  { "community-edition",                 no_argument,       NULL, 254 },
+  { "check-maintenance",                 no_argument,       NULL, 252 },
+  { "check-license",                     no_argument,       NULL, 253 },
+  { "community",                         no_argument,       NULL, 254 },
 #endif
 
   /* End of options */
@@ -783,6 +787,16 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
 #ifdef NTOPNG_PRO
+  case 252:
+    ntop->getPro()->check_maintenance_duration();
+    _exit(0);
+    break;
+
+  case 253:
+    ntop->getPro()->check_license_validity();
+    _exit(0);
+    break;
+
   case 254:
     ntop->getPro()->do_force_community_edition();
     break;
