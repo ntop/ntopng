@@ -252,7 +252,7 @@ for _,_ifname in pairs(ifnames) do
 			if(host["dns"]) then dumpSingleTreeCounters(basedir, "dns", host, verbose) end
 		     end
 		  else
-		     print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..key.."\n")
+		     -- print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..key.."\n")
 		  end
 	       end -- if
 	    end -- for
