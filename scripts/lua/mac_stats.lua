@@ -39,7 +39,7 @@ print [[
 			url: url_update ,
 	 ]]
 
-print('title: "MAC Addresses",\n')
+print('title: "Local Hosts MAC Addresses",\n')
 print ('rowCallback: function ( row ) { return mac_table_setID(row); },')
 
 -- Set the preference table

@@ -143,7 +143,7 @@ end
 if(mode == "all") then
 	if ( country ~= "" ) then print('title: "All '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "All '..protocol..' Hosts'..asn..'",\n')
-	elseif ( mac ~= "" ) then print('title: "All '..protocol..' Hosts'..mac..'",\n')
+	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' Hosts'..mac..'",\n')
 	elseif ( community ~= "" ) then print('title: "All '..protocol..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "All '..os_..' Hosts'..am_str..'",\n') 
@@ -152,7 +152,7 @@ if(mode == "all") then
 elseif(mode == "local") then
 	if ( country ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Local '..protocol..' Hosts'..asn..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Local '..protocol..' Hosts'..mac..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' Hosts'..mac..'",\n')
 	elseif ( community ~= "" ) then print('title: "Local '..protocol..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..am_str..'",\n')
@@ -161,7 +161,7 @@ elseif(mode == "local") then
 elseif(mode == "remote") then
 	if ( country ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Remote '..protocol..' Hosts'..asn..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Remote '..protocol..' Hosts'..mac..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' Hosts'..mac..'",\n')
 	elseif ( community ~= "" ) then print('title: "Remote '..protocol..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..am_str..'",\n')

@@ -93,6 +93,7 @@ for key,value in pairs(hosts_stats) do
       value[group_col] = tostring(value[group_col])
 
       id = value[group_col]
+
       existing = stats_by_group_col[id]
       if (existing == nil) then
 	 stats_by_group_col[id] = {}
@@ -139,23 +140,14 @@ for key,value in pairs(hosts_stats) do
 	    math.max(stats_by_group_col[id]["seen.last"], value["seen.last"])
       end
 
-      stats_by_group_col[id]["num_hosts"] = 1 +
-         ternary(existing, stats_by_group_col[id]["num_hosts"], 0)
-      stats_by_group_col[id]["num_alerts"] = value["num_alerts"] +
-         ternary(existing, stats_by_group_col[id]["num_alerts"], 0)
-      stats_by_group_col[id]["throughput_bps"] = value["throughput_bps"] +
-         ternary(existing, stats_by_group_col[id]["throughput_bps"], 0)
-      stats_by_group_col[id]["throughput_pps"] = value["throughput_pps"] +
-         ternary(existing, stats_by_group_col[id]["throughput_pps"], 0)
-      stats_by_group_col[id]["throughput_trend_bps_diff"] =
-         math.floor(value["throughput_trend_bps_diff"]) +
-      ternary(existing,
-	      stats_by_group_col[id]["throughput_trend_bps_diff"], 0)
-   stats_by_group_col[id]["bytes.sent"] = value["bytes.sent"] +
-      ternary(existing, stats_by_group_col[id]["bytes.sent"], 0)
-   stats_by_group_col[id]["bytes.rcvd"] = value["bytes.rcvd"] +
-      ternary(existing, stats_by_group_col[id]["bytes.rcvd"], 0)
-   stats_by_group_col[id]["country"] = value["country"]
+      stats_by_group_col[id]["num_hosts"] = 1 + ternary(existing, stats_by_group_col[id]["num_hosts"], 0)
+      stats_by_group_col[id]["num_alerts"] = value["num_alerts"] + ternary(existing, stats_by_group_col[id]["num_alerts"], 0)
+      stats_by_group_col[id]["throughput_bps"] = value["throughput_bps"] + ternary(existing, stats_by_group_col[id]["throughput_bps"], 0)
+      stats_by_group_col[id]["throughput_pps"] = value["throughput_pps"] + ternary(existing, stats_by_group_col[id]["throughput_pps"], 0)
+      stats_by_group_col[id]["throughput_trend_bps_diff"] = math.floor(value["throughput_trend_bps_diff"]) + ternary(existing, stats_by_group_col[id]["throughput_trend_bps_diff"], 0)
+      stats_by_group_col[id]["bytes.sent"] = value["bytes.sent"] + ternary(existing, stats_by_group_col[id]["bytes.sent"], 0)
+      stats_by_group_col[id]["bytes.rcvd"] = value["bytes.rcvd"] + ternary(existing, stats_by_group_col[id]["bytes.rcvd"], 0)
+      stats_by_group_col[id]["country"] = value["country"]
 end
 end
 

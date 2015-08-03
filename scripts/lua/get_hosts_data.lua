@@ -103,7 +103,11 @@ if((mode == nil) or (mode == "")) then mode = "all" end
 interface.select(ifname)
 
 if((aggregation == nil) and (aggregated == nil)) then
-   hosts_stats = interface.getHostsInfo(false)
+   if((mac ~= nil) or (antenna_mac ~= nil)) then
+      hosts_stats = interface.getLocalHostsInfo()
+   else
+      hosts_stats = interface.getHostsInfo(false)
+   end
 else
    hosts_stats = interface.getAggregatedHostsInfo(tonumber(protocol), client)
    protocol = nil -- Not applicable

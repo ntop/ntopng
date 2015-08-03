@@ -1623,16 +1623,43 @@ function get_mac_classification(m)
    return m
 end
 
--- get_symbolic_mac
-function get_symbolic_mac(mac_address)   
-   local m = string.sub(mac_address, 1, 8)
-   local t = string.sub(mac_address, 10, 17)
-   local s = get_mac_classification(m)
+local magic_macs = {
+   ["FF:FF:FF:FF:FF:FF"] = "Broadcast",
+   ["01:00:0C:CC:CC:CC"] = "CDP",
+   ["01:00:0C:CC:CC:CD"] = "CiscoSTP",
+   ["01:80:C2:00:00:00"] = "STP",
+   ["01:80:C2:00:00:00"] = "LLDP",
+   ["01:80:C2:00:00:03"] = "LLDP",
+   ["01:80:C2:00:00:0E"] = "LLDP",
+   ["01:80:C2:00:00:08"] = "STP",
+   ["01:1B:19:00:00:00"] = "PTP",
+   ["01:80:C2:00:00:0E"] = "PTP"
+}
 
-   if(m == s) then
-      return(get_mac_classification(m)..":"..t)
+local magic_short_macs = {
+   ["01:00:5E"] = "IPv4mcast",
+   ["33:33:"] = "IPv6mcast"
+}
+
+-- get_symbolic_mac
+function get_symbolic_mac(mac_address)
+   if(magic_macs[mac_address] ~= nil) then
+      return(magic_macs[mac_address])
    else
-      return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+      local m = string.sub(mac_address, 1, 8)
+      local t = string.sub(mac_address, 10, 17)
+
+      if(magic_short_macs[m] ~= nil) then
+	 return(magic_short_macs[m].."_"..t.." ("..mac_address..")")
+      else	 
+	 local s = get_mac_classification(m)
+	 
+	 if(m == s) then
+	    return(get_mac_classification(m)..":"..t)
+	 else
+	    return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+	 end
+      end
    end
 end
 
