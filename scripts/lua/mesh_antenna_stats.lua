@@ -31,11 +31,10 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_id.inc")
 
 print [[
 	 $("#table-network").datatable({
-                        title: "Antenna List",
+                        title: "Mesh Network Antenna List",
 			url: url_update ,
 	 ]]
 
-print('title: "Antenna List",\n')
 print ('rowCallback: function ( row ) { return network_table_setID(row); },')
 
 -- Set the preference table

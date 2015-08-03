@@ -63,7 +63,7 @@ end
 
 interface.select(ifname)
 
-if(group_col == "mac") then
+if((group_col == "mac") or (group_col == "antenna_mac")) then
    hosts_stats = interface.getLocalHostsInfo()
 else
    hosts_stats = interface.getHostsInfo()
@@ -181,7 +181,7 @@ function print_single_group(value)
 
    if (group_col == "local_network_id" or network_n ~= nil) then
       print(value["name"]..'</A>", ')
-   elseif(group_col == "mac") then
+      elseif((group_col == "mac") or (group_col == "antenna_mac")) then
       print(get_symbolic_mac(value["id"])..'</A>", ')
    else
       print(value["id"]..'</A>", ')

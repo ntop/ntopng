@@ -58,7 +58,7 @@ NetworkInterface::NetworkInterface() {
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false,
-    pkt_dumper = NULL;
+    has_mesh_networks_traffic = false, pkt_dumper = NULL;
   pollLoopCreated = false, bridge_interface = false;
   if(ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
@@ -1213,13 +1213,15 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
     eth_type = (packet[ip_offset + 12] << 8) + packet[ip_offset + 13];
     ip_offset += sizeof(struct ndpi_ethhdr);
 
-    if(((bp_type == BATADV14_BCAST) || (bp_type == BATADV15_BCAST)) 
+    if(((bp_type == BATADV14_BCAST) || (bp_type == BATADV15_BCAST))
        && memcmp(orig_src,ethernet->h_source,6) != 0)
-      antenna_mac = orig_src;    
+      antenna_mac = orig_src;
 
-    if(((bp_type == BATADV14_UNICAST) || (bp_type == BATADV15_UNICAST)) 
+    if(((bp_type == BATADV14_UNICAST) || (bp_type == BATADV15_UNICAST))
        &&  memcmp(orig_dest,ethernet->h_dest,6) != 0)
-      antenna_mac = orig_dest;    
+      antenna_mac = orig_dest;
+
+    has_mesh_networks_traffic = true;
   } else
     antenna_mac = NULL;
 
@@ -2107,6 +2109,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 
 void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "type", (char*)get_type());
+  lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
 
   ethStats.lua(vm);
   localStats.lua(vm);

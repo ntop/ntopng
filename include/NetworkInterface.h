@@ -110,7 +110,7 @@ class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name.*/
   int id;
-  bool bridge_interface;
+  bool bridge_interface, has_mesh_networks_traffic;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 #endif
