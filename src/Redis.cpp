@@ -65,6 +65,7 @@ void Redis::startFlowDump() {
 void Redis::reconnectRedis() {
   struct timeval timeout = { 1, 500000 }; // 1.5 seconds
   redisReply *reply;
+  u_int num_attemps = 10;
 
   if(redis != NULL) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected: reconnecting...");
@@ -73,9 +74,15 @@ void Redis::reconnectRedis() {
 
   redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
 
-  if(redis) reply = (redisReply*)redisCommand(redis, "PING"); else reply = NULL;
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+  while(num_attemps > 0) {
+    if(redis) reply = (redisReply*)redisCommand(redis, "PING"); else reply = NULL;
+    if(reply && (reply->type == REDIS_REPLY_ERROR)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+      sleep(1);
+      num_attemps--;
+    } else
+      break;
+  }
 
   if((redis == NULL) || (reply == NULL)) {
   redis_error_handler:
