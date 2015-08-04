@@ -1,6 +1,6 @@
 [Unit]
 Description=Start/stop ntopng program
-After=network.target syslog.target
+After=network.target syslog.target redis.service
 
 
 [Service]
