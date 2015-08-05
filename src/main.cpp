@@ -273,10 +273,12 @@ int main(int argc, char *argv[])
   }
 
   if(prefs->get_categorization_key() != NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "Host categorization is not enabled: using default key");
     ntop->setCategorization(new Categorization(prefs->get_categorization_key()));
     prefs->enable_categorization();
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Enabled Host categorization with key %s",
+				 prefs->get_categorization_key());
+    
   }
 
   if(prefs->get_httpbl_key() != NULL) {
