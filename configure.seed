@@ -67,13 +67,6 @@ fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
-NPROBE_HOME="$HOME/nProbe"
-
-if ! test -d "$HOME/nProbe"; then :
-  NPROBE_HOME="$HOME/network/nProbe"
-fi
-
-if test -d "$NPROBE_HOME"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
@@ -86,22 +79,19 @@ AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng profes
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional date])
 PRO_LIBS='$(PRO_LIBS)'
 PRO_INC='$(PRO_INC)'
-DUMMY=`cd pro; make build`
+DUMMY=`cd ./pro; make build`
 
-if test -r "pro/license/systemId.c"; then :
+if test -r "../license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
 fi
 else
-AC_MSG_RESULT(not found [missing $NPROBE_HOME])
+AC_MSG_RESULT(not found)
 PRO_MAKEFILE_INC=
 PRO_INC=
 PRO_LIBS=
 PRO_OBJECTS=
 PRO_HEADERS=
 PRO_LIBS=
-fi
-else
-AC_MSG_RESULT(not found [missing $NPROBE_HOME])
 fi
 
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
