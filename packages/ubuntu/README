@@ -1,0 +1,17 @@
+Prerequisites
+-------------
+apt-get install debhelper fakeroot
+
+EdgeOS
+------
+We need to replace BusyBox-implemented commands using full-fledged commands by doing
+(see http://community.ubnt.com/t5/EdgeMAX/ubnt-debian-package-conflict/m-p/421325)
+
+curl -O http://ftp.us.debian.org/debian/pool/main/c/coreutils/coreutils_8.5-1_mips.deb
+dpkg -i --force-all coreutils_8.5-1_mips.deb
+
+curl -O http://ftp.us.debian.org/debian/pool/main/t/tar/tar_1.23-3_mips.deb
+dpkg -i --force-all tar_1.23-3_mips.deb
+
+wget http://ftp.us.debian.org/debian/pool/main/f/findutils/findutils_4.4.2-4_mips.deb
+dpkg -i --force-all findutils_4.4.2-4_mips.deb

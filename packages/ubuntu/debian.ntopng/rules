@@ -54,7 +54,7 @@ binary-arch: build install
 # Do not strip binary so we can leave debug symbols
 #	dh_strip
 	dh_compress
-	dh_fixperms
+#	dh_fixperms
 	dh_installdeb
 	dh_gencontrol
 	dh_md5sums

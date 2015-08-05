@@ -3,6 +3,7 @@ AC_INIT([Makefile.in], 1.0)
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
+LIBRRD="librrd4, "
 if test $MACHINE = "x86_64"; then
    EXTN="amd64"
 else
@@ -13,10 +14,16 @@ else
      if test $SHORT_MACHINE = "mip"; then
        EXTN="mips"
        EXTRA_DEPS=""
+       LIBRRD=""
      else	
        EXTN="i386"
      fi
   fi
+fi
+
+if [ ! test -f ../../pro/utils/snzip ]; then
+   echo "snzip is missing: please compile it and try again"
+   exit
 fi
 
 if [ test -f /usr/bin/lsb_release ]; then
@@ -40,11 +47,7 @@ else
   SUDO="sudo"
 fi
 
-if [ -n "$USER" ]; then
-CHOWN="$SUDO chown ${USER}{$GROUP} ../ntopng_*deb"
-else
-CHOWN="@echo \"\""
-fi
+CHOWN="$SUDO chown $USER:$GROUP ../ntopng_*deb"
 
 /bin/rm -f debian.ntopng/control.in
 cd debian.ntopng
@@ -69,6 +72,7 @@ AC_SUBST(GIT_COMMITS)
 AC_SUBST(PFRING_VERS)
 AC_SUBST(PFRING_RELEASE)
 AC_SUBST(PFRING_DEP)
+AC_SUBST(LIBRRD)
 AC_SUBST(SUDO)
 AC_SUBST(CHOWN)
 
