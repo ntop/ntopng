@@ -816,7 +816,7 @@ static int ntop_is_windows(lua_State* vm) {
 
 /**
  * @brief Wrapper for the libc call getservbyport()
- * @details Wrapper for the libc call getservbyport()  
+ * @details Wrapper for the libc call getservbyport()
  *
  * @param vm The lua state.
  * @return CONST_LUA_OK.
@@ -1732,7 +1732,7 @@ static int ntop_get_interface_find_proc_name_flows(lua_State* vm) {
 static int ntop_list_http_hosts(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *key;
-  
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) != LUA_TSTRING) /* Optional */
@@ -1779,10 +1779,10 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((!ntop_interface) 
+  if((!ntop_interface)
      || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
     return(CONST_LUA_ERROR);
-  
+
   h->updateHostTrafficPolicy(host_ip);
   return(CONST_LUA_OK);
 }
@@ -1804,10 +1804,10 @@ static int ntop_update_host_alert_policy(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((!ntop_interface) 
+  if((!ntop_interface)
      || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
     return(CONST_LUA_ERROR);
-  
+
   h->readAlertPrefs();
   return(CONST_LUA_OK);
 }
@@ -1833,10 +1833,10 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 3) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 3);
 
-  if((!ntop_interface) 
+  if((!ntop_interface)
      || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL))
     return(CONST_LUA_ERROR);
-  
+
   h->setDumpTrafficPolicy(dump_traffic_to_disk);
   return(CONST_LUA_OK);
 }
@@ -1867,7 +1867,7 @@ static int ntop_get_host_hit_rate(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   h->getPeerBytes(vm, peer_key);
-  return(CONST_LUA_OK);  
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -2345,27 +2345,27 @@ static char** read_string_array(lua_State *vm, int narg, int *len_out) {
     *len_out = 0;
     return(NULL);
   }
-  
+
   len = lua_objlen(vm, narg);
   *len_out = len;
   buff = (char**)malloc(len*sizeof(char*));
-  
+
   if(!buff) {
     *len_out = 0;
     return(NULL);
   }
- 
+
   for(int i = 0; i < len; i++) {
     lua_pushinteger(vm, i+1);
     lua_gettable(vm, -2);
     if(lua_isstring(vm, -1))
-      buff[i] = (char*)lua_tostring(vm, -1);    
+      buff[i] = (char*)lua_tostring(vm, -1);
     else
       buff[i] = (char*)"";
 
     lua_pop(vm, 1);
   }
-  
+
   return(buff);
 }
 
@@ -2881,7 +2881,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "version", rsp);
   snprintf(rsp, sizeof(rsp), "%s (%s)", PACKAGE_OSNAME, PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "platform", rsp);
-  lua_push_str_table_entry(vm, "OS", 
+  lua_push_str_table_entry(vm, "OS",
 #ifdef WIN32
 			   (char*)"Windows"
 #else
@@ -4860,30 +4860,32 @@ int Lua::handle_script_request(struct mg_connection *conn,
   /* Put the GET params into the environment */
   lua_newtable(L);
   if(request_info->query_string != NULL) {
-    char *_query_string = strdup(request_info->query_string);
+    char *query_string = strdup(request_info->query_string);
 
-    if(_query_string) {
-      char *where, *query_string;
-      int len = strlen(_query_string)+1;
+    if(query_string) {
+      char *where;
+      char *tok;
 
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s", _query_string);
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
 
-      if((query_string = (char*)malloc(len)) != NULL) {
-	char *tok;
+      tok = strtok_r(query_string, "&", &where);
 
-	Utils::urlDecode(_query_string, query_string, len);
+      while(tok != NULL) {
+	/* key=val */
+	char *_equal = strchr(tok, '=');
 
-	tok = strtok_r(query_string, "&", &where);
+	if(_equal) {
+	  char *decoded_buf, *equal;
+	  int len;
 
-	while(tok != NULL) {
-	  /* key=val */
-	  char *equal = strchr(tok, '=');
+	  _equal[0] = '\0';
+	  _equal = &_equal[1];
+	  len = strlen(_equal);
 
-	  if(equal) {
-	    char *decoded_buf;
+	  if((equal = (char*)malloc(len+1)) != NULL) {
+	    Utils::urlDecode(_equal, equal, len+1);
 
-	    equal[0] = '\0';
-	    if((decoded_buf = http_decode(&equal[1])) != NULL) {
+	    if((decoded_buf = http_decode(equal)) != NULL) {
 	      FILE *fd;
 
 	      Utils::purifyHTTPparam(tok, true);
@@ -4906,6 +4908,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 		char rsp[32];
 		if(ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1) {
 		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid CSRF parameter specified [%s]", decoded_buf);
+		  free(equal);
 		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", PAGE_ERROR, tok, rsp));
 		}
 	      }
@@ -4913,16 +4916,18 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	      lua_push_str_table_entry(L, tok, decoded_buf);
 	      free(decoded_buf);
 	    }
-	  }
 
-	  tok = strtok_r(NULL, "&", &where);
-	} /* while */
+	    free(equal);
+	  } else
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	}
 
-	free(query_string);
-      }
+	tok = strtok_r(NULL, "&", &where);
+      } /* while */
 
-      free(_query_string);
-    }
+      free(query_string);
+    } else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
   }
   lua_setglobal(L, "_GET"); /* Like in php */
 
@@ -5024,12 +5029,12 @@ int Lua::handle_script_request(struct mg_connection *conn,
   }
 
 #ifndef NTOPNG_PRO
-    rc = luaL_dofile(L, script_path);
+  rc = luaL_dofile(L, script_path);
 #else
-    if(ntop->getPro()->has_valid_license())
-      rc = __ntop_lua_handlefile(L, script_path, true);
-    else
-      rc = luaL_dofile(L, script_path);
+  if(ntop->getPro()->has_valid_license())
+    rc = __ntop_lua_handlefile(L, script_path, true);
+  else
+    rc = luaL_dofile(L, script_path);
 #endif
 
   if(rc != 0) {
@@ -5038,7 +5043,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
     if(ptree) Destroy_Patricia(ptree, free_ptree_data);
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
-    return(send_error(conn, 500 /* Internal server error */, 
+    return(send_error(conn, 500 /* Internal server error */,
 		      "Internal server error", PAGE_ERROR, script_path, err));
   }
 

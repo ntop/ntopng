@@ -22,6 +22,12 @@
 #include "ntop_includes.h"
 
 #include <curl/curl.h>
+#include <string.h>
+
+extern "C" {
+#include "../third-party/detectxsslib/detectxsslib.h"
+#include "../third-party/detectxsslib/detectxsslib.c"
+};
 
 // A simple struct for strings.
 typedef struct {
@@ -561,15 +567,11 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
     if((*src == '%') &&
        ((a = src[1]) && (b = src[2]))
        && (isxdigit(a) && isxdigit(b))) {
-      if(a >= 'a') a -= 'a'-'A';
-      if(a >= 'A') a -=('A' - 10);
-      else         a -= '0';
+      char h[3] = { a, b, 0 };
+      char hexval = (char)strtol(h, (char **)NULL, 16);
 
-      if(b >= 'a') b -= 'a'-'A';
-      if(b >= 'A') b -=('A' - 10);
-      else         b -= '0';
-
-      *dst++ = 16*a+b;
+      if(isprint(hexval))
+	*dst++ = hexval;
 
       src += 3;
     } else
@@ -619,6 +621,17 @@ bool Utils::isUserAdministrator(lua_State* vm) {
  */
 
 void Utils::purifyHTTPparam(char *param, bool strict) {
+#if 1
+  xsslibUrl url;
+
+  xsslibUrlInit(&url);
+  xsslibUrlSetUrl(&url, param);
+
+  if(xsslibUrlScan(&url) != XssClean) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s", param);
+    param[0] = '\0';
+  } 
+#else
   for(int i=0; param[i] != '\0'; i++) {
     /* Fix for http://packetstormsecurity.com/files/127329/Ntop-NG-1.1-Cross-Site-Scripting.html */
     bool is_good;
@@ -656,6 +669,7 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
       param[i-1] = '_', param[i] = '_'; /* Invalidate the path */
     }
   }
+#endif
 }
 
 /* **************************************************** */
