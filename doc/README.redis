@@ -1,0 +1,8 @@
+In order to avoid redis fillup all the available memory please set some memory limit in /etc/redis.conf
+
+It is a good idea to setup some upper limits such as:
+
+maxmemory 300mb
+maxmemory-policy volatile-lru
+
+Of course you need to set these values according to your environment, so your mileage may vary.
