@@ -1185,3 +1185,37 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 }
 #endif
 
+/* **************************************** */
+
+bool Utils::isGoodNameToCategorize(char *name) {
+  if((name[0] == '\0')
+     || (strchr(name, '.') == NULL) /* Missing domain */
+     || (!strcmp(name, "Broadcast"))
+     || (!strcmp(name, "localhost"))
+     || strchr((const char*)name, ':') /* IPv6 */
+     || (strstr(name, "in-addr.arpa"))
+     || (strstr(name, "ip6.arpa"))
+     || (strstr(name, "_dns-sd._udp"))
+     )
+    return(false);
+  else
+    return(true);
+}
+
+/* **************************************** */
+
+char* Utils::get2ndLevelDomain(char *_domainname) {
+  int i, found = 0;
+
+  for(i=strlen(_domainname)-1, found = 0; (found != 2) && (i > 0); i--) {
+    if(_domainname[i] == '.') {      
+      found++;
+
+      if(found == 2) {
+	return(&_domainname[i+1]);
+      }
+    }
+  }
+
+  return(_domainname);
+}

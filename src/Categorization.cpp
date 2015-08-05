@@ -36,14 +36,7 @@ char* Categorization::findCategory(char *name, char *buf, u_int buf_len, bool ad
     ntop->getTrace()->traceEvent(TRACE_INFO, "[Categorization] %s(%s, %s)", 
 				 __FUNCTION__, name, add_if_needed ? "true" : "false");
     
-    if((name[0] == '\0')
-       || (strchr(name, '.') == NULL) /* Missing domain */
-       || (!strcmp(name, "Broadcast"))
-       || (!strcmp(name, "localhost"))
-       || strchr((const char*)name, ':') /* IPv6 */
-       || (strstr(name, ".in-addr.arpa"))
-       || (strstr(name, ".ip6.arpa"))
-       )
+    if(!Utils::isGoodNameToCategorize(name))
       return((char*)CATEGORIZATION_SAFE_SITE);
     else {
       char *ret = ntop->getRedis()->getFlowCategory(name, buf, buf_len, add_if_needed);
@@ -79,7 +72,7 @@ Categorization::~Categorization() {
   NOTICE: This function categorizes the given URL by using Google Safe Browsing API and stores
   the result into Redis Server.
   The request is performed using the HTTP GET method on a URL which has the following format:
-  https://sb-ssl.google.com/safebrowsing/api/lookup?client=CATEGORIZATION_CLIENT&apikey=APIKEY&appver=CATEGORIZATION_APCATEGORIZATION_PVER&pver=CATEGORIZATION_PVER&url=encoded_url
+  https://sb-ssl.google.com/safebrowsing/api/lookup?client=CLIENT&key=XXXXXX&appver=1.5.2&pver=3.1&url=http%3A%2F%2Fianfette.org%2F
   According to Safe Browsing API reply, the websites are then classified either as CATEGORIZATION_SAFE_SITE or "malware".
 */
 
@@ -108,7 +101,7 @@ void Categorization::categorizeHostName(char *_url, char *buf, u_int buf_len) {
 
       // 2. Create the request_url for GET request.
       snprintf(request_url, sizeof(request_url),
-	       "%s?client=%s&apikey=%s&appver=%s&pver=%s&url=%s",
+	       "%s?client=%s&key=%s&appver=%s&pver=%s&url=%s",
 	       CATEGORIZATION_URL, CATEGORIZATION_CLIENT, api_key,
 	       CATEGORIZATION_APPVER, CATEGORIZATION_PVER, encoded_url);
       

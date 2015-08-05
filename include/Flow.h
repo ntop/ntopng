@@ -60,7 +60,7 @@ class Flow : public GenericHashEntry {
 
   struct {
     char category[8];
-    bool flow_categorized;
+    bool categorized_requested;
   } categorization;
 
   /* Process Information */
@@ -124,6 +124,7 @@ class Flow : public GenericHashEntry {
   ~Flow();
 
   char *getFlowCategory(bool force_categorization);
+  void categorizeFlow();
   void deleteFlowMemory();
   char* serialize(bool partial_dump = false, bool es_json = false);
   json_object* flow2json(bool partial_dump);

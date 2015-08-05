@@ -522,17 +522,20 @@ char* Redis::getHTTPBLCategory(char *numeric_ip, char *buf,
 
 /* **************************************** */
 
-char* Redis::getFlowCategory(char *domainname, char *buf,
+char* Redis::getFlowCategory(char *_domainname, char *buf,
 			     u_int buf_len, bool categorize_if_unknown) {
-  char key[CONST_MAX_LEN_REDIS_KEY];
+  char key[CONST_MAX_LEN_REDIS_KEY], *domainname;
   redisReply *reply;
 
   buf[0] = 0;
 
   if(!ntop->getPrefs()->is_categorization_enabled())  return(NULL);
 
+  domainname = Utils::get2ndLevelDomain(_domainname);
+
   /* Check if the host is 'categorizable' */
-  if(Utils::isIPAddress(domainname)) {
+  if(Utils::isIPAddress(domainname)
+     || (!Utils::isGoodNameToCategorize(domainname))) {
     return(buf);
   }
 

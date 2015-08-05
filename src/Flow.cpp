@@ -76,7 +76,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); if(cli_host) srv_host->incrContact(cli_host, false); }
   pass_verdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
-  categorization.category[0] = '\0', categorization.flow_categorized = false;
+  categorization.category[0] = '\0', categorization.categorized_requested = false;
   bytes_thpt_trend = trend_unknown;
   pkts_thpt_trend = trend_unknown;
   protocol_processed = false, blacklist_alarm_emitted = false;
@@ -139,6 +139,30 @@ void Flow::deleteFlowMemory() {
   if(ndpi_flow) { ndpi_free_flow(ndpi_flow); ndpi_flow = NULL; }
   if(cli_id)    { free(cli_id);    cli_id = NULL;    }
   if(srv_id)    { free(srv_id);    srv_id = NULL;    }
+}
+
+/* *************************************** */
+
+void Flow::categorizeFlow() {
+  if((host_server_name == NULL) || (host_server_name[0] == '\0'))
+    return;
+
+  if(!categorization.categorized_requested) {
+    categorization.categorized_requested = true;    
+
+    if(ntop->get_categorization()->findCategory(Utils::get2ndLevelDomain(host_server_name),
+						categorization.category, sizeof(categorization.category),
+						true) != NULL) {
+      checkFlowCategory();
+    }
+  } else if(categorization.category[0] == '\0') {
+    ntop->getRedis()->getFlowCategory(Utils::get2ndLevelDomain(host_server_name),
+				      categorization.category,
+				      sizeof(categorization.category), false);
+    
+    if(categorization.category[0] != '\0')
+      checkFlowCategory();    
+  }
 }
 
 /* *************************************** */
@@ -295,7 +319,7 @@ void Flow::processDetectedProtocol() {
     }
 
     host_server_name = strdup((char*)ndpi_flow->host_server_name);
-    getFlowCategory(true);
+    categorizeFlow();
   }
 
   l7proto = ndpi_get_lower_proto(ndpi_detected_protocol);
@@ -1061,14 +1085,11 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     }
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
-    if(detailed_dump && ntop->get_categorization()
-       && categorization.flow_categorized && (categorization.category[0] == '\0')) {
-      /* Refresh category */
-      ntop->getRedis()->getFlowCategory(host_server_name,
-				        categorization.category,
-				        sizeof(categorization.category), false);
+    
+    if(detailed_dump && ntop->get_categorization()) {
+      categorizeFlow();
+      lua_push_str_table_entry(vm, "category", categorization.category);
     }
-    lua_push_str_table_entry(vm, "category", categorization.category);
 
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
     lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
@@ -1213,16 +1234,14 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 /* *************************************** */
 
 char* Flow::getFlowCategory(bool force_categorization) {
-  if(!categorization.flow_categorized) {
+  if(!categorization.categorized_requested) {
     if(ndpi_flow == NULL)
-      categorization.flow_categorized = true;
+      categorization.categorized_requested = true;
     else if(host_server_name && (host_server_name[0] != '\0')) {
-      if(ntop->get_categorization()->findCategory(host_server_name,
-						  categorization.category, sizeof(categorization.category),
-						  force_categorization) != NULL) {
-	categorization.flow_categorized = true;
-	checkFlowCategory();
-      }
+      if(!Utils::isGoodNameToCategorize(host_server_name))
+	categorization.categorized_requested = true;
+      else
+	categorizeFlow();      
     }
   }
 
@@ -1424,7 +1443,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   }
 
-  if(categorization.flow_categorized)
+  if(categorization.categorized_requested)
     json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
 
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
