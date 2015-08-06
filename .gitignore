@@ -1,6 +1,7 @@
 *~
 src/*.o
 src/*.obj
+third-party/json-c/config.h.in
 third-party/json-c/*
 third-party/rrdtool-1.4.8/*
 third-party/LuaJIT-2.0.3/src/*o
