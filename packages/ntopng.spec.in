@@ -22,14 +22,7 @@ Web-based traffic monitoring
 %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
 %build
-/bin/rm -rf $HOME/rpmbuild/BUILD/ntopng $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
-cd $HOME/rpmbuild/BUILD/
-tar xvfz $HOME/ntopng/ntopng-@NTOPNG_VERSION@.tgz
-cd $HOME/rpmbuild/BUILD/ntopng-@NTOPNG_VERSION@
-PATH=/usr/bin:/bin:/usr/sbin:/sbin
-CFLAGS="$RPM_OPT_FLAGS" ./configure
-make
-if test -d "pro"; then cd pro; make build; fi
+if ! test -f "$HOME/ntopng/pro/utils/snzip"; then echo "snzip missing"; exit; fi
 #
 
 # Installation may be a matter of running an install make target or you
@@ -42,32 +35,32 @@ fi
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROOT/usr/share/man/man8 
 mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/logrotate.d
-cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng $RPM_BUILD_ROOT/usr/bin
-cp $RPM_BUILD_DIR/ntopng-%{version}/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
-cp -r $RPM_BUILD_DIR/ntopng-%{version}/httpdocs $RPM_BUILD_DIR/ntopng-%{version}/scripts $RPM_BUILD_ROOT/usr/share/ntopng
+cp $HOME/ntopng/ntopng $RPM_BUILD_ROOT/usr/bin
+cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
+cp -r $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntopng
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
-if test -d "$RPM_BUILD_DIR/ntopng-%{version}/pro"; then
-   cd $RPM_BUILD_DIR/ntopng-%{version}/pro; make; cd -
+if test -d "$HOME/ntopng/pro"; then
+   cd $HOME/ntopng/pro; make; cd -
    mkdir $RPM_BUILD_ROOT/usr/share/ntopng/pro
-   cp -r $RPM_BUILD_DIR/ntopng-%{version}/pro/httpdocs $RPM_BUILD_ROOT/usr/share/ntopng/pro
-   cp -r $RPM_BUILD_DIR/ntopng-%{version}/pro/scripts $RPM_BUILD_ROOT/usr/share/ntopng/pro
+   cp -r $HOME/ntopng/pro/httpdocs $RPM_BUILD_ROOT/usr/share/ntopng/pro
+   cp -r $HOME/ntopng/pro/scripts $RPM_BUILD_ROOT/usr/share/ntopng/pro
    cd $RPM_BUILD_ROOT/usr/share/ntopng/scripts/lua; ln -s ../../pro/scripts/lua pro
-   find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec $RPM_BUILD_DIR/ntopng-%{version}/pro/utils/snzip -c -i {} -o {}r \;
+   find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec $HOME/ntopng/pro/utils/snzip -c -i {} -o {}r \;
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.luar" | xargs rename .luar .lua
 fi
 
 
-#cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/init/ntopng.conf $RPM_BUILD_ROOT/etc/init
+#cp $HOME/ntopng/packages/etc/init/ntopng.conf $RPM_BUILD_ROOT/etc/init
 if test -d "/etc/systemd"; then
    mkdir -p $RPM_BUILD_ROOT/etc/systemd/scripts/
    mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
-   cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/systemd/scripts/
-   cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/systemd/system/ntopng.service    $RPM_BUILD_ROOT/etc/systemd/system/
+   cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/systemd/scripts/
+   cp $HOME/ntopng/packages/etc/systemd/system/ntopng.service    $RPM_BUILD_ROOT/etc/systemd/system/
 else
-   cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
+   cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
-cp $RPM_BUILD_DIR/ntopng-%{version}/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
+cp $HOME/ntopng/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
 find $RPM_BUILD_ROOT -name ".git" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name ".svn" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name "*~"   | xargs /bin/rm -f

@@ -179,48 +179,25 @@ geoip:
 build-rpm: geoip build-rpm-ntopng build-rpm-ntopng-data
 
 
-build-rpm-ntopng:
-	rm -rf ntopng-@NTOPNG_VERSION@
-	mkdir ntopng-@NTOPNG_VERSION@
-	cp -r doc src include configure COPYING README.* *.in ntopng.8 httpdocs scripts packages third-party ntopng-@NTOPNG_VERSION@
-	if test -d "pro"; then cp -r pro ntopng-@NTOPNG_VERSION@; if test -d "../license"; then rm ntopng-@NTOPNG_VERSION@/pro/license; cp -r ../license ntopng-@NTOPNG_VERSION@/pro; fi fi
-	find ntopng-@NTOPNG_VERSION@ -name ".git" | xargs /bin/rm -rf
-	-rm ntopng-@NTOPNG_VERSION@/httpdocs/geoip/*
-	tar cvfz ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
-	#
-	rm -f $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
-	cp ntopng-@NTOPNG_VERSION@.tgz $(HOME)/rpmbuild/SOURCES/
-	#	
+protools:
+	cd pro; make
+
+build-rpm-ntopng: ntopng protools
 	rpmbuild -bb ./packages/ntopng.spec
 	@./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
 	@echo ""
 	@echo "Package contents:"
 	@rpm -qpl $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)
 	@echo "The package is now available in $(HOME)/rpmbuild/RPMS/$(PLATFORM)/$(RPM_PKG)"
-	-rm -rf ntopng-@NTOPNG_VERSION@ ntopng_@NTOPNG_VERSION@.tgz
-	#
 
-build-rpm-ntopng-data:
-	rm -rf ntopng-data-@NTOPNG_VERSION@
-	mkdir -p ntopng-data-@NTOPNG_VERSION@/usr/share/ntopng/httpdocs/geoip/
-	@if test -d ~/dat_files ; then \
-	  cp ~/dat_files/* ntopng-data-@NTOPNG_VERSION@/usr/share/ntopng/httpdocs/geoip/; \
-	else \
-	  cp ./httpdocs/geoip/* ntopng-data-@NTOPNG_VERSION@/usr/share/ntopng/httpdocs/geoip/ ;\
-	fi
-	#gunzip ntopng-data-@PACKAGE_VERSION@/usr/local/share/ntopng/httpdocs/geoip/*.gz
-	tar cvfz ntopng-data-@NTOPNG_VERSION@.tgz ntopng-data-@NTOPNG_VERSION@
-	#
-	rm -f $(HOME)/rpmbuild/RPMS/noarch/$(RPM_DATA_PKG)
-	cp ntopng-data-@NTOPNG_VERSION@.tgz $(HOME)/rpmbuild/SOURCES/
-	cd $(HOME)/rpmbuild/SOURCES;tar xvfz $(HOME)/rpmbuild/SOURCES/ntopng-data-@NTOPNG_VERSION@.tgz
+
+build-rpm-ntopng-data: geoip
 	rpmbuild -bb ./packages/ntopng-data.spec
 	@./packages/rpm-sign.exp $(HOME)/rpmbuild/RPMS/noarch/$(RPM_DATA_PKG)
 	@echo ""
 	@echo "Package contents:"
 	@rpm -qpl $(HOME)/rpmbuild/RPMS/noarch/$(RPM_DATA_PKG)
 	@echo "The package is now available in $(HOME)/rpmbuild/RPMS/noarch/$(RPM_DATA_PKG)"
-	-rm -rf ntopng-data-@NTOPNG_VERSION@ ntopng-data_@NTOPNG_VERSION@.tgz
 
 docs:
 	cd doc && doxygen doxygen.conf
