@@ -169,15 +169,19 @@ patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line) {
 
 void AddressResolution::addLocalNetwork(char *_net) {
   patricia_node_t *node;
-  char *net = strdup(_net);
+  char *net;
 
   if(num_local_networks >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined: ignored %s", _net);
-    free(net);
+    return;
+  }
+  
+  if((net = strdup(_net)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return;
   }
 
-  node = ptree_add_rule(ptree, _net);
+  node = ptree_add_rule(ptree, net);
 
   if(node) {
     local_networks[num_local_networks] = net;

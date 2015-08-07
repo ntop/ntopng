@@ -363,37 +363,36 @@ void Ntop::loadLocalInterfaceAddress() {
     if(ifa->ifa_addr->sa_family == AF_INET) {
       struct sockaddr_in* s4 =(struct sockaddr_in *)(ifa->ifa_addr);
 
-      if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
+      memset(&ifr, 0, sizeof(ifr));
+      ifr.ifr_addr.sa_family = AF_INET;
+      strncpy(ifr.ifr_name, ifa->ifa_name, sizeof(ifr.ifr_name));
+      ioctl(sock, SIOCGIFNETMASK, &ifr);
+      netmask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
+
+      /* Set to zero non network bits */
+      s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
+
+      cidr = 0;
+      
+      while(netmask) {
+	cidr += (netmask & 0x01);
+	netmask >>= 1;
+      }
+      
+      if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
 	int l = strlen(buf);
-	int16_t network_id;
-
-	memset(&ifr, 0, sizeof(ifr));
-	ifr.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr.ifr_name, ifa->ifa_name, sizeof(ifr.ifr_name));
-	ioctl(sock, SIOCGIFNETMASK, &ifr);
-	netmask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
-	cidr = 0;
-
-	while(netmask) {
-	  cidr += (netmask & 0x01);
-	  netmask >>= 1;
-	}
 
 	strncpy(buf_orig, buf, bufsize);
 	snprintf(&buf[l], sizeof(buf)-l, "/%u", cidr);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv4 interface address", buf);
 	strncpy(buf2, buf, bufsize);
 	ptree_add_rule(local_interface_addresses, buf_orig);
-
-	/* Add the net unless a larger one already exists */
-	if((prefs->get_local_networks() == NULL)
-	   && (!isLocalAddress(AF_INET, (void *)&(s4->sin_addr), &network_id))) {
-	  address->addLocalNetwork(buf2);
-	}
+	address->addLocalNetwork(buf2);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *s6 =(struct sockaddr_in6 *)(ifa->ifa_netmask);
       u_int8_t *b = (u_int8_t *)&(s6->sin6_addr);
+
       cidr = 0;
 
       for(int i=0; i<16; i++) {
@@ -403,22 +402,17 @@ void Ntop::loadLocalInterfaceAddress() {
 	cidr += num_bits;
       }
 
-      s6 =(struct sockaddr_in6 *)(ifa->ifa_addr);
+      /* TODO: Set to zero non network bits */
+      s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
 	int l = strlen(buf);
-	int16_t network_id;
 
 	strncpy(buf_orig, buf, bufsize);
 	snprintf(&buf[l], sizeof(buf)-l, "/%u", cidr);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv6 interface address for %s", buf, ifr.ifr_name);
 	strncpy(buf2, buf, bufsize);
 	ptree_add_rule(local_interface_addresses, buf_orig);
-
-	/* Add the net unless a larger one already exists */
-	if((prefs->get_local_networks() == NULL)
-	   && (!isLocalAddress(AF_INET6, (void *)&(s6->sin6_addr), &network_id))) {
-	  address->addLocalNetwork(buf2);
-	}
+	address->addLocalNetwork(buf2);
       }
     }
   }
