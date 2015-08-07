@@ -70,10 +70,6 @@ class Flow : public GenericHashEntry {
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
 
-  struct {
-    char *name;
-  } aggregationInfo;
-
   /* TCP stats */
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
 
@@ -194,8 +190,6 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_bytes_srv2cli();
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
-  void aggregateInfo(char *name, u_int16_t ndpi_proto_id,
-		     AggregationType mode, bool aggregation_to_track);
   void handle_process(ProcessInfo *pinfo, bool client_process);
   bool idle();
   int compare(Flow *fb);

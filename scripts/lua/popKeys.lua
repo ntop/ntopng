@@ -87,7 +87,6 @@ print("</ul>\n")
 
 interfaces:write("# idx | interface\n")
 hosts:write("# idx | name\n")
-activities:write("# host_contacts=0, aggregations=1\n")
 contacts:write("# contacted_by=0, contacted_peers=1\n")
 
 contact_idx = 0

@@ -1221,3 +1221,24 @@ char* Utils::get2ndLevelDomain(char *_domainname) {
 
   return(_domainname);
 }
+
+/* ****************************************************** */
+
+char* Utils::tokenizer(char *arg, int c, char **data) {
+  char *p = NULL;
+
+  if((p = strchr(arg, c)) != NULL) {
+    *p = '\0';
+    if(data) {
+      if(strlen(arg))
+        *data = strdup(arg);
+      else
+        *data = strdup("");
+    }
+
+    arg = &(p[1]);
+  } else if(data)
+    *data = NULL;
+
+  return (arg);
+}

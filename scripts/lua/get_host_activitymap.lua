@@ -14,13 +14,6 @@ sendHTTPHeader('application/json')
 
 interface.select(ifname)
 
-if((_GET["aggregated"] == nil) or (_GET["aggregated"] == 0)) then
-   aggregation = false
-else
-   aggregation = true
-end
-
-
-rsp = interface.getHostActivityMap(host_info["host"], aggregation, host_info["vlan"])
+rsp = interface.getHostActivityMap(host_info["host"], host_info["vlan"])
 
 print(rsp)

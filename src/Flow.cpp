@@ -72,8 +72,8 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0, last_db_dump.last_dump = 0;
 
   iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
-  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true);  if(srv_host) cli_host->incrContact(srv_host, true);  }
-  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); if(cli_host) srv_host->incrContact(cli_host, false); }
+  if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
+  if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   pass_verdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
   categorization.category[0] = '\0', categorization.categorized_requested = false;
@@ -86,8 +86,7 @@ Flow::Flow(NetworkInterface *_iface,
     synAckTime.tv_sec = synAckTime.tv_usec = 0;
   memset(&http, 0, sizeof(http)), memset(&dns, 0, sizeof(dns));
   memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
-  memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency)),
-  aggregationInfo.name = NULL;
+  memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
   switch(protocol) {
   case IPPROTO_TCP:
@@ -191,7 +190,6 @@ Flow::~Flow() {
   if(http.last_url)    free(http.last_url);
   if(dns.last_query)   free(dns.last_query);
   if(ssl.certificate)  free(ssl.certificate);
-  if(aggregationInfo.name) free(aggregationInfo.name);
   if(ndpi_proto_name)  free(ndpi_proto_name);
   
   deleteFlowMemory();
@@ -222,82 +220,6 @@ void Flow::checkBlacklistedFlow() {
     }
 
     blacklist_alarm_emitted = true;
-  }
-}
-
-/* *************************************** */
-
-void Flow::aggregateInfo(char *_name, u_int16_t ndpi_proto_id,
-			 AggregationType mode,
-			 bool aggregation_to_track
-			 /*
-			   i.e. it is not here for an error (such as NXDOMAIN)
-			   so we do not store persistently on disk aggregations
-			   due to errors that might fill-up the disk quickly
-			 */) {
-  if((_name == NULL) || (_name[0] == '\0'))
-    return; /* Nothing to do */
-
-  if(ntop->getPrefs()->get_aggregation_mode() != aggregations_disabled) {
-    StringHost *host;
-    char *name = _name, *first_name = NULL;
-
-    if(ntop->getPrefs()->use_short_aggregation_names()
-       && (mode == aggregation_domain_name)
-       && (strlen(name) > 3 /* .XX */)) {
-      u_int num = 0, i;
-
-      /* In order to reduce the number of hosts we can shorten
-	 the host name and limit it to two levels in domain name
-      */
-
-      for(i=strlen(_name)-2; i>0; i--) {
-	if(_name[i] == '.') {
-	  num++;
-
-	  first_name = &_name[i+1];
-
-	  if(num == 2)
-	    name = &_name[i+1];
-	  else if(num > 2) {
-	    name = first_name;
-	  }
-	}
-      }
-    }
-
-#if 0
-    if(mode == aggregation_domain_name)
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", name);
-    else
-      return; // FIX
-#endif
-
-    host = iface->findHostByString(NULL /* all hosts */, name, ndpi_proto_id, true);
-
-    if(host != NULL) {
-      host->set_aggregation_mode(mode);
-
-      if(aggregationInfo.name && strcmp(aggregationInfo.name, name)) {
-	struct timeval tv;
-
-	tv.tv_sec = (long)iface->getTimeLastPktRcvd(), tv.tv_usec = 0;
-	update_hosts_stats(&tv);
-      }
-
-      if(aggregationInfo.name) {
-	free(aggregationInfo.name);
-	aggregationInfo.name = NULL;
-      }
-
-      aggregationInfo.name = strdup(name);
-
-      host->inc_num_queries_rcvd();
-      host->set_tracked_host(aggregation_to_track);
-      host->updateSeen();
-      host->updateActivities();
-      if(cli_host) host->incrContact(iface, host->get_host_serial(), cli_host->get_ip(), true, true);
-    }
   }
 }
 
@@ -357,9 +279,6 @@ void Flow::processDetectedProtocol() {
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpi_flow->host_server_name);
 	    }
 	  }
-	  
-	  aggregateInfo((char*)ndpi_flow->host_server_name, l7proto,
-			aggregation_domain_name, to_track);
 	}
       }
     }
@@ -369,14 +288,6 @@ void Flow::processDetectedProtocol() {
     if(ndpi_flow->host_server_name[0] != '\0') {
       get_cli_host()->set_host_label((char*)ndpi_flow->host_server_name);
       protocol_processed = true;
-    }
-    break;
-
-  case NDPI_PROTOCOL_WHOIS_DAS:
-    if(ndpi_flow->host_server_name[0] != '\0') {
-      protocol_processed = true;
-      aggregateInfo((char*)ndpi_flow->host_server_name,
-		    l7proto, aggregation_domain_name, true);
     }
     break;
 
@@ -423,11 +334,6 @@ void Flow::processDetectedProtocol() {
     /* No break here !*/
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
-    if(ndpi_flow->nat_ip[0] != '\0') {
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "-> %s", (char*)ndpi_flow->nat_ip);
-      aggregateInfo((char*)ndpi_flow->nat_ip, l7proto, aggregation_client_name, true);
-    }
-
     if(ndpi_flow->host_server_name[0] != '\0') {
       char *doublecol, delimiter = ':';
 
@@ -437,31 +343,8 @@ void Flow::processDetectedProtocol() {
       if((doublecol = (char*)strchr((const char*)ndpi_flow->host_server_name, delimiter)) != NULL)
 	doublecol[0] = '\0';
 
-      if(srv_host) {
-	char buf[64];
-	Host *srv = get_real_server();
-
-	/* Check if the name isn't numeric */
-	if(strcmp((const char*)ndpi_flow->host_server_name,
-		  srv->get_ip()->print(buf, sizeof(buf)))) {
-	  aggregateInfo((char*)ndpi_flow->host_server_name, l7proto, aggregation_domain_name, true);
-
-#if 0
-	  if(ndpi_detected_protocol != NDPI_PROTOCOL_HTTP_PROXY) {
-	    srv->setName((char*)ndpi_flow->host_server_name, true);
-	    ntop->getRedis()->setResolvedAddress(srv->get_ip()->print(buf, sizeof(buf)),
-						 (char*)ndpi_flow->host_server_name);
-	  }
-#endif
-	}
-
-	if(ndpi_flow->detected_os[0] != '\0') {
-	  aggregateInfo((char*)ndpi_flow->detected_os, NTOPNG_NDPI_OS_PROTO_ID, aggregation_os_name, true);
-
-	  if(cli_host)
- 	    cli_host->setOS((char*)ndpi_flow->detected_os);
-	}
-      }
+      if(srv_host && (ndpi_flow->detected_os[0] != '\0') && cli_host)
+	cli_host->setOS((char*)ndpi_flow->detected_os);
     }
     break;
   } /* switch */
@@ -830,16 +713,6 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 				    */
       }
     }
-  }
-
-  if(aggregationInfo.name) {
-    StringHost *host = iface->findHostByString(NULL /* all hosts */, aggregationInfo.name, 
-					       ndpi_detected_protocol.protocol, true);
-
-    if(host)
-      host->incStats(protocol, ndpi_detected_protocol.protocol,
-		     diff_rcvd_packets, diff_rcvd_bytes,
-		     diff_sent_packets, diff_sent_bytes);
   }
 
   if(last_update_time.tv_sec > 0) {

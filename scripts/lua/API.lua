@@ -85,26 +85,6 @@ function getHosts ()
 function getHostsInfo (show_details)
 
 --! @memberof interface
---! @brief Get the aggregated hosts information of network interface.
---! @details For more information please read the @ref NetworkInterface::getActiveAggregatedHostsList documentation.
---! @tparam string family The family Id.
---! @tparam string host_name The host name.
---! @return An hashtable of hashtables containing the aggregated host information.
-function getAggregatedHostsInfo(family,host_name)
-
---! @memberof interface
---! @brief Get the aggregation family of network interface.
---! @details Find the aggregation family for the network interface and get the name of the protocol. For more information please read the @ref NetworkInterface::getAggregatedFamilies documentation.
---! @return An hashtable containing the aggregation family protocol name.
-function getAggregationFamilies()
-
---! @memberof interface
---! @brief Get the number of aggregated hosts of network interface.
---! @details Find the aggregation family for the network interface and get the name of the protocol. For more information please read the @ref ntop_get_interface_num_aggregated_hosts documentation.
---! @return Number of aggregated host.
-function getNumAggregatedHosts()
-
---! @memberof interface
 --! @brief Get the host information of network interface.
 --! @details For more information please read the @ref ntop_get_interface_host_info documentation.
 --! @tparam string host_ip The IP address of host.
@@ -114,12 +94,12 @@ function getHostInfo(host_ip,vlan_id)
 
 --! @memberof interface
 --! @brief Get the activity map of host of network interface.
---! @details Find the aggregation family for the network interface and get the name of the protocol. For more information please read the @ref ntop_get_interface_host_activitymap documentation.
+--! @details Get the host activity map. For more information please read the @ref ntop_get_interface_host_activitymap documentation.
 --! @tparam string host_ip The IP address of host.
 --! @tparam bool aggregated Boolean value set to true if you want the activity map of aggregated host, false otherwise.
 --! @tparam number vlan_id Optional, the vlan Id.
 --! @return The activity map in json format.
-function getHostActivityMap(host_ip,aggregated,vlan_id)
+function getHostActivityMap(host_ip,vlan_id)
 
 --! @memberof interface
 --! @brief Restore the host of network interface.
@@ -128,19 +108,6 @@ function getHostActivityMap(host_ip,aggregated,vlan_id)
 function restoreHost(host_ip)
 
 --! @memberof interface
---! @brief Get the aggregated host information of network interface.
---! @details For more information please read the @ref ntop_get_interface_aggregated_host_info documentation.
---! @tparam string host_name The host name.
---! @return An hashtable of hashtables containing the aggregated host information.
-function getAggregatedHostInfo(host_name)
-
---! @memberof interface
---! @brief Get all aggregations that have the given host as requester.
---! @details Example if we are looking at the DNS requests, it will return all DNS names requested by host X (host_name). For more information please read the @ref ntop_get_aggregregations_for_host documentation.
---! @tparam string host_name The host name.
---! @return An hashtable containing all aggregations that have the given host as requester.
-function getAggregationsForHost(host_name)
-
 --! @memberof interface
 --! @brief Get the flow information (minimal details) of network interface.
 --! @details For more information please read the @ref ntop_get_interface_flows_info documentation.
@@ -162,10 +129,10 @@ function getFlowPeers(host_name)
 function findFlowByKey(key)
 
 --! @memberof interface
---! @brief Get the host and aggregation information identified by key of network interface.
+--! @brief Get the host identified by key of network interface.
 --! @details For more information please read the @ref ntop_get_interface_find_host documentation.
 --! @tparam string key The host key (host name).
---! @return An hashtable containing the flow and aggregation information identified by the key parameter of network interface if it exists.
+--! @return An hashtable containing the flow identified by the key parameter of network interface if it exists.
 function findHost(key)
 
 --! @memberof interface

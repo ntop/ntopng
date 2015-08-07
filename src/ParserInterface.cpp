@@ -142,24 +142,6 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
         case DIRECTION:
           flow.direction = atoi(value);
           break;
-        case EPP_REGISTRAR_NAME:
-          snprintf(flow.epp_registrar_name, sizeof(flow.epp_registrar_name), "%s", value);
-          break;
-        case EPP_CMD:
-          flow.epp_cmd = atoi(value);
-          break;
-        case EPP_CMD_ARGS:
-          snprintf(flow.epp_cmd_args, sizeof(flow.epp_cmd_args), "%s", value);
-          break;
-        case EPP_RSP_CODE:
-          flow.epp_rsp_code = atoi(value);
-          break;
-        case EPP_REASON_STR:
-          snprintf(flow.epp_reason_str, sizeof(flow.epp_reason_str), "%s", value);
-          break;
-        case EPP_SERVER_NAME:
-          snprintf(flow.epp_server_name, sizeof(flow.epp_server_name), "%s", value);
-          break;
 
         case SRC_PROC_PID:
           iface->enable_sprobe(); /* We're collecting system flows */
@@ -237,15 +219,6 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
       /* Move to the next element */
       json_object_iter_next(&it);
     } // while json_object_iter_equal
-
-    /* Set default fields for EPP */
-    if(flow.epp_cmd > 0) {
-      if(flow.dst_port == 0) flow.dst_port = 443;
-      if(flow.src_port == 0) flow.dst_port = 1234;
-      flow.l4_proto = IPPROTO_TCP;
-      flow.in_pkts  = flow.out_pkts = 1; /* Dummy */
-      flow.l7_proto = NDPI_PROTOCOL_EPP;
-    }
 
     /* Process Flow */
     iface->flow_processing(&flow);

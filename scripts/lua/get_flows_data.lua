@@ -30,7 +30,6 @@ network_id  = _GET["network_id"]
 vhost       = _GET["vhost"]
 
 -- Host comparison parameters
-aggregation = _GET["aggregation"]
 key = _GET["key"]
 
 -- System host parameters
@@ -53,8 +52,7 @@ end
 if ((sortColumn == nil) or (sortColumn == "column_"))then
   sortColumn = getDefaultTableSort("flows")
 else
-  if ((aggregated == nil) and (sortColumn ~= "column_")
-    and (sortColumn ~= "")) then  
+   if((sortColumn ~= "column_") and (sortColumn ~= "")) then  
     tablePreferences("sort_flows",sortColumn)
   end
 end
@@ -62,8 +60,7 @@ end
 if(sortOrder == nil) then
   sortOrder = getDefaultTableSortOrder("flows")
 else
-  if ((aggregated == nil) and (sortColumn ~= "column_")
-    and (sortColumn ~= "")) then   
+  if ((sortColumn ~= "column_") and (sortColumn ~= "")) then   
     tablePreferences("sort_order_flows",sortOrder) 
   end
 end
@@ -125,13 +122,6 @@ if (hosts ~= nil) then host_list, num_host_list = getHostCommaSeparatedList(host
 if (host ~= nil) then
    single_host = 1
    num_host_list = 1
-end
-
--- Prepare aggregation
-if ((aggregation ~= nil) and (key ~= nil)) then
-   if (aggregation == "ndpi") then application = key end
-   if (aggregation == "l4proto") then l4proto = key end
-   if (aggregation == "port") then port = tonumber(key) end
 end
 
 vals = {}

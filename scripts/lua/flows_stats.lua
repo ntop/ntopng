@@ -17,7 +17,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 application = _GET["application"]
 application_filter = ""
 hosts = _GET["hosts"]
-aggregation = _GET["aggregation"]
 key = _GET["key"]
 host = _GET["host"]
 vhost = _GET["vhost"]
@@ -103,16 +102,6 @@ if(hosts ~= nil) then
     print("?")
   end
   print("hosts="..hosts)
-  num_param = num_param + 1
-end
-
-if(aggregation ~= nil) then
-  if (num_param > 0) then
-    print("&")
-  else
-    print("?")
-  end
-  print("aggregation="..aggregation)
   num_param = num_param + 1
 end
 

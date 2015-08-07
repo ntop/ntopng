@@ -59,7 +59,6 @@ or
 .IR <max num flows> ]
 .RB [ \-B
 .IR <filter> ]
-.RB [ \-C ]
 .RB [ \-k
 .IR <key> ]
 .RB [ \-A
@@ -75,8 +74,6 @@ or
 .RB [ \-O
 .IR <communities\-list> ]
 .RB [ \-E
-.IR <dump\-aggregations> ]
-.RB [ \-S
 .IR <sticky\-hosts> ]
 .RB [ \-t
 .IR <dir> ]
@@ -274,18 +271,6 @@ Do not change user (debug only).
 .It \-B|\-\-packet\-filter\ <filter>
 Specifies the packet filter for the specified interface. For pcap/PF_RING interfaces
 the filter has to be specified in BPF format (Berkeley Packet Filter).
-
-.It \-C|\-\-dump\-timeline
-Enable timeline dump on disk (default: disabled).
-
-.It \-A|\-\-enable\-aggregations\ <mode>
-Enable data aggregations (e.g. Operating System, DNS etc). The available modes are:
-.br
-0  \(em Disable aggregations, default
-.br
-1  \(em Enable aggregations but do not dump on disk their activity timeline
-.br
-2  \(em Enable aggregations and timeline dump on disk.
 
 .It \-X|\-\-max\-num\-flows\ <num>
 Specify the maximum number of active flows that ntopng will handle. If more flows are

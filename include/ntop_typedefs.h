@@ -57,62 +57,6 @@ typedef enum {
   alert_level_error,
 } AlertLevel;
 
-typedef enum {
-  aggregation_client_name = 0,
-  aggregation_server_name,
-  aggregation_domain_name,
-  aggregation_os_name,
-  aggregation_registrar_name
-} AggregationType;
-
-enum epp_cmd {
-  epp_cmd_domain_create,
-  epp_cmd_domain_update,
-  epp_cmd_domain_delete,
-  epp_cmd_domain_restore,
-  epp_cmd_domain_transfer,
-  epp_cmd_domain_transfer_trade,
-  epp_cmd_domain_transfer_request,
-  epp_cmd_domain_transfer_trade_request,
-  epp_cmd_domain_transfer_cancel,
-  epp_cmd_domain_transfer_approve,
-  epp_cmd_domain_transfer_reject,
-  epp_cmd_contact_create,
-  epp_cmd_contact_update,
-  epp_cmd_contact_delete,
-  epp_cmd_domain_update_hosts,
-  epp_cmd_domain_update_statuses,
-  epp_cmd_domain_update_contacts,
-  epp_cmd_domain_trade,
-  epp_cmd_domain_update_simple,
-  epp_cmd_domain_info,
-  epp_cmd_contact_info,
-  epp_cmd_domain_check,
-  epp_cmd_contact_check,
-  epp_cmd_poll_req,
-  epp_cmd_domain_transfer_trade_cancel,
-  epp_cmd_domain_transfer_trade_approve,
-  epp_cmd_domain_transfer_trade_reject,
-  epp_cmd_domain_transfer_query,
-  epp_cmd_login,
-  epp_cmd_login_chg_pwd,
-  epp_cmd_logout,
-  epp_cmd_poll_ack,
-  epp_cmd_hello,
-  epp_cmd_unknown_command
-};
-
-struct epp_stats {
-  u_int32_t num_queries, num_replies_ok, num_replies_error;
-  u_int32_t breakdown[CONST_EPP_MAX_CMD_NUM+1];
-};
-
-typedef enum {
-  aggregations_disabled,
-  aggregations_enabled_no_bitmap_dump,
-  aggregations_enabled_with_bitmap_dump
-} AggregationMode;
-
 struct zmq_msg_hdr {
   char url[32];
   u_int32_t version;

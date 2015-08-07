@@ -253,29 +253,6 @@ static NetworkInterfaceView* get_ntop_interface(lua_State* vm) {
 }
 
 /* ****************************************** */
-/**
- * @brief Flush the host contacts of the network interface defined into lua.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK if the network_interface lua variable is not NULL, @ref CONST_LUA_ERROR otherwise.
- */
-static int ntop_flush_host_contacts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  ntop_interface = get_ntop_interface(vm);
-
-  if(ntop_interface) {
-    ntop_interface->flushHostContacts();
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
-}
-
-/* ****************************************** */
 
 /**
  * @brief Find the network interface and set it as global variable to lua.
@@ -581,51 +558,6 @@ static int ntop_get_interface_community_hosts_info(lua_State* vm) {
   community_id = (int)lua_tonumber(vm, 2);
 
   if(ntop_interface) ntop_interface->getCommunityHostsList(vm, get_allowed_nets(vm), show_details, community_id);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
- * @brief Get the aggregated host information of network interface.
- * @details Get the family, the host name from the lua stack and the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the aggregated host information.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_aggregated_hosts_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  u_int16_t family = 0;
-  char *host = NULL;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) == LUA_TNUMBER)
-    family = (u_int16_t)lua_tonumber(vm, 1);
-
-  if(lua_type(vm, 2) == LUA_TSTRING)
-    host = (char*)lua_tostring(vm, 2);
-
-  if(ntop_interface) ntop_interface->getActiveAggregatedHostsList(vm, get_allowed_nets(vm), family, host);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
- * @brief Get the number of aggregated hosts of network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack the number of aggregated hosts.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_num_aggregated_hosts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_interface) lua_pushnumber(vm, ntop_interface->getNumAggregatedHosts());
 
   return(CONST_LUA_OK);
 }
@@ -1427,7 +1359,6 @@ static int ntop_get_interface_host_activitymap(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
   GenericHost *h;
-  bool aggregated;
   u_int16_t vlan_id = 0;
   char buf[64];
 
@@ -1438,21 +1369,15 @@ static int ntop_get_interface_host_activitymap(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);
-  aggregated = lua_toboolean(vm, 2) ? true : false;
-
   /* Optional VLAN id */
-  if(lua_type(vm, 3) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if(!aggregated)
-    h = ntop_interface->getHost(host_ip, vlan_id);
-  else
-    h = ntop_interface->getAggregatedHost(host_ip);
+  h = ntop_interface->getHost(host_ip, vlan_id);
 
   if(h == NULL)
     return(CONST_LUA_ERROR);
   else {
-    if((!aggregated) || h->match(get_allowed_nets(vm))) {
+    if(h->match(get_allowed_nets(vm))) {
       char *json = h->getJsonActivityMap();
 
       lua_pushfstring(vm, "%s", json);
@@ -1486,64 +1411,6 @@ static int ntop_restore_interface_host(lua_State* vm) {
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
 
   if((!ntop_interface) || !ntop_interface->restoreHost(host_ip))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
- * @brief Get the aggregated host information of network interface.
- * @details Get the host name from the lua stack and the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the aggregated host information.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_aggregated_host_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  char *host_name;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_name, &vlan_id, buf, sizeof(buf));
-
-  if((!ntop_interface) || (!ntop_interface->getAggregatedHostInfo(vm, get_allowed_nets(vm), host_name)))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_interface_aggregation_families(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if((!ntop_interface) || (!ntop_interface->getAggregatedFamilies(vm)))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_aggregregations_for_host(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  char *host_name;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_name, &vlan_id, buf, sizeof(buf));
-
-  if((!ntop_interface) || (!ntop_interface->getAggregationsForHost(vm, get_allowed_nets(vm), host_name)))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -4026,24 +3893,6 @@ static int ntop_get_queued_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_redis_dump_daily_stats(lua_State* vm) {
-  char *day;
-  Redis *redis = ntop->getRedis();
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  /* 131206 */
-  if((day = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Beginning key dump for %s", day);
-  redis->dumpDailyStatsKeys(day);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Keys dumped on disk");
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_set_redis(lua_State* vm) {
   char *key, *value;
   Redis *redis = ntop->getRedis();
@@ -4426,7 +4275,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setActiveInterfaceId",   ntop_set_active_interface_id },
   { "getIfNames",             ntop_get_interface_names },
   { "select",                 ntop_select_interface },
-  { "flushHostContacts",      ntop_flush_host_contacts },
   { "getStats",               ntop_get_interface_stats },
   { "getNdpiStats",           ntop_get_ndpi_interface_stats },
   { "getNdpiProtoName",       ntop_get_ndpi_protocol_name },
@@ -4440,17 +4288,12 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getCommunityHostsInfo",  ntop_get_interface_community_hosts_info },
-  { "getAggregatedHostsInfo", ntop_get_interface_aggregated_hosts_info },
-  { "getAggregationFamilies", ntop_get_interface_aggregation_families },
-  { "getNumAggregatedHosts",  ntop_get_interface_num_aggregated_hosts },
   { "getHostInfo",            ntop_get_interface_host_info },
   { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
   { "correlateHostActivity",  ntop_correalate_host_activity },
   { "similarHostActivity",    ntop_similar_host_activity },
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
-  { "getAggregatedHostInfo",  ntop_get_interface_aggregated_host_info },
-  { "getAggregationsForHost", ntop_get_aggregregations_for_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
   { "queryFlowsInfo",         ntop_query_interface_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
@@ -4521,7 +4364,6 @@ static const luaL_Reg ntop_reg[] = {
   { "getHashKeysCache", ntop_get_hash_keys_redis },
   { "delHashCache",   ntop_delete_hash_redis_key },
   { "setPopCache",    ntop_get_redis_set_pop },
-  { "dumpDailyStats", ntop_redis_dump_daily_stats },
   { "getHostId",      ntop_redis_get_host_id },
   { "getIdToHost",    ntop_redis_get_id_to_host },
 

@@ -50,7 +50,6 @@ class Host : public GenericHost {
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
   DnsStats *dns;
   HTTPStats *http;
-  EppStats *epp;
   bool trigger_host_alerts;
   u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
 
@@ -125,7 +124,6 @@ class Host : public GenericHost {
   void set_host_label(char *label_name);
   int compare(Host *h);
   inline bool equal(IpAddress *_ip)  { return(ip && _ip && ip->equal(_ip)); };
-  void incrContact(Host *peer, bool contacted_peer_as_client);
   void incStats(u_int8_t l4_proto, u_int ndpi_proto, 
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
@@ -133,7 +131,6 @@ class Host : public GenericHost {
   void updateHostTrafficPolicy(char *key);
   char* serialize();
   bool deserialize(char *json_str);
-  void flushContacts(bool freeHost);
   bool addIfMatching(lua_State* vm, patricia_tree_t * ptree, char *key);
   void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
 
@@ -145,10 +142,6 @@ class Host : public GenericHost {
   inline void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
   inline void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
 
-  inline void incNumEPPQueriesSent(u_int16_t query_type) { if(epp) epp->incNumEPPQueriesSent(query_type); };
-  inline void incNumEPPQueriesRcvd(u_int16_t query_type) { if(epp) epp->incNumEPPQueriesRcvd(query_type); };
-  inline void incNumEPPResponsesSent(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesSent(ret_code); };
-  inline void incNumEPPResponsesRcvd(u_int32_t ret_code) { if(epp) epp->incNumEPPResponsesRcvd(ret_code); };  
   inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
 
   void readAlertPrefs();

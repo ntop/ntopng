@@ -121,15 +121,6 @@ bool NetworkInterfaceView::hasIdsAs(const char *names) {
 
 /* **************************************************** */
 
-void NetworkInterfaceView::flushHostContacts() {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->flushHostContacts();
-}
-
-/* **************************************************** */
-
 void NetworkInterfaceView::loadDumpPrefs() {
   list<NetworkInterface *>::iterator p;
 
@@ -199,36 +190,6 @@ void NetworkInterfaceView::getCommunityHostsList(lua_State* vm,
   lua_newtable(vm);
   for(p = physIntf.begin() ; p != physIntf.end() ; p++)
     (*p)->getCommunityHostsList(vm, &vp, host_details, community_id);
-}
-
-/* **************************************************** */
-
-void NetworkInterfaceView::getActiveAggregatedHostsList(lua_State* vm,
-						        patricia_tree_t *allowed_hosts,
-						        u_int16_t proto_family,
-						        char *host) {
-  struct aggregation_walk_hosts_info info;
-  list<NetworkInterface *>::iterator p;
-
-  info.vm = vm, info.family_id = proto_family,
-    info.host = host, info.allowed_hosts = allowed_hosts;
-
-  lua_newtable(vm);
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getActiveAggregatedHostsList(vm, &info);
-}
-
-/* **************************************************** */
-
-u_int NetworkInterfaceView::getNumAggregatedHosts() {
-  u_int cnt = 0;
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    cnt += (*p)->getNumAggregatedHosts();
-
-  return cnt;
 }
 
 /* **************************************************** */
@@ -348,18 +309,6 @@ Host* NetworkInterfaceView::getHost(char *host_ip, u_int16_t vlan_id) {
 
 /* **************************************************** */
 
-StringHost* NetworkInterfaceView::getAggregatedHost(char *host_name) {
-  list<NetworkInterface *>::iterator p;
-  StringHost *sh = NULL;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((sh = (*p)->getAggregatedHost(host_name))) return sh;
-
-  return sh;
-}
-
-/* **************************************************** */
-
 bool NetworkInterfaceView::restoreHost(char *host_ip) {
   list<NetworkInterface *>::iterator p;
 
@@ -367,64 +316,6 @@ bool NetworkInterfaceView::restoreHost(char *host_ip) {
     if((*p)->restoreHost(host_ip)) return true;
 
   return false;
-}
-
-/* **************************************************** */
-
-bool NetworkInterfaceView::getAggregatedHostInfo(lua_State* vm,
-					         patricia_tree_t *ptree,
-					         char *host_name) {
-  list<NetworkInterface *>::iterator p;
-  bool ret = false;
-
-  lua_newtable(vm);
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->getAggregatedHostInfo(vm, ptree, host_name)) ret = true;
-
-  return ret;
-}
-
-/* **************************************************** */
-
-bool NetworkInterfaceView::getAggregatedFamilies(lua_State* vm) {
-  list<NetworkInterface *>::iterator p;
-  struct ndpi_protocols_aggregation agg;
-
-  lua_newtable(vm);
-
-  lua_newtable(vm);
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getAggregationFamilies(vm, &agg);
-
-  lua_pushstring(vm, "families");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
-  lua_newtable(vm);
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->compareAggregationFamilies(vm, &agg);
-
-  lua_pushstring(vm, "aggregations");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
-  return true;
-}
-
-/* **************************************************** */
-
-bool NetworkInterfaceView::getAggregationsForHost(lua_State* vm,
-					          patricia_tree_t *allowed_hosts,
-					          char *host_ip) {
-  list<NetworkInterface *>::iterator p;
-
-  lua_newtable(vm);
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getAggregationsForHost(vm, allowed_hosts, host_ip);
-
-  return(true);
 }
 
 /* **************************************************** */
@@ -681,7 +572,7 @@ void NetworkInterfaceView::lua(lua_State *vm) {
   bool sprobe_interface = false, inline_interface = false, has_vlan_packets = false;
   u_int64_t stats_packets = 0, stats_bytes = 0;
   u_int stats_flows = 0, stats_hosts = 0, 
-    stats_http_hosts = 0, stats_aggregations = 0;
+    stats_http_hosts = 0;
   u_int32_t stats_drops = 0;
 
   lua_newtable(vm);
@@ -695,7 +586,6 @@ void NetworkInterfaceView::lua(lua_State *vm) {
     stats_flows += (*p)->getNumFlows();
     stats_hosts += (*p)->getNumHosts();
     stats_http_hosts += (*p)->getNumHTTPHosts();
-    stats_aggregations += (*p)->getNumAggregations();
     stats_drops += (*p)->getNumDroppedPackets();
     (*p)->lua(vm);
   }
@@ -708,15 +598,12 @@ void NetworkInterfaceView::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "iface_view", iface ? false : true);
 
   lua_push_bool_table_entry(vm, "iface_vlan", has_vlan_packets);
-  lua_push_bool_table_entry(vm, "aggregations_enabled",
-                            (ntop->getPrefs()->get_aggregation_mode() != aggregations_disabled) ? true : false);
 
   lua_push_int_table_entry(vm, "stats_packets", stats_packets);
   lua_push_int_table_entry(vm, "stats_bytes",   stats_bytes);
   lua_push_int_table_entry(vm, "stats_flows",   stats_flows);
   lua_push_int_table_entry(vm, "stats_hosts",   stats_hosts);
   lua_push_int_table_entry(vm, "stats_http_hosts",  stats_http_hosts);
-  lua_push_int_table_entry(vm, "stats_aggregations", stats_aggregations);
   lua_push_int_table_entry(vm, "stats_drops",   stats_drops);
 
   lua_pushinteger(vm, 0); //  Index

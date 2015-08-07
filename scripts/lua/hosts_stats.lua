@@ -42,6 +42,12 @@ print [[/lua/get_hosts_data.lua?mode=]]
 print(mode)
 
 if(protocol ~= nil) then
+   -- Example HTTP.Facebook
+   dot = string.find(protocol, '%.')
+   if(dot ~= nil) then
+      protocol = string.sub(protocol, dot+1)
+   end
+
    print('&protocol='..protocol)
 end
 

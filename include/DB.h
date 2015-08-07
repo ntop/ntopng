@@ -34,18 +34,25 @@ typedef struct {
 class DB {
  private:
   Mutex *m;
-  u_int32_t contacts_cache_idx;
-  db_cache contacts_cache[CONST_NUM_OPEN_DB_CACHE];
   sqlite3 *db;
   NetworkInterface *iface;
   u_int32_t dir_duration;
   char db_path[MAX_PATH];
   time_t end_dump;
   u_int8_t db_id;
+#ifdef HAVE_MYSQL
+  MYSQL mysql;
+#endif
 
-  void initDB(time_t when, const char *create_sql_string);
-  void termDB();
-  bool execSQL(sqlite3 *_db, char* sql);
+  void initSQLiteDB(time_t when, const char *create_sql_string);
+  void termSQLiteDB();
+  bool execSQLiteSQL(sqlite3 *_db, char* sql);
+  bool dumpSQLiteFlow(time_t when, Flow *f, char *json);
+
+  void initMySQLDB(time_t when, const char *create_sql_string);
+  void termMySQLDB();
+  bool execMySQLSQL(sqlite3 *_db, char* sql);
+  bool dumpMySQLFlow(time_t when, Flow *f, char *json);
 
  public:
   DB(NetworkInterface *_iface = NULL,
@@ -55,8 +62,6 @@ class DB {
 
   inline u_int8_t get_db_id()       { return(db_id); };
   bool dumpFlow(time_t when, Flow *f, char *json);
-  void dumpContacts(HostContacts *c, char *path);
-  bool execContactsSQLStatement(char* _sql);
 };
 
 #endif /* _DB_CLASS_H_ */

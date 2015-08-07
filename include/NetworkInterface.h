@@ -63,11 +63,6 @@ typedef struct zmq_flow {
   json_object *additional_fields;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
 
-  /* EPP Extensions */
-  char epp_server_name[48], epp_registrar_name[48], epp_cmd_args[64], epp_reason_str[16];
-  u_int8_t epp_cmd;
-  int epp_rsp_code;
-
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
@@ -77,22 +72,10 @@ struct vm_ptree {
   patricia_tree_t *ptree;
 };
 
-struct aggregation_walk_hosts_info {
-  lua_State* vm;
-  u_int16_t family_id;
-  char *host;
-  patricia_tree_t *allowed_hosts;
-};
-
 struct active_flow_stats {
   u_int32_t num_flows, 
     ndpi_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS],
     breeds_bytes[NUM_BREEDS];
-};
-
-struct ndpi_protocols_aggregation {
-  NDPI_PROTOCOL_BITMASK families;
-  NDPI_PROTOCOL_BITMASK aggregations; /* Jeopardized */
 };
 
 #ifdef NTOPNG_PRO
@@ -125,8 +108,6 @@ class NetworkInterface {
   FlowHash *flows_hash; /**< Hash used to memorize the flows information.*/
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to memorize the hosts information.*/
-  /* String hash (Aggregation) */
-  StringHash *strings_hash; /**< Hash used to memorize the aggregation information.*/
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
     dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_to_disk, dump_security_to_disk;
   DB *db;
@@ -136,7 +117,7 @@ class NetworkInterface {
   NetworkInterfaceView *view;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
-  time_t last_pkt_rcvd, next_idle_flow_purge, next_idle_host_purge, next_idle_aggregated_host_purge;
+  time_t last_pkt_rcvd, next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
   PacketDumper *pkt_dumper;
   PacketDumperTuntap *pkt_dumper_tap;
@@ -151,7 +132,6 @@ class NetworkInterface {
 		bool *new_flow);
   bool isNumber(const char *str);
   bool validInterface(char *name);
-  void process_epp_flow(ZMQ_Flow *zflow, Flow *flow);
   bool isInterfaceUp(char *name);
   bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
@@ -225,8 +205,7 @@ class NetworkInterface {
 		     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
-  void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
-  void flushHostContacts();
+  void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key); 
   bool packet_dissector(const struct pcap_pkthdr *h, const u_char *packet,
 			int *a_shaper_id, int *b_shaper_id);
 #ifdef __OpenBSD__
@@ -260,33 +239,21 @@ class NetworkInterface {
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
   u_int purgeIdleHosts();
-  u_int purgeIdleAggregatedHosts();
 
   inline u_int64_t getNumPackets()  { return(ethStats.getNumPackets());      };
   inline u_int64_t getNumBytes()    { return(ethStats.getNumBytes());        };
   u_int getNumFlows();
   u_int getNumHosts();
   u_int getNumHTTPHosts();
-  u_int getNumAggregations();
 
   void runHousekeepingTasks();
   Host* findHostByMac(u_int8_t mac[6], u_int16_t vlanId,
 		      bool createIfNotPresent);
   Host* getHost(char *host_ip, u_int16_t vlan_id);
-  StringHost* getAggregatedHost(char *host_name);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  void getActiveAggregatedHostsList(lua_State* vm, struct aggregation_walk_hosts_info *info);
-  bool getAggregatedHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip);
-  bool getAggregationFamilies(lua_State* vm, struct ndpi_protocols_aggregation *agg);
-  bool compareAggregationFamilies(lua_State* vm, struct ndpi_protocols_aggregation *agg);
-  bool getAggregationsForHost(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip);
   bool correlateHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool similarHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  StringHost* findHostByString(patricia_tree_t *allowed_hosts,
-			       char *keyname, u_int16_t family_id,
-			       bool createIfNotPresent);
-  inline u_int getNumAggregatedHosts() { return(strings_hash->getNumEntries()); }
   void findUserFlows(lua_State *vm, char *username);
   void findPidFlows(lua_State *vm, u_int32_t pid);
   void findFatherPidFlows(lua_State *vm, u_int32_t pid);

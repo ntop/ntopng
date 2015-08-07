@@ -53,7 +53,7 @@ static void free_wrapper(void *freeable)
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
   ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
-    strings_hash = NULL, ndpi_struct = NULL,
+    ndpi_struct = NULL,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
@@ -144,7 +144,6 @@ NetworkInterface::NetworkInterface(const char *name) {
 
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts()/4);
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
-    strings_hash = new StringHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(),
@@ -167,7 +166,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
     last_pkt_rcvd = 0, pollLoopCreated = false, bridge_interface = false;
-    next_idle_flow_purge = next_idle_host_purge = next_idle_aggregated_host_purge = 0;
+    next_idle_flow_purge = next_idle_host_purge = 0;
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
@@ -178,7 +177,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     db = new DB(this);
     checkIdle();
   } else {
-    flows_hash = NULL, hosts_hash = NULL, strings_hash = NULL;
+    flows_hash = NULL, hosts_hash = NULL;
     ndpi_struct = NULL, db = NULL;
     pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
@@ -399,7 +398,6 @@ void NetworkInterface::deleteDataStructures() {
 
   if(flows_hash)   { delete(flows_hash); flows_hash = NULL;     }
   if(hosts_hash)   { delete(hosts_hash); hosts_hash = NULL;     }
-  if(strings_hash) { delete(strings_hash); strings_hash = NULL; }
 
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct, free_wrapper);
@@ -556,56 +554,6 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
 /* **************************************************** */
 
-void NetworkInterface::process_epp_flow(ZMQ_Flow *zflow, Flow *flow) {
-  if(flow->get_cli_host()) {
-    flow->get_cli_host()->incNumEPPQueriesSent(zflow->epp_cmd);
-    flow->get_cli_host()->incNumEPPResponsesRcvd(zflow->epp_rsp_code);
-
-    if(strcmp(zflow->epp_registrar_name, "null"))
-      flow->get_cli_host()->set_host_label(zflow->epp_registrar_name);
-  }
-
-  if(flow->get_srv_host()) {
-    flow->get_srv_host()->incNumEPPQueriesRcvd(zflow->epp_cmd);
-    flow->get_srv_host()->incNumEPPResponsesSent(zflow->epp_rsp_code);
-  }
-
-  if(strcmp(zflow->epp_registrar_name, "null"))
-    flow->aggregateInfo(zflow->epp_registrar_name, NDPI_PROTOCOL_EPP,
-			aggregation_registrar_name, true);
-
-  if(zflow->epp_server_name[0] != '\0')
-    flow->aggregateInfo(zflow->epp_server_name, NDPI_PROTOCOL_EPP,
-			aggregation_server_name, true);
-
-  if(zflow->epp_cmd_args[0] != '\0') {
-    char *domain, *pos;
-    bool next_break = false;
-
-    domain = strtok_r(zflow->epp_cmd_args, "=", &pos);
-
-    while((domain != NULL) && strcmp(domain, "null")) {
-      char *status;
-
-      if((status = strtok_r(NULL, ",", &pos)) == NULL) {
-	status = (char*)"true";
-	next_break = true;
-      }
-
-      // ntop->getTrace()->traceEvent(TRACE_INFO, "%s = %s", domain, status);
-      flow->aggregateInfo(domain, NDPI_PROTOCOL_EPP, aggregation_domain_name,
-			  (strncasecmp(status, "true" /* true = AVAILABLE */,
-				       4) == 0) ? false : true);
-
-      if(next_break) break;
-
-      domain = strtok_r(NULL, "=", &pos);
-    }
-  }
-}
-
-/* **************************************************** */
-
 void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
@@ -625,7 +573,6 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
 
   if(flow == NULL) return;
 
-  /* Check if this is an EPP flow" */
   if(zflow->l4_proto == IPPROTO_TCP) {
     struct timeval when;
 
@@ -656,9 +603,6 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
-
-  if(zflow->epp_cmd > 0)
-    process_epp_flow(zflow, flow);
 
   if(zflow->src_process.pid || zflow->dst_process.pid) {
     if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
@@ -879,8 +823,6 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
   if(flow->isDetectionCompleted()
      && flow->get_cli_host()
      && flow->get_srv_host()) {
-    /* Handle aggregations here */
-
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_HTTP:
       if(payload_len > 0)
@@ -931,16 +873,6 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 				      ip, ipsize, (u_int32_t)time,
 				      src2dst_direction ? cli : srv,
 				      src2dst_direction ? srv : cli);
-
-	if(ndpi_flow->protos.dns.ret_code != 0) {
-	  /*
-	    This is a negative reply thus we notify the system that
-	    this aggregation must not be tracked
-	  */
-	  flow->aggregateInfo((char*)ndpi_flow->host_server_name,
-			      NDPI_PROTOCOL_DNS, aggregation_domain_name,
-			      false);
-	}
 
 	/*
 	  We reset the nDPI flow so that it can decode new packets
@@ -1001,10 +933,6 @@ void NetworkInterface::purgeIdle(time_t when) {
 
     if((n = purgeIdleHosts()) > 0)
       ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle hosts on %s",
-				   n, getNumHosts(), ifname);
-
-    if((n = purgeIdleAggregatedHosts()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle aggregated hosts on %s",
 				   n, getNumHosts(), ifname);
   }
 
@@ -1363,7 +1291,7 @@ void NetworkInterface::shutdown() {
 
 void NetworkInterface::cleanup() {
   last_pkt_rcvd = 0;
-  next_idle_flow_purge = next_idle_host_purge = next_idle_aggregated_host_purge = 0;
+  next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1, has_vlan_packets = false;
   running = false, sprobe_interface = false, inline_interface = false;
 
@@ -1371,7 +1299,6 @@ void NetworkInterface::cleanup() {
 
   flows_hash->cleanup();
   hosts_hash->cleanup();
-  strings_hash->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
@@ -1463,16 +1390,6 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-static bool update_stringhosts_stats(GenericHashEntry *node, void *user_data) {
-  GenericHost *host = (GenericHost*)node;
-  struct timeval *tv = (struct timeval*)user_data;
-
-  host->updateStats(tv);
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
 void NetworkInterface::updateHostStats() {
   struct timeval tv;
 
@@ -1480,33 +1397,6 @@ void NetworkInterface::updateHostStats() {
 
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
-  strings_hash->walk(update_stringhosts_stats, (void*)&tv);
-}
-
-/* **************************************************** */
-
-static bool flush_host_contacts(GenericHashEntry *node, void *user_data) {
-  Host *host = (Host*)node;
-
-  host->flushContacts(false);
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool flush_string_host_contacts(GenericHashEntry *node, void *user_data) {
-  StringHost *host = (StringHost*)node;
-
-  host->flushContacts(false);
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-/* Used by daily lua script to flush contacts at the end of the day */
-void NetworkInterface::flushHostContacts() {
-  hosts_hash->walk(flush_host_contacts, NULL);
-  strings_hash->walk(flush_string_host_contacts, NULL);
 }
 
 /* **************************************************** */
@@ -1629,40 +1519,10 @@ void NetworkInterface::getCommunityHostsList(lua_State* vm,
 
 /* **************************************************** */
 
-static bool aggregated_hosts_get_list(GenericHashEntry *h, void *user_data) {
-  struct aggregation_walk_hosts_info *info = (struct aggregation_walk_hosts_info*)user_data;
-  StringHost *host = (StringHost*)h;
-
-  if((info->family_id == 0) || (info->family_id == host->get_family_id())) {
-    if((info->host == NULL) || host->hasHostContacts(info->host))
-      host->lua(info->vm, info->allowed_hosts, true);
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::getActiveAggregatedHostsList(lua_State* vm,
-						    struct aggregation_walk_hosts_info *info) {
-
-  strings_hash->walk(aggregated_hosts_get_list, (void*)info);
-}
-
-/* **************************************************** */
-
 struct host_find_info {
   char *host_to_find;
   u_int16_t vlan_id;
   Host *h;
-  StringHost *s;
-};
-
-/* **************************************************** */
-
-struct host_find_aggregation_info {
-  IpAddress *host_to_find;
-  lua_State* vm;
 };
 
 /* **************************************************** */
@@ -1693,50 +1553,6 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
       return(true); /* found */
     }
   }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool find_aggregated_host_by_name(GenericHashEntry *h, void *user_data) {
-  struct host_find_info *info = (struct host_find_info*)user_data;
-  StringHost *host            = (StringHost*)h;
-
-  if((info->s == NULL)
-     && host->host_key()
-     && info->host_to_find
-     && (!strcmp(host->host_key(), info->host_to_find))) {
-    info->s = host;
-    return(true);
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool find_aggregations_for_host_by_name(GenericHashEntry *h, void *user_data) {
-  struct host_find_aggregation_info *info = (host_find_aggregation_info*)user_data;
-  StringHost *host                        = (StringHost*)h;
-  u_int n;
-
-  if(!info->host_to_find) return(false);
-
-  if((n = host->get_num_contacts_by(info->host_to_find)) > 0)
-    lua_push_int_table_entry(info->vm, host->host_key(), n);
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool find_aggregation_families(GenericHashEntry *h, void *user_data) {
-  struct ndpi_protocols_aggregation *agg = (struct ndpi_protocols_aggregation*)user_data;
-  StringHost *host                = (StringHost*)h;
-
-  NDPI_ADD_PROTOCOL_TO_BITMASK(agg->families, host->get_family_id());
-  NDPI_ADD_PROTOCOL_TO_BITMASK(agg->aggregations, host->get_aggregation_mode());
 
   return(false); /* false = keep on walking */
 }
@@ -1827,82 +1643,6 @@ Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
   }
 
   return(NULL);
-}
-
-/* **************************************************** */
-
-StringHost* NetworkInterface::getAggregatedHost(char *host_name) {
-  struct host_find_info info;
-
-  memset(&info, 0, sizeof(info));
-  info.host_to_find = host_name;
-  strings_hash->walk(find_aggregated_host_by_name, (void*)&info);
-  return(info.s);
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::getAggregatedHostInfo(lua_State* vm,
-					     patricia_tree_t *ptree,
-					     char *host_name) {
-  StringHost *h = getAggregatedHost(host_name);
-
-  if(h != NULL) {
-    h->lua(vm, ptree, false);
-    return(true);
-  } else
-    return(false);
-}
-
-/* **************************************************** */
-
-/*
-  Returns all aggregations that have the given host as requestor
-
-  Example if we are looking at the DNS requests, it will return all DNS
-  names requested by host X (host_name)
-*/
-bool NetworkInterface::getAggregationsForHost(lua_State* vm,
-					      patricia_tree_t *allowed_hosts,
-					      char *host_ip) {
-  struct host_find_aggregation_info info;
-  IpAddress *h = new IpAddress(host_ip);
-
-  memset(&info, 0, sizeof(info));
-  info.host_to_find = h, info.vm = vm;
-
-  strings_hash->walk(find_aggregations_for_host_by_name, (void*)&info);
-  delete h;
-
-  return(true);
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::getAggregationFamilies(lua_State* vm,
-                                              struct ndpi_protocols_aggregation *agg) {
-  NDPI_BITMASK_RESET(agg->families);
-  strings_hash->walk(find_aggregation_families, (void*)agg);
-
-  for(int i=0; i<(NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS); i++)
-    if(NDPI_COMPARE_PROTOCOL_TO_BITMASK(agg->families, i)) {
-      char *name = ndpi_get_proto_name(strings_hash->getInterface()->get_ndpi_struct(), i);
-
-      lua_push_int_table_entry(vm, name, i);
-    }
-
-  return true;
-}
-
-bool NetworkInterface::compareAggregationFamilies(lua_State* vm,
-                                                  struct ndpi_protocols_aggregation *agg) {
-  if(NDPI_COMPARE_PROTOCOL_TO_BITMASK(agg->aggregations, aggregation_client_name))    lua_push_int_table_entry(vm, "client", aggregation_client_name);
-  if(NDPI_COMPARE_PROTOCOL_TO_BITMASK(agg->aggregations, aggregation_server_name))    lua_push_int_table_entry(vm, "server", aggregation_server_name);
-  if(NDPI_COMPARE_PROTOCOL_TO_BITMASK(agg->aggregations, aggregation_domain_name))    lua_push_int_table_entry(vm, "domain", aggregation_domain_name);
-  if(NDPI_COMPARE_PROTOCOL_TO_BITMASK(agg->aggregations, aggregation_os_name))        lua_push_int_table_entry(vm, "os", aggregation_os_name);
-  if(NDPI_COMPARE_PROTOCOL_TO_BITMASK(agg->aggregations, aggregation_registrar_name)) lua_push_int_table_entry(vm, "registrar", aggregation_registrar_name);
-
-  return(true);
 }
 
 /* **************************************************** */
@@ -2018,7 +1758,6 @@ u_int NetworkInterface::purgeIdleFlows() {
 u_int NetworkInterface::getNumFlows()        { return(flows_hash ? flows_hash->getNumEntries() : 0);   };
 u_int NetworkInterface::getNumHosts()        { return(hosts_hash ? hosts_hash->getNumEntries() : 0);   };
 u_int NetworkInterface::getNumHTTPHosts()    { return(hosts_hash ? hosts_hash->getNumHTTPEntries() : 0);   };
-u_int NetworkInterface::getNumAggregations() { return(strings_hash ? strings_hash->getNumEntries() : 0); };
 
 /* **************************************************** */
 
@@ -2037,27 +1776,6 @@ u_int NetworkInterface::purgeIdleHosts() {
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
     n = hosts_hash->purgeIdle();
     next_idle_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
-    return(n);
-  }
-}
-
-/* **************************************************** */
-
-u_int NetworkInterface::purgeIdleAggregatedHosts() {
-  if(!purge_idle_flows_hosts) return(0);
-
-  if(next_idle_aggregated_host_purge == 0) {
-    next_idle_aggregated_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
-    return(0);
-  } else if(last_pkt_rcvd <= next_idle_aggregated_host_purge)
-    return(0); /* Too early */
-  else {
-    /* Time to purge hosts */
-    u_int n;
-
-    // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle aggregated hosts");
-    n = strings_hash->purgeIdle();
-    next_idle_aggregated_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
     return(n);
   }
 }
@@ -2194,20 +1912,6 @@ static bool hosts_search_walker(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
-static bool aggregations_search_walker(GenericHashEntry *h,
-				       void *user_data) {
-  StringHost *host = (StringHost*)h;
-  struct search_host_info *info = (struct search_host_info*)user_data;
-
-  if(host->addIfMatching(info->vm, info->host_name_or_ip))
-    info->num_matches++;
-
-  /* Stop after CONST_MAX_NUM_FIND_HITS matches */
-  return((info->num_matches > CONST_MAX_NUM_FIND_HITS) ? true /* stop */ : false /* keep walking */);
-}
-
-/* **************************************************** */
-
 void NetworkInterface::findHostsByName(lua_State* vm,
 				       patricia_tree_t *allowed_hosts,
 				       char *key) {
@@ -2216,9 +1920,6 @@ void NetworkInterface::findHostsByName(lua_State* vm,
   info.vm = vm, info.host_name_or_ip = key, info.num_matches = 0, info.allowed_hosts = allowed_hosts;
 
   hosts_hash->walk(hosts_search_walker, (void*)&info);
-
-  if(info.num_matches < CONST_MAX_NUM_FIND_HITS)
-    strings_hash->walk(aggregations_search_walker, (void*)&info);
 }
 
 /* **************************************************** */
@@ -2314,22 +2015,6 @@ bool NetworkInterface::isNumber(const char *str) {
   }
 
   return(true);
-}
-
-/* **************************************************** */
-
-StringHost* NetworkInterface::findHostByString(patricia_tree_t *allowed_hosts,
-					       char *keyname,
-					       u_int16_t family_id,
-					       bool createIfNotPresent) {
-  StringHost *ret = strings_hash->get(keyname, family_id);
-
-  if((ret == NULL) && createIfNotPresent) {
-    if((ret = new StringHost(this, keyname, family_id)) != NULL)
-      strings_hash->add(ret);
-  }
-
-  return(ret);
 }
 
 /* **************************************************** */

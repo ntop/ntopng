@@ -54,41 +54,20 @@ Host::Host(NetworkInterface *_iface, u_int8_t mac[6],
 /* *************************************** */
 
 Host::~Host() {
-  char key[128], host_key[128], *k;
+  char key[128];
 
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
   if(ip && (!ip->isEmpty())) dumpStats(false);
 
-  if(localHost || systemHost) {
-    k = get_string_key(host_key, sizeof(host_key));
-
-    /* Host Contacts */
-    if(k && (k[0] != '\0')) {
-      snprintf(key, sizeof(key), "%s.client", k);
-      ntop->getRedis()->del(key);
-
-      snprintf(key, sizeof(key), "%s.server", k);
-      ntop->getRedis()->del(key);
-    }
-
-    if(ip != NULL) {
-      snprintf(key, sizeof(key), "%s.client", k);
-      ntop->getRedis()->del(key);
-
-      snprintf(key, sizeof(key), "%s.server", k);
-      ntop->getRedis()->del(key);
-    }
-
-    dumpHostContacts(HOST_FAMILY_ID);
-  }
-
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
   if((localHost || systemHost)
      && ntop->getPrefs()->is_host_persistency_enabled()) {
     char *json = serialize();
+    char host_key[128];
+    char *k = get_string_key(host_key, sizeof(host_key));
 
     snprintf(key, sizeof(key), "%s.%d.json", k, vlan_id);
     ntop->getRedis()->set(key, json, 3600 /* 1 hour */);
@@ -102,7 +81,6 @@ Host::~Host() {
 #endif
 
   if(dns)  delete dns;
-  if(epp)  delete epp;
   if(http) delete http;
 
   if(symbolic_name)  free(symbolic_name);
@@ -139,23 +117,6 @@ void Host::computeHostSerial() {
       ntop->getRedis()->setHostId(iface, NULL, ip->print(buf, sizeof(buf)), host_serial);
     } else
       host_serial = ntop->getRedis()->addHostToDBDump(iface, ip, NULL);
-  }
-}
-
-/* *************************************** */
-
-void Host::flushContacts(bool freeHost) {
-  if(localHost || systemHost) {
-    dumpHostContacts(HOST_FAMILY_ID);
-    contacts->purgeAll();
-
-    if(!freeHost) {
-      /*
-	Recompute it so that if the day wrapped
-	we have a new one
-      */
-      computeHostSerial();
-    }
   }
 }
 
@@ -200,7 +161,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), "%s.%d.json", k, vlan_id);
-  dns = NULL, http = NULL, epp = NULL;
+  dns = NULL, http = NULL;
 
 #ifdef NTOPNG_PRO
   l7Policy = NULL;
@@ -259,7 +220,6 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
       if(localHost || systemHost) {
 	dns = new DnsStats();
 	http = new HTTPStats(iface->get_hosts_hash());
-	epp = new EppStats();
       }
     } else {
       char buf[32];
@@ -591,7 +551,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
       char *rsp = serialize();
 
       if(ndpiStats) ndpiStats->lua(iface->get_view(), vm);
-      if(localHost || systemHost) getHostContacts(vm, ptree);
       lua_push_str_table_entry(vm, "json", rsp);
       free(rsp);
 
@@ -600,7 +559,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 
       if(dns)  dns->lua(vm);
       if(http) http->lua(vm);
-      if(epp)  epp->lua(vm);
 
 #ifdef NTOPNG_PRO
       if(ntop->getPro()->has_valid_license()) {
@@ -781,16 +739,6 @@ u_int32_t Host::key() {
 
 /* *************************************** */
 
-void Host::incrContact(Host *_peer, bool contacted_peer_as_client) {
-  if(localHost || systemHost) {
-    if(_peer->get_ip() != NULL)
-      ((GenericHost*)this)->incrContact(iface, get_host_serial(), _peer->get_ip(),
-					contacted_peer_as_client);
-  }
-}
-
-/* *************************************** */
-
 void Host::incStats(u_int8_t l4_proto, u_int ndpi_proto,
 		    u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
@@ -880,12 +828,10 @@ char* Host::serialize() {
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
   json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  if(localHost || systemHost) json_object_object_add(my_object, "contacts", contacts->getJSONObject());
   json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
 
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
-  if(epp)  json_object_object_add(my_object, "epp", epp->getJSONObject());
 
   //ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
   rsp = strdup(json_object_to_json_string(my_object));
@@ -972,10 +918,6 @@ bool Host::deserialize(char *json_str) {
     if(http) http->deserialize(obj);
   }
 
-  if(json_object_object_get_ex(o, "epp", &obj)) {
-    if(epp) epp->deserialize(obj);
-  }
-
   if(ndpiStats) {
     delete ndpiStats;
     ndpiStats = NULL;
@@ -990,9 +932,6 @@ bool Host::deserialize(char *json_str) {
   if(json_object_object_get_ex(o, "activityStats", &obj)) activityStats.deserialize(obj);
 
   computeHostSerial();
-  if(localHost || systemHost) {
-    if(json_object_object_get_ex(o, "contacts", &obj)) contacts->deserialize(iface, this, obj);
-  }
   if(json_object_object_get_ex(o, "pktStats.sent", &obj)) sent_stats.deserialize(obj);
   if(json_object_object_get_ex(o, "pktStats.recv", &obj)) recv_stats.deserialize(obj);
 

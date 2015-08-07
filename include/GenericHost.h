@@ -34,7 +34,6 @@ class GenericHost : public GenericHashEntry {
   NdpiStats *ndpiStats;
   TrafficStats sent, rcvd;
   ActivityStats activityStats;
-  HostContacts *contacts;
   u_int32_t num_alerts_detected;
   u_int8_t source_id;
 
@@ -57,8 +56,7 @@ class GenericHost : public GenericHashEntry {
   GenericHost(NetworkInterface *_iface);
   ~GenericHost();
 
-  void dumpHostContacts(u_int16_t family_id);
-  inline double pearsonCorrelation(GenericHost *h) { return(activityStats.pearsonCorrelation(h->getActivityStats())); };
+    inline double pearsonCorrelation(GenericHost *h) { return(activityStats.pearsonCorrelation(h->getActivityStats())); };
   inline bool isLocalHost()                { return(localHost || systemHost); };
   inline bool isSystemHost()               { return(systemHost); };
   inline void setSystemHost()              { systemHost = true;  };
@@ -67,17 +65,6 @@ class GenericHost : public GenericHashEntry {
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   void incStats(u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets, 
 		u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
-  inline void incrContact(NetworkInterface *iface, u_int32_t me_serial, IpAddress *peer, 
-			  bool contacted_peer_as_client,
-			  u_int family_id = HOST_FAMILY_ID, bool aggregated_host = false) {
-    contacts->incrContact(iface, me_serial, peer, contacted_peer_as_client, 1,
-			 family_id, aggregated_host); 
-  }
-
-  inline void flushContacts()         { contacts->purgeAll();                    };
-  void getHostContacts(lua_State* vm, patricia_tree_t *ptree) { contacts->getContacts(vm, ptree);        };
-  bool hasHostContacts(char *host)    { return(contacts->hasHostContacts(host)); };
-  inline u_int get_num_contacts_by(IpAddress* host_ip) { return(contacts->get_num_contacts_by(host_ip)); };
   inline u_int32_t get_host_serial()  { return(host_serial);               };
   inline void incNumAlerts()          { num_alerts_detected++;             };
   inline u_int32_t getNumAlerts()     { return(num_alerts_detected);       };

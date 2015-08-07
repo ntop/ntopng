@@ -29,7 +29,6 @@ network_id  = _GET["network_id"]
 vhost       = _GET["vhost"]
 
 -- Host comparison parameters
-aggregation = _GET["aggregation"]
 key         = _GET["key"]
 
 -- System host parameters

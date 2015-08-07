@@ -73,6 +73,7 @@ class Utils {
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static bool isGoodNameToCategorize(char *name);
   static char* get2ndLevelDomain(char *_domainname);
+  static char* tokenizer(char *arg, int c, char **data);
 };
 
 #endif /* _UTILS_H_ */

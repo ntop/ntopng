@@ -21,7 +21,7 @@ if (vlan == nil) then vlan = 0 end
 if((sortColumn == nil) or (sortColumn == "column_")) then
    sortColumn = getDefaultTableSort("http_hosts")
 else
-   if((aggregated == nil) and (sortColumn ~= "column_") and (sortColumn ~= "")) then
+   if((sortColumn ~= "column_") and (sortColumn ~= "")) then
       tablePreferences("sort_http_hosts", sortColumn)
    end
 end
@@ -31,9 +31,7 @@ end
 if(sortOrder == nil) then
    sortOrder = getDefaultTableSortOrder("http_hosts")
 else
-   if((aggregated == nil) 
-    and (sortColumn ~= "column_")
- and (sortColumn ~= "")) then
+   if(sortColumn ~= "column_") and (sortColumn ~= "")) then
       tablePreferences("sort_order_http_hosts",sortOrder)
    end
 end

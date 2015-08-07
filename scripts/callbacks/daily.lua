@@ -39,7 +39,6 @@ when = os.date("%y%m%d", t)
 ifnames = interface.getIfNames()
 for _,_ifname in pairs(ifnames) do
    interface.select(purifyInterfaceName(_ifname))
-   interface.flushHostContacts()
    ntop.deleteMinuteStatsOlderThan(_ifname, 365)
 
    hosts_stats = interface.getHostsInfo()
@@ -51,8 +50,3 @@ for _,_ifname in pairs(ifnames) do
    end
 end
 
-
--- os.execute("sleep 300")
-ntop.dumpDailyStats(when)
-
--- redis-cli KEYS "131129|*" | xargs redis-cli DEL

@@ -30,43 +30,25 @@ DB::DB(NetworkInterface *_iface, u_int32_t _dir_duration, u_int8_t _db_id) {
   dir_duration = max_val(_dir_duration, 300); /* 5 min is the minimum duration */
   db_path[0] = '\0';
 
-  // sqlite3_config(SQLITE_CONFIG_SERIALIZED);
   db = NULL, end_dump = 0, iface = _iface, db_id = _db_id;
-  contacts_cache_idx = 0;
-
-  for(int i=0; i<CONST_NUM_OPEN_DB_CACHE; i++) {
-    contacts_cache[i].db = NULL,
-      contacts_cache[i].last_open_contacts_db_path[0] = '\0',
-      contacts_cache[i].num_contacts_db_insert = 0,
-      contacts_cache[i].last_insert = 0;
-  }
 }
 
 /* ******************************************* */
 
 DB::~DB() {
-  termDB();
+  termSQLiteDB();
   if(m) delete m;
 }
 
 /* ******************************************* */
 
-void DB::termDB() {
+void DB::termSQLiteDB() {
   if(!ntop->getPrefs()->do_dump_flows_on_sqlite()) return;
 
   if(db) {
-    execSQL(db, (char*)"COMMIT;");
+    execSQLiteSQL(db, (char*)"COMMIT;");
     sqlite3_close(db);
     db = NULL;
-  }
-
-  for(int i=0; i<CONST_NUM_OPEN_DB_CACHE; i++) {
-    if(contacts_cache[i].db != NULL) {
-      char *zErrMsg = NULL;
-
-      if(sqlite3_exec(contacts_cache[i].db, "COMMIT;", NULL, 0, &zErrMsg) != SQLITE_OK)
-	sqlite3_free(zErrMsg);
-    }
   }
 
   end_dump = 0;
@@ -74,7 +56,7 @@ void DB::termDB() {
 
 /* ******************************************* */
 
-void DB::initDB(time_t when, const char *create_sql_string) {
+void DB::initSQLiteDB(time_t when, const char *create_sql_string) {
   char path[MAX_PATH];
 
   if(!ntop->getPrefs()->do_dump_flows_on_sqlite()) return;
@@ -83,7 +65,7 @@ void DB::initDB(time_t when, const char *create_sql_string) {
     if(when < end_dump)
       return;
     else
-      termDB(); /* Too old: we first close it */
+      termSQLiteDB(); /* Too old: we first close it */
   }
 
   when -= when % dir_duration;
@@ -105,7 +87,7 @@ void DB::initDB(time_t when, const char *create_sql_string) {
 				   db_path, sqlite3_errmsg(db));
       end_dump = 0, db = NULL;
     } else {
-      execSQL(db, (char*)create_sql_string);
+      execSQLiteSQL(db, (char*)create_sql_string);
       ntop->getTrace()->traceEvent(TRACE_INFO, "[DB] Created %s", db_path);
     }
   } else
@@ -116,6 +98,12 @@ void DB::initDB(time_t when, const char *create_sql_string) {
 /* ******************************************* */
 
 bool DB::dumpFlow(time_t when, Flow *f, char *json) {
+  return(dumpSQLiteFlow(when, f, json));
+}
+
+/* ******************************************* */
+
+bool DB::dumpSQLiteFlow(time_t when, Flow *f, char *json) {
   const char *create_flows_db = "BEGIN; CREATE TABLE IF NOT EXISTS flows (ID INTEGER PRIMARY KEY AUTOINCREMENT, vlan_id number, cli_ip string KEY, cli_port number, "
     "srv_ip string KEY, srv_port number, proto number, bytes number, first_seen number, last_seen number, duration number, json string);";
   char sql[4096], cli_str[64], srv_str[64];
@@ -130,7 +118,7 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Dump Flow: %s", json);
 
   if(m) m->lock(__FILE__, __LINE__);
-  initDB(when, create_flows_db);
+  initSQLiteDB(when, create_flows_db);
 
   if((db == NULL) || (f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
     goto out;
@@ -169,7 +157,7 @@ out:
 
 /* ******************************************* */
 
-bool DB::execSQL(sqlite3 *_db, char* sql) {
+bool DB::execSQLiteSQL(sqlite3 *_db, char* sql) {
   if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
     int rc;
     char *zErrMsg = 0;

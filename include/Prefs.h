@@ -40,10 +40,10 @@ class Prefs {
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
     categorization_enabled, httpbl_enabled, resolve_all_host_ip, change_user, daemonize,
-    dump_timeline, shorten_aggregation_names, enable_auto_logout, use_promiscuous_mode,
+    dump_timeline, enable_auto_logout, use_promiscuous_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login;
-  LocationPolicy dump_hosts_to_db, dump_aggregations_to_db, sticky_hosts;
+  LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int16_t non_local_host_max_idle, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
@@ -52,7 +52,6 @@ class Prefs {
   u_int8_t num_interfaces, num_interface_views;
   bool dump_flows_on_sqlite, dump_flows_on_es, dump_flows_on_mysql;
   bool enable_taps;
-  AggregationMode enable_aggregations;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   InterfaceInfo ifViewNames[MAX_NUM_INTERFACES];
   char *local_networks;
@@ -74,6 +73,9 @@ class Prefs {
   bool json_labels_string_format;
   FILE *logFd;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
+#ifdef HAVE_MYSQL
+  char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
+#endif
 #ifdef NTOPNG_PRO
   char *nagios_host, *nagios_port, *nagios_config;
   bool save_http_flows_traffic;
@@ -121,7 +123,6 @@ class Prefs {
   inline bool are_ixia_timestamps_enabled()             { return(enable_ixia_timestamps); };
   inline bool are_vss_apcon_timestamps_enabled()        { return(enable_vss_apcon_timestamps); };
   inline char* get_user()                               { return(user);                   };
-  inline AggregationMode get_aggregation_mode()         { return(enable_aggregations);    };
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline u_int8_t get_num_user_specified_interface_views()   { return(num_interface_views);         };
   inline bool  do_dump_flows_on_sqlite()                { return(dump_flows_on_sqlite);   };
@@ -139,7 +140,6 @@ class Prefs {
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline bool  is_host_persistency_enabled()            { return(disable_host_persistency ? false : true); };
-  inline bool  use_short_aggregation_names()            { return(shorten_aggregation_names); };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);        };
   inline char *get_cpu_affinity()                       { return(cpu_affinity);   };
   inline u_int get_http_port()                          { return(http_port);      };
@@ -164,9 +164,7 @@ class Prefs {
   int loadFromCLI(int argc, char *argv[]);
   int loadFromFile(const char *path);
   inline void set_dump_hosts_to_db_policy(LocationPolicy p)   { dump_hosts_to_db = p;               };
-  inline void get_dump_aggregations_to_db(LocationPolicy p)   { dump_aggregations_to_db = p;        };
   inline LocationPolicy get_dump_hosts_to_db_policy()         { return(dump_hosts_to_db);           };
-  inline LocationPolicy get_dump_aggregations_to_db()         { return(dump_aggregations_to_db);    };
   int save();
   void add_network_interface(char *name, char *description);
   void add_network_interface_view(char *name, char *description);

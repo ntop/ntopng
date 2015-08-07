@@ -73,16 +73,11 @@ class Redis {
   int setResolvedAddress(char *numeric_ip, char *symbolic_ip);
   int setHTTPBLAddress(char* numeric_ip, char* httpbl);
 
-  void getHostContacts(lua_State* vm, GenericHost *h, bool client_contacts);
-  int incrHostContacts(char *key, u_int16_t family_id, u_int32_t peer_id, u_int32_t value);
   int hashIncr(char *key, char *field, u_int32_t value);
 
   int addHostToDBDump(NetworkInterface *iface, IpAddress *ip, char *name);
 
   int smembers(lua_State* vm, char *setName);
-
-  bool createOpenDB(sqlite3 **db, char *day, char **zErrMsg);
-  bool dumpDailyStatsKeys(char *day);
 
   void setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_int32_t id);
   u_int32_t host_to_id(NetworkInterface *iface, char *daybuf, char *host_name, bool *new_key);

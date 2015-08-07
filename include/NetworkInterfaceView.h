@@ -56,13 +56,10 @@ class NetworkInterfaceView {
   bool hasNamesAs(const char *names);
   bool hasIdsAs(const char *names);
 
-  void flushHostContacts();
   void getnDPIStats(NdpiStats *stats);
   void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, bool local_only);
   void getCommunityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, int community_id);
   void getFlowsStats(lua_State* vm);
-  void getActiveAggregatedHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, u_int16_t proto_family, char *host);
-  u_int getNumAggregatedHosts(void);
   bool hasSeenVlanTaggedPackets(void);
   int  retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
@@ -70,11 +67,7 @@ class NetworkInterfaceView {
   bool correlateHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool similarHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   Host *getHost(char *host_ip, u_int16_t vlan_id);
-  StringHost *getAggregatedHost(char *host_name);
   bool restoreHost(char *host_ip);
-  bool getAggregatedHostInfo(lua_State* vm, patricia_tree_t *ptree, char *host_name);
-  bool getAggregatedFamilies(lua_State* vm);
-  bool getAggregationsForHost(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts, char *numIP, u_int16_t vlanId);
   Flow *findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
   void findUserFlows(lua_State *vm, char *username);

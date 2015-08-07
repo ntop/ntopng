@@ -33,8 +33,7 @@ if ((sortColumn == nil) or (sortColumn == "column_")) then
   sortColumn = getDefaultTableSort(group_col)
   --if(sortColumn == "column_") then sortColumn = "column_name" end	
 else
-  if ((aggregated == nil) and (sortColumn ~= "column_")
-    and (sortColumn ~= "")) then
+  if ((sortColumn ~= "column_") and (sortColumn ~= "")) then
       tablePreferences("sort_"..group_col,sortColumn)
   end
 end
@@ -42,8 +41,7 @@ end
 if(sortOrder == nil) then
   sortOrder = getDefaultTableSortOrder(group_col)
 else
-  if ((aggregated == nil) and (sortColumn ~= "column_")
-    and (sortColumn ~= "")) then
+  if ((sortColumn ~= "column_") and (sortColumn ~= "")) then
     tablePreferences("sort_order_"..group_col,sortOrder)
   end
 end

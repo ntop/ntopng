@@ -127,8 +127,6 @@ patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line) {
   bits  = strchr(line, '/');
   if(bits == NULL)
     bits = (char*)"/32";
-  else
-    bits[0] = '\0';
 
   bits++;
 

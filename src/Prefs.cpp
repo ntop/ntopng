@@ -26,7 +26,7 @@
 Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
-  ntop = _ntop, dump_timeline = false, sticky_hosts = location_none;
+  ntop = _ntop, sticky_hosts = location_none;
   local_networks = strdup(CONST_DEFAULT_HOME_NET","CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
@@ -61,11 +61,9 @@ Prefs::Prefs(Ntop *_ntop) {
   num_interfaces = 0, num_interface_views = 0, enable_auto_logout = true;
   dump_flows_on_sqlite = dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
-  enable_aggregations = aggregations_disabled;
   memset(ifNames, 0, sizeof(ifNames));
   memset(ifViewNames, 0, sizeof(ifViewNames));
-  dump_hosts_to_db = location_none, dump_aggregations_to_db = location_none;
-  shorten_aggregation_names = true; // TODO: make it configurable
+  dump_hosts_to_db = location_none;
   json_labels_string_format = true;
 #ifdef WIN32
   daemonize = true;
@@ -93,6 +91,10 @@ Prefs::Prefs(Ntop *_ntop) {
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
+
+#ifdef HAVE_MYSQL
+  mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
+#endif
 
 #ifdef NTOPNG_PRO
   nagios_host = nagios_port = nagios_config = NULL;
@@ -130,6 +132,14 @@ Prefs::~Prefs() {
   free(http_prefix);
   free(redis_host);
   free(local_networks);
+
+#ifdef HAVE_MYSQL
+  if(mysql_host)      free(mysql_host);
+  if(mysql_dbname)    free(mysql_dbname);
+  if(mysql_tablename) free(mysql_tablename);
+  if(mysql_user)      free(mysql_user);
+  if(mysql_pw)        free(mysql_pw);
+#endif
 
 #ifdef NTOPNG_PRO
   if(nagios_host)   free(nagios_host);
@@ -173,7 +183,6 @@ void usage() {
 	 "                                    | Default: %s\n"
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
 	 "                                    | Default: %s\n"
-	 "[--dump-timeline|-C]                | Enable timeline dump.\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promiscuous mode.\n"
 	 "[--categorization-key|-c] <key>     | Key used to access host categorization\n"
 	 "                                    | services (default: disabled). \n"
@@ -218,11 +227,6 @@ void usage() {
 
 	 "[--disable-alerts|-H]               | Disable alerts generation\n"
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
-	 "[--enable-aggregations|-A] <mode>   | Setup data aggregation:\n"
-	 "                                    | 0 - No aggregations (default)\n"
-	 "                                    | 1 - Enable aggregations, no timeline dump\n"
-	 "                                    | 2 - Enable aggregations, with timeline\n"
-	 "                                    |     dump (see -C)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 	 "                                    | sqlite Dump in SQLite DB\n"
 	 "                                    | es     Dump in ElasticSearch database\n"
@@ -235,16 +239,11 @@ void usage() {
 	 "                                    | mysql  Dump in MySQL database\n"
 	 "                                    |        Format:\n"
 	 "                                    |        mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw>\n"
-	 "                                    |        mysql;localhost;ntopng;flows-%%Y.%%m.%%d;root;\n"
+	 "                                    |        mysql;localhost;ntopng;flows;root;\n"
 	 "                                    |        Note: the <table name> accepts the strftime() format.\n"
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows using the specified endpoint.\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
-	 "                                    | Values:\n"
-	 "                                    | all    - Dump all hosts\n"
-	 "                                    | local  - Dump only local hosts\n"
-	 "                                    | remote - Dump only remote hosts\n"
-	 "[--dump-aggregations|-E] <mode>     | Dump aggregations policy (default: none).\n"
 	 "                                    | Values:\n"
 	 "                                    | all    - Dump all hosts\n"
 	 "                                    | local  - Dump only local hosts\n"
@@ -374,11 +373,8 @@ static const struct option long_options[] = {
   { "verbose",                           no_argument,       NULL, 'v' },
   { "max-num-hosts",                     required_argument, NULL, 'x' },
   { "http-port",                         required_argument, NULL, 'w' },
-  { "enable-aggregations",               no_argument,       NULL, 'A' },
   { "packet-filter",                     required_argument, NULL, 'B' },
-  { "dump-timeline",                     no_argument,       NULL, 'C' },
   { "dump-hosts",                        required_argument, NULL, 'D' },
-  { "dump-aggregations",                 required_argument, NULL, 'E' },
   { "dump-flows",                        required_argument, NULL, 'F' },
 #ifndef WIN32
   { "pid",                               required_argument, NULL, 'G' },
@@ -415,24 +411,6 @@ int Prefs::setOption(int optkey, char *optarg) {
   char *double_dot;
 
   switch(optkey) {
-  case 'A':
-    switch(atoi(optarg)) {
-    case 0:
-      enable_aggregations = aggregations_disabled;
-      break;
-    case 1:
-      enable_aggregations = aggregations_enabled_no_bitmap_dump;
-      break;
-    case 2:
-      enable_aggregations = aggregations_enabled_with_bitmap_dump;
-      break;
-    default:
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid value for -A: disabling aggregations");
-      enable_aggregations = aggregations_disabled;
-      break;
-    }
-    break;
-
   case 'B':
     if((optarg[0] == '\"') && (strlen(optarg) > 2)) {
       packet_filter = strdup(&optarg[1]);
@@ -447,10 +425,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'k':
     httpbl_key = optarg;
-    break;
-
-  case 'C':
-    dump_timeline = true;
     break;
 
   case 'u':
@@ -477,14 +451,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'e':
     daemonize = true;
-    break;
-
-  case 'E':
-    if(!strcmp(optarg, "all")) dump_aggregations_to_db = location_all;
-    else if(!strcmp(optarg, "local")) dump_aggregations_to_db = location_local_only;
-    else if(!strcmp(optarg, "remote")) dump_aggregations_to_db = location_remote_only;
-    else if(!strcmp(optarg, "none")) dump_aggregations_to_db = location_none;
-    else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -E", optarg);
     break;
 
   case 'S':
@@ -717,14 +683,29 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
-    } else if(!strcmp(optarg, "sqlite"))
+    } else if(!strncmp(optarg, "sqlite", 6))
       dump_flows_on_sqlite = true;
-    else if(!strcmp(optarg, "mysql")) {
+#ifdef HAVE_MYSQL
+    else if(!strncmp(optarg, "mysql", 5)) {
+      /* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
+      optarg = Utils::tokenizer(&optarg[6], ';', &mysql_host);
+      optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);
+      optarg = Utils::tokenizer(optarg, ';', &mysql_tablename);
+      optarg = Utils::tokenizer(optarg, ';', &mysql_user);
+      optarg = Utils::tokenizer(optarg, ';', &mysql_pw);
 
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Discarding -F %s: value out of range",
-				   optarg);
+      if(mysql_host && mysql_user) {      
+	if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
+	if((mysql_tablename == NULL) || (mysql_tablename[0] == '\0')) mysql_tablename  = strdup("flows");
+	if((mysql_pw == NULL) || (mysql_pw[0] == '\0'))               mysql_pw  = strdup("");
+
+	dump_flows_on_mysql = true;	
+      } else 
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
+    }
+#endif
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F %s: value out of range", optarg);
     break;
 
 #ifndef WIN32
@@ -1041,7 +1022,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_sqlite);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
-  lua_push_int_table_entry(vm, "dump_aggregation", dump_aggregations_to_db);
 
   /* RRD prefs */
   lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);

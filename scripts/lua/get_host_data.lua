@@ -54,24 +54,19 @@ end
 -- sendHTTPHeader('application/json')
 interface.select(ifname)
 
-aggregated  = _GET["aggregated"]
 host_info = url2hostinfo(_GET)
 
 interface.select(ifname)
 
 if(host_info["host"] ~= nil) then
-   if(aggregated == nil) then
-      if(string.contains(host_info["host"], "/")) then
-	 -- This is a network
-	 host = getNetworkStats(host_info["host"])
-      else
-	 host = interface.getHostInfo(host_info["host"], host_info["vlan"])
-      end
+   if(string.contains(host_info["host"], "/")) then
+      -- This is a network
+      host = getNetworkStats(host_info["host"])
    else
-      host = interface.getAggregatedHostInfo(host_info["host"])
+      host = interface.getHostInfo(host_info["host"], host_info["vlan"])
    end
 else
-   host = nil
+   host = interface.getAggregatedHostInfo(host_info["host"])
 end
 
 
@@ -85,51 +80,31 @@ else
 
    print("\"column_since\" : \"" .. secondsToTime(now-host["seen.first"]+1) .. "\", ")
    print("\"column_last\" : \"" .. secondsToTime(now-host["seen.last"]+1) .. "\", ")
-
-   if(aggregated == nil) then
-      print("\"column_traffic\" : \"" .. bytesToSize(host["bytes.sent"]+host["bytes.rcvd"]).. "\", ")
-
-      if((host["throughput_trend_"..throughput_type] ~= nil)
-      and (host["throughput_trend_"..throughput_type] > 0)) then
-	 if(throughput_type == "pps") then
-	    print ("\"column_thpt\" : \"" .. pktsToSize(host["throughput_bps"]).. " ")
-	 else
-	    print ("\"column_thpt\" : \"" .. bitsToSize(8*host["throughput_bps"]).. " ")
-	 end
-
-	 if(host["throughput_"..throughput_type] > host["last_throughput_"..throughput_type]) then
-	    print("<i class='fa fa-arrow-up'></i>")
-	    elseif(host["throughput_"..throughput_type] < host["last_throughput_"..throughput_type]) then
-	    print("<i class='fa fa-arrow-down'></i>")
-	    else
-	    print("<i class='fa fa-minus'></i>")
-	 end
-	 print("\",")
+   print("\"column_traffic\" : \"" .. bytesToSize(host["bytes.sent"]+host["bytes.rcvd"]).. "\", ")
+   
+   if((host["throughput_trend_"..throughput_type] ~= nil)
+   and (host["throughput_trend_"..throughput_type] > 0)) then
+      if(throughput_type == "pps") then
+	 print ("\"column_thpt\" : \"" .. pktsToSize(host["throughput_bps"]).. " ")
       else
-	 print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
+	 print ("\"column_thpt\" : \"" .. bitsToSize(8*host["throughput_bps"]).. " ")
       end
-
-      sent2rcvd = round((host["bytes.sent"] * 100) / (host["bytes.sent"]+host["bytes.rcvd"]), 0)
-      print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
-	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
+      
+      if(host["throughput_"..throughput_type] > host["last_throughput_"..throughput_type]) then
+	 print("<i class='fa fa-arrow-up'></i>")
+	 elseif(host["throughput_"..throughput_type] < host["last_throughput_"..throughput_type]) then
+	 print("<i class='fa fa-arrow-down'></i>")
+      else
+	 print("<i class='fa fa-minus'></i>")
+      end
+      print("\",")
    else
-      -- Aggregated
-      if(host["throughput_trend_bps"] > 0) then
-	 print("\"column_queries\" : \"" .. formatValue(host["queries.rcvd"]).." ")
-
-	 if(host["throughput_trend_bps"] == 1) then
-	    print("<i class='fa fa-arrow-up fa-lg'></i>")
-	    elseif(host["throughput_trend_bps"] == 2) then
-	    print("<i class='fa fa-arrow-down fa-lg'></i>")
-	    elseif(host["throughput_trend_bps"] == 3) then
-	    print("<i class='fa fa-minus fa-lg'></i>")
-	 end
-
-      else
-	 print ("\"column_queries\" : \"NaN")
-      end
-
+      print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
    end
+   
+   sent2rcvd = round((host["bytes.sent"] * 100) / (host["bytes.sent"]+host["bytes.rcvd"]), 0)
+   print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
+	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
 
    print("\" } ")
 

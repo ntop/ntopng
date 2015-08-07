@@ -106,25 +106,19 @@ if(host == nil) then
       ]]
    else
       -- We need to check if this is an aggregated host
-      host = interface.getAggregatedHostInfo(host_info["host"])
-      if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Aggregated Host Info\n") end
-      if(host == nil) then
-         if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
-         sendHTTPHeader('text/html; charset=iso-8859-1')
-         ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-         dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-         print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host ".. hostinfo2hostkey(host_info) .. " cannot be found.")
-         if((json ~= nil) and (json ~= "")) then
-	    print('<p>Such host as been purged from memory due to inactivity. Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
-         else
-	    print('<p>Perhaps this host has been previously purged from memory or it has never been observed by this instance.</p>\n')
-         end
-
-         print("</div>")
-         dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+      if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
+      sendHTTPHeader('text/html; charset=iso-8859-1')
+      ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+      dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host ".. hostinfo2hostkey(host_info) .. " cannot be found.")
+      if((json ~= nil) and (json ~= "")) then
+	 print('<p>Such host as been purged from memory due to inactivity. Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
       else
-         print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/aggregated_host_details.lua?ifname=".. ifId.."&"..hostinfo2url(host_info)))
+	 print('<p>Perhaps this host has been previously purged from memory or it has never been observed by this instance.</p>\n')
       end
+      
+      print("</div>")
+      dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       return
    end
 else
@@ -284,59 +278,9 @@ if(not(isLoopback(ifname))) then
    if(page == "jaccard") then
       print("<li class=\"active\"><a href=\"#\">Similarity</a></li>\n")
    else
-      if((host["ip"] ~= nil) and (host["privatehost"] == false)) then
+      if(host["ip"] ~= nil) then
 	 print("<li><a href=\""..url.."&page=jaccard\">Similarity</a></li>")
       end
-   end
-
-   cnum = 0
-   snum = 0
-   if(host.contacts ~= nil) then
-      if(host["contacts"]["client"] ~= nil) then
-	 for k,v in pairs(host["contacts"]["client"]) do cnum = cnum + 1 end
-      end
-
-      if(host["contacts"]["server"] ~= nil) then
-	 for k,v in pairs(host["contacts"]["server"]) do snum = snum + 1 end
-      end
-   end
-
-   num = cnum + snum
-
-   if(num > 0) then
-      if(page == "contacts") then
-	 print("\n<li class=\"active\"><a href=\"#\">Current Contacts</a></li>\n")
-      else
-	 print("\n<li><a href=\""..url.."&page=contacts\">Current Contacts</a></li>")
-      end
-   end
-end
-
-t = os.time()
-when = os.date("%y%m%d", t)
-base_name = when.."|"..ifname.."|"..ntop.getHostId(host_info["host"])
-keyname = base_name.."|contacted_peers"
-v1 = ntop.getHashKeysCache(keyname)
---print(keyname.."\n")
-
-if(v1 == nil) then
-   keyname = base_name.."|contacted_by"
-   v1 = ntop.getHashKeysCache(keyname)
-end
-
-if(v1 ~= nil) then
-   if(page == "todays_contacts") then
-      print("\n<li class=\"active\"><a href=\"#\">Today's Contacts</a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=todays_contacts\">Today's Contacts</a></li>")
-   end
-end
-
-if(getItemsNumber(interface.getAggregatedHostsInfo(0, host_info["host"])) > 0) then
-   if(page == "aggregations") then
-      print("\n<li class=\"active\"><a href=\"#\">Aggregations</a></li>\n")
-   else
-      print("\n<li><a href=\""..url.."&page=aggregations\">Aggregations</a></li>")
    end
 end
 
@@ -1453,92 +1397,6 @@ print [[
    ]]
 
 end
-   elseif(page == "todays_contacts") then
-
-   t = os.time()
-   when = os.date("%y%m%d", t)
-   base_name = when.."|"..ifname.."|"..ntop.getHostId(host_info["host"])
-   keyname = base_name.."|contacted_peers"
-
-   protocols = {}
-   protocols[65535] = interface.getNdpiProtoName(65535)
-   v1 = ntop.getHashKeysCache(keyname)
-   if(v1 ~= nil) then
-      for k,_ in pairs(v1) do
-	 v = ntop.getHashCache(keyname, k)
-	 if(v ~= nil) then
-	    values = split(k, "@");
-	    protocol = tonumber(values[2])
-
-	    -- 254 is OperatingSystem
-	    if((protocols[protocol] == nil) and (protocol ~= 254)) then
-	       protocols[protocol] = interface.getNdpiProtoName(protocol)
-	    end
-	 end
-      end
-   end
-
-print [[
-      <div id="table-hosts"></div>
-	 <script>
-	 $("#table-hosts").datatable({
-				  ]]
-				  print("url: \""..ntop.getHttpPrefix().."/lua/get_host_contacts.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&protocol="..protocol_id.."\",\n")
-print [[
-	       buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Type/Protocol<span class="caret"></span></button> <ul class="dropdown-menu" rule="menu" id="host_dropdown">]]
-url = ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=todays_contacts"
-print('<li><a href="'.. url ..'">All</a></li>')
-
-for key,v in pairs(protocols) do
-   print('<li><a href="'..url..'&protocol=' .. key..'">'..v..'</a></li>')
-end
-
-print("</ul> </div>' ],\n")
-
-print [[
-	       showPagination: true,
-	       title: "Today's Contacts",
-	        columns: [
-			     {
-			     title: "Host",
-				 field: "column_ip",
-				sortable: true,
-	 	             css: {
-			        textAlign: 'left'
-			     }
-				 },
-			     {
-			     title: "Name",
-				 field: "column_name",
-				 sortable: false,
-	 	             css: {
-			        textAlign: 'left'
-			     }
-				 },
-			     {
-			     title: "Contact Type/Protocol",
-				 field: "column_protocol",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			     }
-				 },
-			     {
-			     title: "Contacts Number",
-				 field: "column_num_contacts",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'right'
-			     }
-				 }
-			     ]
-	       });
-       </script>
-
-   ]]
-
-print("<i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/get_host_contacts.lua?format=json&ifname="..ifId.."&"..hostinfo2url(host_info).."'>Download "..host_info["host"].." contacts as JSON<A>\n")
-
 elseif(page == "snmp") then
 
 if(ntop.isPro()) then
@@ -2063,43 +1921,6 @@ if (host_vlan) then
    hpst_key = host_key.."@"..host_vlan
 end
 drawRRD(ifId, host_key, rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
-
-elseif(page == "aggregations") then
-print [[
-      <div id="table-hosts"></div>
-	 <script>
-   var url_update = ]]
-print (ntop.getHttpPrefix())
-print [["/lua/get_hosts_data.lua?aggregated=1]]
-   print("&protocol="..protocol_id.."&client="..host_info["host"]) print ('";')
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/aggregated_hosts_stats_id.inc")
-
-  print [[
-   $("#table-hosts").datatable({
-      title: "Client Host Aggregations",
-      url: url_update , ]]
-
-print ('rowCallback: function ( row ) { return aggregated_host_table_setID(row); },')
-
-print [[
-      showPagination: true,
-      buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Aggregations<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 110px;"><li><a href="]]
-print (ntop.getHttpPrefix())
-print [[/lua/aggregated_hosts_stats.lua">All</a></li> ]]
-
-families = interface.getAggregationFamilies()
-for key,v in pairs(families["families"]) do
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&page=aggregations&protocol=' .. v..'">'..key..'</a></li>')
-end
-
-print("</ul> </div>' ],")
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/aggregated_hosts_stats_top.inc")
-
-prefs = ntop.getPrefs()
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/aggregated_hosts_stats_bottom.inc")
 
 elseif(page == "sprobe") then
 

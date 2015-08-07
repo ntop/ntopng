@@ -27,12 +27,10 @@ function dumpInterfaceStats(interface_name)
       -- Round up
       hosts_pctg = math.floor(1+((ifstats.stats_hosts*100)/prefs.max_num_hosts))
       flows_pctg = math.floor(1+((ifstats.stats_flows*100)/prefs.max_num_flows))
-      aggregations_pctg = math.floor(1+((ifstats.stats_aggregations*100)/prefs.max_num_hosts))
 
-      print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.stats_packets .. ', "bytes": ' .. ifstats.stats_bytes .. ', "drops": ' .. ifstats.stats_drops .. ', "alerts": '.. ntop.getNumQueuedAlerts() ..', "num_flows": '.. ifstats.stats_flows .. ', "num_hosts": ' .. ifstats.stats_hosts .. ', "num_aggregations": ' .. ifstats.stats_aggregations .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "aggregations_pctg": ' .. aggregations_pctg .. ', "flows_pctg": ' .. flows_pctg)
+      print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.stats_packets .. ', "bytes": ' .. ifstats.stats_bytes .. ', "drops": ' .. ifstats.stats_drops .. ', "alerts": '.. ntop.getNumQueuedAlerts() ..', "num_flows": '.. ifstats.stats_flows .. ', "num_hosts": ' .. ifstats.stats_hosts .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "flows_pctg": ' .. flows_pctg)
 
       print(', "local2remote": '.. ifstats["localstats"]["bytes"]["local2remote"]..', "remote2local": '..ifstats["localstats"]["bytes"]["remote2local"])
-
 
       if(ifstats["bridge.device_a"] ~= nil) then
 	 print(', "a_to_b_in_pkts": '.. ifstats["bridge.a_to_b.in_pkts"])

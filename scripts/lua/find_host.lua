@@ -71,30 +71,6 @@ print [[
 	       num = num + 1	 
 	    end
 	 end
-
-	 if(num < max_num_to_find) then
-	    aggregated_hosts_stats = interface.getAggregatedHostsInfo()
-	    for _key, value in pairs(aggregated_hosts_stats) do
-	       if(num >= max_num_to_find) then
-		  break
-	       end      
-	       found = 0
-	       if((aggregated_hosts_stats[_key]["name"] == nil) and (aggregated_hosts_stats[_key]["ip"] ~= nil)) then
-		  aggregated_hosts_stats[_key]["name"] = ntop.getResolvedAddress(aggregated_hosts_stats[_key]["ip"])
-	       end
-	       what = aggregated_hosts_stats[_key]["name"]
-	       if((what ~= nil) and (starts(what, query))) then
-		  found = 1
-		  what = what .. " (" .. aggregated_hosts_stats[_key]["family"] .. ")"
-	       end
-
-	       if(found == 1) then
-		  if(num > 0) then print(",\n") end
-		  print("\t\""..what .. "\"")
-		  num = num + 1
-	       end
-	    end
-	 end
       end
    end
 

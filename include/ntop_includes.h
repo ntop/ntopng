@@ -110,6 +110,10 @@ extern "C" {
 #include "hiredis.h"
 };
 
+#ifdef HAVE_MYSQL
+#include <mysql.h>
+#endif
+
 #include <fstream>
 
 #include "mongoose.h"
@@ -128,7 +132,6 @@ extern "C" {
 #include "ActivityStats.h"
 #include "NdpiStats.h"
 #include "DnsStats.h"
-#include "EppStats.h"
 #include "TrafficStats.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
@@ -139,16 +142,12 @@ extern "C" {
 #include "PacketDumperTuntap.h"
 #include "GenericHashEntry.h"
 #include "AlertCounter.h"
-#include "HostContacts.h"
 #include "GenericHost.h"
 #include "GenericHash.h"
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
 #include "HTTPStats.h"
 #include "Redis.h"
-#include "SimpleStringHost.h"
-#include "StringHost.h"
-#include "StringHash.h"
 #include "StatsManager.h"
 #include "FlowsManager.h"
 #include "NetworkInterfaceView.h"

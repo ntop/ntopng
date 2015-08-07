@@ -20,12 +20,7 @@ long_names  = _GET["long_names"]
 
 -- Host comparison parameters
 mode        = _GET["mode"]
-aggregation = _GET["aggregation"]
-aggregated  = _GET["aggregated"]
 tracked     = _GET["tracked"]
-
--- Only for aggregations
-client      = _GET["client"]
 
 -- Used when filtering by ASn, VLAN or network
 asn          = _GET["asn"]
@@ -55,31 +50,31 @@ end
 throughput_type = getThroughputType()
 
 if(long_names == nil) then
-  long_names = false
+   long_names = false
 else
-  if(long_names == "1") then
-     long_names = true
-  else
-     long_names = false
-  end
+   if(long_names == "1") then
+      long_names = true
+   else
+      long_names = false
+   end
 end
 
 if ((sortColumn == nil) or (sortColumn == "column_"))then
-  sortColumn = getDefaultTableSort("hosts")
+   sortColumn = getDefaultTableSort("hosts")
 else
-  if ((aggregated == nil) and (sortColumn ~= "column_")
+   if ((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
       tablePreferences("sort_hosts",sortColumn)
-  end
+   end
 end
 
 if(sortOrder == nil) then
-  sortOrder = getDefaultTableSortOrder("hosts")
+   sortOrder = getDefaultTableSortOrder("hosts")
 else
-  if ((aggregated == nil) and (sortColumn ~= "column_")
+   if ((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
-    tablePreferences("sort_order_hosts",sortOrder)
-  end
+      tablePreferences("sort_order_hosts",sortOrder)
+   end
 end
 
 if(currentPage == nil) then
@@ -91,33 +86,27 @@ end
 if(perPage == nil) then
    perPage = getDefaultTableSize()
 else
-  perPage = tonumber(perPage)
-  tablePreferences("rows_number",perPage)
+   perPage = tonumber(perPage)
+   tablePreferences("rows_number",perPage)
 end
 
-if((aggregation ~= nil) or (aggregated ~= nil)) then aggregation = tonumber(aggregation) end
 if(tracked ~= nil) then tracked = tonumber(tracked) else tracked = 0 end
 
 if((mode == nil) or (mode == "")) then mode = "all" end
 
 interface.select(ifname)
 
-if((aggregation == nil) and (aggregated == nil)) then
-   if((mac ~= nil) or (antenna_mac ~= nil)) then
-      hosts_stats = interface.getLocalHostsInfo()
-   else
-      hosts_stats = interface.getHostsInfo(false)
-   end
+if((mac ~= nil) or (antenna_mac ~= nil)) then
+   hosts_stats = interface.getLocalHostsInfo()
 else
-   hosts_stats = interface.getAggregatedHostsInfo(tonumber(protocol), client)
-   protocol = nil -- Not applicable
+   hosts_stats = interface.getHostsInfo(false)
 end
 
 to_skip = (currentPage-1) * perPage
 
 if (all ~= nil) then
-  perPage = 0
-  currentPage = 0
+   perPage = 0
+   currentPage = 0
 end
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
@@ -176,26 +165,6 @@ for key, value in pairs(hosts_stats) do
    postfix = string.format("0.%04u", num)
    ok = true
 
-   if((aggregation ~= nil) and (hosts_stats[key]["aggregation"] ~= nil)) then
-      --io.write(hosts_stats[key]["aggregation"].." <> "..aggregation.."\n")
-      -- io.write("'"..hosts_stats[key]["aggregation"].."' <> '"..aggregation.."'\n")
-      if(tonumber(hosts_stats[key]["aggregation"]) ~= aggregation) then
-	 ok = false
-      else
-	 if(aggregation == 2) then
-	    if(hosts_stats[key]["tracked"] == true) then
-	       t = 1
-	    else
-	       t = 0
-	    end
-
-	    if(t ~= tracked) then
-	       ok = false
-	    end
-	 end
-      end
-   end
-
    if(not((mode == "all")
        or ((mode == "local") and (value["localhost"] == true))
     or ((mode == "remote") and (value["localhost"] ~= true)))) then
@@ -239,8 +208,8 @@ for key, value in pairs(hosts_stats) do
    if(ok) then
       --print("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]\n")
 
-	
-   if(sortColumn == "column_" ) then
+      
+      if(sortColumn == "column_" ) then
 	 vals[key] = key
 	 elseif(sortColumn == "column_name") then
 	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
@@ -263,8 +232,6 @@ for key, value in pairs(hosts_stats) do
 	 vals[hosts_stats[key]["asn"]..postfix] = key
 	 elseif(sortColumn == "column_country") then
 	 vals[hosts_stats[key]["country"]..postfix] = key
-	 elseif(sortColumn == "column_aggregation") then
-	 vals[hosts_stats[key]["aggregation"]..postfix] = key
 	 elseif(sortColumn == "column_vlan") then
 	 vals[hosts_stats[key]["vlan"]..postfix] = key
 	 elseif(sortColumn == "column_thpt") then
@@ -295,28 +262,28 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    community_found = false
    if (community ~= nil) then
-     communities = interface.getHostCommunities(hosts_stats[key]["ip"], hosts_stats[key]["vlan"])
-     if (communities) then
-        for ck,cv in pairs(communities) do
-          if (tostring(cv) == community) then
-            community_found = true
-            break
-          end
-        end
-     end
+      communities = interface.getHostCommunities(hosts_stats[key]["ip"], hosts_stats[key]["vlan"])
+      if (communities) then
+	 for ck,cv in pairs(communities) do
+	    if (tostring(cv) == community) then
+	       community_found = true
+	       break
+	    end
+	 end
+      end
    else
-     community_found = true
+      community_found = true
    end
 
    if((key ~= nil) and (not(key == "")) and
-      ((asn == nil) or (asn == tostring(hosts_stats[key]["asn"]))) and
-		((os_ == nil) or (os_ == tostring(hosts_stats[key]["os"]))) and
-      (community_found == true) and
-      ((country == nil) or (country == tostring(hosts_stats[key]["country"]))) and
-      ((antenna_mac == nil) or (antenna_mac == tostring(hosts_stats[key]["antenna_mac"]))) and
-      ((mac == nil) or (mac == tostring(hosts_stats[key]["mac"]))) and
-      ((vlan == nil) or (vlan == tostring(hosts_stats[key]["vlan"]))) and
-      ((network == nil) or (network == tostring(hosts_stats[key]["local_network_id"])))) then
+((asn == nil) or (asn == tostring(hosts_stats[key]["asn"]))) and
+((os_ == nil) or (os_ == tostring(hosts_stats[key]["os"]))) and
+(community_found == true) and
+((country == nil) or (country == tostring(hosts_stats[key]["country"]))) and
+((antenna_mac == nil) or (antenna_mac == tostring(hosts_stats[key]["antenna_mac"]))) and
+((mac == nil) or (mac == tostring(hosts_stats[key]["mac"]))) and
+((vlan == nil) or (vlan == tostring(hosts_stats[key]["vlan"]))) and
+((network == nil) or (network == tostring(hosts_stats[key]["local_network_id"])))) then
       value = hosts_stats[key]
 
       if(to_skip > 0) then
@@ -328,25 +295,16 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print ('\"key\" : \"'..hostinfo2jqueryid(hosts_stats[key])..'\",')
 	    
 	    print ("\"column_ip\" : \"<A HREF='")
-	    if((aggregation ~= nil) or (aggregated ~= nil)) then agg = "aggregated_" else agg = "" end
 
 	    if(sort_mode == "network") then
 	       url = nil
-	       print(ntop.getHttpPrefix().."/lua/"..agg.."hosts_stats.lua?net=" ..string.gsub(hosts_stats[key]["ip"], "/", "_") .. "'>")
+	       print(ntop.getHttpPrefix().."/lua/hosts_stats.lua?net=" ..string.gsub(hosts_stats[key]["ip"], "/", "_") .. "'>")
 	    else
- 	       url = ntop.getHttpPrefix().."/lua/"..agg.."host_details.lua?" ..hostinfo2url(hosts_stats[key])
+ 	       url = ntop.getHttpPrefix().."/lua/host_details.lua?" ..hostinfo2url(hosts_stats[key])
 	       print(url .. "'>")
 	    end
 
-	    if((aggregation == nil) and (aggregated == nil)) then
-         if (value["ip"] ~= nil) then
-          print(value["ip"])
-        else
-          print(value["mac"])
-        end
-	    else
-	       print(mapOS2Icon(key))
-	    end
+	    print(mapOS2Icon(key))
 
 	    print(" </A> ")
 
@@ -354,19 +312,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 	    if((value["country"] ~= nil) and (value["country"] ~= "")) then
 	       print("&nbsp;<a href=".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
-	    end
-
-	    if((aggregation ~= nil) or (aggregated ~= nil)) then
-	       --if(value["tracked"]) then
-
-	       -- EPP + domain + tracked
-	       if((value["aggregation"] == 2) and (value["family"] == 38)) then
-		  if(value["tracked"]) then
-		     print("&nbsp;<i class=\'fa fa-star fa-lg\'></i>")
-		  else
-		     print("&nbsp;<i class=\'fa fa-star-o fa-lg\'></i>")
-		  end
-	       end
 	    end
 
             print("&nbsp;")
@@ -377,15 +322,13 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print("\", ")
 
             if(url ~= nil) then
-              print("\"column_url\" : \""..url.."\", ")
+	       print("\"column_url\" : \""..url.."\", ")
  	    end
 
 	    print("\"column_name\" : \"")
 
-	    if((aggregation == nil) and (aggregated == nil)) then
-	       if(value["name"] == nil) then 
-		  value["name"] = ntop.getResolvedAddress(key)
-	       end
+	    if(value["name"] == nil) then 
+	       value["name"] = ntop.getResolvedAddress(key)
 	    end
 
 	    if(value["name"] == "") then 
@@ -399,15 +342,15 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    end
 
 	    if (value["ip"] ~= nil) then
-  	      label = getHostAltName(value["ip"])
-	      if(label ~= value["ip"]) then
-	       print (" ["..label.."]")
-              end
+	       label = getHostAltName(value["ip"])
+	       if(label ~= value["ip"]) then
+		  print (" ["..label.."]")
+	       end
 	    end
 
 	    if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then
-		  print (" <i class='fa fa-frown-o'></i>")
-	       end
+	       print (" <i class='fa fa-frown-o'></i>")
+	    end
 
 	    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
 	       print(" <i class='fa fa-warning fa-lg' style='color: #B94A48;'></i>")
@@ -416,20 +359,20 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    --   print("</div>")
 
 	    if(value["category"] ~= nil) then 
-	    if(value["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. value["active_http_hosts"] .."</span>") end
+	       if(value["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. value["active_http_hosts"] .."</span>") end
 	       print("\", \"column_category\" : \"".. getCategoryIcon(value["category"])) 
 	    end
 	    if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then print("\", \"column_httpbl\" : \"".. value["httpbl"]) end
 
 	    if (value["vlan"] ~= nil) then
 
-        if (value["vlan"] ~= 0) then
-          print("\", \"column_vlan\" : "..value["vlan"])
-        else
-          print("\", \"column_vlan\" : \"0\"")
-        end
+	       if (value["vlan"] ~= 0) then
+		  print("\", \"column_vlan\" : "..value["vlan"])
+	       else
+		  print("\", \"column_vlan\" : \"0\"")
+	       end
 
-      else
+	    else
 	       print("\", \"column_vlan\" : \"\"")
 	    end
 
@@ -441,54 +384,34 @@ for _key, _value in pairsByKeys(vals, funct) do
 	       end
 	    end
 
-	  
-      if((aggregation ~= nil) or (aggregated ~= nil)) then
-	       print(", \"column_family\" : \"" .. interface.getNdpiProtoName(value["family"]) .. "\"")
-			 io.write ( value["family"] )
-	       print(", \"column_aggregation\" : \"" .. aggregation2String(value["aggregation"]) .. "\"")
-         throughput_type = "bps"
-	    end
-
+	    
 	    print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
 	    print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
 
-      if (  (value["throughput_trend_"..throughput_type] ~= nil) and
-            (value["throughput_trend_"..throughput_type] > 0)
-      ) then
+	    if (  (value["throughput_trend_"..throughput_type] ~= nil) and
+	       (value["throughput_trend_"..throughput_type] > 0)
+	 ) then
 
-        if (throughput_type == "pps") then
-          print ("\"column_thpt\" : \"" .. pktsToSize(value["throughput_pps"]).. " ")
-        else
-          print ("\"column_thpt\" : \"" .. bitsToSize(8*value["throughput_bps"]).. " ")
-        end
-
-        if(value["throughput_trend_"..throughput_type] == 1) then
-          print("<i class='fa fa-arrow-up'></i>")
-        elseif(value["throughput_trend_"..throughput_type] == 2) then
-          print("<i class='fa fa-arrow-down'></i>")
-        elseif(value["throughput_trend_"..throughput_type] == 3) then
-          print("<i class='fa fa-minus'></i>")
-        end
-
-        print("\",")
-      else
-        print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
-      end
-
-      if((aggregation ~= nil) or (aggregated ~= nil)) then
-	       --print("\"column_traffic\" : \"" .. formatValue(value["bytes.sent"]+value["bytes.rcvd"]).." ")
-	       print("\"column_queries\" : \"" .. formatValue(value["queries.rcvd"]).." ")
+	       if (throughput_type == "pps") then
+		  print ("\"column_thpt\" : \"" .. pktsToSize(value["throughput_pps"]).. " ")
+	       else
+		  print ("\"column_thpt\" : \"" .. bitsToSize(8*value["throughput_bps"]).. " ")
+	       end
 
 	       if(value["throughput_trend_"..throughput_type] == 1) then
-          print("<i class='fa fa-arrow-up'></i>")
-        elseif(value["throughput_trend_"..throughput_type] == 2) then
-          print("<i class='fa fa-arrow-down'></i>")
-        elseif(value["throughput_trend_"..throughput_type] == 3) then
-          print("<i class='fa fa-minus'></i>")
-        end
+		  print("<i class='fa fa-arrow-up'></i>")
+		  elseif(value["throughput_trend_"..throughput_type] == 2) then
+		  print("<i class='fa fa-arrow-down'></i>")
+		  elseif(value["throughput_trend_"..throughput_type] == 3) then
+		  print("<i class='fa fa-minus'></i>")
+	       end
+
+	       print("\",")
 	    else
-	       print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))
+	       print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
 	    end
+
+	    print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))
 
 	    print ("\", \"column_alerts\" : \"")
 	    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then

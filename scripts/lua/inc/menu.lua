@@ -7,8 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if ( (dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 
-
-
 prefs = ntop.getPrefs()
 names = interface.getIfNames()
 is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
@@ -114,33 +112,16 @@ end
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP Servers (Local)</a></li>')
 
-agg = interface.getNumAggregatedHosts()
+print('<li class="divider"></li>')
 
-if((agg ~= nil) and (agg > 0)) then
-   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/aggregated_hosts_stats.lua\"><i class=\"fa fa-group\"></i> Aggregations</a></li>\n")
+if not (is_historical) then
+   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts (Local)</a></li>')
 end
-
-print [[
-      <li class="divider"></li>
-      <li><a href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/hosts_interaction.lua">Interactions</a></li>
-]]
-
-  if not (is_historical) then
-	 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts (Local)</a></li>')
-  end
 
 if(_ifstats.iface_sprobe) then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> System Interactions</a></li>\n')
 end
 
-
-print [[
-      <li><a href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/hosts_flows_matrix.lua">Top Hosts Traffic</a></li>
-   ]]
 
 if(not(isLoopback(ifname))) then
    print [[
@@ -164,65 +145,6 @@ if(_ifstats["has_mesh_networks_traffic"]) then
 end
 
 print("</ul> </li>")
-
--- Protocols
-
-if(_ifstats.aggregations_enabled and (not(_ifstats.iface_sprobe))) then
-if((_ifstats["ndpi"]["EPP"] ~= nil) or (_ifstats["ndpi"]["DNS"] ~= nil)) then
-
-if active_page == "protocols_stats" then
-  print [[ <li class="dropdown active"> ]]
-else
-  print [[ <li class="dropdown"> ]]
-end
-print [[
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">Protocols <b class="caret"></b>
-      </a>
-
-    <ul class="dropdown-menu">
-   ]]
-
-if(_ifstats["ndpi"]["EPP"] ~= nil) then
-print [[
-
-
-
-<li class="dropdown-submenu">
-    <a tabindex="-1" href="#">EPP</a>
-    <ul class="dropdown-menu">
-   <li><a tabindex="-1" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua?mode=local&protocol=EPP"> Hosts </a></li>
-   <li><a tabindex="-1" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/protocols/epp_aggregations.lua?protocol=38&aggregation=1"> Server </a></li>
-   <li><a tabindex="-1" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/protocols/epp_aggregations.lua?protocol=38&aggregation=4"> Registrar </a></li>
-   <li><a tabindex="-1" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/protocols/epp_aggregations.lua?protocol=38&aggregation=2&tracked=1"> Existing Domains </a></li>
-   <li><a tabindex="-1" href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/protocols/epp_aggregations.lua?protocol=38&aggregation=2&tracked=0"> Unknown Domains </a></li>
-
-  </ul>
-
-
-
-   ]]
-end
-
-
-if(_ifstats["ndpi"]["DNS"] ~= nil) then print('<li><A href="'..ntop.getHttpPrefix()..'/lua/protocols/dns_aggregations.lua">DNS</A>') end
-
-print [[
-    </ul>
-   </li>
-   ]]
-end
-end
-
 
 
 -- Interfaces
