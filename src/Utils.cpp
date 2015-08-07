@@ -131,7 +131,7 @@ bool Utils::isIPAddress(char *ip) {
 
   if((ip == NULL) || (ip[0] == '\0'))
     return(false);
-  
+
   if(strchr(ip, ':') != NULL) { /* IPv6 */
     if(inet_pton(AF_INET6, ip, &addr6) == 1)
       return(true);
@@ -154,13 +154,13 @@ int Utils::setThreadAffinity(pthread_t thread, int core_id) {
     u_int num_cores = ntop->getNumCPUs();
     u_long core = core_id % num_cores;
     cpu_set_t cpu_set;
-    
+
     if(num_cores > 1) {
       CPU_ZERO(&cpu_set);
       CPU_SET(core, &cpu_set);
       ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpu_set);
     }
-    
+
 #endif
     return ret;
   }
@@ -630,7 +630,7 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
   if(xsslibUrlScan(&url) != XssClean) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s", param);
     param[0] = '\0';
-  } 
+  }
 #else
   for(int i=0; param[i] != '\0'; i++) {
     /* Fix for http://packetstormsecurity.com/files/127329/Ntop-NG-1.1-Cross-Site-Scripting.html */
@@ -706,7 +706,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(username || password) {
-      snprintf(auth, sizeof(auth), "%s:%s", 
+      snprintf(auth, sizeof(auth), "%s:%s",
 	       username ? username : "",
 	       password ? password : "");
       curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
@@ -718,7 +718,7 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
 
-    curl_easy_setopt(curl, CURLOPT_POST, 1L); 
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
@@ -728,14 +728,14 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, 
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
       ret = false;
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
     }
-    
+
     /* always cleanup */
     curl_easy_cleanup(curl);
   }
@@ -751,10 +751,10 @@ static size_t curl_get_writefunc(char *buffer, size_t size,
   DownloadState *state = (DownloadState*)userp;
   int len = size*nitems;
   int diff = sizeof(state->outbuf) - state->num_bytes - 1;
-  
+
   if(diff > 0) {
     int buff_diff = min(diff, len);
-    
+
     if(buff_diff > 0) {
       strncpy(&state->outbuf[state->num_bytes], buffer, buff_diff);
       state->num_bytes += buff_diff;
@@ -767,8 +767,8 @@ static size_t curl_get_writefunc(char *buffer, size_t size,
 
 /* **************************************** */
 
-bool Utils::httpGet(lua_State* vm, char *url, char *username, 
-		    char *password, int timeout, 
+bool Utils::httpGet(lua_State* vm, char *url, char *username,
+		    char *password, int timeout,
 		    bool return_content) {
   CURL *curl;
   bool ret = true;
@@ -784,7 +784,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(username || password) {
-      snprintf(auth, sizeof(auth), "%s:%s", 
+      snprintf(auth, sizeof(auth), "%s:%s",
 	       username ? username : "",
 	       password ? password : "");
       curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
@@ -800,9 +800,9 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
       state = (DownloadState*)malloc(sizeof(DownloadState));
       if(state != NULL) {
 	memset(state, 0, sizeof(DownloadState));
-	  
+
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc); 
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
       } else {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
 	curl_easy_cleanup(curl);
@@ -831,7 +831,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 
     if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
       lua_push_int_table_entry(vm, "RESPONSE_CODE", response_code);
-    
+
     if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
       lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
 
@@ -840,7 +840,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 
     if(return_content && state)
       free(state);
-    
+
     /* always cleanup */
     curl_easy_cleanup(curl);
   }
@@ -857,14 +857,14 @@ char* Utils::getURL(char *url, char *buf, u_int buf_len) {
     return(url);
 
   snprintf(buf, buf_len, "%s/lua/pro%s",
-	   ntop->get_HTTPserver()->get_scripts_dir(), 
+	   ntop->get_HTTPserver()->get_scripts_dir(),
 	   &url[4]);
 
   ntop->fixPath(buf);
   if((stat(buf, &s) == 0) && (S_ISREG(s.st_mode))) {
     u_int l = strlen(ntop->get_HTTPserver()->get_scripts_dir());
     char *new_url = &buf[l];
-    
+
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===>>> %s", new_url);
     return(new_url);
   } else
@@ -993,15 +993,15 @@ bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len) {
     state = (DownloadState*)malloc(sizeof(DownloadState));
     if(state != NULL) {
       memset(state, 0, sizeof(DownloadState));
-	
+
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, state);
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc); 
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_get_writefunc);
     } else {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory");
       curl_easy_cleanup(curl);
       return(false);
     }
-      
+
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10 /* sec */);
@@ -1016,11 +1016,11 @@ bool Utils::httpGet(char *url, char *ret_buf, u_int ret_buf_len) {
       ret_buf[0] = '\0';
 
     free(state);
-    
+
     /* always cleanup */
     curl_easy_cleanup(curl);
   }
-  
+
   return(ret);
 }
 
@@ -1208,7 +1208,7 @@ char* Utils::get2ndLevelDomain(char *_domainname) {
   int i, found = 0;
 
   for(i=strlen(_domainname)-1, found = 0; (found != 2) && (i > 0); i--) {
-    if(_domainname[i] == '.') {      
+    if(_domainname[i] == '.') {
       found++;
 
       if(found == 2) {

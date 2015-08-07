@@ -102,7 +102,7 @@ void xsslibParseUrl(xsslibUrl *url, char *u, int len)
       if(*p == ':')
 	p++;
 
-      if(TC(0,'//'))
+      if(TC(0,"//"))
 	p += 2;
     }
 

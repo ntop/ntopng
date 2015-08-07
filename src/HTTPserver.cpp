@@ -411,6 +411,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   bool use_ssl = false;
   bool use_http = true;
   struct stat buf;
+  int stat_rc;
 
   port = _port, docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   httpserver = this;
@@ -425,8 +426,9 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s",
 	   docs_dir, CONST_HTTPS_CERT_NAME);
 
-  if((ntop->getPrefs()->get_https_port() > 0)
-     && (stat(ssl_cert_path, &buf) == 0)) {
+  stat_rc = stat(ssl_cert_path, &buf);
+
+  if((ntop->getPrefs()->get_https_port() > 0) && (stat_rc == 0)) {
     use_ssl = true;
     if(use_http)
       snprintf(ports, sizeof(ports), "%s%s%d,%s%s%ds",
@@ -446,16 +448,19 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     _a = (char*)"ssl_certificate", _b = ssl_cert_path;
     ssl_enabled = true;
   } else {
+    if(stat_rc != 0)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "HTTPS Disabled: missing SSL certificate %s", ssl_cert_path);
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "HTTPS Disabled: missing SSL certificate %s", ssl_cert_path);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Please read https://svn.ntop.org/svn/ntop/trunk/ntopng/README.SSL if you want to enable SSL.");
+				 "Please read https://github.com/ntop/ntopng/blob/dev/doc/README.SSL if you want to enable SSL.");
     ssl_enabled = false;
   }
 
   if((!use_http) && (!use_ssl) & (!ssl_enabled)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Unable to start HTTP server: HTTP is disabled and the SSL certificate is missing.");
+
+    if(stat_rc != 0)
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Unable to start HTTP server: HTTP is disabled and the SSL certificate is missing.");
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Starting the HTTP server on the default port");
     port = CONST_DEFAULT_NTOP_PORT;

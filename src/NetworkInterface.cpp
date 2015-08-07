@@ -1338,7 +1338,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
-  if(cpu_affinity > 0) {
+  if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
     if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
 				   get_name(), cpu_affinity);
