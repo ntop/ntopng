@@ -16,7 +16,6 @@ BuildRoot:  %{_tmppath}/%{name}-%{version}-root
 GeoIP databases for ntopng
 
 %prep
-%setup -q
 
 %build
 
