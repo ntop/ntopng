@@ -4875,12 +4875,15 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	char *_equal = strchr(tok, '=');
 
 	if(_equal) {
-	  char *decoded_buf, *equal;
+	  char *decoded_buf, *equal, *ampercent;
 	  int len;
-
+	  
 	  _equal[0] = '\0';
 	  _equal = &_equal[1];
 	  len = strlen(_equal);
+
+	  ampercent = strchr(tok, '%'); if(ampercent != NULL) ampercent[0] = '\0';
+	  ampercent = strchr(_equal, '%'); if(ampercent != NULL) ampercent[0] = '\0';
 
 	  if((equal = (char*)malloc(len+1)) != NULL) {
 	    Utils::urlDecode(_equal, equal, len+1);
@@ -4902,7 +4905,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 		fclose(fd);
 	      }
 
-	      // ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf);
+	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
 
 	      if(strcmp(tok, "csrf") == 0) {
 		char rsp[32];

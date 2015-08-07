@@ -621,9 +621,9 @@ bool Utils::isUserAdministrator(lua_State* vm) {
  */
 
 void Utils::purifyHTTPparam(char *param, bool strict) {
-#if 1
   xsslibUrl url;
 
+  /* Fix for http://packetstormsecurity.com/files/127329/Ntop-NG-1.1-Cross-Site-Scripting.html */
   xsslibUrlInit(&url);
   xsslibUrlSetUrl(&url, param);
 
@@ -631,9 +631,11 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s", param);
     param[0] = '\0';
   }
-#else
+
+
+#if 0
   for(int i=0; param[i] != '\0'; i++) {
-    /* Fix for http://packetstormsecurity.com/files/127329/Ntop-NG-1.1-Cross-Site-Scripting.html */
+
     bool is_good;
 
     if(strict) {
