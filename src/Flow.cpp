@@ -257,7 +257,6 @@ void Flow::processDetectedProtocol() {
       if(ndpi_flow->host_server_name[0] != '\0') {
 	char delimiter = '@', *name = NULL;
 	char *at = (char*)strchr((const char*)ndpi_flow->host_server_name, delimiter);
-	bool to_track = false;
 
 	/* Consider only positive DNS replies */
 	if(at != NULL)
