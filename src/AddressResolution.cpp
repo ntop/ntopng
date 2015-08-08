@@ -118,15 +118,19 @@ patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int 
 /* ******************************************* */
 
 patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line) {
-  char *ip, *bits;
+  char *ip, *bits, *slash = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;
   patricia_node_t *node = NULL;
 
   ip = line;
-  bits  = strchr(line, '/');
+  bits = strchr(line, '/');
   if(bits == NULL)
     bits = (char*)"/32";
+  else {
+    slash = bits;
+    slash[0] = '\0';
+  }
 
   bits++;
 
@@ -159,6 +163,8 @@ patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing IPv4 %s\n", ip);
     }
   }
+
+  if(slash) slash[0] = '/';
 
   return(node);
 }
