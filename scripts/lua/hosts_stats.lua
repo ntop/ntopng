@@ -75,8 +75,14 @@ if(country ~= nil) then
    print('&country='..country)
 end
 
+
 if(network ~= nil) then
-   print('&network='..network)
+   network_url='&network='..network
+   print(network_url)
+   network_name = ntop.getNetworkNameById(tonumber(network))
+else
+   network_name = ""
+   network_url  = ""
 end
 
 if(antenna_mac ~= nil) then
@@ -147,31 +153,31 @@ else
 end
 
 if(mode == "all") then
-	if ( country ~= "" ) then print('title: "All '..protocol..' Hosts'..country..'",\n')
-	elseif ( asn ~= "" ) then print('title: "All '..protocol..' Hosts'..asn..'",\n')
-	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' Hosts'..mac..'",\n')
-	elseif ( community ~= "" ) then print('title: "All '..protocol..' Hosts'..community..'",\n')
+	if ( country ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..country..'",\n')
+	elseif ( asn ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asn..'",\n')
+	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
+	elseif ( community ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "All '..os_..' Hosts'..am_str..'",\n') 
-	else print('title: "All '..protocol..' Hosts'..asn..'",\n')
+	else print('title: "All '..protocol..' '..network_name..' Hosts'..asn..'",\n')
 	end
 elseif(mode == "local") then
-	if ( country ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..'",\n')
-	elseif ( asn ~= "" ) then print('title: "Local '..protocol..' Hosts'..asn..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' Hosts'..mac..'",\n')
-	elseif ( community ~= "" ) then print('title: "Local '..protocol..' Hosts'..community..'",\n')
+	if ( country ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
+	elseif ( asn ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asn..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
+	elseif ( community ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n') 
-	elseif ( am_str ~= "" ) then print('title: "Local '..protocol..' Hosts'..country..am_str..'",\n')
-	else  print('title: "Local '..protocol..' Hosts'..country..'",\n')
+	elseif ( am_str ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..am_str..'",\n')
+	else  print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	end
 elseif(mode == "remote") then
-	if ( country ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..'",\n')
-	elseif ( asn ~= "" ) then print('title: "Remote '..protocol..' Hosts'..asn..'",\n')
-	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' Hosts'..mac..'",\n')
-	elseif ( community ~= "" ) then print('title: "Remote '..protocol..' Hosts'..community..'",\n')
+	if ( country ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
+	elseif ( asn ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asn..'",\n')
+	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
+	elseif ( community ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n') 
-	elseif ( am_str ~= "" ) then print('title: "Remote '..protocol..' Hosts'..country..am_str..'",\n')
-	else print('title: "Remote '..protocol..' Hosts'..country..'",\n')
+	elseif ( am_str ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..am_str..'",\n')
+	else print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	end
 else
    print('title: "Local Networks'..country..'",\n')
@@ -186,18 +192,22 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 -- Automatic default sorted. NB: the column must exist.
 print ('sort: [ ["' .. getDefaultTableSort("hosts") ..'","' .. getDefaultTableSortOrder("hosts").. '"] ],')
 
+print [[    showPagination: true, ]]
+
+if(network_url == "") then
+   print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print (ntop.getHttpPrefix())
+   print ('/lua/hosts_stats.lua">All Hosts</a></li><li><a href="')
+   print (ntop.getHttpPrefix())
+   print ('/lua/hosts_stats.lua?mode=local">Local Only</a></li><li><a href="')
+   print (ntop.getHttpPrefix())
+   print ('/lua/hosts_stats.lua?mode=remote">Remote Only</a></li><li>&nbsp;</li><li><a href="')
+   print (ntop.getHttpPrefix())
+   print ('/lua/hosts_stats.lua?mode=network">Local Networks</a></li></ul>')
+   print ("</div>' ],")
+end
+
 print [[
-	       showPagination: true,
-	       buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="]]
-print (ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua">All Hosts</a></li><li><a href="]]
-print (ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua?mode=local">Local Only</a></li><li><a href="]]
-print (ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua?mode=remote">Remote Only</a></li><li>&nbsp;</li><li><a href="]]
-print (ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua?mode=network">Local Networks</a></li></ul>]]
-print [[</div>' ],
 	        columns: [
 	        	{
 	        		title: "Key",

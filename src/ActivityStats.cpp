@@ -100,6 +100,8 @@ bool ActivityStats::writeDump(char* path) {
   time_t now = time(NULL);
   time_t expire_time = now+((now+CONST_MAX_ACTIVITY_DURATION-1) % CONST_MAX_ACTIVITY_DURATION);
 
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping activity %s", path);
+
   m.lock(__FILE__, __LINE__);
   bitset->write(ss);
   m.unlock(__FILE__, __LINE__);
@@ -127,6 +129,8 @@ bool ActivityStats::writeDump(char* path) {
 
 bool ActivityStats::readDump(char* path) {
   char rsp[4096];
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Reading activity %s", path);
 
   if(ntop->getRedis()->get(path, rsp, sizeof(rsp)) == 0) {
     Uint32EWAHBoolArray tmp;

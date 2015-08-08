@@ -69,6 +69,7 @@ Host::~Host() {
 
     snprintf(key, sizeof(key), "%s.%d.json", k, vlan_id);
     ntop->getRedis()->set(key, json, 3600 /* 1 hour */);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
     free(json);
   }
@@ -181,7 +182,8 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	  && ntop->getPrefs()->is_host_persistency_enabled())
 	 && (!ntop->getRedis()->get(redis_key, json, sizeof(json)))) {
 	/* Found saved copy of the host so let's start from the previous state */
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+        // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
 	deserialize(json);
       }
 
@@ -355,7 +357,7 @@ bool Host::doDropProtocol(ndpi_protocol l7_proto) {
 /* *************************************** */
 
 void Host::updateLocal() {
-  if (ip)
+  if(ip)
     localHost = ip->isLocalHost(&local_network_id);
 
   if(0) {
@@ -383,6 +385,8 @@ char* Host::get_mac(char *buf, u_int buf_len, u_int8_t *mac) {
 void Host::set_mac(char *m) {
   u_int32_t mac[6] = { 0 };
 
+  if(!strcmp(m, "00:00:00:00:00:00")) return;
+     
   sscanf(m, "%u:%u:%u:%u:%u:%u",
          &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
 
@@ -572,7 +576,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     if(!returnHost) {
       /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
 
-      if (vlan_id == 0) {
+      if(vlan_id == 0) {
         sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address));
       } else {
         sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address), vlan_id );
@@ -584,7 +588,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     }
   } else {
     /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
-    if (vlan_id == 0) {
+    if(vlan_id == 0) {
       sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address));
     } else {
       sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address),vlan_id );
@@ -864,7 +868,11 @@ bool Host::addIfMatching(lua_State* vm, patricia_tree_t *ptree, char *key) {
 bool Host::deserialize(char *json_str) {
   json_object *o, *obj;
 
-  if((o = json_tokener_parse(json_str)) == NULL) return(false);
+  if((o = json_tokener_parse(json_str)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", 
+				 json_str);
+    return(false);
+  }
 
   if(json_object_object_get_ex(o, "mac_address", &obj)) set_mac((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "asn", &obj)) asn = json_object_get_int(obj);
@@ -940,7 +948,7 @@ bool Host::deserialize(char *json_str) {
 /* *************************************** */
 
 void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
-  if (!localHost || !triggerAlerts()) return;
+  if(!localHost || !triggerAlerts()) return;
   bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
@@ -989,7 +997,7 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  if (!localHost || !triggerAlerts()) return;
+  if(!localHost || !triggerAlerts()) return;
   bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   if(as_client) {
@@ -1032,7 +1040,7 @@ void Host::incNumFlows(bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(bool as_client) {
-  if (!localHost || !triggerAlerts()) return;
+  if(!localHost || !triggerAlerts()) return;
   bool historical = ntop->getHistoricalInterfaceId() == iface->get_id();
 
   if(as_client) {
@@ -1107,9 +1115,9 @@ void Host::updateStats(struct timeval *tv) {
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
 
-  if (!localHost || !triggerAlerts()) return;
+  if(!localHost || !triggerAlerts()) return;
 
-  if (!historical && isAboveQuota()) {
+  if(!historical && isAboveQuota()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
     char ip_buf[48], *h, msg[512];
     h = ip->print(ip_buf, sizeof(ip_buf));
@@ -1237,7 +1245,7 @@ bool Host::isInCommunity(int community_id) {
   CommunitiesManager *cm = ntop->getCommunitiesManager();
   struct ipAddress *ip = NULL;
 
-  if (get_ip() == NULL)
+  if(get_ip() == NULL)
     return false;
   ip = get_ip()->getIP();
   assert(ip);

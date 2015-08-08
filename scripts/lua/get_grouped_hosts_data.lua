@@ -178,7 +178,14 @@ function print_single_group(value)
    end
 
    if (group_col == "local_network_id" or network_n ~= nil) then
-      print(value["name"]..'</A>", ')
+
+      print(value["name"]..'</A> ')
+
+      if(value["id"] ~= "-1") then
+	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'><i class=\'fa fa-bar-chart\'></i></A>')
+      end
+
+      print('", ')
       elseif((group_col == "mac") or (group_col == "antenna_mac")) then
       print(get_symbolic_mac(value["id"])..'</A>", ')
    else

@@ -1585,13 +1585,14 @@ function makeTopStatsScriptsArray()
 	 end
       end
    end
+
    return(topArray)
 end
 
 local mac_cache = { }
 -- get_mac_classification
 function get_mac_classification(m)   
-   local path = fixPath(dirs.installdir.."/other/EtherOUI.txt")
+   local path = fixPath(dirs.installdir.."/httpdocs/other/EtherOUI.txt")
    local file_mac
 
    if(string.len(m) > 8) then m = string.sub(m, 1, 8) end

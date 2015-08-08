@@ -55,6 +55,9 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
         u_int key_id;
 	json_object *additional_o = json_tokener_parse(value);
 
+	if(additional_o == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", value);
+
 	/* FIX: the key can either be numeric of a string */
 	key_id = atoi(key);
 
