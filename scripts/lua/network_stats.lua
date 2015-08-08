@@ -70,5 +70,5 @@ print [[
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_top.inc")
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_bottom.inc")
+ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/network_stats_bottom.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

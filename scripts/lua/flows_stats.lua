@@ -22,6 +22,7 @@ host = _GET["host"]
 vhost = _GET["vhost"]
 
 network_id=_GET["network_id"]
+network_name=_GET["network_name"]
 
 prefs = ntop.getPrefs()
 interface.select(ifname)
@@ -31,17 +32,14 @@ ndpistats = interface.getNdpiStats()
 
 if (network_id ~= nil) then
 
-url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network_id='..network_id.."&network_name=".._GET["network_name"]
+url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network_id='..network_id.."&network_name="..network_name
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
   <div class="navbar-collapse collapse">
     <ul class="nav navbar-nav">
 ]]
-print("<li><a href=\"#\"> Overview ")
-if(_GET["network_name"] ~= nil) then
-   print(" [".._GET["network_name"].."]")
-end
+print("<li><a href=\"#\"> Network "..network_name)
 print("</a></li>\n")
 
 page = _GET["page"]
@@ -146,8 +144,9 @@ if not is_historical then
 else
   print(" title: \"All Flows")
 end
-if(_GET["network_name"] ~= nil) then
-   print(" [".._GET["network_name"].."]")
+
+if(network_name ~= nil) then
+   print(" [ Network "..network_name.." ]")
 end
 
 print [[",
@@ -168,6 +167,11 @@ if(vhost ~= nil) then
    if(n == 0) then print("?") else print("&") end
    print('vhost='..vhost)
 end
+if(network_id ~= nil) then 
+   if(n == 0) then print("?") else print("&") end
+   print('network_id='..network_id) 
+   if(network_name ~= nil) then print('&network_name='..network_name) end
+end
 
 print('">All Proto</a></li>')
 
@@ -179,6 +183,8 @@ for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
    print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?application=' .. key)
    if(host ~= nil) then print('&host='..host) end
    if(vhost ~= nil) then print('&vhost='..vhost) end
+   if(network_id ~= nil) then print('&network_id='..network_id) end
+   if(network_name ~= nil) then print('&network_name='..network_name) end
    print('">'..key..'</a></li>')
 end
 
@@ -206,8 +212,8 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_middle.inc")
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_bottom.inc")
 end
 
-if (page == "historical" and _GET["network_name"] ~= nil) then
-  local netname_format = string.gsub(_GET["network_name"], "_", "/")
+if (page == "historical" and network_name ~= nil) then
+  local netname_format = string.gsub(network_name, "_", "/")
   local rrd_file = _GET["rrd_file"]
   if (rrd_file == nil or rrd_file == "all") then
     rrd_file = "all"

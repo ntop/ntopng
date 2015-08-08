@@ -55,6 +55,7 @@ class Lua {
    *
    */
   ~Lua();
+
   /**
    * @brief Run a Lua script.
    * @details Run a script from within ntopng. No HTTP GUI.
@@ -64,6 +65,7 @@ class Lua {
    * @return 0 if the script has been executed successfully.
    */
   int run_script(char *script_path, char *ifname);
+
   /**
    * @brief Handling of request info of script.
    * @details Read from the request the parameters and put the GET parameters and the _SESSION parameters into the environment. 
@@ -77,6 +79,8 @@ class Lua {
   int handle_script_request(struct mg_connection *conn,
 			    const struct mg_request_info *request_info, 
 			    char *script_path);
+
+  void purifyHTTPParameter(char *param);
 };
 
 /**

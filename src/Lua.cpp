@@ -1048,7 +1048,8 @@ static int ntop_zmq_receive(lua_State* vm) {
 	}
 
 	json_object_put(o);
-      }
+      } else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", payload);
 
       lua_pushfstring(vm, "%s", payload);
       ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", h.size, payload);
@@ -4267,6 +4268,30 @@ static int ntop_is_login_disabled(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Convert the network Id to a symbolic name (network/mask)
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK and push the return code into the Lua stack
+ */
+static int ntop_network_name_by_id(lua_State* vm) {
+  int id;
+  char *name;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  id = (u_int32_t)lua_tonumber(vm, 1);
+
+  name = ntop->getLocalNetworkName(id);
+
+  lua_pushstring(vm, name ? name : "");
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 typedef struct {
   const char *class_name;
   const luaL_Reg *class_methods;
@@ -4449,6 +4474,7 @@ static const luaL_Reg ntop_reg[] = {
   { "addUser",            ntop_add_user },
   { "deleteUser",         ntop_delete_user },
   { "isLoginDisabled",    ntop_is_login_disabled },
+  { "getNetworkNameById", ntop_network_name_by_id },
 
   /* Security */
   { "getRandomCSRFValue",     ntop_generate_csrf_value },
@@ -4476,6 +4502,7 @@ static const luaL_Reg ntop_reg[] = {
   { "hasGeoIP",       ntop_has_geoip },
   { "isWindows",      ntop_is_windows },
 
+  /* Misc */
   { "getservbyport",  ntop_getservbyport },
 
   { NULL,          NULL}
@@ -4686,6 +4713,39 @@ static char* http_decode(char *str) {
 
 /* ****************************************** */
 
+void Lua::purifyHTTPParameter(char *param) {
+  char *ampercent;
+
+  if((ampercent = strchr(param, '%')) != NULL) {
+    /* We allow only a few chars, removing all the others */ 
+
+    if((ampercent[1] != 0) && (ampercent[2] != 0)) {      
+      char c;
+      char b = ampercent[3];
+
+      ampercent[3] = '\0';      
+      c = (char)strtol(&ampercent[1], NULL, 16);
+      ampercent[3] = b;
+
+      switch(c) {
+      case '/':
+      case ':':
+	break;
+	
+      default:
+	ampercent[0] = '\0';
+	return;
+      }
+      
+
+      purifyHTTPParameter(&ampercent[3]);
+    } else
+      ampercent[0] = '\0';
+  }	 
+}
+
+/* ****************************************** */
+
 int Lua::handle_script_request(struct mg_connection *conn,
 			       const struct mg_request_info *request_info,
 			       char *script_path) {
@@ -4719,15 +4779,14 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	char *_equal = strchr(tok, '=');
 
 	if(_equal) {
-	  char *equal, *ampercent;
+	  char *equal;
 	  int len;
 	  
 	  _equal[0] = '\0';
 	  _equal = &_equal[1];
 	  len = strlen(_equal);
 
-	  ampercent = strchr(tok, '%'); if(ampercent != NULL) ampercent[0] = '\0';
-	  ampercent = strchr(_equal, '%'); if(ampercent != NULL) ampercent[0] = '\0';
+	  purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
 
 	  if((equal = (char*)malloc(len+1)) != NULL) {
 	    char *decoded_buf;

@@ -256,6 +256,7 @@ for _,_ifname in pairs(ifnames) do
 		  end
 	       end -- if
 	    end -- for
+
             --- Create RRD for networks
             for n,m in pairs(networks_aggr) do
               local netname = getPathFromKey(n)

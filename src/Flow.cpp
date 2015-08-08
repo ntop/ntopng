@@ -1247,6 +1247,8 @@ json_object* Flow::flow2json(bool partial_dump) {
 
     if((o = json_tokener_parse(json_info)) != NULL)
       json_object_object_add(my_object, "json", o);
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", json_info);
   }
 
   if(vlanId > 0) json_object_object_add(my_object,

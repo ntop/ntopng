@@ -71,15 +71,15 @@ family = nil
 --print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host_info["host"] .. ", Vlan: "..host_vlan.."\n") end
 
-   host = interface.getHostInfo(host_info["host"], host_vlan)
-   restoreFailed = false
+host = interface.getHostInfo(host_info["host"], host_vlan)
+restoreFailed = false
 
-   if((host == nil) and (_GET["mode"] == "restore")) then
-      if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Restored Host Info\n") end
-      interface.restoreHost(host_info["host"],host_vlan)
-      host = interface.getHostInfo(host_info["host"],host_vlan)
-      restoreFailed = true
-   end
+if((host == nil) and ((_GET["mode"] == "restore") or (page == "historical"))) then
+   if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Restored Host Info\n") end
+   interface.restoreHost(host_info["host"], host_vlan)
+   host = interface.getHostInfo(host_info["host"], host_vlan)
+   restoreFailed = true
+end
 
 only_historical = false
 
@@ -1918,7 +1918,7 @@ host_url = "host="..host_ip
 host_key = host_ip
 if (host_vlan) then
    host_url = host_url.."&vlan="..host_vlan
-   hpst_key = host_key.."@"..host_vlan
+   host_key = host_key.."@"..host_vlan
 end
 drawRRD(ifId, host_key, rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
