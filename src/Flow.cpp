@@ -257,11 +257,10 @@ void Flow::processDetectedProtocol() {
       if(ndpi_flow->host_server_name[0] != '\0') {
 	char delimiter = '@', *name = NULL;
 	char *at = (char*)strchr((const char*)ndpi_flow->host_server_name, delimiter);
-	bool to_track = false;
 
 	/* Consider only positive DNS replies */
 	if(at != NULL)
-	  name = &at[1], at[0] = '\0', to_track = true;
+	  name = &at[1], at[0] = '\0';
 	else if((!strstr((const char*)ndpi_flow->host_server_name, ".in-addr.arpa"))
 		&& (!strstr((const char*)ndpi_flow->host_server_name, ".ip6.arpa")))
 	  name = (char*)ndpi_flow->host_server_name;
@@ -269,11 +268,9 @@ void Flow::processDetectedProtocol() {
 	if(name) {
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpi_flow->host_server_name);
 
-	  if(ndpi_flow->protos.dns.ret_code != 0)
-	    to_track = false; /* Error response */
-	  else {
+	  if(ndpi_flow->protos.dns.ret_code == 0) {
 	    if(ndpi_flow->protos.dns.num_answers > 0) {
-	      to_track = true, protocol_processed = true;
+	      protocol_processed = true;
 
 	      if(at != NULL)
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpi_flow->host_server_name);
@@ -382,7 +379,6 @@ void Flow::guessProtocol() {
   detection_completed = true; /* We give up */
 
   if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
-
     if(cli_host && srv_host) {
       /* We can guess the protocol */
       ndpi_detected_protocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), protocol,
