@@ -173,7 +173,7 @@ static int is_authorized(const struct mg_connection *conn,
   istringstream iss(auth_header);
   getline(iss, auth_type, ' ');
   if (auth_type == "Basic") {
-    string decoded_auth = "", user_s = "", pword_s = "";
+    string decoded_auth, user_s = "", pword_s = "";
     /* In case auth type is Basic, info are encoded in base64 */
     getline(iss, auth_string, ' ');
     decoded_auth = Utils::base64_decode(auth_string);

@@ -268,7 +268,6 @@ GeoBoxDimension geohash_dimensions_for_precision(int precision) {
   GeoBoxDimension dimensions = {0.0, 0.0};
 	
   if(precision > 0) {
-	
     int lat_times_to_cut = precision * 5 / 2;
     int lng_times_to_cut = precision * 5 / 2 + (precision % 2 ? 1 : 0);
 	

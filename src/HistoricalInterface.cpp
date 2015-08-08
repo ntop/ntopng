@@ -152,7 +152,7 @@ int HistoricalInterface::loadData() {
       memset(db_path, 0, sizeof(db_path));
 
       strftime(path, sizeof(path), "%Y/%m/%d/%H/%M", localtime(&actual_epoch));
-      snprintf(db_path, sizeof(db_path), "%s/%u/flows/%s.sqlite",
+      snprintf(db_path, sizeof(db_path), "%s/%d/flows/%s.sqlite",
                     ntop->get_working_dir(), iface_dump_id , path);
 
      loadData(db_path, limit);

@@ -34,7 +34,8 @@ Flow::Flow(NetworkInterface *_iface,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_packets = 0, cli2srv_bytes = 0, srv2cli_packets = 0, srv2cli_bytes = 0, cli2srv_last_packets = 0,
-    cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0;
+    cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
+    cli_host = srv_host = NULL, ndpi_flow= NULL;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -1132,11 +1133,9 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
   char *rsp;
 
   if(es_json) {
-    json_object *es_object;
-
     ntop->getPrefs()->set_json_symbolic_labels_format(true);
     if((my_object = flow2json(partial_dump)) != NULL) {
-      es_object = flow2es(my_object);
+      json_object *es_object = flow2es(my_object);
       
       /* JSON string */
       rsp = strdup(json_object_to_json_string(es_object));
@@ -1653,7 +1652,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int payload_len)
     }
   } else {
     if(dissect_next_http_packet) {
-      char *space, tmp[32];
+      char *space;
 
       // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
       h = cli_host->getHTTPStats(); if(h) h->incResponse(payload); /* Rcvd */
@@ -1663,6 +1662,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int payload_len)
       if((space = strchr(payload, ' ')) != NULL) {
 	payload = &space[1];
 	if((space = strchr(payload, ' ')) != NULL) {
+	  char tmp[32];
 	  int l = min_val((int)(space-payload), (int)(sizeof(tmp)-1));
 
 	  strncpy(tmp, payload, l);

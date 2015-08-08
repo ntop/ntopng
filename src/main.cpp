@@ -139,8 +139,7 @@ int main(int argc, char *argv[])
       continue;
 
     /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
-    if(ifName && (strstr(ifName, "tcp://")
-		  || strstr(ifName, "ipc://"))
+    if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))
        ) {
       char *at = strchr(ifName, '@');
       char *topic = (char*)"flow", *endpoint;

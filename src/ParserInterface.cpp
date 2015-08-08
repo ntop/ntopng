@@ -28,9 +28,8 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
 /* **************************************************** */
 
  u_int8_t ParserInterface::parse_flows(char *payload, int payload_size, u_int8_t source_id, void *data) {
-  json_object *o, *additional_o;
+   json_object *o;
   ZMQ_Flow flow;
-
   HistoricalInterface * iface = (HistoricalInterface*) data;
 
   // payload[payload_size] = '\0';
@@ -54,13 +53,13 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
 
       if((key != NULL) && (value != NULL)) {
         u_int key_id;
+	json_object *additional_o = json_tokener_parse(value);
 
 	/* FIX: the key can either be numeric of a string */
 	key_id = atoi(key);
 
         switch(key_id) {
         case 0: //json additional object added by Flow::serialize()
-          additional_o = json_tokener_parse(value);
           if( (additional_o != NULL) && (strcmp(key,"json") == 0) ) {
             struct json_object_iterator additional_it = json_object_iter_begin(additional_o);
             struct json_object_iterator additional_itEnd = json_object_iter_end(additional_o);
@@ -213,8 +212,8 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
           ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u", key_id);
           json_object_object_add(flow.additional_fields, key, json_object_new_string(value));
           break;
-        }
-      }
+        } /* switch */
+      } /* if */
 
       /* Move to the next element */
       json_object_iter_next(&it);

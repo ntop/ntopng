@@ -83,7 +83,7 @@ void NdpiStats::lua(NetworkInterfaceView *iface, lua_State* vm) {
   lua_newtable(vm);
   list<NetworkInterface *>::iterator p;
 
-  for (p = iface->intfBegin() ; p != iface->intfEnd() ; p++) {
+  for(p = iface->intfBegin() ; p != iface->intfEnd() ; p++) {
     for(int i=0; i<MAX_NDPI_PROTOS; i++)
       if(counters[i] != NULL) {
         char *name = (*p)->get_ndpi_proto_name(i);

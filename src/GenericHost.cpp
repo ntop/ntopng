@@ -31,7 +31,7 @@ GenericHost::GenericHost(NetworkInterface *_iface) : GenericHashEntry(_iface) {
 
   systemHost = false, localHost = false, last_activity_update = 0, host_serial = 0;
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;
-  last_bytes_periodic = 0;
+  last_bytes_periodic = 0, bytes_thpt_diff = 0;
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0, vlan_id = 0;
   num_alerts_detected = 0, source_id = 0;
@@ -48,12 +48,10 @@ GenericHost::~GenericHost() {
 /* *************************************** */
 
 void GenericHost::readStats() {
-  if(!ntop->getPrefs()->do_dump_timeline())
-    return;
-  else {
+  if(localHost) {
     char buf[64], *host_key, dump_path[MAX_PATH], daybuf[64];
     time_t when = activityStats.get_wrap_time()-(86400/2) /* sec */;
-
+    
     host_key = get_string_key(buf, sizeof(buf));
     strftime(daybuf, sizeof(daybuf), "%y/%m/%d", localtime(&when));
     snprintf(dump_path, sizeof(dump_path), "%s/%s/activities/%s/%s",
@@ -68,8 +66,6 @@ void GenericHost::readStats() {
 /* *************************************** */
 
 void GenericHost::dumpStats(bool forceDump) {
-  if(!ntop->getPrefs()->do_dump_timeline()) return;
-
   if(localHost || forceDump) {
     /* (Daily) Wrap */
     char buf[64], *host_key;

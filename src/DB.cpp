@@ -71,13 +71,13 @@ void DB::initSQLiteDB(time_t when, const char *create_sql_string) {
   when -= when % dir_duration;
 
   strftime(path, sizeof(path), "%Y/%m/%d/%H", localtime(&when));
-  snprintf(db_path, sizeof(db_path), "%s/%u/flows/%s",
+  snprintf(db_path, sizeof(db_path), "%s/%d/flows/%s",
 	   ntop->get_working_dir(), iface->get_id(), path);
   ntop->fixPath(db_path);
 
   if(Utils::mkdir_tree(db_path)) {
     strftime(path, sizeof(path), "%Y/%m/%d/%H/%M", localtime(&when));
-    snprintf(db_path, sizeof(db_path), "%s/%u/flows/%s.sqlite",
+    snprintf(db_path, sizeof(db_path), "%s/%d/flows/%s.sqlite",
 	     ntop->get_working_dir(), iface->get_id(), path);
 
     end_dump = when + dir_duration;

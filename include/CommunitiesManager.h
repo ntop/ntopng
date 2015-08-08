@@ -33,7 +33,7 @@ private:
 
   patricia_tree_t *findCommunityById(int community_id);
   patricia_tree_t *getCommunity(int community_id, string community_name);
-  string getCommunityName(int community_id);
+  string getCommunityName(int community_id); /* NOTUSED */
   void addNetwork(int community_id, string community_name, char *_net);
 
 public:

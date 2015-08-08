@@ -80,47 +80,6 @@ NetworkInterfaceView::~NetworkInterfaceView() {
 
 /* **************************************************** */
 
-/* FIXME: slow */
-bool NetworkInterfaceView::hasNamesAs(const char *names) {
-  istringstream ss(names);
-  string ifname;
-  list<string> _names;
-  list<string> thisNames = list<string>(physNames.begin(), physNames.end());
-  list<string> res;
-  list<string>::iterator i;
-
-  while (std::getline(ss, ifname, ',')) _names.push_back(ifname);
-  set_difference(_names.begin(), _names.end(),
-                 thisNames.begin(), thisNames.end(),
-                 std::inserter(res, res.begin()));
-  return res.empty();
-}
-
-/* **************************************************** */
-
-/* FIXME: slow */
-bool NetworkInterfaceView::hasIdsAs(const char *names) {
-  istringstream ss(names);
-  stringstream idss;
-  string ifid;
-  list<string> _ids;
-  list<string> thisIds;
-  list<string> res;
-  list<NetworkInterface *>::iterator p;
-
-  while (std::getline(ss, ifid, ',')) _ids.push_back(ifid);
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    stringstream idss; idss << (*p)->get_id();
-    thisIds.push_back(idss.str());
-  }
-  set_difference(_ids.begin(), _ids.end(),
-                 thisIds.begin(), thisIds.end(),
-                 std::inserter(res, res.begin()));
-  return res.empty();
-}
-
-/* **************************************************** */
-
 void NetworkInterfaceView::loadDumpPrefs() {
   list<NetworkInterface *>::iterator p;
 
@@ -514,10 +473,10 @@ void NetworkInterfaceView::getnDPIFlowsCount(lua_State *vm) {
 
 int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile(void) {
   list<NetworkInterface *>::iterator p;
-  int max_pkts = 0, temp_num_pkts;
+  int max_pkts = 0;
 
   for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    temp_num_pkts = (*p)->getDumpTrafficMaxPktsPerFile();
+    int temp_num_pkts = (*p)->getDumpTrafficMaxPktsPerFile();
     if (temp_num_pkts > max_pkts)
       max_pkts = temp_num_pkts;
   }

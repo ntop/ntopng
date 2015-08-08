@@ -53,9 +53,6 @@ class NetworkInterfaceView {
   inline int get_id() { return id; }
   inline char *get_descr(void);
 
-  bool hasNamesAs(const char *names);
-  bool hasIdsAs(const char *names);
-
   void getnDPIStats(NdpiStats *stats);
   void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, bool local_only);
   void getCommunityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, int community_id);

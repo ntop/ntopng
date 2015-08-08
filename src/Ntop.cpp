@@ -251,6 +251,8 @@ void Ntop::registerNagios(void) {
 /* ******************************************* */
 
 void Ntop::initRedis() {
+  if(redis) delete(redis);
+
   redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
 }
 
@@ -383,7 +385,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	int l = strlen(buf);
 
 	strncpy(buf_orig, buf, bufsize);
-	snprintf(&buf[l], sizeof(buf)-l, "/%u", cidr);
+	snprintf(&buf[l], sizeof(buf)-l, "/%d", cidr);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv4 interface address", buf);
 	strncpy(buf2, buf, bufsize);
 	ptree_add_rule(local_interface_addresses, buf_orig);
@@ -408,7 +410,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	int l = strlen(buf);
 
 	strncpy(buf_orig, buf, bufsize);
-	snprintf(&buf[l], sizeof(buf)-l, "/%u", cidr);
+	snprintf(&buf[l], sizeof(buf)-l, "/%d", cidr);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv6 interface address for %s", buf, ifr.ifr_name);
 	strncpy(buf2, buf, bufsize);
 	ptree_add_rule(local_interface_addresses, buf_orig);
@@ -601,9 +603,9 @@ bool Ntop::resetUserPassword(char *username, char *old_password, char *new_passw
 /* ******************************************* */
 
 bool Ntop::changeUserRole(char *username, char *usertype) const {
-  char key[64];
-
   if(usertype != NULL) {
+    char key[64];
+
     snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
     if(ntop->getRedis()->set(key, usertype, 0) < 0)
@@ -616,9 +618,9 @@ bool Ntop::changeUserRole(char *username, char *usertype) const {
 /* ******************************************* */
 
 bool Ntop::changeAllowedNets(char *username, char *allowed_nets) const {
-  char key[64];
-
   if(allowed_nets != NULL) {
+    char key[64];
+
     snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
 
     if(ntop->getRedis()->set(key, allowed_nets, 0) < 0)
@@ -808,7 +810,7 @@ NetworkInterface* Ntop::getNetworkInterface(const char *name) {
   int if_id = atoi(name);
   char str[8];
 
-  snprintf(str, sizeof(str), "%u", if_id);
+  snprintf(str, sizeof(str), "%d", if_id);
   if(strcmp(name, str) == 0) {
     /* name is a number */
 
@@ -949,6 +951,7 @@ NetworkInterfaceView* Ntop::getInterfaceView(char *name) {
 
 /* ******************************************* */
 
+/* NOTUSED */
 int Ntop::getInterfaceIdByName(char *name) {
    /* This method accepts both interface names or Ids */
   int if_id = atoi(name);

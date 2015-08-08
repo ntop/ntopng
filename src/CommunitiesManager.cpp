@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-15 - ntop.org
+ * (C) 2015 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,30 +23,43 @@
 #include <iostream>
 #include <vector>
 
+/* ************************************************ */
+
 CommunitiesManager::CommunitiesManager() {
   num_communities = 0;
 }
 
+/* ************************************************ */
+
 CommunitiesManager::~CommunitiesManager() {
 }
+
+/* ************************************************ */
 
 patricia_tree_t *CommunitiesManager::findCommunityById(int community_id) {
   return communities.at(community_id);
 }
 
+/* ************************************************ */
+
 patricia_tree_t *CommunitiesManager::getCommunity(int community_id, string community_name) {
   patricia_tree_t *ptree;
   if ((ptree = findCommunityById(community_id)))
     return ptree;
+
   ptree = New_Patricia(128);
   communities.at(community_id) = ptree;
   community_names.at(community_id) = community_name;
   return ptree;
 }
 
+/* ************************************************ */
+
 string CommunitiesManager::getCommunityName(int community_id) {
   return community_names.at(community_id);
 }
+
+/* ************************************************ */
 
 void CommunitiesManager::addNetwork(int community_id, string community_name, char *_net) {
   patricia_node_t *node;
@@ -72,6 +85,8 @@ void CommunitiesManager::addNetwork(int community_id, string community_name, cha
   num_communities++;
 }
 
+/* ************************************************ */
+
 int CommunitiesManager::findAddress(int community_id, int family, void *addr) {
   patricia_node_t *node = NULL;
 
@@ -84,12 +99,14 @@ int CommunitiesManager::findAddress(int community_id, int family, void *addr) {
     return node->user_data;
 }
 
+/* ************************************************ */
+
 void CommunitiesManager::listAddressCommunitiesLua(lua_State* vm, int family, void *addr) {
   int i = 0;
   int num_communities = 0;
 
   for (std::vector<patricia_tree_t *>::iterator it = communities.begin() ; it != communities.end(); ++it)
-     if (community_names.at(i) != "" && findAddress(i, family, addr) != -1) num_communities++;
+    if (community_names.at(i) != "" && findAddress(i, family, addr) != -1) num_communities++;
 
   if (num_communities == 0) {
     lua_pushnil(vm);
@@ -106,6 +123,8 @@ void CommunitiesManager::listAddressCommunitiesLua(lua_State* vm, int family, vo
   }
 }
 
+/* ************************************************ */
+
 void CommunitiesManager::listCommunitiesLua(lua_State* vm) {
   int i = 0;
   int num_communities = 0;
@@ -113,11 +132,11 @@ void CommunitiesManager::listCommunitiesLua(lua_State* vm) {
   lua_newtable(vm);
 
   for (std::vector<patricia_tree_t *>::iterator it = communities.begin() ; it != communities.end(); ++it) {
-     if (community_names.at(i) != "") {
-        lua_push_int_table_entry(vm, community_names.at(i).c_str(), i);
-        num_communities++;
-     }
-     i++;
+    if (community_names.at(i) != "") {
+      lua_push_int_table_entry(vm, community_names.at(i).c_str(), i);
+      num_communities++;
+    }
+    i++;
   }
 
   if (num_communities == 0) {
@@ -125,11 +144,12 @@ void CommunitiesManager::listCommunitiesLua(lua_State* vm) {
     return;
   }
 }
+/* ************************************************ */
 
 /* Format:
    communityX@id1=net1,net2,net3
    communityY@id2=net4,net5,net6
- */
+*/
 void CommunitiesManager::parseCommunitiesFile(char *fname) {
   char *tok = NULL, community_name[MAX_PATH];
   string st;
@@ -160,7 +180,7 @@ void CommunitiesManager::parseCommunitiesFile(char *fname) {
 
   return;
 
-error:
+ error:
   ntop->getTrace()->traceEvent(TRACE_ERROR, "Parsing error in file %s at line %d", fname, line);
 }
 

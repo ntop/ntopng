@@ -97,13 +97,6 @@ class RuntimePrefs {
    * @param use_bps Preference boolean value.
    */
   void set_throughput_unit(bool use_bps);
-  /**
-   * @brief Test if the throughput preference is set to "bps".
-   * @details Read for Redis the preference, if it doesn't exist
-   * the preference will be set to default value (bps).
-   * @return True if the preference is "pps", false if it is "bps"
-   */
-  bool use_bps_as_set_throughput_unit();
 };
 
 #endif /* _RUNTIME_PREFS_H_ */

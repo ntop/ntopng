@@ -65,6 +65,10 @@ NetworkInterface::NetworkInterface() {
   else
     pkt_dumper_tap = NULL;
 
+  has_mesh_networks_traffic = false,
+    pcap_datalink_type = 0, cpu_affinity = -1, 
+    pkt_dumper = NULL, antenna_mac = NULL;
+
   db = new DB(this);
 
 #ifdef NTOPNG_PRO
@@ -170,7 +174,6 @@ NetworkInterface::NetworkInterface(const char *name) {
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
-
 
     running = false, sprobe_interface = false, inline_interface = false;
 
@@ -499,6 +502,7 @@ static bool node_proto_guess_walker(GenericHashEntry *node, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::dumpFlows() {
+  /* NOTUSED */
   flows_hash->walk(node_proto_guess_walker, NULL);
 }
 
@@ -1788,7 +1792,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm) {
   for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
     char buf[8];
 
-    snprintf(buf, sizeof(buf), "%u", i);
+    snprintf(buf, sizeof(buf), "%d", i);
     lua_push_str_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, buf);
   }
 }

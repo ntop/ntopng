@@ -26,7 +26,7 @@
 PacketDumper::PacketDumper(NetworkInterface *i) {
   char *name = i->get_name();
 
-  iface = i, file_id = 1;
+  iface = i, file_id = 1, sampling_rate = 1;
   dump_end = 0, dumper = NULL, num_dumped_packets = 0;
 
   if((name[0] == 'l') && (name[1] == 'o'))
@@ -84,7 +84,7 @@ void PacketDumper::openDump(time_t when, int sampling_rate,
   this->max_sec_per_file = iface->getDumpTrafficMaxSecPerFile();
   when -= when % 3600; /* Hourly directories */
   strftime(hour_path, sizeof(hour_path), "%Y/%m/%d/%H", localtime(&when));
-  snprintf(pcap_path, sizeof(pcap_path), "%s/%u/pcap/%s",
+  snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/%s",
 	   ntop->get_working_dir(), iface->get_id(), hour_path);
   ntop->fixPath(pcap_path);
   

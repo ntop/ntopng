@@ -245,7 +245,7 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
   numeric_ip_len = strlen(numeric_ip)-1;
 
   if((symbolic != NULL) && (symbolic_len > 0)) symbolic[0] = '\0';
-  if((numeric_ip == NULL) || (numeric_ip[0] == '\0')) return;
+  if(numeric_ip[0] == '\0') return;
 
   if(ntop->getRedis()->getAddress(numeric_ip, rsp, sizeof(rsp), false) < 0) {
     char hostname[NI_MAXHOST];

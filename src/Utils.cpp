@@ -212,12 +212,14 @@ bool Utils::file_exists(const char *path) {
 /* ****************************************************** */
 
 bool Utils::mkdir_tree(char *path) {
-  int permission = 0777, rc;
+  int rc;
   struct stat s;
 
   ntop->fixPath(path);
 
   if(stat(path, &s) != 0) {
+    int permission = 0777;
+
     /* Start at 1 to skip the root */
     for(int i=1; path[i] != '\0'; i++)
       if(path[i] == CONST_PATH_SEP) {
@@ -703,11 +705,12 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
   if(curl) {
     CURLcode res;
     struct curl_slist* headers = NULL;
-    char auth[64];
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(username || password) {
+      char auth[64];
+
       snprintf(auth, sizeof(auth), "%s:%s",
 	       username ? username : "",
 	       password ? password : "");
@@ -781,11 +784,13 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     DownloadState *state = NULL;
     long response_code;
     char *content_type, *redirection;
-    char ua[64], auth[64];
+    char ua[64];
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
     if(username || password) {
+      char auth[64];
+
       snprintf(auth, sizeof(auth), "%s:%s",
 	       username ? username : "",
 	       password ? password : "");

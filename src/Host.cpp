@@ -54,8 +54,6 @@ Host::Host(NetworkInterface *_iface, u_int8_t mac[6],
 /* *************************************** */
 
 Host::~Host() {
-  char key[128];
-
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
@@ -66,7 +64,7 @@ Host::~Host() {
   if((localHost || systemHost)
      && ntop->getPrefs()->is_host_persistency_enabled()) {
     char *json = serialize();
-    char host_key[128];
+    char host_key[128], key[128];
     char *k = get_string_key(host_key, sizeof(host_key));
 
     snprintf(key, sizeof(key), "%s.%d.json", k, vlan_id);
@@ -395,31 +393,20 @@ void Host::set_mac(char *m) {
 
 /* *************************************** */
 
-void Host::set_antenna_mac(char *m) {
-  u_int32_t mac[6] = { 0 };
-
-  sscanf(m, "%u:%u:%u:%u:%u:%u",
-         &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-
-  antenna_mac_address[0] = mac[0], antenna_mac_address[1] = mac[1],
-  antenna_mac_address[2] = mac[2], antenna_mac_address[3] = mac[3],
-  antenna_mac_address[4] = mac[4], antenna_mac_address[5] = mac[5];
-}
-
-/* *************************************** */
-
 void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 	       bool host_details, bool verbose, bool returnHost) {
-  char buf[64], ip_buf[64];
+  char buf[64];
   char buf_id[64];
   char *ipaddr = NULL;
 
   if(!match(ptree)) return;
 
   lua_newtable(vm);
-  if(ip)
+  if(ip) {
+    char ip_buf[64];
+
     lua_push_str_table_entry(vm, "ip", (ipaddr = ip->print(ip_buf, sizeof(ip_buf))));
-  else
+  } else
     lua_push_nil_table_entry(vm, "ip");
   
   if((antenna_mac_address[0] != 0)
@@ -1230,10 +1217,11 @@ void Host::readAlertPrefs() {
 
   if(ip && (!ip->isEmpty())) {
     if(!ntop->getPrefs()->are_alerts_disabled()) {
-      char *key, ip_buf[48], rsp[32];
+      char *key, ip_buf[48];
 
       key = get_string_key(ip_buf, sizeof(ip_buf));
       if(key) {
+	char rsp[32];
 	ntop->getRedis()->hashGet((char*)CONST_ALERT_PREFS, key, rsp, sizeof(rsp));
 
 	trigger_host_alerts = ((strcmp(rsp, "false") == 0) ? 0 : 1);

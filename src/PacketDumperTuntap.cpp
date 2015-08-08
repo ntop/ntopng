@@ -191,6 +191,8 @@ int PacketDumperTuntap::readTap(unsigned char *buf, int len) {
   return 0;
 }
 
+/* ********************************************* */
+
 int PacketDumperTuntap::writeTap(unsigned char *buf, int len,
                                  dump_reason reason, unsigned int sampling_rate) {
   if(init_ok) {
