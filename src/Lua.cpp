@@ -2730,7 +2730,7 @@ static int ntop_check_license(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_info(lua_State* vm) {
-  char rsp[256], tmp[256];
+  char rsp[256];
   int major, minor, patch;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -2741,11 +2741,9 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "authors", (char*)"The ntop.org team");
   lua_push_str_table_entry(vm, "license", (char*)"GNU GPLv3");
 
-  snprintf(tmp, sizeof(tmp), "r%s", PACKAGE_VERSION);
+  lua_push_str_table_entry(vm, "version", (char*)PACKAGE_VERSION);
+  lua_push_str_table_entry(vm, "git", (char*)NTOPNG_GIT_RELEASE);
 
-  snprintf(rsp, sizeof(rsp), "%s (%s)",
-	   PACKAGE_VERSION, NTOPNG_GIT_RELEASE);
-  lua_push_str_table_entry(vm, "version", rsp);
   snprintf(rsp, sizeof(rsp), "%s (%s)", PACKAGE_OSNAME, PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "platform", rsp);
   lua_push_str_table_entry(vm, "OS",

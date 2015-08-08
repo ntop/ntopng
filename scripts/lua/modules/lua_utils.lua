@@ -1585,6 +1585,7 @@ function makeTopStatsScriptsArray()
 	 end
       end
    end
+
    return(topArray)
 end
 

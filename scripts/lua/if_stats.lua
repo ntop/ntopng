@@ -126,9 +126,9 @@ end
 print("<li><a href=\"#\">Interface: " .. short_name .."</a></li>\n")
 
 if((page == "overview") or (page == nil)) then
-   print("<li class=\"active\"><a href=\"#\">Overview</a></li>\n")
+   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i></a></li>\n")
 else
-   print("<li><a href=\""..url.."&page=overview\">Overview</a></li>")
+   print("<li><a href=\""..url.."&page=overview\"><i class=\"fa fa-home fa-lg\"></i></a></li>")
 end
 
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
