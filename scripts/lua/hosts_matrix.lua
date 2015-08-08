@@ -17,14 +17,14 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 function getTraffic(stats, host_a, host_b)
    sent_total = 0
    rcvd_total = 0
-
+   
    -- io.write(">>> "..host_a.." / "..host_b.."\n")
-
+   
    for key, value in pairs(stats) do
       client = hostinfo2hostkey(flows_stats[key],"cli")
       server = hostinfo2hostkey(flows_stats[key],"srv")
       -- io.write(">>> "..flows_stats[key]["cli.ip"].." / "..flows_stats[key]["srv.ip"].."\n")
-	 
+      
       if((client == host_a) and ((server == host_b) or ((host_b == nil)))) then
 	 sent_total = sent_total +  flows_stats[key]["cli2srv.bytes"]
 	 rcvd_total = rcvd_total + flows_stats[key]["srv2cli.bytes"]
@@ -48,11 +48,11 @@ localhosts = {}
 found = false
 for key, value in pairs(hosts_stats) do
    --print(hosts_stats[key]["name"].."<p>\n")
-
+   
    if((hosts_stats[key]["localhost"] == true) and (hosts_stats[key]["ip"] ~= nil)) then
-    
-      -- exclude NoIP - multicast - broadcast
-      if(hosts_stats[key]["ip"] ~= "224.0.0.22" and hosts_stats[key]["ip"] ~= "0.0.0.0" and hosts_stats[key]["ip"] ~= "255.255.255.255") then
+      
+      -- exclude multicast / NoIP / broadcast
+      if(exclude_BroadMultIPv6(hosts_stats[key]["ip"]) == false) then
 	 
 	 name_host_1 = ntop.getResolvedAddress(key);
 	 
@@ -70,10 +70,6 @@ for key, value in pairs(hosts_stats) do
       end
    end
 end
-
--- io.write("->"..'\n')
--- io.write("->"..'\n')
--- for k,v in pairs(localhosts) do io.write(k..'\n') end
 
 if(found == false) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No local hosts can be found</div>")

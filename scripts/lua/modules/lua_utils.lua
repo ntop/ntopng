@@ -580,20 +580,46 @@ function clearbit(x, p)
 end
 
 function isBroadMulticast(ip)
-  if(ip == "0.0.0.0") then return(true) end
-
-  -- print(ip)
-  t = string.split(ip, "%.")
-  -- print(table.concat(t, "\n"))
-  if(t == nil) then
-    return(false) -- Might be an IPv6 address
-  else
-    if(tonumber(t[1]) >= 224)  then return(true) end
-  end
-
-  return(false)
+   
+   if(ip == "0.0.0.0") then 
+      return true
+   end
+   -- print(ip)
+   t = string.split(ip, "%.")
+   -- print(table.concat(t, "\n"))
+   if(t == nil) then
+      return false  -- Might be an IPv6 address
+   else
+      if(tonumber(t[1]) >= 224)  then 
+	 return true
+      end
+   end
+   
+   return false
 end
 
+-- exclude_BroadMultIPv6
+function exclude_BroadMultIPv6(ip)
+
+   -- check NoIP
+   if(ip == "0.0.0.0") then 
+      return true
+   end
+   
+   -- check IPv6
+   t = string.split(ip, "%.")
+   
+   if(t == nil) then
+      return true
+   else
+      -- check Multicast / Broadcast
+      if(tonumber(t[1]) >= 224) then 
+	 return true
+      end
+   end
+   
+   return false
+end
 
 function addGauge(name, url, maxValue, width, height)
   if(url ~= nil) then print('<A HREF="'..url..'">') end
