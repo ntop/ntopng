@@ -692,7 +692,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);
       optarg = Utils::tokenizer(optarg, ';', &mysql_tablename);
       optarg = Utils::tokenizer(optarg, ';', &mysql_user);
-      optarg = Utils::tokenizer(optarg, ';', &mysql_pw);
+      mysql_pw = optarg;
 
       if(mysql_host && mysql_user) {      
 	if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
