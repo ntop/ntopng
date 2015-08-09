@@ -819,7 +819,9 @@ char* Host::serialize() {
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
   json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
+
+  /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
+  //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
 
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
@@ -869,8 +871,7 @@ bool Host::deserialize(char *json_str) {
   json_object *o, *obj;
 
   if((o = json_tokener_parse(json_str)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", 
-				 json_str);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", json_str);
     return(false);
   }
 
@@ -923,8 +924,11 @@ bool Host::deserialize(char *json_str) {
     ndpiStats->deserialize(iface, obj);
   }
 
+  /* We commented the line below to avoid strings too long */
+#if 0
   activityStats.reset();
   if(json_object_object_get_ex(o, "activityStats", &obj)) activityStats.deserialize(obj);
+#endif
 
   computeHostSerial();
   if(json_object_object_get_ex(o, "pktStats.sent", &obj)) sent_stats.deserialize(obj);

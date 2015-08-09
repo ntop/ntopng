@@ -598,9 +598,7 @@ function isBroadMulticast(ip)
    return false
 end
 
--- exclude_BroadMultIPv6
-function exclude_BroadMultIPv6(ip)
-
+function isBroadcastMulticast(ip)
    -- check NoIP
    if(ip == "0.0.0.0") then 
       return true
@@ -609,9 +607,7 @@ function exclude_BroadMultIPv6(ip)
    -- check IPv6
    t = string.split(ip, "%.")
    
-   if(t == nil) then
-      return true
-   else
+   if(t ~= nil) then
       -- check Multicast / Broadcast
       if(tonumber(t[1]) >= 224) then 
 	 return true
