@@ -48,14 +48,14 @@ GenericHost::~GenericHost() {
 /* *************************************** */
 
 void GenericHost::readStats() {
-  if(localHost) {
+  if(localHost || systemHost) {
     char buf[64], *host_key, dump_path[MAX_PATH], daybuf[64];
     time_t when = activityStats.get_wrap_time()-(86400/2) /* sec */;
     
     host_key = get_string_key(buf, sizeof(buf));
     strftime(daybuf, sizeof(daybuf), "%y/%m/%d", localtime(&when));
-    snprintf(dump_path, sizeof(dump_path), "%s/%s/activities/%s/%s",
-	     ntop->get_working_dir(), iface->get_name(), daybuf, host_key);
+    snprintf(dump_path, sizeof(dump_path), "%s/%d/activities/%s/%s",
+	     ntop->get_working_dir(), iface->get_id(), daybuf, host_key);
     ntop->fixPath(dump_path);
 
     if(activityStats.readDump(dump_path))
@@ -66,7 +66,7 @@ void GenericHost::readStats() {
 /* *************************************** */
 
 void GenericHost::dumpStats(bool forceDump) {
-  if(localHost || forceDump) {
+  if((localHost || systemHost) || forceDump) {
     /* (Daily) Wrap */
     char buf[64], *host_key;
     time_t when = activityStats.get_wrap_time()-(86400/2) /* sec */;
@@ -77,13 +77,13 @@ void GenericHost::dumpStats(bool forceDump) {
       char dump_path[MAX_PATH], daybuf[64];
 
       strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
-      snprintf(dump_path, sizeof(dump_path), "%s/%s/activities/%s",
-	       ntop->get_working_dir(), iface->get_name(), daybuf);
+      snprintf(dump_path, sizeof(dump_path), "%s/%d/activities/%s",
+	       ntop->get_working_dir(), iface->get_id(), daybuf);
       ntop->fixPath(dump_path);
       Utils::mkdir_tree(dump_path);
 
-      snprintf(dump_path, sizeof(dump_path), "%s/%s/activities/%s/%s",
-	       ntop->get_working_dir(), iface->get_name(), daybuf, host_key);
+      snprintf(dump_path, sizeof(dump_path), "%s/%d/activities/%s/%s",
+	       ntop->get_working_dir(), iface->get_id(), daybuf, host_key);
       ntop->fixPath(dump_path);
       activityStats.writeDump(dump_path);
       ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping %s", dump_path);

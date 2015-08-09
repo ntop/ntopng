@@ -89,6 +89,11 @@ int main(int argc, char *argv[])
   Prefs *prefs = NULL;
   char *ifName;
   int rc;
+#ifdef linux
+  char *affinity;
+  char *core_id_s = NULL;
+  int core_id;
+#endif
 
 #ifdef WIN32
   initWinsock32();
@@ -126,10 +131,6 @@ int main(int argc, char *argv[])
   /* Store number of CPUs before dropping privileges */
   ntop->setNumCPUs(sysconf(_SC_NPROCESSORS_ONLN));
   ntop->getTrace()->traceEvent(TRACE_INFO, "System has %d CPU cores", ntop->getNumCPUs());
-
-  char *affinity = prefs->get_cpu_affinity();
-  char *core_id_s = NULL;
-  int core_id;
 #endif
 
   for(int i=0; i<MAX_NUM_INTERFACES; i++) {
@@ -185,13 +186,17 @@ int main(int argc, char *argv[])
  * for non-Linux.
  */
 #ifdef linux
-    if((core_id_s = strtok(affinity, ",")) != NULL)
-      core_id = atoi(core_id_s);
-    else
-      core_id = i;
-
-    iface->setCPUAffinity(core_id);
-    affinity = NULL;
+    affinity = prefs->get_cpu_affinity();
+    
+    if(affinity != NULL) {
+      if((core_id_s = strtok(affinity, ",")) != NULL)
+	core_id = atoi(core_id_s);
+      else
+	core_id = i;
+      
+      iface->setCPUAffinity(core_id);
+      affinity = NULL;
+    }
 #endif
 
     if(prefs->get_packet_filter() != NULL)

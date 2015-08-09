@@ -25,7 +25,7 @@ always_show_hist = _GET["always_show_hist"]
 
 active_page = "hosts"
 
-if(host_name == nil) then
+if((host_name == nil) or (host_ip == nil)) then
    sendHTTPHeader('text/html; charset=iso-8859-1')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

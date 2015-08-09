@@ -1688,6 +1688,7 @@ end
 
 -- rrd_exists
 function rrd_exists(host_ip, rrdname)
+if(host_ip == nil) then return false end
    dirs = ntop.getDirs()
    rrdpath = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host_ip) .. "/" .. rrdname
    return ntop.exists(rrdpath)
