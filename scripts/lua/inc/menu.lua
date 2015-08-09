@@ -137,7 +137,7 @@ end
 print [[
       <li><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/hosts_matrix.lua"><i class="fa fa-th-large"></i> Local Matrix</a></li>
+print [[/lua/hosts_matrix.lua"><i class="fa fa-th-large"></i> Local Flow Matrix</a></li>
    ]]
 
 if(_ifstats["has_mesh_networks_traffic"]) then
