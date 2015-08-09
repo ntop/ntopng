@@ -284,7 +284,7 @@ static int ntop_select_interface(lua_State* vm) {
  */
 static int ntop_get_ndpi_interface_stats(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  NdpiStats stats;
+  nDPIStats stats;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -331,7 +331,7 @@ static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
  */
 static int ntop_get_ndpi_protocol_name(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  NdpiStats stats;
+  nDPIStats stats;
   int proto;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -361,7 +361,7 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
  */
 static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  NdpiStats stats;
+  nDPIStats stats;
   int proto;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -4301,7 +4301,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getIfNames",             ntop_get_interface_names },
   { "select",                 ntop_select_interface },
   { "getStats",               ntop_get_interface_stats },
-  { "getNdpiStats",           ntop_get_ndpi_interface_stats },
+  { "getnDPIStats",           ntop_get_ndpi_interface_stats },
   { "getNdpiProtoName",       ntop_get_ndpi_protocol_name },
   { "getNdpiFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getNdpiProtoBreed",      ntop_get_ndpi_protocol_breed },

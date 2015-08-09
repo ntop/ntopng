@@ -69,8 +69,13 @@ NetworkInterface::NetworkInterface() {
     ip_addresses = "",
     pcap_datalink_type = 0, cpu_affinity = -1, 
     pkt_dumper = NULL, antenna_mac = NULL;
-  
-  db = new DB(this);
+
+  if(ntop->getPrefs()->do_dump_flows_on_sqlite())
+    db = new SQLiteDB(this);
+#ifdef HAVE_MYSQL
+  else if(ntop->getPrefs()->do_dump_flows_on_mysql())
+    db = new MySQLDB(this);
+#endif
 
 #ifdef NTOPNG_PRO
   policer = NULL;
@@ -178,7 +183,13 @@ NetworkInterface::NetworkInterface(const char *name) {
 
     running = false, sprobe_interface = false, inline_interface = false;
 
-    db = new DB(this);
+    if(ntop->getPrefs()->do_dump_flows_on_sqlite())
+      db = new SQLiteDB(this);
+#ifdef HAVE_MYSQL
+    else if(ntop->getPrefs()->do_dump_flows_on_mysql())
+      db = new MySQLDB(this);
+#endif
+
     checkIdle();
   } else {
     flows_hash = NULL, hosts_hash = NULL;
@@ -1356,7 +1367,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 /* **************************************************** */
 
 static bool flow_sum_protos(GenericHashEntry *f, void *user_data) {
-  NdpiStats *stats = (NdpiStats*)user_data;
+  nDPIStats *stats = (nDPIStats*)user_data;
   Flow *flow = (Flow*)f;
 
   flow->sumStats(stats);
@@ -1365,7 +1376,7 @@ static bool flow_sum_protos(GenericHashEntry *f, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::getnDPIStats(NdpiStats *stats) {
+void NetworkInterface::getnDPIStats(nDPIStats *stats) {
   flows_hash->walk(flow_sum_protos, (void*)stats);
 }
 

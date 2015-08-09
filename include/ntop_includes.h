@@ -130,7 +130,7 @@ extern "C" {
 #include "IpAddress.h"
 #include "Utils.h"
 #include "ActivityStats.h"
-#include "NdpiStats.h"
+#include "nDPIStats.h"
 #include "DnsStats.h"
 #include "TrafficStats.h"
 #include "PacketStats.h"
@@ -181,6 +181,10 @@ extern "C" {
 #include "Host.h"
 #include "Flow.h"
 #include "DB.h"
+#include "SQLiteDB.h"
+#ifdef HAVE_MYSQL
+#include "MySQLDB.h"
+#endif
 #include "FlowHash.h"
 #include "HostHash.h"
 #include "PeriodicActivities.h"

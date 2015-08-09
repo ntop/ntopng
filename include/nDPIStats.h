@@ -41,15 +41,15 @@ class NetworkInterfaceView;
 
 /* *************************************** */
 
-class NdpiStats {
+class nDPIStats {
  private:
   ProtoCounter *counters[MAX_NDPI_PROTOS];
 
  public:
-  NdpiStats();
-  ~NdpiStats();
+  nDPIStats();
+  ~nDPIStats();
 
-  void sumStats(NdpiStats *stats);
+  void sumStats(nDPIStats *stats);
 
   void incStats(u_int16_t proto_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,

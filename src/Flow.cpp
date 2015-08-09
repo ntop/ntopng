@@ -1120,7 +1120,7 @@ char* Flow::getFlowCategory(bool force_categorization) {
 
 /* *************************************** */
 
-void Flow::sumStats(NdpiStats *stats) {
+void Flow::sumStats(nDPIStats *stats) {
   stats->incStats(ndpi_detected_protocol.protocol,
 		  cli2srv_packets, cli2srv_bytes,
 		  srv2cli_packets, srv2cli_bytes);

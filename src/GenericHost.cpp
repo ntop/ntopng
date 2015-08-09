@@ -27,7 +27,7 @@ GenericHost::GenericHost(NetworkInterface *_iface) : GenericHashEntry(_iface) {
   if(_iface == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL interface");
 
-  ndpiStats = new NdpiStats();
+  ndpiStats = new nDPIStats();
 
   systemHost = false, localHost = false, last_activity_update = 0, host_serial = 0;
   last_bytes = 0, last_bytes_thpt = bytes_thpt = 0, bytes_thpt_trend = trend_unknown;

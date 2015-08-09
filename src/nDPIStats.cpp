@@ -24,13 +24,13 @@
 
 /* *************************************** */
 
-NdpiStats::NdpiStats() {
+nDPIStats::nDPIStats() {
   memset(counters, 0, sizeof(counters));
 }
 
 /* *************************************** */
 
-NdpiStats::~NdpiStats() {
+nDPIStats::~nDPIStats() {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL)
       free(counters[i]);
@@ -39,7 +39,7 @@ NdpiStats::~NdpiStats() {
 
 /* *************************************** */
 
-void NdpiStats::sumStats(NdpiStats *stats) {
+void nDPIStats::sumStats(nDPIStats *stats) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
       if(stats->counters[i] == NULL) {
@@ -65,7 +65,7 @@ void NdpiStats::sumStats(NdpiStats *stats) {
 
 /* *************************************** */
 
-void NdpiStats::print(NetworkInterface *iface) {
+void nDPIStats::print(NetworkInterface *iface) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
       if(counters[i]->packets.sent || counters[i]->packets.rcvd)
@@ -79,7 +79,7 @@ void NdpiStats::print(NetworkInterface *iface) {
 
 /* *************************************** */
 
-void NdpiStats::lua(NetworkInterfaceView *iface, lua_State* vm) {
+void nDPIStats::lua(NetworkInterfaceView *iface, lua_State* vm) {
   lua_newtable(vm);
   list<NetworkInterface *>::iterator p;
 
@@ -113,7 +113,7 @@ void NdpiStats::lua(NetworkInterfaceView *iface, lua_State* vm) {
 
 /* *************************************** */
 
-void NdpiStats::incStats(u_int16_t proto_id,
+void nDPIStats::incStats(u_int16_t proto_id,
 			 u_int64_t sent_packets, u_int64_t sent_bytes,
 			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
   if(proto_id < (MAX_NDPI_PROTOS)) {
@@ -137,7 +137,7 @@ void NdpiStats::incStats(u_int16_t proto_id,
 
 /* *************************************** */
 
-char* NdpiStats::serialize(NetworkInterface *iface) {
+char* nDPIStats::serialize(NetworkInterface *iface) {
   json_object *my_object = getJSONObject(iface);  
   char *rsp = strdup(json_object_to_json_string(my_object));
 
@@ -149,7 +149,7 @@ char* NdpiStats::serialize(NetworkInterface *iface) {
 
 /* *************************************** */
 
-void NdpiStats::deserialize(NetworkInterface *iface, json_object *o) {
+void nDPIStats::deserialize(NetworkInterface *iface, json_object *o) {
   if(!o) return;
 
   /* Reset all */
@@ -193,7 +193,7 @@ void NdpiStats::deserialize(NetworkInterface *iface, json_object *o) {
 
 /* *************************************** */
 
-json_object* NdpiStats::getJSONObject(NetworkInterface *iface) {
+json_object* nDPIStats::getJSONObject(NetworkInterface *iface) {
   char *unknown = iface->get_ndpi_proto_name(NDPI_PROTOCOL_UNKNOWN);
   json_object *my_object;
   

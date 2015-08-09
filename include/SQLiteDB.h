@@ -19,21 +19,38 @@
  *
  */
 
-#ifndef _DB_CLASS_H_
-#define _DB_CLASS_H_
+#ifndef _SQLITE_DB_CLASS_H_
+#define _SQLITE_DB_CLASS_H_
 
 #include "ntop_includes.h"
 
-class DB {
- protected:
-  NetworkInterface *iface;
-  Mutex *m;
+typedef struct {
+  sqlite3 *db;
+  u_int32_t num_contacts_db_insert;
+  char last_open_contacts_db_path[MAX_PATH];
+  time_t last_insert;
+} db_cache;
+
+class SQLiteDB : public DB {
+ private:
+  sqlite3 *db;
+  u_int32_t dir_duration;
+  char db_path[MAX_PATH];
+  time_t end_dump;
+  u_int8_t db_id;
+
+  void initDB(time_t when, const char *create_sql_string);
+  void termDB();
+  bool execSQL(sqlite3 *_db, char* sql);
 
  public:
-  DB(NetworkInterface *_iface = NULL);
-  virtual ~DB();
+  SQLiteDB(NetworkInterface *_iface = NULL,
+     u_int32_t _dir_duration = CONST_DB_DUMP_FREQUENCY,
+     u_int8_t _db_id = 0);
+  ~SQLiteDB();
   
-  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  inline u_int8_t get_db_id()       { return(db_id); };
+  bool dumpFlow(time_t when, Flow *f, char *json);
 };
 
-#endif /* _DB_CLASS_H_ */
+#endif /* _SQLITE_DB_CLASS_H_ */

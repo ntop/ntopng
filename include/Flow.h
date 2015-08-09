@@ -203,7 +203,7 @@ class Flow : public GenericHashEntry {
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
 	     bool *src2srv_direction);
-  void sumStats(NdpiStats *stats);
+  void sumStats(nDPIStats *stats);
   void guessProtocol();
   void dumpFlow(bool partial_dump);
   bool dumpFlowTraffic(void);

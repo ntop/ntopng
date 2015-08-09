@@ -104,7 +104,7 @@ class NetworkInterface {
   pthread_t pollLoop;
   bool pollLoopCreated;
   int cpu_affinity; /**< Index of physical core where the network interface works.*/
-  NdpiStats ndpiStats;
+  nDPIStats ndpiStats;
   PacketStats pktStats;
   FlowHash *flows_hash; /**< Hash used to memorize the flows information.*/
   /* Hosts */
@@ -227,7 +227,7 @@ class NetworkInterface {
 			int *b_shaper_id);
   void flow_processing(ZMQ_Flow *zflow);
   void dumpFlows();
-  void getnDPIStats(NdpiStats *stats);
+  void getnDPIStats(nDPIStats *stats);
   void updateFlowsL7Policy();
   void updateHostStats();
   virtual void lua(lua_State* vm);

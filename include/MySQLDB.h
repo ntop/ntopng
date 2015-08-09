@@ -19,21 +19,28 @@
  *
  */
 
-#ifndef _DB_CLASS_H_
-#define _DB_CLASS_H_
+#ifndef _MYSQL_DB_CLASS_H_
+#define _MYSQL_DB_CLASS_H_
 
 #include "ntop_includes.h"
 
-class DB {
- protected:
-  NetworkInterface *iface;
-  Mutex *m;
+#ifdef HAVE_MYSQL
+
+class MySQLDB : public DB {
+ private:
+  MYSQL mysql;
+  bool db_operational;
+
+  char* get_last_db_error() { return((char*)mysql_error(&mysql)); }
+  int exec_sql_query(char *sql, u_char dump_error_if_any);
 
  public:
-  DB(NetworkInterface *_iface = NULL);
-  virtual ~DB();
+  MySQLDB(NetworkInterface *_iface = NULL);
+  ~MySQLDB();
   
-  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  bool dumpFlow(time_t when, Flow *f, char *json);
 };
 
-#endif /* _DB_CLASS_H_ */
+#endif
+
+#endif /* _MYSQL_DB_CLASS_H_ */

@@ -111,10 +111,10 @@ void NetworkInterfaceView::refreshShapers() {
 
 /* **************************************************** */
 
-void NetworkInterfaceView::getnDPIStats(NdpiStats *stats) {
+void NetworkInterfaceView::getnDPIStats(nDPIStats *stats) {
   list<NetworkInterface *>::iterator p;
 
-  memset(stats, 0, sizeof(NdpiStats));
+  memset(stats, 0, sizeof(nDPIStats));
   for(p = physIntf.begin() ; p != physIntf.end() ; p++)
     (*p)->getnDPIStats(stats);
 }

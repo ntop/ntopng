@@ -920,7 +920,7 @@ bool Host::deserialize(char *json_str) {
   }
 
   if(json_object_object_get_ex(o, "ndpiStats", &obj)) {
-    ndpiStats = new NdpiStats();
+    ndpiStats = new nDPIStats();
     ndpiStats->deserialize(iface, obj);
   }
 
