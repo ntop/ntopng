@@ -178,6 +178,11 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s (%s)", k, localHost ? "local": "remote");
 
+      if(localHost || systemHost) {
+	dns = new DnsStats();
+	http = new HTTPStats(iface->get_hosts_hash());
+      }
+
       if(((localHost || systemHost)
 	  && ntop->getPrefs()->is_host_persistency_enabled())
 	 && (!ntop->getRedis()->get(redis_key, json, sizeof(json)))) {
@@ -216,11 +221,6 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
       if(country) { free(country); country = NULL; }
       if(city)    { free(city); city = NULL;       }
       ntop->getGeolocation()->getInfo(ip, &country, &city, &latitude, &longitude);
-
-      if(localHost || systemHost) {
-	dns = new DnsStats();
-	http = new HTTPStats(iface->get_hosts_hash());
-      }
     } else {
       char buf[32];
 
