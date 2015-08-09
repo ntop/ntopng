@@ -230,6 +230,7 @@ if((page == "overview") or (page == nil)) then
       print("</td></tr>\n")
    end
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
+   print("</td>\n")
 
    if(ifstats.name ~= nil) then
       label = ntop.getCache('ntopng.prefs.'..ifstats.name..'.name')
@@ -259,6 +260,29 @@ if((page == "overview") or (page == nil)) then
 	 print("</td></tr>")
       end
    end
+
+
+   if(ifstats.ip_addresses ~= "") then
+      tokens = split(ifstats.ip_addresses, ",")
+
+      if(tokens ~= nil) then
+	 print("<tr><th width=250>IP Address</th><td colspan=2>")
+
+	 for _,s in pairs(tokens) do
+	    t = string.split(s, "/")
+	    host = interface.getHostInfo(t[1])
+	    
+	    if(host ~= nil) then
+	       print("<li><A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1]..">".. t[1].."</A>\n")
+	    else
+	       print("<li>".. t[1].."\n")
+	    end
+	 end
+
+	 print("</td></tr>")
+      end
+   end
+
    if(ifstats.name ~= ifstats.description) then
       print("<tr><th>Description</th><td colspan=3>" .. ifstats.description .. "</td></tr>\n")
    end
@@ -690,7 +714,7 @@ if(alerts ~= nil) then
    end
 end
 
-if(tab == "alerts_preferences") then 
+if(tab == "alerts_preferences") then
    suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", ifname_clean)
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       alerts_checked = 'checked="checked"'
@@ -794,13 +818,13 @@ local ifname_clean = string.gsub(ifname, "/", "_")
 	  alerts_checked = ""
 	  alerts_value = "true" -- Opposite
        end
-       
+
        print [[
 	    <tr><th>Interface Alerts</th><td nowrap>
 	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
 	    <input type="hidden" name="tab" value="alerts_preferences">
 	    <input type="hidden" name="host" value="]]
-	 
+
          print(if_name)
          print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
          print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -1127,7 +1151,7 @@ elseif(page == "filtering") then
    if((net ~= nil) and (_GET["blacklist"] ~= nil)) then
       ntop.setHashCache(policy_key, net, _GET["blacklist"])
 
-      -- ****************************** 
+      -- ******************************
       ingress_shaper_id = _GET["ingress_shaper_id"]
       if(ingress_shaper_id == nil) then ingress_shaper_id = 0 end
       key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
@@ -1215,7 +1239,7 @@ print [[
       print("<option value="..i)
       if(i == ingress_shaper_id) then print(" selected") end
       print(">"..i.." (")
-      
+
       max_rate = ntop.getHashCache(shaper_key, i)
 
       print(maxRateToString(max_rate)..")</option>\n")
@@ -1246,11 +1270,11 @@ print [[
 
       if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
       max_rate = tonumber(max_rate)
-      if(max_rate == -1) then 
-	 print("No Limit") 
+      if(max_rate == -1) then
+	 print("No Limit")
       else
-	 if(max_rate == 0) then 
-	    print("Drop All Traffic") 
+	 if(max_rate == 0) then
+	    print("Drop All Traffic")
 	 else
 	    if(max_rate < 1024) then
 	       print(max_rate.." Kbps")

@@ -119,8 +119,10 @@ bool ActivityStats::writeDump(char* path) {
 
     dumpFile << ss.str();
     dumpFile.close();
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Written dump %s", path);
     return(true);
   } catch(...) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error writing dump %s", path);
     return(false);
   }
 }
@@ -160,9 +162,12 @@ bool ActivityStats::readDump(char* path) {
     m.unlock(__FILE__, __LINE__);
 #endif
 
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Read dump %s", path);
     return(true);
-  } else
+  } else {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "Error reading dump %s: dump not found", path);
     return(false);
+  }
 }
 
 /* *************************************** */

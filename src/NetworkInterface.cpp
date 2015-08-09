@@ -64,11 +64,12 @@ NetworkInterface::NetworkInterface() {
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
     pkt_dumper_tap = NULL;
-
+  
   has_mesh_networks_traffic = false,
+    ip_addresses = "",
     pcap_datalink_type = 0, cpu_affinity = -1, 
     pkt_dumper = NULL, antenna_mac = NULL;
-
+  
   db = new DB(this);
 
 #ifdef NTOPNG_PRO
@@ -159,7 +160,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 
     if(ntop->getCustomnDPIProtos() != NULL)
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
-
+    
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			    no_master, no_master,
@@ -581,10 +582,11 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
     struct timeval when;
 
     when.tv_sec = (long)last_pkt_rcvd, when.tv_usec = 0;
+    flow->updateTcpFlags(
 #ifdef __OpenBSD__
-    flow->updateTcpFlags((const struct bpf_timeval*)&when,
+			 (const struct bpf_timeval*)&when,
 #else
-    flow->updateTcpFlags((const struct timeval*)&when,
+			 (const struct timeval*)&when,
 #endif
 			 zflow->tcp_flags, src2dst_direction);
   }
@@ -650,10 +652,11 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 
 /* **************************************************** */
 
+bool NetworkInterface::packetProcessing(
 #ifdef __OpenBSD__
-bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
+					const struct bpf_timeval *when,
 #else
-bool NetworkInterface::packetProcessing(const struct timeval *when,
+					const struct timeval *when,
 #endif
 					const u_int64_t time,
 					struct ndpi_ethhdr *eth,
@@ -1832,6 +1835,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
+  lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
   ethStats.lua(vm);
   localStats.lua(vm);
@@ -2256,7 +2260,7 @@ void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
   info.vm = vm, info.key = key, info.num = 0;
   hosts_hash->walk(virtual_http_hosts_walker, &info);
 }
-
+					
 /* **************************************** */
 
 bool NetworkInterface::isInterfaceUp(char *name) {
@@ -2317,3 +2321,16 @@ void NetworkInterface::refreshShapers() {
     policer->refreshShapers();
 }
 #endif
+
+/* **************************************** */
+
+void NetworkInterface::addInterfaceAddress(char *addr) {
+  if(ip_addresses.size() == 0)
+    ip_addresses = addr;
+  else {
+    string s = addr;
+
+    ip_addresses = ip_addresses + "," + s;
+  }
+}
+

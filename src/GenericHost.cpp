@@ -76,7 +76,7 @@ void GenericHost::dumpStats(bool forceDump) {
     if(strcmp(host_key, "00:00:00:00:00:00")) {
       char dump_path[MAX_PATH], daybuf[64];
 
-      strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
+      strftime(daybuf, sizeof(daybuf), "%y/%m/%d", localtime(&when));
       snprintf(dump_path, sizeof(dump_path), "%s/%d/activities/%s",
 	       ntop->get_working_dir(), iface->get_id(), daybuf);
       ntop->fixPath(dump_path);
