@@ -21,10 +21,6 @@
 
 #include "ntop_includes.h"
 
-extern "C" {
-#include "../third-party/libgeohash/geohash.c"
-};
-
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
@@ -621,6 +617,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 
 void Flow::dumpFlow(bool partial_dump) {
   if(ntop->getPrefs()->do_dump_flows_on_sqlite()
+     || ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->get_export_interface()) {
 
@@ -631,7 +628,9 @@ void Flow::dumpFlow(bool partial_dump) {
 	return;
     }
 
-    if(cli_host && ntop->getPrefs()->do_dump_flows_on_sqlite()) {
+    if(cli_host 
+       && (ntop->getPrefs()->do_dump_flows_on_sqlite()
+	   || ntop->getPrefs()->do_dump_flows_on_mysql())) {
       cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, this);
     } else if(cli_host && ntop->getPrefs()->do_dump_flows_on_es()) {
       cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
@@ -1267,41 +1266,26 @@ json_object* Flow::flow2json(bool partial_dump) {
 
   c = cli_host->get_country() ? cli_host->get_country() : NULL;
   if(c) {
+    json_object *location = json_object_new_array();
+
     json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
-
-    if(0) {
-      json_object *location = json_object_new_array();
-
-      if(location) {
-	json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
-	json_object_array_add(location, json_object_new_double(cli_host->get_longitude()));
-	json_object_object_add(my_object, "SRC_IP_LOCATION", location);
-      }
-    } else {
-      char *geohash = geohash_encode(cli_host->get_latitude(), cli_host->get_longitude(), 8);
-
-      json_object_object_add(my_object, "SRC_IP_LOCATION", json_object_new_string(geohash));
-      free(geohash);
+    if(location) {
+      json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
+      json_object_array_add(location, json_object_new_double(cli_host->get_longitude()));
+      json_object_object_add(my_object, "SRC_IP_LOCATION", location);
     }
   }
 
   c = srv_host->get_country() ? srv_host->get_country() : NULL;
   if(c) {
+    json_object *location = json_object_new_array();
+
     json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
-
-    if(0) {
-      json_object *location = json_object_new_array();
-
-      if(location) {
-	json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
-	json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
-	json_object_object_add(my_object, "DST_IP_LOCATION", location);
-      }
-    } else {
-      char *geohash = geohash_encode(srv_host->get_latitude(), srv_host->get_longitude(), 8);
-
-      json_object_object_add(my_object, "DST_IP_LOCATION", json_object_new_string(geohash));
-      free(geohash);
+    
+    if(location) {
+      json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
+      json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
+      json_object_object_add(my_object, "DST_IP_LOCATION", location);
     }
   }
 

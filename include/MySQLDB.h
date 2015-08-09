@@ -33,6 +33,8 @@ class MySQLDB : public DB {
 
   char* get_last_db_error() { return((char*)mysql_error(&mysql)); }
   int exec_sql_query(char *sql, u_char dump_error_if_any);
+  bool dumpV4Flow(time_t when, Flow *f, char *json);
+  bool dumpV6Flow(time_t when, Flow *f, char *json);
 
  public:
   MySQLDB(NetworkInterface *_iface = NULL);

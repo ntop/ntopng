@@ -21,9 +21,9 @@ end
 if(_GET["mode"] == "sinceStartup") then
    stats = interface.getStats()
    elseif(_GET["mode"] == "count") then
-   stats = interface.getNdpiFlowsCount()
+   stats = interface.getnDPIFlowsCount()
    elseif(host_info["host"] == nil) then
-   stats = interface.getNdpiStats()
+   stats = interface.getnDPIStats()
 else
    stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
 end

@@ -69,7 +69,7 @@ function getStats ()
 --! @details For more information please read the @ref ntop_get_ndpi_protocol_name documentation.
 --! @tparam number proto The protocol Id.
 --! @return "Host-to-Host Contact" if protocol id is equal to host family id, the protocol name if network interface is not null and null otherwise.
-function getNdpiProtoName (proto)
+function getnDPIProtoName (proto)
 
 --! @memberof interface
 --! @brief Get the hosts information of network interface.

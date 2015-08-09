@@ -229,7 +229,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print("\", \"column_num_contacts\" : "..value["num_contacts"])
 	    if tonumber(value["protocol"]) ~= nil then	       
 	       -- protocol is numeric
-	       p = interface.getNdpiProtoName(value["protocol"])
+	       p = interface.getnDPIProtoName(value["protocol"])
 	    else
 	       p = value["protocol"]
 	    end

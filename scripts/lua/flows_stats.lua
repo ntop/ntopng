@@ -28,7 +28,7 @@ prefs = ntop.getPrefs()
 interface.select(ifname)
 is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 ifstats = interface.getStats()
-ndpistats = interface.getNdpiStats()
+ndpistats = interface.getnDPIStats()
 
 if (network_id ~= nil) then
 

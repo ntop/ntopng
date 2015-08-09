@@ -19,7 +19,7 @@ aggregation = _GET["aggregation"]
 key         = _GET["key"]
 perPage     = _GET["perPage"]
 
-stats = interface.getNdpiStats()
+stats = interface.getnDPIStats()
 num_param = 0
 print [[
       <hr>

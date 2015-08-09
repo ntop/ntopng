@@ -27,7 +27,7 @@
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   MYSQL *rc;
-  char sql[512];
+  char sql[1024];
 
   db_operational = false;
 
@@ -65,19 +65,36 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     return;
   }
 
-  /* 2 - Create table if missing */
-  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%s` ("
+  /* 2.1 - Create table if missing [IPv6] */
+  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6` ("
 	   "`idx` int(11) NOT NULL auto_increment,"
-	   "`vlan_id` int(11),"
-	   "`cli_ip` varchar(48), `cli_port` int(11),"
-	   "`srv_ip` varchar(48), `srv_port` int(11),"
-	   "`proto` int(11), `bytes` int(11), `packets` int(11),"
-	   "`first_seen` int(11), `last_seen` int(11),"
-	   "`json` varchar(255),"
-	   "INDEX(`idx`,`cli_ip`,`srv_ip`,`first_seen`, `last_seen`)) PARTITION BY HASH(first_seen) PARTITIONS 16",
+	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
+	   "`IPV4_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
+	   "`IPV4_DST_ADDR` varchar(48), `L4_DST_PORT` smallint unsigned,"
+	   "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
+	   "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
+	   "`JSON` BLOB,"
+	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	   ntop->getPrefs()->get_mysql_tablename());
+
   if(exec_sql_query(sql, 0) != 0) {
-    printf("\n%s\n", sql);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+    return;
+  }
+  
+  /* 2.2 - Create table if missing [IPv4] */
+  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4` ("
+	   "`idx` int(11) NOT NULL auto_increment,"
+	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
+	   "`IPV4_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
+	   "`IPV4_DST_ADDR` int unsigned, `L4_DST_PORT` smallint unsigned,"
+	   "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
+	   "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
+	   "`JSON` BLOB,"
+	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
+	   ntop->getPrefs()->get_mysql_tablename());
+
+  if(exec_sql_query(sql, 0) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     return;
   }
@@ -96,7 +113,63 @@ MySQLDB::~MySQLDB() {
 /* ******************************************* */
 
 bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
-  return(false);
+  if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
+    return(false);
+
+  if(f->get_cli_host()->get_ip()->isIPv4())
+    return(dumpV4Flow(when, f, json));
+  else
+    return(dumpV6Flow(when, f, json));
+}
+
+/* ******************************************* */
+
+bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
+  char sql[4096];
+
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+	   "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
+	   ntop->getPrefs()->get_mysql_tablename(),
+	   f->get_vlan_id(),
+	   f->get_detected_protocol().protocol,
+	   f->get_cli_host()->get_ip()->get_ipv4(), f->get_cli_port(),
+	   f->get_srv_host()->get_ip()->get_ipv4(), f->get_srv_port(),
+	   f->get_protocol(), (unsigned int)f->get_bytes(),  (unsigned int)f->get_packets(),
+	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(), 
+	   json ? json : "");
+
+  if(exec_sql_query(sql, 0) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+    return(false);
+  }
+
+  return(true);
+}
+
+/* ******************************************* */
+
+bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
+  char sql[4096], cli_str[64], srv_str[64];
+
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+	   "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
+	   ntop->getPrefs()->get_mysql_tablename(),
+	   f->get_vlan_id(),
+	   f->get_detected_protocol().protocol,
+	   f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
+	   f->get_cli_port(),
+	   f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
+	   f->get_srv_port(),
+	   f->get_protocol(), (unsigned int)f->get_bytes(),  (unsigned int)f->get_packets(),
+	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(), 
+	   json ? json : "");
+
+  if(exec_sql_query(sql, 0) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+    return(false);
+  }
+
+  return(true);
 }
 
 /* ******************************************* */

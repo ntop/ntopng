@@ -361,7 +361,7 @@ elseif((page == "packets")) then
   ]]
 elseif(page == "ndpi") then
 
---fc = interface.getNdpiFlowsCount()
+--fc = interface.getnDPIFlowsCount()
 --for k,v in pairs(fc) do
 --   io.write(k.."="..v.."\n")
 --end
