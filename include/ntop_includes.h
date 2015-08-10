@@ -116,8 +116,6 @@ extern "C" {
 #include <mysql/errmsg.h>
 #endif
 
-using namespace std;
-
 #include <fstream>
 #include <map>
 #include <vector>
@@ -125,6 +123,8 @@ using namespace std;
 #include <iostream>
 #include <string>
 #include <sstream>
+
+using namespace std;
 
 #include "mongoose.h"
 #include "ntop_defines.h"

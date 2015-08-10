@@ -472,7 +472,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
     (char*)"document_root",  (char*)_docs_dir,
-    (char*)"extra_mime_types", (char*)".inc=text/html,.css=text/css,.js=application/javascript,.woff=application/font-woff",
+    (char*)"extra_mime_types", (char*)".inc=text/html,.css=text/css,.js=application/javascript,.woff=application/font-woff,.woff2=application/font-woff",
     (char*)"num_threads", (char*)"5",
     _a, _b,
     NULL
