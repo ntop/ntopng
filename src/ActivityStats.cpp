@@ -21,37 +21,28 @@
 
 #include "ntop_includes.h"
 
+
 /* *************************************** */
 
 /* Daily duration */
 ActivityStats::ActivityStats(time_t when) {
-  bitset = new Uint32EWAHBoolArray;
-
   begin_time  = (when == 0) ? time(NULL) : when;
   begin_time += ntop->get_time_offset();
   begin_time -= (begin_time % CONST_MAX_ACTIVITY_DURATION);
 
-
   wrap_time = begin_time + CONST_MAX_ACTIVITY_DURATION;
 
   last_set_time = last_set_requested = 0;
+  reset();
 
   //ntop->getTrace()->traceEvent(TRACE_WARNING, "Wrap stats at %u/%s", wrap_time, ctime(&wrap_time));
 }
 
 /* *************************************** */
 
-ActivityStats::~ActivityStats() {
-  delete bitset;
-}
-
-/* *************************************** */
-
 void ActivityStats::reset() {
-  m.lock(__FILE__, __LINE__);
-  bitset->reset();
+  memset(&bitset, 0, sizeof(bitset));
   last_set_time = 0;
-  m.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
@@ -78,96 +69,48 @@ void ActivityStats::set(time_t when) {
 
     if(w == last_set_time) return;
 
-    m.lock(__FILE__, __LINE__);
-    bitset->set((size_t)w);
-    m.unlock(__FILE__, __LINE__);
+    ACTIVITY_SET(&bitset, (u_int32_t)w);
     last_set_time = when;
   }
 };
 
 /* *************************************** */
 
-void ActivityStats::setDump(stringstream* dump) {
-  m.lock(__FILE__, __LINE__);
-  bitset->read(*dump);
-  m.unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
 bool ActivityStats::writeDump(char* path) {
-  stringstream ss;
-  time_t now = time(NULL);
-  time_t expire_time = now+((now+CONST_MAX_ACTIVITY_DURATION-1) % CONST_MAX_ACTIVITY_DURATION);
-
+  FILE *fd = fopen(path, "wb");
+  
   ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping activity %s", path);
-
-  m.lock(__FILE__, __LINE__);
-  bitset->write(ss);
-  m.unlock(__FILE__, __LINE__);
-
-  string s = ss.str();
-  std::string encoded = Utils::base64_encode(reinterpret_cast<const unsigned char*>(s.c_str()), s.length());
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===> %s(%s)(%s)(%d)", __FUNCTION__, path, encoded.c_str(), expire_time-now);
-
-  /* Save it both in redis and disk */
-  ntop->getRedis()->set(path, (char*)encoded.c_str(), (u_int)(expire_time-now));
-
-  try {
-    ofstream dumpFile(path);
-
-    dumpFile << ss.str();
-    dumpFile.close();
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Written dump %s", path);
-    return(true);
-  } catch(...) {
+  
+  if(fd == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Error writing dump %s", path);
     return(false);
   }
+  
+  fwrite(&bitset, sizeof(bitset), 1, fd);
+  fclose(fd);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Written dump %s", path);
+  return(true);
 }
 
 /* *************************************** */
 
 bool ActivityStats::readDump(char* path) {
-  char rsp[4096];
+  FILE *fd = fopen(path, "rb");
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Reading activity %s", path);
 
-  if(ntop->getRedis()->get(path, rsp, sizeof(rsp)) == 0) {
-    Uint32EWAHBoolArray tmp;
-    std::string decoded = Utils::base64_decode(rsp);
-    std::string s(decoded);
-    std::stringstream ss(s);
+  memset(&bitset, 0, sizeof(bitset));
 
-#if 0
-  /*
-    We do not use "direct" bitset->read() as this is apparently creating
-    crash problems.
-   */
-    if(!ss.str().empty()) tmp.read(ss);
-
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "===> %s(%s)", __FUNCTION__, path);
-    m.lock(__FILE__, __LINE__);
-    bitset->reset();
-
-    for(Uint32EWAHBoolArray::const_iterator i = tmp.begin(); i != tmp.end(); ++i)
-      bitset->set((size_t)*i);
-
-    m.unlock(__FILE__, __LINE__);
-#else
-    m.lock(__FILE__, __LINE__);
-    bitset->reset();
-    if(!ss.str().empty()) bitset->read(ss);
-    m.unlock(__FILE__, __LINE__);
-#endif
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Read dump %s", path);
-    return(true);
-  } else {
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "Error reading dump %s: dump not found", path);
+  if(fd == NULL) {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "Error reading dump %s: file missing ?", path);
     return(false);
   }
+  
+  fread(&bitset, sizeof(bitset), 1, fd);
+  fclose(fd);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Read dump %s", path);
+  return(true);
 }
 
 /* *************************************** */
@@ -179,8 +122,9 @@ json_object* ActivityStats::getJSONObject() {
 
   my_object = json_object_new_object();
 
-  m.lock(__FILE__, __LINE__);
-  for(Uint32EWAHBoolArray::const_iterator i = bitset->begin(); i != bitset->end(); ++i) {
+  for(u_int32_t i=0; i<CONST_MAX_ACTIVITY_DURATION; i++) {
+    if(!ACTIVITY_ISSET(&bitset, (u_int32_t)i)) continue;
+
     /*
       As the bitmap has the time set in UTC we need to remove the timezone in order
       to represent the time as local time
@@ -188,14 +132,14 @@ json_object* ActivityStats::getJSONObject() {
 
     /* Aggregate events at minute granularity */
     if(num == 0)
-      num = 1, last_dump = *i;
+      num = 1, last_dump = i;
     else {
-      if((last_dump+60 /* 1 min */) > *i)
+      if((last_dump+60 /* 1 min */) > i)
 	num++;
       else {
 	snprintf(buf, sizeof(buf), "%lu", begin_time+last_dump);
 	json_object_object_add(my_object, buf, json_object_new_int(num));
-	num = 1, last_dump = *i;
+	num = 1, last_dump = i;
       }
     }
   }
@@ -204,7 +148,6 @@ json_object* ActivityStats::getJSONObject() {
     snprintf(buf, sizeof(buf), "%lu", begin_time+last_dump);
     json_object_object_add(my_object, buf, json_object_new_int(num));
   }
-  m.unlock(__FILE__, __LINE__);
 
   return(my_object);
 }
@@ -229,8 +172,7 @@ void ActivityStats::deserialize(json_object *o) {
   if(!o) return;
 
   /* Reset all */
-  m.lock(__FILE__, __LINE__);
-  bitset->reset();
+  reset();
 
   it = json_object_iter_begin(o), itEnd = json_object_iter_end(o);
 
@@ -239,29 +181,21 @@ void ActivityStats::deserialize(json_object *o) {
     u_int32_t when = atol(key);
 
     when %= CONST_MAX_ACTIVITY_DURATION;
-    bitset->set(when);
+    ACTIVITY_SET(&bitset, (u_int32_t)when);
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s=%d", key, 1);
 
     json_object_iter_next(&it);
   }
-  m.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************** */
 
 void ActivityStats::extractPoints(u_int8_t *elems) {
-  m.lock(__FILE__, __LINE__);
-
- for(Uint32EWAHBoolArray::const_iterator i = bitset->begin(); i != bitset->end(); ++i) {
-   u_int last_point = *i;
-
-   if(last_point < CONST_MAX_ACTIVITY_DURATION)
-     elems[last_point] = 1;
-   else
-     break;
- }
-
- m.unlock(__FILE__, __LINE__);
+  for(u_int32_t i=0; i<CONST_MAX_ACTIVITY_DURATION; i++) {
+    if(!ACTIVITY_ISSET(&bitset, (u_int32_t)i)) continue;
+    
+    elems[i] = 1;
+  }  
 }
 
 /* *************************************** */

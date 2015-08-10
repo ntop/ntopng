@@ -84,6 +84,7 @@
 #include <math.h>
 #include <sys/stat.h>
 #include <zmq.h>
+#include <assert.h>
 
 #ifdef __APPLE__
 #include <uuid/uuid.h>
@@ -115,7 +116,15 @@ extern "C" {
 #include <mysql/errmsg.h>
 #endif
 
+using namespace std;
+
 #include <fstream>
+#include <map>
+#include <vector>
+#include <list>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 #include "mongoose.h"
 #include "ntop_defines.h"
@@ -205,5 +214,6 @@ extern "C" {
   int strncasecmp(const char *s1, const char *s2, unsigned int n);
 };
 #endif
+
 
 #endif /* _NTOP_H_ */

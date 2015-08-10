@@ -161,8 +161,11 @@ bool MySQLDB::connectToDB(bool select_db) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
 			       iface->get_name());
 
+  if(m) m->lock(__FILE__, __LINE__);
+
   if(mysql_init(&mysql) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
+    if(m) m->unlock(__FILE__, __LINE__);
     return(false);
   }
 
@@ -188,6 +191,8 @@ bool MySQLDB::connectToDB(bool select_db) {
 				 mysql_error(&mysql), 
 				 ntop->getPrefs()->get_mysql_host(),
 				 ntop->getPrefs()->get_mysql_user());
+
+    if(m) m->unlock(__FILE__, __LINE__);
     return(false);
   }
 
@@ -197,6 +202,8 @@ bool MySQLDB::connectToDB(bool select_db) {
 			       ntop->getPrefs()->get_mysql_host(),
 			       ntop->getPrefs()->get_mysql_user(),
 			       iface->get_name());
+
+  if(m) m->unlock(__FILE__, __LINE__);
   return(true);
 }
 
@@ -216,8 +223,9 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
     case CR_SERVER_LOST:
       if(do_reconnect) {
 	mysql_close(&mysql);      
-	connectToDB(true);
 	if(m) m->unlock(__FILE__, __LINE__);
+
+	connectToDB(true);
 
 	return(exec_sql_query(sql, 0));
       } else

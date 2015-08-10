@@ -129,7 +129,7 @@ XCFLAGS=
 # This define is required to run LuaJIT under Valgrind. The Valgrind
 # header files must be installed. You should enable debug information, too.
 # Use --suppressions=lj.supp to avoid some false positives.
-#XCFLAGS+= -DLUAJIT_USE_VALGRIND
+XCFLAGS+= -DLUAJIT_USE_VALGRIND
 #
 # This is the client for the GDB JIT API. GDB 7.0 or higher is required
 # to make use of it. See lj_gdbjit.c for details. Enabling this causes

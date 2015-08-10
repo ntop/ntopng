@@ -23,7 +23,6 @@
 #define _STATS_MANAGER_H_
 
 #include "ntop_includes.h"
-#include <map>
 
 struct statsManagerRetrieval {
   vector<string> rows;

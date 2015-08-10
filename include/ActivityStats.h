@@ -23,9 +23,18 @@
 #define _ACTIVITY_STATS_H_
 
 #include "ntop_includes.h"
-#include "ewah.h"
 
-typedef EWAHBoolArray<u_int32_t> Uint32EWAHBoolArray;
+#define ACTIVITY_BITS         32
+#define NUM_ACTIVITY_BITS     (1+(CONST_MAX_ACTIVITY_DURATION/ACTIVITY_BITS))
+#define ACTIVITY_SET(p, n)    ((p)->bits[(n)/ACTIVITY_BITS] |= (1 << (((u_int32_t)n) % ACTIVITY_BITS)))
+#define ACTIVITY_CLR(p, n)    ((p)->bits[(n)/ACTIVITY_BITS] &= ~(1 << (((u_int32_t)n) % ACTIVITY_BITS)))
+#define ACTIVITY_ISSET(p, n)  ((p)->bits[(n)/ACTIVITY_BITS] & (1 << (((u_int32_t)n) % ACTIVITY_BITS)))
+#define ACTIVITY_ZERO(p)      memset((char *)(p), 0, sizeof(*(p)))
+#define ACTIVITY_ONE(p)       memset((char *)(p), 0xFF, sizeof(*(p)))
+
+typedef struct {
+  u_int32_t  bits[NUM_ACTIVITY_BITS];
+} activity_bitmap;
 
 /*
   Statistics for 1 day (86400 sec) 
@@ -34,12 +43,10 @@ typedef EWAHBoolArray<u_int32_t> Uint32EWAHBoolArray;
 class ActivityStats {
  private:
   time_t begin_time, wrap_time, last_set_time, last_set_requested;
-  Uint32EWAHBoolArray *bitset;
-  Mutex m;
+  activity_bitmap bitset;
 
  public:
   ActivityStats(time_t when=0);
-  ~ActivityStats();
 
   void reset();
   void set(time_t when);

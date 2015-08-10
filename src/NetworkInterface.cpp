@@ -76,6 +76,8 @@ NetworkInterface::NetworkInterface() {
   else if(ntop->getPrefs()->do_dump_flows_on_mysql())
     db = new MySQLDB(this);
 #endif
+  else
+    db = NULL;
 
 #ifdef NTOPNG_PRO
   policer = NULL;
