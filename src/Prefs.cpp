@@ -238,9 +238,8 @@ void usage() {
 #ifdef HAVE_MYSQL
 	 "                                    | mysql  Dump in MySQL database\n"
 	 "                                    |        Format:\n"
-	 "                                    |        mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw>\n"
+	 "                                    |        mysql;<host|socket>;<dbname>;<table name>;<user>;<pw>\n"
 	 "                                    |        mysql;localhost;ntopng;flows;root;\n"
-	 "                                    |        Note: the <table name> accepts the strftime() format.\n"
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows using the specified endpoint.\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"

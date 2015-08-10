@@ -26,39 +26,14 @@
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
-  MYSQL *rc;
   char sql[1024];
-  my_bool reconnect = 1; /* Reconnect in case of timeout */
 
-  db_operational = false;
-
-  if(mysql_init(&mysql) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
+  if(connectToDB(false) == false)
     return;
-  }
-
-  mysql_options(&mysql, MYSQL_OPT_RECONNECT, &reconnect);
-
-  rc = mysql_real_connect(&mysql, 
-			  ntop->getPrefs()->get_mysql_host(),
-			  ntop->getPrefs()->get_mysql_user(), 
-			  ntop->getPrefs()->get_mysql_pw(),
-			  NULL,
-			  3306, NULL, 0);
-    
-  if(rc == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s:%s]\n",
-				 mysql_error(&mysql), 
-				 ntop->getPrefs()->get_mysql_host(),
-				 ntop->getPrefs()->get_mysql_user());
-    return;
-  }
-
-  db_operational = true;
-
+  
   /* 1 - Create database if missing */
   snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS %s", ntop->getPrefs()->get_mysql_dbname());
-  if(exec_sql_query(sql, 0) != 0) {
+  if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     return;
   }
@@ -80,7 +55,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	   ntop->getPrefs()->get_mysql_tablename());
 
-  if(exec_sql_query(sql, 0) != 0) {
+  if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     return;
   }
@@ -97,14 +72,10 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	   ntop->getPrefs()->get_mysql_tablename());
 
-  if(exec_sql_query(sql, 0) != 0) {
+  if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     return;
   } 
-  
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully connected to MySQL [%s:%s]\n",
-			       ntop->getPrefs()->get_mysql_host(),
-			       ntop->getPrefs()->get_mysql_user());
 }
 
 /* ******************************************* */
@@ -141,7 +112,7 @@ bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
 	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(), 
 	   json ? json : "");
 
-  if(exec_sql_query(sql, 0) != 0) {
+  if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     return(false);
   }
@@ -167,7 +138,7 @@ bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
 	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(), 
 	   json ? json : "");
 
-  if(exec_sql_query(sql, 0) != 0) {
+  if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     printf("\n%s\n", sql);
     return(false);
@@ -178,21 +149,88 @@ bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
 
 /* ******************************************* */
 
-int MySQLDB::exec_sql_query(char *sql, u_char dump_error_if_any) {
+bool MySQLDB::connectToDB(bool select_db) {
+  MYSQL *rc;
+  my_bool reconnect = 1; /* Reconnect in case of timeout */
+  unsigned long flags = CLIENT_COMPRESS;
+  char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
+  db_operational = false;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
+			       iface->get_name());
+
+  if(mysql_init(&mysql) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
+    return(false);
+  }
+
+  mysql_options(&mysql, MYSQL_OPT_RECONNECT, &reconnect);
+
+  if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socket */
+    rc = mysql_real_connect(&mysql, 
+			    NULL, /* Host */
+			    ntop->getPrefs()->get_mysql_user(), 
+			    ntop->getPrefs()->get_mysql_pw(),
+			    dbname,
+			    0, ntop->getPrefs()->get_mysql_host() /* socket */,
+			    flags);
+  else
+    rc = mysql_real_connect(&mysql, 
+			    ntop->getPrefs()->get_mysql_host(),
+			    ntop->getPrefs()->get_mysql_user(), 
+			    ntop->getPrefs()->get_mysql_pw(),
+			    dbname,
+			    3306 /* port */, 
+			    NULL /* socket */, flags);
+    
+  if(rc == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s:%s]\n",
+				 mysql_error(&mysql), 
+				 ntop->getPrefs()->get_mysql_host(),
+				 ntop->getPrefs()->get_mysql_user());
+    return(false);
+  }
+
+  db_operational = true;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully connected to MySQL [%s:%s] for interface %s",
+			       ntop->getPrefs()->get_mysql_host(),
+			       ntop->getPrefs()->get_mysql_user(),
+			       iface->get_name());
+  return(true);
+}
+
+/* ******************************************* */
+
+int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
+  int rc;
 
   if(!db_operational)
     return(-2);
   
-  if(mysql_query(&mysql, sql)) {
-    if(dump_error_if_any)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]", 
-				   get_last_db_error(), sql);
+  if((rc = mysql_query(&mysql, sql)) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",  get_last_db_error(), sql);
+    
+    switch(mysql_errno(&mysql)) {
+    case CR_SERVER_LOST:
+      if(do_reconnect) {
+	mysql_close(&mysql);      
+	connectToDB(true);
+	return(exec_sql_query(sql, 0));
+      } else
+	printf("\n\n%s\n", sql);
+      break;
+
+    default:
+      printf("\n\n%s\n", sql);
+      break;
+    }
+
     return(-1);
   } else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully executed '%s'", sql);
     return(0);
   }
 }
-
 
 #endif /* HAVE_MYSQL */

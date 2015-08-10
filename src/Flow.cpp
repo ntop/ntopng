@@ -957,7 +957,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     
     if(detailed_dump && ntop->get_categorization()) {
       categorizeFlow();
-      lua_push_str_table_entry(vm, "category", categorization.category);
+      if(categorization.category[0] != '\0')
+	lua_push_str_table_entry(vm, "category", categorization.category);
     }
 
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);

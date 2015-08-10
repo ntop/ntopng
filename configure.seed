@@ -278,21 +278,30 @@ else
   exit
 fi
 
-PATH=$PATH:/usr/local/mysql/bin
-AC_CHECK_TOOL(MYSQL, mysql_config)
-if test "x$ac_cv_prog_ac_ct_MYSQL" = "xmysql_config"; then
-MYSQLLIBS="`mysql_config --libs_r`"
-if test ".$MYSQLLIBS" != "."; then
-   MYSQL_LIB="`mysql_config --libs`"
+AC_CHECK_TOOL(MARIADB, mariadb_config)
+if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
+   MYSQLTOOL="mariadb_config"
 else
-   MYSQL_LIB="`mysql_config --libs_r`"
+   PATH=$PATH:/usr/local/mysql/bin
+   AC_CHECK_TOOL(MYSQL, mysql_config)
+   if test "x$ac_cv_prog_ac_ct_MYSQL" = "xmysql_config"; then
+     MYSQLTOOL="mysql_config"
+   else
+     MYSQLTOOL=""
+   fi
 fi
 
-MYSQL_INC="`mysql_config --include`"
-AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
-AC_CHECK_LIB([wrap], [main])
-if test "x$ac_cv_lib_wrap_main" = x""yes; then
-   MYSQL_LIB="${MYSQL_LIB} -lwrap"
+if test -n "$MYSQLTOOL"; then
+   MYSQLLIBS="`$MYSQLTOOL --libs_r`"
+   if test ".$MYSQLLIBS" != "."; then
+      MYSQL_LIB="`$MYSQLTOOL --libs`"
+   else
+      MYSQL_LIB="`$MYSQLTOOL --libs_r`"
+   fi
+
+   MYSQL_INC="`$MYSQLTOOL --include`"
+   AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
+   AC_CHECK_LIB([wrap], [main])
 fi
 
 if test -f /usr/bin/lsb_release; then
@@ -305,7 +314,6 @@ if test $LINUX_OS_RELEASE -eq 7; then
  MYSQL_DEP="mariadb-libs >= 5.5 tcp_wrappers-libs >= 7.6"
 else
  MYSQL_DEP="mysql-libs >= 5.1.0 tcp_wrappers-libs >= 7.6"
-fi
 fi
 
 AC_DEFINE_UNQUOTED(_CRT_SECURE_NO_WARNINGS, 1, [Disable warning on windows])
