@@ -101,7 +101,7 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
 /* ******************************************* */
 
 bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
-  char sql[4096];
+  char sql[8192];
 
   snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
@@ -125,7 +125,7 @@ bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
 /* ******************************************* */
 
 bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
-  char sql[4096], cli_str[64], srv_str[64];
+  char sql[8192], cli_str[64], srv_str[64];
 
   snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
