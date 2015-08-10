@@ -44,7 +44,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   }
 
   /* 2.1 - Create table if missing [IPv6] */
-  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6-%u` ("
+  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6_%u` ("
 	   "`idx` int(11) NOT NULL auto_increment,"
 	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
 	   "`IPV4_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
@@ -62,7 +62,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   }
   
   /* 2.2 - Create table if missing [IPv4] */
-  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4-%u` ("
+  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4_%u` ("
 	   "`idx` int(11) NOT NULL auto_increment,"
 	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
 	   "`IPV4_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
@@ -103,7 +103,7 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
 bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
   char sql[4096];
 
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4-%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
 	   f->get_vlan_id(),
@@ -127,7 +127,7 @@ bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
 bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
   char sql[4096], cli_str[64], srv_str[64];
 
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6-%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
 	   f->get_vlan_id(),
