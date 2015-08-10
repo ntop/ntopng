@@ -96,8 +96,9 @@ class Ntop {
    * @details Setting the ntopng preferences defined in a Prefs instance.
    *
    * @param _prefs Prefs instance containing the ntopng preferences.
+   * @param quick_registration Set it to true to do a limited initialization
    */
-  void registerPrefs(Prefs *_prefs);
+  void registerPrefs(Prefs *_prefs, bool quick_registration);
 
 #ifdef NTOPNG_PRO
   void registerNagios(void);

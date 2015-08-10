@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 
   if(rc < 0) return(-1);
 
-  ntop->registerPrefs(prefs);
+  ntop->registerPrefs(prefs, false);
   
   prefs->registerNetworkInterfaces();
 

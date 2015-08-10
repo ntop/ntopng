@@ -770,7 +770,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 252:
     /* Disable tracing messages */
     ntop->getTrace()->set_trace_level(0);
-    ntop->registerPrefs(this);
+    ntop->registerPrefs(this, true);
     ntop->getPro()->check_maintenance_duration();
     _exit(0);
     break;
@@ -778,7 +778,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 253:
     /* Disable tracing messages */
     ntop->getTrace()->set_trace_level(0); 					  
-    ntop->registerPrefs(this);
+    ntop->registerPrefs(this, true);
     ntop->getPro()->check_license_validity();
     _exit(0);
     break;

@@ -191,49 +191,51 @@ Ntop::~Ntop() {
 
 /* ******************************************* */
 
-void Ntop::registerPrefs(Prefs *_prefs) {
+void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   struct stat statbuf;
 
   prefs = _prefs;
 
-  if(stat(prefs->get_data_dir(), &statbuf)
-     || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
-     || (!(statbuf.st_mode & S_IWRITE)) /* It's not writable    */) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
-				 prefs->get_data_dir());
-    _exit(-1);
-  }
+  if(!quick_registration) {
+    if(stat(prefs->get_data_dir(), &statbuf)
+       || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
+       || (!(statbuf.st_mode & S_IWRITE)) /* It's not writable    */) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
+				   prefs->get_data_dir());
+      _exit(-1);
+    }
 
-  if(stat(prefs->get_callbacks_dir(), &statbuf)
-     || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
-     || (!(statbuf.st_mode & S_IREAD)) /* It's not readable    */) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
-				 prefs->get_callbacks_dir());
-    _exit(-1);
-  }
+    if(stat(prefs->get_callbacks_dir(), &statbuf)
+       || (!(statbuf.st_mode & S_IFDIR))  /* It's not a directory */
+       || (!(statbuf.st_mode & S_IREAD)) /* It's not readable    */) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
+				   prefs->get_callbacks_dir());
+      _exit(-1);
+    }
 
-  if(prefs->get_local_networks()) {
-    setLocalNetworks(prefs->get_local_networks());
-  } else {
-    /* Add defaults */
-    /* http://www.networksorcery.com/enp/protocol/ip/multicast.htm */
-    char *local_nets, buf[512];
+    if(prefs->get_local_networks()) {
+      setLocalNetworks(prefs->get_local_networks());
+    } else {
+      /* Add defaults */
+      /* http://www.networksorcery.com/enp/protocol/ip/multicast.htm */
+      char *local_nets, buf[512];
 
-    snprintf(buf, sizeof(buf), "%s,%s", CONST_DEFAULT_PRIVATE_NETS,
-	     CONST_DEFAULT_LOCAL_NETS);
-    local_nets = strdup(buf);
-    setLocalNetworks(local_nets);
-    free(local_nets);
+      snprintf(buf, sizeof(buf), "%s,%s", CONST_DEFAULT_PRIVATE_NETS,
+	       CONST_DEFAULT_LOCAL_NETS);
+      local_nets = strdup(buf);
+      setLocalNetworks(local_nets);
+      free(local_nets);
+    }
+
+    if(prefs->getCommunitiesFile()) {
+      communitiesManager = new CommunitiesManager();
+      communitiesManager->parseCommunitiesFile(prefs->getCommunitiesFile());
+    }
   }
 
   memset(iface, 0, sizeof(iface));
 
   initRedis();
-
-  if(prefs->getCommunitiesFile()) {
-    communitiesManager = new CommunitiesManager();
-    communitiesManager->parseCommunitiesFile(prefs->getCommunitiesFile());
-  }
 
 #ifdef NTOPNG_PRO
   redis_pro = new RedisPro();
