@@ -28,6 +28,7 @@
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   MYSQL *rc;
   char sql[1024];
+  my_bool reconnect = 1; /* Reconnect in case of timeout */
 
   db_operational = false;
 
@@ -35,6 +36,8 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
     return;
   }
+
+  mysql_options(&mysql, MYSQL_OPT_RECONNECT, &reconnect);
 
   rc = mysql_real_connect(&mysql, 
 			  ntop->getPrefs()->get_mysql_host(),
@@ -97,7 +100,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   if(exec_sql_query(sql, 0) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     return;
-  }
+  } 
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully connected to MySQL [%s:%s]\n",
 			       ntop->getPrefs()->get_mysql_host(),
@@ -166,6 +169,7 @@ bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
 
   if(exec_sql_query(sql, 0) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+    printf("\n%s\n", sql);
     return(false);
   }
 
