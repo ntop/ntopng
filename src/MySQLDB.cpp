@@ -151,9 +151,9 @@ bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
 
 bool MySQLDB::connectToDB(bool select_db) {
   MYSQL *rc;
-  my_bool reconnect = 1; /* Reconnect in case of timeout */
   unsigned long flags = CLIENT_COMPRESS;
   char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
+
   db_operational = false;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Attempting to connect to MySQL for interface %s...",
@@ -163,8 +163,6 @@ bool MySQLDB::connectToDB(bool select_db) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
     return(false);
   }
-
-  mysql_options(&mysql, MYSQL_OPT_RECONNECT, &reconnect);
 
   if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socket */
     rc = mysql_real_connect(&mysql, 
@@ -207,7 +205,8 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
 
   if(!db_operational)
     return(-2);
-  
+
+  if(m) m->lock(__FILE__, __LINE__);  
   if((rc = mysql_query(&mysql, sql)) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",  get_last_db_error(), sql);
     
@@ -216,6 +215,8 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
       if(do_reconnect) {
 	mysql_close(&mysql);      
 	connectToDB(true);
+	if(m) m->unlock(__FILE__, __LINE__);
+
 	return(exec_sql_query(sql, 0));
       } else
 	printf("\n\n%s\n", sql);
@@ -225,12 +226,16 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
       printf("\n\n%s\n", sql);
       break;
     }
-
-    return(-1);
+    
+    rc = -1;
   } else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully executed '%s'", sql);
-    return(0);
+    rc = 0;
   }
+
+  if(m) m->unlock(__FILE__, __LINE__);
+
+  return(rc);
 }
 
 #endif /* HAVE_MYSQL */
