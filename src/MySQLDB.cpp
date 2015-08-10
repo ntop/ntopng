@@ -44,7 +44,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   }
 
   /* 2.1 - Create table if missing [IPv6] */
-  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6` ("
+  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6-%u` ("
 	   "`idx` int(11) NOT NULL auto_increment,"
 	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
 	   "`IPV4_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
@@ -53,7 +53,8 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
 	   "`JSON` BLOB,"
 	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
-	   ntop->getPrefs()->get_mysql_tablename());
+	   ntop->getPrefs()->get_mysql_tablename(),
+	   iface->get_id());
 
   if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
@@ -61,7 +62,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   }
   
   /* 2.2 - Create table if missing [IPv4] */
-  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4` ("
+  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4-%u` ("
 	   "`idx` int(11) NOT NULL auto_increment,"
 	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
 	   "`IPV4_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
@@ -70,7 +71,8 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
 	   "`JSON` BLOB,"
 	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
-	   ntop->getPrefs()->get_mysql_tablename());
+	   ntop->getPrefs()->get_mysql_tablename(),
+	   iface->get_id());
 
   if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
@@ -101,9 +103,9 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
 bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
   char sql[4096];
 
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4-%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
-	   ntop->getPrefs()->get_mysql_tablename(),
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
 	   f->get_vlan_id(),
 	   f->get_detected_protocol().protocol,
 	   f->get_cli_host()->get_ip()->get_ipv4(), f->get_cli_port(),
@@ -125,9 +127,9 @@ bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
 bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
   char sql[4096], cli_str[64], srv_str[64];
 
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6-%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
-	   ntop->getPrefs()->get_mysql_tablename(),
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
 	   f->get_vlan_id(),
 	   f->get_detected_protocol().protocol,
 	   f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
