@@ -397,6 +397,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Serving file %s%s",
 				   ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
+      request_info->query_string = ""; /* Discard things like ?v=4.4.0 */
       return(0); /* This is a static document so let mongoose handle it */
     }
   }
@@ -472,7 +473,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
     (char*)"document_root",  (char*)_docs_dir,
-    (char*)"extra_mime_types", (char*)".inc=text/html,.css=text/css,.js=application/javascript,.woff=application/font-woff,.woff2=application/font-woff",
+    /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
     (char*)"num_threads", (char*)"5",
     _a, _b,
     NULL
