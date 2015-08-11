@@ -1998,6 +1998,15 @@ static const struct {
   {".asf", 4, "video/x-ms-asf"},
   {".avi", 4, "video/x-msvideo"},
   {".bmp", 4, "image/bmp"},
+
+  /* ntop */
+  {".woff", 5, "application/font-woff"},
+  {".woff2", 6, "application/font-woff2"},
+  {".ttf", 4, "application/x-font-ttf"},
+  {".inc", 4, "text/html"},
+  {".css", 4, "text/css"},
+  {".js", 3, "application/javascript"},
+
   {NULL,  0, NULL}
 };
 
