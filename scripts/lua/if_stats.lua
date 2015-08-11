@@ -1166,10 +1166,10 @@ elseif(page == "filtering") then
    end
 
    any_net = "0.0.0.0/0@0"
-   nets = ntop.getHashKeysCache(key)
+   nets = ntop.getHashKeysCache(key, any_net)
 
    if((nets == nil) or (nets == "")) then
-      ntop.setHashCache(policy_key, any_net, "")
+      -- ntop.setHashCache(policy_key, any_net, "")
       nets = ntop.getHashKeysCache(policy_key)
    end
 
