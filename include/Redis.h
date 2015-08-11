@@ -33,6 +33,7 @@ class Redis {
   u_int16_t redis_port;
   u_int8_t redis_db_id;
   pthread_t esThreadLoop;
+  bool operational;
 
   void setDefaults();
   void reconnectRedis();
@@ -44,6 +45,7 @@ class Redis {
 
   char* getVersion(char *str, u_int str_len);
 
+  inline bool isOperational() { return(operational); };
   int expire(char *key, u_int expire_sec);
   int get(char *key, char *rsp, u_int rsp_len);
   int hashGet(char *key, char *member, char *rsp, u_int rsp_len);

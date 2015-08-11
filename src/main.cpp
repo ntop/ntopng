@@ -112,7 +112,10 @@ int main(int argc, char *argv[])
   if(rc < 0) return(-1);
 
   ntop->registerPrefs(prefs, false);
-  
+
+  if(ntop->getRedis() == NULL)
+    return(-1);
+
   prefs->registerNetworkInterfaces();
 
   if(prefs->get_num_user_specified_interfaces() == 0) {

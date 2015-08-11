@@ -242,6 +242,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   pro->check_license(true, false);
 #endif
 }
+
 /* ******************************************* */
 
 #ifdef NTOPNG_PRO

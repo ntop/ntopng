@@ -39,7 +39,7 @@ static void* esLoop(void* ptr) {
 Redis::Redis(char *_redis_host, u_int16_t _redis_port, u_int8_t _redis_db_id) {
   redis_host = _redis_host, redis_port= _redis_port, redis_db_id = _redis_db_id;
 
-  redis = NULL;
+  redis = NULL, operational = false;
   reconnectRedis();
 
   l = new Mutex();
@@ -67,6 +67,8 @@ void Redis::reconnectRedis() {
   redisReply *reply;
   u_int num_attemps = 10;
 
+  operational = false;
+
   if(redis != NULL) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis has disconnected: reconnecting...");
     redisFree(redis);
@@ -86,10 +88,11 @@ void Redis::reconnectRedis() {
 
   if((redis == NULL) || (reply == NULL)) {
   redis_error_handler:
+    if(ntop->getTrace()->get_trace_level() == 0) ntop->getTrace()->set_trace_level(MAX_TRACE_LEVEL);
     ntop->getTrace()->traceEvent(TRACE_ERROR, "ntopng requires redis server to be up and running");
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Please start it and try again or use -r");
     ntop->getTrace()->traceEvent(TRACE_ERROR, "to specify a redis server other than the default");
-    _exit(-1);
+    exit(0);
   } else {
     freeReplyObject(reply);
 
@@ -97,13 +100,15 @@ void Redis::reconnectRedis() {
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
       goto redis_error_handler;
-    } else
+    } else {
       freeReplyObject(reply);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Successfully connected to redis %s:%u@%u",
+				   redis_host, redis_port, redis_db_id);
+      operational = true;
+    }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Successfully connected to redis %s:%u@%u",
-			       redis_host, redis_port, redis_db_id);
 }
 
 /* **************************************** */

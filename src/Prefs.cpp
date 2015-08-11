@@ -578,7 +578,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	  if(redis_host) free(redis_host);
 	  redis_host = strdup(c);
-	
+
 	  c = strtok_r(NULL, ":", &w);
 	  if(c) redis_port = atoi(c);
 	} else {
@@ -693,13 +693,13 @@ int Prefs::setOption(int optkey, char *optarg) {
       optarg = Utils::tokenizer(optarg, ';', &mysql_user);
       mysql_pw = strdup(optarg ? optarg : "");
 
-      if(mysql_host && mysql_user) {      
+      if(mysql_host && mysql_user) {
 	if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
 	if((mysql_tablename == NULL) || (mysql_tablename[0] == '\0')) mysql_tablename  = strdup("flows");
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0'))               mysql_pw  = strdup("");
 
-	dump_flows_on_mysql = true;	
-      } else 
+	dump_flows_on_mysql = true;
+      } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
     }
 #endif
@@ -777,7 +777,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 253:
     /* Disable tracing messages */
-    ntop->getTrace()->set_trace_level(0); 					  
+    ntop->getTrace()->set_trace_level(0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->check_license_validity();
     _exit(0);
