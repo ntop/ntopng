@@ -877,7 +877,7 @@ function makeRRD(basedir, ifname, rrdname, step, value)
    else
       create_rrd(name, 1, rrdname)
    end
-   ntop.rrd_update(name, "N:".. value)
+   ntop.rrd_update(name, "N:".. toint(value))
    if(enable_second_debug == 1) then io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n') end   
 end
 
@@ -936,7 +936,7 @@ function dumpSingleTreeCounters(basedir, label, host, verbose)
 
 		  fname = dname..fixPath("/"..k2..".rrd")
 		  createSingleRRDcounter(fname, verbose)
-		  ntop.rrd_update(fname, "N:"..v2)
+		  ntop.rrd_update(fname, "N:"..toint(v2))
 		  if(verbose) then print("\t"..fname.."\n") end
 	       end
 	    else
@@ -948,7 +948,7 @@ function dumpSingleTreeCounters(basedir, label, host, verbose)
 
 	       fname = dname..fixPath("/"..k1..".rrd")
 	       createSingleRRDcounter(fname, verbose)
-	       ntop.rrd_update(fname, "N:"..v1)
+	       ntop.rrd_update(fname, "N:"..toint(v1))
 	       if(verbose) then print("\t"..fname.."\n") end
 	    end
 	 end

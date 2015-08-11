@@ -346,6 +346,12 @@ function round(num, idp)
   return tonumber(string.format("%." .. (idp or 0) .. "f", num))
 end
 
+-- Note that the function below returns a string as returnong a number
+-- would not help as a new float would be returned
+function toint(num)
+   return string.format("%u", num)
+end
+
 -- Convert bytes to human readable format
 function bytesToSize(bytes)
    if(bytes == nil) then
