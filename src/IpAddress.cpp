@@ -233,7 +233,7 @@ char* IpAddress::_intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
     memcpy(&ipv6, &addr.ipType.ipv6, sizeof(struct ndpi_in6_addr));
 
     for(u_int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
-      ipv6.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
+      ipv6.__u6_addr.__u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
 
     ret = (char*)inet_ntop(AF_INET6, &ipv6, buf, bufLen);
 
