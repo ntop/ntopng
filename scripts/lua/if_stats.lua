@@ -1147,6 +1147,22 @@ elseif(page == "filtering") then
 
    net = _GET["network"]
 
+   any_net = "0.0.0.0/0@0"  
+
+   nets = ntop.getHashKeysCache(key, any_net)
+
+   if((nets == nil) or (nets == "")) then
+      nets = ntop.getHashKeysCache(policy_key)
+   end
+   
+   if((net == nil) and (nets ~= nil)) then
+      -- If there is not &network= parameter then use the first network available
+      for k,v in pairsByKeys(nets, asc) do
+	 net = k
+	 break
+      end
+   end
+
    if(net ~= nil) then
       if(findString(net, "@") == nil) then
 	 net = net.."@0"
@@ -1174,14 +1190,6 @@ elseif(page == "filtering") then
       ntop.setHashCache(key, net, egress_shaper_id)
       -- ******************************
       interface.reloadL7Rules()
-   end
-
-   any_net = "0.0.0.0/0@0"
-   nets = ntop.getHashKeysCache(key, any_net)
-
-   if((nets == nil) or (nets == "")) then
-      -- ntop.setHashCache(policy_key, any_net, "")
-      nets = ntop.getHashKeysCache(policy_key)
    end
 
    selected_network = net

@@ -295,12 +295,14 @@ void Host::updateHostL7Policy() {
   if(ntop->getPro()->has_valid_license()) {
     if((localHost || systemHost) && ip) {
       char host_key[64], hash_name[64], rsp[32];
-      char buf[64], *host = ip->print(buf, sizeof(buf));
+      char buf[64], *host;
+      u_int8_t bitmask;
 
-      l7Policy = getInterface()->getL7Policer()->getIpPolicy(ip, vlan_id);
+      l7Policy = getInterface()->getL7Policer()->getIpPolicy(ip, vlan_id, &bitmask);
 
+      host = ip->print(buf, sizeof(buf), bitmask);
       snprintf(host_key, sizeof(host_key), "%s/%u@%u", host,
-	       ip->isIPv4() ? 32 : 128, vlan_id);
+	       bitmask, vlan_id);
 
       /* ************************************************* */
 

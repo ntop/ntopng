@@ -216,11 +216,26 @@ char* IpAddress::_intoaV4(unsigned int addr, char* buf, u_short bufLen) {
 
 /* ****************************** */
 
-char* IpAddress::_intoa(char* buf, u_short bufLen) {
-  if((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */))
-    return(_intoaV4(ntohl(addr.ipType.ipv4), buf, bufLen));
-  else {
-    char *ret = (char*)inet_ntop(AF_INET6, &addr.ipType.ipv6, buf, bufLen);
+char* IpAddress::_intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
+  if((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */)) {
+    u_int32_t a = ntohl(addr.ipType.ipv4);
+
+    if(bitmask > 0) {
+      u_int32_t netmask = ~((1 << (32 - bitmask)) - 1);
+      a &= netmask;
+    }
+
+    return(_intoaV4(a, buf, bufLen));
+  } else {
+    char *ret;
+    struct ndpi_in6_addr ipv6;
+
+    memcpy(&ipv6, &addr.ipType.ipv6, sizeof(struct ndpi_in6_addr));
+
+    for(u_int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
+      ipv6.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
+
+    ret = (char*)inet_ntop(AF_INET6, &ipv6, buf, bufLen);
 
     if(ret == NULL) {
       /* Internal error (buffer too short) */
@@ -233,8 +248,8 @@ char* IpAddress::_intoa(char* buf, u_short bufLen) {
 
 /* ******************************************* */
 
-char* IpAddress::print(char *str, u_int str_len) {
-  return(_intoa(str, str_len));
+char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) {
+  return(_intoa(str, str_len, bitmask));
 }
 
 /* ******************************************* */
@@ -261,7 +276,7 @@ void* IpAddress::findAddress(patricia_tree_t *ptree) {
       ret = ptree_match(ptree, AF_INET, &addr.ipType.ipv4, 32);
     else
       ret = ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
-    
+
     return(ret);
   }
 }

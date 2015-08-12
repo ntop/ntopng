@@ -43,7 +43,7 @@ class IpAddress {
   u_int32_t ip_key;
 
   char* _intoaV4(unsigned int addr, char* buf, u_short bufLen);
-  char* _intoa(char* buf, u_short bufLen);
+  char* _intoa(char* buf, u_short bufLen, u_int8_t bitmask);
   void checkIP();
   void compute_key();
   
@@ -73,7 +73,7 @@ class IpAddress {
   inline bool isPrivateAddress()                       { return(addr.privateIP); };
   inline bool isMulticastAddress()                     { return(addr.multicastIP); };
   inline bool isBroadcastAddress()                     { return(addr.broadcastIP); };
-  char* print(char *str, u_int str_len);
+  char* print(char *str, u_int str_len, u_int8_t bitmask = 0);
   bool isLocalHost(int16_t *network_id);
   bool isLocalInterfaceAddress();
   void deserialize(json_object *o);
