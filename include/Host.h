@@ -45,6 +45,7 @@ class Host : public GenericHost {
   TrafficStats udp_sent, udp_rcvd;
   TrafficStats icmp_sent, icmp_rcvd;
   TrafficStats other_ip_sent, other_ip_rcvd;
+  TrafficStats ingress_drops, egress_drops;
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -136,6 +137,8 @@ class Host : public GenericHost {
   void incNumFlows(bool as_client);
   void decNumFlows(bool as_client);  
 
+  inline void incIngressDrops(u_int num_bytes)           { ingress_drops.incStats(num_bytes);             };
+  inline void incEgressDrops(u_int num_bytes)            { egress_drops.incStats(num_bytes);             };
   inline void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };
   inline void incNumDNSQueriesRcvd(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesRcvd(query_type); };
   inline void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };

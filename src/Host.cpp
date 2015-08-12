@@ -505,6 +505,13 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
       lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
 
       lua_push_bool_table_entry(vm, "drop_all_host_traffic", drop_all_host_traffic);
+
+      /* Host ingress/egress drops */
+      lua_push_int_table_entry(vm, "bridge.ingress_drops.bytes", ingress_drops.getNumBytes());
+      lua_push_int_table_entry(vm, "bridge.ingress_drops.packets",  ingress_drops.getNumPkts());
+      lua_push_int_table_entry(vm, "bridge.egress_drops.bytes", egress_drops.getNumBytes());
+      lua_push_int_table_entry(vm, "bridge.egress_drops.packets",  egress_drops.getNumPkts());
+
       lua_push_int_table_entry(vm, "host_quota_mb", host_quota_mb);
 
       if(localHost || systemHost) {

@@ -39,6 +39,10 @@ function dumpInterfaceStats(interface_name)
 	 print(', "b_to_a_in_pkts": '.. ifstats["bridge.b_to_a.in_pkts"])
 	 print(', "b_to_a_out_pkts": '.. ifstats["bridge.b_to_a.out_pkts"])
 	 print(', "b_to_a_filtered_pkts": '.. ifstats["bridge.b_to_a.filtered_pkts"])
+	 print(', "a_to_b_num_pkts_send_buffer_full": '.. ifstats["bridge.a_to_b.num_pkts_send_buffer_full"])
+	 print(', "a_to_b_num_pkts_send_error": '.. ifstats["bridge.a_to_b.num_pkts_send_error"])
+	 print(', "b_to_a_num_pkts_send_buffer_full": '.. ifstats["bridge.b_to_a.num_pkts_send_buffer_full"])
+	 print(', "b_to_a_num_pkts_send_error": '.. ifstats["bridge.b_to_a.num_pkts_send_error"])
       end
 
       if(is_historical) then

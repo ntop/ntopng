@@ -213,10 +213,10 @@ print [[
 
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%>Id</th><td colspan=3>" .. ifstats.id .. " ")
+   print("<tr><th width=15%>Id</th><td colspan=5>" .. ifstats.id .. " ")
    print("</td></tr>\n")
    if not (is_historical) then
-      print("<tr><th width=250>State</th><td colspan=3>")
+      print("<tr><th width=250>State</th><td colspan=5>")
       state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
 
       if(state == "0") then
@@ -234,10 +234,10 @@ if((page == "overview") or (page == nil)) then
 
    if(ifstats.name ~= nil) then
       label = ntop.getCache('ntopng.prefs.'..ifstats.name..'.name')
-      if(isAdministrator()) then
+      if(not isAdministrator()) then
 	 print("<td>")
       else
-	 print("<td colspan=3>")
+	 print("<td colspan=5>")
       end
 
       print [[
@@ -266,7 +266,7 @@ if((page == "overview") or (page == nil)) then
       tokens = split(ifstats.ip_addresses, ",")
 
       if(tokens ~= nil) then
-	 print("<tr><th width=250>IP Address</th><td colspan=2>")
+	 print("<tr><th width=250>IP Address</th><td colspan=4>")
 
 	 for _,s in pairs(tokens) do
 	    t = string.split(s, "/")
@@ -284,10 +284,10 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats.name ~= ifstats.description) then
-      print("<tr><th>Description</th><td colspan=3>" .. ifstats.description .. "</td></tr>\n")
+      print("<tr><th>Description</th><td colspan=5>" .. ifstats.description .. "</td></tr>\n")
    end
 
-   print("<tr><th>Family </th><td colspan=3>" .. ifstats.type)
+   print("<tr><th>Family </th><td colspan=5>" .. ifstats.type)
    if(ifstats.iface_inline) then
       print(" In-Path Interface (Bump in the Wire)")
       elseif(ifstats.iface_view) then
@@ -295,15 +295,15 @@ if((page == "overview") or (page == nil)) then
    end
    print("</td></tr>\n")
    if(ifstats["pkt_dumper"] ~= nil) then
-      print("<tr><th rowspan=2>Packet Dumper</th><th colspan=2>Dumped Packets</th><th>Dumped Files</th></tr>\n")
+      print("<tr><th rowspan=2>Packet Dumper</th><th colspan=4>Dumped Packets</th><th>Dumped Files</th></tr>\n")
       print("<tr><td colspan=2><div id=dumped_pkts>".. formatValue(ifstats["pkt_dumper"]["num_dumped_pkts"]) .."</div></td>")
-      print("<td><div id=dumped_files>".. formatValue(ifstats["pkt_dumper"]["num_dumped_files"]) .."</div></td></tr>\n")
+      print("<td colspan=2><div id=dumped_files>".. formatValue(ifstats["pkt_dumper"]["num_dumped_files"]) .."</div></td></tr>\n")
    end
 
 
    label = "Pkts"
 
-print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=3><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr>
+print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=5><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr>
 
         <script type='text/javascript'>
 	       window.onload=function() {
@@ -313,7 +313,7 @@ print (ntop.getHttpPrefix())
 print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\", refresh); \n")
       print ("}\n</script>\n")
 
-   print("<tr><th colspan=4>Ingress Traffic</th></tr>\n")
+   print("<tr><th colspan=6>Ingress Traffic</th></tr>\n")
    print("<tr><th>Received Traffic</th><td width=20%><span if=if_bytes_1>"..bytesToSize(ifstats.stats_bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats_packets) .. " ".. label .."</span>] <span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
 
    if(ifstats.stats_drops > 0) then print('<span class="label label-danger">') end
@@ -325,19 +325,30 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
    end
 
    if(ifstats.stats_drops > 0) then print('</span>') end
-   print("</span>  <span id=drops_trend></span></td></tr>\n")
+   print("</span>  <span id=drops_trend></span></td><td colspan=2>&nbsp;</td></tr>\n")
 
    if(ifstats["bridge.device_a"] ~= nil) then
-      print("<tr><th colspan=4>Bridged Traffic</th></tr>\n")
-      print("<tr><th>Interface Direction</th><th>Ingress Packets</th><th>Egress Packets</th><th>Filtered Packets</th></tr>\n")
+      print("<tr><th colspan=6>Bridged Traffic</th></tr>\n")
+      print("<tr><th>Interface Direction</th><th>Ingress Packets</th><th>Egress Packets</th><th>Filtered Packets</th><th>Send Error</th><th>Buffer Full</th></tr>\n")
       print("<tr><th>".. ifstats["bridge.device_a"] .. " -> ".. ifstats["bridge.device_b"] .."</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span></td>")
-      print("<td><span id=a_to_b_out_pkts>".. formatPackets(ifstats["bridge.a_to_b.out_pkts"]) .."</span></td><td><span id=a_to_b_filtered_pkts>".. formatPackets(ifstats["bridge.a_to_b.filtered_pkts"]) .."</span></td></tr>\n")
+      print("<td><span id=a_to_b_out_pkts>".. formatPackets(ifstats["bridge.a_to_b.out_pkts"]) .."</span></td><td><span id=a_to_b_filtered_pkts>".. formatPackets(ifstats["bridge.a_to_b.filtered_pkts"]) .."</span></td>")
+
+      print("<td><span id=a_to_b_num_pkts_send_error>".. formatPackets(ifstats["bridge.a_to_b.num_pkts_send_error"]) .."</span></td>")
+      print("<td><span id=a_to_b_num_pkts_send_buffer_full>".. formatPackets(ifstats["bridge.a_to_b.num_pkts_send_buffer_full"]) .."</span></td>")
+
+      print("</tr>\n")
+
       print("<tr><th>".. ifstats["bridge.device_b"] .. " -> ".. ifstats["bridge.device_a"] .."</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span></td>")
-      print("<td><span id=b_to_a_out_pkts>"..formatPackets( ifstats["bridge.b_to_a.out_pkts"]) .."</span></td><td><span id=b_to_a_filtered_pkts>".. formatPackets(ifstats["bridge.b_to_a.filtered_pkts"]) .."</span></td></tr>\n")
+      print("<td><span id=b_to_a_out_pkts>"..formatPackets( ifstats["bridge.b_to_a.out_pkts"]) .."</span></td><td><span id=b_to_a_filtered_pkts>".. formatPackets(ifstats["bridge.b_to_a.filtered_pkts"]) .."</span></td>")
+
+      print("<td><span id=b_to_a_num_pkts_send_error>".. formatPackets(ifstats["bridge.b_to_a.num_pkts_send_error"]) .."</span></td>")
+      print("<td><span id=b_to_a_num_pkts_send_buffer_full>".. formatPackets(ifstats["bridge.b_to_a.num_pkts_send_buffer_full"]) .."</span></td>")
+
+      print("</tr>\n")
    end
 
    print [[
-   <tr><td colspan=4> <small> <b>NOTE</b>:<p>In ethernet networks, each packet has an <A HREF=https://en.wikipedia.org/wiki/Ethernet_frame>overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=http://en.wikipedia.org/wiki/Interframe_gap>IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values. </small> </td></tr>
+   <tr><td colspan=6> <small> <b>NOTE</b>:<p>In ethernet networks, each packet has an <A HREF=https://en.wikipedia.org/wiki/Ethernet_frame>overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=http://en.wikipedia.org/wiki/Interframe_gap>IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values. </small> </td></tr>
    ]]
 
    print("</table>\n")
@@ -1302,7 +1313,7 @@ print [[
 
 blacklist = { }
 rules = ntop.getHashCache(policy_key, selected_network)
-if(rules ~= nil) then
+if((rules ~= nil) and (string.len(rules) > 0)) then
    local protos = split(rules, ",")
    for k,v in pairs(protos) do
       blacklist[v] = 1
@@ -1404,9 +1415,14 @@ if(ifstats["bridge.device_a"] ~= nil) then
    print("var a_to_b_last_in_pkts  = " .. ifstats["bridge.a_to_b.in_pkts"] .. ";\n")
    print("var a_to_b_last_out_pkts  = " .. ifstats["bridge.a_to_b.out_pkts"] .. ";\n")
    print("var a_to_b_last_filtered_pkts  = " .. ifstats["bridge.a_to_b.filtered_pkts"] .. ";\n")
+   print("var a_to_b_last_num_pkts_send_buffer_full  = " .. ifstats["bridge.a_to_b.num_pkts_send_buffer_full"] .. ";\n")
+   print("var a_to_b_last_num_pkts_send_error  = " .. ifstats["bridge.a_to_b.num_pkts_send_error"] .. ";\n")
+
    print("var b_to_a_last_in_pkts  = " .. ifstats["bridge.b_to_a.in_pkts"] .. ";\n")
    print("var b_to_a_last_out_pkts  = " .. ifstats["bridge.b_to_a.out_pkts"] .. ";\n")
    print("var b_to_a_last_filtered_pkts  = " .. ifstats["bridge.b_to_a.filtered_pkts"] .. ";\n")
+   print("var b_to_a_last_num_pkts_send_buffer_full  = " .. ifstats["bridge.b_to_a.num_pkts_send_buffer_full"] .. ";\n")
+   print("var b_to_a_last_num_pkts_send_error  = " .. ifstats["bridge.b_to_a.num_pkts_send_error"] .. ";\n")  
 end
 
 print [[
@@ -1452,17 +1468,27 @@ print [[
    $('#a_to_b_in_pkts').html(addCommas(rsp["a_to_b_in_pkts"])+" Pkts "+get_trend(a_to_b_last_in_pkts, rsp["a_to_b_in_pkts"]));
    $('#a_to_b_out_pkts').html(addCommas(rsp["a_to_b_out_pkts"])+" Pkts "+get_trend(a_to_b_last_out_pkts, rsp["a_to_b_out_pkts"]));
    $('#a_to_b_filtered_pkts').html(addCommas(rsp["a_to_b_filtered_pkts"])+" Pkts "+get_trend(a_to_b_last_filtered_pkts, rsp["a_to_b_filtered_pkts"]));
+   $('#a_to_b_num_pkts_send_error').html(addCommas(rsp["a_to_b_num_pkts_send_error"])+" Pkts "+get_trend(a_to_b_last_num_pkts_send_error, rsp["a_to_b_num_pkts_send_error"]));
+   $('#a_to_b_num_pkts_send_buffer_full').html(addCommas(rsp["a_to_b_num_pkts_send_buffer_full"])+" Pkts "+get_trend(a_to_b_last_num_pkts_send_buffer_full, rsp["a_to_b_num_pkts_send_buffer_full"]));
+
    $('#b_to_a_in_pkts').html(addCommas(rsp["b_to_a_in_pkts"])+" Pkts "+get_trend(b_to_a_last_in_pkts, rsp["b_to_a_in_pkts"]));
    $('#b_to_a_out_pkts').html(addCommas(rsp["b_to_a_out_pkts"])+" Pkts "+get_trend(b_to_a_last_out_pkts, rsp["b_to_a_out_pkts"]));
    $('#b_to_a_filtered_pkts').html(addCommas(rsp["b_to_a_filtered_pkts"])+" Pkts "+get_trend(b_to_a_last_filtered_pkts, rsp["b_to_a_filtered_pkts"]));
+   $('#b_to_a_num_pkts_send_error').html(addCommas(rsp["b_to_a_num_pkts_send_error"])+" Pkts "+get_trend(b_to_a_last_num_pkts_send_error, rsp["b_to_a_num_pkts_send_error"]));
+   $('#b_to_a_num_pkts_send_buffer_full').html(addCommas(rsp["b_to_a_num_pkts_send_buffer_full"])+" Pkts "+get_trend(b_to_a_last_num_pkts_send_buffer_full, rsp["b_to_a_num_pkts_send_buffer_full"]));
+
 
    a_to_b_last_in_pkts = rsp["a_to_b_in_pkts"];
    a_to_b_last_out_pkts = rsp["a_to_b_out_pkts"];
    a_to_b_last_filtered_pkts = rsp["a_to_b_filtered_pkts"];
+   a_to_b_last_num_pkts_send_buffer_full = rsp["a_to_b_num_pkts_send_buffer_full"];
+   a_to_b_last_num_pkts_send_error = rsp["a_to_b_num_pkts_send_error"];
+
    b_to_a_last_in_pkts = rsp["b_to_a_in_pkts"];
    b_to_a_last_out_pkts = rsp["b_to_a_out_pkts"];
    b_to_a_last_filtered_pkts = rsp["b_to_a_filtered_pkts"];
-
+   b_to_a_last_num_pkts_send_buffer_full = rsp["b_to_a_num_pkts_send_buffer_full"];
+   b_to_a_last_num_pkts_send_error = rsp["b_to_a_num_pkts_send_error"];
 ]]
 end
 
