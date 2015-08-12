@@ -432,19 +432,19 @@ bool Utils::dumpHostToDB(IpAddress *host, LocationPolicy policy) {
 
 /* *************************************** */
 
-double Utils::pearsonValueCorrelation(u_int8_t *x, u_int8_t *y) {
+double Utils::pearsonValueCorrelation(activity_bitmap *x, activity_bitmap *y) {
   double ex = 0, ey = 0, sxx = 0, syy = 0, sxy = 0, tiny_value = 1e-2;
 
-  for(size_t i = 0; i < CONST_MAX_ACTIVITY_DURATION; i++) {
+  for(size_t i = 0; i < NUM_MINUTES_PER_DAY; i++) {
     /* Find the means */
-    ex += x[i], ey += y[i];
+    ex += x->counter[i], ey += y->counter[i];
   }
 
-  ex /= CONST_MAX_ACTIVITY_DURATION, ey /= CONST_MAX_ACTIVITY_DURATION;
+  ex /= NUM_MINUTES_PER_DAY, ey /= NUM_MINUTES_PER_DAY;
 
-  for(size_t i = 0; i < CONST_MAX_ACTIVITY_DURATION; i++) {
+  for(size_t i = 0; i < NUM_MINUTES_PER_DAY; i++) {
     /* Compute the correlation coefficient */
-    double xt = x[i] - ex, yt = y[i] - ey;
+    double xt = x->counter[i] - ex, yt = y->counter[i] - ey;
 
     sxx += xt * xt, syy += yt * yt, sxy += xt * yt;
   }
@@ -454,12 +454,12 @@ double Utils::pearsonValueCorrelation(u_int8_t *x, u_int8_t *y) {
 
 /* *************************************** */
 /* XXX: it assumes that the vectors are bitmaps */
-double Utils::JaccardSimilarity(u_int8_t *x, u_int8_t *y) {
+double Utils::JaccardSimilarity(activity_bitmap *x, activity_bitmap *y) {
   size_t inter_card = 0, union_card = 0;
 
-  for(size_t i = 0; i < CONST_MAX_ACTIVITY_DURATION; i++) {
-    union_card += x[i] | y[i];
-    inter_card += x[i] & y[i];
+  for(size_t i = 0; i < NUM_MINUTES_PER_DAY; i++) {
+    union_card += x->counter[i] | y->counter[i];
+    inter_card += x->counter[i] & y->counter[i];
   }
 
   if(union_card == 0)

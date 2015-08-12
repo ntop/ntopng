@@ -54,8 +54,8 @@ class Utils {
   static std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
   static std::string base64_decode(std::string const& encoded_string);
   static bool dumpHostToDB(IpAddress *host, LocationPolicy policy);
-  static double pearsonValueCorrelation(u_int8_t *x, u_int8_t *y);
-  static double JaccardSimilarity(u_int8_t *x, u_int8_t *y);
+  static double pearsonValueCorrelation(activity_bitmap *x, activity_bitmap *y);
+  static double JaccardSimilarity(activity_bitmap *x, activity_bitmap *y);
   static int ifname2id(const char *name);
   static char* sanitizeHostName(char *str);
   static char* urlDecode(const char *src, char *dst, u_int dst_len);

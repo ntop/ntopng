@@ -66,4 +66,8 @@ struct zmq_msg_hdr {
 typedef uint8_t dump_mac_t[DUMP_MAC_SIZE];
 typedef char macstr_t[MACSTR_SIZE];
 
+typedef struct {
+  u_int8_t counter[NUM_MINUTES_PER_DAY];
+} activity_bitmap;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

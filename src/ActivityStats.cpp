@@ -51,6 +51,7 @@ void ActivityStats::reset() {
 void ActivityStats::set(time_t when) {
   if((last_set_requested != when) && (when >= begin_time)) {
     time_t w;
+    u_int minute;
 
     last_set_requested = when;
 
@@ -68,8 +69,11 @@ void ActivityStats::set(time_t when) {
     w = (when - begin_time) % CONST_MAX_ACTIVITY_DURATION;
 
     if(w == last_set_time) return;
+    
+    minute = w / 60;
 
-    ACTIVITY_SET(&bitset, (u_int32_t)w);
+    bitset.counter[minute]++;
+
     last_set_time = when;
   }
 };
@@ -117,38 +121,18 @@ bool ActivityStats::readDump(char* path) {
 
 json_object* ActivityStats::getJSONObject() {
   json_object *my_object;
-  char buf[32];
-  u_int num = 0, last_dump = 0;
 
   my_object = json_object_new_object();
 
-  for(u_int32_t i=0; i<CONST_MAX_ACTIVITY_DURATION; i++) {
-    if(!ACTIVITY_ISSET(&bitset, (u_int32_t)i)) continue;
+  for(u_int32_t i=0; i<NUM_MINUTES_PER_DAY; i++) {
+    if(bitset.counter[i] > 0) {
+      char buf[32];
 
-    /*
-      As the bitmap has the time set in UTC we need to remove the timezone in order
-      to represent the time as local time
-    */
-
-    /* Aggregate events at minute granularity */
-    if(num == 0)
-      num = 1, last_dump = i;
-    else {
-      if((last_dump+60 /* 1 min */) > i)
-	num++;
-      else {
-	snprintf(buf, sizeof(buf), "%lu", begin_time+last_dump);
-	json_object_object_add(my_object, buf, json_object_new_int(num));
-	num = 1, last_dump = i;
-      }
+      snprintf(buf, sizeof(buf), "%lu", begin_time+i*60);
+      json_object_object_add(my_object, buf, json_object_new_int(bitset.counter[i]));
     }
   }
-
-  if(num > 0) {
-    snprintf(buf, sizeof(buf), "%lu", begin_time+last_dump);
-    json_object_object_add(my_object, buf, json_object_new_int(num));
-  }
-
+  
   return(my_object);
 }
 
@@ -178,11 +162,13 @@ void ActivityStats::deserialize(json_object *o) {
 
   while (!json_object_iter_equal(&it, &itEnd)) {
     char *key  = (char*)json_object_iter_peek_name(&it);
-    u_int32_t when = atol(key);
+    u_int32_t when = atol(key), minute;
 
     when %= CONST_MAX_ACTIVITY_DURATION;
-    ACTIVITY_SET(&bitset, (u_int32_t)when);
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s=%d", key, 1);
+
+    minute = when / 60;
+
+    bitset.counter[minute]++;
 
     json_object_iter_next(&it);
   }
@@ -190,12 +176,8 @@ void ActivityStats::deserialize(json_object *o) {
 
 /* *************************************** */
 
-void ActivityStats::extractPoints(u_int8_t *elems) {
-  for(u_int32_t i=0; i<CONST_MAX_ACTIVITY_DURATION; i++) {
-    if(!ACTIVITY_ISSET(&bitset, (u_int32_t)i)) continue;
-    
-    elems[i] = 1;
-  }  
+void ActivityStats::extractPoints(activity_bitmap *b) {
+  memcpy(b, &bitset, sizeof(activity_bitmap));
 }
 
 /* *************************************** */
@@ -203,12 +185,11 @@ void ActivityStats::extractPoints(u_int8_t *elems) {
 /* http://codereview.stackexchange.com/questions/10122/c-correlation-leastsquarescoefs */
 
 double ActivityStats::pearsonCorrelation(ActivityStats *s) {
-  u_int8_t x[CONST_MAX_ACTIVITY_DURATION] = { 0 };
-  u_int8_t y[CONST_MAX_ACTIVITY_DURATION] = { 0 };
+  activity_bitmap x, y;
 
-  extractPoints(x);
-  s->extractPoints(y);
+  extractPoints(&x);
+  s->extractPoints(&y);
 
-  return(Utils::pearsonValueCorrelation(x, y));
+  return(Utils::pearsonValueCorrelation(&x, &y));
 }
 

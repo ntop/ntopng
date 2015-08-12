@@ -2043,7 +2043,7 @@ bool NetworkInterface::isNumber(const char *str) {
 struct correlator_host_info {
   lua_State* vm;
   Host *h;
-  u_int8_t x[CONST_MAX_ACTIVITY_DURATION];
+  activity_bitmap x;
 };
 
 static bool correlator_walker(GenericHashEntry *node, void *user_data) {
@@ -2055,12 +2055,12 @@ static bool correlator_walker(GenericHashEntry *node, void *user_data) {
      && h->get_ip()
      && (h != info->h)) {
     char buf[32], *name = h->get_ip()->print(buf, sizeof(buf));
-    u_int8_t y[CONST_MAX_ACTIVITY_DURATION] = { 0 };
+    activity_bitmap y;
     double pearson;
 
-    h->getActivityStats()->extractPoints(y);
+    h->getActivityStats()->extractPoints(&y);
 
-    pearson = Utils::pearsonValueCorrelation(info->x, y);
+    pearson = Utils::pearsonValueCorrelation(&(info->x), &y);
 
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s: %f", name, pearson); */
     lua_push_float_table_entry(info->vm, name, (float)pearson);
@@ -2085,12 +2085,12 @@ static bool similarity_walker(GenericHashEntry *node, void *user_data) {
       sprintf(name, "%s@%d",h->get_ip()->print(buf, sizeof(buf)),h->get_vlan_id());
     }
 
-    u_int8_t y[CONST_MAX_ACTIVITY_DURATION] = { 0 };
+    activity_bitmap y;
     double jaccard;
 
-    h->getActivityStats()->extractPoints(y);
+    h->getActivityStats()->extractPoints(&y);
 
-    jaccard = Utils::JaccardSimilarity(info->x, y);
+    jaccard = Utils::JaccardSimilarity(&(info->x), &y);
 
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s: %f", name, pearson); */
     lua_push_float_table_entry(info->vm, name, (float)jaccard);
@@ -2113,7 +2113,7 @@ bool NetworkInterface::correlateHostActivity(lua_State* vm,
     memset(&info, 0, sizeof(info));
 
     info.vm = vm, info.h = h;
-    h->getActivityStats()->extractPoints(info.x);
+    h->getActivityStats()->extractPoints(&info.x);
     hosts_hash->walk(correlator_walker, &info);
     return(true);
   } else
@@ -2133,7 +2133,7 @@ bool NetworkInterface::similarHostActivity(lua_State* vm,
     memset(&info, 0, sizeof(info));
 
     info.vm = vm, info.h = h;
-    h->getActivityStats()->extractPoints(info.x);
+    h->getActivityStats()->extractPoints(&info.x);
     hosts_hash->walk(similarity_walker, &info);
     return(true);
   } else

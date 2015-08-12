@@ -400,6 +400,8 @@
 #define NTOPNG_EMBEDDED_EDITION         1
 #endif
 
+#define NUM_MINUTES_PER_DAY   3600
+
 #define DUMP_MAC_SIZE	6
 #define DUMP_IFNAMSIZ	16
 #define MACSTR_SIZE     32

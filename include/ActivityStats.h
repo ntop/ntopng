@@ -24,17 +24,6 @@
 
 #include "ntop_includes.h"
 
-#define ACTIVITY_BITS         32
-#define NUM_ACTIVITY_BITS     (1+(CONST_MAX_ACTIVITY_DURATION/ACTIVITY_BITS))
-#define ACTIVITY_SET(p, n)    ((p)->bits[(n)/ACTIVITY_BITS] |= (1 << (((u_int32_t)n) % ACTIVITY_BITS)))
-#define ACTIVITY_CLR(p, n)    ((p)->bits[(n)/ACTIVITY_BITS] &= ~(1 << (((u_int32_t)n) % ACTIVITY_BITS)))
-#define ACTIVITY_ISSET(p, n)  ((p)->bits[(n)/ACTIVITY_BITS] & (1 << (((u_int32_t)n) % ACTIVITY_BITS)))
-#define ACTIVITY_ZERO(p)      memset((char *)(p), 0, sizeof(*(p)))
-#define ACTIVITY_ONE(p)       memset((char *)(p), 0xFF, sizeof(*(p)))
-
-typedef struct {
-  u_int32_t  bits[NUM_ACTIVITY_BITS];
-} activity_bitmap;
 
 /*
   Statistics for 1 day (86400 sec) 
@@ -50,7 +39,7 @@ class ActivityStats {
 
   void reset();
   void set(time_t when);
-  void extractPoints(u_int8_t *elems);
+  void extractPoints(activity_bitmap *b);
   std::stringstream* getDump();
   void setDump(std::stringstream* dump);
   bool writeDump(char* path);
