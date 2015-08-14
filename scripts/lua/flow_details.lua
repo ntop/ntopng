@@ -14,7 +14,6 @@ local json = require ("dkjson")
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 warn_shown = 0
 
 function displayProc(proc)
@@ -253,7 +252,7 @@ else
       print("</td></tr>\n")
    end
 
-   if((flow.client_process == nil) and (flow.server_process == nil) and (not is_historical)) then
+   if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>Actual / Peak Throughput</th><td width=20%>")
       if (throughput_type == "bps") then
          print("<span id=throughput>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
@@ -484,9 +483,7 @@ print [[/lua/flow_stats.lua',
 
 ]]
 
-if not is_historical then
-   print ("setInterval(update,3000);\n")
-end
+print ("setInterval(update,3000);\n")
 
 print [[
 </script>

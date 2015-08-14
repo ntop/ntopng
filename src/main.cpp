@@ -212,9 +212,6 @@ int main(int argc, char *argv[])
   
   ntop->getRedis()->startFlowDump();
 
-  if(prefs->do_dump_flows_on_sqlite())
-    ntop->createHistoricalInterface();
-  
   if(ntop->getInterfaceAtId(0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
     _exit(0);

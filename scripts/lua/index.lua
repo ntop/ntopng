@@ -24,7 +24,6 @@ active_page = "home"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
-is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 ifstats = interface.getStats()
 is_loopback = isLoopback(ifname)
 iface_id = interface.name2id(ifname)
@@ -79,10 +78,8 @@ if((ifstats ~= nil) and (ifstats.stats_packets > 0)) then
    if(not(is_loopback)) then
       if((page == "TopASNs")) then active=' class="active"' else active = "" end
       print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopASNs">ASNs</a></li>\n')
-      if not (interface.isHistoricalInterface(iface_id)) then
-        if((page == "TopFlowSenders")) then active=' class="active"' else active = "" end
-        print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowSenders">Senders</a></li>\n')
-      end
+      if((page == "TopFlowSenders")) then active=' class="active"' else active = "" end
+      print('<li'..active..'><a href="'..ntop.getHttpPrefix()..'/?page=TopFlowSenders">Senders</a></li>\n')
    end
 
    print('</ul>\n\t</div>\n\t</nav>\n')
@@ -185,22 +182,7 @@ print [[
   --ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/index_top.inc")
   -- ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/index_bottom.inc")
 else
-
-  if (interface.isHistoricalInterface(iface_id)) then
-    print [[
-    <br>
-    <div class="alert alert-info">
-      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-	     <strong>Welcome to the Historical Interface</strong><br>In order to use this interface you must specify, via the  <a href="]] print(ntop.getHttpPrefix())
-print [[/lua/if_stats.lua?if_name=Historical&page=config_historical">configuration page</a>, the interface, for which you want to load the historical data, and the time interval to be loaded.
-    </div>
-
-    ]]
-
-  else
-     print("<div class=\"alert alert-warning\">No packet has been received yet on interface " .. getHumanReadableInterfaceName(ifname) .. ".<p>Please wait <span id='countdown'></span> seconds until this page reloads.</div> <script type=\"text/JavaScript\">(function countdown(remaining) { if(remaining <= 0) location.reload(true); document.getElementById('countdown').innerHTML = remaining;  setTimeout(function(){ countdown(remaining - 1); }, 1000);})(10);</script>")
-
-  end
+   print("<div class=\"alert alert-warning\">No packet has been received yet on interface " .. getHumanReadableInterfaceName(ifname) .. ".<p>Please wait <span id='countdown'></span> seconds until this page reloads.</div> <script type=\"text/JavaScript\">(function countdown(remaining) { if(remaining <= 0) location.reload(true); document.getElementById('countdown').innerHTML = remaining;  setTimeout(function(){ countdown(remaining - 1); }, 1000);})(10);</script>")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

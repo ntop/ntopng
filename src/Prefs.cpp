@@ -59,7 +59,7 @@ Prefs::Prefs(Ntop *_ntop) {
   packet_filter = NULL;
   disable_host_persistency = false;
   num_interfaces = 0, num_interface_views = 0, enable_auto_logout = true;
-  dump_flows_on_sqlite = dump_flows_on_es = dump_flows_on_mysql = false;
+  dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
   memset(ifNames, 0, sizeof(ifNames));
   memset(ifViewNames, 0, sizeof(ifViewNames));
@@ -228,7 +228,6 @@ void usage() {
 	 "[--disable-alerts|-H]               | Disable alerts generation\n"
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)\n"
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
-	 "                                    | sqlite Dump in SQLite DB\n"
 	 "                                    | es     Dump in ElasticSearch database\n"
 	 "                                    |        Format:\n"
 	 "                                    |        es;<idx type>;<idx name>;<es URL>;<es pwd>\n"
@@ -682,10 +681,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
-    } else if(!strncmp(optarg, "sqlite", 6))
-      dump_flows_on_sqlite = true;
 #ifdef HAVE_MYSQL
-    else if(!strncmp(optarg, "mysql", 5)) {
+    } else if(!strncmp(optarg, "mysql", 5)) {
       /* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
       optarg = Utils::tokenizer(&optarg[6], ';', &mysql_host);
       optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);
@@ -1019,7 +1016,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
-  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_sqlite);
+  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
   /* RRD prefs */

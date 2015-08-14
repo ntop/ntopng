@@ -616,8 +616,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 /* *************************************** */
 
 void Flow::dumpFlow(bool partial_dump) {
-  if(ntop->getPrefs()->do_dump_flows_on_sqlite()
-     || ntop->getPrefs()->do_dump_flows_on_mysql()
+  if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->get_export_interface()) {
 
@@ -628,12 +627,11 @@ void Flow::dumpFlow(bool partial_dump) {
 	return;
     }
 
-    if(cli_host 
-       && (ntop->getPrefs()->do_dump_flows_on_sqlite()
-	   || ntop->getPrefs()->do_dump_flows_on_mysql())) {
-      cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, this);
-    } else if(cli_host && ntop->getPrefs()->do_dump_flows_on_es()) {
-      cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
+    if(cli_host) {
+      if(ntop->getPrefs()->do_dump_flows_on_mysql())
+	cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, this);
+      else if(ntop->getPrefs()->do_dump_flows_on_es())
+	cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
     }
 
     if(ntop->get_export_interface()) {

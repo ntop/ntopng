@@ -50,7 +50,7 @@ class Prefs {
   u_int32_t max_num_hosts, max_num_flows;
   u_int http_port, https_port;
   u_int8_t num_interfaces, num_interface_views;
-  bool dump_flows_on_sqlite, dump_flows_on_es, dump_flows_on_mysql;
+  bool dump_flows_on_es, dump_flows_on_mysql;
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   InterfaceInfo ifViewNames[MAX_NUM_INTERFACES];
@@ -124,7 +124,6 @@ class Prefs {
   inline char* get_user()                               { return(user);                   };
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
   inline u_int8_t get_num_user_specified_interface_views()   { return(num_interface_views);         };
-  inline bool  do_dump_flows_on_sqlite()                { return(dump_flows_on_sqlite);   };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };

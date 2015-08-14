@@ -18,10 +18,6 @@ mod = require("top_scripts.top_talkers")
 if (type(mod) == type(true)) then
   print("[ ]\n")
 else
-  if (epoch ~= nil) then
-    top_talkers = mod.getHistoricalTop(ifid, ifname, epoch)
-  else
-    top_talkers = mod.getTop(ifid, ifname, epoch)
-  end
-  print(top_talkers)
+   top_talkers = mod.getTop(ifid, ifname, epoch)
+   print(top_talkers)
 end

@@ -65,7 +65,6 @@ class Ntop {
   Categorization *categorization;
   HTTPBL* httpbl;
   ExportInterface *export_interface;
-  int historical_interface_id;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
   int udp_socket;
@@ -352,24 +351,6 @@ class Ntop {
   inline char* getLocalNetworkName(int16_t local_network_id) { return(address->get_local_network((u_int8_t)local_network_id)); };
   void createExportInterface();
   void initRedis();
-
-// Historical Interface
-/**
- * @brief Get Historical Interface
- * @details Use  @ref historical_interface_id to identify the Historical Interface
- * @return Pointer to Historical Interface instance
- */
-  NetworkInterface* getHistoricalInterface();
-  /**
-   * @brief Get Historical Interface index
-   * @return index of current historical interface instance
-   */
-  inline int getHistoricalInterfaceId() {  return historical_interface_id; };
-  /**
-   * @brief Create a new Historical Interface instance
-   * @details Create a new instance and register the interface
-   */
-  void createHistoricalInterface();
 
   inline u_int32_t getUptime() { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
   inline int getUdpSock()      { return(udp_socket); }

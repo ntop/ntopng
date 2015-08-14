@@ -10,7 +10,6 @@ require "graph_utils"
 
 
 interface.select(ifname)
-is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 ifstats = interface.getStats()
 
 format = _GET["format"]
@@ -48,7 +47,7 @@ for _k in pairsByKeys(vals, rev) do
   end
 
   fname = getRRDName(ifstats.id, nil, k..".rrd")
-  if(ntop.exists(fname) and not is_historical) then
+  if(ntop.exists(fname)) then
      if(not(json_format)) then
 	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name=" .. ifname .. "&page=historical&rrd_file=".. k ..".rrd\">".. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
      else

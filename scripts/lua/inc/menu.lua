@@ -9,7 +9,6 @@ require "lua_utils"
 
 prefs = ntop.getPrefs()
 names = interface.getIfNames()
-is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 num_ifaces = 0
 for k,v in pairs(names) do num_ifaces = num_ifaces+1 end
 
@@ -114,9 +113,7 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP 
 
 print('<li class="divider"></li>')
 
-if not (is_historical) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts (Local)</a></li>')
-end
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts (Local)</a></li>')
 
 if(_ifstats.iface_sprobe) then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> System Interactions</a></li>\n')
@@ -188,11 +185,6 @@ for k,v in pairsByKeys(ifnames, asc) do
    print("</a></li>\n")
 end
 
--- Historical interface disable
-if not (prefs.is_dump_flows_enabled) then
-   print('<li class="divider"></li>')
-  print('      <li> <a data-toggle="tooltip" data-placement="bottom" title="In order to enable this interface, you have to start ntopng with -F option." >Historical</a></li>')
-end
 
 print [[
 

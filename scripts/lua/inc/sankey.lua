@@ -302,10 +302,3 @@ var sankey_interval = window.setInterval(sankey, 5000);
 
 </script>]]
 
---  Cleaned up the update interval in case of Historical Interface, 
---  we assume that the is_historical variable is already defined
-if is_historical then print("\n<script>clearInterval(sankey_interval);</script>\n")end
-
-print [[
-
-]]

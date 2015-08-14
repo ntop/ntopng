@@ -392,8 +392,7 @@ int StatsManager::insertSampling(char *sampling, const char *cache_name,
   if(openCache(cache_name))
     return -1;
 
-  snprintf(query, sizeof(query), "INSERT INTO %s (TSTAMP, STATS) VALUES(?,?)",
-	   cache_name);
+  snprintf(query, sizeof(query), "INSERT INTO %s (TSTAMP, STATS) VALUES(?,?)", cache_name);
 
   m.lock(__FILE__, __LINE__);
 

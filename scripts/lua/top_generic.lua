@@ -24,11 +24,8 @@ else
   if (type(mod) == type(true)) then
     print("[ ]\n")
   else
-    if (epoch ~= nil) then
-      top = mod.getHistoricalTop(ifid, ifname, epoch, add_vlan)
-    else
-      top = mod.getTopClean(ifid, ifname, mode)
-    end
+     --top = mod.getTopClean(ifid, ifname, mode)
+     top = mod.getHistoricalTop(ifid, ifname, epoch, add_vlan)
     print(top)
   end
 end

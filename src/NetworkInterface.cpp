@@ -70,14 +70,11 @@ NetworkInterface::NetworkInterface() {
     pcap_datalink_type = 0, cpu_affinity = -1, 
     pkt_dumper = NULL, antenna_mac = NULL;
 
-  if(ntop->getPrefs()->do_dump_flows_on_sqlite())
-    db = new SQLiteDB(this);
+  db = NULL;
 #ifdef HAVE_MYSQL
-  else if(ntop->getPrefs()->do_dump_flows_on_mysql())
+  if(ntop->getPrefs()->do_dump_flows_on_mysql())
     db = new MySQLDB(this);
 #endif
-  else
-    db = NULL;
 
 #ifdef NTOPNG_PRO
   policer = NULL;
@@ -185,10 +182,9 @@ NetworkInterface::NetworkInterface(const char *name) {
 
     running = false, sprobe_interface = false, inline_interface = false;
 
-    if(ntop->getPrefs()->do_dump_flows_on_sqlite())
-      db = new SQLiteDB(this);
+    db = NULL;
 #ifdef HAVE_MYSQL
-    else if(ntop->getPrefs()->do_dump_flows_on_mysql())
+    if(ntop->getPrefs()->do_dump_flows_on_mysql())
       db = new MySQLDB(this);
 #endif
 
@@ -460,7 +456,7 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, bool partial_dump, Flow *f) {
-  if(ntop->getPrefs()->do_dump_flows_on_sqlite()) {
+  if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     return(dumpDBFlow(when, partial_dump, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es())
     return(dumpEsFlow(when, partial_dump, f));

@@ -26,7 +26,6 @@ network_name=_GET["network_name"]
 
 prefs = ntop.getPrefs()
 interface.select(ifname)
-is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 ifstats = interface.getStats()
 ndpistats = interface.getnDPIStats()
 
@@ -129,7 +128,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 -- Set the flow table option
 
 if(ifstats.iface_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
-if(is_historical) then print ('clearInterval(flow_table_interval);\n') end
+
    print [[
 
 	 var table = $("#table-flows").datatable({
@@ -139,11 +138,7 @@ print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
-if not is_historical then
-   print(" title: \"Active ".. (application or vhost or "").." Flows")
-else
-  print(" title: \"All Flows")
-end
+print(" title: \"Active ".. (application or vhost or "").." Flows")
 
 if(network_name ~= nil) then
    print(" [ Network "..network_name.." ]")

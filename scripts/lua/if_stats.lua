@@ -21,7 +21,6 @@ max_num_shapers = 10
 interface.select(if_name)
 ifid = interface.name2id(ifname)
 shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
-is_historical = interface.isHistoricalInterface(ifid)
 ifstats = interface.getStats()
 
 if(_GET["custom_name"] ~=nil) then
@@ -57,7 +56,7 @@ if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
 end
 
 if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["sampling_rate"]) ~= nil) then
+   if(tonumber(_GET["sampling_rate"]) ~= nil) then
      page = "packetdump"
      val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
@@ -65,21 +64,21 @@ if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
    end
 end
 if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["max_pkts_file"]) ~= nil) then
+   if(tonumber(_GET["max_pkts_file"]) ~= nil) then
      page = "packetdump"
      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
      interface.loadDumpPrefs()
    end
 end
 if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["max_sec_file"]) ~= nil) then
+   if(tonumber(_GET["max_sec_file"]) ~= nil) then
      page = "packetdump"
      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
      interface.loadDumpPrefs()
    end
 end
 if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
-   if (tonumber(_GET["max_files"]) ~= nil) then
+   if(tonumber(_GET["max_files"]) ~= nil) then
      page = "packetdump"
      local max_files_size = tonumber(_GET["max_files"])
      max_files_size = max_files_size * 1000000
@@ -105,11 +104,7 @@ url= ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name=' .. _ifname
 
 --   Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
-if not is_historical then
-   print('\n<script>var refresh = 3000 /* ms */;</script>\n')
-else
-   print('\n<script>var refresh = null /* ms */;</script>\n')
-end
+print('\n<script>var refresh = 3000 /* ms */;</script>\n')
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -148,25 +143,17 @@ if((ifstats ~= nil) and (ifstats.stats_packets > 0)) then
    end
 end
 
-if(is_historical) then
-   if(page == "config_historical") then
-      print("<li class=\"active\"><a href=\"#\">Load Data</a></li>\n")
+if(ntop.exists(rrdname) and not is_historical) then
+   if(page == "historical") then
+      print("<li class=\"active\"><a href=\""..url.."&page=historical\">Historical Activity</a></li>")
    else
-      print("<li><a href=\""..url.."&page=config_historical\">Load Data</a></li>")
-   end
-else
-   if(ntop.exists(rrdname) and not is_historical) then
-      if (page == "historical") then
-        print("<li class=\"active\"><a href=\""..url.."&page=historical\">Historical Activity</a></li>")
-      else
-        print("<li><a href=\""..url.."&page=historical\">Historical Activity</a></li>")
-      end
+      print("<li><a href=\""..url.."&page=historical\">Historical Activity</a></li>")
    end
 end
 
-if(not(ifstats.iface_view) and not is_historical) then
-   if (isAdministrator()) then
-      if (page == "packetdump") then
+if(not(ifstats.iface_view)) then
+   if(isAdministrator()) then
+      if(page == "packetdump") then
 	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\">Packet Dump</a></li>")
       else
 	 print("<li><a href=\""..url.."&page=packetdump\">Packet Dump</a></li>")
@@ -174,7 +161,7 @@ if(not(ifstats.iface_view) and not is_historical) then
    end
 end
 
-if (not is_historical and isAdministrator()) then
+if(isAdministrator()) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    else
@@ -182,7 +169,7 @@ if (not is_historical and isAdministrator()) then
    end
 end
 
-if(not is_historical and isAdministrator()) then
+if(isAdministrator()) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    else
@@ -191,13 +178,13 @@ if(not is_historical and isAdministrator()) then
 end
 
 if(ifstats.iface_inline) then
-   if (page == "filtering") then
+   if(page == "filtering") then
       print("<li class=\"active\"><a href=\""..url.."&page=filtering\">Traffic Filtering</a></li>")
    else
       print("<li><a href=\""..url.."&page=filtering\">Traffic Filtering</a></li>")
    end
 
-   if (page == "shaping") then
+   if(page == "shaping") then
       print("<li class=\"active\"><a href=\""..url.."&page=shaping\">Traffic Shaping</a></li>")
    else
       print("<li><a href=\""..url.."&page=shaping\">Traffic Shaping</a></li>")
@@ -215,20 +202,18 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%>Id</th><td colspan=5>" .. ifstats.id .. " ")
    print("</td></tr>\n")
-   if not (is_historical) then
-      print("<tr><th width=250>State</th><td colspan=5>")
-      state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
-
-      if(state == "0") then
-	 on_state = true
-      else
-	 on_state = false
-      end
-
-      interface.setInterfaceIdleState(on_state)
-
-      print("</td></tr>\n")
+   print("<tr><th width=250>State</th><td colspan=5>")
+   state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
+   
+   if(state == "0") then
+      on_state = true
+   else
+      on_state = false
    end
+   
+   interface.setInterfaceIdleState(on_state)   
+   print("</td></tr>\n")
+
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
    print("</td>\n")
 
@@ -438,8 +423,8 @@ function update_ndpi_table() {
 update_ndpi_table();
 ]]
 
-   --  Update interval ndpi table
-   if not is_historical then print("setInterval(update_ndpi_table, 5000);") end
+--  Update interval ndpi table
+print("setInterval(update_ndpi_table, 5000);")
 
    print [[
 
@@ -456,8 +441,8 @@ elseif(page == "historical") then
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
 
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
-elseif (page == "packetdump" and not is_historical) then
-if (isAdministrator()) then
+elseif(page == "packetdump") then
+if(isAdministrator()) then
   dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
   dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
   dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
@@ -519,7 +504,7 @@ if (isAdministrator()) then
          <input type="hidden" name="host" value="]]
                print(ifstats.name)
                print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
-               if (dump_traffic_checked ~= "") then
+               if(dump_traffic_checked ~= "") then
                  dumped = interface.getInterfacePacketsDumpedFile()
                  print(" - "..ternary(dumped, dumped, 0).." packets dumped")
                end
@@ -556,7 +541,7 @@ if (isAdministrator()) then
                print(ifstats.name)
                print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
-               if (dump_traffic_tap_checked ~= "") then
+               if(dump_traffic_tap_checked ~= "") then
                  dumped = interface.getInterfacePacketsDumpedTap()
                  print(" - "..ternary(dumped, dumped, 0).." packets dumped")
                end
@@ -569,7 +554,7 @@ end
    print("</td></tr>\n")
    print("<tr><th width=250>Sampling Rate</th>\n")
    print [[<td>]]
-   if (dump_security_checked ~= "") then
+   if(dump_security_checked ~= "") then
    print[[<form class="form-inline" style="margin-bottom: 0px;">
        <input type="hidden" name="if_name" value="]]
       print(ifstats.name)
@@ -805,7 +790,7 @@ else
    </tbody> </table>
    ]]
 end
-elseif (page == "config") then
+elseif(page == "config") then
 local if_name = ifstats.name
 local ifname_clean = string.gsub(ifname, "/", "_")
 
@@ -845,243 +830,6 @@ local ifname_clean = string.gsub(ifname, "/", "_")
 	 print [[</tr>]]
 
     print("</table>")
-elseif(page == "config_historical") then
-   --
-   --  Historical Interface configuration page
-   --
-
-   historical_info = interface.getHistorical()
-
-   print ('<div id="alert_placeholder"></div>')
-
-   print('<form class="form-horizontal" role="form" method="get" id="conf_historical_form" action="'..ntop.getHttpPrefix()..'/lua/config_historical_interface.lua">')
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print[[
-    <input type="hidden" name="from" value="" id="form_from">
-    <input type="hidden" name="to" value="" id="form_to">
-    <input type="hidden" name="id" value="" id="form_interface_id">
-   ]]
-   print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th >Begin Date/Time</th><td colspan=2>")
-   print [[
-   <div class='input-group date' id='datetime_from'>
-          <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-          <input id='datetime_from_val' type='text' class="form-control" readonly/>
-    </div>
-    <span class="help-block">Specify the date and time from which to begin loading data.</span>
-   ]]
-   print("</td></tr>\n")
-
-   print("<tr><th >End Date/Time</th><td colspan=2>")
-   print [[
-   <div class='input-group date' id='datetime_to'>
-          <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-          <input id='datetime_to_val' type='text' class="form-control" readonly/>
-    </div>
-    <span class="help-block">Specify the end of the loading interval.</span>
-   ]]
-   print("</td></tr>\n")
-
-   print("<tr><th >Source Interface</th><td colspan=2>")
-   print [[
-   <div class="btn-group">
-    ]]
-
-   names = interface.getIfNames()
-
-   current_name = historical_info["interface_name"]
-
-   if(current_name ~= nil) then
-      v = interface.name2id(current_name)
-
-      key = 'ntopng.prefs.'..current_name..'.name'
-      custom_name = ntop.getCache(key)
-
-      if((custom_name ~= nil) and (custom_name ~= "")) then
-	 current_name = custom_name
-      else
-	 current_name = getHumanReadableInterfaceName(tostring(v))
-      end
-   else
-      v = ""
-   end
-
-
-   if(current_name == nil) then
-      for k,v in pairs(names) do
-	 if(v ~= "Historical") then
-	    current_name = v
-	    break
-	 end
-      end
-   end
-
-   print('<button id="interface_displayed"  value="' .. v .. '" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">' .. current_name.. '<span class="caret"></span></button>\n')
-
-   print('    <ul class="dropdown-menu" id="interface_list">\n')
-
-   for k,v in pairs(names) do
-      key = 'ntopng.prefs.'..v..'.name'
-      custom_name = ntop.getCache(key)
-      --  io.write(v .. ' - ' ..interface.name2id(v).. '\n')
-      if(v ~= "Historical") then
-	 print('<li><a name="' ..interface.name2id(v)..'" >')
-	 if((custom_name ~= nil) and (custom_name ~= "")) then
-	    print(custom_name..'</a></li>')
-	 else
-	    interface.select(v)
-	    ifstats = interface.getStats()
-
-	    print(getHumanReadableInterfaceName(tostring(ifstats.id))..'</a></li>')
-	 end
-      end
-   end
-
-   print [[
-            </ul>
-          </div><!-- /btn-group -->
-          <span class="help-block">Specify the interface from which to load the data (previously saved into your data directory).</span>
-   ]]
-   print("</td></tr>\n")
-
-   print [[
-<tr><th colspan=3 class="text-center">
-      <button type="submit" class="btn btn-default">Load Historical Data</button>
-      <button type="reset" class="btn btn-default">Reset Form</button>
-</th></tr>
-</table>
-</form>
-]]
-
-   print [[
-	 <form id="start_historical" class="form-horizontal" method="get" action="]]
-   print (ntop.getHttpPrefix())
-   print [[/lua/config_historical_interface.lua">]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print [[
-  <input type="hidden" name="from" value="" id="form_from">
-  <input type="hidden" name="to" value="" id="form_to">
-  <input type="hidden" name="id" value="" id="form_interface_id">
-</form>
-]]
-
-   actual_time =os.time()
-   mod = actual_time%300
-   actual_time = actual_time - mod
-
-   print [[
-<script>
-
-$('#interface_list li > a').click(function(e){
-    $('#interface_displayed').html(this.innerHTML+' <span class="caret"></span>');
-    $('#interface_displayed').val(this.name);
-  });
-
-$('#datetime_from').datetimepicker({
-          minuteStepping:5,               //set the minute stepping
-          language:'en',
-          pick12HourFormat: false]]
-
-   if((historical_info["from_epoch"] ~= nil) and (historical_info["from_epoch"] ~= 0) )then
-      print (',\ndefaultDate: moment('..tonumber(historical_info["from_epoch"]*1000)..')')
-   else
-      print (',\ndefaultDate: moment('..tonumber(actual_time - 600) * 1000 ..')')
-   end
-   print (',\nmaxDate: "'.. os.date("%x", actual_time+ 86400) .. '"') -- One day more in order to enable today (library issue)
-
-   print [[
-        });
-
-$('#datetime_to').datetimepicker({
-          minuteStepping:5,               //set the minute stepping
-          language:'en',
-          pick12HourFormat: false]]
-
-   if((historical_info["to_epoch"] ~= nil) and (historical_info["to_epoch"] ~= 0) )then
-      print (',\ndefaultDate: moment('..tonumber(historical_info["to_epoch"]*1000)..')')
-   else
-      print (',\ndefaultDate: moment('..tonumber(actual_time - 300) * 1000 ..')')
-   end
-
-   print (',\nmaxDate: "'.. os.date("%x", actual_time+ 86400) .. '"') -- One day more in order to enable today (library issue)
-
-   print [[
-        });
-
-  function check_date () {
-
-    var submit = true;
-    var from = $('#datetime_from_val').val();
-    var to = $('#datetime_to_val').val();
-
-    if(from == "" || from == NaN) {
-       $('#datetime_from').addClass("has-error has-feedback");
-       $('#alert_placeholder').html('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">x</button><strong> Invalid From:</strong> please select form date and time.</div>');
-      return false;
-    }
-
-    if(to == ""|| to == NaN) {
-       $('#datetime_to').addClass("has-error has-feedback");
-      return false;
-    }
-
-    var from_epoch = moment(from);
-    var from_unix = from_epoch.unix();
-    var to_epoch = moment(to);
-    var to_unix = to_epoch.unix();
-
-    if((from_epoch > moment()) || (from_epoch.isValid() == false) ){
-      $('#datetime_from').addClass("has-error has-feedback");
-      $('#alert_placeholder').html('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">x</button><strong> Invalid From:</strong> please choose a valid date and time.</div>');
-      submit = false;
-    } else {
-      $('#datetime_from').addClass("has-success has-feedback");
-    }
-
-    if((to_epoch > moment()) || (to_epoch.isValid() == false) ){
-      $('#datetime_to').addClass("has-error has-feedback");
-       $('#alert_placeholder').html('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">x</button><strong> Invalid To:</strong> please choose a valid date and time.</div>');
-      submit = false;
-    } else {
-      $('#datetime_to').addClass("has-success has-feedback");
-    }
-
-    $('#form_from').val( from_unix);
-    $('#form_to').val(to_unix );
-    $('#form_interface_id').val($('#interface_displayed').text().trim());
-
-    return submit;
-
-  }
-
-
-$( "#conf_historical_form" ).submit(function( event ) {
-  var frm = $('#conf_historical_form');
-  $('#alert_placeholder').html("");
-
-  if(check_date()) {
-    $.ajax({
-      type: frm.attr('method'),
-      url: frm.attr('action'),
-      data: frm.serialize(),
-      async: false,
-      success: function (data) {
-        var response = jQuery.parseJSON(data);
-        if(response.result == "0") {
-            $('#alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button><strong>Well Done!</strong> Data loading process started successfully</div>');
-        } else {
-          $('#alert_placeholder').html('<div class="alert alert-warning"><button type="button" class="close" data-dismiss="alert">x</button><strong>Warning</strong> Please wait while loading data...<br></div>');
-        }
-      }
-    });
-   //window.setTimeout('window.location="index.lua"; ', 3000);
-  }
-  event.preventDefault();
-});
-
-</script>
-
- ]]
 elseif(page == "shaping") then
 shaper_id = _GET["shaper_id"]
 max_rate = _GET["max_rate"]

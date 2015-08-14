@@ -34,7 +34,7 @@ for _,ifname in pairs(ifnames) do
       dirs = ntop.getDirs()
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
-      -- io.write(basedir.."\n")
+      --io.write(basedir.."\n")
       if(not(ntop.exists(basedir))) then
 	 if(enable_second_debug == 1) then io.write('Creating base directory ', basedir, '\n') end
 	 ntop.mkdir(basedir)

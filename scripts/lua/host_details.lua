@@ -61,7 +61,6 @@ end
 if(protocol_id == nil) then protocol_id = "" end
 
 interface.select(ifname)
-is_historical = interface.isHistoricalInterface(interface.name2id(ifname))
 ifstats = interface.getStats()
 ifId = ifstats.id
 
@@ -128,11 +127,7 @@ else
 
    --   Added global javascript variable, in order to disable the refresh of pie chart in case
    --  of historical interface
-   if not is_historical then
-    print('\n<script>var refresh = 3000 /* ms */;</script>\n')
-   else
-    print('\n<script>var refresh = null /* ms */;</script>\n')
-   end
+   print('\n<script>var refresh = 3000 /* ms */;</script>\n')
 
    if(host["ip"] ~= nil) then
       host_name = hostinfo2hostkey(host)
@@ -311,7 +306,7 @@ if ((host["ip"] ~= nil) and host['localhost']) then
    end
 end
 
-if(ntop.exists(rrdname) and not is_historical) then
+if(ntop.exists(rrdname)) then
 if(page == "historical") then
   print("\n<li class=\"active\"><a href=\"#\">Historical</a></li>\n")
 else
@@ -998,7 +993,7 @@ update_ndpi_table();
 ]]
 
 --  Update interval ndpi table
-if not is_historical then print("setInterval(update_ndpi_table, 5000);") end
+print("setInterval(update_ndpi_table, 5000);")
 
 print [[
 
@@ -1236,7 +1231,6 @@ if(ifstats.iface_vlan)   then show_vlan = true else show_vlan = false end
 -- Set the host table option
 if(show_sprobe) then print ('flow_rows_option["sprobe"] = true;\n') end
 if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
-if(is_historical) then print ('clearInterval(flow_table_interval);\n') end
 
 if(show_sprobe) then
 print [[
@@ -1254,13 +1248,8 @@ if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
-if not is_historical then
   print [[
          title: "Active Flows",]]
-else
-  print [[
-         title: "All Flows",]]
-end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
 
@@ -1279,13 +1268,8 @@ print [[
 	       showPagination: true,
 	       ]]
 
-if not is_historical then
   print [[
          title: "Active Flows",]]
-else
-  print [[
-         title: "All Flows",]]
-end
 
 -- Set the preference table
 preference = tablePreferences("rows_number",_GET["perPage"])
@@ -2472,8 +2456,5 @@ if (host ~= nil) then
    </script>
     ]]
 end
-
-if(is_historical) then print ('\n<script>clearInterval(host_detalis_interval);</script>\n') end
-
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -23,8 +23,6 @@ print(info["product"])
 
 iface_id = interface.name2id(ifname)
 
-is_historical = interface.isHistoricalInterface(iface_id)
-
 interface.select(ifname)
 ifstats = interface.getStats()
 
@@ -74,35 +72,31 @@ print [[</font></div> <!-- End column 1 -->
 	 <div class="text-center col-xs-6 col-sm-6">
 ]]
 
-if not is_historical then
-	key = 'ntopng.prefs.'..ifname..'.speed'
-	maxSpeed = ntop.getCache(key)
-	-- io.write(maxSpeed)
-	if((maxSpeed == "") or (maxSpeed == nil)) then
-		maxSpeed = 1000000000 -- 1 Gbit
-	else
-		maxSpeed = tonumber(maxSpeed)*1000000
-	end
-	addGauge('gauge', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', maxSpeed, 100, 50)
-	print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
+key = 'ntopng.prefs.'..ifname..'.speed'
+maxSpeed = ntop.getCache(key)
+-- io.write(maxSpeed)
+if((maxSpeed == "") or (maxSpeed == nil)) then
+   maxSpeed = 1000000000 -- 1 Gbit
+else
+   maxSpeed = tonumber(maxSpeed)*1000000
 end
+addGauge('gauge', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', maxSpeed, 100, 50)
+print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
 
 print [[
 	</div>
 	<div>]]
-		if not is_historical then
-			print [[  <a href="]]
-			print (ntop.getHttpPrefix())
-			print [[/lua/if_stats.lua?if_name=]] print(ifname) print [[">
-				<table style="border-collapse:collapse; !important">
-					<tr><td title="Local to Remote Traffic"><i class="fa fa-cloud-upload"></i>&nbsp;</td><td class="network-load-chart-local2remote">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-local2remote-text"></td></tr>
-					<tr><td title="Remote to Local Traffic"><i class="fa fa-cloud-download"></i>&nbsp;</td><td class="network-load-chart-remote2local">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-remote2local-text"></td></tr>
-				</table>
-	</div>
-	<div class="col-xs-6 col-sm-4">
-	</a>
+print [[  <a href="]]
+      print (ntop.getHttpPrefix())
+      print [[/lua/if_stats.lua?if_name=]] print(ifname) print [[">
+	    <table style="border-collapse:collapse; !important">
+	    <tr><td title="Local to Remote Traffic"><i class="fa fa-cloud-upload"></i>&nbsp;</td><td class="network-load-chart-local2remote">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-local2remote-text"></td></tr>
+	    <tr><td title="Remote to Local Traffic"><i class="fa fa-cloud-download"></i>&nbsp;</td><td class="network-load-chart-remote2local">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-remote2local-text"></td></tr>
+	    </table>
+	    </div>
+	    <div class="col-xs-6 col-sm-4">
+	    </a>
 ]]
-end
 
 print [[
       </div>
@@ -121,7 +115,7 @@ print [[
 // Updating charts.
 ]]
 
-if is_historical then print('var is_historical = true;') else print('var is_historical = false;') end
+print('var is_historical = false;')
 print [[
 
 var updatingChart_local2remote = $(".network-load-chart-local2remote").peity("line", { width: 64, max: null });
@@ -271,9 +265,8 @@ print [[/lua/logout.lua");  }, */
     
 	  try {
 	    rsp = jQuery.parseJSON(content);
-	    // is_historical, in order to show historical error
-	    if ((prev_bytes > 0) || ((is_historical) && (rsp.historical_tot_files)) ) {
 
+	    if (prev_bytes > 0) {
 	      if (rsp.packets < prev_packets) {
 	        prev_bytes   = rsp.bytes;
 	        prev_packets = rsp.packets;
@@ -325,75 +318,8 @@ print [[/lua/show_alerts.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B9
 
 		var alarm_threshold_low = 60;  /* 60% */
 		var alarm_threshold_high = 90; /* 90% */
-		var alert = 0;
-     
-            if (is_historical) {            
-            var historical_alarm_threshold_low = 10;  /* 10% */
-            var historical_alarm_threshold_high = 40; /* 40% */
-              
-              msg = ""; //Reset msg
-              if (rsp.historical_if_name)
-                msg += "<font color=gray>Loaded Interface: " + rsp.historical_if_name + " </font></br>";
-              
-              if(rsp.on_load)
-                msg += "&nbsp;<i class=\"fa fa-cog fa-spin\"></i> Load in progress (max 20960 rows)... </br>";
-              
-              if(rsp.success_pctg < historical_alarm_threshold_low) {
-              msg += "<span class=\"label label-danger\">";
-              } else if(rsp.success_pctg <= historical_alarm_threshold_high) {
-              alert = 1;
-              msg += "<span class=\"label label-warning\">";
-              } else {
-              alert = 1;
-              msg += "<span class=\"label label-success\">";
-              }
-
-              msg += rsp.success_file+" Loaded Files</span>&nbsp;";
-
-              
-              if(rsp.file_pctg > historical_alarm_threshold_high) {
-              msg += "<span class=\"label label-danger\">";
-              } else if(rsp.file_pctg > historical_alarm_threshold_low) {
-              alert = 1;
-              msg += "<span class=\"label label-warning\">";
-              } else {
-              alert = 1;
-              msg += "<span class=\"label label-default\">";
-              }
-
-              msg += rsp.file_error+" Missing Files</span></br>";
-              
-              
-              if(rsp.open_error > 0){
-                if(rsp.open_pctg > historical_alarm_threshold_high) {
-                msg += "<span class=\"label label-danger\">";
-                } else if(rsp.open_pctg > historical_alarm_threshold_low) {
-                alert = 1;
-                msg += "<span class=\"label label-warning\">";
-                } else {
-                alert = 1;
-                msg += "<span class=\"label label-default\">";
-                }
-
-                msg += rsp.open_error+" Open Error</span>&nbsp;";
-              }
-
-              if(rsp.query_error > 0){
-                if(rsp.query_pctg > historical_alarm_threshold_high) {
-                msg += "<span class=\"label label-danger\">";
-                } else if(rsp.query_pctg > historical_alarm_threshold_low) {
-                alert = 1;
-                msg += "<span class=\"label label-warning\">";
-                } else {
-                alert = 1;
-                msg += "<span class=\"label label-default\">";
-                }
-
-                msg += rsp.query_error+" Query Error</span></br>";
-              }
-
-          } // End is_historical
-
+		var alert = 0;    
+            
             msg += "<a href=]]
 print (ntop.getHttpPrefix())
 print [[/lua/hosts_stats.lua>";
@@ -442,7 +368,7 @@ print [[/lua/flows_stats.lua>";
 		msg += addCommas(rsp.num_flows)+" Flows </span> </a>";
 
 		$('#network-load').html(msg);
-		if (!is_historical) gauge.set(Math.min(bps, gauge.maxValue));
+		gauge.set(Math.min(bps, gauge.maxValue));
 
 		if(alert) {
 		   $('#toomany').html("<div class='alert alert-warning'><h4>Warning</h4>You have too many hosts/flows for your ntopng configuration and this will lead to packet drops and high CPU load. Please restart ntopng increasing -x and -X.</div>");

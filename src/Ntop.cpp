@@ -59,7 +59,6 @@ Ntop::Ntop(char *appName) {
   num_defined_interfaces = num_defined_interface_views = 0;
   local_interface_addresses = New_Patricia(128);
   export_interface = NULL;
-  historical_interface_id = -1;
   start_time = 0; /* It will be initialized by start() */
   memset(iface, 0, sizeof(iface));
   httpd = NULL, runtimeprefs = NULL, geo = NULL;
@@ -258,21 +257,6 @@ void Ntop::initRedis() {
 
   redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
 }
-
-/* ******************************************* */
-
-void Ntop::createHistoricalInterface() {
-  HistoricalInterface *iface = new HistoricalInterface("Historical");
-  prefs->add_network_interface((char *)"Historical", NULL);
-  ntop->registerInterface(iface);
-  historical_interface_id = iface->get_id();
-}
-
-/* ******************************************* */
-
-NetworkInterface* Ntop::getHistoricalInterface() {
-  return (getInterface(get_if_name(historical_interface_id)));
-};
 
 /* ******************************************* */
 

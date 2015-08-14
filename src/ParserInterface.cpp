@@ -29,8 +29,8 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
 
  u_int8_t ParserInterface::parse_flows(char *payload, int payload_size, u_int8_t source_id, void *data) {
    json_object *o;
-  ZMQ_Flow flow;
-  HistoricalInterface * iface = (HistoricalInterface*) data;
+   ZMQ_Flow flow;
+   NetworkInterface * iface = (NetworkInterface*)data;
 
   // payload[payload_size] = '\0';
 
