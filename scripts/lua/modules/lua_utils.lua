@@ -1711,3 +1711,19 @@ function getservbyport(port_num, proto)
    -- io.write(port_num.."@"..proto.."\n")
    return(ntop.getservbyport(port_num, proto))
 end
+
+-- getSpeedMax
+function getSpeedMax(ifname)
+   
+   if(ifname == nil) then
+      return -1
+   end
+
+   if(ifname ~= "eth0") then
+      return -1
+   end
+
+   ifname = tostring(ifname)
+
+   return(ntop.getSpeedMax(ifname))
+end

@@ -1194,6 +1194,56 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 
 /* **************************************** */
 
+unsigned short Utils::getMacSpeed(char *ifname) 
+{
+  
+  int sock, rc;
+  struct ifreq ifr;
+  struct ethtool_cmd edata;
+  unsigned short mac_speed;
+
+  memset (&ifr, 0, sizeof(struct ifreq));
+
+  /* Dummy socket, just to make ioctls with */
+  sock = socket(PF_INET, SOCK_DGRAM, 0);
+  if (sock < 0) 
+  {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Socket error");
+    exit(-1);
+  }
+
+  strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
+  ifr.ifr_data = (char *) &edata;
+
+  // Do the work
+  edata.cmd = ETHTOOL_GSET;
+  
+  rc = ioctl(sock, SIOCETHTOOL, &ifr);
+  if (rc < 0)
+  {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error");
+    exit(-2);
+  }
+
+  // Set the speed to edata.speed
+  ethtool_cmd_speed(&edata);
+
+  mac_speed = edata.speed;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %s",
+			       ifname,
+			       edata.speed);
+
+  close(sock);
+
+  return mac_speed;
+}
+
+
+
+
+/* **************************************** */
+
 bool Utils::isGoodNameToCategorize(char *name) {
   if((name[0] == '\0')
      || (strchr(name, '.') == NULL) /* Missing domain */
