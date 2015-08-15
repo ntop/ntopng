@@ -33,15 +33,17 @@ function makeTopJSON(ifid, ifname)
             ..vlan_list[key]["vlan_bytes"]..",\n"
     file_cnt = 0
     for k,v in pairs(files) do
-      if (v ~= nil) then
-        fn,ext = v:match("([^.]+).lua")
-        local topClass = require("top_scripts."..fn)
-        if (topClass.getTopBy ~= nil) then
-          rsp = rsp..topClass.getTopBy(ifid, ifname, "vlan", key)
-          rsp = rsp..",\n"
-          file_cnt = file_cnt + 1
-        end
-      end
+       if(string.ends(k, ".lua")) then
+	  if (v ~= nil) then
+	     fn,ext = v:match("([^.]+).lua")
+	     local topClass = require("top_scripts."..fn)
+	     if (topClass.getTopBy ~= nil) then
+		rsp = rsp..topClass.getTopBy(ifid, ifname, "vlan", key)
+		rsp = rsp..",\n"
+		file_cnt = file_cnt + 1
+	     end
+	  end
+       end
     end
     if (file_cnt > 0) then
       -- Remove last return and comma to comply with JSON format

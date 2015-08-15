@@ -1606,16 +1606,18 @@ function makeTopStatsScriptsArray()
    topArray = {}
 
    for k,v in pairs(files) do
-      if(v ~= nil) then
-	 value = {}
-	 fn,ext = v:match("([^.]+).([^.]+)")
-	 mod = require("top_scripts."..fn)
-	 if(type(mod) ~= type(true)) then
-            value["name"] = mod.name
-            value["script"] = mod.infoScript
-            value["key"] = mod.infoScriptKey
-            value["levels"] = mod.numLevels
-            topArray[fn] = value
+      if(string.ends(k, ".lua")) then
+	 if(v ~= nil) then
+	    value = {}
+	    fn,ext = v:match("([^.]+).([^.]+)")
+	    mod = require("top_scripts."..fn)
+	    if(type(mod) ~= type(true)) then
+	       value["name"] = mod.name
+	       value["script"] = mod.infoScript
+	       value["key"] = mod.infoScriptKey
+	       value["levels"] = mod.numLevels
+	       topArray[fn] = value
+	    end
 	 end
       end
    end
