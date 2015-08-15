@@ -1233,7 +1233,7 @@ u_int32_t Utils::getMaxIfSpeed(char *ifname) {
 
   return(ifSpeed);
 #else
-  return(ifSpeed);
+  return(1000);
 #endif
 }
 
