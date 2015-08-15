@@ -34,6 +34,7 @@ class DB {
   virtual ~DB();
   
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  virtual int exec_sql_query(lua_State *vm, char *sql);
 };
 
 #endif /* _DB_CLASS_H_ */

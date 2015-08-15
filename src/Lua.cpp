@@ -2692,6 +2692,28 @@ static int ntop_reload_shapers(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_exec_sql_query(lua_State *vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    char *sql;
+    
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+    if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+    if(ntop_interface->exec_sql_query(vm, sql) == -1)
+      lua_pushnil(vm);
+
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
 static int ntop_get_dirs(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -4183,6 +4205,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
   { "reloadShapers",                  ntop_reload_shapers },
+
+  /* DB */
+  { "execSQLQuery",                   ntop_interface_exec_sql_query },
 
   { NULL,                             NULL }
 };

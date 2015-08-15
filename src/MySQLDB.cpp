@@ -30,54 +30,56 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 
   if(connectToDB(false) == false)
     return;
-  
-  /* 1 - Create database if missing */
-  snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS %s", ntop->getPrefs()->get_mysql_dbname());
-  if(exec_sql_query(sql, 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
-    return;
-  }
-  
-  if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
-    return;
-  }
 
-  /* 2.1 - Create table if missing [IPv6] */
-  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6_%u` ("
-	   "`idx` int(11) NOT NULL auto_increment,"
-	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
-	   "`IPV4_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
-	   "`IPV4_DST_ADDR` varchar(48), `L4_DST_PORT` smallint unsigned,"
-	   "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
-	   "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
-	   "`JSON` BLOB,"
-	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
-	   ntop->getPrefs()->get_mysql_tablename(),
-	   iface->get_id());
+  if(iface) {
+    /* 1 - Create database if missing */
+    snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS %s", ntop->getPrefs()->get_mysql_dbname());
+    if(exec_sql_query(sql, 1) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+      return;
+    }
 
-  if(exec_sql_query(sql, 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
-    return;
+    if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+      return;
+    }
+
+    /* 2.1 - Create table if missing [IPv6] */
+    snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6_%u` ("
+	     "`idx` int(11) NOT NULL auto_increment,"
+	     "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
+	     "`IPV4_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
+	     "`IPV4_DST_ADDR` varchar(48), `L4_DST_PORT` smallint unsigned,"
+	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
+	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
+	     "`JSON` BLOB,"
+	     "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     iface->get_id());
+
+    if(exec_sql_query(sql, 1) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+      return;
+    }
+
+    /* 2.2 - Create table if missing [IPv4] */
+    snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4_%u` ("
+	     "`idx` int(11) NOT NULL auto_increment,"
+	     "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
+	     "`IPV4_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
+	     "`IPV4_DST_ADDR` int unsigned, `L4_DST_PORT` smallint unsigned,"
+	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
+	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
+	     "`JSON` BLOB,"
+	     "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     iface->get_id());
+
+    if(exec_sql_query(sql, 1) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+      return;
+    }
   }
-  
-  /* 2.2 - Create table if missing [IPv4] */
-  snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4_%u` ("
-	   "`idx` int(11) NOT NULL auto_increment,"
-	   "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
-	   "`IPV4_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
-	   "`IPV4_DST_ADDR` int unsigned, `L4_DST_PORT` smallint unsigned,"
-	   "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
-	   "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
-	   "`JSON` BLOB,"
-	   "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
-	   ntop->getPrefs()->get_mysql_tablename(),
-	   iface->get_id());
-
-  if(exec_sql_query(sql, 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
-    return;
-  } 
 }
 
 /* ******************************************* */
@@ -111,7 +113,7 @@ bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
 	   f->get_cli_host()->get_ip()->get_ipv4(), f->get_cli_port(),
 	   f->get_srv_host()->get_ip()->get_ipv4(), f->get_srv_port(),
 	   f->get_protocol(), (unsigned int)f->get_bytes(),  (unsigned int)f->get_packets(),
-	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(), 
+	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(),
 	   json ? json : "");
 
   if(exec_sql_query(sql, 1) != 0) {
@@ -137,7 +139,7 @@ bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
 	   f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
 	   f->get_srv_port(),
 	   f->get_protocol(), (unsigned int)f->get_bytes(),  (unsigned int)f->get_packets(),
-	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(), 
+	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(),
 	   json ? json : "");
 
   if(exec_sql_query(sql, 1) != 0) {
@@ -170,25 +172,25 @@ bool MySQLDB::connectToDB(bool select_db) {
   }
 
   if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socket */
-    rc = mysql_real_connect(&mysql, 
+    rc = mysql_real_connect(&mysql,
 			    NULL, /* Host */
-			    ntop->getPrefs()->get_mysql_user(), 
+			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
 			    0, ntop->getPrefs()->get_mysql_host() /* socket */,
 			    flags);
   else
-    rc = mysql_real_connect(&mysql, 
+    rc = mysql_real_connect(&mysql,
 			    ntop->getPrefs()->get_mysql_host(),
-			    ntop->getPrefs()->get_mysql_user(), 
+			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
 			    dbname,
-			    3306 /* port */, 
+			    3306 /* port */,
 			    NULL /* socket */, flags);
-    
+
   if(rc == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s:%s]\n",
-				 mysql_error(&mysql), 
+				 mysql_error(&mysql),
 				 ntop->getPrefs()->get_mysql_host(),
 				 ntop->getPrefs()->get_mysql_user());
 
@@ -215,14 +217,14 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
   if(!db_operational)
     return(-2);
 
-  if(m) m->lock(__FILE__, __LINE__);  
+  if(m) m->lock(__FILE__, __LINE__);
   if((rc = mysql_query(&mysql, sql)) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",  get_last_db_error(), sql);
-    
+
     switch(mysql_errno(&mysql)) {
     case CR_SERVER_LOST:
       if(do_reconnect) {
-	mysql_close(&mysql);      
+	mysql_close(&mysql);
 	if(m) m->unlock(__FILE__, __LINE__);
 
 	connectToDB(true);
@@ -236,7 +238,7 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
       printf("\n\n%s\n", sql);
       break;
     }
-    
+
     rc = -1;
   } else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully executed '%s'", sql);
@@ -246,6 +248,62 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
   if(m) m->unlock(__FILE__, __LINE__);
 
   return(rc);
+}
+
+/* ******************************************* */
+
+#define MAX_NUM_FIELDS  255
+#define MAX_NUM_ROWS    999
+
+int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char *fields[MAX_NUM_FIELDS] = { NULL };
+  int num_fields, rc, num = 0;
+
+  if(!db_operational)
+    return(-2);
+
+  if(m) m->lock(__FILE__, __LINE__);
+  if(((rc = mysql_query(&mysql, sql)) != 0)
+     || ((result = mysql_store_result(&mysql)) == NULL)) {
+    
+    lua_pushstring(vm, get_last_db_error());
+    if(m) m->unlock(__FILE__, __LINE__);
+    return(rc);
+  }
+
+  num_fields = min_val(mysql_num_fields(result), MAX_NUM_FIELDS);
+  lua_newtable(vm);
+
+  num = 0;
+  while((row = mysql_fetch_row(result))) {
+    lua_newtable(vm);
+
+    if(num == 0) {
+      for(int i = 0; i < num_fields; i++) {
+	MYSQL_FIELD *field = mysql_fetch_field(result);
+	
+	fields[i] = field->name;
+      }
+    }
+    
+    for(int i = 0; i < num_fields; i++) {
+      lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
+    }
+    
+    lua_pushnumber(vm, ++num);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+
+    if(num >= MAX_NUM_ROWS) break;
+  }
+
+  mysql_free_result(result);
+
+  if(m) m->unlock(__FILE__, __LINE__);
+
+  return(0);
 }
 
 #endif /* HAVE_MYSQL */

@@ -42,3 +42,10 @@ bool DB::dumpFlow(time_t when, Flow *f, char *json) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
 }
+
+/* ******************************************* */
+
+int DB::exec_sql_query(lua_State *vm, char *sql) {
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+  return(false);
+}

@@ -440,6 +440,8 @@ bool NetworkInterfaceView::getDumpTrafficDiskPolicy(void) {
   return false;
 }
 
+/* *************************************** */
+
 bool NetworkInterfaceView::getDumpTrafficTapPolicy(void) {
   list<NetworkInterface *>::iterator p;
 
@@ -449,6 +451,8 @@ bool NetworkInterfaceView::getDumpTrafficTapPolicy(void) {
   }
   return false;
 }
+
+/* *************************************** */
 
 string NetworkInterfaceView::getDumpTrafficTapName(void) {
   list<NetworkInterface *>::iterator p;
@@ -464,12 +468,16 @@ string NetworkInterfaceView::getDumpTrafficTapName(void) {
   return s;
 }
 
+/* *************************************** */
+
 void NetworkInterfaceView::getnDPIFlowsCount(lua_State *vm) {
   list<NetworkInterface *>::iterator p;
 
   for(p = physIntf.begin() ; p != physIntf.end() ; p++)
     (*p)->getnDPIFlowsCount(vm);
 }
+
+/* *************************************** */
 
 int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile(void) {
   list<NetworkInterface *>::iterator p;
@@ -484,6 +492,8 @@ int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile(void) {
   return max_pkts;
 }
 
+/* *************************************** */
+
 int NetworkInterfaceView::getDumpTrafficMaxSecPerFile(void) {
   list<NetworkInterface *>::iterator p;
 
@@ -492,6 +502,8 @@ int NetworkInterfaceView::getDumpTrafficMaxSecPerFile(void) {
 
   return 0;
 }
+
+/* *************************************** */
 
 int NetworkInterfaceView::getDumpTrafficMaxFiles(void) {
   list<NetworkInterface *>::iterator p;
@@ -502,6 +514,8 @@ int NetworkInterfaceView::getDumpTrafficMaxFiles(void) {
   return 0;
 }
 
+/* *************************************** */
+
 PacketDumper *NetworkInterfaceView::getPacketDumper(void) {
   list<NetworkInterface *>::iterator p;
 
@@ -510,6 +524,8 @@ PacketDumper *NetworkInterfaceView::getPacketDumper(void) {
 
   return NULL;
 }
+
+/* *************************************** */
 
 PacketDumperTuntap *NetworkInterfaceView::getPacketDumperTap(void) {
   list<NetworkInterface *>::iterator p;
@@ -522,9 +538,22 @@ PacketDumperTuntap *NetworkInterfaceView::getPacketDumperTap(void) {
 
 /* *************************************** */
 
+int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) {
+  list<NetworkInterface *>::iterator p;
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    return((*p)->exec_sql_query(vm, sql));
+
+  return(-1);
+}
+
+/* *************************************** */
+
 char *NetworkInterfaceView::get_descr(void) {
   return descr;
 }
+
+/* *************************************** */
 
 void NetworkInterfaceView::lua(lua_State *vm) {
   list<NetworkInterface *>::iterator p;

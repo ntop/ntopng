@@ -95,6 +95,7 @@ class NetworkInterfaceView {
 #endif
   void loadDumpPrefs();
   Host* findHostsByIP(patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  int exec_sql_query(lua_State *vm, char *sql);
 };
 
 #endif /* _NETWORK_INTERFACE_VIEW_H_ */

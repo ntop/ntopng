@@ -42,6 +42,7 @@ class MySQLDB : public DB {
   ~MySQLDB();
   
   bool dumpFlow(time_t when, Flow *f, char *json);
+  int exec_sql_query(lua_State *vm, char *sql);
 };
 
 #endif

@@ -164,6 +164,11 @@ using namespace std;
 #include "Redis.h"
 #include "StatsManager.h"
 #include "FlowsManager.h"
+#include "DB.h"
+#include "SQLiteDB.h"
+#ifdef HAVE_MYSQL
+#include "MySQLDB.h"
+#endif
 #include "NetworkInterfaceView.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"
@@ -193,11 +198,6 @@ using namespace std;
 #include "GenericHost.h"
 #include "Host.h"
 #include "Flow.h"
-#include "DB.h"
-#include "SQLiteDB.h"
-#ifdef HAVE_MYSQL
-#include "MySQLDB.h"
-#endif
 #include "FlowHash.h"
 #include "HostHash.h"
 #include "PeriodicActivities.h"
