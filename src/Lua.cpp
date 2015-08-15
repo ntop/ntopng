@@ -786,6 +786,40 @@ static int ntop_getservbyport(lua_State* vm) {
 /* ****************************************** */
 
 /**
+ * @brief Wrapper for the libc call getMacSpeed()
+ * @details function for having the interface max speed value
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_get_speed_max(lua_State* vm) {
+
+  char * ifname;
+  
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  ifname = (char*)lua_tostring(vm, 1);
+
+  if(ifname) 
+  {  
+    unsigned short speed_max = Utils::getMacSpeed(ifname);
+
+    if(speed_max > 0)
+    {
+      // send value to env lua
+      lua_pushnumber(vm, speed_max);
+    
+      return(CONST_LUA_OK);
+    }
+  } 
+  return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+
+/**
  * @brief Scan the input directory and return the list of files.
  * @details Get the path from the lua stack and push into a new hashtable the files name existing in the directory.
  *
@@ -4320,6 +4354,8 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Misc */
   { "getservbyport",  ntop_getservbyport },
+  { "getSpeedMax",  ntop_get_speed_max },
+
 
   { NULL,          NULL}
 };

@@ -85,6 +85,8 @@
 #include <sys/stat.h>
 #include <zmq.h>
 #include <assert.h>
+#include <linux/ethtool.h> // ethtool
+#include <linux/sockios.h> // sockios
 
 #ifdef __APPLE__
 #include <uuid/uuid.h>
