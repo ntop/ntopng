@@ -175,11 +175,11 @@ int StatsManager::deleteStatsOlderThan(const char *cache_name, const time_t key)
   snprintf(query, sizeof(query), "DELETE FROM %s WHERE "
 	   "CAST(TSTAMP AS INTEGER) < %d",
 	   cache_name, (int)key);
-  
+
   m.lock(__FILE__, __LINE__);
-  
+
   rc = exec_query(query, NULL, NULL);
-  
+
   m.unlock(__FILE__, __LINE__);
 
   return rc;

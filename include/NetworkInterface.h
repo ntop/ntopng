@@ -103,6 +103,7 @@ class NetworkInterface {
   int pcap_datalink_type; /**< Datalink type of pcap.*/
   pthread_t pollLoop;
   bool pollLoopCreated;
+  u_int32_t ifSpeed;
   int cpu_affinity; /**< Index of physical core where the network interface works.*/
   nDPIStats ndpiStats;
   PacketStats pktStats;

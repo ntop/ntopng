@@ -215,6 +215,7 @@ if((page == "overview") or (page == nil)) then
    print("</td></tr>\n")
 
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
+   print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(ifstats.speed*1000) .. "</td>\n")
    print("</td>\n")
 
    if(ifstats.name ~= nil) then

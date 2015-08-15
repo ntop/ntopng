@@ -80,8 +80,7 @@ NetworkInterface::NetworkInterface() {
   policer = NULL;
 #endif
 
-  view = NULL, statsManager = NULL;
-  flowsManager = NULL;
+  view = NULL, statsManager = NULL, flowsManager = NULL, ifSpeed = 0;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
@@ -189,9 +188,10 @@ NetworkInterface::NetworkInterface(const char *name) {
 #endif
 
     checkIdle();
+    ifSpeed = Utils::getMacSpeed((char*)name);
   } else {
     flows_hash = NULL, hosts_hash = NULL;
-    ndpi_struct = NULL, db = NULL;
+    ndpi_struct = NULL, db = NULL, ifSpeed = 0;
     pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
 
@@ -1843,6 +1843,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 
 void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "type", (char*)get_type());
+  lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 

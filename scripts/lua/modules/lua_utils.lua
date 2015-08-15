@@ -382,10 +382,10 @@ end
 -- Convert bits to human readable format
 function bitsToSize(bits)
   precision = 2
-  kilobit = 1024;
-  megabit = kilobit * 1024;
-  gigabit = megabit * 1024;
-  terabit = gigabit * 1024;
+  kilobit = 1000;
+  megabit = kilobit * 1000;
+  gigabit = megabit * 1000;
+  terabit = gigabit * 1000;
 
   if((bits >= kilobit) and (bits < megabit)) then
     return round(bits / kilobit, precision) .. ' Kbit/s';
@@ -1581,12 +1581,18 @@ function maxRateToString(max_rate)
       if(max_rate == 0) then 
 	 return("Drop All Traffic") 
       else
-	 if(max_rate < 1024) then
-	    return(max_rate.." Kbps")
+	 if(max_rate < 1000) then
+	    return(max_rate.." Kbit/s")
 	 else
 	    local mr
-	    mr = round(max_rate / 1024, 2)
-	    return(mr.." Mbps")
+	    mr = round(max_rate / 1000, 2)
+
+	    if(mr < 1000) then
+	       return(mr.." Mbit/s")
+	    else
+	       gbit = mr /1000
+	       return(gbit.." Gbit/s")
+	    end
 	 end
       end
    end

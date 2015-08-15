@@ -234,7 +234,7 @@ bool Utils::mkdir_tree(char *path) {
          * CONST_PATH_SEP, do not create the final
          * directory: it will be created later.
          */
-        if (path[i+1] == '\0')
+        if(path[i+1] == '\0')
           break;
 	path[i] = '\0';
 	rc = ntop_mkdir(path, permission);
@@ -891,7 +891,7 @@ static int alphanum(char code) {
   int i;
   static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
   for (i = 0; i < 36; i++) {
-    if (code == alnum[i]) return 1;
+    if(code == alnum[i]) return 1;
   }
   return 0;
 }
@@ -902,11 +902,11 @@ char* Utils::urlEncode(char *url) {
   char *buf = (char *) malloc(strlen(url) * 3 + 1);
   char *pbuf = buf;
   while (*pstr) {
-    if (alphanum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
+    if(alphanum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') {
       *pbuf++ = *pstr;
     }
     else {
-      if (*pstr == ' ') *pbuf++ = '+';
+      if(*pstr == ' ') *pbuf++ = '+';
       else {
         *pbuf++ = '%';
         *pbuf++ = to_hex(*pstr >> 4);
@@ -925,7 +925,7 @@ char* Utils::urlEncode(char *url) {
 static void newString(String *str) {
   str->l = 0;
   str->s = (char *) malloc((str->l) + 1);
-  if (str->s == NULL) {
+  if(str->s == NULL) {
     fprintf(stderr, "ERROR: malloc() failed!\n");
     exit(EXIT_FAILURE);
   }
@@ -939,7 +939,7 @@ static void newString(String *str) {
 static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
   size_t new_len = str->l + (size * nmemb);
   str->s = (char *) realloc(str->s, new_len + 1);
-  if (str->s == NULL) {
+  if(str->s == NULL) {
     fprintf(stderr, "ERROR: realloc() failed!\n");
     exit(EXIT_FAILURE);
   }
@@ -959,7 +959,7 @@ char* Utils::curlHTTPGet(char *url, long *http_code) {
   long replyCode = 0;
 
   curl = curl_easy_init();
-  if (curl) {
+  if(curl) {
     newString(&replyString);
     curl_easy_setopt(curl, CURLOPT_URL, url);
     // Uncomment the following line for redirection support.
@@ -968,7 +968,7 @@ char* Utils::curlHTTPGet(char *url, long *http_code) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &replyString);
     res = curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &replyCode);
-    if (res != CURLE_OK) {
+    if(res != CURLE_OK) {
       fprintf(stderr, "ERROR: curl_easy_perform failed with code %s.\n", curl_easy_strerror(res));
     }
     *http_code = replyCode;
@@ -1075,17 +1075,17 @@ bool scan_dir(const char * dir_name, list<dirent *> *dirlist,
   struct stat file_stats;
 
   d = opendir (dir_name);
-  if (!d) return false;
+  if(!d) return false;
 
   while (1) {
     struct dirent *entry;
     const char *d_name;
 
     entry = readdir (d);
-    if (!entry) break;
+    if(!entry) break;
     d_name = entry->d_name;
-    if (!(entry->d_type & DT_DIR)) {
-      if (!stat(entry->d_name, &file_stats)) {
+    if(!(entry->d_type & DT_DIR)) {
+      if(!stat(entry->d_name, &file_stats)) {
         struct dirent *temp = (struct dirent *)malloc(sizeof(struct dirent));
         memcpy(temp, entry, sizeof(struct dirent));
         dirlist->push_back(entry);
@@ -1093,30 +1093,30 @@ bool scan_dir(const char * dir_name, list<dirent *> *dirlist,
       }
     }
 
-    if (entry->d_type & DT_DIR) {
-      if (strncmp (d_name, "..", 2) != 0 &&
+    if(entry->d_type & DT_DIR) {
+      if(strncmp (d_name, "..", 2) != 0 &&
           strncmp (d_name, ".", 1) != 0) {
         int path_length;
         char path[MAX_PATH];
 
         path_length = snprintf (path, MAX_PATH,
                                 "%s/%s", dir_name, d_name);
-        if (path_length >= MAX_PATH)
+        if(path_length >= MAX_PATH)
           return false;
         scan_dir(path, dirlist, total);
       }
     }
   }
-  if (closedir (d)) return false;
+  if(closedir (d)) return false;
 
   return true;
 }
 
 bool dir_size_compare(const struct dirent *d1, const struct dirent *d2) {
   struct stat sa, sb;
-  if (stat(d1->d_name, &sa) || stat(d2->d_name, &sb)) return false;
-  if (S_ISDIR(sa.st_mode) && S_ISDIR(sb.st_mode)) {
-    if (sa.st_mtime < sb.st_mtime) return false;
+  if(stat(d1->d_name, &sa) || stat(d2->d_name, &sb)) return false;
+  if(S_ISDIR(sa.st_mode) && S_ISDIR(sb.st_mode)) {
+    if(sa.st_mtime < sb.st_mtime) return false;
     else return true;
   }
   return false;
@@ -1128,13 +1128,13 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
   list<struct dirent *>::iterator it;
   struct stat st;
 
-  if (path == NULL || !strncmp(path, "", MAX_PATH))
+  if(path == NULL || !strncmp(path, "", MAX_PATH))
     return false;
 
   /* First, get a list of all non-dir dirents and compute total size */
-  if (!scan_dir(path, &dirlist, &total)) return false;
+  if(!scan_dir(path, &dirlist, &total)) return false;
 
-  if (total < max_size) return true;
+  if(total < max_size) return true;
 
   /* Second, sort the list by file size */
   dirlist.sort(dir_size_compare);
@@ -1144,7 +1144,7 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
     stat((*it)->d_name, &st);
     unlink((*it)->d_name);
     total -= st.st_size;
-    if (total < max_size) break;
+    if(total < max_size) break;
   }
   for (it = dirlist.begin(); it != dirlist.end(); ++it)
     free(*it);
@@ -1194,20 +1194,17 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 
 /* **************************************** */
 
-unsigned short Utils::getMacSpeed(char *ifname) 
-{
-  
+u_int32_t Utils::getMacSpeed(char *ifname) {
+#ifdef linux
   int sock, rc;
   struct ifreq ifr;
   struct ethtool_cmd edata;
-  unsigned short mac_speed;
+  u_int32_t mac_speed;
 
-  memset (&ifr, 0, sizeof(struct ifreq));
+  memset(&ifr, 0, sizeof(struct ifreq));
 
-  /* Dummy socket, just to make ioctls with */
   sock = socket(PF_INET, SOCK_DGRAM, 0);
-  if (sock < 0) 
-  {
+  if(sock < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Socket error");
     exit(-1);
   }
@@ -1219,8 +1216,7 @@ unsigned short Utils::getMacSpeed(char *ifname)
   edata.cmd = ETHTOOL_GSET;
   
   rc = ioctl(sock, SIOCETHTOOL, &ifr);
-  if (rc < 0)
-  {
+  if(rc < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error");
     exit(-2);
   }
@@ -1231,16 +1227,15 @@ unsigned short Utils::getMacSpeed(char *ifname)
   mac_speed = edata.speed;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %s",
-			       ifname,
-			       edata.speed);
+			       ifname, edata.speed);
 
   close(sock);
 
-  return mac_speed;
+  return(mac_speed);
+#else
+  return(1000);
+#endif
 }
-
-
-
 
 /* **************************************** */
 

@@ -20,7 +20,6 @@ print('<hr><h2>'..ifstats.name..' Preferences</H2></br>\n')
 key = 'ntopng.prefs.'..ifname..'.name'
 
 if(_GET["ifName"] ~= nil) then
-
    custom_name = tostring(_GET["ifName"])
    ntop.setCache(key, custom_name)
 else
@@ -31,17 +30,10 @@ key = 'ntopng.prefs.'..ifname..'.speed'
 
 ifstats.name = tostring(ifstats.name)
 
--- Ask for MAC speed
-SpeedMax = getSpeedMax(ifstats.name)
-
---print speed
---io.write(">>speed_max = "..SpeedMax..'\n')
-
 -- Ask Redis for actual speed
 ifSpeed = ntop.getCache(key)
 
-if(_GET["ifSpeed"] ~= nil) then
-   
+if((_GET["ifSpeed"] ~= nil) and (string.len(_GET["ifSpeed"]) > 0)) then
    ifSpeed = _GET["ifSpeed"]
    
    if(ifSpeed ~= nil) then 
@@ -50,25 +42,21 @@ if(_GET["ifSpeed"] ~= nil) then
    
    -- ifSpeed == nil assign the max value of speed
    if(ifSpeed == nil) then
-      ifSpeed = SpeedMax
+      ifSpeed = ifstats.speed
    end
    
    -- set Redis cache for the speed to the associated interface
    ntop.setCache(key, tostring(ifSpeed))
-
 else
-   if(ifSpeed ~= nil) then
+   if((ifSpeed ~= nil) and (string.len(ifSpeed) > 0)) then
       ifSpeed = tonumber(ifSpeed)
    else
       -- ifSpeed == nil assign the max value of speed
-      ifSpeed = SpeedMax
+      ifSpeed = ifstats.speed
    end
 end
 
 ifSpeed = math.floor(ifSpeed+0.5)
-
-
-
 
 print [[<form class="form-horizontal" method="GET" >]]
 
@@ -79,10 +67,9 @@ print [[
 	 <div class="form-group">
 	 
       <label class="control-label" for="ifSpeed">Interface Speed (Mbit) : </label>]]
-print('\t'.."Max Speed availlable = [ "..SpeedMax..' (Mbit) ]\n')
 print [[
          <br />	 
-	 <input type="number" min="1" max="SpeedMax" step="1" name="ifSpeed" id="ifSpeed" value="]] print(ifSpeed) print [["/>]]
+	 <input type="number" min="1" max="ifstats.speed" step="1" name="ifSpeed" id="ifSpeed" value="]] print(ifSpeed.."") print [["/>]]
 
 print [[
       
