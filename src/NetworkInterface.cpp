@@ -188,7 +188,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 #endif
 
     checkIdle();
-    ifSpeed = Utils::getMacSpeed((char*)name);
+    ifSpeed = Utils::getMaxIfSpeed((char*)name);
   } else {
     flows_hash = NULL, hosts_hash = NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;

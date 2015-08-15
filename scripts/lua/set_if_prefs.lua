@@ -67,16 +67,14 @@ print [[
 	 <div class="form-group">
 	 
       <label class="control-label" for="ifSpeed">Interface Speed (Mbit) : </label>]]
-print [[
-         <br />	 
-	 <input type="number" min="1" max="ifstats.speed" step="1" name="ifSpeed" id="ifSpeed" value="]] print(ifSpeed.."") print [["/>]]
+print('<br /><input type="number" min="1" max="'..ifstats.speed..'" step="1" name="ifSpeed" id="ifSpeed" value="'..ifSpeed..'"/>')
 
 print [[
       
       </div>
 	 
 	 <div class="form-group">
-      <label class="control-label" for="ifName">Custom Name: </label>
+      <label class="control-label" for="ifName">Custom Interface Name: </label>
 
 	 <br />
 	 

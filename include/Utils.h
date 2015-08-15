@@ -71,7 +71,7 @@ class Utils {
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
   static void readMac(char *ifname, dump_mac_t mac_addr);
-  static u_int32_t getMacSpeed(char *ifname);
+  static u_int32_t getMaxIfSpeed(char *ifname);
   static bool isGoodNameToCategorize(char *name);
   static char* get2ndLevelDomain(char *_domainname);
   static char* tokenizer(char *arg, int c, char **data);

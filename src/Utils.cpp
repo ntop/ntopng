@@ -1194,19 +1194,19 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 
 /* **************************************** */
 
-u_int32_t Utils::getMacSpeed(char *ifname) {
+u_int32_t Utils::getMaxIfSpeed(char *ifname) {
 #ifdef linux
   int sock, rc;
   struct ifreq ifr;
   struct ethtool_cmd edata;
-  u_int32_t mac_speed;
+  u_int32_t ifSpeed = 1000;
 
   memset(&ifr, 0, sizeof(struct ifreq));
 
   sock = socket(PF_INET, SOCK_DGRAM, 0);
   if(sock < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Socket error");
-    exit(-1);
+    // ntop->getTrace()->traceEvent(TRACE_ERROR, "Socket error [%s]", ifname);
+    return(ifSpeed);
   }
 
   strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
@@ -1217,23 +1217,23 @@ u_int32_t Utils::getMacSpeed(char *ifname) {
   
   rc = ioctl(sock, SIOCETHTOOL, &ifr);
   if(rc < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error");
-    exit(-2);
+    // ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error [%s]", ifname);
+    return(ifSpeed);
   }
 
   // Set the speed to edata.speed
   ethtool_cmd_speed(&edata);
 
-  mac_speed = edata.speed;
+  ifSpeed = edata.speed;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %s",
 			       ifname, edata.speed);
 
   close(sock);
 
-  return(mac_speed);
+  return(ifSpeed);
 #else
-  return(1000);
+  return(ifSpeed);
 #endif
 }
 
