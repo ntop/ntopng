@@ -162,12 +162,13 @@ class NetworkInterface {
   virtual void incrDrops(u_int32_t num)        { ; }
   inline virtual bool is_packet_interface()    { return(true); }
   inline virtual const char* get_type()        { return(CONST_INTERFACE_TYPE_UNKNOWN); }
-  inline FlowHash *get_flows_hash()           { return flows_hash; }
+  inline FlowHash *get_flows_hash()            { return flows_hash; }
   inline virtual bool is_ndpi_enabled()        { return(true); }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd); };
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
+  inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
   inline char* get_ndpi_proto_breed_name(u_int id) { return(ndpi_get_proto_breed_name(ndpi_struct,
 										      ndpi_get_proto_breed(ndpi_struct,
 													   id))); };

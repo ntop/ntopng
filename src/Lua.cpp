@@ -353,8 +353,28 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_ndpi_protocol_id(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  nDPIStats stats;
+  char *proto;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  proto = (char*)lua_tostring(vm, 1);
+
+  if(ntop_interface && proto)
+    lua_pushnumber(vm, ntop_interface->get_iface()->get_ndpi_proto_id(proto));
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /**
- * @brief Same as ntop_get_ndpi_protocol_name() with the exception that the protocl breed is returned
+ * @brief Same as ntop_get_ndpi_protocol_name() with the exception that the protocol breed is returned
  *
  * @param vm The lua state.
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
@@ -4150,6 +4170,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getStats",               ntop_get_interface_stats },
   { "getnDPIStats",           ntop_get_ndpi_interface_stats },
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
+  { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
   { "getnDPIFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getnDPIProtoBreed",      ntop_get_ndpi_protocol_breed },
   { "getHosts",               ntop_get_interface_hosts },

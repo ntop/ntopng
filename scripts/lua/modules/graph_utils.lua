@@ -545,7 +545,7 @@ end -- topArray ~= nil
 print[[</div></td></tr>]]
 
 
-printGraphTopFlows(ifid, (host or ''), _GET["epoch"], _GET["graph_zoom"]) 
+printGraphTopFlows(ifid, (host or ''), _GET["epoch"], _GET["graph_zoom"], rrdFile) 
 
 print [[
 
@@ -981,11 +981,10 @@ function dumpSingleTreeCounters(basedir, label, host, verbose)
    end
 end
 
-function printGraphTopFlows(ifId, host, epoch, zoomLevel)
+function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    -- Check if the DB is enabled
    rsp = interface.execSQLQuery("show tables")
    if(rsp == nil) then return end
-
 
    if((epoch == nil) or (epoch == "")) then epoch = os.time() end
    
@@ -995,20 +994,59 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel)
    epoch_begin = epoch-d
    
    url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
-   
-   print [[
-<div id="table-flows"></div>
-<script>
-	 var url_update = "]] print(url_update) print [[";
-	 // ---------------- End automatic table update code ------------------------
 
-	 var table = $("#table-flows").datatable({
-						    url: url_update ,
+   title = "Top Flows"
+   if(l7proto ~= nil) then
+      local id
+      if(string.ends(l7proto, ".rrd")) then l7proto = string.sub(l7proto, 1, -5) end
+
+      id = interface.getnDPIProtoId(l7proto)
+      if(id ~= -1) then
+	 url_update = url_update .. "&l7proto="..id 
+	 title = "Top "..l7proto.." Flows"
+      end
+   end
+   
+   
+   title = title .. " ["..formatEpoch(epoch_begin).." - "..formatEpoch(epoch_end).."]"
+
+   print [[
+
+
+<div class="container">
+    
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="active">
+          <a href="#ipv4" role="tab" data-toggle="tab"> IPv4  </a>
+      </li>
+      <li><a href="#ipv6" role="tab" data-toggle="tab"> IPv6 </a>
+      </li>
+    </ul>
+    
+    <!-- Tab panes -->
+    <div class="tab-content">
+      <div class="tab-pane fade active in" id="ipv4">
+          <div id="table-flows4"></div>
+      </div>
+      <div class="tab-pane fade" id="ipv6">
+          <div id="table-flows6"></div>
+      </div>
+    </div>
+    
+</div>
+
+
+<script>
+	    var url_update4 = "]] print(url_update) print [[&version=4";
+
+	    var graph_options4 = {
+						    url: url_update4,
 						    perPage: 5,
-						    title: "Top Flows []]  print(formatEpoch(epoch_begin).." - "..formatEpoch(epoch_end)) print [[]",
+						    title: "IPv4 ]]  print(title) print [[",
 						    showFilter: true,
 						    showPagination: true,
-						    sort: [ ["BYTES","desc"] ],
+						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
 							  title: "Key",
@@ -1091,8 +1129,116 @@ print [[
 						       }
 						    ]
 
-						 });
+						 };
+
+
+
+            var table4 = $("#table-flows4").datatable(graph_options4);
+
+	    var url_update6 = "]] print(url_update) print [[&version=6";
+
+	    var graph_options6 = {
+						    url: url_update6,
+						    perPage: 5,
+						    title: "IPv6 ]]  print(title) print [[",
+						    showFilter: true,
+						    showPagination: true,
+						    sort: [ [ "BYTES","desc"] ],
+						    columns: [
+						       {
+							  title: "Key",
+							  field: "idx",
+							  hidden: true,
+						       },
+						 ]]
+
+						 if(ntop.isPro()) then
+						    print [[
+						       {
+							  title: "",
+							  field: "FLOW_URL",
+							  sortable: false,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						 ]]
+					      end
+
+print [[
+						       {
+							  title: "Application",
+							  field: "L7_PROTO",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "L4 Proto",
+							  field: "PROTOCOL",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Client",
+							  field: "CLIENT",
+							  sortable: false,
+						       },
+						       {
+							  title: "Server",
+							  field: "SERVER",
+							  sortable: false,
+						       },
+						       {
+							  title: "Begin",
+							  field: "FIRST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "End",
+							  field: "LAST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Bytes",
+							  field: "BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Packets",
+							  field: "PACKETS",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       }
+						    ]
+
+						 };
+
+
+	 var table6 = $("#table-flows6").datatable(graph_options6);
 	 </script>
+
+
+
+
+
+
+
+	    
 ]]
 
 end

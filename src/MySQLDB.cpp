@@ -48,12 +48,12 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6_%u` ("
 	     "`idx` int(11) NOT NULL auto_increment,"
 	     "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
-	     "`IPV4_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
-	     "`IPV4_DST_ADDR` varchar(48), `L4_DST_PORT` smallint unsigned,"
+	     "`IP_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
+	     "`IP_DST_ADDR` varchar(48), `L4_DST_PORT` smallint unsigned,"
 	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
 	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
 	     "`JSON` BLOB,"
-	     "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
+	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id());
 
@@ -66,12 +66,12 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4_%u` ("
 	     "`idx` int(11) NOT NULL auto_increment,"
 	     "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
-	     "`IPV4_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
-	     "`IPV4_DST_ADDR` int unsigned, `L4_DST_PORT` smallint unsigned,"
+	     "`IP_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
+	     "`IP_DST_ADDR` int unsigned, `L4_DST_PORT` smallint unsigned,"
 	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
 	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
 	     "`JSON` BLOB,"
-	     "INDEX(`idx`,`IPV4_SRC_ADDR`,`IPV4_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
+	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id());
 
@@ -105,7 +105,7 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
 bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
   char sql[8192];
 
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
 	   f->get_vlan_id(),
@@ -129,7 +129,7 @@ bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
 bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
   char sql[8192], cli_str[64], srv_str[64];
 
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IPV4_SRC_ADDR,L4_SRC_PORT,IPV4_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	   "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
 	   f->get_vlan_id(),
