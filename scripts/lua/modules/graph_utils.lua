@@ -112,6 +112,7 @@ end
 -- ########################################################
 
 zoom_vals = {
+   { "1m",  "now-60s",  60 },
    { "5m",  "now-300s", 60*5 },
    { "10m", "now-600s", 60*10 },
    { "1h",  "now-1h",   60*60*1 },
@@ -139,6 +140,18 @@ function getZoomAtPos(cur_zoom, pos_offset)
     pos = pos + 1
   end
   return new_zoom_level
+end
+
+-- ########################################################
+
+function getZoomDuration(cur_zoom)
+   for k,v in pairs(zoom_vals) do
+      if(zoom_vals[k][1] == cur_zoom) then
+	 return(zoom_vals[k][3])
+      end
+   end
+   
+   return(180)
 end
 
 -- ########################################################
@@ -412,6 +425,9 @@ font-family: Arial, Helvetica, sans-serif;
 </style>
 
 <div>
+
+<table border=0>
+<tr><td valign=top>
 ]]
 
 
@@ -448,7 +464,6 @@ end -- show_timeseries == 1
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
 
 for k,v in ipairs(zoom_vals) do
-
    print('<label class="btn btn-link ')
 
    if(zoom_vals[k][1] == zoomLevel) then
@@ -470,10 +485,23 @@ print [[
 
 <br />
 <p>
+
+
+<div id="legend"></div>
+<div id="chart_legend"></div>
+<div id="chart" style="margin-right: 50px; margin-left: 10px; display: table-cell"></div>
+<p><font color=lightgray><small>NOTE: Click on the graph to zoom.</small></font>
+
+</td>
+
+
+<td rowspan=2>
+<div id="y_axis"></div>
+
 <div style="margin-left: 10px; display: table">
 <div id="chart_container" style="display: table-row">
 
-   <table style="border: 0">
+
 ]]
 if(string.contains(rrdFile, "num_")) then
    formatter_fctn = "fint"
@@ -514,20 +542,17 @@ print [[
 ]]
 end -- topArray ~= nil
 
-print[[
-   </td></tr>
-   <tr><td><div id="legend"></div></td><td><div id="chart_legend"></div></td></tr>
-   <tr><td colspan=2>
-   </table>
+print[[</div></td></tr>]]
 
-   <p><font color=lightgray><small>NOTE: Click on the graph to zoom.</small></font>
-   <div id="y_axis"></div>
 
-   <div id="chart" style="margin-right: 50px; margin-left: 10px; display: table-cell"></div>
-</div>
+printGraphTopFlows(ifid, (host or ''), _GET["epoch"], _GET["graph_zoom"]) 
 
-</div>
+print [[
 
+</table>
+   ]]
+
+print [[
 <script>
 
 
@@ -692,8 +717,8 @@ print[[
                                   elements++;
                                   return false;
                                 });
-                                if (elements > 0)
-                                  infoHTML += "<li>]]print(sectionname)print[[<ul>";]]
+
+]]
                      print[[
 				$.each(info, function(i, n) {
                                   var nonempty = 0;
@@ -954,4 +979,120 @@ function dumpSingleTreeCounters(basedir, label, host, verbose)
 	 end
       end
    end
+end
+
+function printGraphTopFlows(ifId, host, epoch, zoomLevel)
+   -- Check if the DB is enabled
+   rsp = interface.execSQLQuery("show tables")
+   if(rsp == nil) then return end
+
+
+   if((epoch == nil) or (epoch == "")) then epoch = os.time() end
+   
+   local d = getZoomDuration(zoomLevel)/2
+   
+   epoch_end = epoch+d
+   epoch_begin = epoch-d
+   
+   url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
+   
+   print [[
+<div id="table-flows"></div>
+<script>
+	 var url_update = "]] print(url_update) print [[";
+	 // ---------------- End automatic table update code ------------------------
+
+	 var table = $("#table-flows").datatable({
+						    url: url_update ,
+						    perPage: 5,
+						    title: "Top Flows []]  print(formatEpoch(epoch_begin).." - "..formatEpoch(epoch_end)) print [[]",
+						    showFilter: true,
+						    showPagination: true,
+						    sort: [ ["BYTES","desc"] ],
+						    columns: [
+						       {
+							  title: "Key",
+							  field: "idx",
+							  hidden: true,
+						       },
+						 ]]
+
+						 if(ntop.isPro()) then
+						    print [[
+						       {
+							  title: "",
+							  field: "FLOW_URL",
+							  sortable: false,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						 ]]
+					      end
+
+print [[
+						       {
+							  title: "Application",
+							  field: "L7_PROTO",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "L4 Proto",
+							  field: "PROTOCOL",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Client",
+							  field: "CLIENT",
+							  sortable: false,
+						       },
+						       {
+							  title: "Server",
+							  field: "SERVER",
+							  sortable: false,
+						       },
+						       {
+							  title: "Begin",
+							  field: "FIRST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "End",
+							  field: "LAST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Bytes",
+							  field: "BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Packets",
+							  field: "PACKETS",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       }
+						    ]
+
+						 });
+	 </script>
+]]
+
 end

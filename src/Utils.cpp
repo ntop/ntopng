@@ -1112,6 +1112,8 @@ bool scan_dir(const char * dir_name, list<dirent *> *dirlist,
   return true;
 }
 
+/* **************************************** */
+
 bool dir_size_compare(const struct dirent *d1, const struct dirent *d2) {
   struct stat sa, sb;
   if(stat(d1->d_name, &sa) || stat(d2->d_name, &sb)) return false;
@@ -1121,6 +1123,8 @@ bool dir_size_compare(const struct dirent *d1, const struct dirent *d2) {
   }
   return false;
 }
+
+/* **************************************** */
 
 bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_size) {
   unsigned long total = 0;

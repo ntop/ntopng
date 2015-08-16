@@ -16,7 +16,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 ifstats = interface.getStats()
 
 sql = _GET["sql"]
-print('<p><form>SQL: <input type=text name=sql size="80" value="')
+print('<p><form>SQL: <input type=text name=sql size="160" value="')
 
 if((sql == nil) or (string.len(sql) == 0)) then
    sql = "select * from flowsv4_"..ifstats.id.." order by LAST_SWITCHED desc limit 10"

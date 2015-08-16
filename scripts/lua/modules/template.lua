@@ -491,4 +491,18 @@ l4_template = {
   [254] = "DIVERT"
 }
 
+function l4ProtoToName(value) 
+   value = tonumber(value)
+
+   for k,v in pairs(l4_template) do
+      if(k == value) then 
+	 return(v) 
+      end
+   end
+
+   return(value)
+end
+
+
+
 

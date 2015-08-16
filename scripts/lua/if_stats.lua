@@ -9,6 +9,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+require "db_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 

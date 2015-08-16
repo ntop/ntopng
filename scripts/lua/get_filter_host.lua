@@ -130,8 +130,6 @@ if ( key == nil ) then
 					 if(num > 0) then print ",\n" end
 					 print('{ ')
 					
-
-
 					 print('\"key\" : \"'.. _key ..'\",\n')
 					 --print(" \"column_http_virtual_host\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?host_details=".._key.."</A>,\"\n")
 					  print(" \"column_http_virtual_host\" : \"<A HREF='")

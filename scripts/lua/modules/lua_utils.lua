@@ -1735,3 +1735,7 @@ function getSpeedMax(ifname)
 
    return(ntop.getSpeedMax(ifname))
 end
+
+function intToIPv4(num)
+   return(math.floor(num / 2^24).. "." ..math.floor((num % 2^24) / 2^16).. "." ..math.floor((num % 2^16) / 2^8).. "." ..num % 2^8)
+end

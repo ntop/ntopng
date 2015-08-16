@@ -4571,6 +4571,10 @@ void Lua::purifyHTTPParameter(char *param) {
       switch(c) {
       case '/':
       case ':':
+      case '(':
+      case ')':
+      case '[':
+      case ']':
       case ',':
       case '&':
 	break;

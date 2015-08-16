@@ -110,8 +110,8 @@ bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
 	   f->get_vlan_id(),
 	   f->get_detected_protocol().protocol,
-	   f->get_cli_host()->get_ip()->get_ipv4(), f->get_cli_port(),
-	   f->get_srv_host()->get_ip()->get_ipv4(), f->get_srv_port(),
+	   htonl(f->get_cli_host()->get_ip()->get_ipv4()), f->get_cli_port(),
+	   htonl(f->get_srv_host()->get_ip()->get_ipv4()), f->get_srv_port(),
 	   f->get_protocol(), (unsigned int)f->get_bytes(),  (unsigned int)f->get_packets(),
 	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(),
 	   json ? json : "");
