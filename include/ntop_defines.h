@@ -139,8 +139,6 @@
 #define MAX_CSRF_DURATION       300 /* 5 mins */
 #define NTOP_NOLOGIN_USER	"nologin"
 
-#define CONST_SAVE_HTTP_FLOWS_TRAFFIC "ntopng.prefs.http_traffic_dump"
-
 #define CONST_ADMINISTRATOR_USER  "administrator"
 #define CONST_UNPRIVILEGED_USER   "unprivileged"
 #define CONST_STR_NTOPNG_LICENSE  "ntopng.license"

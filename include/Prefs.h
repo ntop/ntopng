@@ -78,7 +78,6 @@ class Prefs {
 #endif
 #ifdef NTOPNG_PRO
   char *nagios_host, *nagios_port, *nagios_config;
-  bool save_http_flows_traffic;
 #endif
 
   inline void help() { usage(); };
@@ -149,7 +148,6 @@ class Prefs {
   inline char * get_nagios_host()                       { return(nagios_host);    };
   inline char * get_nagios_port()                       { return(nagios_port);    };
   inline char * get_nagios_config()                     { return(nagios_config);    };
-  inline bool get_save_http_flows_traffic()             { return(save_http_flows_traffic); };
 #endif
   inline char* get_pid_path()                           { return(pid_path);       };
   inline char* get_packet_filter()                      { return(packet_filter);  };

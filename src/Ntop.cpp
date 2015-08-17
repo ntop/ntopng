@@ -53,9 +53,6 @@ Ntop::Ntop(char *appName) {
   prefs = NULL, redis = NULL;
   num_cpus = -1;
   communitiesManager = NULL;
-#ifdef NTOPNG_PRO
-  redis_pro = NULL;
-#endif
   num_defined_interfaces = num_defined_interface_views = 0;
   local_interface_addresses = New_Patricia(128);
   export_interface = NULL;
@@ -184,7 +181,6 @@ Ntop::~Ntop() {
   if(pro) delete pro;
   if(nagios_manager) delete nagios_manager;
   if(flow_checker) delete flow_checker;
-  if(redis_pro) delete redis_pro;
 #endif
 }
 
@@ -237,7 +233,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   initRedis();
 
 #ifdef NTOPNG_PRO
-  redis_pro = new RedisPro();
   pro->check_license(true, false);
 #endif
 }

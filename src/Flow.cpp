@@ -170,13 +170,6 @@ Flow::~Flow() {
   update_hosts_stats(&tv);
   dumpFlow(true /* Dump only the last part of the flow */);
 
-#ifdef NTOPNG_PRO
-  if (ntop->getPrefs()->get_save_http_flows_traffic() &&
-      srv_host && srv_host->getHTTP() && srv_host->isLocalHost())
-    ntop->getRedisPro()->incrHttpTraffic(srv_host->get_name(),
-                                         cli2srv_bytes + srv2cli_bytes);
-#endif
-
   if(cli_host)         { cli_host->decUses(); cli_host->decNumFlows(true);  }
   if(srv_host)         { srv_host->decUses(); srv_host->decNumFlows(false); }
   if(json_info)        free(json_info);

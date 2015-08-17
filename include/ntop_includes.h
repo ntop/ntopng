@@ -189,7 +189,6 @@ using namespace std;
 #include "LuaHandler.h"
 #include "NagiosManager.h"
 #include "FlowChecker.h"
-#include "RedisPro.h"
 #endif
 #include "ParserInterface.h"
 #include "CollectorInterface.h"

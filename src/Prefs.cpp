@@ -70,9 +70,6 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
-#ifdef NTOPNG_PRO
-  save_http_flows_traffic = false;
-#endif
 
   /* Defaults */
   non_local_host_max_idle = MAX_REMOTE_HOST_IDLE /* sec */;
@@ -328,9 +325,6 @@ void Prefs::loadIdleDefaults() {
   other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
   other_rrd_1h_days = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
-#ifdef NTOPNG_PRO
-  save_http_flows_traffic = (bool)getDefaultPrefsValue(CONST_SAVE_HTTP_FLOWS_TRAFFIC, false);
-#endif
 }
 
 /* ******************************************* */

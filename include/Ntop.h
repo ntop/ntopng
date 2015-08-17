@@ -30,7 +30,6 @@
 
 
 class NtopPro;
-class RedisPro;
 
 /** @class Ntop
  *  @brief Main class of ntopng.
@@ -53,9 +52,6 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables.*/
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer of Radius server.*/
-#ifdef NTOPNG_PRO
-  RedisPro *redis_pro;
-#endif
   PeriodicActivities *pa; /**< Instance of periodical activities.*/
   AddressResolution *address;
   Prefs *prefs;
@@ -329,7 +325,6 @@ class Ntop {
 
 #ifdef NTOPNG_PRO
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };
-  inline RedisPro*         getRedisPro()             { return(redis_pro);           };
 #endif
 
   void getUsers(lua_State* vm); 

@@ -113,18 +113,6 @@ end
 
    -- ================================================================================
 
-if (ntop.isPro()) then
-   -- ================================================================================
-   print('<tr><th colspan=2 class="info">HTTP Traffic Statistics</th></tr>')
-   toggleTableButton("Dump HTTP Servers Traffic Statistics On Disk",
-                     "Toggle dumping on disk daily virtual HTTP server traffic statistics. Turn it off to save storage space.",
-                     "Off", "0", "danger", "On", "1", "success", "toggle_http_traffic_dump", "ntopng.prefs.http_traffic_dump")
-   prefsInputField("Base Directory For Virtual HTTP Server Aggregated Stats", "Directory to dump virtual HTTP server aggregated stats. Default is ntopng's working dir.",
-                   "http_stats_base_dir", prefs.http_stats_base_dir)
-
-   -- ================================================================================
-end
-
    print [[
 	 </table>
       ]]
