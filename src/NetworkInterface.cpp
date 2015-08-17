@@ -490,7 +490,7 @@ int NetworkInterface::dumpDBFlow(time_t when, bool partial_dump, Flow *f) {
   int rc;
 
   if(json) {
-    rc = db->dumpFlow(when, f, json);
+    rc = db->dumpFlow(when, partial_dump, f, json);
     free(json);
   } else
     rc = -1;

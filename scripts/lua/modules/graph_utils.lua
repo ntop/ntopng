@@ -248,6 +248,8 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
                  selectedEpoch, selected_epoch_sanitized, topArray)
    local debug_rrd = false
 
+   if(zoomLevel == nil) then zoomLevel = "1h" end
+
    if(ntop.isPro()) then
       drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
       return
@@ -544,8 +546,7 @@ end -- topArray ~= nil
 
 print[[</div></td></tr>]]
 
-
-printGraphTopFlows(ifid, (host or ''), _GET["epoch"], _GET["graph_zoom"], rrdFile) 
+printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile) 
 
 print [[
 
@@ -987,7 +988,7 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    if(rsp == nil) then return end
 
    if((epoch == nil) or (epoch == "")) then epoch = os.time() end
-   
+
    local d = getZoomDuration(zoomLevel)/2
    
    epoch_end = epoch+d
@@ -1120,9 +1121,9 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Packets",
-							  field: "PACKETS",
-							  sortable: true,
+							  title: "Avg Thpt",
+							  field: "AVG_THROUGHPUT",
+							  sortable: false,
 							  css: {
 							     textAlign: 'right'
 							  }
@@ -1217,9 +1218,9 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Packets",
-							  field: "PACKETS",
-							  sortable: true,
+							  title: "Avg Thpt",
+							  field: "AVG_THROUGHPUT",
+							  sortable: false,
 							  css: {
 							     textAlign: 'right'
 							  }

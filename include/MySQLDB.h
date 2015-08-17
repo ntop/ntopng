@@ -34,14 +34,12 @@ class MySQLDB : public DB {
   bool connectToDB(bool select_db);
   char* get_last_db_error() { return((char*)mysql_error(&mysql)); }
   int exec_sql_query(char *sql, int do_reconnect = 1);
-  bool dumpV4Flow(time_t when, Flow *f, char *json);
-  bool dumpV6Flow(time_t when, Flow *f, char *json);
   
  public:
   MySQLDB(NetworkInterface *_iface = NULL);
   ~MySQLDB();
   
-  bool dumpFlow(time_t when, Flow *f, char *json);
+  bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql);
 };
 

@@ -89,14 +89,15 @@ void SQLiteDB::initDB(time_t when, const char *create_sql_string) {
 
 /* ******************************************* */
 
-bool SQLiteDB::dumpFlow(time_t when, Flow *f, char *json) {
+bool SQLiteDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   const char *create_flows_db = "BEGIN; CREATE TABLE IF NOT EXISTS flows (ID INTEGER PRIMARY KEY AUTOINCREMENT, vlan_id number, cli_ip string KEY, cli_port number, "
-    "srv_ip string KEY, srv_port number, proto number, bytes number, first_seen number, last_seen number, duration number, json string);";
+    "srv_ip string KEY, srv_port number, proto number, bytes number, packets, number, first_seen number, last_seen number, duration number, json string);";
   char sql[4096], cli_str[64], srv_str[64];
   sqlite3_stmt *stmt = NULL;
   char *j = json ? json : (char*)"";
   bool rc = true;
   int int_rc;
+  u_int32_t bytes, packets, first_seen, last_seen;
 
   ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(): %s", __FUNCTION__, json);
 
@@ -104,6 +105,18 @@ bool SQLiteDB::dumpFlow(time_t when, Flow *f, char *json) {
 	   "INSERT INTO flows VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Dump Flow: %s", json);
+
+  if(partial_dump) {
+    bytes = f->get_partial_bytes();
+    packets = f->get_partial_packets();
+    first_seen = f->get_partial_first_seen();
+    last_seen = f->get_partial_last_seen();
+  } else {
+    bytes = f->get_bytes();
+    packets = f->get_packets();
+    first_seen = f->get_first_seen();
+    last_seen = f->get_last_seen();
+  }
 
   if(m) m->lock(__FILE__, __LINE__);
   initDB(when, create_flows_db);
@@ -118,11 +131,12 @@ bool SQLiteDB::dumpFlow(time_t when, Flow *f, char *json) {
      sqlite3_bind_text(stmt, 4, f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)), sizeof(srv_str), SQLITE_TRANSIENT) ||
      sqlite3_bind_int(stmt, 5, f->get_srv_port()) ||
      sqlite3_bind_int(stmt, 6,  f->get_protocol()) ||
-     sqlite3_bind_int(stmt, 7, (unsigned long)f->get_bytes()) ||
-     sqlite3_bind_int(stmt, 8, (unsigned) f->get_first_seen()) ||
-     sqlite3_bind_int(stmt, 9, (unsigned) f->get_last_seen()) ||
-     sqlite3_bind_int(stmt, 10, f->get_duration()) ||
-     sqlite3_bind_text(stmt, 11, j, strlen(j), SQLITE_TRANSIENT)) {
+     sqlite3_bind_int(stmt, 7, (unsigned long)bytes) ||
+     sqlite3_bind_int(stmt, 8, (unsigned long)packets) ||
+     sqlite3_bind_int(stmt, 9, (unsigned long)first_seen) ||
+     sqlite3_bind_int(stmt, 10, (unsigned long)last_seen) ||
+     sqlite3_bind_int(stmt, 12, f->get_duration()) ||
+     sqlite3_bind_text(stmt, 12, j, strlen(j), SQLITE_TRANSIENT)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "[DB] Dump Flow query build failed: %s", sqlite3_errmsg(db));
     rc = false;
     goto out;

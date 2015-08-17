@@ -33,6 +33,11 @@ if(ip_version == nil) then ip_version = "4" end
 
 ip_version = tonumber(ip_version)
 
+if((currentPage == nil) or (currentPage == "")) then currentPage = 1 end
+if((perPage == nil) or (perPage == "")) then perPage = 5 end
+if((sortOrder == nil) or (sortOrder == "")) then sortOrder = "asc" end
+if((sortColumn == nil) or (sortColumn == "")) then sortColumn = "BYTES" end
+
 res = getInterfaceTopFlows(ifId, ip_version, (l7proto or ""), epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC')
 
 if((res == nil) or (type(res) == "string")) then
@@ -49,27 +54,32 @@ else
       if(flow["L4_SRC_PORT"] ~= nil) then
 	 local base_host_url = base.."&host="
 	 local base_port_url = base.."&port="
+	 local pname = l4ProtoToName(flow["PROTOCOL"])
+	 local lower_pname = string.lower(pname)
 	 
-	 client = ntop.getResolvedAddress(flow["IP_SRC_ADDR"])
-	 server = ntop.getResolvedAddress(flow["IP_DST_ADDR"])
+	 client = shortenString(host2name(flow["IP_SRC_ADDR"], flow["VLAN_ID"]))
+	 server = shortenString(host2name(flow["IP_DST_ADDR"], flow["VLAN_ID"]))
 
-	 client = flow["IP_SRC_ADDR"]
-	 server = flow["IP_DST_ADDR"]
+	 --client = flow["IP_SRC_ADDR"]
+	 --server = flow["IP_DST_ADDR"]
 
 	 if(ntop.isPro()) then
-	    flow["CLIENT"] = base_host_url..flow["IP_SRC_ADDR"] .."'>"..client.."</A>:"..base_port_url..flow["L4_SRC_PORT"].."'>"..flow["L4_SRC_PORT"].."</A>"
-	    flow["SERVER"] = base_host_url..flow["IP_DST_ADDR"] .."'>"..server.."</A>:"..base_port_url..flow["L4_DST_PORT"].."'>"..flow["L4_DST_PORT"].."</A>"	
-	    flow["PROTOCOL"] = base.."&l4proto="..flow["PROTOCOL"].."'>"..l4ProtoToName(flow["PROTOCOL"]).."</A>"
+	    flow["CLIENT"] = base_host_url..flow["IP_SRC_ADDR"] .."'>"..client.."</A>:"..base_port_url..flow["L4_SRC_PORT"].."'>"..ntop.getservbyport(tonumber(flow["L4_SRC_PORT"]), lower_pname).."</A>"
+	    flow["SERVER"] = base_host_url..flow["IP_DST_ADDR"] .."'>"..server.."</A>:"..base_port_url..flow["L4_DST_PORT"].."'>"..ntop.getservbyport(tonumber(flow["L4_DST_PORT"]), lower_pname).."</A>"	
+	    flow["PROTOCOL"] = base.."&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	    flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"	    
 	    flow["FLOW_URL"] = base.."&flow_idx="..flow["idx"].."'><span class='label label-info'>Info</span></A>"
 	 else
-	    flow["CLIENT"] = client..":"..flow["L4_SRC_PORT"]
-	    flow["SERVER"] = server..":"..flow["L4_DST_PORT"]
-	    flow["PROTOCOL"] = l4ProtoToName(flow["PROTOCOL"])
+	    flow["CLIENT"] = client..":"..ntop.getservbyport(flow["L4_SRC_PORT"], lower_pname)
+	    flow["SERVER"] = server..":"..ntop.getservbyport(flow["L4_DST_PORT"], lower_pname)
+	    flow["PROTOCOL"] = pname
 	    flow["L7_PROTO"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"])))     
 	    flow["FLOW_URL"] = ""
 	 end
       end
+
+      duration = tonumber(flow["LAST_SWITCHED"])-tonumber(flow["FIRST_SWITCHED"])+1
+      flow["AVG_THROUGHPUT"] = bitsToSize((8*tonumber(flow["BYTES"])) / duration)
 
       flow["FIRST_SWITCHED"] = formatEpoch(tonumber(flow["FIRST_SWITCHED"]))
       flow["LAST_SWITCHED"] = formatEpoch(tonumber(flow["LAST_SWITCHED"]))

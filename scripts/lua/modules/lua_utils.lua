@@ -388,13 +388,13 @@ function bitsToSize(bits)
   terabit = gigabit * 1000;
 
   if((bits >= kilobit) and (bits < megabit)) then
-    return round(bits / kilobit, precision) .. ' Kbit/s';
+    return round(bits / kilobit, precision) .. ' Kbit';
   elseif((bits >= megabit) and (bits < gigabit)) then
-    return round(bits / megabit, precision) .. ' Mbit/s';
+    return round(bits / megabit, precision) .. ' Mbit';
   elseif((bits >= gigabit) and (bits < terabit)) then
-    return round(bits / gigabit, precision) .. ' Gbit/s';
+    return round(bits / gigabit, precision) .. ' Gbit';
   elseif(bits >= terabit) then
-    return round(bits / terabit, precision) .. ' Tbit/s';
+    return round(bits / terabit, precision) .. ' Tbit';
   else
     return round(bits, precision) .. ' bps';
   end
@@ -843,17 +843,11 @@ end
 
 -- Flow Utils --
 
-function flowinfo2hostname(flow_info, host_type, show_vlan)
-   local name
-   local orig_name
+function host2name(name, vlan)
+   local orig_name = name
 
-   name = flow_info[host_type..".host"]
-   
-   if((name == "") or (name == nil)) then
-      name = flow_info[host_type..".ip"]
-   end
+   vlan = tonumber(vlan or "0")
 
-   orig_name = name
    name = getHostAltName(name)
    
    if(name == orig_name) then
@@ -863,18 +857,30 @@ function flowinfo2hostname(flow_info, host_type, show_vlan)
 	 name = rname
       end
    end
-
-   -- io.write(host_type.. " / " .. flow_info[host_type..".host"].." / "..name.."\n")
-  
-   if(show_vlan and (flow_info["vlan"] > 0)) then
-      name = name .. '@' .. flow_info["vlan"]
+ 
+   if(vlan > 0) then
+      name = name .. '@' .. vlan
    end
    
    return name
 end
 
 
--- Url Util --
+function flowinfo2hostname(flow_info, host_type, vlan)
+   local name
+   local orig_name
+
+   name = flow_info[host_type..".host"]
+   
+   if((name == "") or (name == nil)) then
+      name = flow_info[host_type..".ip"]
+   end
+
+   return(host2name(name, flow_info["vlan"]))
+end
+
+
+-- URL Util --
 
 --
 -- Split the host key (ip@vlan) creating a new lua table.

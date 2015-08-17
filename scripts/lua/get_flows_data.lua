@@ -401,7 +401,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    src_key = src_key .. "</A>"
 
    if(value["cli.port"] > 0) then
-      src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["cli.port"] .. "'>"..getservbyport(value["cli.port"], value["proto.l4"]).."</A>"
+      src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
          else
       src_port=""
          end
@@ -416,7 +416,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    dst_key = dst_key .. "</A>"
 
    if(value["srv.port"] > 0) then
-      dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["srv.port"] .. "'>"..getservbyport(value["srv.port"], value["proto.l4"]).."</A>"
+      dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
          else
       dst_port=""
          end

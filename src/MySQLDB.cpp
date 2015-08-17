@@ -90,57 +90,53 @@ MySQLDB::~MySQLDB() {
 
 /* ******************************************* */
 
-bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
+bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
+  char sql[8192], cli_str[64], srv_str[64];
+  u_int32_t bytes, packets, first_seen, last_seen;
+
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
     return(false);
 
-  if(f->get_cli_host()->get_ip()->isIPv4())
-    return(dumpV4Flow(when, f, json));
-  else
-    return(dumpV6Flow(when, f, json));
-}
-
-/* ******************************************* */
-
-bool MySQLDB::dumpV4Flow(time_t when, Flow *f, char *json) {
-  char sql[8192];
-
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
-	   "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
-	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	   f->get_vlan_id(),
-	   f->get_detected_protocol().protocol,
-	   htonl(f->get_cli_host()->get_ip()->get_ipv4()), f->get_cli_port(),
-	   htonl(f->get_srv_host()->get_ip()->get_ipv4()), f->get_srv_port(),
-	   f->get_protocol(), (unsigned int)f->get_bytes(),  (unsigned int)f->get_packets(),
-	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(),
-	   json ? json : "");
-
-  if(exec_sql_query(sql, 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
-    return(false);
+  if(partial_dump) {
+    bytes = f->get_partial_bytes();
+    packets = f->get_partial_packets();
+    first_seen = f->get_partial_first_seen();
+    last_seen = f->get_partial_last_seen();
+  } else {
+    bytes = f->get_bytes();
+    packets = f->get_packets();
+    first_seen = f->get_first_seen();
+    last_seen = f->get_last_seen();
   }
 
-  return(true);
-}
-
-/* ******************************************* */
-
-bool MySQLDB::dumpV6Flow(time_t when, Flow *f, char *json) {
-  char sql[8192], cli_str[64], srv_str[64];
-
-  snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
-	   "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
-	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	   f->get_vlan_id(),
-	   f->get_detected_protocol().protocol,
-	   f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
-	   f->get_cli_port(),
-	   f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
-	   f->get_srv_port(),
-	   f->get_protocol(), (unsigned int)f->get_bytes(),  (unsigned int)f->get_packets(),
-	   (unsigned int)f->get_first_seen(), (unsigned int)f->get_last_seen(),
-	   json ? json : "");
+  if(f->get_cli_host()->get_ip()->isIPv4())
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     iface->get_id(),
+	     f->get_vlan_id(),
+	     f->get_detected_protocol().protocol,
+	     htonl(f->get_cli_host()->get_ip()->get_ipv4()),
+	     f->get_cli_port(),
+	     htonl(f->get_srv_host()->get_ip()->get_ipv4()),
+	     f->get_srv_port(),
+	     f->get_protocol(),
+	     bytes, packets, first_seen, last_seen,
+	     json ? json : "");
+  else
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
+	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     iface->get_id(),
+	     f->get_vlan_id(),
+	     f->get_detected_protocol().protocol,
+	     f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
+	     f->get_cli_port(),
+	     f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
+	     f->get_srv_port(),
+	     f->get_protocol(),
+	     bytes, packets, first_seen, last_seen,
+	     json ? json : "");
 
   if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());

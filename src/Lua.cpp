@@ -795,7 +795,7 @@ static int ntop_getservbyport(lua_State* vm) {
       char buf[32];
 
       snprintf(buf, sizeof(buf), "%d", port);
-      lua_pushstring(vm, buf);;
+      lua_pushstring(vm, buf);
     }
 
     return(CONST_LUA_OK);

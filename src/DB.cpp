@@ -38,7 +38,7 @@ DB::~DB() {
 
 /* ******************************************* */
 
-bool DB::dumpFlow(time_t when, Flow *f, char *json) {
+bool DB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
 }

@@ -137,20 +137,24 @@ class Flow : public GenericHashEntry {
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two) ;
 
+  void updateTcpFlags(
 #ifdef __OpenBSD__
-  void updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags, bool src2dst_direction);
+		      const struct bpf_timeval *when,
 #else
-  void updateTcpFlags(const struct timeval *when, u_int8_t flags, bool src2dst_direction);
-#endif
+		      const struct timeval *when,
+#endif		      
+		      u_int8_t flags, bool src2dst_direction);
 
+  void updateTcpSeqNum(
 #ifdef __OpenBSD__
-  void updateTcpSeqNum(const struct bpf_timeval *when, u_int32_t seq_num,
+		      const struct bpf_timeval *when,
 #else
-  void updateTcpSeqNum(const struct timeval *when, u_int32_t seq_num,
-#endif
-		       u_int32_t ack_seq_num, u_int8_t flags,
-		       u_int16_t payload_len, bool src2dst_direction);
-
+		      const struct timeval *when,
+#endif		      
+		      u_int32_t seq_num,
+		      u_int32_t ack_seq_num, u_int8_t flags,
+		      u_int16_t payload_len, bool src2dst_direction);
+  
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id);
@@ -171,7 +175,11 @@ class Flow : public GenericHashEntry {
   inline u_int8_t  get_protocol()                 { return(protocol);                        };
   inline u_int64_t get_bytes()                    { return(cli2srv_bytes+srv2cli_bytes);     };
   inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
+  inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));     };
+  inline u_int64_t get_partial_packets()          { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
 
+  inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
+  inline time_t get_partial_last_seen()           { return(get_last_seen()); };
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
   inline ndpi_protocol get_detected_protocol()    { return(ndpi_detected_protocol);          };
   inline Host* get_cli_host()                     { return(cli_host);                        };

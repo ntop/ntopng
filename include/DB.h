@@ -33,7 +33,7 @@ class DB {
   DB(NetworkInterface *_iface = NULL);
   virtual ~DB();
   
-  virtual bool dumpFlow(time_t when, Flow *f, char *json);
+  virtual bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
   virtual int exec_sql_query(lua_State *vm, char *sql);
 };
 

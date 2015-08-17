@@ -50,7 +50,7 @@ class SQLiteDB : public DB {
   ~SQLiteDB();
   
   inline u_int8_t get_db_id()       { return(db_id); };
-  bool dumpFlow(time_t when, Flow *f, char *json);
+  bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
 };
 
 #endif /* _SQLITE_DB_CLASS_H_ */

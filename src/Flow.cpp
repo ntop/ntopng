@@ -759,6 +759,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
   dumpFlow(true);
 
+  last_db_dump.cli2srv_packets = cli2srv_packets,
+    last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
+    last_db_dump.srv2cli_bytes = srv2cli_bytes, last_db_dump.last_dump = last_seen;
+
   checkBlacklistedFlow();
 }
 
@@ -1309,12 +1313,6 @@ json_object* Flow::flow2json(bool partial_dump) {
 
   if(ssl.certificate)
     json_object_object_add(my_object, "SSL_CERTIFICATE", json_object_new_string(ssl.certificate));
-
-  if(partial_dump) {
-    last_db_dump.cli2srv_packets = cli2srv_packets,
-      last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
-      last_db_dump.srv2cli_bytes = srv2cli_bytes, last_db_dump.last_dump = last_seen;
-  }
 
   return(my_object);
 }
