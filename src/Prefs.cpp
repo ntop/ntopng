@@ -698,9 +698,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	dump_flows_on_mysql = true;
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
-    }
 #endif
-    else
+    } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F %s: value out of range", optarg);
     break;
 
