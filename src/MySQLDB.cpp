@@ -91,11 +91,34 @@ MySQLDB::~MySQLDB() {
 /* ******************************************* */
 
 bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
-  char sql[8192], cli_str[64], srv_str[64];
+  char sql[8192], cli_str[64], srv_str[64], *json_buf;
   u_int32_t bytes, packets, first_seen, last_seen;
-
+  
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
     return(false);
+
+  if(json == NULL) 
+    json_buf = strdup("");
+  else {
+    int l, i, j;
+
+    l = strlen(json);
+    
+    if((json_buf = (char*)malloc(2*l + 1)) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      return(false);
+    }  
+    
+    for(i = 0, j = 0; i<l; i++) {
+      /* http://stackoverflow.com/questions/9596652/how-to-escape-apostrophe-in-mysql */
+      if(json[i] == '\'')
+	json_buf[j++] = '\'';
+      
+      json_buf[j++] = json[i];
+    }
+    
+    json_buf[j] = '\0';
+  }
 
   if(partial_dump) {
     bytes = f->get_partial_bytes();
@@ -122,7 +145,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_srv_port(),
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
-	     json ? json : "");
+	     json_buf);
   else
     snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
 	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
@@ -136,7 +159,9 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_srv_port(),
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
-	     json ? json : "");
+	     json_buf);
+
+  free(json_buf);
 
   if(exec_sql_query(sql, 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());

@@ -1300,8 +1300,8 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   }
 
-  if(categorization.categorized_requested)
-    json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
+  if(categorization.categorized_requested && (categorization.category[0] != '\0'))
+     json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
 
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 

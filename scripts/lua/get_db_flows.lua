@@ -64,8 +64,16 @@ else
 	 --server = flow["IP_DST_ADDR"]
 
 	 if(ntop.isPro()) then
-	    flow["CLIENT"] = base_host_url..flow["IP_SRC_ADDR"] .."'>"..client.."</A>:"..base_port_url..flow["L4_SRC_PORT"].."'>"..ntop.getservbyport(tonumber(flow["L4_SRC_PORT"]), lower_pname).."</A>"
-	    flow["SERVER"] = base_host_url..flow["IP_DST_ADDR"] .."'>"..server.."</A>:"..base_port_url..flow["L4_DST_PORT"].."'>"..ntop.getservbyport(tonumber(flow["L4_DST_PORT"]), lower_pname).."</A>"	
+	    local sport = ntop.getservbyport(tonumber(flow["L4_SRC_PORT"]), lower_pname)
+	    local dport = ntop.getservbyport(tonumber(flow["L4_DST_PORT"]), lower_pname)
+
+	    flow["CLIENT"] = base_host_url..flow["IP_SRC_ADDR"] .."'>"..client.."</A>"
+	    flow["SERVER"] = base_host_url..flow["IP_DST_ADDR"] .."'>"..server.."</A>"
+
+	    if((sport ~= nil) and (sport ~= "0")) then flow["CLIENT"] = flow["CLIENT"] .. ":"..base_port_url..flow["L4_SRC_PORT"].."'>"..sport.."</A>" end
+	    if((dport ~= nil) and (dport ~= "0")) then flow["SERVER"] = flow["SERVER"] .. ":"..base_port_url..flow["L4_DST_PORT"].."'>"..dport.."</A>" end
+	       
+
 	    flow["PROTOCOL"] = base.."&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	    flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"	    
 	    flow["FLOW_URL"] = base.."&flow_idx="..flow["idx"].."'><span class='label label-info'>Info</span></A>"
