@@ -353,6 +353,13 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Get the ndpi protocol id of network interface.
+ * @details Get the ntop interface global variable of lua.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK if ID is associated to proto, CONST_LUA_ERROR otherwise
+ */
 static int ntop_get_ndpi_protocol_id(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   nDPIStats stats;
@@ -556,7 +563,7 @@ static int ntop_get_interface_local_hosts_info(lua_State* vm) {
 
 /**
  * @brief Get hosts information for a community and a network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host information.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the host information for the community and the network interface.
  *
  * @param vm The lua state.
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
@@ -1306,6 +1313,12 @@ static int ntop_interface_load_host_alert_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Reset the stats of host periodically (daily)
+ * @details Get the ntop interface global variable of lua, the IP address of host form the lua stack and (optionally) the vlan Id, and reset the periodical statistics for the host 
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to find the host by IP, CONST_LUA_OK otherwise.
+ */
 static int ntop_host_reset_periodic_stats(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
@@ -1331,7 +1344,13 @@ static int ntop_host_reset_periodic_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_correalate_host_activity(lua_State* vm) {
+/**
+ * @brief Correlate the activity of host
+ * @details Get the ntop interface global variable of lua, the IP address of host form the lua stack and (optionally) the vlan Id, and correlate the activity of host
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to correlate activity for the host, CONST_LUA_OK otherwise.
+ */
+static int ntop_correlate_host_activity(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -1353,6 +1372,12 @@ static int ntop_correalate_host_activity(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief  Look for similar activity of host
+ * @details Get the ntop interface global variable of lua, the IP address of host form the lua stack and (optionally) the vlan Id, and find similar activity of host
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to find similar activity for the host, CONST_LUA_OK otherwise.
+ */
 static int ntop_similar_host_activity(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
@@ -1375,6 +1400,12 @@ static int ntop_similar_host_activity(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Get the activity map of host of network interface.
+ * @details Get the ntop interface global variable of lua, the IP address of host and (optionally) the vlan Id.
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to find the host, CONST_LUA_OK otherwise.
+ */
 static int ntop_get_interface_host_activitymap(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
@@ -1487,6 +1518,12 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Drop the flow traffic by given flow key
+ * @details Get the ntop interface global variable of lua and the key of flow to be dropped.
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to find the flow, CONST_LUA_OK otherwise.
+ */
 static int ntop_drop_flow_traffic(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   u_int32_t key;
@@ -1512,6 +1549,12 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Dump the flow traffic by given flow key
+ * @details Get the ntop interface global variable of lua, the key of flow to be dropped and a value True or False returned by a condition of a ternary
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to find the flow, CONST_LUA_OK otherwise.
+ */
 static int ntop_dump_flow_traffic(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   u_int32_t key, what;
@@ -1540,6 +1583,12 @@ static int ntop_dump_flow_traffic(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Find the flows belonging to user
+ * @details Get the ntop interface global variable of lua and the string of a user
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
 static int ntop_get_interface_find_user_flows(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *key;
@@ -1559,6 +1608,12 @@ static int ntop_get_interface_find_user_flows(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Find the flows belonging to pid
+ * @details Get the ntop interface global variable of lua and the int for pid
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
 static int ntop_get_interface_find_pid_flows(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   u_int32_t pid;
@@ -1578,6 +1633,12 @@ static int ntop_get_interface_find_pid_flows(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Find the flows belonging to father pid
+ * @details Get the ntop interface global variable of lua and the int for father pid
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
 static int ntop_get_interface_find_father_pid_flows(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   u_int32_t father_pid;
@@ -1597,6 +1658,12 @@ static int ntop_get_interface_find_father_pid_flows(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Find the name for the flow
+ * @details Get the ntop interface global variable of lua and the string proc_name
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
 static int ntop_get_interface_find_proc_name_flows(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *proc_name;
@@ -1616,6 +1683,12 @@ static int ntop_get_interface_find_proc_name_flows(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Find the list of HTTP hosts
+ * @details Get the ntop interface global variable of lua
+ * @param vm The lua state.
+ * @return CONST_LUA_OK
+ */
 static int ntop_list_http_hosts(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *key;
@@ -1651,6 +1724,12 @@ static int ntop_get_interface_find_host(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Update the traffic policy of host
+ * @details Get the ntop interface global variable of lua, the IP address of host and (optionally) the vlan Id.
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to find the host, CONST_LUA_OK otherwise.
+ */
 static int ntop_update_host_traffic_policy(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
@@ -1676,6 +1755,12 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 
 /* ****************************************** */
 
+/**
+ * @brief Update the alert policy of host
+ * @details Get the ntop interface global variable of lua, the IP address of host and (optionally) the vlan Id.
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to find the host, CONST_LUA_OK otherwise.
+ */
 static int ntop_update_host_alert_policy(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
   char *host_ip;
@@ -4161,48 +4246,48 @@ typedef struct {
 } ntop_class_reg;
 
 static const luaL_Reg ntop_interface_reg[] = {
-  { "getDefaultIfName",       ntop_get_default_interface_name },
-  { "setActiveInterfaceId",   ntop_set_active_interface_id },
-  { "getIfNames",             ntop_get_interface_names },
-  { "select",                 ntop_select_interface },
-  { "getStats",               ntop_get_interface_stats },
-  { "getnDPIStats",           ntop_get_ndpi_interface_stats },
-  { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
-  { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
-  { "getnDPIFlowsCount",      ntop_get_ndpi_interface_flows_count },
-  { "getnDPIProtoBreed",      ntop_get_ndpi_protocol_breed },
-  { "getHosts",               ntop_get_interface_hosts },
-  { "getLocalHosts",          ntop_get_interface_local_hosts },
-  { "getCommunityHosts",      ntop_get_interface_community_hosts },
-  { "getHostCommunities",     ntop_get_interface_host_communities },
-  { "getCommunities",         ntop_get_interface_communities },
-  { "getHostsInfo",           ntop_get_interface_hosts_info },
-  { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
-  { "getCommunityHostsInfo",  ntop_get_interface_community_hosts_info },
-  { "getHostInfo",            ntop_get_interface_host_info },
-  { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
-  { "correlateHostActivity",  ntop_correalate_host_activity },
-  { "similarHostActivity",    ntop_similar_host_activity },
-  { "getHostActivityMap",     ntop_get_interface_host_activitymap },
-  { "restoreHost",            ntop_restore_interface_host },
-  { "getFlowsInfo",           ntop_get_interface_flows_info },
-  { "queryFlowsInfo",         ntop_query_interface_flows_info },
-  { "getFlowsStats",          ntop_get_interface_flows_stats },
-  { "getFlowPeers",           ntop_get_interface_flows_peers },
-  { "findFlowByKey",          ntop_get_interface_find_flow_by_key },
-  { "dropFlowTraffic",        ntop_drop_flow_traffic },
-  { "dumpFlowTraffic",        ntop_dump_flow_traffic },
-  { "findUserFlows",          ntop_get_interface_find_user_flows },
-  { "findPidFlows",           ntop_get_interface_find_pid_flows },
-  { "findFatherPidFlows",     ntop_get_interface_find_father_pid_flows },
-  { "findNameFlows",          ntop_get_interface_find_proc_name_flows },
-  { "listHTTPhosts",          ntop_list_http_hosts },
-  { "findHost",               ntop_get_interface_find_host },
-  { "updateHostTrafficPolicy", ntop_update_host_traffic_policy },
-  { "updateHostAlertPolicy",  ntop_update_host_alert_policy },
-  { "setHostDumpPolicy",      ntop_set_host_dump_policy },
-  { "setHostQuota",           ntop_set_host_quota },
-  { "getPeerHitRate",            ntop_get_host_hit_rate },
+  { "getDefaultIfName",               ntop_get_default_interface_name },
+  { "setActiveInterfaceId",           ntop_set_active_interface_id },
+  { "getIfNames",                     ntop_get_interface_names },
+  { "select",                         ntop_select_interface },
+  { "getStats",                       ntop_get_interface_stats },
+  { "getnDPIStats",                   ntop_get_ndpi_interface_stats },
+  { "getnDPIProtoName",               ntop_get_ndpi_protocol_name },
+  { "getnDPIProtoId",                 ntop_get_ndpi_protocol_id },
+  { "getnDPIFlowsCount",              ntop_get_ndpi_interface_flows_count },
+  { "getnDPIProtoBreed",              ntop_get_ndpi_protocol_breed },
+  { "getHosts",                       ntop_get_interface_hosts },
+  { "getLocalHosts",                  ntop_get_interface_local_hosts },
+  { "getCommunityHosts",              ntop_get_interface_community_hosts },
+  { "getHostCommunities",             ntop_get_interface_host_communities },
+  { "getCommunities",                 ntop_get_interface_communities },
+  { "getCommunityHostsInfo",          ntop_get_interface_community_hosts_info },
+  { "getHostsInfo",                   ntop_get_interface_hosts_info },
+  { "getLocalHostsInfo",              ntop_get_interface_local_hosts_info },
+  { "getHostInfo",                    ntop_get_interface_host_info },
+  { "resetPeriodicStats",             ntop_host_reset_periodic_stats },
+  { "correlateHostActivity",          ntop_correlate_host_activity },
+  { "similarHostActivity",            ntop_similar_host_activity },
+  { "getHostActivityMap",             ntop_get_interface_host_activitymap },
+  { "restoreHost",                    ntop_restore_interface_host },
+  { "getFlowsInfo",                   ntop_get_interface_flows_info },
+  { "queryFlowsInfo",                 ntop_query_interface_flows_info },
+  { "getFlowsStats",                  ntop_get_interface_flows_stats },
+  { "getFlowPeers",                   ntop_get_interface_flows_peers },
+  { "findFlowByKey",                  ntop_get_interface_find_flow_by_key },
+  { "dropFlowTraffic",                ntop_drop_flow_traffic },
+  { "dumpFlowTraffic",                ntop_dump_flow_traffic },
+  { "findUserFlows",                  ntop_get_interface_find_user_flows },
+  { "findPidFlows",                   ntop_get_interface_find_pid_flows },
+  { "findFatherPidFlows",             ntop_get_interface_find_father_pid_flows },
+  { "findNameFlows",                  ntop_get_interface_find_proc_name_flows },
+  { "listHTTPhosts",                  ntop_list_http_hosts },
+  { "findHost",                       ntop_get_interface_find_host },
+  { "updateHostTrafficPolicy",        ntop_update_host_traffic_policy },
+  { "updateHostAlertPolicy",          ntop_update_host_alert_policy },
+  { "setHostDumpPolicy",              ntop_set_host_dump_policy },
+  { "setHostQuota",                   ntop_set_host_quota },
+  { "getPeerHitRate",                 ntop_get_host_hit_rate },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
   { "getInterfaceDumpTapPolicy",      ntop_get_interface_dump_tap_policy },
   { "getInterfaceDumpTapName",        ntop_get_interface_dump_tap_name },
@@ -4234,49 +4319,49 @@ static const luaL_Reg ntop_interface_reg[] = {
 /* **************************************************************** */
 
 static const luaL_Reg ntop_reg[] = {
-  { "getDirs",        ntop_get_dirs },
-  { "getInfo",        ntop_get_info },
-  { "getUptime",      ntop_get_uptime },
-  { "dumpFile",       ntop_dump_file },
-  { "checkLicense",   ntop_check_license },
+  { "getDirs",                     ntop_get_dirs },
+  { "getInfo",                     ntop_get_info },
+  { "getUptime",                   ntop_get_uptime },
+  { "dumpFile",                    ntop_dump_file },
+  { "checkLicense",                ntop_check_license },
 
   /* Redis */
-  { "getCache",       ntop_get_redis },
-  { "setCache",       ntop_set_redis },
-  { "delCache",       ntop_delete_redis_key },
-  { "getMembersCache", ntop_get_set_members_redis },
-  { "getHashCache",   ntop_get_hash_redis },
-  { "setHashCache",   ntop_set_hash_redis },
-  { "delHashCache",   ntop_del_hash_redis },
-  { "getHashKeysCache", ntop_get_hash_keys_redis },
-  { "delHashCache",   ntop_delete_hash_redis_key },
-  { "setPopCache",    ntop_get_redis_set_pop },
-  { "getHostId",      ntop_redis_get_host_id },
-  { "getIdToHost",    ntop_redis_get_id_to_host },
+  { "getCache",                    ntop_get_redis },
+  { "setCache",                    ntop_set_redis },
+  { "delCache",                    ntop_delete_redis_key },
+  { "getMembersCache",             ntop_get_set_members_redis },
+  { "getHashCache",                ntop_get_hash_redis },
+  { "setHashCache",                ntop_set_hash_redis },
+  { "delHashCache",                ntop_del_hash_redis },
+  { "getHashKeysCache",            ntop_get_hash_keys_redis },
+  { "delHashCache",                ntop_delete_hash_redis_key },
+  { "setPopCache",                 ntop_get_redis_set_pop },
+  { "getHostId",                   ntop_redis_get_host_id },
+  { "getIdToHost",                 ntop_redis_get_id_to_host },
 
-  { "isdir",          ntop_is_dir },
-  { "mkdir",          ntop_mkdir_tree },
-  { "notEmptyFile",   ntop_is_not_empty_file },
-  { "exists",         ntop_get_file_dir_exists },
-  { "listReports",    ntop_list_reports },
-  { "fileLastChange", ntop_get_file_last_change },
-  { "readdir",        ntop_list_dir_files },
-  { "zmq_connect",    ntop_zmq_connect },
-  { "zmq_disconnect", ntop_zmq_disconnect },
-  { "zmq_receive",    ntop_zmq_receive },
+  { "isdir",                       ntop_is_dir },
+  { "mkdir",                       ntop_mkdir_tree },
+  { "notEmptyFile",                ntop_is_not_empty_file },
+  { "exists",                      ntop_get_file_dir_exists },
+  { "listReports",                 ntop_list_reports },
+  { "fileLastChange",              ntop_get_file_last_change },
+  { "readdir",                     ntop_list_dir_files },
+  { "zmq_connect",                 ntop_zmq_connect },
+  { "zmq_disconnect",              ntop_zmq_disconnect },
+  { "zmq_receive",                 ntop_zmq_receive },
 
   /* Alerts */
-  { "getNumQueuedAlerts",   ntop_get_num_queued_alerts },
-  { "getQueuedAlerts",      ntop_get_queued_alerts },
-  { "deleteQueuedAlert",    ntop_delete_queued_alert },
-  { "flushAllQueuedAlerts", ntop_flush_all_queued_alerts },
-  { "queueAlert",           ntop_queue_alert },
+  { "getNumQueuedAlerts",          ntop_get_num_queued_alerts },
+  { "getQueuedAlerts",             ntop_get_queued_alerts },
+  { "deleteQueuedAlert",           ntop_delete_queued_alert },
+  { "flushAllQueuedAlerts",        ntop_flush_all_queued_alerts },
+  { "queueAlert",                  ntop_queue_alert },
 #ifdef NTOPNG_PRO
-  { "sendNagiosEvent",      ntop_nagios_send_event },
+  { "sendNagiosEvent",             ntop_nagios_send_event },
 #endif
 
   /* Pro */
-  { "isPro",                ntop_is_pro },
+  { "isPro",                       ntop_is_pro },
 
   /* Historical database */
   { "insertMinuteSampling",        ntop_stats_insert_minute_sampling },
@@ -4292,78 +4377,78 @@ static const luaL_Reg ntop_reg[] = {
   { "getDaySamplingsFromEpoch",    ntop_stats_get_samplings_of_days_from_epoch },
   { "getMinuteSamplingsInterval",  ntop_stats_get_minute_samplings_interval },
 
-  { "deleteDumpFiles", ntop_delete_dump_files },
+  { "deleteDumpFiles",          ntop_delete_dump_files },
 
   /* Time */
-  { "gettimemsec",    ntop_gettimemsec },
+  { "gettimemsec",              ntop_gettimemsec },
 
   /* Trace */
-  { "verboseTrace",   ntop_verbose_trace },
+  { "verboseTrace",             ntop_verbose_trace },
 
   /* UDP */
-  { "send_udp_data",  ntop_send_udp_data },
+  { "send_udp_data",            ntop_send_udp_data },
 
   /* IP */
-  { "inet_ntoa",      ntop_inet_ntoa },
+  { "inet_ntoa",                ntop_inet_ntoa },
 
   /* RRD */
-  { "rrd_create",     ntop_rrd_create },
-  { "rrd_update",     ntop_rrd_update },
-  { "rrd_fetch",      ntop_rrd_fetch  },
+  { "rrd_create",               ntop_rrd_create },
+  { "rrd_update",               ntop_rrd_update },
+  { "rrd_fetch",                ntop_rrd_fetch  },
 #if ENABLE_NTOPNG_RRD_GRAPH
-  { "rrd_graph",      ntop_rrd_graph  },
+  { "rrd_graph",                ntop_rrd_graph  },
 #endif
 
   /* Prefs */
-  { "getPrefs",          ntop_get_prefs },
-  { "loadPrefsDefaults", ntop_load_prefs_defaults },
+  { "getPrefs",                 ntop_get_prefs },
+  { "loadPrefsDefaults",        ntop_load_prefs_defaults },
 
   /* HTTP */
-  { "httpRedirect",   ntop_http_redirect },
-  { "httpGet",        ntop_http_get },
-  { "getHttpPrefix",  ntop_http_get_prefix },
+  { "httpRedirect",             ntop_http_redirect },
+  { "httpGet",                  ntop_http_get },
+  { "getHttpPrefix",            ntop_http_get_prefix },
 
   /* Admin */
-  { "getNologinUser",     ntop_get_nologin_username },
-  { "getUsers",           ntop_get_users },
-  { "getUserGroup",       ntop_get_user_group },
-  { "getAllowedNetworks", ntop_get_allowed_networks },
-  { "resetUserPassword",  ntop_reset_user_password },
-  { "changeUserRole",     ntop_change_user_role },
-  { "changeAllowedNets",  ntop_change_allowed_nets },
-  { "addUser",            ntop_add_user },
-  { "deleteUser",         ntop_delete_user },
-  { "isLoginDisabled",    ntop_is_login_disabled },
-  { "getNetworkNameById", ntop_network_name_by_id },
+  { "getNologinUser",           ntop_get_nologin_username },
+  { "getUsers",                 ntop_get_users },
+  { "getUserGroup",             ntop_get_user_group },
+  { "getAllowedNetworks",       ntop_get_allowed_networks },
+  { "resetUserPassword",        ntop_reset_user_password },
+  { "changeUserRole",           ntop_change_user_role },
+  { "changeAllowedNets",        ntop_change_allowed_nets },
+  { "addUser",                  ntop_add_user },
+  { "deleteUser",               ntop_delete_user },
+  { "isLoginDisabled",          ntop_is_login_disabled },
+  { "getNetworkNameById",       ntop_network_name_by_id },
 
   /* Security */
-  { "getRandomCSRFValue",     ntop_generate_csrf_value },
+  { "getRandomCSRFValue",       ntop_generate_csrf_value },
 
   /* HTTP */
-  { "postHTTPJsonData",       ntop_post_http_json_data },
+  { "postHTTPJsonData",         ntop_post_http_json_data },
 
   /* Address Resolution */
-  { "resolveAddress",     ntop_resolve_address },
-  { "getResolvedAddress", ntop_get_resolved_address },
+  { "resolveAddress",           ntop_resolve_address },
+  { "getResolvedAddress",       ntop_get_resolved_address },
 
   /* Logging */
-  { "syslog",         ntop_syslog },
+  { "syslog",                   ntop_syslog },
 
   /* SNMP */
-  { "snmpget",        ntop_snmpget },
-  { "snmpgetnext",    ntop_snmpgetnext },
+  { "snmpget",                  ntop_snmpget },
+  { "snmpgetnext",              ntop_snmpgetnext },
 
   /* SQLite */
-  { "execQuery",      ntop_sqlite_exec_query },
+  { "execQuery",                ntop_sqlite_exec_query },
 
   /* Runtime */
-  { "hasVLANs",       ntop_has_vlans },
-  { "hasCommunities", ntop_has_communities },
-  { "hasGeoIP",       ntop_has_geoip },
-  { "isWindows",      ntop_is_windows },
+  { "hasVLANs",                 ntop_has_vlans },
+  { "hasCommunities",           ntop_has_communities },
+  { "hasGeoIP",                 ntop_has_geoip },
+  { "isWindows",                ntop_is_windows },
 
   /* Misc */
-  { "getservbyport",  ntop_getservbyport },
+  { "getservbyport",            ntop_getservbyport },
 
   { NULL,          NULL}
 };
