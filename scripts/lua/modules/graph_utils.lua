@@ -250,6 +250,11 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 
    if(zoomLevel == nil) then zoomLevel = "1h" end
 
+   if((selectedEpoch == nil) or (selectedEpoch == "")) then
+      -- Refresh the page every minute unless a specific epoch has been selected
+      print("<script>setInterval(function() { window.location.reload();}, 60*1000); </script>\n");
+   end
+
    if(ntop.isPro()) then
       drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
       return
