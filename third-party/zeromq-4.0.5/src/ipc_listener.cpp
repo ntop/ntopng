@@ -119,55 +119,58 @@ int zmq::ipc_listener_t::get_address (std::string &addr_)
 
 int zmq::ipc_listener_t::set_address (const char *addr_)
 {
-    //  Create addr on stack for auto-cleanup
-    std::string addr (addr_);
+  //  Create addr on stack for auto-cleanup
+  std::string addr (addr_);
 
-    //  Allow wildcard file
-    if (addr[0] == '*') {
-        char *tmpstr = tempnam (NULL, NULL);
-        addr.assign (tmpstr);
-        free (tmpstr);
-    }
+  //  Allow wildcard file
+  if (addr [0] == '*') {
+    char buffer [12] = "2134XXXXXX";
+    int fd = mkstemp (buffer);
+    if (fd == -1)
+      return -1;
+    addr.assign (buffer);
+    ::close (fd);
+  }
 
-    //  Get rid of the file associated with the UNIX domain socket that
-    //  may have been left behind by the previous run of the application.
-    ::unlink (addr.c_str());
-    filename.clear ();
+  //  Get rid of the file associated with the UNIX domain socket that
+  //  may have been left behind by the previous run of the application.
+  ::unlink (addr.c_str());
+  filename.clear ();
 
-    //  Initialise the address structure.
-    ipc_address_t address;
-    int rc = address.resolve (addr.c_str());
-    if (rc != 0)
-        return -1;
-
-    //  Create a listening socket.
-    s = open_socket (AF_UNIX, SOCK_STREAM, 0);
-    if (s == -1)
-        return -1;
-
-    address.to_string (endpoint);
-
-    //  Bind the socket to the file path.
-    rc = bind (s, address.addr (), address.addrlen ());
-    if (rc != 0)
-        goto error;
-
-    filename.assign (addr.c_str());
-    has_file = true;
-
-    //  Listen for incoming connections.
-    rc = listen (s, options.backlog);
-    if (rc != 0)
-        goto error;
-
-    socket->event_listening (endpoint, s);
-    return 0;
-
-error:
-    int err = errno;
-    close ();
-    errno = err;
+  //  Initialise the address structure.
+  ipc_address_t address;
+  int rc = address.resolve (addr.c_str());
+  if (rc != 0)
     return -1;
+
+  //  Create a listening socket.
+  s = open_socket (AF_UNIX, SOCK_STREAM, 0);
+  if (s == -1)
+    return -1;
+
+  address.to_string (endpoint);
+
+  //  Bind the socket to the file path.
+  rc = bind (s, address.addr (), address.addrlen ());
+  if (rc != 0)
+    goto error;
+
+  filename.assign (addr.c_str());
+  has_file = true;
+
+  //  Listen for incoming connections.
+  rc = listen (s, options.backlog);
+  if (rc != 0)
+    goto error;
+
+  socket->event_listening (endpoint, s);
+  return 0;
+
+ error:
+  int err = errno;
+  close ();
+  errno = err;
+  return -1;
 }
 
 int zmq::ipc_listener_t::close ()

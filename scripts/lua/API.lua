@@ -43,46 +43,107 @@ function setActiveInterfaceId(id)
 --! @brief Get the network interface names.
 --! @details For more information please read the @ref ntop_get_interface_names documentation.
 --! @return A table with the id of the network interface as key and the network interface name as value.
-function getIfNames ()
+function getIfNames()
 
 --! @memberof interface
---! @brief Find the network interface and set update the ntop_interface global variable.
---! @details For more information please read the @ref ntop_find_interface documentation.
---! @tparam string ifname The network interface name.
---! @return Update the ntop_interface global variable with the new network interface identified by ifname, nill if the network interface not exists.
-function find(ifname)
-
-
---! @memberof interface
---! @brief Flush the host contacts of the network interface.
---! @details For more information please read the @ref ntop_flush_host_contacts documentation.
-function flushHostContacts ()
+--! @brief Select the network interface id.
+--! @details For more information please read the @ref ntop_select_interface documentation.
+--! @return The id of the network interface .
+function select()
 
 --! @memberof interface
 --! @brief Get the statistics of network interface.
 --! @details For more information please read the @ref NetworkInterface::lua documentation.
 --! @return An hashtable that contain the statistics of the network interface as {name, type, stats_packets, stats_bytes, stats_flows, stats_hosts, stats_drops, ethstats, ndpistats, pktstats}.
-function getStats ()
+function getStats()
+
+--! @memberof interface
+--! @brief Get the nDPI statistics of interface.
+--! @details For more information please read the @ref ntop_get_ndpi_interface_stats documentation.
+--! @return An hashtable that contain the nDPI statistics of the network interface
+function getnDPIStats()
 
 --! @memberof interface
 --! @brief Get the ndpi protocol name of protocol id of network interface.
 --! @details For more information please read the @ref ntop_get_ndpi_protocol_name documentation.
 --! @tparam number proto The protocol Id.
 --! @return "Host-to-Host Contact" if protocol id is equal to host family id, the protocol name if network interface is not null and null otherwise.
-function getnDPIProtoName (proto)
+function getnDPIProtoName(proto)
+
+--! @memberof interface
+--! @brief Get the ndpi protocol name of protocol ID of network interface.
+--! @details For more information please read the @ref ntop_get_ndpi_protocol_id documentation.
+--! @tparam name of protocol.
+--! @return the ID associated to the protocol
+function getnDPIProtoId(proto)
+
+--! @memberof interface
+--! @brief Get the ndpi flows count of interface.
+--! @details For more information please read the @ref ntop_get_ndpi_interface_flows_count documentation.
+--! @return A hashtable of nDpi flow count of interface
+function getnDPIFlowsCount()
+
+--! @memberof interface
+--! @brief Get the ndpi protocol breed name of protocol id of network interface.
+--! @details For more information please read the @ref ntop_get_ndpi_protocol_breed documentation.
+--! @tparam number proto The protocol Id.
+--! @return "Host-to-Host Contact" if protocol id is equal to host family id, the protocol breed name if network interface is not null and null otherwise.
+function getnDPIProtoBreed(proto)
 
 --! @memberof interface
 --! @brief Get the hosts information of network interface.
 --! @details For more information please read the @ref ntop_get_interface_hosts documentation.
 --! @return An hashtable that contain the hosts information of the network interface.
-function getHosts ()
+function getHosts()
+
+--! @memberof interface
+--! @brief Get all local hosts of network interface.
+--! @details For more information please read the @ref ntop_get_interface_local_hosts documentation.
+--! @return An hashtable that contain the local hosts information of the network interface.
+function getLocalHosts()
+
+--! @memberof interface
+--! @brief Get all hosts for a given community and network interface.
+--! @details For more information please read the @ref ntop_get_interface_community_hosts documentation.
+--! @tparam A int representing the comunity ID
+--! @return An hashtable that contain hosts information for the comunity.
+function getCommunityHosts(comunity_id)
+
+--! @memberof interface
+--! @brief Get all communities for a given host and network interface.
+--! @details For more information please read the @ref ntop_get_interface_host_communities documentation.
+--! @tparam u_int16_t family The number of a family.
+--! @tparam string host_ip The IP address of host.
+--! @return An hashtable that contain all the comunities for the given host.
+function getHostCommunities(family,host_ip)
+
+--! @memberof interface
+--! @brief Get all communities for a given network interface.
+--! @details For more information please read the @ref ntop_get_interface_communities documentation.
+--! @return An hashtable that contain all the comunities for a given network interface.
+function getCommunities()
+
+--! @memberof interface
+--! @brief Get hosts information for a community and a network interface.
+--! @details For more information please read the @ref ntop_get_interface_community_hosts_info documentation.
+--! @tparam bool show_details Boolean variable that define the details level. Optional, for default it is set to true.
+--! @tparam A int representing the comunity ID.
+--! @return An hashtable that contain the hosts information for the community and the network interface.
+function getCommunityHostsInfo(show_details, comunity_id)
 
 --! @memberof interface
 --! @brief Get details hosts information of network interface.
 --! @details For more information please read the @ref ntop_get_interface_hosts_info documentation.
+   --! @tparam bool show_details Optional, boolean variable that define the details level. For default it is set to true.
+--! @return An hashtable that contain the hosts information.
+function getHostsInfo(show_details)
+
+--! @memberof interface
+--! @brief Get details local hosts information of network interface.
+--! @details For more information please read the @ref ntop_get_interface_local_hosts_info documentation.
 --! @tparam bool show_details Boolean variable that define the details level. Optional, for default it is set to true.
---! @return An hashtable that contain the hosts information of the network interface.
-function getHostsInfo (show_details)
+--! @return An hashtable that contain the local hosts information of the network interface.
+function getLocalHostsInfo(show_details)
 
 --! @memberof interface
 --! @brief Get the host information of network interface.
@@ -91,6 +152,27 @@ function getHostsInfo (show_details)
 --! @tparam number vlan_id Optional, the vlan Id.
 --! @return The activity map in json format.
 function getHostInfo(host_ip,vlan_id)
+
+--! @memberof interface
+--! @brief Reset the stats of host periodically (daily)
+--! @details For more information please read the @ref ntop_host_reset_periodic_stats documentation.
+--! @tparam string host_ip The IP address of host.
+--! @tparam number vlan_id Optional, the vlan Id.
+function resetPeriodicStats(host_ip, vlan_id)
+
+--! @memberof interface
+--! @brief Correlate the activity of host
+--! @details For more information please read the @ref ntop_correalate_host_activity documentation.
+--! @tparam string host_ip The IP address of host.
+--! @tparam number vlan_id Optional, the vlan Id.
+function correlateHostActivity(host_ip, vlan_id)
+
+--! @memberof interface
+--! @brief Look for similar activity of host
+--! @details For more information please read the @ref ntop_similar_host_activity documentation.
+--! @tparam string host_ip The IP address of host.
+--! @tparam number vlan_id Optional, the vlan Id.
+function similarHostActivity(host_ip, vlan_id)
 
 --! @memberof interface
 --! @brief Get the activity map of host of network interface.
@@ -108,11 +190,23 @@ function getHostActivityMap(host_ip,vlan_id)
 function restoreHost(host_ip)
 
 --! @memberof interface
---! @memberof interface
 --! @brief Get the flow information (minimal details) of network interface.
 --! @details For more information please read the @ref ntop_get_interface_flows_info documentation.
 --! @return An hashtable containing the flow information of network interface with minimal details.
 function getFlowsInfo()
+
+--! @memberof interface
+--! @brief Query the flow information of network interface.
+--! @details For more information please read the @ref ntop_query_interface_flows_info documentation.
+--! @param A string representig the query
+--! @return The string for the SQL query
+function queryFlowsInfo()
+
+--! @memberof interface
+--! @brief Get nDPI stats for flows
+--! @details For more information please read the @ref ntop_get_interface_flows_stats documentation.
+--! @return An hashtable containing the flow statistics of network interface
+function getFlowsStats()
 
 --! @memberof interface
 --! @brief Get the flow peers information of network interface.
@@ -129,11 +223,69 @@ function getFlowPeers(host_name)
 function findFlowByKey(key)
 
 --! @memberof interface
+--! @brief Drop the flow traffic by given flow key
+--! @details For more information please read the @ref ntop_drop_flow_traffic documentation.
+--! @tparam number key The flow key.
+function dropFlowTraffic(key)
+
+--! @memberof interface
+--! @brief Dump the flow traffic by given flow key
+--! @details For more information please read the @ref ntop_dump_flow_traffic documentation.
+--! @tparam number key The flow key.
+--! @tparam number what True or False returned by a condition of a ternary
+function dumpFlowTraffic(key, what)
+
+--! @memberof interface
+--! @brief Find the flows belonging to user
+--! @details For more information please read the @ref ntop_get_interface_find_user_flows documentation.
+--! @tparam string user The user name.
+function findUserFlows(user)
+
+--! @memberof interface
+--! @brief Find the flows associated to pid
+--! @details For more information please read the @ref ntop_get_interface_find_pid_flows documentation.
+--! @tparam int pid
+function findPidFlows(pid)
+
+--! @memberof interface
+--! @brief Find the flows associated to father pid
+--! @details For more information please read the @ref ntop_get_interface_find_father_pid_flows documentation.
+--! @tparam int father pid
+function findFatherPidFlows(pid)
+
+--! @memberof interface
+--! @brief Find the name for the flow
+--! @details For more information please read the @ref ntop_get_interface_find_proc_name_flows documentation.
+--! @tparam string proc_name
+function findNameFlows(proc_name)
+
+--! @memberof interface
+--! @brief Find the list of HTTP hosts
+--! @details For more information please read the @ref ntop_list_http_hosts documentation.
+--! @tparam string key (Optional)
+--! @return the list of all the http hosts
+function listHTTPhosts(key)
+
+--! @memberof interface
 --! @brief Get the host identified by key of network interface.
 --! @details For more information please read the @ref ntop_get_interface_find_host documentation.
 --! @tparam string key The host key (host name).
 --! @return An hashtable containing the flow identified by the key parameter of network interface if it exists.
 function findHost(key)
+
+--! @memberof interface
+--! @brief Update the traffic policy of host
+--! @details For more information please read the @ref ntop_update_host_traffic_policy documentation.
+--! @tparam string host_ip The IP address of host.
+--! @tparam number vlan_id Optional, the vlan Id.
+function updateHostTrafficPolicy(host_id, vlan_id)
+
+--! @memberof interface
+--! @brief Update the Alert policy of host
+--! @details For more information please read the @ref ntop_update_host_alert_policy documentation.
+--! @tparam string host_ip The IP address of host.
+--! @tparam number vlan_id Optional, the vlan Id.
+function updateHostAlertPolicy(host_id, vlan_id)
 
 --! @memberof interface
 --! @brief Get the ZMQ endpoint of network interface.
