@@ -136,7 +136,7 @@ $(LUAJIT_LIB):
 	cd $(LUAJIT_HOME); @GMAKE@
 
 $(ZEROMQ_LIB):
-	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; @GMAKE@
+	cd $(ZEROMQ_HOME); ./autogen.sh; ./configure --without-documentation --without-libsodium; @GMAKE@
 
 # --disable-rrd_graph
 $(LIBRRDTOOL_LIB):
