@@ -10,6 +10,7 @@ third-party/LuaJIT-2.0.3/src/host/build*
 third-party/LuaJIT-2.0.3/src/lua*
 third-party/LuaJIT-2.0.3/src/liblua*
 third-party/LuaJIT-2.0.3/src/*/*lua
+third-party/zeromq-4.1.3/configure
 httpdocs/geoip/*
 httpdocs/ssl/ntopng-cert.pem
 autom4te.cache*
@@ -18,7 +19,7 @@ config.h
 #config.h.in
 config.log
 config.status
-#configure
+configure
 #configure.ac
 doc/doxygen.conf
 nDPI
