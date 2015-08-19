@@ -70,9 +70,9 @@ ifeq ($(HAS_ZEROMQ), 0)
 		ZEROMQ_LIB = $(ZMQ_STATIC)
 	endif
 else
-	ZEROMQ_HOME=${PWD}/third-party/zeromq-4.0.5
+	ZEROMQ_HOME=${PWD}/third-party/zeromq-4.1.3
 	ZEROMQ_INC=-I$(ZEROMQ_HOME)/include
-	ZEROMQ_LIB=$(ZEROMQ_HOME)/src/.libs/libzmq.a
+	ZEROMQ_LIB=$(ZEROMQ_HOME)/.libs/libzmq.a
 endif
 ######
 TARGET = ntopng
@@ -136,7 +136,7 @@ $(LUAJIT_LIB):
 	cd $(LUAJIT_HOME); @GMAKE@
 
 $(ZEROMQ_LIB):
-	cd $(ZEROMQ_HOME); ./configure --without-documentation; @GMAKE@
+	cd $(ZEROMQ_HOME); ./configure --without-documentation --without-libsodium; @GMAKE@
 
 # --disable-rrd_graph
 $(LIBRRDTOOL_LIB):
