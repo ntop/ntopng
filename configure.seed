@@ -328,6 +328,8 @@ GPP=`which clang++`
 if test x$GPP = x
 then
 	GPP="g++"
+else
+	GPP="$GPP -O0"
 fi
 
 GIT=`which git`

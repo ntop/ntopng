@@ -1587,7 +1587,7 @@ bool Flow::match(patricia_tree_t *ptree) {
 
 /* *************************************** */
 
-void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int payload_len) {
+void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   HTTPStats *h;
 
   if(src2dst_direction) {

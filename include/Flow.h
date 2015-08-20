@@ -218,7 +218,7 @@ class Flow : public GenericHashEntry {
   bool match(patricia_tree_t *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); };
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); };
-  void dissectHTTP(bool src2dst_direction, char *payload, u_int payload_len);
+  void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
 
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }

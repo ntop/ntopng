@@ -163,6 +163,8 @@ NetworkInterface::NetworkInterface(const char *name) {
 
     if(ntop->getCustomnDPIProtos() != NULL)
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
+
+    ndpi_struct->http_dont_dissect_response = 1;
     
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
