@@ -1083,6 +1083,15 @@ static int ntop_zmq_receive(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_local_networks(lua_State* vm) {
+  lua_newtable(vm);
+  ntop->getLocalNetworks(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Check if the trace level of ntop is verbose.
  * @details Push true into the lua stack if the trace level of ntop is set to MAX_TRACE_LEVEL, false otherwise.
@@ -4264,6 +4273,8 @@ static const luaL_Reg ntop_reg[] = {
   { "zmq_connect",    ntop_zmq_connect },
   { "zmq_disconnect", ntop_zmq_disconnect },
   { "zmq_receive",    ntop_zmq_receive },
+
+  { "getLocalNetworks",       ntop_get_local_networks },
 
   /* Alerts */
   { "getNumQueuedAlerts",   ntop_get_num_queued_alerts },

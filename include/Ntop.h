@@ -347,13 +347,15 @@ class Ntop {
   void createExportInterface();
   void initRedis();
 
-  inline u_int32_t getUptime() { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
-  inline int getUdpSock()      { return(udp_socket); }
+  inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
+  inline int getUdpSock()               { return(udp_socket); }
 
   inline u_int getNumCPUs()             { return(num_cpus); }
   inline void setNumCPUs(u_int num)     { num_cpus = num; }
 
-  inline NtopPro* getPro()     { return((NtopPro*)pro); };
+  inline NtopPro* getPro()              { return((NtopPro*)pro); };
+
+  inline void getLocalNetworks(lua_State* vm) { address->getLocalNetworks(vm); };
 };
 
 extern Ntop *ntop;

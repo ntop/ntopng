@@ -42,8 +42,7 @@ class IpAddress {
   struct ipAddress addr;
   u_int32_t ip_key;
 
-  char* _intoaV4(unsigned int addr, char* buf, u_short bufLen);
-  char* _intoa(char* buf, u_short bufLen, u_int8_t bitmask);
+  char* intoa(char* buf, u_short bufLen, u_int8_t bitmask);
   void checkIP();
   void compute_key();
   

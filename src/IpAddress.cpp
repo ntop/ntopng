@@ -185,71 +185,8 @@ void IpAddress::compute_key() {
 
 /* ******************************************* */
 
-char* IpAddress::_intoaV4(unsigned int addr, char* buf, u_short bufLen) {
-  char *cp, *retStr;
-  int n;
-
-  cp = &buf[bufLen];
-  *--cp = '\0';
-
-  n = 4;
-  do {
-    u_int byte = addr & 0xff;
-
-    *--cp = byte % 10 + '0';
-    byte /= 10;
-    if(byte > 0) {
-      *--cp = byte % 10 + '0';
-      byte /= 10;
-      if(byte > 0)
-	*--cp = byte + '0';
-    }
-    *--cp = '.';
-    addr >>= 8;
-  } while (--n > 0);
-
-  /* Convert the string to lowercase */
-  retStr = (char*)(cp+1);
-
-  return(retStr);
-}
-
-/* ****************************** */
-
-char* IpAddress::_intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
-  if((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */)) {
-    u_int32_t a = ntohl(addr.ipType.ipv4);
-
-    if(bitmask > 0) {
-      u_int32_t netmask = ~((1 << (32 - bitmask)) - 1);
-      a &= netmask;
-    }
-
-    return(_intoaV4(a, buf, bufLen));
-  } else {
-    char *ret;
-    struct ndpi_in6_addr ipv6;
-
-    memcpy(&ipv6, &addr.ipType.ipv6, sizeof(struct ndpi_in6_addr));
-
-    for(u_int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
-      ipv6.__u6_addr.__u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
-
-    ret = (char*)inet_ntop(AF_INET6, &ipv6, buf, bufLen);
-
-    if(ret == NULL) {
-      /* Internal error (buffer too short) */
-      buf[0] = '\0';
-      return(buf);
-    } else
-      return(ret);
-  }
-}
-
-/* ******************************************* */
-
 char* IpAddress::print(char *str, u_int str_len, u_int8_t bitmask) {
-  return(_intoa(str, str_len, bitmask));
+  return(intoa(str, str_len, bitmask));
 }
 
 /* ******************************************* */
@@ -347,5 +284,22 @@ bool IpAddress::match(patricia_tree_t *ptree) {
     node = ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
 
   return((node == NULL) ? false : true);
+}
+
+/* ****************************** */
+
+char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
+  if((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */)) {
+    u_int32_t a = ntohl(addr.ipType.ipv4);
+
+    if(bitmask > 0) {
+      u_int32_t netmask = ~((1 << (32 - bitmask)) - 1);
+      a &= netmask;
+    }
+
+    return(Utils::intoaV4(a, buf, bufLen));
+  } else {
+    return(Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
+  }
 }
 

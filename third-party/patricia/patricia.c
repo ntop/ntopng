@@ -501,22 +501,22 @@ patricia_process (patricia_tree_t *patricia, void_fn2_t func)
 }
 
 size_t
-patricia_walk_inorder(patricia_node_t *node, void_fn2_t func)
+patricia_walk_inorder(patricia_node_t *node, void_fn3_t func, void *data)
 {
   size_t n = 0;
   assert(func);
 
   if(node->l) {
-    n += patricia_walk_inorder(node->l, func);
+    n += patricia_walk_inorder(node->l, func, data);
   }
 
   if(node->prefix) {
-    func(node->prefix, node->data);
+    func(node->prefix, node->data, data);
     n++;
   }
 
   if(node->r) {
-    n += patricia_walk_inorder(node->r, func);
+    n += patricia_walk_inorder(node->r, func, data);
   }
 
   return n;

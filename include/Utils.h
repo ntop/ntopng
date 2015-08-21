@@ -75,6 +75,9 @@ class Utils {
   static bool isGoodNameToCategorize(char *name);
   static char* get2ndLevelDomain(char *_domainname);
   static char* tokenizer(char *arg, int c, char **data);
+
+  static char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
+  static char* intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_short bufLen);
 };
 
 #endif /* _UTILS_H_ */

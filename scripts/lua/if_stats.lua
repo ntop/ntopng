@@ -216,8 +216,6 @@ if((page == "overview") or (page == nil)) then
    print("</td></tr>\n")
 
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
-   print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(ifstats.speed*1000) .. "</td>\n")
-   print("</td>\n")
 
    if(ifstats.name ~= nil) then
       label = ntop.getCache('ntopng.prefs.'..ifstats.name..'.name')
@@ -248,6 +246,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
+   print("<tr><th width=250>Speed</th><td colspan=4>" .. maxRateToString(ifstats.speed*1000) .. "</td></tr>\n")
 
    if(ifstats.ip_addresses ~= "") then
       tokens = split(ifstats.ip_addresses, ",")
@@ -887,6 +886,7 @@ elseif(page == "filtering") then
    -- ====================================
 
    if((_GET["new_vlan"] ~= nil) and (_GET["new_network"] ~= nil)) then
+      -- We need to check if this network is local or not
       network_key = _GET["new_network"].."@".._GET["new_vlan"]
       ntop.setHashCache(policy_key, network_key, "")
    end
@@ -1137,7 +1137,17 @@ end
 <form class="form-inline">
 <div class="form-group">
 <input type=hidden name=page value="filtering">
-Network <input type="text" id="new_network" name="new_network" placeholder="Network/Mask" value="" width=32>
+Local Network :
+<select name="new_network">
+    ]]
+
+
+ locals = ntop.getLocalNetworks()
+ for s,_ in pairs(locals) do
+    print('<option value="'..s..'">'..s..'</option>\n')
+ end
+print [[
+</select>
 VLAN <input type="text" id="new_vlan" name="new_vlan" value="0" size=4>
 <button type="submit" class="btn btn-default btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
 </div>

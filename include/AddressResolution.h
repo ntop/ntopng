@@ -44,6 +44,7 @@ class AddressResolution {
   void setLocalNetworks(char *rule);
   int16_t findAddress(int family, void *addr); /* if(rc > 0) networdId else notfound */
   void addLocalNetwork(char *net);
+  void getLocalNetworks(lua_State* vm);
 };
 
 extern patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
