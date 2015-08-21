@@ -117,7 +117,7 @@ extern "C" {
 
 #ifdef HAVE_MYSQL
 #include <mysql.h>
-#include <mysql/errmsg.h>
+#include <errmsg.h>
 #endif
 
 #include <fstream>
