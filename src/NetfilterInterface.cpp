@@ -23,107 +23,135 @@
 
 #if defined(HAVE_NETFILTER)
 
+#ifdef NTOPNG_PRO
+extern int pro_netfilter_callback(struct nfq_q_handle *qh,
+				  struct nfgenmsg *nfmsg,
+				  struct nfq_data *nfa,
+				  void *data);
+#endif
+
 /* **************************************************** */
 
-NetfilterInterface::NetfilterInterface(const char *name) : NetworkInterface(name) {
-  nfHandle = NULL;
-  char queueId_s[64];
+static void* packetPollLoop(void* ptr) {
+  NetfilterInterface *iface = (NetfilterInterface*)ptr;
+  struct nfq_handle *h;
+  int fd;
 
-  if(strncmp(name, "nf:", 3) != 0)
-    throw 1;
+  /* Wait until the initialization completes */
+  while(!iface->isRunning()) sleep(1);
 
-  snprintf(queueId_s, sizeof(queueId_s), "%s", &name[3]);
+  h = iface->get_nfHandle();
+  fd = iface->get_fd();
 
-  queueId = atoi(queueId_s);
-  nfHandle = nfq_open();
-  if (nfHandle == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get netfilter handle [%d]", queueId);
-    throw 1;
+  while(iface->isRunning()) {
+    int len;
+    char pktBuf[4096] __attribute__ ((aligned));
+
+    len = recv(fd, pktBuf, sizeof(pktBuf), 0);
+
+    if(len >= 0) {
+      int rc = nfq_handle_packet(h, pktBuf, len);
+
+      if(rc < 0)
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "nfq_handle_packet() failed: [len: %d][rc: %d][errno: %d]", len, rc, errno);
+    } else {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "NF_QUEUE receive error");
+      break;
+    }
   }
-  if (nfq_unbind_pf(nfHandle, AF_INET) < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to unbind [%d]", queueId);
-    throw 1;
-  }
-  if (nfq_bind_pf(nfHandle, AF_INET) < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind [%d]", queueId);
-    throw 1;
-  }
 
-#ifdef NTOPNG_PRO
-  handler = new NetfilterHandler();
-#endif
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leaving netfilter packet poll loop");
+  return(NULL);
 }
 
 /* **************************************************** */
 
-NetfilterInterface::~NetfilterInterface() {
-#ifdef NTOPNG_PRO
-  delete handler;
-#endif
-  if (nfQHandle)
-    nfq_destroy_queue(nfQHandle);
-  if (nfHandle)
-    nfq_close(nfHandle);
-  nf_fd = 0;
-}
-
-/* **************************************************** */
-
+#ifndef NTOPNG_PRO
 static int netfilter_callback(struct nfq_q_handle *qh,
 			      struct nfgenmsg *nfmsg,
 			      struct nfq_data *nfa,
 			      void *data) {
   const u_char *payload;
-  u_int payload_len;
-  u_int32_t nf_verdict, nf_mark;
   struct nfqnl_msg_packet_hdr *ph = nfq_get_msg_packet_hdr(nfa);
-  int last_rcvd_packet_id, rc;
-#ifdef NTOPNG_PRO
   NetfilterInterface *iface = (NetfilterInterface *)data;
-#endif
+  u_int payload_len = nfq_get_payload(nfa, (unsigned char **)&payload);
+  struct pcap_pkthdr h;
+  int a, b;
 
-  last_rcvd_packet_id = ph ? ntohl(ph->packet_id) : 0;
-  payload_len = nfq_get_payload(nfa, (unsigned char **)&payload);
-  nf_verdict = NF_ACCEPT, nf_mark = 0;
+  if(!ph) return(-1);
 
-#ifdef NTOPNG_PRO
-  iface->handler->handlePacket(payload_len, payload, nfa, &nf_verdict, &nf_mark, data);
-#endif
+  h.len = h.caplen = payload_len, nfq_get_timestamp(nfa, &h.ts);
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[NetFilter] [packet len: %u][verdict: %u][nf_mark: %u]",
-	                       payload_len, nf_verdict, nf_mark);
+  iface->packet_dissector(&h, payload, &a, &b);
 
-#ifdef HAVE_NFQ_SET_VERDICT2
-  rc = nfq_set_verdict2(
-#else
-  rc = nfq_set_verdict_mark(
-#endif
-        qh, last_rcvd_packet_id, nf_verdict,
-	nf_mark, 0, NULL);
-
-  return rc;
+  return(nfq_set_verdict(qh, ntohl(ph->packet_id), NF_ACCEPT, 0, NULL));
 }
+#endif
 
 /* **************************************************** */
 
-int NetfilterInterface::attachToNetFilter(void) {
+NetfilterInterface::NetfilterInterface(const char *name) : NetworkInterface(name) {
+  queueId = atoi(&name[3]);
+  nfHandle = nfq_open();
 
-  /* Binding this socket to queue 'queueId' */
-  nfQHandle = nfq_create_queue(nfHandle, queueId, &netfilter_callback, this);
-  if(nfQHandle == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error during attach to queue %d: is it configured?", queueId);
-    return -1;
+  if(nfHandle == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get netfilter handle [%d]", queueId);
+    throw 1;
   }
 
-  if(nfq_set_mode(nfQHandle, NFQNL_COPY_PACKET,
-                  1000 /* readOnlyGlobals.snaplen  IP_MAXPACKET */) < 0) {
+  if(nfq_unbind_pf(nfHandle, AF_INET) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to unbind [%d]", queueId);
+    throw 1;
+  }
+
+  if(nfq_bind_pf(nfHandle, AF_INET) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind [%d]", queueId);
+    throw 1;
+  }
+
+  if((queueHandle = nfq_create_queue(nfHandle, queueId,
+#ifdef NTOPNG_PRO
+				     &pro_netfilter_callback,
+#else
+				     &netfilter_callback,
+#endif
+				     this)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error during attach to queue %d: is it configured?", queueId);
+    throw 1;
+  } else
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully connected to NF_QUEUE %d", queueId);
+
+  if(nfq_set_mode(queueHandle, NFQNL_COPY_PACKET, 0XFFFF) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set packet_copy mode");
-    return -1;
+    throw 1;
   }
 
   nf_fd = nfq_fd(nfHandle);
 
-  return nf_fd;
+  if(ntop->getPrefs()->do_change_user()) {
+    /*
+       If using netfilter we must avoid changing userId otherwise packet polling
+       will fail
+    */
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Disabling user change as otherwise netfilter won't work");
+    ntop->getPrefs()->dont_change_user();
+  }
+}
+
+/* **************************************************** */
+
+NetfilterInterface::~NetfilterInterface() {
+  if(queueHandle) nfq_destroy_queue(queueHandle);
+  if(nfHandle)    nfq_close(nfHandle);
+  nf_fd = 0;
+}
+
+/* **************************************************** */
+
+void NetfilterInterface::startPacketPolling() {
+  pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+  pollLoopCreated = true;
+  NetworkInterface::startPacketPolling();
 }
 
 /* **************************************************** */

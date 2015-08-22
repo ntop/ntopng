@@ -360,7 +360,6 @@ void AddressResolution::startResolveAddressLoop() {
 
 void print_funct(prefix_t *prefix, void *data, void *user_data) {
   char address[64], ret[64], *a;
-  int l;
 
   if(!prefix) return;
 
@@ -374,7 +373,6 @@ void print_funct(prefix_t *prefix, void *data, void *user_data) {
     a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6), prefix->bitlen, address, sizeof(address));
   }
 
-  l = strlen(address);
   snprintf(ret, sizeof(ret), "%s/%d", a, prefix->bitlen);
   lua_push_str_table_entry((lua_State*)user_data, ret, (char*)"");
 }

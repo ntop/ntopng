@@ -164,13 +164,10 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined(HAVE_NETFILTER)
-        if (iface == NULL && strncmp(ifName, "nf:", 3) == 0) {
+        if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new NetfilterInterface(ifName);
-          NetfilterInterface *n = (NetfilterInterface *)iface;
-          n->attachToNetFilter();
-        }
 #endif
-	
+
 #ifdef HAVE_PF_RING
 	if(iface == NULL)
 	  iface = new PF_RINGInterface(ifName);
@@ -190,13 +187,13 @@ int main(int argc, char *argv[])
  */
 #ifdef linux
     affinity = prefs->get_cpu_affinity();
-    
+
     if(affinity != NULL) {
       if((core_id_s = strtok(affinity, ",")) != NULL)
 	core_id = atoi(core_id_s);
       else
 	core_id = i;
-      
+
       iface->setCPUAffinity(core_id);
       affinity = NULL;
     }
@@ -209,7 +206,7 @@ int main(int argc, char *argv[])
   }
 
   ntop->createExportInterface();
-  
+
   ntop->getRedis()->startFlowDump();
 
   if(ntop->getInterfaceAtId(0) == NULL) {
@@ -241,9 +238,9 @@ int main(int argc, char *argv[])
 	chmod(prefs->get_pid_path(), 0777);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "PID stored in file %s",
 				     prefs->get_pid_path());
-      } else 
+      } else
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "The PID file %s is empty: is your disk full perhaps ?",
-				     prefs->get_pid_path());	
+				     prefs->get_pid_path());
     } else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to store PID in file %s",
 				   prefs->get_pid_path());
@@ -282,7 +279,7 @@ int main(int argc, char *argv[])
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Enabled Host categorization with key %s",
 				 prefs->get_categorization_key());
-    
+
   }
 
   if(prefs->get_httpbl_key() != NULL) {

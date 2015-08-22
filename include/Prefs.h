@@ -118,6 +118,7 @@ class Prefs {
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
   inline bool is_httpbl_enabled()                       { return(httpbl_enabled); };
   inline bool do_change_user()                          { return(change_user);            };
+  inline void dont_change_user()                        { change_user = false;            };
   inline bool are_ixia_timestamps_enabled()             { return(enable_ixia_timestamps); };
   inline bool are_vss_apcon_timestamps_enabled()        { return(enable_vss_apcon_timestamps); };
   inline char* get_user()                               { return(user);                   };

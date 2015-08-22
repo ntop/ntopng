@@ -32,20 +32,18 @@ class NetfilterInterface : public NetworkInterface {
  private:
   int queueId;
   struct nfq_handle *nfHandle;
-  struct nfq_q_handle *nfQHandle;
+  struct nfq_q_handle *queueHandle;
   int nf_fd;
 
  public:
   NetfilterInterface(const char *name);
   ~NetfilterInterface();
 
-  int attachToNetFilter(void);
-
-#ifdef NTOPNG_PRO
-  NetfilterHandler *handler;
-#endif
-
-  inline const char* get_type()      { return(CONST_INTERFACE_TYPE_NETFILTER);     };
+  inline const char* get_type()                 { return(CONST_INTERFACE_TYPE_NETFILTER); };
+  inline int get_fd()                           { return(nf_fd);                          };
+  inline struct nfq_handle*   get_nfHandle()    { return(nfHandle);                       };
+  inline struct nfq_q_handle* get_queueHandle() { return(queueHandle);                    };
+  void startPacketPolling();
 };
 
 #endif /* _NETFILTER_NETWORK_INTERFACE_H_ */

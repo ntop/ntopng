@@ -1,6 +1,19 @@
+Prerequisites
+-------------
+You need to build ntopng against netfilter
+
+Ubuntu
+apt-get install libnetfilter-queue-dev
+
+CentOS
+yum install libnetfilter_queue-devel
+
+
+Using NetFilter
+---------------
 If you use ntopng over netfilter you need to: 
 
-# 1- Create queueId (0 in the example below) and divert traffic to it
+# 1 - Create queueId (0 in the example below) and divert traffic to it
 iptables -A OUTPUT -p icmp -j NFQUEUE --queue-num 0
 
 # 2 - start ntopng on device nf:X
