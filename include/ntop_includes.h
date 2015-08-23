@@ -176,9 +176,6 @@ using namespace std;
 #include "PF_RINGInterface.h"
 #endif
 #ifdef HAVE_NETFILTER
-#ifdef NTOPNG_PRO
-#include "NetfilterHandler.h"
-#endif
 #include "NetfilterInterface.h"
 #endif
 #ifdef NTOPNG_PRO
