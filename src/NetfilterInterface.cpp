@@ -80,7 +80,7 @@ static int netfilter_callback(struct nfq_q_handle *qh,
 
   if(!ph) return(-1);
 
-  h.len = h.caplen = payload_len, nfq_get_timestamp(nfa, &h.ts);
+  h.len = h.caplen = payload_len, gettimeofday(&h.ts, NULL); // nfq_get_timestamp(nfa, &h.ts);
 
   iface->packet_dissector(&h, payload, &a, &b);
 
@@ -136,6 +136,8 @@ NetfilterInterface::NetfilterInterface(const char *name) : NetworkInterface(name
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Disabling user change as otherwise netfilter won't work");
     ntop->getPrefs()->dont_change_user();
   }
+
+  pcap_datalink_type = DLT_RAW;
 }
 
 /* **************************************************** */
