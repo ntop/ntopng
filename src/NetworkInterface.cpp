@@ -1,4 +1,4 @@
-/*
+ /*
  *
  * (C) 2013-15 - ntop.org
  *
@@ -64,10 +64,10 @@ NetworkInterface::NetworkInterface() {
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
     pkt_dumper_tap = NULL;
-  
+
   has_mesh_networks_traffic = false,
     ip_addresses = "",
-    pcap_datalink_type = 0, cpu_affinity = -1, 
+    pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL, antenna_mac = NULL;
 
   db = NULL;
@@ -87,6 +87,7 @@ NetworkInterface::NetworkInterface() {
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
   dump_max_files = CONST_MAX_DUMP;
+  ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
 }
 
 /* **************************************************** */
@@ -165,7 +166,7 @@ NetworkInterface::NetworkInterface(const char *name) {
       ndpi_load_protocols_file(ndpi_struct, ntop->getCustomnDPIProtos());
 
     ndpi_struct->http_dont_dissect_response = 1;
-    
+
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			    no_master, no_master,
@@ -190,7 +191,8 @@ NetworkInterface::NetworkInterface(const char *name) {
 #endif
 
     checkIdle();
-    ifSpeed = Utils::getMaxIfSpeed((char*)name);
+    ifSpeed = Utils::getMaxIfSpeed(name);
+    ifMTU = Utils::getIfMTU(name), mtuWarningShown = false;
   } else {
     flows_hash = NULL, hosts_hash = NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
@@ -970,6 +972,20 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
   u_int32_t res = ntop->getGlobals()->get_detection_tick_resolution(), null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
+
+  if(h->len > ifMTU) {
+    if(!mtuWarningShown) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][caplen: %u].", h->len, h->caplen);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
+#ifdef linux
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Use: sudo ethtool -K %s gro off gso off tso off", ifname);
+#endif
+      mtuWarningShown = true;
+    }
+
+    incStats(0, NDPI_PROTOCOL_UNKNOWN, ifMTU, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    return(pass_verdict);
+  }
 
   setTimeLastPktRcvd(h->ts.tv_sec);
 
@@ -1846,6 +1862,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
+  lua_push_int_table_entry(vm, "mtu", ifMTU);
   lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
@@ -2272,7 +2289,7 @@ void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
   info.vm = vm, info.key = key, info.num = 0;
   hosts_hash->walk(virtual_http_hosts_walker, &info);
 }
-					
+
 /* **************************************** */
 
 bool NetworkInterface::isInterfaceUp(char *name) {

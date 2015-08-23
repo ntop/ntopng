@@ -1200,7 +1200,32 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 
 /* **************************************** */
 
-u_int32_t Utils::getMaxIfSpeed(char *ifname) {
+u_int32_t Utils::getIfMTU(const char *ifname) {
+  struct ifreq ifr;
+  u_int32_t mtu = CONST_DEFAULT_MTU; /* Default MTU */
+  int fd;
+
+  memset(&ifr, 0, sizeof(ifr));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+  ifr.ifr_addr.sa_family = AF_INET;
+  
+  if((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
+  } else {
+    if(ioctl(fd, SIOCGIFMTU, &ifr) == -1)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read MTU for device %s", ifname);      
+    else
+      mtu = ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
+
+    close(fd);
+  }
+
+  return(mtu);
+}
+
+/* **************************************** */
+
+u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 #ifdef linux
   int sock, rc;
   struct ifreq ifr;

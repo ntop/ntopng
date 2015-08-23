@@ -246,7 +246,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   print("<tr><th width=250>Speed</th><td colspan=4>" .. maxRateToString(ifstats.speed*1000) .. "</td></tr>\n")
+   print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(ifstats.speed*1000) .. "</td><th>MTU</th><td>"..ifstats.mtu.." bytes</td></tr>\n")
 
    if(ifstats.ip_addresses ~= "") then
       tokens = split(ifstats.ip_addresses, ",")

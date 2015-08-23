@@ -104,6 +104,8 @@ class NetworkInterface {
   pthread_t pollLoop;
   bool pollLoopCreated;
   u_int32_t ifSpeed;
+  u_int16_t ifMTU;
+  bool mtuWarningShown;
   int cpu_affinity; /**< Index of physical core where the network interface works.*/
   nDPIStats ndpiStats;
   PacketStats pktStats;

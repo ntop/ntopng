@@ -330,6 +330,7 @@
 #define CONST_LOOPBACK_ADDRESS         "127.0.0.1"
 
 #define CONST_EPP_MAX_CMD_NUM          34
+#define CONST_DEFAULT_MTU              1514
 
 #define HTTPBL_DOMAIN                  "dnsbl.httpbl.org"
 #define NULL_BL                        "''"

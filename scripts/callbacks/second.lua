@@ -11,19 +11,9 @@ end
 
 require "lua_utils"
 require "graph_utils"
-require "influx_utils"
 
 -- Toggle debug
 local enable_second_debug = 0
-
-if(use_influx) then
-   cache_key = "second.lua.cache"
-   load_last_influx(cache_key)
-   when = os.time().."000"
-   header = '[\n  {\n "name" : "interfaces",\n "columns" : ["time", "name", "bytes", "packets"],\n "points" : [\n'
-   num = 0
-end
-
 
 ifnames = interface.getIfNames()
 for _,ifname in pairs(ifnames) do
