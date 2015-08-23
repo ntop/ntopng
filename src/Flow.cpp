@@ -1609,20 +1609,50 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	diff_num_http_requests++; /* One new request found */
 
 	if(http.last_method) free(http.last_method);
-	if((http.last_method = (char*)malloc(l+1)) != NULL) {
+	if((http.last_method = (char*) malloc(l+1)) != NULL) {
 	  strncpy(http.last_method, payload, l);
 	  http.last_method[l] = '\0';
 	}
 
-	payload = &space[1];
+	char * temp_1 = NULL;
+	char * temp_2 = NULL;
+	int len_url;
+
+	payload = &space[1];	
+
 	if((space = strchr(payload, ' ')) != NULL) {
 	  u_int l = space-payload;
-
-	  if(http.last_url) free(http.last_url);
-	  if((http.last_url = (char*)malloc(l+1)) != NULL) {
-	    strncpy(http.last_url, payload, l);
-	    http.last_url[l] = '\0';
+	  
+	  if((temp_1 = (char*) malloc(l+1)) != NULL) {
+	    strncpy(temp_1, payload, l);
+	    temp_1[l] = '\0';
 	  }
+	}
+
+	payload = &space[1];
+	
+	if((space = strchr(payload, ' ')) != NULL) {
+	  payload = &space[1];
+	  if((space = strchr(payload, '\r')) != NULL) {
+	    u_int l = space-payload;
+	    
+	    if((temp_2 = (char*) malloc(l+1)) != NULL) {
+	      strncpy(temp_2, payload, l);
+	      temp_2[l] = '\0';
+	    }
+	  }
+	}
+	
+	int l1 = strlen(temp_1);
+	int l2 = strlen(temp_2);
+	len_url = l1 + l2;
+	
+	if(http.last_url) free(http.last_url);
+	
+	if((http.last_url = (char*) malloc(len_url+1)) != NULL) {
+	  strncpy(http.last_url, temp_2, l2);  // copy
+	  http.last_url[l2] = '\0';
+	  strncat(http.last_url, temp_1, l1);  // concat
 	}
       }
     }
