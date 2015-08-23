@@ -39,22 +39,5 @@ for _,ifname in pairs(ifnames) do
       makeRRD(basedir, ifname, "num_hosts", 1, ifstats.stats_hosts)
       makeRRD(basedir, ifname, "num_flows", 1, ifstats.stats_flows)
       makeRRD(basedir, ifname, "num_http_hosts", 1, ifstats.stats_http_hosts)
-
-      if(use_influx and (ifstats.stats_bytes > 0)) then
-	 b = diff_value_influx(ifstats.name, "bytes", ifstats.stats_bytes)
-	 p = diff_value_influx(ifstats.name, "packets", ifstats.stats_packets)
-	 if(b > 0) then
-	    if(num > 0) then header = header .. ',\n' end
-	    header = header .. '['.. when .. ', "' .. ifstats.name .. '",' .. b .. ',' .. p .. ']'
-	    num = num + 1
-	 end
-      end
    end
 end -- for _,ifname in pairs(ifnames) do
-
-if(use_influx) then
-   header = header .. "\n]\n }\n]\n"
-   --io.write(header)
-   ntop.postHTTPJsonData(influx_user, influx_pwd, influx_url, header)
-   save_curr_influx(cache_key)
-end
