@@ -7,12 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 
-
 local db_debug = false
 
 --- ====================================================================
 
-function getInterfaceTopFlows(interface_id, version, l7proto, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
+function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, port, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
    if(version == 4) then 
@@ -24,6 +23,17 @@ function getInterfaceTopFlows(interface_id, version, l7proto, begin_epoch, end_e
    follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO from flowsv"..version.."_"..interface_id.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
+   if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
+   if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
+
+   if((host ~= nil) and (host ~= "")) then 
+      if(version == 4) then
+	 follow = follow .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
+      else
+	 follow = follow .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
+      end
+   end
+
    follow = follow .." order by "..sort_column.." "..sort_order.." limit "..max_num_flows.." OFFSET "..offset 
 
    sql = sql .. follow
@@ -70,3 +80,33 @@ end
 function getHostFlows(interface_id, version, host, vlan, begin_epoch, end_epoch, limit_low, limit_high)
 end
 
+
+--- ====================================================================
+
+function getNumFlows(interface_id, version, host, protocol, port, l7proto, begin_epoch, end_epoch)
+   if(version == nil) then version = 4 end
+
+   sql = "select COUNT(*) AS TOT_FLOWS, SUM(BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM flowsv"..version.."_"..interface_id.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
+   if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
+
+   if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
+
+   if((host ~= nil) and (host ~= "")) then 
+      if(version == 4) then
+	 sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
+      else
+	 sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
+      end
+   end
+
+   if(db_debug == true) then io.write(sql.."\n") end 
+
+   res = interface.execSQLQuery(sql)
+   if(type(res) == "string") then
+      if(db_debug == true) then io.write(res.."\n") end
+      return nil
+   else
+      return(res)
+   end
+end

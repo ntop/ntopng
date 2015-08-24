@@ -2362,4 +2362,3 @@ void NetworkInterface::addInterfaceAddress(char *addr) {
     ip_addresses = ip_addresses + "," + s;
   }
 }
-

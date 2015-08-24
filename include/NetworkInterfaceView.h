@@ -46,12 +46,12 @@ class NetworkInterfaceView {
   list<NetworkInterface *>::iterator intfBegin() { return physIntf.begin(); }
   list<NetworkInterface *>::iterator intfEnd() {return physIntf.end(); }
 
-  inline char *get_name(void) { return ifvname; }
-  inline int get_num_intfs(void) { return num_intfs; }
-  inline NetworkInterface *get_iface(void) { return iface; }
-  inline void set_id(unsigned int id) { this->id = id; }
-  inline int get_id() { return id; }
-  inline char *get_descr(void);
+  inline char *get_name(void)              { return ifvname;   }
+  inline int get_num_intfs(void)           { return num_intfs; }
+  inline NetworkInterface *get_iface(void) { return iface;     }
+  inline void set_id(unsigned int id)      { this->id = id;    }
+  inline int get_id()                      { return id;        }
+  inline char* get_descr()                 { return descr;     }
 
   void getnDPIStats(nDPIStats *stats);
   void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, bool local_only);

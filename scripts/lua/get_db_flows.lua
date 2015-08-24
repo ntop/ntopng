@@ -28,6 +28,10 @@ sortOrder = _GET["sortOrder"]
 epoch_begin = _GET["epoch_begin"]
 epoch_end = _GET["epoch_end"]
 
+l4proto = _GET["l4proto"]
+port = _GET["port"]
+limit = _GET["limit"]
+
 ip_version = _GET["version"]
 if(ip_version == nil) then ip_version = "4" end
 
@@ -38,7 +42,7 @@ if((perPage == nil) or (perPage == "")) then perPage = 5 end
 if((sortOrder == nil) or (sortOrder == "")) then sortOrder = "asc" end
 if((sortColumn == nil) or (sortColumn == "")) then sortColumn = "BYTES" end
 
-res = getInterfaceTopFlows(ifId, ip_version, (l7proto or ""), epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC')
+res = getInterfaceTopFlows(ifId, ip_version, host, (l7proto or ""), (l4proto or ""), (port or ""), epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC', limit)
 
 if((res == nil) or (type(res) == "string")) then
    return('{ "currentPage" : 1,  "data" : [], "perPage" : '..perPage..',  "sort" : [ [ "column_", "desc" ] ],"totalRows" : 0 }')
@@ -109,7 +113,8 @@ else
       rows = rows + 1
    end  
 
-   print('\n], "perPage" : '..perPage..',  "sort" : [ [ "'..sortColumn..'", "'.. sortOrder ..'" ] ], "totalRows" : '..rows..' }')
+   if(limit == nil) then limit = rows end
+   print('\n], "perPage" : '..perPage..',  "sort" : [ [ "'..sortColumn..'", "'.. sortOrder ..'" ] ], "totalRows" : '..limit..' }')
 end
 
 

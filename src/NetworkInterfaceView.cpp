@@ -424,8 +424,10 @@ void NetworkInterfaceView::getnDPIProtocols(lua_State *vm) {
 
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
     (*p)->getnDPIProtocols(vm);
+    break;
+  }
 }
 
 /* *************************************** */
@@ -545,12 +547,6 @@ int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) {
     return((*p)->exec_sql_query(vm, sql));
 
   return(-1);
-}
-
-/* *************************************** */
-
-char *NetworkInterfaceView::get_descr(void) {
-  return descr;
 }
 
 /* *************************************** */

@@ -362,7 +362,8 @@ function bytesToSize(bytes)
       megabyte = kilobyte * 1024;
       gigabyte = megabyte * 1024;
       terabyte = gigabyte * 1024;
-      
+
+      bytes = tonumber(bytes)
       if((bytes >= 0) and (bytes < kilobyte)) then
 	 return round(bytes, precision) .. " B";
 	 elseif((bytes >= kilobyte) and (bytes < megabyte)) then
@@ -423,13 +424,22 @@ function formatValue(amount)
 end
 
 function formatPackets(amount)
-  return formatValue(amount).." Pkts"
+   return formatValue(tonumber(amount)).." Pkts"
 end
 
 function capitalize(str)
   return (str:gsub("^%l", string.upper))
 end
 
+
+function isnumber(str)
+   if((str ~= nil) and (string.len(str) > 0) and (tonumber(str) ~= nil)) then
+      return(true)
+   else
+      return(false)
+   end
+end
+ 
 function split(pString, pPattern)
   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
   local fpat = "(.-)" .. pPattern
@@ -585,8 +595,7 @@ function clearbit(x, p)
   return hasbit(x, p) and x - p or x
 end
 
-function isBroadMulticast(ip)
-   
+function isBroadMulticast(ip)   
    if(ip == "0.0.0.0") then 
       return true
    end

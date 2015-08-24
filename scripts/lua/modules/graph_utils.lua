@@ -3,12 +3,12 @@
 --
 
 top_rrds = {
-   ["bytes.rrd"] = "Traffic", 
-   ["packets.rrd"] = "Packets", 
-   ["drops.rrd"] = "Packet Drops", 
-   ["num_flows.rrd"] = "Active Flows", 
-   ["num_hosts.rrd"] = "Active Hosts", 
-   ["num_http_hosts.rrd"] = "Active HTTP Servers" 
+   ["bytes.rrd"] = "Traffic",
+   ["packets.rrd"] = "Packets",
+   ["drops.rrd"] = "Packet Drops",
+   ["num_flows.rrd"] = "Active Flows",
+   ["num_hosts.rrd"] = "Active Hosts",
+   ["num_http_hosts.rrd"] = "Active HTTP Servers"
 }
 
 -- ########################################################
@@ -150,7 +150,7 @@ function getZoomDuration(cur_zoom)
 	 return(zoom_vals[k][3])
       end
    end
-   
+
    return(180)
 end
 
@@ -259,7 +259,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
       return
    end
-   
+
    dirs = ntop.getDirs()
    rrdname = getRRDName(ifid, host, rrdFile)
    names =  {}
@@ -551,7 +551,7 @@ end -- topArray ~= nil
 
 print[[</div></td></tr>]]
 
-printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile) 
+printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
 
 print [[
 
@@ -667,8 +667,8 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 		if(point.value.y === null) return;
 
 		var formattedXValue = fdate(point.value.x); // point.formattedXValue;
-		var formattedYValue = ]] 
-	  print(formatter_fctn) 
+		var formattedYValue = ]]
+	  print(formatter_fctn)
 	  print [[(point.value.y); // point.formattedYValue;
 		var infoHTML = "";
 ]]
@@ -699,11 +699,11 @@ print[[
       levels = v["levels"]
       scriptname = v["script"]
       key = v["key"]
-      
+
       if (string.lower(sectionname) ~= "top talkers") then
 	 goto continue
       end
-      
+
       -- Support only 1 or 2 levels by now
       if (levels < 1 or levels > 2) then goto continue end
       print [[
@@ -909,7 +909,7 @@ function makeRRD(basedir, ifname, rrdname, step, value)
       create_rrd(name, 1, rrdname)
    end
    ntop.rrd_update(name, "N:".. toint(value))
-   if(enable_second_debug == 1) then io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n') end   
+   if(enable_second_debug == 1) then io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n') end
 end
 
 function createRRDcounter(path, step, verbose)
@@ -995,61 +995,101 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    if((epoch == nil) or (epoch == "")) then epoch = os.time() end
 
    local d = getZoomDuration(zoomLevel)/2
-   
+
    epoch_end = epoch+d
    epoch_begin = epoch-d
-   
-   url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
-   title = "Top Flows"
-   if(l7proto ~= nil) then
-      local id
-      if(string.ends(l7proto, ".rrd")) then l7proto = string.sub(l7proto, 1, -5) end
+   printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', 5, 5)
+end
 
-      id = interface.getnDPIProtoId(l7proto)
-      if(id ~= -1) then
-	 url_update = url_update .. "&l7proto="..id 
-	 title = "Top "..l7proto.." Flows"
+function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, limitv4, limitv6)
+   url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end.."&l4proto="..l4proto.."&port="..port
+
+   if(l7proto ~= "") then
+      if(not(isnumber(l7proto))) then
+	 local id
+
+	 -- io.write(l7proto.."\n")	 
+	 l7proto = string.gsub(l7proto, "%.rrd", "")
+	 
+	 if(string.ends(l7proto, ".rrd")) then l7proto = string.sub(l7proto, 1, -5) end
+	 
+	 id = interface.getnDPIProtoId(l7proto)
+	 
+	 if(id ~= -1) then
+	    l7proto = id
+	    title = "Top "..l7proto.." Flows"
+	 else
+	    l7proto = ""
+	 end
+      end
+
+      if(l7proto ~= "") then
+	 url_update = url_update.."&l7proto="..l7proto
       end
    end
-   
-   
-   title = title .. " ["..formatEpoch(epoch_begin).." - "..formatEpoch(epoch_end).."]"
+
+
+   if((host == "") and (l4proto == "") and (port == "")) then
+      title = "Top Flows ["..formatEpoch(epoch_begin).." - "..formatEpoch(epoch_end).."]"
+   else
+      title = ""
+   end
 
    print [[
+   <div class="container-fluid">
 
-
-<div class="container">
-    
     <!-- Nav tabs -->
     <ul class="nav nav-tabs" role="tablist">
-      <li class="active">
-          <a href="#ipv4" role="tab" data-toggle="tab"> IPv4  </a>
-      </li>
-      <li><a href="#ipv6" role="tab" data-toggle="tab"> IPv6 </a>
-      </li>
+]]
+
+selected = false
+if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
+   print('<li class="active"> <a href="#ipv4" role="tab" data-toggle="tab"> IPv4  </a> </li>\n')
+   selected = true
+end
+
+if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
+   if(selected == false) then print('<li class="active">\n') else print('<li>\n') end
+   print('<a href="#ipv6" role="tab" data-toggle="tab"> IPv6 </a> </li>\n')
+end
+
+print [[
     </ul>
-    
+
     <!-- Tab panes -->
     <div class="tab-content">
-      <div class="tab-pane fade active in" id="ipv4">
-          <div id="table-flows4"></div>
-      </div>
-      <div class="tab-pane fade" id="ipv6">
-          <div id="table-flows6"></div>
-      </div>
+   ]]
+
+if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
+print [[
+      <div class="tab-pane fade active in" id="ipv4"> <div id="table-flows4"></div> </div>
+]]
+end
+
+if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
+   if(selected == false) then print('<div class="tab-pane fade active in" id="ipv6">\n') else print('<div class="tab-pane fade" id="ipv6">\n') end
+   print('<div id="table-flows6"></div> </div>')
+end
+
+print [[
     </div>
-    
 </div>
 
-
 <script>
-	    var url_update4 = "]] print(url_update) print [[&version=4";
+   ]]
+
+if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
+print [[
+	    var url_update4 = "]] print(url_update.."&limit="..limitv4) print [[&version=4";
 
 	    var graph_options4 = {
 						    url: url_update4,
-						    perPage: 5,
-						    title: "IPv4 ]]  print(title) print [[",
+	       perPage: 5, ]]
+
+			      if(title ~= "") then print('title: "IPv4 '..title..'",\n') else print("title: '',\n") end
+
+print [[
 						    showFilter: true,
 						    showPagination: true,
 						    sort: [ [ "BYTES","desc"] ],
@@ -1140,13 +1180,23 @@ print [[
 
 
             var table4 = $("#table-flows4").datatable(graph_options4);
+      ]]
+   end
 
-	    var url_update6 = "]] print(url_update) print [[&version=6";
+
+      if((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0")) then print("</script>") return end
+
+print [[
+	    var url_update6 = "]] print(url_update.."&limit="..limitv6) print [[&version=6";
 
 	    var graph_options6 = {
 						    url: url_update6,
-						    perPage: 5,
-						    title: "IPv6 ]]  print(title) print [[",
+						    perPage: 5, ]]
+
+					      if(title ~= "") then print('title: "IPv6 '..title..'",\n') else print("title: '',\n") end
+
+print [[
+
 						    showFilter: true,
 						    showPagination: true,
 						    sort: [ [ "BYTES","desc"] ],
@@ -1237,14 +1287,6 @@ print [[
 
 	 var table6 = $("#table-flows6").datatable(graph_options6);
 	 </script>
-
-
-
-
-
-
-
-	    
 ]]
 
 end

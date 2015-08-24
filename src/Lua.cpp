@@ -4180,6 +4180,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
   { "getnDPIFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getnDPIProtoBreed",      ntop_get_ndpi_protocol_breed },
+  { "getnDPIProtocols",       ntop_get_ndpi_protocols },
   { "getHosts",               ntop_get_interface_hosts },
   { "getLocalHosts",          ntop_get_interface_local_hosts },
   { "getCommunityHosts",      ntop_get_interface_community_hosts },
@@ -4226,7 +4227,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "isIdle",                         ntop_interface_is_idle },
   { "setInterfaceIdleState",          ntop_interface_set_idle },
   { "name2id",                        ntop_interface_name2id },
-  { "getnDPIProtocols",               ntop_get_ndpi_protocols },
   { "loadDumpPrefs",                  ntop_load_dump_prefs },
   { "loadHostAlertPrefs",             ntop_interface_load_host_alert_prefs },
 
