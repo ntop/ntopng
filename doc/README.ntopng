@@ -27,7 +27,7 @@ On MacOSX (using http://brew.sh)
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git
 
 On MacOSX (using mac ports)
-brew install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
+port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
 
 On FreeBSD
 - pkg install autoconf automake libtool wget pkgconf rrdtool gmake redis git
