@@ -199,7 +199,8 @@ end
 local function getHistoricalTopAS(ifid, ifname, epoch, add_vlan)
   if (epoch == nil) then
     return("[ ]\n")
-  end
+ end
+
   return getTopASFromJSON(ntop.getMinuteSampling(ifid, tonumber(epoch)), add_vlan)
 end
 

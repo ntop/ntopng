@@ -406,8 +406,10 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
          if(num > 0) then rsp = rsp .. " }," end
          rsp = rsp .. '\n\t\t { "label": "'.._key..'", "url": "'
                ..ntop.getHttpPrefix()..
-               '/lua/hosts_stats.lua?'..col..'='.._key..'", "name": "'
-               .._group[_key]["name"]..'", "value": '.._value
+	    '/lua/hosts_stats.lua?'..col..'='.._key..'", "name": "'
+
+	 if((_group[_key] ~= nil) and (_group[_key]["name"] ~= nil)) then rsp = rsp .. _group[_key]["name"] end
+	 rsp = rsp ..'", "value": '.._value
          num = num + 1
       end
    end

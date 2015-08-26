@@ -10,7 +10,8 @@ require "top_talkers"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 ifid = getInterfaceId(ifname)
-epoch = _GET["epoch"]+60 -- we return the minute before the event as epochs are stored in the DB 'past' the time period
+
+epoch = _GET["epoch"]
 module = _GET["m"]
 param = _GET["param"]
 mode = _GET["mode"]
@@ -24,8 +25,13 @@ else
   if (type(mod) == type(true)) then
     print("[ ]\n")
   else
-     --top = mod.getTopClean(ifid, ifname, mode)
-     top = mod.getHistoricalTop(ifid, ifname, epoch, add_vlan)
-    print(top)
+     if(epoch == nil) then
+	top = mod.getTopClean(ifid, ifname, mode)
+     else
+	epoch = epoch+60 -- we return the minute before the event as epochs are stored in the DB 'past' the time period
+	top = mod.getHistoricalTop(ifid, ifname, epoch, add_vlan)
+     end
+
+     print(top)
   end
 end
