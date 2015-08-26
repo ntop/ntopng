@@ -24,10 +24,11 @@ fi
 
 if test -d /opt/local/include; then :
    CFLAGS="${CFLAGS} -I/opt/local/include"
+   CPPFLAGS="${CPPFLAGS} -I/opt/local/include"
 fi
 
 if test -d /opt/local/lib; then :
-  LDFLAGS="${LDFLAGS} -I/opt/local/lib"
+  LDFLAGS="${LDFLAGS} -L/opt/local/lib"
 fi
 
 SHORT_MACHINE=`uname -m | cut -b1-3`

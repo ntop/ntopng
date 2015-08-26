@@ -26,14 +26,13 @@ On Fedora/CentOS
 On MacOSX (using http://brew.sh)
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git
 
+On MacOSX (using mac ports)
+brew install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
+
 On FreeBSD
 - pkg install autoconf automake libtool wget pkgconf rrdtool gmake redis git
 
 Note that you need to edit third-party/LuaJIT-2.0.3/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
-
-On Mac OSX please install macports and do
-- port install XXX
-  Example: port install geoip
 
 On Windows you can download the redis server from
 - https://github.com/rgl/redis/downloads
