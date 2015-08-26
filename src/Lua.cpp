@@ -4607,9 +4607,11 @@ void Lua::purifyHTTPParameter(char *param) {
       case ']':
       case ',':
       case '&':
+      case ' ':
 	break;
 	
       default:
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '%c' in URI", c);
 	ampercent[0] = '\0';
 	return;
       }
