@@ -11,6 +11,8 @@ third-party/LuaJIT-2.0.3/src/lua*
 third-party/LuaJIT-2.0.3/src/liblua*
 third-party/LuaJIT-2.0.3/src/*/*lua
 third-party/zeromq-4.1.3/configure
+third-party/zeromq-4.1.3/src/*o
+third-party/zeromq-4.1.3/perfs/*o
 httpdocs/geoip/*
 httpdocs/ssl/ntopng-cert.pem
 autom4te.cache*
