@@ -861,7 +861,7 @@ bool NetworkInterface::packetProcessing(const struct timeval *when,
 
     flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 							    ip, ipsize, (u_int32_t)time,
-							    cli, srv));
+							    cli, srv).protocol);
   } else {
     // FIX - only handle unfragmented packets
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");

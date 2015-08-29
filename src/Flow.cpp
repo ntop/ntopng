@@ -94,7 +94,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   default:
     ndpi_detected_protocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(),
-							    protocol, 0, 0, 0, 0);
+							    protocol, 0, 0, 0, 0).protocol;
     break;
   }
 
@@ -470,7 +470,7 @@ void Flow::guessProtocol() {
 							      ntohl(cli_host->get_ip()->get_ipv4()),
 							      ntohs(cli_port),
 							      ntohl(srv_host->get_ip()->get_ipv4()),
-							      ntohs(srv_port));
+							      ntohs(srv_port)).protocol;
     }
 
     l7_protocol_guessed = true;
