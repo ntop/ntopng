@@ -16,12 +16,11 @@ BuildRoot:  %{_tmppath}/%{name}-%{version}-root
 GeoIP databases for ntopng
 
 %prep
-%setup -q
 
 %build
 
 mkdir -p $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip
-cp $RPM_BUILD_DIR/%{name}-%{version}/usr/share/ntopng/httpdocs/geoip/*.dat* $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip
+cp $HOME/ntopng/httpdocs/geoip/*.dat* $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip
 find $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip -name "*.gz" |xargs gunzip -f
 find $RPM_BUILD_ROOT -name ".svn" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name "*~"   | xargs /bin/rm -f
@@ -45,6 +44,4 @@ rm -fr $RPM_BUILD_ROOT
 %defattr(-, root, root)
 
 %changelog
-* Fri Aug 23 2013 Yuri Francalacci <yuri@ntop.org> 1.0
-- Current package version
 
