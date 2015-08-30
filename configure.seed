@@ -362,9 +362,9 @@ then
 fi
 
 if test $SYSTEM = "Darwin"; then
-  MAN_DIR=$INSTALL_DIR/share
+  MAN_DIR=$INSTALL_DIR/share/man
 else
-  MAN_DIR=$INSTALL_DIR
+  MAN_DIR=$INSTALL_DIR/man
 fi
 
 if test $SYSTEM = "OpenBSD"; then

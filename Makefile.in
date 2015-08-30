@@ -6,7 +6,8 @@ OS := $(shell uname -s)
 PWD=@PWD@
 GPP=@GPP@
 INSTALL_DIR=$(prefix)
-MAN_DIR=$(prefix)
+MAN_DIR=$(DESTDIR)@MAN_DIR@
+
 ######
 HAS_NDPI=$(shell pkg-config --exists libndpi; echo $$?)
 ifeq ($(HAS_NDPI), 0)
@@ -210,9 +211,9 @@ install: ntopng
 	@echo "to create a package and install that"
 	@echo "rpm - do 'make build-rpm'"
 	@echo "deb - do 'cd packages/ubuntu;./configure;make"
-	mkdir -p $(INSTALL_DIR)/share/ntopng $(MAN_DIR)/man/man8 $(INSTALL_DIR)/bin
+	mkdir -p $(INSTALL_DIR)/share/ntopng $(MAN_DIR)/man8 $(INSTALL_DIR)/bin
 	cp ntopng $(INSTALL_DIR)/bin
-	cp ./ntopng.8 $(MAN_DIR)/man/man8
+	cp ./ntopng.8 $(MAN_DIR)/man8
 	cp -r ./httpdocs $(INSTALL_DIR)/share/ntopng
 	cp -r ./scripts $(INSTALL_DIR)/share/ntopng
 	find $(INSTALL_DIR)/share/ntopng -name "*~"   | xargs /bin/rm -f
@@ -220,7 +221,7 @@ install: ntopng
 
 uninstall:
 	if test -f $(INSTALL_DIR)/bin/ntopng; then rm $(INSTALL_DIR)/bin/ntopng; fi;
-	if test -f $(MAN_DIR)/man/man8/ntopng.8; then rm $(MAN_DIR)/man/man8/ntopng.8; fi;
+	if test -f $(MAN_DIR)/man8/ntopng.8; then rm $(MAN_DIR)/man8/ntopng.8; fi;
 	if test -d $(INSTALL_DIR)/share/ntopng; then rm -r $(INSTALL_DIR)/share/ntopng; fi;
 
 Makefile: @GIT_INDEX@
