@@ -402,6 +402,7 @@
 #define NUM_MINUTES_PER_DAY   3600
 
 #define DUMP_MAC_SIZE	6
+#define MAC_SIZE	DUMP_MAC_SIZE
 #define DUMP_IFNAMSIZ	16
 #define MACSTR_SIZE     32
 #define DUMP_MTU	16384

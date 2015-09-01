@@ -10,7 +10,7 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 if (group_col == nil) then
-   group_col = "MAC"
+   group_col = "mac"
 end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -33,11 +33,11 @@ end
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
 
-print [[
-	 $("#table-mac").datatable({
+print [[ 
+           $("#table-mac").datatable({
                         title: "Mac List",
-			url: url_update ,
-	 ]]
+			url: url_update , 
+]]
 
 print('title: "Local Hosts MAC Addresses",\n')
 print ('rowCallback: function ( row ) { return mac_table_setID(row); },')
