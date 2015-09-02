@@ -63,6 +63,11 @@ interface.select(ifname)
 
 if((group_col == "mac") or (group_col == "antenna_mac")) then
    hosts_stats = interface.getLocalHostsInfo()
+   --PRINT
+   -- for n in pairs(hosts_stats) do 
+   --    io.write("= "..n..'\n')
+   -- end
+
 else
    hosts_stats = interface.getHostsInfo()
 end
@@ -116,6 +121,10 @@ for key,value in pairs(hosts_stats) do
 
 	 elseif (group_col == "mac") then
 	    stats_by_group_col[id]["name"] = value["mac"]
+
+	    --PRINT
+	    -- io.write("MAC = "..value["mac"]..'\n')
+	    
 	    if (stats_by_group_col[id]["name"] == nil) then
 	       stats_by_group_col[id]["name"] = "Unknown MAC"
 	    end
@@ -173,6 +182,8 @@ function print_single_group(value)
       print("hosts_stats.lua?antenna_mac="..value["id"].."'>")
    elseif (group_col == "mac") then
       print("hosts_stats.lua?mac="..value["id"].."'>")
+      --PRINT
+      -- io.write("ID = "..value["id"]..'\n')
    else
       print("hosts_stats.lua'>")
    end
