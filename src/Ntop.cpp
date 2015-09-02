@@ -213,13 +213,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     } else {
       /* Add defaults */
       /* http://www.networksorcery.com/enp/protocol/ip/multicast.htm */
-      char *local_nets, buf[512];
-
-      snprintf(buf, sizeof(buf), "%s,%s", CONST_DEFAULT_PRIVATE_NETS,
-	       CONST_DEFAULT_LOCAL_NETS);
-      local_nets = strdup(buf);
-      setLocalNetworks(local_nets);
-      free(local_nets);
+      setLocalNetworks((char*)CONST_DEFAULT_LOCAL_NETS);
     }
 
     if(prefs->getCommunitiesFile()) {
@@ -372,7 +366,7 @@ void Ntop::loadLocalInterfaceAddress() {
       
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 32);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv4 interface address for %s", buf_orig, iface[ifId]->get_name());
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig, iface[ifId]->get_name());
 	ptree_add_rule(local_interface_addresses, buf_orig);
 	iface[ifId]->addInterfaceAddress(buf_orig);
 
@@ -380,7 +374,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
 	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));	
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv4 local network", buf_orig);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network", buf_orig);
 	address->addLocalNetwork(buf_orig);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
@@ -399,7 +393,7 @@ void Ntop::loadLocalInterfaceAddress() {
       s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 128);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv6 interface address for %s", buf_orig, iface[ifId]->get_name());
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 interface address for %s", buf_orig, iface[ifId]->get_name());
 	address->addLocalNetwork(buf_orig);
 	iface[ifId]->addInterfaceAddress(buf_orig);
 
@@ -408,7 +402,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Adding %s as IPv6 local network", buf_orig);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network", buf_orig);
 	ptree_add_rule(local_interface_addresses, buf_orig);
       }
     }

@@ -4608,6 +4608,8 @@ void Lua::purifyHTTPParameter(char *param) {
       case ',':
       case '&':
       case ' ':
+      case '<':
+      case '>':
 	break;
 	
       default:

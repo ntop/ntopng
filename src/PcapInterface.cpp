@@ -43,8 +43,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
       if((pcap_list = fopen(name, "r")) == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s", name);
 	_exit(0);
-      } else
-	read_pkts_from_pcap_dump = true;
+      }	
     } else {
       char *slash = strrchr(ifname, '/');
 
@@ -55,6 +54,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
       }
       
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
+      read_pkts_from_pcap_dump = true;
       read_pkts_from_pcap_dump = true, purge_idle_flows_hosts = false;      
       pcap_datalink_type = pcap_datalink(pcap_handle);
     }
