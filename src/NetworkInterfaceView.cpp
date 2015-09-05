@@ -39,16 +39,25 @@ NetworkInterfaceView::NetworkInterfaceView(const char *name, int id) {
   istringstream ss(name);
   string cmdtok, ifname, desc = "";
   NetworkInterface *intf = NULL;
-  int cmdcnt;
+  int cmdcnt = 0;
+  const char * zc = NULL;
 
-  assert(name);
-
-  cmdcnt = 0;
-  while(std::getline(ss, cmdtok, ':')) {
-    /* NOTE: this is to be called only for merged interfaces view! */
-    assert(cmdcnt != 0 || cmdtok == "view");
-    cmdcnt++;
+  zc = strchr(name , 'z');
+  
+  // check if we want merge interfaces with option zc
+  if(zc != NULL && zc[1] == 'c') {
+    string zz(zc);
+    cmdtok.assign(zz);
   }
+  // no option zc
+  else 
+     {
+       /* NOTE: this is to be called only for merged interfaces view! */
+       while(std::getline(ss, cmdtok, ':') != NULL) {
+	 assert(cmdcnt != 0 || cmdtok == "view");
+	 cmdcnt++;
+       }
+     }
 
   /* cmdtok keeps the interfaces */
   istringstream st(cmdtok);
