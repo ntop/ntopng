@@ -98,6 +98,7 @@
 #define NO_NDPI_PROTOCOL          ((u_int)-1)
 #define NDPI_MIN_NUM_PACKETS      10
 #define GTP_U_V1_PORT             2152
+#define CAPWAP_DATA_PORT          5247
 #define MAX_NUM_INTERFACE_HOSTS   131072
 #define MAX_NUM_INTERFACES        48
 #define MAX_INTERFACE_NAME_LEN    8
