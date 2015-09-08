@@ -24,6 +24,10 @@
 #include <curl/curl.h>
 #include <string.h>
 
+// define for UTF-8 decode
+#define UTF8_ACCEPT 0
+#define UTF8_REJECT 1
+
 extern "C" {
 #include "../third-party/detectxsslib/detectxsslib.h"
 #include "../third-party/detectxsslib/detectxsslib.c"
@@ -39,6 +43,25 @@ typedef struct {
   char outbuf[16384];
   u_int num_bytes;
 } DownloadState;
+
+// Array used for decoding UTF-8 strings
+static const u_int8_t utf8d[] = 
+{
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 00..1f
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 20..3f
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 40..5f
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 60..7f
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9, // 80..9f
+  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, // a0..bf
+  8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, // c0..df
+  0xa,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x3,0x4,0x3,0x3, // e0..ef
+  0xb,0x6,0x6,0x6,0x5,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8,0x8, // f0..ff
+  0x0,0x1,0x2,0x3,0x5,0x8,0x7,0x1,0x1,0x1,0x4,0x6,0x1,0x1,0x1,0x1, // s0..s0
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1, // s1..s2
+  1,2,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1, // s3..s4
+  1,2,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,3,1,1,1,1,1,1, // s5..s6
+  1,3,1,1,1,1,1,3,1,3,1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1, // s7..s8
+};
 
 /* ****************************************************** */
 
@@ -614,6 +637,47 @@ bool Utils::isUserAdministrator(lua_State* vm) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, username);
     return(false); /* Unknown */
   }
+}
+
+/* **************************************************** */
+
+/** 
+ * @brief decode (inline): function used to decode utf-8 char of a string.
+ * Support of hygenize function.
+ *
+ * @param state, codep, byte 
+*/
+void inline decode(u_int32_t* state, u_int32_t* codep, u_int32_t byte) {
+  u_int32_t type = utf8d[byte];
+
+  // 0x3F : 00111111
+
+  *codep = (*state != UTF8_ACCEPT) ? (byte & 0x3fu) | (*codep << 6) : (0xff >> type) & (byte);
+  
+  *state = utf8d[256 + *state*16 + type];
+}
+
+/**
+ * @brief hygenize: function to hygenize a string containing UTF-8 characters
+ *
+ * @param data: the string to hygenize
+*/
+const char * Utils::hygenize(const char * data) {
+  
+  u_int32_t codepoint;
+  u_int32_t state = 0;
+  u_int8_t * s = (u_int8_t*) data;
+  std::string str;
+  
+  for(; *s; ++s)
+    decode(&state, &codepoint, *s);
+
+  if(state != UTF8_ACCEPT)
+    return NULL;
+  
+  str.assign((data));
+
+  return str.c_str();
 }
 
 /* **************************************************** */

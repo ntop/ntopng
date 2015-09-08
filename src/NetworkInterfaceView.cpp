@@ -37,21 +37,27 @@ NetworkInterfaceView::NetworkInterfaceView(NetworkInterface *intf) {
 
 NetworkInterfaceView::NetworkInterfaceView(const char *name, int id) {
   istringstream ss(name);
-  string cmdtok, ifname, desc = "";
+  string cmdtok, ifacetok, ifname, desc = "";
   NetworkInterface *intf = NULL;
-  int cmdcnt;
+  int cmdtok_len = 0;
 
   assert(name);
+  
+  // convert char * name to string name
+  std::string name_str(name);
+  
+  /* NOTE: this is to be called only for merged interfaces view! */
+  std::getline(ss, cmdtok, ':');
+  
+  cmdtok_len = cmdtok.length();
+  
+  assert(cmdtok == "view");
+  
+  // read the interfaces name to be merged
+  ifacetok = name_str.substr(cmdtok_len + 1);
 
-  cmdcnt = 0;
-  while(std::getline(ss, cmdtok, ':')) {
-    /* NOTE: this is to be called only for merged interfaces view! */
-    assert(cmdcnt != 0 || cmdtok == "view");
-    cmdcnt++;
-  }
-
-  /* cmdtok keeps the interfaces */
-  istringstream st(cmdtok);
+  /* ifacetok keeps the interfaces */
+  istringstream st(ifacetok);
   num_intfs = 0;
   while(std::getline(st, ifname, ',')) {
     intf = ntop->getNetworkInterface(ifname.c_str());
