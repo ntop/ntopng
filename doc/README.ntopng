@@ -118,13 +118,13 @@ Using ntopng from Windows
 Defaults
 --------
 The ntopng default user is 'admin' (without ') and the default
-passoword is also 'admin' (without ').
+passoword is also 'admin' (without ')
 
 
 Resetting admin user password
 -----------------------------
 1. shutdown ntopng
-2. redis-cli del user.admin.password
+2. redis-cli del ntopng.user.admin.password
 3. restart ntopng and now the admin password has been reset
 
 
