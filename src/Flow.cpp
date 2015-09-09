@@ -1299,6 +1299,8 @@ json_object* Flow::flow2json(bool partial_dump) {
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 
   if(http.last_url && http.last_method) {
+    if(host_server_name && (host_server_name[0] != '\0'))
+      json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
     json_object_object_add(my_object, "HTTP_URL", json_object_new_string(http.last_url));
     json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(http.last_method));
     json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)http.last_return_code));
@@ -1616,7 +1618,15 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 	payload = &space[1];
 	if((space = strchr(payload, ' ')) != NULL) {
-	  u_int l = space-payload;
+	  u_int l = min_val(space-payload, 512); /* Avoid jumbo URLs */
+
+	  /* Stop at the first non-printable char of the HTTP URL */
+	  for(u_int i=0; i<l; i++) {
+	    if(!isprint(payload[i])) {
+	      l = i;
+	      break;
+	    }
+	  }
 
 	  if(http.last_url) free(http.last_url);
 	  if((http.last_url = (char*)malloc(l+1)) != NULL) {
