@@ -23,6 +23,7 @@
     <script src="@HTTP_PREFIX@/js/pie-chart.js"></script>
     <script src="@HTTP_PREFIX@/js/gauge.js"></script>
     <script src="@HTTP_PREFIX@/js/crossfilter.js"></script>
+    <script src="@HTTP_PREFIX@/js/validator.js"></script>
     <script src="@HTTP_PREFIX@/js/dc.js"></script>
     <link href="@HTTP_PREFIX@/css/dc.css" rel="stylesheet">
 
