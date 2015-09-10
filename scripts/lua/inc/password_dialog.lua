@@ -107,13 +107,13 @@ end
 print [[<script>
 
   var frmpassreset = $('#form_password_reset');
-  rex = /^[a-zA-Z0-9]+$/;
+  rex = /^[a-zA-Z0-9\/\:\(\)\[\]\,\&\<\>\/\s/]+$/;
 
   frmpassreset.submit(function () {
 
     if($("#new_password_input").val().length < 5) { password_alert.error("Password too short (< 5 characters)"); return(false); }
     if($("#new_password_input").val() != $("#confirm_new_password_input").val()) { password_alert.error("Passwords don't match"); return(false); }
-    if(!rex.test($("#new_password_input").val())) { password_alert.error("Invalid character (only letters and number)"); return(false); }
+    if(!rex.test($("#new_password_input").val())) { password_alert.error("Invalid characters"); return(false); }
 
     $.ajax({
       type: frmpassreset.attr('method'),
