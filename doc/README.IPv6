@@ -1,0 +1,14 @@
+ntopng support HTTP binding over both IPv4 and IPv6, so you can connect to your ntopng web GUI using both IP versions.
+At the moment you can specify the listening ports for HTTP and HTTPS using --http-port=1234 and --https-port=5678
+but you cannot specify if you want to listen only on IPv4 or only on IPv6: ntopng will listen on both IP versions
+is available (or only on the available IP version).
+
+If you see that ntopng does not listen on IPv6 and/or IPv4 please check the following setup
+
+Linux
+sysctl net.ipv6.bindv6only=0 
+
+FreeBSD
+sysctl net.inet6.ip6.v6only=0
+
+and make sure that IPv4 and IPv6 
