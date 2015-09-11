@@ -66,7 +66,12 @@ end
 
 
 
-print [[</font></div> <!-- End column 1 -->
+print [[</font>
+
+<iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+<iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+
+</div> <!-- End column 1 -->
 	<div class="col-xs-6 col-sm-4">
 	<div class="row">
 	 <div class="text-center col-xs-6 col-sm-6">
