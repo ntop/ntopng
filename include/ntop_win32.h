@@ -211,6 +211,7 @@ struct ip6_ext
 #define localtime_r(a, b) localtime(a)
 
 extern unsigned int sleep(unsigned int seconds);
+extern void usleep(__int64 usec);
 
 
 extern int inet_aton(const char *cp, struct in_addr *addr);

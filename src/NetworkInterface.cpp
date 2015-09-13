@@ -975,7 +975,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
   if(h->len > ifMTU) {
     if(!mtuWarningShown) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][caplen: %u].", h->len, h->caplen);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][MTU: %u].", h->len, ifMTU);
       ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
 #ifdef linux
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Use: sudo ethtool -K %s gro off gso off tso off", ifname);

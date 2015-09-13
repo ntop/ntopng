@@ -364,11 +364,11 @@ void print_funct(prefix_t *prefix, void *data, void *user_data) {
   if(!prefix) return;
 
   if(prefix->family == AF_INET) {
-    if((prefix->bitlen == 0) or (prefix->bitlen == 32)) return;
+    if((prefix->bitlen == 0) || (prefix->bitlen == 32)) return;
 
     a = Utils::intoaV4(ntohl(prefix->add.sin.s_addr), address, sizeof(address));
   } else {
-    if((prefix->bitlen == 0) or (prefix->bitlen == 128)) return;
+    if((prefix->bitlen == 0) || (prefix->bitlen == 128)) return;
 
     a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6), prefix->bitlen, address, sizeof(address));
   }

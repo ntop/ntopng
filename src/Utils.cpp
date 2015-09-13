@@ -186,7 +186,7 @@ char *Utils::trim(char *s) {
 /* ****************************************************** */
 
 u_int32_t Utils::hashString(char *key) {
-  u_int32_t hash = 0, len = strlen(key);
+	u_int32_t hash = 0, len = (u_int32_t)strlen(key);
 
   for(u_int32_t i=0; i<len; i++)
     hash += ((u_int32_t)key[i])*i;
@@ -1201,6 +1201,9 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 /* **************************************** */
 
 u_int32_t Utils::getIfMTU(const char *ifname) {
+#ifdef WIN32
+	return(CONST_DEFAULT_MTU);
+#else
   struct ifreq ifr;
   u_int32_t mtu = CONST_DEFAULT_MTU; /* Default MTU */
   int fd;
@@ -1221,6 +1224,7 @@ u_int32_t Utils::getIfMTU(const char *ifname) {
   }
 
   return(mtu);
+#endif
 }
 
 /* **************************************** */
@@ -1290,7 +1294,7 @@ bool Utils::isGoodNameToCategorize(char *name) {
 char* Utils::get2ndLevelDomain(char *_domainname) {
   int i, found = 0;
 
-  for(i=strlen(_domainname)-1, found = 0; (found != 2) && (i > 0); i--) {
+  for(i=(int)strlen(_domainname)-1, found = 0; (found != 2) && (i > 0); i--) {
     if(_domainname[i] == '.') {
       found++;
 

@@ -131,7 +131,9 @@ Ntop::Ntop(char *appName) {
 
   udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
+#ifndef WIN32
   setservent(1);
+#endif
 }
 
 /* ******************************************* */

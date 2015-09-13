@@ -1203,9 +1203,9 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
     char ip[64];
 
     snprintf(ip, sizeof(ip), "%s", host_ip); /* don't rely on host_ip as strtok_r() doesn't always behave correctly */
-    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? : "*", ip, vlan_id);
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? key : "*", ip, vlan_id);
   } else {
-    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS", key ? : "*");
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS", key ? key : "*");
   }
 
   if(ntop_interface) {
