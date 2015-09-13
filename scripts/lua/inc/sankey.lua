@@ -2,7 +2,7 @@
 -- (C) 2014-15-15 - ntop.org
 --
 
-ifstats = interface.getStats()
+_ifstats = interface.getStats()
 
 print [[
 
@@ -39,7 +39,7 @@ print [[
 <script>
 ]]
 -- Create javascript vlan boolean variable
-if (ifstats.iface_vlan) then print("var iface_vlan = true;") else print("var iface_vlan = false;") end
+if (_ifstats.iface_vlan) then print("var iface_vlan = true;") else print("var iface_vlan = false;") end
 
 print [[
 
@@ -202,9 +202,9 @@ print [[/lua/host_details.lua?host="+escape(d.host)+"@"+escape(d.vlan);  })
 
 elseif(active_sankey == "comparison") then
 
-ifstats = interface.getStats()
+_ifstats = interface.getStats()
 
-if(ifstats.iface_sprobe) then
+if(_ifstats.iface_sprobe) then
    url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"
 else
    url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"

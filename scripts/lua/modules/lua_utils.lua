@@ -10,9 +10,9 @@ function getInterfaceName(interface_id)
    interface_id = tonumber(interface_id)
    for _,if_name in pairs(ifnames) do
       interface.select(if_name)
-      ifstats = interface.getStats()
-      if(ifstats.id == interface_id) then
-	 return(ifstats.name) 
+      _ifstats = interface.getStats()
+      if(_ifstats.id == interface_id) then
+	 return(_ifstats.name) 
       end
    end
    
@@ -726,8 +726,8 @@ function getInterfaceId(interface_name)
 
   for _,if_name in pairs(ifnames) do
      interface.select(if_name)
-     ifstats = interface.getStats()
-    if(ifstats.name == interface_name) then return(ifstats.id) end
+     _ifstats = interface.getStats()
+    if(_ifstats.name == interface_name) then return(_ifstats.id) end
   end
 
   return(-1)
@@ -1404,14 +1404,14 @@ function getHumanReadableInterfaceName(interface_id)
       return(custom_name)
    else
       interface.select(interface_id)
-      ifstats = interface.getStats()
+      _ifstats = interface.getStats()
       
-      -- print(interface_id.."="..ifstats.name)
+      -- print(interface_id.."=".._ifstats.name)
       
-      if((interface_id ~= ifstats.description) and (ifstats.description ~= "PF_RING")) then
-	 return(ifstats.description)
+      if((interface_id ~= _ifstats.description) and (_ifstats.description ~= "PF_RING")) then
+	 return(_ifstats.description)
       else
-	 return(ifstats.name)
+	 return(_ifstats.name)
       end
    end
 end
@@ -1464,9 +1464,9 @@ function harvestJSONTopTalkers(days)
    ifnames = interface.getIfNames()
    for _,ifname in pairs(ifnames) do
       interface.select(ifname)
-      local ifstats = interface.getStats()
+      local _ifstats = interface.getStats()
       local dirs = ntop.getDirs()
-      local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id)
+      local basedir = fixPath(dirs.workingdir .. "/" .. _ifstats.id)
 
       harvestUnusedDir(fixPath(basedir .. "/top_talkers"), when)
       harvestUnusedDir(fixPath(basedir .. "/flows"), when)

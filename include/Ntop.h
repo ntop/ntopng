@@ -337,7 +337,7 @@ class Ntop {
   bool addUser(char *username, char *full_name, char *password, char *host_role, char *allowed_networks);
   bool deleteUser(char *username);
   void setWorkingDir(char *dir);
-  void fixPath(char *str);
+  void fixPath(char *str, bool replaceDots = true);
   void removeTrailingSlash(char *str);
   void daemonize();
   void shutdown();

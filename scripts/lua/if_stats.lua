@@ -88,9 +88,11 @@ if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
    end
 end
 
+
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
 active_page = "if_stats"
+
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
@@ -102,6 +104,7 @@ else
 end
 
 url= ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name=' .. _ifname
+
 
 --   Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface

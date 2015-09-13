@@ -364,13 +364,16 @@ static int handle_lua_request(struct mg_connection *conn) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
     struct stat buf;
+    bool found;
 
     snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
 	     Utils::getURL((strlen(request_info->uri) == 1) ? (char*)"/lua/index.lua" : request_info->uri,
 			   uri, sizeof(uri)));
 
     ntop->fixPath(path);
-    if((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) {
+    found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+      
+    if(found) {
       Lua *l = new Lua();
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s [%s]", request_info->uri, path);

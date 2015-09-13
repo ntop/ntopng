@@ -24,7 +24,7 @@ print(info["product"])
 iface_id = interface.name2id(ifname)
 
 interface.select(ifname)
-ifstats = interface.getStats()
+_ifstats = interface.getStats()
 
 if(info["pro.release"]) then
    print(" Professional")
@@ -39,14 +39,17 @@ end
 print(" v."..info["version"])
 
 print("</br>for user ")
-print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua">'.._SESSION["user"].. '</a> and interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='.. ifname..'">' .. ifstats.description..'</a>')
-
+print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua">'.._SESSION["user"].. '</a> and interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='.. ifname..'">')
 
 alias = getInterfaceNameAlias(ifname)
 
 if(alias ~= ifname) then
-   print("&nbsp;(".. custom_name ..")")
+   print(alias)
+else
+   print(_ifstats.description)
 end
+
+print('</a>')
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 	print('<br><A HREF='..ntop.getHttpPrefix()..'/lua/about.lua> <span class="badge badge-warning">')

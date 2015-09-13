@@ -1,4 +1,4 @@
- /*
+/*
  *
  * (C) 2013-15 - ntop.org
  *
@@ -610,9 +610,9 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
 		     zflow->pkt_sampling_rate*zflow->out_pkts,
 		     zflow->pkt_sampling_rate*zflow->out_bytes,
 		     zflow->last_switched);
-    p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    flow->setDetectedProtocol(p);
-    flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
+  p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+  flow->setDetectedProtocol(p);
+  flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
   flow->updateInterfaceStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
@@ -1198,7 +1198,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
     if(h->caplen >= ip_offset) {
       u_int16_t frag_off;
       struct ndpi_iphdr *iph = (struct ndpi_iphdr *) &packet[ip_offset];
-			struct ndpi_ip6_hdr *ip6 = NULL;
+      struct ndpi_ip6_hdr *ip6 = NULL;
 
       if(iph->version != 4) {
 	/* This is not IPv4 */
@@ -1235,44 +1235,44 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	}
 
 	if((sport == CAPWAP_DATA_PORT) || (dport == CAPWAP_DATA_PORT)) {
-		/*
-			Control And Provisioning of Wireless Access Points
+	  /*
+	    Control And Provisioning of Wireless Access Points
 
-			https://www.rfc-editor.org/rfc/rfc5415.txt
+	    https://www.rfc-editor.org/rfc/rfc5415.txt
 
-			CAPWAP Header          - variable length (5 MSB of byte 2 of header)
-			IEEE 802.11 Data Flags - 24 bytes
-			Logical-Link Control   - 8  bytes
+	    CAPWAP Header          - variable length (5 MSB of byte 2 of header)
+	    IEEE 802.11 Data Flags - 24 bytes
+	    Logical-Link Control   - 8  bytes
 
-			Total = CAPWAP_header_length + 24 + 8
-		*/
-		u_short eth_type;
-		ip_offset = ip_offset+ip_len+sizeof(struct ndpi_udphdr);
-		u_int8_t capwap_header_len = ((*(u_int8_t*)&packet[ip_offset+1])>>3)*4;
-		ip_offset = ip_offset+capwap_header_len+24+8;
+	    Total = CAPWAP_header_length + 24 + 8
+	  */
+	  u_short eth_type;
+	  ip_offset = ip_offset+ip_len+sizeof(struct ndpi_udphdr);
+	  u_int8_t capwap_header_len = ((*(u_int8_t*)&packet[ip_offset+1])>>3)*4;
+	  ip_offset = ip_offset+capwap_header_len+24+8;
 
-		if(ip_offset >= h->len){
-			return(pass_verdict);
-		}
-		eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
+	  if(ip_offset >= h->len){
+	    return(pass_verdict);
+	  }
+	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
-		switch(eth_type){
-			case ETHERTYPE_IP:
-			  iph = (struct ndpi_iphdr *) &packet[ip_offset];
-				break;
-			case ETHERTYPE_IPV6:
-			  iph = NULL;
-				ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
-				break;
-			default:
-				return(pass_verdict);
-		}
+	  switch(eth_type){
+	  case ETHERTYPE_IP:
+	    iph = (struct ndpi_iphdr *) &packet[ip_offset];
+	    break;
+	  case ETHERTYPE_IPV6:
+	    iph = NULL;
+	    ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
+	    break;
+	  default:
+	    return(pass_verdict);
+	  }
 	}
       }
 
       try {
 	pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id, iph,
-		ip6, h->caplen - ip_offset, h->caplen,
+					ip6, h->caplen - ip_offset, h->caplen,
 					h, packet, a_shaper_id, b_shaper_id);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
@@ -1287,67 +1287,67 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
   case ETHERTYPE_IPV6:
     if(h->caplen >= ip_offset) {
-			struct ndpi_iphdr *iph = NULL;
+      struct ndpi_iphdr *iph = NULL;
       struct ndpi_ip6_hdr *ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
 
       if((ntohl(ip6->ip6_ctlun.ip6_un1.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
 	return(pass_verdict);
       } else {
-				u_int ipv6_shift = sizeof(const struct ndpi_ip6_hdr);
-				u_int8_t l4_proto = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
-				if(l4_proto == 0x3C /* IPv6 destination option */) {
-					u_int8_t *options = (u_int8_t*)ip6 + ipv6_shift;
-					l4_proto = options[0];
-					ipv6_shift = 8 * (options[1] + 1);
-				}
-				if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)){
-					ip_offset += ipv6_shift;
-					if(ip_offset >= h->len){
-						return(pass_verdict);
-					}
-					struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset];
-					u_int16_t sport = udp->source,  dport = udp->dest;
+	u_int ipv6_shift = sizeof(const struct ndpi_ip6_hdr);
+	u_int8_t l4_proto = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+	if(l4_proto == 0x3C /* IPv6 destination option */) {
+	  u_int8_t *options = (u_int8_t*)ip6 + ipv6_shift;
+	  l4_proto = options[0];
+	  ipv6_shift = 8 * (options[1] + 1);
+	}
+	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)){
+	  ip_offset += ipv6_shift;
+	  if(ip_offset >= h->len){
+	    return(pass_verdict);
+	  }
+	  struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset];
+	  u_int16_t sport = udp->source,  dport = udp->dest;
 
-					if((sport == CAPWAP_DATA_PORT) || (dport == CAPWAP_DATA_PORT)) {
-						/*
-	      			Control And Provisioning of Wireless Access Points
+	  if((sport == CAPWAP_DATA_PORT) || (dport == CAPWAP_DATA_PORT)) {
+	    /*
+	      Control And Provisioning of Wireless Access Points
 
-	      			https://www.rfc-editor.org/rfc/rfc5415.txt
+	      https://www.rfc-editor.org/rfc/rfc5415.txt
 
-	      			CAPWAP Header          - variable length (5 MSB of byte 2 of header)
-	      			IEEE 802.11 Data Flags - 24 bytes
-	      			Logical-Link Control   - 8  bytes
+	      CAPWAP Header          - variable length (5 MSB of byte 2 of header)
+	      IEEE 802.11 Data Flags - 24 bytes
+	      Logical-Link Control   - 8  bytes
 
-	      			Total = CAPWAP_header_length + 24 + 8
-	     			*/
+	      Total = CAPWAP_header_length + 24 + 8
+	    */
 
-						u_short eth_type;
-						ip_offset = ip_offset+sizeof(struct ndpi_udphdr);
-						u_int8_t capwap_header_len = ((*(u_int8_t*)&packet[ip_offset+1])>>3)*4;
-						ip_offset = ip_offset+capwap_header_len+24+8;
+	    u_short eth_type;
+	    ip_offset = ip_offset+sizeof(struct ndpi_udphdr);
+	    u_int8_t capwap_header_len = ((*(u_int8_t*)&packet[ip_offset+1])>>3)*4;
+	    ip_offset = ip_offset+capwap_header_len+24+8;
 
-						if(ip_offset >= h->len){
-							return(pass_verdict);
-						}
-						eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
+	    if(ip_offset >= h->len){
+	      return(pass_verdict);
+	    }
+	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
-						switch(eth_type){
-							case ETHERTYPE_IP:
-							  iph = (struct ndpi_iphdr *) &packet[ip_offset];
-								ip6 = NULL;
-								break;
-							case ETHERTYPE_IPV6:
-								ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
-								break;
-							default:
-								return(pass_verdict);
-						}
-					}
-				}
+	    switch(eth_type){
+	    case ETHERTYPE_IP:
+	      iph = (struct ndpi_iphdr *) &packet[ip_offset];
+	      ip6 = NULL;
+	      break;
+	    case ETHERTYPE_IPV6:
+	      ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
+	      break;
+	    default:
+	      return(pass_verdict);
+	    }
+	  }
+	}
 	try {
 	  pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id,
-			iph, ip6, h->len - ip_offset, h->len,
+					  iph, ip6, h->len - ip_offset, h->len,
 					  h, packet, a_shaper_id, b_shaper_id);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
@@ -1629,9 +1629,9 @@ void NetworkInterface::getActiveHostsList(lua_State* vm,
 /* **************************************************** */
 
 void NetworkInterface::getCommunityHostsList(lua_State* vm,
-					  vm_ptree *vp,
-					  bool host_details,
-					  int community_id) {
+					     vm_ptree *vp,
+					     bool host_details,
+					     int community_id) {
   struct community_user_data cd;
 
   cd.vp = vp;
