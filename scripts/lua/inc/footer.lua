@@ -41,6 +41,13 @@ print(" v."..info["version"])
 print("</br>for user ")
 print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua">'.._SESSION["user"].. '</a> and interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='.. ifname..'">' .. ifstats.description..'</a>')
 
+
+alias = getInterfaceNameAlias(ifname)
+
+if(alias ~= ifname) then
+   print("&nbsp;(".. custom_name ..")")
+end
+
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 	print('<br><A HREF='..ntop.getHttpPrefix()..'/lua/about.lua> <span class="badge badge-warning">')
 	if(info["pro.release"]) then
@@ -57,19 +64,10 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 end
 
 
-key = 'ntopng.prefs.'..ifname..'.name'
-custom_name = ntop.getCache(key)
-
-if((custom_name ~= nil) and (custom_name ~= "")) then
-	print(" (".. custom_name ..")")
-end
-
 
 
 print [[</font>
-
-<iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
-<iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+	 <iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
 
 </div> <!-- End column 1 -->
 	<div class="col-xs-6 col-sm-4">

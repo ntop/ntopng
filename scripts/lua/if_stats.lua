@@ -218,7 +218,7 @@ if((page == "overview") or (page == nil)) then
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
 
    if(ifstats.name ~= nil) then
-      label = ntop.getCache('ntopng.prefs.'..ifstats.name..'.name')
+      label = getInterfaceNameAlias(ifstats.name)
       if(not isAdministrator()) then
 	 print("<td>")
       else

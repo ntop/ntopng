@@ -19,6 +19,9 @@ function getInterfaceName(interface_id)
    return("")
 end
 
+function getInterfaceId(interface_name)
+   return(interface.name2id(interface_name))
+end
 
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
@@ -1384,6 +1387,15 @@ function tablePreferences(key, value)
 end
 
 
+function getInterfaceNameAlias(interface_name)
+   label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
+   if((label == nil) or (label == "")) then
+      return(interface_name)
+   else
+      return(label)
+   end
+end
+
 function getHumanReadableInterfaceName(interface_id)
    key = 'ntopng.prefs.'..interface_id..'.name'
    custom_name = ntop.getCache(key)
@@ -1555,17 +1567,13 @@ function startswith(s, char)
 end
 
 -- strsplit
-function strsplit(inputstr, sep)
-  if (inputstr == nil or inputstr == "") then return {} end
-  if sep == nil then
-    sep = "%s"
-  end
-  local t={} ; i=1
-  for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-    t[i] = str
-    i = i + 1
-  end
-  return t
+
+function strsplit(s, delimiter)
+   result = {};
+   for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+      if(match ~= "") then result[match] = true end
+   end
+    return result;
 end
 
 -- isempty
@@ -1584,6 +1592,15 @@ function isin(s, array)
     if (s == v) then return true end
   end
   return false
+end
+
+-- hasKey
+function hasKey(key, theTable)
+   if((theTable == nil) or (theTable[key] == nil)) then
+      return(false)
+   else
+      return(true)
+   end
 end
 
 -- maxRateToString
