@@ -223,6 +223,7 @@ class Flow : public GenericHashEntry {
 
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
+  void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id);
 };
 
 #endif /* _FLOW_H_ */

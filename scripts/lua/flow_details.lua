@@ -166,15 +166,40 @@ else
    if(flow["verdict.pass"] == false) then print("</strike>") end
    print("</td>")
 
-   if(ifstats.iface_inline and flow["verdict.pass"]) then
-      print('<td><form class="form-inline" style="margin-bottom: 0px;"><input type="hidden" name="flow_key" value="'..flow_key..'">')
-      print('<input type="hidden" name="drop_flow_policy" value="true">')
-      print('<button style="position: relative; margin-top: 0; height: 26px" type="submit" class="btn btn-default btn-xs"><i class="fa fa-ban"></i> Drop Flow Traffic</button>')
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('</form></td>')
+   if(ifstats.iface_inline) then
+      print('<td>')
+      if(flow["verdict.pass"]) then
+	 print('<form class="form-inline" style="margin-bottom: 0px;"><input type="hidden" name="flow_key" value="'..flow_key..'">')
+	 print('<input type="hidden" name="drop_flow_policy" value="true">')
+	 print('<button style="position: relative; margin-top: 0; height: 26px" type="submit" class="btn btn-default btn-xs"><i class="fa fa-ban"></i> Drop Flow Traffic</button>')
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('</form>')
+      end
+
+      print('</td>')
+   end
+   print("</tr>\n")
+
+   if(ifstats.iface_inline and (flow["shaper.cli2srv_a"] ~= nil)) then
+      print("<tr><th width=30% rowspan=2>Flow Shapers</th>")
+      c = flowinfo2hostname(flow,"cli",ifstats.iface_vlan)
+      s = flowinfo2hostname(flow,"srv",ifstats.iface_vlan)
+      
+      shaper_key = "ntopng.prefs."..ifstats.id..".shaper_max_rate"
+      
+      cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_a"]) if(cli_max_rate == "") then cli_max_rate = -1 end
+      srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_b"]) if(srv_max_rate == "") then srv_max_rate = -1 end
+      max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
+      
+      cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_a"]) if(cli_max_rate == "") then cli_max_rate = -1 end
+      srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_b"]) if(srv_max_rate == "") then srv_max_rate = -1 end
+      max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
+      print("</tr>")
    end
 
-   print("</tr>\n")
+
    print("<tr><th width=30%>First / Last Seen</th><td nowrap><div id=first_seen>" .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " ago]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " ago]" .. "</div></td></tr>\n")
 

@@ -4597,22 +4597,23 @@ void Lua::purifyHTTPParameter(char *param) {
       ampercent[3] = '\0';      
       c = (char)strtol(&ampercent[1], NULL, 16);
       ampercent[3] = b;
-
+      
       switch(c) {
       case '/':
       case ':':
       case '(':
       case ')':
-	  case '{':
-	  case '}':
+      case '{':
+      case '}':
       case '[':
       case ']':
-	  case '?':
+      case '?':
       case ',':
       case '&':
       case ' ':
       case '<':
       case '>':
+      case '@':
 	break;
 	
       default:

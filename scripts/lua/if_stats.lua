@@ -1041,22 +1041,7 @@ print [[
       max_rate = ntop.getHashCache(shaper_key, i)
 
       if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
-      max_rate = tonumber(max_rate)
-      if(max_rate == -1) then
-	 print("No Limit")
-      else
-	 if(max_rate == 0) then
-	    print("Drop All Traffic")
-	 else
-	    if(max_rate < 1024) then
-	       print(max_rate.." Kbps")
-	    else
-	       local mr
-	       mr = round(max_rate / 1024, 2)
-	       print(mr.." Mbps")
-	    end
-	 end
-      end
+      print(maxRateToString(tonumber(max_rate)))
       print(")</option>\n")
    end
 

@@ -1771,3 +1771,20 @@ end
 function intToIPv4(num)
    return(math.floor(num / 2^24).. "." ..math.floor((num % 2^24) / 2^16).. "." ..math.floor((num % 2^16) / 2^8).. "." ..num % 2^8)
 end
+
+function getFlowMaxRate(cli_max_rate, srv_max_rate)
+   cli_max_rate = tonumber(cli_max_rate)
+   srv_max_rate = tonumber(srv_max_rate)
+
+   if((cli_max_rate == 0) or (srv_max_rate == 0)) then
+      max_rate = 0
+      elseif((cli_max_rate == -1) and (srv_max_rate > 0)) then
+      max_rate = srv_max_rate
+      elseif((cli_max_rate > 0) and (srv_max_rate == -1)) then
+      max_rate = cli_max_rate
+   else
+      max_rate = math.min(cli_max_rate, srv_max_rate)
+   end
+
+   return(max_rate)
+end

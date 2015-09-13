@@ -925,12 +925,7 @@ bool NetworkInterface::packetProcessing(
 
     pass_verdict = flow->isPassVerdict();
 
-    if(flow->get_cli_host() && flow->get_srv_host()) {
-      if(src2dst_direction)
-	*a_shaper_id = flow->get_cli_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_srv_host()->get_ingress_shaper_id();
-      else
-	*a_shaper_id = flow->get_srv_host()->get_egress_shaper_id(), *b_shaper_id = flow->get_cli_host()->get_ingress_shaper_id();
-    }
+    flow->getFlowShapers(src2dst_direction, a_shaper_id, b_shaper_id);
   } else
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,

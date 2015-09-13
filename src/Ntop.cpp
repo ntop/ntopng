@@ -340,11 +340,12 @@ void Ntop::loadLocalInterfaceAddress() {
        || ((ifa->ifa_flags & IFF_UP) == 0))
       continue;
 
-    for(int i=0; i<num_defined_interfaces; i++)
-      if(strcmp(iface[i]->get_name(), ifa->ifa_name) == 0) {
+    for(int i=0; i<num_defined_interfaces; i++) {
+      if(strstr(iface[i]->get_name(), ifa->ifa_name)) {
 	ifId = i;
 	break;
       }
+    }
 
     if(ifId == -1)
       continue;
@@ -367,10 +368,12 @@ void Ntop::loadLocalInterfaceAddress() {
       }
       
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
+#ifdef ADD_INTERFACE_ADDRESSES
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 32);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig, iface[ifId]->get_name());
 	ptree_add_rule(local_interface_addresses, buf_orig);
 	iface[ifId]->addInterfaceAddress(buf_orig);
+#endif
 
 	/* Set to zero non network bits */
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
@@ -394,10 +397,12 @@ void Ntop::loadLocalInterfaceAddress() {
       
       s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
+#ifdef ADD_INTERFACE_ADDRESSES
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 128);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 interface address for %s", buf_orig, iface[ifId]->get_name());
 	address->addLocalNetwork(buf_orig);
 	iface[ifId]->addInterfaceAddress(buf_orig);
+#endif
 
 	for(u_int32_t i = cidr, j = 0; i > 0; i -= 8, ++j)
 	  s6->sin6_addr.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );

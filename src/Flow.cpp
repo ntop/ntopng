@@ -1002,6 +1002,19 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
         lua_push_str_table_entry(vm, "http.last_method", http.last_method);
         lua_push_int_table_entry(vm, "http.last_return_code", http.last_return_code);
       }
+
+      /* Shapers */
+      if(cli_host && srv_host) {
+	int a, b;
+
+	getFlowShapers(true, &a, &b);
+	lua_push_int_table_entry(vm, "shaper.cli2srv_a", a);
+	lua_push_int_table_entry(vm, "shaper.cli2srv_b", b);
+
+	getFlowShapers(false, &a, &b);
+	lua_push_int_table_entry(vm, "shaper.srv2cli_a", a);
+	lua_push_int_table_entry(vm, "shaper.srv2cli_b", b);
+      }
     }
 
     if(http.last_method && http.last_url)
@@ -1361,11 +1374,16 @@ void Flow::addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes,
 }
 
 /* *************************************** */
+
+void Flow::updateTcpFlags(
+
 #ifdef __OpenBSD__
-void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags, bool src2dst_direction) {
+			  const struct bpf_timeval *when,
 #else
-void Flow::updateTcpFlags(const struct timeval *when, u_int8_t flags, bool src2dst_direction) {
+			  const struct timeval *when,
 #endif
+			  u_int8_t flags, bool src2dst_direction) {
+
 #if 0
   if((flags == TH_SYN)
      && ((src2dst_tcp_flags | dst2src_tcp_flags) == TH_SYN) /* SYN was already received */
@@ -1452,11 +1470,13 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 
 /* *************************************** */
 
+void Flow::updateTcpSeqNum(
 #ifdef __OpenBSD__
-void Flow::updateTcpSeqNum(const struct bpf_timeval *when, u_int32_t seq_num,
+			   const struct bpf_timeval *when,
 #else
-void Flow::updateTcpSeqNum(const struct timeval *when, u_int32_t seq_num,
+			   const struct timeval *when,
 #endif
+			   u_int32_t seq_num,
 			   u_int32_t ack_seq_num, u_int8_t flags,
 			   u_int16_t payload_Len, bool src2dst_direction) {
   u_int32_t next_seq_num;
@@ -1718,4 +1738,17 @@ char* Flow::get_detected_protocol_name() {
   }
 
   return(ndpi_proto_name);
-};
+}
+
+/* *************************************** */
+
+void Flow::getFlowShapers(bool src2dst_direction,
+			  int *a_shaper_id, int *b_shaper_id) {  
+  if(cli_host && srv_host) {
+    if(src2dst_direction)
+      *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id();
+    else
+      *a_shaper_id = srv_host->get_egress_shaper_id(), *b_shaper_id = cli_host->get_ingress_shaper_id();
+  } else
+    *a_shaper_id = *b_shaper_id = 0;  
+}
