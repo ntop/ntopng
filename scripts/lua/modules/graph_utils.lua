@@ -20,6 +20,50 @@ end
 
 -- ########################################################
 
+function getProtoVolume(ifName, start_time, end_time) 
+   ifId = getInterfaceId(ifName)
+   path = fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
+   rrds = ntop.readdir(path)
+ 
+   ret = { } 
+   for rrdFile,v in pairs(rrds) do
+      if((string.ends(rrdFile, ".rrd")) and (top_rrds[rrdFile] == nil)) then
+	 rrdname = getRRDName(ifId, nil, rrdFile)
+	 if(ntop.notEmptyFile(rrdname)) then	    
+	    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+	    local num_points_found = table.getn(fdata)
+
+	    accumulated = 0
+	    for i, v in ipairs(fdata) do
+	       for _, w in ipairs(v) do
+		  if(w ~= w) then
+		     -- This is a NaN
+		     v = 0
+		  else
+		     --io.write(w.."\n")
+		     v = tonumber(w)
+		     if(v < 0) then
+			v = 0
+		     end
+		  end
+	       end
+		  
+	       accumulated = accumulated + v
+	    end
+
+	    if(accumulated > 0) then
+	       rrdFile = string.sub(rrdFile, 1, string.len(rrdFile)-4)
+	       ret[rrdFile] = accumulated
+	    end
+	 end
+      end
+   end
+
+   return(ret)
+end
+
+-- ########################################################
+
 function navigatedir(url, label, base, path, go_deep, print_html)
    local shown = false
    local to_skip = false
