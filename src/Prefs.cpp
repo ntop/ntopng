@@ -734,6 +734,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifdef NTOPNG_PRO
     printf("Pro rev:   %s\n", NTOPNG_PRO_GIT_RELEASE);
     printf("System Id: %s\n", ntop->getPro()->get_system_id());
+    printf("Built on:  %s\n", PACKAGE_OS);
 #endif
     _exit(0);
     break;
