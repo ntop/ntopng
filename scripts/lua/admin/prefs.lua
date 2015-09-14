@@ -36,21 +36,22 @@ if(haveAdminPrivileges()) then
 		     "Bytes", "bps", "primary","Packets", "pps", "primary","toggle_thpt_content", "ntopng.prefs.thpt_content")
 
    -- ================================================================================
-   print('<tr><th colspan=2 class="info">Traffic Storage (RRD)</th></tr>')
+   print('<tr><th colspan=2 class="info">Traffic Metrics Storage (RRD)</th></tr>')
 
    toggleTableButton("RRDs For Local Hosts",
 		     "Toggle the creation of RRDs for local hosts. Turn it off to save storage space.",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation")
 
-   toggleTableButton("nDPI RRDs For Local Hosts",
-		     "Toggle the creation of nDPI RRDs for local hosts. Enable their creation allows you to keep application protocol statistics at the cost of using more disk space.",
+   toggleTableButton("nDPI RRDs For Local Hosts and Networks",
+		     "Toggle the creation of nDPI RRDs for local hosts and defined networks. Enable their creation allows you "..
+		     "to keep application protocol statistics at the cost of using more disk space.",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation")
 
    -- ================================================================================
    print('<tr><th colspan=2 class="info">Alerts</th></tr>')
 
    toggleTableButton("Alerts On Syslog",
-		     "Toggle the dump of alerts on syslog.",
+		     "Enable alerts logging on system syslog.",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_alert_syslog", "ntopng.prefs.alerts_syslog")
 
 if (ntop.isPro()) then

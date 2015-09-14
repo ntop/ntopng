@@ -82,8 +82,8 @@ else
 	    flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"	    
 	    flow["FLOW_URL"] = base.."&flow_idx="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
 	 else
-	    flow["CLIENT"] = client..":"..ntop.getservbyport(flow["L4_SRC_PORT"], lower_pname)
-	    flow["SERVER"] = server..":"..ntop.getservbyport(flow["L4_DST_PORT"], lower_pname)
+	    flow["CLIENT"] = client..":"..ntop.getservbyport(tonumber(flow["L4_SRC_PORT"]), lower_pname)
+	    flow["SERVER"] = server..":"..ntop.getservbyport(tonumber(flow["L4_DST_PORT"]), lower_pname)
 	    flow["PROTOCOL"] = pname
 	    flow["L7_PROTO"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"])))     
 	    flow["FLOW_URL"] = ""

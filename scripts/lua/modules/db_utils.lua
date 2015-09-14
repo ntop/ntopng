@@ -11,6 +11,30 @@ local db_debug = false
 
 --- ====================================================================
 
+function iptonumber(str)
+   local num = 0
+   for elem in str:gmatch("%d+") do
+      num = num * 256 + assert(tonumber(elem))
+   end
+   return num
+end
+
+
+function expandIpV4Network(net)
+   local prefix = net:match("/(.+)")
+   address = net:gsub("/.+","")
+
+   if(prefix == nil) then prefix = 32 end
+
+   local num_hosts = 2^(32-prefix)
+   local addr = iptonumber(address)
+
+   return({ addr, addr+num_hosts-1 })
+end
+
+
+--- ====================================================================
+
 function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, port, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
@@ -28,7 +52,9 @@ function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, por
 
    if((host ~= nil) and (host ~= "")) then 
       if(version == 4) then
-	 follow = follow .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
+	 rsp = expandIpV4Network(host)
+	 follow = follow .." AND ((IP_SRC_ADDR>="..rsp[1]..") AND (IP_SRC_ADDR <= "..rsp[2].."))"
+	 follow = follow .." OR ((IP_DST_ADDR>="..rsp[1]..") AND (IP_DST_ADDR <= "..rsp[2].."))"
       else
 	 follow = follow .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
       end
@@ -37,6 +63,8 @@ function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, por
    follow = follow .." order by "..sort_column.." "..sort_order.." limit "..max_num_flows.." OFFSET "..offset 
 
    sql = sql .. follow
+
+   -- io.write(sql.."\n")
 
    if(db_debug == true) then io.write(sql.."\n") end 
 

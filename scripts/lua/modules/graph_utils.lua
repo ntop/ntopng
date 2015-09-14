@@ -23,11 +23,13 @@ end
 function navigatedir(url, label, base, path, go_deep, print_html)
    local shown = false
    local to_skip = false
-   --print("<li> <b>(d)</b> "..path.."  </li>\n")
    local ret = { }
    local do_debug = false
+   local printed = false
+
    rrds = ntop.readdir(path)
    table.sort(rrds)
+
    for k,v in pairsByKeys(rrds, asc) do
       if(v ~= nil) then
 	 p = fixPath(path .. "/" .. v)
@@ -40,13 +42,14 @@ function navigatedir(url, label, base, path, go_deep, print_html)
 		  if(do_debug) then print(v.."<br>\n") end
 	       end
 	    end
-	 else
+	 else	    
 	    if(top_rrds[v] == nil) then
 	       if(label == "*") then
 		  to_skip = true
 	       else
 		  if(not(shown) and not(to_skip)) then
 		     if(print_html) then
+			if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
 			print('<li class="dropdown-submenu"><a tabindex="-1" href="#">'..label..'</a>\n<ul class="dropdown-menu">\n')
 		     end
 		     shown = true
@@ -61,7 +64,10 @@ function navigatedir(url, label, base, path, go_deep, print_html)
 	       ret[label] = what
 	       if(do_debug) then print(what.."<br>\n") end
 
-	       if(print_html) then print("<li> <A HREF="..url..what..">"..label.."</A>  </li>\n") end
+	       if(print_html) then 
+		  if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
+		  print("<li> <A HREF="..url..what..">"..label.."</A>  </li>\n") 
+	       end
 	    end
 	 end
       end
@@ -446,10 +452,13 @@ if(show_timeseries == 1) then
 ]]
 
 for k,v in pairs(top_rrds) do
-   print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+   rrdname = getRRDName(ifid, host, k)
+   if(ntop.notEmptyFile(rrdname)) then
+      print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+   end
 end
 
-   print('<li class="divider"></li>\n')
+--print('<li class="divider"></li>\n')
    dirs = ntop.getDirs()
    p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
    if(host ~= nil) then
@@ -579,8 +588,9 @@ if(names ~= nil) then
 	 print ","
       end
 
-      name = strsplit(names[elemId], "/")
-      name = name[#name]
+      --name = strsplit(names[elemId], "/")
+      --name = name[#name]
+      name = names[elemId]
       print ("{\nname: '".. name .. "',\n")
 
       print("color: palette.color(),\ndata: [\n")
@@ -1042,6 +1052,14 @@ function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, por
     <!-- Nav tabs -->
     <ul class="nav nav-tabs" role="tablist">
 ]]
+
+if(host ~= nil) then
+  local chunks = {host:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")}
+  if(#chunks == 4) then
+     limitv6="0"
+  end
+end
+
 
 selected = false
 if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then

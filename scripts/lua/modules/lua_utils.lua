@@ -1476,13 +1476,13 @@ end
  -- ############################################## 
 
 function isAdministrator()
-      local user_group = ntop.getUserGroup()
-      
-      if(user_group == "administrator") then 
-	 return(true)
-      else
-	 return(false)
-      end
+   local user_group = ntop.getUserGroup()
+   
+   if(user_group == "administrator") then 
+      return(true)
+   else
+      return(false)
+   end
 end
 
  -- ############################################## 

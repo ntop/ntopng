@@ -63,6 +63,6 @@ else
 end
 
 host_url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifname='..ifId..'&network='..network..'&page=historical'
-drawRRD(ifId, network_name, rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/network_details.lua?ifname='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+drawRRD(ifId, network_name, rrdfile, _GET["graph_zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -98,7 +98,9 @@ print("<tr><th>Platform</th><td>"..info["platform"].." - "..info["bits"] .." bit
 if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
    print("<tr><th>Built on</th><td>"..info["OS"].."</td></tr>\n") 
 end
-print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".._SESSION["user"].."</td></tr>\n")
+print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".._SESSION["user"].." [") 
+if(isAdministrator()) then print("Administrator") else print("Unprivileged User") end
+print("]</td></tr>\n")
 print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTime(info["uptime"]).."</td></tr>\n")
 print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
