@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 TODAY=`date +%y%m%d`
 NOW=`date +%s`
