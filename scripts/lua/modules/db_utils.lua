@@ -53,8 +53,8 @@ function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, por
    if((host ~= nil) and (host ~= "")) then 
       if(version == 4) then
 	 rsp = expandIpV4Network(host)
-	 follow = follow .." AND ((IP_SRC_ADDR>="..rsp[1]..") AND (IP_SRC_ADDR <= "..rsp[2].."))"
-	 follow = follow .." OR ((IP_DST_ADDR>="..rsp[1]..") AND (IP_DST_ADDR <= "..rsp[2].."))"
+	 follow = follow .." AND (((IP_SRC_ADDR>="..rsp[1]..") AND (IP_SRC_ADDR <= "..rsp[2].."))"
+	 follow = follow .." OR ((IP_DST_ADDR>="..rsp[1]..") AND (IP_DST_ADDR <= "..rsp[2]..")))"
       else
 	 follow = follow .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
       end
