@@ -175,8 +175,8 @@ char *Utils::trim(char *s) {
   if(s[0] == 0) return s;
 
   end = &s[strlen(s) - 1];
-  while(end > s 
-	&& (isspace(end[0])|| (end[0] == '"') || (end[0] == '\''))) 
+  while(end > s
+	&& (isspace(end[0])|| (end[0] == '"') || (end[0] == '\'')))
     end--;
   end[1] = 0;
 
@@ -605,6 +605,9 @@ bool Utils::isUserAdministrator(lua_State* vm) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%s): NO", __FUNCTION__, "???");
     return(false); /* Unknown */
   }
+
+  if(!strncmp(username, NTOP_NOLOGIN_USER, strlen(username)))
+    return(true);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
@@ -1211,12 +1214,12 @@ u_int32_t Utils::getIfMTU(const char *ifname) {
   memset(&ifr, 0, sizeof(ifr));
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
   ifr.ifr_addr.sa_family = AF_INET;
-  
+
   if((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
   } else {
     if(ioctl(fd, SIOCGIFMTU, &ifr) == -1)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read MTU for device %s", ifname);      
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read MTU for device %s", ifname);
     else
       mtu = ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
 
@@ -1249,7 +1252,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 
   // Do the work
   edata.cmd = ETHTOOL_GSET;
-  
+
   rc = ioctl(sock, SIOCETHTOOL, &ifr);
   if(rc < 0) {
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "I/O Control error [%s]", ifname);
@@ -1363,12 +1366,12 @@ char* Utils::intoaV4(unsigned int addr, char* buf, u_short bufLen) {
 
 char* Utils::intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_short bufLen) {
   char *ret;
-  
+
   for(u_int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
     ipv6.__u6_addr.__u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
-  
+
   ret = (char*)inet_ntop(AF_INET6, &ipv6, buf, bufLen);
-  
+
   if(ret == NULL) {
     /* Internal error (buffer too short) */
     buf[0] = '\0';
