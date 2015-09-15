@@ -158,9 +158,9 @@ end
 if(not(ifstats.iface_view)) then
    if(isAdministrator()) then
       if(page == "packetdump") then
-	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\">Packet Dump</a></li>")
+	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
       else
-	 print("<li><a href=\""..url.."&page=packetdump\">Packet Dump</a></li>")
+	 print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
       end
    end
 end
