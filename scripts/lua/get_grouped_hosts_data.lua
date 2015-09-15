@@ -30,20 +30,20 @@ end
 throughput_type = getThroughputType()
 
 if ((sortColumn == nil) or (sortColumn == "column_")) then
-  sortColumn = getDefaultTableSort(group_col)
-  --if(sortColumn == "column_") then sortColumn = "column_name" end	
+   sortColumn = getDefaultTableSort(group_col)
+   --if(sortColumn == "column_") then sortColumn = "column_name" end	
 else
-  if ((sortColumn ~= "column_") and (sortColumn ~= "")) then
+   if ((sortColumn ~= "column_") and (sortColumn ~= "")) then
       tablePreferences("sort_"..group_col,sortColumn)
-  end
+   end
 end
 
 if(sortOrder == nil) then
-  sortOrder = getDefaultTableSortOrder(group_col)
+   sortOrder = getDefaultTableSortOrder(group_col)
 else
-  if ((sortColumn ~= "column_") and (sortColumn ~= "")) then
-    tablePreferences("sort_order_"..group_col,sortOrder)
-  end
+   if ((sortColumn ~= "column_") and (sortColumn ~= "")) then
+      tablePreferences("sort_order_"..group_col,sortOrder)
+   end
 end
 
 if(currentPage == nil) then
@@ -55,8 +55,8 @@ end
 if(perPage == nil) then
    perPage = getDefaultTableSize()
 else
-  perPage = tonumber(perPage)
-  tablePreferences("rows_number",perPage)
+   perPage = tonumber(perPage)
+   tablePreferences("rows_number",perPage)
 end
 
 interface.select(ifname)
@@ -75,8 +75,8 @@ end
 to_skip = (currentPage-1) * perPage
 
 if (all ~= nil) then
-  perPage = 0
-  currentPage = 0
+   perPage = 0
+   currentPage = 0
 end
 
 if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil) then -- single group info requested
@@ -155,7 +155,7 @@ for key,value in pairs(hosts_stats) do
       stats_by_group_col[id]["bytes.sent"] = value["bytes.sent"] + ternary(existing, stats_by_group_col[id]["bytes.sent"], 0)
       stats_by_group_col[id]["bytes.rcvd"] = value["bytes.rcvd"] + ternary(existing, stats_by_group_col[id]["bytes.rcvd"], 0)
       stats_by_group_col[id]["country"] = value["country"]
-end
+   end
 end
 
 
@@ -173,7 +173,7 @@ function print_single_group(value)
       print("&nbsp&nbsp&nbsp "..getFlag(value["country"]).."&nbsp&nbsp")
    elseif (group_col == "os" or os_n ~= nil) then        
       print("hosts_stats.lua?os=".. string.gsub(value["id"], " ", '%%20')  .."'>")
-      if ( value["id"] ~= nil ) then
+      if(value["id"] ~= nil ) then
 	 print("".. getOSIcon(value["id"]) .."")
       end      
    elseif (group_col == "local_network_id" or network_n ~= nil) then
@@ -189,7 +189,6 @@ function print_single_group(value)
    end
 
    if (group_col == "local_network_id" or network_n ~= nil) then
-
       print(value["name"]..'</A> ')
 
       if(value["id"] ~= "-1") then
@@ -197,7 +196,7 @@ function print_single_group(value)
       end
 
       print('", ')
-      elseif((group_col == "mac") or (group_col == "antenna_mac")) then
+   elseif((group_col == "mac") or (group_col == "antenna_mac")) then
       print(get_symbolic_mac(value["id"])..'</A>", ')
    else
       print(value["id"]..'</A>", ')
@@ -218,8 +217,8 @@ function print_single_group(value)
       print("\"column_name\" : \""..printASN(tonumber(value["id"]), value["name"]))
    elseif ( group_col == "country" or country_n ~= nil) then
       print("\"column_name\" : \""..value["id"])
-   
-	elseif ( group_col == "os" or os_n ~= nil) then
+      
+   elseif ( group_col == "os" or os_n ~= nil) then
       print("\"column_name\" : \""..value["id"])
    else
       print("\"column_name\" : \""..value["name"])
@@ -230,8 +229,8 @@ function print_single_group(value)
 
    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
    print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
-          .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: "
-          .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
+	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: "
+	     .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
    print('", ')
 
    if (throughput_type == "pps") then
@@ -299,26 +298,28 @@ end
 
 vals = { } 
 for key,value in pairs(stats_by_group_col) do
-    v = stats_by_group_col[key]    
-if((key ~= nil) and (v ~= nil)) then
-   if(sortColumn == "column_id") then
-      vals[key] = key
-   elseif(sortColumn == "column_name") then
-      vals[v["name"]] = key
-   elseif(sortColumn == "column_since") then
-      vals[(now-v["seen.first"])] = key
-   elseif(sortColumn == "column_alerts") then
-      vals[(now-v["num_alerts"])] = key
-   elseif(sortColumn == "column_last") then
-      vals[(now-stats_by_group_key[col]["seen.last"]+1)] = key
-   elseif(sortColumn == "column_thpt") then
-      vals[v["throughput_"..throughput_type]] = key
-   elseif(sortColumn == "column_queries") then
-      vals[v["queries.rcvd"]] = key
-   else
-    vals[(v["bytes.sent"] + v["bytes.rcvd"])] = key	  
+   v = stats_by_group_col[key]    
+   if((key ~= nil) and (v ~= nil)) then
+      if(sortColumn == "column_id") then
+	 vals[key] = key
+      elseif(sortColumn == "column_name") then
+	 vals[v["name"]] = key
+      elseif(sortColumn == "column_hosts") then
+	 vals[v["num_hosts"]] = key
+      elseif(sortColumn == "column_since") then
+	 vals[(now-v["seen.first"])] = key
+      elseif(sortColumn == "column_alerts") then
+	 vals[(now-v["num_alerts"])] = key
+      elseif(sortColumn == "column_last") then
+	 vals[(now-stats_by_group_key[col]["seen.last"]+1)] = key
+      elseif(sortColumn == "column_thpt") then
+	 vals[v["throughput_"..throughput_type]] = key
+      elseif(sortColumn == "column_queries") then
+	 vals[v["queries.rcvd"]] = key
+      else
+	 vals[(v["bytes.sent"] + v["bytes.rcvd"])] = key	  
+      end
    end
-end
 end
 
 --table.sort(vals)
