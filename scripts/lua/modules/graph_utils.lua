@@ -139,7 +139,7 @@ end
 -- ########################################################
 
 function percentageBar(total, value, valueLabel)
-   if(total > 0) then
+   if((total ~= nil) and (total > 0)) then
       pctg = round((value * 100) / total, 0)
       print('<div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'.. pctg..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. pctg.. '%;">'..valueLabel)
       print('</div></div>')

@@ -11,7 +11,7 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 bytes = ifstats["localstats"]["bytes"]
 
 sum = bytes["local2remote"]+bytes["local2local"]+bytes["remote2local"]+bytes["remote2remote"]

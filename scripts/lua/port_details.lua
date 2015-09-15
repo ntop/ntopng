@@ -73,7 +73,7 @@ print [[
 			     }
 				 }, {]]
 
-ifstats = interface.getStats()
+			       ifstats = aggregateInterfaceStats(interface.getStats())
 
 if(ifstats.iface_sprobe) then
    print('title: "Source Id",\n')

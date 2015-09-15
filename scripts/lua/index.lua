@@ -24,7 +24,7 @@ active_page = "home"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 is_loopback = isLoopback(ifname)
 iface_id = interface.name2id(ifname)
 
@@ -54,7 +54,7 @@ if(page == nil) then
 end
 
 
-if((ifstats ~= nil) and (ifstats.stats_packets > 0)) then
+if((ifstats ~= nil) and (ifstats.packets > 0)) then
 -- Print tabbed header
 
    print('<nav class="navbar navbar-default" role="navigation">\n\t<div class="navbar-collapse collapse">\n\t<ul class="nav navbar-nav">\n')

@@ -121,7 +121,7 @@ else
       flow["dump.disk"] = ternary(_GET["dump_flow_to_disk"] == "true", true, false)
    end
 
-   ifstats = interface.getStats()
+   ifstats = aggregateInterfaceStats(interface.getStats())
    print("<table class=\"table table-bordered table-striped\">\n")
    if (ifstats.iface_vlan and (flow["vlan"] ~= nil)) then
       print("<tr><th width=30%>")

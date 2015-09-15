@@ -13,7 +13,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 
 print('<hr><h2>'..ifstats.name..' Preferences</H2></br>\n')
 

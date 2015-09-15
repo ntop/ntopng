@@ -30,7 +30,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 prefs = ntop.getPrefs()
 
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 
 print [[
       <hr>

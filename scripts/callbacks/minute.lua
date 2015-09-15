@@ -39,7 +39,7 @@ host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 -- id = 0
 for _,_ifname in pairs(ifnames) do
    interface.select(_ifname)
-   ifstats = interface.getStats()
+   ifstats = aggregateInterfaceStats(interface.getStats())
 
    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]") end
    -- Dump topTalkers every minute

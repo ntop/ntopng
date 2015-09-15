@@ -1943,12 +1943,31 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 /* *************************************** */
 
 void NetworkInterface::lua(lua_State *vm) {
+  lua_newtable(vm);
+
+  lua_push_str_table_entry(vm, "name", ifname);
+  lua_push_int_table_entry(vm,  "id", id);
+  lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
+  lua_push_bool_table_entry(vm, "inline", get_inline_interface());
+  lua_push_bool_table_entry(vm, "vlan", get_has_vlan_packets());
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "packets", getNumPackets());
+  lua_push_int_table_entry(vm, "bytes",   getNumBytes());
+  lua_push_int_table_entry(vm, "flows",   getNumFlows());
+  lua_push_int_table_entry(vm, "hosts",   getNumHosts());
+  lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
+  lua_push_int_table_entry(vm, "drops",   getNumDroppedPackets());
+  lua_pushstring(vm, "stats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_int_table_entry(vm, "mtu", ifMTU);
   lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
-
+ 
   ethStats.lua(vm);
   localStats.lua(vm);
   ndpiStats.lua(this->view, vm);

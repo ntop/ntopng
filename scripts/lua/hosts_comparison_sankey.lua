@@ -11,7 +11,7 @@ sendHTTPHeader('application/json')
 -- Defaul value
 local debug = false
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 max_num_links = 32
 max_num_hosts = 8
 aggregation = "ndpi"

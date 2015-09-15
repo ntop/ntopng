@@ -197,7 +197,7 @@ end
 
 function check_interface_threshold(ifname, mode)
    interface.select(ifname)
-   local ifstats = interface.getStats()
+   local ifstats = aggregateInterfaceStats(interface.getStats())
    ifname_id = ifstats.id
 
    suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..ifname_id)
@@ -216,7 +216,7 @@ function check_interface_threshold(ifname, mode)
 
    --if(verbose) then print(basedir.."<br>\n") end
    interface.select(ifname)
-   ifstats = interface.getStats()
+   ifstats = aggregateInterfaceStats(interface.getStats())
 
    if (ifstats ~= nil) then
      fname = fixPath(basedir.."/iface_"..ifname_id.."_lastdump")
@@ -239,7 +239,7 @@ end
 
 function check_host_threshold(ifname, host_ip, mode)
    interface.select(ifname)
-   local ifstats = interface.getStats()
+   local ifstats = aggregateInterfaceStats(interface.getStats())
    ifname_id = ifstats.id
 
    suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)

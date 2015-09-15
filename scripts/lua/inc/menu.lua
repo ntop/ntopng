@@ -57,7 +57,7 @@ print [[    </ul>
 
    ]]
 
-_ifstats = interface.getStats()
+_ifstats = aggregateInterfaceStats(interface.getStats())
 
 if(_ifstats.iface_sprobe) then
    url = ntop.getHttpPrefix().."/lua/sflows_stats.lua"
@@ -159,18 +159,18 @@ print [[
 ]]
 
 ifnames = {}
-for v,k in pairs(names) do
+for v,k in pairs(interface.getIfNames()) do
+   --io.write(k.."\n")
    interface.select(k)
    _ifstats = interface.getStats()
 
-   ifnames[_ifstats.id] = _ifstats.name
-   --print(_ifstats.name.."=".._ifstats.id.." ")
+   ifnames[_ifstats.id] = k
+   --io.write(ifnames[_ifstats.id].."=".._ifstats.id.."\n")
 end
 
 for k,v in pairsByKeys(ifnames, asc) do
-   print("      <li>")
-   
-   --print(k.."="..v.." ")
+   print("      <li>")   
+   --io.write(k.."="..v.."\n")
 
    if(v == ifname) then
       print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..v.."\">")
@@ -181,7 +181,8 @@ for k,v in pairsByKeys(ifnames, asc) do
    if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
    if (isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
 
-   print(getHumanReadableInterfaceName(v))
+   
+   print(getHumanReadableInterfaceName(k..""))
    print("</a></li>\n")
 end
 

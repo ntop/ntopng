@@ -24,7 +24,7 @@ print(info["product"])
 iface_id = interface.name2id(ifname)
 
 interface.select(ifname)
-_ifstats = interface.getStats()
+_ifstats = aggregateInterfaceStats(interface.getStats())
 
 if(info["pro.release"]) then
    print(" Professional")

@@ -13,7 +13,7 @@ require "template"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 
 ifId = _GET["ifId"]
 host = _GET["host"]

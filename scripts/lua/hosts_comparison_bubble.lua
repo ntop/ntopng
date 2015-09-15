@@ -54,7 +54,7 @@ max_num_hosts = 24
 compared_hosts = {}
 compared_hosts_size = 0;
 
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 
 if(ifstats.iface_sprobe) then
    base_url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"

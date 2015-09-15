@@ -13,7 +13,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
-   ifstats = interface.getStats()   
+   ifstats = aggregateInterfaceStats(interface.getStats())
    stats = interface.getFlowsStats()
 
    if(ifstats ~= nil) then
@@ -21,10 +21,10 @@ function dumpInterfaceStats(interface_name)
       prefs = ntop.getPrefs()
 
       -- Round up
-      hosts_pctg = math.floor(1+((ifstats.stats_hosts*100)/prefs.max_num_hosts))
-      flows_pctg = math.floor(1+((ifstats.stats_flows*100)/prefs.max_num_flows))
+      hosts_pctg = math.floor(1+((ifstats.hosts*100)/prefs.max_num_hosts))
+      flows_pctg = math.floor(1+((ifstats.flows*100)/prefs.max_num_flows))
 
-      print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.stats_packets .. ', "bytes": ' .. ifstats.stats_bytes .. ', "drops": ' .. ifstats.stats_drops .. ', "alerts": '.. ntop.getNumQueuedAlerts() ..', "num_flows": '.. ifstats.stats_flows .. ', "num_hosts": ' .. ifstats.stats_hosts .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "flows_pctg": ' .. flows_pctg)
+      print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.packets .. ', "bytes": ' .. ifstats.bytes .. ', "drops": ' .. ifstats.drops .. ', "alerts": '.. ntop.getNumQueuedAlerts() ..', "num_flows": '.. ifstats.flows .. ', "num_hosts": ' .. ifstats.hosts .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "flows_pctg": ' .. flows_pctg)
 
       print(', "local2remote": '.. ifstats["localstats"]["bytes"]["local2remote"]..', "remote2local": '..ifstats["localstats"]["bytes"]["remote2local"])
 

@@ -4,13 +4,82 @@
 require "lua_trace"
 
 
+-- ##########################################
+
+function aggregateInterfaceStats(ifstats)
+   if(ifstats == nil) then return(ifstats) end
+   
+   local tot = {}
+
+   for ifname,_v in pairs(ifstats["interfaces"]) do
+
+      for k,v in pairs(ifstats["interfaces"][ifname]) do
+	 if(type(v) ~= "table") then	    
+	    if((tot[k] == nil) and (k ~= "id") and (k ~= "name")) then
+	       --io.write(k.."\n")
+	       tot[k] = v 
+	    end
+	 end
+      end
+
+      keys = { "stats" }
+      for _,key in pairs(keys) do
+	 for k,v in pairs(_v[key]) do
+	    --io.write(k.."\n")
+	    if(tot[k] == nil) then tot[k] = 0 end
+	    tot[k] = tot[k] + v
+	 end
+      end
+
+      keys = { "pktSizeDistribution" }
+      for _,key in pairs(keys) do
+	 if(tot[key] == nil) then tot[key] = { } end
+	 
+	 for k,v in pairs(_v[key]) do
+	    --io.write(k.."\n")
+	    if(tot[key][k] == nil) then tot[key][k] = 0 end
+	    tot[key][k] = tot[key][k] + v
+	 end
+      end
+
+
+      keys = { "localstats", "ndpi" }
+      for _,key in pairs(keys) do
+	 -- io.write(key.."\n")
+
+	 tot[key] = { }
+	 for k,v in pairs(_v[key]) do
+	    if(tot[key][k] == nil) then tot[key][k] = { } end	 
+	    for k1,v1 in pairs(_v[key][k]) do
+	       --io.write(k1.."="..type(v1).."\n")
+
+	       if(type(v1) == "number") then
+		  if(tot[key][k][k1] == nil) then tot[key][k][k1] = 0 end	    
+		  tot[key][k][k1] = tot[key][k][k1] + v1
+	       else
+		  tot[key][k][k1] = v1
+	       end
+	    end
+	 end
+      end
+   end
+   
+   for k,v in pairs(tot) do
+      ifstats[k] = v
+   end
+   
+   return(ifstats)
+end
+
 function getInterfaceName(interface_id)
    local ifnames = interface.getIfNames()
    
    interface_id = tonumber(interface_id)
    for _,if_name in pairs(ifnames) do
+      --io.write(if_name.."\n")
       interface.select(if_name)
       _ifstats = interface.getStats()
+      _ifstats = aggregateInterfaceStats(_ifstats)
       if(_ifstats.id == interface_id) then
 	 return(_ifstats.name) 
       end
@@ -726,7 +795,7 @@ function getInterfaceId(interface_name)
 
   for _,if_name in pairs(ifnames) do
      interface.select(if_name)
-     _ifstats = interface.getStats()
+     _ifstats = aggregateInterfaceStats(interface.getStats())
     if(_ifstats.name == interface_name) then return(_ifstats.id) end
   end
 
@@ -1404,7 +1473,7 @@ function getHumanReadableInterfaceName(interface_id)
       return(custom_name)
    else
       interface.select(interface_id)
-      _ifstats = interface.getStats()
+      _ifstats = aggregateInterfaceStats(interface.getStats())
       
       -- print(interface_id.."=".._ifstats.name)
       
@@ -1464,7 +1533,7 @@ function harvestJSONTopTalkers(days)
    ifnames = interface.getIfNames()
    for _,ifname in pairs(ifnames) do
       interface.select(ifname)
-      local _ifstats = interface.getStats()
+      local _ifstats = aggregateInterfaceStats(interface.getStats())
       local dirs = ntop.getDirs()
       local basedir = fixPath(dirs.workingdir .. "/" .. _ifstats.id)
 
@@ -1788,3 +1857,4 @@ function getFlowMaxRate(cli_max_rate, srv_max_rate)
 
    return(max_rate)
 end
+

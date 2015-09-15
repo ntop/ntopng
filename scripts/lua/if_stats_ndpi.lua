@@ -10,7 +10,7 @@ require "graph_utils"
 
 
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(aggregateInterfaceStats(interface.getStats()))
 
 format = _GET["format"]
 if(format == "json") then
@@ -21,7 +21,7 @@ else
    json_format = false
 end
 
-total = ifstats["stats_bytes"]
+total = ifstats["bytes"]
 
 vals = {}
 

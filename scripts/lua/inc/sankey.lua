@@ -1,8 +1,8 @@
 --
--- (C) 2014-15-15 - ntop.org
+-- (C) 2014-15 - ntop.org
 --
 
-_ifstats = interface.getStats()
+_ifstats = aggregateInterfaceStats(interface.getStats())
 
 print [[
 
@@ -202,7 +202,7 @@ print [[/lua/host_details.lua?host="+escape(d.host)+"@"+escape(d.vlan);  })
 
 elseif(active_sankey == "comparison") then
 
-_ifstats = interface.getStats()
+_ifstats = aggregateInterfaceStats(interface.getStats())
 
 if(_ifstats.iface_sprobe) then
    url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"

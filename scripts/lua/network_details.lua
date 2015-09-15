@@ -17,7 +17,7 @@ require "alert_utils"
 network        = _GET["network"]
 
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 ifId = ifstats.id
 
 sendHTTPHeader('text/html; charset=iso-8859-1')

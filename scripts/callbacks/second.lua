@@ -20,7 +20,8 @@ for _,ifname in pairs(ifnames) do
    a = string.ends(ifname, ".pcap")
    if(not(a)) then
       interface.select(ifname)
-      ifstats = interface.getStats()
+      ifstats = aggregateInterfaceStats(interface.getStats())
+
       dirs = ntop.getDirs()
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
@@ -31,13 +32,13 @@ for _,ifname in pairs(ifnames) do
       end
 
       -- Traffic stats
-      makeRRD(basedir, ifname, "bytes", 1, ifstats.stats_bytes)
-      makeRRD(basedir, ifname, "packets", 1, ifstats.stats_packets)
-      makeRRD(basedir, ifname, "drops", 1, ifstats.stats_drops)
+      makeRRD(basedir, ifname, "bytes", 1, ifstats.bytes)
+      makeRRD(basedir, ifname, "packets", 1, ifstats.packets)
+      makeRRD(basedir, ifname, "drops", 1, ifstats.drops)
 
       -- General stats
-      makeRRD(basedir, ifname, "num_hosts", 1, ifstats.stats_hosts)
-      makeRRD(basedir, ifname, "num_flows", 1, ifstats.stats_flows)
-      makeRRD(basedir, ifname, "num_http_hosts", 1, ifstats.stats_http_hosts)
+      makeRRD(basedir, ifname, "num_hosts", 1, ifstats.hosts)
+      makeRRD(basedir, ifname, "num_flows", 1, ifstats.flows)
+      makeRRD(basedir, ifname, "num_http_hosts", 1, ifstats.http_hosts)
    end
 end -- for _,ifname in pairs(ifnames) do

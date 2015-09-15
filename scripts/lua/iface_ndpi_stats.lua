@@ -19,7 +19,7 @@ else
 end
 
 if(_GET["mode"] == "sinceStartup") then
-   stats = interface.getStats()
+   stats = aggregateInterfaceStats(interface.getStats())
    elseif(_GET["mode"] == "count") then
    stats = interface.getnDPIFlowsCount()
    elseif(host_info["host"] == nil) then

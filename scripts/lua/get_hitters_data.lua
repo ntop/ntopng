@@ -13,7 +13,7 @@ local debug = false
 local debug_process = false -- Show flow processed information
 
 interface.select(ifname)
-ifstats = interface.getStats()
+ifstats = aggregateInterfaceStats(interface.getStats())
 -- printGETParameters(_GET)
 
 
