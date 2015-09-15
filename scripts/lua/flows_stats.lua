@@ -49,9 +49,9 @@ else
   print("<li><a href=\""..url.."&page=flows\">Flows</a></li>")
 end
 if (page == "historical") then
-  print("<li class=\"active\"><a href=\"#\">Historical</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
 else
-  print("<li><a href=\""..url.."&page=historical\">Historical</a></li>")
+  print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 end
 
 print [[

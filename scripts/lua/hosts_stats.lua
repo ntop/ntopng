@@ -204,6 +204,11 @@ if(network_url == "") then
    print (ntop.getHttpPrefix())
    print ('/lua/hosts_stats.lua?mode=network">Local Networks</a></li></ul>')
    print ("</div>' ],")
+else
+   print('buttons: [ \'')
+
+   print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network..'><i class=\"fa fa-area-chart fa-lg\"></i></A>')
+   print('\' ],')
 end
 
 print [[
@@ -279,4 +284,5 @@ end
 
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_bottom.inc")
+
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

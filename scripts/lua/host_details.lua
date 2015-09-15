@@ -95,7 +95,7 @@ if(host == nil) then
          <div class="navbar-collapse collapse">
          <ul class="nav navbar-nav">
       ]]
-      print("\n<li class=\"active\"><a href=\"#\">Historical</a></li>\n")
+      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
       print [[
          <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
          </ul>
@@ -308,9 +308,9 @@ end
 
 if(ntop.exists(rrdname)) then
 if(page == "historical") then
-  print("\n<li class=\"active\"><a href=\"#\">Historical</a></li>\n")
+  print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
 else
-  print("\n<li><a href=\""..url.."&page=historical\">Historical</a></li>")
+  print("\n<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 end
 end
 

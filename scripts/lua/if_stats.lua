@@ -149,9 +149,9 @@ end
 
 if(ntop.exists(rrdname) and not is_historical) then
    if(page == "historical") then
-      print("<li class=\"active\"><a href=\""..url.."&page=historical\">Historical Activity</a></li>")
+      print("<li class=\"active\"><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    else
-      print("<li><a href=\""..url.."&page=historical\">Historical Activity</a></li>")
+      print("<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
    end
 end
 
