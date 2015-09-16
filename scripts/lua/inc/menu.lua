@@ -181,8 +181,7 @@ for k,v in pairsByKeys(ifnames, asc) do
    if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
    if (isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
 
-   
-   print(getHumanReadableInterfaceName(k..""))
+   print(getHumanReadableInterfaceName(v..""))
    print("</a></li>\n")
 end
 

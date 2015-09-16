@@ -88,7 +88,12 @@ else
    for key, value in pairs(localhosts) do
       if((localhosts[key]["name"] ~= "") and (localhosts[key]["name"] ~= localhosts[key]["ip"])) then
 	 t = string.split(localhosts[key]["name"], "%.")
-	 n = shortHostName(t[1])
+
+	 if(t ~= nil) then 
+	    n = shortHostName(t[1])
+	 else
+	    n = shortHostName(localhosts[key]["name"])
+	 end
       else
 	 n = localhosts[key]["ip"]
       end

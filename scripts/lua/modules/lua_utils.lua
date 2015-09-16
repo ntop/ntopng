@@ -1465,19 +1465,19 @@ function getInterfaceNameAlias(interface_name)
    end
 end
 
-function getHumanReadableInterfaceName(interface_id)
-   key = 'ntopng.prefs.'..interface_id..'.name'
+function getHumanReadableInterfaceName(interface_name)
+   key = 'ntopng.prefs.'..interface_name..'.name'
    custom_name = ntop.getCache(key)
    
    if((custom_name ~= nil) and (custom_name ~= "")) then
       return(custom_name)
    else
-      interface.select(interface_id)
+      interface.select(interface_name)
       _ifstats = aggregateInterfaceStats(interface.getStats())
       
-      -- print(interface_id.."=".._ifstats.name)
+      -- print(interface_name.."=".._ifstats.name)
       
-      if((interface_id ~= _ifstats.description) and (_ifstats.description ~= "PF_RING")) then
+      if((interface_name ~= _ifstats.description) and (_ifstats.description ~= "PF_RING")) then
 	 return(_ifstats.description)
       else
 	 return(_ifstats.name)
