@@ -318,6 +318,7 @@ bool Ntop::isLocalInterfaceAddress(int family, void *addr) {
 
 /* ******************************************* */
 
+#ifdef WIN32
 
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
@@ -329,136 +330,133 @@ bool Ntop::isLocalInterfaceAddress(int family, void *addr) {
 
 char* getIfName(int if_id, char *name, u_int name_len) {
 
-	// Declare and initialize variables
-	PIP_INTERFACE_INFO pInfo = NULL;
-	ULONG ulOutBufLen = 0;
+  // Declare and initialize variables
+  PIP_INTERFACE_INFO pInfo = NULL;
+  ULONG ulOutBufLen = 0;
 
-	DWORD dwRetVal = 0;
-	int iReturn = 1;
+  DWORD dwRetVal = 0;
+  int iReturn = 1;
 
-	int i;
+  int i;
 
-	name[0] = '\0';
+  name[0] = '\0';
 
-	// Make an initial call to GetInterfaceInfo to get
-	// the necessary size in the ulOutBufLen variable
-	dwRetVal = GetInterfaceInfo(NULL, &ulOutBufLen);
-	if (dwRetVal == ERROR_INSUFFICIENT_BUFFER) {
-		pInfo = (IP_INTERFACE_INFO *)MALLOC(ulOutBufLen);
-		if (pInfo == NULL) {
-			return(name);
-		}
-	}
-	// Make a second call to GetInterfaceInfo to get
-	// the actual data we need
-	dwRetVal = GetInterfaceInfo(pInfo, &ulOutBufLen);
-	if (dwRetVal == NO_ERROR) {
-		for (i = 0; i < pInfo->NumAdapters; i++) {
-			if (pInfo->Adapter[i].Index == if_id) {
-				int j, k, begin = 0;
+  // Make an initial call to GetInterfaceInfo to get
+  // the necessary size in the ulOutBufLen variable
+  dwRetVal = GetInterfaceInfo(NULL, &ulOutBufLen);
+  if (dwRetVal == ERROR_INSUFFICIENT_BUFFER) {
+    pInfo = (IP_INTERFACE_INFO *)MALLOC(ulOutBufLen);
+    if (pInfo == NULL) {
+      return(name);
+    }
+  }
+  // Make a second call to GetInterfaceInfo to get
+  // the actual data we need
+  dwRetVal = GetInterfaceInfo(pInfo, &ulOutBufLen);
+  if (dwRetVal == NO_ERROR) {
+    for (i = 0; i < pInfo->NumAdapters; i++) {
+      if (pInfo->Adapter[i].Index == if_id) {
+	int j, k, begin = 0;
 
-				for (j = 0, k = 0; (k < name_len) && (pInfo->Adapter[i].Name[j] != '\0'); j++) {
-					if (begin) {
-						if ((char)pInfo->Adapter[i].Name[j] == '}') break;
-						name[k++] = (char)pInfo->Adapter[i].Name[j];
-					} else if((char)pInfo->Adapter[i].Name[j] == '{')
-							begin = 1;
-				}
-
-				name[k] = '\0';
-			}
-			break;
-		}
+	for (j = 0, k = 0; (k < name_len) && (pInfo->Adapter[i].Name[j] != '\0'); j++) {
+	  if (begin) {
+	    if ((char)pInfo->Adapter[i].Name[j] == '}') break;
+	    name[k++] = (char)pInfo->Adapter[i].Name[j];
+	  } else if((char)pInfo->Adapter[i].Name[j] == '{')
+	    begin = 1;
 	}
 
-	FREE(pInfo);
-	return(name);
+	name[k] = '\0';
+      }
+      break;
+    }
+  }
+
+  FREE(pInfo);
+  return(name);
 }
 
+/* ******************************************* */
 
-
-
-
-
-int NumberOfSetBits(u_int32_t i)
-{
-	// Java: use >>> instead of >>
-	// C or C++: use uint32_t
-	i = i - ((i >> 1) & 0x55555555);
-	i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-	return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+int NumberOfSetBits(u_int32_t i) {
+  // Java: use >>> instead of >>
+  // C or C++: use uint32_t
+  i = i - ((i >> 1) & 0x55555555);
+  i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+  return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
+#endif
 
-
+/* ******************************************* */
 
 void Ntop::loadLocalInterfaceAddress() {
-	const int bufsize = 128;
-	char buf[bufsize];
+  const int bufsize = 128;
+  char buf[bufsize];
 
 #ifdef WIN32
-	PMIB_IPADDRTABLE pIPAddrTable;
-	DWORD dwSize = 0;
-	DWORD dwRetVal = 0;
-	IN_ADDR IPAddr;
+  PMIB_IPADDRTABLE pIPAddrTable;
+  DWORD dwSize = 0;
+  DWORD dwRetVal = 0;
+  IN_ADDR IPAddr;
 
-	/* Variables used to return error message */
-	LPVOID lpMsgBuf;
+  /* Variables used to return error message */
+  LPVOID lpMsgBuf;
 
-	// Before calling AddIPAddress we use GetIpAddrTable to get
-	// an adapter to which we can add the IP.
-	pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(sizeof(MIB_IPADDRTABLE));
+  // Before calling AddIPAddress we use GetIpAddrTable to get
+  // an adapter to which we can add the IP.
+  pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(sizeof(MIB_IPADDRTABLE));
 
-	if (pIPAddrTable) {
-		// Make an initial call to GetIpAddrTable to get the
-		// necessary size into the dwSize variable
-		if (GetIpAddrTable(pIPAddrTable, &dwSize, 0) ==
-			ERROR_INSUFFICIENT_BUFFER) {
-			FREE(pIPAddrTable);
-			pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(dwSize);
+  if (pIPAddrTable) {
+    // Make an initial call to GetIpAddrTable to get the
+    // necessary size into the dwSize variable
+    if (GetIpAddrTable(pIPAddrTable, &dwSize, 0) ==
+	ERROR_INSUFFICIENT_BUFFER) {
+      FREE(pIPAddrTable);
+      pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(dwSize);
 
-		}
-		if (pIPAddrTable == NULL) {
-			return;
-		}
-	}
-	// Make a second call to GetIpAddrTable to get the
-	// actual data we want
-	if ((dwRetVal = GetIpAddrTable(pIPAddrTable, &dwSize, 0)) != NO_ERROR) {
-		if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
-			(LPTSTR)& lpMsgBuf, 0, NULL)) {
-			LocalFree(lpMsgBuf);
-		}
-		return;
-	}
+    }
+    if (pIPAddrTable == NULL) {
+      return;
+    }
+  }
+  // Make a second call to GetIpAddrTable to get the
+  // actual data we want
+  if ((dwRetVal = GetIpAddrTable(pIPAddrTable, &dwSize, 0)) != NO_ERROR) {
+    if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
+		      (LPTSTR)& lpMsgBuf, 0, NULL)) {
+      LocalFree(lpMsgBuf);
+    }
+    return;
+  }
 
-	for (int ifIdx = 0; ifIdx < (int)pIPAddrTable->dwNumEntries; ifIdx++) {
-		char name[256];
+  for (int ifIdx = 0; ifIdx < (int)pIPAddrTable->dwNumEntries; ifIdx++) {
+    char name[256];
 
-		getIfName(pIPAddrTable->table[ifIdx].dwIndex, name, sizeof(name));
+    getIfName(pIPAddrTable->table[ifIdx].dwIndex, name, sizeof(name));
 
-		for (int id = 0; id < num_defined_interfaces; id++) {
-			if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
-				u_int32_t bits = NumberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
+    for (int id = 0; id < num_defined_interfaces; id++) {
+      if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
+	u_int32_t bits = NumberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
 
-				IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
-	
-				snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-				ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as local address for %s", buf, iface[id]->get_name());
-				address->addLocalNetwork(buf);
+	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
 
-				IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
-				snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
-				ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
-				iface[id]->addInterfaceAddress(buf);
-			}
-		}
-	}
+	snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as local address for %s", buf, iface[id]->get_name());
+	address->addLocalNetwork(buf);
 
-	/* TODO: add IPv6 support */
-	if (pIPAddrTable) {
-		FREE(pIPAddrTable);
-		pIPAddrTable = NULL;
-	}
+	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
+	snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
+	iface[id]->addInterfaceAddress(buf);
+      }
+    }
+  }
+
+  /* TODO: add IPv6 support */
+  if (pIPAddrTable) {
+    FREE(pIPAddrTable);
+    pIPAddrTable = NULL;
+  }
 #else
   struct ifaddrs *local_addresses, *ifa;
   /* buf must be big enough for an IPv6 address(e.g. 3ffe:2fa0:1010:ca22:020a:95ff:fe8a:1cf8) */
@@ -474,7 +472,7 @@ void Ntop::loadLocalInterfaceAddress() {
     struct ifreq ifr;
     u_int32_t netmask;
     int cidr, ifId = -1;
-    
+
     if((ifa->ifa_addr == NULL)
        || ((ifa->ifa_flags & IFF_UP) == 0))
       continue;
@@ -500,12 +498,12 @@ void Ntop::loadLocalInterfaceAddress() {
       netmask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
 
       cidr = 0, nm = netmask;
-      
+
       while(nm) {
 	cidr += (nm & 0x01);
 	nm >>= 1;
       }
-      
+
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
 #ifdef ADD_INTERFACE_ADDRESSES
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 32);
@@ -516,7 +514,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
 	/* Set to zero non network bits */
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
-	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));	
+	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network", buf_orig);
 	address->addLocalNetwork(buf_orig);
@@ -533,7 +531,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	if(num_bits == 0) break;
 	cidr += num_bits;
       }
-      
+
       s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
 #ifdef ADD_INTERFACE_ADDRESSES
@@ -1035,7 +1033,7 @@ NetworkInterfaceView* Ntop::getInterfaceViewById(int id){
 /* ******************************************* */
 
 NetworkInterface* Ntop::getInterface(char *name) {
- /* This method accepts both interface names or Ids */
+  /* This method accepts both interface names or Ids */
   int if_id;
   char str[8];
 
@@ -1062,7 +1060,7 @@ NetworkInterface* Ntop::getInterface(char *name) {
 /* ******************************************* */
 
 NetworkInterfaceView* Ntop::getInterfaceView(char *name) {
- /* This method accepts both interface names or Ids */
+  /* This method accepts both interface names or Ids */
   int if_id;
   char str[8];
 
@@ -1090,7 +1088,7 @@ NetworkInterfaceView* Ntop::getInterfaceView(char *name) {
 
 /* NOTUSED */
 int Ntop::getInterfaceIdByName(char *name) {
-   /* This method accepts both interface names or Ids */
+  /* This method accepts both interface names or Ids */
   int if_id = atoi(name);
   char str[8];
 
@@ -1117,7 +1115,7 @@ int Ntop::getInterfaceIdByName(char *name) {
 /* ******************************************* */
 
 int Ntop::getInterfaceViewIdByName(char *name) {
-   /* This method accepts both interface names or Ids */
+  /* This method accepts both interface names or Ids */
   int if_id = atoi(name);
   char str[8];
 
