@@ -177,7 +177,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
     last_pkt_rcvd = 0, pollLoopCreated = false, bridge_interface = false;
-    next_idle_flow_purge = next_idle_host_purge = 0;
+    next_idle_flow_purge = next_idle_host_purge = 0, antenna_mac = NULL;
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);

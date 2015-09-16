@@ -124,6 +124,7 @@ Prefs::~Prefs() {
   if(es_type)          free(es_type);
   if(es_index)         free(es_index);
   if(es_url)           free(es_url);
+  if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
   if(communities_file) free(communities_file);
   free(http_prefix);

@@ -63,7 +63,7 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
 
         switch(key_id) {
         case 0: //json additional object added by Flow::serialize()
-          if( (additional_o != NULL) && (strcmp(key,"json") == 0) ) {
+          if((additional_o != NULL) && (strcmp(key,"json") == 0)) {
             struct json_object_iterator additional_it = json_object_iter_begin(additional_o);
             struct json_object_iterator additional_itEnd = json_object_iter_end(additional_o);
 
@@ -78,8 +78,6 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
                 }
                json_object_iter_next(&additional_it);
             }
-            /* Dispose memory */
-            json_object_put(additional_o);
           }
           break;
         case IN_SRC_MAC:
@@ -216,6 +214,8 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
           json_object_object_add(flow.additional_fields, key, json_object_new_string(value));
           break;
         } /* switch */
+
+	if(additional_o) json_object_put(additional_o);
       } /* if */
 
       /* Move to the next element */
