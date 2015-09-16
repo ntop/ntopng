@@ -318,12 +318,151 @@ bool Ntop::isLocalInterfaceAddress(int family, void *addr) {
 
 /* ******************************************* */
 
+
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+
+/* Note: could also use malloc() and free() */
+
+char* getIfName(int if_id, char *name, u_int name_len) {
+
+	// Declare and initialize variables
+	PIP_INTERFACE_INFO pInfo = NULL;
+	ULONG ulOutBufLen = 0;
+
+	DWORD dwRetVal = 0;
+	int iReturn = 1;
+
+	int i;
+
+	name[0] = '\0';
+
+	// Make an initial call to GetInterfaceInfo to get
+	// the necessary size in the ulOutBufLen variable
+	dwRetVal = GetInterfaceInfo(NULL, &ulOutBufLen);
+	if (dwRetVal == ERROR_INSUFFICIENT_BUFFER) {
+		pInfo = (IP_INTERFACE_INFO *)MALLOC(ulOutBufLen);
+		if (pInfo == NULL) {
+			return(name);
+		}
+	}
+	// Make a second call to GetInterfaceInfo to get
+	// the actual data we need
+	dwRetVal = GetInterfaceInfo(pInfo, &ulOutBufLen);
+	if (dwRetVal == NO_ERROR) {
+		for (i = 0; i < pInfo->NumAdapters; i++) {
+			if (pInfo->Adapter[i].Index == if_id) {
+				int j, k, begin = 0;
+
+				for (j = 0, k = 0; (k < name_len) && (pInfo->Adapter[i].Name[j] != '\0'); j++) {
+					if (begin) {
+						if ((char)pInfo->Adapter[i].Name[j] == '}') break;
+						name[k++] = (char)pInfo->Adapter[i].Name[j];
+					} else if((char)pInfo->Adapter[i].Name[j] == '{')
+							begin = 1;
+				}
+
+				name[k] = '\0';
+			}
+			break;
+		}
+	}
+
+	FREE(pInfo);
+	return(name);
+}
+
+
+
+
+
+
+int NumberOfSetBits(u_int32_t i)
+{
+	// Java: use >>> instead of >>
+	// C or C++: use uint32_t
+	i = i - ((i >> 1) & 0x55555555);
+	i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+	return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+
+
+
 void Ntop::loadLocalInterfaceAddress() {
-#ifndef WIN32
+	const int bufsize = 128;
+	char buf[bufsize];
+
+#ifdef WIN32
+	PMIB_IPADDRTABLE pIPAddrTable;
+	DWORD dwSize = 0;
+	DWORD dwRetVal = 0;
+	IN_ADDR IPAddr;
+
+	/* Variables used to return error message */
+	LPVOID lpMsgBuf;
+
+	// Before calling AddIPAddress we use GetIpAddrTable to get
+	// an adapter to which we can add the IP.
+	pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(sizeof(MIB_IPADDRTABLE));
+
+	if (pIPAddrTable) {
+		// Make an initial call to GetIpAddrTable to get the
+		// necessary size into the dwSize variable
+		if (GetIpAddrTable(pIPAddrTable, &dwSize, 0) ==
+			ERROR_INSUFFICIENT_BUFFER) {
+			FREE(pIPAddrTable);
+			pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(dwSize);
+
+		}
+		if (pIPAddrTable == NULL) {
+			return;
+		}
+	}
+	// Make a second call to GetIpAddrTable to get the
+	// actual data we want
+	if ((dwRetVal = GetIpAddrTable(pIPAddrTable, &dwSize, 0)) != NO_ERROR) {
+		if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
+			(LPTSTR)& lpMsgBuf, 0, NULL)) {
+			LocalFree(lpMsgBuf);
+		}
+		return;
+	}
+
+	for (int ifIdx = 0; ifIdx < (int)pIPAddrTable->dwNumEntries; ifIdx++) {
+		char name[256];
+
+		getIfName(pIPAddrTable->table[ifIdx].dwIndex, name, sizeof(name));
+
+		for (int id = 0; id < num_defined_interfaces; id++) {
+			if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
+				u_int32_t bits = NumberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
+
+				IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
+	
+				snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
+				ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as local address for %s", buf, iface[id]->get_name());
+				address->addLocalNetwork(buf);
+
+				IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
+				snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
+				ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf, iface[id]->get_name());
+				iface[id]->addInterfaceAddress(buf);
+			}
+		}
+	}
+
+	/* TODO: add IPv6 support */
+	if (pIPAddrTable) {
+		FREE(pIPAddrTable);
+		pIPAddrTable = NULL;
+	}
+#else
   struct ifaddrs *local_addresses, *ifa;
   /* buf must be big enough for an IPv6 address(e.g. 3ffe:2fa0:1010:ca22:020a:95ff:fe8a:1cf8) */
-  const int bufsize = 128;
-  char buf[bufsize], buf_orig[bufsize];
+  char buf_orig[bufsize];
   int sock = socket(AF_INET, SOCK_STREAM, 0);
 
   if(getifaddrs(&local_addresses) != 0) {

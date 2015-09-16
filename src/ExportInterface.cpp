@@ -66,7 +66,7 @@ void ExportInterface::export_data(char *json) {
     struct zmq_msg_hdr msg_hdr;
 
     snprintf(msg_hdr.url, sizeof(msg_hdr.url), "%s", topic);
-    msg_hdr.version = 0, msg_hdr.size = strlen(json);
+    msg_hdr.version = 0, msg_hdr.size = (u_int32_t)strlen(json);
 
     zmq_send(publisher, &msg_hdr, sizeof(msg_hdr), ZMQ_SNDMORE);
     zmq_send(publisher, json, msg_hdr.size, 0);
