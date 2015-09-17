@@ -1264,7 +1264,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
 
   ifSpeed = edata.speed;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %s",
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %u",
 			       ifname, edata.speed);
 
   close(sock);
