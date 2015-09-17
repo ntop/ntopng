@@ -1242,25 +1242,27 @@ end
 
 
 -- Print contents of `tbl`, with indentation.
--- `indent` sets the initial level of indentation.
-function tprint (tbl, indent)
-  if not indent then indent = 0 end
-
-  if(tbl ~= nil) then
-    for k, v in pairs(tbl) do
-      formatting = string.rep("  ", indent) .. k .. ": "
-      if type(v) == "table" then
-        io.write(formatting)
-        tprint(v, indent+1)
-      elseif type(v) == 'boolean' then
-        io.write(formatting .. tostring(v))
-      else
-        io.write(formatting .. v)
+-- You can call it as tprint(mytable) 
+-- The other two parameters should not be set
+function tprint(s, l, i)
+   l = (l) or 1000; i = i or "";-- default item limit, indent string
+   if (l<1) then io.write("ERROR: Item limit reached.\n"); return l-1 end;
+   local ts = type(s);
+   if (ts ~= "table") then io.write(i..' '..ts..' '..tostring(s)..'\n'); return l-1 end
+   io.write(i..' '..ts..'\n');
+   for k,v in pairs(s) do
+      local indent = ""
+      
+      if(i ~= "") then
+	 indent = i .. "."
       end
-    end
+      indent = indent .. tostring(k)
+      
+      l = tprint(v, l, indent);
+      if (l < 0) then break end
+   end
 
-    io.write("\n")
-  end
+   return l
 end
 
 function table.empty(table)
