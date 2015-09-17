@@ -549,7 +549,6 @@ void NetworkInterfaceView::lua(lua_State *vm) {
 
   lua_newtable(vm);
   for(p = physIntf.begin(); p != physIntf.end(); p++) {
-    lua_newtable(vm);
     (*p)->lua(vm);
     
     lua_pushstring(vm, (*p)->get_name());
