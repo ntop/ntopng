@@ -245,7 +245,7 @@ bool Utils::mkdir_tree(char *path) {
 
     rc = ntop_mkdir(path, permission);
 
-    return(rc == 0 ? true : false);
+	return(((rc == 0) || (errno == EEXIST/* Already existing */)) ? true : false);
   } else
     return(true); /* Already existing */
 }
