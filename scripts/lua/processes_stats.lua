@@ -38,7 +38,7 @@ print [[
    <script> ]]
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/processes_stats_id.inc") 
 
-if(ifstats.iface_vlan) then print ('processes_rows_option["source_id"] = true;\n') end
+if(ifstats.vlan) then print ('processes_rows_option["source_id"] = true;\n') end
 
 print [[
    $("#table-processes").datatable({
@@ -50,7 +50,7 @@ print [[/lua/get_processes_data.lua",
 print ('rowCallback: function ( row ) { return processes_table_setID(row); },')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/processes_stats_top.inc")
 
-if(ifstats.iface_vlan) then
+if(ifstats.vlan) then
 print [[
            {
            title: "Source Id",

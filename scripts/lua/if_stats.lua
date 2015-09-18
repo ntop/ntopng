@@ -155,7 +155,7 @@ if(ntop.exists(rrdname) and not is_historical) then
    end
 end
 
-if(not(ifstats.iface_view)) then
+if(not(ifstats.view)) then
    if(isAdministrator()) then
       if(page == "packetdump") then
 	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
@@ -181,7 +181,7 @@ if(isAdministrator()) then
    end
 end
 
-if(ifstats.iface_inline) then
+if(ifstats.inline) then
    if(page == "filtering") then
       print("<li class=\"active\"><a href=\""..url.."&page=filtering\">Traffic Filtering</a></li>")
    else
@@ -277,9 +277,9 @@ if((page == "overview") or (page == nil)) then
    end
 
    print("<tr><th>Family </th><td colspan=5>" .. ifstats.type)
-   if(ifstats.iface_inline) then
+   if(ifstats.inline) then
       print(" In-Path Interface (Bump in the Wire)")
-      elseif(ifstats.iface_view) then
+      elseif(ifstats.view) then
       print(" (Aggregated Interface View)")
    end
    print("</td></tr>\n")

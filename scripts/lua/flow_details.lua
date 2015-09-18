@@ -123,9 +123,9 @@ else
 
    ifstats = aggregateInterfaceStats(interface.getStats())
    print("<table class=\"table table-bordered table-striped\">\n")
-   if (ifstats.iface_vlan and (flow["vlan"] ~= nil)) then
+   if (ifstats.vlan and (flow["vlan"] ~= nil)) then
       print("<tr><th width=30%>")
-      if(ifstats.iface_sprobe) then
+      if(ifstats.sprobe) then
          print('Source Id')
       else
          print('VLAN ID')
@@ -134,7 +134,7 @@ else
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
      print("<tr><th width=30%>Flow Peers</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">")
-     print(flowinfo2hostname(flow,"cli",ifstats.iface_vlan))
+     print(flowinfo2hostname(flow,"cli",ifstats.vlan))
    if(flow["cli.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
    print("</A>")
    if(flow["cli.port"] > 0) then
@@ -142,7 +142,7 @@ else
    end
    print("</A> <i class=\"fa fa-exchange fa-lg\"></i> \n")
    print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(flow,"srv") .. "\">")
-   print(flowinfo2hostname(flow,"srv",ifstats.iface_vlan))
+   print(flowinfo2hostname(flow,"srv",ifstats.vlan))
    if(flow["srv.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
    print("</A>")
    if(flow["srv.port"] > 0) then
@@ -151,7 +151,7 @@ else
    print("</td></tr>\n")
 
    print("<tr><th width=30%>Protocol</th>")
-   if(ifstats.iface_inline and flow["verdict.pass"]) then
+   if(ifstats.inline and flow["verdict.pass"]) then
       print("<td>")
    else
       print("<td colspan=2>")
@@ -166,7 +166,7 @@ else
    if(flow["verdict.pass"] == false) then print("</strike>") end
    print("</td>")
 
-   if(ifstats.iface_inline) then
+   if(ifstats.inline) then
       print('<td>')
       if(flow["verdict.pass"]) then
 	 print('<form class="form-inline" style="margin-bottom: 0px;"><input type="hidden" name="flow_key" value="'..flow_key..'">')
@@ -180,10 +180,10 @@ else
    end
    print("</tr>\n")
 
-   if(ifstats.iface_inline and (flow["shaper.cli2srv_a"] ~= nil)) then
+   if(ifstats.inline and (flow["shaper.cli2srv_a"] ~= nil)) then
       print("<tr><th width=30% rowspan=2>Flow Shapers</th>")
-      c = flowinfo2hostname(flow,"cli",ifstats.iface_vlan)
-      s = flowinfo2hostname(flow,"srv",ifstats.iface_vlan)
+      c = flowinfo2hostname(flow,"cli",ifstats.vlan)
+      s = flowinfo2hostname(flow,"srv",ifstats.vlan)
       
       shaper_key = "ntopng.prefs."..ifstats.id..".shaper_max_rate"
       
@@ -332,7 +332,7 @@ else
    if(flow["http.last_url"] ~= nil) then
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
-      if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.iface_vlan) end 
+      if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.vlan) end 
       print(s)
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
 

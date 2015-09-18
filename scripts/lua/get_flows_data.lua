@@ -370,8 +370,8 @@ for _key, _value in pairsByKeys(vals, funct) do
    srv_tooltip = ""
    cli_tooltip = ""
 
-   srv_name = flowinfo2hostname(value, "srv", ifstats.iface_vlan)
-   cli_name = flowinfo2hostname(value, "cli", ifstats.iface_vlan)
+   srv_name = flowinfo2hostname(value, "srv", ifstats.vlan)
+   cli_name = flowinfo2hostname(value, "cli", ifstats.vlan)
 
    if(cli_name == nil) then cli_name = "???" end
    if(srv_name == nil) then srv_name = "???" end

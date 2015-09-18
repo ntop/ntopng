@@ -127,7 +127,7 @@ print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 -- Set the flow table option
 
-if(ifstats.iface_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
+if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
    print [[
 
@@ -189,7 +189,7 @@ print("</ul> </div>' ],\n")
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_top.inc")
 
-if(ifstats.iface_vlan) then
+if(ifstats.vlan) then
 print [[
            {
            title: "VLAN",

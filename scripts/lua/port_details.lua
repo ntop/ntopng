@@ -75,7 +75,7 @@ print [[
 
 			       ifstats = aggregateInterfaceStats(interface.getStats())
 
-if(ifstats.iface_sprobe) then
+if(ifstats.sprobe) then
    print('title: "Source Id",\n')
 else
    print('title: "VLAN",\n')

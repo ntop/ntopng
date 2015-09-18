@@ -56,7 +56,7 @@ compared_hosts_size = 0;
 
 ifstats = aggregateInterfaceStats(interface.getStats())
 
-if(ifstats.iface_sprobe) then
+if(ifstats.sprobe) then
    base_url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"
 else
    base_url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"
@@ -92,8 +92,8 @@ else
     for key, value in pairs(flows_stats) do
       flow = flows_stats[key]
 
-      cli_key = hostinfo2hostkey(flow,"cli",ifstats.iface_vlan)
-      srv_key = hostinfo2hostkey(flow,"srv",ifstats.iface_vlan)
+      cli_key = hostinfo2hostkey(flow,"cli",ifstats.vlan)
+      srv_key = hostinfo2hostkey(flow,"srv",ifstats.vlan)
       if (debug) then io.write(cli_key .. '\t') end
       if (debug) then io.write(srv_key .. '\n') end
 

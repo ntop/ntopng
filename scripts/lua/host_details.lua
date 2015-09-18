@@ -283,7 +283,7 @@ if(host.systemhost) then
 if(page == "sprobe") then
   print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-flag fa-lg\"></i></a></li>\n")
 else
-   if(ifstats.iface_sprobe) then
+   if(ifstats.sprobe) then
       print("<li><a href=\""..url.."&page=sprobe\"><i class=\"fa fa-flag fa-lg\"></i></a></li>")
    end
 end
@@ -405,10 +405,10 @@ if((page == "overview") or (page == nil)) then
       print('</td></tr>')
    end
 
-   if(ifstats.iface_vlan and (host["vlan"] ~= nil)) then
+   if(ifstats.vlan and (host["vlan"] ~= nil)) then
       print("<tr><th>")
 
-      if(ifstats.iface_sprobe) then
+      if(ifstats.sprobe) then
 	 print('Source Id')
       else
 	 print('VLAN ID')
@@ -417,7 +417,7 @@ if((page == "overview") or (page == nil)) then
       print("</th><td colspan=2>"..host["vlan"].."</td></tr>\n")
    end
 
-   if(ifstats.iface_inline and (host.localhost or host.systemhost)) then
+   if(ifstats.inline and (host.localhost or host.systemhost)) then
       print("<tr><th>Host Traffic Policy</th><td>")
       print('<div class="dropdown">')
 
@@ -479,7 +479,7 @@ print [[
       print('</tr>')
    end
 
-   if((ifstats.iface_inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
+   if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
    print("<tr>")
    if(host["os"] ~= "") then
      print("<th>OS</th><td> <A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. ">"..mapOS2Icon(host["os"]) .. "</A></td>\n")
@@ -487,7 +487,7 @@ print [[
      print("<th></th><td></td>\n")
    end
 
-   if(ifstats.iface_inline and (host.localhost or host.systemhost) and isAdministrator()) then
+   if(ifstats.inline and (host.localhost or host.systemhost) and isAdministrator()) then
 	 if(_GET["host_quota"] ~= nil) then
 	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
 	    interface.setHostQuota(tonumber(_GET["host_quota"]), host_info["host"], host_vlan)
@@ -773,7 +773,7 @@ var hostChart     = dc.rowChart("#chart-row-hosts");
 $.ajax({
       type: 'GET',]]
       print("url: '"..ntop.getHttpPrefix().."/lua/host_top_peers_protocols.lua?ifname="..ifId.."&host="..host_info["host"])
-      if((host_info["vlan"] ~= nil) and ifstats.iface_vlan) then print("&vlan="..host_info["vlan"]) end
+      if((host_info["vlan"] ~= nil) and ifstats.vlan) then print("&vlan="..host_info["vlan"]) end
       print("',\n")
 print [[
       data: { },
@@ -1226,8 +1226,8 @@ print(ifId.."&")
 print (hostinfo2url(host_info)..'";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
-if(ifstats.iface_sprobe) then show_sprobe = true else show_sprobe = false end
-if(ifstats.iface_vlan)   then show_vlan = true else show_vlan = false end
+if(ifstats.sprobe) then show_sprobe = true else show_sprobe = false end
+if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
 -- Set the host table option
 if(show_sprobe) then print ('flow_rows_option["sprobe"] = true;\n') end
 if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
@@ -1311,10 +1311,10 @@ print [[
 
 if(show_vlan) then
 
-if(ifstats.iface_sprobe) then
+if(ifstats.sprobe) then
    print('{ title: "Source Id",\n')
 else
-   if(ifstats.iface_vlan) then
+   if(ifstats.vlan) then
      print('{ title: "VLAN",\n')
    end
 end

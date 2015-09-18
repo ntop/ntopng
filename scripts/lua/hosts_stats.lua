@@ -97,7 +97,7 @@ print ('";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_id.inc")
 
-if ((ifstats.iface_vlan)) then show_vlan = true else show_vlan = false end
+if ((ifstats.vlan)) then show_vlan = true else show_vlan = false end
 
 -- Set the host table option
 if(prefs.is_categorization_enabled) then print ('host_rows_option["categorization"] = true;\n') end
@@ -232,10 +232,10 @@ print [[
 			  ]]
 
 if(show_vlan) then
-if(ifstats.iface_sprobe) then
+if(ifstats.sprobe) then
    print('{ title: "Source Id",\n')
 else
-   if(ifstats.iface_vlan) then
+   if(ifstats.vlan) then
      print('{ title: "VLAN",\n')
    end
 end
