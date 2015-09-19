@@ -54,7 +54,7 @@ institution please read <A HREF=http://www.ntop.org/about/about-us-2/>this</A>.<
    print('<form class="form-inline" style="margin-bottom: 0px;">')
 
    if(isAdministrator()) then
-      if(info["pro.use_redis_license"]) then
+      if(info["pro.use_redis_license"] or (info["pro.license"] == "")) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('<input type="text" name="ntopng_license" placeholder="Specify here your ntopng License" size=70 value="')
 	 print(info["ntopng.license"])
