@@ -213,7 +213,7 @@ class Flow : public GenericHashEntry {
 	     bool *src2srv_direction);
   void sumStats(nDPIStats *stats);
   void guessProtocol();
-  void dumpFlow(bool partial_dump);
+  bool dumpFlow(bool partial_dump);
   bool dumpFlowTraffic(void);
   bool match(patricia_tree_t *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); };

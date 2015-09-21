@@ -608,7 +608,9 @@ char* Flow::print(char *buf, u_int buf_len) {
 
 /* *************************************** */
 
-void Flow::dumpFlow(bool partial_dump) {
+bool Flow::dumpFlow(bool partial_dump) {
+  bool rc = false;
+
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->get_export_interface()) {
@@ -617,7 +619,7 @@ void Flow::dumpFlow(bool partial_dump) {
       time_t now = time(NULL);
 
       if((now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
-	return;
+	return(rc);
     }
 
     if(cli_host) {
@@ -635,7 +637,11 @@ void Flow::dumpFlow(bool partial_dump) {
 	free(json);
       }
     }
+
+    rc = true;
   }
+
+  return(rc);
 }
 
 /* *************************************** */
@@ -750,11 +756,11 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  dumpFlow(true);
-
-  last_db_dump.cli2srv_packets = cli2srv_packets,
-    last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
-    last_db_dump.srv2cli_bytes = srv2cli_bytes, last_db_dump.last_dump = last_seen;
+  if(dumpFlow(true)) {
+    last_db_dump.cli2srv_packets = cli2srv_packets,
+      last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
+      last_db_dump.srv2cli_bytes = srv2cli_bytes, last_db_dump.last_dump = last_seen;
+  }
 
   checkBlacklistedFlow();
 }
