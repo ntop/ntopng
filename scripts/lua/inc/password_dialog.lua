@@ -108,6 +108,7 @@ print [[<script>
   var frmpassreset = $('#form_password_reset');
 
   frmpassreset.submit(function () {
+			    if(!isValid($("#new_password_input").val())) { password_alert.error("Password contains invalid chars (a-z, A-Z, 0-9, and _)"); return(false); }
     if($("#new_password_input").val().length < 5) { password_alert.error("Password too short (< 5 characters)"); return(false); }
     if($("#new_password_input").val() != $("#confirm_new_password_input").val()) { password_alert.error("Passwords don't match"); return(false); }
 
