@@ -125,6 +125,7 @@
 #define DEFAULT_PID_PATH        "/var/tmp/ntopng.pid"
 #define DOMAIN_CATEGORY         "ntopng.domain.category"
 #define DOMAIN_TO_CATEGORIZE    "ntopng.domain.tocategorize"
+#define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"
 #define DNS_CACHE               "ntopng.dns.cache"
 #define DNS_TO_RESOLVE          "ntopng.dns.toresolve"
 #define HTTPBL_CACHE            "ntopng.httpbl.cache"

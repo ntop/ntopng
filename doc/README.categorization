@@ -12,8 +12,17 @@ You can test a malware site by visiting (at your risk)
 - ianfette.org
 - 1doi3.ro
 
+Domain Whitelist
+----------------
+If you want to define a domains whitelist, you can populate in redis the hash named
+ntopng.domain.whitelist with the domains you want to whitelist.
 
-NOTES:
+Example:
+redis-cli HSET ntopng.domain.whitelist ntop.org 1
+...
+
+NOTES
+-----
 - THIS IS AN EXPERIMENTAL SERVICE
 - NTOPNG WILL CONTACT DIRECTLY GOOGLE (NO TRAFFIC WILL PASS THROUGH NTOP.ORG)
 - NTOP HAS NO BUSINESS RELATIONSHIP WITH GOOGLE.COM

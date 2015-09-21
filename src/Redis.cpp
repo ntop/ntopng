@@ -544,6 +544,9 @@ char* Redis::getFlowCategory(char *_domainname, char *buf,
     return(buf);
   }
 
+  if(hashGet((char*)DOMAIN_WHITELIST_CAT, domainname, key, sizeof(key)) == 0)
+    return(buf); /* Whitelisted domain */
+
   l->lock(__FILE__, __LINE__);
 
   snprintf(key, sizeof(key), "%s.%s", DOMAIN_CATEGORY, domainname);
