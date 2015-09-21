@@ -962,8 +962,10 @@ void Prefs::add_network_interface(char *name, char *description) {
     ifNames[id].name = strdup(name);
     ifNames[id].description = strdup(description ? description : name);
     num_interfaces++;
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces: discarded %s", name);
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces (%d): discarded %s", id, name);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Hint: reset redis (redis-cli flushall) and then start ntopng again");
+  }
 }
 
 /* ******************************************* */
