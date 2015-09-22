@@ -292,13 +292,138 @@ function drawPeity(ifid, host, rrdFile, zoomLevel, selectedEpoch)
    print("</span>\n")
 end
 
+-- reads one or more RRDs and returns a json suitable to feed rickshaw
+
+function rrd2json(ifid, host, rrdFile, start_time, end_time)
+    rrdname = getRRDName(ifid, host, rrdFile)
+    names =  {}
+    series = {}
+    
+    local total_bytes = 0
+    local num_points = 0
+    local step = 1
+    
+    prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
+    
+    -- io.write(prefixLabel.."\n")
+    if(prefixLabel == "Bytes") then
+        prefixLabel = "Traffic"
+    end
+    
+    if(ntop.notEmptyFile(rrdname)) then
+        -- print("=> Found "..rrdname.."<p>\n")
+        -- print("=> "..rrdname)
+        -- io.write("=> *** ".. start_time .. "|" .. end_time .. "<p>\n")
+        local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+        --print("=> here we go")
+        local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
+        local num_points_found = table.getn(fdata)
+        local sample_rate = round(num_points_found / max_num_points)
+        
+        if(sample_rate < 1) then
+            sample_rate = 1
+        end
+        
+        -- DEBUG
+        --tprint(fdata, 1)
+        
+        step = fstep
+        num = 0
+        names_cache = {}
+        for i, n in ipairs(fnames) do
+            -- handle duplicates
+            if (names_cache[n] == nil) then
+                names_cache[n] = true
+                names[num] = prefixLabel
+                if(host ~= nil) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
+                num = num + 1
+                --io.write(prefixLabel.."\n")
+                --print(num.."\n")
+            end
+        end
+        
+        id = 0
+        sampling = 0
+        --sample_rate = 1
+        sample_rate = sample_rate-1
+        accumulated = 0
+        for i, v in ipairs(fdata) do
+            s = {}
+            s[0] = fstart + (i-1)*fstep
+            num_points = num_points + 1
+            
+            local elemId = 1
+            for _, w in ipairs(v) do
+                if(w ~= w) then
+                    -- This is a NaN
+                    v = 0
+                else
+                    --io.write(w.."\n")
+                    v = tonumber(w)
+                    if(v < 0) then
+                        v = 0
+                    end
+                end
+                
+                if(v > 0) then
+                    lastval_bits_time = s[0]
+                    lastval_bits = v
+                end
+                
+                s[elemId] = v*8 -- bps
+                --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
+                elemId = elemId + 1
+            end
+            
+            total_bytes = total_bytes + v*fstep
+            --if((v*fstep) > 0) then io.write(" | " .. (v*fstep) .." | [sampling: ".. sampling .. "/" .. sample_rate.."]\n") end
+            
+            if(sampling == sample_rate) then
+                if(sample_rate > 0) then
+                    s[1] = accumulated / sample_rate
+                end
+                series[id] = s
+                id = id + 1
+                sampling = 0
+                accumulated = 0
+            else
+                accumulated = accumulated + s[1]
+                sampling = sampling + 1
+            end
+        end
+        json_ret = '{}'
+        if(names ~= nil) then
+            json_ret = ''
+            for elemId=0,(num-1) do
+                if(elemId > 0) then
+                    json_ret = json_ret.."\n,\n"
+                end
+                
+                --name = strsplit(names[elemId], "/")
+                --name = name[#name]
+                name = names[elemId]
+                json_ret = json_ret..'{"name": "'.. name .. '",\n'
+                json_ret = json_ret..'"data": [\n'
+                n = 0
+                for key, value in pairs(series) do
+                    if(n > 0) then
+                        json_ret = json_ret..',\n'
+                    end
+                    json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. value[elemId+1] .. '}'
+                    n = n + 1
+                end
+                
+                json_ret = json_ret.."\n]}\n"
+            end
+        end
+    end
+    return '[\n'..json_ret..'\n]'
+end
 -- ########################################################
 
 function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
                  selectedEpoch, selected_epoch_sanitized, topArray)
    local debug_rrd = false
-
-   if(zoomLevel == nil) then zoomLevel = "1h" end
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then
       -- Refresh the page every minute unless a specific epoch has been selected
@@ -309,11 +434,6 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
       return
    end
-
-   dirs = ntop.getDirs()
-   rrdname = getRRDName(ifid, host, rrdFile)
-   names =  {}
-   series = {}
 
    if(zoomLevel == nil) then
       zoomLevel = "1h"
@@ -337,6 +457,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       end
    end
 
+   -- TODO: remove these and use javascript to fill their divs
    local maxval_bits_time = 0
    local maxval_bits = 0
    local minval_bits = 0
@@ -347,116 +468,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
    local num_points = 0
    local step = 1
 
-   prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
-
-   -- io.write(prefixLabel.."\n")
-   if(prefixLabel == "Bytes") then
-      prefixLabel = "Traffic"
-   end
-
-   if(ntop.notEmptyFile(rrdname)) then
-      -- print("=> Found "..rrdname.."<p>\n")
-      -- print("=> "..rrdname)
-      -- io.write("=> *** ".. start_time .. "|" .. end_time .. "<p>\n")
-      local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
-      --print("=> here we go")
-      local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
-      local num_points_found = table.getn(fdata)
-      local sample_rate = round(num_points_found / max_num_points)
-
-      if(sample_rate < 1) then
-	 sample_rate = 1
-      end
-
-      -- DEBUG
-      --tprint(fdata, 1)
-
-      step = fstep
-      num = 0
-      names_cache = {}
-      for i, n in ipairs(fnames) do
-         -- handle duplicates
-         if (names_cache[n] == nil) then
-           names_cache[n] = true
-           names[num] = prefixLabel
-           if(host ~= nil) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
-           num = num + 1
-           --io.write(prefixLabel.."\n")
-           --print(num.."\n")
-         end
-      end
-
-      id = 0
-      sampling = 0
-      --sample_rate = 1
-      sample_rate = sample_rate-1
-      accumulated = 0
-      for i, v in ipairs(fdata) do
-	 s = {}
-	 s[0] = fstart + (i-1)*fstep
-	 num_points = num_points + 1
-
-	 local elemId = 1
-	 for _, w in ipairs(v) do
-	    if(w ~= w) then
-	       -- This is a NaN
-	       v = 0
-	    else
-	       --io.write(w.."\n")
-	       v = tonumber(w)
-	       if(v < 0) then
-		  v = 0
-	       end
-	    end
-
-	    if(v > 0) then
-	       lastval_bits_time = s[0]
-	       lastval_bits = v
-	    end
-
-	    s[elemId] = v*8 -- bps
-	    --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
-	    elemId = elemId + 1
-	 end
-
-	 total_bytes = total_bytes + v*fstep
-	 --if((v*fstep) > 0) then io.write(" | " .. (v*fstep) .." | [sampling: ".. sampling .. "/" .. sample_rate.."]\n") end
-
-	 if(sampling == sample_rate) then
-	    if(sample_rate > 0) then
-	       s[1] = accumulated / sample_rate
-	    end
-	    series[id] = s
-	    id = id + 1
-	    sampling = 0
-	    accumulated = 0
-	 else
-	    accumulated = accumulated + s[1]
-	    sampling = sampling + 1
-	 end
-      end
-
-      for key, value in pairs(series) do
-	 local t = 0
-
-	 for elemId=0,(num-1) do
-	    --io.write(key.."="..value[elemId+1].. "\n")
-	    t = t + value[elemId+1] -- bps
-	 end
-
-	 t = t * step
-
-	 if(((minval_bits_time == 0) or (minval_bits >= t)) and (value[0] < lastval_bits_time)) then
-	    --io.write(value[0].."\t".. t .. "\t".. lastval_bits_time .. "\n")
-	    minval_bits_time = value[0]
-	    minval_bits = t
-	 end
-
-	 if((maxval_bits_time == 0) or (maxval_bits <= t)) then
-	    maxval_bits_time = value[0]
-	    maxval_bits = t
-	 end
-      end
+   if (1) then  -- TODO: remove this 
 
       print [[
 
@@ -577,7 +589,7 @@ print [[
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
-   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
+   print('   <tr><th>Min</th><td id="minval_bits_time">' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. formatValue(round(maxval_bits/step), 1) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(lastval_bits/step), 1) .. '</td></tr>\n')
 
@@ -585,7 +597,7 @@ if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or s
    print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(total_bytes)) .. '</td></tr>\n')
 else
    formatter_fctn = "fbits"
-   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. bitsToSize(minval_bits/step) .. '</td></tr>\n')
+   print('   <tr><th>Min</th><td id="minval_bits_time">' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. bitsToSize(minval_bits/step) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. bitsToSize(maxval_bits/step) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. bitsToSize(lastval_bits/step)  .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(total_bytes*8/(step*num_points)) .. '</td></tr>\n')
@@ -611,52 +623,52 @@ print [[
 </table>
    ]]
 
+
+local dataURLParams = '?ifid='..ifid
+dataURLParams = dataURLParams..'&start_time='..start_time
+dataURLParams = dataURLParams..'&end_time='..end_time
+if (rrdFile ~= nil) then dataURLParams = dataURLParams..'&rrdFile='..rrdFile end
+if (host ~= nil) then dataURLParams = dataURLParams..'&host='..host end
 print [[
 <script>
-
-
 var palette = new Rickshaw.Color.Palette();
+var graph,hover,legend,yAxis;
+(function(){
+    graph = new Rickshaw.Graph.Ajax( {
+        element: document.getElementById("chart"),
+        width: 600,
+        height: 300,
+        renderer: 'area',
+        dataURL: 'rrd_get_json.lua]] print(dataURLParams) print [[',
+        onData: function(data) {
+            var ret = []
+            $.each(data,
+                function(index, element){
+                    ret.push({
+                        name  : element.name,
+                        data  : element.data,
+                        color : palette.color()});
+                    });
+            return ret;
+            ;
+        },
+        onComplete: function() {
+            // this is also where you can set up your axes and hover detail
+            hover = new Hover( { graph: this.graph } );
+            legend = new Rickshaw.Graph.Legend( {
+                graph: this.graph,
+                element: document.getElementById('legend')});
+            yAxis = new Rickshaw.Graph.Axis.Y({
+                graph: this.graph, tickFormat: ]] print(formatter_fctn) print [[});
+            yAxis.render();
+            this.graph.render();
+            console.log(this.graph);
+            $('document').ready(function(){
+                document.getElementById("minval_bits_time").innerHTML = "TODO: use ajax to update this stuff";
+            ;});
+        }
+    } );
 
-var graph = new Rickshaw.Graph( {
-				   element: document.getElementById("chart"),
-				   width: 600,
-				   height: 300,
-				   renderer: 'area',
-				   series: [
-
-				]]
-
-if(names ~= nil) then
-   for elemId=0,(num-1) do
-      if(elemId > 0) then
-	 print ","
-      end
-
-      --name = strsplit(names[elemId], "/")
-      --name = name[#name]
-      name = names[elemId]
-      print ("{\nname: '".. name .. "',\n")
-
-      print("color: palette.color(),\ndata: [\n")
-
-      n = 0
-      for key, value in pairs(series) do
-	 if(n > 0) then
-	    print(",\n")
-	 end
-	 print ("\t{ x: "..  value[0] .. ", y: ".. value[elemId+1] .. " }")
-	 n = n + 1
-      end
-
-      print("\n]}\n")
-   end
-end
-
-print [[
-				   ]
-				} );
-
-graph.render();
 
 var chart_legend = document.querySelector('#chart_legend');
 
@@ -888,28 +900,14 @@ print [[
 	}
 } );
 
-var hover = new Hover( { graph: graph } );
-
-var legend = new Rickshaw.Graph.Legend( {
-					   graph: graph,
-					   element: document.getElementById('legend')
-					} );
-
-//var axes = new Rickshaw.Graph.Axis.Time( { graph: graph } ); axes.render();
-
-var yAxis = new Rickshaw.Graph.Axis.Y({
-    graph: graph,
-    tickFormat: ]] print(formatter_fctn) print [[
-});
-
-yAxis.render();
-
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
 print(baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. nextZoomLevel .. '&epoch=')
 print[['+hover.selected_epoch;
 });
+
+})();  // closes the direct call to our javascript code
 
 </script>
 
