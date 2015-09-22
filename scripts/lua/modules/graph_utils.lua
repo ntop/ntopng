@@ -602,14 +602,9 @@ print [[
 ]]
 end -- topArray ~= nil
 
-print[[</div></td></tr>]]
+print[[</div></td></tr></table><p>]]
 
 printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
-
-print [[
-
-</table>
-   ]]
 
 print [[
 <script>
@@ -1053,11 +1048,11 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    epoch_end = epoch+d
    epoch_begin = epoch-d
 
-   printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', 5, 5)
+   printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', 5, 5)
 end
 
-function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, limitv4, limitv6)
-   url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end.."&l4proto="..l4proto.."&port="..port
+function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
+   url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end.."&l4proto="..l4proto.."&port="..port.."&info="..info
 
    if(l7proto ~= "") then
       if(not(isnumber(l7proto))) then
@@ -1228,6 +1223,14 @@ print [[
 							  }
 						       },
 						       {
+							  title: "Info",
+							  field: "INFO",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+ {
 							  title: "Avg Thpt",
 							  field: "AVG_THROUGHPUT",
 							  sortable: false,

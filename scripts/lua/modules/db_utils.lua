@@ -35,7 +35,7 @@ end
 
 --- ====================================================================
 
-function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, port, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
+function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, port, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
    if(version == 4) then 
@@ -44,11 +44,12 @@ function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, por
       sql = "select IP_SRC_ADDR, IP_DST_ADDR"
    end
 
-   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO from flowsv"..version.."_"..interface_id.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO,INFO from flowsv"..version.."_"..interface_id.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
    if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
    if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
+   if(info ~= "") then follow = follow .." AND (INFO='"..info.."')" end
 
    if((host ~= nil) and (host ~= "")) then 
       if(version == 4) then
@@ -88,7 +89,7 @@ function getFlowInfo(interface_id, version, flow_idx)
       sql = "select IP_SRC_ADDR, IP_DST_ADDR"
    end
 
-   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO,CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON from flowsv"..version.."_"..interface_id.." where idx="..flow_idx
+   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO,INFO,CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON from flowsv"..version.."_"..interface_id.." where idx="..flow_idx
    
    sql = sql .. follow
 
@@ -102,12 +103,6 @@ function getFlowInfo(interface_id, version, flow_idx)
       return(res)
    end
 end
-
---- ====================================================================
-
-function getHostFlows(interface_id, version, host, vlan, begin_epoch, end_epoch, limit_low, limit_high)
-end
-
 
 --- ====================================================================
 

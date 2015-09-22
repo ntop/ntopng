@@ -30,6 +30,7 @@ epoch_end = _GET["epoch_end"]
 
 l4proto = _GET["l4proto"]
 port = _GET["port"]
+info = _GET["info"]
 limit = _GET["limit"]
 
 ip_version = _GET["version"]
@@ -42,7 +43,8 @@ if((perPage == nil) or (perPage == "")) then perPage = 5 end
 if((sortOrder == nil) or (sortOrder == "")) then sortOrder = "asc" end
 if((sortColumn == nil) or (sortColumn == "")) then sortColumn = "BYTES" end
 
-res = getInterfaceTopFlows(ifId, ip_version, host, (l7proto or ""), (l4proto or ""), (port or ""), epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC', limit)
+res = getInterfaceTopFlows(ifId, ip_version, host, (l7proto or ""), (l4proto or ""), (port or ""), (info or ""), 
+			   epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC', limit)
 
 if((res == nil) or (type(res) == "string")) then
    return('{ "currentPage" : 1,  "data" : [], "perPage" : '..perPage..',  "sort" : [ [ "column_", "desc" ] ],"totalRows" : 0 }')
@@ -77,10 +79,10 @@ else
 	    if((sport ~= nil) and (sport ~= "0")) then flow["CLIENT"] = flow["CLIENT"] .. ":"..base_port_url..flow["L4_SRC_PORT"].."'>"..sport.."</A>" end
 	    if((dport ~= nil) and (dport ~= "0")) then flow["SERVER"] = flow["SERVER"] .. ":"..base_port_url..flow["L4_DST_PORT"].."'>"..dport.."</A>" end
 	       
-
 	    flow["PROTOCOL"] = base.."&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	    flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"	    
 	    flow["FLOW_URL"] = base.."&flow_idx="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
+	    flow["INFO"] = base.."&info="..flow["INFO"].."'>"..flow["INFO"].."</A>"
 	 else
 	    flow["CLIENT"] = client..":"..ntop.getservbyport(tonumber(flow["L4_SRC_PORT"]), lower_pname)
 	    flow["SERVER"] = server..":"..ntop.getservbyport(tonumber(flow["L4_DST_PORT"]), lower_pname)

@@ -135,7 +135,8 @@ class Flow : public GenericHashEntry {
   u_int32_t getNextTcpSeq ( u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   void makeVerdict();
   double toMs(const struct timeval *t);
-  void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two) ;
+  void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
+  inline char* getFlowServerInfo() { return(host_server_name); };
 
   void updateTcpFlags(
 #ifdef __OpenBSD__

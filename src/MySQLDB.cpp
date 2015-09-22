@@ -52,7 +52,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     "`IP_DST_ADDR` varchar(48), `L4_DST_PORT` smallint unsigned,"
 	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
 	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
-	     "`JSON` BLOB,"
+	     "`INFO` varchar(255), `JSON` BLOB,"
 	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id());
@@ -70,7 +70,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     "`IP_DST_ADDR` int unsigned, `L4_DST_PORT` smallint unsigned,"
 	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
 	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
-	     "`JSON` BLOB,"
+	     "`INFO` varchar(255), `JSON` BLOB,"
 	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id());
@@ -133,8 +133,8 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }
 
   if(f->get_cli_host()->get_ip()->isIPv4())
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
-	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON) "
+	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'))",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id(),
 	     f->get_vlan_id(),
@@ -145,10 +145,11 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_srv_port(),
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
+	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf);
   else
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,JSON) "
-	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u',COMPRESS('%s'))",
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON) "
+	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'))",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id(),
 	     f->get_vlan_id(),
@@ -159,6 +160,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_srv_port(),
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
+	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf);
 
   free(json_buf);
