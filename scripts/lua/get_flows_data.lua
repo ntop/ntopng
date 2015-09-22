@@ -236,7 +236,8 @@ for key, value in pairs(flows_stats) do
 
    ---------------- APP ----------------
    if(application ~= nil) then
-      process = process and (flows_stats[key]["proto.ndpi"] == application)
+      io.write(flows_stats[key]["proto.ndpi"].."\n")
+      process = process and (string.ends(flows_stats[key]["proto.ndpi"], application))
    end
    if (debug and (not process)) then io.write("Stop ndpi\n")end
 
