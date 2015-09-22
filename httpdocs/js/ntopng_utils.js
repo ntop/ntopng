@@ -71,6 +71,13 @@ function fint(value) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function fdate(when) {
+      var epoch = when*1000;
+      var d = new Date(epoch);
+
+      return(d);
+}
+
 function capitaliseFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }

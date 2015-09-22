@@ -457,19 +457,6 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       end
    end
 
-   -- TODO: remove these and use javascript to fill their divs
-   local maxval_bits_time = 0
-   local maxval_bits = 0
-   local minval_bits = 0
-   local minval_bits_time = 0
-   local lastval_bits = 0
-   local lastval_bits_time = 0
-   local total_bytes = 0
-   local num_points = 0
-   local step = 1
-
-   if (1) then  -- TODO: remove this 
-
       print [[
 
 <style>
@@ -577,33 +564,24 @@ print [[
 ]]
 if(string.contains(rrdFile, "num_")) then
    formatter_fctn = "fint"
+elseif (string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
+    formatter_fctn = "fpackets"
 else
-   formatter_fctn = "fpackets"
+   formatter_fctn = "fbits"
 end
 
 if (topArray ~= nil) then
-print [[
-   <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
-   ]]
+
+print('<table class="table table-bordered table-striped" ')
+print('formatter_fctn="'..formatter_fctn..'" id="min-max-table" ')
+print('style="border: 0; margin-right: 10px; display: table-cell">')
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
-
-if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
-   print('   <tr><th>Min</th><td id="minval_bits_time">' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
-   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. formatValue(round(maxval_bits/step), 1) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(lastval_bits/step), 1) .. '</td></tr>\n')
-
-   print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(total_bytes*8/(step*num_points), 2)) .. '</td></tr>\n')
-   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(total_bytes)) .. '</td></tr>\n')
-else
-   formatter_fctn = "fbits"
-   print('   <tr><th>Min</th><td id="minval_bits_time">' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. bitsToSize(minval_bits/step) .. '</td></tr>\n')
-   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. bitsToSize(maxval_bits/step) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. bitsToSize(lastval_bits/step)  .. '</td></tr>\n')
-   print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(total_bytes*8/(step*num_points)) .. '</td></tr>\n')
-   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(total_bytes) .. '</td></tr>\n')
-end
-
+print('   <tr><th>Min</th><td id="minval_time"></td><td id="minval"></td></tr>\n')
+print('   <tr><th>Max</th><td id="maxval_time"></td><td id="maxval"></td></tr>\n')
+print('   <tr><th>Last</th><td id="lastval_time"></td><td id="lastval"></td></tr>\n')
+print('   <tr><th>Average</th><td colspan=2 id="avg"></td></tr>\n')
+print('   <tr><th>Total </th><td colspan=2 id="total"></td></tr>\n')
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
 print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
 
@@ -662,23 +640,78 @@ var graph,hover,legend,yAxis;
                 graph: this.graph, tickFormat: ]] print(formatter_fctn) print [[});
             yAxis.render();
             this.graph.render();
-            console.log(this.graph);
-            $('document').ready(function(){
-                document.getElementById("minval_bits_time").innerHTML = "TODO: use ajax to update this stuff";
-            ;});
+            $('document').ready(computeRickshawMinMax);
         }
     } );
 
+/*
+ * Computes maximum and minimum values for data contained in a Rickshaw.Graph
+ * Uses this data to populate DOM elements
+*/
+function computeRickshawMinMax(){
+    var g = graph.graph, total={};
+    var maxVal = minVal = lastVal = totVal = maxTime = minTime = lastTime = firstTime = avg = 0;
+    // we want to iterate over all series shown in the graph.
+    // indeed, more than one series may exist.
+    // for example, when plotting host rrds, there are both sent and rcvd traffic:
+    // g.series[0] =  {name: "Traffic (Sent)"...}
+    // g.series[1] =  {name: "Traffic (Rcvd)"...}
+    $.each(g.series, function(index, element){
+        // each element is an object with attributes among which "data"
+        // "data" contains actual datapoints with xs and ys
+        // where xs are epochs and ys are values
+        $.each(element.data, function(index2, datapoint){
+            // compute the cumulative sum for each x
+            if (total[datapoint.x] === undefined) total[datapoint.x] = 0;
+            total[datapoint.x] += datapoint.y;
+            totVal += datapoint.y
+        });
+    });
+    console.log(Math.max.apply(null,Object.keys(total)));
+    // ok, now that we have total values, it's time to compute max and min
+    $.each(total, function(index, element){
+        if(maxTime == 0 || (element >= maxVal && index > maxTime)) {maxVal = element; maxTime = index;}
+        if(minTime == 0 || (element <= minVal && index > minTime)) {minVal = element; minTime = index;}
+    });
+    firstTime=Math.min.apply(null,Object.keys(total));
+    lastTime=Math.max.apply(null,Object.keys(total));
+    lastVal=total[lastTime];
+    avg = totVal / Object.keys(total).length;
+    totVal = avg * (lastTime-firstTime)
+
+    document.getElementById("minval_time").innerHTML = fdate(minTime);
+    document.getElementById("maxval_time").innerHTML = fdate(maxTime);
+    document.getElementById("lastval_time").innerHTML = fdate(lastTime);
+    
+    // we have to decide the format,
+    // depending on whether the table will contain bits or simple counters
+    if(document.getElementById("min-max-table").getAttribute("formatter_fctn") == "fbits"){
+        maxVal = fbits(maxVal);
+        minVal = fbits(minVal);
+        lastVal = fbits(lastVal);
+        totVal = bytesToVolume(totVal/8.);
+        avg = fbits(avg);
+    } else if(document.getElementById("min-max-table").getAttribute("formatter_fctn") == "fint"){
+        maxVal = fint(maxVal);
+        minVal = fint(minVal);
+        lastVal = fint(lastVal);
+        totVal = fint(totVal);
+        avg = fint(avg);
+    } else { // formatter_fctn = "fpackets"
+        maxVal = fpackets(maxVal);
+        minVal = fpackets(minVal);
+        lastVal = fpackets(lastVal);
+        totVal = fint(totVal);
+        avg = fpackets(avg);
+    }
+    document.getElementById("minval").innerHTML = minVal;
+    document.getElementById("maxval").innerHTML = maxVal;
+    document.getElementById("lastval").innerHTML = lastVal;
+    document.getElementById("avg").innerHTML = avg;
+    document.getElementById("total").innerHTML = totVal;
+}
 
 var chart_legend = document.querySelector('#chart_legend');
-
-
-function fdate(when) {
-      var epoch = when*1000;
-      var d = new Date(epoch);
-
-      return(d);
-}
 
 function fbits(bits) {
 	var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
@@ -912,9 +945,6 @@ print[['+hover.selected_epoch;
 </script>
 
 ]]
-else
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> File "..rrdname.." cannot be found</div>")
-end
 end
 
 -- ########################################################
