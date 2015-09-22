@@ -22,6 +22,15 @@ CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib"
 fi
 
+if test -d /opt/local/include; then :
+   CFLAGS="${CFLAGS} -I/opt/local/include"
+   CPPFLAGS="${CPPFLAGS} -I/opt/local/include"
+fi
+
+if test -d /opt/local/lib; then :
+  LDFLAGS="${LDFLAGS} -L/opt/local/lib"
+fi
+
 SHORT_MACHINE=`uname -m | cut -b1-3`
 if test $SHORT_MACHINE = "arm"; then
 LIBNUMA=""
@@ -29,16 +38,11 @@ else
 LIBNUMA="-lnuma"
 fi
 
-if test -d ".git"; then :
-GIT_TAG=`git rev-parse HEAD`
-GIT_DATE=`date +%Y%m%d`
-GIT_RELEASE="${GIT_TAG}:${GIT_DATE}"
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-else
-GIT_RELEASE="${PACKAGE_VERSION}"
-GIT_DATE=`date`
-GIT_BRANCH=""
-fi
+GIT_RELEASE="@GIT_RELEASE@"
+GIT_DATE="@GIT_DATE@"
+GIT_BRANCH="@GIT_BRANCH@"
+PRO_GIT_RELEASE="@PRO_GIT_RELEASE@"
+PRO_GIT_DATE="@PRO_GIT_DATE@"
 
 AC_MSG_CHECKING(for nDPI)
 NDPI_HOME=./nDPI
@@ -72,42 +76,31 @@ fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
-NPROBE_HOME="$HOME/nProbe"
-
-if ! test -d "$HOME/nProbe"; then :
-  NPROBE_HOME="$HOME/network/nProbe"
-fi
-
-if test -d "$NPROBE_HOME"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
 CPPFLAGS="${CPPFLAGS} -I${PWD}/pro"
-PRO_SVN_RELEASE=`cd pro; svn info . | grep "^Revision"|cut -d " " -f 2`
-SVN_PRO_DATE=`cd pro; svn info . | grep "^Last Changed Date"|cut -d " " -f 4-`
+dnl> Remove heading spaces
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
-AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_RELEASE, "r${PRO_SVN_RELEASE}", [ntopng professional release])
-AC_DEFINE_UNQUOTED(NTOPNG_PRO_SVN_DATE, "${SVN_PRO_DATE}", [ntopng professional date])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
+AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional date])
 PRO_LIBS='$(PRO_LIBS)'
 PRO_INC='$(PRO_INC)'
-DUMMY=`cd pro; make build`
+DUMMY=`cd ./pro; make build`
 
-if test -r "pro/license/systemId.c"; then :
+if test -r "../license/systemId.c"; then :
  AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
 fi
 else
-AC_MSG_RESULT(not found [missing $NPROBE_HOME])
+AC_MSG_RESULT(not found)
 PRO_MAKEFILE_INC=
 PRO_INC=
 PRO_LIBS=
 PRO_OBJECTS=
 PRO_HEADERS=
 PRO_LIBS=
-fi
-else
-AC_MSG_RESULT(not found [missing $NPROBE_HOME])
 fi
 
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
@@ -235,8 +228,10 @@ fi
 
 CFLAGS="-Wall $CFLAGS"
 
-dnl> http://luajit.org/install.html
+OS=""
 if test $SYSTEM = "Darwin"; then
+   OSXV=`sw_vers -productVersion`
+   OS="MacOSX $OSXV"
    if test $MACHINE = "x86_64"; then
       LINK_OPTS="-pagezero_size 10000 -image_base 100000000"
       RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
@@ -244,7 +239,20 @@ if test $SYSTEM = "Darwin"; then
             CFLAGS="-fno-color-diagnostics $CFLAGS"
       fi
    fi
+else	
+  if test $SYSTEM = "Linux"; then
+    if [ test -f /etc/redhat-release ]; then
+        OS=`cat /etc/redhat-release`
+    else  
+        if [ test -f /usr/bin/lsb_release ]; then
+         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
+        fi
+    fi
+  fi
 fi
+
+dnl> Remove spaces
+OS="${OS#"${OS%%[![:space:]]*}"}"
 
 dnl> Check for package install
 DOWNLOAD_GEOIP=0
@@ -279,6 +287,44 @@ else
   exit
 fi
 
+AC_CHECK_TOOL(MARIADB, mariadb_config)
+if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
+   MYSQLTOOL="mariadb_config"
+else
+   PATH=$PATH:/usr/local/mysql/bin
+   AC_CHECK_TOOL(MYSQL, mysql_config)
+   if test "x$ac_cv_prog_ac_ct_MYSQL" = "xmysql_config"; then
+     MYSQLTOOL="mysql_config"
+   else
+     MYSQLTOOL=""
+   fi
+fi
+
+if test -n "$MYSQLTOOL"; then
+   MYSQLLIBS="`$MYSQLTOOL --libs_r`"
+   if test ".$MYSQLLIBS" != "."; then
+      MYSQL_LIB="`$MYSQLTOOL --libs`"
+   else
+      MYSQL_LIB="`$MYSQLTOOL --libs_r`"
+   fi
+
+   MYSQL_INC="`$MYSQLTOOL --include`"
+   AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
+   AC_CHECK_LIB([wrap], [main])
+fi
+
+if test -f /usr/bin/lsb_release; then
+  LINUX_OS_RELEASE=`lsb_release -r | cut -f 2|cut -d '.' -f 1`
+else
+  LINUX_OS_RELEASE=0
+fi
+
+if test $LINUX_OS_RELEASE -eq 7; then
+ MYSQL_DEP="mariadb-libs >= 5.5 tcp_wrappers-libs >= 7.6"
+else
+ MYSQL_DEP="mysql-libs >= 5.1.0 tcp_wrappers-libs >= 7.6"
+fi
+
 AC_DEFINE_UNQUOTED(_CRT_SECURE_NO_WARNINGS, 1, [Disable warning on windows])
 
 GMAKE=`which gmake`
@@ -287,12 +333,13 @@ then
 	GMAKE="make"
 fi
 
-GPP=`which g++`
+GPP=`which clang++`
 if test x$GPP = x
 then
-       AC_MSG_RESULT(FATAL ERROR: g++ is not installed on your host) 
+	GPP="g++"
+else
+	GPP="$GPP -O0"
 fi
-
 
 GIT=`which git`
 if test x$GIT = x
@@ -315,9 +362,9 @@ then
 fi
 
 if test $SYSTEM = "Darwin"; then
-  MAN_DIR=$INSTALL_DIR/share
+  MAN_DIR=$INSTALL_DIR/share/man
 else
-  MAN_DIR=$INSTALL_DIR
+  MAN_DIR=$INSTALL_DIR/man
 fi
 
 if test $SYSTEM = "OpenBSD"; then
@@ -327,6 +374,7 @@ fi
 
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
+AC_DEFINE_UNQUOTED(PACKAGE_OS, "${OS}", [OS Name])
 AC_SUBST(PWD)
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)
@@ -360,6 +408,9 @@ AC_SUBST(PRO_MAKEFILE_INC)
 AC_SUBST(PRO_LIBS)
 AC_SUBST(PRO_INC)
 AC_SUBST(REVISION)
+AC_SUBST(MYSQL_LIB)
+AC_SUBST(MYSQL_INC)
+AC_SUBST(MYSQL_DEP)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
