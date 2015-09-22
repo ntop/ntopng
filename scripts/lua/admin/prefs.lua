@@ -48,6 +48,13 @@ if(haveAdminPrivileges()) then
 		     "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation")
 
    -- ================================================================================
+   print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
+
+   mysql_retention = ntop.getCache("ntopng.prefs.mysql_retention")
+   if((mysql_retention == nil) or (mysql_retention == "")) then mysql_retention = "30" end
+   prefsInputField("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "mysql_retention", mysql_retention)
+
+   -- ================================================================================
    print('<tr><th colspan=2 class="info">Alerts</th></tr>')
 
    toggleTableButton("Alerts On Syslog",

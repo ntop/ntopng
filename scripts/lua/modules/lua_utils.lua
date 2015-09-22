@@ -1338,10 +1338,12 @@ function prefsInputField(label, comment, key, value)
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
  <div class="input-group" >
-      <input type="text" class="form-control"  name="]] print(key) print [[" value="]] print(value.."") print [[">
+      <div >
+        <input type="text" class="form-control" name="]] print(key) print [[" value="]] print(value.."") print [[">
       <span class="input-group-btn">
         <button class="btn btn-default" type="submit">Save</button>
       </span>
+      </div>
     </div><!-- /input-group -->
 </form></td></tr>
 ]]
