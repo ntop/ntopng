@@ -581,17 +581,17 @@ function secondsToTime(seconds)
 
       msg = years .. " year"
       if(years > 1) then msg = msg .. "s" end
+   end
 
-      msg = msg .. ", "
-    end
     if(days > 0) then
+       if(string.len(msg) > 0) then  msg = msg .. ", " end
       msg = msg .. days .. " day"
       if(days > 1) then msg = msg .. "s" end
-      msg = msg .. ", "
     end
   end
 
   if(hours > 0) then
+     if(string.len(msg) > 0) then  msg = msg .. ", " end
     msg = msg .. string.format("%d ", hours)
     if(hours > 1) then
       msg = msg .. "h"
@@ -600,11 +600,11 @@ function secondsToTime(seconds)
     end
 
     --if(hours > 1) then msg = msg .. "s" end
-    msg = msg .. ", "
   end
 
   if(minutes > 0) then
-    msg = msg .. string.format("%d min", minutes)
+     if(string.len(msg) > 0) then msg = msg .. ", " end
+     msg = msg .. string.format("%d min", minutes)
   end
 
   if(sec > 0) then

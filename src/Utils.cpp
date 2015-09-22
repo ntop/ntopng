@@ -104,6 +104,8 @@ char* Utils::formatPackets(float numPkts, char *buf, u_int buf_len) {
 char* Utils::l4proto2name(u_int8_t proto) {
   static char proto_string[8];
 
+  /* NOTE: keep in sync with /lua/pro/db_explorer_data.lua */
+
   switch(proto) {
   case 0:   return((char*)"IP");
   case 1:   return((char*)"ICMP");
