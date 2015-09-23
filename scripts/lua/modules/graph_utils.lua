@@ -297,11 +297,10 @@ end
 function rrd2json(ifid, host, rrdFile, start_time, end_time)
     rrdname = getRRDName(ifid, host, rrdFile)
     names =  {}
+    names_cache = {}
     series = {}
     
     local total_bytes = 0
-    local num_points = 0
-    local step = 1
     
     prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
     
@@ -309,112 +308,96 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time)
     if(prefixLabel == "Bytes") then
         prefixLabel = "Traffic"
     end
+
+    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
+
+    -- print("=> Found "..rrdname.."<p>\n")
+    -- print("=> "..rrdname)
+    -- io.write("=> *** ".. start_time .. "|" .. end_time .. "<p>\n")
+    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+    --print("=> here we go")
+    local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
+    local num_points_found = table.getn(fdata)
+    local sample_rate = round(num_points_found / max_num_points)
     
-    if(ntop.notEmptyFile(rrdname)) then
-        -- print("=> Found "..rrdname.."<p>\n")
-        -- print("=> "..rrdname)
-        -- io.write("=> *** ".. start_time .. "|" .. end_time .. "<p>\n")
-        local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
-        --print("=> here we go")
-        local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
-        local num_points_found = table.getn(fdata)
-        local sample_rate = round(num_points_found / max_num_points)
-        
-        if(sample_rate < 1) then
-            sample_rate = 1
+    if(sample_rate < 1) then
+        sample_rate = 1
+    end
+
+    for i, n in ipairs(fnames) do
+        -- handle duplicates
+        if (names_cache[n] == nil) then
+            names_cache[n] = true
+            names[#names+1] = prefixLabel
+            if(host ~= nil) then names[#names] = names[#names] .. " (" .. firstToUpper(n)..")" end
         end
-        
-        -- DEBUG
-        --tprint(fdata, 1)
-        
-        step = fstep
-        num = 0
-        names_cache = {}
-        for i, n in ipairs(fnames) do
-            -- handle duplicates
-            if (names_cache[n] == nil) then
-                names_cache[n] = true
-                names[num] = prefixLabel
-                if(host ~= nil) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
-                num = num + 1
-                --io.write(prefixLabel.."\n")
-                --print(num.."\n")
-            end
-        end
-        
-        id = 0
-        sampling = 0
-        --sample_rate = 1
-        sample_rate = sample_rate-1
-        accumulated = 0
-        for i, v in ipairs(fdata) do
-            s = {}
-            s[0] = fstart + (i-1)*fstep
-            num_points = num_points + 1
-            
-            local elemId = 1
-            for _, w in ipairs(v) do
-                if(w ~= w) then
-                    -- This is a NaN
-                    v = 0
-                else
-                    --io.write(w.."\n")
-                    v = tonumber(w)
-                    if(v < 0) then
-                        v = 0
-                    end
-                end
-                
-                if(v > 0) then
-                    lastval_bits_time = s[0]
-                    lastval_bits = v
-                end
-                
-                s[elemId] = v*8 -- bps
-                --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
-                elemId = elemId + 1
-            end
-            
-            total_bytes = total_bytes + v*fstep
-            --if((v*fstep) > 0) then io.write(" | " .. (v*fstep) .." | [sampling: ".. sampling .. "/" .. sample_rate.."]\n") end
-            
-            if(sampling == sample_rate) then
-                if(sample_rate > 0) then
-                    s[1] = accumulated / sample_rate
-                end
-                series[id] = s
-                id = id + 1
-                sampling = 0
-                accumulated = 0
+    end
+
+    sampling = 1
+    s = {}        
+    for i, v in ipairs(fdata) do
+        s[0] = fstart + (i-1)*fstep
+
+        local elemId = 1
+        for _, w in ipairs(v) do
+            if(w ~= w) then
+                -- This is a NaN
+                w = 0
             else
-                accumulated = accumulated + s[1]
-                sampling = sampling + 1
+                --io.write(w.."\n")
+                w = tonumber(w)
+                if(w < 0) then
+                    w = 0
+                end
             end
+
+            if(w > 0) then
+                lastval_bits_time = s[0]
+                lastval_bits = w
+            end
+
+            if (s[elemId] == nil) then s[elemId] = 0 end
+            s[elemId] = s[elemId] + w*8 -- bps
+            --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
+            elemId = elemId + 1
         end
-        json_ret = '{}'
-        if(names ~= nil) then
-            json_ret = ''
-            for elemId=0,(num-1) do
-                if(elemId > 0) then
-                    json_ret = json_ret.."\n,\n"
-                end
-                
-                --name = strsplit(names[elemId], "/")
-                --name = name[#name]
-                name = names[elemId]
-                json_ret = json_ret..'{"name": "'.. name .. '",\n'
-                json_ret = json_ret..'"data": [\n'
-                n = 0
-                for key, value in pairs(series) do
-                    if(n > 0) then
-                        json_ret = json_ret..',\n'
-                    end
-                    json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. value[elemId+1] .. '}'
-                    n = n + 1
-                end
-                
-                json_ret = json_ret.."\n]}\n"
+        
+        for elemId=1,#s do
+            total_bytes = total_bytes + s[elemId]*fstep/8.
+        end
+
+        if(sampling == sample_rate) then
+            for elemId=1,#s do
+                s[elemId] =  s[elemId] / sample_rate
             end
+            series[#series+1] = s
+            sampling = 1
+            s = {}
+        else
+            sampling = sampling + 1
+        end
+    end
+    json_ret = '{}'
+    if(names ~= nil) then
+        json_ret = ''
+
+        for elemId=1,#names do
+            if(elemId > 1) then
+                json_ret = json_ret.."\n,\n"
+            end
+            name = names[elemId]
+            json_ret = json_ret..'{"name": "'.. name .. '",\n'
+            json_ret = json_ret..'"data": [\n'
+            n = 0
+            for key, value in pairs(series) do
+                if(n > 0) then
+                    json_ret = json_ret..',\n'
+                end
+                json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. value[elemId] .. '}'
+                n = n + 1
+            end
+
+            json_ret = json_ret.."\n]}\n"
         end
     end
     return '[\n'..json_ret..'\n]'
