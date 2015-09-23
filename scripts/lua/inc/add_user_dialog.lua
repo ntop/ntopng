@@ -19,40 +19,41 @@ print [[
 
 </script>
 
- <form id="form_add_user" class="form-horizontal" method="get" action="add_user.lua" >
+ <form data-toggle="validator" id="form_add_user" class="form-horizontal" method="get" action="add_user.lua" >
 			   ]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
-  <div class="control-group">
-    <label class="control-label">Username</label>
+
+  <div class="form-group has-feedback">
+    <label class="form-label">Username</label>
     <div class="controls">
-      <input id="username_input" type="text" name="username" value="" class="form-control">
+	 <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
     </div>
   </div>
 
-  <div class="control-group">
-    <label class="control-label">Full Name</label>
+  <div class="form-group has-feedback">
+    <label class="form-label">Full Name</label>
     <div class="controls">
       <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
     </div>
   </div>
 
-  <div class="control-group">
-    <label class="control-label">Password</label>
+  <div class="form-group has-feedback">
+    <label class="form-label">Password</label>
        <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-      <input id="password_input" type="password" name="password" value="" class="form-control">
+	 <input id="password_input" type="password" name="password" value="" class="form-control" pattern="^[\w]{1,}$" required>
     </div>
   </div>
 
-  <div class="control-group">
-    <label class="control-label">Confirm Password</label>
+  <div class="form-group has-feedback">
+    <label class="form-label">Confirm Password</label>
    <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-    <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control">
+	 <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w]{1,}$" required>
     </div>
   </div>
 
-  <div class="control-group">
-    <label class="control-label">User Role</label>
+  <div class="form-group has-feedback">
+    <label class="form-label">User Role</label>
     <div class="controls">
       <select id="host_role_select" name="host_role" class="form-control">
         <option value="standard">Non Privileged User</option>
@@ -61,18 +62,19 @@ print [[
    </div>
   </div>
 
-  <div class="control-group">
-    <label class="control-label">Allowed Networks</label>
+  <div class="form-group has-feedback">
+    <label class="form-label">Allowed Networks</label>
    <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
     <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
     </div>
 <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
   </div>
 
-
+  <div class="form-group has-feedback">
+   <button type="submit" id="add_user_submit" class="btn btn-default btn-primary btn-block">Add New User</button>
+  </div>
 
   </form>
-
 <script>
 
   function isValid(str) { return /^\w+$/.test(str); }
@@ -84,8 +86,7 @@ print [[
         $("#full_name_input").val("");
 	$("#password_input").val("");
         $("#confirm_password_input").val("");
-	$("#allowed_networks_input").val("0.0.0.0/0,::/0");
-	
+	$("#allowed_networks_input").val("0.0.0.0/0,::/0");	
   }
 
   resetAddUserForm();
@@ -160,17 +161,6 @@ print [[
 </script>
 
 </div> <!-- modal-body -->
-
-<div class="modal-footer">
-  <button class="btn btn-default btn-sm" data-dismiss="modal" aria-hidden="true">Close</button>
-  <button id="add_user_submit" class="btn btn-primary btn-sm">Add</button>
-</div>
-
-<script>
-$('#add_user_submit').click(function() {
-  $('#form_add_user').submit();
-});
-</script>
 
 </div>
 </div>
