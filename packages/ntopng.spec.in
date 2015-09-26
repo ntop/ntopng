@@ -84,6 +84,8 @@ rm -fr $RPM_BUILD_ROOT
 %endif
 /etc/logrotate.d/ntopng
 /usr/share/ntopng
+# Don't overwrite ntopng-cert.pem is the file is already present
+%config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 #/etc/ntopng/ntopng.conf.sample
 #/etc/ntopng/ntopng.start
 
