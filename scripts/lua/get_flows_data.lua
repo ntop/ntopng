@@ -6,7 +6,6 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "sqlite_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 local debug = false
@@ -38,7 +37,6 @@ user   = _GET["user"]
 host   = _GET["host"]
 pid    = tonumber(_GET["pid"])
 name   = _GET["name"]
-sqlite = _GET["sqlite"]
 
 -- Get from redis the throughput type bps or pps
 throughput_type = getThroughputType()
@@ -88,25 +86,7 @@ if (all ~= nil) then
 end
 
 interface.select(ifname)
-
-if (sqlite == nil) then
-   flows_stats = interface.getFlowsInfo(host)
-else
-   -- Init some parameters
-   to_skip = 0
-   offsetPage = currentPage - 1
-
-   -- Create and exe query
-   query = "SELECT * FROM flows LIMIT "..perPage.." OFFSET "..(perPage*offsetPage)
-   Sqlite:execQuery(sqlite, query)
-
-   -- Get flows in a correct format
-   flows_stats = Sqlite:getFlows()
-   -- tprint(flows_stats)
-   rows_number = Sqlite:getRowsNumber()
-   -- Set default values if the query is empty
-   if (flows_stats == nil) then flows_stats = {} end
-end
+flows_stats = interface.getFlowsInfo(host)
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 total = 0
@@ -429,9 +409,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    descr=cli_name..":"..value["cli.port"].." &lt;-&gt; "..srv_name..":"..value["srv.port"]
    print (", \"column_key\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key=" .. key .. "&label=" .. descr)
-   if (sqlite ~= nil) then
-      print ("&sqlite="..sqlite.."&ID="..value["ID"])
-   end
    print ("'><span class='label label-info'>Info</span></A>")
    print ("\", \"column_client\" : \"" .. src_key)
 
@@ -541,8 +518,4 @@ if(sortOrder == nil) then
 end
 
 print ("\"sort\" : [ [ \"" .. sortColumn .. "\", \"" .. sortOrder .."\" ] ],\n")
-if (sqlite == nil) then
-   print ("\"totalRows\" : " .. total .. " \n}")
-else
-   print ("\"totalRows\" : " .. (Sqlite:getRowsNumber()) .. " \n}")
-end
+print ("\"totalRows\" : " .. total .. " \n}")
