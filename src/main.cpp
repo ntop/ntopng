@@ -136,6 +136,8 @@ int main(int argc, char *argv[])
   ntop->getTrace()->traceEvent(TRACE_INFO, "System has %d CPU cores", ntop->getNumCPUs());
 #endif
 
+  affinity = prefs->get_cpu_affinity();
+  int indexAffinity=0;
   for(int i=0; i<MAX_NUM_INTERFACES; i++) {
     NetworkInterface *iface = NULL;
 
@@ -186,16 +188,20 @@ int main(int argc, char *argv[])
  * for non-Linux.
  */
 #ifdef linux
-    affinity = prefs->get_cpu_affinity();
 
-    if(affinity != NULL) {
-      if((core_id_s = strtok(affinity, ",")) != NULL)
-	core_id = atoi(core_id_s);
-      else
-	core_id = i;
-
+    if(affinity!=NULL){
+      if(indexAffinity==0){
+        core_id_s = strtok(affinity, ",");
+      }else{
+        core_id_s = strtok(NULL, ",");
+      }
+      if(core_id_s != NULL) {
+        core_id = atoi(core_id_s);
+      }else{
+        core_id = indexAffinity;
+      }
+      indexAffinity++;
       iface->setCPUAffinity(core_id);
-      affinity = NULL;
     }
 #endif
 
