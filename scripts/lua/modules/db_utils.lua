@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 
-local db_debug = true
+local db_debug = false
 
 --- ====================================================================
 
