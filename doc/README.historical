@@ -1,0 +1,39 @@
+Introduction
+------------
+You can instruct ntopng to save in MySQL flow information so that you can
+1. Visualize historical information using ntopng
+2. Create your own reports using data stored in MySQL
+
+
+How To Enable It
+----------------
+In order to enable this feature you need to start ntopng with the -F.
+Example: ntopng -F "mysql;localhost;ntopng;flows;root;"
+
+Note that ntopng will create the table automatically (you need to create the DB)
+so no action is required from your side.
+
+
+Using It
+--------
+Doing that ntopng will dump flow information in MySQL and allow you
+to visualize top flows in the historical view of local hosts (you need
+to click on the graph icon inside the host view). Example
+http://localhost:3000/lua/host_details.lua?ifname=0&host=192.168.1.92&page=historical
+
+The ntopng pro version contains much more detailed historical information
+as well it allows you to navigate such information, thing that is not
+possible with the community edition.
+
+
+Data Retention
+--------------
+In order to avoid filling up your MySQL, ntopng will harvest old data. You
+can specify the retention period in the preferences menu. The default
+retention is 30 days (i.e. data older than 30 days is deleted).
+
+
+Future Work
+-----------
+In the future we plan to consider adding ElasticSearch support to historical
+view too.
