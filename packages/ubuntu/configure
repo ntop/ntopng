@@ -1697,7 +1697,7 @@ else
   fi
 fi
 
-if  ! test -f ../../pro/utils/snzip ; then
+if  test -d ../../pro/  &&  ! test -f ../../pro/utils/snzip ; then
    echo "snzip is missing: please compile it and try again"
    exit
 fi
