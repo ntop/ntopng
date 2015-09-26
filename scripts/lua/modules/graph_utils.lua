@@ -20,16 +20,16 @@ end
 
 -- ########################################################
 
-function getProtoVolume(ifName, start_time, end_time) 
+function getProtoVolume(ifName, start_time, end_time)
    ifId = getInterfaceId(ifName)
    path = fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
    rrds = ntop.readdir(path)
- 
-   ret = { } 
+
+   ret = { }
    for rrdFile,v in pairs(rrds) do
       if((string.ends(rrdFile, ".rrd")) and (top_rrds[rrdFile] == nil)) then
 	 rrdname = getRRDName(ifId, nil, rrdFile)
-	 if(ntop.notEmptyFile(rrdname)) then	    
+	 if(ntop.notEmptyFile(rrdname)) then
 	    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
 	    local num_points_found = table.getn(fdata)
 
@@ -47,7 +47,7 @@ function getProtoVolume(ifName, start_time, end_time)
 		     end
 		  end
 	       end
-		  
+
 	       accumulated = accumulated + v
 	    end
 
@@ -64,12 +64,14 @@ end
 
 -- ########################################################
 
-function navigatedir(url, label, base, path, go_deep, print_html)
+function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, start_time, end_time)
    local shown = false
    local to_skip = false
    local ret = { }
    local do_debug = false
    local printed = false
+
+   -- io.write(debug.traceback().."\n")
 
    rrds = ntop.readdir(path)
    table.sort(rrds)
@@ -80,37 +82,41 @@ function navigatedir(url, label, base, path, go_deep, print_html)
 
 	 if(ntop.isdir(p)) then
 	    if(go_deep) then
-	       r = navigatedir(url, label.."/"..v, base, p, print_html)
+	       r = navigatedir(url, label.."/"..v, base, p, print_html, ifid, host, start_time, end_time)
 	       for k,v in pairs(r) do
 		  ret[k] = v
 		  if(do_debug) then print(v.."<br>\n") end
 	       end
 	    end
-	 else	    
-	    if(top_rrds[v] == nil) then
-	       if(label == "*") then
-		  to_skip = true
-	       else
-		  if(not(shown) and not(to_skip)) then
-		     if(print_html) then
-			if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
-			print('<li class="dropdown-submenu"><a tabindex="-1" href="#">'..label..'</a>\n<ul class="dropdown-menu">\n')
+	 else
+	    rrd = singlerrd2json(ifid, host, v, start_time, end_time, true)
+
+	    if((rrd.total_bytes ~= nil) and (rrd.total_bytes > 0)) then
+	       if(top_rrds[v] == nil) then
+		  if(label == "*") then
+		     to_skip = true
+		  else
+		     if(not(shown) and not(to_skip)) then
+			if(print_html) then
+			   if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
+			   print('<li class="dropdown-submenu"><a tabindex="-1" href="#">'..label..'</a>\n<ul class="dropdown-menu">\n')
+			end
+			shown = true
 		     end
-		     shown = true
 		  end
-	       end
-
-	       what = string.sub(path.."/"..v, string.len(base)+2)
-
-	       label = string.sub(v,  1, string.len(v)-4)
-	       label = l4Label(string.gsub(label, "_", " "))
-
-	       ret[label] = what
-	       if(do_debug) then print(what.."<br>\n") end
-
-	       if(print_html) then 
-		  if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
-		  print("<li> <A HREF="..url..what..">"..label.."</A>  </li>\n") 
+		  
+		  what = string.sub(path.."/"..v, string.len(base)+2)
+		  
+		  label = string.sub(v,  1, string.len(v)-4)
+		  label = l4Label(string.gsub(label, "_", " "))
+		  
+		  ret[label] = what
+		  if(do_debug) then print(what.."<br>\n") end
+		  
+		  if(print_html) then
+		     if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
+		     print("<li> <A HREF="..url..what..">"..label.."</A>  </li>\n")
+		  end
 	       end
 	    end
 	 end
@@ -203,6 +209,21 @@ function getZoomDuration(cur_zoom)
 
    return(180)
 end
+
+-- ########################################################
+
+function zoomLevel2sec(zoomLevel)
+   if(zoomLevel == nil) then zoomLevel = "1h" end
+
+   for k,v in ipairs(zoom_vals) do
+      if(zoom_vals[k][1] == zoomLevel) then
+	 return(zoom_vals[k][3])
+      end
+   end
+
+   return(3600) -- NOT REACHED
+end
+
 
 -- ########################################################
 
@@ -337,16 +358,6 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       end
    end
 
-   local maxval_bits_time = 0
-   local maxval_bits = 0
-   local minval_bits = 0
-   local minval_bits_time = 0
-   local lastval_bits = 0
-   local lastval_bits_time = 0
-   local total_bytes = 0
-   local num_points = 0
-   local step = 1
-
    prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
 
    -- io.write(prefixLabel.."\n")
@@ -355,108 +366,6 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
    end
 
    if(ntop.notEmptyFile(rrdname)) then
-      -- print("=> Found "..rrdname.."<p>\n")
-      -- print("=> "..rrdname)
-      -- io.write("=> *** ".. start_time .. "|" .. end_time .. "<p>\n")
-      local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
-      --print("=> here we go")
-      local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
-      local num_points_found = table.getn(fdata)
-      local sample_rate = round(num_points_found / max_num_points)
-
-      if(sample_rate < 1) then
-	 sample_rate = 1
-      end
-
-      -- DEBUG
-      --tprint(fdata, 1)
-
-      step = fstep
-      num = 0
-      names_cache = {}
-      for i, n in ipairs(fnames) do
-         -- handle duplicates
-         if (names_cache[n] == nil) then
-           names_cache[n] = true
-           names[num] = prefixLabel
-           if(host ~= nil) then names[num] = names[num] .. " (" .. firstToUpper(n)..")" end
-           num = num + 1
-           --io.write(prefixLabel.."\n")
-           --print(num.."\n")
-         end
-      end
-
-      id = 0
-      sampling = 0
-      --sample_rate = 1
-      sample_rate = sample_rate-1
-      accumulated = 0
-      for i, v in ipairs(fdata) do
-	 s = {}
-	 s[0] = fstart + (i-1)*fstep
-	 num_points = num_points + 1
-
-	 local elemId = 1
-	 for _, w in ipairs(v) do
-	    if(w ~= w) then
-	       -- This is a NaN
-	       v = 0
-	    else
-	       --io.write(w.."\n")
-	       v = tonumber(w)
-	       if(v < 0) then
-		  v = 0
-	       end
-	    end
-
-	    if(v > 0) then
-	       lastval_bits_time = s[0]
-	       lastval_bits = v
-	    end
-
-	    s[elemId] = v*8 -- bps
-	    --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
-	    elemId = elemId + 1
-	 end
-
-	 total_bytes = total_bytes + v*fstep
-	 --if((v*fstep) > 0) then io.write(" | " .. (v*fstep) .." | [sampling: ".. sampling .. "/" .. sample_rate.."]\n") end
-
-	 if(sampling == sample_rate) then
-	    if(sample_rate > 0) then
-	       s[1] = accumulated / sample_rate
-	    end
-	    series[id] = s
-	    id = id + 1
-	    sampling = 0
-	    accumulated = 0
-	 else
-	    accumulated = accumulated + s[1]
-	    sampling = sampling + 1
-	 end
-      end
-
-      for key, value in pairs(series) do
-	 local t = 0
-
-	 for elemId=0,(num-1) do
-	    --io.write(key.."="..value[elemId+1].. "\n")
-	    t = t + value[elemId+1] -- bps
-	 end
-
-	 t = t * step
-
-	 if(((minval_bits_time == 0) or (minval_bits >= t)) and (value[0] < lastval_bits_time)) then
-	    --io.write(value[0].."\t".. t .. "\t".. lastval_bits_time .. "\n")
-	    minval_bits_time = value[0]
-	    minval_bits = t
-	 end
-
-	 if((maxval_bits_time == 0) or (maxval_bits <= t)) then
-	    maxval_bits_time = value[0]
-	    maxval_bits = t
-	 end
-      end
 
       print [[
 
@@ -498,22 +407,23 @@ if(show_timeseries == 1) then
 for k,v in pairs(top_rrds) do
    rrdname = getRRDName(ifid, host, k)
    if(ntop.notEmptyFile(rrdname)) then
-      print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+      rrd = singlerrd2json(ifid, host, k, start_time, end_time, true)
+      if((rrd.total_bytes ~= nil) and (rrd.total_bytes > 0)) then
+	 print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+      end
    end
 end
 
---print('<li class="divider"></li>\n')
-   dirs = ntop.getDirs()
-   p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
-   if(host ~= nil) then
-      p = p .. getPathFromKey(host)
-      go_deep = true
-   else
-      go_deep = false
-   end
-   d = fixPath(p)
+dirs = ntop.getDirs()
+p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
+if(host ~= nil) then
+   p = p .. getPathFromKey(host)
+end
+d = fixPath(p)
 
-   navigatedir(baseurl .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=', "*", d, d, go_deep, true)
+   go_deep = false
+   navigatedir(baseurl .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=', 
+	       "*", d, d, go_deep, true, ifid, host, start_time, end_time)
 
    print [[
   </ul>
@@ -576,20 +486,21 @@ print [[
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
-if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
-   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
-   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. formatValue(round(maxval_bits/step), 1) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(lastval_bits/step), 1) .. '</td></tr>\n')
+rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true)
 
-   print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(total_bytes*8/(step*num_points), 2)) .. '</td></tr>\n')
-   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(total_bytes)) .. '</td></tr>\n')
+if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(ret.minval) .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", ret.maxval_time) .. '</td><td>' .. formatValue(ret.maxval) .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(ret.lastval), 1) .. '</td></tr>\n')
+   print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(ret.average, 2)) .. '</td></tr>\n')
+   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(ret.total_bytes)) .. '</td></tr>\n')
 else
    formatter_fctn = "fbits"
-   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. bitsToSize(minval_bits/step) .. '</td></tr>\n')
-   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. bitsToSize(maxval_bits/step) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. bitsToSize(lastval_bits/step)  .. '</td></tr>\n')
-   print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(total_bytes*8/(step*num_points)) .. '</td></tr>\n')
-   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(total_bytes) .. '</td></tr>\n')
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. bitsToSize(ret.minval) .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", ret.maxval_time) .. '</td><td>' .. bitsToSize(ret.maxval) .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. bitsToSize(ret.lastval)  .. '</td></tr>\n')
+   print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(ret.average*8) .. '</td></tr>\n')
+   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(ret.total_bytes) .. '</td></tr>\n')
 end
 
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
@@ -603,12 +514,9 @@ print [[
 end -- topArray ~= nil
 
 print[[</div></td></tr></table><p>]]
-
 printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
-
 print [[
 <script>
-
 
 var palette = new Rickshaw.Color.Palette();
 
@@ -617,38 +525,12 @@ var graph = new Rickshaw.Graph( {
 				   width: 600,
 				   height: 300,
 				   renderer: 'area',
-				   series: [
-
+				   series:
 				]]
 
-if(names ~= nil) then
-   for elemId=0,(num-1) do
-      if(elemId > 0) then
-	 print ","
-      end
-
-      --name = strsplit(names[elemId], "/")
-      --name = name[#name]
-      name = names[elemId]
-      print ("{\nname: '".. name .. "',\n")
-
-      print("color: palette.color(),\ndata: [\n")
-
-      n = 0
-      for key, value in pairs(series) do
-	 if(n > 0) then
-	    print(",\n")
-	 end
-	 print ("\t{ x: "..  value[0] .. ", y: ".. value[elemId+1] .. " }")
-	 n = n + 1
-      end
-
-      print("\n]}\n")
-   end
-end
+print(rrd.json)
 
 print [[
-				   ]
 				} );
 
 graph.render();
@@ -1058,13 +940,13 @@ function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, por
       if(not(isnumber(l7proto))) then
 	 local id
 
-	 -- io.write(l7proto.."\n")	 
+	 -- io.write(l7proto.."\n")
 	 l7proto = string.gsub(l7proto, "%.rrd", "")
-	 
+
 	 if(string.ends(l7proto, ".rrd")) then l7proto = string.sub(l7proto, 1, -5) end
-	 
+
 	 id = interface.getnDPIProtoId(l7proto)
-	 
+
 	 if(id ~= -1) then
 	    l7proto = id
 	    title = "Top "..l7proto.." Flows"
@@ -1354,4 +1236,349 @@ print [[
 	 </script>
 ]]
 
+end
+
+-- ########################################################
+
+-- reads one or more RRDs and returns a json suitable to feed rickshaw
+
+function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json)
+   local rrdname = getRRDName(ifid, host, rrdFile)
+   local names =  {}
+   local names_cache = {}
+   local series = {}
+   local prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
+
+   -- io.write(prefixLabel.."\n")
+   if(prefixLabel == "Bytes") then
+      prefixLabel = "Traffic"
+   end
+
+   if(not ntop.notEmptyFile(rrdname)) then return '{}' end
+
+   local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+   local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
+   local num_points_found = table.getn(fdata)
+   local sample_rate = round(num_points_found / max_num_points)
+
+   if(sample_rate < 1) then sample_rate = 1 end
+
+   for i, n in ipairs(fnames) do
+      -- handle duplicates
+      if (names_cache[n] == nil) then
+	 names_cache[n] = true
+	 names[#names+1] = prefixLabel
+	 if(host ~= nil) then names[#names] = names[#names] .. " (" .. firstToUpper(n)..")" end
+      end
+   end
+
+   sampling = 1
+   s = {}
+   for i, v in ipairs(fdata) do
+      s[0] = fstart + (i-1)*fstep
+
+      local elemId = 1
+      for _, w in ipairs(v) do
+
+	 if(w ~= w) then
+	    -- This is a NaN
+	    w = 0
+	 else
+	    --io.write(w.."\n")
+	    w = tonumber(w)
+	    if(w < 0) then
+	       w = 0
+	    end
+	 end
+
+	 if(w > 0) then
+	    lastval_bits_time = s[0]
+	    lastval_bits = w
+	 end
+
+	 if (s[elemId] == nil) then s[elemId] = 0 end
+	 s[elemId] = s[elemId] + w*8 -- bps
+	 --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
+	 elemId = elemId + 1
+      end
+
+      if(sampling == sample_rate) then
+	 for elemId=1,#s do
+	    s[elemId] =  s[elemId] / sample_rate
+	 end
+	 series[#series+1] = s
+	 sampling = 1
+	 s = {}
+      else
+	 sampling = sampling + 1
+      end
+   end
+
+   local maxval_time = -1
+   local maxval = 0
+   local minval_time = -1
+   local minval = 0
+   local lastval_time = 0
+   local firstval = -1
+   local firstval_time = 0
+   local lastval = 0
+   local total_bytes = 0
+   local num_points = 0;
+
+   for key, value in pairs(series) do
+      local tot = 0
+
+      when = value[0]
+      num_points = num_points + 1
+
+      for elemId=1,#names do
+	 tot = tot + value[elemId]
+      end
+
+      if(firstval == -1) then
+	 firstval_time = when
+         firstval = tot
+      end
+
+      if((minval_time == -1) or (minval >= tot)) then
+	 minval_time = when
+	 minval = tot
+      end
+
+      if((maxval_time == -1) or (maxval <= tot)) then
+	 maxval_time = when
+	 maxval = tot
+      end
+
+      lastval_time = when
+      lastval = tot
+
+      total_bytes = total_bytes + tot
+   end
+
+   local percentile = 0.95*maxval
+   local average = total_bytes / num_points
+   local colors = {
+      '#1f77b4',
+      '#ff7f0e',
+      '#2ca02c',
+      '#d62728',
+      '#9467bd',
+      '#8c564b',
+      '#e377c2',
+      '#7f7f7f',
+      '#bcbd22',
+      '#17becf',
+      -- https://github.com/mbostock/d3/wiki/Ordinal-Scales
+      '#ff7f0e',
+      '#ffbb78',
+      '#1f77b4',
+      '#aec7e8',
+      '#2ca02c',
+      '#98df8a',
+      '#d62728',
+      '#ff9896',
+      '#9467bd',
+      '#c5b0d5',
+      '#8c564b',
+      '#c49c94',
+      '#e377c2',
+      '#f7b6d2',
+      '#7f7f7f',
+      '#c7c7c7',
+      '#bcbd22',
+      '#dbdb8d',
+      '#17becf',
+      '#9edae5'
+   }
+
+   if(names ~= nil) then
+      json_ret = ''
+
+      if(rickshaw_json) then
+	 for elemId=1,#names do
+	    if(elemId > 1) then
+	       json_ret = json_ret.."\n,\n"
+	    end
+	    name = names[elemId]
+	    json_ret = json_ret..'{"name": "'.. name .. '",\n'
+	    json_ret = json_ret..'color: \''.. colors[elemId] ..'\',\n'
+	    json_ret = json_ret..'"data": [\n'
+	    n = 0
+	    for key, value in pairs(series) do
+	       if(n > 0) then
+		  json_ret = json_ret..',\n'
+	       end
+	       json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. value[elemId] .. '}'
+	       n = n + 1
+	    end
+
+	    json_ret = json_ret.."\n]}\n"
+	 end
+      else
+	 -- NV3
+	 local num_entries = 0;
+
+	 for elemId=1,#names do
+	    num_entries = num_entries + 1
+	    if(elemId > 1) then
+	       json_ret = json_ret.."\n,\n"
+	    end
+	    name = names[elemId]
+	    json_ret = json_ret..'{"key": "'.. name .. '",\n'
+--	    json_ret = json_ret..'"color": "'.. colors[num_entries] ..'",\n'
+	    json_ret = json_ret..'"area": true,\n'
+	    json_ret = json_ret..'"values": [\n'
+	    n = 0
+	    for key, value in pairs(series) do
+	       if(n > 0) then
+		  json_ret = json_ret..',\n'
+	       end
+	       json_ret = json_ret..'\t[ '..value[0] .. ', '.. value[elemId] .. ' ]'
+	       --json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. value[elemId] .. '}'
+	       n = n + 1
+	    end
+
+	    json_ret = json_ret.."\n] }\n"
+	 end
+
+	 if(false) then
+	    json_ret = json_ret..",\n"
+
+	    num_entries = num_entries + 1
+	    json_ret = json_ret..'\n{"key": "Average",\n'
+	    json_ret = json_ret..'"color": "'.. colors[num_entries] ..'",\n'
+	    json_ret = json_ret..'"type": "line",\n'
+
+	    json_ret = json_ret..'"values": [\n'
+	    n = 0
+	    for key, value in pairs(series) do
+	       if(n > 0) then
+		  json_ret = json_ret..',\n'
+	       end
+	       --json_ret = json_ret..'\t[ '..value[0] .. ', '.. value[elemId] .. ' ]'
+	       json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. average .. '}'
+	       n = n + 1
+	    end
+	    json_ret = json_ret..'\n] },\n'
+
+
+	    num_entries = num_entries + 1
+	    json_ret = json_ret..'\n{"key": "95th Percentile",\n'
+	    json_ret = json_ret..'"color": "'.. colors[num_entries] ..'",\n'
+	    json_ret = json_ret..'"type": "line",\n'
+	    json_ret = json_ret..'"yAxis": 1,\n'
+	    json_ret = json_ret..'"values": [\n'
+	    n = 0
+	    for key, value in pairs(series) do
+	       if(n > 0) then
+		  json_ret = json_ret..',\n'
+	       end
+	       --json_ret = json_ret..'\t[ '..value[0] .. ', '.. value[elemId] .. ' ]'
+	       json_ret = json_ret..'\t{ "x": '..  value[0] .. ', "y": '.. percentile .. '}'
+	       n = n + 1
+	    end
+
+	    json_ret = json_ret..'\n] }\n'
+	 end
+      end
+   else
+      json_ret = '{}'
+   end
+
+   ret = {}
+   ret.maxval_time = maxval_time
+   ret.maxval = maxval
+
+   ret.minval_time = minval_time
+   ret.minval = minval
+
+   ret.lastval_time = lastval_time
+   ret.lastval = lastval
+
+   ret.total_bytes = total_bytes
+   ret.percentile = percentile
+   ret.average = average
+   ret.json = json_ret
+
+   -- io.write(json_ret)
+
+   return(ret)
+end
+
+-- #################################################
+
+function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json)
+   local ret = {}
+   local num = 0
+   local debug_metric = false
+
+   if(debug_metric) then io.write("RRD File: "..rrdFile.."\n") end
+
+   if(rrdFile == "all") then
+      local dirs = ntop.getDirs()
+      local p = dirs.workingdir .. "/" .. purifyInterfaceName(ifId) .. "/rrd/"
+      if(debug_metric) then io.write("Navigating: "..p.."\n") end
+
+      if(host ~= nil) then
+	 p = p .. getPathFromKey(host)
+	 go_deep = true
+      else
+	 go_deep = false
+      end
+
+      d = fixPath(p)
+      rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time)
+
+      local traffic_array = {}
+      for key, value in pairs(rrds) do
+	 rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json)
+	 if(rsp.total_bytes ~= nil) then total = rsp.total_bytes else total = 0 end
+
+	 if(total > 0) then
+	    traffic_array[total] = rsp
+	    if(debug_metric) then io.write("Analyzing: "..value.." [total "..total.."]\n") end
+	 end
+      end
+
+      for key, value in pairsByKeys(traffic_array, rev) do
+	 ret[num] = value
+	 if(ret[num].json ~= nil) then
+	    if(debug_metric) then io.write(key.."\n") end
+	    num = num + 1
+	    if(num >= 10) then break end
+	 end
+      end
+   else
+      num = 0
+      for i,rrd in pairs(split(rrdFile, ",")) do
+	 if(debug_metric) then io.write("["..i.."] "..rrd.."\n") end
+	 ret[i] = singlerrd2json(ifid, host, rrd, start_time, end_time, rickshaw_json)
+	 if(ret[i].json ~= nil) then num = num + 1 end
+      end
+   end
+
+   if(debug_metric) then io.write("#rrds="..num.."\n") end
+   if(num == 0) then
+      ret = {}
+      ret.json = ""
+      return(ret)
+      elseif(num == 1) then
+      ret[1].json = '[\n'..ret[1].json..'\n]'
+      return(ret[1])
+   end
+
+   local json = "["
+   for i=1,num-1 do
+      if(debug_metric) then io.write("->"..i.."\n") end
+      if(i > 1) then json = json.."," end
+      json = json..ret[i].json
+   end
+   json = json.."]"
+
+   ret = {}
+   ret.json = json
+
+   -- io.write(json.."\n")
+   return(ret)
 end

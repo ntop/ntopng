@@ -49,8 +49,8 @@ function fbits(bits) {
     if(bits == 0) return '0';
     var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
     if (i < 0 || isNaN(i)) {
-      i = 0;
-      return "< 1 " + sizes[0];
+	i = 0;
+	return "< 1 " + sizes[0];
     }
     return Math.round(bits / Math.pow(1024, i), 2) + ' ' + sizes[i];
 }
@@ -60,8 +60,8 @@ function fpackets(pps) {
     if(pps == 0) return '0';
     var i = parseInt(Math.floor(Math.log(pps) / Math.log(1024)));
     if (i < 0 || isNaN(i)) {
-      i = 0;
-      return "< 1 " + sizes[0];
+	i = 0;
+	return "< 1 " + sizes[0];
     }
     return Math.round(pps / Math.pow(1024, i), 2) + ' ' + sizes[i];
 }
@@ -69,6 +69,13 @@ function fpackets(pps) {
 function fint(value) {
     var x = Math.round(value);
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function fdate(when) {
+    var epoch = when*1000;
+    var d = new Date(epoch);
+
+    return(d);
 }
 
 function capitaliseFirstLetter(string) {
@@ -88,44 +95,44 @@ function get_trend(actual, before) {
 }
 
 function getOSIcon(name) {
-  var icon = "";
+    var icon = "";
 
-  if (name.search("Linux") != -1 || name.search("Ubuntu") != -1) icon = '<i class=\'fa fa-linux fa-lg\'></i> ';
-  else if (name.search("Android") != -1) icon = '<i class=\'fa fa-android fa-lg\'></i> ';
-  else if (name.search("Windows") != -1 || name.search("Win32") != -1 || name.search("MSIE") != -1) icon = '<i class=\'fa fa-windows fa-lg\'></i> ';
-  else if (name.search("iPhone") != -1 || name.search("iPad") != -1 || name.search("OS X") != -1 ) icon = '<i class=\'fa fa-apple fa-lg\'></i> ';
+    if (name.search("Linux") != -1 || name.search("Ubuntu") != -1) icon = '<i class=\'fa fa-linux fa-lg\'></i> ';
+    else if (name.search("Android") != -1) icon = '<i class=\'fa fa-android fa-lg\'></i> ';
+    else if (name.search("Windows") != -1 || name.search("Win32") != -1 || name.search("MSIE") != -1) icon = '<i class=\'fa fa-windows fa-lg\'></i> ';
+    else if (name.search("iPhone") != -1 || name.search("iPad") != -1 || name.search("OS X") != -1 ) icon = '<i class=\'fa fa-apple fa-lg\'></i> ';
 
-  return icon;
+    return icon;
 }
 
 function abbreviateString(str, len) {
-  if (!str)
-    return "";
-  if (str.length < len)
-      return str;
-  return str.substring(1, len)+"...";
+    if (!str)
+	return "";
+    if (str.length < len)
+	return str;
+    return str.substring(0, len)+"...";
 }
 
 // Convert bytes to human readable format
 function bytesToSize(bytes) {
-  var precision = 2;
-  var kilobyte = 1024;
-  var megabyte = kilobyte * 1024;
-  var gigabyte = megabyte * 1024;
-  var terabyte = gigabyte * 1024;
+    var precision = 2;
+    var kilobyte = 1024;
+    var megabyte = kilobyte * 1024;
+    var gigabyte = megabyte * 1024;
+    var terabyte = gigabyte * 1024;
 
-  if ((bytes >= 0) && (bytes < kilobyte))
-    return bytes + " Bytes";
-  else if ((bytes >= kilobyte) && (bytes < megabyte))
-    return (bytes / kilobyte).toFixed(precision) + ' KB';
-  else if((bytes >= megabyte) && (bytes < gigabyte))
-    return (bytes / megabyte).toFixed(precision) + ' MB';
-  else if((bytes >= gigabyte) && (bytes < terabyte))
-    return (bytes / gigabyte).toFixed(precision) + ' GB';
-  else if(bytes >= terabyte)
-    return (bytes / terabyte).toFixed(precision) + ' TB';
-  else
-    return bytes + ' B';
+    if ((bytes >= 0) && (bytes < kilobyte))
+	return bytes + " Bytes";
+    else if ((bytes >= kilobyte) && (bytes < megabyte))
+	return (bytes / kilobyte).toFixed(precision) + ' KB';
+    else if((bytes >= megabyte) && (bytes < gigabyte))
+	return (bytes / megabyte).toFixed(precision) + ' MB';
+    else if((bytes >= gigabyte) && (bytes < terabyte))
+	return (bytes / gigabyte).toFixed(precision) + ' GB';
+    else if(bytes >= terabyte)
+	return (bytes / terabyte).toFixed(precision) + ' TB';
+    else
+	return bytes + ' B';
 }
 
 String.prototype.capitalizeSingleWord = function() {
