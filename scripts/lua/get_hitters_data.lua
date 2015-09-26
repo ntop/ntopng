@@ -6,7 +6,6 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-require "sqlite_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 local debug = false
@@ -37,28 +36,9 @@ user   = _GET["user"]
 host   = _GET["host"]
 pid    = tonumber(_GET["pid"])
 name   = _GET["name"]
-sqlite = _GET["sqlite"]
 
 interface.select(ifname)
-
-if (sqlite == nil) then
-   flows_stats = interface.getFlowsInfo(host)
-else
-   -- Init some parameters
-   to_skip = 0
-   offsetPage = currentPage - 1
-
-   -- Create and exe query
-   query = "SELECT * FROM flows LIMIT "..perPage.." OFFSET "..(perPage*offsetPage)
-   Sqlite:execQuery(sqlite, query)
-
-   -- Get flows in a correct format
-   flows_stats = Sqlite:getFlows()
-   -- tprint(flows_stats)
-   rows_number = Sqlite:getRowsNumber()
-   -- Set default values if the query is empty
-   if (flows_stats == nil) then flows_stats = {} end
-end
+flows_stats = interface.getFlowsInfo(host)
 
 vals = {}
 hitters = {}
