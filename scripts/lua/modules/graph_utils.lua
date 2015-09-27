@@ -1488,17 +1488,17 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    ret = {}
    ret.maxval_time = maxval_time
-   ret.maxval = maxval
+   ret.maxval = round(maxval, 0)
 
    ret.minval_time = minval_time
-   ret.minval = minval
+   ret.minval = round(minval, 0)
 
    ret.lastval_time = lastval_time
-   ret.lastval = lastval
+   ret.lastval = round(lastval, 0)
 
-   ret.total_bytes = total_bytes
-   ret.percentile = percentile
-   ret.average = average
+   ret.total_bytes = round(total_bytes, 0)
+   ret.percentile = round(percentile, 0)
+   ret.average = round(average, 0)
    ret.json = json_ret
 
    -- io.write(json_ret)

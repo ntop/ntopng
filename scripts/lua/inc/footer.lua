@@ -52,25 +52,31 @@ end
 print('</a>')
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
-	print('<br><A HREF='..ntop.getHttpPrefix()..'/lua/about.lua> <span class="badge badge-warning">')
-	if(info["pro.release"]) then
-		if(info["pro.demo_ends_at"] ~= nil) then
-			local rest = info["pro.demo_ends_at"] - os.time()
-			if(rest > 0) then
-				print(' License expires in '.. secondsToTime(rest) ..'')
-			end
-		end
-	else
-		print('Upgrade to Professional version')
-	end
+   local do_show = false
+
+   print('<br><A HREF='..ntop.getHttpPrefix()..'/lua/about.lua> <span class="badge badge-warning">')
+   if(info["pro.release"]) then
+      if(info["pro.demo_ends_at"] ~= nil) then
+	 local rest = info["pro.demo_ends_at"] - os.time()
+	 if(rest > 0) then
+	    print(' License expires in '.. secondsToTime(rest) ..'')
+	 end
+      end
+   else
+      print('Upgrade to Professional version')
+      do_show = true
+   end
    print('</span></A>')
+
+   if(do_show) then
+      print('<br><iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
+   end
 end
 
 
 
 
 print [[</font>
-	 <iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
 
 </div> <!-- End column 1 -->
 	<div class="col-xs-6 col-sm-4">
