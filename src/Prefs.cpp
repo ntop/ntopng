@@ -228,9 +228,9 @@ void usage() {
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 	 "                                    | es     Dump in ElasticSearch database\n"
 	 "                                    |        Format:\n"
-	 "                                    |        es;<idx type>;<idx name>;<es URL>;<es pwd>\n"
+	 "                                    |        es;<idx type>;<idx name>;<es URL>;<http auth>\n"
 	 "                                    |        Example:\n"
-	 "                                    |        es;flows;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
+	 "                                    |        es;ntopng;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
 	 "                                    |        Note: the <idx name> accepts the strftime() format.\n"
 #ifdef HAVE_MYSQL
 	 "                                    | mysql  Dump in MySQL database\n"
