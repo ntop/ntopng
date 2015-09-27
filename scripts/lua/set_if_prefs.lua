@@ -26,20 +26,13 @@ else
    custom_name = ntop.getCache(key)
 end
 
-key = 'ntopng.prefs.'..ifname..'.speed'
+-- ifstats.name = tostring(ifstats.name)
 
-ifstats.name = tostring(ifstats.name)
-
--- Ask Redis for actual speed
-ifSpeed = ntop.getCache(key)
+local ifSpeed = 0;
 
 if((_GET["ifSpeed"] ~= nil) and (string.len(_GET["ifSpeed"]) > 0)) then
-   ifSpeed = _GET["ifSpeed"]
-   
-   if(ifSpeed ~= nil) then 
-      ifSpeed = tonumber(ifSpeed) 
-   end
-   
+   ifSpeed = tonumber(_GET["ifSpeed"]) -- returns nil if isSpeed is not a valid number
+
    -- ifSpeed == nil assign the max value of speed
    if(ifSpeed == nil) then
       ifSpeed = ifstats.speed
@@ -48,9 +41,11 @@ if((_GET["ifSpeed"] ~= nil) and (string.len(_GET["ifSpeed"]) > 0)) then
    -- set Redis cache for the speed to the associated interface
    ntop.setCache(key, tostring(ifSpeed))
 else
+   -- Ask Redis for actual speed 
+   ifSpeed = ntop.getCache('ntopng.prefs.'..ifname..'.speed')
    if((ifSpeed ~= nil) and (string.len(ifSpeed) > 0)) then
       ifSpeed = tonumber(ifSpeed)
-   else
+   else -- no speed has been set in redis
       -- ifSpeed == nil assign the max value of speed
       ifSpeed = ifstats.speed
    end
@@ -67,7 +62,7 @@ print [[
 	 <div class="form-group">
 	 
       <label class="control-label" for="ifSpeed">Interface Speed (Mbit) : </label>]]
-print('<br /><input type="number" min="1" max="'..ifstats.speed..'" step="1" name="ifSpeed" id="ifSpeed" value="'..ifSpeed..'"/>')
+print('<br /><input type="number" min="1" step="1" name="ifSpeed" id="ifSpeed" value="'..ifSpeed..'"/>')
 
 print [[
       
