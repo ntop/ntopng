@@ -282,7 +282,7 @@ detected they will be discarded.
 
 .It \-F|\-\-dump\-flows\ <mode>
 If ntopng is compiled with sqlite support, flows can dumped persistently on disk using this option. The mode can be set to 
-es - Dump on ntopng.es queue in Elasticsearch format that be insert on a ES database. In this case the format is "es;<idx type>;<idx name>;<es URL>;<es user>:<es pwd>". Example: -F "es;flows;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;user:pwd". The <idx name> accepts the strftime() format.
+es - Dump on ntopng.es queue in Elasticsearch format that be insert on a ES database. In this case the format is "es;<idx type>;<idx name>;<es URL>;<http auth>". Example: -F "es;ntopng;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;user:pwd". The <idx name> accepts the strftime() format.
 mysql - Dump flows in MySQL tables. In this case the format is "<host[@port]|unix socket>:<dbname>:<table>:<user>:<pw>". Example -F "mysql;localhost;ntopng;flows-%Y.%m.%d;root;".
 
 .It \-D|\-\-dump\-hosts\ <mode>
