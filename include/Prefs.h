@@ -139,7 +139,7 @@ class Prefs {
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline bool  is_host_persistency_enabled()            { return(disable_host_persistency ? false : true); };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);        };
-  inline char *get_cpu_affinity()                       { return(cpu_affinity);   };
+  inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
   inline u_int get_http_port()                          { return(http_port);      };
   inline u_int get_https_port()                         { return(https_port);     };
   inline char* get_redis_host()                         { return(redis_host);     }

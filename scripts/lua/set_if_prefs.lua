@@ -62,7 +62,7 @@ print [[
 	 <div class="form-group">
 	 
       <label class="control-label" for="ifSpeed">Interface Speed (Mbit) : </label>]]
-print('<br /><input type="number" min="1" step="1" name="ifSpeed" id="ifSpeed" value="'..ifSpeed..'"/>')
+print('<br /><input type="number" min="1" step="1" name="ifSpeed" id="ifSpeed" value="'..ifSpeed..'"/> [Default Speed: '.. ifSpeed ..']')
 
 print [[
       

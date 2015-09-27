@@ -89,11 +89,10 @@ int main(int argc, char *argv[])
   Prefs *prefs = NULL;
   char *ifName;
   int rc;
-#ifdef linux
   char *affinity;
+  int indexAffinity = 0;
   char *core_id_s = NULL;
   int core_id;
-#endif
 
 #ifdef WIN32
   initWinsock32();
@@ -137,7 +136,7 @@ int main(int argc, char *argv[])
 #endif
 
   affinity = prefs->get_cpu_affinity();
-  int indexAffinity=0;
+
   for(int i=0; i<MAX_NUM_INTERFACES; i++) {
     NetworkInterface *iface = NULL;
 
@@ -183,27 +182,20 @@ int main(int argc, char *argv[])
     if(iface == NULL) iface = new PcapInterface(ifName);
     if(iface) iface->enableInterfaceView();
 
-/*
- * Ifdef'd for efficiency in case of non-Linux systems - would be a noop
- * for non-Linux.
- */
-#ifdef linux
-
-    if(affinity!=NULL){
-      if(indexAffinity==0){
+    if(affinity != NULL) {
+      if(indexAffinity == 0)
         core_id_s = strtok(affinity, ",");
-      }else{
+      else 
         core_id_s = strtok(NULL, ",");
-      }
-      if(core_id_s != NULL) {
+            
+      if(core_id_s != NULL)
         core_id = atoi(core_id_s);
-      }else{
+      else
         core_id = indexAffinity;
-      }
+      
       indexAffinity++;
       iface->setCPUAffinity(core_id);
     }
-#endif
 
     if(prefs->get_packet_filter() != NULL)
       iface->set_packet_filter(prefs->get_packet_filter());
