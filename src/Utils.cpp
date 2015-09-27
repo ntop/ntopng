@@ -744,11 +744,11 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
       ret = false;
-    } else {
+    } else
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
-    }
 
     /* always cleanup */
+    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
   }
 
