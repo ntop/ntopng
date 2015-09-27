@@ -1285,8 +1285,8 @@ json_object* Flow::flow2json(bool partial_dump) {
 
     json_object_object_add(my_object, "SRC_IP_COUNTRY", json_object_new_string(c));
     if(location) {
-      json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
       json_object_array_add(location, json_object_new_double(cli_host->get_longitude()));
+      json_object_array_add(location, json_object_new_double(cli_host->get_latitude()));
       json_object_object_add(my_object, "SRC_IP_LOCATION", location);
     }
   }
@@ -1298,8 +1298,8 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
     
     if(location) {
-      json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
       json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
+      json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
       json_object_object_add(my_object, "DST_IP_LOCATION", location);
     }
   }
