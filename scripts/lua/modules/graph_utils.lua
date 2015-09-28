@@ -91,7 +91,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 	 else
 	    rrd = singlerrd2json(ifid, host, v, start_time, end_time, true)
 
-	    if((rrd.total_bytes ~= nil) and (rrd.total_bytes > 0)) then
+	    if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
 	       if(top_rrds[v] == nil) then
 		  if(label == "*") then
 		     to_skip = true
@@ -408,7 +408,7 @@ for k,v in pairs(top_rrds) do
    rrdname = getRRDName(ifid, host, k)
    if(ntop.notEmptyFile(rrdname)) then
       rrd = singlerrd2json(ifid, host, k, start_time, end_time, true)
-      if((rrd.total_bytes ~= nil) and (rrd.total_bytes > 0)) then
+      if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
 	 print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
       end
    end
@@ -493,14 +493,14 @@ if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or s
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.last_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(rrd.average, 2)) .. '</td></tr>\n')
-   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(rrd.total_bytes)) .. '</td></tr>\n')
+   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(rrd.totalval)) .. '</td></tr>\n')
 else
    formatter_fctn = "fbits"
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. bitsToSize(rrd.minval) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. bitsToSize(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.last_time) .. '</td><td>' .. bitsToSize(rrd.lastval)  .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(rrd.average*8) .. '</td></tr>\n')
-   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(rrd.total_bytes) .. '</td></tr>\n')
+   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(rrd.totalval) .. '</td></tr>\n')
 end
 
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
@@ -1290,9 +1290,13 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	       w = 0
 	    end
 	 end
-
+         
+        if(prefixLabel == "Traffic") then
+            w = w * 8
+        end -- convery bytes in bits
+ 
 	 if (s[elemId] == nil) then s[elemId] = 0 end
-	 s[elemId] = s[elemId] + w * 8 -- bps
+	 s[elemId] = s[elemId] + w
 	 --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
 	 elemId = elemId + 1
       end
@@ -1317,7 +1321,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local firstval = -1
    local firstval_time = 0
    local lastval = 0
-   local total_bytes = 0
+   local totalval = 0
    local num_points = 0;
 
    for key, value in pairs(series) do
@@ -1348,11 +1352,13 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       lastval_time = when
       lastval = tot
 
-      total_bytes = total_bytes + tot / 8.
+      totalval = totalval + tot
    end
+   
+   if(prefixLabel == "Traffic") then totalval = totalval/8. end -- convert bits to bytes
 
    local percentile = 0.95*maxval
-   local average = total_bytes / num_points
+   local average = totalval / num_points
    local colors = {
       '#1f77b4',
       '#ff7f0e',
@@ -1491,7 +1497,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    ret.lastval_time = lastval_time
    ret.lastval = round(lastval, 0)
 
-   ret.total_bytes = round(total_bytes, 0)
+   ret.totalval = round(totalval, 0)
    ret.percentile = round(percentile, 0)
    ret.average = round(average, 0)
    ret.json = json_ret
@@ -1528,7 +1534,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json)
       local traffic_array = {}
       for key, value in pairs(rrds) do
 	 rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json)
-	 if(rsp.total_bytes ~= nil) then total = rsp.total_bytes else total = 0 end
+	 if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
 
 	 if(total > 0) then
 	    traffic_array[total] = rsp
