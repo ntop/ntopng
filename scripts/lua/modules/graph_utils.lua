@@ -1297,7 +1297,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 end
 
 	 if (s[elemId] == nil) then s[elemId] = 0 end
-	 s[elemId] = s[elemId] + w*8 -- bps
+	 s[elemId] = s[elemId] + w -- bps
 	 --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
 	 elemId = elemId + 1
       end
