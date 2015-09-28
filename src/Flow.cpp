@@ -1224,7 +1224,7 @@ json_object* Flow::flow2json(bool partial_dump) {
 	
 	  strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
 	  json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
-	  json_object_object_add(my_object, "@version", json_object_new_int(1));
+	  /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
 	  json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
   }
   
