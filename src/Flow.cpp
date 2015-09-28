@@ -1149,13 +1149,12 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
   if(es_json) {
     ntop->getPrefs()->set_json_symbolic_labels_format(true);
     if((my_object = flow2json(partial_dump)) != NULL) {
-      json_object *es_object = flow2es(my_object);
       
       /* JSON string */
-      rsp = strdup(json_object_to_json_string(es_object));
+      rsp = strdup(json_object_to_json_string(my_object));
       
-      /* Free memory (it will also free enclosed object my_object) */
-      json_object_put(es_object);
+      /* Free memory */
+      json_object_put(my_object);
     } else
       rsp = NULL;
   } else {
@@ -1209,13 +1208,26 @@ json_object* Flow::flow2es(json_object *flow_object) {
 json_object* Flow::flow2json(bool partial_dump) {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
+  struct tm* tm_info;
+  time_t t;
 
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
     return(NULL); 
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
+  
+  if (ntop->getPrefs()->do_dump_flows_on_es())  {
 
+	  t = last_seen;
+	  tm_info = gmtime(&t);
+	
+	  strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
+	  json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
+	  json_object_object_add(my_object, "@version", json_object_new_int(1));
+	  json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
+  }
+  
   json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
   json_object_object_add(my_object, Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
