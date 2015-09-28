@@ -440,7 +440,7 @@ for k,v in ipairs(zoom_vals) do
       print("active")
    end
    print('">')
-   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. zoom_vals[k][1] .. '&epoch=' .. (selectedEpoch or '') ..'">'.. zoom_vals[k][1] ..'</input></label>\n')
+   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
 end
 
 print [[
@@ -925,9 +925,9 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
 
    if((epoch == nil) or (epoch == "")) then epoch = os.time() end
 
-   local d = getZoomDuration(zoomLevel)/2
+   local d = getZoomDuration(zoomLevel)
 
-   epoch_end = epoch+d
+   epoch_end = epoch
    epoch_begin = epoch-d
 
    printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', 5, 5)
