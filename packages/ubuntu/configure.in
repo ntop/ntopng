@@ -32,8 +32,13 @@ if [ test -f /usr/bin/lsb_release ]; then
   PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[[:space:]]'`
   PFRING_DEP=", pfring (=$PFRING_VERS-$PFRING_RELEASE)"
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
+  UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
   if test "$UBUNTU_RELEASE" = "12.04"; then
      EXTRA_DEPS=", libnuma1"
+  else
+    if test "$UBUNTU_SUB_RELEASE" = "8"; then
+       UBUNTU_RELEASE="14.04"
+    fi
   fi
   EXTRA_DEPS="$EXTRA_DEPS, libhiredis0.10"
   SUDO=""
