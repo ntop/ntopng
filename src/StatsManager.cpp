@@ -536,46 +536,6 @@ int StatsManager::getSampling(string *sampling, const char *cache_name,
 }
 
 /**
- * @brief Database interface to retrieve a sampling timestamp
- * @details This function implements the database-specific layer to
- *          retrieve a timestamp for the historical interface.
- *
- * @param sampling Pointer to a string to be filled with retrieved data.
- * @param cache_name Name of the cache to retrieve stats from.
- * @param key_low Base epoch used for retrieval
- * @param key_high Final epoch used for retrieval
- *
- * @return Zero in case of success, nonzero in case of error.
- */
-int StatsManager::getRealEpoch(string *real_epoch, const char *cache_name,
-                               const int key_low, const int key_high) {
-
-  char query[MAX_QUERY];
-  int rc;
-
-  *real_epoch = "0";
-
-  if(!db)
-    return -1;
-
-  if(openCache(cache_name))
-    return -1;
-
-  snprintf(query, sizeof(query), "SELECT TSTAMP FROM %s WHERE "
-	   "CAST(TSTAMP AS INTEGER) <= %d AND "
-	   "CAST(TSTAMP AS INTEGER) >= %d",
-           cache_name, key_high, key_low);
-
-  m.lock(__FILE__, __LINE__);
-
-  rc = exec_query(query, get_sampling_db_callback, (void *)real_epoch);
-
-  m.unlock(__FILE__, __LINE__);
-
-  return rc;
-}
-
-/**
  * @brief Interface function for retrieval of a minute stats sampling
  * @details This public method implements retrieval of an existing
  *          sampling, hiding cache-specific details related to minute stats.
@@ -596,23 +556,3 @@ int StatsManager::getMinuteSampling(time_t epoch, string *sampling) {
   return getSampling(sampling, MINUTE_CACHE_NAME, epoch_start, epoch_end);
 }
 
-/**
- * @brief Interface function for retrieval of a real epoch from minute stats
- * @details This public method implements retrieval of an existing
- *          sampling, hiding cache-specific details related to minute stats.
- *
- * @param epoch The sampling point expressed as number of seconds
- *              from epoch.
- * @param sampling Pointer to a string to be filled with the sampling.
- *
- * @return Zero in case of success, nonzero in case of failure.
- */
-int StatsManager::getMinuteRealEpoch(time_t epoch, string *real_epoch) {
-  if(!real_epoch)
-    return -1;
-
-  int epoch_start = epoch - (epoch % 60);
-  int epoch_end = epoch_start + 59;
-
-  return getRealEpoch(real_epoch, MINUTE_CACHE_NAME, epoch_start, epoch_end);
-}

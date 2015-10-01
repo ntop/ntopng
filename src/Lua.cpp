@@ -3243,43 +3243,6 @@ static int ntop_stats_get_minute_sampling(lua_State *vm) {
 }
 
 /**
- * @brief Get real epoch of a minute sampling from the historical database
- * @details Given a certain sampling point, get the real epoch for said
- *          sampling point.
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_PARAM_ERROR in case of wrong parameter,
- *              CONST_LUA_ERROR in case of generic error, CONST_LUA_OK otherwise.
- */
-static int ntop_stats_get_minute_real_epoch(lua_State *vm) {
-  time_t epoch;
-  string sampling;
-  int ifid;
-  NetworkInterface* iface;
-  StatsManager *sm;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  epoch = (time_t)lua_tointeger(vm, 2);
-
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
-     !(sm = iface->getStatsManager()))
-    return (CONST_LUA_ERROR);
-
-  if(sm->getMinuteRealEpoch(epoch, &sampling))
-    return(CONST_LUA_ERROR);
-
-  lua_pushinteger(vm, atoi(sampling.c_str()));
-
-  return(CONST_LUA_OK);
-}
-
-/**
  * @brief Delete minute stats older than a certain number of days.
  * @details Given a number of days, delete stats for the current interface that
  *          are older than a certain number of days.
@@ -4294,7 +4257,6 @@ static const luaL_Reg ntop_reg[] = {
   { "insertHourSampling",          ntop_stats_insert_hour_sampling },
   { "insertDaySampling",           ntop_stats_insert_day_sampling },
   { "getMinuteSampling",           ntop_stats_get_minute_sampling },
-  { "getMinuteRealEpoch",          ntop_stats_get_minute_real_epoch },
   { "deleteMinuteStatsOlderThan",  ntop_stats_delete_minute_older_than },
   { "deleteHourStatsOlderThan",    ntop_stats_delete_hour_older_than },
   { "deleteDayStatsOlderThan",     ntop_stats_delete_day_older_than },

@@ -607,20 +607,6 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 
 if(topArray ~= nil) then
 print[[
-var seconds;
-
-$.ajax ({
-  type: 'GET',
-  url: ']]
-  print(ntop.getHttpPrefix().."/lua/modules/get_real_epochs.lua?epoch='+point.value.x,")
-print[[
-  data: { epoch: point.value.x },
-  async: false,
-  success: function(content) {
-    var res = content.split(" ");
-    seconds = parseInt(res[0]) - parseInt(res[1]);
-  }
-  });
 
    infoHTML += "<ul>";
 ]]
@@ -672,13 +658,13 @@ print[[
 				    if(items < 3) {
 				      infoHTML += "<li><a href=']]
     print(scriptname.."?"..key.."=")
-    print[["+m.address+"'>"+m.label; if ("]]print(sectionname)print[[".toLowerCase() == "Operating Systems") infoHTML += getOSIcon(m.label); if ("]]print(sectionname)print[[".toLowerCase() == "countries") infoHTML += " <img src=']] print(ntop.getHttpPrefix()) print [[/img/blank.gif' class='flag flag-"+m.label.toLowerCase()+"'>"; infoHTML += "</a>"; if (m.vlan != "0") infoHTML += " ("+m.vlanm+")"; infoHTML += " ("+]] print(formatter_fctn) print [[((m.value*8)/seconds)+")</li>";
+    print[["+m.address+"'>"+m.label; if ("]]print(sectionname)print[[".toLowerCase() == "Operating Systems") infoHTML += getOSIcon(m.label); if ("]]print(sectionname)print[[".toLowerCase() == "countries") infoHTML += " <img src=']] print(ntop.getHttpPrefix()) print [[/img/blank.gif' class='flag flag-"+m.label.toLowerCase()+"'>"; infoHTML += "</a>"; if (m.vlan != "0") infoHTML += " ("+m.vlanm+")"; infoHTML += " ("+]] print(formatter_fctn) print [[((m.value*8)/60)+")</li>";
 				      items++;
                                     } else
                                       other_traffic += m.value;
 				  });
                                   if (other_traffic > 0)
-                                      infoHTML += "<li>Other ("+]]print(formatter_fctn)print[[((other_traffic*8)/seconds)+")</li>";
+                                      infoHTML += "<li>Other ("+]]print(formatter_fctn)print[[((other_traffic*8)/60)+")</li>";
                                   if (nonempty != 0)
 				    infoHTML += "</ol></li>";
 				});
@@ -706,7 +692,7 @@ print[[
     else
       print[[infoHTML +=]]
     end
-    print[[" ("+]] print(formatter_fctn) print [[((n.value*8)/seconds)+")</li>";
+    print[[" ("+]] print(formatter_fctn) print [[((n.value*8)/60)+")</li>";
 				   items++;
 				});
                                 if(items > 0)
@@ -1513,7 +1499,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json)
 
    if(rrdFile == "all") then
       local dirs = ntop.getDirs()
-      local p = dirs.workingdir .. "/" .. purifyInterfaceName(ifId) .. "/rrd/"
+      local p = dirs.workingdir .. "/" .. ifid .. "/rrd/"
       if(debug_metric) then io.write("Navigating: "..p.."\n") end
 
       if(host ~= nil) then

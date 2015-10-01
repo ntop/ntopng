@@ -37,7 +37,6 @@ public:
     int insertHourSampling(time_t epoch, char *sampling);
     int insertDaySampling(time_t epoch, char *sampling);
     int getMinuteSampling(time_t epoch, string *sampling);
-    int getMinuteRealEpoch(time_t epoch, string *real_epoch);
     int openCache(const char *cache_name);
     int retrieveMinuteStatsInterval(time_t epoch_start, time_t epoch_end,
                                     struct statsManagerRetrieval *retvals);
@@ -66,7 +65,6 @@ private:
                    void *payload);
     int insertSampling(char *sampling, const char *cache_name, const int key);
     int getSampling(string *sampling, const char *cache_name, const int key_low, const int key_high);
-    int getRealEpoch(string *real_epoch, const char *cache_name, const int key_low, const int key_high);
     int deleteStatsOlderThan(const char *cache_name, const time_t key);
     int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char *cache_name,
 		const time_t key_start, const time_t key_end);
