@@ -531,6 +531,46 @@ function split(pString, pPattern)
   return Table
 end
 
+-- returns the MAXIMUM value found in a table t, together with the corresponding
+-- index argmax. a pair argmax, max is returned.
+function tmax(t)
+    local argmx, mx = nil, nil
+    if (type(t) ~= "table") then return nil, nil end
+    for k, v in pairs(t) do
+        -- first iteration
+        if mx == nil and argmx == nil then
+            mx = v
+            argmx = k
+        elseif (v == mx and k > argmx) or v > mx then
+        -- if there is a tie, prefer the greatest argument
+        -- otherwise grab the maximum
+            argmx = k
+            mx = v
+        end
+    end
+    return argmx, mx
+end
+
+-- returns the MINIMUM value found in a table t, together with the corresponding
+-- index argmin. a pair argmin, min is returned.
+function tmin(t)
+    local argmn, mn = nil, nil
+    if (type(t) ~= "table") then return nil, nil end
+    for k, v in pairs(t) do
+        -- first iteration
+        if mn == nil and argmn == nil then
+            mn = v
+            argmn = k
+        elseif (v == mn and k > argmn) or v < mn then
+        -- if there is a tie, prefer the greatest argument
+        -- otherwise grab the minimum
+            argmn = k
+            mn = v
+        end
+    end
+    return argmn, mn
+end
+
 string.split = function(s, p)
   local temp = {}
   local index = 0
