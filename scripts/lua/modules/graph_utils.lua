@@ -1,6 +1,7 @@
 --
 -- (C) 2013-15 - ntop.org
 --
+require "lua_utils"
 
 top_rrds = {
    ["bytes.rrd"] = "Traffic",
@@ -491,14 +492,14 @@ rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true)
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.last_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(rrd.average, 2)) .. '</td></tr>\n')
    print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(rrd.totalval)) .. '</td></tr>\n')
 else
    formatter_fctn = "fbits"
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. bitsToSize(rrd.minval) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. bitsToSize(rrd.maxval) .. '</td></tr>\n')
-   print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.last_time) .. '</td><td>' .. bitsToSize(rrd.lastval)  .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. bitsToSize(rrd.lastval)  .. '</td></tr>\n')
    print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(rrd.average*8) .. '</td></tr>\n')
    print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(rrd.totalval) .. '</td></tr>\n')
 end
@@ -1267,9 +1268,11 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
 
    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+   --[[
    io.write('start time: '..start_time..'  end_time: '..end_time..'\n')
    io.write('fstart: '..fstart..'  fstep: '..fstep..' rrdname: '..rrdname..'\n')
    io.write('len(fdata): '..table.getn(fdata)..'\n')
+   --]]
    local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
    local num_points_found = table.getn(fdata)
    local sample_rate = round(num_points_found / max_num_points)
@@ -1284,11 +1287,16 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 if(host ~= nil) then names[#names] = names[#names] .. " (" .. firstToUpper(n)..")" end
       end
    end
-
-   sampling = 1
-   s = {}
+   
+   local minval, maxval, lastval = 0, 0, 0
+   local maxval_time, minval_time, lastval_time  = nil, nil, nil
+   local sampling = 1
+   local s = {}
+   local totalval = {}
    for i, v in ipairs(fdata) do
-      s[0] = fstart + (i-1)*fstep
+      local instant = fstart + (i-1)*fstep  -- this is the instant in time corresponding to the datapoint
+      s[0] = instant  -- s holds the instant and all the values
+      totalval[instant] = 0  -- totalval holds the sum of all values of this instant
 
       local elemId = 1
       for _, w in ipairs(v) do
@@ -1304,18 +1312,26 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	    end
 	 end
 
+         -- update the total value counter, which is the non-scaled integral over time
+         totalval[instant] = totalval[instant] + w * fstep
+         -- and the scaled current value (remember that these are derivatives)
          w = w * scaling_factor
- 
+         -- the scaled current value w goes into its own element elemId
 	 if (s[elemId] == nil) then s[elemId] = 0 end
 	 s[elemId] = s[elemId] + w
 	 --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
 	 elemId = elemId + 1
       end
-
+      
+      -- stops every sample_rate samples, or when there are no more points
       if(sampling == sample_rate or num_points_found == i) then
 	 for elemId=1,#s do
-	    s[elemId] = s[elemId] / sample_rate
+            -- calculate the average in the sampling period
+	    s[elemId] = s[elemId] / sampling
 	 end
+         -- update last instant
+         if lastval_time == nil or instant > lastval_time then lastval_time = instant end
+      
 	 series[#series+1] = s
 	 sampling = 1
 	 s = {}
@@ -1323,57 +1339,21 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 sampling = sampling + 1
       end
    end
-
-   local maxval_time = -1
-   local maxval = 0
-   local minval_time = -1
-   local minval = 0
-   local lastval_time = 0
-   local firstval = -1
-   local firstval_time = 0
-   local lastval = 0
-   local totalval = 0
-   local num_points = 0;
-
-   for key, value in pairs(series) do
-      local tot = 0
-      local when = value[0]
-      num_points = num_points + 1
-
-      for elemId=1,#names do
-	 tot = tot + value[elemId]
-      end
-
-      if(firstval == -1) then
-	 firstval_time = when
-         firstval = tot
-      end
-
-      if((minval_time == -1) or (minval >= tot)) then
-	 minval_time = when
-	 minval = tot
-      end
-
-      if((maxval_time == -1) or (maxval <= tot)) then
-	 maxval_time = when
-	 maxval = tot
-      end
-
-      lastval_time = when
-      lastval = tot
-
-      totalval = totalval + tot
-   end
    
-   -- total val is always returned without any scaling. for this reason
-   -- this time we divide by the (previously multiplied) scaling factor
-   io.write('fstep: '..fstep..'\n')
-   io.write('total val: '..totalval..'\n')
-   totalval = totalval / scaling_factor
-   io.write('total val after scaling: '..totalval..'\n')
+   -- get maximum and minimum values straight from the totals table
+   maxval_time, maxval = tmax(totalval)
+   minval_time, minval = tmin(totalval)
+   -- remember that the totals table does not contain scaled data.
+   -- therefore we must perform a scaling of these values
+   lastval = totalval[lastval_time] * scaling_factor
+   minval = minval * scaling_factor
+   maxval = maxval * scaling_factor
+   local tot = 0
+   for k, v in pairs(totalval) do tot = tot + v end
+   totalval = tot
    
    local percentile = 0.95*maxval
-   local average = totalval / num_points
+   local average = totalval / num_points_found
    local colors = {
       '#1f77b4',
       '#ff7f0e',
