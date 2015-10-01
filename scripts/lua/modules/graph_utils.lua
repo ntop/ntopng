@@ -1248,12 +1248,22 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local names_cache = {}
    local series = {}
    local prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
+   -- with a scaling factor we can stretch or shrink rrd values
+   -- by default we set this to a value of 8, in order to convert bytes
+   -- rrds into bits.
+   local scaling_factor = 8
 
    -- io.write(prefixLabel.."\n")
    if(prefixLabel == "Bytes") then
       prefixLabel = "Traffic"
    end
 
+   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops"))
+    then
+        -- do not scale number, packets, and drops
+        scaling_factor = 1
+   end
+   
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
 
    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
@@ -1291,9 +1301,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	    end
 	 end
          
-        if(prefixLabel == "Traffic") then
-            w = w * 8
-        end -- convery bytes in bits
+         w = w * scaling_factor
  
 	 if (s[elemId] == nil) then s[elemId] = 0 end
 	 s[elemId] = s[elemId] + w
@@ -1355,7 +1363,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       totalval = totalval + tot
    end
    
-   if(prefixLabel == "Traffic") then totalval = totalval/8. end -- convert bits to bytes
+   -- total val is always returned without any scaling. for this reason
+   -- this time we divide by the (previously multiplied) scaling factor
+   totalval = totalval / scaling_factor
 
    local percentile = 0.95*maxval
    local average = totalval / num_points
