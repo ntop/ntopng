@@ -1327,8 +1327,12 @@ char* Utils::tokenizer(char *arg, int c, char **data) {
     }
 
     arg = &(p[1]);
-  } else if(data)
-    *data = NULL;
+  } else if(data) {
+    if(arg)
+      *data = strdup(arg);
+    else
+      *data = NULL;
+  }
 
   return (arg);
 }

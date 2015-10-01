@@ -548,8 +548,8 @@ function fdate(when) {
 function fbits(bits) {
 	var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
 	if(bits == 0) return 'n/a';
-	var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
-	return Math.round(bits / Math.pow(1024, i), 2) + ' ' + sizes[i];
+	var i = parseInt(Math.floor(Math.log(bits) / Math.log(1000)));
+	return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
 
 function capitaliseFirstLetter(string)
@@ -1267,6 +1267,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
 
    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+   io.write('start time: '..start_time..'  end_time: '..end_time..'\n')
+   io.write('fstart: '..fstart..'  fstep: '..fstep..' rrdname: '..rrdname..'\n')
+   io.write('len(fdata): '..table.getn(fdata)..'\n')
    local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
    local num_points_found = table.getn(fdata)
    local sample_rate = round(num_points_found / max_num_points)
@@ -1300,7 +1303,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	       w = 0
 	    end
 	 end
-         
+
          w = w * scaling_factor
  
 	 if (s[elemId] == nil) then s[elemId] = 0 end
@@ -1309,7 +1312,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 elemId = elemId + 1
       end
 
-      if(sampling == sample_rate) then
+      if(sampling == sample_rate or num_points_found == i) then
 	 for elemId=1,#s do
 	    s[elemId] = s[elemId] / sample_rate
 	 end
@@ -1334,8 +1337,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    for key, value in pairs(series) do
       local tot = 0
-
-      when = value[0]
+      local when = value[0]
       num_points = num_points + 1
 
       for elemId=1,#names do
@@ -1365,8 +1367,11 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    
    -- total val is always returned without any scaling. for this reason
    -- this time we divide by the (previously multiplied) scaling factor
+   io.write('fstep: '..fstep..'\n')
+   io.write('total val: '..totalval..'\n')
    totalval = totalval / scaling_factor
-
+   io.write('total val after scaling: '..totalval..'\n')
+   
    local percentile = 0.95*maxval
    local average = totalval / num_points
    local colors = {
