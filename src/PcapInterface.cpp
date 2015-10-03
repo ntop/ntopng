@@ -148,20 +148,22 @@ static void* packetPollLoop(void* ptr) {
 	  && iface->isRunning() 
 	  && (!ntop->getGlobals()->isShutdown())) {
       const u_char *pkt;
-      struct pcap_pkthdr hdr;
+      struct pcap_pkthdr *hdr;
+      int rc;
 
       while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
 
-      if((pkt = pcap_next(pd, &hdr)) != NULL) {
-	if((hdr.caplen > 0) && (hdr.len > 0)) {
+      if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
+	if((rc > 0) && (pkt != NULL) && (hdr->caplen > 0)) {
 	  int a, b;
-
-	  iface->packet_dissector(&hdr, pkt, &a, &b);
+	  
+	  iface->packet_dissector(hdr, pkt, &a, &b);
 	}
-      } else {
+      } else if(rc < 0) {
 	if(iface->read_from_pcap_dump())
 	  break;
-
+      } else {
+	/* No packet received before the timeout */
 	iface->purgeIdle(time(NULL));
       }
     } /* while */
