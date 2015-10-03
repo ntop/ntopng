@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.org/ntop/ntopng.png?branch=master)](https://travis-ci.org/zeromq/libzmq)
 
-## Welcome
+## Introduction
 
 ntopng is a web-based network traffic monitoring application released under GPLv3. It is the new incarnation of the original ntop written in 1998, and now revamped in terms of performance, usability, and features.
 
