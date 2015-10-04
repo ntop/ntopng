@@ -9,7 +9,7 @@ Build-Conflicts:
 Depends: @PFRING_DEP@, libsqlite3-0, libgeoip1, redis-server, @LIBRRD@ logrotate, libcurl3 @EXTRA_DEPS@
 Package: ntopng
 Architecture: @EXTN@
-Recommends: ntopng-data
+Recommends: ntopng-data, pfring-dkms
 Suggests: ntopng-data
 Pre-Depends:
 Conflicts:
