@@ -205,6 +205,16 @@ else
   fi
 fi
 
+PFRING_GIT_RELEASE=""
+if test -d $HOME/PF_RING; then
+  PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+fi
+
+PFRING_VERSION=""
+if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
+ PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
+fi
+
 AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
 AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
 AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
