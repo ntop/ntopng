@@ -266,6 +266,7 @@ class NetworkInterface {
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }
+  inline u_int16_t getMTU() { return(ifMTU); }
   inline void setIdleState(bool new_state) { is_idle = new_state; }
   inline StatsManager *getStatsManager()   { return statsManager; }
   void listHTTPHosts(lua_State *vm, char *key);

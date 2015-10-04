@@ -1250,7 +1250,7 @@ function version2int(v)
     if(minor == nil or tonumber(minor) == nil or type(minor) ~= "string")     then minor = 0 end
     if(veryminor == nil or tonumber(veryminor) == nil or type(veryminor) ~= "string") then veryminor = 0 end
 
-    version = tonumber(major)*1000 + tonumber(minor)*100 + tonumber(veryminor)
+    version = tonumber(major)*1000 + tonumber(minor)*100 -- + tonumber(veryminor)
     return(version)
   else
     return(0)
@@ -1270,12 +1270,12 @@ function ntop_version_check()
 
    if(rsp ~= nil) then
       info = ntop.getInfo()
-      stable_version = version2int(rsp)
+      new_version = version2int(rsp)
 
       version_elems  = split(info["version"], " ");
       this_version   = version2int(version_elems[1])
 
-      if(stable_version > this_version) then
+      if(new_version > this_version) then
 	 print("<p><div class=\"alert alert-warning\"><font color=red><i class=\"fa fa-cloud-download fa-lg\"></i> A new "..info["product"].." (v." .. rsp .. ") is available for <A HREF=http://www.ntop.org/get-started/download/>download</A>: please upgrade.</font></div></p>")
       end
    end

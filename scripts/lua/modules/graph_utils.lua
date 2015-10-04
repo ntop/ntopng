@@ -1240,7 +1240,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    -- rrds into bits.
    local scaling_factor = 8
 
-   -- io.write(prefixLabel.."\n")
+   --io.write(prefixLabel.."\n")
    if(prefixLabel == "Bytes") then
       prefixLabel = "Traffic"
    end
@@ -1325,7 +1325,8 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 sampling = sampling + 1
       end
    end
-   
+
+
    -- get maximum and minimum values straight from the totals table
    maxval_time, maxval = tmax(totalval)
    minval_time, minval = tmin(totalval)
@@ -1337,7 +1338,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local tot = 0
    for k, v in pairs(totalval) do tot = tot + v end
    totalval = tot
-   
+
    local percentile = 0.95*maxval
    local average = totalval / num_points_found
    local colors = {

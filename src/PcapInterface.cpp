@@ -156,7 +156,8 @@ static void* packetPollLoop(void* ptr) {
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((rc > 0) && (pkt != NULL) && (hdr->caplen > 0)) {
 	  int a, b;
-	  
+
+	  hdr->caplen = min_val(hdr->caplen, iface->getMTU());
 	  iface->packet_dissector(hdr, pkt, &a, &b);
 	}
       } else if(rc < 0) {
