@@ -1706,7 +1706,7 @@ if  test -f /usr/bin/lsb_release ; then
   EXTRA_DEPS=", libnuma1, libzmq3, libnetfilter-queue1"
   PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
   PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[:space:]'`
-  PFRING_DEP="pfring (=$PFRING_VERS)"
+  PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
   if test "$UBUNTU_RELEASE" = "12.04"; then
