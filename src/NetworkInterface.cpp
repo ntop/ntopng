@@ -732,8 +732,7 @@ bool NetworkInterface::packetProcessing(
       ipv6_shift = 8 * (options[1] + 1);
 
       if(ipsize < ipv6_shift) {
-	incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize,
-		 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       }
     }
@@ -756,6 +755,7 @@ bool NetworkInterface::packetProcessing(
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", l4_packet_len);
+      incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else if(l4_proto == IPPROTO_UDP) {
@@ -768,6 +768,7 @@ bool NetworkInterface::packetProcessing(
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", l4_packet_len);
+      incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
   } else {
@@ -911,7 +912,7 @@ bool NetworkInterface::packetProcessing(
 
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
-	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_to_disk &&
       (!flow->isDetectionCompleted() ||
@@ -929,7 +930,7 @@ bool NetworkInterface::packetProcessing(
   } else
     incStats(iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
-	     h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   return(pass_verdict);
 }
