@@ -34,7 +34,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   if(iface) {
     /* 1 - Create database if missing */
     snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS %s", ntop->getPrefs()->get_mysql_dbname());
-    if(exec_sql_query(sql, 1) != 0) {
+    if(exec_sql_query(sql, true) != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
       return;
     }
@@ -53,11 +53,11 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
 	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
 	     "`INFO` varchar(255), `JSON` BLOB,"
-	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
+	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`, `INFO`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id());
 
-    if(exec_sql_query(sql, 1) != 0) {
+    if(exec_sql_query(sql, true) != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
       return;
     }
@@ -71,14 +71,23 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
 	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
 	     "`INFO` varchar(255), `JSON` BLOB,"
-	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
+	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`, `INFO`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id());
 
-    if(exec_sql_query(sql, 1) != 0) {
+    if(exec_sql_query(sql, true) != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
       return;
     }
+
+    /* Add fields if not present */
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` ADD `INFO` varchar(255)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` ADD `INFO` varchar(255)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
   }
 }
 
@@ -165,7 +174,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 
   free(json_buf);
 
-  if(exec_sql_query(sql, 1) != 0) {
+  if(exec_sql_query(sql, true) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
     printf("\n%s\n", sql);
     return(false);
@@ -234,7 +243,7 @@ bool MySQLDB::connectToDB(bool select_db) {
 
 /* ******************************************* */
 
-int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
+int MySQLDB::exec_sql_query(char *sql, bool doReconnect, bool ignoreErrors) {
   int rc;
 
   if(!db_operational)
@@ -242,23 +251,24 @@ int MySQLDB::exec_sql_query(char *sql, int do_reconnect) {
 
   if(m) m->lock(__FILE__, __LINE__);
   if((rc = mysql_query(&mysql, sql)) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]",  get_last_db_error(), sql);
+    if(!ignoreErrors)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]", get_last_db_error(), sql);
 
     switch(mysql_errno(&mysql)) {
     case CR_SERVER_LOST:
-      if(do_reconnect) {
+      if(doReconnect) {
 	mysql_close(&mysql);
 	if(m) m->unlock(__FILE__, __LINE__);
 
 	connectToDB(true);
 
-	return(exec_sql_query(sql, 0));
+	return(exec_sql_query(sql, false));
       } else
-	printf("\n\n%s\n", sql);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
       break;
 
     default:
-      printf("\n\n%s\n", sql);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
       break;
     }
 

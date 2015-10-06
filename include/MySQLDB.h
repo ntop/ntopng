@@ -33,7 +33,7 @@ class MySQLDB : public DB {
 
   bool connectToDB(bool select_db);
   char* get_last_db_error() { return((char*)mysql_error(&mysql)); }
-  int exec_sql_query(char *sql, int do_reconnect = 1);
+  int exec_sql_query(char *sql, bool doReconnect = true, bool ignoreErrors = false);
   
  public:
   MySQLDB(NetworkInterface *_iface = NULL);
