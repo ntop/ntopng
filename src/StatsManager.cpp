@@ -162,7 +162,7 @@ int StatsManager::openCache(const char *cache_name)
  * @param key Key to use as boundary.
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::deleteStatsOlderThan(const char *cache_name, const time_t key) {
+int StatsManager::deleteStatsOlderThan(const char * const cache_name, const time_t key) {
   char query[MAX_QUERY];
   int rc;
 
@@ -173,8 +173,8 @@ int StatsManager::deleteStatsOlderThan(const char *cache_name, const time_t key)
     return -1;
 
   snprintf(query, sizeof(query), "DELETE FROM %s WHERE "
-	   "CAST(TSTAMP AS INTEGER) < %d",
-	   cache_name, (int)key);
+	   "CAST(TSTAMP AS INTEGER) < %lu",
+	   cache_name, static_cast<long int>(key));
 
   m.lock(__FILE__, __LINE__);
 
@@ -276,7 +276,7 @@ static int get_samplings_db(void *data, int argc,
  * @return Zero in case of success, nonzero in case of error.
  */
 int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
-					const char *cache_name,
+					const char * const cache_name,
                                         const time_t key_start,
 					const time_t key_end) {
   char query[MAX_QUERY];
@@ -290,9 +290,9 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
 
   memset(retvals, 0, sizeof(*retvals));
 
-  snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE TSTAMP >= %d "
-	   "AND TSTAMP <= %d",
-           cache_name, (int)key_start, (int)key_end);
+  snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE TSTAMP >= %lu "
+	   "AND TSTAMP <= %lu",
+           cache_name, static_cast<long int>(key_start), static_cast<long int>(key_end));
 
   m.lock(__FILE__, __LINE__);
 
@@ -380,8 +380,8 @@ int StatsManager::retrieveDayStatsInterval(time_t epoch_start,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::insertSampling(char *sampling, const char *cache_name,
-                                 const int key) {
+int StatsManager::insertSampling(const char * const sampling, const char * const cache_name,
+                                 long int key) {
   char query[MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
@@ -397,7 +397,7 @@ int StatsManager::insertSampling(char *sampling, const char *cache_name,
   m.lock(__FILE__, __LINE__);
 
   if(sqlite3_prepare(db, query, -1, &stmt, 0) ||
-     sqlite3_bind_int(stmt, 1, key) ||
+     sqlite3_bind_int64(stmt, 1, key) ||
      sqlite3_bind_text(stmt, 2, sampling, strlen(sampling), SQLITE_TRANSIENT)) {
     rc = 1;
     goto out;
@@ -429,11 +429,11 @@ int StatsManager::insertSampling(char *sampling, const char *cache_name,
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertMinuteSampling(time_t epoch, char *sampling) {
+int StatsManager::insertMinuteSampling(time_t epoch, const char * const sampling) {
   if(!sampling)
     return -1;
 
-  return insertSampling(sampling, MINUTE_CACHE_NAME, epoch);
+  return insertSampling(sampling, MINUTE_CACHE_NAME, static_cast<long int>(epoch));
 }
 
 /**
@@ -446,11 +446,11 @@ int StatsManager::insertMinuteSampling(time_t epoch, char *sampling) {
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertHourSampling(time_t epoch, char *sampling) {
+int StatsManager::insertHourSampling(time_t epoch, const char * const sampling) {
   if(!sampling)
     return -1;
 
-  return insertSampling(sampling, HOUR_CACHE_NAME, epoch);
+  return insertSampling(sampling, HOUR_CACHE_NAME, static_cast<long int>(epoch));
 }
 
 /**
@@ -463,11 +463,11 @@ int StatsManager::insertHourSampling(time_t epoch, char *sampling) {
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertDaySampling(time_t epoch, char *sampling) {
+int StatsManager::insertDaySampling(time_t epoch, const char * const sampling) {
   if(!sampling)
     return -1;
 
-  return insertSampling(sampling, DAY_CACHE_NAME, epoch);
+  return insertSampling(sampling, DAY_CACHE_NAME, static_cast<long int>(epoch));
 }
 
 /* *************************************************************** */
@@ -507,8 +507,8 @@ static int get_sampling_db_callback(void *data, int argc,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::getSampling(string *sampling, const char *cache_name,
-                              const int key_low, const int key_high) {
+int StatsManager::getSampling(string * sampling, const char * const cache_name,
+                              time_t key_low, time_t key_high) {
 
   char query[MAX_QUERY];
   int rc;
@@ -522,9 +522,9 @@ int StatsManager::getSampling(string *sampling, const char *cache_name,
     return -1;
 
   snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE "
-	   "CAST(TSTAMP AS INTEGER) <= %d AND "
-	   "CAST(TSTAMP AS INTEGER) >= %d",
-           cache_name, key_high, key_low);
+	   "CAST(TSTAMP AS INTEGER) <= %lu AND "
+	   "CAST(TSTAMP AS INTEGER) >= %lu",
+           cache_name, static_cast<long int>(key_high), static_cast<long int>(key_low));
 
   m.lock(__FILE__, __LINE__);
 
@@ -546,12 +546,12 @@ int StatsManager::getSampling(string *sampling, const char *cache_name,
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::getMinuteSampling(time_t epoch, string *sampling) {
+int StatsManager::getMinuteSampling(time_t epoch, string * sampling) {
   if(!sampling)
     return -1;
 
-  int epoch_start = epoch - (epoch % 60);
-  int epoch_end = epoch_start + 59;
+  time_t epoch_start = epoch - (epoch % 60);
+  time_t epoch_end = epoch_start + 59;
 
   return getSampling(sampling, MINUTE_CACHE_NAME, epoch_start, epoch_end);
 }
