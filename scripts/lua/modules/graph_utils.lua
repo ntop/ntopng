@@ -605,105 +605,43 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 		var infoHTML = "";
 ]]
 
-if(topArray ~= nil) then
+if(topArray ~= nil and topArray["top_talkers"] ~= nil) then
 print[[
 
-   infoHTML += "<ul>";
-]]
-
-   for n,v in pairs(topArray) do
-      modulename = n
-      sectionname = v["name"]
-      levels = v["levels"]
-      scriptname = v["script"]
-      key = v["key"]
-
-      if (string.lower(sectionname) ~= "top talkers") then
-	 goto continue
-      end
-
-      -- Support only 1 or 2 levels by now
-      if (levels < 1 or levels > 2) then goto continue end
-      print [[
-	    $.ajax({
-		      type: 'GET',
-		      url: ']]
-		      print(ntop.getHttpPrefix().."/lua/top_generic.lua?m="..modulename.."&epoch='+point.value.x+'&addvlan=true")
-      if (levels == 2) then
-			 print [[',
-			       data: { epoch: point.value.x },
-			       async: false,
-			       success: function(content) {
-					      var info = jQuery.parseJSON(content);]]
-					print [[
-					      var elements = 0;
-                                $.each(info, function(i, n) {
-                                  elements++;
-                                  return false;
-                                });
-
-]]
-                     print[[
-				$.each(info, function(i, n) {
-                                  var nonempty = 0;
-                                  $.each(n, function(j, m) {
-                                    nonempty++;
-                                    return false;
-                                  });
-                                  if (nonempty != 0)
-				    infoHTML += "<li>"+capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
-				  var items = 0;
-                                  var other_traffic = 0;
-				  $.each(n, function(j, m) {
-				    if(items < 3) {
-				      infoHTML += "<li><a href=']]
-    print(scriptname.."?"..key.."=")
-    print[["+m.address+"'>"+m.label; if ("]]print(sectionname)print[[".toLowerCase() == "Operating Systems") infoHTML += getOSIcon(m.label); if ("]]print(sectionname)print[[".toLowerCase() == "countries") infoHTML += " <img src=']] print(ntop.getHttpPrefix()) print [[/img/blank.gif' class='flag flag-"+m.label.toLowerCase()+"'>"; infoHTML += "</a>"; if (m.vlan != "0") infoHTML += " ("+m.vlanm+")"; infoHTML += " ("+]] print(formatter_fctn) print [[((m.value*8)/60)+")</li>";
-				      items++;
-                                    } else
-                                      other_traffic += m.value;
-				  });
-                                  if (other_traffic > 0)
-                                      infoHTML += "<li>Other ("+]]print(formatter_fctn)print[[((other_traffic*8)/60)+")</li>";
-                                  if (nonempty != 0)
-				    infoHTML += "</ol></li>";
-				});
-				infoHTML += "</ul></li></li>";
-			}
-		});
-    ]]
-    elseif (levels == 1) then
-    print [[',
-			data: { epoch: point.value.x },
-			async: false,
-			success: function(content) {
-				var info = jQuery.parseJSON(content);
-				var items = 0;
-				$.each(info, function(i, n) {
-    ]]
-    print('if(items == 0) infoHTML += "<li>'..sectionname..' [Avg Traffic/sec]<ol>";')
-    print[[
-				   if(items < 3)
-				     infoHTML += "<li><a href=']]
-    print(scriptname.."?"..key.."=")
-    print[["+n.label+"'>"+n.name+"</a>";]]
-    if (sectionname ~= "VLANs") then
-      print[[if (n.vlan != "0") infoHTML += " ("+n.vlanm+")"+]]
-    else
-      print[[infoHTML +=]]
-    end
-    print[[" ("+]] print(formatter_fctn) print [[((n.value*8)/60)+")</li>";
-				   items++;
-				});
-                                if(items > 0)
-                                   infoHTML += "</ol></li></ul>";
-			}
-		});
-    ]]
-    end -- levels
-    ::continue::
-  end -- for
-    print[[infoHTML += "</ul>";]]
+infoHTML += "<ul>";
+$.ajax({
+          type: 'GET',
+          url: ']]
+          print(ntop.getHttpPrefix().."/lua/top_generic.lua?m=top_talkers&epoch='+point.value.x+'&addvlan=true")
+            print [[',
+                  data: { epoch: point.value.x },
+                  async: false,
+                  success: function(content) {
+                   var info = jQuery.parseJSON(content);
+                   $.each(info, function(i, n) {
+                     if (n.length > 0)
+                       infoHTML += "<li>"+capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
+                     var items = 0;
+                     var other_traffic = 0;
+                     $.each(n, function(j, m) {
+                       if(items < 3) {
+                         infoHTML += "<li><a href='host_details.lua?host="+m.address+"'>"+abbreviateString(m.label,24);
+                       infoHTML += "</a>";
+                       if (m.vlan != "0") infoHTML += " ("+m.vlanm+")";
+                       infoHTML += " ("+fbits((m.value*8)/60)+")</li>";
+                         items++;
+                       } else
+                         other_traffic += m.value;
+                     });
+                     if (other_traffic > 0)
+                         infoHTML += "<li>Other ("+fbits((other_traffic*8)/60)+")</li>";
+                     if (n.length > 0)
+                       infoHTML += "</ol></li>";
+                   });
+                   infoHTML += "</ul></li></li>";
+           }
+   });
+infoHTML += "</ul>";]]
 end -- topArray
 print [[
 		this.element.innerHTML = '';

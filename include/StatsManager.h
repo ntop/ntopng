@@ -33,10 +33,10 @@ class StatsManager {
 public:
     StatsManager(int ifid, const char *dbname);
     ~StatsManager();
-    int insertMinuteSampling(time_t epoch, char *sampling);
-    int insertHourSampling(time_t epoch, char *sampling);
-    int insertDaySampling(time_t epoch, char *sampling);
-    int getMinuteSampling(time_t epoch, string *sampling);
+    int insertMinuteSampling(time_t epoch, const char * const sampling);
+    int insertHourSampling(time_t epoch, const char * const sampling);
+    int insertDaySampling(time_t epoch, const char * const sampling);
+    int getMinuteSampling(time_t epoch, string * sampling);
     int openCache(const char *cache_name);
     int retrieveMinuteStatsInterval(time_t epoch_start, time_t epoch_end,
                                     struct statsManagerRetrieval *retvals);
@@ -63,10 +63,10 @@ private:
     int exec_query(char *db_query,
                    int (*callback)(void *, int, char **, char **),
                    void *payload);
-    int insertSampling(char *sampling, const char *cache_name, const int key);
-    int getSampling(string *sampling, const char *cache_name, const int key_low, const int key_high);
-    int deleteStatsOlderThan(const char *cache_name, const time_t key);
-    int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char *cache_name,
+    int insertSampling(const char * const sampling, const char * const cache_name, long int key);
+    int getSampling(string * sampling, const char * const cache_name, time_t key_low, time_t key_high);
+    int deleteStatsOlderThan(const char * const cache_name, const time_t key);
+    int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char * const cache_name,
 		const time_t key_start, const time_t key_end);
 };
 

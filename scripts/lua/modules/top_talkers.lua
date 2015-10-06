@@ -275,7 +275,7 @@ end
 
 function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_threshold,
                                       use_delta, filter_col, filter_val, col, key, loc, concat, mode, lastdump_key)
-   max_num_entries = 10
+   max_num_entries = 10  -- TODO: check if max_num_entries can be forcefully set to 10
    rsp = ""
 
    interface.select(ifname)
