@@ -165,7 +165,6 @@ using namespace std;
 #include "StatsManager.h"
 #include "FlowsManager.h"
 #include "DB.h"
-#include "SQLiteDB.h"
 #ifdef HAVE_MYSQL
 #include "MySQLDB.h"
 #endif
