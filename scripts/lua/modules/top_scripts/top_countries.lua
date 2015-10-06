@@ -21,16 +21,26 @@ if (ntop.isPro()) then
 end
 
 local function getTopCountries(ifid, ifname)
-  return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
-                                      nil, nil, top_countries_intf.key,
-                                      top_countries_intf.JSONkey, nil, true, nil,
+  -- cap the maximum # of entries at 10. Use treshold, but no not use delta
+  -- do not filter by col or by val (nil, nil).
+  -- column is top_countries_intf.key
+  -- key is top_countries_intf.JSONkey
+  return getCurrentTopGroupsSeparated(ifid, ifname,
+                                      10, true, false,
+                                      nil, nil,
+                                      top_countries_intf.key,
+                                      top_countries_intf.JSONkey,
+                                      nil, true, nil,
                                       top_countries_intf.uniqueKey)
 end
 
 local function getTopCountriesBy(ifid, ifname, filter_col, filter_val)
-  return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
-                                      filter_col, filter_val, top_countries_intf.key,
-                                      top_countries_intf.JSONkey, nil, true, nil,
+  return getCurrentTopGroupsSeparated(ifid, ifname,
+                                      10, true, false,
+                                      filter_col, filter_val,
+                                      top_countries_intf.key,
+                                      top_countries_intf.JSONkey,
+                                      nil, true, nil,
                                       top_countries_intf.uniqueKey)
 end
 
