@@ -107,6 +107,8 @@ end
 vals = {}
 num = 0
 
+if(flows_stats == nil) then flows_stats = { } end
+
 for key, value in pairs(flows_stats) do
    -- print(key.."\n")
    if (debug) then io.write("==================\n")end
