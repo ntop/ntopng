@@ -136,7 +136,7 @@ int StatsManager::openCache(const char *cache_name)
 
   snprintf(table_query, sizeof(table_query),
 	   "CREATE TABLE IF NOT EXISTS %s "
-	   "(TSTAMP VARCHAR PRIMARY KEY NOT NULL,"
+	   "(TSTAMP INTEGER PRIMARY KEY NOT NULL,"
 	   "STATS TEXT NOT NULL);", cache_name);
 
   m.lock(__FILE__, __LINE__);
