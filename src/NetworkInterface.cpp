@@ -979,8 +979,10 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
       mtuWarningShown = true;
     }
 
-    incStats(0, NDPI_PROTOCOL_UNKNOWN, ifMTU, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+#if 0
+    incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len /* ifMTU */, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
+#endif
   }
 
   setTimeLastPktRcvd(h->ts.tv_sec);
@@ -1030,6 +1032,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
       eth_type = ETHERTYPE_IPV6;
       break;
     default:
+      incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict); /* Unknown IP protocol version */
     }
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
@@ -1198,6 +1201,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
       if(iph->version != 4) {
 	/* This is not IPv4 */
+	incStats(ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else
 	frag_off = ntohs(iph->frag_off);
@@ -1225,6 +1229,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
 	    if(iph->version != 4) {
 	      /* FIX - Add IPv6 support */
+	      incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	  }
@@ -1248,6 +1253,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	  ip_offset = ip_offset+capwap_header_len+24+8;
 
 	  if(ip_offset >= h->len){
+	    incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -1261,6 +1267,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	    ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
 	    break;
 	  default:
+	    incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 	}
@@ -1268,7 +1275,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
       try {
 	pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id, iph,
-					ip6, h->caplen - ip_offset, h->caplen,
+					ip6, h->caplen - ip_offset, h->len,
 					h, packet, a_shaper_id, b_shaper_id);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
@@ -1288,20 +1295,25 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
       if((ntohl(ip6->ip6_ctlun.ip6_un1.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
+	incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else {
 	u_int ipv6_shift = sizeof(const struct ndpi_ip6_hdr);
 	u_int8_t l4_proto = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+
 	if(l4_proto == 0x3C /* IPv6 destination option */) {
 	  u_int8_t *options = (u_int8_t*)ip6 + ipv6_shift;
 	  l4_proto = options[0];
 	  ipv6_shift = 8 * (options[1] + 1);
 	}
+
 	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)){
 	  ip_offset += ipv6_shift;
-	  if(ip_offset >= h->len){
+	  if(ip_offset >= h->len) {
+	    incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
+
 	  struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset];
 	  u_int16_t sport = udp->source,  dport = udp->dest;
 
@@ -1324,6 +1336,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	    ip_offset = ip_offset+capwap_header_len+24+8;
 
 	    if(ip_offset >= h->len){
+	      incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
@@ -1337,6 +1350,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	      ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
 	      break;
 	    default:
+	      incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	  }
