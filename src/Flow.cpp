@@ -31,7 +31,7 @@ Flow::Flow(NetworkInterface *_iface,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_packets = 0, cli2srv_bytes = 0, srv2cli_packets = 0, srv2cli_bytes = 0, cli2srv_last_packets = 0,
     cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, ndpi_flow= NULL;
+    cli_host = srv_host = NULL, ndpi_flow = NULL, badFlow = false;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -71,7 +71,7 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
-  pass_verdict = true;
+  passVerdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
   categorization.category[0] = '\0', categorization.categorized_requested = false;
   bytes_thpt_trend = trend_unknown;
@@ -144,7 +144,7 @@ void Flow::categorizeFlow() {
     return;
 
   if(!categorization.categorized_requested) {
-    categorization.categorized_requested = true;    
+    categorization.categorized_requested = true;
 
     if(ntop->get_categorization()->findCategory(Utils::get2ndLevelDomain(host_server_name),
 						categorization.category, sizeof(categorization.category),
@@ -155,9 +155,9 @@ void Flow::categorizeFlow() {
     ntop->getRedis()->getFlowCategory(Utils::get2ndLevelDomain(host_server_name),
 				      categorization.category,
 				      sizeof(categorization.category), false);
-    
+
     if(categorization.category[0] != '\0')
-      checkFlowCategory();    
+      checkFlowCategory();
   }
 }
 
@@ -181,7 +181,7 @@ Flow::~Flow() {
   if(dns.last_query)   free(dns.last_query);
   if(ssl.certificate)  free(ssl.certificate);
   if(ndpi_proto_name)  free(ndpi_proto_name);
-  
+
   deleteFlowMemory();
 }
 
@@ -207,6 +207,7 @@ void Flow::checkBlacklistedFlow() {
 	       print(fbuf, sizeof(fbuf)));
 
       ntop->getRedis()->queueAlert(alert_level_warning, alert_dangerous_host, alert_msg);
+      badFlow = true, setDropVerdict();
     }
 
     blacklist_alarm_emitted = true;
@@ -955,7 +956,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     }
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
-    
+
     if(detailed_dump && ntop->get_categorization()) {
       categorizeFlow();
       if(categorization.category[0] != '\0')
@@ -1106,11 +1107,11 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
   ret = cli_host->get_ip()->print(s_buf, sizeof(s_buf));
   if((strcmp(ret, numIP) == 0) &&
-      (cli_host->get_vlan_id() == vlanId))return(true);
+     (cli_host->get_vlan_id() == vlanId))return(true);
 
   ret = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
   if((strcmp(ret, numIP) == 0) &&
-      (cli_host->get_vlan_id() == vlanId))return(true);
+     (cli_host->get_vlan_id() == vlanId))return(true);
 
   return(false);
 }
@@ -1125,7 +1126,7 @@ char* Flow::getFlowCategory(bool force_categorization) {
       if(!Utils::isGoodNameToCategorize(host_server_name))
 	categorization.categorized_requested = true;
       else
-	categorizeFlow();      
+	categorizeFlow();
     }
   }
 
@@ -1149,10 +1150,10 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
   if(es_json) {
     ntop->getPrefs()->set_json_symbolic_labels_format(true);
     if((my_object = flow2json(partial_dump)) != NULL) {
-      
+
       /* JSON string */
       rsp = strdup(json_object_to_json_string(my_object));
-      
+
       /* Free memory */
       json_object_put(my_object);
     } else
@@ -1213,21 +1214,20 @@ json_object* Flow::flow2json(bool partial_dump) {
 
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
-    return(NULL); 
+    return(NULL);
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
-  
-  if (ntop->getPrefs()->do_dump_flows_on_es())  {
 
-	  t = last_seen;
-	  tm_info = gmtime(&t);
-	
-	  strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
-	  json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
-	  /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
-	  json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
+  if (ntop->getPrefs()->do_dump_flows_on_es()) {
+    t = last_seen;
+    tm_info = gmtime(&t);
+
+    strftime(buf, sizeof(buf), "%FT%T.0Z", tm_info);
+    json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
+    /* json_object_object_add(my_object, "@version", json_object_new_int(1)); */
+    json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
   }
-  
+
   json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
   json_object_object_add(my_object, Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
@@ -1308,7 +1308,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object *location = json_object_new_array();
 
     json_object_object_add(my_object, "DST_IP_COUNTRY", json_object_new_string(c));
-    
+
     if(location) {
       json_object_array_add(location, json_object_new_double(srv_host->get_longitude()));
       json_object_array_add(location, json_object_new_double(srv_host->get_latitude()));
@@ -1316,16 +1316,8 @@ json_object* Flow::flow2json(bool partial_dump) {
     }
   }
 
-  if(0) { /* TODO */
-    json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
-    json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));
-
-    json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
-    json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
-  }
-
   if(categorization.categorized_requested && (categorization.category[0] != '\0'))
-     json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
+    json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
 
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 
@@ -1339,6 +1331,8 @@ json_object* Flow::flow2json(bool partial_dump) {
 
   if(ssl.certificate)
     json_object_object_add(my_object, "SSL_CERTIFICATE", json_object_new_string(ssl.certificate));
+
+  json_object_object_add(my_object, "PASS_VERDICT", json_object_new_boolean(passVerdict ? (json_bool)1 : (json_bool)0));
 
   return(my_object);
 }
@@ -1701,7 +1695,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 /* *************************************** */
 
 bool Flow::isPassVerdict() {
-  if(!pass_verdict) return(pass_verdict);
+  if(!passVerdict) return(passVerdict);
 
   /* TODO: isAboveQuota() must be checked periodically */
   if(cli_host && srv_host)
@@ -1732,24 +1726,26 @@ void Flow::checkFlowCategory() {
     /* Emit alarm */
     c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
     s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-    
+
     snprintf(alert_msg, sizeof(alert_msg),
-	     "Flow <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
+	     "Flow <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; "
+	     "<A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
 	     " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
 	     c, iface->get_name(), c, cli_port,
 	     s, iface->get_name(), s, srv_port,
 	     host_server_name, host_server_name);
-    
+
     ntop->getRedis()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
-  }  
+    badFlow = true, setDropVerdict();
+  }
 }
-			   
+
 /* *************************************** */
-			   
-char* Flow::get_detected_protocol_name() {  
+
+char* Flow::get_detected_protocol_name() {
   if(!ndpi_proto_name) {
     char buf[64];
-    
+
     ndpi_proto_name = strdup(ndpi_protocol2name(iface->get_ndpi_struct(),
 						ndpi_detected_protocol,
 						buf, sizeof(buf)));
@@ -1761,12 +1757,12 @@ char* Flow::get_detected_protocol_name() {
 /* *************************************** */
 
 void Flow::getFlowShapers(bool src2dst_direction,
-			  int *a_shaper_id, int *b_shaper_id) {  
+			  int *a_shaper_id, int *b_shaper_id) {
   if(cli_host && srv_host) {
     if(src2dst_direction)
       *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id();
     else
       *a_shaper_id = srv_host->get_egress_shaper_id(), *b_shaper_id = cli_host->get_ingress_shaper_id();
   } else
-    *a_shaper_id = *b_shaper_id = 0;  
+    *a_shaper_id = *b_shaper_id = 0;
 }

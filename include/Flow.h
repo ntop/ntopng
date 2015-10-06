@@ -37,13 +37,13 @@ class Flow : public GenericHashEntry {
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpi_flow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
-    cli2srv_direction, twh_over, dissect_next_http_packet, pass_verdict,
+    cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
   u_int16_t diff_num_http_requests;
   ndpi_protocol ndpi_detected_protocol;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *ndpi_proto_name;
-  bool dump_flow_traffic;
+  bool dump_flow_traffic, badFlow;
 
   struct {
     char *last_url, *last_method;
@@ -127,7 +127,7 @@ class Flow : public GenericHashEntry {
   json_object* flow2es(json_object *flow_object);
   inline u_int8_t getTcpFlags() { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   bool isPassVerdict();
-  void setDropVerdict()         { pass_verdict = false; };
+  void setDropVerdict()         { passVerdict = false; };
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
   char* get_username(bool client);
@@ -217,8 +217,9 @@ class Flow : public GenericHashEntry {
   bool dumpFlow(bool partial_dump);
   bool dumpFlowTraffic(void);
   bool match(patricia_tree_t *ptree);
-  inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); };
-  inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); };
+  inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
+  inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
+  inline bool isBadFlow()        { return(badFlow); }
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
 
