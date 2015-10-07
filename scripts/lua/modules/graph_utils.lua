@@ -625,7 +625,7 @@ $.ajax({
                      var other_traffic = 0;
                      $.each(n, function(j, m) {
                        if(items < 3) {
-                         infoHTML += "<li><a href='host_details.lua?host="+m.address+"'>"+abbreviateString(m.label,24);
+                         infoHTML += "<li><a href='host_details.lua?host="+m.address+"'>"+abbreviateString(m.label ? m.label : m.address,24);
                        infoHTML += "</a>";
                        if (m.vlan != "0") infoHTML += " ("+m.vlanm+")";
                        infoHTML += " ("+fbits((m.value*8)/60)+")</li>";
