@@ -202,6 +202,7 @@ $('#password_reset_submit').click(function() {
 
 </div>
 </div>
+</div>
 </div> <!-- password_dialog -->
 
 			    ]]
