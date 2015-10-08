@@ -348,7 +348,7 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
 elseif((page == "packets")) then
    print [[
       <table class="table table-bordered table-striped">
-        <tr><th class="text-center">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
+        <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
       </table>
 
         <script type='text/javascript'>
