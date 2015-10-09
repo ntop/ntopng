@@ -168,7 +168,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   if(init_all) {
     if(ip) {
-      char buf[64], host[96], json[4096];
+      char buf[64], host[96], json[8192];
 
       snprintf(host, sizeof(host), "%s@%u", ip->print(buf, sizeof(buf)), vlan_id);
 
@@ -189,7 +189,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	/* Found saved copy of the host so let's start from the previous state */
         // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-	deserialize(json);
+	deserialize(json, redis_key);
       }
 
       if(localHost || systemHost
@@ -876,11 +876,11 @@ bool Host::addIfMatching(lua_State* vm, patricia_tree_t *ptree, char *key) {
 
 /* *************************************** */
 
-bool Host::deserialize(char *json_str) {
+bool Host::deserialize(char *json_str, char *key) {
   json_object *o, *obj;
 
   if((o = json_tokener_parse(json_str)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", json_str);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [key: %s]: %s", key, json_str);
     return(false);
   }
 
