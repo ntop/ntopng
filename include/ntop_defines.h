@@ -422,7 +422,7 @@
 #define MACSTR_SIZE     32
 #define DUMP_MTU	16384
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(closesocket)
 #define closesocket(c)		close(c)
 #endif
 

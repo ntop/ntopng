@@ -238,7 +238,10 @@ struct pollfd {
 #ifndef O_BINARY
 #define O_BINARY  0
 #endif // O_BINARY
+
+#ifndef closesocket
 #define closesocket(a) close(a)
+#endif
 #define mg_mkdir(x, y) mkdir(x, y)
 #define mg_remove(x) remove(x)
 #define mg_rename(x, y) rename(x, y)
