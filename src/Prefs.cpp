@@ -332,13 +332,13 @@ void Prefs::loadIdleDefaults() {
 
 #ifdef NTOPNG_PRO
 void Prefs::loadNagiosDefaults() {
-  if(nagios_host)   free(nagios_host);
-  if(nagios_port)   free(nagios_port);
-  if(nagios_config) free(nagios_config);
+  if(nagios_host)  {  free(nagios_host); nagios_host = NULL; }
+  if(nagios_port)  {  free(nagios_port); nagios_port = NULL; }
+  if(nagios_config){  free(nagios_config); nagios_config = NULL; }
 
-  getDefaultStringPrefsValue("nagios_host", &nagios_host, "localhost");
-  getDefaultStringPrefsValue("nagios_port", &nagios_port, "5667");
-  getDefaultStringPrefsValue("nagios_config", &nagios_config, "/etc/nagios/send_nsca.cfg");
+  getDefaultStringPrefsValue(CONST_NAGIOS_HOST_PREFS, &nagios_host, CONST_DEFAULT_NAGIOS_HOST);
+  getDefaultStringPrefsValue(CONST_NAGIOS_PORT_PREFS, &nagios_port, CONST_DEFAULT_NAGIOS_PORT);
+  getDefaultStringPrefsValue(CONST_NAGIOS_CONF_PREFS, &nagios_config, CONST_DEFAULT_NAGIOS_CONF);
 }
 #endif
 

@@ -286,6 +286,11 @@
 
 #define CONST_ALERT_MSG_QUEUE         "ntopng.alert_queue"
 #define CONST_ALERT_PREFS             "ntopng.prefs.alerts"
+#ifdef NTOPNG_PRO
+#define CONST_NAGIOS_HOST_PREFS       "ntopng.prefs.nagios_host"
+#define CONST_NAGIOS_PORT_PREFS       "ntopng.prefs.nagios_port"
+#define CONST_NAGIOS_CONF_PREFS       "ntopng.prefs.nagios_config"
+#endif
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
 #define CONST_LOCAL_HOST_IDLE_PREFS   "ntopng.prefs.local_host_max_idle"
 #define CONST_REMOTE_HOST_IDLE_PREFS  "ntopng.prefs.non_local_host_max_idle"
@@ -344,6 +349,12 @@
 #define CATEGORIZATION_PVER            "3.1"
 #define CATEGORIZATION_NULL_CATEGORY   "''"
 #define CATEGORIZATION_SAFE_SITE       "safe"
+
+#ifdef NTOPNG_PRO
+#define CONST_DEFAULT_NAGIOS_HOST      "localhost"
+#define CONST_DEFAULT_NAGIOS_PORT      "5667"
+#define CONST_DEFAULT_NAGIOS_CONF      "/etc/nagios/send_nsca.cfg"
+#endif
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
