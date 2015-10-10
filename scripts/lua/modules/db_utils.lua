@@ -108,6 +108,10 @@ end
 
 function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
    if(version == nil) then version = 4 end
+   
+   if(info == "") then info = nil end
+   if(l7proto == "") then l7proto = nil end
+   if(protocol == "") then protocol = nil end
 
    sql = "select COUNT(*) AS TOT_FLOWS, SUM(BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM flowsv"..version.."_"..interface_id.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
