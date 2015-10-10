@@ -1249,21 +1249,6 @@ void Host::readAlertPrefs() {
 
 /* *************************************** */
 
-bool Host::isInCommunity(int community_id) {
-  CommunitiesManager *cm = ntop->getCommunitiesManager();
-  struct ipAddress *ip = NULL;
-
-  if(get_ip() == NULL)
-    return false;
-  ip = get_ip()->getIP();
-  assert(ip);
-
-  return cm->findAddress(community_id, ip->ipVersion,
-                         ip->ipVersion == 4 ? (void *)&ip->ipType.ipv4 : (void *)&ip->ipType.ipv6);
-}
-
-/* *************************************** */
-
 void Host::incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
 #ifdef NTOPNG_PRO
   if(sent_bytes) sent_to_sketch->update(peer->key(), sent_bytes);

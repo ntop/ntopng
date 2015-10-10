@@ -52,7 +52,6 @@ Ntop::Ntop(char *appName) {
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
   num_cpus = -1;
-  communitiesManager = NULL;
   num_defined_interfaces = num_defined_interface_views = 0;
   local_interface_addresses = New_Patricia(128);
   export_interface = NULL;
@@ -177,7 +176,6 @@ Ntop::~Ntop() {
   delete globals;
   delete prefs;
   delete runtimeprefs;
-  delete communitiesManager;
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
@@ -216,11 +214,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
       /* Add defaults */
       /* http://www.networksorcery.com/enp/protocol/ip/multicast.htm */
       setLocalNetworks((char*)CONST_DEFAULT_LOCAL_NETS);
-    }
-
-    if(prefs->getCommunitiesFile()) {
-      communitiesManager = new CommunitiesManager();
-      communitiesManager->parseCommunitiesFile(prefs->getCommunitiesFile());
     }
   }
 

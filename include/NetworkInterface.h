@@ -237,7 +237,6 @@ class NetworkInterface {
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
   void getActiveHostsList(lua_State* vm, vm_ptree *vp, bool host_details, bool local_only);
-  void getCommunityHostsList(lua_State* vm, vm_ptree *vp, bool host_details, int community_id);
   void getFlowsStats(lua_State* vm);
   int  retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts, char *numIP, u_int16_t vlanId);

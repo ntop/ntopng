@@ -1601,31 +1601,6 @@ static bool hosts_get_local_list_details(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
-struct community_user_data {
-  struct vm_ptree *vp;
-  int community_id;
-};
-
-static bool hosts_get_community_list(GenericHashEntry *h, void *user_data) {
-  struct vm_ptree *vp = ((struct community_user_data *)user_data)->vp;
-
-  if (((Host*)h)->isInCommunity(((struct community_user_data *)user_data)->community_id))
-    ((Host*)h)->lua(vp->vm, vp->ptree, false, false, false);
-
-  return(false); /* false = keep on walking */
-}
-
-static bool hosts_get_community_list_details(GenericHashEntry *h, void *user_data) {
-  struct vm_ptree *vp = ((struct community_user_data *)user_data)->vp;
-
-  if (((Host*)h)->isInCommunity(((struct community_user_data *)user_data)->community_id))
-    ((Host*)h)->lua(vp->vm, vp->ptree, true, false, false);
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
 void NetworkInterface::getActiveHostsList(lua_State* vm,
 					  vm_ptree *vp,
 					  bool host_details,
@@ -1634,19 +1609,6 @@ void NetworkInterface::getActiveHostsList(lua_State* vm,
     hosts_hash->walk(host_details ? hosts_get_local_list_details : hosts_get_local_list, (void*)vp);
   else
     hosts_hash->walk(host_details ? hosts_get_list_details : hosts_get_list, (void*)vp);
-}
-
-/* **************************************************** */
-
-void NetworkInterface::getCommunityHostsList(lua_State* vm,
-					     vm_ptree *vp,
-					     bool host_details,
-					     int community_id) {
-  struct community_user_data cd;
-
-  cd.vp = vp;
-  cd.community_id = community_id;
-  hosts_hash->walk(host_details ? hosts_get_community_list_details : hosts_get_community_list, (void*)&cd);
 }
 
 /* **************************************************** */

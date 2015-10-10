@@ -55,7 +55,6 @@ class Ntop {
   PeriodicActivities *pa; /**< Instance of periodical activities.*/
   AddressResolution *address;
   Prefs *prefs;
-  CommunitiesManager *communitiesManager;
   RuntimePrefs *runtimeprefs;
   Geolocation *geo;
   Categorization *categorization;
@@ -99,8 +98,6 @@ class Ntop {
   void registerNagios(void);
   inline FlowChecker *getFlowChecker() { return(flow_checker); };
 #endif
-
-  inline CommunitiesManager *getCommunitiesManager() { return communitiesManager; }
 
   /**
    * @brief Set the path of custom nDPI protocols file.

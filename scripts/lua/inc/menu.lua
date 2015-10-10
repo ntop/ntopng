@@ -101,10 +101,6 @@ print [[/lua/hosts_stats.lua">Hosts</a></li>
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">VLANs</a></li>')
   end
 
-if (ntop.hasCommunities()) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/community_stats.lua">Communities</a></li>')
-end
-
 if(_ifstats.iface_sprobe) then
    print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">Processes</a></li>')
 end

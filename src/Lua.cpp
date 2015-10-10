@@ -435,69 +435,6 @@ static int ntop_get_interface_local_hosts(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-/**
- * @brief Get all hosts for a given community and network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of host information (Host name and number of bytes sent and received).
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_community_hosts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  int community_id;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  community_id = (int)lua_tonumber(vm, 1);
-
-  if(ntop_interface) ntop_interface->getCommunityHostsList(vm, get_allowed_nets(vm), false, community_id);
-
-  return(CONST_LUA_OK);
-}
-
-/**
- * @brief Get all communities for a given host and network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of communities.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_host_communities(lua_State* vm) {
-  CommunitiesManager *cm = ntop->getCommunitiesManager();
-  u_int16_t family = 0;
-  char *host = NULL;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) == LUA_TNUMBER)
-    family = (u_int16_t)lua_tonumber(vm, 1);
-
-  if(lua_type(vm, 2) == LUA_TSTRING)
-    host = (char*)lua_tostring(vm, 2);
-
-  if(cm) cm->listAddressCommunitiesLua(vm, family, host);
-  else return(CONST_LUA_ERROR);
-  return(CONST_LUA_OK);
-}
-
-/**
- * @brief Get all communities for a given network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of communities.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_communities(lua_State* vm) {
-  CommunitiesManager *cm = ntop->getCommunitiesManager();
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(cm) cm->listCommunitiesLua(vm);
-  else return(CONST_LUA_ERROR);
-  return(CONST_LUA_OK);
-}
-
 /* ****************************************** */
 
 /**
@@ -550,34 +487,6 @@ static int ntop_get_interface_local_hosts_info(lua_State* vm) {
     show_details = lua_toboolean(vm, 1) ? true : false;
 
   if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, true);
-
-  return(CONST_LUA_OK);
-}
-
-/**
- * @brief Get hosts information for a community and a network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host information.
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_community_hosts_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
-  bool show_details;
-  int community_id;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  /* Optional */
-  if(lua_type(vm, 1) != LUA_TBOOLEAN)
-    show_details = true;
-  else
-    show_details = lua_toboolean(vm, 1) ? true : false;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  community_id = (int)lua_tonumber(vm, 2);
-
-  if(ntop_interface) ntop_interface->getCommunityHostsList(vm, get_allowed_nets(vm), show_details, community_id);
 
   return(CONST_LUA_OK);
 }
@@ -703,26 +612,6 @@ static int ntop_has_vlans(lua_State* vm) {
   else
     lua_pushboolean(vm, 0);
 
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
- * @brief Check if ntopng has communities enabled.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
-static int ntop_has_communities(lua_State* vm) {
-  CommunitiesManager *cm = ntop->getCommunitiesManager();
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(cm)
-    lua_pushboolean(vm, 1);
-  else
-    lua_pushboolean(vm, 0);
   return(CONST_LUA_OK);
 }
 
@@ -4146,12 +4035,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIProtocols",       ntop_get_ndpi_protocols },
   { "getHosts",               ntop_get_interface_hosts },
   { "getLocalHosts",          ntop_get_interface_local_hosts },
-  { "getCommunityHosts",      ntop_get_interface_community_hosts },
-  { "getHostCommunities",     ntop_get_interface_host_communities },
-  { "getCommunities",         ntop_get_interface_communities },
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
-  { "getCommunityHostsInfo",  ntop_get_interface_community_hosts_info },
   { "getHostInfo",            ntop_get_interface_host_info },
   { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
   { "correlateHostActivity",  ntop_correalate_host_activity },
@@ -4331,7 +4216,6 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Runtime */
   { "hasVLANs",       ntop_has_vlans },
-  { "hasCommunities", ntop_has_communities },
   { "hasGeoIP",       ntop_has_geoip },
   { "isWindows",      ntop_is_windows },
 

@@ -135,7 +135,6 @@ print [[ <br>&nbsp;<br><small>This product includes GeoLite data created by <a h
 print("</td></tr>\n")
 end
 print("<tr><th><a href=http://www.d3js.org target=\"_blank\">Data-Driven Documents (d3js)</A></th><td>2.9.1 / 3.0</td></tr>\n")
-print("<tr><th><a href=https://github.com/lemire/EWAHBoolArray target=\"_blank\">Compressed Bitmap (EWAHBoolArray)</A></th><td>0.4.0</td></tr>\n")
 
 
 

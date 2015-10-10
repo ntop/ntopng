@@ -58,7 +58,6 @@ class Prefs {
   bool local_networks_set, shutdown_when_done;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
   char *categorization_key;
-  char *communities_file;
   char *httpbl_key;
   char *http_prefix;
   char *config_file_path, *ndpi_proto_path;
@@ -170,7 +169,6 @@ class Prefs {
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
   void lua(lua_State* vm);
   void loadIdleDefaults();
-  char *getCommunitiesFile(void)                        { return(communities_file); }
 #ifdef NTOPNG_PRO
   void loadNagiosDefaults();
 #endif

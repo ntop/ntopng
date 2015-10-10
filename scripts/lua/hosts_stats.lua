@@ -127,12 +127,6 @@ else
 	asn = "" 
 end
 
-if(_GET["community"] ~= nil) then 
-   community = " for Community ".._GET["community"]
-else 
-   community = "" 
-end
-
 if(_GET["country"] ~= nil) then 
    country = " for Country ".._GET["country"] 
 else 
@@ -155,7 +149,6 @@ if(mode == "all") then
 	if ( country ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asn..'",\n')
 	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( community ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "All '..os_..' Hosts'..am_str..'",\n') 
 	else print('title: "All '..protocol..' '..network_name..' Hosts'..asn..'",\n')
@@ -164,7 +157,6 @@ elseif(mode == "local") then
 	if ( country ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asn..'",\n')
 	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( community ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..am_str..'",\n')
 	else  print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
@@ -173,7 +165,6 @@ elseif(mode == "remote") then
 	if ( country ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	elseif ( asn ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asn..'",\n')
 	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( community ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..community..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..am_str..'",\n')
 	else print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')

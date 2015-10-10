@@ -158,7 +158,6 @@ class Host : public GenericHost {
   bool isAboveQuota(void);
   void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
-  bool isInCommunity(int community_id);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);    
 };
 

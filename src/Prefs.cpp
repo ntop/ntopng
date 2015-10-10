@@ -53,7 +53,6 @@ Prefs::Prefs(Ntop *_ntop) {
   redis_db_id = 0;
   dns_mode = 0;
   logFd = NULL;
-  communities_file = NULL;
   disable_alerts = false;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
@@ -126,7 +125,6 @@ Prefs::~Prefs() {
   if(es_url)           free(es_url);
   if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
-  if(communities_file) free(communities_file);
   free(http_prefix);
   free(redis_host);
   free(local_networks);
@@ -244,7 +242,6 @@ void usage() {
 	 "                                    | all    - Dump all hosts\n"
 	 "                                    | local  - Dump only local hosts\n"
 	 "                                    | remote - Dump only remote hosts\n"
-         "[--communities-list] <filename>     | Parse given file to get host communities\n"
 	 "[--sticky-hosts|-S] <mode>          | Don't flush hosts (default: none).\n"
 	 "                                    | Values:\n"
 	 "                                    | all    - Keep all hosts in memory\n"
@@ -374,7 +371,6 @@ static const struct option long_options[] = {
 #endif
   { "disable-alerts",                    no_argument,       NULL, 'H' },
   { "export-flows",                      required_argument, NULL, 'I' },
-  { "communities-list",                  required_argument, NULL, 'O' },
   { "disable-host-persistency",          no_argument,       NULL, 'P' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
   { "enable-taps",                       no_argument,       NULL, 'T' },
@@ -482,10 +478,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     default:
       help();
     }
-    break;
-
-  case 'O':
-    communities_file = strdup(optarg);
     break;
 
   case 'p':
