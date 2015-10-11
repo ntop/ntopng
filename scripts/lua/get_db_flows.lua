@@ -63,7 +63,7 @@ if(format == "txt") then
 
 	 print("# ")
 	 for k,v in pairs(flow) do
-	    if(elems > 0) then print(" | ") end
+	    if(elems > 0) then print("|") end
 	       print(k)
 	       elems = elems + 1
 	    end
@@ -74,7 +74,12 @@ if(format == "txt") then
       local elems = 0
       for k,v in pairs(flow) do
 	 if(elems > 0) then print("|") end
-	 print(v)
+
+	 if(k == "PROTOCOL") then print(l4ProtoToName(v))
+	 elseif(k == "L7_PROTO") then print(interface.getnDPIProtoName(tonumber(v)))
+	 else
+	    print(v)
+	 end
 	 elems = elems + 1
       end
 
