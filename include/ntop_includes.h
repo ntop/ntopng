@@ -136,11 +136,13 @@ using namespace std;
 #include "patricia.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
-#include "Prefs.h"
-#include "Mutex.h"
 #ifdef NTOPNG_PRO
 #include "CountMinSketch.h"
+#include "Community.h"
+#include "Communities.h"
 #endif
+#include "Prefs.h"
+#include "Mutex.h"
 #include "IpAddress.h"
 #include "Utils.h"
 #include "ActivityStats.h"

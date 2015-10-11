@@ -42,7 +42,7 @@ class Flow : public GenericHashEntry {
   u_int16_t diff_num_http_requests;
   ndpi_protocol ndpi_detected_protocol;
   void *cli_id, *srv_id;
-  char *json_info, *host_server_name, *ndpi_proto_name;
+  char *json_info, *host_server_name, *ndpi_proto_name, *community;
   bool dump_flow_traffic, badFlow;
 
   struct {

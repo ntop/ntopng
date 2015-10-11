@@ -31,7 +31,7 @@ Flow::Flow(NetworkInterface *_iface,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_packets = 0, cli2srv_bytes = 0, srv2cli_packets = 0, srv2cli_bytes = 0, cli2srv_last_packets = 0,
     cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, ndpi_flow = NULL, badFlow = false;
+    cli_host = srv_host = NULL, ndpi_flow = NULL, badFlow = false, community = NULL;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -182,6 +182,8 @@ Flow::~Flow() {
   if(ssl.certificate)  free(ssl.certificate);
   if(ndpi_proto_name)  free(ndpi_proto_name);
 
+  /* NOTE: community doesn't have to be freed */
+  
   deleteFlowMemory();
 }
 
@@ -391,7 +393,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
     if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpi_detected_protocol = proto_id;
       processDetectedProtocol();
-      detection_completed = true;
     } else if((((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
 	       && (cli_host != NULL)
 	       && (srv_host != NULL))
@@ -399,7 +400,10 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
       guessProtocol();
     }
 
-    //if(detection_completed) deleteFlowMemory();
+    detection_completed = true;
+#ifdef NTOPNG_PRO
+    community = ntop->getPrefs()->getCommunity(this);
+#endif
   }
 }
 
@@ -956,13 +960,14 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     }
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
-
     if(detailed_dump && ntop->get_categorization()) {
       categorizeFlow();
       if(categorization.category[0] != '\0')
 	lua_push_str_table_entry(vm, "category", categorization.category);
     }
 
+    if(community) lua_push_str_table_entry(vm, "community", community);
+    
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
     lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
     lua_push_int_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);

@@ -68,7 +68,7 @@ for _,_ifname in pairs(ifnames) do
    end
 
    if(interface.getInterfaceDumpDiskPolicy() == true) then
-      ntop.deleteDumpFiles(interface.name2id(interface_id))
+      ntop.deleteDumpFiles(interface_id)
    end
 end
 

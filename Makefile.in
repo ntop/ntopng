@@ -123,7 +123,7 @@ OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) @PRO_OBJECTS@
 HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
 
 %.o: %.c $(HEADERS) Makefile
-	$(GPP) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp $(HEADERS) Makefile
 	$(GPP) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@

@@ -355,6 +355,10 @@ else
       end
    end
 
+   if(flow["community"] ~= nil) then
+      print("<tr><th width=30%>Community Name</th><td colspan=2>"..flow["community"].."</td></tr>\n")
+   end
+   
    dump_flow_to_disk = flow["dump.disk"]
    if(dump_flow_to_disk == true) then
     dump_flow_to_disk_checked = 'checked="checked"'
@@ -363,7 +367,7 @@ else
     dump_flow_to_disk_checked = ""
     dump_flow_to_disk_value = "true" -- Opposite
    end
-
+   
    print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">

@@ -305,6 +305,7 @@
 #define CONST_OTHER_RRD_1MIN_DAYS     "ntopng.prefs.other_rrd_1min_days"
 #define CONST_OTHER_RRD_1H_DAYS       "ntopng.prefs.other_rrd_1h_days"
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
+#define CONST_COMMUNITIES_PREFS       "ntopng.prefs.communities"
 
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
