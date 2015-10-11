@@ -964,7 +964,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   static u_int64_t lasttime = 0;
-  u_int16_t eth_type, ip_offset, vlan_id = 0;
+  u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
   u_int32_t res = ntop->getGlobals()->get_detection_tick_resolution(), null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
@@ -992,8 +992,9 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
   lasttime = time;
 
+ datalink_check:
   if(pcap_datalink_type == DLT_NULL) {
-    memcpy(&null_type, packet, sizeof(u_int32_t));
+    memcpy(&null_type, &packet[eth_offset], sizeof(u_int32_t));
 
     switch(null_type) {
     case BSD_AF_INET:
@@ -1011,20 +1012,20 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
-    ip_offset = 4;
+    ip_offset = 4 + eth_offset;
   } else if(pcap_datalink_type == DLT_EN10MB) {
-    ethernet = (struct ndpi_ethhdr *) packet;
-    ip_offset = sizeof(struct ndpi_ethhdr);
+    ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
+    ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
-    eth_type = (packet[14] << 8) + packet[15];
-    ip_offset = 16;
+    eth_type = (packet[eth_offset+14] << 8) + packet[eth_offset+15];
+    ip_offset = 16 + eth_offset;
     incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 #ifdef DLT_RAW
   } else if(pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */) {
-    switch((packet[0] & 0xf0) >> 4) {
+    switch((packet[eth_offset] & 0xf0) >> 4) {
     case 4:
       eth_type = ETHERTYPE_IP;
       break;
@@ -1037,7 +1038,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
     }
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
-    ip_offset = 0;
+    ip_offset = eth_offset;
 #endif /* DLT_RAW */
   } else {
     incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1231,6 +1232,45 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	      /* FIX - Add IPv6 support */
 	      incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
+	    }
+	  }
+	} else if((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
+	  /* https://en.wikipedia.org/wiki/TZSP */
+	  u_int offset = ip_offset+ip_len+sizeof(struct ndpi_udphdr);
+	  u_int8_t version = packet[offset];
+	  u_int8_t type    = packet[offset+1];
+	  u_int16_t encapsulates = ntohs(*((u_int16_t*)&packet[offset+2]));
+
+	  if((version == 1) && (type == 0) && (encapsulates == 1)) {
+	    u_int8_t stop = 0;
+
+	    offset += 4;
+
+	    while((!stop) && (offset < h->caplen)) {
+	      u_int8_t tag_type = packet[offset];
+	      u_int8_t tag_len;
+
+	      switch(tag_type) {
+	      case 0: /* PADDING Tag */
+		tag_len = 1;
+		break;
+	      case 1: /* END Tag */
+		tag_len = 1, stop = 1;
+		break;
+	      default:
+		tag_len = packet[offset+1];
+		break;
+	      }
+
+	      offset += tag_len;
+
+	      if(offset >= h->caplen) {
+		incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+		return(pass_verdict);
+	      } else {
+		eth_offset = offset;
+		goto datalink_check;
+	      }
 	    }
 	  }
 	}
@@ -1944,7 +1984,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "mtu", ifMTU);
   lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
- 
+
   ethStats.lua(vm);
   localStats.lua(vm);
   ndpiStats.lua(this->view, vm);
