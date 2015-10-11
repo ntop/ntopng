@@ -1,7 +1,7 @@
 ![ntop][ntopng_logo] ![ntop][ntop_logo]
 # ntopng 
 
-[![Build Status](https://travis-ci.org/ntop/ntopng.png?branch=master)](https://travis-ci.org/zeromq/libzmq)
+[![Build Status](https://travis-ci.org/ntop/ntopng.png?branch=master)](https://travis-ci.org/ntop/ntopng)
 
 ## Introduction
 
