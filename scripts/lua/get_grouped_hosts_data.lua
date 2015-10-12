@@ -72,6 +72,17 @@ else
    hosts_stats = interface.getHostsInfo()
 end
 
+-- check if alerts count must be flushed or decremented
+for key, value in pairs(hosts_stats) do
+   if(hosts_stats[key]["num_alerts"] > 0) then
+      if(ntop.getNumQueuedAlerts() == 0) then
+	 hosts_stats[key]["num_alerts"] = 0;
+      else
+	 hosts_stats[key]["num_alerts"] = ntop.getNumQueuedAlerts();
+      end
+   end
+end
+
 to_skip = (currentPage-1) * perPage
 
 if (all ~= nil) then

@@ -17,6 +17,15 @@ if((host_info ~= nil) and (host_info["host"] ~= nil)) then
    host = interface.getHostInfo(host_info["host"], host_info["vlan"]) 
    if(host == nil) then
       host = "{}"
+   else
+      -- check if alerts count must be flushed or decremented
+      if(host["num_alerts"] > 0) then
+      	 if(ntop.getNumQueuedAlerts() == 0) then
+      	    host["num_alerts"] = 0;
+      	 else
+      	    host["num_alerts"] = ntop.getNumQueuedAlerts();
+      	 end
+      end
    end
 else
    host = "{}"
