@@ -1730,6 +1730,15 @@ fi
 
 CHOWN="$SUDO chown $USER:$GROUP ../ntopng_*deb"
 
+SHORT_MACHINE=`uname -m | cut -b1-3`
+if test $SHORT_MACHINE = "mip"; then
+  UBUNTU_RELEASE="embedded"
+else
+  if test $SHORT_MACHINE = "arm"; then
+    UBUNTU_RELEASE="embedded"
+  fi
+fi
+
 /bin/rm -f debian.ntopng/control.in
 cd debian.ntopng
 ln -s control.$UBUNTU_RELEASE.in control.in
