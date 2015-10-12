@@ -1374,7 +1374,7 @@ char* Utils::intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_s
   char *ret;
 
   for(int32_t i = bitmask, j = 0; i > 0; i -= 8, ++j)
-    ipv6.__u6_addr.__u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
+    ipv6.u6_addr.u6_addr8[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
 
   ret = (char*)inet_ntop(AF_INET6, &ipv6, buf, bufLen);
 
