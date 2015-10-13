@@ -30,12 +30,24 @@ RuntimePrefs::RuntimePrefs() {
 
   if(are_alerts_syslog_enable())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping alerts into syslog");
+
+  if(are_alerts_nagios_enable())
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sending alerts to nagios");
+
 }
 
 /* ******************************************* */
 
 void RuntimePrefs::set_alerts_syslog(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
+			enable ? (char*)"1" : (char*)"0", 0);
+
+}
+
+/* ******************************************* */
+
+void RuntimePrefs::set_alerts_nagios(bool enable) {
+  ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_ALERT_NAGIOS,
 			enable ? (char*)"1" : (char*)"0", 0);
 
 }
@@ -52,6 +64,19 @@ bool RuntimePrefs::are_alerts_syslog_enable() {
   } else
     return((strcmp(rsp, "1") == 0) ? true : false);
 }
+/* ******************************************* */
+
+bool RuntimePrefs::are_alerts_nagios_enable() {
+  char rsp[32];
+
+  if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ALERT_NAGIOS,
+			   rsp, sizeof(rsp)) < 0) {
+    set_alerts_nagios(false);
+    return(false);
+  } else
+    return((strcmp(rsp, "1") == 0) ? true : false);
+}
+
 
 /* ******************************************* */
 

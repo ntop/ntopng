@@ -54,12 +54,28 @@ class RuntimePrefs {
   void set_alerts_syslog(bool enable);
 
    /**
+   * @brief Set alert nagios preference.
+   * @details Enable or disable the preference and save it in Redis.
+   *
+   * @param enable Preference boolean value.
+   */
+  void set_alerts_nagios(bool enable);
+
+   /**
    * @brief Get the alert syslog preference.
    * @details Read for Redis the preference, if it doesn't exist
-   * the preference will be set to default value (true).
+   * the preference will be set to default value (TRUE).
    * @return The preference boolean value
    */
   bool are_alerts_syslog_enable();
+
+   /**
+   * @brief Get the alert nagios preference.
+   * @details Read for Redis the preference, if it doesn't exist
+   * the preference will be set to default value (FALSE).
+   * @return The preference boolean value
+   */
+  bool are_alerts_nagios_enable();
 
   /**
    * @brief Set the local hosts rrd creation preference.

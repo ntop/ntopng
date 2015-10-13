@@ -84,8 +84,6 @@ class Prefs {
   inline void help() { usage(); };
   int setOption(int optkey, char *optarg);
   int checkOptions();
-  u_int32_t getDefaultPrefsValue(const char *pref_key, u_int32_t default_value);
-  void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
 
   void bind_http_to_loopback()  { http_binding_address  = CONST_LOOPBACK_ADDRESS; };
   void bind_https_to_loopback() { https_binding_address = CONST_LOOPBACK_ADDRESS; };
@@ -127,6 +125,8 @@ class Prefs {
   inline u_int8_t get_num_user_specified_interface_views()   { return(num_interface_views);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
+  u_int32_t getDefaultPrefsValue(const char *pref_key, u_int32_t default_value);
+  void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
   inline char* get_if_descr(u_int id)                   { return((id < MAX_NUM_INTERFACES) ? ifNames[id].description : NULL); };
   inline char* get_data_dir()                           { return(data_dir);       };
