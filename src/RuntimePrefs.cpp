@@ -30,10 +30,10 @@ RuntimePrefs::RuntimePrefs() {
 
   if(are_alerts_syslog_enable())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping alerts into syslog");
-
+#ifdef NTOPNG_PRO
   if(are_alerts_nagios_enable())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sending alerts to nagios");
-
+#endif
 }
 
 /* ******************************************* */
@@ -45,13 +45,13 @@ void RuntimePrefs::set_alerts_syslog(bool enable) {
 }
 
 /* ******************************************* */
-
+#ifdef NTOPNG_PRO
 void RuntimePrefs::set_alerts_nagios(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_ALERT_NAGIOS,
 			enable ? (char*)"1" : (char*)"0", 0);
 
 }
-
+#endif
 /* ******************************************* */
 
 bool RuntimePrefs::are_alerts_syslog_enable() {
@@ -65,7 +65,7 @@ bool RuntimePrefs::are_alerts_syslog_enable() {
     return((strcmp(rsp, "1") == 0) ? true : false);
 }
 /* ******************************************* */
-
+#ifdef NTOPNG_PRO
 bool RuntimePrefs::are_alerts_nagios_enable() {
   char rsp[32];
 
@@ -76,7 +76,7 @@ bool RuntimePrefs::are_alerts_nagios_enable() {
   } else
     return((strcmp(rsp, "1") == 0) ? true : false);
 }
-
+#endif
 
 /* ******************************************* */
 
