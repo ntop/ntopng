@@ -41,6 +41,7 @@ ntopng:
 	@echo "Package built."
 	@/bin/ls ntopng_*deb
 	@echo "-------------------------------"
+	-dpkg -I ntopng_*deb
 	-dpkg --contents ntopng_*deb
 	@echo "-------------------------------"
 
@@ -67,6 +68,7 @@ ntopng-data:
 	@echo "Package built."
 	@/bin/ls ntopng-data_*deb
 	@echo "-------------------------------"
+	-dpkg -I ntopng-data_*deb
 	-dpkg --contents ntopng-data_*deb
 	@echo "-------------------------------"
 
