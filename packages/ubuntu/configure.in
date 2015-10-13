@@ -34,7 +34,7 @@ if [ test -f /usr/bin/lsb_release ] && [ test -d $HOME/PF_RING ]; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
   if test "$UBUNTU_RELEASE" = "12.04"; then
-     EXTRA_DEPS=", libnuma1"
+     EXTRA_DEPS=", libnuma1, libnetfilter-queue1"
   else
     if test "$UBUNTU_SUB_RELEASE" = "8"; then
        UBUNTU_RELEASE="14.04"
