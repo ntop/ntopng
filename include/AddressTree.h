@@ -19,32 +19,30 @@
  *
  */
 
-#ifndef _ADDRESS_RESOLUTION_H_
-#define _ADDRESS_RESOLUTION_H_
+#ifndef _ADDRESS_TREE_H_
+#define _ADDRESS_TREE_H_
 
 #include "ntop_includes.h"
 
-class AddressResolution {
-  AddressTree localNetworks;
-  u_int32_t num_resolved_addresses, num_resolved_fails;
-  pthread_t resolveThreadLoop;
-  char *local_networks[CONST_MAX_NUM_NETWORKS];
-  u_int8_t num_local_networks;
-  Mutex m;
+class AddressTree {
+  int numNetworks;
+  patricia_tree_t *ptree;
 
+  bool addNetwork(char *_net, int16_t networkId);
+  
  public:
-  AddressResolution();
-  ~AddressResolution();
+  AddressTree();
+  ~AddressTree();
 
-  void startResolveAddressLoop();
-  void resolveHostName(char *numeric_ip, char *rsp = NULL, u_int rsp_len = 0);
-
-  inline u_int8_t get_num_local_networks()     { return(num_local_networks); };
-  inline char *get_local_network(u_int8_t id) { return((id < num_local_networks) ? local_networks[id] : NULL); };
-  void setLocalNetworks(char *rule);
+  inline u_int8_t getNumNetworks()     { return(numNetworks); };
+  bool addNetworks(char *net, int16_t networkId);
+  bool removeNetwork(char *net);
   int16_t findAddress(int family, void *addr); /* if(rc > 0) networdId else notfound */
-  void addLocalNetwork(char *net);
-  void getLocalNetworks(lua_State* vm);
+  void getNetworks(lua_State* vm);
 };
 
-#endif /* _ADDRESS_RESOLUTION_H_ */
+extern patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
+extern patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
+extern void free_ptree_data(void *data);
+
+#endif /* _ADDRESS_TREE_H_ */

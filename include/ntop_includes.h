@@ -199,6 +199,7 @@ using namespace std;
 #include "HostHash.h"
 #include "PeriodicActivities.h"
 #include "Lua.h"
+#include "AddressTree.h"
 #include "AddressResolution.h"
 #include "Categorization.h"
 #include "HTTPBL.h"
