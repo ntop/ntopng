@@ -276,10 +276,13 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>Description</th><td colspan=6>" .. ifstats.description .. "</td></tr>\n")
    end
 
-   print("<tr><th>Family </th><td colspan=6>" .. ifstats.type)
+   print("<tr><th>Family </th><td colspan=6>")
+   if(ifstats.isView == true) then print("<i class=\"fa fa-eye\"></i> ") end
+
+   print(ifstats.type)
    if(ifstats.inline) then
       print(" In-Path Interface (Bump in the Wire)")
-      elseif(ifstats.view) then
+      elseif(ifstats.isView == true) then
       print(" (Aggregated Interface View)")
    end
    print("</td></tr>\n")

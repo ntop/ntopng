@@ -154,14 +154,15 @@ print [[
       <ul class="dropdown-menu">
 ]]
 
+views = {}
 ifnames = {}
+
 for v,k in pairs(interface.getIfNames()) do
-   --io.write(k.."\n")
    interface.select(k)
    _ifstats = interface.getStats()
-
    ifnames[_ifstats.id] = k
    --io.write(ifnames[_ifstats.id].."=".._ifstats.id.."\n")
+   if(_ifstats.isView == true) then views[k] = true end
 end
 
 for k,v in pairsByKeys(ifnames, asc) do
@@ -176,9 +177,11 @@ for k,v in pairsByKeys(ifnames, asc) do
    
    if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
    if (isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
-
+   
    print(getHumanReadableInterfaceName(v..""))
-   print("</a></li>\n")
+   if(views[v] == true) then print(' <i class="fa fa-eye"></i> ') end
+   print("</a>")
+   print("</li>\n")
 end
 
 

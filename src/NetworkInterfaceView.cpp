@@ -528,6 +528,7 @@ int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) {
 
 void NetworkInterfaceView::lua(lua_State *vm) {
   list<NetworkInterface *>::iterator p;
+  int n = 0;
   
   lua_newtable(vm);
 
@@ -538,6 +539,7 @@ void NetworkInterfaceView::lua(lua_State *vm) {
     lua_pushstring(vm, (*p)->get_name());
     lua_insert(vm, -2);
     lua_settable(vm, -3);
+    n++;
   }
   
   lua_pushstring(vm, "interfaces");
@@ -547,4 +549,5 @@ void NetworkInterfaceView::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "name", get_name());
   lua_push_str_table_entry(vm, "description", descr);
   lua_push_int_table_entry(vm, "id", id);
+  lua_push_bool_table_entry(vm, "isView", n > 1 ? true : false);
 }
