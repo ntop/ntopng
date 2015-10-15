@@ -26,7 +26,7 @@ if [ test -d ../../pro/ ] && [ ! test -f ../../pro/utils/snzip ]; then
    exit
 fi
 
-if [ test -f /usr/bin/lsb_release ]; then
+if [ test -f /usr/bin/lsb_release ] && [ test -d $HOME/PF_RING ]; then
   EXTRA_DEPS=", libnuma1, libzmq3, libnetfilter-queue1"
   PFRING_VERS=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
   PFRING_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l | tr -d '[[:space:]]'`
@@ -34,7 +34,7 @@ if [ test -f /usr/bin/lsb_release ]; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
   if test "$UBUNTU_RELEASE" = "12.04"; then
-     EXTRA_DEPS=", libnuma1"
+     EXTRA_DEPS=", libnuma1, libnetfilter-queue1"
   else
     if test "$UBUNTU_SUB_RELEASE" = "8"; then
        UBUNTU_RELEASE="14.04"
@@ -54,8 +54,17 @@ fi
 
 CHOWN="$SUDO chown $USER:$GROUP ../ntopng_*deb"
 
+SHORT_MACHINE=`uname -m | cut -b1-3`
+if test $SHORT_MACHINE = "mip"; then
+  UBUNTU_RELEASE="embedded"
+else
+  if test $SHORT_MACHINE = "arm"; then
+    UBUNTU_RELEASE="embedded"
+  fi
+fi
+
 /bin/rm -f debian.ntopng/control.in
-cd debian.ntopng
+\cd debian.ntopng
 ln -s control.$UBUNTU_RELEASE.in control.in
 cd -
 

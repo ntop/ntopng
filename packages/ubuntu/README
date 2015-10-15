@@ -1,6 +1,6 @@
 Prerequisites
 -------------
-apt-get install debhelper fakeroot
+apt-get install debhelper fakeroot dpkg-sig
 
 EdgeOS
 ------
@@ -15,3 +15,7 @@ dpkg -i --force-all tar_1.23-3_mips.deb
 
 wget http://ftp.us.debian.org/debian/pool/main/f/findutils/findutils_4.4.2-4_mips.deb
 dpkg -i --force-all findutils_4.4.2-4_mips.deb
+
+wget http://ftp.us.debian.org/debian/pool/main/g/gzip/gzip_1.5-1.1_mips.deb
+dpkg -i --force-all gzip_1.5-1.1_mips.deb
+

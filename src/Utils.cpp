@@ -1205,9 +1205,9 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 
 /* **************************************** */
 
-u_int32_t Utils::getIfMTU(const char *ifname) {
+u_int16_t Utils::getIfMTU(const char *ifname) {
 #ifdef WIN32
-	return(CONST_DEFAULT_MTU);
+  return(CONST_DEFAULT_MTU);
 #else
   struct ifreq ifr;
   u_int32_t mtu = CONST_DEFAULT_MTU; /* Default MTU */
@@ -1222,13 +1222,17 @@ u_int32_t Utils::getIfMTU(const char *ifname) {
   } else {
     if(ioctl(fd, SIOCGIFMTU, &ifr) == -1)
       ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read MTU for device %s", ifname);
-    else
+    else {
       mtu = ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
 
+      if(mtu > ((u_int16_t)-1))
+	mtu = ((u_int16_t)-1);
+    }
+    
     close(fd);
   }
 
-  return(mtu);
+  return((u_int16_t)mtu);
 #endif
 }
 

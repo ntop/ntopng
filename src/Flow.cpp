@@ -878,7 +878,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
   bool src_match, dst_match;
-  lua_Integer k;
+  u_int32_t k;
 
   if((src == NULL) || (dst == NULL)) return;
 
@@ -910,7 +910,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
 
     k = key();
-    lua_pushinteger(vm, k); // Index
+    lua_pushnumber(vm, k); // Index
     lua_insert(vm, -2);
     lua_settable(vm, -3);
 
@@ -1059,7 +1059,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     if(!detailed_dump) {
       k = key();
 
-      lua_pushinteger(vm, k); // Index
+      lua_pushnumber(vm, k); // Index
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     } else {
