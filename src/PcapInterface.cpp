@@ -156,9 +156,19 @@ static void* packetPollLoop(void* ptr) {
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((rc > 0) && (pkt != NULL) && (hdr->caplen > 0)) {
 	  int a, b;
+#ifdef WIN32
+	  u_char pkt_copy[1600];
+	  struct pcap_pkthdr hdr_copy;
 
+	  memcpy(&hdr_copy, hdr, sizeof(hdr_copy));
+	  hdr_copy.len = min(hdr->len, sizeof(pkt_copy) - 1);
+	  hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
+	  memcpy(pkt_copy, pkt, hdr_copy.len);
+	  iface->packet_dissector(&hdr_copy, (const u_char*)pkt_copy, &a, &b);
+#else
 	  hdr->caplen = min_val(hdr->caplen, iface->getMTU());
 	  iface->packet_dissector(hdr, pkt, &a, &b);
+#endif
 	}
       } else if(rc < 0) {
 	if(iface->read_from_pcap_dump())
