@@ -109,7 +109,7 @@ else
             if (t ~= nil and t[1] ~= nil) then
                 n = shortHostName(t[1])
             else  -- fallback, string split has not been possible
-                n = row_value["name"]
+                n = shortHostName(row_value["name"])
             end
 	 else
 	    n = localhosts[row_key]["ip"]
