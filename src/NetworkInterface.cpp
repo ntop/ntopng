@@ -70,11 +70,10 @@ NetworkInterface::NetworkInterface() {
     pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL, antenna_mac = NULL;
 
-  db = NULL;
-#ifdef HAVE_MYSQL
   if(ntop->getPrefs()->do_dump_flows_on_mysql())
     db = new MySQLDB(this);
-#endif
+  else
+    db = NULL;
 
 #ifdef NTOPNG_PRO
   policer = NULL;
@@ -184,11 +183,10 @@ NetworkInterface::NetworkInterface(const char *name) {
 
     running = false, sprobe_interface = false, inline_interface = false;
 
-    db = NULL;
-#ifdef HAVE_MYSQL
     if(ntop->getPrefs()->do_dump_flows_on_mysql())
       db = new MySQLDB(this);
-#endif
+    else
+      db = NULL;
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);

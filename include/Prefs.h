@@ -73,9 +73,7 @@ class Prefs {
   bool json_labels_string_format;
   FILE *logFd;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
-#ifdef HAVE_MYSQL
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
-#endif
 #ifdef NTOPNG_PRO
   char *nagios_host, *nagios_port, *nagios_config;
   Communities communities;
@@ -190,13 +188,11 @@ class Prefs {
   inline bool are_taps_enabled() { return(enable_taps); };
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
   inline bool use_promiscuous()  { return(use_promiscuous_mode); };
-#ifdef HAVE_MYSQL
   inline char* get_mysql_host()      { return(mysql_host);      };
   inline char* get_mysql_dbname()    { return(mysql_dbname);    };
   inline char* get_mysql_tablename() { return(mysql_tablename); };
   inline char* get_mysql_user()      { return(mysql_user);      };
   inline char* get_mysql_pw()        { return(mysql_pw);        };
-#endif
 };
 
 #endif /* _PREFS_H_ */

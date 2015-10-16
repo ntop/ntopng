@@ -321,6 +321,9 @@ if test -n "$MYSQLTOOL"; then
    MYSQL_INC="`$MYSQLTOOL --include`"
    AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
    AC_CHECK_LIB([wrap], [main])
+else
+   echo "MySQL libraries not found. Please install them as specified in README.ntopng"
+   exit 0
 fi
 
 if test -f /usr/bin/lsb_release; then

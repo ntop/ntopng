@@ -115,10 +115,8 @@ extern "C" {
 #include "hiredis.h"
 };
 
-#ifdef HAVE_MYSQL
 #include <mysql.h>
 #include <errmsg.h>
-#endif
 
 #include <fstream>
 #include <map>
@@ -167,9 +165,7 @@ using namespace std;
 #include "StatsManager.h"
 #include "FlowsManager.h"
 #include "DB.h"
-#ifdef HAVE_MYSQL
 #include "MySQLDB.h"
-#endif
 #include "NetworkInterfaceView.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"

@@ -24,8 +24,6 @@
 
 #include "ntop_includes.h"
 
-#ifdef HAVE_MYSQL
-
 class MySQLDB : public DB {
  private:
   MYSQL mysql;
@@ -42,7 +40,5 @@ class MySQLDB : public DB {
   bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql);
 };
-
-#endif
 
 #endif /* _MYSQL_DB_CLASS_H_ */
