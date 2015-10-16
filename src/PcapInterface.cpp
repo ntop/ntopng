@@ -157,6 +157,13 @@ static void* packetPollLoop(void* ptr) {
 	if((rc > 0) && (pkt != NULL) && (hdr->caplen > 0)) {
 	  int a, b;
 #ifdef WIN32
+	  /*
+	    For some unknown reason, on Windows winpcap
+	    gets crazy with specific packets and so ntopng
+	    crashes. Copying the packet memory onto a local buffer
+	    prevents that, as specified in
+	    https://github.com/ntop/ntopng/issues/194
+	  */
 	  u_char pkt_copy[1600];
 	  struct pcap_pkthdr hdr_copy;
 
