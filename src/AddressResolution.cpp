@@ -31,7 +31,7 @@ AddressResolution::AddressResolution() {
 /* ******************************************* */
 
 void AddressResolution::addLocalNetwork(char *_net) { 
-  if(localNetworks.addNetworks(_net, 1)) {
+  if(localNetworks.addNetworks(_net, num_local_networks)) {
     local_networks[num_local_networks] = strdup(_net);
     num_local_networks++;
   }
