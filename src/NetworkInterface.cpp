@@ -99,6 +99,8 @@ NetworkInterface::NetworkInterface(const char *name) {
   if(name == NULL) name = "1"; /* First available interface */
 #endif
 
+  if(strcmp(name, "-") == 0) name = "stdin";
+  
   if(ntop->getRedis())
     id = Utils::ifname2id(name);
   else

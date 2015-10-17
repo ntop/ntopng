@@ -156,7 +156,8 @@ or the numeric interface id as shown by ntopng \-h. On Windows you must use
 the interface number instead. Note that you can specify \-i multiple times in order
 to instruct
 .B ntopng
-to create multiple interfaces.
+to create multiple interfaces. If you want to pipe data from stdin use - (dash) as
+device name. Example "cat ~/traffic.pcap | ./ntopng -i -".
 
 The \-i option can also be used to specify a unified view of more interfaces,
 given they are provided in a comma-separated list and with the "view:" prefix
