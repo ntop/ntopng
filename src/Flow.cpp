@@ -964,8 +964,10 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
 	lua_push_str_table_entry(vm, "category", categorization.category);
     }
 
+#ifdef NTOPNG_PRO
     if(profileId != -1) lua_push_str_table_entry(vm, "profile", ntop->getPrefs()->getProfileName(profileId));
-    
+#endif
+
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
     lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
     lua_push_int_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);
