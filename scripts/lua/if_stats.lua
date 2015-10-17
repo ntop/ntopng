@@ -787,7 +787,7 @@ else
    ]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
    print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-       <button class="btn btn-primary" type="submit">Delete All</button>
+       <button class="btn btn-primary btn-xs" type="submit">Delete All</button>
 
      </div>
    </form>
@@ -1100,7 +1100,7 @@ end
    print [[
     </select>
     </td></tr>
-    <tr><td colspan=2><button type="submit" class="btn btn-default btn-block">Set Protocol Policy and Shaper</button></td></tr>
+    <tr><td colspan=2><button type="submit" class="btn btn-primary btn-block">Set Protocol Policy and Shaper</button></td></tr>
 
 <script>
 /* FIX - Check form */
@@ -1144,7 +1144,7 @@ Local Network :
 print [[
 </select>
 VLAN <input type="text" id="new_vlan" name="new_vlan" value="0" size=4>
-<button type="submit" class="btn btn-default btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
+<button type="submit" class="btn btn-primary btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
 </div>
 </form>
 </td>

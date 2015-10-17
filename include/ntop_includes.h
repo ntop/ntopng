@@ -136,8 +136,8 @@ using namespace std;
 #include "NtopGlobals.h"
 #ifdef NTOPNG_PRO
 #include "CountMinSketch.h"
-#include "Community.h"
-#include "Communities.h"
+#include "Profile.h"
+#include "Profiles.h"
 #endif
 #include "Prefs.h"
 #include "Mutex.h"

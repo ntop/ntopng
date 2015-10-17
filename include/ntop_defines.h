@@ -100,7 +100,9 @@
 #define CAPWAP_DATA_PORT          5247
 #define MAX_NUM_INTERFACE_HOSTS   131072
 #define MAX_NUM_INTERFACES        48
+#define MAX_NUM_PROFILES          16
 #define MAX_INTERFACE_NAME_LEN    8
+
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      1 /* sec */
@@ -235,7 +237,6 @@
 #define CONST_DEFAULT_NTOP_PORT     3000
 #define CONST_DB_DUMP_FREQUENCY      300
 #define CONST_MAX_NUM_NETWORKS       255
-#define CONST_MAX_NUM_COMMUNITIES    255
 #define CONST_NUM_OPEN_DB_CACHE        8
 #define CONST_NUM_CONTACT_DBS          8
 #define CONST_MAX_NUM_ZMQ_SUBSCRIBERS 32
@@ -305,7 +306,7 @@
 #define CONST_OTHER_RRD_1MIN_DAYS     "ntopng.prefs.other_rrd_1min_days"
 #define CONST_OTHER_RRD_1H_DAYS       "ntopng.prefs.other_rrd_1h_days"
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
-#define CONST_COMMUNITIES_PREFS       "ntopng.prefs.communities"
+#define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */

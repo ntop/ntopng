@@ -40,9 +40,10 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
   u_int16_t diff_num_http_requests;
+  int16_t profileId;
   ndpi_protocol ndpi_detected_protocol;
   void *cli_id, *srv_id;
-  char *json_info, *host_server_name, *ndpi_proto_name, *community;
+  char *json_info, *host_server_name, *ndpi_proto_name;
   bool dump_flow_traffic, badFlow;
 
   struct {

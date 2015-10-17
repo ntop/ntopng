@@ -76,7 +76,7 @@ class Prefs {
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
 #ifdef NTOPNG_PRO
   char *nagios_host, *nagios_port, *nagios_config;
-  Communities communities;
+  Profiles profiles;
 #endif
 
   inline void help() { usage(); };
@@ -171,7 +171,8 @@ class Prefs {
   void loadIdleDefaults();
 #ifdef NTOPNG_PRO
   void loadNagiosDefaults();
-  inline char* getCommunity(Flow *f) { return(communities.getCommunity(f)); }
+  inline int getFlowProfile(Flow *f)  { return(profiles.getFlowProfile(f));  }
+  inline char* getProfileName(int id) { return(profiles.getProfileName(id)); }
 #endif
   void registerNetworkInterfaces();
   bool isView(char *name);

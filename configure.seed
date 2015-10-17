@@ -77,7 +77,7 @@ fi
 AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
-PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp)) $(patsubst pro/%.c, pro/%.o, $(wildcard pro/*.c))'
+PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp)) $(patsubst pro/bpf/%.c, pro/bpf/%.o, $(wildcard pro/bpf/*.c))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`

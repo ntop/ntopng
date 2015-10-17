@@ -268,8 +268,12 @@ for key, value in pairs(flows_stats) do
       elseif(flows_stats[key]["ssl.certificate"] ~= nil) then
       info = shortenString(flows_stats[key]["ssl.certificate"])
    end
-   flows_stats[key]["info"] = info
 
+   flows_stats[key]["info"] = info	
+   if(flows_stats[key]["profile"] ~= nil) then 
+      flows_stats[key]["info"] = "<span class='label label-primary'>"..flows_stats[key]["profile"].."</span> "..info
+   end
+   
    ---------------- TABLE SORTING ----------------
    if(process) then
       if (debug_process) then io.write("Flow Processing\n")end
