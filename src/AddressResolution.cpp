@@ -30,23 +30,16 @@ AddressResolution::AddressResolution() {
 
 /* ******************************************* */
 
-void AddressResolution::addLocalNetwork(char *_net) { 
-  if(localNetworks.addNetworks(_net, num_local_networks)) {
-    local_networks[num_local_networks] = strdup(_net);
-    num_local_networks++;
-  }
-}
-
-/* ******************************************* */
-
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
-void AddressResolution::setLocalNetworks(char *rule) {
+bool AddressResolution::setLocalNetworks(char *rule) {
   char *net = strtok(rule, ",");
+  int16_t rc = -1;
 
   while(net != NULL) {
-    addLocalNetwork(net);
+    if((rc = localNetworks.addAddress(net)) < 0) return false;
     net = strtok(NULL, ",");
   }
+  return true;
 }
 
 /* ******************************************* */
@@ -185,5 +178,5 @@ void AddressResolution::startResolveAddressLoop() {
 /* **************************************************** */
 
 void AddressResolution::getLocalNetworks(lua_State* vm) {
-  localNetworks.getNetworks(vm);
+  localNetworks.getAddresses(vm);
 }

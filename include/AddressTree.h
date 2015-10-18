@@ -25,20 +25,24 @@
 #include "ntop_includes.h"
 
 class AddressTree {
-  int numNetworks;
+  int numAddresses;
+  char *addressString[CONST_MAX_NUM_NETWORKS];
   patricia_tree_t *ptree;
-
-  bool addNetwork(char *_net, int16_t networkId);
   
  public:
   AddressTree();
   ~AddressTree();
 
-  inline u_int8_t getNumNetworks()     { return(numNetworks); };
-  bool addNetworks(char *net, int16_t networkId);
-  bool removeNetwork(char *net);
+  inline u_int8_t getNumAddresses()     { return(numAddresses); };
+  /*
+   Returns the id of the network added. A negative number is returned on error.
+   */
+  int16_t addAddress(char *_net);
+  bool addAddresses(char *net);
+  bool removeAddress(char *net);
   int16_t findAddress(int family, void *addr); /* if(rc > 0) networdId else notfound */
-  void getNetworks(lua_State* vm);
+  void getAddresses(lua_State* vm);
+  inline char *getAddressString(u_int8_t id) { return((id < numAddresses) ? addressString[id] : NULL); };
 };
 
 extern patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);

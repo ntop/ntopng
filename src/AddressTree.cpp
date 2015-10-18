@@ -26,7 +26,7 @@
 /* **************************************** */
 
 AddressTree::AddressTree() {
-  numNetworks = 0;
+  numAddresses = 0;
   ptree = New_Patricia(128);
 }
 
@@ -221,49 +221,50 @@ static int ptree_remove_rule(patricia_tree_t *ptree, char *line) {
 
 /* ******************************************* */
 
-bool AddressTree::removeNetwork(char *net) {
+bool AddressTree::removeAddress(char *net) {
   return(ptree_remove_rule(ptree, net) == 1 ? false /* not found */ : true /* found */);
 }
 
 /* ******************************************* */
 
-bool AddressTree::addNetwork(char *_net, int16_t networkId) {
+int16_t AddressTree::addAddress(char *_net) {
   patricia_node_t *node;
   char *net;
 
-  if(numNetworks >= CONST_MAX_NUM_NETWORKS) {
+  if(numAddresses >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined: ignored %s", _net);
-    return(false);
+    return EXIT_FAILURE < 0 ? EXIT_FAILURE : -1;
   }
   
   if((net = strdup(_net)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return(false);
+    return EXIT_FAILURE < 0 ? EXIT_FAILURE : -1;
   }
 
   node = ptree_add_rule(ptree, net);
 
   if(node) {
-    node->user_data = networkId, numNetworks++;
-    return(true);
+    node->user_data = numAddresses;
+    addressString[numAddresses] = strdup(net);
+    numAddresses++;
+    return node->user_data;
   }
 
-  return(false);
+  return EXIT_FAILURE < 0 ? EXIT_FAILURE : -1;
 }
 
 /* ******************************************* */
 
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
-bool AddressTree::addNetworks(char *rule, int16_t networkId) {
+bool AddressTree::addAddresses(char *rule) {
   char *net = strtok(rule, ",");
-  bool rc = false;
+  int16_t rc = -1;
   
   while(net != NULL) {
-    rc |= addNetwork(net, networkId);
+    if((rc = addAddress(net)) < 0) return false;
     net = strtok(NULL, ",");
   }
-
-  return(rc);
+  return true;
 }
 
 /* ******************************************* */
@@ -310,6 +311,6 @@ void print_funct(prefix_t *prefix, void *data, void *user_data) {
 
 /* **************************************************** */
 
-void AddressTree::getNetworks(lua_State* vm) {
+void AddressTree::getAddresses(lua_State* vm) {
   patricia_walk_inorder(ptree->head, print_funct, vm);
 }
