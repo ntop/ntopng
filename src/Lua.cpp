@@ -3751,6 +3751,40 @@ static int ntop_nagios_send_event(lua_State* vm) {
   alert_msg = (char*)lua_tostring(vm, 3);
 
   nagios->sendEvent((AlertLevel)alert_level, (AlertType)alert_type, alert_msg);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+#endif
+
+/* ****************************************** */
+
+#ifdef NTOPNG_PRO
+static int ntop_check_profile_syntax(lua_State* vm) {
+  char *filter;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  filter = (char*)lua_tostring(vm, 1);
+
+  lua_pushboolean(vm, ntop->getPrefs()->checkProfileSyntax(filter));
+
+  return(CONST_LUA_OK);
+}
+#endif
+
+/* ****************************************** */
+
+#ifdef NTOPNG_PRO
+static int ntop_reload_profiles(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  ntop->getPrefs()->reloadProfiles(); /* Reload profiles in memory */
+  if(ntop_interface) ntop_interface->updateFlowProfiles();
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 #endif
@@ -3982,8 +4016,8 @@ static int ntop_lua_dofile(lua_State* L)
 static int ntop_is_login_disabled(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  bool ret = ntop->getPrefs()->is_localhost_users_login_disabled() ||
-    !ntop->getPrefs()->is_users_login_enabled();
+  bool ret = ntop->getPrefs()->is_localhost_users_login_disabled()
+    || !ntop->getPrefs()->is_users_login_enabled();
 
   lua_pushboolean(vm, ret);
 
@@ -4132,6 +4166,8 @@ static const luaL_Reg ntop_reg[] = {
   { "queueAlert",           ntop_queue_alert },
 #ifdef NTOPNG_PRO
   { "sendNagiosEvent",      ntop_nagios_send_event },
+  { "checkProfileSyntax",   ntop_check_profile_syntax },
+  { "reloadProfiles",       ntop_reload_profiles },
 #endif
 
   /* Pro */
@@ -4457,6 +4493,7 @@ void Lua::purifyHTTPParameter(char *param) {
       case ',':
       case '&':
       case ' ':
+      case '=':
       case '<':
       case '>':
       case '@':

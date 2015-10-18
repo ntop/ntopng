@@ -172,7 +172,9 @@ class Prefs {
 #ifdef NTOPNG_PRO
   void loadNagiosDefaults();
   inline int getFlowProfile(Flow *f)  { return(profiles.getFlowProfile(f));  }
-  inline char* getProfileName(int id) { return(profiles.getProfileName(id)); }
+  inline char* getProfileName(int id, char *buf, int buf_len) { return(profiles.getProfileName(id, buf, buf_len)); }
+  inline bool checkProfileSyntax(char *filter) { return(profiles.checkProfileSyntax(filter)); }
+  inline void reloadProfiles() { return(profiles.reloadProfiles()); }
 #endif
   void registerNetworkInterfaces();
   bool isView(char *name);

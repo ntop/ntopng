@@ -237,7 +237,7 @@ if((page == "overview") or (page == nil)) then
       if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print [[
-       <input type="text" name="custom_name" placeholder="Custom Name" value="]]
+       <input type="text" class=form-control name="custom_name" placeholder="Custom Name" value="]]
 	 if(label ~= nil) then print(label) end
 	 print [["></input>
       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save Name</button>
@@ -758,7 +758,7 @@ else
       if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
       print("value=\"lt\">&lt;</option>\n")
       print("</select>\n")
-      print("<input type=text name=\"value_"..k.."\" value=\"")
+      print("<input type=text class=form-control name=\"value_"..k.."\" value=\"")
       if(vals[k] ~= nil) then print(vals[k][2]) end
       print("\">\n\n")
       print("<br><small>"..v.."</small>\n")
@@ -876,7 +876,7 @@ for i=0,max_num_shapers-1 do
       if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-	 print('<input type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
+	 print('<input class=form-control type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
 	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
       else
 	 print("</td></tr>")
@@ -1143,7 +1143,7 @@ Local Network :
  end
 print [[
 </select>
-VLAN <input type="text" id="new_vlan" name="new_vlan" value="0" size=4>
+VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" size=4>
 <button type="submit" class="btn btn-primary btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
 </div>
 </form>
