@@ -115,10 +115,8 @@ extern "C" {
 #include "hiredis.h"
 };
 
-#ifdef HAVE_MYSQL
 #include <mysql.h>
 #include <errmsg.h>
-#endif
 
 #include <fstream>
 #include <map>
@@ -138,8 +136,8 @@ using namespace std;
 #include "NtopGlobals.h"
 #ifdef NTOPNG_PRO
 #include "CountMinSketch.h"
-#include "Community.h"
-#include "Communities.h"
+#include "Profile.h"
+#include "Profiles.h"
 #endif
 #include "Prefs.h"
 #include "Mutex.h"
@@ -167,9 +165,7 @@ using namespace std;
 #include "StatsManager.h"
 #include "FlowsManager.h"
 #include "DB.h"
-#ifdef HAVE_MYSQL
 #include "MySQLDB.h"
-#endif
 #include "NetworkInterfaceView.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"
@@ -199,6 +195,7 @@ using namespace std;
 #include "HostHash.h"
 #include "PeriodicActivities.h"
 #include "Lua.h"
+#include "AddressTree.h"
 #include "AddressResolution.h"
 #include "Categorization.h"
 #include "HTTPBL.h"

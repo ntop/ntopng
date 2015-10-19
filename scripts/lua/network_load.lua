@@ -14,6 +14,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
    ifstats = aggregateInterfaceStats(interface.getStats())
+
    stats = interface.getFlowsStats()
 
    if(ifstats ~= nil) then
@@ -25,7 +26,7 @@ function dumpInterfaceStats(interface_name)
       flows_pctg = math.floor(1+((ifstats.flows*100)/prefs.max_num_flows))
 
       print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.packets .. ', "bytes": ' .. ifstats.bytes .. ', "drops": ' .. ifstats.drops .. ', "alerts": '.. ntop.getNumQueuedAlerts() ..', "num_flows": '.. ifstats.flows .. ', "num_hosts": ' .. ifstats.hosts .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "flows_pctg": ' .. flows_pctg)
-
+      print(', "is_view": '..tostring(ifstats.isView))
       print(', "local2remote": '.. ifstats["localstats"]["bytes"]["local2remote"]..', "remote2local": '..ifstats["localstats"]["bytes"]["remote2local"])
 
       if(ifstats["bridge.device_a"] ~= nil) then

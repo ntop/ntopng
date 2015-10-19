@@ -355,8 +355,8 @@ else
       end
    end
 
-   if(flow["community"] ~= nil) then
-      print("<tr><th width=30%>Community Name</th><td colspan=2>"..flow["community"].."</td></tr>\n")
+   if(flow["profile"] ~= nil) then
+      print("<tr><th width=30%><A HREF=".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua>Profile Name</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
    
    dump_flow_to_disk = flow["dump.disk"]

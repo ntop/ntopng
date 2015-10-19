@@ -21,8 +21,6 @@
 
 #include "ntop_includes.h"
 
-#ifdef HAVE_MYSQL
-
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
@@ -339,4 +337,3 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
   return(0);
 }
 
-#endif /* HAVE_MYSQL */

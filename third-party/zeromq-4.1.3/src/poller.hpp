@@ -38,6 +38,10 @@
 #error More than one of the ZMQ_USE_* macros defined
 #endif
 
+#ifdef WIN32 /* ntop */
+#define ZMQ_USE_SELECT 1
+#endif
+
 #if defined ZMQ_USE_KQUEUE
 #include "kqueue.hpp"
 #elif defined ZMQ_USE_EPOLL

@@ -33,13 +33,18 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 
   pcap_handle = NULL, pcap_list = NULL;
 
-  if(stat(name, &buf) == 0) {
+  
+  if((stat(name, &buf) == 0) || (name[0] == '-')) {
     /*
       The file exists so we need to check if it's a 
       text file or a pcap file
     */
 
-    if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) == NULL) {
+    if(strcmp(name, "-") == 0) {
+      /* stdin */
+      pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
+      pcap_datalink_type = DLT_EN10MB;
+    } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) == NULL) {
       if((pcap_list = fopen(name, "r")) == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s", name);
 	_exit(0);
@@ -156,9 +161,27 @@ static void* packetPollLoop(void* ptr) {
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((rc > 0) && (pkt != NULL) && (hdr->caplen > 0)) {
 	  int a, b;
+	  
+#ifdef WIN32
+	  /*
+	    For some unknown reason, on Windows winpcap
+	    gets crazy with specific packets and so ntopng
+	    crashes. Copying the packet memory onto a local buffer
+	    prevents that, as specified in
+	    https://github.com/ntop/ntopng/issues/194
+	  */
+	  u_char pkt_copy[1600];
+	  struct pcap_pkthdr hdr_copy;
 
+	  memcpy(&hdr_copy, hdr, sizeof(hdr_copy));
+	  hdr_copy.len = min(hdr->len, sizeof(pkt_copy) - 1);
+	  hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
+	  memcpy(pkt_copy, pkt, hdr_copy.len);
+	  iface->packet_dissector(&hdr_copy, (const u_char*)pkt_copy, &a, &b);
+#else
 	  hdr->caplen = min_val(hdr->caplen, iface->getMTU());
 	  iface->packet_dissector(hdr, pkt, &a, &b);
+#endif
 	}
       } else if(rc < 0) {
 	if(iface->read_from_pcap_dump())

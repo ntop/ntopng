@@ -100,14 +100,37 @@ now = os.time()
 vals = {}
 
 stats_by_group_col = {}
+
+--[[
+The idea here is to group host statistics by the value specified in
+group_col. For example, if group_col=='local_network_id', then statistics
+will be grouped by values of 'local_network_id'. 
+
+group_col value will be read for each host, and statistics matching this value
+will be incremented with single host statistics.
+
+So for example, if group_col=='local_network_id', and:
+** hosts 192.168.1.1 and 192.168.1.2  have local_network_id == '1'
+** hosts 10.0.0.1 and 10.0.0.2 have local_network_id == '2'
+
+resulting statistics will have two keys: 1 and 2 -- that is local_network_id
+values. Key 1 will contain the sum of statistics for hosts 192.168.1.1 and
+192.168.1.2. Key 2 will contain the sum of statistics for hosts 10.0.0.1
+and 10.0.0.0.2
+--]]
 for key,value in pairs(hosts_stats) do
-   -- Convert grouping identifier to string to avoid type mismatches if the
-   -- value is 0 (which would mean that the AS is private)
+   --[[
+   key is a host, expressed as a string, e.g., 192.168.2.113
+   value is a table containing all host-related information
+   e.g., local_network_id
+   --]]
    if(value[group_col] ~= nil) then
+      -- Convert grouping identifier to string to avoid type mismatches if the
+      -- value is 0 (which would mean that the AS is private)
       value[group_col] = tostring(value[group_col])
 
       id = value[group_col]
-
+      
       existing = stats_by_group_col[id]
       if (existing == nil) then
 	 stats_by_group_col[id] = {}
@@ -169,7 +192,9 @@ for key,value in pairs(hosts_stats) do
    end
 end
 
-
+--[[
+Prepares a json containing table data, together with HTML.
+--]]
 function print_single_group(value)
    print ('{ ')
    print ('\"key\" : \"'..value["id"]..'\",')

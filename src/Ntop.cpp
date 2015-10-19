@@ -467,9 +467,11 @@ void Ntop::loadLocalInterfaceAddress() {
     int cidr, ifId = -1;
 
     if((ifa->ifa_addr == NULL)
+       || ((ifa->ifa_addr->sa_family != AF_INET)
+	   && (ifa->ifa_addr->sa_family != AF_INET6))
        || ((ifa->ifa_flags & IFF_UP) == 0))
       continue;
-
+    
     for(int i=0; i<num_defined_interfaces; i++) {
       if(strstr(iface[i]->get_name(), ifa->ifa_name)) {
 	ifId = i;
@@ -509,7 +511,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
 	inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf));
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network", buf_orig);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s", buf_orig, iface[ifId]->get_name());
 	address->addLocalNetwork(buf_orig);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
@@ -539,7 +541,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network", buf_orig);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network for %s", buf_orig, iface[ifId]->get_name());
 	ptree_add_rule(local_interface_addresses, buf_orig);
       }
     }

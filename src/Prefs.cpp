@@ -88,9 +88,7 @@ Prefs::Prefs(Ntop *_ntop) {
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
     es_user = strdup((char*)""), es_pwd = strdup((char*)"");
 
-#ifdef HAVE_MYSQL
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
-#endif
 
 #ifdef NTOPNG_PRO
   nagios_host = nagios_port = nagios_config = NULL;
@@ -129,13 +127,11 @@ Prefs::~Prefs() {
   free(redis_host);
   free(local_networks);
 
-#ifdef HAVE_MYSQL
   if(mysql_host)      free(mysql_host);
   if(mysql_dbname)    free(mysql_dbname);
   if(mysql_tablename) free(mysql_tablename);
   if(mysql_user)      free(mysql_user);
   if(mysql_pw)        free(mysql_pw);
-#endif
 
 #ifdef NTOPNG_PRO
   if(nagios_host)   free(nagios_host);
@@ -230,12 +226,10 @@ void usage() {
 	 "                                    |        Example:\n"
 	 "                                    |        es;ntopng;ntopng-%%Y.%%m.%%d;http://localhost:9200/_bulk;\n"
 	 "                                    |        Note: the <idx name> accepts the strftime() format.\n"
-#ifdef HAVE_MYSQL
 	 "                                    | mysql  Dump in MySQL database\n"
 	 "                                    |        Format:\n"
 	 "                                    |        mysql;<host|socket>;<dbname>;<table name>;<user>;<pw>\n"
 	 "                                    |        mysql;localhost;ntopng;flows;root;\n"
-#endif
 	 "[--export-flows|-I] <endpoint>      | Export flows using the specified endpoint.\n"
 	 "[--dump-hosts|-D] <mode>            | Dump hosts policy (default: none).\n"
 	 "                                    | Values:\n"
@@ -324,7 +318,7 @@ void Prefs::loadIdleDefaults() {
   other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
 #ifdef NTOPNG_PRO
-  communities.reload();
+  profiles.reloadProfiles();
 #endif
 }
 
@@ -673,7 +667,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
-#ifdef HAVE_MYSQL
     } else if(!strncmp(optarg, "mysql", 5)) {
       /* mysql;<host[@port]|unix socket>;<dbname>;<table name>;<user>;<pw> */
       optarg = Utils::tokenizer(&optarg[6], ';', &mysql_host);
@@ -690,7 +683,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 	dump_flows_on_mysql = true;
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
-#endif
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F %s: value out of range", optarg);
     break;

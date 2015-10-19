@@ -73,19 +73,15 @@ class Prefs {
   bool json_labels_string_format;
   FILE *logFd;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
-#ifdef HAVE_MYSQL
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
-#endif
 #ifdef NTOPNG_PRO
   char *nagios_host, *nagios_port, *nagios_config;
-  Communities communities;
+  Profiles profiles;
 #endif
 
   inline void help() { usage(); };
   int setOption(int optkey, char *optarg);
   int checkOptions();
-  u_int32_t getDefaultPrefsValue(const char *pref_key, u_int32_t default_value);
-  void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
 
   void bind_http_to_loopback()  { http_binding_address  = CONST_LOOPBACK_ADDRESS; };
   void bind_https_to_loopback() { https_binding_address = CONST_LOOPBACK_ADDRESS; };
@@ -127,6 +123,8 @@ class Prefs {
   inline u_int8_t get_num_user_specified_interface_views()   { return(num_interface_views);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
+  u_int32_t getDefaultPrefsValue(const char *pref_key, u_int32_t default_value);
+  void getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value);
   inline char* get_if_name(u_int id)                    { return((id < MAX_NUM_INTERFACES) ? ifNames[id].name : NULL); };
   inline char* get_if_descr(u_int id)                   { return((id < MAX_NUM_INTERFACES) ? ifNames[id].description : NULL); };
   inline char* get_data_dir()                           { return(data_dir);       };
@@ -173,7 +171,10 @@ class Prefs {
   void loadIdleDefaults();
 #ifdef NTOPNG_PRO
   void loadNagiosDefaults();
-  inline char* getCommunity(Flow *f) { return(communities.getCommunity(f)); }
+  inline int getFlowProfile(Flow *f)  { return(profiles.getFlowProfile(f));  }
+  inline char* getProfileName(int id, char *buf, int buf_len) { return(profiles.getProfileName(id, buf, buf_len)); }
+  inline bool checkProfileSyntax(char *filter) { return(profiles.checkProfileSyntax(filter)); }
+  inline void reloadProfiles() { return(profiles.reloadProfiles()); }
 #endif
   void registerNetworkInterfaces();
   bool isView(char *name);
@@ -190,13 +191,11 @@ class Prefs {
   inline bool are_taps_enabled() { return(enable_taps); };
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
   inline bool use_promiscuous()  { return(use_promiscuous_mode); };
-#ifdef HAVE_MYSQL
   inline char* get_mysql_host()      { return(mysql_host);      };
   inline char* get_mysql_dbname()    { return(mysql_dbname);    };
   inline char* get_mysql_tablename() { return(mysql_tablename); };
   inline char* get_mysql_user()      { return(mysql_user);      };
   inline char* get_mysql_pw()        { return(mysql_pw);        };
-#endif
 };
 
 #endif /* _PREFS_H_ */

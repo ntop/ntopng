@@ -103,10 +103,14 @@ else
    print("</tr>\n")
 
    for row_key, row_value in pairs(localhosts) do
-      if(localhosts[row_key]["ip"] ~= nil) then
-	 if((localhosts[row_key]["name"] ~= "") and (localhosts[row_key]["name"] ~= localhosts[row_key]["ip"])) then
-	    t = string.split(localhosts[row_key]["name"], "%.")
-	    n = shortHostName(t[1])
+      if(row_value["ip"] ~= nil) then
+	 if(row_value["name"] ~= nil and row_value["name"] ~= "" and row_value["name"] ~= row_value["ip"]) then
+            t = string.split(row_value["name"], "%.")
+            if (t ~= nil and t[1] ~= nil) then
+                n = shortHostName(t[1])
+            else  -- fallback, string split has not been possible
+                n = shortHostName(row_value["name"])
+            end
 	 else
 	    n = localhosts[row_key]["ip"]
 	 end

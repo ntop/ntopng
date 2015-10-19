@@ -21,175 +21,18 @@
 
 #include "ntop_includes.h"
 
-#include "../third-party/patricia/patricia.c"
-
 /* **************************************** */
 
 AddressResolution::AddressResolution() {
   num_resolved_addresses = num_resolved_fails = 0, num_local_networks = 0;
-  ptree = New_Patricia(128);
   memset(local_networks, 0, sizeof(local_networks));
 }
 
-/* *********************************************** */
-
-static int fill_prefix_v4(prefix_t *p, struct in_addr *a, int b, int mb) {
-  do {
-    if(b < 0 || b > mb)
-      return(-1);
-
-    memcpy(&p->add.sin, a, (mb+7)/8);
-    p->family = AF_INET;
-    p->bitlen = b;
-    p->ref_count = 0;
-  } while (0);
-
-  return(0);
-}
-
 /* ******************************************* */
 
-static int fill_prefix_v6(prefix_t *prefix, struct in6_addr *addr, int bits, int maxbits) {
-  if(bits < 0 || bits > maxbits)
-    return -1;
-
-  memcpy(&prefix->add.sin6, addr, (maxbits + 7) / 8);
-  prefix->family = AF_INET6;
-  prefix->bitlen = bits;
-  prefix->ref_count = 0;
-
-  return 0;
-}
-
-/* ******************************************* */
-
-static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
-  prefix_t prefix;
-  patricia_node_t *node;
-
-  if(family == AF_INET)
-    fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
-  else
-    fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
-
-  node = patricia_lookup(tree, &prefix);
-
-  return(node);
-}
-
-/* ******************************************* */
-
-#if 0
-static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
-  prefix_t prefix;
-  patricia_node_t *node;
-  int rc;
-
-  if(family == AF_INET)
-    fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
-  else
-    fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
-
-  node = patricia_lookup(tree, &prefix);
-
-  if((patricia_node_t *)0 != node) {
-    rc = 0;
-  } else {
-    rc = -1;
-  }
-
-  return(rc);
-}
-#endif
-
-/* ******************************************* */
-
-patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits) {
-  prefix_t prefix;
-
-  if(family == AF_INET)
-    fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
-  else
-    fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
-
-  return(patricia_search_best(tree, &prefix));
-}
-
-/* ******************************************* */
-
-patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line) {
-  char *ip, *bits, *slash = NULL;
-  struct in_addr addr4;
-  struct in6_addr addr6;
-  patricia_node_t *node = NULL;
-
-  ip = line;
-  bits = strchr(line, '/');
-  if(bits == NULL)
-    bits = (char*)"/32";
-  else {
-    slash = bits;
-    slash[0] = '\0';
-  }
-
-  bits++;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Rule %s/%s", ip, bits);
-
-  if(strchr(ip, ':') != NULL) { /* IPv6 */
-    if(inet_pton(AF_INET6, ip, &addr6) == 1)
-      node = add_to_ptree(ptree, AF_INET6, &addr6, atoi(bits));
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing IPv6 %s\n", ip);
-  } else { /* IPv4 */
-    /* inet_aton(ip, &addr4) fails parsing subnets */
-    int num_octets;
-    u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
-    u_char *ip4 = (u_char *) &addr4;
-
-    if((num_octets = sscanf(ip, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3)) >= 1) {
-      int num_bits = atoi(bits);
-
-      ip4[0] = ip4_0, ip4[1] = ip4_1, ip4[2] = ip4_2, ip4[3] = ip4_3;
-
-      if(num_bits > 32) num_bits = 32;
-
-      if(num_octets * 8 < num_bits)
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Found IP smaller than netmask [%s]", line);
-
-      //addr4.s_addr = ntohl(addr4.s_addr);
-      node = add_to_ptree(ptree, AF_INET, &addr4, num_bits);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing IPv4 %s\n", ip);
-    }
-  }
-
-  if(slash) slash[0] = '/';
-
-  return(node);
-}
-
-/* ******************************************* */
-
-void AddressResolution::addLocalNetwork(char *_net) {
-  patricia_node_t *node;
-  char *net;
-
-  if(num_local_networks >= CONST_MAX_NUM_NETWORKS) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined: ignored %s", _net);
-    return;
-  }
-  
-  if((net = strdup(_net)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return;
-  }
-
-  node = ptree_add_rule(ptree, net);
-
-  if(node) {
-    local_networks[num_local_networks] = net;
-    node->user_data = num_local_networks;
+void AddressResolution::addLocalNetwork(char *_net) { 
+  if(localNetworks.addNetworks(_net, num_local_networks)) {
+    local_networks[num_local_networks] = strdup(_net);
     num_local_networks++;
   }
 }
@@ -209,31 +52,14 @@ void AddressResolution::setLocalNetworks(char *rule) {
 /* ******************************************* */
 
 int16_t AddressResolution::findAddress(int family, void *addr) {
-  patricia_node_t *node = ptree_match(ptree, family, addr, (family == AF_INET) ? 32 : 128);
-
-  if(node == NULL)
-    return(-1);
-  else
-    return(node->user_data);
+  return(localNetworks.findAddress(family, addr));
 }
 
 /* **************************************** */
 
-void free_ptree_data(void *data) { ; }
-
-/* **************************************** */
-
 AddressResolution::~AddressResolution() {
-#if 0
-  void *res;
-
-  pthread_join(resolveThreadLoop, &res);
-#endif
-
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Address resolution stats [%u resolved][%u failures]",
 			       num_resolved_addresses, num_resolved_fails);
-
-  if(ptree) Destroy_Patricia(ptree, free_ptree_data);
 
   for(int i=0; i<num_local_networks; i++)
     free(local_networks[i]);
@@ -358,27 +184,6 @@ void AddressResolution::startResolveAddressLoop() {
 
 /* **************************************************** */
 
-void print_funct(prefix_t *prefix, void *data, void *user_data) {
-  char address[64], ret[64], *a;
-
-  if(!prefix) return;
-
-  if(prefix->family == AF_INET) {
-    if((prefix->bitlen == 0) || (prefix->bitlen == 32)) return;
-
-    a = Utils::intoaV4(ntohl(prefix->add.sin.s_addr), address, sizeof(address));
-  } else {
-    if((prefix->bitlen == 0) || (prefix->bitlen == 128)) return;
-
-    a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6), prefix->bitlen, address, sizeof(address));
-  }
-
-  snprintf(ret, sizeof(ret), "%s/%d", a, prefix->bitlen);
-  lua_push_str_table_entry((lua_State*)user_data, ret, (char*)"");
-}
-
-/* **************************************************** */
-
 void AddressResolution::getLocalNetworks(lua_State* vm) {
-  patricia_walk_inorder(ptree->head, print_funct, vm);
+  localNetworks.getNetworks(vm);
 }

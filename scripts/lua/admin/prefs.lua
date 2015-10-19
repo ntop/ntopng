@@ -63,10 +63,10 @@ if(haveAdminPrivileges()) then
 
 if (ntop.isPro()) then
    -- ================================================================================
-   print('<tr><th colspan=2 class="info">Nagios Alerts Configuration</th></tr>')
+   print('<tr><th colspan=2 class="info">Nagios Alerts (Experimental)</th></tr>')
 
-   toggleTableButton("Send Alerts To Nagios",
-		     "Enable/disable sending ntopng alerts to Nagios in addition to storing them into ntopng.",
+   toggleTableButton("Alerts To Nagios",
+		     "Enable sending ntopng alerts to Nagios.",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_alert_nagios", "ntopng.prefs.alerts_nagios")
 
    prefsInputField("Nagios Daemon Host", "Address of the host where the Nagios daemon is running. Default: localhost.", "nagios_host", prefs.nagios_host)

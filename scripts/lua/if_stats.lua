@@ -237,7 +237,7 @@ if((page == "overview") or (page == nil)) then
       if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print [[
-       <input type="text" name="custom_name" placeholder="Custom Name" value="]]
+       <input type="text" class=form-control name="custom_name" placeholder="Custom Name" value="]]
 	 if(label ~= nil) then print(label) end
 	 print [["></input>
       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save Name</button>
@@ -276,10 +276,13 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>Description</th><td colspan=6>" .. ifstats.description .. "</td></tr>\n")
    end
 
-   print("<tr><th>Family </th><td colspan=6>" .. ifstats.type)
+   print("<tr><th>Family </th><td colspan=6>")
+   if(ifstats.isView == true) then print("<i class=\"fa fa-eye\"></i> ") end
+
+   print(ifstats.type)
    if(ifstats.inline) then
       print(" In-Path Interface (Bump in the Wire)")
-      elseif(ifstats.view) then
+      elseif(ifstats.isView == true) then
       print(" (Aggregated Interface View)")
    end
    print("</td></tr>\n")
@@ -755,7 +758,7 @@ else
       if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
       print("value=\"lt\">&lt;</option>\n")
       print("</select>\n")
-      print("<input type=text name=\"value_"..k.."\" value=\"")
+      print("<input type=text class=form-control name=\"value_"..k.."\" value=\"")
       if(vals[k] ~= nil) then print(vals[k][2]) end
       print("\">\n\n")
       print("<br><small>"..v.."</small>\n")
@@ -784,7 +787,7 @@ else
    ]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
    print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-       <button class="btn btn-primary" type="submit">Delete All</button>
+       <button class="btn btn-primary btn-xs" type="submit">Delete All</button>
 
      </div>
    </form>
@@ -873,7 +876,7 @@ for i=0,max_num_shapers-1 do
       if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
-	 print('<input type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
+	 print('<input class=form-control type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
 	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
       else
 	 print("</td></tr>")
@@ -1097,7 +1100,7 @@ end
    print [[
     </select>
     </td></tr>
-    <tr><td colspan=2><button type="submit" class="btn btn-default btn-block">Set Protocol Policy and Shaper</button></td></tr>
+    <tr><td colspan=2><button type="submit" class="btn btn-primary btn-block">Set Protocol Policy and Shaper</button></td></tr>
 
 <script>
 /* FIX - Check form */
@@ -1140,8 +1143,8 @@ Local Network :
  end
 print [[
 </select>
-VLAN <input type="text" id="new_vlan" name="new_vlan" value="0" size=4>
-<button type="submit" class="btn btn-default btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
+VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" size=4>
+<button type="submit" class="btn btn-primary btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
 </div>
 </form>
 </td>
