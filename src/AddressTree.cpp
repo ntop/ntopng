@@ -233,24 +233,24 @@ int16_t AddressTree::addAddress(char *_net) {
 
   if(numAddresses >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined: ignored %s", _net);
-    return EXIT_FAILURE < 0 ? EXIT_FAILURE : -1;
+    return -1;
   }
   
   if((net = strdup(_net)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return EXIT_FAILURE < 0 ? EXIT_FAILURE : -1;
+    return -1;
   }
 
   node = ptree_add_rule(ptree, net);
 
   if(node) {
     node->user_data = numAddresses;
-    addressString[numAddresses] = strdup(net);
+    addressString.push_back(strdup(net));
     numAddresses++;
     return node->user_data;
   }
 
-  return EXIT_FAILURE < 0 ? EXIT_FAILURE : -1;
+  return -1;
 }
 
 /* ******************************************* */
