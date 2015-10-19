@@ -399,11 +399,20 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
     }
 
     detection_completed = true;
+    
 #ifdef NTOPNG_PRO
-    profileId = ntop->getPrefs()->getFlowProfile(this);
+    updateProfile();
 #endif
   }
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+void Flow::updateProfile() {
+  profileId = ntop->getPrefs()->getFlowProfile(this);
+}
+#endif
 
 /* *************************************** */
 
@@ -965,7 +974,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     }
 
 #ifdef NTOPNG_PRO
-    if(profileId != -1) lua_push_str_table_entry(vm, "profile", ntop->getPrefs()->getProfileName(profileId));
+    if(profileId != -1) lua_push_str_table_entry(vm, "profile", ntop->getPrefs()->getProfileName(profileId, buf, sizeof(buf)));
 #endif
 
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);

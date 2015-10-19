@@ -526,6 +526,17 @@ int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) {
 
 /* *************************************** */
 
+#ifdef NTOPNG_PRO
+void NetworkInterfaceView::updateFlowProfiles() {
+  list<NetworkInterface *>::iterator p;
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    (*p)->updateFlowProfiles();
+}
+#endif
+
+/* *************************************** */
+
 void NetworkInterfaceView::lua(lua_State *vm) {
   list<NetworkInterface *>::iterator p;
   int n = 0;

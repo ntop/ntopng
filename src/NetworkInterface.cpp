@@ -1739,6 +1739,23 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
 /* **************************************************** */
 
+#ifdef NTOPNG_PRO
+
+static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
+  Flow *flow = (Flow*)h;
+
+  flow->updateProfile();
+  return(false); /* false = keep on walking */
+}
+
+void NetworkInterface::updateFlowProfiles() {
+  flows_hash->walk(update_flow_profile, NULL);
+}
+
+#endif
+
+/* **************************************************** */
+
 bool NetworkInterface::getHostInfo(lua_State* vm,
 				   patricia_tree_t *allowed_hosts,
 				   char *host_ip, u_int16_t vlan_id) {

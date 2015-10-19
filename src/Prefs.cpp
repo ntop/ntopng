@@ -318,7 +318,7 @@ void Prefs::loadIdleDefaults() {
   other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
 #ifdef NTOPNG_PRO
-  profiles.reload();
+  profiles.reloadProfiles();
 #endif
 }
 

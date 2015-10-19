@@ -21,7 +21,6 @@
 
 #include "ntop_includes.h"
 
-
 /* *************************************** */
 
 /* Daily duration */
@@ -69,7 +68,7 @@ void ActivityStats::set(time_t when) {
     w = (when - begin_time) % CONST_MAX_ACTIVITY_DURATION;
 
     if(w == last_set_time) return;
-    
+
     minute = w / 60;
 
     bitset.counter[minute]++;
@@ -82,14 +81,14 @@ void ActivityStats::set(time_t when) {
 
 bool ActivityStats::writeDump(char* path) {
   FILE *fd = fopen(path, "wb");
-  
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping activity %s", path);
-  
+
   if(fd == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Error writing dump %s", path);
     return(false);
   }
-  
+
   fwrite(&bitset, sizeof(bitset), 1, fd);
   fclose(fd);
   ntop->getTrace()->traceEvent(TRACE_INFO, "Written dump %s", path);
@@ -109,7 +108,7 @@ bool ActivityStats::readDump(char* path) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "Error reading dump %s: file missing ?", path);
     return(false);
   }
-  
+
   fread(&bitset, sizeof(bitset), 1, fd);
   fclose(fd);
 
@@ -132,7 +131,7 @@ json_object* ActivityStats::getJSONObject() {
       json_object_object_add(my_object, buf, json_object_new_int(bitset.counter[i]));
     }
   }
-  
+
   return(my_object);
 }
 
@@ -192,4 +191,3 @@ double ActivityStats::pearsonCorrelation(ActivityStats *s) {
 
   return(Utils::pearsonValueCorrelation(&x, &y));
 }
-
