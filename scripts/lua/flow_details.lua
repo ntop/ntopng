@@ -382,6 +382,12 @@ else
    if (flow["moreinfo.json"] ~= nil) then
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
 
+      -- get SIP rows
+      local sip_table_rows = getSIPTableRows(info)
+      print(sip_table_rows)
+      info = removeProtocolFields("SIP",info)
+      isThereSIP = isThereProtocol(SIP, info)
+
       num = 0
 
       for key,value in pairs(info) do
@@ -480,9 +486,30 @@ print [[/lua/flow_stats.lua',
    		           $('#top_throughput').html(rsp["top_throughput_display"]);
 			} else {
 			   $('#throughput_trend').html("<i class=\"fa fa-minus\"></i>");
-			}
+			}]]
 
-			cli2srv_packets = rsp["cli2srv.packets"];
+      if(isThereSIP) then
+        print [[
+          $('#call_id').html(rsp["sip.call_id"]);
+          $('#calling_called_party').html(rsp["sip.calling_called_party"]);
+          $('#rtp_codecs').html(rsp["sip.rtp_codecs"]);
+          $('#time_invite').html(rsp["sip.time_invite"]);
+          $('#time_trying').html(rsp["sip.time_trying"]);
+          $('#time_ringing').html(rsp["sip.time_ringing"]);
+          $('#time_invite_ok').html(rsp["sip.time_invite_ok"]);
+          $('#time_invite_failure').html(rsp["sip.time_invite_failure"]);
+          $('#time_bye').html(rsp["sip.time_bye"]);
+          $('#time_bye_ok').html(rsp["sip.time_bye_ok"]);
+          $('#time_cancel').html(rsp["sip.time_cancel"]);
+          $('#time_cancel_ok').html(rsp["sip.time_cancel_ok"]);
+          $('#rtp_stream').html(rsp["sip.rtp_stream"]);
+          $('#response_code').html(rsp["sip.response_code"]);
+          $('#reason_cause').html(rsp["sip.reason_cause"]);
+          $('#c_ip').html(rsp["sip.c_ip"]);
+          $('#call_state').html(rsp["sip.call_state"]);
+      ]]
+      end
+print [[			cli2srv_packets = rsp["cli2srv.packets"];
 			srv2cli_packets = rsp["srv2cli.packets"];
 			throughput = rsp["throughput_raw"];
 			bytes = rsp["bytes"];

@@ -8,6 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "flow_utils"
 
+local json = require ("dkjson")
+
 flow_key = _GET["flow_key"]
 if(flow_key == nil) then
  flow = nil
@@ -126,6 +128,81 @@ else
 
     if (show_processes)then print ('}') end
 
+    if (flow["moreinfo.json"] ~= nil) then
+      local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
+       sip_found = isThereProtocol("SIP", info)
+       if(sip_found == 1) then
+         print(', "sip.call_id":"'..getFlowValue(info, "SIP_CALL_ID")..'"')
+         print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
+         print(', "sip.rtp_codecs":"'..getFlowValue(info, "SIP_RTP_CODECS")..'"')
+         time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_invite":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_invite":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_TRYING_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_trying":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_trying":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_RINGING_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_ringing":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_ringing":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_INVITE_OK_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_invite_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_invite_ok":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_invite_failure":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_invite_failure":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_BYE_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_bye":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_bye":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_BYE_OK_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_bye_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_bye_ok":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_CANCEL_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_cancel":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_cancel":""')
+         end
+         time, time_epoch = getFlowValue(info, "SIP_CANCEL_OK_TIME")
+         if(time_epoch ~= "0") then
+           print(', "sip.time_cancel_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+         else
+           print(', "sip.time_cancel_ok":""')
+         end
+         if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil))then
+           print(', "sip.rtp_stream":"' .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")..' <i class=\\\"fa fa-exchange fa-lg\\\"></i> '..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT") ..'"')
+         end
+         print(', "sip.response_code":"'..getFlowValue(info, "SIP_RESPONSE_CODE")..'"')
+         val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
+         if(val_original ~= "0") then
+            print(', "sip.reason_cause":"'..val..'"')
+         else
+            print(', "sip.reason_cause":""')
+         end
+         print(', "sip.c_ip":"'..getFlowValue(info, "SIP_C_IP")..'"')
+         print(', "sip.call_state":"'..getFlowValue(info, "SIP_CALL_STATE")..'"')
+       end
+    end
 
   print (' }\n')
 end
