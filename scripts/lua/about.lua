@@ -47,7 +47,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 print [[
     <br><small>Click on the above URL to generate your professional version license, or 
 	       <br>purchase a license at <A HREF=http://shop.ntop.org/>e-shop</A>. If you are no-profit, research or an education<br>
-institution please read <A HREF=http://www.ntop.org/about/about-us-2/>this</A>.</small>
+institution please read <A HREF=http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/>this</A>.</small>
 	 <p>
    ]]
 

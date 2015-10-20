@@ -32,34 +32,37 @@ function getProtoVolume(ifName, start_time, end_time)
 	 rrdname = getRRDName(ifId, nil, rrdFile)
 	 if(ntop.notEmptyFile(rrdname)) then
 	    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
-	    local num_points_found = table.getn(fdata)
 
-	    accumulated = 0
-	    for i, v in ipairs(fdata) do
-	       for _, w in ipairs(v) do
-		  if(w ~= w) then
-		     -- This is a NaN
-		     v = 0
-		  else
-		     --io.write(w.."\n")
-		     v = tonumber(w)
-		     if(v < 0) then
+	    if(fstart ~= nil) then
+	       local num_points_found = table.getn(fdata)
+
+	       accumulated = 0
+	       for i, v in ipairs(fdata) do
+		  for _, w in ipairs(v) do
+		     if(w ~= w) then
+			-- This is a NaN
 			v = 0
+		     else
+			--io.write(w.."\n")
+			v = tonumber(w)
+			if(v < 0) then
+			   v = 0
+			end
 		     end
 		  end
+
+		  accumulated = accumulated + v
 	       end
 
-	       accumulated = accumulated + v
-	    end
-
-	    if(accumulated > 0) then
-	       rrdFile = string.sub(rrdFile, 1, string.len(rrdFile)-4)
-	       ret[rrdFile] = accumulated
+	       if(accumulated > 0) then
+		  rrdFile = string.sub(rrdFile, 1, string.len(rrdFile)-4)
+		  ret[rrdFile] = accumulated
+	       end
 	    end
 	 end
       end
    end
-
+   
    return(ret)
 end
 
@@ -241,14 +244,14 @@ function drawPeity(ifid, host, rrdFile, zoomLevel, selectedEpoch)
    for k,v in ipairs(zoom_vals) do
       if(zoom_vals[k][1] == zoomLevel) then
          if(k > 1) then
-           nextZoomLevel = zoom_vals[k-1][1]
+	    nextZoomLevel = zoom_vals[k-1][1]
          end
          if(epoch) then
-           start_time = epoch - zoom_vals[k][3]/2
-           end_time = epoch + zoom_vals[k][3]/2
+	    start_time = epoch - zoom_vals[k][3]/2
+	    end_time = epoch + zoom_vals[k][3]/2
          else
-	   start_time = zoom_vals[k][2]
-           end_time = "now"
+	    start_time = zoom_vals[k][2]
+	    end_time = "now"
          end
       end
    end
@@ -257,54 +260,57 @@ function drawPeity(ifid, host, rrdFile, zoomLevel, selectedEpoch)
    if(ntop.notEmptyFile(rrdname)) then
       --io.write("=> Found ".. start_time .. "|" .. end_time .. "<p>\n")
       local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time..", end_time..")
-      local max_num_points = 512 -- This is to avoid having too many points and thus a fat graph
-      local num_points_found = table.getn(fdata)
-      local sample_rate = round(num_points_found / max_num_points)
-      local num_points = 0
-      local step = 1
-      local series = {}
 
-      if(sample_rate < 1) then
-	 sample_rate = 1
-      end
+      if(fstart ~= nil) then
+	 local max_num_points = 512 -- This is to avoid having too many points and thus a fat graph
+	 local num_points_found = table.getn(fdata)
+	 local sample_rate = round(num_points_found / max_num_points)
+	 local num_points = 0
+	 local step = 1
+	 local series = {}
 
-      -- print("=> "..num_points_found.."[".. sample_rate .."]["..fstart.."]<p>")
+	 if(sample_rate < 1) then
+	    sample_rate = 1
+	 end
 
-      id = 0
-      num = 0
-      total = 0
-      sample_rate = sample_rate-1
-      points = {}
-      for i, v in ipairs(fdata) do
-	 timestamp = fstart + (i-1)*fstep
-	 num_points = num_points + 1
+	 -- print("=> "..num_points_found.."[".. sample_rate .."]["..fstart.."]<p>")
 
-	 local elemId = 1
-	 for _, w in ipairs(v) do
-	    if(w ~= w) then
-	       -- This is a NaN
-	       v = 0
-	    else
-	       v = tonumber(w)
-	       if(v < 0) then
+	 id = 0
+	 num = 0
+	 total = 0
+	 sample_rate = sample_rate-1
+	 points = {}
+	 for i, v in ipairs(fdata) do
+	    timestamp = fstart + (i-1)*fstep
+	    num_points = num_points + 1
+
+	    local elemId = 1
+	    for _, w in ipairs(v) do
+	       if(w ~= w) then
+		  -- This is a NaN
 		  v = 0
+	       else
+		  v = tonumber(w)
+		  if(v < 0) then
+		     v = 0
+		  end
 	       end
-	    end
 
-	    value = v*8 -- bps
+	       value = v*8 -- bps
 
-	    total = total + value
-	    if(id == sample_rate) then
-	       points[num] = round(value)..""
-	       num = num+1
-	       id = 0
-	    else
-	       id = id + 1
+	       total = total + value
+	       if(id == sample_rate) then
+		  points[num] = round(value)..""
+		  num = num+1
+		  id = 0
+	       else
+		  id = id + 1
+	       end
+	       elemId = elemId + 1
 	    end
-	    elemId = elemId + 1
 	 end
       end
-  end
+   end
 
    print("<td class=\"text-right\">"..round(total).."</td><td> <span class=\"peity-line\">")
    for i=0,10 do
@@ -1192,6 +1198,8 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
 
    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+   if(fstart == nil) then return '{}' end
+
    --[[
    io.write('start time: '..start_time..'  end_time: '..end_time..'\n')
    io.write('fstart: '..fstart..'  fstep: '..fstep..' rrdname: '..rrdname..'\n')

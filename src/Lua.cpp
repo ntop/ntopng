@@ -2079,7 +2079,13 @@ static int ntop_rrd_fetch(lua_State* vm) {
     err = rrd_get_error();
 
     if(err != NULL) {
-      luaL_error(vm, err);
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Error '%s' while calling rrd_fetch_r(%s, %s): is the RRD corrupted perhaps?",
+				   err, filename, cf);
+      lua_pushnil(vm);
+      lua_pushnil(vm);
+      lua_pushnil(vm);
+      lua_pushnil(vm);
       return(CONST_LUA_ERROR);
     }
   }
