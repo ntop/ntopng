@@ -1229,7 +1229,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
 	mtu = ((u_int16_t)-1);
     }
     
-    close(fd);
+    closesocket(fd);
   }
 
   return((u_int16_t)mtu);
@@ -1273,7 +1273,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC Speed = %u",
 			       ifname, edata.speed);
 
-  close(sock);
+  closesocket(sock);
 
   return(ifSpeed);
 #else

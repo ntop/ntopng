@@ -2438,10 +2438,10 @@ bool NetworkInterface::isInterfaceUp(char *name) {
   memset(&ifr, 0, sizeof(ifr));
   strcpy(ifr.ifr_name, name);
   if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
-    close(sock);
+    closesocket(sock);
     return(false);
   }
-  close(sock);
+  closesocket(sock);
   return(!!(ifr.ifr_flags & IFF_UP));
 #endif
 }

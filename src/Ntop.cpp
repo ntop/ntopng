@@ -549,7 +549,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
   freeifaddrs(local_addresses);
 
-  close(sock);
+  closesocket(sock);
 #endif
 }
 

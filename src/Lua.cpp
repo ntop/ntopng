@@ -2847,12 +2847,8 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
     if(!added)
       lua_pushnil(vm), rc = CONST_LUA_ERROR;
   }
-#ifdef WIN32
-  closesocket(sock);
-#else
-  close(sock);
-#endif
 
+  closesocket(sock);
   return(rc);
 }
 /* ****************************************** */
