@@ -422,4 +422,8 @@
 #define MACSTR_SIZE     32
 #define DUMP_MTU	16384
 
+#ifndef WIN32
+#define closesocket(c)		close(c)
+#endif
+
 #endif /* _NTOP_DEFINES_H_ */

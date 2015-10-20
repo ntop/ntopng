@@ -162,7 +162,7 @@ Ntop::~Ntop() {
     ifaceViews[i] = NULL;
   }
 
-  if(udp_socket != -1) close(udp_socket);
+  if(udp_socket != -1) closesocket(udp_socket);
 
   if(httpbl) delete httpbl;
   if(httpd)  delete httpd;
@@ -291,7 +291,7 @@ void Ntop::start() {
   while(!globals->isShutdown()) {
     sleep(HOUSEKEEPING_FREQUENCY);
     runHousekeepingTasks();
-    // break;
+    break;
   }
 }
 
