@@ -101,6 +101,17 @@ else
    hosts_stats = interface.getHostsInfo(false)
 end
 
+-- check if alerts count must be flushed or decremented
+for key, value in pairs(hosts_stats) do
+   if(hosts_stats[key]["num_alerts"] > 0) then
+      if(ntop.getNumQueuedAlerts() == 0) then
+	 hosts_stats[key]["num_alerts"] = 0;
+      else
+	 hosts_stats[key]["num_alerts"] = ntop.getNumQueuedAlerts();
+      end
+   end
+end
+
 to_skip = (currentPage-1) * perPage
 
 if (all ~= nil) then
@@ -117,7 +128,6 @@ vals = {}
 num = 0
 
 sort_mode = mode
--- for k,v in pairs(hosts_stats) do io.write(k.."\n") end
 
 if(net ~= nil) then
    net = string.gsub(net, "_", "/")
@@ -181,7 +191,7 @@ for key, value in pairs(hosts_stats) do
 	 ok = false
 
 	 for k,v in pairs(hosts_stats[key]["contacts"]["client"]) do
-	    --io.write(k.."\n")
+	    -- io.write(k.."\n")
 	    if((ok == false) and (k == client)) then ok = true end
 	 end
 
@@ -207,7 +217,6 @@ for key, value in pairs(hosts_stats) do
    if(ok) then
       --print("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]\n")
 
-      
       if(sortColumn == "column_" ) then
 	 vals[key] = key
 	 elseif(sortColumn == "column_name") then

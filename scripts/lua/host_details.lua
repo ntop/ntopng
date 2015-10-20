@@ -80,6 +80,15 @@ if((host == nil) and ((_GET["mode"] == "restore") or (page == "historical"))) th
    restoreFailed = true
 end
 
+-- check if alerts count must be flushed or decremented
+if(host["num_alerts"] > 0) then
+   if(ntop.getNumQueuedAlerts() == 0) then
+      host["num_alerts"] = 0;
+   else
+      host["num_alerts"] = ntop.getNumQueuedAlerts();
+   end
+end
+
 only_historical = false
 
 if(host == nil) then
@@ -2160,6 +2169,7 @@ end
 end
 
 if (host ~= nil) then
+
    print [[ <script>]]
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
@@ -2390,6 +2400,7 @@ if (host ~= nil) then
    			}
    
    			if(last_num_alerts == host["num_alerts"]) {
+
    			   $('#alerts_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#alerts_trend').html("<i class=\"fa fa-arrow-up\" style=\"color: #B94A48;\"></i>");
