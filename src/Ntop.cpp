@@ -291,7 +291,7 @@ void Ntop::start() {
   while(!globals->isShutdown()) {
     sleep(HOUSEKEEPING_FREQUENCY);
     runHousekeepingTasks();
-    break;
+    // break;
   }
 }
 
