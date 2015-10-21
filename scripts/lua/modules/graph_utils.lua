@@ -770,7 +770,7 @@ function makeRRD(basedir, ifname, rrdname, step, value)
    else
       create_rrd(name, 1, rrdname)
    end
-   ntop.rrd_update(name, "N:".. tonumber(value))
+   ntop.rrd_update(name, "N:".. tolongint(value))
    if(enable_second_debug == 1) then io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n') end
 end
 

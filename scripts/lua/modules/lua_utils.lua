@@ -1903,3 +1903,8 @@ function getFlowMaxRate(cli_max_rate, srv_max_rate)
    return(max_rate)
 end
 
+-- ###############################################
+
+function tolongint(what)
+   return(string.format("%u", what))
+end

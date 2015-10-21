@@ -69,7 +69,7 @@ for _,_ifname in pairs(ifnames) do
 
 	    name = fixPath(basedir .. "/"..k..".rrd")
 	    createSingleRRDcounter(name, verbose)
-	    ntop.rrd_update(name, "N:".. tonumber(v))
+	    ntop.rrd_update(name, "N:".. tolongint(v))
 	 end
 
          if (not ntop.exists(fixPath(basedir.."/localstats/"))) then
@@ -80,13 +80,13 @@ for _,_ifname in pairs(ifnames) do
          if (ifstats["localstats"]["bytes"]["local2remote"] > 0) then
            name = fixPath(basedir .. "/localstats/local2remote.rrd")
            createSingleRRDcounter(name, verbose)
-           ntop.rrd_update(name, "N:"..tonumber(ifstats["localstats"]["bytes"]["local2remote"]))
+           ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["local2remote"]))
            if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
          end
          if (ifstats["localstats"]["bytes"]["remote2local"] > 0) then
            name = fixPath(basedir .. "/localstats/remote2local.rrd")
            createSingleRRDcounter(name, verbose)
-           ntop.rrd_update(name, "N:"..tonumber(ifstats["localstats"]["bytes"]["remote2local"]))
+           ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["remote2local"]))
            if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
          end
 
@@ -135,7 +135,7 @@ for _,_ifname in pairs(ifnames) do
 		     -- Traffic stats
 		     name = fixPath(basedir .. "/bytes.rrd")
 		     createRRDcounter(name, 300, verbose)
-		     ntop.rrd_update(name, "N:"..tonumber(hosts_stats[key]["bytes.sent"]) .. ":" .. tonumber(hosts_stats[key]["bytes.rcvd"]))
+		     ntop.rrd_update(name, "N:"..tolongint(hosts_stats[key]["bytes.sent"]) .. ":" .. tolongint(hosts_stats[key]["bytes.rcvd"]))
 		     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
 
 		     -- L4 Protocols
@@ -147,7 +147,7 @@ for _,_ifname in pairs(ifnames) do
 			   name = fixPath(basedir .. "/".. k .. ".rrd")
 			   createRRDcounter(name, 300, verbose)
 			   -- io.write(name.."="..host[k..".bytes.sent"].."|".. host[k..".bytes.rcvd"] .. "\n")
-			   ntop.rrd_update(name, "N:".. tonumber(host[k..".bytes.sent"]) .. ":" .. tonumber(host[k..".bytes.rcvd"]))
+			   ntop.rrd_update(name, "N:".. tolongint(host[k..".bytes.sent"]) .. ":" .. tolongint(host[k..".bytes.rcvd"]))
 			   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
 			else
 			   -- L2 host
@@ -160,7 +160,7 @@ for _,_ifname in pairs(ifnames) do
 			for k in pairs(host["ndpi"]) do
 			   name = fixPath(basedir .. "/".. k .. ".rrd")
 			   createRRDcounter(name, 300, verbose)
-			   ntop.rrd_update(name, "N:".. tonumber(host["ndpi"][k]["bytes.sent"]) .. ":" .. tonumber(host["ndpi"][k]["bytes.rcvd"]))
+			   ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
                            -- Aggregate network NDPI stats
                            if (networks_aggr[host["local_network_name"]]["ndpi"] == nil) then
@@ -204,12 +204,12 @@ for _,_ifname in pairs(ifnames) do
               if(not(ntop.exists(base))) then ntop.mkdir(base) end
               name = fixPath(base .. "/bytes.rrd")
               createRRDcounter(name, 300, verbose)
-              ntop.rrd_update(name, "N:".. tonumber(m["bytes.sent"]) .. ":" .. tonumber(m["bytes.rcvd"]))
+              ntop.rrd_update(name, "N:".. tolongint(m["bytes.sent"]) .. ":" .. tolongint(m["bytes.rcvd"]))
               if (m["ndpi"]) then -- nDPI data could be disabled
                 for k in pairs(m["ndpi"]) do
                   ndpiname = fixPath(base.."/"..k..".rrd")
                   createRRDcounter(ndpiname, 300, verbose)
-                  ntop.rrd_update(ndpiname, "N:"..tonumber(m["ndpi"][k]["bytes.sent"])..":"..tonumber(m["ndpi"][k]["bytes.rcvd"]))
+                  ntop.rrd_update(ndpiname, "N:"..tolongint(m["ndpi"][k]["bytes.sent"])..":"..tolongint(m["ndpi"][k]["bytes.rcvd"]))
                 end
               end
             end
