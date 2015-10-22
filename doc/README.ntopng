@@ -21,7 +21,7 @@ If you want to add support for MySQL or MariaDB also do "apt-get install libmari
 
 On Fedora/CentOS
 - yum groupinstall "Development tools"
-- yum install git autoconf automake autogen libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel
+- yum install git autoconf automake autogen libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel
 
 On MacOSX (using http://brew.sh)
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git
