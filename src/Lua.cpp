@@ -1088,14 +1088,10 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TSTRING)
     key = (char*)lua_tostring(vm, 3);
 
-  if(host_ip) {
-    char ip[64];
-
-    snprintf(ip, sizeof(ip), "%s", host_ip); /* don't rely on host_ip as strtok_r() doesn't always behave correctly */
-    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? key : "*", ip, vlan_id);
-  } else {
-    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS", key ? key : "*");
-  }
+  if(host_ip)
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? key : "*", host_ip, vlan_id);
+  else
+    snprintf(SQL, sizeof(SQL), "SELECT %s FROM FLOWS", key ? key : "*");  
 
   if(ntop_interface) {
     if(ntop_interface->retrieve(vm, get_allowed_nets(vm), SQL))
