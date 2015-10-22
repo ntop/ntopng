@@ -32,11 +32,6 @@ if test -d /opt/local/lib; then :
 fi
 
 SHORT_MACHINE=`uname -m | cut -b1-3`
-if test $SHORT_MACHINE = "arm"; then
-LIBNUMA=""
-else
-LIBNUMA="-lnuma"
-fi
 
 GIT_RELEASE="@GIT_RELEASE@"
 GIT_DATE="@GIT_DATE@"
@@ -156,54 +151,34 @@ fi
 if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a" || test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
   AC_DEFINE_UNQUOTED(HAVE_PF_RING, 1, [Native PF_RING support])
   if test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
-     echo "${PF_RING_HOME}/userland/libpcap/libpcap.a"
-     if test -f "${PF_RING_HOME}/userland/libpcap/libpcap.a"; then
-       LDFLAGS="${LDFLAGS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ ${LIBNUMA} `${PF_RING_HOME}/userland/lib/pfring_config --libs`"
-       CPPFLAGS="${CPPFLAGS} -I${PF_RING_HOME}/kernel -I${PF_RING_HOME}/userland/lib -I${PF_RING_HOME}/userland/libpcap"
-       echo "Using PF_RING installed in ${PF_RING_HOME}"
-     else
-       echo "Found PF_RING but the userland libs have not been compiled"
-       exit
-     fi
-  else
-     if test -d "/opt/pfring"; then
-       if test -f "/opt/pfring/lib/libpfring.a"; then
-         echo "/opt/pfring/lib/libpfring.a"
-         LDFLAGS="${LDFLAGS} /opt/pfring/lib/libpfring.a -L/opt/pfring/lib"
-         CPPFLAGS="${CPPFLAGS} -I/opt/pfring/include"
-         echo "Using PF_RING installed in /opt/pfring"
-      else
-       if test -f "/usr/local/lib/libpfring.a"; then
-        if test -f "/usr/local/lib/libpcap.a"; then
-    	  LDFLAGS="${LDFLAGS} /usr/local/lib/libpfring.a"
-          echo "Using PF_RING installed in /usr/local/lib"
-	  AC_CHECK_LIB([pcap], [pcap_open_live], pcap=true)
-	  if test x$pcap = x
-	  then
-	    echo "Found /usr/local/lib/libpfring.a but missing header files."
-	    exit
-	  fi
-	else
-	  echo "Found /usr/local/lib/libpfring.a  but missing libpcap.a in the same directory"
-	  echo "Please make sure you have installed your PF_RING libraries and try again"
-	  exit
-        fi
-      fi
+    #echo "${PF_RING_HOME}/userland/libpcap/libpcap.a"
+    if test -f "${PF_RING_HOME}/userland/libpcap/libpcap.a"; then
+      LDFLAGS="${LDFLAGS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ `${PF_RING_HOME}/userland/lib/pfring_config --libs`"
+      CPPFLAGS="${CPPFLAGS} -I${PF_RING_HOME}/kernel -I${PF_RING_HOME}/userland/lib -I${PF_RING_HOME}/userland/libpcap"
+      echo "Using PF_RING installed in ${PF_RING_HOME}"
+    else
+      echo "Found PF_RING but the userland libs have not been compiled"
+      exit
     fi
+  elif test -d "/opt/pfring" && test -f "/opt/pfring/lib/libpfring.a"; then
+    echo "/opt/pfring/lib/libpfring.a"
+    LDFLAGS="${LDFLAGS} /opt/pfring/lib/libpfring.a -L/opt/pfring/lib"
+    CPPFLAGS="${CPPFLAGS} -I/opt/pfring/include"
+    echo "Using PF_RING installed in /opt/pfring"
+  elif test -f "/usr/local/lib/libpfring.a"; then
+    LDFLAGS="${LDFLAGS} /usr/local/lib/libpfring.a"
+    echo "Using PF_RING installed in /usr/local/lib"
   else
-  LDFLAGS="${LDFLAGS} -lpfring"
-  echo "Compiling ntopng with PF_RING support"
- fi
- fi
- AC_CHECK_LIB([numa], [numa_available], [LDFLAGS="${LDFLAGS} -lnuma"])
+    LDFLAGS="${LDFLAGS} -lpfring"
+    echo "Compiling ntopng with PF_RING support"
+  fi
 else
   AC_CHECK_LIB([pcap], [pcap_open_live], pcap=true)
-  if test x$pcap = x
-  then
+  if test x$pcap = x; then
     echo "Please install libpcap(-dev) (http://tcpdump.org)"
     exit
   fi
-fi
+fi 
 
 PFRING_GIT_RELEASE=""
 if test -d $HOME/PF_RING; then
