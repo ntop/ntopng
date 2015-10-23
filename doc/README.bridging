@@ -2,8 +2,8 @@
 Using ntopng in bridging mode
 -----------------------------
 
-0. Suppose you want to bridge eth3 with eth4. If the interface names are
-   different please adapt tools/load_hugepages.sh
+0. Suppose you want to bridge zc:eth3 with zc:eth4. If the 
+   interface names are different please adapt tools/load_hugepages.sh
 
 1. We suppose that you have PF_RING compiled with this layout
    - PF_RING
@@ -14,8 +14,10 @@ Using ntopng in bridging mode
 3. Make sure you have executed once ../tools/load_hugepages.sh
 
 3. Start ntopng as follows
-   ntopng -i "bridge:eth3,eth4"
+   ntopng -i "bridge:zc:eth3,zc:eth4"
 
 
 NOTE:
-Interface bridging is available in the professional version.
+- Interface bridging is available in the professional version.
+- It can work (at lower speed and higher latency) also with non-ZC
+  network interfaces

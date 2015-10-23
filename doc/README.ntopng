@@ -13,26 +13,25 @@ Prerequisites
 - libglib2.0-dev
 - libsqlite3-dev
 - libcurl-dev
+- libmysqlclient-dev
 
 On Ubuntu/Debian
 - apt-get install build-essential git libglib2.0 libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev libmariadb-client-lgpl-dev
 
-If you want to add support for MySQL or MariaDB also do "apt-get install libmariadb-client-lgpl-dev" or "apt-get install libmysqlclient-dev"
+You can decide to use MySQL or MariaDB using "apt-get install libmariadb-client-lgpl-dev" or "apt-get install libmysqlclient-dev"
 
 On Fedora/CentOS
 - yum groupinstall "Development tools"
 - yum install git autoconf automake autogen libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel
 
 On MacOSX (using http://brew.sh)
-brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git
+brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql
 
 On MacOSX (using mac ports)
 port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
 
 On FreeBSD
 - pkg install autoconf automake libtool wget pkgconf rrdtool gmake redis git bash mysql-connector-c
-
-
 Note that you need to edit third-party/LuaJIT-2.0.3/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
 
 On Windows you can download the redis server from
@@ -50,14 +49,12 @@ Once you have installed all the prerequisites do
 
 Binary Packages
 ---------------
-- Debian/CentOS   http://packages.ntop.org
+- Debian/CentOS/Windows   http://packages.ntop.org
 - OSX
-                  http://sourceforge.net/projects/ntop/files/ntopng/
-                  Homebrew
-                    brew update
-                    brew install ntopng
-- Windows         http://shop.ntop.org or build it from source using the code in SVN
-
+			http://sourceforge.net/projects/ntop/files/ntopng/
+			Homebrew
+			# brew update
+			# brew install ntopng
 
 Prior to Start ntopng
 ---------------------
@@ -144,11 +141,16 @@ ntopng -d /path2 -r 127.0.0.1:6379@2 -w 3002
 
 Using Interface Views
 ---------------------
-Suppose you want to start ntopng as follows "-i eth0 -i eth1". ntopng will show you traffic of these two interfaces without any merge so you can see exactly what happens on each inteface. If you also need an aggregated view of both interfaces you can start ntopng as "-i eth0 -i eth1 -i view:eth0,eth1" so ntopng will create a virtual interface that merges information from the two physical interfaces.
+Suppose you want to start ntopng as follows "-i eth0 -i eth1". ntopng will show you traffic
+of these two interfaces without any merge so you can see exactly what happens on each inteface.
+If you also need an aggregated view of both interfaces you can start ntopng
+as "ntopng -i eth0 -i eth1 -i view:eth0,eth1" so ntopng will create a virtual interface
+that merges information from the two physical interfaces.
 
 Using ntopng behind a Proxy
 ---------------------------
-If you have many ntopng instances that you want to mask behind a proxy the -Z is what you look for. See the man page for more information.
+If you have many ntopng instances that you want to mask behind a proxy the
+-Z is what you look for. See the man page for more information.
 
 Debugging ntopng
 ----------------
