@@ -1,178 +1,23 @@
-    -- Module options:
-    local always_try_using_lpeg = true
-    local register_global_module_table = false
-    local global_module_name = 'json'
+-- Module options:
+local always_try_using_lpeg = true
+local register_global_module_table = false
+local global_module_name = 'json'
 
-    --[==[
+--[==[
 
 David Kolf's JSON module for Lua 5.1/5.2
-========================================
 
-*Version 2.3*
+Version 2.5
 
-In the default configuration this module writes no global values, not even
-the module table. Import it using
 
-    json = require ("dkjson")
-
-In environments where `require` or a similiar function are not available
-and you cannot receive the return value of the module, you can set the
-option `register_global_module_table` to `true`.  The module table will
-then be saved in the global variable with the name given by the option
-`global_module_name`.
-
-Exported functions and values:
-
-`json.encode (object [, state])`
---------------------------------
-
-Create a string representing the object. `Object` can be a table,
-a string, a number, a boolean, `nil`, `json.null` or any object with
-a function `__tojson` in its metatable. A table can only use strings
-and numbers as keys and its values have to be valid objects as
-well. It raises an error for any invalid data types or reference
-cycles.
-
-`state` is an optional table with the following fields:
-
-  - `indent`  
-    When `indent` (a boolean) is set, the created string will contain
-    newlines and indentations. Otherwise it will be one long line.
-  - `keyorder`  
-    `keyorder` is an array to specify the ordering of keys in the
-    encoded output. If an object has keys which are not in this array
-    they are written after the sorted keys.
-  - `level`  
-    This is the initial level of indentation used when `indent` is
-    set. For each level two spaces are added. When absent it is set
-    to 0.
-  - `buffer`  
-    `buffer` is an array to store the strings for the result so they
-    can be concatenated at once. When it isn't given, the encode
-    function will create it temporary and will return the
-    concatenated result.
-  - `bufferlen`  
-    When `bufferlen` is set, it has to be the index of the last
-    element of `buffer`.
-  - `tables`  
-    `tables` is a set to detect reference cycles. It is created
-    temporary when absent. Every table that is currently processed
-    is used as key, the value is `true`.
-
-When `state.buffer` was set, the return value will be `true` on
-success. Without `state.buffer` the return value will be a string.
-
-`json.decode (string [, position [, null]])`
---------------------------------------------
-
-Decode `string` starting at `position` or at 1 if `position` was
-omitted.
-
-`null` is an optional value to be returned for null values. The
-default is `nil`, but you could set it to `json.null` or any other
-value.
-
-The return values are the object or `nil`, the position of the next
-character that doesn't belong to the object, and in case of errors
-an error message.
-
-Two metatables are created. Every array or object that is decoded gets
-a metatable with the `__jsontype` field set to either `array` or
-`object`. If you want to provide your own metatables use the syntax
-
-    json.decode (string, position, null, objectmeta, arraymeta)
-
-To prevent the assigning of metatables pass `nil`:
-
-    json.decode (string, position, null, nil)
-
-`<metatable>.__jsonorder`
--------------------------
-
-`__jsonorder` can overwrite the `keyorder` for a specific table.
-
-`<metatable>.__jsontype`
-------------------------
-
-`__jsontype` can be either `"array"` or `"object"`. This value is only
-checked for empty tables. (The default for empty tables is `"array"`).
-
-`<metatable>.__tojson (self, state)`
-------------------------------------
-
-You can provide your own `__tojson` function in a metatable. In this
-function you can either add directly to the buffer and return true,
-or you can return a string. On errors nil and a message should be
-returned.
-
-`json.null`
------------
-
-You can use this value for setting explicit `null` values.
-
-`json.version`
---------------
-
-Set to `"dkjson 2.3"`.
-
-`json.quotestring (string)`
----------------------------
-
-Quote a UTF-8 string and escape critical characters using JSON
-escape sequences. This function is only necessary when you build
-your own `__tojson` functions.
-
-`json.addnewline (state)`
--------------------------
-
-When `state.indent` is set, add a newline to `state.buffer` and spaces
-according to `state.level`.
-
-LPeg support
-------------
-
-When the local configuration variable `always_try_using_lpeg` is set,
-this module tries to load LPeg to replace the `decode` function. The
-speed increase is significant. You can get the LPeg module at
-  <http://www.inf.puc-rio.br/~roberto/lpeg/>.
-When LPeg couldn't be loaded, the pure Lua functions stay active.
-
-In case you don't want this module to require LPeg on its own,
-disable the option `always_try_using_lpeg` in the options section at
-the top of the module.
-
-In this case you can later load LPeg support using
-
-### `json.use_lpeg ()`
-
-Require the LPeg module and replace the functions `quotestring` and
-and `decode` with functions that use LPeg patterns.
-This function returns the module table, so you can load the module
-using:
-
-    json = require "dkjson".use_lpeg()
-
-Alternatively you can use `pcall` so the JSON module still works when
-LPeg isn't found.
-
-    json = require "dkjson"
-    pcall (json.use_lpeg)
-
-### `json.using_lpeg`
-
-This variable is set to `true` when LPeg was loaded successfully.
-
----------------------------------------------------------------------
-
-Contact
--------
+For the documentation see the corresponding readme.txt or visit
+<http://dkolf.de/src/dkjson-lua.fsl/>.
 
 You can contact the author by sending an e-mail to 'david' at the
 domain 'dkolf.de'.
 
----------------------------------------------------------------------
 
-*Copyright (C) 2010-2013 David Heiko Kolf*
+Copyright (C) 2010-2013 David Heiko Kolf
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -194,13 +39,7 @@ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-<!-- This documentation can be parsed using Markdown to generate HTML.
-     The source code is enclosed in a HTML comment so it won't be displayed
-     by browsers, but it should be removed from the final HTML file as
-     it isn't a valid HTML comment (and wastes space).
-  -->
-
-<!--]==]
+--]==]
 
 -- global dependencies:
 local pairs, type, tostring, tonumber, getmetatable, setmetatable, rawset =
@@ -210,9 +49,10 @@ local floor, huge = math.floor, math.huge
 local strrep, gsub, strsub, strbyte, strchar, strfind, strlen, strformat =
       string.rep, string.gsub, string.sub, string.byte, string.char,
       string.find, string.len, string.format
+local strmatch = string.match
 local concat = table.concat
 
-local json = { version = "dkjson 2.3" }
+local json = { version = "dkjson 2.5" }
 
 if register_global_module_table then
   _G[global_module_name] = json
@@ -318,6 +158,39 @@ local function quotestring (value)
 end
 json.quotestring = quotestring
 
+local function replace(str, o, n)
+  local i, j = strfind (str, o, 1, true)
+  if i then
+    return strsub(str, 1, i-1) .. n .. strsub(str, j+1, -1)
+  else
+    return str
+  end
+end
+
+-- locale independent num2str and str2num functions
+local decpoint, numfilter
+
+local function updatedecpoint ()
+  decpoint = strmatch(tostring(0.5), "([^05+])")
+  -- build a filter that can be used to remove group separators
+  numfilter = "[^0-9%-%+eE" .. gsub(decpoint, "[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0") .. "]+"
+end
+
+updatedecpoint()
+
+local function num2str (num)
+  return replace(fsub(tostring(num), numfilter, ""), decpoint, ".")
+end
+
+local function str2num (str)
+  local num = tonumber(replace(str, ".", decpoint))
+  if not num then
+    updatedecpoint()
+    num = tonumber(replace(str, ".", decpoint))
+  end
+  return num
+end
+
 local function addnewline2 (level, buffer, buflen)
   buffer[buflen+1] = "\n"
   buffer[buflen+2] = strrep ("  ", level)
@@ -334,7 +207,7 @@ end
 
 local encode2 -- forward declaration
 
-local function addpair (key, value, prev, indent, level, buffer, buflen, tables, globalorder)
+local function addpair (key, value, prev, indent, level, buffer, buflen, tables, globalorder, state)
   local kt = type (key)
   if kt ~= 'string' and kt ~= 'number' then
     return nil, "type '" .. kt .. "' is not supported as a key by JSON."
@@ -348,31 +221,50 @@ local function addpair (key, value, prev, indent, level, buffer, buflen, tables,
   end
   buffer[buflen+1] = quotestring (key)
   buffer[buflen+2] = ":"
-  return encode2 (value, indent, level, buffer, buflen + 2, tables, globalorder)
+  return encode2 (value, indent, level, buffer, buflen + 2, tables, globalorder, state)
 end
 
-encode2 = function (value, indent, level, buffer, buflen, tables, globalorder)
+local function appendcustom(res, buffer, state)
+  local buflen = state.bufferlen
+  if type (res) == 'string' then
+    buflen = buflen + 1
+    buffer[buflen] = res
+  end
+  return buflen
+end
+
+local function exception(reason, value, state, buffer, buflen, defaultmessage)
+  defaultmessage = defaultmessage or reason
+  local handler = state.exception
+  if not handler then
+    return nil, defaultmessage
+  else
+    state.bufferlen = buflen
+    local ret, msg = handler (reason, value, state, defaultmessage)
+    if not ret then return nil, msg or defaultmessage end
+    return appendcustom(ret, buffer, state)
+  end
+end
+
+function json.encodeexception(reason, value, state, defaultmessage)
+  return quotestring("<" .. defaultmessage .. ">")
+end
+
+encode2 = function (value, indent, level, buffer, buflen, tables, globalorder, state)
   local valtype = type (value)
   local valmeta = getmetatable (value)
   valmeta = type (valmeta) == 'table' and valmeta -- only tables
   local valtojson = valmeta and valmeta.__tojson
   if valtojson then
     if tables[value] then
-      return nil, "reference cycle"
+      return exception('reference cycle', value, state, buffer, buflen)
     end
     tables[value] = true
-    local state = {
-        indent = indent, level = level, buffer = buffer,
-        bufferlen = buflen, tables = tables, keyorder = globalorder
-    }
+    state.bufferlen = buflen
     local ret, msg = valtojson (value, state)
-    if not ret then return nil, msg end
+    if not ret then return exception('custom encoder failed', value, state, buffer, buflen, msg) end
     tables[value] = nil
-    buflen = state.bufferlen
-    if type (ret) == 'string' then
-      buflen = buflen + 1
-      buffer[buflen] = ret
-    end
+    buflen = appendcustom(ret, buffer, state)
   elseif value == nil then
     buflen = buflen + 1
     buffer[buflen] = "null"
@@ -382,7 +274,7 @@ encode2 = function (value, indent, level, buffer, buflen, tables, globalorder)
       -- This is the behaviour of the original JSON implementation.
       s = "null"
     else
-      s = tostring (value)
+      s = num2str (value)
     end
     buflen = buflen + 1
     buffer[buflen] = s
@@ -394,7 +286,7 @@ encode2 = function (value, indent, level, buffer, buflen, tables, globalorder)
     buffer[buflen] = quotestring (value)
   elseif valtype == 'table' then
     if tables[value] then
-      return nil, "reference cycle"
+      return exception('reference cycle', value, state, buffer, buflen)
     end
     tables[value] = true
     level = level + 1
@@ -407,7 +299,7 @@ encode2 = function (value, indent, level, buffer, buflen, tables, globalorder)
       buflen = buflen + 1
       buffer[buflen] = "["
       for i = 1, n do
-        buflen, msg = encode2 (value[i], indent, level, buffer, buflen, tables, globalorder)
+        buflen, msg = encode2 (value[i], indent, level, buffer, buflen, tables, globalorder, state)
         if not buflen then return nil, msg end
         if i < n then
           buflen = buflen + 1
@@ -429,20 +321,20 @@ encode2 = function (value, indent, level, buffer, buflen, tables, globalorder)
           local v = value[k]
           if v then
             used[k] = true
-            buflen, msg = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder)
+            buflen, msg = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
             prev = true -- add a seperator before the next element
           end
         end
         for k,v in pairs (value) do
           if not used[k] then
-            buflen, msg = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder)
+            buflen, msg = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
             if not buflen then return nil, msg end
             prev = true -- add a seperator before the next element
           end
         end
       else -- unordered
         for k,v in pairs (value) do
-          buflen, msg = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder)
+          buflen, msg = addpair (k, v, prev, indent, level, buffer, buflen, tables, globalorder, state)
           if not buflen then return nil, msg end
           prev = true -- add a seperator before the next element
         end
@@ -455,7 +347,8 @@ encode2 = function (value, indent, level, buffer, buflen, tables, globalorder)
     end
     tables[value] = nil
   else
-    return nil, "type '" .. valtype .. "' is not supported by JSON."
+    return exception ('unsupported type', value, state, buffer, buflen,
+      "type '" .. valtype .. "' is not supported by JSON.")
   end
   return buflen
 end
@@ -464,14 +357,18 @@ function json.encode (value, state)
   state = state or {}
   local oldbuffer = state.buffer
   local buffer = oldbuffer or {}
+  state.buffer = buffer
+  updatedecpoint()
   local ret, msg = encode2 (value, state.indent, state.level or 0,
-                   buffer, state.bufferlen or 0, state.tables or {}, state.keyorder)
+                   buffer, state.bufferlen or 0, state.tables or {}, state.keyorder, state)
   if not ret then
     error (msg, 2)
-  elseif oldbuffer then
+  elseif oldbuffer == buffer then
     state.bufferlen = ret
     return true
   else
+    state.bufferlen = nil
+    state.buffer = nil
     return concat (buffer)
   end
 end
@@ -499,9 +396,17 @@ local function scanwhite (str, pos)
   while true do
     pos = strfind (str, "%S", pos)
     if not pos then return nil end
-    if strsub (str, pos, pos + 2) == "\239\187\191" then
+    local sub2 = strsub (str, pos, pos + 1)
+    if sub2 == "\239\187" and strsub (str, pos + 2, pos + 2) == "\191" then
       -- UTF-8 Byte Order Mark
       pos = pos + 3
+    elseif sub2 == "//" then
+      pos = strfind (str, "[\n\r]", pos + 2)
+      if not pos then return nil end
+    elseif sub2 == "/*" then
+      pos = strfind (str, "*/", pos + 2)
+      if not pos then return nil end
+      pos = pos + 2
     else
       return pos
     end
@@ -659,7 +564,7 @@ scanvalue = function (str, pos, nullval, objectmeta, arraymeta)
   else
     local pstart, pend = strfind (str, "^%-?[%d%.]+[eE]?[%+%-]?%d*", pos)
     if pstart then
-      local number = tonumber (strsub (str, pstart, pend))
+      local number = str2num (strsub (str, pstart, pend))
       if number then
         return number, pend + 1
       end
@@ -694,8 +599,13 @@ end
 
 function json.use_lpeg ()
   local g = require ("lpeg")
+
+  if g.version() == "0.11" then
+    error "due to a bug in LPeg 0.11, it cannot be used for JSON matching"
+  end
+
   local pegmatch = g.match
-  local P, S, R, V = g.P, g.S, g.R, g.V
+  local P, S, R = g.P, g.S, g.R
 
   local function ErrorCall (str, pos, msg, state)
     if not state.msg then
@@ -709,7 +619,9 @@ function json.use_lpeg ()
     return g.Cmt (g.Cc (msg) * g.Carg (2), ErrorCall)
   end
 
-  local Space = (S" \n\r\t" + P"\239\187\191")^0
+  local SingleLineComment = P"//" * (1 - S"\n\r")^0
+  local MultiLineComment = P"/*" * (1 - P"*/")^0 * P"*/"
+  local Space = (S" \n\r\t" + P"\239\187\191" + SingleLineComment + MultiLineComment)^0
 
   local PlainChar = 1 - S"\"\\\n\r"
   local EscapeSequence = (P"\\" * g.C (S"\"\\/bfnrt" + Err "unsupported escape sequence")) / escapechars
@@ -732,7 +644,7 @@ function json.use_lpeg ()
   local Integer = P"-"^(-1) * (P"0" + (R"19" * R"09"^0))
   local Fractal = P"." * R"09"^0
   local Exponent = (S"eE") * (S"+-")^(-1) * R"09"^1
-  local Number = (Integer * Fractal^(-1) * Exponent^(-1))/tonumber
+  local Number = (Integer * Fractal^(-1) * Exponent^(-1))/str2num
   local Constant = P"true" * g.Cc (true) + P"false" * g.Cc (false) + P"null" * g.Carg (1)
   local SimpleValue = Number + String + Constant
   local ArrayContent, ObjectContent
@@ -800,4 +712,3 @@ end
 
 return json
 
--->
