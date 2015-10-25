@@ -493,7 +493,7 @@ print [[
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
-rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true)
+rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest true means: expand_interface_views
 
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
@@ -1216,10 +1216,10 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       if (names_cache[n] == nil) then
 	 names_cache[n] = true
 	 names[#names+1] = prefixLabel
-	 if(host ~= nil) then names[#names] = names[#names] .. " (" .. firstToUpper(n)..")" end
+         if not host then names[#names] = names[#names].." ("..getInterfaceName(ifid)..")"
+	 elseif host then names[#names] = names[#names] .. " (" .. firstToUpper(n)..")" end
       end
    end
-   
    local minval, maxval, lastval = 0, 0, 0
    local maxval_time, minval_time, lastval_time  = nil, nil, nil
    local sampling = 1
@@ -1430,61 +1430,78 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    ret.average = round(average, 0)
    ret.json = json_ret
 
-   -- io.write(json_ret)
-
-   return(ret)
+  return(ret)
 end
 
 -- #################################################
 
-function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json)
+function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expand_interface_views)
    local ret = {}
    local num = 0
    local debug_metric = false
+   
+   local ifstats = interface.getStats()   
+   local rrd_if_ids = {}  -- read rrds for interfaces listed here
+   rrd_if_ids[1] = ifid -- the default submitted interface
+   -- interface.select(getInterfaceName(ifid))
 
+   if(debug_metric) then io.write('expand_interface_views: '..tostring(expand_interface_views)..'\n') end
+   if expand_interface_views and ifstats.isView then
+        -- expand rrds for views and read each physical interface separately
+        for iface,_ in pairs(ifstats.interfaces) do
+            if(debug_metric) then io.write('iface: '..iface..' id: '..getInterfaceId(iface)..'\n') end
+            rrd_if_ids[#rrd_if_ids+1] = getInterfaceId(iface)
+        end       
+   end
+   
+   
    if(debug_metric) then io.write("RRD File: "..rrdFile.."\n") end
 
    if(rrdFile == "all") then
-      local dirs = ntop.getDirs()
-      local p = dirs.workingdir .. "/" .. ifid .. "/rrd/"
-      if(debug_metric) then io.write("Navigating: "..p.."\n") end
-
-      if(host ~= nil) then
-	 p = p .. getPathFromKey(host)
-	 go_deep = true
-      else
-	 go_deep = false
-      end
-
-      d = fixPath(p)
-      rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time)
-
-      local traffic_array = {}
-      for key, value in pairs(rrds) do
-	 rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json)
-	 if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
-
-	 if(total > 0) then
-	    traffic_array[total] = rsp
-	    if(debug_metric) then io.write("Analyzing: "..value.." [total "..total.."]\n") end
-	 end
-      end
-
-      for key, value in pairsByKeys(traffic_array, rev) do
-	 ret[num] = value
-	 if(ret[num].json ~= nil) then
-	    if(debug_metric) then io.write(key.."\n") end
-	    num = num + 1
-	    if(num >= 10) then break end
-	 end
-      end
+       local dirs = ntop.getDirs()
+       local p = dirs.workingdir .. "/" .. ifid .. "/rrd/"
+       if(debug_metric) then io.write("Navigating: "..p.."\n") end
+       
+       if(host ~= nil) then
+           p = p .. getPathFromKey(host)
+           go_deep = true
+       else
+           go_deep = false
+       end
+       
+       d = fixPath(p)
+       rrds = navigatedir("", "*", d, d, go_deep, false, ifid, host, start_time, end_time)
+       
+       local traffic_array = {}
+       for key, value in pairs(rrds) do
+           rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json)
+           if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
+           
+           if(total > 0) then
+               traffic_array[total] = rsp
+               if(debug_metric) then io.write("Analyzing: "..value.." [total "..total.."]\n") end
+           end
+       end
+       
+       for key, value in pairsByKeys(traffic_array, rev) do
+           ret[num] = value
+           if(ret[num].json ~= nil) then
+               if(debug_metric) then io.write(key.."\n") end
+               num = num + 1
+               if(num >= 10) then break end
+           end
+       end
    else
-      num = 0
-      for i,rrd in pairs(split(rrdFile, ",")) do
-	 if(debug_metric) then io.write("["..i.."] "..rrd.."\n") end
-	 ret[i] = singlerrd2json(ifid, host, rrd, start_time, end_time, rickshaw_json)
-	 if(ret[i].json ~= nil) then num = num + 1 end
-      end
+       num = 0
+       for _,iface in pairs(rrd_if_ids) do
+           if(debug_metric) then io.write('iface: '..iface..'\n') end
+            for i,rrd in pairs(split(rrdFile, ",")) do
+                if(debug_metric) then io.write("["..i.."] "..rrd.."\n") end
+                ret[#ret + 1] = singlerrd2json(iface, host, rrd, start_time, end_time, rickshaw_json)
+                if(ret[#ret].json ~= nil) then num = num + 1 end
+            end
+       end
+
    end
 
    if(debug_metric) then io.write("#rrds="..num.."\n") end
@@ -1492,22 +1509,28 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json)
       ret = {}
       ret.json = ""
       return(ret)
-      elseif(num == 1) then
-      ret[1].json = '[\n'..ret[1].json..'\n]'
-      return(ret[1])
    end
-
+   local i = 1
+   -- if we are expanding an interface view, we want to concatenate
+   -- jsons for single interfaces, and not for the view. Since view statistics
+   -- are in ret[1], it suffices to aggregate jsons from index i >= 2
+   if expand_interface_views and ifstats.isView then
+       i = 2 
+   end
    local json = "["
-   for i=1,num-1 do
+   local first = true  -- used to decide where to append commas
+   while i <= num do
       if(debug_metric) then io.write("->"..i.."\n") end
-      if(i > 1) then json = json.."," end
+      if not first then json = json.."," end     
       json = json..ret[i].json
+      i = i + 1
+      first = false
    end
    json = json.."]"
-
-   ret = {}
-   ret.json = json
-
+   -- the (possibly aggregated) json always goes into ret[1]
+   -- ret[1] possibly contains aggregated view statistics such as
+   -- maxval and maxval_time or minval and minval_time
+   ret[1].json = json
    -- io.write(json.."\n")
-   return(ret)
+   return(ret[1])
 end
