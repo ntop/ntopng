@@ -84,6 +84,7 @@ class Redis {
   void setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_int32_t id);
   u_int32_t host_to_id(NetworkInterface *iface, char *daybuf, char *host_name, bool *new_key);
   int id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len);
+  void pushEStemplate();
   void indexESdata();
   int lpush(const char *queue_name, char *msg, u_int queue_trim_size);
   int rpush(const char *queue_name, char *msg, u_int queue_trim_size);

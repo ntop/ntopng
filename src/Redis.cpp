@@ -30,7 +30,8 @@
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
-  ntop->getRedis()->indexESdata();
+    ntop->getRedis()->pushEStemplate();  // sends ES ntopng template
+    ntop->getRedis()->indexESdata();
   return(NULL);
 }
 
@@ -1095,4 +1096,59 @@ void Redis::indexESdata() {
     } else
       sleep(1);
   } /* while */
+}
+
+/*
+ Send ntopng index template to Elastic Search
+ */
+void Redis::pushEStemplate() {
+  char *postbuf = NULL, *es_host = NULL;
+  char template_path[MAX_PATH], es_url[MAX_PATH];
+  ifstream template_file;
+  uint8_t max_attempts = 3;
+  uint16_t length = 0;
+  
+  // prepare the template file path...
+  snprintf(template_path, sizeof(template_path), "%s/misc/ntopng_template.elasticsearch.json", ntop->get_docs_dir());
+  ntop->fixPath(template_path);
+  // and the ES url (keep only host and port by retaining only characters left of the first slash)
+  if(!strncmp(ntop->getPrefs()->get_es_url(), "http://", 7)){  // url starts either with http or https
+    Utils::tokenizer(ntop->getPrefs()->get_es_url() + 7, '/', &es_host);
+    snprintf(es_url, MAX_PATH, "http://%s/_template/ntopng_template", es_host);
+  }else if (!strncmp(ntop->getPrefs()->get_es_url(), "https://", 8)){
+    Utils::tokenizer(ntop->getPrefs()->get_es_url() + 8, '/', &es_host);
+    snprintf(es_url, MAX_PATH, "https://%s/_template/ntopng_template", es_host);
+  } else {
+    Utils::tokenizer(ntop->getPrefs()->get_es_url(), '/', &es_host);
+    snprintf(es_url, MAX_PATH, "%s/_template/ntopng_template", es_host);
+  }
+
+  while(max_attempts > 0) {    
+    template_file.open(template_path);      // open input file
+    template_file.seekg(0, ios::end);    // go to the end
+    length = template_file.tellg();           // report location (this is the length)
+    template_file.seekg(0, ios::beg);    // go back to the beginning
+    postbuf = new char[length+1];    // allocate memory for a buffer of appropriate dimension
+    template_file.read(postbuf, length);       // read the whole file into the buffer
+    postbuf[length] = '\0';
+    if(template_file.is_open())
+        template_file.close();                    // close file handle
+
+
+    if (!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
+            ntop->getPrefs()->get_es_pwd(),
+            es_url,
+            postbuf)) {
+            /* Post failure */
+            sleep(1);
+    } else {
+        ntop->getTrace()->traceEvent(TRACE_INFO, "ntopng template successfully sent to ES");
+        if(postbuf)
+            free(postbuf);
+        break;
+    }
+    max_attempts--;
+  } /* while */
+  if(max_attempts == 0)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ntopng template (%s) to ES", template_path);
 }

@@ -192,6 +192,12 @@ class Ntop {
   inline char* get_data_dir()                        { return(prefs->get_data_dir());      };
   inline char* get_callbacks_dir()                   { return(prefs->get_callbacks_dir()); };
   /**
+   * @brief Get the current httpdocs directory.
+   *
+   * @return The absolute path of the httpdocs directory.
+   */
+  inline char* get_docs_dir()                     { return(prefs->get_docs_dir());      };
+  /**
    * @brief Get categorization.
    *
    * @return Current categorization instance.
