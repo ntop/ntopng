@@ -426,4 +426,5 @@
 #define closesocket(c)		close(c)
 #endif
 
+#define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
 #endif /* _NTOP_DEFINES_H_ */
