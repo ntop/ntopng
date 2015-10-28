@@ -1215,9 +1215,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       -- handle duplicates
       if (names_cache[n] == nil) then
 	 names_cache[n] = true
-	 names[#names+1] = prefixLabel
-         if not host then names[#names] = names[#names].." ("..getInterfaceName(ifid)..")"
-	 elseif host then names[#names] = names[#names] .. " (" .. firstToUpper(n)..")" end
+	 names[#names+1] = prefixLabel.." ("..getInterfaceName(ifid)
+         if host then names[#names] = names[#names]..', '..firstToUpper(n) end
+	 names[#names] = names[#names]..")"
       end
    end
    local minval, maxval, lastval = 0, 0, 0
@@ -1440,12 +1440,17 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    local num = 0
    local debug_metric = false
    
+   interface.select(getInterfaceName(ifid))
    local ifstats = interface.getStats()   
    local rrd_if_ids = {}  -- read rrds for interfaces listed here
    rrd_if_ids[1] = ifid -- the default submitted interface
    -- interface.select(getInterfaceName(ifid))
 
-   if(debug_metric) then io.write('expand_interface_views: '..tostring(expand_interface_views)..'\n') end
+   if(debug_metric) then
+       io.write('ifid: '..ifid..' ifname:'..getInterfaceName(ifid)..'\n')
+       io.write('expand_interface_views: '..tostring(expand_interface_views)..'\n')
+       io.write('ifstats.isView: '..tostring(ifstats.isView)..'\n')
+   end
    if expand_interface_views and ifstats.isView then
         -- expand rrds for views and read each physical interface separately
         for iface,_ in pairs(ifstats.interfaces) do
@@ -1458,6 +1463,8 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    if(debug_metric) then io.write("RRD File: "..rrdFile.."\n") end
 
    if(rrdFile == "all") then
+       -- disable expand interface views for rrdFile == all
+       expand_interface_views=false
        local dirs = ntop.getDirs()
        local p = dirs.workingdir .. "/" .. ifid .. "/rrd/"
        if(debug_metric) then io.write("Navigating: "..p.."\n") end
@@ -1484,8 +1491,8 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
        end
        
        for key, value in pairsByKeys(traffic_array, rev) do
-           ret[num] = value
-           if(ret[num].json ~= nil) then
+           ret[#ret+1] = value
+           if(ret[#ret].json ~= nil) then
                if(debug_metric) then io.write(key.."\n") end
                num = num + 1
                if(num >= 10) then break end
@@ -1496,7 +1503,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
        for _,iface in pairs(rrd_if_ids) do
            if(debug_metric) then io.write('iface: '..iface..'\n') end
             for i,rrd in pairs(split(rrdFile, ",")) do
-                if(debug_metric) then io.write("["..i.."] "..rrd.."\n") end
+                if(debug_metric) then io.write("["..i.."] "..rrd..' iface: '..iface.."\n") end
                 ret[#ret + 1] = singlerrd2json(iface, host, rrd, start_time, end_time, rickshaw_json)
                 if(ret[#ret].json ~= nil) then num = num + 1 end
             end
