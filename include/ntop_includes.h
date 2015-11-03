@@ -147,6 +147,7 @@ using namespace std;
 #include "nDPIStats.h"
 #include "DnsStats.h"
 #include "TrafficStats.h"
+#include "NetworkStats.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
 #include "EthStats.h"

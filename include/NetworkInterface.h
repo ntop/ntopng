@@ -125,6 +125,8 @@ class NetworkInterface {
   bool running, is_idle;
   PacketDumper *pkt_dumper;
   PacketDumperTuntap *pkt_dumper_tap;
+  u_char* antenna_mac; 
+  NetworkStats *networkStats;
 
   void deleteDataStructures();
   Flow* getFlow(u_int8_t *src_eth, u_int8_t *dst_eth, u_int16_t vlan_id,
@@ -140,7 +142,7 @@ class NetworkInterface {
   bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
-  u_char* antenna_mac; 
+  void allocateNetworkStats();
 
  public:
   /**
@@ -310,6 +312,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
 #endif
+  NetworkStats* getNetworkStats(int16_t networkId);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

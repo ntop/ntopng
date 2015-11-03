@@ -87,6 +87,8 @@ NetworkInterface::NetworkInterface() {
   dump_max_duration = CONST_MAX_DUMP_DURATION;
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
+
+  allocateNetworkStats();
 }
 
 /* **************************************************** */
@@ -444,9 +446,10 @@ NetworkInterface::~NetworkInterface() {
   if(db) delete db;
   if(statsManager) delete statsManager;
   if(flowsManager) delete flowsManager;
-
-  if(pkt_dumper) delete pkt_dumper;
+  if(networkStats) delete networkStats;
+  if(pkt_dumper)   delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
+
   if(view) {
     ntop->sanitizeInterfaceView(view);
     delete view;
@@ -555,7 +558,6 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
       return(NULL);
     }
-
     if(flows_hash->add(ret)) {
       *src2dst_direction = true;
       return(ret);
@@ -2498,3 +2500,30 @@ void NetworkInterface::addInterfaceAddress(char *addr) {
     ip_addresses = ip_addresses + "," + s;
   }
 }
+
+/* **************************************** */
+
+void NetworkInterface::allocateNetworkStats() {
+  try {
+    networkStats = new NetworkStats[ntop->getNumLocalNetworks()];
+  } catch(std::bad_alloc& ba) {
+    static bool oom_warning_sent = false;
+    
+    if(!oom_warning_sent) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      oom_warning_sent = true;
+    }
+
+    networkStats = NULL;
+  }
+}
+
+/* **************************************** */
+
+NetworkStats* NetworkInterface::getNetworkStats(int16_t networkId) { 
+  if((networkId < 0) || (networkId >= ntop->getNumLocalNetworks()))
+    return(NULL);
+  else
+    return(&networkStats[networkId]);
+}
+

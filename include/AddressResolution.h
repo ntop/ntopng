@@ -29,7 +29,7 @@ class AddressResolution {
   u_int32_t num_resolved_addresses, num_resolved_fails;
   pthread_t resolveThreadLoop;
   char *local_networks[CONST_MAX_NUM_NETWORKS];
-  u_int8_t num_local_networks;
+  u_int8_t numLocalNetworks;
   Mutex m;
 
  public:
@@ -39,6 +39,7 @@ class AddressResolution {
   void startResolveAddressLoop();
   void resolveHostName(char *numeric_ip, char *rsp = NULL, u_int rsp_len = 0);
 
+  inline u_int8_t getNumLocalNetworks()       { return(numLocalNetworks); };
   inline char *get_local_network(u_int8_t id) { return localNetworks.getAddressString(id); };
   bool setLocalNetworks(char *rule);
   int16_t findAddress(int family, void *addr); /* if(rc > 0) networdId else notfound */

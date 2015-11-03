@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
   if(ntop->getInterfaceAtId(0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
     _exit(0);
- }
+  }
 
   for(int i = 0 ; i < MAX_NUM_INTERFACES ; i++) {
     NetworkInterfaceView *view;

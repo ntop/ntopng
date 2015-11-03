@@ -53,6 +53,7 @@ class Host : public GenericHost {
   HTTPStats *http;
   bool trigger_host_alerts;
   u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
+  NetworkStats *networkStats;
 
 #ifdef NTOPNG_PRO
   NDPI_PROTOCOL_BITMASK *l7Policy;
@@ -138,13 +139,14 @@ class Host : public GenericHost {
   void decNumFlows(bool as_client);  
 
   inline void incIngressDrops(u_int num_bytes)           { ingress_drops.incStats(num_bytes);             };
-  inline void incEgressDrops(u_int num_bytes)            { egress_drops.incStats(num_bytes);             };
+  inline void incEgressDrops(u_int num_bytes)            { egress_drops.incStats(num_bytes);              };
   inline void incNumDNSQueriesSent(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesSent(query_type); };
   inline void incNumDNSQueriesRcvd(u_int16_t query_type) { if(dns) dns->incNumDNSQueriesRcvd(query_type); };
   inline void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
   inline void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
-
   inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
+  
+  inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
 
   void readAlertPrefs();
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
@@ -159,6 +161,9 @@ class Host : public GenericHost {
   void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);    
+  inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
+  inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
+  inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
 };
 
 #endif /* _HOST_H_ */
