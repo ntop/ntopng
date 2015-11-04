@@ -282,8 +282,10 @@ void Ntop::start() {
 #endif
   loadLocalInterfaceAddress();
 
-  for(int i=0; i<num_defined_interfaces; i++)
+  for(int i=0; i<num_defined_interfaces; i++){
     iface[i]->startPacketPolling();
+    iface[i]->allocateNetworkStats();
+  }
 
   sleep(2);
   address->startResolveAddressLoop();

@@ -54,8 +54,9 @@ AddressResolution::~AddressResolution() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Address resolution stats [%u resolved][%u failures]",
 			       num_resolved_addresses, num_resolved_fails);
 
-  for(int i=0; i<numLocalNetworks; i++)
-    free(local_networks[i]);
+  for(u_int8_t i=0; i<localNetworks.getNumAddresses(); i++)
+    if(local_networks[i])
+        free(local_networks[i]);
 }
 
 /* ***************************************** */

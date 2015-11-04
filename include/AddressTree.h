@@ -26,7 +26,7 @@
 #include <vector>
 
 class AddressTree {
-  int numAddresses;
+  u_int8_t numAddresses;
   std::vector<char *> addressString;
   patricia_tree_t *ptree;
   
@@ -34,7 +34,7 @@ class AddressTree {
   AddressTree();
   ~AddressTree();
 
-  inline u_int8_t getNumAddresses()     { return(numAddresses); };
+  u_int8_t getNumAddresses();
   /*
    Returns the id of the network added. A negative number is returned on error.
    */

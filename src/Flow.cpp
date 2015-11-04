@@ -663,8 +663,8 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes;
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
-  u_int16_t cli_network_id;
-  u_int16_t srv_network_id;
+  int16_t cli_network_id;
+  int16_t srv_network_id;
   NetworkStats *cli_network_stats;
   NetworkStats *srv_network_stats;
 
@@ -693,12 +693,13 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_packets = srv2cli_last_packets;
   srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes;
 
-  if(cli_network_id >= 0 && (cli_network_id == cli_network_id))
+  cli_network_id = cli_host->get_local_network_id();
+  srv_network_id = srv_host->get_local_network_id();
+  if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
     cli_and_srv_in_same_subnet = true;
 
   if(diff_sent_packets || diff_rcvd_packets) {
     if(cli_host) {
-      cli_network_id = cli_host->get_local_network_id();
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
       cli_host->incStats(protocol, ndpi_detected_protocol.protocol,
 			 diff_sent_packets, diff_sent_bytes,
@@ -720,7 +721,6 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     }
 
     if(srv_host) {
-      srv_network_id = srv_host->get_local_network_id();
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
       srv_host->incStats(protocol, ndpi_detected_protocol.protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes,

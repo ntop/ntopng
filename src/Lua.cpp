@@ -1144,6 +1144,23 @@ static int ntop_get_interface_flows_stats(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+/* ****************************************** */
+
+/**
+ * @brief Get interface stats for local networks
+ * @details Returns traffic statistics per local network
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_get_interface_networks_stats(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+  if(ntop_interface) ntop_interface->getNetworksStats(vm);
+
+  return(CONST_LUA_OK);
+}
 
 /* ****************************************** */
 
@@ -4068,12 +4085,13 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getHostInfo",            ntop_get_interface_host_info },
+  { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
   { "correlateHostActivity",  ntop_correalate_host_activity },
   { "similarHostActivity",    ntop_similar_host_activity },
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
-  { "getFlowsInfo",           ntop_get_interface_flows_info },
+   { "getFlowsInfo",           ntop_get_interface_flows_info },
   { "queryFlowsInfo",         ntop_query_interface_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowPeers",           ntop_get_interface_flows_peers },

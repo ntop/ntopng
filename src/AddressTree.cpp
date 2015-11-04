@@ -30,6 +30,9 @@ AddressTree::AddressTree() {
   ptree = New_Patricia(128);
 }
 
+u_int8_t AddressTree::getNumAddresses()     {
+    return numAddresses;
+}
 /* *********************************************** */
 
 static int fill_prefix_v4(prefix_t *p, struct in_addr *a, int b, int mb) {

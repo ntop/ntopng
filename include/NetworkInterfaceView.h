@@ -56,6 +56,7 @@ class NetworkInterfaceView {
   void getnDPIStats(nDPIStats *stats);
   void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, bool local_only);
   void getFlowsStats(lua_State* vm);
+  void getNetworksStats(lua_State* vm);
   bool hasSeenVlanTaggedPackets(void);
   int  retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);

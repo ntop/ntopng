@@ -167,6 +167,17 @@ void NetworkInterfaceView::getFlowsStats(lua_State* vm) {
 
 /* **************************************************** */
 
+void NetworkInterfaceView::getNetworksStats(lua_State* vm) {
+  list<NetworkInterface *>::iterator p;
+
+  lua_newtable(vm);
+
+  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
+    (*p)->getNetworksStats(vm);
+}
+
+/* **************************************************** */
+
 bool NetworkInterfaceView::getHostInfo(lua_State* vm,
 				       patricia_tree_t *allowed_hosts,
 				       char *host_ip, u_int16_t vlan_id) {
