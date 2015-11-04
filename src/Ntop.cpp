@@ -284,7 +284,7 @@ void Ntop::start() {
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
-
+  
   sleep(2);
   address->startResolveAddressLoop();
 
