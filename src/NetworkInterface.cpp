@@ -66,7 +66,7 @@ NetworkInterface::NetworkInterface() {
     pkt_dumper_tap = NULL;
 
   has_mesh_networks_traffic = false,
-    ip_addresses = "",
+    ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL, antenna_mac = NULL;
 
@@ -200,8 +200,8 @@ NetworkInterface::NetworkInterface(const char *name) {
     pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
   }
 
-  statsManager = NULL, view = NULL;
-  flowsManager = NULL;
+  statsManager = NULL, view = NULL,
+  flowsManager = NULL, networkStats = NULL,
 
 #ifdef NTOPNG_PRO
   policer = new L7Policer(this);
@@ -1448,6 +1448,7 @@ void NetworkInterface::startPacketPolling() {
 				   get_name(), cpu_affinity);
   }
 
+  allocateNetworkStats();
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
 			       get_name(), get_id());
