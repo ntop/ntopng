@@ -30,7 +30,7 @@
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
-    ntop->getRedis()->pushEStemplate();  // sends ES ntopng template
+    //  ntop->getRedis()->pushEStemplate();  // sends ES ntopng template
     ntop->getRedis()->indexESdata();
   return(NULL);
 }
