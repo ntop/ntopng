@@ -1,0 +1,63 @@
+Prerequisites for Compilation
+-----------------------------
+
+Prerequisites
+- glib2
+- GNU autotools/libtool
+- libgeoip
+- libpcap or PF_RING (optional but recommended)
+- redis (redis server) 2.2 or newer
+- GeoIP (optional) 1.4.8 or newer
+- wget (for 'make geoip')
+- libxml2-dev
+- libglib2.0-dev
+- libsqlite3-dev
+- libcurl-dev
+- libmysqlclient-dev
+
+On Ubuntu/Debian
+- apt-get install build-essential git libglib2.0 libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev libmariadb-client-lgpl-dev
+
+You can decide to use MySQL or MariaDB using "apt-get install libmariadb-client-lgpl-dev" or "apt-get install libmysqlclient-dev"
+
+On Fedora/CentOS
+- yum groupinstall "Development tools"
+- yum install git autoconf automake autogen libpcap-devel GeoIP-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel
+
+On MacOSX (using http://brew.sh)
+brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql
+
+On MacOSX (using mac ports)
+port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
+
+On FreeBSD
+- pkg install autoconf automake libtool wget pkgconf rrdtool gmake redis git bash mysql-connector-c
+Note that you need to edit third-party/LuaJIT-2.0.3/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
+
+On Windows you can download the redis server from
+- https://github.com/rgl/redis/downloads
+
+
+Source Code Compilation
+-----------------------
+Once you have installed all the prerequisites do
+
+# cd <compilation directory>
+# git clone https://github.com/ntop/nDPI.git
+# cd nDPI; ./autogen.sh; ./configure; make; cd ..
+# git clone https://github.com/ntop/ntopng.git
+# cd ntopng
+# ./autogen.sh
+# ./configure
+# make
+
+
+Binary Packages
+---------------
+- Debian/CentOS/Windows   http://packages.ntop.org
+- OSX
+			http://sourceforge.net/projects/ntop/files/ntopng/
+			Homebrew
+			# brew update
+			# brew install ntopng
+
