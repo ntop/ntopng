@@ -30,7 +30,7 @@
 /* **************************************************** */
 
 static void* esLoop(void* ptr) {
-    //  ntop->getRedis()->pushEStemplate();  // sends ES ntopng template
+    ntop->getRedis()->pushEStemplate();  // sends ES ntopng template
     ntop->getRedis()->indexESdata();
   return(NULL);
 }
@@ -1103,26 +1103,28 @@ void Redis::indexESdata() {
 /* Send ntopng index template to Elastic Search */
 void Redis::pushEStemplate() {
   char *postbuf = NULL, *es_host = NULL;
-  char template_path[MAX_PATH], es_url[MAX_PATH];
+  char template_path[MAX_PATH], es_template_url[MAX_PATH], es_url[MAX_PATH];
   ifstream template_file;
   u_int8_t max_attempts = 3;
   u_int16_t length = 0;
 
+  // store the original es update url
+  strncpy(es_url, ntop->getPrefs()->get_es_url(), MAX_PATH);
   // prepare the template file path...
   snprintf(template_path, sizeof(template_path), "%s/misc/%s",
 	   ntop->get_docs_dir(), NTOP_ES_TEMPLATE);
   ntop->fixPath(template_path);
 
   // and the ES url (keep only host and port by retaining only characters left of the first slash)
-  if(!strncmp(ntop->getPrefs()->get_es_url(), "http://", 7)){  // url starts either with http or https
-    Utils::tokenizer(ntop->getPrefs()->get_es_url() + 7, '/', &es_host);
-    snprintf(es_url, MAX_PATH, "http://%s/_template/ntopng_template", es_host);
-  } else if(!strncmp(ntop->getPrefs()->get_es_url(), "https://", 8)){
-    Utils::tokenizer(ntop->getPrefs()->get_es_url() + 8, '/', &es_host);
-    snprintf(es_url, MAX_PATH, "https://%s/_template/ntopng_template", es_host);
+  if(!strncmp(es_url, "http://", 7)){  // url starts either with http or https
+    Utils::tokenizer(es_url + 7, '/', &es_host);
+    snprintf(es_template_url, MAX_PATH, "http://%s/_template/ntopng_template", es_host);
+  } else if(!strncmp(es_url, "https://", 8)){
+    Utils::tokenizer(es_url + 8, '/', &es_host);
+    snprintf(es_template_url, MAX_PATH, "https://%s/_template/ntopng_template", es_host);
   } else {
-    Utils::tokenizer(ntop->getPrefs()->get_es_url(), '/', &es_host);
-    snprintf(es_url, MAX_PATH, "%s/_template/ntopng_template", es_host);
+    Utils::tokenizer(es_url, '/', &es_host);
+    snprintf(es_template_url, MAX_PATH, "%s/_template/ntopng_template", es_host);
   }
 
   template_file.open(template_path);   // open input file
@@ -1138,7 +1140,7 @@ void Redis::pushEStemplate() {
   while(max_attempts > 0) {
     if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
 				ntop->getPrefs()->get_es_pwd(),
-				es_url,
+				es_template_url,
 				postbuf)) {
       /* Post failure */
       sleep(1);
