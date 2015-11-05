@@ -76,6 +76,10 @@ for _,_ifname in pairs(ifnames) do
            if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating localstats directory ", fixPath(basedir.."/localstats"), '\n') end
            ntop.mkdir(fixPath(basedir.."/localstats/"))
          end
+         if (not ntop.exists(fixPath(basedir.."/subnetstats/"))) then
+           if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating subnetstats directory ", fixPath(basedir.."/subnetstats"), '\n') end
+           ntop.mkdir(fixPath(basedir.."/subnetstats/"))
+         end
          -- IN/OUT counters
          if (ifstats["localstats"]["bytes"]["local2remote"] > 0) then
            name = fixPath(basedir .. "/localstats/local2remote.rrd")
@@ -88,6 +92,19 @@ for _,_ifname in pairs(ifnames) do
            createSingleRRDcounter(name, verbose)
            ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["remote2local"]))
            if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+         end
+
+         -- Save stats per local subnets
+         local subnet_stats = interface.getNetworksStats()
+         for subnet,sstats in pairs(subnet_stats) do
+             local rrdpath = getPathFromKey(subnet)
+             rrdpath = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/subnetstats/" .. rrdpath)
+             if(not(ntop.exists(rrdpath))) then
+                ntop.mkdir(rrdpath)
+             end
+             rrdpath = fixPath(rrdpath .. "/bytes.rrd")
+             createTripleRRDcounter(rrdpath, 300, false)
+             ntop.rrd_update(rrdpath, "N:"..tolongint(sstats["ingress"]) .. ":" .. tolongint(sstats["egress"]) .. ":" .. tolongint(sstats["inner"]))
          end
 
 	 -- Save hosts stats

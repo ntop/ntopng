@@ -159,14 +159,20 @@ function percentageBar(total, value, valueLabel)
 end
 
 -- ########################################################
-
-function getRRDName(ifid, host, rrdFile)
-   rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
-   if(host ~= nil) then
-      rrdname = rrdname .. getPathFromKey(host) .. "/"
+-- host_or_network: host or network name. If network, must be prefixed with 'net:'
+function getRRDName(ifid, host_or_network, rrdFile)
+   if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
+       host_or_network = string.gsub(host_or_network, 'net:', '')
+       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
+   else
+       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
 
-   return(rrdname  .. rrdFile)
+   if(host_or_network ~= nil) then
+      rrdname = rrdname .. getPathFromKey(host_or_network) .. "/"
+   end
+
+   return(rrdname..rrdFile)
 end
 
 -- ########################################################
@@ -333,7 +339,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       print("<script>setInterval(function() { window.location.reload();}, 60*1000); </script>\n");
    end
 
-   if(ntop.isPro()) then
+   if ntop.isPro() then
       drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
       return
    end
@@ -805,6 +811,26 @@ function createSingleRRDcounter(path, verbose)
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
 	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days), -- 1d resolution (288 points)  365 days
 	 'RRA:HWPREDICT:1440:0.1:0.0035:20')
+   end
+end
+
+-- ########################################################
+-- this method will be very likely used when saving subnet rrd traffic statistics
+function createTripleRRDcounter(path, step, verbose)
+   if(not(ntop.exists(path))) then
+      if(verbose) then io.write('Creating RRD '..path..'\n') end
+      local prefs = ntop.getPrefs()
+      ntop.rrd_create(
+	 path,
+	 step, -- step
+	 'DS:ingress:DERIVE:600:U:U',
+	 'DS:egress:DERIVE:600:U:U',
+	 'DS:inner:DERIVE:600:U:U',
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
+	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
+	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days) -- 1d resolution (288 points)  365 days
+	 --'RRA:HWPREDICT:1440:0.1:0.0035:20'
+      )
    end
 end
 

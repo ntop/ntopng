@@ -31,7 +31,7 @@ end
 
 network_name = ntop.getNetworkNameById(tonumber(network))
 
-rrdname = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(network_name) .. "/bytes.rrd"
+rrdname = dirs.workingdir .. "/" .. ifId .. "/subnetstats/" .. getPathFromKey(network_name) .. "/bytes.rrd"
 
 if(not ntop.exists(rrdname)) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for network "..network_name.."</div>")
@@ -63,6 +63,6 @@ else
 end
 
 host_url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifname='..ifId..'&network='..network..'&page=historical'
-drawRRD(ifId, network_name, rrdfile, _GET["graph_zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+drawRRD(ifId, 'net:'..network_name, rrdfile, _GET["graph_zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
