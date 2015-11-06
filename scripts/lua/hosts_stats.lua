@@ -76,7 +76,7 @@ if(country ~= nil) then
 end
 
 
-if(network ~= nil) then
+if((network ~= nil) and (network ~= "-1")) then
    network_url='&network='..network
    print(network_url)
    network_name = ntop.getNetworkNameById(tonumber(network))
