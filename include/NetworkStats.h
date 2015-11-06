@@ -33,6 +33,7 @@ class NetworkStats {
  public:
   NetworkStats();
 
+  inline bool trafficSeen(){return ingress || egress || inner;};
   inline void incIngress(u_int64_t num_bytes) { ingress += num_bytes; };
   inline void incEgress(u_int64_t num_bytes)  { egress  += num_bytes; };
   inline void incInner(u_int64_t num_bytes)   { inner   += num_bytes; };

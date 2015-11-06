@@ -769,7 +769,7 @@ function create_rrd_num(name, ds)
 end
 
 function makeRRD(basedir, ifname, rrdname, step, value)
-   name = fixPath(basedir .. "/" .. rrdname .. ".rrd")
+   local name = fixPath(basedir .. "/" .. rrdname .. ".rrd")
 
    if(string.contains(rrdname, "num_")) then
       create_rrd_num(name, rrdname)

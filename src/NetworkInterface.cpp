@@ -1860,10 +1860,12 @@ void NetworkInterface::getNetworksStats(lua_State* vm) {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
   lua_newtable(vm);
   for (u_int8_t network_id = 0; network_id < num_local_networks; network_id++){
-      lua_newtable(vm);
       network_stats = getNetworkStats(network_id);
-      if(network_stats)
-          network_stats->lua(vm);
+      // do not add stats of networks that have not generated any traffic
+      if(!network_stats || !network_stats->trafficSeen())
+          continue;
+      lua_newtable(vm);
+      network_stats->lua(vm);
       lua_push_int32_table_entry(vm, "network_id", network_id);
       lua_pushstring(vm, ntop->getLocalNetworkName(network_id));
       lua_insert(vm, -2);
