@@ -42,13 +42,6 @@ void sigproc(int sig) {
   sleep(2); /* Wait until all threads know that we're shutting down... */
   ntop->shutdown();
 
-#if 0
-  /* For the time being preferences are not saved. In the future this might change */
-
-  if(ntop->getPrefs()->save() < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error saving preferences");
-#endif
-
 #ifndef WIN32
   if(ntop->getPrefs()->get_pid_path() != NULL) {
     int rc = unlink(ntop->getPrefs()->get_pid_path());
@@ -93,6 +86,8 @@ int main(int argc, char *argv[])
   int indexAffinity = 0;
   char *core_id_s = NULL;
   int core_id;
+  char path[MAX_PATH];
+  FILE *fd;
 
 #ifdef WIN32
   initWinsock32();
@@ -180,7 +175,6 @@ int main(int argc, char *argv[])
     }
 
     if(iface == NULL) iface = new PcapInterface(ifName);
-    if(iface) iface->enableInterfaceView();
 
     if(affinity != NULL) {
       if(indexAffinity == 0)
@@ -213,11 +207,20 @@ int main(int argc, char *argv[])
   }
 
   for(int i = 0 ; i < MAX_NUM_INTERFACES ; i++) {
-    NetworkInterfaceView *view;
+    char *ifName;
+    NetworkInterfaceView *iv;
 
-    if((ifName = prefs->getInterfaceViewAt(i)) == NULL) continue;
-    view = new NetworkInterfaceView(ifName, ntop->get_num_interface_views());
-    ntop->registerInterfaceView(view);
+    if((ifName = prefs->getInterfaceViewAt(i)) != NULL) {
+      iv = new NetworkInterfaceView(ifName);
+
+      if(iv->get_numInterfaces() > 0) ntop->registerInterfaceView(iv); else delete iv;
+    }
+
+    if((ifName = prefs->getInterfaceAt(i)) != NULL) {
+      iv = new NetworkInterfaceView(ifName);
+      
+      if(iv->get_numInterfaces() > 0) ntop->registerInterfaceView(iv); else delete iv;
+    }
   }
 
   if(prefs->do_change_user())
@@ -253,24 +256,21 @@ int main(int argc, char *argv[])
     We have created the network interface and thus changed user. Let's not check
     if we can write on the data directory
   */
-  {
-    char path[MAX_PATH];
-    FILE *fd;
+  Utils::mkdir_tree(ntop->get_working_dir());
 
-    snprintf(path, sizeof(path), "%s/.test", ntop->get_working_dir());
-    ntop->fixPath(path);
-
-    if((fd = fopen(path, "w")) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to write on %s [%s]: please specify a different directory (-d)",
-				   ntop->get_working_dir(), path);
-      _exit(0);
-    } else {
-      fclose(fd); /* All right */
-      unlink(path);
-    }
+  snprintf(path, sizeof(path), "%s/.test", ntop->get_working_dir());
+  ntop->fixPath(path);
+  
+  if((fd = fopen(path, "w")) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to write on %s [%s]: please specify a different directory (-d)",
+				 ntop->get_working_dir(), path);
+    _exit(0);
+  } else {
+    fclose(fd); /* All right */
+    unlink(path);
   }
-
+  
   if(prefs->get_categorization_key() != NULL) {
     ntop->setCategorization(new Categorization(prefs->get_categorization_key()));
     prefs->enable_categorization();

@@ -23,41 +23,30 @@
 #define _NETWORK_INTERFACE_VIEW_H_
 
 #include "ntop_includes.h"
-#include <list>
 
 class NetworkInterface;
 
 class NetworkInterfaceView {
  protected:
-  char *ifvname; /**< Network interface name.*/
-  char *descr;
+  char *name;
   int id;
-  list<NetworkInterface *> physIntf;
-  list<string> physNames;
-  int num_intfs;
-
-  NetworkInterface *iface;
+  NetworkInterface *physIntf[MAX_NUM_INTERFACES];
+  int numInterfaces;
 
  public:
-  NetworkInterfaceView(NetworkInterface *intf);
-  NetworkInterfaceView(const char *name, int id);
-  virtual ~NetworkInterfaceView();
+  NetworkInterfaceView(const char *name);
+  ~NetworkInterfaceView();
 
-  list<NetworkInterface *>::iterator intfBegin() { return physIntf.begin(); }
-  list<NetworkInterface *>::iterator intfEnd() {return physIntf.end(); }
-
-  inline char *get_name(void)              { return ifvname;   }
-  inline int get_num_intfs(void)           { return num_intfs; }
-  inline NetworkInterface *get_iface(void) { return iface;     }
-  inline void set_id(unsigned int id)      { this->id = id;    }
-  inline int get_id()                      { return id;        }
-  inline char* get_descr()                 { return descr;     }
+  inline char *get_name()              { return(name);          }
+  inline int get_numInterfaces()       { return(numInterfaces); }
+  inline NetworkInterface *getFirst()  { return(physIntf[0]);   }
+  inline int get_id()                  { return(id);            }
 
   void getnDPIStats(nDPIStats *stats);
   void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, bool local_only);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
-  bool hasSeenVlanTaggedPackets(void);
+  bool hasSeenVlanTaggedPackets();
   int  retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
@@ -73,19 +62,19 @@ class NetworkInterfaceView {
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void listHTTPHosts(lua_State *vm, char *key);
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
-  int isRunning(void);
-  bool idle(void);
+  int isRunning();
+  bool idle();
   void setIdleState(bool new_state);
   void getnDPIProtocols(lua_State *vm);
 
-  PacketDumper *getPacketDumper(void);
-  PacketDumperTuntap *getPacketDumperTap(void);
-  bool getDumpTrafficDiskPolicy(void);
-  bool getDumpTrafficTapPolicy(void);
-  string getDumpTrafficTapName(void);
-  int getDumpTrafficMaxPktsPerFile(void);
-  int getDumpTrafficMaxSecPerFile(void);
-  int getDumpTrafficMaxFiles(void);
+  PacketDumper *getPacketDumper();
+  PacketDumperTuntap *getPacketDumperTap();
+  bool getDumpTrafficDiskPolicy();
+  bool getDumpTrafficTapPolicy();
+  string getDumpTrafficTapName();
+  int getDumpTrafficMaxPktsPerFile();
+  int getDumpTrafficMaxSecPerFile();
+  int getDumpTrafficMaxFiles();
 
   void getnDPIFlowsCount(lua_State *vm);
   void lua(lua_State *vm);

@@ -79,7 +79,7 @@ NetworkInterface::NetworkInterface() {
   policer = NULL;
 #endif
 
-  view = NULL, statsManager = NULL, flowsManager = NULL, ifSpeed = 0;
+  statsManager = NULL, flowsManager = NULL, ifSpeed = 0;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
@@ -87,7 +87,9 @@ NetworkInterface::NetworkInterface() {
   dump_max_duration = CONST_MAX_DUMP_DURATION;
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
-
+#ifdef NTOPNG_PRO
+  profiles = NULL;
+#endif
 }
 
 /* **************************************************** */
@@ -197,17 +199,20 @@ NetworkInterface::NetworkInterface(const char *name) {
   } else {
     flows_hash = NULL, hosts_hash = NULL;
     ndpi_struct = NULL, db = NULL, ifSpeed = 0;
-    pkt_dumper = NULL, pkt_dumper_tap = NULL, view = NULL;
+    pkt_dumper = NULL, pkt_dumper_tap = NULL;
   }
 
-  statsManager = NULL, view = NULL,
-  flowsManager = NULL, networkStats = NULL,
+  networkStats = NULL,
 
 #ifdef NTOPNG_PRO
-  policer = new L7Policer(this);
+  policer  = new L7Policer(this);
+  profiles = new Profiles();
 #endif
 
   loadDumpPrefs();
+
+  flowsManager = new FlowsManager(this);
+  statsManager = new StatsManager(id, "top_talkers.db");
 }
 
 /* **************************************************** */
@@ -372,27 +377,6 @@ int NetworkInterface::updateDumpTrafficMaxFiles(void) {
 
 /* **************************************************** */
 
-void NetworkInterface::enableInterfaceView() {
-  statsManager = new StatsManager(id, "top_talkers.db");
-  if(!statsManager)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate StatsManager");
-
-  flowsManager = new FlowsManager(this);
-  if (!flowsManager)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not allocate FlowsManager");
-
-  /* Create view for this interface */
-  view = new NetworkInterfaceView(this);
-  if(!view)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not create view for interface %s", ifname);
-  else {
-    ntop->registerInterfaceView(view);
-    view->set_id(this->id);
-  }
-}
-
-/* **************************************************** */
-
 bool NetworkInterface::checkIdle() {
   is_idle = false;
 
@@ -449,13 +433,9 @@ NetworkInterface::~NetworkInterface() {
   if(pkt_dumper)   delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
 
-  if(view) {
-    ntop->sanitizeInterfaceView(view);
-    delete view;
-  }
-
 #ifdef NTOPNG_PRO
-  if(policer) delete(policer);
+  if(policer)  delete(policer);
+  if(profiles) delete(profiles);
 #endif
 }
 
@@ -656,6 +636,8 @@ void NetworkInterface::dumpPacketDisk(const struct pcap_pkthdr *h, const u_char 
                            getDumpTrafficMaxPktsPerFile(),
                            getDumpTrafficMaxSecPerFile());
 }
+
+/* **************************************************** */
 
 void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet,
                                      dump_reason reason) {
@@ -1439,6 +1421,10 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
+#ifdef NTOPNG_PRO
+  if(profiles) profiles->reloadProfiles();
+#endif
+
   if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
     if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
@@ -1801,7 +1787,7 @@ Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
 /* **************************************************** */
 
 int NetworkInterface::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL) {
-  return flowsManager->retrieve(vm, allowed_hosts, SQL);
+  return(flowsManager ? flowsManager->retrieve(vm, allowed_hosts, SQL) : 0);
 }
 
 /* **************************************************** */
@@ -2025,7 +2011,7 @@ void NetworkInterface::lua(lua_State *vm) {
 
   ethStats.lua(vm);
   localStats.lua(vm);
-  ndpiStats.lua(this->view, vm);
+  ndpiStats.lua(this, vm);
   pktStats.lua(vm, "pktSizeDistribution");
 
   if(pkt_dumper)

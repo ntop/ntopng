@@ -48,6 +48,7 @@ for _,_ifname in pairs(ifnames) do
       talkers = makeTopJSON(ifstats.id, _ifname)      
 
       if(verbose) then
+         print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
 	 print(talkers)
       end
       ntop.insertMinuteSampling(ifstats.id, talkers)

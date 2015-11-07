@@ -98,10 +98,6 @@ Prefs::Prefs(Ntop *_ntop) {
 /* ******************************************* */
 
 Prefs::~Prefs() {
-  for(int i=0; i<num_deferred_interfaces_to_register; i++)
-    if(deferred_interfaces_to_register[i] != NULL)
-      free(deferred_interfaces_to_register[i]);
-
   for(int i=0; i<num_interfaces; i++) {
     if(ifNames[i].name) free(ifNames[i].name);
     if(ifNames[i].description) free(ifNames[i].description);
@@ -317,9 +313,6 @@ void Prefs::loadIdleDefaults() {
   other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
   other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
-#ifdef NTOPNG_PRO
-  profiles.reloadProfiles();
-#endif
 }
 
 /* ******************************************* */
@@ -898,52 +891,6 @@ int Prefs::loadFromFile(const char *path) {
 
 /* ******************************************* */
 
-int Prefs::save() {
-  FILE *fd;
-
-  if(config_file_path == NULL)
-    return(-1);
-
-  fd = fopen(config_file_path, "w");
-
-  if(fd == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s [%s]", config_file_path, strerror(errno));
-    return(-1);
-  }
-
-  if(dns_mode != 0)       fprintf(fd, "dns-mode=%d\n", dns_mode);
-
-  if(num_interfaces > 0) {
-    fprintf(fd, "interface=");
-
-    for(int i=0; i<num_interfaces; i++)
-      fprintf(fd, "%s%s", (i > 0) ? "," : "", ifNames[i].name);
-
-    fprintf(fd, "\n");
-  }
-  if(data_dir)            fprintf(fd, "data-dir=%s\n", data_dir);
-  if(install_dir)         fprintf(fd, "install-dir=%s\n", install_dir);
-  if(categorization_key)  fprintf(fd, "categorization-key=%s\n", categorization_key);
-  if(httpbl_key)          fprintf(fd, "httpbl-key=%s\n", httpbl_key);
-  if(local_networks)      fprintf(fd, "local-networks=%s\n", local_networks);
-  if(ndpi_proto_path)     fprintf(fd, "ndpi-protocols=%s\n", ndpi_proto_path);
-  if(redis_host)          fprintf(fd, "redis=%s:%d\n", redis_host, redis_port);
-  if(!change_user)        fprintf(fd, "dont-change-user\n");
-  if(!enable_users_login) fprintf(fd, "disable-login\n");
-  if(docs_dir)            fprintf(fd, "httpdocs-dir=%s\n", docs_dir);
-  if(scripts_dir)         fprintf(fd, "scripts-dir=%s\n", scripts_dir);
-  if(callbacks_dir)       fprintf(fd, "callbacks-dir=%s\n", callbacks_dir);
-  if(cpu_affinity != NULL) fprintf(fd, "core-affinity=%s\n", cpu_affinity);
-  if(http_port != CONST_DEFAULT_NTOP_PORT) fprintf(fd, "http-port=%d\n", http_port);
-  if(ntop->getTrace()->get_trace_level() != TRACE_LEVEL_NORMAL) fprintf(fd, "verbose\n");
-
-  fclose(fd);
-
-  return(0);
-}
-
-/* ******************************************* */
-
 void Prefs::add_network_interface(char *name, char *description) {
   int id = Utils::ifname2id(name);
 
@@ -958,11 +905,6 @@ void Prefs::add_network_interface(char *name, char *description) {
 }
 
 /* ******************************************* */
-
-char *Prefs::getInterfaceViewAt(int id) {
-  if(id >= MAX_NUM_INTERFACES) return NULL;
-  return ifViewNames[id].name;
-}
 
 void Prefs::add_network_interface_view(char *name, char *description) {
   int id = Utils::ifname2id(name);
@@ -1029,17 +971,7 @@ void Prefs::lua(lua_State* vm) {
 
 /* *************************************** */
 
-bool Prefs::isView(char *name) {
-  istringstream ss(name);
-  string cmdtok;
-
-  if(std::getline(ss, cmdtok, ':')) {
-    if(cmdtok != "view") return false;
-    return true;
-  }
-
-  return false;
-}
+bool Prefs::isView(char *name) { return(strncmp(name, "view:", 5) == 0 ? true : false); }
 
 /* *************************************** */
 
@@ -1050,6 +982,8 @@ void Prefs::registerNetworkInterfaces() {
         add_network_interface_view(deferred_interfaces_to_register[i], NULL);
       else
         add_network_interface(deferred_interfaces_to_register[i], NULL);
+
+      free(deferred_interfaces_to_register[i]);
     }
   }
 }

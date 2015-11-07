@@ -31,7 +31,7 @@ Flow::Flow(NetworkInterface *_iface,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli2srv_packets = 0, cli2srv_bytes = 0, srv2cli_packets = 0, srv2cli_bytes = 0, cli2srv_last_packets = 0,
     cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, ndpi_flow = NULL, badFlow = false, profileId = -1;
+    cli_host = srv_host = NULL, ndpi_flow = NULL, badFlow = false;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -101,6 +101,9 @@ Flow::Flow(NetworkInterface *_iface,
   if(!iface->is_packet_interface())
     last_update_time.tv_sec = (long)first_seen;
 
+#ifdef NTOPNG_PRO
+  trafficProfile = NULL;
+#endif
   // refresh_process();
 }
 
@@ -405,14 +408,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
 #endif
   }
 }
-
-/* *************************************** */
-
-#ifdef NTOPNG_PRO
-void Flow::updateProfile() {
-  profileId = ntop->getPrefs()->getFlowProfile(this);
-}
-#endif
 
 /* *************************************** */
 
@@ -1003,7 +998,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     }
 
 #ifdef NTOPNG_PRO
-    if(profileId != -1) lua_push_str_table_entry(vm, "profile", ntop->getPrefs()->getProfileName(profileId, buf, sizeof(buf)));
+    if(trafficProfile) lua_push_str_table_entry(vm, "profile", trafficProfile->getName());
 #endif
 
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);

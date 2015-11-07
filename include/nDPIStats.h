@@ -70,7 +70,7 @@ class nDPIStats {
   };
 
   void print(NetworkInterface *iface);
-  void lua(NetworkInterfaceView *iface, lua_State* vm);
+  void lua(NetworkInterface *iface, lua_State* vm);
   char* serialize(NetworkInterface *iface);
   json_object* getJSONObject(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);

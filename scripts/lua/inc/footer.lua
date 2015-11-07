@@ -43,10 +43,10 @@ print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua">'.._SESSION["use
 
 alias = getInterfaceNameAlias(ifname)
 
-if(alias ~= ifname) then
+if((alias ~= nil) and (alias ~= ifname)) then
    print(alias)
 else
-   print(_ifstats.description)
+   print(_ifstats.name)
 end
 
 print('</a>')

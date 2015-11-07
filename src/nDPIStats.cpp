@@ -79,32 +79,29 @@ void nDPIStats::print(NetworkInterface *iface) {
 
 /* *************************************** */
 
-void nDPIStats::lua(NetworkInterfaceView *iface, lua_State* vm) {
+void nDPIStats::lua(NetworkInterface *iface, lua_State* vm) {
   lua_newtable(vm);
-  list<NetworkInterface *>::iterator p;
 
-  for(p = iface->intfBegin() ; p != iface->intfEnd() ; p++) {
-    for(int i=0; i<MAX_NDPI_PROTOS; i++)
-      if(counters[i] != NULL) {
-        char *name = (*p)->get_ndpi_proto_name(i);
+  for(int i=0; i<MAX_NDPI_PROTOS; i++)
+    if(counters[i] != NULL) {
+      char *name = iface->get_ndpi_proto_name(i);
 
-        if(name != NULL) {
-          if(counters[i]->packets.sent || counters[i]->packets.rcvd) {
-	    lua_newtable(vm);
+      if(name != NULL) {
+	if(counters[i]->packets.sent || counters[i]->packets.rcvd) {
+	  lua_newtable(vm);
 
-            lua_push_str_table_entry(vm, "breed", (*p)->get_ndpi_proto_breed_name(i));
-            lua_push_int_table_entry(vm, "packets.sent", counters[i]->packets.sent);
-            lua_push_int_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
-	    lua_push_int_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
-            lua_push_int_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
+	  lua_push_str_table_entry(vm, "breed", iface->get_ndpi_proto_breed_name(i));
+	  lua_push_int_table_entry(vm, "packets.sent", counters[i]->packets.sent);
+	  lua_push_int_table_entry(vm, "packets.rcvd", counters[i]->packets.rcvd);
+	  lua_push_int_table_entry(vm, "bytes.sent", counters[i]->bytes.sent);
+	  lua_push_int_table_entry(vm, "bytes.rcvd", counters[i]->bytes.rcvd);
 
-            lua_pushstring(vm, name);
-            lua_insert(vm, -2);
-            lua_settable(vm, -3);
-          }
-        }
+	  lua_pushstring(vm, name);
+	  lua_insert(vm, -2);
+	  lua_settable(vm, -3);
+	}
       }
-  }
+    }
 
   lua_pushstring(vm, "ndpi");
   lua_insert(vm, -2);

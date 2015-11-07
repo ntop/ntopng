@@ -167,8 +167,8 @@ using namespace std;
 #include "FlowsManager.h"
 #include "DB.h"
 #include "MySQLDB.h"
-#include "NetworkInterfaceView.h"
 #include "NetworkInterface.h"
+#include "NetworkInterfaceView.h"
 #include "PcapInterface.h"
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"

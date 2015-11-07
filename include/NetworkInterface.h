@@ -97,6 +97,7 @@ class NetworkInterface {
   bool bridge_interface, has_mesh_networks_traffic;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
+  Profiles  *profiles;
 #endif
   EthStats ethStats;
   LocalTrafficStats localStats;
@@ -118,7 +119,6 @@ class NetworkInterface {
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager *statsManager;
   FlowsManager *flowsManager;
-  NetworkInterfaceView *view;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, next_idle_flow_purge, next_idle_host_purge;
@@ -182,8 +182,6 @@ class NetworkInterface {
   inline bool get_sprobe_interface()        { return sprobe_interface; }
   inline bool get_inline_interface()        { return inline_interface; }
   inline bool get_has_vlan_packets()        { return has_vlan_packets; }
-  inline NetworkInterfaceView *get_view(void) { return view; }
-  inline void set_view(NetworkInterfaceView *v) { view = v; }
   inline bool  hasSeenVlanTaggedPackets()      { return(has_vlan_packets); }
   inline void  setSeenVlanTaggedPackets()      { has_vlan_packets = true; }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
@@ -205,7 +203,6 @@ class NetworkInterface {
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
   inline int isRunning()	   { return running;             };
   bool restoreHost(char *host_ip);
-  void enableInterfaceView();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
 		     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
@@ -309,11 +306,15 @@ class NetworkInterface {
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);			
   inline int exec_sql_query(lua_State *vm, char *sql) { return(db ? db->exec_sql_query(vm, sql) : -1); };
-#ifdef NTOPNG_PRO
-  void updateFlowProfiles();
-#endif
   NetworkStats* getNetworkStats(int16_t networkId);
   void allocateNetworkStats();
+  void getsDPIStats(lua_State *vm);
+#ifdef NTOPNG_PRO
+  void updateFlowProfiles();
+  inline Profile* getFlowProfile(Flow *f)      { return(profiles ? profiles->getFlowProfile(f) : NULL);           }
+  inline bool checkProfileSyntax(char *filter) { return(profiles ? profiles->checkProfileSyntax(filter) : false); }
+  inline void reloadTrafficProfiles()          { if(profiles) profiles->reloadProfiles();                         }
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

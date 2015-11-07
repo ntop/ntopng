@@ -84,7 +84,7 @@ Ntop::Ntop(char *appName) {
   /* Folder will be created lazily, avoid creating it now */
   snprintf(working_dir, sizeof(working_dir), "%s/ntopng", CONST_DEFAULT_WRITABLE_DIR);
 
-  umask (0);
+  umask(0);
 
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Occurred while checking the current directory (errno=%d)", errno);
@@ -339,23 +339,23 @@ char* getIfName(int if_id, char *name, u_int name_len) {
   // Make an initial call to GetInterfaceInfo to get
   // the necessary size in the ulOutBufLen variable
   dwRetVal = GetInterfaceInfo(NULL, &ulOutBufLen);
-  if (dwRetVal == ERROR_INSUFFICIENT_BUFFER) {
+  if(dwRetVal == ERROR_INSUFFICIENT_BUFFER) {
     pInfo = (IP_INTERFACE_INFO *)MALLOC(ulOutBufLen);
-    if (pInfo == NULL) {
+    if(pInfo == NULL) {
       return(name);
     }
   }
   // Make a second call to GetInterfaceInfo to get
   // the actual data we need
   dwRetVal = GetInterfaceInfo(pInfo, &ulOutBufLen);
-  if (dwRetVal == NO_ERROR) {
-    for (i = 0; i < pInfo->NumAdapters; i++) {
-      if (pInfo->Adapter[i].Index == if_id) {
+  if(dwRetVal == NO_ERROR) {
+    for(i = 0; i < pInfo->NumAdapters; i++) {
+      if(pInfo->Adapter[i].Index == if_id) {
 	int j, k, begin = 0;
 
-	for (j = 0, k = 0; (k < name_len) && (pInfo->Adapter[i].Name[j] != '\0'); j++) {
-	  if (begin) {
-	    if ((char)pInfo->Adapter[i].Name[j] == '}') break;
+	for(j = 0, k = 0; (k < name_len) && (pInfo->Adapter[i].Name[j] != '\0'); j++) {
+	  if(begin) {
+	    if((char)pInfo->Adapter[i].Name[j] == '}') break;
 	    name[k++] = (char)pInfo->Adapter[i].Name[j];
 	  } else if((char)pInfo->Adapter[i].Name[j] == '{')
 	    begin = 1;
@@ -401,35 +401,35 @@ void Ntop::loadLocalInterfaceAddress() {
   // an adapter to which we can add the IP.
   pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(sizeof(MIB_IPADDRTABLE));
 
-  if (pIPAddrTable) {
+  if(pIPAddrTable) {
     // Make an initial call to GetIpAddrTable to get the
     // necessary size into the dwSize variable
-    if (GetIpAddrTable(pIPAddrTable, &dwSize, 0) ==
+    if(GetIpAddrTable(pIPAddrTable, &dwSize, 0) ==
 	ERROR_INSUFFICIENT_BUFFER) {
       FREE(pIPAddrTable);
       pIPAddrTable = (MIB_IPADDRTABLE *)MALLOC(dwSize);
 
     }
-    if (pIPAddrTable == NULL) {
+    if(pIPAddrTable == NULL) {
       return;
     }
   }
   // Make a second call to GetIpAddrTable to get the
   // actual data we want
-  if ((dwRetVal = GetIpAddrTable(pIPAddrTable, &dwSize, 0)) != NO_ERROR) {
-    if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
+  if((dwRetVal = GetIpAddrTable(pIPAddrTable, &dwSize, 0)) != NO_ERROR) {
+    if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
 		      (LPTSTR)& lpMsgBuf, 0, NULL)) {
       LocalFree(lpMsgBuf);
     }
     return;
   }
 
-  for (int ifIdx = 0; ifIdx < (int)pIPAddrTable->dwNumEntries; ifIdx++) {
+  for(int ifIdx = 0; ifIdx < (int)pIPAddrTable->dwNumEntries; ifIdx++) {
     char name[256];
 
     getIfName(pIPAddrTable->table[ifIdx].dwIndex, name, sizeof(name));
 
-    for (int id = 0; id < num_defined_interfaces; id++) {
+    for(int id = 0; id < num_defined_interfaces; id++) {
       if((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
 	u_int32_t bits = NumberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
 
@@ -448,7 +448,7 @@ void Ntop::loadLocalInterfaceAddress() {
   }
 
   /* TODO: add IPv6 support */
-  if (pIPAddrTable) {
+  if(pIPAddrTable) {
     FREE(pIPAddrTable);
     pIPAddrTable = NULL;
   }
@@ -602,7 +602,7 @@ void Ntop::getUsers(lua_State* vm) {
     return;
   }
 
-  for (i = 0; i < rc; i++) {
+  for(i = 0; i < rc; i++) {
     if(usernames[i] == NULL) continue; /* safety check */
     if(strtok_r(usernames[i], ".", &holder) == NULL) continue;
     if(strtok_r(NULL, ".", &holder) == NULL) continue;
@@ -1150,7 +1150,7 @@ void Ntop::registerInterface(NetworkInterface *_if) {
 
   if(num_defined_interfaces < MAX_NUM_DEFINED_INTERFACES) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
-				 _if->get_name(), num_defined_interfaces);
+				 _if->get_name(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
     return;
   }
@@ -1161,27 +1161,9 @@ void Ntop::registerInterface(NetworkInterface *_if) {
 /* ******************************************* */
 
 void Ntop::registerInterfaceView(NetworkInterfaceView *_view) {
-  int id = Utils::ifname2id(_view->get_name());
-
-  for(int i=0; i<num_defined_interface_views; i++) {
-    if((ifaceViews[i] == NULL)
-       || (ifaceViews[i]->get_name() == NULL))
-      continue;
-
-    if(strcmp(ifaceViews[i]->get_name(), _view->get_name()) == 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Skipping duplicated interface %s", _view->get_name());
-      if(_view->get_num_intfs() == 1 && _view->get_iface()) /* per-interface view */
-        _view->get_iface()->set_view(ifaceViews[i]); /* redirect before clearing */
-      delete _view;
-      return;
-    }
-  }
-
   if(num_defined_interface_views < MAX_NUM_DEFINED_INTERFACES) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface view %s [id: %d]",
-				 _view->get_name(), id);
-    _view->set_id(id);
+				 _view->get_name(), _view->get_id());
     ifaceViews[num_defined_interface_views++] = _view;
     return;
   }
@@ -1196,15 +1178,6 @@ void Ntop::runHousekeepingTasks() {
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->runHousekeepingTasks();
-}
-
-/* ******************************************* */
-
-void Ntop::sanitizeInterfaceView(NetworkInterfaceView *view) {
-  for (int i = 0 ; i < num_defined_interface_views ; i++)
-    if(ifaceViews[i] && (strcmp(ifaceViews[i]->get_name(), view->get_name()) == 0))
-      ifaceViews[i] = NULL;
-  num_defined_interface_views--;
 }
 
 /* ******************************************* */
