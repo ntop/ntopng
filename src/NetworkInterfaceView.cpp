@@ -68,12 +68,14 @@ void NetworkInterfaceView::loadDumpPrefs() {
 
 /* **************************************************** */
 
+#ifdef NTOPNG_PRO
 void NetworkInterfaceView::updateFlowProfiles() {
   for(int i = 0; i<numInterfaces; i++) {
     physIntf[i]->reloadTrafficProfiles();
     physIntf[i]->updateFlowProfiles();
   }
 }
+#endif
 
 /* **************************************************** */
 
