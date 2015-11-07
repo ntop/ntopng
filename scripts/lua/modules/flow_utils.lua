@@ -511,6 +511,18 @@ function handleCustomFlowField(key, value)
     else
       return ""
     end
+  elseif((rtemplate[tonumber(key)] == 'RTP_IN_JITTER') or (rtemplate[tonumber(key)] == 'RTP_OUT_JITTER')) then
+    if(value ~= nil and value ~= '0') then
+      return(value/1000)
+    else
+      return 0
+    end
+  elseif((rtemplate[tonumber(key)] == 'RTP_IN_MAX_DELTA') or (rtemplate[tonumber(key)] == 'RTP_OUT_MAX_DELTA') or (rtemplate[tonumber(key)] == 'RTP_MOS') or (rtemplate[tonumber(key)] == 'RTP_R_FACTOR') or (rtemplate[tonumber(key)] == 'RTP_IN_MOS') or (rtemplate[tonumber(key)] == 'RTP_OUT_MOS') or (rtemplate[tonumber(key)] == 'RTP_IN_R_FACTOR') or (rtemplate[tonumber(key)] == 'RTP_OUT_R_FACTOR') or (rtemplate[tonumber(key)] == 'RTP_IN_TRANSIT') or (rtemplate[tonumber(key)] == 'RTP_OUT_TRANSIT')) then
+    if(value ~= nil and value ~= '0') then
+      return(value/100)
+    else
+      return 0
+    end
   end
 
   -- Unformatted value
@@ -870,14 +882,15 @@ local flow_fields_description = {
     ["RADIUS_ACCT_OUT_PKTS"] = "RADIUS Accounting Output Packets",
 
     -- VoIP
+    ['RTP_SSRC'] =  "RTP Sync Source ID",
     ['RTP_MOS'] = "Rtp Voice Quality",
     ['RTP_R_FACTOR'] = "Rtp Voice Quality Metric (%)", --http://tools.ietf.org/html/rfc3611#section-4.7.5
     ['RTP_RTT'] =  "Rtp Round Trip Time",
     ['RTP_IN_TRANSIT'] = "RTP Transit (value * 100) (src->dst)",
     ['RTP_OUT_TRANSIT'] = "RTP Transit (value * 100) (dst->src)",
-    ['RTP_FIRST_SSRC'] = "First flow RTP Sync Source ID",
+    ['RTP_FIRST_SEQ'] = "First flow RTP Seq Number",
     ['RTP_FIRST_TS'] = "First flow RTP timestamp",
-    ['RTP_LAST_SSRC'] = "Last flow RTP Sync Source ID",
+    ['RTP_LAST_SEQ'] = "Last flow RTP Seq Number",
     ['RTP_LAST_TS'] = "Last flow RTP timestamp",
     ['RTP_IN_JITTER'] = "Rtp Incoming Packet Delay Variation",
     ['RTP_OUT_JITTER'] = "Rtp Out Coming Packet Delay Variation",
@@ -888,6 +901,13 @@ local flow_fields_description = {
     ['RTP_OUT_MAX_DELTA'] = "Max delta (ms*100) between consecutive pkts (dst->src)",
     ['RTP_IN_PAYLOAD_TYPE'] = "Rtp Incoming Payload Type",
     ['RTP_SIP_CALL_ID'] = "SIP call-id corresponding to this RTP stream",
+    ['RTP_IN_PKT_DROP'] = "Packet discarded by Jitter Buffer (src->dst)",
+    ['RTP_OUT_PKT_DROP'] = "Packet discarded by Jitter Buffer (dst->src)",
+    ['RTP_IN_MOS'] = "RTP pseudo-MOS (value * 100) (src->dst)",
+    ['RTP_OUT_MOS'] = "RTP pseudo-MOS (value * 100) (dst->src)",
+    ['RTP_IN_R_FACTOR'] = "RTP pseudo-R_FACTOR (value * 100) (src->dst)",
+    ['RTP_OUT_R_FACTOR'] = "RTP pseudo-R_FACTOR (value * 100) (dst->src)",
+    ['RTP_DTMF_TONES'] = "DTMF tones sent (if any) during the call",
     ['SIP_CALL_ID'] = "SIP call-id",
     ['SIP_CALLING_PARTY'] = "SIP Call initiator",
     ['SIP_CALLED_PARTY'] = "SIP Called party",
@@ -1090,6 +1110,33 @@ function getSIPTableRows(info)
      string_table = string_table.."</div></td></tr>\n"
      string_table = string_table.."<tr><th width=30%> C IP Addresses </th><td colspan=2><div id=c_ip>" .. getFlowValue(info, "SIP_C_IP") .. "</div></td></tr>\n"
      string_table = string_table.."<tr><th width=30%> Call State </th><td colspan=2><div id=call_state>" .. getFlowValue(info, "SIP_CALL_STATE") .. "</div></td></tr>\n"
+   end
+   return string_table
+end
+
+-- #######################
+
+function getRTPTableRows(info)
+   local string_table = ""
+   -- check if there is a RTP field
+   rtp_found = isThereProtocol("RTP", info)
+
+   if(rtp_found == 1) then
+     string_table = string_table.."<tr><th colspan=3 class=\"info\" >RTP Protocol Information</th></tr>\n"
+     string_table = string_table.."<tr><th width=30%> Sync Source ID </th><td colspan=2><div id=sync_source_id>" .. getFlowValue(info, "RTP_SSRC") .. "</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>First / Last Flow Timestamp</th><td><div id=first_flow_timestamp><i class='fa fa-clock-o fa-lg'></i>  "..getFlowValue(info, "RTP_FIRST_TS").."</div></td><td><div id=last_flow_timestamp><i class='fa fa-clock-o fa-lg'></i>  "..getFlowValue(info, "RTP_LAST_TS").."</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>First / Last Flow Sequence</th><td><div id=first_flow_sequence>"..getFlowValue(info, "RTP_FIRST_SEQ").."</div></td><td><div id=last_flow_sequence>"..getFlowValue(info, "RTP_LAST_SEQ").."</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Jitter IN / OUT</th><td><span id=jitter_in>"..getFlowValue(info, "RTP_IN_JITTER").." ms </span> <span id=jitter_in_trend></span></td><td><span id=jitter_out>"..getFlowValue(info, "RTP_OUT_JITTER").." ms </span> <span id=jitter_out_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Packet Lost in Stream IN / OUT</th><td><span id=packet_lost_in>"..formatPackets(getFlowValue(info, "RTP_IN_PKT_LOST")).."</span> <span id=packet_lost_in_trend></span></td><td><span id=packet_lost_out>"..formatPackets(getFlowValue(info, "RTP_OUT_PKT_LOST")).." </span> <span id=packet_lost_out_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Packet Discarded in Jitter Buffer IN / OUT</th><td><span id=packet_drop_in>"..formatPackets(getFlowValue(info, "RTP_IN_PKT_DROP")).."</span> <span id=packet_drop_in_trend></span></td><td><span id=packet_drop_out>"..formatPackets(getFlowValue(info, "RTP_OUT_PKT_DROP")).." </span> <span id=packet_drop_out_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Payload Type IN / OUT</th><td><div id=payload_type_in>"..getFlowValue(info, "RTP_IN_PAYLOAD_TYPE").."</div></td><td><div id=payload_type_out>"..getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE").."</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Max Delta Time between Packets IN / OUT</th><td><span id=max_delta_time_in>"..getFlowValue(info, "RTP_IN_MAX_DELTA").." ms </span> <span id=max_delta_time_in_trend></span></td><td><span id=max_delta_time_out>"..getFlowValue(info, "RTP_OUT_MAX_DELTA").." ms </span> <span id=max_delta_time_out_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%> SIP Call Id  </th><td colspan=2><div id=rtp_sip_call_id>" .. getFlowValue(info, "RTP_SIP_CALL_ID") .. "</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (Average MOS/R-Factor) </th><td colspan=2><span><i class='fa fa-signal'></i>  </span><span id=mos_average>"..getFlowValue(info, "RTP_MOS").." </span> <span id=mos_average_trend></span><span> / </span><span id=r_factor_average>"..getFlowValue(info, "RTP_R_FACTOR").." </span> <span id=r_factor_average_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (MOS/R-Factor) IN / OUT </th><td><span><i class='fa fa-signal'></i>  </span><span id=mos_in>"..getFlowValue(info, "RTP_IN_MOS").." </span> <span id=mos_in_trend></span><span> / </span><span id=r_factor_in>"..getFlowValue(info, "RTP_IN_R_FACTOR").." </span> <span id=r_factor_in_trend></span></td><td><span><i class='fa fa-signal'></i>  </span><span id=mos_out>"..getFlowValue(info, "RTP_OUT_MOS").." </span> <span id=mos_out_trend></span><span> / </span><span id=r_factor_out>"..getFlowValue(info, "RTP_OUT_R_FACTOR").." </span> <span id=r_factor_out_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>RTP Transit IN / OUT</th><td><div id=rtop_transit_in>"..getFlowValue(info, "RTP_IN_TRANSIT").."</div></td><td><div id=rtp_transit_out>"..getFlowValue(info, "RTP_OUT_TRANSIT").."</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Round Trip Time</th><td colspan=2><span id=rtp_rtt>"..getFlowValue(info, "RTP_RTT").." ms </span> <span id=rtp_rtt_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>DTMF tones sent during the call</th><td colspan=2><span id=dtmf_tones>"..getFlowValue(info, "RTP_DTMF_TONES").."</span></td></tr>\n"
    end
    return string_table
 end

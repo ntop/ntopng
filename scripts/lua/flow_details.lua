@@ -388,6 +388,12 @@ else
       info = removeProtocolFields("SIP",info)
       isThereSIP = isThereProtocol(SIP, info)
 
+      -- get RTP rows
+      local rtp_table_rows = getRTPTableRows(info)
+      print(rtp_table_rows)
+      info = removeProtocolFields("RTP",info)
+      isThereRTP = isThereProtocol(RTP, info)
+
       num = 0
 
       for key,value in pairs(info) do
@@ -431,7 +437,21 @@ if(flow ~= nil) then
 end
 
 print [[
-
+ var jitter_in_trend = null;
+ var jitter_out_trend = null;
+ var packet_lost_in_trend = null;
+ var packet_lost_out_trend = null;
+ var packet_drop_in_trend = null;
+ var packet_drop_out_trend = null;
+ var max_delta_time_in_trend = null;
+ var max_delta_time_out_trend = null;
+ var mos_average_trend = null;
+ var r_factor_average_trend = null;
+ var mos_in_trend = null;
+ var r_factor_in_trend = null;
+ var mos_out_trend = null;
+ var r_factor_out_trend = null;
+ var rtp_rtt_trend = null;
 function update () {
 	  $.ajax({
 		    type: 'GET',
@@ -507,6 +527,227 @@ print [[/lua/flow_stats.lua',
           $('#reason_cause').html(rsp["sip.reason_cause"]);
           $('#c_ip').html(rsp["sip.c_ip"]);
           $('#call_state').html(rsp["sip.call_state"]);
+      ]]
+      end
+      if(isThereRTP) then
+        print [[
+          $('#sync_source_id').html(rsp["rtp.sync_source_id"]);
+          $('#first_flow_timestamp').html(rsp["rtp.first_flow_timestamp"]);
+          $('#last_flow_timestamp').html(rsp["rtp.last_flow_timestamp"]);
+          $('#first_flow_seq').html(rsp["rtp.first_flow_seq"]);
+          $('#last_flow_seq').html(rsp["rtp.last_flow_seq"]);
+          $('#jitter_in').html(rsp["rtp.jitter_in"]+" ms");
+          if(jitter_in_trend){
+            if(rsp["rtp.jitter_in"] > jitter_in_trend){
+                  $('#jitter_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.jitter_in"] < jitter_in_trend){
+                  $('#jitter_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#jitter_in_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#jitter_in_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          jitter_in_trend = rsp["rtp.jitter_in"];
+          $('#jitter_out').html(rsp["rtp.jitter_out"]+" ms");
+          if(jitter_out_trend){
+            if(rsp["rtp.jitter_out"] > jitter_out_trend){
+                  $('#jitter_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.jitter_out"] < jitter_out_trend){
+                  $('#jitter_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#jitter_out_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#jitter_out_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          jitter_out_trend = rsp["rtp.jitter_out"];
+
+          $('#packet_lost_in').html(formatPackets(rsp["rtp.packet_lost_in"]));
+          if(packet_lost_in_trend){
+            if(rsp["rtp.packet_lost_in"] > packet_lost_in_trend){
+                  $('#packet_lost_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else {
+                  $('#packet_lost_in_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#packet_lost_in_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          packet_lost_in_trend = rsp["rtp.packet_lost_in"];
+
+          $('#packet_lost_out').html(formatPackets(rsp["rtp.packet_lost_out"]));
+          if(packet_lost_out_trend){
+            if(rsp["rtp.packet_lost_out"] > packet_lost_out_trend){
+                  $('#packet_lost_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else {
+                  $('#packet_lost_out_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#packet_lost_out_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          packet_lost_out_trend = rsp["rtp.packet_lost_out"];
+
+          $('#packet_drop_in').html(formatPackets(rsp["rtp.packet_drop_in"]));
+          if(packet_drop_in_trend){
+            if(rsp["rtp.packet_drop_in"] > packet_drop_in_trend){
+                  $('#packet_drop_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else {
+                  $('#packet_drop_in_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#packet_drop_in_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          packet_drop_in_trend = rsp["rtp.packet_drop_in"];
+
+          $('#packet_drop_out').html(formatPackets(rsp["rtp.packet_drop_out"]));
+          if(packet_drop_out_trend){
+            if(rsp["rtp.packet_drop_out"] > packet_drop_out_trend){
+                  $('#packet_drop_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else {
+                  $('#packet_drop_out_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#packet_drop_out_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          packet_drop_out_trend = rsp["rtp.packet_drop_out"];
+
+          $('#payload_type_in').html(rsp["rtp.payload_type_in"]);
+          $('#payload_type_out').html(rsp["rtp.payload_type_out"]);
+
+          $('#max_delta_time_in').html(rsp["rtp.max_delta_time_in"]+" ms");
+          if(max_delta_time_in_trend){
+            if(rsp["rtp.max_delta_time_in"] > max_delta_time_in_trend){
+                  $('#max_delta_time_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.max_delta_time_in"] < max_delta_time_in_trend){
+                  $('#max_delta_time_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#max_delta_time_in_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#max_delta_time_in_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          max_delta_time_in_trend = rsp["rtp.max_delta_time_in"];
+
+
+          $('#max_delta_time_out').html(rsp["rtp.max_delta_time_out"]+" ms");
+          if(max_delta_time_out_trend){
+            if(rsp["rtp.max_delta_time_out"] > max_delta_time_out_trend){
+                  $('#max_delta_time_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.max_delta_time_out"] < max_delta_time_out_trend){
+                  $('#max_delta_time_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#max_delta_time_out_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#max_delta_time_out_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          max_delta_time_out_trend = rsp["rtp.max_delta_time_out"];
+
+          $('#rtp_sip_call_id').html(rsp["rtp.rtp_sip_call_id"]);
+
+          $('#mos_average').html(rsp["rtp.mos_average"]);
+          if(mos_average_trend){
+            if(rsp["rtp.mos_average"] > mos_average_trend){
+                  $('#mos_average_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.mos_average"] < mos_average_trend){
+                  $('#mos_average_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#mos_average_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#mos_average_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          mos_average_trend = rsp["rtp.mos_average"];
+
+          $('#r_factor_average').html(rsp["rtp.r_factor_average"]);
+          if(r_factor_average_trend){
+            if(rsp["rtp.r_factor_average"] > r_factor_average_trend){
+                  $('#r_factor_average_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.r_factor_average"] < r_factor_average_trend){
+                  $('#r_factor_average_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#r_factor_average_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#r_factor_average_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          r_factor_average_trend = rsp["rtp.r_factor_average"];
+
+          $('#mos_in').html(rsp["rtp.mos_in"]);
+          if(mos_in_trend){
+            if(rsp["rtp.mos_in"] > mos_in_trend){
+                  $('#mos_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.mos_in"] < mos_in_trend){
+                  $('#mos_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#mos_in_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#mos_in_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          mos_in_trend = rsp["rtp.mos_in"];
+
+          $('#r_factor_in').html(rsp["rtp.r_factor_in"]);
+          if(r_factor_in_trend){
+            if(rsp["rtp.r_factor_in"] > r_factor_in_trend){
+                  $('#r_factor_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.r_factor_in"] < r_factor_in_trend){
+                  $('#r_factor_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#r_factor_in_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#r_factor_in_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          r_factor_in_trend = rsp["rtp.r_factor_in"];
+
+          $('#mos_out').html(rsp["rtp.mos_out"]);
+          if(mos_out_trend){
+            if(rsp["rtp.mos_out"] > mos_out_trend){
+                  $('#mos_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.mos_out"] < mos_out_trend){
+                  $('#mos_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#mos_out_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#mos_out_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          mos_out_trend = rsp["rtp.mos_out"];
+
+          $('#r_factor_out').html(rsp["rtp.r_factor_out"]);
+          if(r_factor_out_trend){
+            if(rsp["rtp.r_factor_out"] > r_factor_out_trend){
+                  $('#r_factor_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.r_factor_out"] < r_factor_out_trend){
+                  $('#r_factor_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#r_factor_out_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#r_factor_out_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          r_factor_out_trend = rsp["rtp.r_factor_out"];
+
+          $('#rtp_transit_in').html(rsp["rtp.rtp_transit_in"]);
+          $('#rtp_transit_out').html(rsp["rtp.rtp_transit_out"]);
+
+          $('#rtp_rtt').html(rsp["rtp.rtp_rtt"]+ " ms");
+          if(rtp_rtt_trend){
+            if(rsp["rtp.rtp_rtt"] > rtp_rtt_trend){
+                  $('#rtp_rtt_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+            } else if(rsp["rtp.rtp_rtt"] < rtp_rtt_trend){
+                  $('#rtp_rtt_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+            } else {
+                  $('#rtp_rtt_trend').html("<i class=\"fa fa-minus\"></i>");
+            }
+          }else{
+              $('#rtp_rtt_trend').html("<i class=\"fa fa-minus\"></i>");
+          }
+          rtp_rtt_trend = rsp["rtp.rtp_rtt"];
+
+          $('#dtmf_tones').html(rsp["rtp.dtmf_tones"]);
+
       ]]
       end
 print [[			cli2srv_packets = rsp["cli2srv.packets"];

@@ -130,79 +130,109 @@ else
 
     if (flow["moreinfo.json"] ~= nil) then
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
-       sip_found = isThereProtocol("SIP", info)
-       if(sip_found == 1) then
-         print(', "sip.call_id":"'..getFlowValue(info, "SIP_CALL_ID")..'"')
-         print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
-         print(', "sip.rtp_codecs":"'..getFlowValue(info, "SIP_RTP_CODECS")..'"')
-         time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_invite":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_invite":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_TRYING_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_trying":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_trying":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_RINGING_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_ringing":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_ringing":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_INVITE_OK_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_invite_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_invite_ok":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_invite_failure":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_invite_failure":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_BYE_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_bye":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_bye":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_BYE_OK_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_bye_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_bye_ok":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_CANCEL_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_cancel":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_cancel":""')
-         end
-         time, time_epoch = getFlowValue(info, "SIP_CANCEL_OK_TIME")
-         if(time_epoch ~= "0") then
-           print(', "sip.time_cancel_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-         else
-           print(', "sip.time_cancel_ok":""')
-         end
-         if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil))then
-           print(', "sip.rtp_stream":"' .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")..' <i class=\\\"fa fa-exchange fa-lg\\\"></i> '..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT") ..'"')
-         end
-         print(', "sip.response_code":"'..getFlowValue(info, "SIP_RESPONSE_CODE")..'"')
-         val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
-         if(val_original ~= "0") then
-            print(', "sip.reason_cause":"'..val..'"')
-         else
-            print(', "sip.reason_cause":""')
-         end
-         print(', "sip.c_ip":"'..getFlowValue(info, "SIP_C_IP")..'"')
-         print(', "sip.call_state":"'..getFlowValue(info, "SIP_CALL_STATE")..'"')
-       end
-    end
+      sip_found = isThereProtocol("SIP", info)
+      if(sip_found == 1) then
+        print(', "sip.call_id":"'..getFlowValue(info, "SIP_CALL_ID")..'"')
+        print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
+        print(', "sip.rtp_codecs":"'..getFlowValue(info, "SIP_RTP_CODECS")..'"')
+        time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_invite":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_invite":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_TRYING_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_trying":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_trying":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_RINGING_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_ringing":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_ringing":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_INVITE_OK_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_invite_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_invite_ok":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_invite_failure":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_invite_failure":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_BYE_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_bye":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_bye":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_BYE_OK_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_bye_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_bye_ok":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_CANCEL_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_cancel":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_cancel":""')
+        end
+        time, time_epoch = getFlowValue(info, "SIP_CANCEL_OK_TIME")
+        if(time_epoch ~= "0") then
+          print(', "sip.time_cancel_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
+        else
+          print(', "sip.time_cancel_ok":""')
+        end
+        if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil))then
+          print(', "sip.rtp_stream":"' .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")..' <i class=\\\"fa fa-exchange fa-lg\\\"></i> '..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT") ..'"')
+        end
+        print(', "sip.response_code":"'..getFlowValue(info, "SIP_RESPONSE_CODE")..'"')
+        val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
+        if(val_original ~= "0") then
+          print(', "sip.reason_cause":"'..val..'"')
+        else
+          print(', "sip.reason_cause":""')
+        end
+        print(', "sip.c_ip":"'..getFlowValue(info, "SIP_C_IP")..'"')
+        print(', "sip.call_state":"'..getFlowValue(info, "SIP_CALL_STATE")..'"')
+      end
+
+      rtp_found = isThereProtocol("RTP", info)
+      if(rtp_found == 1) then
+        print(', "rtp.sync_source_id":"'..getFlowValue(info, "RTP_SSRC")..'"')
+        print(', "rtp.first_flow_timestamp":"<i class=\\\"fa fa-clock-o fa-lg\\\"></i>  '..getFlowValue(info, "RTP_FIRST_TS")..'"' )
+        print(', "rtp.last_flow_timestamp":"<i class=\\\"fa fa-clock-o fa-lg\\\"></i>  '..getFlowValue(info, "RTP_LAST_TS")..'"' )
+        print(', "rtp.first_flow_sequence":"'..getFlowValue(info, "RTP_FIRST_SEQ")..'"' )
+        print(', "rtp.last_flow_sequence":"'..getFlowValue(info, "RTP_LAST_SEQ")..'"' )
+        print(', "rtp.jitter_in":"'..getFlowValue(info, "RTP_IN_JITTER")..'"' )
+        print(', "rtp.jitter_out":"'..getFlowValue(info, "RTP_OUT_JITTER")..'"' )
+        print(', "rtp.packet_lost_in":"'..getFlowValue(info, "RTP_IN_PKT_LOST")..'"' )
+        print(', "rtp.packet_lost_out":"'..getFlowValue(info, "RTP_OUT_PKT_LOST")..'"' )
+        print(', "rtp.packet_discarded_in":"'..getFlowValue(info, "RTP_IN_PKT_DROP")..'"' )
+        print(', "rtp.packet_discarded_out":"'..getFlowValue(info, "RTP_OUT_PKT_DROP")..'"' )
+        print(', "rtp.payload_type_in":"'..getFlowValue(info, "RTP_IN_PAYLOAD_TYPE")..'"' )
+        print(', "rtp.payload_type_out":"'..getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE")..'"' )
+        print(', "rtp.max_delta_time_in":"'..getFlowValue(info, "RTP_IN_MAX_DELTA")..'"' )
+        print(', "rtp.max_delta_time_out":"'..getFlowValue(info, "RTP_OUT_MAX_DELTA")..'"' )
+        print(', "rtp.rtp_sip_call_id":"'..getFlowValue(info, "RTP_SIP_CALL_ID")..'"' )
+        print(', "rtp.mos_average":"'..getFlowValue(info, "RTP_MOS")..'"' )
+        print(', "rtp.r_factor_average":"'..getFlowValue(info, "RTP_R_FACTOR")..'"' )
+        print(', "rtp.mos_in":"'..getFlowValue(info, "RTP_IN_MOS")..'"' )
+        print(', "rtp.r_factor_in":"'..getFlowValue(info, "RTP_IN_R_FACTOR")..'"' )
+        print(', "rtp.mos_out":"'..getFlowValue(info, "RTP_OUT_MOS")..'"' )
+        print(', "rtp.r_factor_out":"'..getFlowValue(info, "RTP_OUT_R_FACTOR")..'"' )
+        print(', "rtp.rtp_transit_in":"'..getFlowValue(info, "RTP_IN_TRANSIT")..'"' )
+        print(', "rtp.rtp_transit_in":"'..getFlowValue(info, "RTP_OUT_TRANSIT")..'"' )
+        print(', "rtp.rtp_rtt":"'..getFlowValue(info, "RTP_RTT")..'"' )
+        print(', "rtp.dtmf_tones":"'..getFlowValue(info, "RTP_DTMF_TONES")..'"' )
+      end
+  end
 
   print (' }\n')
 end
