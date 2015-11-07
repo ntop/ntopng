@@ -592,6 +592,7 @@ void Redis::setDefaults() {
   char value[CONST_MAX_LEN_REDIS_VALUE];
 
   setResolvedAddress((char*)"127.0.0.1", (char*)"localhost");
+  setResolvedAddress((char*)"::1", (char*)"localhostV6");
   setResolvedAddress((char*)"255.255.255.255", (char*)"Broadcast");
   setResolvedAddress((char*)"0.0.0.0", (char*)"NoIP");
 

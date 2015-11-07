@@ -70,4 +70,6 @@ typedef struct {
   u_int8_t counter[NUM_MINUTES_PER_DAY];
 } activity_bitmap;
 
+enum SQLfield { SF_NONE, SF_SELECT, SF_FROM, SF_WHERE, SF_AND, SF_LIMIT, SF_TOK };
+
 #endif /* _NTOP_TYPEDEFS_H_ */

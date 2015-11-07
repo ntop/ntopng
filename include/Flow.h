@@ -40,7 +40,9 @@ class Flow : public GenericHashEntry {
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
   u_int16_t diff_num_http_requests;
-  int16_t profileId;
+#ifdef NTOPNG_PRO
+  Profile *trafficProfile;
+#endif
   ndpi_protocol ndpi_detected_protocol;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *ndpi_proto_name;
@@ -228,9 +230,8 @@ class Flow : public GenericHashEntry {
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id);
 #ifdef NTOPNG_PRO
-  void updateProfile();
+  inline void updateProfile() { trafficProfile = iface->getFlowProfile(this); }
 #endif
-
 };
 
 #endif /* _FLOW_H_ */

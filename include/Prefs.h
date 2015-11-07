@@ -76,7 +76,6 @@ class Prefs {
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
 #ifdef NTOPNG_PRO
   char *nagios_host, *nagios_port, *nagios_config;
-  Profiles profiles;
 #endif
 
   inline void help() { usage(); };
@@ -161,20 +160,14 @@ class Prefs {
   int loadFromFile(const char *path);
   inline void set_dump_hosts_to_db_policy(LocationPolicy p)   { dump_hosts_to_db = p;               };
   inline LocationPolicy get_dump_hosts_to_db_policy()         { return(dump_hosts_to_db);           };
-  int save();
   void add_network_interface(char *name, char *description);
   void add_network_interface_view(char *name, char *description);
-  char *getInterfaceViewAt(int id);
   inline bool json_labels_as_strings()                        { return(json_labels_string_format);       };
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
   void lua(lua_State* vm);
   void loadIdleDefaults();
 #ifdef NTOPNG_PRO
   void loadNagiosDefaults();
-  inline int getFlowProfile(Flow *f)  { return(profiles.getFlowProfile(f));  }
-  inline char* getProfileName(int id, char *buf, int buf_len) { return(profiles.getProfileName(id, buf, buf_len)); }
-  inline bool checkProfileSyntax(char *filter) { return(profiles.checkProfileSyntax(filter)); }
-  inline void reloadProfiles() { return(profiles.reloadProfiles()); }
 #endif
   void registerNetworkInterfaces();
   bool isView(char *name);
@@ -196,6 +189,9 @@ class Prefs {
   inline char* get_mysql_tablename() { return(mysql_tablename); };
   inline char* get_mysql_user()      { return(mysql_user);      };
   inline char* get_mysql_pw()        { return(mysql_pw);        };
+
+  inline char* getInterfaceViewAt(int id) { return((id >= MAX_NUM_INTERFACES) ? NULL : ifViewNames[id].name); }
+  inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
 };
 
 #endif /* _PREFS_H_ */

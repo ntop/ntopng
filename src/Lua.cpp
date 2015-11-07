@@ -86,16 +86,6 @@ static int ntop_lua_check(lua_State* vm, const char* func,
 
 /* ****************************************** */
 
-#if 0
-static NetworkInterface* handle_null_interface(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Null interface: did you restart ntopng in the meantime?");
-
-  return(ntop->getInterfaceAtId(0));
-}
-#endif
-
-/* ****************************************** */
-
 static NetworkInterfaceView* handle_null_interface_view(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Null interface view: did you restart ntopng in the meantime?");
 
@@ -216,7 +206,7 @@ static int ntop_get_interface_names(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   for(int i=0; i<ntop->get_num_interface_views(); i++) {
-    NetworkInterfaceView *iface =  ntop->getInterfaceViewAtId(i);
+    NetworkInterfaceView *iface = ntop->getInterfaceViewAtId(i);
 
     if(iface != NULL) {
       char num[8];
@@ -239,7 +229,7 @@ static patricia_tree_t* get_allowed_nets(lua_State* vm) {
 
 /* ****************************************** */
 
-static NetworkInterfaceView* get_ntop_interface(lua_State* vm) {
+static NetworkInterfaceView* getCurrentInterface(lua_State* vm) {
   NetworkInterfaceView *ntop_interface;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -283,7 +273,7 @@ static int ntop_select_interface(lua_State* vm) {
  * @return @ref CONST_LUA_OK
  */
 static int ntop_get_ndpi_interface_stats(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -292,7 +282,7 @@ static int ntop_get_ndpi_interface_stats(lua_State* vm) {
     ntop_interface->getnDPIStats(&stats);
 
     lua_newtable(vm);
-    stats.lua(ntop_interface, vm);
+    stats.lua(ntop_interface->getFirst(), vm);
   }
 
   return(CONST_LUA_OK);
@@ -308,7 +298,7 @@ static int ntop_get_ndpi_interface_stats(lua_State* vm) {
  * @return @ref CONST_LUA_OK
  */
 static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -330,7 +320,7 @@ static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_ndpi_protocol_name(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
   int proto;
 
@@ -343,7 +333,7 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
     lua_pushstring(vm, "Host-to-Host Contact");
   else {
     if(ntop_interface)
-      lua_pushstring(vm, ntop_interface->get_iface()->get_ndpi_proto_name(proto));
+      lua_pushstring(vm, ntop_interface->getFirst()->get_ndpi_proto_name(proto));
     else
       lua_pushnil(vm);
   }
@@ -354,7 +344,7 @@ static int ntop_get_ndpi_protocol_name(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_ndpi_protocol_id(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
   char *proto;
 
@@ -364,7 +354,7 @@ static int ntop_get_ndpi_protocol_id(lua_State* vm) {
   proto = (char*)lua_tostring(vm, 1);
 
   if(ntop_interface && proto)
-    lua_pushnumber(vm, ntop_interface->get_iface()->get_ndpi_proto_id(proto));
+    lua_pushnumber(vm, ntop_interface->getFirst()->get_ndpi_proto_id(proto));
   else
     lua_pushnil(vm);
 
@@ -380,7 +370,7 @@ static int ntop_get_ndpi_protocol_id(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
   int proto;
 
@@ -393,7 +383,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
     lua_pushstring(vm, "Unrated-to-Host Contact");
   else {
     if(ntop_interface)
-      lua_pushstring(vm, ntop_interface->get_iface()->get_ndpi_proto_breed_name(proto));
+      lua_pushstring(vm, ntop_interface->getFirst()->get_ndpi_proto_breed_name(proto));
     else
       lua_pushnil(vm);
   }
@@ -409,7 +399,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_hosts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -426,7 +416,7 @@ static int ntop_get_interface_hosts(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_local_hosts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -445,7 +435,7 @@ static int ntop_get_interface_local_hosts(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_hosts_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details, show_local_only;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -475,7 +465,7 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_local_hosts_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -603,7 +593,7 @@ static int ntop_get_file_last_change(lua_State* vm) {
  * @return CONST_LUA_OK.
  */
 static int ntop_has_vlans(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -902,7 +892,7 @@ static int ntop_zmq_disconnect(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_zmq_receive(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   void *subscriber;
   int size;
   struct zmq_msg_hdr h;
@@ -923,7 +913,8 @@ static int ntop_zmq_receive(lua_State* vm) {
   item.events = ZMQ_POLLIN;
   do {
     rc = zmq_poll(&item, 1, 1000);
-    if(rc < 0 || !ntop_interface->get_iface()->isRunning()) return(CONST_LUA_PARAM_ERROR);
+    if(rc < 0 || !ntop_interface->getFirst()->isRunning()) /* CHECK */
+      return(CONST_LUA_PARAM_ERROR);
   } while (rc == 0);
 
   size = zmq_recv(subscriber, &h, sizeof(h), 0);
@@ -1069,7 +1060,7 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  * @return CONST_LUA_OK.
  */
 static int ntop_get_interface_flows_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char sql[128], buf[64];
   char *host_ip = NULL, *key = NULL;
   u_int16_t vlan_id = 0;
@@ -1109,7 +1100,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
  * @return CONST_LUA_OK.
  */
 static int ntop_query_interface_flows_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *sql = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1137,7 +1128,7 @@ static int ntop_query_interface_flows_info(lua_State* vm) {
  * @return CONST_LUA_OK.
  */
 static int ntop_get_interface_flows_stats(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
   if(ntop_interface) ntop_interface->getFlowsStats(vm);
@@ -1154,7 +1145,7 @@ static int ntop_get_interface_flows_stats(lua_State* vm) {
  * @return CONST_LUA_OK.
  */
 static int ntop_get_interface_networks_stats(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
   if(ntop_interface) ntop_interface->getNetworksStats(vm);
@@ -1172,7 +1163,7 @@ static int ntop_get_interface_networks_stats(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null or the host is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_host_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1194,7 +1185,7 @@ static int ntop_get_interface_host_info(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_load_host_alert_prefs(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1216,7 +1207,7 @@ static int ntop_interface_load_host_alert_prefs(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_host_reset_periodic_stats(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1241,7 +1232,7 @@ static int ntop_host_reset_periodic_stats(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_correalate_host_activity(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1263,7 +1254,7 @@ static int ntop_correalate_host_activity(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_similar_host_activity(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1285,7 +1276,7 @@ static int ntop_similar_host_activity(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_host_activitymap(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   GenericHost *h;
   u_int16_t vlan_id = 0;
@@ -1327,7 +1318,7 @@ static int ntop_get_interface_host_activitymap(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null or if is impossible to restore the host, CONST_LUA_OK otherwise.
  */
 static int ntop_restore_interface_host(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1348,7 +1339,7 @@ static int ntop_restore_interface_host(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_flows_peers(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_name;
   u_int16_t vlan_id = 0;
 
@@ -1372,7 +1363,7 @@ static int ntop_get_interface_flows_peers(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
   Flow *f;
   patricia_tree_t *ptree = get_allowed_nets(vm);
@@ -1397,7 +1388,7 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_drop_flow_traffic(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
   Flow *f;
   patricia_tree_t *ptree = get_allowed_nets(vm);
@@ -1422,7 +1413,7 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_dump_flow_traffic(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int32_t key, what;
   Flow *f;
   patricia_tree_t *ptree = get_allowed_nets(vm);
@@ -1450,7 +1441,7 @@ static int ntop_dump_flow_traffic(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_find_user_flows(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *key;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1469,7 +1460,7 @@ static int ntop_get_interface_find_user_flows(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_find_pid_flows(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int32_t pid;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1488,7 +1479,7 @@ static int ntop_get_interface_find_pid_flows(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_find_father_pid_flows(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int32_t father_pid;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1507,7 +1498,7 @@ static int ntop_get_interface_find_father_pid_flows(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_find_proc_name_flows(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *proc_name;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1526,7 +1517,7 @@ static int ntop_get_interface_find_proc_name_flows(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_list_http_hosts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *key;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1544,7 +1535,7 @@ static int ntop_list_http_hosts(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_find_host(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *key;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1561,7 +1552,7 @@ static int ntop_get_interface_find_host(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_update_host_traffic_policy(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1586,7 +1577,7 @@ static int ntop_update_host_traffic_policy(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_update_host_alert_policy(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1611,7 +1602,7 @@ static int ntop_update_host_alert_policy(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_set_host_dump_policy(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1640,7 +1631,7 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_host_hit_rate(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1669,7 +1660,7 @@ static int ntop_get_host_hit_rate(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_set_host_quota(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1698,7 +1689,7 @@ static int ntop_set_host_quota(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_dump_tap_policy(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool dump_traffic_to_tap;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1714,7 +1705,7 @@ static int ntop_get_interface_dump_tap_policy(lua_State* vm) {
 }
 
 static int ntop_get_interface_dump_tap_name(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *name;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1730,7 +1721,7 @@ static int ntop_get_interface_dump_tap_name(lua_State* vm) {
 }
 
 static int ntop_get_interface_dump_disk_policy(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool dump_traffic_to_disk;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1746,7 +1737,7 @@ static int ntop_get_interface_dump_disk_policy(lua_State* vm) {
 }
 
 static int ntop_get_interface_dump_max_pkts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   int max_pkts;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1762,7 +1753,7 @@ static int ntop_get_interface_dump_max_pkts(lua_State* vm) {
 }
 
 static int ntop_get_interface_dump_max_sec(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   int max_sec;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1778,7 +1769,7 @@ static int ntop_get_interface_dump_max_sec(lua_State* vm) {
 }
 
 static int ntop_get_interface_dump_max_files(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   int max_files;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1794,7 +1785,7 @@ static int ntop_get_interface_dump_max_files(lua_State* vm) {
 }
 
 static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   int num_pkts;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1814,7 +1805,7 @@ static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
 }
 
 static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   int num_pkts;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1836,7 +1827,7 @@ static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_endpoint(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int8_t id;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1847,7 +1838,7 @@ static int ntop_get_interface_endpoint(lua_State* vm) {
     id = (u_int8_t)lua_tonumber(vm, 1);
 
   if(ntop_interface) {
-    char *endpoint = ntop_interface->get_iface()->getEndpoint(id);
+    char *endpoint = ntop_interface->getFirst()->getEndpoint(id); /* CHECK */
 
     lua_pushfstring(vm, "%s", endpoint ? endpoint : "");
   }
@@ -1858,7 +1849,7 @@ static int ntop_get_interface_endpoint(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_is_running(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -1869,7 +1860,7 @@ static int ntop_interface_is_running(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_is_idle(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
   if(!ntop_interface) return(CONST_LUA_ERROR);
@@ -1879,7 +1870,7 @@ static int ntop_interface_is_idle(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_set_idle(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool state;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -1912,7 +1903,7 @@ static int ntop_interface_name2id(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_ndpi_protocols(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
   ntop_interface->getnDPIProtocols(vm);
@@ -1923,7 +1914,7 @@ static int ntop_get_ndpi_protocols(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_load_dump_prefs(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
   ntop_interface->loadDumpPrefs();
@@ -2317,7 +2308,7 @@ static int ntop_load_prefs_defaults(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_increase_drops(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int32_t num;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -2326,7 +2317,7 @@ static int ntop_increase_drops(lua_State* vm) {
   num = (u_int32_t)lua_tonumber(vm, 1);
 
   if(ntop_interface)
-    ntop_interface->get_iface()->incrDrops(num);
+    ntop_interface->getFirst()->incrDrops(num); /* CHECK */
 
   return(CONST_LUA_OK);
 }
@@ -2575,7 +2566,7 @@ void lua_push_float_table_entry(lua_State *L, const char *key, float value) {
 /* ****************************************** */
 
 static int ntop_get_interface_stats(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2594,7 +2585,7 @@ static int ntop_is_pro(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_reload_l7_rules(lua_State *vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2610,7 +2601,7 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_reload_shapers(lua_State *vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2626,7 +2617,7 @@ static int ntop_reload_shapers(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_interface_exec_sql_query(lua_State *vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3652,7 +3643,7 @@ static int ntop_redis_get_host_id(lua_State* vm) {
   char daybuf[32];
   time_t when = time(NULL);
   bool new_key;
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -3660,7 +3651,7 @@ static int ntop_redis_get_host_id(lua_State* vm) {
   if((host_name = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
-  lua_pushinteger(vm, redis->host_to_id(ntop_interface->get_iface(), daybuf, host_name, &new_key));
+  lua_pushinteger(vm, redis->host_to_id(ntop_interface->getFirst(), daybuf, host_name, &new_key)); /* CHECK */
 
   return(CONST_LUA_OK);
 }
@@ -3775,13 +3766,15 @@ static int ntop_nagios_send_event(lua_State* vm) {
 #ifdef NTOPNG_PRO
 static int ntop_check_profile_syntax(lua_State* vm) {
   char *filter;
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+  NetworkInterface *iface = ntop_interface->getFirst();
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   filter = (char*)lua_tostring(vm, 1);
 
-  lua_pushboolean(vm, ntop->getPrefs()->checkProfileSyntax(filter));
+  lua_pushboolean(vm, iface ? iface->checkProfileSyntax(filter) : false);
 
   return(CONST_LUA_OK);
 }
@@ -3790,13 +3783,14 @@ static int ntop_check_profile_syntax(lua_State* vm) {
 /* ****************************************** */
 
 #ifdef NTOPNG_PRO
-static int ntop_reload_profiles(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = get_ntop_interface(vm);
+static int ntop_reload_traffic_profiles(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  ntop->getPrefs()->reloadProfiles(); /* Reload profiles in memory */
-  if(ntop_interface) ntop_interface->updateFlowProfiles();
+  if(ntop_interface)
+    ntop_interface->updateFlowProfiles(); /* Reload profiles in memory */
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -4181,7 +4175,7 @@ static const luaL_Reg ntop_reg[] = {
 #ifdef NTOPNG_PRO
   { "sendNagiosEvent",      ntop_nagios_send_event },
   { "checkProfileSyntax",   ntop_check_profile_syntax },
-  { "reloadProfiles",       ntop_reload_profiles },
+  { "reloadProfiles",       ntop_reload_traffic_profiles },
 #endif
 
   /* Pro */

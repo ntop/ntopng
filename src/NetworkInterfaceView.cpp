@@ -21,71 +21,66 @@
 
 #include "ntop_includes.h"
 
-/* **************************************************** */
+/* ****************************************** */
 
-NetworkInterfaceView::NetworkInterfaceView(NetworkInterface *intf) {
-  assert(intf);
+NetworkInterfaceView::NetworkInterfaceView(const char *_name) {
+  NetworkInterface *intf;
 
-  physIntf.push_back(intf);
-  physNames.push_back(intf->get_name());
-  ifvname = strdup(intf->get_name());
-  num_intfs = 1;
-  iface = intf;
-  this->id = intf->get_id();
-  descr = strdup(ifvname);
-}
+  numInterfaces = 0;
+  if(strncmp(_name, "view:", 5)) {
+    intf = ntop->getNetworkInterface(_name);
+    if(intf)
+      physIntf[numInterfaces++] = intf, id = Utils::ifname2id(_name);
+    else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown interface %s: skept", _name);
+  } else {
+    char buf[128], *iface;
 
-NetworkInterfaceView::NetworkInterfaceView(const char *name, int id) {
-  string ifname, desc = "";
-  NetworkInterface *intf = NULL;
+    snprintf(buf, sizeof(buf), "%s", &_name[5]);
+    
+    iface = strtok(buf, ","), id = Utils::ifname2id(&_name[5]);
+    
+    while(iface) {
+      if((intf = ntop->getNetworkInterface(iface)) != NULL) {
+	physIntf[numInterfaces++] = intf;
+      } else
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown interface %s in view %s: skept", iface, _name);
 
-  name = &name[5]; /* Skip view: */
-
-  /* cmdtok keeps the interfaces */
-  istringstream st(name);
-  num_intfs = 0;
-  while(std::getline(st, ifname, ',')) {
-    intf = ntop->getNetworkInterface(ifname.c_str());
-    if(intf) {
-      physIntf.push_back(intf);
-      physNames.push_back(intf->get_name());
-      if(num_intfs != 0) desc += ",";
-      desc += intf->get_name();
-      num_intfs++;
+      iface = strtok(NULL, ",");
     }
   }
 
-  if(num_intfs == 1) iface = intf;
-  ifvname = strdup(desc.c_str());
-  iface = NULL;
-  this->id = id;
-  descr = strdup(desc.c_str());
+  name = strdup(_name);  
 }
 
+/* **************************************************** */
+
 NetworkInterfaceView::~NetworkInterfaceView() {
-  physIntf.clear();
-  physNames.clear();
-  free(ifvname);
-  free(descr);
+  if(name) free(name);
 }
 
 /* **************************************************** */
 
 void NetworkInterfaceView::loadDumpPrefs() {
-  list<NetworkInterface *>::iterator p;
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->loadDumpPrefs();
+}
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->loadDumpPrefs();
+/* **************************************************** */
+
+void NetworkInterfaceView::updateFlowProfiles() {
+  for(int i = 0; i<numInterfaces; i++) {
+    physIntf[i]->reloadTrafficProfiles();
+    physIntf[i]->updateFlowProfiles();
+  }
 }
 
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
 void NetworkInterfaceView::refreshL7Rules() {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->refreshL7Rules();
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->refreshL7Rules();
 }
 #endif
 
@@ -93,21 +88,18 @@ void NetworkInterfaceView::refreshL7Rules() {
 
 #ifdef NTOPNG_PRO
 void NetworkInterfaceView::refreshShapers() {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->refreshShapers();
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->refreshShapers();
 }
 #endif
 
 /* **************************************************** */
 
 void NetworkInterfaceView::getnDPIStats(nDPIStats *stats) {
-  list<NetworkInterface *>::iterator p;
-
   memset(stats, 0, sizeof(nDPIStats));
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getnDPIStats(stats);
+
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getnDPIStats(stats);
 }
 
 /* **************************************************** */
@@ -117,22 +109,19 @@ void NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 					      bool host_details,
 					      bool local_only) {
   struct vm_ptree vp;
-  list<NetworkInterface *>::iterator p;
 
   vp.vm = vm, vp.ptree = allowed_hosts;
 
   lua_newtable(vm);
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getActiveHostsList(vm, &vp, host_details, local_only);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getActiveHostsList(vm, &vp, host_details, local_only);
 }
 
 /* **************************************************** */
 
 bool NetworkInterfaceView::hasSeenVlanTaggedPackets() {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->hasSeenVlanTaggedPackets()) return true;
+  for(int i = 0; i<numInterfaces; i++)
+    if(physIntf[i]->hasSeenVlanTaggedPackets()) return true;
 
   return false;
 }
@@ -141,13 +130,12 @@ bool NetworkInterfaceView::hasSeenVlanTaggedPackets() {
 
 int NetworkInterfaceView::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts,
                                    char *SQL) {
-  list<NetworkInterface *>::iterator p;
   int ret = 0;
 
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    if ((ret = (*p)->retrieve(vm, allowed_hosts, SQL)))
+  for(int i = 0; i<numInterfaces; i++) {
+    if ((ret = physIntf[i]->retrieve(vm, allowed_hosts, SQL)))
       return ret;
   }
 
@@ -157,23 +145,19 @@ int NetworkInterfaceView::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts
 /* **************************************************** */
 
 void NetworkInterfaceView::getFlowsStats(lua_State* vm) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getFlowsStats(vm);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getFlowsStats(vm);
 }
 
 /* **************************************************** */
 
 void NetworkInterfaceView::getNetworksStats(lua_State* vm) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getNetworksStats(vm);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getNetworksStats(vm);
 }
 
 /* **************************************************** */
@@ -181,13 +165,12 @@ void NetworkInterfaceView::getNetworksStats(lua_State* vm) {
 bool NetworkInterfaceView::getHostInfo(lua_State* vm,
 				       patricia_tree_t *allowed_hosts,
 				       char *host_ip, u_int16_t vlan_id) {
-  list<NetworkInterface *>::iterator p;
   bool ret = false;
 
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->getHostInfo(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
+  for(int i = 0; i<numInterfaces; i++)
+    if(physIntf[i]->getHostInfo(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
 
   return ret;
 }
@@ -197,13 +180,12 @@ bool NetworkInterfaceView::getHostInfo(lua_State* vm,
 bool NetworkInterfaceView::loadHostAlertPrefs(lua_State* vm,
 				              patricia_tree_t *allowed_hosts,
 				              char *host_ip, u_int16_t vlan_id) {
-  list<NetworkInterface *>::iterator p;
   bool ret = false;
 
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->loadHostAlertPrefs(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
+  for(int i = 0; i<numInterfaces; i++)
+    if(physIntf[i]->loadHostAlertPrefs(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
 
   return ret;
 }
@@ -213,13 +195,12 @@ bool NetworkInterfaceView::loadHostAlertPrefs(lua_State* vm,
 bool NetworkInterfaceView::correlateHostActivity(lua_State* vm,
 			                         patricia_tree_t *allowed_hosts,
 					         char *host_ip, u_int16_t vlan_id) {
-  list<NetworkInterface *>::iterator p;
   bool ret = false;
 
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->correlateHostActivity(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
+  for(int i = 0; i<numInterfaces; i++)
+    if(physIntf[i]->correlateHostActivity(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
 
   return ret;
 }
@@ -229,13 +210,12 @@ bool NetworkInterfaceView::correlateHostActivity(lua_State* vm,
 bool NetworkInterfaceView::similarHostActivity(lua_State* vm,
 					       patricia_tree_t *allowed_hosts,
 					       char *host_ip, u_int16_t vlan_id) {
-  list<NetworkInterface *>::iterator p;
   bool ret = false;
 
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->similarHostActivity(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
+  for(int i = 0; i<numInterfaces; i++)
+    if(physIntf[i]->similarHostActivity(vm, allowed_hosts, host_ip, vlan_id)) ret = true;
 
   return ret;
 }
@@ -243,11 +223,10 @@ bool NetworkInterfaceView::similarHostActivity(lua_State* vm,
 /* **************************************************** */
 
 Host* NetworkInterfaceView::getHost(char *host_ip, u_int16_t vlan_id) {
-  list<NetworkInterface *>::iterator p;
   Host *h = NULL;
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((h = (*p)->getHost(host_ip, vlan_id))) return h;
+  for(int i = 0; i<numInterfaces; i++)
+    if((h = physIntf[i]->getHost(host_ip, vlan_id))) return h;
 
   return h;
 }
@@ -255,10 +234,8 @@ Host* NetworkInterfaceView::getHost(char *host_ip, u_int16_t vlan_id) {
 /* **************************************************** */
 
 bool NetworkInterfaceView::restoreHost(char *host_ip) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->restoreHost(host_ip)) return true;
+  for(int i = 0; i<numInterfaces; i++)
+    if(physIntf[i]->restoreHost(host_ip)) return true;
 
   return false;
 }
@@ -268,23 +245,20 @@ bool NetworkInterfaceView::restoreHost(char *host_ip) {
 void NetworkInterfaceView::getFlowPeersList(lua_State* vm,
 					    patricia_tree_t *allowed_hosts,
 					    char *numIP, u_int16_t vlanId) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getFlowPeersList(vm, allowed_hosts, numIP, vlanId);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getFlowPeersList(vm, allowed_hosts, numIP, vlanId);
 }
 
 /* **************************************************** */
 
 Flow* NetworkInterfaceView::findFlowByKey(u_int32_t key,
 				          patricia_tree_t *allowed_hosts) {
-  list<NetworkInterface *>::iterator p;
   Flow *f = NULL;
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((f = (*p)->findFlowByKey(key, allowed_hosts))) return f;
+  for(int i = 0; i<numInterfaces; i++)
+    if((f = physIntf[i]->findFlowByKey(key, allowed_hosts))) return f;
 
   return f;
 }
@@ -292,56 +266,46 @@ Flow* NetworkInterfaceView::findFlowByKey(u_int32_t key,
 /* **************************************************** */
 
 void NetworkInterfaceView::findUserFlows(lua_State *vm, char *username) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->findUserFlows(vm, username);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->findUserFlows(vm, username);
 }
 
 /* **************************************** */
 
 void NetworkInterfaceView::findPidFlows(lua_State *vm, u_int32_t pid) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->findPidFlows(vm, pid);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->findPidFlows(vm, pid);
 }
 
 /* **************************************** */
 
 void NetworkInterfaceView::findFatherPidFlows(lua_State *vm, u_int32_t father_pid) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->findFatherPidFlows(vm, father_pid);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->findFatherPidFlows(vm, father_pid);
 }
 
 /* **************************************** */
 
 void NetworkInterfaceView::findProcNameFlows(lua_State *vm, char *proc_name) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->findProcNameFlows(vm, proc_name);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->findProcNameFlows(vm, proc_name);
 }
 
 /* **************************************** */
 
 void NetworkInterfaceView::listHTTPHosts(lua_State *vm, char *key) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->listHTTPHosts(vm, key);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->listHTTPHosts(vm, key);
 }
 
 /* **************************************** */
@@ -349,23 +313,20 @@ void NetworkInterfaceView::listHTTPHosts(lua_State *vm, char *key) {
 void NetworkInterfaceView::findHostsByName(lua_State* vm,
 				           patricia_tree_t *allowed_hosts,
 				           char *key) {
-  list<NetworkInterface *>::iterator p;
-
   lua_newtable(vm);
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->findHostsByName(vm, allowed_hosts, key);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->findHostsByName(vm, allowed_hosts, key);
 }
 
 /* **************************************** */
 
 Host* NetworkInterfaceView::findHostsByIP(patricia_tree_t *allowed_hosts, 
 					  char *key, u_int16_t vlan_id) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
+  for(int i = 0; i<numInterfaces; i++) {
     Host *h;
-    if((h = (*p)->findHostsByIP(allowed_hosts, key, vlan_id)) != NULL)
+    
+    if((h = physIntf[i]->findHostsByIP(allowed_hosts, key, vlan_id)) != NULL)
       return(h);   
   }
 
@@ -375,10 +336,8 @@ Host* NetworkInterfaceView::findHostsByIP(patricia_tree_t *allowed_hosts,
 /* **************************************** */
 
 int NetworkInterfaceView::isRunning() {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if((*p)->isRunning()) return true;
+  for(int i = 0; i<numInterfaces; i++)
+    if(physIntf[i]->isRunning()) return true;
 
   return false;
 }
@@ -386,10 +345,8 @@ int NetworkInterfaceView::isRunning() {
 /* **************************************** */
 
 bool NetworkInterfaceView::idle() {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    if(!(*p)->idle()) return false;
+  for(int i = 0; i<numInterfaces; i++)
+    if(!physIntf[i]->idle()) return false;
 
   return true;
 }
@@ -397,32 +354,33 @@ bool NetworkInterfaceView::idle() {
 /* **************************************** */
 
 void NetworkInterfaceView::setIdleState(bool new_state) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->setIdleState(new_state);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->setIdleState(new_state);
 }
 
 /* *************************************** */
 
 void NetworkInterfaceView::getnDPIProtocols(lua_State *vm) {
-  list<NetworkInterface *>::iterator p;
-
-  lua_newtable(vm);
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    (*p)->getnDPIProtocols(vm);
-    break;
-  }
+  lua_newtable(vm);  
+  getFirst()->getnDPIProtocols(vm);
 }
 
 /* *************************************** */
 
-bool NetworkInterfaceView::getDumpTrafficDiskPolicy(void) {
-  list<NetworkInterface *>::iterator p;
+bool NetworkInterfaceView::getDumpTrafficDiskPolicy() {
+  for(int i = 0; i<numInterfaces; i++) {
+    if (physIntf[i]->getDumpTrafficDiskPolicy())
+      return true;
+  }
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    if ((*p)->getDumpTrafficDiskPolicy())
+  return false;
+}
+
+/* *************************************** */
+
+bool NetworkInterfaceView::getDumpTrafficTapPolicy() {
+  for(int i = 0; i<numInterfaces; i++) {
+    if (physIntf[i]->getDumpTrafficTapPolicy())
       return true;
   }
   return false;
@@ -430,26 +388,12 @@ bool NetworkInterfaceView::getDumpTrafficDiskPolicy(void) {
 
 /* *************************************** */
 
-bool NetworkInterfaceView::getDumpTrafficTapPolicy(void) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    if ((*p)->getDumpTrafficTapPolicy())
-      return true;
-  }
-  return false;
-}
-
-/* *************************************** */
-
-string NetworkInterfaceView::getDumpTrafficTapName(void) {
-  list<NetworkInterface *>::iterator p;
-  int i = 0;
+string NetworkInterfaceView::getDumpTrafficTapName() {
   string s = "";
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    s += (*p)->getDumpTrafficTapName();
-    if (i < num_intfs-1) s += ", ";
+  for(int i = 0; i<numInterfaces; i++) {
+    s += physIntf[i]->getDumpTrafficTapName();
+    if (i < numInterfaces-1) s += ", ";
     i++;
   }
 
@@ -459,20 +403,17 @@ string NetworkInterfaceView::getDumpTrafficTapName(void) {
 /* *************************************** */
 
 void NetworkInterfaceView::getnDPIFlowsCount(lua_State *vm) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->getnDPIFlowsCount(vm);
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getnDPIFlowsCount(vm);
 }
 
 /* *************************************** */
 
-int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile(void) {
-  list<NetworkInterface *>::iterator p;
+int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile() {
   int max_pkts = 0;
 
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++) {
-    int temp_num_pkts = (*p)->getDumpTrafficMaxPktsPerFile();
+  for(int i = 0; i<numInterfaces; i++) {
+    int temp_num_pkts = physIntf[i]->getDumpTrafficMaxPktsPerFile();
     if (temp_num_pkts > max_pkts)
       max_pkts = temp_num_pkts;
   }
@@ -482,83 +423,24 @@ int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile(void) {
 
 /* *************************************** */
 
-int NetworkInterfaceView::getDumpTrafficMaxSecPerFile(void) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    return (*p)->getDumpTrafficMaxSecPerFile();
-
-  return 0;
-}
-
-/* *************************************** */
-
-int NetworkInterfaceView::getDumpTrafficMaxFiles(void) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    return (*p)->getDumpTrafficMaxFiles();
-
-  return 0;
-}
-
-/* *************************************** */
-
-PacketDumper *NetworkInterfaceView::getPacketDumper(void) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    return (*p)->getPacketDumper();
-
-  return NULL;
-}
-
-/* *************************************** */
-
-PacketDumperTuntap *NetworkInterfaceView::getPacketDumperTap(void) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    return (*p)->getPacketDumperTap();
-
-  return NULL;
-}
-
-/* *************************************** */
-
-int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    return((*p)->exec_sql_query(vm, sql));
-
-  return(-1);
-}
-
-/* *************************************** */
-
-#ifdef NTOPNG_PRO
-void NetworkInterfaceView::updateFlowProfiles() {
-  list<NetworkInterface *>::iterator p;
-
-  for(p = physIntf.begin() ; p != physIntf.end() ; p++)
-    (*p)->updateFlowProfiles();
-}
-#endif
+int NetworkInterfaceView::getDumpTrafficMaxSecPerFile() { return(getFirst()->getDumpTrafficMaxSecPerFile()); }
+int NetworkInterfaceView::getDumpTrafficMaxFiles()      {  return(getFirst()->getDumpTrafficMaxFiles());     }
+PacketDumper *NetworkInterfaceView::getPacketDumper()              { return(getFirst()->getPacketDumper());       }
+PacketDumperTuntap *NetworkInterfaceView::getPacketDumperTap()     { return(getFirst()->getPacketDumperTap());    }
+int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) { return(getFirst()->exec_sql_query(vm, sql)); }
 
 /* *************************************** */
 
 void NetworkInterfaceView::lua(lua_State *vm) {
-  list<NetworkInterface *>::iterator p;
   int n = 0;
   
   lua_newtable(vm);
 
   lua_newtable(vm);
-  for(p = physIntf.begin(); p != physIntf.end(); p++) {
-    (*p)->lua(vm);
+  for(int i = 0; i<numInterfaces; i++) {
+    physIntf[i]->lua(vm);
     
-    lua_pushstring(vm, (*p)->get_name());
+    lua_pushstring(vm, physIntf[i]->get_name());
     lua_insert(vm, -2);
     lua_settable(vm, -3);
     n++;
@@ -568,8 +450,7 @@ void NetworkInterfaceView::lua(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
   
-  lua_push_str_table_entry(vm, "name", get_name());
-  lua_push_str_table_entry(vm, "description", descr);
+  lua_push_str_table_entry(vm, "name", name);
   lua_push_int_table_entry(vm, "id", id);
   lua_push_bool_table_entry(vm, "isView", n > 1 ? true : false);
 }

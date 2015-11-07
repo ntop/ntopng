@@ -553,7 +553,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     if(verbose) {
       char *rsp = serialize();
 
-      if(ndpiStats) ndpiStats->lua(iface->get_view(), vm);
+      if(ndpiStats) ndpiStats->lua(iface, vm);
       lua_push_str_table_entry(vm, "json", rsp);
       free(rsp);
 

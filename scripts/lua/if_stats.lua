@@ -272,10 +272,6 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if(ifstats.name ~= ifstats.description) then
-      print("<tr><th>Description</th><td colspan=6>" .. ifstats.description .. "</td></tr>\n")
-   end
-
    print("<tr><th>Family </th><td colspan=6>")
    if(ifstats.isView == true) then print("<i class=\"fa fa-eye\"></i> ") end
 

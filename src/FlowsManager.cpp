@@ -120,8 +120,7 @@ void FlowsManager::select(lua_State* vm,
     intf->get_flows_hash()->walk(flows_select_walker, (void*)&info);
 }
 
-enum SQLfield { SF_NONE, SF_SELECT, SF_FROM, SF_WHERE, SF_AND, SF_LIMIT, SF_TOK };
-#define BUFSIZE 20
+/* **************************************************** */
 
 int FlowsManager::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL) {
   char *where;
@@ -133,7 +132,7 @@ int FlowsManager::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *
 
   enum flowsField field = FF_NONE;
   /* XXX unify types */
-  char value[BUFSIZE];
+  char value[20];
   u_int8_t svalue;
   u_int16_t lvalue;
   u_int auxiliary_value;

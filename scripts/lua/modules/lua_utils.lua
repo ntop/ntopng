@@ -71,6 +71,8 @@ function aggregateInterfaceStats(ifstats)
    return(ifstats)
 end
 
+-- ##############################################
+
 function getInterfaceName(interface_id)
    local ifnames = interface.getIfNames()
    
@@ -87,6 +89,8 @@ function getInterfaceName(interface_id)
    
    return("")
 end
+
+-- ##############################################
 
 function getInterfaceId(interface_name)
    return(interface.name2id(interface_name))
@@ -126,6 +130,8 @@ l4_keys = {
 function __FILE__() return debug.getinfo(2,'S').source end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
+-- ##############################################
+
 function sendHTTPHeaderIfName(mime, ifname, maxage)
   info = ntop.getInfo()
 
@@ -142,19 +148,27 @@ function sendHTTPHeaderIfName(mime, ifname, maxage)
   print('\r\n')
 end
 
+-- ##############################################
+
 function sendHTTPHeaderLogout(mime)
   sendHTTPHeaderIfName(mime, nil, 0)
 end
 
+-- ##############################################
+
 function sendHTTPHeader(mime)
   sendHTTPHeaderIfName(mime, nil, 3600)
 end
+
+-- ##############################################
 
 function printGETParameters(get)
   for key, value in pairs(get) do
     io.write(key.."="..value.."\n")
   end
 end
+
+-- ##############################################
 
 function isEmptyString(str)
   -- io.write(str..'\n')
@@ -164,6 +178,8 @@ function isEmptyString(str)
     return false
   end
 end
+
+-- ##############################################
 
 function findString(str, tofind)
   local upper_lower = true
@@ -196,6 +212,8 @@ function findString(str, tofind)
   return(rsp)
 end
 
+-- ##############################################
+
 function findStringArray(str, tofind)
   if(str == nil) then return(nil) end
   if(tofind == nil) then return(nil) end
@@ -213,18 +231,25 @@ function findStringArray(str, tofind)
   return(rsp)
 end
 
+-- ##############################################
 
 function string.contains(String,Start)
   return(string.find(String,Start,1) ~= nil)
 end
 
+-- ##############################################
+
 function string.starts(String,Start)
   return string.sub(String,1,string.len(Start))==Start
 end
 
+-- ##############################################
+
 function string.ends(String,End)
   return End=='' or string.sub(String,-string.len(End))==End
 end
+
+-- ##############################################
 
 function printASN(asn, asname)
   if(asn > 0) then
@@ -234,6 +259,8 @@ function printASN(asn, asname)
   end
 end
 
+-- ##############################################
+
 function shortenString(name)
    max_len = 24
     if(string.len(name) < max_len) then
@@ -242,6 +269,8 @@ function shortenString(name)
       return(string.sub(name, 1, max_len).."...")
    end
 end
+
+-- ##############################################
 
 function shortHostName(name)
   local chunks = {name:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")}
@@ -279,6 +308,8 @@ function shortHostName(name)
   return(name)
 end
 
+-- ##############################################
+
 function _handleArray(name, sev)
   local id
 
@@ -294,53 +325,10 @@ function _handleArray(name, sev)
   return(firstToUpper(sev))
 end
 
-
-epp_rrd_names = {
-  { "Positive Replies Number", "num_replies_ok.rrd" },
-  { "Error Replies Number", "num_replies_error.rrd" },
-  { "Query Number", "num_queries.rrd" },
-  { "domain-create", "num_cmd_1.rrd" },
-  { "domain-update", "num_cmd_2.rrd" },
-  { "domain-delete", "num_cmd_3.rrd" },
-  { "domain-restore", "num_cmd_4.rrd" },
-  { "domain-transfer", "num_cmd_5.rrd" },
-  { "domain-transfer-trade", "num_cmd_6.rrd" },
-  { "domain-transfer-request", "num_cmd_7.rrd" },
-  { "domain-transfer-trade-request", "num_cmd_8.rrd" },
-  { "domain-transfer-cancel", "num_cmd_9.rrd" },
-  { "domain-transfer-approve", "num_cmd_10.rrd" },
-  { "domain-transfer-reject", "num_cmd_11.rrd" },
-  { "contact-create", "num_cmd_12.rrd" },
-  { "contact-update", "num_cmd_13.rrd" },
-  { "contact-delete", "num_cmd_14.rrd" },
-  { "domain-update-hosts", "num_cmd_15.rrd" },
-  { "domain-update-statuses", "num_cmd_16.rrd" },
-  { "domain-update-contacts", "num_cmd_17.rrd" },
-  { "domain-trade", "num_cmd_18.rrd" },
-  { "domain-update-simple", "num_cmd_19.rrd" },
-  { "domain-info", "num_cmd_20.rrd" },
-  { "contact-info", "num_cmd_21.rrd" },
-  { "domain-check", "num_cmd_22.rrd" },
-  { "contact-check", "num_cmd_23.rrd" },
-  { "poll-req", "num_cmd_24.rrd" },
-  { "domain-transfer-trade-cancel", "num_cmd_25.rrd" },
-  { "domain-transfer-trade-approve", "num_cmd_26.rrd" },
-  { "domain-transfer-trade-reject", "num_cmd_27.rrd" },
-  { "domain-transfer-query", "num_cmd_28.rrd" },
-  { "login", "num_cmd_29.rrd" },
-  { "login-chg-pwd", "num_cmd_30.rrd" },
-  { "logout", "num_cmd_31.rrd" },
-  { "poll-ack", "num_cmd_32.rrd" },
-  { "hello", "num_cmd_33.rrd" },
-  { "unknown-command", "num_cmd_34.rrd" }
-}
+-- ##############################################
 
 function l4Label(proto)
   return(_handleArray(l4_keys, proto))
-end
-
-function mapEppRRDName(name)
-  return(_handleArray(epp_rrd_names, name))
 end
 
 -- Alerts (see ntop_typedefs.h)
@@ -1521,15 +1509,11 @@ function getHumanReadableInterfaceName(interface_name)
       _ifstats = aggregateInterfaceStats(interface.getStats())
       
       -- print(interface_name.."=".._ifstats.name)
-      
-      if((interface_name ~= _ifstats.description) and (_ifstats.description ~= "PF_RING")) then
-	 return(_ifstats.description)
-      else
-	 return(_ifstats.name)
-      end
+      return(_ifstats.name)
    end
 end
 
+-- ##############################################
 
 function escapeHTML(s)
    s = string.gsub(s, "([&=+%c])", function (c)
@@ -1538,6 +1522,8 @@ function escapeHTML(s)
    s = string.gsub(s, " ", "+")
    return s
 end
+
+-- ##############################################
 
 function unescapeHTML (s)
    s = string.gsub(s, "+", " ")

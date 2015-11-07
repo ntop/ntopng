@@ -340,6 +340,8 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
    end
 
    if ntop.isPro() then
+      _ifstats = interface.getStats()
+      if(_ifstats.isView == true) then topArray = nil end
       drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
       return
    end
