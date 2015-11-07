@@ -1667,6 +1667,7 @@ static int alloc_vprintf(char **buf, size_t size, const char *fmt, va_list ap) {
     vsnprintf(*buf, size, fmt, ap_copy);
   }
 
+  va_end(ap_copy);
   return len;
 }
 

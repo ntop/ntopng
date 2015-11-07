@@ -660,8 +660,6 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   bool cli_and_srv_in_same_subnet = false;
   int16_t cli_network_id;
   int16_t srv_network_id;
-  NetworkStats *cli_network_stats;
-  NetworkStats *srv_network_stats;
 
   if(check_tor) {
     char rsp[256];
@@ -699,6 +697,8 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 #endif
 
     if(cli_host) {
+      NetworkStats *cli_network_stats;
+
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
       cli_host->incStats(protocol, ndpi_detected_protocol.protocol,
 			 diff_sent_packets, diff_sent_bytes,
@@ -722,6 +722,8 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     }
 
     if(srv_host) {
+      NetworkStats *srv_network_stats;
+
       srv_network_stats = srv_host->getNetworkStats(srv_network_id);
       srv_host->incStats(protocol, ndpi_detected_protocol.protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes,
@@ -1254,7 +1256,6 @@ json_object* Flow::flow2es(json_object *flow_object) {
 json_object* Flow::flow2json(bool partial_dump) {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
-  struct tm* tm_info;
   time_t t;
 
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
@@ -1264,6 +1265,8 @@ json_object* Flow::flow2json(bool partial_dump) {
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
+    struct tm* tm_info;
+
     t = last_seen;
     tm_info = gmtime(&t);
 
