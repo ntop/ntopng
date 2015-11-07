@@ -312,7 +312,6 @@ class NetworkInterface {
   void updateFlowProfiles();
   inline Profile* getFlowProfile(Flow *f)      { return(profiles ? profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(profiles ? profiles->checkProfileSyntax(filter) : false); }
-  inline void reloadTrafficProfiles()          { if(profiles) profiles->reloadProfiles();                         }
 #endif
 };
 

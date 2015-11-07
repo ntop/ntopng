@@ -226,15 +226,6 @@ end
 if(host["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. host["active_http_hosts"] .."</span>") end
 print("</a></li>\n")
 
-if(page == "epp") then
-  print("<li class=\"active\"><a href=\"#\">EPP</a></li>\n")
-else
-   if((host["epp"] ~= nil)
-   and ((host["epp"]["sent"]["num_queries"]+host["epp"]["rcvd"]["num_queries"]) > 0)) then
-      print("<li><a href=\""..url.."&page=epp\">EPP</a></li>")
-   end
-end
-
 if(page == "flows") then
   print("<li class=\"active\"><a href=\"#\">Flows</a></li>\n")
 else
@@ -1107,113 +1098,6 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 
 	 print("</table>\n")
       end
-   elseif(page == "epp") then
-      if(host["epp"] ~= nil) then
-	 print("<table class=\"table table-bordered table-striped\">\n")
-	 print("<tr><th>EPP Breakdown</th><th>Queries</th><th>Positive Replies</th><th>Error Replies</th><th colspan=2>Reply Breakdown</th></tr>")
-	 print("<tr><th>Sent</th><td class=\"text-right\"><span id=epp_sent_num_queries>".. formatValue(host["epp"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
-	 print("<td class=\"text-right\"><span id=epp_sent_num_replies_ok>".. formatValue(host["epp"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
-	 print("<td class=\"text-right\"><span id=epp_sent_num_replies_error>".. formatValue(host["epp"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
-	 breakdownBar(host["epp"]["sent"]["num_replies_ok"], "OK", host["epp"]["sent"]["num_replies_error"], "Error")
-	 print("</td></tr>")
-
-	 if(host["epp"]["sent"]["num_queries"] > 0) then
-	    print [[
-		     <tr><th>EPP Query Sent Distribution</th><td colspan=5>
-		     <div class="pie-chart" id="eppSent"></div>
-		     <script type='text/javascript'>
-
-					 do_pie("#eppSent", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_epp_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, ifname: "]] print(ifId) print [[", mode: "sent" }, "", refresh);
-				      </script>
-					 </td></tr>
-           ]]
-         end
-
-
-	 print("<tr><th>Rcvd</th><td class=\"text-right\"><span id=epp_rcvd_num_queries>".. formatValue(host["epp"]["rcvd"]["num_queries"]) .."</span> <span id=trend_rcvd_num_queries></span></td>")
-	 print("<td class=\"text-right\"><span id=epp_rcvd_num_replies_ok>".. formatValue(host["epp"]["rcvd"]["num_replies_ok"]) .."</span> <span id=trend_rcvd_num_replies_ok></span></td>")
-	 print("<td class=\"text-right\"><span id=epp_rcvd_num_replies_error>".. formatValue(host["epp"]["rcvd"]["num_replies_error"]) .."</span> <span id=trend_rcvd_num_replies_error></span></td><td colspan=2>")
-	 breakdownBar(host["epp"]["rcvd"]["num_replies_ok"], "OK", host["epp"]["rcvd"]["num_replies_error"], "Error")
-	 print("</td></tr>")
-
-	 if(host["epp"]["rcvd"]["num_queries"] > 0) then
-print [[
-	 <tr><th>EPP Rcvd Query Distribution</th><td colspan=5>
-         <div class="pie-chart" id="eppRcvd"></div>
-         <script type='text/javascript'>
-
-	     do_pie("#eppRcvd", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_epp_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, ifname: "]] print(ifId) print [[", mode: "rcvd" }, "", refresh);
-         </script>
-         </td></tr>
-]]
-end
-
-	 print("</table>\n")
-      end
-
-      path = fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/"..getPathFromKey(hostinfo2hostkey(host_info)).."/")
-      --print(path)
-num_found = 0
-names = {}
-sbase = "epp/sent/"
-rbase = "epp/rcvd/"
-
-for i=1,2 do
-   if(i == 1) then
-      base = sbase
-   else
-      base = rbase
-   end
-
-   s = path..base
-   rrds = ntop.readdir(s)
-   for k,v in pairs(rrds) do
-      names[k] = v
-      num_found = num_found +1
-   end
-end
-
-if(num_found > 0) then
-   print('<table class="table table-bordered table-striped">')
-   print('<tr><th colspan=3>Queries Sent: Last Hour</th><th colspan=3>Queries Received: Last Hour</th></tr>\n')
-
-for k,_ in pairsByKeys(names, rev) do
-   print("<tr>")
-
-   path = getRRDName(ifId, hostinfo2hostkey(host_info), sbase..k)
-   if(ntop.exists(path)) then
-      print("<th>"..mapEppRRDName(k).."</th>")
-      drawPeity(ifname, host_info["host"], sbase.."/"..k, _GET["graph_zoom"], _GET["epoch"])
-      print(" <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifname.."&host="..host_info["host"].."&vlan="..host_vlan.."&page=historical&graph_zoom=1h&epoch=&rrd_file="..sbase.. k .."><i class='fa fa-search'></i></A></td>")
-   else
-      print("<td colspan=3>&nbsp;</td>")
-   end
-
-   path = getRRDName(ifId,  hhostinfo2hostkey(host_info), rbase..k)
-   if(ntop.exists(path)) then
-      print("<th>"..mapEppRRDName(k).."</th>")
-      drawPeity(ifId, host_info["host"], rbase.."/"..k, _GET["graph_zoom"], _GET["epoch"])
-      print(" <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&host="..host_info["host"].."&vlan="..host_vlan.."&page=historical&graph_zoom=1h&epoch=&rrd_file="..rbase.. k .."><i class='fa fa-search'></i></A></td>")
-   else
-      print("<td colspan=3>&nbsp;</td>")
-   end
-
-   print("</tr>")
-end
-
-print("</table>\n")
-
-
-print [[
- <script type="text/javascript">$(".peity-line").peity("line", { width: 128});</script>
-]]
-
-end
-
    elseif(page == "flows") then
 
 print [[
@@ -2192,17 +2076,8 @@ if (host ~= nil) then
       print("var last_http_response_num_5xx = " .. host["http"]["response.num_5xx"] .. ";\n")
    end
    
-   if(host["epp"] ~= nil) then
-      print("var last_epp_sent_num_queries = " .. host["epp"]["sent"]["num_queries"] .. ";\n")
-      print("var last_epp_sent_num_replies_ok = " .. host["epp"]["sent"]["num_replies_ok"] .. ";\n")
-      print("var last_epp_sent_num_replies_error = " .. host["epp"]["sent"]["num_replies_error"] .. ";\n")
-      print("var last_epp_rcvd_num_queries = " .. host["epp"]["rcvd"]["num_queries"] .. ";\n")
-      print("var last_epp_rcvd_num_replies_ok = " .. host["epp"]["rcvd"]["num_replies_ok"] .. ";\n")
-      print("var last_epp_rcvd_num_replies_error = " .. host["epp"]["rcvd"]["num_replies_error"] .. ";\n")
-   end
-   
    print [[
-   var host_detalis_interval = window.setInterval(function() {
+   var host_details_interval = window.setInterval(function() {
    	  $.ajax({
    		    type: 'GET',
    		    url: ']]
@@ -2319,59 +2194,6 @@ if (host ~= nil) then
          print('} else {\n\tlast_http_response_num_'..retcode..' = host["http"]["response.num_'..retcode..'"];$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
       end
    end
-   end
-   
-   if(host["epp"] ~= nil) then
-   print [[
-   			   $('#epp_sent_num_queries').html(addCommas(host["epp"]["sent"]["num_queries"]));
-   			   $('#epp_sent_num_replies_ok').html(addCommas(host["epp"]["sent"]["num_replies_ok"]));
-   			   $('#epp_sent_num_replies_error').html(addCommas(host["epp"]["sent"]["num_replies_error"]));
-   			   $('#epp_rcvd_num_queries').html(addCommas(host["epp"]["rcvd"]["num_queries"]));
-   			   $('#epp_rcvd_num_replies_ok').html(addCommas(host["epp"]["rcvd"]["num_replies_ok"]));
-   			   $('#epp_rcvd_num_replies_error').html(addCommas(host["epp"]["rcvd"]["num_replies_error"]));
-   
-   			   if(host["epp"]["sent"]["num_queries"] == last_epp_sent_num_queries) {
-   			      $('#trend_sent_num_queries').html("<i class=\"fa fa-minus\"></i>");
-   			   } else {
-   			      last_epp_sent_num_queries = host["epp"]["sent"]["num_queries"];
-   			      $('#trend_sent_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
-   			   }
-   
-   			   if(host["epp"]["sent"]["num_replies_ok"] == last_epp_sent_num_replies_ok) {
-   			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
-   			   } else {
-   			      last_epp_sent_num_replies_ok = host["epp"]["sent"]["num_replies_ok"];
-   			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
-   			   }
-   
-   			   if(host["epp"]["sent"]["num_replies_error"] == last_epp_sent_num_replies_error) {
-   			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
-   			   } else {
-   			      last_epp_sent_num_replies_error = host["epp"]["sent"]["num_replies_error"];
-   			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
-   			   }
-   
-   			   if(host["epp"]["rcvd"]["num_queries"] == last_epp_rcvd_num_queries) {
-   			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-minus\"></i>");
-   			   } else {
-   			      last_epp_rcvd_num_queries = host["epp"]["rcvd"]["num_queries"];
-   			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
-   			   }
-   
-   			   if(host["epp"]["rcvd"]["num_replies_ok"] == last_epp_rcvd_num_replies_ok) {
-   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
-   			   } else {
-   			      last_epp_rcvd_num_replies_ok = host["epp"]["rcvd"]["num_replies_ok"];
-   			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
-   			   }
-   
-   			   if(host["epp"]["rcvd"]["num_replies_error"] == last_epp_rcvd_num_replies_error) {
-   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
-   			   } else {
-   			      last_epp_rcvd_num_replies_error = host["epp"]["rcvd"]["num_replies_error"];
-   			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
-   			   }
-   		     ]]
    end
    
    print [[

@@ -48,6 +48,19 @@ function dumpInterfaceStats(interface_name)
 	 print(', "b_to_a_num_pkts_send_error": '.. ifstats["bridge.b_to_a.num_pkts_send_error"])
       end
 
+      if(ifstats["profiles"] ~= nil) then
+        print(", \"profiles\": { ")
+        num = 0
+        for key, value in pairsByKeys(ifstats["profiles"], rev) do
+	 if(num > 0) then
+	    print(", ")
+	 end
+	 print(' "'..key..'": '..value)
+	 num = num + 1
+        end
+        print(' }')
+      end
+
       print(", \"breed\": { ")
       num = 0
       for key, value in pairsByKeys(stats["breeds"], rev) do

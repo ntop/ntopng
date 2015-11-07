@@ -37,9 +37,9 @@ NetworkInterfaceView::NetworkInterfaceView(const char *_name) {
     char buf[128], *iface;
 
     snprintf(buf, sizeof(buf), "%s", &_name[5]);
-    
+
     iface = strtok(buf, ","), id = Utils::ifname2id(&_name[5]);
-    
+
     while(iface) {
       if((intf = ntop->getNetworkInterface(iface)) != NULL) {
 	physIntf[numInterfaces++] = intf;
@@ -50,7 +50,7 @@ NetworkInterfaceView::NetworkInterfaceView(const char *_name) {
     }
   }
 
-  name = strdup(_name);  
+  name = strdup(_name);
 }
 
 /* **************************************************** */
@@ -70,10 +70,8 @@ void NetworkInterfaceView::loadDumpPrefs() {
 
 #ifdef NTOPNG_PRO
 void NetworkInterfaceView::updateFlowProfiles() {
-  for(int i = 0; i<numInterfaces; i++) {
-    physIntf[i]->reloadTrafficProfiles();
+  for(int i = 0; i<numInterfaces; i++)
     physIntf[i]->updateFlowProfiles();
-  }
 }
 #endif
 
@@ -323,13 +321,13 @@ void NetworkInterfaceView::findHostsByName(lua_State* vm,
 
 /* **************************************** */
 
-Host* NetworkInterfaceView::findHostsByIP(patricia_tree_t *allowed_hosts, 
+Host* NetworkInterfaceView::findHostsByIP(patricia_tree_t *allowed_hosts,
 					  char *key, u_int16_t vlan_id) {
   for(int i = 0; i<numInterfaces; i++) {
     Host *h;
-    
+
     if((h = physIntf[i]->findHostsByIP(allowed_hosts, key, vlan_id)) != NULL)
-      return(h);   
+      return(h);
   }
 
   return(NULL);
@@ -363,7 +361,7 @@ void NetworkInterfaceView::setIdleState(bool new_state) {
 /* *************************************** */
 
 void NetworkInterfaceView::getnDPIProtocols(lua_State *vm) {
-  lua_newtable(vm);  
+  lua_newtable(vm);
   getFirst()->getnDPIProtocols(vm);
 }
 
@@ -395,7 +393,7 @@ string NetworkInterfaceView::getDumpTrafficTapName() {
 
   for(int i = 0; i<numInterfaces; i++) {
     if(i > 0) s += ", ";
-    s += physIntf[i]->getDumpTrafficTapName();    
+    s += physIntf[i]->getDumpTrafficTapName();
   }
 
   return s;
@@ -434,23 +432,23 @@ int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) { return(getF
 
 void NetworkInterfaceView::lua(lua_State *vm) {
   int n = 0;
-  
+
   lua_newtable(vm);
 
   lua_newtable(vm);
   for(int i = 0; i<numInterfaces; i++) {
     physIntf[i]->lua(vm);
-    
+
     lua_pushstring(vm, physIntf[i]->get_name());
     lua_insert(vm, -2);
     lua_settable(vm, -3);
     n++;
   }
-  
+
   lua_pushstring(vm, "interfaces");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   lua_push_str_table_entry(vm, "name", name);
   lua_push_int_table_entry(vm, "id", id);
   lua_push_bool_table_entry(vm, "isView", n > 1 ? true : false);

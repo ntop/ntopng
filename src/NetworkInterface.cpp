@@ -206,7 +206,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 
 #ifdef NTOPNG_PRO
   policer  = new L7Policer(this);
-  profiles = new Profiles();
+  profiles = ntop->getPro()->has_valid_license() ? new Profiles() : NULL;
 #endif
 
   loadDumpPrefs();
@@ -1414,10 +1414,6 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 /* **************************************************** */
 
 void NetworkInterface::startPacketPolling() {
-#ifdef NTOPNG_PRO
-  if(profiles) profiles->reloadProfiles();
-#endif
-
   if((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
     if(Utils::setThreadAffinity(pollLoop, cpu_affinity))
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not set affinity of interface %s to core %d",
@@ -1730,7 +1726,14 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
 }
 
 void NetworkInterface::updateFlowProfiles() {
-  flows_hash->walk(update_flow_profile, NULL);
+  if(ntop->getPro()->has_valid_license()) {
+    Profiles *old = profiles;
+    
+    profiles = new Profiles();
+
+    flows_hash->walk(update_flow_profile, NULL);
+    delete old;
+  }
 }
 
 #endif
@@ -2006,9 +2009,11 @@ void NetworkInterface::lua(lua_State *vm) {
   localStats.lua(vm);
   ndpiStats.lua(this, vm);
   pktStats.lua(vm, "pktSizeDistribution");
-
-  if(pkt_dumper)
-    pkt_dumper->lua(vm);
+  
+  if(pkt_dumper) pkt_dumper->lua(vm);
+#ifdef NTOPNG_PRO
+  if(profiles)   profiles->lua(vm);
+#endif
 }
 
 /* **************************************************** */
@@ -2524,4 +2529,3 @@ NetworkStats* NetworkInterface::getNetworkStats(int16_t networkId) {
   else
     return(&networkStats[networkId]);
 }
-

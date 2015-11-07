@@ -402,7 +402,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
     }
 
     detection_completed = true;
-    
+
 #ifdef NTOPNG_PRO
     updateProfile();
 #endif
@@ -694,6 +694,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     cli_and_srv_in_same_subnet = true;
 
   if(diff_sent_packets || diff_rcvd_packets) {
+#ifdef NTOPNG_PRO
+    if(trafficProfile && ntop->getPro()->has_valid_license()) trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
+#endif
+
     if(cli_host) {
       cli_network_stats = cli_host->getNetworkStats(cli_network_id);
       cli_host->incStats(protocol, ndpi_detected_protocol.protocol,
@@ -702,15 +706,17 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       // update per-subnet byte counters
       if(cli_network_stats){ // only if the network is known and local
         if(!cli_and_srv_in_same_subnet){
-            cli_network_stats->incEgress(diff_sent_bytes);
-            cli_network_stats->incIngress(diff_rcvd_bytes);
+	  cli_network_stats->incEgress(diff_sent_bytes);
+	  cli_network_stats->incIngress(diff_rcvd_bytes);
         } else // client and server ARE in the same subnet
-            // need to update the inner counter (just one time, will intentionally skip this for srv_host)
-            cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
+	  // need to update the inner counter (just one time, will intentionally skip this for srv_host)
+	  cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
       }
+
       if(srv_host && cli_host->isLocalHost()){
         cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
       }
+
       if(srv_host && cli_host->isLocalHost())
 	cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
     }
@@ -721,10 +727,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 			 diff_rcvd_packets, diff_rcvd_bytes,
 			 diff_sent_packets, diff_sent_bytes);
       if(srv_network_stats){ // local and known server network
-          if(!cli_and_srv_in_same_subnet){
-              srv_network_stats->incIngress(diff_sent_bytes);
-              srv_network_stats->incEgress(diff_rcvd_bytes);
-          }
+	if(!cli_and_srv_in_same_subnet){
+	  srv_network_stats->incIngress(diff_sent_bytes);
+	  srv_network_stats->incEgress(diff_rcvd_bytes);
+	}
       }
 
       if(cli_host && srv_host->isLocalHost())
@@ -998,7 +1004,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
     }
 
 #ifdef NTOPNG_PRO
-    if(trafficProfile) lua_push_str_table_entry(vm, "profile", trafficProfile->getName());
+    if(trafficProfile && ntop->getPro()->has_valid_license())
+      lua_push_str_table_entry(vm, "profile", trafficProfile->getName());
 #endif
 
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);

@@ -155,6 +155,15 @@ if(ntop.exists(rrdname) and not is_historical) then
    end
 end
 
+
+if(ifstats.profiles ~= nil) then
+  if(page == "trafficprofiles") then
+    print("<li class=\"active\"><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
+  else
+    print("<li><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
+  end
+end
+
 if(not(ifstats.isView)) then
    if(isAdministrator()) then
       if(page == "packetdump") then
@@ -448,6 +457,49 @@ elseif(page == "historical") then
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
 
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
+elseif(page == "trafficprofiles") then
+
+   print("<table class=\"table table-striped table-bordered\">\n")
+   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th>Traffic</th></tr>\n")
+   for k,v in pairs(ifstats.profiles) do
+     trimmed = trimSpace(k)
+     print("<tr><th>"..k.."</th><td><span id=profile_"..trimmed..">"..bytesToSize(v).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
+   end
+
+print [[
+   </table>
+
+   <script>
+   var last_profile = [];
+   var traffic_profiles_interval = window.setInterval(function() {
+   	  $.ajax({
+   		    type: 'GET',
+   		    url: ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/network_load.lua',
+   		    data: { ifname: "]] print(ifname) print [[" },
+   		    success: function(content) {
+   			var profiles = jQuery.parseJSON(content);
+
+			if(profiles["profiles"] != null) {
+			   for (key in profiles["profiles"]) {
+			     k = '#profile_'+key.replace(" ", "");
+			     v = profiles["profiles"][key];
+   			     $(k).html(bytesToVolume(v));
+			     k += "_trend";
+			     last = last_profile[key];
+			     if(last == null) { last = 0; }
+			     $(k).html(get_trend(last, v));
+			   }
+
+			   last_profile = profiles["profiles"];
+ 			  }
+			}
+          });
+}, 3000);
+
+   </script>
+]]
 elseif(page == "packetdump") then
 
 
@@ -589,6 +641,9 @@ end
        ]]
 
    print("<tr><th colspan=2>Dump To Disk Parameters</th></tr>")
+   print("<tr><th width=250>Pcap Dump Directory</th><td>")
+   pcapdir = dirs.workingdir .."/"..ifstats.id.."/pcap/"
+   print(pcapdir.."</td></tr>\n")
    print("<tr><th width=250>Max Packets per File</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;">
