@@ -114,7 +114,7 @@ class NetworkInterface {
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to memorize the hosts information.*/
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
-    dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_to_disk, dump_security_to_disk;
+    dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic, dump_security_packets;
   DB *db;
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager *statsManager;
@@ -284,14 +284,13 @@ class NetworkInterface {
   int updateDumpTrafficMaxPktsPerFile();
   int updateDumpTrafficMaxSecPerFile();
   int updateDumpTrafficMaxFiles(void);
-  inline bool getDumpTrafficDiskPolicy()      { return(dump_to_disk); }
-  inline bool getDumpTrafficTapPolicy()       { return(dump_to_tap); }
+  inline bool getDumpTrafficDiskPolicy()      { return(dump_to_disk);       }
+  inline bool getDumpTrafficTapPolicy()       { return(dump_to_tap);        }
   inline u_int getDumpTrafficSamplingRate()   { return(dump_sampling_rate); }
   inline u_int getDumpTrafficMaxPktsPerFile() { return(dump_max_pkts_file); }
-  inline u_int getDumpTrafficMaxSecPerFile()  { return(dump_max_duration); }
-  inline u_int getDumpTrafficMaxFiles()       { return(dump_max_files); }
-
-  string getDumpTrafficTapName();
+  inline u_int getDumpTrafficMaxSecPerFile()  { return(dump_max_duration);  }
+  inline u_int getDumpTrafficMaxFiles()       { return(dump_max_files);     }
+  inline char* getDumpTrafficTapName()        { return(pkt_dumper_tap ? pkt_dumper_tap->getName() : (char*)""); }
   void loadDumpPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 

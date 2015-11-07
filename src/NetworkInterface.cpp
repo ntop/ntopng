@@ -81,7 +81,7 @@ NetworkInterface::NetworkInterface() {
 
   statsManager = NULL, flowsManager = NULL, ifSpeed = 0;
   checkIdle();
-  dump_all_traffic = dump_to_disk = dump_unknown_to_disk = dump_security_to_disk = dump_to_tap = false;
+  dump_all_traffic = dump_to_disk = dump_unknown_traffic = dump_security_packets = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
@@ -250,15 +250,6 @@ bool NetworkInterface::updateDumpTrafficTapPolicy(void) {
 
 /* **************************************************** */
 
-string NetworkInterface::getDumpTrafficTapName(void) {
-  if(pkt_dumper_tap)
-    return pkt_dumper_tap->getName();
-  else
-    return "";
-}
-
-/* **************************************************** */
-
 bool NetworkInterface::updateDumpAllTrafficPolicy(void) {
   bool retval = false;
 
@@ -294,8 +285,8 @@ bool NetworkInterface::updateDumpTrafficDiskPolicy(void) {
   }
 
   dump_to_disk = retval;
-  dump_unknown_to_disk = retval_u;
-  dump_security_to_disk = retval_s;
+  dump_unknown_traffic = retval_u;
+  dump_security_packets = retval_s;
   return retval;
 }
 
@@ -897,15 +888,17 @@ bool NetworkInterface::packetProcessing(
 	     flow->get_detected_protocol().protocol,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
-    bool dump_is_unknown = dump_unknown_to_disk &&
-      (!flow->isDetectionCompleted() ||
-       flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
-    if (dump_is_unknown ||
-        ((dump_all_traffic || flow->dumpFlowTraffic()) &&
-         (dump_security_to_disk || getDumpTrafficDiskPolicy())))
-      dumpPacketDisk(h, packet, dump_is_unknown ? UNKNOWN : GUI);
-    if ((dump_all_traffic || flow->dumpFlowTraffic()) && getDumpTrafficTapPolicy())
-      dumpPacketTap(h, packet, GUI);
+    bool dump_is_unknown = dump_unknown_traffic
+      && (!flow->isDetectionCompleted() ||
+	  flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
+
+    if(dump_is_unknown 
+       || dump_all_traffic
+       || dump_security_packets
+       || flow->dumpFlowTraffic()) {
+      if(dump_to_disk) dumpPacketDisk(h, packet, dump_is_unknown ? UNKNOWN : GUI);
+      if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
+    }
 
     pass_verdict = flow->isPassVerdict();
 
@@ -1610,7 +1603,7 @@ static bool hosts_get_list_details(GenericHashEntry *h, void *user_data) {
 static bool hosts_get_local_list(GenericHashEntry *h, void *user_data) {
   struct vm_ptree *vp = (struct vm_ptree*)user_data;
 
-  if (((Host*)h)->isLocalHost())
+  if(((Host*)h)->isLocalHost())
     ((Host*)h)->lua(vp->vm, vp->ptree, false, false, false);
 
   return(false); /* false = keep on walking */
@@ -1621,7 +1614,7 @@ static bool hosts_get_local_list(GenericHashEntry *h, void *user_data) {
 static bool hosts_get_local_list_details(GenericHashEntry *h, void *user_data) {
   struct vm_ptree *vp = (struct vm_ptree*)user_data;
 
-  if (((Host*)h)->isLocalHost())
+  if(((Host*)h)->isLocalHost())
     ((Host*)h)->lua(vp->vm, vp->ptree, true, false, false);
 
   return(false); /* false = keep on walking */
@@ -1633,7 +1626,7 @@ void NetworkInterface::getActiveHostsList(lua_State* vm,
 					  vm_ptree *vp,
 					  bool host_details,
 					  bool local_only) {
-  if (local_only)
+  if(local_only)
     hosts_hash->walk(host_details ? hosts_get_local_list_details : hosts_get_local_list, (void*)vp);
   else
     hosts_hash->walk(host_details ? hosts_get_list_details : hosts_get_list, (void*)vp);

@@ -1704,6 +1704,8 @@ static int ntop_get_interface_dump_tap_policy(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 static int ntop_get_interface_dump_tap_name(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *name;
@@ -1719,6 +1721,8 @@ static int ntop_get_interface_dump_tap_name(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 static int ntop_get_interface_dump_disk_policy(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
@@ -1736,6 +1740,8 @@ static int ntop_get_interface_dump_disk_policy(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 static int ntop_get_interface_dump_max_pkts(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   int max_pkts;
@@ -1751,6 +1757,8 @@ static int ntop_get_interface_dump_max_pkts(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 static int ntop_get_interface_dump_max_sec(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
@@ -1768,6 +1776,8 @@ static int ntop_get_interface_dump_max_sec(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 static int ntop_get_interface_dump_max_files(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   int max_files;
@@ -1783,6 +1793,8 @@ static int ntop_get_interface_dump_max_files(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
@@ -1803,6 +1815,8 @@ static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);

@@ -49,9 +49,15 @@ Geolocation::Geolocation(char *db_home) {
 GeoIP* Geolocation::loadGeoDB(char *base_path, const char *db_name) {
   char path[MAX_PATH];
   GeoIP *geo;
-
+  struct stat buf;
+  bool found;  
+  
   snprintf(path, sizeof(path), "%s/%s", base_path, db_name);
   ntop->fixPath(path);
+
+  found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+
+  if(!found) return(NULL);
 
   geo = GeoIP_open(path, GEOIP_CHECK_CACHE);
 

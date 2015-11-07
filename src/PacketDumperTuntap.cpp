@@ -37,7 +37,8 @@ PacketDumperTuntap::PacketDumperTuntap(NetworkInterface *i) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Opening tap (%s) failed", name);
     init_ok = false;
   } else {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: dumping packets on tap interface %s", name, dev_name);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: dumping packets on tap interface %s", 
+				 name, dev_name);
     init_ok = true;
     num_dumped_packets = 0;
   }
@@ -60,9 +61,10 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   struct ifreq ifr;
   int rc;
 
-  this->fd = open(tuntap_device, O_RDWR);
-  if(this->fd < 0) {
-    printf("ERROR: ioctl() [%s][%d]\n", strerror(errno), errno);
+  fd = open(tuntap_device, O_RDWR);
+  if(fd < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while opening %s [%d/%s]\n",
+				 tuntap_device, errno, strerror(errno));
     free(tuntap_device);
     return -1;
   }
@@ -71,25 +73,26 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
   if(dev)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
-  rc = ioctl(this->fd, TUNSETIFF, (void *)&ifr);
+  rc = ioctl(fd, TUNSETIFF, (void *)&ifr);
   if(rc < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "ioctl() [%s][%d]\n", strerror(errno), rc);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "ioctl(%s) [%d/%s]\n",
+				 tuntap_device, errno, strerror(errno));
     free(tuntap_device);
-    close(this->fd);
+    close(fd);
     return -1;
   }
 
   /* Store the device name for later reuse */
-  strncpy(this->dev_name, ifr.ifr_name,
+  strncpy(dev_name, ifr.ifr_name,
           (IFNAMSIZ < DUMP_IFNAMSIZ ? IFNAMSIZ : DUMP_IFNAMSIZ) );
   snprintf(buf, sizeof(buf), "/sbin/ifconfig %s up mtu %d",
            ifr.ifr_name, DUMP_MTU);
   rc = system(buf);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Bringing up: %s [%d]", buf,rc);
-  Utils::readMac(this->dev_name, this->mac_addr);
+  Utils::readMac(dev_name, mac_addr);
   free(tuntap_device);
-  return(this->fd);
+  return(fd);
 }
 #endif
 
@@ -103,19 +106,22 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 
   for (i = 0; i < 255; i++) {
     snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
-    this->fd = open(tap_device, O_RDWR);
-    if(this->fd > 0) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully open %s", tap_device);
+    fd = open(tap_device, O_RDWR);
+    if(fd > 0) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully open %s", tap_device);
+      snprintf(dev_name, sizeof(dev_name), "%s", tap_device); 
       break;
     }
   }
-  if(this->fd < 0) {
+
+  if(fd < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open tap device");
     return(-1);
   }
 
+  up();
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface tap%d up and running", i);
-  return(this->fd);
+  return(fd);
 }
 #endif
 
@@ -129,19 +135,22 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 
   for (i = 0; i < 255; i++) {
     snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
-    this->fd = open(tap_device, O_RDWR);
-    if(this->fd > 0) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully open %s", tap_device);
+    fd = open(tap_device, O_RDWR);
+    if(fd > 0) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully open %s", tap_device);
+      snprintf(dev_name, sizeof(dev_name), "%s", tap_device);
       break;
     }
   }
-  if(this->fd < 0) {
+
+  if(fd < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open tap device");
     return(-1);
   }
 
+  up();
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface tap%d up and running", i);
-  return(this->fd);
+  return(fd);
 }
 #endif
 
@@ -150,12 +159,38 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 #ifdef WIN32
 
 int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg. edge0 */ int mtu) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "TAP interface not yet supported on windows");
-	return(-1);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "TAP interface not yet supported on windows");
+  return(-1);
 }
 #endif
 	
-	/* ********************************************* */
+/* ********************************************* */
+
+#ifndef WIN32
+void PacketDumperTuntap::up() {
+  int sockfd;
+  struct ifreq ifr;
+  
+  sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  
+  if(sockfd < 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open socket");
+    return;
+  }
+
+  memset(&ifr, 0, sizeof ifr);
+
+  strncpy(ifr.ifr_name, dev_name, IFNAMSIZ);
+
+  ifr.ifr_flags |= IFF_UP;
+  if(ioctl(sockfd, SIOCSIFFLAGS, &ifr) < 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while enabling %s interface [%d/%s]", 
+				 ifr.ifr_name, errno, strerror(errno));
+  closesocket(sockfd);
+}
+#endif
+
+/* ********************************************* */
 
 #ifdef __APPLE__
 #define OSX_TAPDEVICE_SIZE 32
@@ -166,20 +201,23 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 
   for (i = 0; i < 255; i++) {
     snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
-    this->fd = open(tap_device, O_RDWR);
-    if(this->fd > 0) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Succesfully open %s", tap_device);
+    fd = open(tap_device, O_RDWR);
+    if(fd > 0) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully open %s", 
+				   tap_device);
+      snprintf(dev_name, sizeof(dev_name), "%s", tap_device);
       break;
     }
   }
 
-  if(this->fd < 0) {
+  if(fd < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open tap device");
     return -1;
   }
-
+  
+  up();
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface tap%d up and running", i);
-  return(this->fd);
+  return(fd);
 }
 #endif
 
@@ -187,7 +225,7 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
 
 int PacketDumperTuntap::readTap(unsigned char *buf, int len) {
   if(init_ok)
-    return(read(this->fd, buf, len));
+    return(read(fd, buf, len));
   return 0;
 }
 
@@ -195,19 +233,42 @@ int PacketDumperTuntap::readTap(unsigned char *buf, int len) {
 
 int PacketDumperTuntap::writeTap(unsigned char *buf, int len,
                                  dump_reason reason, unsigned int sampling_rate) {
+  int rc = 0;
+  
   if(init_ok) {
     int rate_dump_ok = reason != ATTACK || num_dumped_packets % sampling_rate == 0;
-    if(!rate_dump_ok) return 0;
-    num_dumped_packets++;
-    return(write(this->fd, buf, len));
+    if(rate_dump_ok) {
+      num_dumped_packets++;
+      rc = write(fd, buf, len);
+
+      if(rc < 0) {
+	static bool shown = false;
+
+	if(!shown) {
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while dumping to tap %s [%d/%s] failed", 
+				       dev_name, errno, strerror(errno));	  
+#ifdef __APPLE__
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, 
+				       "Please do 'ipconfig set %s dhcp' and it will work", 
+				       &dev_name[5]);
+#endif
+	  shown = true;
+	}
+      }
+    }
   }
-  return 0;
+
+  return(rc);
 }
+
+/* ********************************************* */
 
 void PacketDumperTuntap::closeTap() {
   if(init_ok)
-    close(this->fd);
+    close(fd);
 }
+
+/* ********************************************* */
 
 void PacketDumperTuntap::lua(lua_State *vm) {
   lua_newtable(vm);

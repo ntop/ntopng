@@ -155,7 +155,7 @@ if(ntop.exists(rrdname) and not is_historical) then
    end
 end
 
-if(not(ifstats.view)) then
+if(not(ifstats.isView)) then
    if(isAdministrator()) then
       if(page == "packetdump") then
 	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
@@ -449,7 +449,10 @@ elseif(page == "historical") then
 
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
 elseif(page == "packetdump") then
+
+
 if(isAdministrator()) then
+  interface.select(if_name)
   dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
   dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
   dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
@@ -558,6 +561,7 @@ if(isAdministrator()) then
    else
       print("Disabled. Please restart ntopng with --enable-taps")
 end
+
    print("</td></tr>\n")
    print("<tr><th width=250>Sampling Rate</th>\n")
    print [[<td>]]

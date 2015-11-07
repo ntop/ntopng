@@ -38,6 +38,7 @@ class PacketDumperTuntap {
   int getIPAddress(struct ifreq *ifr, char *if_name);
   int getNetmask(struct ifreq *ifr, char *if_name);
   int getHwAddress(struct ifreq *ifr, char *if_name);
+  void up();
 
  public:
   PacketDumperTuntap(NetworkInterface *i);
@@ -48,7 +49,7 @@ class PacketDumperTuntap {
   int readTap(unsigned char *buf, int len);
   int writeTap(unsigned char *buf, int len, dump_reason reason,
                unsigned int sampling_rate);
-  char *getName(void) { return dev_name; }
+  inline char *getName(void) { return((char*)dev_name); }
   void closeTap();
 
   u_int32_t get_num_dumped_packets(void) { return num_dumped_packets; }

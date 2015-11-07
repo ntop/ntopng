@@ -137,7 +137,7 @@ int NetworkInterfaceView::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts
   lua_newtable(vm);
 
   for(int i = 0; i<numInterfaces; i++) {
-    if ((ret = physIntf[i]->retrieve(vm, allowed_hosts, SQL)))
+    if((ret = physIntf[i]->retrieve(vm, allowed_hosts, SQL)))
       return ret;
   }
 
@@ -371,7 +371,7 @@ void NetworkInterfaceView::getnDPIProtocols(lua_State *vm) {
 
 bool NetworkInterfaceView::getDumpTrafficDiskPolicy() {
   for(int i = 0; i<numInterfaces; i++) {
-    if (physIntf[i]->getDumpTrafficDiskPolicy())
+    if(physIntf[i]->getDumpTrafficDiskPolicy())
       return true;
   }
 
@@ -382,7 +382,7 @@ bool NetworkInterfaceView::getDumpTrafficDiskPolicy() {
 
 bool NetworkInterfaceView::getDumpTrafficTapPolicy() {
   for(int i = 0; i<numInterfaces; i++) {
-    if (physIntf[i]->getDumpTrafficTapPolicy())
+    if(physIntf[i]->getDumpTrafficTapPolicy())
       return true;
   }
   return false;
@@ -394,9 +394,8 @@ string NetworkInterfaceView::getDumpTrafficTapName() {
   string s = "";
 
   for(int i = 0; i<numInterfaces; i++) {
-    s += physIntf[i]->getDumpTrafficTapName();
-    if (i < numInterfaces-1) s += ", ";
-    i++;
+    if(i > 0) s += ", ";
+    s += physIntf[i]->getDumpTrafficTapName();    
   }
 
   return s;
@@ -416,7 +415,7 @@ int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile() {
 
   for(int i = 0; i<numInterfaces; i++) {
     int temp_num_pkts = physIntf[i]->getDumpTrafficMaxPktsPerFile();
-    if (temp_num_pkts > max_pkts)
+    if(temp_num_pkts > max_pkts)
       max_pkts = temp_num_pkts;
   }
 
