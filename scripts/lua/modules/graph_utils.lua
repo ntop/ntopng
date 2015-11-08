@@ -449,6 +449,12 @@ end -- show_timeseries == 1
 print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
 
 for k,v in ipairs(zoom_vals) do
+   -- display 1 minute button only for networks and interface stats
+   -- but exclude applications. Application statistics are gathered
+   -- every 5 minutes
+   if zoom_vals[k][1] == '1m' and ((host and not string.starts(host, 'net:')) or not top_rrds[rrdFile]) then
+       goto continue
+   end
    print('<label class="btn btn-link ')
 
    if(zoom_vals[k][1] == zoomLevel) then
@@ -456,6 +462,7 @@ for k,v in ipairs(zoom_vals) do
    end
    print('">')
    print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
+   ::continue::
 end
 
 print [[
