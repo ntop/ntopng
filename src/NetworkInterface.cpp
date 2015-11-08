@@ -103,7 +103,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 #endif
 
   if(strcmp(name, "-") == 0) name = "stdin";
-  
+
   if(ntop->getRedis())
     id = Utils::ifname2id(name);
   else
@@ -205,7 +205,7 @@ NetworkInterface::NetworkInterface(const char *name) {
   networkStats = NULL,
 
 #ifdef NTOPNG_PRO
-  policer  = new L7Policer(this);
+    policer  = new L7Policer(this);
   profiles = ntop->getPro()->has_valid_license() ? new Profiles() : NULL;
 #endif
 
@@ -420,7 +420,7 @@ NetworkInterface::~NetworkInterface() {
   if(db) delete db;
   if(statsManager) delete statsManager;
   if(flowsManager) delete flowsManager;
-  if(networkStats) delete networkStats;
+  if(networkStats) delete []networkStats;
   if(pkt_dumper)   delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
 
@@ -892,7 +892,7 @@ bool NetworkInterface::packetProcessing(
       && (!flow->isDetectionCompleted() ||
 	  flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
 
-    if(dump_is_unknown 
+    if(dump_is_unknown
        || dump_all_traffic
        || dump_security_packets
        || flow->dumpFlowTraffic()) {
@@ -1728,7 +1728,7 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
 void NetworkInterface::updateFlowProfiles() {
   if(ntop->getPro()->has_valid_license()) {
     Profiles *old = profiles;
-    
+
     profiles = new Profiles();
 
     flows_hash->walk(update_flow_profile, NULL);
@@ -1840,18 +1840,19 @@ void NetworkInterface::getFlowsStats(lua_State* vm) {
 void NetworkInterface::getNetworksStats(lua_State* vm) {
   NetworkStats *network_stats;
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
+
   lua_newtable(vm);
-  for (u_int8_t network_id = 0; network_id < num_local_networks; network_id++){
-      network_stats = getNetworkStats(network_id);
-      // do not add stats of networks that have not generated any traffic
-      if(!network_stats || !network_stats->trafficSeen())
-          continue;
-      lua_newtable(vm);
-      network_stats->lua(vm);
-      lua_push_int32_table_entry(vm, "network_id", network_id);
-      lua_pushstring(vm, ntop->getLocalNetworkName(network_id));
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
+  for (u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+    network_stats = getNetworkStats(network_id);
+    // do not add stats of networks that have not generated any traffic
+    if(!network_stats || !network_stats->trafficSeen())
+      continue;
+    lua_newtable(vm);
+    network_stats->lua(vm);
+    lua_push_int32_table_entry(vm, "network_id", network_id);
+    lua_pushstring(vm, ntop->getLocalNetworkName(network_id));
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 }
 
@@ -2009,7 +2010,7 @@ void NetworkInterface::lua(lua_State *vm) {
   localStats.lua(vm);
   ndpiStats.lua(this, vm);
   pktStats.lua(vm, "pktSizeDistribution");
-  
+
   if(pkt_dumper) pkt_dumper->lua(vm);
 #ifdef NTOPNG_PRO
   if(profiles)   profiles->lua(vm);
@@ -2507,11 +2508,13 @@ void NetworkInterface::addInterfaceAddress(char *addr) {
 /* **************************************** */
 
 void NetworkInterface::allocateNetworkStats() {
+  u_int8_t numNetworks = ntop->getNumLocalNetworks();
+
   try {
-    networkStats = new NetworkStats[ntop->getNumLocalNetworks()];
+    networkStats = new NetworkStats[numNetworks];
   } catch(std::bad_alloc& ba) {
     static bool oom_warning_sent = false;
-    
+
     if(!oom_warning_sent) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
       oom_warning_sent = true;
@@ -2523,7 +2526,7 @@ void NetworkInterface::allocateNetworkStats() {
 
 /* **************************************** */
 
-NetworkStats* NetworkInterface::getNetworkStats(int16_t networkId) { 
+NetworkStats* NetworkInterface::getNetworkStats(int16_t networkId) {
   if((networkId < 0) || (networkId >= ntop->getNumLocalNetworks()))
     return(NULL);
   else

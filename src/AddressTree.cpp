@@ -246,6 +246,8 @@ int16_t AddressTree::addAddress(char *_net) {
 
   node = ptree_add_rule(ptree, net);
 
+  free(net);
+
   if(node) {
     node->user_data = numAddresses;
     addressString.push_back(strdup(net));

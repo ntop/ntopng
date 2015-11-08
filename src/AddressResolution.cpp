@@ -24,8 +24,7 @@
 /* **************************************** */
 
 AddressResolution::AddressResolution() {
-  num_resolved_addresses = num_resolved_fails = 0, numLocalNetworks = 0;
-  memset(local_networks, 0, sizeof(local_networks));
+  num_resolved_addresses = num_resolved_fails = 0;
 }
 
 /* ******************************************* */
@@ -54,10 +53,6 @@ int16_t AddressResolution::findAddress(int family, void *addr) {
 AddressResolution::~AddressResolution() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Address resolution stats [%u resolved][%u failures]",
 			       num_resolved_addresses, num_resolved_fails);
-
-  for(u_int8_t i=0; i<localNetworks.getNumAddresses(); i++)
-    if(local_networks[i])
-        free(local_networks[i]);
 }
 
 /* ***************************************** */

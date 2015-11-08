@@ -28,8 +28,6 @@ class AddressResolution {
   AddressTree localNetworks;
   u_int32_t num_resolved_addresses, num_resolved_fails;
   pthread_t resolveThreadLoop;
-  char *local_networks[CONST_MAX_NUM_NETWORKS];
-  u_int8_t numLocalNetworks;
   Mutex m;
 
  public:
