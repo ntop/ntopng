@@ -30,7 +30,7 @@ class NetworkInterfaceView {
  protected:
   char *name;
   int id;
-  NetworkInterface *physIntf[MAX_NUM_INTERFACES];
+  NetworkInterface *physIntf[MAX_NUM_VIEW_INTERFACES];
   int numInterfaces;
 
  public:

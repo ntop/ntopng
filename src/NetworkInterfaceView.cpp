@@ -46,7 +46,11 @@ NetworkInterfaceView::NetworkInterfaceView(const char *_name) {
       } else
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown interface %s in view %s: skept", iface, _name);
 
-      iface = strtok(NULL, ",");
+      if(numInterfaces == MAX_NUM_VIEW_INTERFACES) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many (%d) interfaces for this view", numInterfaces);
+	break;
+      } else
+	iface = strtok(NULL, ",");
     }
   }
 

@@ -137,19 +137,17 @@ for _,_ifname in pairs(ifnames) do
 		     end
 
                      -- Aggregate network stats
-                     if (networks_aggr[hosts_stats[key]["local_network_name"]] == nil) then
-                       networks_aggr[hosts_stats[key]["local_network_name"]] = {}
+		     network_key = hosts_stats[key]["local_network_name"]
+		     --io.write("==> Adding "..network_key.."\n")
+                     if (networks_aggr[network_key] == nil) then
+                       networks_aggr[network_key] = {}
                      end
-                     if (networks_aggr[hosts_stats[key]["local_network_name"]]["bytes.sent"] == nil) then
-                       networks_aggr[hosts_stats[key]["local_network_name"]]["bytes.sent"] = hosts_stats[key]["bytes.sent"]
-                       networks_aggr[hosts_stats[key]["local_network_name"]]["bytes.rcvd"] = hosts_stats[key]["bytes.rcvd"]
+                     if (networks_aggr[network_key]["bytes.sent"] == nil) then
+                       networks_aggr[network_key]["bytes.sent"] = hosts_stats[key]["bytes.sent"]
+                       networks_aggr[network_key]["bytes.rcvd"] = hosts_stats[key]["bytes.rcvd"]
                      else
-                       networks_aggr[hosts_stats[key]["local_network_name"]]["bytes.sent"] =
-                           networks_aggr[hosts_stats[key]["local_network_name"]]["bytes.sent"] +
-                           hosts_stats[key]["bytes.sent"]
-                       networks_aggr[hosts_stats[key]["local_network_name"]]["bytes.rcvd"] =
-                           networks_aggr[hosts_stats[key]["local_network_name"]]["bytes.rcvd"] +
-                           hosts_stats[key]["bytes.rcvd"]
+                       networks_aggr[network_key]["bytes.sent"] = networks_aggr[network_key]["bytes.sent"] + hosts_stats[key]["bytes.sent"]
+                       networks_aggr[network_key]["bytes.rcvd"] = networks_aggr[network_key]["bytes.rcvd"] + hosts_stats[key]["bytes.rcvd"]
                      end
 
 		     -- Traffic stats
@@ -221,10 +219,13 @@ for _,_ifname in pairs(ifnames) do
               local netname = getPathFromKey(n)
               local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/".. netname
               base = fixPath(base)
+	      --io.write("->"..n.."\n")
               if(not(ntop.exists(base))) then ntop.mkdir(base) end
               name = fixPath(base .. "/bytes.rrd")
               createRRDcounter(name, 300, verbose)
-              ntop.rrd_update(name, "N:".. tolongint(m["bytes.sent"]) .. ":" .. tolongint(m["bytes.rcvd"]))
+	      str = "N:".. tolongint(m["bytes.sent"]) .. ":" .. tolongint(m["bytes.rcvd"])
+	      io.write(name.."="..str.."\n")
+              ntop.rrd_update(name, str)
               if (m["ndpi"]) then -- nDPI data could be disabled
                 for k in pairs(m["ndpi"]) do
                   ndpiname = fixPath(base.."/"..k..".rrd")

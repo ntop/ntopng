@@ -26,13 +26,16 @@
 /* **************************************** */
 
 AddressTree::AddressTree() {
-  numAddresses = 0;
+  numAddresses = 0, memset(addressString, 0, sizeof(addressString));
   ptree = New_Patricia(128);
 }
 
-u_int8_t AddressTree::getNumAddresses()     {
-    return numAddresses;
+/* *********************************************** */
+
+u_int8_t AddressTree::getNumAddresses() {
+  return numAddresses;
 }
+
 /* *********************************************** */
 
 static int fill_prefix_v4(prefix_t *p, struct in_addr *a, int b, int mb) {
@@ -250,8 +253,7 @@ int16_t AddressTree::addAddress(char *_net) {
 
   if(node) {
     node->user_data = numAddresses;
-    addressString.push_back(strdup(net));
-    numAddresses++;
+    addressString[numAddresses++] = strdup(_net);
     return node->user_data;
   }
 
@@ -292,6 +294,9 @@ void free_ptree_data(void *data) { ; }
 
 AddressTree::~AddressTree() {
   if(ptree) Destroy_Patricia(ptree, free_ptree_data);
+
+  for(int i=0; i<numAddresses; i++)
+    free(addressString[i]);
 }
 
 /* **************************************************** */

@@ -23,11 +23,10 @@
 #define _ADDRESS_TREE_H_
 
 #include "ntop_includes.h"
-#include <vector>
 
 class AddressTree {
   u_int8_t numAddresses;
-  std::vector<char *> addressString;
+  char *addressString[CONST_MAX_NUM_NETWORKS];
   patricia_tree_t *ptree;
   
  public:
