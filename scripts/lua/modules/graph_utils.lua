@@ -92,7 +92,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 		  if(do_debug) then print(v.."<br>\n") end
 	       end
 	    end
-	 else
+        else
 	    rrd = singlerrd2json(ifid, host, v, start_time, end_time, true)
 
 	    if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
@@ -1357,7 +1357,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	    if(elemId > 1) then
 	       json_ret = json_ret.."\n,\n"
 	    end
-	    name = names[elemId]
+	    local name = names[elemId]
 	    json_ret = json_ret..'{"name": "'.. name .. '",\n'
 	    json_ret = json_ret..'color: \''.. colors[elemId] ..'\',\n'
 	    json_ret = json_ret..'"data": [\n'
@@ -1439,8 +1439,6 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	    json_ret = json_ret..'\n] }\n'
 	 end
       end
-   else
-      json_ret = '{}'
    end
 
    local ret = {}
@@ -1542,7 +1540,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    if(debug_metric) then io.write("#rrds="..num.."\n") end
    if(num == 0) then
       ret = {}
-      ret.json = ""
+      ret.json = "[]"
       return(ret)
    end
    local i = 1
