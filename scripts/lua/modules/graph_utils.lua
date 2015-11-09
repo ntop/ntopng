@@ -808,13 +808,13 @@ end
 
 -- ########################################################
 
-function createSingleRRDcounter(path, verbose)
+function createSingleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
       ntop.rrd_create(
 	 path,
-	 300, -- step
+	 step, -- step
 	 'DS:num:DERIVE:600:U:U',
 	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
@@ -863,7 +863,7 @@ function dumpSingleTreeCounters(basedir, label, host, verbose)
 		  end
 
 		  fname = dname..fixPath("/"..k2..".rrd")
-		  createSingleRRDcounter(fname, verbose)
+		  createSingleRRDcounter(fname, 300, verbose)
 		  ntop.rrd_update(fname, "N:"..toint(v2))
 		  if(verbose) then print("\t"..fname.."\n") end
 	       end
@@ -875,7 +875,7 @@ function dumpSingleTreeCounters(basedir, label, host, verbose)
 	       end
 
 	       fname = dname..fixPath("/"..k1..".rrd")
-	       createSingleRRDcounter(fname, verbose)
+	       createSingleRRDcounter(fname, 300, verbose)
 	       ntop.rrd_update(fname, "N:"..toint(v1))
 	       if(verbose) then print("\t"..fname.."\n") end
 	    end

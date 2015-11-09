@@ -54,12 +54,7 @@ for _,_ifname in pairs(ifnames) do
       ntop.insertMinuteSampling(ifstats.id, talkers)
 
       -- Save local subnets stats every minute
-      basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats/')
-      if (not ntop.exists(fixPath(basedir))) then
-        if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating subnetstats directory ", fixPath(basedir), '\n') end
-        ntop.mkdir(fixPath(basedir))
-      end
-
+      basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats')
       local subnet_stats = interface.getNetworksStats()
       for subnet,sstats in pairs(subnet_stats) do
           local rrdpath = getPathFromKey(subnet)
@@ -70,6 +65,20 @@ for _,_ifname in pairs(ifnames) do
           rrdpath = fixPath(rrdpath .. "/bytes.rrd")
           createTripleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
           ntop.rrd_update(rrdpath, "N:"..tolongint(sstats["ingress"]) .. ":" .. tolongint(sstats["egress"]) .. ":" .. tolongint(sstats["inner"]))
+      end
+
+      -- Save Profile stats every minute
+      if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
+          basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
+          for pname, ptraffic in pairs(ifstats.profiles) do
+              local rrdpath = fixPath(basedir.. "/" .. pname)
+              if(not(ntop.exists(rrdpath))) then
+                  ntop.mkdir(rrdpath)
+              end
+              rrdpath = fixPath(rrdpath .. "/bytes.rrd")
+              createSingleRRDcounter(rrdpath, 60, false)  -- 60(s) == 1 minute step
+              ntop.rrd_update(rrdpath, "N:"..tolongint(ptraffic))
+          end
       end
       -- Run RRD update every 5 minutes
       -- Use 30 just to avoid rounding issues
@@ -87,7 +96,7 @@ for _,_ifname in pairs(ifnames) do
 	    if(verbose) then print("["..__FILE__()..":"..__LINE__().."] ".._ifname..": "..k.."="..v.."\n") end
 
 	    name = fixPath(basedir .. "/"..k..".rrd")
-	    createSingleRRDcounter(name, verbose)
+	    createSingleRRDcounter(name, 300, verbose)
 	    ntop.rrd_update(name, "N:".. tolongint(v))
 	 end
 
@@ -99,13 +108,13 @@ for _,_ifname in pairs(ifnames) do
          -- IN/OUT counters
          if (ifstats["localstats"]["bytes"]["local2remote"] > 0) then
            name = fixPath(basedir .. "/localstats/local2remote.rrd")
-           createSingleRRDcounter(name, verbose)
+           createSingleRRDcounter(name, 300, verbose)
            ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["local2remote"]))
            if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
          end
          if (ifstats["localstats"]["bytes"]["remote2local"] > 0) then
            name = fixPath(basedir .. "/localstats/remote2local.rrd")
-           createSingleRRDcounter(name, verbose)
+           createSingleRRDcounter(name, 300, verbose)
            ntop.rrd_update(name, "N:"..tolongint(ifstats["localstats"]["bytes"]["remote2local"]))
            if (verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
          end
