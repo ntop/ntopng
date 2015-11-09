@@ -159,11 +159,16 @@ function percentageBar(total, value, valueLabel)
 end
 
 -- ########################################################
--- host_or_network: host or network name. If network, must be prefixed with 'net:'
+-- host_or_network: host or network name.
+-- If network, must be prefixed with 'net:'
+-- If profile, must be prefixed with 'profile:'
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
        host_or_network = string.gsub(host_or_network, 'net:', '')
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
+       host_or_network = string.gsub(host_or_network, 'profile:', '')
+       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
    else
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
@@ -452,7 +457,11 @@ for k,v in ipairs(zoom_vals) do
    -- display 1 minute button only for networks and interface stats
    -- but exclude applications. Application statistics are gathered
    -- every 5 minutes
-   if zoom_vals[k][1] == '1m' and ((host and not string.starts(host, 'net:')) or not top_rrds[rrdFile]) then
+   local net_or_profile = false
+   if host and (string.starts(host, 'net:') or string.starts(host, 'profile:')) then
+       net_or_profile = true
+   end
+   if zoom_vals[k][1] == '1m' and (not net_or_profile and not top_rrds[rrdFile]) then
        goto continue
    end
    print('<label class="btn btn-link ')

@@ -461,9 +461,15 @@ elseif(page == "trafficprofiles") then
 
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th>Traffic</th></tr>\n")
-   for k,v in pairs(ifstats.profiles) do
-     trimmed = trimSpace(k)
-     print("<tr><th>"..k.."</th><td><span id=profile_"..trimmed..">"..bytesToSize(v).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
+   for pname,pbytes in pairs(ifstats.profiles) do
+     local trimmed = trimSpace(pname)
+     local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
+     local statschart_icon = ''
+     if ntop.exists(rrdname) then
+         statschart_icon = '<A HREF='..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+     end
+
+     print("<tr><th>"..pname.."&nbsp;"..statschart_icon.."</th><td><span id=profile_"..trimmed..">"..bytesToSize(pbytes).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
    end
 
 print [[

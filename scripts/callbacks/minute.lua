@@ -71,7 +71,7 @@ for _,_ifname in pairs(ifnames) do
       if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
           basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
           for pname, ptraffic in pairs(ifstats.profiles) do
-              local rrdpath = fixPath(basedir.. "/" .. pname)
+              local rrdpath = fixPath(basedir.. "/" .. getPathFromKey(trimSpace(pname)))
               if(not(ntop.exists(rrdpath))) then
                   ntop.mkdir(rrdpath)
               end
