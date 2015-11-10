@@ -1279,11 +1279,12 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local maxval_time, minval_time, lastval_time  = nil, nil, nil
    local sampling = 1
    local s = {}
-   local totalval = {}
+   local totalval, avgval = {}, {}
    for i, v in ipairs(fdata) do
       local instant = fstart + (i-1)*fstep  -- this is the instant in time corresponding to the datapoint
       s[0] = instant  -- s holds the instant and all the values
       totalval[instant] = 0  -- totalval holds the sum of all values of this instant
+      avgval[instant] = 0
 
       local elemId = 1
       for _, w in ipairs(v) do
@@ -1294,13 +1295,15 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	 else
 	    --io.write(w.."\n")
 	    w = tonumber(w)
-	    if(w < 0) then
+            if(w < 0) then
 	       w = 0
 	    end
 	 end
 
          -- update the total value counter, which is the non-scaled integral over time
          totalval[instant] = totalval[instant] + w * fstep
+         -- also update the average val (do not multiply by fstep, this is not the integral)
+         avgval[instant] = avgval[instant] + w
          -- and the scaled current value (remember that these are derivatives)
          w = w * scaling_factor
          -- the scaled current value w goes into its own element elemId
@@ -1312,13 +1315,27 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       
       -- stops every sample_rate samples, or when there are no more points
       if(sampling == sample_rate or num_points_found == i) then
-	 for elemId=1,#s do
+         local sample_sum = 0
+         for elemId=1,#s do
             -- calculate the average in the sampling period
 	    s[elemId] = s[elemId] / sampling
+            sample_sum = sample_sum + s[elemId]
 	 end
          -- update last instant
-         if lastval_time == nil or instant > lastval_time then lastval_time = instant end
-      
+         if lastval_time == nil or instant > lastval_time then
+            lastval = sample_sum
+            lastval_time = instant
+         end
+         -- possibly update maximum value (grab the most recent in case of a tie)
+         if maxval_time == nil or (sample_sum >= maxval and instant > maxval_time) then
+            maxval = sample_sum
+            maxval_time = instant
+         end
+         -- possibly update the minimum value (grab the most recent in case of a tie)
+         if minval_time == nil or (sample_sum <= minval and instant > minval_time) then
+            minval = sample_sum
+            minval_time = instant
+         end
 	 series[#series+1] = s
 	 sampling = 1
 	 s = {}
@@ -1327,21 +1344,14 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       end
    end
 
-
-   -- get maximum and minimum values straight from the totals table
-   maxval_time, maxval = tmax(totalval)
-   minval_time, minval = tmin(totalval)
-   -- remember that the totals table does not contain scaled data.
-   -- therefore we must perform a scaling of these values
-   lastval = totalval[lastval_time] * scaling_factor
-   minval = minval * scaling_factor
-   maxval = maxval * scaling_factor
    local tot = 0
    for k, v in pairs(totalval) do tot = tot + v end
    totalval = tot
+   tot = 0
+   for k, v in pairs(avgval) do tot = tot + v end
+   local average = tot / num_points_found
 
    local percentile = 0.95*maxval
-   local average = totalval / num_points_found
    local colors = {
       '#1f77b4',
       '#ff7f0e',
