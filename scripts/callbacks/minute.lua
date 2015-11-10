@@ -233,7 +233,7 @@ for _,_ifname in pairs(ifnames) do
               name = fixPath(base .. "/bytes.rrd")
               createRRDcounter(name, 300, verbose)
 	      str = "N:".. tolongint(m["bytes.sent"]) .. ":" .. tolongint(m["bytes.rcvd"])
-	      io.write(name.."="..str.."\n")
+	      --io.write(name.."="..str.."\n")
               ntop.rrd_update(name, str)
               if (m["ndpi"]) then -- nDPI data could be disabled
                 for k in pairs(m["ndpi"]) do
