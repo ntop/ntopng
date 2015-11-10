@@ -1367,6 +1367,12 @@ json_object* Flow::flow2json(bool partial_dump) {
   if(categorization.categorized_requested && (categorization.category[0] != '\0'))
     json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
 
+#ifdef NTOPNG_PRO
+  // Traffic profile information, if any
+  if(trafficProfile and trafficProfile->getName())
+      json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));
+#endif
+
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 
   if(http.last_url && http.last_method) {
