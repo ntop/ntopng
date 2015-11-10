@@ -230,7 +230,8 @@ class Flow : public GenericHashEntry {
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id);
 #ifdef NTOPNG_PRO
-  inline void updateProfile() { trafficProfile = iface->getFlowProfile(this); }
+  inline void updateProfile()   { trafficProfile = iface->getFlowProfile(this); }
+  inline char* get_profile_name() { return trafficProfile ? trafficProfile->getName() : (char*)"";}
 #endif
 };
 

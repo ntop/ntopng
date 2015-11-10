@@ -35,7 +35,7 @@ end
 
 --- ====================================================================
 
-function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, port, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
+function getInterfaceTopFlows(interface_id, version, host_or_profile, l7proto, l4proto, port, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
    if(version == 4) then 
@@ -51,21 +51,22 @@ function getInterfaceTopFlows(interface_id, version, host, l7proto, l4proto, por
    if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
    if(info ~= "") then follow = follow .." AND (INFO='"..info.."')" end
 
-   if((host ~= nil) and (host ~= "")) then 
+   if host_or_profile ~= nil and host_or_profile ~= "" and string.starts(host_or_profile, 'profile:') then
+      host_or_profile = string.gsub(host_or_profile, 'profile:', '')
+      follow = follow .. " AND (PROFILE='"..host_or_profile.."') "
+   elseif host_or_profile ~= nil and host_or_profile ~= "" then 
       if(version == 4) then
-	 rsp = expandIpV4Network(host)
+	 rsp = expandIpV4Network(host_or_profile)
 	 follow = follow .." AND (((IP_SRC_ADDR>="..rsp[1]..") AND (IP_SRC_ADDR <= "..rsp[2].."))"
 	 follow = follow .." OR ((IP_DST_ADDR>="..rsp[1]..") AND (IP_DST_ADDR <= "..rsp[2]..")))"
       else
-	 follow = follow .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
+	 follow = follow .." AND (IP_SRC_ADDR='"..host_or_profile.."' OR IP_DST_ADDR='"..host_or_profile.."')"
       end
    end
 
    follow = follow .." order by "..sort_column.." "..sort_order.." limit "..max_num_flows.." OFFSET "..offset 
 
    sql = sql .. follow
-
-   -- io.write(sql.."\n")
 
    if(db_debug == true) then io.write(sql.."\n") end 
 

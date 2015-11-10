@@ -86,6 +86,22 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` ADD `INFO` varchar(255)",
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(sql, true, true);
+
+#ifdef NTOPNG_PRO
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
+            "ADD `PROFILE` varchar(255) DEFAULT NULL,"
+            "ADD INDEX `ix_%sv4_%u_profile` (PROFILE)",
+	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
+            "ADD `PROFILE` varchar(255) DEFAULT NULL,"
+            "ADD INDEX `ix_%sv6_%u_profile` (PROFILE)",
+	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+#endif
+
   }
 }
 
@@ -140,8 +156,16 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }
 
   if(f->get_cli_host()->get_ip()->isIPv4())
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON) "
-	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'))",
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON"
+#ifdef NTOPNG_PRO
+            ",PROFILE"
+#endif
+            ") "
+	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s')"
+#ifdef NTOPNG_PRO
+            ",'%s'"  // this is the string for traffic profile
+#endif
+            ")",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id(),
 	     f->get_vlan_id(),
@@ -153,10 +177,22 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-	     json_buf);
+	     json_buf
+#ifdef NTOPNG_PRO
+             ,f->get_profile_name()
+#endif
+            );
   else
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON) "
-	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'))",
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON"
+#ifdef NTOPNG_PRO
+            ",PROFILE"
+#endif
+            ") "
+	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s')"
+#ifdef NTOPNG_PRO
+            ",'%s'"  // this is the string for traffic profile
+#endif
+            ")",
 	     ntop->getPrefs()->get_mysql_tablename(),
 	     iface->get_id(),
 	     f->get_vlan_id(),
@@ -168,7 +204,11 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-	     json_buf);
+	     json_buf
+#ifdef NTOPNG_PRO
+             ,f->get_profile_name()
+#endif
+            );
 
   free(json_buf);
 
