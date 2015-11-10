@@ -2009,6 +2009,7 @@ static const struct {
   {".ttf", 4, "application/x-font-ttf"},
   {".inc", 4, "text/html"},
   {".css", 4, "text/css"},
+  {".eot", 4, "application/vnd.ms-fontobject"},
   {".js", 3, "application/javascript"},
 
   {NULL,  0, NULL}
