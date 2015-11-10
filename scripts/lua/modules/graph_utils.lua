@@ -93,7 +93,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 	       end
 	    end
         else
-	    rrd = singlerrd2json(ifid, host, v, start_time, end_time, true)
+	    rrd = singlerrd2json(ifid, host, v, start_time, end_time, true, false)
 
 	    if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
 	       if(top_rrds[v] == nil) then
@@ -427,7 +427,7 @@ if(show_timeseries == 1) then
 for k,v in pairs(top_rrds) do
    rrdname = getRRDName(ifid, host, k)
    if(ntop.notEmptyFile(rrdname)) then
-      rrd = singlerrd2json(ifid, host, k, start_time, end_time, true)
+      rrd = singlerrd2json(ifid, host, k, start_time, end_time, true, false)
       if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
 	 print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
       end
@@ -517,7 +517,7 @@ print [[
 
 print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
-rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest true means: expand_interface_views
+rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
 if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
@@ -1217,7 +1217,7 @@ end
 
 -- reads one or more RRDs and returns a json suitable to feed rickshaw
 
-function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json)
+function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, append_ifname_to_labels)
    local rrdname = getRRDName(ifid, host, rrdFile)
    local names =  {}
    local names_cache = {}
@@ -1254,16 +1254,27 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local sample_rate = round(num_points_found / max_num_points)
 
    if(sample_rate < 1) then sample_rate = 1 end
-
+   
+   -- prepare rrd labels
    for i, n in ipairs(fnames) do
       -- handle duplicates
       if (names_cache[n] == nil) then
+         local extra_info = ''
 	 names_cache[n] = true
-	 names[#names+1] = prefixLabel.." ("..getInterfaceName(ifid)
-         if host then names[#names] = names[#names]..', '..firstToUpper(n) end
-	 names[#names] = names[#names]..")"
+         if append_ifname_to_labels then
+             extra_info = getInterfaceName(ifid)
+         end
+	 if host ~= nil and not string.starts(host, 'profile:') then
+             extra_info = extra_info.." ".. firstToUpper(n)
+         end
+         if extra_info ~= "" then
+             names[#names+1] = prefixLabel.." ("..trimSpace(extra_info)..")"
+         else
+             names[#names+1] = prefixLabel
+         end
       end
-   end
+    end
+   
    local minval, maxval, lastval = 0, 0, 0
    local maxval_time, minval_time, lastval_time  = nil, nil, nil
    local sampling = 1
@@ -1523,7 +1534,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
        
        local traffic_array = {}
        for key, value in pairs(rrds) do
-           rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json)
+           rsp = singlerrd2json(ifid, host, value, start_time, end_time, rickshaw_json, expand_interface_views)
            if(rsp.totalval ~= nil) then total = rsp.totalval else total = 0 end
            
            if(total > 0) then
@@ -1546,7 +1557,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
            if(debug_metric) then io.write('iface: '..iface..'\n') end
             for i,rrd in pairs(split(rrdFile, ",")) do
                 if(debug_metric) then io.write("["..i.."] "..rrd..' iface: '..iface.."\n") end
-                ret[#ret + 1] = singlerrd2json(iface, host, rrd, start_time, end_time, rickshaw_json)
+                ret[#ret + 1] = singlerrd2json(iface, host, rrd, start_time, end_time, rickshaw_json, expand_interface_views)
                 if(ret[#ret].json ~= nil) then num = num + 1 end
             end
        end
