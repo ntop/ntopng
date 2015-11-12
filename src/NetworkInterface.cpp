@@ -649,7 +649,7 @@ bool NetworkInterface::packetProcessing(
 					struct ndpi_ethhdr *eth,
 					u_int16_t vlan_id,
 					struct ndpi_iphdr *iph,
-					struct ndpi_ip6_hdr *ip6,
+					struct ndpi_ipv6hdr *ip6,
 					u_int16_t ipsize,
 					u_int16_t rawsize,
 					const struct pcap_pkthdr *h,
@@ -688,9 +688,9 @@ bool NetworkInterface::packetProcessing(
     ip = (u_int8_t*)iph;
   } else {
     /* IPv6 */
-    u_int ipv6_shift = sizeof(const struct ndpi_ip6_hdr);
+    u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
 
-    if(ipsize < sizeof(const struct ndpi_ip6_hdr)) {
+    if(ipsize < sizeof(const struct ndpi_ipv6hdr)) {
       incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize,
 	       1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
@@ -992,7 +992,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
   } else if(pcap_datalink_type == DLT_EN10MB) {
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
-    eth_type = ntohs(ethernet->h_proto);
+    eth_type = ntohs(ethernet->h_lt);
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
@@ -1174,7 +1174,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
     if(h->caplen >= ip_offset) {
       u_int16_t frag_off;
       struct ndpi_iphdr *iph = (struct ndpi_iphdr *) &packet[ip_offset];
-      struct ndpi_ip6_hdr *ip6 = NULL;
+      struct ndpi_ipv6hdr *ip6 = NULL;
 
       if(iph->version != 4) {
 	/* This is not IPv4 */
@@ -1280,7 +1280,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	    break;
 	  case ETHERTYPE_IPV6:
 	    iph = NULL;
-	    ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
+	    ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	    break;
 	  default:
 	    incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1307,14 +1307,14 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
   case ETHERTYPE_IPV6:
     if(h->caplen >= ip_offset) {
       struct ndpi_iphdr *iph = NULL;
-      struct ndpi_ip6_hdr *ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
+      struct ndpi_ipv6hdr *ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
 
       if((ntohl(ip6->ip6_ctlun.ip6_un1.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
 	incStats(ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	return(pass_verdict);
       } else {
-	u_int ipv6_shift = sizeof(const struct ndpi_ip6_hdr);
+	u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
 	u_int8_t l4_proto = ip6->ip6_ctlun.ip6_un1.ip6_un1_nxt;
 
 	if(l4_proto == 0x3C /* IPv6 destination option */) {
@@ -1363,7 +1363,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	      ip6 = NULL;
 	      break;
 	    case ETHERTYPE_IPV6:
-	      ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
+	      ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 	      break;
 	    default:
 	      incStats(0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
