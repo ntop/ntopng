@@ -992,7 +992,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
   } else if(pcap_datalink_type == DLT_EN10MB) {
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
-    eth_type = ntohs(ethernet->h_lt);
+    eth_type = ntohs(ethernet->h_proto);
   } else if(pcap_datalink_type == 113 /* Linux Cooked Capture */) {
     memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
