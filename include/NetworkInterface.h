@@ -221,7 +221,7 @@ class NetworkInterface {
 			struct ndpi_ethhdr *eth,
 			u_int16_t vlan_id,
 			struct ndpi_iphdr *iph,
-			struct ndpi_ip6_hdr *ip6,
+			struct ndpi_ipv6hdr *ip6,
 			u_int16_t ipsize, u_int16_t rawsize,
 			const struct pcap_pkthdr *h,
 			const u_char *packet,

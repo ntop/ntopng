@@ -1307,7 +1307,7 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
   case ETHERTYPE_IPV6:
     if(h->caplen >= ip_offset) {
       struct ndpi_iphdr *iph = NULL;
-      struct ndpi_ipv6hdr *ip6 = (struct ndpi_ip6_hdr*)&packet[ip_offset];
+      struct ndpi_ipv6hdr *ip6 = (struct ndpi_ipv6hdr*)&packet[ip_offset];
 
       if((ntohl(ip6->ip6_ctlun.ip6_un1.ip6_un1_flow) & 0xF0000000) != 0x60000000) {
 	/* This is not IPv6 */
