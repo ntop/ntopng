@@ -122,13 +122,20 @@ void PeriodicActivities::secondActivitiesLoop() {
 
 /* ******************************************* */
 
+u_int32_t PeriodicActivities::roundTime(u_int32_t now, u_int32_t rounder) {
+  now -= (now % rounder);
+  now += rounder;
+  
+  return(now);
+}
+
+/* ******************************************* */
+
 void PeriodicActivities::minuteActivitiesLoop() {
   char script[MAX_PATH];
   u_int32_t next_run = (u_int32_t)time(NULL);
 
-  next_run -= (next_run % 60);
-  next_run += 60;
-
+  next_run = roundTime(next_run, 60);
   snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), MINUTE_SCRIPT_PATH);
 
   while(!ntop->getGlobals()->isShutdown()) {
@@ -136,7 +143,7 @@ void PeriodicActivities::minuteActivitiesLoop() {
 
     if(now >= next_run) {
       runScript(script);
-      next_run = now + 60;
+      next_run = roundTime(now + 60, 60);
     }
 
     sleep(1);
@@ -149,8 +156,7 @@ void PeriodicActivities::hourActivitiesLoop() {
   char script[MAX_PATH];
   u_int32_t next_run = (u_int32_t)time(NULL);
 
-  next_run -= (next_run % 3600);
-  next_run += 3600;
+  next_run = roundTime(next_run, 3600);
 
   snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), HOURLY_SCRIPT_PATH);
 
@@ -159,7 +165,7 @@ void PeriodicActivities::hourActivitiesLoop() {
 
     if(now >= next_run) {
       runScript(script);
-      next_run += 3600;
+      next_run = roundTime(now + 3600, 3600);
     }
 
     sleep(1);
@@ -184,7 +190,7 @@ void PeriodicActivities::dayActivitiesLoop() {
 
     if(now >= next_run) {
       runScript(script);
-      next_run += 86400;
+      next_run = roundTime(now + 86400, 86400);
     }
 
     sleep(1);

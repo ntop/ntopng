@@ -33,6 +33,7 @@ class PeriodicActivities {
  private:
   pthread_t secondLoop, minuteLoop, hourLoop, dayLoop;
 
+  u_int32_t roundTime(u_int32_t now, u_int32_t rounder);
   void runScript(char *path);
 
  public:
