@@ -136,7 +136,7 @@ void PeriodicActivities::minuteActivitiesLoop() {
 
     if(now >= next_run) {
       runScript(script);
-      next_run += 60;
+      next_run = now + 60;
     }
 
     sleep(1);
