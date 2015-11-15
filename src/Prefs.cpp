@@ -270,6 +270,11 @@ void usage() {
   printf("\n");
   n.printAvailableInterfaces(true, 0, NULL, 0);
 
+  printf("\nnDPI detected protocols:\n");
+
+  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(), malloc, free, NULL);
+  ndpi_dump_protocols(ndpi_struct);
+ 
   _exit(0);
 }
 
