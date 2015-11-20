@@ -61,11 +61,16 @@ get_ntopng_pid() {
         PID_FILE="/var/tmp/ntopng.pid"
     fi
 
+    if [ -z $PID_FILE ]; then
+	return 0
+    fi
+
     if [ -f $PID_FILE ]; then
  	PID=$(cat $PID_FILE)
         if [ -z "${PID}" ]; then
 	    /bin/rm $PID_FILE
 	else
+	    echo ${PID}
             if [ $PID -gt 0 ]; then
 		IS_EXISTING=$(ps auxw | grep -w $PID | grep -v grep | wc -l)
 		if [ ${IS_EXISTING} -gt 0 ]; then
@@ -120,7 +125,7 @@ start_ntopng() {
 	[ ${DISTRO} == "centos" ] && echo -n "Starting ntopng: "
 
 	get_ntopng_pid
-	if [ ${PID}  -gt 0 ]; then
+	if [ ${PID} -gt 0 ]; then
 	    MSG="ntopng already running. Exiting"
 	    ERROR=1
 	    RETVAL=1
@@ -169,15 +174,19 @@ stop_ntopng() {
     [ ${DISTRO} == "centos" ] && echo -n "Stopping ntopng: "
 
     get_ntopng_pid
+
+    if [ -z "${PID}" ]; then
+	return 0
+    fi
+
     if [ ${PID} -eq 0 ]; then
         if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
             MSG="Missing /etc/ntopng/ntopng.conf"
-        else
-	    MSG="ntopng not running"
-        fi
-	ERROR=1
-	RETVAL=1
-	error_handler
+	    ERROR=1
+	    RETVAL=1
+	    error_handler
+	fi
+
 	return 0
     fi
 
