@@ -102,7 +102,7 @@
 #define MAX_NUM_INTERFACES        48
 #define MAX_NUM_VIEW_INTERFACES   8
 #define MAX_NUM_PROFILES          16
-#define MAX_INTERFACE_NAME_LEN    8
+#define MAX_INTERFACE_NAME_LEN    256
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
 #define FLOW_PURGE_FREQUENCY      1 /* sec */

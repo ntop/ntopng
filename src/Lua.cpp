@@ -183,7 +183,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
 
   iface = ntop->getInterfaceViewById(id);
 
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "Index: %d, Name: %s", id, iface->get_name());
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Index: %d, Name: %s", id, iface ? iface->get_name() : "<unknown>");
 
   if(iface != NULL)
     lua_pushstring(vm, iface->get_name());
@@ -4541,7 +4541,8 @@ void Lua::purifyHTTPParameter(char *param) {
 int Lua::handle_script_request(struct mg_connection *conn,
 			       const struct mg_request_info *request_info,
 			       char *script_path) {
-  char buf[64], key[64], val[64], *_cookies, user[64] = { '\0' }, outbuf[FILENAME_MAX];
+  char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
+  char *_cookies, user[64] = { '\0' }, outbuf[FILENAME_MAX];
   patricia_tree_t *ptree = NULL;
   int rc;
 
@@ -4674,25 +4675,25 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
   if(user[0] != '\0') {
     snprintf(key, sizeof(key), "ntopng.prefs.%s.ifname", user);
-    if(ntop->getRedis()->get(key, val, sizeof(val)) < 0) {
+    if(ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
     set_default_if_name_in_session:
-      snprintf(val, sizeof(val), "%s", ntop->getInterfaceAtId(0)->get_name());
-      lua_push_str_table_entry(L, "ifname", val);
-      ntop->getRedis()->set(key, val, 3600 /* 1h */);
+      snprintf(ifname, sizeof(ifname), "%s", ntop->getInterfaceAtId(0)->get_name());
+      lua_push_str_table_entry(L, "ifname", ifname);
+      ntop->getRedis()->set(key, ifname, 3600 /* 1h */);
     } else {
       goto set_preferred_interface;
     }
   } else {
     // We need to check if ntopng is running with the option --disable-login
     snprintf(key, sizeof(key), "ntopng.prefs.ifname");
-    if(ntop->getRedis()->get(key, val, sizeof(val)) < 0) {
+    if(ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
       goto set_preferred_interface;
     }
 
   set_preferred_interface:
     NetworkInterfaceView *iface;
 
-    if((iface = ntop->getInterfaceView(val)) != NULL) {
+    if((iface = ntop->getInterfaceView(ifname)) != NULL) {
       /* The specified interface still exists */
       lua_push_str_table_entry(L, "ifname", iface->get_name());
     } else {
