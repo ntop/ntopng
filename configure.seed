@@ -77,7 +77,7 @@ fi
 AC_MSG_CHECKING(for ntopng professional edition)
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
-PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
+PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp)) $(patsubst pro/bpf/%.c, pro/bpf/%.o, $(wildcard pro/bpf/*.c))'
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
@@ -158,7 +158,7 @@ if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a"
   if test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
      echo "${PF_RING_HOME}/userland/libpcap/libpcap.a"
      if test -f "${PF_RING_HOME}/userland/libpcap/libpcap.a"; then
-       LDFLAGS="${LDFLAGS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ ${LIBNUMA}"
+       LDFLAGS="${LDFLAGS} ${PF_RING_HOME}/userland/lib/libpfring.a -L${PF_RING_HOME}/userland/libpcap/ ${LIBNUMA} `${PF_RING_HOME}/userland/lib/pfring_config --libs`"
        CPPFLAGS="${CPPFLAGS} -I${PF_RING_HOME}/kernel -I${PF_RING_HOME}/userland/lib -I${PF_RING_HOME}/userland/libpcap"
        echo "Using PF_RING installed in ${PF_RING_HOME}"
      else
@@ -203,6 +203,16 @@ else
     echo "Please install libpcap(-dev) (http://tcpdump.org)"
     exit
   fi
+fi
+
+PFRING_GIT_RELEASE=""
+if test -d $HOME/PF_RING; then
+  PFRING_GIT_RELEASE=`cd $HOME/PF_RING ; git rev-list --all |wc -l`
+fi
+
+PFRING_VERSION=""
+if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
+ PFRING_VERSION=`cat $HOME/PF_RING/kernel/linux/pf_ring.h | grep RING_VERSION | head -1 | cut -d '"' -f 2`
 fi
 
 AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
@@ -311,6 +321,9 @@ if test -n "$MYSQLTOOL"; then
    MYSQL_INC="`$MYSQLTOOL --include`"
    AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
    AC_CHECK_LIB([wrap], [main])
+else
+   echo "MySQL libraries not found. Please install them as specified in README.compilation"
+   exit 0
 fi
 
 if test -f /usr/bin/lsb_release; then
@@ -411,6 +424,8 @@ AC_SUBST(REVISION)
 AC_SUBST(MYSQL_LIB)
 AC_SUBST(MYSQL_INC)
 AC_SUBST(MYSQL_DEP)
+AC_SUBST(PFRING_GIT_RELEASE)
+AC_SUBST(PFRING_VERSION)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
