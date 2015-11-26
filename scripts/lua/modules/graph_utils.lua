@@ -1087,7 +1087,7 @@ print [[
 							     textAlign: 'right'
 							  }
 						       },
- {
+						       {
 							  title: "Avg Thpt",
 							  field: "AVG_THROUGHPUT",
 							  sortable: false,
