@@ -138,6 +138,10 @@ Prefs::~Prefs() {
 
 /* ******************************************* */
 
+static void* localmalloc(unsigned long size) { return(malloc(size)); }
+
+/* ******************************************* */
+
 /* C-binding needed by Win32 service call */
 void usage() {
   NetworkInterface n("dummy");
@@ -272,7 +276,7 @@ void usage() {
 
   printf("\nnDPI detected protocols:\n");
 
-  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(), malloc, free, NULL);
+  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(), localmalloc, free, NULL);
   ndpi_dump_protocols(ndpi_struct);
  
   _exit(0);

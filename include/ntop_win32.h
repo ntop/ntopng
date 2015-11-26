@@ -209,13 +209,16 @@ struct ip6_ext
 
 #define localtime_r(a, b) localtime(a)
 
-extern unsigned int sleep(unsigned int seconds);
-extern void usleep(__int64 usec);
-
-
-extern int inet_aton(const char *cp, struct in_addr *addr);
-//extern int inet_pton(int af, const char *src, void *dst);
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+	extern unsigned int sleep(unsigned int seconds);
+	extern void usleep(__int64 usec);
+	extern int inet_aton(const char *cp, struct in_addr *addr);
+	//extern int inet_pton(int af, const char *src, void *dst);
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* _NTOP_WIN32_H_ */
 

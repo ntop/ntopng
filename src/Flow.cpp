@@ -1373,7 +1373,7 @@ json_object* Flow::flow2json(bool partial_dump) {
 
 #ifdef NTOPNG_PRO
   // Traffic profile information, if any
-  if(trafficProfile and trafficProfile->getName())
+  if(trafficProfile && trafficProfile->getName())
       json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));
 #endif
 

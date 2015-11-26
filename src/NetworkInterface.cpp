@@ -828,12 +828,9 @@ bool NetworkInterface::packetProcessing(
 
     case NDPI_PROTOCOL_DNS:
       struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
-      struct dns_packet_header {
-	u_int16_t transaction_id, flags, num_queries, answer_rrs, authority_rrs, additional_rrs;
-      } __attribute__((packed));
 
       if(payload) {
-	struct dns_packet_header *header = (struct dns_packet_header*)payload;
+		  struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)payload;
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = ((dns_flags & 0x8000) == 0x8000) ? false : true;
 
