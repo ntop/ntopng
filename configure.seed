@@ -322,7 +322,7 @@ if test -n "$MYSQLTOOL"; then
    AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
    AC_CHECK_LIB([wrap], [main])
 else
-   echo "MySQL libraries not found. Please install them as specified in README.ntopng"
+   echo "MySQL libraries not found. Please install them as specified in README.compilation"
    exit 0
 fi
 

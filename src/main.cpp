@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 	  iface = new PacketBridge(ifName);
 #endif
 
-#if defined(HAVE_NETFILTER)
+#if defined(HAVE_NETFILTER) && defined(NTOPNG_PRO)
         if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new NetfilterInterface(ifName);
 #endif

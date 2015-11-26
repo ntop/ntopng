@@ -173,9 +173,6 @@ using namespace std;
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
 #endif
-#ifdef HAVE_NETFILTER
-#include "NetfilterInterface.h"
-#endif
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "PacketBridge.h"
@@ -184,6 +181,9 @@ using namespace std;
 #include "LuaHandler.h"
 #include "NagiosManager.h"
 #include "FlowChecker.h"
+#ifdef HAVE_NETFILTER
+#include "NetfilterInterface.h"
+#endif
 #endif
 #include "ParserInterface.h"
 #include "CollectorInterface.h"

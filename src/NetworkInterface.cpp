@@ -802,17 +802,19 @@ bool NetworkInterface::packetProcessing(
   flow->updateActivities();
   flow->updateInterfaceStats(src2dst_direction, 1, h->len);
 
-  if(!is_fragment) {
-    struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
-    struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
-    struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
-
-    flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-							    ip, ipsize, (u_int32_t)time,
-							    cli, srv));
-  } else {
-    // FIX - only handle unfragmented packets
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
+  if(!flow->isDetectionCompleted()) {
+    if(!is_fragment) {
+      struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
+      struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
+      struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
+      
+      flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
+							      ip, ipsize, (u_int32_t)time,
+							      cli, srv));
+    } else {
+      // FIX - only handle unfragmented packets
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
+    }
   }
 
   if(flow->isDetectionCompleted()

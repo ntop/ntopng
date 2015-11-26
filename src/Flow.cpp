@@ -42,11 +42,13 @@ Flow::Flow(NetworkInterface *_iface,
   case IPPROTO_ICMP:
     ndpi_detected_protocol.protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    setDetectedProtocol(ndpi_detected_protocol);
     break;
 
   case IPPROTO_ICMPV6:
     ndpi_detected_protocol.protocol = NDPI_PROTOCOL_IP_ICMPV6,
       ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    setDetectedProtocol(ndpi_detected_protocol);
     break;
 
   default:
@@ -222,7 +224,10 @@ void Flow::checkBlacklistedFlow() {
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
 
-  if(protocol_processed || (ndpi_flow == NULL)) return;
+  if(protocol_processed || (ndpi_flow == NULL)) {
+    makeVerdict();
+    return;
+  }
 
   if((ndpi_flow->host_server_name[0] != '\0')
      && (host_server_name == NULL)) {
@@ -389,22 +394,21 @@ void Flow::guessProtocol() {
 /* *************************************** */
 
 void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
-  if((ndpi_flow != NULL)
-     || (!iface->is_ndpi_enabled())) {
+  /* if((ndpi_flow != NULL) || (!iface->is_ndpi_enabled())) */ {
     if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpi_detected_protocol = proto_id;
       processDetectedProtocol();
+      detection_completed = true;
     } else if((((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
 	       && (cli_host != NULL)
 	       && (srv_host != NULL))
 	      || (!iface->is_ndpi_enabled())) {
       guessProtocol();
+      detection_completed = true;
     }
 
-    detection_completed = true;
-
 #ifdef NTOPNG_PRO
-    updateProfile();
+    if(detection_completed) updateProfile();
 #endif
   }
 }
