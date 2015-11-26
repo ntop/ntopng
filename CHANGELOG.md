@@ -13,7 +13,7 @@
 - Added SIP and RTP protocols information in flow details
 - Additional MAC-based host calassification
 - Added support for Linux TUN/TAP devices in TUN mode
-- Extended and improved supported OSes: EdgeOS, Centos 6 and 7, Ubuntu 12.04 and 14.04, Debian, Windows XP, Vista, 7, 8, 10.
+- Extended and improved supported OSes: EdgeOS, Centos 6/7, Ubuntu 12.04/14.04, Debian, Windows x64, Raspbian (Raspberry)
 - Extended and improved supported architectures: x86, x86-64, MIPS, ARM.
 - Documentation and User Guide significanly improved
 - Added a great deal of READMEs, including ElasticSearch, bridging, traffic shaping and policing, NetBeans development
