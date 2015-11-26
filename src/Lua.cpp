@@ -1524,6 +1524,8 @@ static int ntop_list_http_hosts(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
+  if (!ntop_interface) return(CONST_LUA_ERROR);
+
   if(lua_type(vm, 1) != LUA_TSTRING) /* Optional */
     key = NULL;
   else
