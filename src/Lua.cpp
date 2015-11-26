@@ -2912,8 +2912,15 @@ static int ntop_syslog(lua_State* vm) {
  * @return The random value just generated
  */
 static int ntop_generate_csrf_value(lua_State* vm) {
-  char random_a[32], random_b[32], csrf[33];
+  char random_a[32], random_b[32], csrf[33], user[64] = { '\0' };
   Redis *redis = ntop->getRedis();
+  struct mg_connection *conn;
+
+  lua_getglobal(vm, CONST_HTTP_CONN);
+  if((conn = (struct mg_connection*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: null HTTP connection");
+    return(CONST_LUA_OK);
+  }
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2925,9 +2932,11 @@ static int ntop_generate_csrf_value(lua_State* vm) {
   snprintf(random_b, sizeof(random_b), "%lu", time(NULL)*rand());
 #endif
 
+  mg_get_cookie(conn, "user", user, sizeof(user));
+
   mg_md5(csrf, random_a, random_b, NULL);
 
-  redis->set(csrf, (char*)"1", MAX_CSRF_DURATION);
+  redis->set(csrf, (char*)user, MAX_CSRF_DURATION);
   lua_pushfstring(vm, "%s", csrf);
   return(CONST_LUA_OK);
 }
@@ -2955,6 +2964,8 @@ static int sqlite_callback(void *data, int argc,
 
   return(0);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Exec SQL query
@@ -4606,12 +4617,17 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
 
 	      if(strcmp(tok, "csrf") == 0) {
-		char rsp[32];
-		if(ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1) {
+		char rsp[32], user[64] = { '\0' };
+		
+		mg_get_cookie(conn, "user", user, sizeof(user));
+
+		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1) 
+		   || (strcmp(rsp, user) != 0)) {
 		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid CSRF parameter specified [%s]", decoded_buf);
 		  free(equal);
 		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", PAGE_ERROR, tok, rsp));
-		}
+		} else
+		  ntop->getRedis()->del(decoded_buf);
 	      }
 
 	      lua_push_str_table_entry(L, tok, decoded_buf);
