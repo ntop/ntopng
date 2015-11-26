@@ -13,9 +13,18 @@ Using NetFilter
 ---------------
 If you use ntopng over netfilter you need to: 
 
-# 1 - Create queueId (0 in the example below) and divert traffic to it
+# 1 - Create queueId (0 in the example below) and divert traffic to it. For instance
+you can decided to send ntopng all the ICMP and TCP traffic for inspection
 iptables -A OUTPUT -p icmp -j NFQUEUE --queue-num 0
+iptables -A OUTPUT -p tcp -j NFQUEUE --queue-num 0
 
 # 2 - start ntopng on device nf:X
 ntopng -i nf:0
+
+
+NOTE
+----
+When you send traffic to NFQUEUE if ntopng is NOT running, packets will be
+blocked in the IP stack as they are not processed. So make sure that ntopng
+is running all the time before using this mechanism.
 
