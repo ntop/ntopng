@@ -1,13 +1,6 @@
 Prerequisites
 -------------
-You need to build ntopng against netfilter
-
-Ubuntu
-apt-get install libnetfilter-queue-dev
-
-CentOS
-yum install libnetfilter_queue-devel
-
+Netfilter support in ntopng is part of the Pro version.
 
 Using NetFilter
 ---------------
