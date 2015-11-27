@@ -87,7 +87,7 @@ static int ntop_lua_check(lua_State* vm, const char* func,
 /* ****************************************** */
 
 static NetworkInterfaceView* handle_null_interface_view(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Null interface view: did you restart ntopng in the meantime?");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "NULL interface view: did you restart ntopng in the meantime?");
 
   return(ntop->getInterfaceViewAtId(0));
 }

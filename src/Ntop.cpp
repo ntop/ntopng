@@ -957,7 +957,7 @@ NetworkInterface* Ntop::getNetworkInterface(const char *name) {
   }
 
   for(int i=0; i<num_defined_interfaces; i++) {
-    if(strcmp(iface[i]->get_name(), name) == 0)
+    if(strstr(name, iface[i]->get_name()))
       return(iface[i]);
   }
 
