@@ -567,6 +567,8 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
 	lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
       else
 	lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
+
+      lua_push_int_table_entry(vm, "proto.ndpi_id", ndpi_detected_protocol.protocol);
     }
   }
 
@@ -998,9 +1000,10 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
-    } else {
+    } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
-    }
+    
+    lua_push_int_table_entry(vm, "proto.ndpi_id", ndpi_detected_protocol.protocol);
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
     if(detailed_dump && ntop->get_categorization()) {

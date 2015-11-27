@@ -156,7 +156,7 @@ if(ntop.exists(rrdname) and not is_historical) then
 end
 
 
-if(ifstats.profiles ~= nil) then
+if(table.len(ifstats.profiles) > 0) then
   if(page == "trafficprofiles") then
     print("<li class=\"active\"><a href=\""..url.."&page=trafficprofiles\"><i class=\"fa fa-user-md fa-lg\"></i></a></li>")
   else
@@ -458,9 +458,8 @@ elseif(page == "historical") then
 
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
 elseif(page == "trafficprofiles") then
-
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th>Traffic</th></tr>\n")
+   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Graph</th><th>Traffic</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
      local trimmed = trimSpace(pname)
      local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
@@ -469,7 +468,7 @@ elseif(page == "trafficprofiles") then
          statschart_icon = '<A HREF='..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 
-     print("<tr><th>"..pname.."&nbsp;"..statschart_icon.."</th><td><span id=profile_"..trimmed..">"..bytesToSize(pbytes).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
+     print("<tr><th>"..pname.."</th><td align=center>"..statschart_icon.."</td><td><span id=profile_"..trimmed..">"..bytesToSize(pbytes).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
    end
 
 print [[
