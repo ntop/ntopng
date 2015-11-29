@@ -105,7 +105,7 @@ echo 'Setting up redis auto startup'
 /sbin/chkconfig redis on
 echo 'Creating link under /usr/local/bin'
 if test ! -e /usr/local/bin/ntopng ; then ln -s /usr/bin/ntopng /usr/local/bin/ntopng ; fi
-if test -d /usr/local/share/ntopng ] ; then  mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; fi
+if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; fi
 %if 0%{?centos_ver} == 7
 /bin/systemctl daemon-reload
 /bin/systemctl enable ntopng.service
