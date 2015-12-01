@@ -20,7 +20,7 @@ protocol_id = _GET["protocol"]
 host_info   = url2hostinfo(_GET)
 host_ip     = host_info["host"]
 host_name   = hostinfo2hostkey(host_info)
-host_vlan   = host_info["vlan"]
+host_vlan   = host_info["vlan"] or 0
 always_show_hist = _GET["always_show_hist"]
 
 active_page = "hosts"
@@ -1525,9 +1525,7 @@ local tab = _GET["tab"]
 
 if(tab == nil) then tab = alerts_granularity[1][1] end
 
-print [[ <ul class="nav nav-tabs">
-]]
-
+print('<ul class="nav nav-tabs">')
 for _,e in pairs(alerts_granularity) do
    k = e[1]
    l = e[2]
@@ -1535,7 +1533,7 @@ for _,e in pairs(alerts_granularity) do
    if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
    print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
 end
-
+print('</ul>')
 -- Before doing anything we need to check if we need to save values
 
 vals = { }
@@ -1589,19 +1587,7 @@ if(alerts ~= nil) then
    end
 end
 
-if(tab == "alerts_preferences") then 
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
-   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-      alerts_checked = 'checked="checked"'
-      alerts_value = "false" -- Opposite
-   else
-      alerts_checked = ""
-      alerts_value = "true" -- Opposite
-   end
-
-else
    print [[
-    </ul>
     <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
     <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
 
@@ -1668,7 +1654,7 @@ else
 
    </tbody> </table>
    ]]
-end
+
 elseif (page == "config") then
    if(isAdministrator()) then
       trigger_alerts = _GET["trigger_alerts"]
@@ -1681,21 +1667,22 @@ elseif (page == "config") then
       end
    end
 
+   local flow_rate_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold')
+   local syn_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold')   
+   local flows_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold')
+   if (flow_rate_alert_thresh == nil or flow_rate_alert_thresh == "") then flow_rate_alert_thresh = 25 end
+   if (syn_alert_thresh == nil or syn_alert_thresh == "") then syn_alert_thresh = 10 end
+   if (flows_alert_thresh == nil or flows_alert_thresh == "") then flows_alert_thresh = 32768 end
    print("<table class=\"table table-striped table-bordered\">\n")
-   
    print("<tr><th width=250>Host Flow Alert Threshold</th>\n")
    print [[<td>]]
    print[[<form class="form-inline" style="margin-bottom: 0px;">
-	    <input type="hidden" name="host" value="]]
-	 print(host_ip)
-	 print [[">]]
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print [[<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
-		     thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold')
-		     if (thresh == nil or thresh == "") then thresh = 25 end
-		     print(tostring(thresh))
-		     print [["></input>
-			      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+        <input type="hidden" name="host" value="]] print(host_ip) print [[">]]
+	print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
+        print(tostring(flow_rate_alert_thresh))
+        print [["></input>
+	&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
 <small>
     Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
@@ -1712,9 +1699,7 @@ elseif (page == "config") then
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 10 end
-         print(tostring(thresh))
+         print(tostring(syn_alert_thresh))
          print [["></input>
       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
@@ -1733,9 +1718,7 @@ elseif (page == "config") then
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
-         thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold')
-         if (thresh == nil or thresh == "") then thresh = 32768 end
-         print(tostring(thresh))
+         print(tostring(flows_alert_thresh))
          print [["></input>
       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
@@ -1746,32 +1729,28 @@ elseif (page == "config") then
     </td></tr>
        ]]
 
+    local suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
+    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+       alerts_checked = 'checked="checked"'
+       alerts_value = "false" -- Opposite
+    else
+       alerts_checked = ""
+       alerts_value = "true" -- Opposite
+    end
 
-    if((host_ip ~= nil) and host["localhost"]) then
-       suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
-       if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-	  alerts_checked = 'checked="checked"'
-	  alerts_value = "false" -- Opposite
-       else
-	  alerts_checked = ""
-	  alerts_value = "true" -- Opposite
-       end
-       
-       print [[
-	    <tr><th>Host Alerts</th><td nowrap>
-	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	    <input type="hidden" name="tab" value="alerts_preferences">
-	    <input type="hidden" name="host" value="]]
-	 
-         print(host_info["host"])
-         print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for host '..host_info["host"]..'</input>')
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print('<input type="hidden" name="page" value="config">')
-         print('</form>')
-         print('</td>')
-	 print [[</tr>]]
-      end
+    print [[
+         <tr><th>Host Alerts</th><td nowrap>
+         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
+         <input type="hidden" name="tab" value="alerts_preferences">
+         <input type="hidden" name="host" value="]]
 
+      print(host_ip)
+      print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for host '..host_ip..'</input>')
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print('<input type="hidden" name="page" value="config">')
+      print('</form>')
+      print('</td>')
+      print [[</tr>]]
 
     print("</table>")
 
