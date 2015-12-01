@@ -15,6 +15,7 @@ require "graph_utils"
 require "alert_utils"
 
 network        = _GET["network"]
+page           = _GET["page"]
 
 interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
@@ -31,12 +32,15 @@ end
 
 network_name = ntop.getNetworkNameById(tonumber(network))
 
+
 rrdname = dirs.workingdir .. "/" .. ifId .. "/subnetstats/" .. getPathFromKey(network_name) .. "/bytes.rrd"
 
 if(not ntop.exists(rrdname)) then
    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for network "..network_name.."</div>")
    return
 end
+
+local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network)
 
 print [[
 <div class="bs-docs-example">
@@ -46,7 +50,27 @@ print [[
 ]]
 
 print("<li><a href=\"#\">Network: "..network_name.."</A> </li>")
-print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i>\n")
+
+if(page == "historical") then
+  print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+else
+  print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+end
+
+if(page == "alerts") then
+   print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+else
+   print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+end
+
+if(network ~= nil) then
+   if(page == "config") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
+
+   else
+      print("\n<li><a href=\""..nav_url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
+   end
+end
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>

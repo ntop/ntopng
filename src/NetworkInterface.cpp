@@ -1422,7 +1422,6 @@ void NetworkInterface::startPacketPolling() {
 				   get_name(), cpu_affinity);
   }
 
-  allocateNetworkStats();
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
 			       get_name(), get_id());

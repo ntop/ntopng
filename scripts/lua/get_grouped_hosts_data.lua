@@ -217,7 +217,7 @@ function print_single_group(value)
       print(value["name"]..'</A> ')
 
       if(value["id"] ~= "-1") then
-	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
 
       print('", ')
