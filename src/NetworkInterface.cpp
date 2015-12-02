@@ -830,7 +830,7 @@ bool NetworkInterface::packetProcessing(
       struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
 
       if(payload) {
-		  struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)payload;
+	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)payload;
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = ((dns_flags & 0x8000) == 0x8000) ? false : true;
 

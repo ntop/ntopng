@@ -1804,12 +1804,16 @@ void Flow::checkFlowCategory() {
 /* *************************************** */
 
 char* Flow::get_detected_protocol_name() {
-  if(!ndpi_proto_name) {
-    char buf[64];
-
+  if((ndpi_proto_name == NULL) 
+     || ((ndpi_detected_protocol.protocol != NDPI_PROTOCOL_UNKNOWN)
+	 && strcmp(ndpi_proto_name, "Unknown"))) {
+    char buf[64], *old = ndpi_proto_name;
+    
     ndpi_proto_name = strdup(ndpi_protocol2name(iface->get_ndpi_struct(),
 						ndpi_detected_protocol,
 						buf, sizeof(buf)));
+
+    if(old) free(old);
   }
 
   return(ndpi_proto_name);
