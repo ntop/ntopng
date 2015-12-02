@@ -11,7 +11,7 @@ if test -d ".git"; then :
 GIT_TAG=`git rev-parse HEAD`
 GIT_DATE=`date +%Y%m%d`
 GIT_RELEASE="$GIT_TAG:$GIT_DATE"
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+GIT_BRANCH=`git rev-parse --abbrev-ref HEAD | sed "s/heads\///g"`
 else
 GIT_RELEASE="$VERSION"
 GIT_DATE=`date`
