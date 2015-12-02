@@ -1726,12 +1726,14 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
 
 void NetworkInterface::updateFlowProfiles() {
   if(ntop->getPro()->has_valid_license()) {
-    Profiles *old = profiles;
-
-    profiles = new Profiles();
-
+    Profiles *oldP = profiles, *newP = new Profiles();
+    
+    profiles = newP; /* Overwrite the current profiles */
+    
     flows_hash->walk(update_flow_profile, NULL);
-    delete old;
+    
+    sleep(1);    /* Relax a bit... */
+    delete oldP; /* Finally free the old memory */
   }
 }
 
