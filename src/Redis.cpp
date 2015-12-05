@@ -397,18 +397,22 @@ int Redis::del(char *key) {
 
 /* **************************************** */
 
-int Redis::pushHostToHTTPBL(char *hostname, bool dont_check_for_existance, bool localHost) {
-  if(!ntop->getPrefs()->is_httpbl_enabled()) return(0);
-  if(hostname == NULL) return(-1);
-  return(pushHost(HTTPBL_CACHE, HTTPBL_TO_RESOLVE, hostname, dont_check_for_existance, localHost));
+int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existance, bool localHost) {
+  if(ntop->getPrefs()->is_httpbl_enabled() || ntop->getPrefs()->is_flashstart_enabled()) {
+    if(hostname == NULL) return(-1);
+    return(pushHost(TRAFFIC_FILTERING_CACHE, TRAFFIC_FILTERING_TO_RESOLVE, hostname, dont_check_for_existance, localHost));
+  } else
+    return(0);
 }
 
 /* **************************************** */
 
 int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existance, bool localHost) {
-  if(!ntop->getPrefs()->is_dns_resolution_enabled()) return(0);
-  if(hostname == NULL) return(-1);
-  return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existance, localHost));
+  if(ntop->getPrefs()->is_httpbl_enabled() || ntop->getPrefs()->is_flashstart_enabled()) {
+    if(hostname == NULL) return(-1);
+    return(pushHost(DNS_CACHE, DNS_TO_RESOLVE, hostname, dont_check_for_existance, localHost));
+  } else
+    return(0);
 }
 
 /* **************************************** */
@@ -467,8 +471,8 @@ int Redis::pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 
 /* **************************************** */
 
-int Redis::popHostToHTTPBL(char *hostname, u_int hostname_len) {
-  return(popHost(HTTPBL_TO_RESOLVE, hostname, hostname_len));
+int Redis::popHostToTrafficFiltering(char *hostname, u_int hostname_len) {
+  return(popHost(TRAFFIC_FILTERING_TO_RESOLVE, hostname, hostname_len));
 }
 
 /* **************************************** */
@@ -485,18 +489,19 @@ int Redis::popHost(const char* ns_list, char *hostname, u_int hostname_len) {
 
 /* **************************************** */
 
-char* Redis::getHTTPBLCategory(char *numeric_ip, char *buf,
+char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
 			       u_int buf_len, bool categorize_if_unknown) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   redisReply *reply;
 
+  if(!ntop->getPrefs()->is_httpbl_enabled()
+     || ntop->getPrefs()->is_flashstart_enabled())
+    return(NULL);
+
   buf[0] = '\0';
-
-  if(!ntop->getPrefs()->is_httpbl_enabled())  return(NULL);
-
   l->lock(__FILE__, __LINE__);
 
-  snprintf(key, sizeof(key), "%s.%s", HTTPBL_CACHE, numeric_ip);
+  snprintf(key, sizeof(key), "%s.%s", TRAFFIC_FILTERING_CACHE, numeric_ip);
 
   /*
     Add only if the ip has not been checked against the blacklist
@@ -513,7 +518,7 @@ char* Redis::getHTTPBLCategory(char *numeric_ip, char *buf,
     buf[0] = '\0';
 
     if(categorize_if_unknown) {
-      reply = (redisReply*)redisCommand(redis, "RPUSH %s %s", HTTPBL_TO_RESOLVE, numeric_ip);
+      reply = (redisReply*)redisCommand(redis, "RPUSH %s %s", TRAFFIC_FILTERING_TO_RESOLVE, numeric_ip);
       if(!reply) reconnectRedis();
       if(reply && (reply->type == REDIS_REPLY_ERROR))
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
@@ -606,7 +611,7 @@ void Redis::setDefaults() {
 
 /* **************************************** */
 
-int Redis::getAddressHTTPBL(char *numeric_ip,
+int Redis::getAddressTrafficFiltering(char *numeric_ip,
 			    NetworkInterface *iface,
 			    char *rsp, u_int rsp_len,
 			    bool queue_if_not_found) {
@@ -614,7 +619,7 @@ int Redis::getAddressHTTPBL(char *numeric_ip,
   int rc;
 
   rsp[0] = '\0';
-  snprintf(key, sizeof(key), "%s.%s", HTTPBL_CACHE, numeric_ip);
+  snprintf(key, sizeof(key), "%s.%s", TRAFFIC_FILTERING_CACHE, numeric_ip);
 
   rc = get(key, rsp, rsp_len);
 
@@ -623,12 +628,12 @@ int Redis::getAddressHTTPBL(char *numeric_ip,
       char buf[64];
 
       snprintf(buf, sizeof(buf), "%s@%s", numeric_ip, iface->get_name());
-      pushHostToHTTPBL(buf, true, false);
+      pushHostToTrafficFiltering(buf, true, false);
     }
   } else {
     /* We need to extend expire */
 
-    expire(numeric_ip, HTTPBL_CACHE_DURATIION /* expire */);
+    expire(numeric_ip, TRAFFIC_FILTERING_CACHE_DURATIION /* expire */);
   }
 
   return(rc);
@@ -660,11 +665,11 @@ int Redis::getAddress(char *numeric_ip, char *rsp,
 
 /* **************************************** */
 
-int Redis::setHTTPBLAddress(char *numeric_ip, char *httpbl) {
+int Redis::setTrafficFilteringAddress(char *numeric_ip, char *httpbl) {
   char key[CONST_MAX_LEN_REDIS_KEY];
 
-  snprintf(key, sizeof(key), "%s.%s", HTTPBL_CACHE, numeric_ip);
-  return(set(key, httpbl, HTTPBL_CACHE_DURATIION));
+  snprintf(key, sizeof(key), "%s.%s", TRAFFIC_FILTERING_CACHE, numeric_ip);
+  return(set(key, httpbl, TRAFFIC_FILTERING_CACHE_DURATIION));
 }
 
 /* **************************************** */

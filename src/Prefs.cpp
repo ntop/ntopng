@@ -31,7 +31,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
-  categorization_enabled = false, httpbl_enabled = false, resolve_all_host_ip = false;
+  categorization_enabled = false, resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   install_dir = NULL;
@@ -46,7 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
   categorization_key = NULL;
-  httpbl_key = NULL;
+  httpbl_key = NULL, flashstart_user_pwd = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
   redis_port = 6379;
@@ -180,10 +180,10 @@ void usage() {
 	 "                                    | services (default: disabled). \n"
 	 "                                    | Please read README.categorization for\n"
 	 "                                    | more info.\n"
-	 "[--httpbl-key|-k] <key>             | Key used to access httpbl\n"
-	 "                                    | services (default: disabled). \n"
-	 "                                    | Please read README.httpbl for\n"
-	 "                                    | more info.\n"
+	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
+	 "                                    | (default: disabled). Available options:\n"
+	 "                                    | httpbl:<api_key>        See README.httpbl\n"
+	 "                                    | flashstart:<user>:<pwd> See README.flashstart\n"
 	 "[--http-port|-w] <[:]http port>     | HTTP port. Set to 0 to disable http server.\n"
 	 "                                    | Prepend a : before the port to listen to the\n"
 	 "                                    | loopback address. Default: %u\n"
@@ -354,7 +354,7 @@ static const struct option long_options[] = {
   { "interface",                         required_argument, NULL, 'i' },
   { "local-networks",                    required_argument, NULL, 'm' },
   { "dns-mode",                          required_argument, NULL, 'n' },
-  { "httpbl-key",                        required_argument, NULL, 'k' },
+  { "traffic-filtering",                 required_argument, NULL, 'k' },
   { "disable-login",                     required_argument, NULL, 'l' },
   { "ndpi-protocols",                    required_argument, NULL, 'p' },
   { "disable-autologout",                no_argument,       NULL, 'q' },
@@ -414,7 +414,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'k':
-    httpbl_key = optarg;
+    if(strncmp(optarg, HTTPBL_STRING, strlen(HTTPBL_STRING)) == 0)
+      httpbl_key = &optarg[strlen(HTTPBL_STRING)];
+    else if(strncmp(optarg, FLASHSTART_STRING, strlen(FLASHSTART_STRING)) == 0)
+      flashstart_user_pwd = &optarg[strlen(FLASHSTART_STRING)];
+    else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -k", optarg);
     break;
 
   case 'u':
@@ -946,7 +951,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_categorization_enabled", categorization_enabled);
-  lua_push_bool_table_entry(vm, "is_httpbl_enabled", httpbl_enabled);
+  lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
+  lua_push_bool_table_entry(vm, "is_flashstart_enabled", is_flashstart_enabled());
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
   lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);

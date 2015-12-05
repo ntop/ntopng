@@ -48,7 +48,7 @@ Ntop::Ntop(char *appName) {
   pa = new PeriodicActivities();
   address = new AddressResolution();
   categorization = NULL;
-  httpbl = NULL;
+  httpbl = NULL, flashstart = NULL;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
   num_cpus = -1;
@@ -164,10 +164,11 @@ Ntop::~Ntop() {
 
   if(udp_socket != -1) closesocket(udp_socket);
 
-  if(httpbl) delete httpbl;
-  if(httpd)  delete httpd;
+  if(httpbl)     delete httpbl;
+  if(flashstart) delete flashstart;
+  if(httpd)      delete httpd;
   if(custom_ndpi_protos) delete(custom_ndpi_protos);
-
+  
   Destroy_Patricia(local_interface_addresses, NULL);
   delete address;
   delete pa;
@@ -271,7 +272,7 @@ void Ntop::start() {
 
   pa->startPeriodicActivitiesLoop();
   if(categorization) categorization->startCategorizeCategorizationLoop();
-  if(httpbl) httpbl->startHTTPBLLoop();
+  if(httpbl) httpbl->startLoop(); else if(flashstart) flashstart->startLoop();
 
   runtimeprefs = new RuntimePrefs();
 

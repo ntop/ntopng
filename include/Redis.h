@@ -62,18 +62,18 @@ class Redis {
   int pushHostToResolve(char *hostname, bool dont_check_for_existance, bool localHost);
   int popHostToResolve(char *hostname, u_int hostname_len);
 
-  int pushHostToHTTPBL(char *hostname, bool dont_check_for_existance, bool localHost);
-  int popHostToHTTPBL(char *hostname, u_int hostname_len);
+  int pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existance, bool localHost);
+  int popHostToTrafficFiltering(char *hostname, u_int hostname_len);
 
-  char* getHTTPBLCategory(char *numeric_ip, char *buf, u_int buf_len, bool query_httpbl_if_unknown);
+  char* getTrafficFilteringCategory(char *numeric_ip, char *buf, u_int buf_len, bool query_httpbl_if_unknown);
   char* getFlowCategory(char *domainname, char *buf, u_int buf_len, bool categorize_if_unknown);
   int popDomainToCategorize(char *domainname, u_int domainname_len);
   
   int getAddress(char *numeric_ip, char *rsp, u_int rsp_len, bool queue_if_not_found);
-  int getAddressHTTPBL(char *numeric_ip, NetworkInterface *iface,
+  int getAddressTrafficFiltering(char *numeric_ip, NetworkInterface *iface,
 		       char *rsp, u_int rsp_len, bool queue_if_not_found);
   int setResolvedAddress(char *numeric_ip, char *symbolic_ip);
-  int setHTTPBLAddress(char* numeric_ip, char* httpbl);
+  int setTrafficFilteringAddress(char* numeric_ip, char* httpbl);
 
   int hashIncr(char *key, char *field, u_int32_t value);
 

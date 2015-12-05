@@ -280,11 +280,20 @@ int main(int argc, char *argv[])
 
   }
 
-  if(prefs->get_httpbl_key() != NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-        "HTTPBL categorization is not enabled: using default key");
+  if(prefs->get_httpbl_key() != NULL)
     ntop->setHTTPBL(new HTTPBL(prefs->get_httpbl_key()));
-    prefs->enable_httpbl();
+  else if(prefs->get_flashstart_user_pwd() != NULL) {
+    char userpwd[64], *user = NULL, *pwd = NULL;
+
+    snprintf(userpwd, sizeof(userpwd), "%s", prefs->get_flashstart_user_pwd());
+
+    if((user = strtok(userpwd, ":")) != NULL)
+      pwd = strtok(NULL, ":");
+      
+    if(user && pwd)
+      ntop->setFlashstart(new Flashstart(user, pwd));
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid Flashstart format <user>:<pwd> specified");
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Working directory: %s",

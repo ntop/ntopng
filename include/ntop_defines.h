@@ -129,12 +129,12 @@
 #define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"
 #define DNS_CACHE               "ntopng.dns.cache"
 #define DNS_TO_RESOLVE          "ntopng.dns.toresolve"
-#define HTTPBL_CACHE            "ntopng.httpbl.cache"
-#define HTTPBL_TO_RESOLVE       "ntopng.httpbl.toresolve"
+#define TRAFFIC_FILTERING_CACHE            "ntopng.trafficfiltering.cache"
+#define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
 #define DROP_HOST_TRAFFIC       "ntopng.prefs.drop_host_traffic"
 #define DUMP_HOST_TRAFFIC       "ntopng.prefs.dump_host_traffic"
 #define HOST_TRAFFIC_QUOTA      "ntopng.prefs.hosts_quota"
-#define HTTPBL_CACHE_DURATIION  43200 /* 12 h */
+#define TRAFFIC_FILTERING_CACHE_DURATIION  43200 /* 12 h */
 #define DNS_CACHE_DURATION      3600  /*  1 h */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
@@ -425,6 +425,9 @@
 #if !defined(WIN32) && !defined(closesocket)
 #define closesocket(c)		close(c)
 #endif
+
+#define HTTPBL_STRING           "httpbl:"
+#define FLASHSTART_STRING       "flashstart:"
 
 #define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
 #endif /* _NTOP_DEFINES_H_ */

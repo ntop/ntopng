@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-15 - ntop.org
+ * (C) 2015 - ntop.org
  *
  *
  * This program is free software; you can addresstribute it and/or modify
@@ -19,25 +19,25 @@
  *
  */
 
-#ifndef _HTTPBL_H_
-#define _HTTPBL_H_
+#ifndef _FLASHSTART_H_
+#define _FLASHSTART_H_
 
 #include "ntop_includes.h"
 
-class HTTPBL {
-  u_int32_t num_httpblized_categorizations, num_httpblized_fails;
-  char *api_key;
+class Flashstart {
+  u_int32_t num_flashstart_categorizations, num_flashstart_fails;
+  char *user, *pwd;
 
-  pthread_t httpblThreadLoop;
-  void queryHTTPBL(char *numeric_ip);
+  pthread_t flashstartThreadLoop;
+  void queryFlashstart(char *numeric_ip);
 
  public:
-  HTTPBL(char *_api_key);
-  ~HTTPBL();
+  Flashstart(char *_user, char *_pwd);
+  ~Flashstart();
 
   char* findTrafficCategory(char *name, char *buf, u_int buf_len, bool add_if_needed); 
   void startLoop();
-  void* httpblLoop(void* ptr);
+  void* flashstartLoop(void* ptr);
 };
 
-#endif /* _HTTPBL_H_ */
+#endif /* _FLASHSTART_H_ */

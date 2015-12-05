@@ -146,7 +146,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   networkStats = NULL, local_network_id = -1;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  category[0] = '\0', os[0] = '\0', httpbl[0] = '\0', blacklisted_host = false;
+  category[0] = '\0', os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId,
     ingress_shaper_id = egress_shaper_id = DEFAULT_SHAPER_ID,
     total_num_flows_as_client = total_num_flows_as_server = 0,
@@ -203,14 +203,17 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	// else ntop->getRedis()->pushHostToResolve(host, false, localHost);
       }
 
-      if((!localHost || systemHost) && ntop->getPrefs()->is_httpbl_enabled() && ip->isIPv4()) {
+      if((!localHost || systemHost) 
+	 && ntop->getPrefs()->is_httpbl_enabled()
+	 && ip->isIPv4()) {
 	// http:bl only works for IPv4 addresses
-	if(ntop->getRedis()->getAddressHTTPBL(host, iface, httpbl, sizeof(httpbl), true) == 0) {
-          if(strcmp(httpbl, NULL_BL)) {
+	if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory, 
+							sizeof(trafficCategory), true) == 0) {
+          if(strcmp(trafficCategory, NULL_BL)) {
 	    blacklisted_host = true;
 	    ntop->getTrace()->traceEvent(TRACE_INFO,
 					 "Blacklisted host found %s [%s]",
-					 host, httpbl);
+					 host, trafficCategory);
 	  }
 	}
       }
@@ -545,7 +548,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 
     if(ip) {
       if(ntop->get_categorization()) lua_push_str_table_entry(vm, "category", get_category());
-      if(ntop->getPrefs()->is_httpbl_enabled()) lua_push_str_table_entry(vm, "httpbl", get_httpbl());
+      if(ntop->getPrefs()->is_httpbl_enabled())     lua_push_str_table_entry(vm, "httpbl", get_httpbl());
+      if(ntop->getPrefs()->is_flashstart_enabled()) lua_push_str_table_entry(vm, "flashstart", get_flashstart());
     }
 
     lua_push_bool_table_entry(vm, "dump_host_traffic", dump_host_traffic);
@@ -653,11 +657,30 @@ void Host::refreshCategory() {
 /* ***************************************** */
 
 void Host::refreshHTTPBL() {
-  if(ip && ip->isIPv4() && (!localHost) && (httpbl[0] == '\0') && ntop->getPrefs()->is_httpbl_enabled()) {
+  if(ip 
+     && ip->isIPv4() 
+     && (!localHost) 
+     && (trafficCategory[0] == '\0')
+     && ntop->get_httpbl()) {
     char buf[128] =  { 0 };
     char* ip_addr = ip->print(buf, sizeof(buf));
+    
+    ntop->get_httpbl()->findTrafficCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
+  }
+}
 
-    ntop->get_httpbl()->findHTTPBL(ip_addr, httpbl, sizeof(httpbl), false);
+/* ***************************************** */
+
+void Host::refreshFlashstart() {
+  if(ip 
+     && ip->isIPv4() 
+     && (!localHost) 
+     && (trafficCategory[0] == '\0')
+     && ntop->get_flashstart()) {
+    char buf[128] =  { 0 };
+    char* ip_addr = ip->print(buf, sizeof(buf));
+    
+    ntop->get_flashstart()->findTrafficCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
   }
 }
 
@@ -802,7 +825,7 @@ char* Host::serialize() {
   if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname));
   if(category[0] != '\0') json_object_object_add(my_object, "category",  json_object_new_string(category));
-  if(httpbl[0] != '\0')   json_object_object_add(my_object, "httpbl",    json_object_new_string(httpbl));
+  if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
   if(longitude)           json_object_object_add(my_object, "longitude", json_object_new_double(longitude));
@@ -896,7 +919,7 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "asname", &obj))         { if(asname) free(asname); asname = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "category", &obj))       { snprintf(category, sizeof(category), "%s", json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "httpbl", &obj))         { snprintf(httpbl, sizeof(httpbl), "%s", json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "trafficCategory", &obj))         { snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "vlan_id", &obj))   vlan_id = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);

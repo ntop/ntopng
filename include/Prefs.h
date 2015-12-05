@@ -40,7 +40,7 @@ class Prefs {
   const char *http_binding_address, *https_binding_address;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
-    categorization_enabled, httpbl_enabled, resolve_all_host_ip, change_user, daemonize,
+    categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, use_promiscuous_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login;
@@ -59,7 +59,7 @@ class Prefs {
   bool local_networks_set, shutdown_when_done;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
   char *categorization_key;
-  char *httpbl_key;
+  char *httpbl_key, *flashstart_user_pwd;
   char *http_prefix;
   char *config_file_path, *ndpi_proto_path;
   char *packet_filter;
@@ -110,9 +110,9 @@ class Prefs {
   inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
   inline void enable_categorization()                   { categorization_enabled = true;  };
-  inline void enable_httpbl()                           { httpbl_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
-  inline bool is_httpbl_enabled()                       { return(httpbl_enabled); };
+  inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
+  inline bool is_flashstart_enabled()                   { return(flashstart_user_pwd ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
   inline void dont_change_user()                        { change_user = false;            };
   inline bool are_ixia_timestamps_enabled()             { return(enable_ixia_timestamps); };
@@ -133,6 +133,7 @@ class Prefs {
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_categorization_key()                 { return(categorization_key); };
   inline char* get_httpbl_key()                         { return(httpbl_key);  };
+  inline char* get_flashstart_user_pwd()                { return(flashstart_user_pwd);  };
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline bool  is_host_persistency_enabled()            { return(disable_host_persistency ? false : true); };

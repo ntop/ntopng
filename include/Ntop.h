@@ -58,7 +58,8 @@ class Ntop {
   RuntimePrefs *runtimeprefs;
   Geolocation *geo;
   Categorization *categorization;
-  HTTPBL* httpbl;
+  HTTPBL *httpbl;
+  Flashstart *flashstart;
   ExportInterface *export_interface;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
@@ -211,6 +212,13 @@ class Ntop {
   inline HTTPBL* get_httpbl()                        { return(httpbl);             };
 
   /**
+   * @brief Get flashstart.
+   *
+   * @return Current flashstart instance.
+   */
+  inline Flashstart* get_flashstart()                        { return(flashstart);             };
+
+  /**
    * @brief Register the network interface.
    * @details Check for duplicated interface and add the network interface in to @ref iface.
    *
@@ -285,6 +293,13 @@ class Ntop {
    * @param h The categorization instance.
    */
   inline void setHTTPBL(HTTPBL *h)                   { httpbl = h; };
+
+  /**
+   * @brief Set flashstart.
+   *
+   * @param h The categorization instance.
+   */
+  inline void setFlashstart(Flashstart *h)           { flashstart = h; };
 
   /**
    * @brief Get the network interface identified by name or Id.

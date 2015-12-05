@@ -200,6 +200,7 @@ using namespace std;
 #include "AddressResolution.h"
 #include "Categorization.h"
 #include "HTTPBL.h"
+#include "Flashstart.h"
 #include "HTTPserver.h"
 #include "RuntimePrefs.h"
 #include "Ntop.h"
