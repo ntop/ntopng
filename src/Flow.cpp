@@ -1381,6 +1381,8 @@ json_object* Flow::flow2json(bool partial_dump) {
 #endif
   if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
       json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME", json_object_new_string(ntop->getPrefs()->get_instance_name()));
+  if(iface && iface->get_name())
+      json_object_object_add(my_object, "INTERFACE", json_object_new_string(iface->get_name()));
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 
   if(http.last_url && http.last_method) {
