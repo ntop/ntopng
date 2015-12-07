@@ -103,13 +103,13 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 #endif
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
             "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
-            "ADD INDEX `ix_%sv4_%u_ntopng_instance_name` (PROFILE)",
+            "ADD INDEX `ix_%sv4_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
             "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
-            "ADD INDEX `ix_%sv6_%u_ntopng_instance_name` (PROFILE)",
+            "ADD INDEX `ix_%sv6_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(sql, true, true);
