@@ -25,12 +25,16 @@ local debug = false
 local delete_keys = true
 
 
-function harverstExpiredMySQLFlows(interface_id, mysql_retention)
-   sql = "DELETE FROM flowsv4_"..interface_id.." where FIRST_SWITCHED < "..mysql_retention
+function harverstExpiredMySQLFlows(ifname, mysql_retention)
+   sql = "DELETE FROM flowsv4 where FIRST_SWITCHED < "..mysql_retention
+   sql = sql.." AND (INTERFACE = '"..ifname.."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
    interface.execSQLQuery(sql)
    if(debug) then io.write(sql.."\n") end
 
-   sql = "DELETE FROM flowsv4 flowsv6_"..interface_id.." where FIRST_SWITCHED < "..mysql_retention
+   sql = "DELETE FROM flowsv6 where FIRST_SWITCHED < "..mysql_retention
+   sql = sql.." AND (INTERFACE = '"..ifname.."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
    interface.execSQLQuery(sql)
    if(debug) then io.write(sql.."\n") end
 end
@@ -59,7 +63,7 @@ for _,_ifname in pairs(ifnames) do
 
    ntop.deleteMinuteStatsOlderThan(interface_id, 365)
 
-   harverstExpiredMySQLFlows(interface_id, mysql_retention)
+   harverstExpiredMySQLFlows(_ifname, mysql_retention)
 
    hosts_stats = interface.getHostsInfo()
 

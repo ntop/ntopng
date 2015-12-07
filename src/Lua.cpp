@@ -656,7 +656,7 @@ static int ntop_getservbyport(lua_State* vm) {
   int port;
   char *proto;
   struct servent *s = NULL;
-  
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
@@ -672,11 +672,11 @@ static int ntop_getservbyport(lua_State* vm) {
     lua_pushstring(vm, s->s_name);
   else {
     char buf[32];
-    
+
     snprintf(buf, sizeof(buf), "%d", port);
     lua_pushstring(vm, buf);
   }
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -1082,7 +1082,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   if(host_ip)
     snprintf(sql, sizeof(sql), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? key : "*", host_ip, vlan_id);
   else
-    snprintf(sql, sizeof(sql), "SELECT %s FROM FLOWS", key ? key : "*");  
+    snprintf(sql, sizeof(sql), "SELECT %s FROM FLOWS", key ? key : "*");
 
   if(ntop_interface) {
     if(ntop_interface->retrieve(vm, get_allowed_nets(vm), sql))
@@ -2643,7 +2643,7 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
     return(CONST_LUA_ERROR);
   else {
     char *sql;
-    
+
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
     if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3905,7 +3905,7 @@ static int ntop_lua_http_print(lua_State* vm) {
 
 	if(len <= 1)
 	  mg_printf(conn, "%c", str[0]);
-	else 
+	else
 	  return (CONST_LUA_PARAM_ERROR);
       }
 
@@ -4080,7 +4080,7 @@ static int ntop_network_name_by_id(lua_State* vm) {
   name = ntop->getLocalNetworkName(id);
 
   lua_pushstring(vm, name ? name : "");
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -4114,7 +4114,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "similarHostActivity",    ntop_similar_host_activity },
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
-   { "getFlowsInfo",           ntop_get_interface_flows_info },
+  { "getFlowsInfo",           ntop_get_interface_flows_info },
   { "queryFlowsInfo",         ntop_query_interface_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowPeers",           ntop_get_interface_flows_peers },
@@ -4413,7 +4413,7 @@ int Lua::run_script(char *script_path, char *ifname) {
       lua_pushstring(L, ifname);
       lua_setglobal(L, "ifname");
     }
-     
+
     if(strstr(script_path, "nv_graph"))
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", script_path);
 
@@ -4507,16 +4507,16 @@ void Lua::purifyHTTPParameter(char *param) {
   char *ampercent;
 
   if((ampercent = strchr(param, '%')) != NULL) {
-    /* We allow only a few chars, removing all the others */ 
+    /* We allow only a few chars, removing all the others */
 
-    if((ampercent[1] != 0) && (ampercent[2] != 0)) {      
+    if((ampercent[1] != 0) && (ampercent[2] != 0)) {
       char c;
       char b = ampercent[3];
 
-      ampercent[3] = '\0';      
+      ampercent[3] = '\0';
       c = (char)strtol(&ampercent[1], NULL, 16);
       ampercent[3] = b;
-      
+
       switch(c) {
       case '/':
       case ':':
@@ -4535,18 +4535,18 @@ void Lua::purifyHTTPParameter(char *param) {
       case '>':
       case '@':
 	break;
-	
+
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '%c' in URI", c);
 	ampercent[0] = '\0';
 	return;
       }
-      
+
 
       purifyHTTPParameter(&ampercent[3]);
     } else
       ampercent[0] = '\0';
-  }	 
+  }
 }
 
 /* ****************************************** */
@@ -4587,7 +4587,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	if(_equal) {
 	  char *equal;
 	  int len;
-	  
+
 	  _equal[0] = '\0';
 	  _equal = &_equal[1];
 	  len = strlen(_equal);
@@ -4620,10 +4620,10 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
 	      if(strcmp(tok, "csrf") == 0) {
 		char rsp[32], user[64] = { '\0' };
-		
+
 		mg_get_cookie(conn, "user", user, sizeof(user));
 
-		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1) 
+		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
 		   || (strcmp(rsp, user) != 0)) {
 		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid CSRF parameter specified [%s]", decoded_buf);
 		  free(equal);
@@ -4669,7 +4669,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
       char *val;
 
       while(tok[0] == ' ') tok++;
-      
+
       if((val = strtok_r(NULL, ";", &where)) != NULL) {
 	lua_push_str_table_entry(L, tok, val);
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, val);

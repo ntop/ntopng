@@ -19,7 +19,7 @@ sql = _GET["sql"]
 print('<p><form>SQL: <input type=text name=sql size="160" value="')
 
 if((sql == nil) or (string.len(sql) == 0)) then
-   sql = "select * from flowsv4_"..ifstats.id.." order by LAST_SWITCHED desc limit 10"
+   sql = "select * from flowsv4 order by LAST_SWITCHED desc limit 10"
 end
 
 print(sql)
@@ -29,7 +29,7 @@ print('"><br>&nbsp;<br><input type=submit> <input type=reset></form><p><hr><p>')
 if((_GET["sql"] ~= nil) and (string.len(_GET["sql"]) > 0)) then
    res = interface.execSQLQuery(_GET["sql"])
 
-   if(res ~= nil) then      
+   if(res ~= nil) then
       if(type(res) == "string") then
 	 print("<b><font color=red>"..res.."</font></b>\n")
       else

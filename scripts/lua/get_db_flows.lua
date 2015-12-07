@@ -68,7 +68,7 @@ if(format == "txt") then
 	       print(k)
 	       elems = elems + 1
 	    end
-	    
+
 	 print("\n")
       end
 
@@ -92,21 +92,21 @@ else
    -- JSON
    if((res == nil) or (type(res) == "string")) then
       return('{ "currentPage" : 1,  "data" : [], "perPage" : '..perPage..',  "sort" : [ [ "column_", "desc" ] ],"totalRows" : 0 }')
-   else      
+   else
       local rows = 0
-      
+
       print('{ "currentPage" : '..currentPage..',  "data" : [\n')
 
       for _,flow in pairs(res) do
 	 local num = 0
-	 local base = "<A HREF='"..ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?ifId="..ifId.."&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end 
+	 local base = "<A HREF='"..ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?ifId="..ifId.."&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
 	 if(flow["L4_SRC_PORT"] ~= nil) then
 	    local base_host_url = base.."&host="
 	    local base_port_url = base.."&port="
 	    local pname = l4ProtoToName(flow["PROTOCOL"])
 	    local lower_pname = string.lower(pname)
-	    
+
 	    client = shortenString(host2name(flow["IP_SRC_ADDR"], flow["VLAN_ID"]))
 	    server = shortenString(host2name(flow["IP_DST_ADDR"], flow["VLAN_ID"]))
 
@@ -122,9 +122,9 @@ else
 
 	       if((sport ~= nil) and (sport ~= "0")) then flow["CLIENT"] = flow["CLIENT"] .. ":"..base_port_url..flow["L4_SRC_PORT"].."'>"..sport.."</A>" end
 	       if((dport ~= nil) and (dport ~= "0")) then flow["SERVER"] = flow["SERVER"] .. ":"..base_port_url..flow["L4_DST_PORT"].."'>"..dport.."</A>" end
-	       
+
 	       flow["PROTOCOL"] = base.."&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
-	       flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"	    
+	       flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"
 	       flow["FLOW_URL"] = base.."&flow_idx="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
 	       flow["INFO"] = base.."&info="..flow["INFO"].."'>"..flow["INFO"].."</A>"
                if flow["PROFILE"] ~= nil and flow["PROFILE"] ~="" then
@@ -134,7 +134,7 @@ else
 	       flow["CLIENT"] = client..":"..ntop.getservbyport(tonumber(flow["L4_SRC_PORT"]), lower_pname)
 	       flow["SERVER"] = server..":"..ntop.getservbyport(tonumber(flow["L4_DST_PORT"]), lower_pname)
 	       flow["PROTOCOL"] = pname
-	       flow["L7_PROTO"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"])))     
+	       flow["L7_PROTO"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"])))
 	       flow["FLOW_URL"] = ""
 	    end
 	 end
@@ -146,7 +146,7 @@ else
 	 flow["LAST_SWITCHED"] = formatEpoch(tonumber(flow["LAST_SWITCHED"]))
 
 	 -- flow["BYTES"] = bytesToSize(tonumber(flow["BYTES"]))
-	 -- flow["PACKETS"] = formatPackets(tonumber(flow["PACKETS"]))    
+	 -- flow["PACKETS"] = formatPackets(tonumber(flow["PACKETS"]))
 
 	 if(rows > 0) then print(',\n') end
 
@@ -156,11 +156,11 @@ else
 	    print('"'..k..'": "'..v..'"')
 	    num = num + 1
 	 end
-	 
+
 	 print('}')
 
 	 rows = rows + 1
-      end  
+      end
 
       if(limit == nil) then limit = rows end
       print('\n], "perPage" : '..perPage..',  "sort" : [ [ "'..sortColumn..'", "'.. sortOrder ..'" ] ], "totalRows" : '..limit..' }')
