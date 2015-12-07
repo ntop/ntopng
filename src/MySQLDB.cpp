@@ -24,7 +24,7 @@
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
-  char sql[1024];
+  char sql[2048];
 
   if(connectToDB(false) == false)
     return;
@@ -43,17 +43,36 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     }
 
     /* 2.1 - Create table if missing [IPv6] */
-    snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6_%u` ("
-	     "`idx` int(11) NOT NULL auto_increment,"
-	     "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
-	     "`IP_SRC_ADDR` varchar(48), `L4_SRC_PORT` smallint unsigned,"
-	     "`IP_DST_ADDR` varchar(48), `L4_DST_PORT` smallint unsigned,"
-	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
-	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
-	     "`INFO` varchar(255), `JSON` BLOB,"
-	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`, `INFO`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
-	     ntop->getPrefs()->get_mysql_tablename(),
-	     iface->get_id());
+    snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6` ("
+            "`idx` int(11) NOT NULL AUTO_INCREMENT,"
+            "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
+            "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
+            "`IP_SRC_ADDR` varchar(48) DEFAULT NULL,"
+            "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
+            "`IP_DST_ADDR` varchar(48) DEFAULT NULL,"
+            "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
+            "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
+            "`BYTES` int(10) unsigned DEFAULT NULL,"
+            "`PACKETS` int(10) unsigned DEFAULT NULL,"
+            "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+            "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+            "`INFO` varchar(255) DEFAULT NULL,"
+            "`JSON` blob,"
+#ifdef NTOPNG_PRO
+            "`PROFILE` varchar(255) DEFAULT NULL,"
+#endif
+            "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+            "`INTERFACE` varchar(64) DEFAULT NULL,"
+            "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`),"
+#ifdef NTOPNG_PRO
+            "KEY `ix_flowsv6_4_profile` (`PROFILE`),"
+#endif
+            "KEY `ix_flowsv6_4_ntopng_instance_name` (`NTOPNG_INSTANCE_NAME`(255)),"
+            "KEY `ix_flowsv6_4_ntopng_interface` (`INTERFACE`)"
+            ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8"
+            "/*!50100 PARTITION BY HASH (`FIRST_SWITCHED`)"
+            "PARTITIONS 32 */",
+            ntop->getPrefs()->get_mysql_tablename());
 
     if(exec_sql_query(sql, true) != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
@@ -61,23 +80,46 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     }
 
     /* 2.2 - Create table if missing [IPv4] */
-    snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4_%u` ("
-	     "`idx` int(11) NOT NULL auto_increment,"
-	     "`VLAN_ID` smallint unsigned, `L7_PROTO` smallint unsigned,"
-	     "`IP_SRC_ADDR` int unsigned, `L4_SRC_PORT` smallint unsigned,"
-	     "`IP_DST_ADDR` int unsigned, `L4_DST_PORT` smallint unsigned,"
-	     "`PROTOCOL` tinyint unsigned, `BYTES` int unsigned, `PACKETS` int unsigned,"
-	     "`FIRST_SWITCHED` int unsigned, `LAST_SWITCHED` int unsigned,"
-	     "`INFO` varchar(255), `JSON` BLOB,"
-	     "INDEX(`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`, `LAST_SWITCHED`, `INFO`)) PARTITION BY HASH(`FIRST_SWITCHED`) PARTITIONS 32",
-	     ntop->getPrefs()->get_mysql_tablename(),
-	     iface->get_id());
+    snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4` ("
+            "`idx` int(11) NOT NULL AUTO_INCREMENT,"
+            "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
+            "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
+            "`IP_SRC_ADDR` int(10) unsigned DEFAULT NULL,"
+            "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
+            "`IP_DST_ADDR` int(10) unsigned DEFAULT NULL,"
+            "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
+            "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
+            "`BYTES` int(10) unsigned DEFAULT NULL,"
+            "`PACKETS` int(10) unsigned DEFAULT NULL,"
+            "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+            "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+            "`INFO` varchar(255) DEFAULT NULL,"
+            "`JSON` blob,"
+#ifdef NTOPNG_PRO
+            "`PROFILE` varchar(255) DEFAULT NULL,"
+#endif
+            "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+            "`INTERFACE` varchar(64) DEFAULT NULL,"
+            "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`),"
+#ifdef NTOPNG_PRO
+            "KEY `ix_flowsv4_4_profile` (`PROFILE`),"
+#endif
+            "KEY `ix_flowsv4_4_ntopng_instance_name` (`NTOPNG_INSTANCE_NAME`(255)),"
+            "KEY `ix_flowsv4_4_ntopng_interface` (`INTERFACE`)"
+            ") ENGINE=InnoDB AUTO_INCREMENT=520 DEFAULT CHARSET=utf8"
+            "/*!50100 PARTITION BY HASH (`FIRST_SWITCHED`)"
+            "PARTITIONS 32 */",
+	     ntop->getPrefs()->get_mysql_tablename());
 
     if(exec_sql_query(sql, true) != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
       return;
     }
 
+    // the remainder of this method has the purpose of MIGRATING old table structures to
+    // the most recent one.
+
+    // FIRST: we adapt old table structures to the new schema using alter tables
     /* Add fields if not present */
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` ADD `INFO` varchar(255)",
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
@@ -113,7 +155,39 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(sql, true, true);
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
+            "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
+            "ADD INDEX `ix_%sv4_%u_ntopng_interface` (INTERFACE)",
+	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
+            "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
+            "ADD INDEX `ix_%sv6_%u_ntopng_interface` (INTERFACE)",
+	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+
+    // SECOND: we trasfer old table contents into the new schema
+    snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv4` "
+            "SELECT * FROM `%sv4_%u`",
+	    ntop->getPrefs()->get_mysql_tablename(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+    snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv6` "
+            "SELECT * FROM `%sv6_%u`",
+	    ntop->getPrefs()->get_mysql_tablename(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+
+    // THIRD: drop old tables (their contents have been transferred)
   }
+    snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+    snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS `%sv6_%u` ",
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
 }
 
 /* ******************************************* */
@@ -167,18 +241,17 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }
 
   if(f->get_cli_host()->get_ip()->isIPv4())
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME"
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE"
 #ifdef NTOPNG_PRO
             ",PROFILE"
 #endif
             ") "
-	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s'"
+	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%s'"
 #ifdef NTOPNG_PRO
             ",'%s'"  // this is the string for traffic profile
 #endif
             ")",
 	     ntop->getPrefs()->get_mysql_tablename(),
-	     iface->get_id(),
 	     f->get_vlan_id(),
 	     f->get_detected_protocol().protocol,
 	     htonl(f->get_cli_host()->get_ip()->get_ipv4()),
@@ -189,24 +262,24 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     bytes, packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf,
-             ntop->getPrefs()->get_instance_name()
+             ntop->getPrefs()->get_instance_name(),
+             iface->get_name()
 #ifdef NTOPNG_PRO
              ,f->get_profile_name()
 #endif
             );
   else
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME"
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE"
 #ifdef NTOPNG_PRO
             ",PROFILE"
 #endif
             ") "
-	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s'"
+	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%s'"
 #ifdef NTOPNG_PRO
             ",'%s'"  // this is the string for traffic profile
 #endif
             ")",
 	     ntop->getPrefs()->get_mysql_tablename(),
-	     iface->get_id(),
 	     f->get_vlan_id(),
 	     f->get_detected_protocol().protocol,
 	     f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
@@ -217,7 +290,8 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     bytes, packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf,
-             ntop->getPrefs()->get_instance_name()
+             ntop->getPrefs()->get_instance_name(),
+            iface->get_name()
 #ifdef NTOPNG_PRO
              ,f->get_profile_name()
 #endif
