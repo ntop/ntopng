@@ -168,7 +168,7 @@ Ntop::~Ntop() {
   if(flashstart) delete flashstart;
   if(httpd)      delete httpd;
   if(custom_ndpi_protos) delete(custom_ndpi_protos);
-  
+
   Destroy_Patricia(local_interface_addresses, NULL);
   delete address;
   delete pa;
@@ -281,6 +281,7 @@ void Ntop::start() {
   pro->printLicenseInfo();
   prefs->loadNagiosDefaults();
 #endif
+  prefs->loadInstanceNameDefaults();
   loadLocalInterfaceAddress();
 
   for(int i=0; i<num_defined_interfaces; i++){
@@ -474,7 +475,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	   && (ifa->ifa_addr->sa_family != AF_INET6))
        || ((ifa->ifa_flags & IFF_UP) == 0))
       continue;
-    
+
     for(int i=0; i<num_defined_interfaces; i++) {
       if(strstr(iface[i]->get_name(), ifa->ifa_name)) {
 	ifId = i;

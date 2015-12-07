@@ -38,7 +38,7 @@ end
 function getInterfaceTopFlows(interface_id, version, host_or_profile, l7proto, l4proto, port, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
-   if(version == 4) then 
+   if(version == 4) then
       sql = "select INET_NTOA(IP_SRC_ADDR) AS IP_SRC_ADDR,INET_NTOA(IP_DST_ADDR) AS IP_DST_ADDR"
    else
       sql = "select IP_SRC_ADDR, IP_DST_ADDR"
@@ -47,16 +47,17 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, l7proto, l
    follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO,INFO"
    if ntop.isPro() then follow = follow..",PROFILE" end
    follow = follow.." from flowsv"..version.."_"..interface_id.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
-   
+
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
    if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
    if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
    if(info ~= "") then follow = follow .." AND (INFO='"..info.."')" end
+   follow = follow.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."')"
 
    if host_or_profile ~= nil and host_or_profile ~= "" and string.starts(host_or_profile, 'profile:') then
       host_or_profile = string.gsub(host_or_profile, 'profile:', '')
       follow = follow .. " AND (PROFILE='"..host_or_profile.."') "
-   elseif host_or_profile ~= nil and host_or_profile ~= "" then 
+   elseif host_or_profile ~= nil and host_or_profile ~= "" then
       if(version == 4) then
 	 rsp = expandIpV4Network(host_or_profile)
 	 follow = follow .." AND (((IP_SRC_ADDR>="..rsp[1]..") AND (IP_SRC_ADDR <= "..rsp[2].."))"
@@ -66,11 +67,11 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, l7proto, l
       end
    end
 
-   follow = follow .." order by "..sort_column.." "..sort_order.." limit "..max_num_flows.." OFFSET "..offset 
+   follow = follow .." order by "..sort_column.." "..sort_order.." limit "..max_num_flows.." OFFSET "..offset
 
    sql = sql .. follow
 
-   if(db_debug == true) then io.write(sql.."\n") end 
+   if(db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
@@ -86,17 +87,17 @@ end
 function getFlowInfo(interface_id, version, flow_idx)
    version = tonumber(version)
 
-   if(version == 4) then 
+   if(version == 4) then
       sql = "select INET_NTOA(IP_SRC_ADDR) AS IP_SRC_ADDR,INET_NTOA(IP_DST_ADDR) AS IP_DST_ADDR"
    else
       sql = "select IP_SRC_ADDR, IP_DST_ADDR"
    end
 
    follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO,INFO,CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON from flowsv"..version.."_"..interface_id.." where idx="..flow_idx
-   
+
    sql = sql .. follow
 
-   if(db_debug == true) then io.write(sql.."\n") end 
+   if(db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
@@ -111,7 +112,7 @@ end
 
 function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
    if(version == nil) then version = 4 end
-   
+
    if(info == "") then info = nil end
    if(l7proto == "") then l7proto = nil end
    if(protocol == "") then protocol = nil end
@@ -123,7 +124,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
 
    if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
 
-   if((host ~= nil) and (host ~= "")) then 
+   if((host ~= nil) and (host ~= "")) then
       if(version == 4) then
 	 sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
       else
@@ -131,7 +132,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       end
    end
 
-   if(db_debug == true) then io.write(sql.."\n") end 
+   if(db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then

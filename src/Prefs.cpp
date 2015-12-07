@@ -41,6 +41,7 @@ Prefs::Prefs(Ntop *_ntop) {
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
+  instance_name = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
@@ -119,6 +120,7 @@ Prefs::~Prefs() {
   if(es_url)           free(es_url);
   if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
+  if(instance_name)    free(instance_name);
   free(http_prefix);
   free(redis_host);
   free(local_networks);
@@ -253,6 +255,7 @@ void usage() {
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
+	 "[--instance-name|-N]                | Assign an identifier to the ntopng instance.\n"
 #ifdef NTOPNG_PRO
 	 "[--community]                       | Start ntopng in community edition (debug only).\n"
 	 "[--check-license]                   | Check if the license is valid.\n"
@@ -278,7 +281,7 @@ void usage() {
 
   struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(), localmalloc, free, NULL);
   ndpi_dump_protocols(ndpi_struct);
- 
+
   _exit(0);
 }
 
@@ -342,6 +345,30 @@ void Prefs::loadNagiosDefaults() {
 
 /* ******************************************* */
 
+
+void Prefs::loadInstanceNameDefaults() {
+  // do not re-set the interface name if it has already been set via command line
+  if(instance_name || !ntop) return;
+  try{
+      instance_name = new char[256];
+  } catch(std::bad_alloc& ba) {
+      instance_name = NULL;
+      static bool oom_warning_sent = false;
+
+      if(!oom_warning_sent) {
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+          oom_warning_sent = true;
+      }
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for instance name.");
+      return;
+  }
+  if(gethostname(instance_name, 256) != 0){
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "system call gethostname() failed.");
+      free(instance_name);
+      instance_name=NULL;
+  }
+}
+
 static const struct option long_options[] = {
   { "categorization-key",                required_argument, NULL, 'c' },
 #ifndef WIN32
@@ -380,6 +407,7 @@ static const struct option long_options[] = {
   { "max-num-flows",                     required_argument, NULL, 'X' },
   { "https-port",                        required_argument, NULL, 'W' },
   { "http-prefix",                       required_argument, NULL, 'Z' },
+  { "instance-name",                     required_argument, NULL, 'N' },
   { "httpdocs-dir",                      required_argument, NULL, '1' },
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
@@ -545,6 +573,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 	}
       }
     }
+    break;
+
+  case 'N':
+      instance_name = strndup(optarg, 256);
     break;
 
   case 'r':
@@ -831,7 +863,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "c:k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:G:HI:O:S:TU:X:W:VZ:",
+			 "c:k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:N:G:HI:O:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
@@ -976,6 +1008,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "nagios_host", nagios_host);
   lua_push_str_table_entry(vm, "nagios_port", nagios_port);
   lua_push_str_table_entry(vm, "nagios_config", nagios_config);
+  lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
   memset(HTTP_stats_base_dir, '\0', MAX_PATH);
   strncat(HTTP_stats_base_dir, (const char*)ntop->get_working_dir(), MAX_PATH);

@@ -101,7 +101,18 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(sql, true, true);
 #endif
-
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
+            "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+            "ADD INDEX `ix_%sv4_%u_ntopng_instance_name` (PROFILE)",
+	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
+            "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+            "ADD INDEX `ix_%sv6_%u_ntopng_instance_name` (PROFILE)",
+	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+    exec_sql_query(sql, true, true);
   }
 }
 
@@ -116,30 +127,30 @@ MySQLDB::~MySQLDB() {
 bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   char sql[8192], cli_str[64], srv_str[64], *json_buf;
   u_int32_t bytes, packets, first_seen, last_seen;
-  
+
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
     return(false);
 
-  if(json == NULL) 
+  if(json == NULL)
     json_buf = strdup("");
   else {
     int l, i, j;
 
     l = strlen(json);
-    
+
     if((json_buf = (char*)malloc(2*l + 1)) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
       return(false);
-    }  
-    
+    }
+
     for(i = 0, j = 0; i<l; i++) {
       /* http://stackoverflow.com/questions/9596652/how-to-escape-apostrophe-in-mysql */
       if(json[i] == '\'')
 	json_buf[j++] = '\'';
-      
+
       json_buf[j++] = json[i];
     }
-    
+
     json_buf[j] = '\0';
   }
 
@@ -156,12 +167,12 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }
 
   if(f->get_cli_host()->get_ip()->isIPv4())
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON"
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME"
 #ifdef NTOPNG_PRO
             ",PROFILE"
 #endif
             ") "
-	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s')"
+	     "VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s'"
 #ifdef NTOPNG_PRO
             ",'%s'"  // this is the string for traffic profile
 #endif
@@ -177,18 +188,19 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-	     json_buf
+	     json_buf,
+             ntop->getPrefs()->get_instance_name()
 #ifdef NTOPNG_PRO
              ,f->get_profile_name()
 #endif
             );
   else
-    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON"
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6_%u` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME"
 #ifdef NTOPNG_PRO
             ",PROFILE"
 #endif
             ") "
-	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s')"
+	     "VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s'"
 #ifdef NTOPNG_PRO
             ",'%s'"  // this is the string for traffic profile
 #endif
@@ -204,7 +216,8 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_protocol(),
 	     bytes, packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-	     json_buf
+	     json_buf,
+             ntop->getPrefs()->get_instance_name()
 #ifdef NTOPNG_PRO
              ,f->get_profile_name()
 #endif
@@ -338,7 +351,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
   if(m) m->lock(__FILE__, __LINE__);
   if(((rc = mysql_query(&mysql, sql)) != 0)
      || ((result = mysql_store_result(&mysql)) == NULL)) {
-    
+
     lua_pushstring(vm, get_last_db_error());
     if(m) m->unlock(__FILE__, __LINE__);
     return(rc);
@@ -354,15 +367,15 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
     if(num == 0) {
       for(int i = 0; i < num_fields; i++) {
 	MYSQL_FIELD *field = mysql_fetch_field(result);
-	
+
 	fields[i] = field->name;
       }
     }
-    
+
     for(int i = 0; i < num_fields; i++) {
       lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
     }
-    
+
     lua_pushnumber(vm, ++num);
     lua_insert(vm, -2);
     lua_settable(vm, -3);

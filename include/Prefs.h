@@ -61,6 +61,7 @@ class Prefs {
   char *categorization_key;
   char *httpbl_key, *flashstart_user_pwd;
   char *http_prefix;
+  char *instance_name;
   char *config_file_path, *ndpi_proto_path;
   char *packet_filter;
   char *user;
@@ -135,6 +136,7 @@ class Prefs {
   inline char* get_httpbl_key()                         { return(httpbl_key);  };
   inline char* get_flashstart_user_pwd()                { return(flashstart_user_pwd);  };
   inline char* get_http_prefix()                        { return(http_prefix); };
+  inline char* get_instance_name()                      { return(instance_name); };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline bool  is_host_persistency_enabled()            { return(disable_host_persistency ? false : true); };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);        };
@@ -170,6 +172,7 @@ class Prefs {
 #ifdef NTOPNG_PRO
   void loadNagiosDefaults();
 #endif
+  void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   bool isView(char *name);
 

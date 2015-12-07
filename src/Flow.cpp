@@ -1002,7 +1002,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump,
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
     } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
-    
+
     lua_push_int_table_entry(vm, "proto.ndpi_id", ndpi_detected_protocol.protocol);
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
@@ -1379,7 +1379,8 @@ json_object* Flow::flow2json(bool partial_dump) {
   if(trafficProfile && trafficProfile->getName())
       json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));
 #endif
-
+  if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
+      json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME", json_object_new_string(ntop->getPrefs()->get_instance_name()));
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 
   if(http.last_url && http.last_method) {
@@ -1804,11 +1805,11 @@ void Flow::checkFlowCategory() {
 /* *************************************** */
 
 char* Flow::get_detected_protocol_name() {
-  if((ndpi_proto_name == NULL) 
+  if((ndpi_proto_name == NULL)
      || ((ndpi_detected_protocol.protocol != NDPI_PROTOCOL_UNKNOWN)
 	 && strcmp(ndpi_proto_name, "Unknown"))) {
     char buf[64], *old = ndpi_proto_name;
-    
+
     ndpi_proto_name = strdup(ndpi_protocol2name(iface->get_ndpi_struct(),
 						ndpi_detected_protocol,
 						buf, sizeof(buf)));
