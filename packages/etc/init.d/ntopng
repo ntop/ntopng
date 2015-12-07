@@ -61,7 +61,7 @@ get_ntopng_pid() {
         PID_FILE="/var/tmp/ntopng.pid"
     fi
 
-    if [ -z $PID_FILE ]; then
+    if [ -z "$PID_FILE" ]; then
 	return 0
     fi
 
