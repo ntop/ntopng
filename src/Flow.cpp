@@ -36,7 +36,8 @@ Flow::Flow(NetworkInterface *_iface,
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
     ndpi_detected_protocol.protocol = NDPI_PROTOCOL_UNKNOWN,
-    ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    ndpi_detected_protocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
+    doNotExpireBefore = iface->getTimeLastPktRcvd() + 5 /* sec */;
 
   switch(protocol) {
   case IPPROTO_ICMP:
@@ -1144,6 +1145,7 @@ bool Flow::idle() {
   /* If this flow is idle for at least MAX_TCP_FLOW_IDLE */
   if((protocol == IPPROTO_TCP)
      && ((tcp_flags & TH_FIN) || (tcp_flags & TH_RST))
+     && (doNotExpireBefore >= iface->getTimeLastPktRcvd())
      && isIdle(MAX_TCP_FLOW_IDLE /* sec */)) {
     /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
     return(true);

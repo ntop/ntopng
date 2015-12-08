@@ -75,6 +75,11 @@ class Flow : public GenericHashEntry {
 
   /* TCP stats */
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
+  
+  time_t doNotExpireBefore; /* 
+			       Used for collected flows via ZMQ to make sure that they are not immediately
+			       expired if their last seen time is back in time with respect to ntopng 
+			    */
 
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
@@ -83,7 +88,7 @@ class Flow : public GenericHashEntry {
   struct {
     struct timeval firstSeenSent, lastSeenSent;
     struct timeval firstSeenRcvd, lastSeenRcvd;
-  }flowTimers;
+  } flowTimers;
 
   /* Counter values at last host update */
   struct {
