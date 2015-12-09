@@ -1453,13 +1453,7 @@ void Flow::addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes,
 
 /* *************************************** */
 
-void Flow::updateTcpFlags(
-
-#ifdef __OpenBSD__
-			  const struct bpf_timeval *when,
-#else
-			  const struct timeval *when,
-#endif
+void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
 
 #if 0
@@ -1548,12 +1542,7 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 
 /* *************************************** */
 
-void Flow::updateTcpSeqNum(
-#ifdef __OpenBSD__
-			   const struct bpf_timeval *when,
-#else
-			   const struct timeval *when,
-#endif
+void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 			   u_int32_t seq_num,
 			   u_int32_t ack_seq_num, u_int8_t flags,
 			   u_int16_t payload_Len, bool src2dst_direction) {

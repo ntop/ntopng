@@ -34,14 +34,13 @@ extern "C" {
 #ifdef HAVE_GEOIP
   extern const char * GeoIP_lib_version(void);
 #endif
-
+  
 #include "../third-party/snmp/snmp.c"
 #include "../third-party/snmp/asn1.c"
 #include "../third-party/snmp/net.c"
 };
 
 #include "../third-party/lsqlite3/lsqlite3.c"
-
 
 /* ******************************* */
 
@@ -3014,6 +3013,8 @@ static int ntop_sqlite_exec_query(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Insert a new minute sampling in the historical database
  * @details Given a certain sampling point, store statistics for said
@@ -3033,14 +3034,12 @@ static int ntop_stats_insert_minute_sampling(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((sampling = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
-     !(sm = iface->getStatsManager()))
+  if(!(iface = ntop->getInterfaceById(ifid)) 
+     || !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
   time(&rawtime);
@@ -3050,6 +3049,8 @@ static int ntop_stats_insert_minute_sampling(lua_State *vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
 
 /**
  * @brief Insert a new hour sampling in the historical database
@@ -3070,9 +3071,7 @@ static int ntop_stats_insert_hour_sampling(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((sampling = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3108,9 +3107,7 @@ static int ntop_stats_insert_day_sampling(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((sampling = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -3146,9 +3143,7 @@ static int ntop_stats_get_minute_sampling(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   epoch = (time_t)lua_tointeger(vm, 2);
 
@@ -3184,9 +3179,7 @@ static int ntop_stats_delete_minute_older_than(lua_State *vm) {
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   num_days = lua_tointeger(vm, 2);
   if(num_days < 0)
@@ -3222,9 +3215,7 @@ static int ntop_stats_delete_hour_older_than(lua_State *vm) {
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   num_days = lua_tointeger(vm, 2);
   if(num_days < 0)
@@ -3260,9 +3251,7 @@ static int ntop_stats_delete_day_older_than(lua_State *vm) {
   if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   num_days = lua_tointeger(vm, 2);
   if(num_days < 0)
@@ -3297,10 +3286,7 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
-
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   epoch_start = lua_tointeger(vm, 2);
   if(epoch_start < 0)
@@ -3346,10 +3332,7 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
-
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   epoch_end = lua_tointeger(vm, 2);
   epoch_end -= (epoch_end % 60);
@@ -3398,10 +3381,7 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
-
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   epoch_end = lua_tointeger(vm, 2);
   epoch_end -= (epoch_end % 60);
@@ -3450,10 +3430,7 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
-
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   epoch_end = lua_tointeger(vm, 2);
   epoch_end -= (epoch_end % 60);
@@ -3490,10 +3467,7 @@ static int ntop_delete_dump_files(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
-
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
   NetworkInterface *iface = ntop->getInterfaceById(ifid);
 
   if(!iface) return CONST_LUA_ERROR;

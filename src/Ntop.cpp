@@ -101,11 +101,7 @@ Ntop::Ntop(char *appName) {
     fixPath(path);
 
     if(stat(path, &statbuf) == 0) {
-#ifdef __OpenBSD__
       strlcpy(install_dir, dirs[i], sizeof(install_dir));
-#else
-      strcpy(install_dir, dirs[i]);
-#endif
       break;
     }
   }

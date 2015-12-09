@@ -32,7 +32,6 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   struct stat buf;
 
   pcap_handle = NULL, pcap_list = NULL;
-
   
   if((stat(name, &buf) == 0) || (name[0] == '-')) {
     /*

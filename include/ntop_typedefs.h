@@ -72,4 +72,8 @@ typedef struct {
 
 enum SQLfield { SF_NONE, SF_SELECT, SF_FROM, SF_WHERE, SF_AND, SF_LIMIT, SF_TOK };
 
+#ifndef __OpenBSD__
+#define bpf_timeval timeval
+#endif
+
 #endif /* _NTOP_TYPEDEFS_H_ */

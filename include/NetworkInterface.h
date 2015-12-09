@@ -211,12 +211,7 @@ class NetworkInterface {
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key); 
   bool packet_dissector(const struct pcap_pkthdr *h, const u_char *packet,
 			int *a_shaper_id, int *b_shaper_id);
-  bool packetProcessing(
-#ifdef __OpenBSD__
-			const struct bpf_timeval *when,
-#else
-			const struct timeval *when,
-#endif
+  bool packetProcessing(const struct bpf_timeval *when,
 			const u_int64_t time,
 			struct ndpi_ethhdr *eth,
 			u_int16_t vlan_id,

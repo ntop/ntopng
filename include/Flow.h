@@ -146,20 +146,10 @@ class Flow : public GenericHashEntry {
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   inline char* getFlowServerInfo() { return(host_server_name); };
 
-  void updateTcpFlags(
-#ifdef __OpenBSD__
-		      const struct bpf_timeval *when,
-#else
-		      const struct timeval *when,
-#endif		      
+  void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
 
-  void updateTcpSeqNum(
-#ifdef __OpenBSD__
-		      const struct bpf_timeval *when,
-#else
-		      const struct timeval *when,
-#endif		      
+  void updateTcpSeqNum(const struct bpf_timeval *when,
 		      u_int32_t seq_num,
 		      u_int32_t ack_seq_num, u_int8_t flags,
 		      u_int16_t payload_len, bool src2dst_direction);
