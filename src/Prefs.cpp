@@ -255,7 +255,7 @@ void usage() {
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
-	 "[--instance-name|-N]                | Assign an identifier to the ntopng instance.\n"
+	 "[--instance-name|-N] <name>         | Assign an identifier to the ntopng instance.\n"
 #ifdef NTOPNG_PRO
 	 "[--community]                       | Start ntopng in community edition (debug only).\n"
 	 "[--check-license]                   | Check if the license is valid.\n"
@@ -345,29 +345,22 @@ void Prefs::loadNagiosDefaults() {
 
 /* ******************************************* */
 
-
 void Prefs::loadInstanceNameDefaults() {
-  // do not re-set the interface name if it has already been set via command line
-  if(instance_name || !ntop) return;
-  try{
-      instance_name = new char[256];
-  } catch(std::bad_alloc& ba) {
-      instance_name = NULL;
-      static bool oom_warning_sent = false;
-
-      if(!oom_warning_sent) {
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-          oom_warning_sent = true;
-      }
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for instance name.");
-      return;
-  }
-  if(gethostname(instance_name, 256) != 0){
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "system call gethostname() failed.");
-      free(instance_name);
-      instance_name=NULL;
+  // Do not re-set the interface name if it has already been set via command line
+  if(instance_name || !ntop) 
+    return;
+  else {
+    char tmp[256];
+    
+    if(gethostname(tmp, sizeof(tmp)))
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read hostname [%s]",
+				   strerror(errno));
+    else
+      instance_name = strdup(tmp);
   }
 }
+
+/* ******************************************* */
 
 static const struct option long_options[] = {
   { "categorization-key",                required_argument, NULL, 'c' },
@@ -576,7 +569,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'N':
-      instance_name = strndup(optarg, 256);
+    instance_name = strndup(optarg, 256);
     break;
 
   case 'r':
