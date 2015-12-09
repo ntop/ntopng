@@ -571,7 +571,7 @@ end
 
    if((host["bytes.sent"]+host["bytes.rcvd"]) > 0) then
       print("<tr><th>Sent vs Received Traffic Breakdown</th><td colspan=2>")
-      breakdownBar(host["bytes.sent"], "Sent", host["bytes.rcvd"], "Rcvd")
+      breakdownBar(host["bytes.sent"], "Sent", host["bytes.rcvd"], "Rcvd", 0, 100)
       print("</td></tr>\n")
    end
 
@@ -907,7 +907,7 @@ print [[/lua/host_l4_stats.lua', { ifname: "]] print(ifId.."") print('", '..host
 	    end
 	    t = sent+rcvd
 	    print("</th><td class=\"text-right\">" .. bytesToSize(sent) .. "</td><td class=\"text-right\">" .. bytesToSize(rcvd) .. "</td><td>")
-	    breakdownBar(sent, "Sent", rcvd, "Rcvd")
+	    breakdownBar(sent, "Sent", rcvd, "Rcvd", 0, 100)
 	    print("</td><td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
 	 end
       end
@@ -1001,7 +1001,7 @@ print [[
 	 print("<tr><th>Sent</th><td class=\"text-right\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
 	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
 	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
-	 breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error")
+	 breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error", 0, 100)
 	 print("</td></tr>")
 
 	 if(host["dns"]["sent"]["num_queries"] > 0) then
@@ -1021,7 +1021,7 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 	 print("<tr><th>Rcvd</th><td class=\"text-right\"><span id=dns_rcvd_num_queries>".. formatValue(host["dns"]["rcvd"]["num_queries"]) .."</span> <span id=trend_rcvd_num_queries></span></td>")
 	 print("<td class=\"text-right\"><span id=dns_rcvd_num_replies_ok>".. formatValue(host["dns"]["rcvd"]["num_replies_ok"]) .."</span> <span id=trend_rcvd_num_replies_ok></span></td>")
 	 print("<td class=\"text-right\"><span id=dns_rcvd_num_replies_error>".. formatValue(host["dns"]["rcvd"]["num_replies_error"]) .."</span> <span id=trend_rcvd_num_replies_error></span></td><td colspan=2>")
-	 breakdownBar(host["dns"]["rcvd"]["num_replies_ok"], "OK", host["dns"]["rcvd"]["num_replies_error"], "Error")
+	 breakdownBar(host["dns"]["rcvd"]["num_replies_ok"], "OK", host["dns"]["rcvd"]["num_replies_error"], "Error", 50, 100)
 	 print("</td></tr>")
 
 	 if(host["dns"]["rcvd"]["num_queries"] > 0) then
@@ -1038,7 +1038,10 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 ]]
 end
 
-	 print("</table>\n")
+	print('<tr><th>Request vs Reply</th><td colspan=5>')
+	breakdownBar(host["dns"]["sent"]["num_queries"], "Queries", host["dns"]["rcvd"]["num_replies_ok"]+host["dns"]["rcvd"]["num_replies_error"], "Replies", 30, 70)
+	print('</td></tr>\n')
+        print("</table>\n")
       end
    elseif(page == "http") then
       if(host["http"] ~= nil) then

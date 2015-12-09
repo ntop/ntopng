@@ -136,11 +136,19 @@ end
 
 -- ########################################################
 
-function breakdownBar(sent, sentLabel, rcvd, rcvdLabel)
+function breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow, thresholdHigh)
    if((sent+rcvd) > 0) then
       sent2rcvd = round((sent * 100) / (sent+rcvd), 0)
+       --print(sent.."/"..rcvd.."/"..sent2rcvd)	      
+    if((thresholdLow == nil) or (thresholdLow < 0)) then thresholdLow = 0 end
+    if((thresholdHigh == nil) or (thresholdHigh > 100)) then thresholdHigh = 100 end
+
+    if(sent2rcvd < thresholdLow) then sentLabel = '<i class="fa fa-warning fa-lg"></i> '..sentLabel  
+    elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fa fa-warning fa-lg""></i> '..rcvdLabel end
+
       print('<div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'.. sent2rcvd..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd.. '%;">'..sentLabel)
       print('</div><div class="progress-bar progress-bar-info" aria-valuenow="'.. (100 -sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
+
    else
       print('&nbsp;')
    end

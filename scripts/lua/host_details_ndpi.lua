@@ -35,7 +35,7 @@ table.sort(vals)
 print("<tr><th>Total</th><td class=\"text-right\">" .. bytesToSize(host["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["bytes.rcvd"]) .. "</td>")
 
 print("<td>")
-breakdownBar(host["bytes.sent"], "Sent", host["bytes.rcvd"], "Rcvd")
+breakdownBar(host["bytes.sent"], "Sent", host["bytes.rcvd"], "Rcvd", 0, 100)
 print("</td>\n")
 
 print("<td colspan=2 class=\"text-right\">" ..  bytesToSize(total).. "</td></tr>\n")
@@ -53,7 +53,7 @@ for _k in pairsByKeys(vals , desc) do
   print("</th><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
 
   print("<td>")
-  breakdownBar(host["ndpi"][k]["bytes.sent"], "Sent", host["ndpi"][k]["bytes.rcvd"], "Rcvd")
+  breakdownBar(host["ndpi"][k]["bytes.sent"], "Sent", host["ndpi"][k]["bytes.rcvd"], "Rcvd", 0, 100)
   print("</td>\n")
 
   print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
