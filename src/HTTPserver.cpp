@@ -412,6 +412,8 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   struct mg_callbacks callbacks;
   static char ports[32], ssl_cert_path[MAX_PATH] = { 0 };
   char *_a = NULL, *_b = NULL;
+  const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
+  const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
   bool use_ssl = false;
   bool use_http = true;
   struct stat buf;
@@ -421,10 +423,15 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   httpserver = this;
   if(port == 0) use_http = false;
 
+#if 0
+  if(http_binding_addr[0] == '\0')  http_binding_addr  = "0.0.0.0";
+  if(https_binding_addr[0] == '\0') https_binding_addr = "::";
+#endif
+
   if(use_http)
     snprintf(ports, sizeof(ports), "%s%s%d", 
-	     ntop->getPrefs()->get_http_binding_address(),
-	     (ntop->getPrefs()->get_http_binding_address()[0] == '\0') ? "" : ";",
+	     http_binding_addr,
+	     (http_binding_addr[0] == '\0') ? "" : ":",
 	     port);
 
   snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s",
@@ -436,16 +443,16 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     use_ssl = true;
     if(use_http)
       snprintf(ports, sizeof(ports), "%s%s%d,%s%s%ds",
-	       ntop->getPrefs()->get_http_binding_address(), 
-	       (ntop->getPrefs()->get_http_binding_address()[0] == '\0') ? "" : ";",
+	       http_binding_addr, 
+	       (http_binding_addr[0] == '\0') ? "" : ":",
 	       port, 
-	       ntop->getPrefs()->get_https_binding_address(),
-	       (ntop->getPrefs()->get_https_binding_address()[0] == '\0') ? "" : ";",
+	       https_binding_addr,
+	       (https_binding_addr[0] == '\0') ? "" : ":",
 	       ntop->getPrefs()->get_https_port());
     else
       snprintf(ports, sizeof(ports), "%s%s%ds",
-	       ntop->getPrefs()->get_https_binding_address(),
-	       (ntop->getPrefs()->get_https_binding_address()[0] == '\0') ? "" : ";",
+	       https_binding_addr,
+	       (https_binding_addr[0] == '\0') ? "" : ":",
 	       ntop->getPrefs()->get_https_port());
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Found SSL certificate %s", ssl_cert_path);
@@ -472,6 +479,8 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     use_http = true;
   }
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->%s<--", ports);
+ 
   static char *http_options[] = {
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
@@ -505,7 +514,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
 
   if(use_ssl & ssl_enabled)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTPS server listening on port %d", ntop->getPrefs()->get_https_port());
-};
+}
 
 /* ****************************************** */
 
