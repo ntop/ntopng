@@ -101,7 +101,7 @@ Ntop::Ntop(char *appName) {
     fixPath(path);
 
     if(stat(path, &statbuf) == 0) {
-      strlcpy(install_dir, dirs[i], sizeof(install_dir));
+      snprintf(install_dir, sizeof(install_dir), "%s", dirs[i]);
       break;
     }
   }
