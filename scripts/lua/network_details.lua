@@ -49,7 +49,7 @@ if(_GET["flow_rate_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
         page = "config"
         local val = ternary(_GET["flow_rate_alert_threshold"] ~= "0", _GET["flow_rate_alert_threshold"], "25")
         ntop.setCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.flow_rate_alert_threshold', val)
-        interface.loadHostAlertPrefs(network_name, network_vlan)
+        -- interface.loadHostAlertPrefs(network_name, network_vlan) TODO: decide to implement it for networks
     end
 end
 if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
@@ -57,7 +57,7 @@ if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
         page = "config"
         val = ternary(_GET["syn_alert_threshold"] ~= "0", _GET["syn_alert_threshold"], "10")
         ntop.setCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.syn_alert_threshold', val)
-        interface.loadHostAlertPrefs(network_name, network_vlan)
+        -- interface.loadHostAlertPrefs(network_name, network_vlan) TODO: decide to implement it for networks
     end
 end
 if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
@@ -65,7 +65,7 @@ if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
         page = "config"
         val = ternary(_GET["flows_alert_threshold"] ~= "0", _GET["flows_alert_threshold"], "32768")
         ntop.setCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.flows_alert_threshold', val)
-        interface.loadHostAlertPrefs(network_name, network_vlan)
+        -- interface.loadHostAlertPrefs(network_name, network_vlan) TODO: decide to implement it for networks
     end
 end
 
