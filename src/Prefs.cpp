@@ -91,9 +91,6 @@ Prefs::Prefs(Ntop *_ntop) {
 
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
 
-#ifdef NTOPNG_PRO
-  nagios_host = nagios_port = nagios_config = NULL;
-#endif
 }
 
 /* ******************************************* */
@@ -131,11 +128,6 @@ Prefs::~Prefs() {
   if(mysql_user)      free(mysql_user);
   if(mysql_pw)        free(mysql_pw);
 
-#ifdef NTOPNG_PRO
-  if(nagios_host)   free(nagios_host);
-  if(nagios_port)   free(nagios_port);
-  if(nagios_config) free(nagios_config);
-#endif
 }
 
 /* ******************************************* */
@@ -302,7 +294,7 @@ u_int32_t Prefs::getDefaultPrefsValue(const char *pref_key, u_int32_t default_va
 /* ******************************************* */
 
 void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value) {
-  char rsp[32];
+  char rsp[MAX_PATH];
 
   if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
     *buffer = strdup(rsp);
@@ -329,29 +321,13 @@ void Prefs::loadIdleDefaults() {
 
 /* ******************************************* */
 
-#ifdef NTOPNG_PRO
-
-void Prefs::loadNagiosDefaults() {
-  if(nagios_host)  {  free(nagios_host); nagios_host = NULL; }
-  if(nagios_port)  {  free(nagios_port); nagios_port = NULL; }
-  if(nagios_config){  free(nagios_config); nagios_config = NULL; }
-
-  getDefaultStringPrefsValue(CONST_NAGIOS_HOST_PREFS, &nagios_host, CONST_DEFAULT_NAGIOS_HOST);
-  getDefaultStringPrefsValue(CONST_NAGIOS_PORT_PREFS, &nagios_port, CONST_DEFAULT_NAGIOS_PORT);
-  getDefaultStringPrefsValue(CONST_NAGIOS_CONF_PREFS, &nagios_config, CONST_DEFAULT_NAGIOS_CONF);
-}
-
-#endif
-
-/* ******************************************* */
-
 void Prefs::loadInstanceNameDefaults() {
   // Do not re-set the interface name if it has already been set via command line
-  if(instance_name || !ntop) 
+  if(instance_name || !ntop)
     return;
   else {
     char tmp[256];
-    
+
     if(gethostname(tmp, sizeof(tmp)))
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read hostname [%s]",
 				   strerror(errno));
@@ -998,9 +974,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
 
 #ifdef NTOPNG_PRO
-  lua_push_str_table_entry(vm, "nagios_host", nagios_host);
-  lua_push_str_table_entry(vm, "nagios_port", nagios_port);
-  lua_push_str_table_entry(vm, "nagios_config", nagios_config);
+  if(ntop->getNagios())
+      ntop->getNagios()->lua(vm);
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
   memset(HTTP_stats_base_dir, '\0', MAX_PATH);

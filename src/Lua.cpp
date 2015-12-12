@@ -34,7 +34,7 @@ extern "C" {
 #ifdef HAVE_GEOIP
   extern const char * GeoIP_lib_version(void);
 #endif
-  
+
 #include "../third-party/snmp/snmp.c"
 #include "../third-party/snmp/asn1.c"
 #include "../third-party/snmp/net.c"
@@ -2315,9 +2315,6 @@ static int ntop_load_prefs_defaults(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   ntop->getPrefs()->loadIdleDefaults();
-#ifdef NTOPNG_PRO
-  ntop->getPrefs()->loadNagiosDefaults();
-#endif
   ntop->getPrefs()->lua(vm);
   return(CONST_LUA_OK);
 }
@@ -3038,7 +3035,7 @@ static int ntop_stats_insert_minute_sampling(lua_State *vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((sampling = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) 
+  if(!(iface = ntop->getInterfaceById(ifid))
      || !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3740,6 +3737,20 @@ static int ntop_queue_alert(lua_State* vm) {
 /* ****************************************** */
 
 #ifdef NTOPNG_PRO
+static int ntop_nagios_reload_config(lua_State* vm) {
+  NagiosManager *nagios = ntop->getNagios();
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+  if(!nagios){
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(): unable to get the nagios manager",
+				 __FUNCTION__);
+    return(CONST_LUA_ERROR);
+  }
+  nagios->loadConfig();
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
 static int ntop_nagios_send_event(lua_State* vm) {
   NagiosManager *nagios = ntop->getNagios();
   int alert_level;
@@ -4177,6 +4188,7 @@ static const luaL_Reg ntop_reg[] = {
   { "queueAlert",           ntop_queue_alert },
 #ifdef NTOPNG_PRO
   { "sendNagiosEvent",      ntop_nagios_send_event },
+  { "reloadNagiosConfig",   ntop_nagios_reload_config },
   { "checkProfileSyntax",   ntop_check_profile_syntax },
   { "reloadProfiles",       ntop_reload_traffic_profiles },
 #endif

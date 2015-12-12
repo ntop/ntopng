@@ -287,9 +287,12 @@
 #define CONST_ALERT_MSG_QUEUE         "ntopng.alert_queue"
 #define CONST_ALERT_PREFS             "ntopng.prefs.alerts"
 #ifdef NTOPNG_PRO
-#define CONST_NAGIOS_HOST_PREFS       "ntopng.prefs.nagios_host"
-#define CONST_NAGIOS_PORT_PREFS       "ntopng.prefs.nagios_port"
-#define CONST_NAGIOS_CONF_PREFS       "ntopng.prefs.nagios_config"
+#define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
+#define CONST_NAGIOS_NSCA_PORT_PREFS       "ntopng.prefs.nagios_nsca_port"
+#define CONST_NAGIOS_SEND_NSCA_EXEC_PREFS  "ntopng.prefs.nagios_send_nsca_executable"
+#define CONST_NAGIOS_SEND_NSCA_CONF_PREFS  "ntopng.prefs.nagios_send_nsca_config"
+#define CONST_NAGIOS_HOST_NAME_PREFS       "ntopng.prefs.nagios_host_name"
+#define CONST_NAGIOS_SERVICE_NAME_PREFS    "ntopng.prefs.nagios_service_name"
 #endif
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
 #define CONST_LOCAL_HOST_IDLE_PREFS   "ntopng.prefs.local_host_max_idle"
@@ -353,9 +356,12 @@
 #define CATEGORIZATION_SAFE_SITE       "safe"
 
 #ifdef NTOPNG_PRO
-#define CONST_DEFAULT_NAGIOS_HOST      "localhost"
-#define CONST_DEFAULT_NAGIOS_PORT      "5667"
-#define CONST_DEFAULT_NAGIOS_CONF      "/etc/nagios/send_nsca.cfg"
+#define CONST_DEFAULT_NAGIOS_NSCA_HOST      "localhost"
+#define CONST_DEFAULT_NAGIOS_NSCA_PORT      "5667"
+#define CONST_DEFAULT_NAGIOS_SEND_NSCA_EXEC "/usr/local/nagios/bin/send_nsca"
+#define CONST_DEFAULT_NAGIOS_SEND_NSCA_CONF "/usr/local/nagios/etc/send_nsca.cfg"
+#define CONST_DEFAULT_NAGIOS_HOST_NAME      "ntopng-host"
+#define CONST_DEFAULT_NAGIOS_SERVICE_NAME   "NtopngAlert"
 #endif
 
 #ifdef __cplusplus

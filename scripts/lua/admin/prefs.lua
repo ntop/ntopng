@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if ( (dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
+require "prefs_utils"
 
 if (ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
@@ -63,15 +64,18 @@ if(haveAdminPrivileges()) then
 
 if (ntop.isPro()) then
    -- ================================================================================
-   print('<tr><th colspan=2 class="info">Nagios Alerts (Experimental)</th></tr>')
+   print('<tr><th colspan=2 class="info">Nagios Alerts</th></tr>')
 
    toggleTableButton("Alerts To Nagios",
-		     "Enable sending ntopng alerts to Nagios.",
+		     "Enable sending ntopng alerts to Nagios NSCA (Nagios Service Check Acceptor).",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_alert_nagios", "ntopng.prefs.alerts_nagios")
 
-   prefsInputField("Nagios Daemon Host", "Address of the host where the Nagios daemon is running. Default: localhost.", "nagios_host", prefs.nagios_host)
-   prefsInputField("Nagios Daemon Port", "Port where the Nagios daemon is listening. Default: 5667.", "nagios_port", prefs.nagios_port)
-   prefsInputField("Nagios Daemon Configuration", "Path of the Nagios configuration file used by the <A HREF=\"http://exchange.nagios.org/directory/Addons/Passive-Checks\" target=\"_blank\">send_nsca</A> utility to send events to the Nagios damon. Default: /etc/nagios/send_nsca.cfg.", "nagios_config", prefs.nagios_config)
+   prefsInputField("Nagios NSCA Host", "Address of the host where the Nagios NSCA daemon is running. Default: localhost.", "nagios_nsca_host", prefs.nagios_nsca_host)
+   prefsInputField("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "nagios_nsca_port", prefs.nagios_nsca_port)
+   prefsInputField("Nagios send_nsca executable", "Absolute path to the Nagios NSCA send_nsca utility. Default: /usr/local/nagios/bin/send_nsca", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable)
+   prefsInputField("Nagios send_nsca configuration", "Absolute path to the Nagios NSCA send_nsca utility configuration file. Default: /usr/local/nagios/etc/send_nsca.cfg", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf)
+   prefsInputField("Nagios nost_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "nagios_host_name", prefs.nagios_host_name)
+   prefsInputField("Nagios service_description", "The service description exactly as specified in Nagios passive service definition for the ntopng host. Default: NtopngAlert", "nagios_service_name", prefs.nagios_service_name)
 
 end
 

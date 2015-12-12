@@ -75,9 +75,6 @@ class Prefs {
   FILE *logFd;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
-#ifdef NTOPNG_PRO
-  char *nagios_host, *nagios_port, *nagios_config;
-#endif
 
   inline void help() { usage(); };
   int setOption(int optkey, char *optarg);
@@ -146,11 +143,6 @@ class Prefs {
   inline char* get_redis_host()                         { return(redis_host);     }
   inline u_int get_redis_port()                         { return(redis_port);     };
   inline u_int get_redis_db_id()                        { return(redis_db_id);    };
-#ifdef NTOPNG_PRO
-  inline char * get_nagios_host()                       { return(nagios_host);    };
-  inline char * get_nagios_port()                       { return(nagios_port);    };
-  inline char * get_nagios_config()                     { return(nagios_config);    };
-#endif
   inline char* get_pid_path()                           { return(pid_path);       };
   inline char* get_packet_filter()                      { return(packet_filter);  };
   inline u_int16_t get_host_max_idle(bool localHost)    { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
@@ -169,9 +161,6 @@ class Prefs {
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
   void lua(lua_State* vm);
   void loadIdleDefaults();
-#ifdef NTOPNG_PRO
-  void loadNagiosDefaults();
-#endif
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   bool isView(char *name);
