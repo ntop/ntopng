@@ -8,16 +8,16 @@ require "lua_trace"
 
 function aggregateInterfaceStats(ifstats)
    if(ifstats == nil) then return(ifstats) end
-   
+
    local tot = {}
 
    for ifname,_v in pairs(ifstats["interfaces"]) do
 
       for k,v in pairs(ifstats["interfaces"][ifname]) do
-	 if(type(v) ~= "table") then	    
+	 if(type(v) ~= "table") then
 	    if((tot[k] == nil) and (k ~= "id") and (k ~= "name")) then
 	       --io.write(k.."\n")
-	       tot[k] = v 
+	       tot[k] = v
 	    end
 	 end
       end
@@ -46,7 +46,7 @@ function aggregateInterfaceStats(ifstats)
       keys = { "pktSizeDistribution" }
       for _,key in pairs(keys) do
 	 if(tot[key] == nil) then tot[key] = { } end
-	 
+
 	 for k,v in pairs(_v[key]) do
 	    --io.write(k.."\n")
 	    if(tot[key][k] == nil) then tot[key][k] = 0 end
@@ -60,12 +60,12 @@ function aggregateInterfaceStats(ifstats)
 
 	 tot[key] = { }
 	 for k,v in pairs(_v[key]) do
-	    if(tot[key][k] == nil) then tot[key][k] = { } end	 
+	    if(tot[key][k] == nil) then tot[key][k] = { } end
 	    for k1,v1 in pairs(_v[key][k]) do
 	       --io.write(k1.."="..type(v1).."\n")
 
 	       if(type(v1) == "number") then
-		  if(tot[key][k][k1] == nil) then tot[key][k][k1] = 0 end	    
+		  if(tot[key][k][k1] == nil) then tot[key][k][k1] = 0 end
 		  tot[key][k][k1] = tot[key][k][k1] + v1
 	       else
 		  tot[key][k][k1] = v1
@@ -74,11 +74,11 @@ function aggregateInterfaceStats(ifstats)
 	 end
       end
    end
-   
+
    for k,v in pairs(tot) do
       ifstats[k] = v
    end
-   
+
    return(ifstats)
 end
 
@@ -86,7 +86,7 @@ end
 
 function getInterfaceName(interface_id)
    local ifnames = interface.getIfNames()
-   
+
    interface_id = tonumber(interface_id)
    for _,if_name in pairs(ifnames) do
       --io.write(if_name.."\n")
@@ -94,10 +94,10 @@ function getInterfaceName(interface_id)
       _ifstats = interface.getStats()
       _ifstats = aggregateInterfaceStats(_ifstats)
       if(_ifstats.id == interface_id) then
-	 return(_ifstats.name) 
+	 return(_ifstats.name)
       end
    end
-   
+
    return("")
 end
 
@@ -152,7 +152,7 @@ function sendHTTPHeaderIfName(mime, ifname, maxage)
   print('Pragma: no-cache\r\n')
   print('X-Frame-Options: DENY\r\n')
   print('X-Content-Type-Options: nosniff\r\n')
-  if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; HttpOnly\r\n') end  
+  if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; HttpOnly\r\n') end
   if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/\r\n') end
   print('Content-Type: '.. mime ..'\r\n')
   print('Last-Modified: '..os.date("!%a, %m %B %Y %X %Z").."\r\n")
@@ -510,7 +510,7 @@ function isnumber(str)
       return(false)
    end
 end
- 
+
 function split(pString, pPattern)
   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
   local fpat = "(.-)" .. pPattern
@@ -706,8 +706,8 @@ function clearbit(x, p)
   return hasbit(x, p) and x - p or x
 end
 
-function isBroadMulticast(ip)   
-   if(ip == "0.0.0.0") then 
+function isBroadMulticast(ip)
+   if(ip == "0.0.0.0") then
       return true
    end
    -- print(ip)
@@ -716,30 +716,30 @@ function isBroadMulticast(ip)
    if(t == nil) then
       return false  -- Might be an IPv6 address
    else
-      if(tonumber(t[1]) >= 224)  then 
+      if(tonumber(t[1]) >= 224)  then
 	 return true
       end
    end
-   
+
    return false
 end
 
 function isBroadcastMulticast(ip)
    -- check NoIP
-   if(ip == "0.0.0.0") then 
+   if(ip == "0.0.0.0") then
       return true
    end
-   
+
    -- check IPv6
    t = string.split(ip, "%.")
-   
+
    if(t ~= nil) then
       -- check Multicast / Broadcast
-      if(tonumber(t[1]) >= 224) then 
+      if(tonumber(t[1]) >= 224) then
 	 return true
       end
    end
-   
+
    return false
 end
 
@@ -857,7 +857,7 @@ function fixPath(path)
       path = string.sub(path, 1, 2) .. string.gsub(string.sub(path, 3), ":", "_")
       -- io.write("->"..path.."\n")
    end
-   
+
   return(path)
 end
 
@@ -942,7 +942,7 @@ resolved_host_labels_cache = {}
 
 function getHostAltName(host_ip)
    local alt_name = resolved_host_labels_cache[host_ip]
-   
+
    if(alt_name ~= nil) then
       return(alt_name)
    end
@@ -954,7 +954,7 @@ function getHostAltName(host_ip)
    end
 
    resolved_host_labels_cache[host_ip] = alt_name
-   
+
    return(alt_name)
 end
 
@@ -970,19 +970,19 @@ function host2name(name, vlan)
    vlan = tonumber(vlan or "0")
 
    name = getHostAltName(name)
-   
+
    if(name == orig_name) then
       rname = ntop.getResolvedAddress(name)
-      
+
       if((rname ~= nil) and (rname ~= "")) then
 	 name = rname
       end
    end
- 
+
    if(vlan > 0) then
       name = name .. '@' .. vlan
    end
-   
+
    return name
 end
 
@@ -992,7 +992,7 @@ function flowinfo2hostname(flow_info, host_type, vlan)
    local orig_name
 
    name = flow_info[host_type..".host"]
-   
+
    if((name == "") or (name == nil)) then
       name = flow_info[host_type..".ip"]
    end
@@ -1055,7 +1055,7 @@ function hostinfo2hostkey(host_info,host_type,show_vlan)
     end
   end
 
-  if(((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0)) 
+  if(((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0))
      or ((show_vlan ~= nil) and show_vlan))  then
     rsp = rsp..'@'..tostring(host_info["vlan"])
   end
@@ -1070,7 +1070,7 @@ end
 --
 function url2hostinfo(get_info)
   local host = {}
-  
+
   -- Catch when the host key is using as host url parameter
   if((get_info["host"] ~= nil) and (string.find(get_info["host"],"@"))) then
     get_info = hostkey2hostinfo(get_info["host"])
@@ -1244,7 +1244,7 @@ function version2int(v)
     major = e[1]
     minor = e[2]
     veryminor = e[3]
-    
+
     if(major == nil or tonumber(major) == nil or type(major) ~= "string")     then major = 0 end
     if(minor == nil or tonumber(minor) == nil or type(minor) ~= "string")     then minor = 0 end
     if(veryminor == nil or tonumber(veryminor) == nil or type(veryminor) ~= "string") then veryminor = 0 end
@@ -1282,7 +1282,7 @@ end
 
 
 -- Print contents of `tbl`, with indentation.
--- You can call it as tprint(mytable) 
+-- You can call it as tprint(mytable)
 -- The other two parameters should not be set
 function tprint(s, l, i)
    l = (l) or 1000; i = i or "";-- default item limit, indent string
@@ -1292,12 +1292,12 @@ function tprint(s, l, i)
    io.write(i..' '..ts..'\n');
    for k,v in pairs(s) do
       local indent = ""
-      
+
       if(i ~= "") then
 	 indent = i .. "."
       end
       indent = indent .. tostring(k)
-      
+
       l = tprint(v, l, indent);
       if (l < 0) then break end
    end
@@ -1317,7 +1317,7 @@ function table.len(table)
  local count = 0
 
   if(table == nil) then return(0) end
-  for k,v in pairs(table) do 
+  for k,v in pairs(table) do
     count = count + 1
   end
 
@@ -1352,79 +1352,6 @@ end
 
 -----  End of Redis Utils  ------
 
-
--- ############################################
--- Runtime preference
-
-function prefsInputField(label, comment, key, value)
-  if(_GET[key] ~= nil) then
-    k = "ntopng.prefs."..key
-    v_s = _GET[key]
-    v = tonumber(v_s)
-    if(v ~= nil and (v > 0) and (v < 86400)) then
-      -- print(k.."="..v)
-      ntop.setCache(k, tostring(v))
-      value = v
-    elseif (v_s ~= nil) then
-      ntop.setCache(k, v_s)
-      value = v_s
-    end
-  end
-
-  print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
-
-  print [[
-	   <td class="input-group col-lg-3" align=right><form class="navbar-form navbar-right">]]
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-print [[
- <div class="input-group" >
-      <div >
-        <input type="text" class="form-control" name="]] print(key) print [[" value="]] print(value.."") print [[">
-      <span class="input-group-btn">
-        <button class="btn btn-default" type="submit">Save</button>
-      </span>
-      </div>
-    </div><!-- /input-group -->
-</form></td></tr>
-]]
-
-end
-
-function toggleTableButton(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field, redis_key, disabled)
-  if(_GET[submit_field] ~= nil) then
-    ntop.setCache(redis_key, _GET[submit_field])
-    value = _GET[submit_field]
-  else
-    value = ntop.getCache(redis_key)
-  end
-  if (disabled == true) then
-    disabled = 'disabled = ""'
-  else
-    disabled = ""
-  end
-
-  -- Read it anyway to
-  if(value == off_value) then
-    rev_value  = on_value
-    on_active  = "btn-default"
-    off_active = "btn-"..off_color.." active"
-  else
-    rev_value  = off_value
-    on_active  = "btn-"..on_color.." active"
-    off_active = "btn-default"
-  end
-
-  if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-  print('<form>\n<div class="btn-group btn-toggle">')
-  print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-  print('<input type=hidden name='..submit_field..' value='..rev_value..'>\n')
-  print('<button type="submit" '..disabled..' class="btn btn-sm  '..on_active..'">'..on_label..'</button>')
-  print('<button '..disabled..' class="btn btn-sm '..off_active..'">'..off_label..'</button></div>\n')
-  print('</form>\n')
-  if(label ~= "") then print('</td></tr>') end
-
-  return(value)
-end
 
 function isPausedInterface(current_ifname)
   state = ntop.getCache("ntopng.prefs."..current_ifname.."_not_idle")
@@ -1512,13 +1439,13 @@ end
 function getHumanReadableInterfaceName(interface_name)
    key = 'ntopng.prefs.'..interface_name..'.name'
    custom_name = ntop.getCache(key)
-   
+
    if((custom_name ~= nil) and (custom_name ~= "")) then
       return(custom_name)
    else
       interface.select(interface_name)
       _ifstats = aggregateInterfaceStats(interface.getStats())
-      
+
       -- print(interface_name.."=".._ifstats.name)
       return(_ifstats.name)
    end
@@ -1547,7 +1474,7 @@ end
 -- ##############################################
 
 function harvestUnusedDir(path, min_epoch)
-   local files = ntop.readdir(path)   
+   local files = ntop.readdir(path)
 
    -- print("Reading "..path.."<br>\n")
 
@@ -1567,7 +1494,7 @@ function harvestUnusedDir(path, min_epoch)
    end
 end
 
- -- ############################################## 
+ -- ##############################################
 
 function harvestJSONTopTalkers(days)
    local when = os.time() - 86400 * days
@@ -1584,19 +1511,19 @@ function harvestJSONTopTalkers(days)
    end
 end
 
- -- ############################################## 
+ -- ##############################################
 
 function isAdministrator()
    local user_group = ntop.getUserGroup()
-   
-   if(user_group == "administrator") then 
+
+   if(user_group == "administrator") then
       return(true)
    else
       return(false)
    end
 end
 
- -- ############################################## 
+ -- ##############################################
 
 function haveAdminPrivileges()
    if(isAdministrator) then
@@ -1609,7 +1536,7 @@ function haveAdminPrivileges()
    end
 end
 
- -- ############################################## 
+ -- ##############################################
 
 function getKeysSortedByValue(tbl, sortFunction)
   local keys = {}
@@ -1630,7 +1557,7 @@ function getKeys(t, col)
   return keys
 end
 
- -- ##############################################                                                                                                                                                  
+ -- ##############################################
 
 function formatBreed(breed)
    if(breed == "Safe") then
@@ -1718,11 +1645,11 @@ end
 function maxRateToString(max_rate)
    if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
    max_rate = tonumber(max_rate)
-   if(max_rate == -1) then 
-      return("No Limit") 
+   if(max_rate == -1) then
+      return("No Limit")
    else
-      if(max_rate == 0) then 
-	 return("Drop All Traffic") 
+      if(max_rate == 0) then
+	 return("Drop All Traffic")
       else
 	 if(max_rate < 1000) then
 	    return(max_rate.." Kbit/s")
@@ -1770,7 +1697,7 @@ end
 
 local mac_cache = { }
 -- get_mac_classification
-function get_mac_classification(m)   
+function get_mac_classification(m)
    local path = fixPath(dirs.installdir.."/httpdocs/other/EtherOUI.txt")
    local file_mac
 
@@ -1831,9 +1758,9 @@ function get_symbolic_mac(mac_address)
 
       if(magic_short_macs[m] ~= nil) then
 	 return(magic_short_macs[m].."_"..t.." ("..mac_address..")")
-      else	 
+      else
 	 local s = get_mac_classification(m)
-	 
+
 	 if(m == s) then
 	    return(get_mac_classification(m)..":"..t)
 	 else
@@ -1856,7 +1783,7 @@ function getservbyport(port_num, proto)
    if(proto == nil) then proto = "TCP" end
 
    port_num = tonumber(port_num)
-   
+
    proto = string.lower(proto)
 
    -- io.write(port_num.."@"..proto.."\n")
@@ -1865,7 +1792,7 @@ end
 
 -- getSpeedMax
 function getSpeedMax(ifname)
-   
+
    if(ifname == nil) then
       return -1
    end
