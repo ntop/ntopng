@@ -558,6 +558,36 @@ char* Utils::sanitizeHostName(char *str) {
   return(str);
 }
 
+char* Utils::stripHTML(const char * const str) {
+    if (!str) return NULL;
+    int len = strlen(str), j = 0;
+    char *stripped_str = NULL;
+    try {
+        stripped_str = new char[len + 1];
+    } catch(std::bad_alloc& ba) {
+      static bool oom_warning_sent = false;
+      if(!oom_warning_sent) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	oom_warning_sent = true;
+      }
+      return NULL;
+    }
+
+    // scan string
+    for (int i = 0; i < len; i++) {
+        // found an open '<', scan for its close
+        if (str[i] == '<') {
+            // charge ahead in the string until it runs out or we find what we're looking for
+            for (; i < len && str[i] != '>'; i++);
+        } else {
+            stripped_str[j] = str[i];
+            j++;
+        }
+    }
+    stripped_str[j] = 0;
+    return stripped_str;
+}
+
 /* **************************************************** */
 
 char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
@@ -843,7 +873,7 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 	  lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
 	  lua_push_int_table_entry(vm, "CONTENT_LEN", state->num_bytes);
 	}
-	
+
 	ret = true;
       } else
 	ret = false;
@@ -1234,7 +1264,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
       if(mtu > ((u_int16_t)-1))
 	mtu = ((u_int16_t)-1);
     }
-    
+
     closesocket(fd);
   }
 
