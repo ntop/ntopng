@@ -31,8 +31,8 @@ On MacOSX (using mac ports)
 port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
 
 On FreeBSD
-- pkg install autoconf automake libtool wget pkgconf rrdtool gmake redis git bash mysql-connector-c
-Note that you need to edit third-party/LuaJIT-2.0.3/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
+See README.FreeBSD
+
 
 On Windows you can download the redis server from
 - https://github.com/rgl/redis/downloads
