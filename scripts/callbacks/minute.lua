@@ -53,6 +53,9 @@ for _,_ifname in pairs(ifnames) do
       end
       ntop.insertMinuteSampling(ifstats.id, talkers)
 
+      -- TODO secondStats = interface.getLastMinuteTrafficStats()
+      -- TODO send secondStats to collector
+
       -- Save local subnets stats every minute
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/subnetstats')
       local subnet_stats = interface.getNetworksStats()

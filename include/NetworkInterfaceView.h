@@ -75,7 +75,7 @@ class NetworkInterfaceView {
   int getDumpTrafficMaxPktsPerFile();
   int getDumpTrafficMaxSecPerFile();
   int getDumpTrafficMaxFiles();
-
+  void updateSecondTraffic(time_t when);
   void getnDPIFlowsCount(lua_State *vm);
   void lua(lua_State *vm);
 #ifdef NTOPNG_PRO

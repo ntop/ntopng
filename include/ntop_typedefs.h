@@ -76,4 +76,42 @@ enum SQLfield { SF_NONE, SF_SELECT, SF_FROM, SF_WHERE, SF_AND, SF_LIMIT, SF_TOK 
 #define bpf_timeval timeval
 #endif
 
+typedef struct ether80211q {
+  u_int16_t vlanId;
+  u_int16_t protoType;
+} Ether80211q;
+
+typedef struct {
+  u_int32_t pid, father_pid;
+  char name[48], father_name[48], user_name[48];
+  u_int32_t actual_memory, peak_memory;
+  float average_cpu_load, percentage_iowait_time;
+  u_int32_t num_vm_page_faults;
+} ProcessInfo;
+
+typedef struct zmq_flow {
+  IpAddress src_ip, dst_ip;
+  u_int16_t src_port, dst_port, l7_proto;
+  u_int16_t vlan_id, pkt_sampling_rate;
+  u_int8_t l4_proto, tcp_flags;
+  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes;
+  u_int32_t first_switched, last_switched;
+  json_object *additional_fields;
+  u_int8_t src_mac[6], dst_mac[6], direction, source_id;
+
+  /* Process Extensions */
+  ProcessInfo src_process, dst_process;
+} ZMQ_Flow;
+
+struct vm_ptree {
+  lua_State* vm;
+  patricia_tree_t *ptree;
+};
+
+struct active_flow_stats {
+  u_int32_t num_flows, 
+    ndpi_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS],
+    breeds_bytes[NUM_BREEDS];
+};
+
 #endif /* _NTOP_TYPEDEFS_H_ */

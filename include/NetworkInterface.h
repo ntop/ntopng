@@ -27,56 +27,11 @@
  * ............
  */
 
-
 class Flow;
 class FlowHash;
 class Host;
 class HostHash;
 class DB;
-/**
- * @struct ether80211q
- * @details [long description]
- *
- * @param  [description]
- * @return [description]
- */
-typedef struct ether80211q {
-  u_int16_t vlanId;
-  u_int16_t protoType;
-} Ether80211q;
-
-typedef struct {
-  u_int32_t pid, father_pid;
-  char name[48], father_name[48], user_name[48];
-  u_int32_t actual_memory, peak_memory;
-  float average_cpu_load, percentage_iowait_time;
-  u_int32_t num_vm_page_faults;
-} ProcessInfo;
-
-typedef struct zmq_flow {
-  IpAddress src_ip, dst_ip;
-  u_int16_t src_port, dst_port, l7_proto;
-  u_int16_t vlan_id, pkt_sampling_rate;
-  u_int8_t l4_proto, tcp_flags;
-  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes;
-  u_int32_t first_switched, last_switched;
-  json_object *additional_fields;
-  u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-
-  /* Process Extensions */
-  ProcessInfo src_process, dst_process;
-} ZMQ_Flow;
-
-struct vm_ptree {
-  lua_State* vm;
-  patricia_tree_t *ptree;
-};
-
-struct active_flow_stats {
-  u_int32_t num_flows, 
-    ndpi_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS],
-    breeds_bytes[NUM_BREEDS];
-};
 
 #ifdef NTOPNG_PRO
 class L7Policer;
@@ -111,6 +66,13 @@ class NetworkInterface {
   nDPIStats ndpiStats;
   PacketStats pktStats;
   FlowHash *flows_hash; /**< Hash used to memorize the flows information.*/
+
+  /* Second update */
+  u_int64_t lastSecTraffic, 
+    lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
+    currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
+  time_t lastSecUpdate;
+
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to memorize the hosts information.*/
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
@@ -192,11 +154,15 @@ class NetworkInterface {
   int dumpDBFlow(time_t when, bool partial_dump, Flow *f);
   int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
 
-  inline void incStats(u_int16_t eth_proto, u_int16_t ndpi_proto,
+  void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
+  void updateSecondTraffic(time_t when);
+
+  inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
     ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(ndpi_proto, 0, 0, 1, pkt_len);
     pktStats.incStats(pkt_len);
+    if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
   };
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };
@@ -303,11 +269,12 @@ class NetworkInterface {
   NetworkStats* getNetworkStats(int16_t networkId);
   void allocateNetworkStats();
   void getsDPIStats(lua_State *vm);
+  inline u_int64_t* getLastMinuteTrafficStats() { return((u_int64_t*)lastMinuteTraffic); }
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
   inline Profile* getFlowProfile(Flow *f)      { return(profiles ? profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(profiles ? profiles->checkProfileSyntax(filter) : false); }
-#endif
+#endif  
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

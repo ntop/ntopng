@@ -412,6 +412,13 @@ void NetworkInterfaceView::getnDPIFlowsCount(lua_State *vm) {
 
 /* *************************************** */
 
+void NetworkInterfaceView::updateSecondTraffic(time_t when) {
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->updateSecondTraffic(when);
+}
+
+/* *************************************** */
+
 int NetworkInterfaceView::getDumpTrafficMaxPktsPerFile() {
   int max_pkts = 0;
 

@@ -140,8 +140,17 @@ void PeriodicActivities::minuteActivitiesLoop() {
 
   while(!ntop->getGlobals()->isShutdown()) {
     u_int now = (u_int)time(NULL);
-
+    
     if(now >= next_run) {
+      /* 
+	 We need to make sure that minute actitivies 
+	 (e.g. 60 sec interface traffic stats) 
+	 are completed when we call runScript()
+	 that needs to make sure that such data
+	 has been already computed;
+      */
+      sleep(1);
+          
       runScript(script);
       next_run = roundTime(now + 60, 60);
     }

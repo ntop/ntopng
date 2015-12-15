@@ -129,9 +129,10 @@ extern "C" {
 using namespace std;
 
 #include "mongoose.h"
+#include "patricia.h"
+#include "IpAddress.h"
 #include "ntop_defines.h"
 #include "ntop_typedefs.h"
-#include "patricia.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
 #ifdef NTOPNG_PRO
@@ -141,7 +142,6 @@ using namespace std;
 #endif
 #include "Prefs.h"
 #include "Mutex.h"
-#include "IpAddress.h"
 #include "Utils.h"
 #include "ActivityStats.h"
 #include "nDPIStats.h"

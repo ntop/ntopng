@@ -31,6 +31,8 @@ for _,ifname in pairs(ifnames) do
 	 ntop.mkdir(basedir)
       end
 
+      interface.setSecondTraffic()
+
       -- Traffic stats
       makeRRD(basedir, ifname, "bytes", 1, ifstats.bytes)
       makeRRD(basedir, ifname, "packets", 1, ifstats.packets)
