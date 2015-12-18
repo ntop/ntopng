@@ -35,7 +35,7 @@ function bytes(old, new)
         return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
     else
         -- Interface
-        return(new["stats.bytes"]-old["stats.bytes"])
+        return(new["bytes"]-old["bytes"])
     end
 end
 function packets(old, new)
@@ -44,7 +44,7 @@ function packets(old, new)
         return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
     else
         -- Interface
-        return(new["stats.packets"]-old["stats.packets"])
+        return(new["packets"]-old["packets"])
     end
 end
 function dns(old, new)   return(proto_bytes(old, new, "DNS")) end
@@ -68,6 +68,13 @@ alerts_granularity = {
     { "day", "Daily" }
 }
 
+default_re_arm_minutes = {
+    ["min"]  = 1    ,
+    ["5mins"]= 5    ,
+    ["hour"] = 60   ,
+    ["day"]  = 3600
+}
+
 alert_functions_description = {
     ["bytes"]   = "Bytes delta (sent + received)",
     ["packets"] = "Packets delta (sent + received)",
@@ -81,12 +88,34 @@ network_alert_functions_description = {
     ["inner"]     = "Inner Bytes delta",
 }
 
+function is_alert_re_arming(alarm_source, timespan, alarmed_metric)
+    local alarm_string = alarm_source.."_"..timespan.."_"..alarmed_metric
+    local re_arm_key = "alerts_re_arming_"..alarm_string
+    local is_rearming = ntop.getCache(re_arm_key)
+    if is_rearming ~= "" then
+        if verbose then io.write('re_arm_key: '..re_arm_key..' -> ' ..is_rearming..'-- \n') end
+        return true
+    else
+        local re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..timespan.."_re_arm_minutes", alarm_source)
+        if re_arm_minutes ~= "" then
+            re_arm_minutes = tonumber(re_arm_minutes)
+        else
+            re_arm_minutes = default_re_arm_minutes[timespan]
+        end
+        if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
+        -- we don't care about key contents, we just care about its exsistance
+        ntop.setCache(re_arm_key, "dummy", re_arm_minutes * 60)
+        return false
+    end
+end
+
 -- #################################################################
 
 function delete_host_alert_configuration(host_ip)
     for k,v in pairs(alerts_granularity) do
         key = "ntopng.prefs.alerts_"..v[1]
-        -- print(key.."<br>\n")
+        ntop.delHashCache(key, host_ip)
+        key = "ntopng.prefs.alerts_"..v[1].."_re_arm_minutes"
         ntop.delHashCache(key, host_ip)
     end
 end
@@ -95,7 +124,8 @@ end
 function delete_network_alert_configuration(network_name)
     for k,v in pairs(alerts_granularity) do
         key = "ntopng.prefs.network_alerts_"..v[1]
-        -- print(key.."<br>\n")
+        ntop.delHashCache(key, network_name)
+        key = "ntopng.prefs.alerts_"..v[1].."_re_arm_minutes"
         ntop.delHashCache(key, network_name)
     end
 end
@@ -103,8 +133,9 @@ end
 function delete_interface_alert_configuration(if_name)
     for k,v in pairs(alerts_granularity) do
         key = "ntopng.prefs.alerts_"..v[1]
-        -- print(key.."<br>\n")
         ntop.delHashCache(key, if_name)
+        key = "ntopng.prefs.alerts_"..v[1].."_re_arm_minutes"
+        ntop.delHashCache(key, ifname)
     end
 end
 
@@ -155,7 +186,13 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
                 local alert_level = 1 -- alert_level_warning
                 local alert_type = 2 -- alert_threshold_exceeded
 
-                ntop.queueAlert(alert_level, alert_type, alert_msg)
+                if not is_alert_re_arming(key, mode, t[1]) then
+                    if verbose then io.write("queuing alert\n") end
+                    ntop.queueAlert(alert_level, alert_type, alert_msg)
+                else
+                    if verbose then io.write("alarm silenced, re-arm in progress\n") end
+                end
+
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
@@ -216,7 +253,12 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 local alert_level = 1 -- alert_level_warning
                 local alert_type = 2 -- alert_threshold_exceeded
 
-                ntop.queueAlert(alert_level, alert_type, alert_msg)
+                if not is_alert_re_arming(network_name, mode, t[1]) then
+                    if verbose then io.write("queuing alert\n") end
+                    ntop.queueAlert(alert_level, alert_type, alert_msg)
+                else
+                    if verbose then io.write("alarm silenced, re-arm in progress\n") end
+                end
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
@@ -270,7 +312,13 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 local alert_level = 1 -- alert_level_warning
                 local alert_type = 2 -- alert_threshold_exceeded
 
-                ntop.queueAlert(alert_level, alert_type, alert_msg)
+                if not is_alert_re_arming(ifname_clean, mode, t[1]) then
+                    if verbose then io.write("queuing alert\n") end
+                    ntop.queueAlert(alert_level, alert_type, alert_msg)
+                else
+                    if verbose then io.write("alarm silenced, re-arm in progress\n") end
+                end
+
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end

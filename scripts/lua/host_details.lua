@@ -115,7 +115,7 @@ if(host == nil) then
       else
 	 print('<p>Perhaps this host has been previously purged from memory or it has never been observed by this instance.</p>\n')
       end
-      
+
       print("</div>")
       dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
       return
@@ -290,7 +290,7 @@ if ((host["ip"] ~= nil) and host['localhost']) then
    if(host["ip"] ~= nil) then
       if(page == "config") then
 	 print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-	 
+
       else
 	 print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
       end
@@ -1525,6 +1525,7 @@ end
 elseif(page == "alerts") then
 
 local tab = _GET["tab"]
+local re_arm_minutes = nil
 
 if(tab == nil) then tab = alerts_granularity[1][1] end
 
@@ -1573,6 +1574,11 @@ else
    else
       alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, host_ip)
    end
+   if _GET["re_arm_minutes"] then
+       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_name, _GET["re_arm_minutes"])
+   end
+       re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_name)
+   if not re_arm_minutes then re_arm_minutes="" end
 end
 
 if(alerts ~= nil) then
@@ -1623,6 +1629,15 @@ end
    end
 
    print [[
+   <tr><td colspan=2  style="text-align: left; white-space: nowrap;" ></td></tr>
+   <tr>
+     <td style="text-align: left; white-space: nowrap;" ><b>Re-arm minutes</b></td>
+     <td>
+     <input type="number" name="re_arm_minutes" style="width: 50px;" value=]] print(tostring(re_arm_minutes)) print[[><br>
+     <small>The re-arm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+     </td>
+   </tr>
+
    <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
 
    <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
@@ -1671,7 +1686,7 @@ elseif (page == "config") then
    end
 
    local flow_rate_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold')
-   local syn_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold')   
+   local syn_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold')
    local flows_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold')
    if (flow_rate_alert_thresh == nil or flow_rate_alert_thresh == "") then flow_rate_alert_thresh = 25 end
    if (syn_alert_thresh == nil or syn_alert_thresh == "") then syn_alert_thresh = 10 end
@@ -2035,7 +2050,7 @@ if (host ~= nil) then
    print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
-   
+
    if(host["dns"] ~= nil) then
       print("var last_dns_sent_num_queries = " .. host["dns"]["sent"]["num_queries"] .. ";\n")
       print("var last_dns_sent_num_replies_ok = " .. host["dns"]["sent"]["num_replies_ok"] .. ";\n")
@@ -2044,7 +2059,7 @@ if (host ~= nil) then
       print("var last_dns_rcvd_num_replies_ok = " .. host["dns"]["rcvd"]["num_replies_ok"] .. ";\n")
       print("var last_dns_rcvd_num_replies_error = " .. host["dns"]["rcvd"]["num_replies_error"] .. ";\n")
    end
-   
+
    if(host["http"] ~= nil) then
       print("var last_http_query_num_get = " .. host["http"]["query.num_get"] .. ";\n")
       print("var last_http_query_num_post = " .. host["http"]["query.num_post"] .. ";\n")
@@ -2057,7 +2072,7 @@ if (host ~= nil) then
       print("var last_http_response_num_4xx = " .. host["http"]["response.num_4xx"] .. ";\n")
       print("var last_http_response_num_5xx = " .. host["http"]["response.num_5xx"] .. ";\n")
    end
-   
+
    print [[
    var host_details_interval = window.setInterval(function() {
    	  $.ajax({
@@ -2087,7 +2102,7 @@ if (host ~= nil) then
    			$('#flows_as_client').html(addCommas(host["active_flows.as_client"]));
    			$('#flows_as_server').html(addCommas(host["active_flows.as_server"]));
    		  ]]
-   
+
    if(host["dns"] ~= nil) then
    print [[
    			   $('#dns_sent_num_queries').html(addCommas(host["dns"]["sent"]["num_queries"]));
@@ -2096,42 +2111,42 @@ if (host ~= nil) then
    			   $('#dns_rcvd_num_queries').html(addCommas(host["dns"]["rcvd"]["num_queries"]));
    			   $('#dns_rcvd_num_replies_ok').html(addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
    			   $('#dns_rcvd_num_replies_error').html(addCommas(host["dns"]["rcvd"]["num_replies_error"]));
-   
+
    			   if(host["dns"]["sent"]["num_queries"] == last_dns_sent_num_queries) {
    			      $('#trend_sent_num_queries').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_sent_num_queries = host["dns"]["sent"]["num_queries"];
    			      $('#trend_sent_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-   
+
    			   if(host["dns"]["sent"]["num_replies_ok"] == last_dns_sent_num_replies_ok) {
    			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_sent_num_replies_ok = host["dns"]["sent"]["num_replies_ok"];
    			      $('#trend_sent_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-   
+
    			   if(host["dns"]["sent"]["num_replies_error"] == last_dns_sent_num_replies_error) {
    			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_sent_num_replies_error = host["dns"]["sent"]["num_replies_error"];
    			      $('#trend_sent_num_replies_error').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-   
+
    			   if(host["dns"]["rcvd"]["num_queries"] == last_dns_rcvd_num_queries) {
    			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_rcvd_num_queries = host["dns"]["rcvd"]["num_queries"];
    			      $('#trend_rcvd_num_queries').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-   
+
    			   if(host["dns"]["rcvd"]["num_replies_ok"] == last_dns_rcvd_num_replies_ok) {
    			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
    			      last_dns_rcvd_num_replies_ok = host["dns"]["rcvd"]["num_replies_ok"];
    			      $('#trend_rcvd_num_replies_ok').html("<i class=\"fa fa-arrow-up\"></i>");
    			   }
-   
+
    			   if(host["dns"]["rcvd"]["num_replies_error"] == last_dns_rcvd_num_replies_error) {
    			      $('#trend_rcvd_num_replies_error').html("<i class=\"fa fa-minus\"></i>");
    			   } else {
@@ -2140,7 +2155,7 @@ if (host ~= nil) then
    			   }
    		     ]]
    end
-   
+
    if((host ~= nil) and (host["http"] ~= nil)) then
       vh = host["http"]["virtual_hosts"]
       if(vh ~= nil) then
@@ -2161,14 +2176,14 @@ if (host ~= nil) then
    	      }
    	 ]]
          end
-   
+
       methods = { "get", "post", "head", "put", "other" }
       for i, method in ipairs(methods) do
          print('\t$("#http_query_num_'..method..'").html(addCommas(host["http"]["query.num_'..method..'"]));\n')
          print('\tif(host["http"]["query.num_'..method..'"] == last_http_query_num_'..method..') {\n\t$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
          print('} else {\n\tlast_http_query_num_'..method..' = host["http"]["query.num_'..method..'"];$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
       end
-   
+
       retcodes = { "1xx", "2xx", "3xx", "4xx", "5xx" }
       for i, retcode in ipairs(retcodes) do
          print('\t$("#http_response_num_'..retcode..'").html(addCommas(host["http"]["response.num_'..retcode..'"]));\n')
@@ -2177,77 +2192,77 @@ if (host ~= nil) then
       end
    end
    end
-   
+
    print [[
    			/* **************************************** */
-   
+
    			if(host["active_flows.as_client"] == last_flows_as_client) {
    			   $('#as_client_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#as_client_trend').html("<i class=\"fa fa-arrow-up\"></i>");
    			}
-   
+
    			if(host["active_flows.as_server"] == last_flows_as_server) {
    			   $('#as_server_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#as_server_trend').html("<i class=\"fa fa-arrow-up\"></i>");
    			}
-   
+
    			if(last_num_alerts == host["num_alerts"]) {
    			   $('#alerts_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#alerts_trend').html("<i class=\"fa fa-arrow-up\" style=\"color: #B94A48;\"></i>");
    			}
-   
+
    			if(last_pkts_sent == host["packets.sent"]) {
    			   $('#sent_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#sent_trend').html("<i class=\"fa fa-arrow-up\"></i>");
    			}
-   
+
    			if(last_pkts_rcvd == host["packets.rcvd"]) {
    			   $('#rcvd_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#rcvd_trend').html("<i class=\"fa fa-arrow-up\"></i>");
    			}
-   
+
    			if(host["tcp.packets.retransmissions"] == last_tcp_retransmissions) {
    			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-arrow-up\"></i>");
    			}
-   
+
    			if(host["tcp.packets.out_of_order"] == last_tcp_ooo) {
    			   $('#pkt_ooo_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#pkt_ooo_trend').html("<i class=\"fa fa-arrow-up\"></i>");
    			}
-   
+
    			if(host["tcp.packets.lost"] == last_tcp_lost) {
    			   $('#pkt_lost_trend').html("<i class=\"fa fa-minus\"></i>");
    			} else {
    			   $('#pkt_lost_trend').html("<i class=\"fa fa-arrow-up\"></i>");
    			}
-   
+
    			last_num_alerts = host["num_alerts"];
    			last_pkts_sent = host["packets.sent"];
    			last_pkts_rcvd = host["packets.rcvd"];
    			last_flows_as_server = host["active_flows.as_server"];
    			last_flows_as_client = host["active_flows.as_client"];
-   
+
    			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
    			last_tcp_ooo = host["tcp.packets.out_of_order"];
    			last_tcp_lost = host["tcp.packets.lost"];
    		  ]]
-   
-   
+
+
    print [[
-   
+
    			/* **************************************** */
-   
+
    			/*
    			$('#throughput').html(rsp.throughput);
-   
+
    			var values = thptChart.text().split(",");
    			values.shift();
    			values.push(rsp.throughput_raw);
@@ -2256,7 +2271,7 @@ if (host ~= nil) then
    		     }
    	           });
    		 }, 3000);
-   
+
    </script>
     ]]
 end

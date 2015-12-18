@@ -224,6 +224,7 @@ elseif (page == "config") then
 
 elseif(page == "alerts") then
     local tab = _GET["tab"]
+    local re_arm_minutes = nil
     if(tab == nil) then tab = alerts_granularity[1][1] end
     print('<ul class="nav nav-tabs">')
     for _,e in pairs(alerts_granularity) do
@@ -263,6 +264,11 @@ elseif(page == "alerts") then
         else
             alerts = ntop.getHashCache("ntopng.prefs.network_alerts_"..tab, network_name)
         end
+        if _GET["re_arm_minutes"] then
+            ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", network_name, _GET["re_arm_minutes"])
+        end
+        re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", network_name)
+        if not re_arm_minutes then re_arm_minutes="" end
     end
 
     if(alerts ~= nil) then
@@ -311,6 +317,15 @@ elseif(page == "alerts") then
     end
 
     print [[
+   <tr><td colspan=2  style="text-align: left; white-space: nowrap;" ></td></tr>
+   <tr>
+     <td style="text-align: left; white-space: nowrap;" ><b>Re-arm minutes</b></td>
+     <td>
+     <input type="number" name="re_arm_minutes" style="width: 50px;" value=]] print(tostring(re_arm_minutes)) print[[><br>
+     <small>The re-arm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+     </td>
+   </tr>
+
    <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
 
    <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">

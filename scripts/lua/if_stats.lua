@@ -218,14 +218,14 @@ if((page == "overview") or (page == nil)) then
    print("</td></tr>\n")
    print("<tr><th width=250>State</th><td colspan=6>")
    state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
-   
+
    if(state == "0") then
       on_state = true
    else
       on_state = false
    end
-   
-   interface.setInterfaceIdleState(on_state)   
+
+   interface.setInterfaceIdleState(on_state)
    print("</td></tr>\n")
 
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
@@ -270,7 +270,7 @@ if((page == "overview") or (page == nil)) then
 	 for _,s in pairs(tokens) do
 	    t = string.split(s, "/")
 	    host = interface.getHostInfo(t[1])
-	    
+
 	    if(host ~= nil) then
 	       print("<li><A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1]..">".. t[1].."</A>\n")
 	    else
@@ -715,6 +715,7 @@ elseif(page == "alerts") then
 local if_name = ifstats.name
 local ifname_clean = string.gsub(ifname, "/", "_")
 local tab = _GET["tab"]
+local re_arm_minutes = nil
 
 if(tab == nil) then tab = alerts_granularity[1][1] end
 
@@ -765,6 +766,11 @@ else
    else
       alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, ifname_clean)
    end
+   if _GET["re_arm_minutes"] then
+       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean, _GET["re_arm_minutes"])
+   end
+       re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean)
+   if not re_arm_minutes then re_arm_minutes="" end
 end
 
 if(alerts ~= nil) then
@@ -819,7 +825,7 @@ else
       if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
       print("value=\"lt\">&lt;</option>\n")
       print("</select>\n")
-      print("<input type=text class=form-control name=\"value_"..k.."\" value=\"")
+      print("<input type=text name=\"value_"..k.."\" value=\"")
       if(vals[k] ~= nil) then print(vals[k][2]) end
       print("\">\n\n")
       print("<br><small>"..v.."</small>\n")
@@ -827,6 +833,15 @@ else
    end
 
    print [[
+   <tr><td colspan=2  style="text-align: left; white-space: nowrap;" ></td></tr>
+   <tr>
+     <td style="text-align: left; white-space: nowrap;" ><b>Re-arm minutes</b></td>
+     <td>
+     <input type="number" name="re_arm_minutes" style="width: 50px;" value=]] print(tostring(re_arm_minutes)) print[[><br>
+     <small>The re-arm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+     </td>
+   </tr>
+
    <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
 
    <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
@@ -968,14 +983,14 @@ elseif(page == "filtering") then
 
    net = _GET["network"]
 
-   any_net = "0.0.0.0/0@0"  
+   any_net = "0.0.0.0/0@0"
 
    nets = ntop.getHashKeysCache(key, any_net)
 
    if((nets == nil) or (nets == "")) then
       nets = ntop.getHashKeysCache(policy_key)
    end
-   
+
    if((net == nil) and (nets ~= nil)) then
       -- If there is not &network= parameter then use the first network available
       for k,v in pairsByKeys(nets, asc) do
@@ -1253,7 +1268,7 @@ if(ifstats["bridge.device_a"] ~= nil) then
    print("var b_to_a_last_filtered_pkts  = " .. ifstats["bridge.b_to_a.filtered_pkts"] .. ";\n")
    print("var b_to_a_last_shaped_pkts  = " .. ifstats["bridge.b_to_a.shaped_pkts"] .. ";\n")
    print("var b_to_a_last_num_pkts_send_buffer_full  = " .. ifstats["bridge.b_to_a.num_pkts_send_buffer_full"] .. ";\n")
-   print("var b_to_a_last_num_pkts_send_error  = " .. ifstats["bridge.b_to_a.num_pkts_send_error"] .. ";\n")  
+   print("var b_to_a_last_num_pkts_send_error  = " .. ifstats["bridge.b_to_a.num_pkts_send_error"] .. ";\n")
 end
 
 print [[
@@ -1298,12 +1313,12 @@ if(ifstats["bridge.device_a"] ~= nil) then
 print [[
    epoch_diff = rsp["epoch"]-last_epoch;
    $('#a_to_b_in_pkts').html(addCommas(rsp["a_to_b_in_pkts"])+" Pkts "+get_trend(a_to_b_last_in_pkts, rsp["a_to_b_in_pkts"]));
-   if((last_epoch > 0) && (epoch_diff > 0)) { 
+   if((last_epoch > 0) && (epoch_diff > 0)) {
       /* pps = (rsp["a_to_b_in_pkts"]-a_to_b_last_in_pkts) / epoch_diff; */
       bps = 8*(rsp["a_to_b_in_bytes"]-a_to_b_last_in_bytes) / epoch_diff;
-      $('#a_to_b_in_pps').html(" ["+fbits(bps)+"]"); 
+      $('#a_to_b_in_pps').html(" ["+fbits(bps)+"]");
     }
-   $('#a_to_b_out_pkts').html(addCommas(rsp["a_to_b_out_pkts"])+" Pkts "+get_trend(a_to_b_last_out_pkts, rsp["a_to_b_out_pkts"]));   
+   $('#a_to_b_out_pkts').html(addCommas(rsp["a_to_b_out_pkts"])+" Pkts "+get_trend(a_to_b_last_out_pkts, rsp["a_to_b_out_pkts"]));
    if((last_epoch > 0) && (epoch_diff > 0)) {
       /* pps = (rsp["a_to_b_out_pkts"]-a_to_b_last_out_pkts) / epoch_diff; */
       bps = 8*(rsp["a_to_b_out_bytes"]-a_to_b_last_out_bytes) / epoch_diff;
@@ -1316,10 +1331,10 @@ print [[
    $('#a_to_b_num_pkts_send_buffer_full').html(addCommas(rsp["a_to_b_num_pkts_send_buffer_full"])+" Pkts "+get_trend(a_to_b_last_num_pkts_send_buffer_full, rsp["a_to_b_num_pkts_send_buffer_full"]));
 
    $('#b_to_a_in_pkts').html(addCommas(rsp["b_to_a_in_pkts"])+" Pkts "+get_trend(b_to_a_last_in_pkts, rsp["b_to_a_in_pkts"]));
-   if((last_epoch > 0) && (epoch_diff > 0)) { 
+   if((last_epoch > 0) && (epoch_diff > 0)) {
       /* pps = (rsp["b_to_a_in_pkts"]-b_to_a_last_in_pkts) / epoch_diff; */
       bps = 8*(rsp["b_to_a_in_bytes"]-b_to_a_last_in_bytes) / epoch_diff;
-      $('#b_to_a_in_pps').html(" ["+fbits(bps)+"]"); 
+      $('#b_to_a_in_pps').html(" ["+fbits(bps)+"]");
     }
    $('#b_to_a_out_pkts').html(addCommas(rsp["b_to_a_out_pkts"])+" Pkts "+get_trend(b_to_a_last_out_pkts, rsp["b_to_a_out_pkts"]));
    if((last_epoch > 0) && (epoch_diff > 0)) {
