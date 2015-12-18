@@ -507,6 +507,7 @@ end
       print("</td></tr>\n")
    end
 
+   io.write(host.category.."\n")
    if((host["category"] ~= nil) and (host["category"] ~= "")) then
       cat = getCategoryIcon(host["category"])
 

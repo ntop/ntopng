@@ -68,6 +68,58 @@ Categorization::~Categorization() {
 
 /* ***************************************** */
 
+void Categorization::httpCategorizeHostName(char *_url, char *buf, u_int buf_len) {
+  long replyCode = 0;
+
+  if(ntop->getPrefs()->is_categorization_enabled()) {
+    char key[256]; // This is the key to be stored in Redis Server.
+
+    // DOMAIN_CATEGORY = "ntopng.domain.category" is declared in ntop_defines.h!
+    snprintf(key, sizeof(key), "%s.%s", DOMAIN_CATEGORY, _url);
+    if(ntop->getRedis()->get(key, buf, buf_len) == 0) {
+      ntop->getRedis()->expire(key, Categorization::default_expire_time);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s => %s (cached)", _url, buf);
+    } else {
+      char request_url[1024]; // This is the URL for the GET request.
+      char categorization_response[256]; // This is the string that will contain the libcurl output.
+      
+      // 2. Create the request_url for GET request.
+      snprintf(request_url, sizeof(request_url), "%s%s", api_key, _url);
+      
+      // 2.5 Print some information.
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Performing GET request with URL: %s", request_url);
+      
+      // 3. Perform request and save the output to categorization_response.
+      snprintf(categorization_response, sizeof(categorization_response), 
+	       "%s", (char *) Utils::curlHTTPGet(request_url, &replyCode));
+
+      // 4. Classification based on HTTP request code.
+      if(replyCode == 0) { 
+	// GET request failed. Exiting on failure.
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "ERROR: GET request failed.");
+        return;
+      }
+
+      // 4.5 Printing some results.
+      ntop->getTrace()->traceEvent(TRACE_INFO, "REPLY: It seems that %s is %s.\n", _url, categorization_response);
+      snprintf(buf, buf_len, "%s", categorization_response);
+      //std::cout << "Buf in categorizeHostName is " << buf << std::endl;
+
+      // 5. Storing result into Redis.
+      //  Save category into the cache so that if the categorization service is slow, we do not
+      //  recursively add the domain into the list of domains to solve.
+      // std::cout << "KEY in categorizeHostName is now equal to: " << key << std::endl;
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "[Categorization] Site %s detected as %s",
+				   _url, categorization_response);
+
+      ntop->getRedis()->set(key, categorization_response, Categorization::default_expire_time);
+    }
+  }
+}
+
+/* ***************************************** */
+
 /*
   NOTICE: This function categorizes the given URL by using Google Safe Browsing API and stores
   the result into Redis Server.
@@ -76,19 +128,18 @@ Categorization::~Categorization() {
   According to Safe Browsing API reply, the websites are then classified either as CATEGORIZATION_SAFE_SITE or "malware".
 */
 
-void Categorization::categorizeHostName(char *_url, char *buf, u_int buf_len) {
+void Categorization::googleCategorizeHostName(char *_url, char *buf, u_int buf_len) {
   long replyCode = 0;
 
-  if (ntop->getPrefs()->is_categorization_enabled()) {
+  if(ntop->getPrefs()->is_categorization_enabled()) {
     char key[256]; // This is the key to be stored in Redis Server.
 
     // DOMAIN_CATEGORY = "ntopng.domain.category" is declared in ntop_defines.h!
     snprintf(key, sizeof(key), "%s.%s", DOMAIN_CATEGORY, _url);
-    if (ntop->getRedis()->get(key, buf, buf_len) == 0) {
+    if(ntop->getRedis()->get(key, buf, buf_len) == 0) {
       ntop->getRedis()->expire(key, Categorization::default_expire_time);
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s => %s (cached)", _url, buf);
-    }
-    else {
+    } else {
       char request_url[1024]; // This is the URL for the GET request.
       char encoded_url[512]; // This is the encoded URL which is part of the request_url.
       char categorization_response[256]; // This is the string that will contain the libcurl output.
@@ -113,20 +164,20 @@ void Categorization::categorizeHostName(char *_url, char *buf, u_int buf_len) {
 	       "%s", (char *) Utils::curlHTTPGet(request_url, &replyCode));
 
       // 4. Classification based on HTTP request code.
-      if (replyCode == 0) { // GET request failed. Exiting on failure.
+      if(replyCode == 0) { // GET request failed. Exiting on failure.
         ntop->getTrace()->traceEvent(TRACE_WARNING, "ERROR: GET request failed.");
         return;
       } else { // GET request was performed.
-        if (replyCode == 200) {
+        if(replyCode == 200) {
           ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: 200 OK.");
         } else {
-          if (replyCode == 204) {
+          if(replyCode == 204) {
             ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: 204 NO CONTENT.");
-            if (categorization_response[0] == '\0') {
+            if(categorization_response[0] == '\0') {
               snprintf(categorization_response, sizeof(categorization_response), "%s", CATEGORIZATION_SAFE_SITE);
             }
           } else {
-            if (replyCode == 400) {
+            if(replyCode == 400) {
               ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: 400 BAD REQUEST.");
             } else ntop->getTrace()->traceEvent(TRACE_INFO, "GET request performed with code: %ld.", replyCode);
             return;
@@ -150,8 +201,7 @@ void Categorization::categorizeHostName(char *_url, char *buf, u_int buf_len) {
 
       ntop->getRedis()->set(key, categorization_response, Categorization::default_expire_time);
     }
-  }
-  return;
+  } 
 }
 
 /* **************************************************** */
@@ -166,6 +216,7 @@ static void* categorizeThreadInfiniteLoop(void* ptr) {
 
 void* Categorization::categorizeLoop() {
   Redis *r = ntop->getRedis();
+  bool useGoogle = strncmp(api_key, "http", 4) ? false : true;
 
   while(!ntop->getGlobals()->isShutdown()) {
     char domain_name[64];
@@ -175,7 +226,10 @@ void* Categorization::categorizeLoop() {
     if((rc == 0) && (domain_name[0] != '\0')) {
       char buf[8];
 
-      categorizeHostName(domain_name, buf, sizeof(buf));
+      if(useGoogle)
+	googleCategorizeHostName(domain_name, buf, sizeof(buf));
+      else
+	httpCategorizeHostName(domain_name, buf, sizeof(buf));
     } else
       sleep(1);
   }
