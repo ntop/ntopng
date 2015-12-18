@@ -216,7 +216,7 @@ static void* categorizeThreadInfiniteLoop(void* ptr) {
 
 void* Categorization::categorizeLoop() {
   Redis *r = ntop->getRedis();
-  bool useGoogle = strncmp(api_key, "http", 4) ? false : true;
+  bool useGoogle = (!strncmp(api_key, "http", 4)) ? false : true;
 
   while(!ntop->getGlobals()->isShutdown()) {
     char domain_name[64];
