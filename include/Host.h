@@ -28,7 +28,7 @@ class Host : public GenericHost {
  private:
   u_int8_t mac_address[6], antenna_mac_address[6];
   u_int32_t asn;
-  char *symbolic_name, *country, *city, *asname, category[8], os[16], trafficCategory[12];
+  char *symbolic_name, *country, *city, *asname, category[16], os[16], trafficCategory[12];
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
   u_int32_t host_quota_mb;
   u_int16_t num_uses;

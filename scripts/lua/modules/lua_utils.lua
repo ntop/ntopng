@@ -662,6 +662,64 @@ function ends(String,End)
   return End=='' or string.sub(String,-string.len(End))==End
 end
 
+-- #################################################################
+
+local host_categories =	 {
+      ["freetime"] = "Tempo libero",
+      ["chat"] = "Chat",
+      ["onlineauctions"] = "Aste in Linea",
+      ["onlinegames"] = "Giochi in Linea",
+      ["pets"] = "Animali",
+      ["porn"] = "Pornografia",
+      ["religion"] = "Religione",
+      ["phishing"] = "Phishing",
+      ["sexuality"] = "Sessualita'",
+      ["games"] = "Giochi",
+      ["socialnetworking"] = "Social Network",
+      ["jobsearch"] = "Ricerca lavoro",
+      ["mail"] = "Webmail",
+      ["news"] = "Notizie",
+      ["proxy"] = "Proxy anonimi",
+      ["publicite"] = "Pubblicita'",
+      ["sports"] = "Sport",
+      ["vacation"] = "Viaggi",
+      ["ecommerce"] = "E-commerce",
+      ["instantmessaging"] = "Messaggistica",
+      ["kidstimewasting"] = "Giochi bambini",
+      ["audio-video"] = "Audio e video",
+      ["books"] = "Libri",
+      ["government"] = "PA e Governo",
+      ["malware"] = "Siti infetti",
+      ["medical"] = "Medicina",
+      ["ann"] = "Annunci",
+      ["drugs"] = "Droghe",
+      ["dating"] = "Incontri online",
+      ["desktopsillies"] = "Sfondi desktop",
+      ["filehosting"] = "File hosting",
+      ["filesharing"] = "File sharing",
+      ["gambling"] = "Gioco d'azzardo",
+      ["warez"] = "Cracks e warez",
+      ["radio"] = "Radio",
+      ["updatesites"] = "Aggiornamenti",
+      ["financial"] = "Finanza e banche",
+      ["adult"] = "Adulti",
+      ["fashion"] = "Abbigliamento",
+      ["showbiz"] = "Spettacolo e Vip",
+      ["ict"] = "SW e HW",
+      ["aziende"] = "Aziende",
+      ["education"] = "Scuola e istruzione",
+      ["searchengines"] = "Motori di ricerca",
+      ["blog"] = "Blog",
+      ["association"] = "Associazioni",
+      ["music"] = "Musica",
+      ["legal"] = "Lavoro e diritto",
+      ["photo"] = "Fotografia",
+      ["stats"] = "Webstat",
+      ["content"] = "Server contenuti",
+      ["domainforsale"] = "Dominii in vendita",
+      ["weapons"] = "Armi",
+      ["generic"] = "Generici non pericolosi"
+}
 
 -- #################################################################
 
@@ -672,6 +730,8 @@ function getCategoryIcon(what, cat)
    return("<A HREF=http://google.com/safebrowsing/diagnostic?site="..what.."&hl=en-us><font color=green><i class=\'fa fa-check\'></i></font></A>")
    elseif(cat == "malware") then
       return("<A HREF=http://google.com/safebrowsing/diagnostic?site="..what.."&hl=en-us><font color=red><i class=\'fa fa-ban\'></i></font></A>")
+   elseif(host_categories[cat] ~= nil) then
+     return(host_categories[cat])
    else
       return(cat)
    end

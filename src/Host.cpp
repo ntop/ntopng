@@ -549,7 +549,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     if(ip) {
       if(ntop->get_categorization()) lua_push_str_table_entry(vm, "category", get_category());
       if(ntop->getPrefs()->is_httpbl_enabled())     lua_push_str_table_entry(vm, "httpbl", get_httpbl());
-      if(ntop->getPrefs()->is_flashstart_enabled()) lua_push_str_table_entry(vm, "flashstart", get_flashstart());
     }
 
     lua_push_bool_table_entry(vm, "dump_host_traffic", dump_host_traffic);
@@ -640,7 +639,7 @@ void Host::refreshCategory() {
 
   if((symbolic_name != NULL)
      && strcmp(ip_addr, symbolic_name)
-     && (category[0] == '\0')
+     && ((category[0] == '\0') || (!strcmp(category, CATEGORIZATION_SAFE_SITE)))
      && ip
      && ip->isIPv4()
      && (!ip->isMulticastAddress())
@@ -666,21 +665,6 @@ void Host::refreshHTTPBL() {
     char* ip_addr = ip->print(buf, sizeof(buf));
     
     ntop->get_httpbl()->findTrafficCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
-  }
-}
-
-/* ***************************************** */
-
-void Host::refreshFlashstart() {
-  if(ip 
-     && ip->isIPv4() 
-     && (!localHost) 
-     && (trafficCategory[0] == '\0')
-     && ntop->get_flashstart()) {
-    char buf[128] =  { 0 };
-    char* ip_addr = ip->print(buf, sizeof(buf));
-    
-    ntop->get_flashstart()->findTrafficCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
   }
 }
 

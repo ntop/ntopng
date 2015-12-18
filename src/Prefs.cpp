@@ -47,7 +47,7 @@ Prefs::Prefs(Ntop *_ntop) {
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
   categorization_key = NULL;
-  httpbl_key = NULL, flashstart_user_pwd = NULL;
+  httpbl_key = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
   redis_port = 6379;
@@ -177,7 +177,6 @@ void usage() {
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
 	 "                                    | (default: disabled). Available options:\n"
 	 "                                    | httpbl:<api_key>        See README.httpbl\n"
-	 "                                    | flashstart:<user>:<pwd> See README.flashstart\n"
 	 "[--http-port|-w] <[:]http port>     | HTTP port. Set to 0 to disable http server.\n"
 	 "                                    | Prepend a : before the port to listen to the\n"
 	 "                                    | loopback address. Default: %u\n"
@@ -413,8 +412,6 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 'k':
     if(strncmp(optarg, HTTPBL_STRING, strlen(HTTPBL_STRING)) == 0)
       httpbl_key = &optarg[strlen(HTTPBL_STRING)];
-    else if(strncmp(optarg, FLASHSTART_STRING, strlen(FLASHSTART_STRING)) == 0)
-      flashstart_user_pwd = &optarg[strlen(FLASHSTART_STRING)];
     else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -k", optarg);
     break;
@@ -953,7 +950,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_categorization_enabled", categorization_enabled);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
-  lua_push_bool_table_entry(vm, "is_flashstart_enabled", is_flashstart_enabled());
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
   lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);

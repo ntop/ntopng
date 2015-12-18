@@ -508,8 +508,7 @@ end
    end
 
    if((host["category"] ~= nil) and (host["category"] ~= "")) then
-      cat = getCategoryIcon(host["category"])
-
+      cat = getCategoryIcon(host_ip, host["category"])
       if(cat ~= "") then
 	 print("<tr><th>Category</th><td colspan=2>".. cat .."</td></tr>\n")
       end

@@ -34,7 +34,8 @@ class Categorization {
 
   pthread_t categorizeThreadLoop;
 
-  void categorizeHostName(char *numeric_ip, char *buf, u_int buf_len);
+  void googleCategorizeHostName(char *sym_ip, char *buf, u_int buf_len);
+  void httpCategorizeHostName(char *sym_ip, char *buf, u_int buf_len);
 
   static const int default_expire_time = 3600;
 
