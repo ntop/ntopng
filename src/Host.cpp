@@ -546,7 +546,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
     lua_push_int_table_entry(vm, "num_alerts", getNumAlerts());
 
-    if(symbolic_name) ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s", symbolic_name, category);
     if(ip) {
       if(ntop->get_categorization()) lua_push_str_table_entry(vm, "category", get_category());
       if(ntop->getPrefs()->is_httpbl_enabled())     lua_push_str_table_entry(vm, "httpbl", get_httpbl());

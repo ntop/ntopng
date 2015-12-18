@@ -41,9 +41,11 @@ char* Categorization::findCategory(char *name, char *buf, u_int buf_len, bool ad
     else {
       char *ret = ntop->getRedis()->getFlowCategory(name, buf, buf_len, add_if_needed);
       
+#if 0
       if(ret[0] && strcmp(ret, CATEGORIZATION_SAFE_SITE))
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "[Categorization] Site %s detected as %s", name, ret);
-      
+#endif
+ 
       return(ret);
     }
   } else {
