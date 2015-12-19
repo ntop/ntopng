@@ -3772,29 +3772,76 @@ static int ntop_queue_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef NTOPNG_PRO
-static int ntop_nagios_send_event(lua_State* vm) {
+#if NTOPNG_PRO
+
+static int ntop_nagios_reload_config(lua_State* vm) {
   NagiosManager *nagios = ntop->getNagios();
-  int alert_level;
-  int alert_type;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+  if(!nagios){
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(): unable to get the nagios manager",
+				 __FUNCTION__);
+    return(CONST_LUA_ERROR);
+  }
+  nagios->loadConfig();
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+static int ntop_nagios_send_alert(lua_State* vm) {
+  NagiosManager *nagios = ntop->getNagios();
+  char *alert_source;
+  char *timespan;
+  char *alarmed_metric;
   char *alert_msg;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  alert_level = (int)lua_tonumber(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_source = (char*)lua_tostring(vm, 1);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  alert_type = (int)lua_tonumber(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  timespan = (char*)lua_tostring(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  alert_msg = (char*)lua_tostring(vm, 3);
+  alarmed_metric = (char*)lua_tostring(vm, 3);
 
-  nagios->sendEvent((AlertLevel)alert_level, (AlertType)alert_type, alert_msg);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_msg = (char*)lua_tostring(vm, 4);
+
+  nagios->sendAlert(alert_source, timespan, alarmed_metric, alert_msg);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
+
+static int ntop_nagios_withdraw_alert(lua_State* vm) {
+  NagiosManager *nagios = ntop->getNagios();
+  char *alert_source;
+  char *timespan;
+  char *alarmed_metric;
+  char *alert_msg;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_source = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  timespan = (char*)lua_tostring(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alarmed_metric = (char*)lua_tostring(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_msg = (char*)lua_tostring(vm, 4);
+
+  nagios->withdrawAlert(alert_source, timespan, alarmed_metric, alert_msg);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
 #endif
 
 /* ****************************************** */
@@ -4219,7 +4266,9 @@ static const luaL_Reg ntop_reg[] = {
   { "flushAllQueuedAlerts", ntop_flush_all_queued_alerts },
   { "queueAlert",           ntop_queue_alert },
 #ifdef NTOPNG_PRO
-  { "sendNagiosEvent",      ntop_nagios_send_event },
+  { "sendNagiosAlert",      ntop_nagios_send_alert },
+  { "withdrawNagiosAlert",  ntop_nagios_withdraw_alert },
+  { "reloadNagiosConfig",   ntop_nagios_reload_config },
   { "checkProfileSyntax",   ntop_check_profile_syntax },
   { "reloadProfiles",       ntop_reload_traffic_profiles },
 #endif

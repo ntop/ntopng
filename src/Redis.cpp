@@ -948,11 +948,6 @@ void Redis::queueAlert(AlertLevel level, AlertType t, char *msg) {
 
   lpush(CONST_ALERT_MSG_QUEUE, what, CONST_MAX_ALERT_MSG_QUEUE_LEN);
 
-#ifdef NTOPNG_PRO
-  if(ntop->getNagios())
-    ntop->getNagios()->sendEvent(level, t, msg);
-#endif
-
 }
 
 /* ******************************************* */

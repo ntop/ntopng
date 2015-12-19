@@ -1574,9 +1574,9 @@ else
       alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, host_ip)
    end
    if _GET["re_arm_minutes"] then
-       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_name, _GET["re_arm_minutes"])
+       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_ip, _GET["re_arm_minutes"])
    end
-       re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_name)
+       re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_ip)
    if not re_arm_minutes then re_arm_minutes="" end
 end
 

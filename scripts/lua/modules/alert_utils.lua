@@ -53,7 +53,6 @@ function p2p(old, new)   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old
 function are_alerts_suppressed(observed)
     local suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", observed)
     if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-        if(verbose) then print("Alert check for ("..address..")<br>\n") end
         return false  -- alerts are not suppressed
     else
         if(verbose) then print("Skipping alert check for("..address.."): disabled in preferences<br>\n") end
@@ -88,6 +87,21 @@ network_alert_functions_description = {
     ["inner"]     = "Inner Bytes delta",
 }
 
+
+function re_arm_alert(alarm_source, timespan, alarmed_metric)
+    local alarm_string = alarm_source.."_"..timespan.."_"..alarmed_metric
+    local re_arm_key = "alerts_re_arming_"..alarm_string
+    local re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..timespan.."_re_arm_minutes", alarm_source)
+    if re_arm_minutes ~= "" then
+        re_arm_minutes = tonumber(re_arm_minutes)
+    else
+        re_arm_minutes = default_re_arm_minutes[timespan]
+    end
+    if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
+    -- we don't care about key contents, we just care about its exsistance
+    ntop.setCache(re_arm_key, "dummy", re_arm_minutes * 60)
+end
+
 function is_alert_re_arming(alarm_source, timespan, alarmed_metric)
     local alarm_string = alarm_source.."_"..timespan.."_"..alarmed_metric
     local re_arm_key = "alerts_re_arming_"..alarm_string
@@ -95,18 +109,8 @@ function is_alert_re_arming(alarm_source, timespan, alarmed_metric)
     if is_rearming ~= "" then
         if verbose then io.write('re_arm_key: '..re_arm_key..' -> ' ..is_rearming..'-- \n') end
         return true
-    else
-        local re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..timespan.."_re_arm_minutes", alarm_source)
-        if re_arm_minutes ~= "" then
-            re_arm_minutes = tonumber(re_arm_minutes)
-        else
-            re_arm_minutes = default_re_arm_minutes[timespan]
-        end
-        if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
-        -- we don't care about key contents, we just care about its exsistance
-        ntop.setCache(re_arm_key, "dummy", re_arm_minutes * 60)
-        return false
     end
+    return false
 end
 
 -- #################################################################
@@ -186,16 +190,27 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
                 local alert_level = 1 -- alert_level_warning
                 local alert_type = 2 -- alert_threshold_exceeded
 
+                -- only if the alert is not in its re-arming period...
                 if not is_alert_re_arming(key, mode, t[1]) then
                     if verbose then io.write("queuing alert\n") end
+                    -- re-arm the alert
+                    re_arm_alert(key, mode, t[1])
+                    -- and send it to ntopng
                     ntop.queueAlert(alert_level, alert_type, alert_msg)
+                    if ntop.isPro() then
+                        -- possibly send the alert to nagios as well
+                        ntop.sendNagiosAlert(key, mode, t[1], alert_msg)
+                    end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
                 end
 
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
-            else
+            else  -- alert has not been triggered
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+                if ntop.isPro() and not is_alert_re_arming(key, mode, t[1]) then
+                    ntop.withdrawNagiosAlert(key, mode, t[1], "service OK")
+                end
             end
         end
     end
@@ -255,13 +270,21 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
 
                 if not is_alert_re_arming(network_name, mode, t[1]) then
                     if verbose then io.write("queuing alert\n") end
+                    re_arm_alert(network_name, mode, t[1])
                     ntop.queueAlert(alert_level, alert_type, alert_msg)
+                    if ntop.isPro() then
+                        -- possibly send the alert to nagios as well
+                        ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
+                    end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
                 end
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+                if ntop.isPro() and not is_alert_re_arming(network_name, mode, t[1]) then
+                    ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
+                end
             end
         end
     end
@@ -272,7 +295,7 @@ end
 function check_interface_alert(ifname, mode, old_table, new_table)
     local ifname_clean = string.gsub(ifname, "/", "_")
     if(verbose) then
-        print("check_interface_alert("..ifname..", "..mode..", "..key..")<br>\n")
+        print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
 
     -- Needed because Lua. loadstring() won't work otherwise.
@@ -314,7 +337,12 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 
                 if not is_alert_re_arming(ifname_clean, mode, t[1]) then
                     if verbose then io.write("queuing alert\n") end
+                    re_arm_alert(network_name, mode, t[1])
                     ntop.queueAlert(alert_level, alert_type, alert_msg)
+                    if ntop.isPro() then
+                        -- possibly send the alert to nagios as well
+                        ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
+                    end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
                 end
@@ -322,6 +350,9 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+                if ntop.isPro() and not is_alert_re_arming(ifname_clean, mode, t[1]) then
+                    ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
+                end
             end
         end
     end
@@ -337,7 +368,7 @@ function check_interface_threshold(ifname, mode)
 
     if are_alerts_suppressed("iface_"..ifname_id) then return end
 
-    if(verbose) then print("check_interface_threshold("..ifname_id..", "..host_ip..", "..mode..")<br>\n") end
+    if(verbose) then print("check_interface_threshold("..ifname_id..", "..mode..")<br>\n") end
     basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
     if(not(ntop.exists(basedir))) then
         ntop.mkdir(basedir)

@@ -57,6 +57,13 @@ typedef enum {
   alert_level_error,
 } AlertLevel;
 
+#ifdef NTOPNG_PRO
+typedef enum {
+  status_ok = 0,
+  status_warning,
+} NagiosAlertStatus;
+#endif
+
 struct zmq_msg_hdr {
   char url[32];
   u_int32_t version;
