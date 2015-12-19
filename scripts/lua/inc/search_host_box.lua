@@ -3,7 +3,9 @@
 --
 
 print [[
-	 <li><form action="/lua/host_details.lua">
+	 <li><form action="]]
+print (ntop.getHttpPrefix())
+print [[/lua/host_details.lua">
 ]]
 
 -- FIX: show notifications to the user
