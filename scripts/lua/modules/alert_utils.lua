@@ -130,7 +130,6 @@ end
 
 
 function delete_alert_configuration(alert_source)
-    io.write('eeee\n')
     delete_re_arming_alerts(alert_source)
     for k1,timespan in pairs(alerts_granularity) do
         timespan = timespan[1]
