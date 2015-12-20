@@ -67,6 +67,8 @@ alerts_granularity = {
     { "day", "Daily" }
 }
 
+alarmable_metrics = {'bytes', 'packets', 'dns', 'p2p', 'ingress', 'egress', 'inner'}
+
 default_re_arm_minutes = {
     ["min"]  = 1    ,
     ["5mins"]= 5    ,
@@ -114,34 +116,39 @@ function is_alert_re_arming(alarm_source, timespan, alarmed_metric)
 end
 
 -- #################################################################
-
-function delete_host_alert_configuration(host_ip)
-    for k,v in pairs(alerts_granularity) do
-        key = "ntopng.prefs.alerts_"..v[1]
-        ntop.delHashCache(key, host_ip)
-        key = "ntopng.prefs.alerts_"..v[1].."_re_arm_minutes"
-        ntop.delHashCache(key, host_ip)
+function delete_re_arming_alerts(alert_source)
+    for k1, timespan in pairs(alerts_granularity) do
+        timespan = timespan[1]
+        local alarm_string = alert_source.."_"..timespan
+        for k2, alarmed_metric in pairs(alarmable_metrics) do
+            alarm_string = alarm_string.."_"..alarmed_metric
+            local re_arm_key = "alerts_re_arming_"..alarm_string
+            ntop.delCache(re_arm_key)
+        end
     end
 end
 
 
-function delete_network_alert_configuration(network_name)
-    for k,v in pairs(alerts_granularity) do
-        key = "ntopng.prefs.network_alerts_"..v[1]
-        ntop.delHashCache(key, network_name)
-        key = "ntopng.prefs.alerts_"..v[1].."_re_arm_minutes"
-        ntop.delHashCache(key, network_name)
+function delete_alert_configuration(alert_source)
+    io.write('eeee\n')
+    delete_re_arming_alerts(alert_source)
+    for k1,timespan in pairs(alerts_granularity) do
+        timespan = timespan[1]
+        local key = "ntopng.prefs.alerts_"..timespan
+        local alarms = ntop.getHashCache(key, alert_source)
+        if alarms ~= "" then
+            for k1, alarmed_metric in pairs(alarmable_metrics) do
+                 if ntop.isPro() then
+                     ntop.withdrawNagiosAlert(alert_source, timespan, alarmed_metric, "OK, alarm deactivated")
+                 end
+            end
+        ntop.delHashCache(key, alert_source)
+        key = "ntopng.prefs.alerts_"..timespan.."_re_arm_minutes"
+        ntop.delHashCache(key, alert_source)
+        end
     end
 end
 
-function delete_interface_alert_configuration(if_name)
-    for k,v in pairs(alerts_granularity) do
-        key = "ntopng.prefs.alerts_"..v[1]
-        ntop.delHashCache(key, if_name)
-        key = "ntopng.prefs.alerts_"..v[1].."_re_arm_minutes"
-        ntop.delHashCache(key, ifname)
-    end
-end
 
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
     if(verbose) then
@@ -236,7 +243,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
         end
     end
     -- str = "bytes;>;123,packets;>;12"
-    hkey = "ntopng.prefs.network_alerts_"..mode
+    hkey = "ntopng.prefs.alerts_"..mode
 
     local str = ntop.getHashCache(hkey, network_name)
 
@@ -399,7 +406,7 @@ end
 function check_networks_threshold(ifname, mode)
     interface.select(ifname)
     local subnet_stats = interface.getNetworksStats()
-    alarmed_subnets = ntop.getHashKeysCache("ntopng.prefs.network_alerts_"..mode)
+    alarmed_subnets = ntop.getHashKeysCache("ntopng.prefs.alerts_"..mode)
     local ifname_id = interface.getStats().id
 
     local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)

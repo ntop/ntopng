@@ -737,7 +737,7 @@ alerts = ""
 to_save = false
 
 if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
-   delete_interface_alert_configuration(ifname_clean)
+   delete_alert_configuration(ifname_clean)
    alerts = nil
 else
    for k,_ in pairs(alert_functions_description) do

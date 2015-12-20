@@ -1544,7 +1544,7 @@ alerts = ""
 to_save = false
 
 if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
-   delete_host_alert_configuration(hostinfo2hostkey(host_info))
+   delete_alert_configuration(hostinfo2hostkey(host_info))
    alerts = nil
 else
    for k,_ in pairs(alert_functions_description) do
