@@ -74,7 +74,7 @@ if (ntop.isPro()) then
    prefsInputField("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "nagios_nsca_port", prefs.nagios_nsca_port)
    prefsInputField("Nagios send_nsca executable", "Absolute path to the Nagios NSCA send_nsca utility. Default: /usr/local/nagios/bin/send_nsca", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable)
    prefsInputField("Nagios send_nsca configuration", "Absolute path to the Nagios NSCA send_nsca utility configuration file. Default: /usr/local/nagios/etc/send_nsca.cfg", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf)
-   prefsInputField("Nagios nost_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "nagios_host_name", prefs.nagios_host_name)
+   prefsInputField("Nagios host_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "nagios_host_name", prefs.nagios_host_name)
    prefsInputField("Nagios service_description", "The service description exactly as specified in Nagios passive service definition for the ntopng host. Default: NtopngAlert", "nagios_service_name", prefs.nagios_service_name)
 
 end
