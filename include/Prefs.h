@@ -45,7 +45,7 @@ class Prefs {
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
-  u_int16_t non_local_host_max_idle, local_host_max_idle, flow_max_idle;
+  u_int non_local_host_max_idle, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int32_t max_num_hosts, max_num_flows;
