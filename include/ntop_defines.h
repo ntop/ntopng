@@ -241,6 +241,7 @@
 #define CONST_NUM_CONTACT_DBS          8
 #define CONST_MAX_NUM_ZMQ_SUBSCRIBERS 32
 #define CONST_MAX_NUM_FIND_HITS       10
+#define CONST_MAX_NUM_HITS         65536
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)
 #define CONST_PATH_SEP                    '\\'

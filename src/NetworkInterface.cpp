@@ -82,7 +82,7 @@ NetworkInterface::NetworkInterface() {
   policer = NULL;
 #endif
 
-  statsManager = NULL, flowsManager = NULL, ifSpeed = 0;
+  statsManager = NULL, ifSpeed = 0;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_traffic = dump_security_packets = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
@@ -214,7 +214,6 @@ NetworkInterface::NetworkInterface(const char *name) {
 
   loadDumpPrefs();
 
-  flowsManager = new FlowsManager(this);
   statsManager = new StatsManager(id, "top_talkers.db");
 }
 
@@ -422,7 +421,6 @@ NetworkInterface::~NetworkInterface() {
 
   if(db) delete db;
   if(statsManager) delete statsManager;
-  if(flowsManager) delete flowsManager;
   if(networkStats) delete []networkStats;
   if(pkt_dumper)   delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
@@ -1775,8 +1773,179 @@ Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
 
 /* **************************************************** */
 
-int NetworkInterface::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL) {
-  return(flowsManager ? flowsManager->retrieve(vm, allowed_hosts, SQL) : 0);
+enum flowSortField {
+  column_client = 0,
+  column_server,
+  column_proto_l4,
+  column_ndpi,
+  column_duration,
+  column_thpt,
+  column_bytes,
+  column_info
+};
+
+struct flowRetrieveList {
+  Flow *flow;
+  /* Value */
+  Host *hostValue;
+  u_int32_t numericValue;
+  char *stringValue;
+};
+
+struct flowRetriever {
+  /* Search criteria */
+  patricia_tree_t *allowed_hosts;
+  Host *host;
+  enum flowSortField sorter;
+
+  /* Return values */
+  u_int32_t maxNumFlows, actNumFlows;
+  struct flowRetrieveList *elems;
+};
+
+/* **************************************************** */
+
+static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
+  struct flowRetriever *retriever = (struct flowRetriever*)user_data;
+  Flow *f = (Flow*)h;
+
+  if(f && (!f->idle())) {
+    if(retriever->host
+       && (retriever->host != f->get_cli_host())
+       && (retriever->host != f->get_srv_host()))
+    return(false); /* false = keep on walking */
+
+    retriever->elems[retriever->actNumFlows].flow = f;
+
+    if(f->match(retriever->allowed_hosts)) {
+      switch(retriever->sorter) {
+      case column_client:
+	retriever->elems[retriever->actNumFlows++].hostValue = f->get_cli_host();
+	break;
+      case column_server:
+	retriever->elems[retriever->actNumFlows++].hostValue = f->get_srv_host();
+	break;
+      case column_proto_l4:
+	retriever->elems[retriever->actNumFlows++].numericValue = f->get_protocol();
+	break;
+      case column_ndpi:
+	retriever->elems[retriever->actNumFlows++].numericValue = f->get_detected_protocol().protocol;
+	break;
+      case column_duration:
+	retriever->elems[retriever->actNumFlows++].numericValue = f->get_duration();
+	break;
+      case column_thpt:
+	retriever->elems[retriever->actNumFlows++].numericValue = f->get_bytes_thpt();
+	break;
+      case column_bytes:
+	retriever->elems[retriever->actNumFlows++].numericValue = f->get_bytes();
+	break;
+      case column_info:
+	if(f->getDnsLastQuery())        retriever->elems[retriever->actNumFlows++].stringValue = f->getDnsLastQuery();
+	else if(f->getHTTPLastURL())    retriever->elems[retriever->actNumFlows++].stringValue = f->getHTTPLastURL();
+	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumFlows++].stringValue = f->getSSLCertificate();
+	else retriever->elems[retriever->actNumFlows++].stringValue = (char*)"";
+	break;
+    }
+  }
+
+  if(retriever->actNumFlows == retriever->maxNumFlows)
+    return(true); /* Limit reached */
+  else
+    return(false); /* false = keep on walking */
+  } else
+    return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+int hostSorter(const void *_a, const void *_b) {
+  struct flowRetrieveList *a = (struct flowRetrieveList*)_a;
+  struct flowRetrieveList *b = (struct flowRetrieveList*)_b;
+
+  return(a->hostValue->get_ip()->compare(b->hostValue->get_ip()));
+}
+
+int numericSorter(const void *_a, const void *_b) {
+  struct flowRetrieveList *a = (struct flowRetrieveList*)_a;
+  struct flowRetrieveList *b = (struct flowRetrieveList*)_b;
+
+  if(a->numericValue < b->numericValue)      return(-1);
+  else if(a->numericValue > b->numericValue) return(1);
+  else return(0);
+}
+
+int stringSorter(const void *_a, const void *_b) {
+  struct flowRetrieveList *a = (struct flowRetrieveList*)_a;
+  struct flowRetrieveList *b = (struct flowRetrieveList*)_b;
+
+  return(strcmp(a->stringValue, b->stringValue));
+}
+
+/* **************************************************** */
+
+int NetworkInterface::getFlows(lua_State* vm,
+			       patricia_tree_t *allowed_hosts,
+			       Host *host,
+			       char *sortColumn,
+			       u_int32_t maxHits,
+			       u_int32_t toSkip,
+			       bool a2zSortOrder) {
+  struct flowRetriever retriever;
+  int (*sorter)(const void *_a, const void *_b);
+  bool highDetails = (maxHits == CONST_MAX_NUM_HITS) ? false : true;
+
+  retriever.host = host;
+  retriever.actNumFlows = 0, retriever.maxNumFlows = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
+  retriever.elems = (struct flowRetrieveList*)calloc(sizeof(struct flowRetrieveList), retriever.maxNumFlows);
+
+  if(retriever.elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  if(!strcmp(sortColumn, "column_client")) retriever.sorter = column_client, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_server")) retriever.sorter = column_server, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_proto_l4")) retriever.sorter = column_proto_l4, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_ndpi")) retriever.sorter = column_ndpi, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_duration")) retriever.sorter = column_duration, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt")) retriever.sorter = column_thpt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_bytes")) retriever.sorter = column_bytes, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_info")) retriever.sorter = column_info, sorter = stringSorter;
+  else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
+
+  /* ******************************* */
+
+  flows_hash->disablePurge();
+  flows_hash->walk(flow_search_walker, (void*)&retriever);
+
+  qsort(retriever.elems, retriever.actNumFlows, sizeof(struct flowRetrieveList), sorter);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numFlows", retriever.actNumFlows);
+
+  lua_newtable(vm);
+
+  if(a2zSortOrder) {
+    for(int i=toSkip, num=0; i<retriever.actNumFlows; i++) {
+      retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
+      if(++num >= maxHits) break;
+    }
+  } else {
+    for(int i=retriever.actNumFlows-1-toSkip, num=0; i>=0; i--) {
+      retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
+      if(++num >= maxHits) break;
+    }
+  }
+
+  lua_pushstring(vm, "flows"); // Key
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  flows_hash->enablePurge();
+  free(retriever.elems);
+
+  return(retriever.actNumFlows);
 }
 
 /* **************************************************** */
@@ -2307,7 +2476,7 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
     user = f->get_username(false);
 
   if(user && (strcmp(user, info->username) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
+    f->lua(info->vm, NULL, false /* Minimum details */, true);
 
   return(false); /* false = keep on walking */
 }
@@ -2332,12 +2501,12 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
   char *name = f->get_proc_name(true);
 
   if(name && (strcmp(name, info->proc_name) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
+    f->lua(info->vm, NULL, false /* Minimum details */, true);
   else {
     name = f->get_proc_name(false);
 
     if(name && (strcmp(name, info->proc_name) == 0))
-      f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
+      f->lua(info->vm, NULL, false /* Minimum details */, true);
   }
 
   return(false); /* false = keep on walking */
@@ -2362,7 +2531,7 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
   struct pid_flows *info = (struct pid_flows*)pid_data;
 
   if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
+    f->lua(info->vm, NULL, false /* Minimum details */, true);
 
   return(false); /* false = keep on walking */
 }
@@ -2383,7 +2552,7 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
   struct pid_flows *info = (struct pid_flows*)father_pid_data;
 
   if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */, FS_ALL);
+    f->lua(info->vm, NULL, false /* Minimum details */, true);
 
   return(false); /* false = keep on walking */
 }
@@ -2537,7 +2706,7 @@ void NetworkInterface::updateSecondTraffic(time_t when) {
     memcpy(lastMinuteTraffic, currentMinuteTraffic, sizeof(currentMinuteTraffic));
     resetSecondTraffic();
   }
-  
+
   currentMinuteTraffic[sec] = max_val(0, bytes-lastSecTraffic);
   lastSecTraffic = bytes;
 };

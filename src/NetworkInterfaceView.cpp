@@ -132,18 +132,26 @@ bool NetworkInterfaceView::hasSeenVlanTaggedPackets() {
 
 /* **************************************************** */
 
-int NetworkInterfaceView::retrieve(lua_State* vm, patricia_tree_t *allowed_hosts,
-                                   char *SQL) {
+int NetworkInterfaceView::getFlows(lua_State* vm,
+				   patricia_tree_t *allowed_hosts,
+				   Host *host,
+				   char *sortColumn,
+				   u_int32_t maxHits,
+				   u_int32_t toSkip,
+				   bool a2zSortOrder) {
   int ret = 0;
 
   lua_newtable(vm);
 
   for(int i = 0; i<numInterfaces; i++) {
-    if((ret = physIntf[i]->retrieve(vm, allowed_hosts, SQL)))
-      return ret;
+    int rc = physIntf[i]->getFlows(vm, allowed_hosts, host, 
+				   sortColumn, maxHits, 
+				   toSkip, a2zSortOrder);
+    
+    if(rc < 0) return(ret); else rc += ret;
   }
 
-  return ret;
+  return(ret);
 }
 
 /* **************************************************** */

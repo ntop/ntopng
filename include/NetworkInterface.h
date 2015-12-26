@@ -68,7 +68,7 @@ class NetworkInterface {
   FlowHash *flows_hash; /**< Hash used to memorize the flows information.*/
 
   /* Second update */
-  u_int64_t lastSecTraffic, 
+  u_int64_t lastSecTraffic,
     lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
   time_t lastSecUpdate;
@@ -80,14 +80,13 @@ class NetworkInterface {
   DB *db;
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager *statsManager;
-  FlowsManager *flowsManager;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
   PacketDumper *pkt_dumper;
   PacketDumperTuntap *pkt_dumper_tap;
-  u_char* antenna_mac; 
+  u_char* antenna_mac;
   NetworkStats *networkStats;
 
   void deleteDataStructures();
@@ -174,7 +173,7 @@ class NetworkInterface {
 		     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
-  void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key); 
+  void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
   bool packet_dissector(const struct pcap_pkthdr *h, const u_char *packet,
 			int *a_shaper_id, int *b_shaper_id);
   bool packetProcessing(const struct bpf_timeval *when,
@@ -198,8 +197,11 @@ class NetworkInterface {
   void getActiveHostsList(lua_State* vm, vm_ptree *vp, bool host_details, bool local_only);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
-  int  retrieve(lua_State* vm, patricia_tree_t *allowed_hosts, char *SQL);
-  void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts, char *numIP, u_int16_t vlanId);
+  int  getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
+		Host *host, char *sortColumn, u_int32_t maxHits,
+		u_int32_t toSkip, bool a2zSortOrder);
+  void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts,
+			char *numIP, u_int16_t vlanId);
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
@@ -257,14 +259,14 @@ class NetworkInterface {
 
   Host* findHostsByIP(patricia_tree_t *allowed_hosts,
 		      char *host_ip, u_int16_t vlan_id);
-  inline void updateLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) { 
+  inline void updateLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver); }
 
   inline HostHash* get_hosts_hash()  { return(hosts_hash);       }
   inline bool is_bridge_interface()  { return(bridge_interface); }
   u_char* getAntennaMac()	     { return (antenna_mac);     }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
-  void addInterfaceAddress(char *addr);			
+  void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql) { return(db ? db->exec_sql_query(vm, sql) : -1); };
   NetworkStats* getNetworkStats(int16_t networkId);
   void allocateNetworkStats();
@@ -274,7 +276,7 @@ class NetworkInterface {
   void updateFlowProfiles();
   inline Profile* getFlowProfile(Flow *f)      { return(profiles ? profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(profiles ? profiles->checkProfileSyntax(filter) : false); }
-#endif  
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

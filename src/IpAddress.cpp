@@ -136,9 +136,16 @@ int IpAddress::compare(IpAddress *ip) {
 
   if(addr.ipVersion < ip->addr.ipVersion) return(-1); else if(addr.ipVersion > ip->addr.ipVersion) return(1);
 
-  if(addr.ipVersion == 4)
-    return(memcmp(&addr.ipType.ipv4, &ip->addr.ipType.ipv4, sizeof(u_int32_t)));
-  else
+  if(addr.ipVersion == 4) {
+#if 0
+    u_int32_t a = ntohl(ip->addr.ipType.ipv4);
+    u_int32_t b = ntohl(addr.ipType.ipv4);
+
+    if(a < b) return(1); else if(b < a) return(-1); else return(0);
+#else
+    return(memcmp(&ip->addr.ipType.ipv4, &addr.ipType.ipv4, sizeof(u_int32_t)));
+#endif
+  } else
     return(memcmp(&addr.ipType.ipv6, &ip->addr.ipType.ipv6, sizeof(struct ndpi_in6_addr)));
 }
 

@@ -68,7 +68,6 @@ aggregation = _GET["aggregation"]
 if(hosts == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> This flow cannot be found (expired ?)</div>")
 else
-
   if(debug) then io.write("Host:"..hosts.."\n") end
 
   compared_hosts, compared_hosts_size = getHostCommaSeparatedList(hosts)

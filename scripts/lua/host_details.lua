@@ -320,7 +320,10 @@ if((page == "overview") or (page == nil)) then
       if((host["antenna_mac"] ~= nil) and (host["antenna_mac"] ~= "00:00:00:00:00:00")) then
 	 print("<tr><th width=35%>Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
       end
-      print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
+
+      if(host["mac"]  ~= "00:00:00:00:00:00") then
+         print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
+      end
 
       if(host["localhost"] == true) then
 	 dump_status = host["dump_host_traffic"]

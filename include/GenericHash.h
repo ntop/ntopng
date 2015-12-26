@@ -35,28 +35,27 @@
  *  @ingroup MonitoringData
  *
  */
- class GenericHash {
+class GenericHash {
  protected:
   GenericHashEntry **table; /**< Entry table. It is used for maintain an update history.*/
 
- u_int num_hashes; /**< Number of hash.*/
- u_int current_size; /**< Current size of hash (including idle or ready-to-purge elements).*/
- u_int max_hash_size; /**< Max size of hash.*/
+  u_int32_t num_hashes; /**< Number of hash.*/
+  u_int32_t current_size; /**< Current size of hash (including idle or ready-to-purge elements).*/
+  u_int32_t max_hash_size; /**< Max size of hash.*/
+  Mutex **locks, purgeLock;
+  NetworkInterface *iface; /**< Pointer of network interface for this generic hash.*/
+  u_int last_purged_hash; /**< Index of last purged hash.*/
 
- Mutex **locks;
- NetworkInterface *iface; /**< Pointer of network interface for this generic hash.*/
- u_int last_purged_hash; /**< Index of last purged hash.*/
-
-public:
- /**
-  * @brief A Constructor
-  * @details Creating a new GenericHash.
-  *
-  * @param _iface Network interface pointer for the new hash.
-  * @param _num_hashes Number of hashes.
-  * @param _max_hash_size Max size of new hash.
-  * @return A new Instance of GenericHash.
-  */
+ public:
+  /**
+   * @brief A Constructor
+   * @details Creating a new GenericHash.
+   *
+   * @param _iface Network interface pointer for the new hash.
+   * @param _num_hashes Number of hashes.
+   * @param _max_hash_size Max size of new hash.
+   * @return A new Instance of GenericHash.
+   */
   GenericHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size);
 
   /**
@@ -69,7 +68,7 @@ public:
    *
    * @return Current size of hash.
    */
-  inline u_int getNumEntries() { return(current_size); };
+  inline u_int32_t getNumEntries() { return(current_size); };
   /**
    * @brief Add new entry to generic hash.
    * @details If current_size < max_hash_size, this method calculate a new hash key for the new entry, add it and update the current_size value.
@@ -98,12 +97,13 @@ public:
    * @param user_data Value to be compared with the values of hash.
    */
   void walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+
   /**
    * @brief Purge idle hash entries.
    *
    * @return Numbers of purged entry, 0 otherwise.
    */
-  u_int purgeIdle();  
+  u_int purgeIdle();
 
   /**
    * @brief Purge all hash entries.
@@ -132,6 +132,9 @@ public:
    * @return true if there is space left, or false if the hash is full
    */
   inline bool hasEmptyRoom() { return((current_size < max_hash_size) ? true : false); };
+
+  inline void disablePurge() { purgeLock.lock(__FILE__, __LINE__);   }
+  inline void enablePurge()  { purgeLock.unlock(__FILE__, __LINE__); }
 };
 
 #endif /* _GENERIC_HASH_H_ */

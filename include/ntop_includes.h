@@ -164,7 +164,6 @@ using namespace std;
 #include "HTTPStats.h"
 #include "Redis.h"
 #include "StatsManager.h"
-#include "FlowsManager.h"
 #include "DB.h"
 #include "MySQLDB.h"
 #include "NetworkInterface.h"

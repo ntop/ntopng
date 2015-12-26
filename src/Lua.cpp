@@ -1060,58 +1060,43 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  */
 static int ntop_get_interface_flows_info(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  char sql[128], buf[64];
-  char *host_ip = NULL, *key = NULL;
+  char buf[64];
+  char *host_ip = NULL, *sortColumn = NULL;
   u_int16_t vlan_id = 0;
+  Host *host = NULL;
+  bool a2zSortOrder = true;
+  u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-    /* Optional VLAN id */
-    if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+    host = ntop_interface->getHost(host_ip, vlan_id);
   }
 
-  if(lua_type(vm, 3) == LUA_TSTRING)
-    key = (char*)lua_tostring(vm, 3);
+  if(lua_type(vm, 2) == LUA_TSTRING) {
+    sortColumn = (char*)lua_tostring(vm, 2);
+    
+    if(lua_type(vm, 3) == LUA_TNUMBER)
+      maxHits = (u_int16_t)lua_tonumber(vm, 3);
 
-  if(host_ip)
-    snprintf(sql, sizeof(sql), "SELECT %s FROM FLOWS WHERE host = %s AND vlan = %u", key ? key : "*", host_ip, vlan_id);
-  else
-    snprintf(sql, sizeof(sql), "SELECT %s FROM FLOWS", key ? key : "*");
+    if(lua_type(vm, 4) == LUA_TNUMBER)
+      toSkip = (u_int16_t)lua_tonumber(vm, 4);
 
+    if(lua_type(vm, 5) == LUA_TBOOLEAN)
+      a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
+  }
+  
   if(ntop_interface) {
-    if(ntop_interface->retrieve(vm, get_allowed_nets(vm), sql))
-      return CONST_LUA_ERROR;
-  }
+    int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), 
+					    host, sortColumn, maxHits,
+					    toSkip, a2zSortOrder);
 
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-/**
- * @brief Query the flow information of network interface.
- * @details Get the ntop interface global variable of lua and push the requested information of flows into the lua stack as a new hashtable.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
-static int ntop_query_interface_flows_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  char *sql = NULL;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) != LUA_TSTRING)
-    return CONST_LUA_ERROR;
-
-  sql = (char*)lua_tostring(vm, 1);
-
-  if(ntop_interface || !sql) {
-    if(ntop_interface->retrieve(vm, get_allowed_nets(vm), sql))
-      return CONST_LUA_ERROR;
+    /* FIX: do something with flows number */
+    if(numFlows < 0) return(CONST_LUA_ERROR);
   }
 
   return(CONST_LUA_OK);
@@ -1379,7 +1364,7 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
   if(f == NULL)
     return(CONST_LUA_ERROR);
   else {
-    f->lua(vm, ptree, true, FS_ALL);
+    f->lua(vm, ptree, true, false);
     return(CONST_LUA_OK);
   }
 }
@@ -1821,7 +1806,7 @@ static int ntop_get_interface_pkts_dumped_file(lua_State* vm) {
 
   PacketDumper *dumper = ntop_interface->getPacketDumper();
   if(!dumper)
-    return CONST_LUA_ERROR;
+    return(CONST_LUA_ERROR);
 
   num_pkts = dumper->get_num_dumped_packets();
 
@@ -1843,7 +1828,7 @@ static int ntop_get_interface_pkts_dumped_tap(lua_State* vm) {
 
   PacketDumperTuntap *dumper = ntop_interface->getPacketDumperTap();
   if(!dumper)
-    return CONST_LUA_ERROR;
+    return(CONST_LUA_ERROR);
 
   num_pkts = dumper->get_num_dumped_packets();
 
@@ -3493,17 +3478,13 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
 static int ntop_delete_dump_files(lua_State *vm) {
   int ifid;
   char pcap_path[MAX_PATH];
+  NetworkInterface *iface;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ifid = lua_tointeger(vm, 1);
-  if(ifid < 0)
-    return(CONST_LUA_ERROR);
-
-  NetworkInterface *iface = ntop->getInterfaceById(ifid);
-
-  if(!iface) return CONST_LUA_ERROR;
+  if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
+  if(!(iface = ntop->getInterfaceById(ifid))) return(CONST_LUA_ERROR);
 
   snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/",
 	   ntop->get_working_dir(), ifid);
@@ -4178,7 +4159,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
-  { "queryFlowsInfo",         ntop_query_interface_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowPeers",           ntop_get_interface_flows_peers },
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },

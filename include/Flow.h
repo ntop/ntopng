@@ -176,9 +176,11 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
   inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));     };
   inline u_int64_t get_partial_packets()          { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
+  inline float get_bytes_thpt()                   { return(bytes_thpt);     };
 
   inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
   inline time_t get_partial_last_seen()           { return(get_last_seen()); };
+  inline u_int32_t get_duration()                 { return(get_last_seen()-get_first_seen()); };
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
   inline ndpi_protocol get_detected_protocol()    { return(ndpi_detected_protocol);          };
   inline Host* get_cli_host()                     { return(cli_host);                        };
@@ -205,7 +207,7 @@ class Flow : public GenericHashEntry {
   void update_hosts_stats(struct timeval *tv);
   void print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose);
   u_int32_t key();
-  void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump, enum flowsSelector selector);
+  void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump, bool asListElement);
   bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
@@ -220,7 +222,9 @@ class Flow : public GenericHashEntry {
   inline bool isBadFlow()        { return(badFlow); }
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-
+  inline char* getDnsLastQuery()    { return(dns.last_query);  }
+  inline char* getHTTPLastURL()     { return(http.last_url);   }
+  inline char* getSSLCertificate()  { return(ssl.certificate); }
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id);

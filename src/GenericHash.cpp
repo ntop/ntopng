@@ -136,7 +136,8 @@ bool GenericHash::remove(GenericHashEntry *h) {
 void GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   bool found = false;
 
-  if(ntop->getGlobals()->isShutdown()) return;
+  if(ntop->getGlobals()->isShutdown())     
+    return;
 
   for(u_int hash_id = 0; hash_id < num_hashes; hash_id++) {
     if(table[hash_id] != NULL) {
@@ -176,7 +177,9 @@ void GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), voi
 u_int GenericHash::purgeIdle() {
   u_int i, num_purged = 0;
 
-  if(ntop->getGlobals()->isShutdown()) return(0);
+  if(ntop->getGlobals()->isShutdown()
+     || purgeLock.is_locked())
+    return(0);
 
   for(u_int j = 0; j < num_hashes / PURGE_FRACTION; j++) {
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;

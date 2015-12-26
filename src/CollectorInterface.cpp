@@ -125,7 +125,7 @@ void CollectorInterface::collect_flows() {
 	if(size > 0) {
 	  payload[size] = '\0';
 
-	  parse_flows(payload, sizeof(payload) , source_id, this);
+	  parse_flows(payload, sizeof(payload), source_id, this);
 
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", h.size, payload);
 	}
@@ -152,7 +152,7 @@ static void* packetPollLoop(void* ptr) {
 
 void CollectorInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
-  pollLoopCreated = true; 
+  pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
 
