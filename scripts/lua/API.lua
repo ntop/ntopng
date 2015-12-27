@@ -72,16 +72,10 @@ function getStats ()
 function getnDPIProtoName (proto)
 
 --! @memberof interface
---! @brief Get the hosts information of network interface.
---! @details For more information please read the @ref ntop_get_interface_hosts documentation.
---! @return An hashtable that contain the hosts information of the network interface.
-function getHosts ()
-
---! @memberof interface
 --! @brief Get details hosts information of network interface.
 --! @details For more information please read the @ref ntop_get_interface_hosts_info documentation.
 --! @tparam bool show_details Boolean variable that define the details level. Optional, for default it is set to true.
---! @return An hashtable that contain the hosts information of the network interface.
+--! @return An hashtable that contain the hosts information of the network interface, and number of hits.
 function getHostsInfo (show_details)
 
 --! @memberof interface
@@ -111,8 +105,15 @@ function restoreHost(host_ip)
 --! @memberof interface
 --! @brief Get the flow information (minimal details) of network interface.
 --! @details For more information please read the @ref ntop_get_interface_flows_info documentation.
---! @return An hashtable containing the flow information of network interface with minimal details.
+--! @return An hashtable containing the flow information of network interface with minimal details, and number of hits.
 function getFlowsInfo()
+
+--! @memberof interface
+--! @memberof interface
+--! @brief Get the flow information (minimal details) of network interface for local hosts.
+--! @details Same as getFlowsInfo() but restricted to local hosts only
+--! @return An hashtable containing the flow information of network interface with minimal details, and number of hits.
+function getLocalFlowsInfo()
 
 --! @memberof interface
 --! @brief Get the flow peers information of network interface.

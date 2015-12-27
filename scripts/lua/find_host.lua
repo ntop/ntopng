@@ -33,7 +33,7 @@ print [[
 	    end
 	 end
       else
-      hosts_stats = interface.getHostsInfo(true)
+      hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
       --   query = "192"
 
       if(query ~= nil) then

@@ -37,7 +37,7 @@ if (_GET["hosts"] ~= nil) then
     end
 
     -- 1.    Find all flows between compared hosts
-    flows_stats = interface.getFlowsInfo()
+    flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
 
     links = {}
     links_size = 0

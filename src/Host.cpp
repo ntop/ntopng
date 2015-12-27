@@ -406,20 +406,25 @@ void Host::set_mac(char *m) {
 /* *************************************** */
 
 void Host::lua(lua_State* vm, patricia_tree_t *ptree,
-	       bool host_details, bool verbose, bool returnHost) {
+	       bool host_details, bool verbose, 
+	       bool returnHost, bool asListElement) {
   char buf[64];
   char buf_id[64];
   char *ipaddr = NULL;
 
-  if(!match(ptree)) return;
+  if(ptree && (!match(ptree)))
+    return;
 
   lua_newtable(vm);
   if(ip) {
     char ip_buf[64];
 
     lua_push_str_table_entry(vm, "ip", (ipaddr = ip->print(ip_buf, sizeof(ip_buf))));
-  } else
+    lua_push_int_table_entry(vm, "ipkey", ip->key());
+  } else {
     lua_push_nil_table_entry(vm, "ip");
+    lua_push_nil_table_entry(vm, "ipkey");
+  }
   
   if((antenna_mac_address[0] != 0)
      && (antenna_mac_address[1] != 0)
@@ -590,16 +595,11 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 
     if(!returnHost) {
       /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
-
       if(vlan_id == 0) {
         sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address));
       } else {
         sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address), vlan_id );
       }
-
-      lua_pushstring(vm,buf_id);
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
     }
   } else {
     /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
@@ -608,6 +608,9 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     } else {
       sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address),vlan_id );
     }
+  }
+
+  if(asListElement) {
     lua_pushstring(vm, buf_id);
     lua_insert(vm, -2);
     lua_settable(vm, -3);

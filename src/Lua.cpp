@@ -390,41 +390,44 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-/**
- * @brief Get the hosts of network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of host information (Host name and number of bytes sent and received).
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_hosts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, false);
-
-  return(CONST_LUA_OK);
-}
-
-/**
- * @brief Get all local hosts of network interface.
- * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of local host information (Host name and number of bytes sent and received).
- *
- * @param vm The lua state.
- * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
- */
-static int ntop_get_interface_local_hosts(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, true);
-
-  return(CONST_LUA_OK);
-}
-
 /* ****************************************** */
+
+static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+  bool show_details = true;
+  char *sortColumn = (char*)"column_ip";
+  bool a2zSortOrder = true;
+  u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN) {
+    show_details = lua_toboolean(vm, 1) ? true : false;
+    
+    if(lua_type(vm, 2) == LUA_TSTRING) {
+      sortColumn = (char*)lua_tostring(vm, 2);
+      
+      if(lua_type(vm, 3) == LUA_TNUMBER) {
+	maxHits = (u_int16_t)lua_tonumber(vm, 3);
+	
+	if(lua_type(vm, 4) == LUA_TNUMBER) {
+	  toSkip = (u_int16_t)lua_tonumber(vm, 4);
+	
+	  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
+	    a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
+	  }
+	}
+      }
+    }
+  }
+
+  if(ntop_interface)
+    ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
+                                       show_details, show_local_only,
+                                       sortColumn, maxHits, toSkip, a2zSortOrder);
+
+  return(CONST_LUA_OK);
+}
 
 /**
  * @brief Get the hosts information of network interface.
@@ -434,26 +437,7 @@ static int ntop_get_interface_local_hosts(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_hosts_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  bool show_details, show_local_only;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  /* Optional */
-  if(lua_type(vm, 1) != LUA_TBOOLEAN)
-    show_details = true;
-  else
-    show_details = lua_toboolean(vm, 1) ? true : false;
-
-  /* Optional */
-  if(lua_type(vm, 2) != LUA_TBOOLEAN)
-    show_local_only = false;
-  else
-    show_local_only = lua_toboolean(vm, 2) ? true : false;
-
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, show_local_only);
-
-  return(CONST_LUA_OK);
+  return(ntop_get_interface_hosts(vm, false));
 }
 
 /**
@@ -464,20 +448,7 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_local_hosts_info(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  bool show_details;
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  /* Optional */
-  if(lua_type(vm, 1) != LUA_TBOOLEAN)
-    show_details = true;
-  else
-    show_details = lua_toboolean(vm, 1) ? true : false;
-
-  if(ntop_interface) ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), show_details, true);
-
-  return(CONST_LUA_OK);
+  return(ntop_get_interface_hosts(vm, true));
 }
 
 /* ****************************************** */
@@ -1058,10 +1029,10 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  * @param vm The lua state.
  * @return CONST_LUA_OK.
  */
-static int ntop_get_interface_flows_info(lua_State* vm) {
+static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char buf[64];
-  char *host_ip = NULL, *sortColumn = NULL;
+  char *host_ip = NULL, *sortColumn = (char*)"column_client";
   u_int16_t vlan_id = 0;
   Host *host = NULL;
   bool a2zSortOrder = true;
@@ -1092,7 +1063,7 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
   
   if(ntop_interface) {
     int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), 
-					    host, sortColumn, maxHits,
+					    host, localOnly, sortColumn, maxHits,
 					    toSkip, a2zSortOrder);
 
     /* FIX: do something with flows number */
@@ -1101,6 +1072,9 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+static int ntop_get_interface_flows_info(lua_State* vm)       { return(ntop_get_interface_flows(vm, false)); }
+static int ntop_get_interface_local_flows_info(lua_State* vm) { return(ntop_get_interface_flows(vm, true));  }
 
 /* ****************************************** */
 
@@ -4143,8 +4117,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIFlowsCount",      ntop_get_ndpi_interface_flows_count },
   { "getnDPIProtoBreed",      ntop_get_ndpi_protocol_breed },
   { "getnDPIProtocols",       ntop_get_ndpi_protocols },
-  { "getHosts",               ntop_get_interface_hosts },
-  { "getLocalHosts",          ntop_get_interface_local_hosts },
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getHostInfo",            ntop_get_interface_host_info },
@@ -4155,6 +4127,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostActivityMap",     ntop_get_interface_host_activitymap },
   { "restoreHost",            ntop_restore_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
+  { "getLocalFlowsInfo",      ntop_get_interface_local_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowPeers",           ntop_get_interface_flows_peers },
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },

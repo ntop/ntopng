@@ -57,13 +57,13 @@ function getTraffic(stats, host_a, host_b)
 end
 
 interface.select(ifname)
-hosts_stats = interface.getLocalHostsInfo()
-flows_stats = interface.getFlowsInfo()
+hosts_stats,total_hosts = aggregateHostsStats(interface.getLocalHostsInfo())
+flows_stats,total_flows = aggregateFlowsStats(interface.getLocalFlowsInfo())
 
 localhosts = {}
 found = false
 for key, value in pairs(hosts_stats) do
-   --print(hosts_stats[key]["name"].."<p>\n")
+   -- print(hosts_stats[key]["name"].."<p>\n")
 
    if(hosts_stats[key]["ip"] ~= nil) then
       -- exclude multicast / NoIP / broadcast

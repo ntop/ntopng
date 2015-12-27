@@ -79,7 +79,7 @@ else
     end
 
     -- 1.    Find all flows between compared hosts
-    flows_stats = interface.getFlowsInfo()
+    flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
 
     ndpi = {}
     l4 = {}

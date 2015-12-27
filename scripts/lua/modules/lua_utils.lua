@@ -82,6 +82,44 @@ function aggregateInterfaceStats(ifstats)
    return(ifstats)
 end
 
+-- ##########################################
+
+function aggregateHostsStats(hostStats)
+   if(hostStats == nil) then return(hostStats) end
+
+   local tot = 0
+   local res = { }
+   for ifname,_v in pairs(hostStats) do
+      for k,v in pairs(_v["hosts"]) do
+	    --io.write(k.."\n")
+	    res[k] = v
+      end
+      
+      tot = tot + _v["numHosts"]
+   end
+
+   return res,tot
+end
+
+-- ##########################################
+
+function aggregateFlowsStats(flowstats)
+   if(flowstats == nil) then return(flowstats) end
+
+   local tot = 0
+   local res = { }
+   for ifname,_v in pairs(flowstats) do
+      for k,v in pairs(_v["flows"]) do
+	    --io.write(k.."\n")
+	    res[k] = v
+      end
+      
+      tot = tot + _v["numFlows"]
+   end
+
+   return res,tot
+end
+
 -- ##############################################
 
 function getInterfaceName(interface_id)

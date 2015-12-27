@@ -194,11 +194,16 @@ class NetworkInterface {
   void updateHostStats();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
-  void getActiveHostsList(lua_State* vm, vm_ptree *vp, bool host_details, bool local_only);
+  int getActiveHostsList(lua_State* vm,
+			 patricia_tree_t *allowed_hosts,
+			 bool host_details, bool local_only,
+			 char *sortColumn, u_int32_t maxHits,
+			 u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
   int  getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
-		Host *host, char *sortColumn, u_int32_t maxHits,
+		Host *host, bool local_only,
+		char *sortColumn, u_int32_t maxHits,
 		u_int32_t toSkip, bool a2zSortOrder);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts,
 			char *numIP, u_int16_t vlanId);

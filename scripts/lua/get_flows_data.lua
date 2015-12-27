@@ -90,12 +90,9 @@ interface.select(ifname)
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 res = interface.getFlowsInfo(host, sortColumn, perPage, to_skip, sOrder)
 
-flows_stats = res["flows"]
+flows_stats,total = aggregateFlowsStats(res)
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
-total = res["numFlows"]
-
---host = "a"
 
 -- Prepare host
 host_list = {}

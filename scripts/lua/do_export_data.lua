@@ -28,7 +28,7 @@ if((_GET["hostIP"] ~= nil) and (_GET["hostIP"] ~= "")) then
 else
    -- All hosts
    
-   hosts_stats = interface.getHostsInfo()
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
    num = 0
    print("[\n")
 

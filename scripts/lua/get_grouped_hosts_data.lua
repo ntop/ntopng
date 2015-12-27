@@ -62,14 +62,14 @@ end
 interface.select(ifname)
 
 if((group_col == "mac") or (group_col == "antenna_mac")) then
-   hosts_stats = interface.getLocalHostsInfo()
+   hosts_stats,total = aggregateHostsStats(interface.getLocalHostsInfo())
    --PRINT
    -- for n in pairs(hosts_stats) do 
    --    io.write("= "..n..'\n')
    -- end
 
 else
-   hosts_stats = interface.getHostsInfo()
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
 end
 
 to_skip = (currentPage-1) * perPage

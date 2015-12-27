@@ -58,10 +58,10 @@ else
    end
 end
 
-if ((sortColumn == nil) or (sortColumn == "column_"))then
+if((sortColumn == nil) or (sortColumn == "column_"))then
    sortColumn = getDefaultTableSort("hosts")
 else
-   if ((sortColumn ~= "column_")
+   if((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
       tablePreferences("sort_hosts",sortColumn)
    end
@@ -70,7 +70,7 @@ end
 if(sortOrder == nil) then
    sortOrder = getDefaultTableSortOrder("hosts")
 else
-   if ((sortColumn ~= "column_")
+   if((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
       tablePreferences("sort_order_hosts",sortOrder)
    end
@@ -95,22 +95,27 @@ if((mode == nil) or (mode == "")) then mode = "all" end
 
 interface.select(ifname)
 
-if((mac ~= nil) or (antenna_mac ~= nil)) then
-   hosts_stats = interface.getLocalHostsInfo()
-else
-   hosts_stats = interface.getHostsInfo(false)
-end
-
 to_skip = (currentPage-1) * perPage
 
-if (all ~= nil) then
+if(sortOrder == "desc") then sOrder = false else sOrder = true end
+if((mac ~= nil) or (antenna_mac ~= nil)) then
+   hosts_stats = interface.getLocalHostsInfo(false, sortColumn, perPage, to_skip, sOrder) -- false = little details
+else  
+   hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder) -- false = little details
+end
+
+hosts_stats,total = aggregateHostsStats(hosts_stats)
+-- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
+
+-- io.write("->"..total.." ["..sortColumn.."]\n")
+
+if(all ~= nil) then
    perPage = 0
    currentPage = 0
 end
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 num = 0
-total = 0
 
 now = os.time()
 vals = {}
@@ -205,11 +210,10 @@ for key, value in pairs(hosts_stats) do
    end
 
    if(ok) then
-      --print("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]\n")
+      --io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
-      
-      if(sortColumn == "column_" ) then
-	 vals[key] = key
+      if(sortColumn == "column_") then
+	 vals[key] = key -- hosts_stats[key]["ipkey"]
 	 elseif(sortColumn == "column_name") then
 	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
 	 vals[hosts_stats[key]["name"]..postfix] = key
@@ -237,6 +241,8 @@ for key, value in pairs(hosts_stats) do
 	 vals[hosts_stats[key]["throughput_"..throughput_type]+postfix] = key
 	 elseif(sortColumn == "column_queries") then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
+	 elseif(sortColumn == "column_ip") then
+	 vals[hosts_stats[key]["ipkey"]+postfix] = key
       else
 	 -- io.write(key.."\n")
 	 -- io.write(hosts_stats[key].."\n")
@@ -269,9 +275,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 ((network == nil) or (network == tostring(hosts_stats[key]["local_network_id"])))) then
       value = hosts_stats[key]
 
-      if(to_skip > 0) then
-	 to_skip = to_skip-1
-      else
 	 if((num < perPage) or (all ~= nil))then
 	    if(num > 0) then print ",\n" end
 	    print ('{ ')
@@ -324,7 +327,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 	       print(shortHostName(value["name"]))	
 	    end
 
-	    if (value["ip"] ~= nil) then
+	    if(value["ip"] ~= nil) then
 	       label = getHostAltName(value["ip"])
 	       if(label ~= value["ip"]) then
 		  print (" ["..label.."]")
@@ -347,9 +350,9 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    end
 	    if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then print("\", \"column_httpbl\" : \"".. value["httpbl"]) end
 
-	    if (value["vlan"] ~= nil) then
+	    if(value["vlan"] ~= nil) then
 
-	       if (value["vlan"] ~= 0) then
+	       if(value["vlan"] ~= 0) then
 		  print("\", \"column_vlan\" : "..value["vlan"])
 	       else
 		  print("\", \"column_vlan\" : \"0\"")
@@ -371,11 +374,10 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
 	    print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
 
-	    if (  (value["throughput_trend_"..throughput_type] ~= nil) and
-	       (value["throughput_trend_"..throughput_type] > 0)
-	 ) then
+	    if((value["throughput_trend_"..throughput_type] ~= nil) and
+	       (value["throughput_trend_"..throughput_type] > 0)) then
 
-	       if (throughput_type == "pps") then
+	       if(throughput_type == "pps") then
 		  print ("\"column_thpt\" : \"" .. pktsToSize(value["throughput_pps"]).. " ")
 	       else
 		  print ("\"column_thpt\" : \"" .. bitsToSize(8*value["throughput_bps"]).. " ")
@@ -413,10 +415,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 	    print("\" } ")
 	    num = num + 1
-	 end
       end
-
-      total = total + 1
    end
 end -- for
 

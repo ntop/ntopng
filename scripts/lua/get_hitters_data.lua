@@ -38,7 +38,7 @@ pid    = tonumber(_GET["pid"])
 name   = _GET["name"]
 
 interface.select(ifname)
-flows_stats = interface.getFlowsInfo(host)
+flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo(host))
 
 vals = {}
 hitters = {}

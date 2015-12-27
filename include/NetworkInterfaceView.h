@@ -43,12 +43,17 @@ class NetworkInterfaceView {
   inline int get_id()                  { return(id);            }
 
   void getnDPIStats(nDPIStats *stats);
-  void getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts, bool host_details, bool local_only);
+  int getActiveHostsList(lua_State* vm,
+			 patricia_tree_t *allowed_hosts,
+			 bool host_details, bool local_only,
+			 char *sortColumn, u_int32_t maxHits,
+			 u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
   bool hasSeenVlanTaggedPackets();
   int getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
-	       Host *host, char *sortColumn, u_int32_t maxHits,
+	       Host *host,  bool local_only,
+	       char *sortColumn, u_int32_t maxHits,
 	       u_int32_t toSkip, bool a2zSortOrder);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);

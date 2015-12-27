@@ -108,17 +108,30 @@ void NetworkInterfaceView::getnDPIStats(nDPIStats *stats) {
 
 /* **************************************************** */
 
-void NetworkInterfaceView::getActiveHostsList(lua_State* vm,
-					      patricia_tree_t *allowed_hosts,
-					      bool host_details,
-					      bool local_only) {
+int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
+					     patricia_tree_t *allowed_hosts,
+					     bool host_details, bool local_only,
+					     char *sortColumn, u_int32_t maxHits,
+					     u_int32_t toSkip, bool a2zSortOrder) {
   struct vm_ptree vp;
+  int ret = 0;
 
   vp.vm = vm, vp.ptree = allowed_hosts;
 
   lua_newtable(vm);
-  for(int i = 0; i<numInterfaces; i++)
-    physIntf[i]->getActiveHostsList(vm, &vp, host_details, local_only);
+  for(int i = 0; i<numInterfaces; i++) {
+    int rc = physIntf[i]->getActiveHostsList(vm, allowed_hosts, host_details, local_only, 
+					     sortColumn, maxHits,
+					     toSkip, a2zSortOrder);
+    if(rc < 0) return(ret); 
+    rc += ret;
+    
+    lua_pushstring(vm, physIntf[i]->get_name()); // Key
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  return(ret);
 }
 
 /* **************************************************** */
@@ -134,7 +147,7 @@ bool NetworkInterfaceView::hasSeenVlanTaggedPackets() {
 
 int NetworkInterfaceView::getFlows(lua_State* vm,
 				   patricia_tree_t *allowed_hosts,
-				   Host *host,
+				   Host *host, bool local_only,
 				   char *sortColumn,
 				   u_int32_t maxHits,
 				   u_int32_t toSkip,
@@ -145,10 +158,15 @@ int NetworkInterfaceView::getFlows(lua_State* vm,
 
   for(int i = 0; i<numInterfaces; i++) {
     int rc = physIntf[i]->getFlows(vm, allowed_hosts, host, 
-				   sortColumn, maxHits, 
+				   local_only, sortColumn, maxHits, 
 				   toSkip, a2zSortOrder);
     
-    if(rc < 0) return(ret); else rc += ret;
+    if(rc < 0) return(ret);
+    rc += ret;
+
+    lua_pushstring(vm, physIntf[i]->get_name()); // Key
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 
   return(ret);

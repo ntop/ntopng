@@ -1565,60 +1565,6 @@ void NetworkInterface::updateFlowsL7Policy() {
 
 /* **************************************************** */
 
-static bool hosts_get_list(GenericHashEntry *h, void *user_data) {
-  struct vm_ptree *vp = (struct vm_ptree*)user_data;
-
-  ((Host*)h)->lua(vp->vm, vp->ptree, false, false, false);
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool hosts_get_list_details(GenericHashEntry *h, void *user_data) {
-  struct vm_ptree *vp = (struct vm_ptree*)user_data;
-
-  ((Host*)h)->lua(vp->vm, vp->ptree, true, false, false);
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool hosts_get_local_list(GenericHashEntry *h, void *user_data) {
-  struct vm_ptree *vp = (struct vm_ptree*)user_data;
-
-  if(((Host*)h)->isLocalHost())
-    ((Host*)h)->lua(vp->vm, vp->ptree, false, false, false);
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool hosts_get_local_list_details(GenericHashEntry *h, void *user_data) {
-  struct vm_ptree *vp = (struct vm_ptree*)user_data;
-
-  if(((Host*)h)->isLocalHost())
-    ((Host*)h)->lua(vp->vm, vp->ptree, true, false, false);
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::getActiveHostsList(lua_State* vm,
-					  vm_ptree *vp,
-					  bool host_details,
-					  bool local_only) {
-  if(local_only)
-    hosts_hash->walk(host_details ? hosts_get_local_list_details : hosts_get_local_list, (void*)vp);
-  else
-    hosts_hash->walk(host_details ? hosts_get_list_details : hosts_get_list, (void*)vp);
-}
-
-/* **************************************************** */
-
 struct host_find_info {
   char *host_to_find;
   u_int16_t vlan_id;
@@ -1737,7 +1683,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
   Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
-    h->lua(vm, allowed_hosts, true, true, true);
+    h->lua(vm, allowed_hosts, true, true, true, false);
     return(true);
   } else
     return(false);
@@ -1774,6 +1720,7 @@ Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
 /* **************************************************** */
 
 enum flowSortField {
+  /* Flows */
   column_client = 0,
   column_server,
   column_proto_l4,
@@ -1781,10 +1728,18 @@ enum flowSortField {
   column_duration,
   column_thpt,
   column_bytes,
-  column_info
+  column_info,
+  /* Hosts */
+  column_ip,
+  column_alerts,
+  column_name,
+  column_since,
+  column_asn,
+  /* column_thpt, */
+  column_traffic
 };
 
-struct flowRetrieveList {
+struct flowHostRetrieveList {
   Flow *flow;
   /* Value */
   Host *hostValue;
@@ -1792,21 +1747,23 @@ struct flowRetrieveList {
   char *stringValue;
 };
 
-struct flowRetriever {
+struct flowHostRetriever {
   /* Search criteria */
   patricia_tree_t *allowed_hosts;
   Host *host;
   enum flowSortField sorter;
+  bool local_only;
 
   /* Return values */
-  u_int32_t maxNumFlows, actNumFlows;
-  struct flowRetrieveList *elems;
+  u_int32_t maxNumEntries, actNumEntries;
+  struct flowHostRetrieveList *elems;
 };
 
 /* **************************************************** */
+/* **************************************************** */
 
 static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
-  struct flowRetriever *retriever = (struct flowRetriever*)user_data;
+  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
   Flow *f = (Flow*)h;
 
   if(f && (!f->idle())) {
@@ -1815,41 +1772,50 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && (retriever->host != f->get_srv_host()))
     return(false); /* false = keep on walking */
 
-    retriever->elems[retriever->actNumFlows].flow = f;
+    if(retriever->local_only) {
+      if((!f->get_cli_host()->isLocalHost())
+	 || (!f->get_srv_host()->isLocalHost()))
+	return(false); /* false = keep on walking */
+    }
+    
+    retriever->elems[retriever->actNumEntries].flow = f;
 
     if(f->match(retriever->allowed_hosts)) {
       switch(retriever->sorter) {
       case column_client:
-	retriever->elems[retriever->actNumFlows++].hostValue = f->get_cli_host();
+	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
       case column_server:
-	retriever->elems[retriever->actNumFlows++].hostValue = f->get_srv_host();
+	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
       case column_proto_l4:
-	retriever->elems[retriever->actNumFlows++].numericValue = f->get_protocol();
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
 	break;
       case column_ndpi:
-	retriever->elems[retriever->actNumFlows++].numericValue = f->get_detected_protocol().protocol;
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().protocol;
 	break;
       case column_duration:
-	retriever->elems[retriever->actNumFlows++].numericValue = f->get_duration();
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
 	break;
       case column_thpt:
-	retriever->elems[retriever->actNumFlows++].numericValue = f->get_bytes_thpt();
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes_thpt();
 	break;
       case column_bytes:
-	retriever->elems[retriever->actNumFlows++].numericValue = f->get_bytes();
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
 	break;
       case column_info:
-	if(f->getDnsLastQuery())        retriever->elems[retriever->actNumFlows++].stringValue = f->getDnsLastQuery();
-	else if(f->getHTTPLastURL())    retriever->elems[retriever->actNumFlows++].stringValue = f->getHTTPLastURL();
-	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumFlows++].stringValue = f->getSSLCertificate();
-	else retriever->elems[retriever->actNumFlows++].stringValue = (char*)"";
+	if(f->getDnsLastQuery())        retriever->elems[retriever->actNumEntries++].stringValue = f->getDnsLastQuery();
+	else if(f->getHTTPLastURL())    retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPLastURL();
+	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumEntries++].stringValue = f->getSSLCertificate();
+	else retriever->elems[retriever->actNumEntries++].stringValue = (char*)"";
+	break;
+      default:
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
 	break;
     }
   }
 
-  if(retriever->actNumFlows == retriever->maxNumFlows)
+  if(retriever->actNumEntries == retriever->maxNumEntries)
     return(true); /* Limit reached */
   else
     return(false); /* false = keep on walking */
@@ -1859,16 +1825,69 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
+static bool host_search_walker(GenericHashEntry *he, void *user_data) {
+  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
+  Host *h = (Host*)he;
+
+  if(h && (!h->idle()) && h->match(retriever->allowed_hosts)) {
+    if(retriever->local_only && (!h->isLocalHost()))
+      return(false); /* false = keep on walking */
+
+    retriever->elems[retriever->actNumEntries].hostValue = h;
+
+    if(h->match(retriever->allowed_hosts)) {
+      switch(retriever->sorter) {
+      case column_ip:
+	retriever->elems[retriever->actNumEntries++].hostValue = h;
+	break;
+      case column_alerts:
+	retriever->elems[retriever->actNumEntries++].numericValue = h->getNumAlerts();
+	break;
+      case column_name:
+	{
+	  char buf[64];
+
+	  retriever->elems[retriever->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
+	}
+	break;
+      case column_since:
+	retriever->elems[retriever->actNumEntries++].numericValue = h->get_first_seen();
+	break;
+      case column_asn:
+	retriever->elems[retriever->actNumEntries++].numericValue = h->get_asn();
+	break;
+      case column_thpt:
+	retriever->elems[retriever->actNumEntries++].numericValue = h->getBytesThpt();
+	break;
+      case column_traffic:
+	retriever->elems[retriever->actNumEntries++].numericValue = h->getNumBytes();
+	break;
+      default:
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
+	break;
+      }
+    }
+
+    if(retriever->actNumEntries == retriever->maxNumEntries)
+      return(true); /* Limit reached */
+    else
+      return(false); /* false = keep on walking */
+  } else
+    return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 int hostSorter(const void *_a, const void *_b) {
-  struct flowRetrieveList *a = (struct flowRetrieveList*)_a;
-  struct flowRetrieveList *b = (struct flowRetrieveList*)_b;
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
 
   return(a->hostValue->get_ip()->compare(b->hostValue->get_ip()));
 }
 
 int numericSorter(const void *_a, const void *_b) {
-  struct flowRetrieveList *a = (struct flowRetrieveList*)_a;
-  struct flowRetrieveList *b = (struct flowRetrieveList*)_b;
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
 
   if(a->numericValue < b->numericValue)      return(-1);
   else if(a->numericValue > b->numericValue) return(1);
@@ -1876,8 +1895,8 @@ int numericSorter(const void *_a, const void *_b) {
 }
 
 int stringSorter(const void *_a, const void *_b) {
-  struct flowRetrieveList *a = (struct flowRetrieveList*)_a;
-  struct flowRetrieveList *b = (struct flowRetrieveList*)_b;
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList*)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList*)_b;
 
   return(strcmp(a->stringValue, b->stringValue));
 }
@@ -1886,18 +1905,18 @@ int stringSorter(const void *_a, const void *_b) {
 
 int NetworkInterface::getFlows(lua_State* vm,
 			       patricia_tree_t *allowed_hosts,
-			       Host *host,
+			       Host *host, bool local_only,
 			       char *sortColumn,
 			       u_int32_t maxHits,
 			       u_int32_t toSkip,
 			       bool a2zSortOrder) {
-  struct flowRetriever retriever;
+  struct flowHostRetriever retriever;
   int (*sorter)(const void *_a, const void *_b);
-  bool highDetails = (maxHits == CONST_MAX_NUM_HITS) ? false : true;
+  bool highDetails = (local_only || (maxHits != CONST_MAX_NUM_HITS)) ? true : false;
 
-  retriever.host = host;
-  retriever.actNumFlows = 0, retriever.maxNumFlows = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
-  retriever.elems = (struct flowRetrieveList*)calloc(sizeof(struct flowRetrieveList), retriever.maxNumFlows);
+  retriever.host = host, retriever.local_only = local_only;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
+  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
   if(retriever.elems == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
@@ -1910,7 +1929,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   else if(!strcmp(sortColumn, "column_ndpi")) retriever.sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever.sorter = column_duration, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever.sorter = column_thpt, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_bytes")) retriever.sorter = column_bytes, sorter = numericSorter;
+  else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever.sorter = column_bytes, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_info")) retriever.sorter = column_info, sorter = stringSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
@@ -1919,20 +1938,20 @@ int NetworkInterface::getFlows(lua_State* vm,
   flows_hash->disablePurge();
   flows_hash->walk(flow_search_walker, (void*)&retriever);
 
-  qsort(retriever.elems, retriever.actNumFlows, sizeof(struct flowRetrieveList), sorter);
+  qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numFlows", retriever.actNumFlows);
+  lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
 
   lua_newtable(vm);
 
   if(a2zSortOrder) {
-    for(int i=toSkip, num=0; i<retriever.actNumFlows; i++) {
+    for(int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
       if(++num >= maxHits) break;
     }
   } else {
-    for(int i=retriever.actNumFlows-1-toSkip, num=0; i>=0; i--) {
+    for(int i=retriever.actNumEntries-1-toSkip, num=0; i>=0; i--) {
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
       if(++num >= maxHits) break;
     }
@@ -1945,7 +1964,78 @@ int NetworkInterface::getFlows(lua_State* vm,
   flows_hash->enablePurge();
   free(retriever.elems);
 
-  return(retriever.actNumFlows);
+  return(retriever.actNumEntries);
+}
+
+/* **************************************************** */
+
+int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
+					 bool host_details, bool local_only,
+					 char *sortColumn, u_int32_t maxHits,
+					 u_int32_t toSkip, bool a2zSortOrder) {
+
+  struct flowHostRetriever retriever;
+  int (*sorter)(const void *_a, const void *_b);
+  
+  retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
+
+  if(retriever.elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  if((!strcmp(sortColumn, "column_ip")) || (!strcmp(sortColumn, "column_"))) retriever.sorter = column_ip, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_alerts")) retriever.sorter = column_alerts, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_name")) retriever.sorter = column_name, sorter = stringSorter;
+  else if(!strcmp(sortColumn, "column_since")) retriever.sorter = column_since, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_asn")) retriever.sorter = column_asn, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt")) retriever.sorter = column_thpt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic")) retriever.sorter = column_traffic, sorter = numericSorter;
+  else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
+
+  /* ******************************* */
+
+  hosts_hash->disablePurge();
+  hosts_hash->walk(host_search_walker, (void*)&retriever);
+
+  qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
+
+  lua_newtable(vm);
+
+  if(a2zSortOrder) {
+    for(int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
+      retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */, 
+					host_details, false, false, true);
+      if(++num >= maxHits) break;
+    }
+  } else {
+    for(int i=retriever.actNumEntries-1-toSkip, num=0; i>=0; i--) {
+      retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */,
+					host_details, false, false, true);
+      if(++num >= maxHits) break;
+    }
+  }
+
+  lua_pushstring(vm, "hosts"); // Key
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  hosts_hash->enablePurge();
+
+  if(sorter == stringSorter) {
+    for(int i=0; i<retriever.maxNumEntries; i++)
+      if(retriever.elems[i].stringValue) 
+	free(retriever.elems[i].stringValue);
+  }
+
+  free(retriever.elems);
+
+  return(retriever.actNumEntries);
 }
 
 /* **************************************************** */

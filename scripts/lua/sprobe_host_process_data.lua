@@ -13,7 +13,7 @@ host_ip = _GET["host"]
 host_id = _GET["host_id"]
 
 interface.select(ifname)
-flows_stats = interface.getFlowsInfo(host_ip)
+flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo(host_ip))
 
 
 print("[")

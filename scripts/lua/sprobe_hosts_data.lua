@@ -10,7 +10,7 @@ require "lua_utils"
 sendHTTPHeader('application/json')
 
 interface.select(ifname)
-flows_stats = interface.getFlowsInfo()
+flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
 
 links = {}
 hosts = {}

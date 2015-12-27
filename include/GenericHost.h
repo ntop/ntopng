@@ -69,10 +69,12 @@ class GenericHost : public GenericHashEntry {
   inline void incNumAlerts()          { num_alerts_detected++;             };
   inline u_int32_t getNumAlerts()     { return(num_alerts_detected);       };
   void updateStats(struct timeval *tv);
-  u_int64_t getPeriodicStats(void)    { return (last_bytes_periodic);	   };
+  inline u_int64_t getPeriodicStats(void)    { return (last_bytes_periodic);	   };
+  inline u_int64_t getNumBytes()      { return(sent.getNumBytes()+rcvd.getNumBytes()); };
   void resetPeriodicStats(void);
   void updateActivities();
   inline ValueTrend getThptTrend()    { return(bytes_thpt_trend);          };
+  inline float getBytesThpt()         { return(bytes_thpt);                };
   inline char* getJsonActivityMap()   { return(activityStats.serialize()); };
   inline u_int8_t getSourceId()       { return(source_id);                 };
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };

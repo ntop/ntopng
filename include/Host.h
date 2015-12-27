@@ -121,7 +121,8 @@ class Host : public GenericHost {
   void incUses() { num_uses++; }
   void decUses() { num_uses--; }
   bool idle();
-  void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details, bool verbose, bool returnHost);
+  void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details, 
+	   bool verbose, bool returnHost, bool asListElement);
   void resolveHostName();
   void setName(char *name, bool update_categorization);
   void set_host_label(char *label_name);

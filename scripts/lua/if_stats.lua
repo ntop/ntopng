@@ -250,7 +250,7 @@ if((page == "overview") or (page == nil)) then
        <input type="text" class=form-control name="custom_name" placeholder="Custom Name" value="]]
 	 if(label ~= nil) then print(label) end
 	 print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save Name</button>
+      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save Custom Name</button>
     </form>
     </td></tr>
        ]]

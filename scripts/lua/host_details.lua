@@ -552,7 +552,7 @@ print [[">
 	 <input type="text" name="custom_name" placeholder="Custom Name" value="]]
       if(host["label"] ~= nil) then print(host["label"]) end
 print [["></input>
-	 &nbsp;<button style="position: relative; margin-top: 0; height: 26px" type="submit" class="btn btn-default btn-xs">Save Name</button>]]
+	 &nbsp;<button style="position: relative; margin-top: 0; height: 26px" type="submit" class="btn btn-default btn-xs">Save Custom Name</button>]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[</form>
 </td></tr>
