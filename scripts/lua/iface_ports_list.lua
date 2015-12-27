@@ -29,12 +29,9 @@ function fill_ports_array(field_key, flows_stats, host)
 end
 
 if (host == nil) then
-  flows_stats = interface.queryFlowsInfo("SELECT PORTS FROM FLOWS")
+  flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
 else
-  host_table = hostkey2hostinfo(host)
-  host = host_table["host"]
-  vlan = host_table["vlan"] or 0
-  flows_stats = interface.queryFlowsInfo("SELECT PORTS FROM FLOWS WHERE host = "..host.." AND vlan = "..tostring(vlan))
+ flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo(host))
 end
 client_ports = fill_ports_array("cli", flows_stats, host)
 server_ports = fill_ports_array("srv", flows_stats, host)
