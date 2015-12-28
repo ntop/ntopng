@@ -24,11 +24,6 @@
 #include <curl/curl.h>
 #include <string.h>
 
-extern "C" {
-#include "../third-party/detectxsslib/detectxsslib.h"
-#include "../third-party/detectxsslib/detectxsslib.c"
-};
-
 // A simple struct for strings.
 typedef struct {
   char *s;
@@ -653,27 +648,55 @@ bool Utils::isUserAdministrator(lua_State* vm) {
 
 /* **************************************************** */
 
+
 /**
  * @brief Purify the HTTP parameter
  *
  * @param param   The parameter to purify (remove unliked chars with _)
  */
 
+static const char* xssAttempts[] = {
+  "<?import",
+  "<applet",
+  "<base",
+  "<embed",
+  "<frame",
+  "<iframe",
+  "<implementation",
+  "<import",
+  "<link",
+  "<meta",
+  "<object",
+  "<script",
+  "<style",
+  "charset",
+  "classid",
+  "code",
+  "codetype",
+  "data",
+  "href",
+  "http-equiv",
+  "javascript:",
+  "src",
+  "type",
+  "vbscript:",
+  "vmlframe",
+  "xlink:href",
+  "=",
+  NULL
+};
+
+
 void Utils::purifyHTTPparam(char *param, bool strict) {
-#if 1
-  xsslibUrl url;
-
-  /* Fix for http://packetstormsecurity.com/files/127329/Ntop-NG-1.1-Cross-Site-Scripting.html */
-  xsslibUrlInit(&url);
-  xsslibUrlSetUrl(&url, param);
-
-  if(xsslibUrlScan(&url) != XssClean) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s", param);
-    param[0] = '\0';
+  for(int i=0; xssAttempts[i] != NULL; i++) {
+    if(strstr(param, xssAttempts[i])) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s", param);
+      param[0] = '\0';
+      return;
+    }
   }
-#else
+  
   for(int i=0; param[i] != '\0'; i++) {
-
     bool is_good;
 
     if(strict) {
@@ -709,7 +732,6 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
       param[i-1] = '_', param[i] = '_'; /* Invalidate the path */
     }
   }
-#endif
 }
 
 /* **************************************************** */
