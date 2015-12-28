@@ -186,6 +186,7 @@ using namespace std;
 #endif
 #include "ParserInterface.h"
 #include "CollectorInterface.h"
+#include "SimulatorInterface.h"
 #include "ExportInterface.h"
 #include "Geolocation.h"
 #include "GenericHost.h"

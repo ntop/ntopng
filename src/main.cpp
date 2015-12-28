@@ -150,6 +150,8 @@ int main(int argc, char *argv[])
 	endpoint = ifName;
 
       iface = new CollectorInterface(endpoint, topic);
+    } else if (!strncmp(ifName, "simulator:", 10)) {
+      iface = new SimulatorInterface(ifName);
     } else {
       iface = NULL;
 

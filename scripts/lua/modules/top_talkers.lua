@@ -214,7 +214,8 @@ function groupStatsByColumn(ifid, ifname, col)
    for _key, value in pairs(hosts_stats) do
       key = hosts_stats[_key][col]
 
-      if ((col == "country" and key == "") or
+      if ((not key) or
+          (col == "country" and key == "") or
           (col == "local_network_id" and key == -1) or
           (col == "os" and key == "")) then goto continue end
       if (_group[key] == nil) then
