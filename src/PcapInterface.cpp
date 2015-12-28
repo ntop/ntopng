@@ -46,7 +46,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
     } else if((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) == NULL) {
       if((pcap_list = fopen(name, "r")) == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s", name);
-	_exit(0);
+	exit(0);
       }	else
 	read_pkts_from_pcap_dump = true;
     } else {

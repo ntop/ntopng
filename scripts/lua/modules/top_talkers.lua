@@ -115,7 +115,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
    local num = 0
 
    interface.select(ifname)
-   hosts_stats = interface.getHostsInfo()
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
    talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
@@ -279,7 +279,7 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
    rsp = ""
 
    interface.select(ifname)
-   hosts_stats = interface.getHostsInfo()
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
    if (loc ~= nil) then
      hosts_stats = filterBy(hosts_stats, "localhost", loc)
@@ -378,7 +378,7 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
    --if(ifname == nil) then ifname = "any" end
 
    interface.select(ifname)
-   hosts_stats = interface.getHostsInfo()
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
    talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")

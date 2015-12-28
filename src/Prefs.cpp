@@ -273,7 +273,7 @@ void usage() {
   struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(), localmalloc, free, NULL);
   ndpi_dump_protocols(ndpi_struct);
 
-  _exit(0);
+  exit(0);
 }
 
 /* ******************************************* */
@@ -731,7 +731,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     printf("System Id: %s\n", ntop->getPro()->get_system_id());
     printf("Built on:  %s\n", PACKAGE_OS);
 #endif
-    _exit(0);
+    exit(0);
     break;
 
   case 'X':
@@ -758,7 +758,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     ntop->getTrace()->set_trace_level(0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->check_maintenance_duration();
-    _exit(0);
+    exit(0);
     break;
 
   case 253:
@@ -766,7 +766,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     ntop->getTrace()->set_trace_level(0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->check_license_validity();
-    _exit(0);
+    exit(0);
     break;
 
   case 254:
@@ -837,7 +837,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 
   if((http_port == 0) && (https_port == 0)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Both HTTP and HTTPS ports are disabled: quitting");
-    _exit(0);
+    exit(0);
   }
 
   return(checkOptions());

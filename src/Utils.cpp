@@ -502,7 +502,8 @@ const char *strcasestr(const char *haystack, const char *needle) {
 int Utils::ifname2id(const char *name) {
   char rsp[256];
 
-  if(name == NULL || !strncmp(name, "dummy", 5)) return(DUMMY_IFACE_ID);
+  if(name == NULL)                    return(-1);
+  else if(!strncmp(name, "dummy", 5)) return(DUMMY_IFACE_ID);
 
   if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp, sizeof(rsp)) == 0) {
     /* Found */
@@ -688,11 +689,13 @@ static const char* xssAttempts[] = {
 
 
 void Utils::purifyHTTPparam(char *param, bool strict) {
-  for(int i=0; xssAttempts[i] != NULL; i++) {
-    if(strstr(param, xssAttempts[i])) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s", param);
-      param[0] = '\0';
-      return;
+  if(strict) {
+    for(int i=0; xssAttempts[i] != NULL; i++) {
+      if(strstr(param, xssAttempts[i])) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Found possible XSS attempt: %s [%s]", param, xssAttempts[i]);
+	param[0] = '\0';
+	return;
+      }
     }
   }
   

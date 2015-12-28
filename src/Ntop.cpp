@@ -193,7 +193,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
        || (!(statbuf.st_mode & S_IWRITE)) /* It's not writable    */) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_data_dir());
-      _exit(-1);
+      exit(-1);
     }
 
     if(stat(prefs->get_callbacks_dir(), &statbuf)
@@ -201,7 +201,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
        || (!(statbuf.st_mode & S_IREAD)) /* It's not readable    */) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid directory %s specified",
 				   prefs->get_callbacks_dir());
-      _exit(-1);
+      exit(-1);
     }
 
     if(prefs->get_local_networks()) {
@@ -902,7 +902,7 @@ void Ntop::daemonize() {
     } else { /* father */
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Parent process is exiting (this is normal)");
-      _exit(0);
+      exit(0);
     }
   }
 #endif

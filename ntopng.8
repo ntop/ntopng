@@ -179,6 +179,8 @@ If you want you can pass a path of a pcap file (e.g. \-i dummy.pcap) or a path o
 .B nProbe
 can be instructed to act as a publisher delivering flows to a ZeroMQ endpoint using the \-\-ZMQ <endpoint> parameter.
 
+Finally using \-i dummy it is possible to create a dummy interface that generates a large number of flows/hosts in order to saturate ntopng resources. This way ntopng can be tested for performance issues as well proper handling of low-memory situations.
+
 .It \-d|\-\-data\-dir\ <path>
 Specifies the data directory (it must be writable). Default directory is /var/tmp/ntopng
 

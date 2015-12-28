@@ -495,7 +495,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
 
   if(httpd_v4 == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start HTTP server (IPv4) on ports %s: %s", ports, strerror(errno));
-    _exit(-1);
+    exit(-1);
   }
 
   /* ***************************** */

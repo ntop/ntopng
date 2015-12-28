@@ -68,8 +68,8 @@ void initWinsock32() {
   if( err != 0 ) {
     /* Tell the user that we could not find a usable */
     /* WinSock DLL.                                  */
-    printf("FATAL ERROR: unable to initialise Winsock 2.x.\n");
-    _exit(-1);
+    printf("FATAL ERROR: unable to initialize Winsock 2.x.\n");
+    exit(-1);
   }
 }
 
@@ -139,8 +139,9 @@ int main(int argc, char *argv[])
       continue;
 
     /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
-    if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))
-       ) {
+    if(!strcmp(ifName, "dummy")) {
+      iface = new DummyInterface();
+    } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
       char *at = strchr(ifName, '@');
       char *topic = (char*)"flow", *endpoint;
 
@@ -203,7 +204,7 @@ int main(int argc, char *argv[])
 
   if(ntop->getInterfaceAtId(0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
-    _exit(0);
+    exit(0);
   }
 
   for(int i = 0 ; i < MAX_NUM_INTERFACES ; i++) {
@@ -265,7 +266,7 @@ int main(int argc, char *argv[])
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to write on %s [%s]: please specify a different directory (-d)",
 				 ntop->get_working_dir(), path);
-    _exit(0);
+    exit(0);
   } else {
     fclose(fd); /* All right */
     unlink(path);

@@ -4,7 +4,7 @@
 
 -- ########
 
-function updateKey(hash_name, key_name, value) 
+function updateKey(hash_name, key_name, value)
   io.write("# "..key_name.." += "..value.."\n")
 
   if(hash_name[key_name] == nil) then
@@ -16,7 +16,7 @@ end
 
 -- ######
 
-function hash2json(hash_name, label) 
+function hash2json(hash_name, label)
   print "[\n"
 
   n = 0
@@ -31,7 +31,7 @@ end
 
 -- ######
 
-function sliceHash(hash_name, max_num_entries, sort_direction, url, url_trailer)   
+function sliceHash(hash_name, max_num_entries, sort_direction, url, url_trailer)
   local sortedKeys
 
   if(sort_direction == "desc") then
@@ -63,9 +63,9 @@ end
 -- ######
 
 -- host, vlan, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
-function getTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction)  
+function getTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
-   hosts_stats = interface.getHostsInfo()   
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
 
    hosts = { }
    for key, value in pairs(hosts_stats) do
@@ -82,7 +82,7 @@ function getTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction)
         end
       end
 
-      if(skip == false) then	
+      if(skip == false) then
       if((mode == "recv") or (mode == "sent")) then
       	v = hosts_stats[key][unit.."."..mode]
       else
@@ -99,9 +99,9 @@ end
 -- ########
 
 -- vlan, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
-function getVLANTraffic(ifname, vlan, unit, mode, max_num_entries, sort_direction) 
+function getVLANTraffic(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
-   hosts_stats = interface.getHostsInfo()   
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
 
    hosts = { }
    for key, value in pairs(hosts_stats) do
@@ -118,7 +118,7 @@ function getVLANTraffic(ifname, vlan, unit, mode, max_num_entries, sort_directio
         end
       end
 
-      if(skip == false) then	
+      if(skip == false) then
       if((mode == "recv") or (mode == "sent")) then
       	v = hosts_stats[key][unit.."."..mode]
       else
@@ -135,9 +135,9 @@ end
 -- ########
 
 -- AS, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
-function getASTraffic(ifname, vlan, as, unit, mode, max_num_entries, sort_direction) 
+function getASTraffic(ifname, vlan, as, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
-   hosts_stats = interface.getHostsInfo()   
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
 
    hosts = { }
    for key, value in pairs(hosts_stats) do
@@ -154,7 +154,7 @@ function getASTraffic(ifname, vlan, as, unit, mode, max_num_entries, sort_direct
         end
       end
 
-      if(skip == false) then	
+      if(skip == false) then
       if((mode == "recv") or (mode == "sent")) then
       	v = hosts_stats[key][unit.."."..mode]
       else
@@ -169,7 +169,7 @@ function getASTraffic(ifname, vlan, as, unit, mode, max_num_entries, sort_direct
 end
 
 -- host, vlan, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
-function getFlowTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction) 
+function getFlowTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
    hosts_stats = interface.getFlowsInfo()
 
@@ -183,7 +183,7 @@ function getFlowTalkers(ifname, vlan, unit, mode, max_num_entries, sort_directio
          end
       end
 
-      if(skip == false) then	
+      if(skip == false) then
       if(mode == "recv") then
       	updateKey(hosts, hosts_stats[key]["cli.ip"], hosts_stats[key]["srv2cli."..unit])
       	updateKey(hosts, hosts_stats[key]["srv.ip"], hosts_stats[key]["cli2srv."..unit])

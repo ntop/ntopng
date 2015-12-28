@@ -45,18 +45,16 @@ class CollectorInterface : public ParserInterface {
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZMQ);      };
   inline bool is_ndpi_enabled()         { return(false);      };
-  char* getEndpoint(u_int8_t id)        { return((id < num_subscribers) ?
+  inline char* getEndpoint(u_int8_t id) { return((id < num_subscribers) ?
 						 subscriber[id].endpoint : (char*)""); };
   inline void incrDrops(u_int32_t num)  { num_drops += num;   };
-  u_int getNumDroppedPackets()          { return(num_drops);  };
+  inline u_int getNumDroppedPackets()   { return(num_drops);  };
+  inline bool is_packet_interface()     { return(false);      };
   void collect_flows();
 
   void startPacketPolling();
   void shutdown();
-
   bool set_packet_filter(char *filter);
-
-  bool is_packet_interface()           { return(false); }
 };
 
 #endif /* _COLLECTOR_INTERFACE_H_ */

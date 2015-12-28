@@ -143,7 +143,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
   max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
-  networkStats = NULL, local_network_id = -1;
+  networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   category[0] = '\0', os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
@@ -679,6 +679,13 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   } else {
     char *addr, redis_buf[64];
     int rc;
+    time_t now = time(NULL);
+    
+    if(nextResolveAttempt 
+       && ((nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
+      return(symbolic_name);
+    } else
+      nextResolveAttempt = ntop->getPrefs()->is_dns_resolution_enabled() ? now + MIN_HOST_RESOLUTION_FREQUENCY : (time_t)-1;
 
     addr = ip->print(buf, buf_len);
 

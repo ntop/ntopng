@@ -58,7 +58,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "The current user cannot access %s.", ntop->get_callbacks_dir());
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Please fix the directory right or add --dont-change-user to");
     ntop->getTrace()->traceEvent(TRACE_ERROR, "the ntopng command line.");
-    _exit(0);
+    exit(0);
   }
 
   pthread_create(&secondLoop, NULL, secondStartLoop, (void*)this);

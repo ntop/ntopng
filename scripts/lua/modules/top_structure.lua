@@ -9,7 +9,7 @@ require "top_talkers"
 
 local function getVLANList(ifid, ifname)
    interface.select(ifname)
-   hosts_stats = interface.getHostsInfo()
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
    vlans,total = groupStatsByColumn(ifid, ifname, "vlan")
    return vlans
 end

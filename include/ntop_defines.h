@@ -138,7 +138,7 @@
 #define DNS_CACHE_DURATION      3600  /*  1 h */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
-#define DUMMY_IFACE_ID          (-1)
+#define DUMMY_IFACE_ID          (MAX_NUM_INTERFACES-2)
 #define MAX_CSRF_DURATION       300 /* 5 mins */
 #define NTOP_NOLOGIN_USER	"nologin"
 
@@ -159,6 +159,7 @@
 #define CONST_INTERFACE_TYPE_SQLITE    "sqlite"
 #define CONST_INTERFACE_TYPE_PF_RING   "PF_RING"
 #define CONST_INTERFACE_TYPE_NETFILTER "netfilter"
+#define CONST_INTERFACE_TYPE_DUMMY     "dummy"
 #define CONST_INTERFACE_TYPE_UNKNOWN   "unknown"
 
 #define CONST_DEMO_MODE_DURATION       600 /* 10 min */
@@ -169,6 +170,7 @@
 
 #define CONST_EST_MAX_FLOWS            200000
 #define CONST_EST_MAX_HOSTS            200000
+#define MIN_HOST_RESOLUTION_FREQUENCY  60 /* 1 min */
 
 #define BATADV_COMPAT_VERSION_15 15
 #define BATADV_COMPAT_VERSION_14 14
