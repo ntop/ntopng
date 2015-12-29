@@ -68,7 +68,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    print('</span></A>')
 
    if(do_show) then
-      print('<br><iframe src="http://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
+      print('<br><iframe src="https://ghbtns.com/github-btn.html?user=ntop&repo=ntopng&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>')
    end
 end
 
