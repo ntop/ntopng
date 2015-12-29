@@ -1080,7 +1080,7 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Bytes",
+							  title: "Traffic",
 							  field: "BYTES",
 							  sortable: true,
 							  css: {
