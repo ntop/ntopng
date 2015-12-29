@@ -91,7 +91,7 @@ NetworkInterface::NetworkInterface() {
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
-  profiles = NULL;
+  flow_profiles = NULL;
 #endif
 }
 
@@ -208,8 +208,9 @@ NetworkInterface::NetworkInterface(const char *name) {
   networkStats = NULL,
 
 #ifdef NTOPNG_PRO
-    policer  = new L7Policer(this);
-  profiles = ntop->getPro()->has_valid_license() ? new Profiles() : NULL;
+  policer  = new L7Policer(this);
+  flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles() : NULL;
+  if(flow_profiles) flow_profiles->loadProfiles();
 #endif
 
   loadDumpPrefs();
@@ -427,7 +428,7 @@ NetworkInterface::~NetworkInterface() {
 
 #ifdef NTOPNG_PRO
   if(policer)  delete(policer);
-  if(profiles) delete(profiles);
+  if(flow_profiles) delete(flow_profiles);
 #endif
 }
 
@@ -1662,9 +1663,10 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
 
 void NetworkInterface::updateFlowProfiles() {
   if(ntop->getPro()->has_valid_license()) {
-    Profiles *oldP = profiles, *newP = new Profiles();
+    FlowProfiles *oldP = flow_profiles, *newP = new FlowProfiles();
 
-    profiles = newP; /* Overwrite the current profiles */
+    flow_profiles = newP; /* Overwrite the current profiles */
+    flow_profiles->loadProfiles();/* and reload */
 
     flows_hash->walk(update_flow_profile, NULL);
 
@@ -2265,7 +2267,7 @@ void NetworkInterface::lua(lua_State *vm) {
 
   if(pkt_dumper) pkt_dumper->lua(vm);
 #ifdef NTOPNG_PRO
-  if(profiles)   profiles->lua(vm);
+  if(flow_profiles)   flow_profiles->lua(vm);
 #endif
 }
 

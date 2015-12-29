@@ -135,10 +135,12 @@ using namespace std;
 #include "ntop_typedefs.h"
 #include "Trace.h"
 #include "NtopGlobals.h"
-#ifdef NTOPNG_PRO
-#include "CountMinSketch.h"
 #include "Profile.h"
 #include "Profiles.h"
+#ifdef NTOPNG_PRO
+#include "CountMinSketch.h"
+#include "FlowProfile.h"
+#include "FlowProfiles.h"
 #endif
 #include "Prefs.h"
 #include "Mutex.h"

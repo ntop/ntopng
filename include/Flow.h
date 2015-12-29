@@ -41,7 +41,7 @@ class Flow : public GenericHashEntry {
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
-  Profile *trafficProfile;
+  FlowProfile *trafficProfile;
 #endif
   ndpi_protocol ndpi_detected_protocol;
   void *cli_id, *srv_id;

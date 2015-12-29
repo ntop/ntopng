@@ -52,7 +52,7 @@ class NetworkInterface {
   bool bridge_interface, has_mesh_networks_traffic;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
-  Profiles  *profiles;
+  FlowProfiles  *flow_profiles;
 #endif
   EthStats ethStats;
   LocalTrafficStats localStats;
@@ -279,8 +279,8 @@ class NetworkInterface {
   inline u_int64_t* getLastMinuteTrafficStats() { return((u_int64_t*)lastMinuteTraffic); }
 #ifdef NTOPNG_PRO
   void updateFlowProfiles();
-  inline Profile* getFlowProfile(Flow *f)      { return(profiles ? profiles->getFlowProfile(f) : NULL);           }
-  inline bool checkProfileSyntax(char *filter) { return(profiles ? profiles->checkProfileSyntax(filter) : false); }
+  inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
+  inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif
 };
 
