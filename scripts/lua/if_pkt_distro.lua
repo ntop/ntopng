@@ -12,7 +12,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
 
-type = _GET["type"]
+type = _GET["distr"]
 
 if((type == nil) or (type == "size")) then
    what = ifstats["pktSizeDistribution"]

@@ -111,7 +111,7 @@ end
 -----------------------------------
 
 mode = _GET["mode"] -- memory(actual-memory),bytes,latency
-type = _GET["type"] -- user,process(proc_name)
+type = _GET["distr"] -- user,process(proc_name)
 host = _GET["host"]
 filter = _GET["filter"] -- all,client,server
 
