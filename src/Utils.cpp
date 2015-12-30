@@ -674,12 +674,10 @@ static const char* xssAttempts[] = {
   "classid",
   "code",
   "codetype",
-  "data",
+  /* "data", */
   "href",
   "http-equiv",
   "javascript:",
-  "src",
-  "type",
   "vbscript:",
   "vmlframe",
   "xlink:href",
