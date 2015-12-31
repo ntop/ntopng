@@ -35,7 +35,7 @@ SHORT_MACHINE=`uname -m | cut -b1-3`
 if test $SHORT_MACHINE = "arm"; then
 LIBNUMA=""
 else
-LIBNUMA="-lnuma"
+AC_CHECK_LIB([numa], [numa_available], [LIBNUMA="-lnuma"])
 fi
 
 GIT_RELEASE="@GIT_RELEASE@"
@@ -195,7 +195,13 @@ if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a"
   echo "Compiling ntopng with PF_RING support"
  fi
  fi
- AC_CHECK_LIB([numa], [numa_available], [LDFLAGS="${LDFLAGS} -lnuma"])
+
+
+if test "x$ac_cv_lib_numa_numa_available" != xyes; then :
+echo "WARNING Your ntopng will compile with PF_RING support but the libnuma library is not installed"
+echo "WARNING This might lead to compilation errors"
+fi
+
 else
   AC_CHECK_LIB([pcap], [pcap_open_live], pcap=true)
   if test x$pcap = x

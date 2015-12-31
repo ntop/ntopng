@@ -1948,12 +1948,12 @@ int NetworkInterface::getFlows(lua_State* vm,
   lua_newtable(vm);
 
   if(a2zSortOrder) {
-    for(int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
+    for(u_int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
       if(++num >= maxHits) break;
     }
   } else {
-    for(int i=retriever.actNumEntries-1-toSkip, num=0; i>=0; i--) {
+    for(u_int i=retriever.actNumEntries-1-toSkip, num=0; i>=0; i--) {
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
       if(++num >= maxHits) break;
     }
@@ -2010,13 +2010,13 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   lua_newtable(vm);
 
   if(a2zSortOrder) {
-    for(int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
+    for(u_int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
       retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */, 
 					host_details, false, false, true);
       if(++num >= maxHits) break;
     }
   } else {
-    for(int i=retriever.actNumEntries-1-toSkip, num=0; i>=0; i--) {
+    for(u_int i=retriever.actNumEntries-1-toSkip, num=0; i>=0; i--) {
       retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */,
 					host_details, false, false, true);
       if(++num >= maxHits) break;
@@ -2030,7 +2030,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   hosts_hash->enablePurge();
 
   if(sorter == stringSorter) {
-    for(int i=0; i<retriever.maxNumEntries; i++)
+    for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].stringValue) 
 	free(retriever.elems[i].stringValue);
   }

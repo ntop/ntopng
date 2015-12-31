@@ -113,10 +113,7 @@ int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 					     bool host_details, bool local_only,
 					     char *sortColumn, u_int32_t maxHits,
 					     u_int32_t toSkip, bool a2zSortOrder) {
-  struct vm_ptree vp;
   int ret = 0;
-
-  vp.vm = vm, vp.ptree = allowed_hosts;
 
   lua_newtable(vm);
   for(int i = 0; i<numInterfaces; i++) {

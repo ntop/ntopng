@@ -39,7 +39,7 @@ void DummyInterface::forgeFlow(u_int iteration) {
   id = iteration % ntop->getPrefs()->get_max_num_hosts();
   srcIp += id, dstIp += id;
   
-  for(int i=0; i<mval; i++) {
+  for(u_int i=0; i<mval; i++) {
     char a[32], b[32];
     u_int16_t sport = 1234+i, dport = 80;
 
