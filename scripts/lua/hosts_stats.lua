@@ -245,21 +245,6 @@ end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_top.inc")
 
-
-
-if(prefs.is_categorization_enabled) then
-print [[
-			     {
-			     title: "Category",
-				 field: "column_category",
-				 sortable: true,
-	 	             css: {
-			        textAlign: 'center'
-			       }
-			       },
-		       ]]
-end
-
 if(prefs.is_httpbl_enabled) then
 print [[
 			     {

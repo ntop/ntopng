@@ -351,13 +351,6 @@
 #define NULL_BL                        "''"
 //#define DEBUG_HTTPBL
 
-#define CATEGORIZATION_URL             "https://sb-ssl.google.com/safebrowsing/api/lookup"
-#define CATEGORIZATION_CLIENT          "ntopng"
-#define CATEGORIZATION_APPVER          "1.5.2"
-#define CATEGORIZATION_PVER            "3.1"
-#define CATEGORIZATION_NULL_CATEGORY   "''"
-#define CATEGORIZATION_SAFE_SITE       "safe"
-
 #ifdef NTOPNG_PRO
 #define CONST_DEFAULT_NAGIOS_NSCA_HOST      "localhost"
 #define CONST_DEFAULT_NAGIOS_NSCA_PORT      "5667"
@@ -437,6 +430,7 @@
 
 #define HTTPBL_STRING           "httpbl:"
 #define FLASHSTART_STRING       "flashstart:"
+#define NUM_FLASHSTART_SERVERS  2
 
 #define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
 #endif /* _NTOP_DEFINES_H_ */

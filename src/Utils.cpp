@@ -886,29 +886,29 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     v = curl_version_info(CURLVERSION_NOW);
     snprintf(ua, sizeof(ua), "ntopng v.%s (curl %s)", PACKAGE_VERSION, v->version);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
+  
+    if(vm) lua_newtable(vm);
+
+    if(curl_easy_perform(curl) == CURLE_OK) {
+      if(return_content && vm) {
+	lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
+	lua_push_int_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+      }
+
+      ret = true;
+    } else
+      ret = false;
 
     if(vm) {
-      lua_newtable(vm);
-
-      if(curl_easy_perform(curl) == CURLE_OK) {
-	if(return_content) {
-	  lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
-	  lua_push_int_table_entry(vm, "CONTENT_LEN", state->num_bytes);
-	}
-
-	ret = true;
-      } else
-	ret = false;
-
       if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
 	lua_push_int_table_entry(vm, "RESPONSE_CODE", response_code);
-
+	
       if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
 	lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
-
+	
       if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
 	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
-    }
+    }    
 
     if(return_content && state)
       free(state);

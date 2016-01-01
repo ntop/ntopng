@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2016 - ntop.org
  *
  *
  * This program is free software; you can addresstribute it and/or modify
@@ -19,25 +19,32 @@
  *
  */
 
-#ifndef _HTTPBL_H_
-#define _HTTPBL_H_
+#ifndef _FLASHSTART_H_
+#define _FLASHSTART_H_
 
 #include "ntop_includes.h"
 
-class HTTPBL {
-  u_int32_t num_httpblized_categorizations, num_httpblized_fails;
-  char *api_key;
+class Flashstart {
+  int sock;
+  struct sockaddr_in dnsServer[NUM_FLASHSTART_SERVERS];
+  u_int32_t num_flashstart_categorizations, num_flashstart_fails;
+  char *user, *pwd;
+  u_int8_t dnsServerIdx;
 
-  pthread_t httpblThreadLoop;
-  void queryHTTPBL(char *numeric_ip);
+  pthread_t flashstartThreadLoop;
+  void queryFlashstart(char *symbolic_name);
+  int parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockaddr_in *from);
+  u_int recvResponses(u_int msecTimeout);
+  void queryDomain(int sock, char *domain, u_int queryId,
+		   const struct sockaddr *to, socklen_t tolen);
 
  public:
-  HTTPBL(char *_api_key);
-  ~HTTPBL();
-
+  Flashstart(char *_user, char *_pwd);
+  ~Flashstart();
+  
   char* findCategory(char *name, char *buf, u_int buf_len, bool add_if_needed); 
   void startLoop();
-  void* httpblLoop(void* ptr);
+  void* flashstartLoop(void* ptr);
 };
 
-#endif /* _HTTPBL_H_ */
+#endif /* _FLASHSTART_H_ */

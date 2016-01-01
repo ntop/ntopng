@@ -57,8 +57,8 @@ class Ntop {
   Prefs *prefs;
   RuntimePrefs *runtimeprefs;
   Geolocation *geo;
-  Categorization *categorization;
   HTTPBL *httpbl;
+  Flashstart *flashstart;
   ExportInterface *export_interface;
   long time_offset;
   time_t start_time; /**< Time when start() was called */
@@ -197,18 +197,16 @@ class Ntop {
    * @return The absolute path of the httpdocs directory.
    */
   inline char* get_docs_dir()                     { return(prefs->get_docs_dir());      };
-  /**
-   * @brief Get categorization.
-   *
-   * @return Current categorization instance.
-   */
-  inline Categorization* get_categorization()        { return(categorization);             };
+
   /**
    * @brief Get httpbl.
    *
    * @return Current httpbl instance.
    */
   inline HTTPBL* get_httpbl()                        { return(httpbl);             };
+
+  inline Flashstart* get_flashstart()                { return(flashstart);         };
+  inline void set_flashstart(Flashstart *f)          { flashstart = f;             };
 
   /**
    * @brief Register the network interface.
@@ -273,12 +271,6 @@ class Ntop {
    * @param h HTTP server instance.
    */
   inline void registerHTTPserver(HTTPserver *h)      { httpd = h;              };
-  /**
-   * @brief Set categorization.
-   *
-   * @param c The categorization instance.
-   */
-  inline void setCategorization(Categorization *c)   { categorization = c; };
   /**
    * @brief Set httpbl.
    *

@@ -146,15 +146,19 @@ void Flow::deleteFlowMemory() {
 /* *************************************** */
 
 void Flow::categorizeFlow() {
-  if((host_server_name == NULL) || (host_server_name[0] == '\0'))
+  if((host_server_name == NULL)
+     || (host_server_name[0] == '\0')
+     || (!strchr(host_server_name, '.'))
+     || strstr(host_server_name, "in-addr.arpa")
+     )
     return;
 
   if(!categorization.categorized_requested) {
     categorization.categorized_requested = true;
 
-    if(ntop->get_categorization()->findCategory(Utils::get2ndLevelDomain(host_server_name),
-						categorization.category, sizeof(categorization.category),
-						true) != NULL) {
+    if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(host_server_name),
+					    categorization.category, sizeof(categorization.category),
+					    true) != NULL) {
       checkFlowCategory();
     }
   } else if(categorization.category[0] == '\0') {
@@ -921,7 +925,7 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
 
 /* *************************************** */
 
-void Flow::lua(lua_State* vm, patricia_tree_t * ptree, 
+void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 	       bool detailed_dump, bool asListElement) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
@@ -1000,7 +1004,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "proto.ndpi_id", ndpi_detected_protocol.protocol);
     lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
 
-    if(ntop->get_categorization()) {
+    if(ntop->get_flashstart()) {
       categorizeFlow();
       if(categorization.category[0] != '\0')
 	lua_push_str_table_entry(vm, "category", categorization.category);
@@ -1068,7 +1072,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       getFlowShapers(false, &a, &b);
       lua_push_int_table_entry(vm, "shaper.srv2cli_a", a);
       lua_push_int_table_entry(vm, "shaper.srv2cli_b", b);
-    }    
+    }
 
     if(http.last_method && http.last_url)
       lua_push_str_table_entry(vm, "http.last_url", http.last_url);
@@ -1105,7 +1109,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_pushnumber(vm, key()); // Key
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-  }  
+  }
 }
 
 /* *************************************** */
@@ -1758,10 +1762,12 @@ bool Flow::dumpFlowTraffic() {
 /* *************************************** */
 
 void Flow::checkFlowCategory() {
-  if((categorization.category[0] == '\0')
-     || (!strcmp(categorization.category, CATEGORIZATION_SAFE_SITE)))
+  if(categorization.category[0] == '\0')
     return;
-  else {
+
+  /* TODO: use category to emit verdict */
+#if 0
+  {
     char c_buf[64], s_buf[64], *c, *s, alert_msg[1024];
 
     /* Emit alarm */
@@ -1779,6 +1785,7 @@ void Flow::checkFlowCategory() {
     ntop->getRedis()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
     badFlow = true, setDropVerdict();
   }
+#endif
 }
 
 /* *************************************** */

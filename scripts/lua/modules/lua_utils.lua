@@ -762,16 +762,12 @@ local host_categories =	 {
 -- #################################################################
 
 function getCategoryIcon(what, cat)
-   if((cat == "") or (cat == nil)) then
+   if((cat == "") or (cat == nil) or (cat == "???")) then
       return("")
-   elseif(cat == "safe") then
-   return("<A HREF=http://google.com/safebrowsing/diagnostic?site="..what.."&hl=en-us><font color=green><i class=\'fa fa-check\'></i></font></A>")
-   elseif(cat == "malware") then
-      return("<A HREF=http://google.com/safebrowsing/diagnostic?site="..what.."&hl=en-us><font color=red><i class=\'fa fa-ban\'></i></font></A>")
    elseif(host_categories[cat] ~= nil) then
-     return(host_categories[cat])
+     return(" <span class='label label-info'>"..host_categories[cat].."</span>")
    else
-      return(cat)
+      return(" <span class='label label-info'>"..cat.."</span>")
    end
 end
 

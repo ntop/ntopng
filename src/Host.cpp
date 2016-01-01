@@ -552,7 +552,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "num_alerts", getNumAlerts());
 
     if(ip) {
-      if(ntop->get_categorization()) lua_push_str_table_entry(vm, "category", get_category());
       if(ntop->getPrefs()->is_httpbl_enabled())     lua_push_str_table_entry(vm, "httpbl", get_httpbl());
     }
 
@@ -630,7 +629,6 @@ void Host::setName(char *name, bool update_categorization) {
     symbolic_name = strdup(name);
   }
   if(m) m->unlock(__FILE__, __LINE__);
-
   refreshCategory();
 }
 
@@ -642,18 +640,14 @@ void Host::refreshCategory() {
 
   if((symbolic_name != NULL)
      && strcmp(ip_addr, symbolic_name)
-     && ((category[0] == '\0') || (!strcmp(category, CATEGORIZATION_SAFE_SITE)))
+     && (category[0] == '\0')
      && ip
      && ip->isIPv4()
      && (!ip->isMulticastAddress())
      && (!ip->isBroadcastAddress())
-     && ntop->get_categorization()
-     ) {
-    ntop->get_categorization()->findCategory(symbolic_name, category, sizeof(category), false);
+     && ntop->get_flashstart()) {
+    ntop->get_flashstart()->findCategory(symbolic_name, category, sizeof(category), false);
   }
-
-  if(category[0] == '\0')
-    snprintf(category, sizeof(category), "%s", CATEGORIZATION_SAFE_SITE);
 }
 
 /* ***************************************** */
@@ -667,7 +661,7 @@ void Host::refreshHTTPBL() {
     char buf[128] =  { 0 };
     char* ip_addr = ip->print(buf, sizeof(buf));
     
-    ntop->get_httpbl()->findTrafficCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
+    ntop->get_httpbl()->findCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
   }
 }
 

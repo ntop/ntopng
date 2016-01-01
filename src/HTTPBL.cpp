@@ -51,7 +51,7 @@ static void* httpblThreadInfiniteLoop(void* ptr) {
 
 /* **************************************************** */
 
-char* HTTPBL::findTrafficCategory(char *name, char *buf, u_int buf_len, bool add_if_needed) {
+char* HTTPBL::findCategory(char *name, char *buf, u_int buf_len, bool add_if_needed) {
   if(ntop->getPrefs()->is_httpbl_enabled()) {
     return(ntop->getRedis()->getTrafficFilteringCategory(name, buf, buf_len, add_if_needed));
   } else {

@@ -62,7 +62,7 @@ class Flow : public GenericHashEntry {
   } ssl;
 
   struct {
-    char category[8];
+    char category[24];
     bool categorized_requested;
   } categorization;
 

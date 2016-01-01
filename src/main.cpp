@@ -272,15 +272,6 @@ int main(int argc, char *argv[])
     unlink(path);
   }
   
-  if(prefs->get_categorization_key() != NULL) {
-    ntop->setCategorization(new Categorization(prefs->get_categorization_key()));
-    prefs->enable_categorization();
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Enabled Host categorization with key %s",
-				 prefs->get_categorization_key());
-
-  }
-
   if(prefs->get_httpbl_key() != NULL)
     ntop->setHTTPBL(new HTTPBL(prefs->get_httpbl_key()));
 

@@ -510,13 +510,6 @@ end
       print("</td></tr>\n")
    end
 
-   if((host["category"] ~= nil) and (host["category"] ~= "")) then
-      cat = getCategoryIcon(host_ip, host["category"])
-      if(cat ~= "") then
-	 print("<tr><th>Category</th><td colspan=2>".. cat .."</td></tr>\n")
-      end
-   end
-
    if(host["ip"] ~= nil) then
       if(host["name"] == nil) then host["name"] = ntop.getResolvedAddress(host["ip"]) end
       print("<tr><th>Name</th>")

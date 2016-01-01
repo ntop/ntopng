@@ -26,6 +26,7 @@
 
 class Ntop;
 class Flow;
+class Flashstart;
 
 extern void usage();
 
@@ -60,6 +61,7 @@ class Prefs {
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
+  Flashstart *flashstart;
   char *http_prefix;
   char *instance_name;
   char *config_file_path, *ndpi_proto_path;
@@ -110,6 +112,7 @@ class Prefs {
   inline void enable_categorization()                   { categorization_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
   inline bool is_httpbl_enabled()                       { return(httpbl_key ? true : false); };
+  inline bool is_flashstart_enabled()                   { return(flashstart ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
   inline void dont_change_user()                        { change_user = false;            };
   inline bool are_ixia_timestamps_enabled()             { return(enable_ixia_timestamps); };

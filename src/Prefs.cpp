@@ -31,7 +31,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
-  categorization_enabled = false, resolve_all_host_ip = false;
+  resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   install_dir = NULL;
@@ -46,8 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
   http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
-  categorization_key = NULL;
-  httpbl_key = NULL;
+  httpbl_key = NULL, flashstart = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
   redis_port = 6379;
@@ -128,6 +127,7 @@ Prefs::~Prefs() {
   if(mysql_user)      free(mysql_user);
   if(mysql_pw)        free(mysql_pw);
 
+  /* NOTE: flashstart is deleted by the Ntop class */
 }
 
 /* ******************************************* */
@@ -170,10 +170,6 @@ void usage() {
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
 	 "                                    | Default: %s\n"
 	 "[--no-promisc|-u]                   | Don't set the interface in promiscuous mode.\n"
-	 "[--categorization-key|-c] <key>     | Key used to access host categorization\n"
-	 "                                    | services (default: disabled). \n"
-	 "                                    | Please read README.categorization for\n"
-	 "                                    | more info.\n"
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
 	 "                                    | (default: disabled). Available options:\n"
 	 "                                    | httpbl:<api_key>        See README.httpbl\n"
@@ -338,7 +334,6 @@ void Prefs::loadInstanceNameDefaults() {
 /* ******************************************* */
 
 static const struct option long_options[] = {
-  { "categorization-key",                required_argument, NULL, 'c' },
 #ifndef WIN32
   { "data-dir",                          required_argument, NULL, 'd' },
   { "install-dir",                       required_argument, NULL, 't' },
@@ -405,14 +400,21 @@ int Prefs::setOption(int optkey, char *optarg) {
       packet_filter = strdup(optarg);
     break;
 
-  case 'c':
-    categorization_key = optarg;
-    break;
-
   case 'k':
     if(strncmp(optarg, HTTPBL_STRING, strlen(HTTPBL_STRING)) == 0)
       httpbl_key = &optarg[strlen(HTTPBL_STRING)];
-    else
+    else if(strncmp(optarg, FLASHSTART_STRING, strlen(FLASHSTART_STRING)) == 0) {
+      char *user = strtok(&optarg[strlen(FLASHSTART_STRING)], ":"), *pwd = NULL;
+
+      if(user) pwd = strtok(NULL, ":");
+
+      if(user && pwd) {
+	if((flashstart = new Flashstart(user, pwd)) != NULL)
+	  ntop->set_flashstart(flashstart);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for --%s<user>:<pwd>",
+				     FLASHSTART_STRING);
+    } else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -k", optarg);
     break;
 
@@ -829,7 +831,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "c:k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:N:G:HI:O:S:TU:X:W:VZ:",
+			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:N:G:HI:O:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
@@ -948,7 +950,7 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled_for_all_hosts", resolve_all_host_ip);
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
-  lua_push_bool_table_entry(vm, "is_categorization_enabled", categorization_enabled);
+  lua_push_bool_table_entry(vm, "is_categorization_enabled", flashstart ? true : false);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);

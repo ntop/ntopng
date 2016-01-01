@@ -488,11 +488,12 @@ int Redis::popHost(const char* ns_list, char *hostname, u_int hostname_len) {
 /* **************************************** */
 
 char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
-			       u_int buf_len, bool categorize_if_unknown) {
+					 u_int buf_len, bool categorize_if_unknown) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   redisReply *reply;
 
-  if(!ntop->getPrefs()->is_httpbl_enabled())
+  if(!ntop->getPrefs()->is_httpbl_enabled()
+     && (!ntop->getPrefs()->is_flashstart_enabled()))
     return(NULL);
 
   buf[0] = '\0';
@@ -609,9 +610,9 @@ void Redis::setDefaults() {
 /* **************************************** */
 
 int Redis::getAddressTrafficFiltering(char *numeric_ip,
-			    NetworkInterface *iface,
-			    char *rsp, u_int rsp_len,
-			    bool queue_if_not_found) {
+				      NetworkInterface *iface,
+				      char *rsp, u_int rsp_len,
+				      bool queue_if_not_found) {
   char key[CONST_MAX_LEN_REDIS_KEY];
   int rc;
 

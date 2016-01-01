@@ -66,7 +66,6 @@ class Host : public GenericHost {
 
   void initialize(u_int8_t mac[6], u_int16_t _vlan_id, bool init_all);
   void refreshHTTPBL();
-  void refreshFlashstart();
   void refreshCategory();
   void computeHostSerial();
 
@@ -108,7 +107,6 @@ class Host : public GenericHost {
   inline char* get_city()                      { return(city);             }
   inline char* get_category()                  { if(category[0] == '\0') refreshCategory(); return(category); }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
-  inline char* get_flashstart()                { refreshFlashstart(); return(trafficCategory); }
   inline int get_ingress_shaper_id()           { return(ingress_shaper_id); }
   inline int get_egress_shaper_id()            { return(egress_shaper_id);  }
   inline u_int32_t get_asn()                   { return(asn);              }
