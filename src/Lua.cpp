@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-15 - ntop.org
+ * (C) 2013-16 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -2667,7 +2667,7 @@ static int ntop_get_info(lua_State* vm) {
 
   lua_newtable(vm);
   lua_push_str_table_entry(vm, "product", (char*)"ntopng");
-  lua_push_str_table_entry(vm, "copyright", (char*)"&copy; 1998-2015 - ntop.org");
+  lua_push_str_table_entry(vm, "copyright", (char*)"&copy; 1998-2015-16 - ntop.org");
   lua_push_str_table_entry(vm, "authors", (char*)"The ntop.org team");
   lua_push_str_table_entry(vm, "license", (char*)"GNU GPLv3");
 

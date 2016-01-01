@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-15 - ntop.org
+ * (C) 2013-16 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1948,13 +1948,12 @@ int NetworkInterface::getFlows(lua_State* vm,
   lua_newtable(vm);
 
   if(a2zSortOrder) {
-    for(u_int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
+    for(int i=(int)toSkip, num=0; i<retriever.actNumEntries; i++) {
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
       if(++num >= maxHits) break;
     }
   } else {
-    for(u_int i=retriever.actNumEntries-1-toSkip, num=0; i>=0; i--) {
-      if(i > retriever.actNumEntries) break;
+    for(int i=(int)(retriever.actNumEntries-1-toSkip), num=0; i>=0; i--) {
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
       if(++num >= maxHits) break;
     }
@@ -2011,14 +2010,13 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   lua_newtable(vm);
 
   if(a2zSortOrder) {
-    for(u_int i=toSkip, num=0; i<retriever.actNumEntries; i++) {
+    for(int i=(int)toSkip, num=0; i<retriever.actNumEntries; i++) {
       retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */, 
 					host_details, false, false, true);
       if(++num >= maxHits) break;
     }
   } else {
-    for(u_int i=retriever.actNumEntries-1-toSkip, num=0; (i >=0) && (i < retriever.actNumEntries); i--) {
-      if(i > retriever.actNumEntries) break;
+    for(int i=(int)(retriever.actNumEntries-1-toSkip), num=0; i>=0; i--) {
       retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */,
 					host_details, false, false, true);
       if(++num >= maxHits) break;
