@@ -428,9 +428,12 @@
 #define closesocket(c)		close(c)
 #endif
 
-#define HTTPBL_STRING           "httpbl:"
-#define FLASHSTART_STRING       "flashstart:"
-#define NUM_FLASHSTART_SERVERS  2
+#define HTTPBL_STRING              "httpbl:"
+#define FLASHSTART_STRING          "flashstart:"
+#define NUM_FLASHSTART_SERVERS     2
+
+#define NTOP_UNKNOWN_CATEGORY_STR  "???"
+#define NTOP_UNKNOWN_CATEGORY_ID   0
 
 #define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
 #endif /* _NTOP_DEFINES_H_ */

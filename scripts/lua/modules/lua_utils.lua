@@ -94,7 +94,7 @@ function aggregateHostsStats(hostStats)
 	    --io.write(k.."\n")
 	    res[k] = v
       end
-      
+
       tot = tot + _v["numHosts"]
    end
 
@@ -113,7 +113,7 @@ function aggregateFlowsStats(flowstats)
 	    --io.write(k.."\n")
 	    res[k] = v
       end
-      
+
       tot = tot + _v["numFlows"]
    end
 
@@ -702,61 +702,63 @@ end
 
 -- #################################################################
 
+-- NOTE keep in sync with Flashstart::initMapping()
+
 local host_categories =	 {
-      ["freetime"] = "Tempo libero",
+      ["freetime"] = "Free Time",
       ["chat"] = "Chat",
-      ["onlineauctions"] = "Aste in Linea",
-      ["onlinegames"] = "Giochi in Linea",
-      ["pets"] = "Animali",
-      ["porn"] = "Pornografia",
-      ["religion"] = "Religione",
+      ["onlineauctions"] = "Auctions",
+      ["onlinegames"] = "Online Games",
+      ["pets"] = "Animals",
+      ["porn"] = "Porn",
+      ["religion"] = "Religion",
       ["phishing"] = "Phishing",
-      ["sexuality"] = "Sessualita'",
-      ["games"] = "Giochi",
+      ["sexuality"] = "Sex",
+      ["games"] = "Games",
       ["socialnetworking"] = "Social Network",
-      ["jobsearch"] = "Ricerca lavoro",
+      ["jobsearch"] = "Job Search",
       ["mail"] = "Webmail",
-      ["news"] = "Notizie",
-      ["proxy"] = "Proxy anonimi",
-      ["publicite"] = "Pubblicita'",
+      ["news"] = "News",
+      ["proxy"] = "Anonymous Proxy",
+      ["publicite"] = "Advertisement",
       ["sports"] = "Sport",
-      ["vacation"] = "Viaggi",
+      ["vacation"] = "Travel",
       ["ecommerce"] = "E-commerce",
-      ["instantmessaging"] = "Messaggistica",
-      ["kidstimewasting"] = "Giochi bambini",
-      ["audio-video"] = "Audio e video",
-      ["books"] = "Libri",
-      ["government"] = "PA e Governo",
-      ["malware"] = "Siti infetti",
-      ["medical"] = "Medicina",
-      ["ann"] = "Annunci",
-      ["drugs"] = "Droghe",
-      ["dating"] = "Incontri online",
-      ["desktopsillies"] = "Sfondi desktop",
+      ["instantmessaging"] = "Instant Messaging",
+      ["kidstimewasting"] = "Kid Games",
+      ["audio-video"] = "Audio/Video",
+      ["books"] = "Books",
+      ["government"] = "Gouvernment",
+      ["malware"] = "Malware",
+      ["medical"] = "Medicine",
+      ["ann"] = "Ads",
+      ["drugs"] = "Drugs",
+      ["dating"] = "Online Dating",
+      ["desktopsillies"] = "Desktop Images",
       ["filehosting"] = "File hosting",
       ["filesharing"] = "File sharing",
-      ["gambling"] = "Gioco d'azzardo",
-      ["warez"] = "Cracks e warez",
+      ["gambling"] = "Gambling",
+      ["warez"] = "Cracks/Warez",
       ["radio"] = "Radio",
-      ["updatesites"] = "Aggiornamenti",
-      ["financial"] = "Finanza e banche",
-      ["adult"] = "Adulti",
-      ["fashion"] = "Abbigliamento",
-      ["showbiz"] = "Spettacolo e Vip",
-      ["ict"] = "SW e HW",
-      ["aziende"] = "Aziende",
-      ["education"] = "Scuola e istruzione",
-      ["searchengines"] = "Motori di ricerca",
+      ["updatesites"] = "Updates",
+      ["financial"] = "Finance/Banking",
+      ["adult"] = "Adults",
+      ["fashion"] = "Fashion",
+      ["showbiz"] = "Showbiz",
+      ["ict"] = "ICT",
+      ["aziende"] = "Business",
+      ["education"] = "Education/School",
+      ["searchengines"] = "Search Engines",
       ["blog"] = "Blog",
-      ["association"] = "Associazioni",
+      ["association"] = "Associations",
       ["music"] = "Musica",
-      ["legal"] = "Lavoro e diritto",
-      ["photo"] = "Fotografia",
+      ["legal"] = "Legal",
+      ["photo"] = "Photo",
       ["stats"] = "Webstat",
-      ["content"] = "Server contenuti",
-      ["domainforsale"] = "Dominii in vendita",
-      ["weapons"] = "Armi",
-      ["generic"] = "Generici non pericolosi"
+      ["content"] = "Content Server",
+      ["domainforsale"] = "Domain for Sale",
+      ["weapons"] = "Guns",
+      ["generic"] = "Generic"
 }
 
 -- #################################################################
@@ -764,12 +766,20 @@ local host_categories =	 {
 function getCategoryIcon(what, cat)
    if((cat == "") or (cat == nil) or (cat == "???")) then
       return("")
-   elseif(host_categories[cat] ~= nil) then
-     return(" <span class='label label-info'>"..host_categories[cat].."</span>")
-   else
-      return(" <span class='label label-info'>"..cat.."</span>")
    end
+
+  ret = ""
+  for c,_ in pairs(cat) do
+   if(host_categories[c] ~= nil) then
+     ret = ret .. " <span class='label label-info'>"..host_categories[c].."</span>"
+   else
+     ret = ret .. " <span class='label label-info'>"..c.."</span>"
+   end
+  end
+
+  return(ret)
 end
+
 
 function abbreviateString(str, len)
   if(str == nil) then

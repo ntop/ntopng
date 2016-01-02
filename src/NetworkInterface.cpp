@@ -1592,7 +1592,7 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
       int rc = ntop->getRedis()->getAddress(ipaddr, name_buf, sizeof(name_buf),
 					    false /* Don't resolve it if not known */);
 
-      if(rc == 0 /* found */) host->setName(name_buf, false);
+      if(rc == 0 /* found */) host->setName(name_buf);
     }
 
     if(host->get_name() && (!strcmp(host->get_name(), info->host_to_find))) {

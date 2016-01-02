@@ -76,9 +76,10 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   passVerdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
-  categorization.category[0] = '\0', categorization.categorized_requested = false;
-  bytes_thpt_trend = trend_unknown;
-  pkts_thpt_trend = trend_unknown;
+  NDPI_ZERO(&categorization.category);
+  NDPI_SET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID),
+    categorization.categorized_requested = false;
+  bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   protocol_processed = false, blacklist_alarm_emitted = false;
 
   synTime.tv_sec = synTime.tv_usec = 0,
@@ -146,27 +147,39 @@ void Flow::deleteFlowMemory() {
 /* *************************************** */
 
 void Flow::categorizeFlow() {
-  if((host_server_name == NULL)
-     || (host_server_name[0] == '\0')
-     || (!strchr(host_server_name, '.'))
-     || strstr(host_server_name, "in-addr.arpa")
+  bool toRequest = false, toQuery = false;
+  char *what;
+
+  switch(ndpi_get_lower_proto(ndpi_detected_protocol)) {
+  case NDPI_PROTOCOL_DNS:
+  case NDPI_PROTOCOL_SSL:
+  case NDPI_PROTOCOL_HTTP:
+  case NDPI_PROTOCOL_HTTP_PROXY:
+    break;
+
+  default:
+    return;
+  }
+
+  what = ssl.certificate ? ssl.certificate : host_server_name;
+
+  if((what == NULL)
+     || (what[0] == '\0')
+     || (!strchr(what, '.'))
+     || strstr(what, ".arpa")
+     || (strlen(what) < 4)
      )
     return;
 
-  if(!categorization.categorized_requested) {
-    categorization.categorized_requested = true;
+  if(!categorization.categorized_requested)
+    categorization.categorized_requested = true, toRequest = true, toQuery = true;
+  else if(NDPI_ISSET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID))
+    toRequest = true;
 
-    if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(host_server_name),
-					    categorization.category, sizeof(categorization.category),
-					    true) != NULL) {
-      checkFlowCategory();
-    }
-  } else if(categorization.category[0] == '\0') {
-    ntop->getRedis()->getFlowCategory(Utils::get2ndLevelDomain(host_server_name),
-				      categorization.category,
-				      sizeof(categorization.category), false);
-
-    if(categorization.category[0] != '\0')
+  if(toRequest) {
+    if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(what),
+					    &categorization.category,
+					    toQuery))
       checkFlowCategory();
   }
 }
@@ -276,8 +289,14 @@ void Flow::processDetectedProtocol() {
 	    if(ndpi_flow->protos.dns.num_answers > 0) {
 	      protocol_processed = true;
 
-	      if(at != NULL)
+	      if(at != NULL) {
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpi_flow->host_server_name);
+
+		if(ntop->get_flashstart()) /* Cache category */
+		  ntop->get_flashstart()->findCategory((char*)ndpi_flow->host_server_name,
+						       &categorization.category,
+						       true);
+	      }
 	    }
 	  }
 	}
@@ -1006,8 +1025,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
     if(ntop->get_flashstart()) {
       categorizeFlow();
-      if(categorization.category[0] != '\0')
-	lua_push_str_table_entry(vm, "category", categorization.category);
+      ntop->get_flashstart()->dumpCategories(vm, &categorization.category);
     }
 
 #ifdef NTOPNG_PRO
@@ -1164,7 +1182,7 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
-char* Flow::getFlowCategory(bool force_categorization) {
+NDPI_PROTOCOL_BITMASK* Flow::getFlowCategory(bool force_categorization) {
   if(!categorization.categorized_requested) {
     if(ndpi_flow == NULL)
       categorization.categorized_requested = true;
@@ -1176,7 +1194,7 @@ char* Flow::getFlowCategory(bool force_categorization) {
     }
   }
 
-  return(categorization.category);
+  return(&categorization.category);
 }
 
 /* *************************************** */
@@ -1363,8 +1381,13 @@ json_object* Flow::flow2json(bool partial_dump) {
     }
   }
 
-  if(categorization.categorized_requested && (categorization.category[0] != '\0'))
-    json_object_object_add(my_object, "category", json_object_new_string(categorization.category));
+  if(categorization.categorized_requested 
+     && (!NDPI_ISSET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID))) {
+    char buf[64];
+
+    ntop->get_flashstart()->dumpCategories(&categorization.category, buf, sizeof(buf));    
+    json_object_object_add(my_object, "category", json_object_new_string(buf));
+  }
 
 #ifdef NTOPNG_PRO
   // Traffic profile information, if any
@@ -1762,7 +1785,7 @@ bool Flow::dumpFlowTraffic() {
 /* *************************************** */
 
 void Flow::checkFlowCategory() {
-  if(categorization.category[0] == '\0')
+  if(NDPI_ISSET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID))
     return;
 
   /* TODO: use category to emit verdict */

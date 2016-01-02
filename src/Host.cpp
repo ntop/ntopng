@@ -146,7 +146,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
-  category[0] = '\0', os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
+  os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId,
     ingress_shaper_id = egress_shaper_id = DEFAULT_SHAPER_ID,
     total_num_flows_as_client = total_num_flows_as_server = 0,
@@ -622,32 +622,14 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   As this method can be called from Lua, in order to avoid concurency issues
   we need to lock/unlock
 */
-void Host::setName(char *name, bool update_categorization) {
+void Host::setName(char *name) {
   if(m) m->lock(__FILE__, __LINE__);
   if((symbolic_name == NULL) || (symbolic_name && strcmp(symbolic_name, name))) {
     if(symbolic_name) free(symbolic_name);
     symbolic_name = strdup(name);
   }
+
   if(m) m->unlock(__FILE__, __LINE__);
-  refreshCategory();
-}
-
-/* ***************************************** */
-
-void Host::refreshCategory() {
-  char buf[128] =  { 0 };
-  char* ip_addr = ip->print(buf, sizeof(buf));
-
-  if((symbolic_name != NULL)
-     && strcmp(ip_addr, symbolic_name)
-     && (category[0] == '\0')
-     && ip
-     && ip->isIPv4()
-     && (!ip->isMulticastAddress())
-     && (!ip->isBroadcastAddress())
-     && ntop->get_flashstart()) {
-    ntop->get_flashstart()->findCategory(symbolic_name, category, sizeof(category), false);
-  }
 }
 
 /* ***************************************** */
@@ -690,7 +672,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 				      force_resolution_if_not_found);
 
     if(rc == 0)
-      setName(redis_buf, false);
+      setName(redis_buf);
     else {
       if(symbolic_name != NULL) free(symbolic_name);
 
@@ -812,7 +794,6 @@ char* Host::serialize() {
   if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));
   if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname));
-  if(category[0] != '\0') json_object_object_add(my_object, "category",  json_object_new_string(category));
   if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
@@ -906,7 +887,6 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "country", &obj))        { if(country) free(country); country = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "asname", &obj))         { if(asname) free(asname); asname = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "category", &obj))       { snprintf(category, sizeof(category), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "trafficCategory", &obj))         { snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "vlan_id", &obj))   vlan_id = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);

@@ -41,12 +41,14 @@ Flashstart::Flashstart(char *_user, char *_pwd) {
 
   dnsServer[0].sin_addr.s_addr = inet_addr("188.94.192.215"), dnsServer[0].sin_family = AF_INET, dnsServer[0].sin_port  = htons(53);
   dnsServer[1].sin_addr.s_addr = inet_addr("85.18.248.198"), dnsServer[1].sin_family = AF_INET, dnsServer[1].sin_port  = htons(53);
-  dnsServerIdx = 0;
+  dnsServerIdx = 0, numCategories = 0;
 
   if(sock >= 0)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enabled Flashstart traffic categorization");
   else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start Flashstart traffic categorization");
+
+  initMapping();
 }
 
 /* ******************************************* */
@@ -65,6 +67,100 @@ Flashstart::~Flashstart() {
   if(user) free(user);
   if(pwd)  free(pwd);
   closesocket(sock);
+  purgeMapping();
+}
+
+/* **************************************************** */
+
+void Flashstart::addMapping(const char *label, u_int8_t id) {
+  struct category_mapping *s = (struct category_mapping*)malloc(sizeof(struct category_mapping));
+
+  s->name = strdup(label), s->category = id;
+  HASH_ADD_STR(mapping, name, s);
+}
+
+/* **************************************************** */
+
+void Flashstart::purgeMapping() {
+  struct category_mapping *current, *tmp;
+  
+  HASH_ITER(hh, mapping, current, tmp) {
+    HASH_DEL(mapping, current);
+    free(current->name);
+    free(current);
+  }
+}
+
+/* **************************************************** */
+
+int Flashstart::findMapping(char *label) {
+  struct category_mapping *s;
+
+  HASH_FIND_STR(mapping, label, s);
+  
+  return((s == NULL) ? -1 : s->category);
+}
+
+/* **************************************************** */
+
+void Flashstart::initMapping() {
+  mapping = NULL;
+
+  /* NOTE: keep in sync with host_categories in lua_utils.lua */
+  addMapping("freetime", ++numCategories);
+  addMapping("chat", ++numCategories);
+  addMapping("onlineauctions", ++numCategories);
+  addMapping("onlinegames", ++numCategories);
+  addMapping("pets", ++numCategories);
+  addMapping("porn", ++numCategories);
+  addMapping("religion", ++numCategories);
+  addMapping("phishing", ++numCategories);
+  addMapping("sexuality", ++numCategories);
+  addMapping("games", ++numCategories);
+  addMapping("socialnetworking", ++numCategories);
+  addMapping("jobsearch", ++numCategories);
+  addMapping("mail", ++numCategories);
+  addMapping("news", ++numCategories);
+  addMapping("proxy", ++numCategories);
+  addMapping("publicite", ++numCategories);
+  addMapping("sports", ++numCategories);
+  addMapping("vacation", ++numCategories);
+  addMapping("ecommerce", ++numCategories);
+  addMapping("instantmessaging", ++numCategories);
+  addMapping("kidstimewasting", ++numCategories);
+  addMapping("audio-video", ++numCategories);
+  addMapping("books", ++numCategories);
+  addMapping("government", ++numCategories);
+  addMapping("malware", ++numCategories);
+  addMapping("medical", ++numCategories);
+  addMapping("ann", ++numCategories);
+  addMapping("drugs", ++numCategories);
+  addMapping("dating", ++numCategories);
+  addMapping("desktopsillies", ++numCategories);
+  addMapping("filehosting", ++numCategories);
+  addMapping("filesharing", ++numCategories);
+  addMapping("gambling", ++numCategories);
+  addMapping("warez", ++numCategories);
+  addMapping("radio", ++numCategories);
+  addMapping("updatesites", ++numCategories);
+  addMapping("financial", ++numCategories);
+  addMapping("adult", ++numCategories);
+  addMapping("fashion", ++numCategories);
+  addMapping("showbiz", ++numCategories);
+  addMapping("ict", ++numCategories);
+  addMapping("aziende", ++numCategories);
+  addMapping("education", ++numCategories);
+  addMapping("searchengines", ++numCategories);
+  addMapping("blog", ++numCategories);
+  addMapping("association", ++numCategories);
+  addMapping("music", ++numCategories);
+  addMapping("legal", ++numCategories);
+  addMapping("photo", ++numCategories);
+  addMapping("stats", ++numCategories);
+  addMapping("content", ++numCategories);
+  addMapping("domainforsale", ++numCategories);
+  addMapping("weapons", ++numCategories);
+  addMapping("generic", ++numCategories);
 }
 
 /* **************************************************** */
@@ -75,12 +171,94 @@ static void* flashstartThreadInfiniteLoop(void* ptr) {
 
 /* **************************************************** */
 
-char* Flashstart::findCategory(char *name, char *buf, u_int buf_len, bool add_if_needed) {
+void Flashstart::setCategory(NDPI_PROTOCOL_BITMASK *category, char *rsp) {
+  char *tmp, *elem;
+  bool found = false;
+
+  NDPI_ZERO(category);
+
+  elem = strtok_r(rsp, ",", &tmp);
+
+  while(elem != NULL) {
+    int id = findMapping(elem);
+       
+    if((id == -1) && (!strcmp(elem, NTOP_UNKNOWN_CATEGORY_STR)))
+      id = NTOP_UNKNOWN_CATEGORY_ID;
+
+    if(id == -1)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown category '%s'", elem);
+    else
+      NDPI_SET(category, id), found = true;
+    
+    elem = strtok_r(NULL, ",", &tmp);
+  }
+
+  if(!found)
+    NDPI_SET(category, NTOP_UNKNOWN_CATEGORY_ID);
+}
+
+/* **************************************************** */
+
+bool Flashstart::findCategory(char *name, NDPI_PROTOCOL_BITMASK *category, bool add_if_needed) {
   if(ntop->getPrefs()->is_flashstart_enabled()) {
-    return(ntop->getRedis()->getTrafficFilteringCategory(name, buf, buf_len, add_if_needed));
-  } else {
+    char buf[64] = { 0 };
+    
+    ntop->getRedis()->getTrafficFilteringCategory(name, buf, sizeof(buf), add_if_needed);
+    
+    if(buf[0] != 0) {
+      setCategory(category, buf);
+      return(true);
+    }
+  }
+   
+  return(false);
+}
+
+/* **************************************************** */
+
+void Flashstart::dumpCategories(lua_State* vm, NDPI_PROTOCOL_BITMASK *category) {
+  if(!NDPI_ISSET(category, NTOP_UNKNOWN_CATEGORY_ID)) {
+    lua_newtable(vm);
+    
+    for(int i=1; i<numCategories; i++) {
+      if(NDPI_ISSET(category, i)) {
+	struct category_mapping *s;
+
+	for(s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
+	  if(s->category == i) {
+	    lua_push_int_table_entry(vm, s->name, s->category);
+	    break;
+	  }
+      }
+    }
+    
+    lua_pushstring(vm, "category"); // Key
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}
+
+/* **************************************************** */
+
+void Flashstart::dumpCategories(NDPI_PROTOCOL_BITMASK *category, char *buf, u_int buf_len) {
+  if(!NDPI_ISSET(category, NTOP_UNKNOWN_CATEGORY_ID)) {
     buf[0] = '\0';
-    return(buf);
+    
+    for(int i=1; i<numCategories; i++) {
+      if(NDPI_ISSET(category, i)) {
+	struct category_mapping *s;
+
+	for(s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
+	  if(s->category == i) {
+	    int l = strlen(buf);
+
+	    snprintf(buf, buf_len-l, "%s%s",
+		     (l > 0) ? "," : "",
+		     s->name);
+	    break;
+	  }
+      }
+    }    
   }
 }
 
@@ -92,6 +270,8 @@ void Flashstart::queryFlashstart(char* symbolic_name) {
   rsp = ntop->getRedis()->getTrafficFilteringCategory(symbolic_name, buf, sizeof(buf)-1, false);
   
   if((rsp == NULL) || (rsp[0] == '\0')) {
+    ntop->getRedis()->setTrafficFilteringAddress(symbolic_name, (char*)NTOP_UNKNOWN_CATEGORY_STR);
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Categorizing %s", symbolic_name);
     queryDomain(sock, symbolic_name, ++num_flashstart_categorizations,
 		(struct sockaddr*)&dnsServer[dnsServerIdx],
@@ -167,12 +347,13 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
   snprintf(txt, sizeof(txt), "%s", &rsp[offset]);
 
   if(qname[0] && txt[0]) {
-    char *category = (char*)"???";
+    char *category = (char*)NTOP_UNKNOWN_CATEGORY_STR;
 
     if(!strncmp(txt, "BLACKLIST:", 10)) {
       category = &txt[10];
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] %s=%s", qname, category);
-    }
+    } else
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
 
     ntop->getRedis()->setTrafficFilteringAddress(qname, category);
   }
@@ -221,9 +402,9 @@ void* Flashstart::flashstartLoop(void* ptr) {
 
     if(rc == 0) {
       h->queryFlashstart(symbolic_ip);
-      h->recvResponses(100);
+      h->recvResponses(1);
     } else
-      h->recvResponses(1000);
+      h->recvResponses(100);
   }
 
   return(NULL);

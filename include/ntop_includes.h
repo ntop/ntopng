@@ -115,6 +115,7 @@ extern "C" {
 #include "hiredis.h"
 };
 
+#include "third-party/uthash.h"
 #include <mysql.h>
 #include <errmsg.h>
 

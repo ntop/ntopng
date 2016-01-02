@@ -531,60 +531,6 @@ char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
 
 /* **************************************** */
 
-char* Redis::getFlowCategory(char *_domainname, char *buf,
-			     u_int buf_len, bool categorize_if_unknown) {
-  char key[CONST_MAX_LEN_REDIS_KEY], *domainname;
-  redisReply *reply;
-
-  buf[0] = 0;
-
-  if(!ntop->getPrefs()->is_categorization_enabled())  return(NULL);
-
-  domainname = Utils::get2ndLevelDomain(_domainname);
-
-  /* Check if the host is 'categorizable' */
-  if(Utils::isIPAddress(domainname)
-     || (!Utils::isGoodNameToCategorize(domainname))) {
-    return(buf);
-  }
-
-  if(hashGet((char*)DOMAIN_WHITELIST_CAT, domainname, key, sizeof(key)) == 0)
-    return(buf); /* Whitelisted domain */
-
-  l->lock(__FILE__, __LINE__);
-
-  snprintf(key, sizeof(key), "%s.%s", DOMAIN_CATEGORY, domainname);
-
-  /*
-    Add only if the domain has not been categorized yet
-  */
-  reply = (redisReply*)redisCommand(redis, "GET %s", key);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-
-  if(reply && reply->str) {
-    snprintf(buf, buf_len, "%s", reply->str);
-    freeReplyObject(reply);
-  } else {
-    buf[0] = 0;
-
-    if(categorize_if_unknown) {
-      reply = (redisReply*)redisCommand(redis, "RPUSH %s %s", DOMAIN_TO_CATEGORIZE, domainname);
-      if(!reply) reconnectRedis();
-      if(reply && (reply->type == REDIS_REPLY_ERROR))
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-      if(reply) freeReplyObject(reply);
-    }
-  }
-
-  l->unlock(__FILE__, __LINE__);
-
-  return(buf);
-}
-
-/* **************************************** */
-
 int Redis::popDomainToCategorize(char *domainname, u_int domainname_len) {
   return(lpop(DOMAIN_TO_CATEGORIZE, domainname, domainname_len));
 }

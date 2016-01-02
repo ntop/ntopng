@@ -28,7 +28,7 @@ class Host : public GenericHost {
  private:
   u_int8_t mac_address[6], antenna_mac_address[6];
   u_int32_t asn;
-  char *symbolic_name, *country, *city, *asname, category[16], os[16], trafficCategory[12];
+  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12];
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
   u_int32_t host_quota_mb;
   u_int16_t num_uses;
@@ -66,7 +66,6 @@ class Host : public GenericHost {
 
   void initialize(u_int8_t mac[6], u_int16_t _vlan_id, bool init_all);
   void refreshHTTPBL();
-  void refreshCategory();
   void computeHostSerial();
 
   void loadFlowRateAlertPrefs(void);
@@ -105,7 +104,6 @@ class Host : public GenericHost {
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_country()                   { return(country);          }
   inline char* get_city()                      { return(city);             }
-  inline char* get_category()                  { if(category[0] == '\0') refreshCategory(); return(category); }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
   inline int get_ingress_shaper_id()           { return(ingress_shaper_id); }
   inline int get_egress_shaper_id()            { return(egress_shaper_id);  }
@@ -123,7 +121,7 @@ class Host : public GenericHost {
   void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details, 
 	   bool verbose, bool returnHost, bool asListElement);
   void resolveHostName();
-  void setName(char *name, bool update_categorization);
+  void setName(char *name);
   void set_host_label(char *label_name);
   int compare(Host *h);
   inline bool equal(IpAddress *_ip)  { return(ip && _ip && ip->equal(_ip)); };

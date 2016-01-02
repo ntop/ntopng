@@ -66,7 +66,6 @@ class Redis {
   int popHostToTrafficFiltering(char *hostname, u_int hostname_len);
 
   char* getTrafficFilteringCategory(char *numeric_ip, char *buf, u_int buf_len, bool query_httpbl_if_unknown);
-  char* getFlowCategory(char *domainname, char *buf, u_int buf_len, bool categorize_if_unknown);
   int popDomainToCategorize(char *domainname, u_int domainname_len);
   
   int getAddress(char *numeric_ip, char *rsp, u_int rsp_len, bool queue_if_not_found);

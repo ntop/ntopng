@@ -70,7 +70,7 @@ class GenericHashEntry {
    * @brief Get the last seen time.
    * @details Inline method.
    * 
-   * @return Time of last seen.
+b   * @return Time of last seen.
    */
   inline time_t get_last_seen()      { return(last_seen); };
   /**
