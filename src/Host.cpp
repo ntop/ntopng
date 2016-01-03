@@ -771,7 +771,7 @@ void Host::incStats(u_int8_t l4_proto, u_int ndpi_proto,
       break;
     }
 
-    if(category && localHost) {
+    if(category && localHost && ntop->get_flashstart()) {
       if(categoryStats == NULL)
 	categoryStats = new CategoryStats();
 

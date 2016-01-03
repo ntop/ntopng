@@ -235,10 +235,10 @@ else
 end
 
 if(page == "categories") then
-  print("<li class=\"active\"><a href=\"#\">Categories</a></li>\n")
+  print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>\n")
 else
    if(host["categories"] ~= nil) then
-      print("<li><a href=\""..url.."&page=categories\">Categories</a></li>")
+      print("<li><a href=\""..url.."&page=categories\"><i class=\"fa fa-sort-alpha-asc fa-lg\"></i></a></li>")
    end
 end
 
