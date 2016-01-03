@@ -62,7 +62,7 @@ class Flow : public GenericHashEntry {
   } ssl;
 
   struct {
-    NDPI_PROTOCOL_BITMASK category;
+    struct site_categories category;
     bool categorized_requested;
   } categorization;
 
@@ -127,7 +127,7 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  NDPI_PROTOCOL_BITMASK* getFlowCategory(bool force_categorization);
+  struct site_categories* getFlowCategory(bool force_categorization);
   void categorizeFlow();
   void deleteFlowMemory();
   char* serialize(bool partial_dump = false, bool es_json = false);

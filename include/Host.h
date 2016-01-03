@@ -55,7 +55,8 @@ class Host : public GenericHost {
   bool trigger_host_alerts;
   u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
   NetworkStats *networkStats;
-
+  CategoryStats *categoryStats;
+  
 #ifdef NTOPNG_PRO
   NDPI_PROTOCOL_BITMASK *l7Policy;
 #endif
@@ -125,7 +126,8 @@ class Host : public GenericHost {
   void set_host_label(char *label_name);
   int compare(Host *h);
   inline bool equal(IpAddress *_ip)  { return(ip && _ip && ip->equal(_ip)); };
-  void incStats(u_int8_t l4_proto, u_int ndpi_proto, 
+  void incStats(u_int8_t l4_proto, u_int ndpi_proto,
+		struct site_categories *category,
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);

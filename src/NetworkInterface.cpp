@@ -1383,12 +1383,12 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
     Host *dstHost = findHostByMac(ethernet->h_dest, vlan_id, true);
 
     if(srcHost) {
-      srcHost->incStats(0, NO_NDPI_PROTOCOL, 1, h->len, 0, 0);
+      srcHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 1, h->len, 0, 0);
       srcHost->updateActivities();
     }
 
     if(dstHost) {
-      dstHost->incStats(0, NO_NDPI_PROTOCOL, 0, 0, 1, h->len);
+      dstHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 0, 0, 1, h->len);
       dstHost->updateActivities();
     }
 

@@ -432,6 +432,7 @@
 #define FLASHSTART_STRING          "flashstart:"
 #define NUM_FLASHSTART_SERVERS     2
 
+#define MAX_NUM_CATEGORIES         3
 #define NTOP_UNKNOWN_CATEGORY_STR  "???"
 #define NTOP_UNKNOWN_CATEGORY_ID   0
 

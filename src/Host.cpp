@@ -86,7 +86,7 @@ Host::~Host() {
   if(country)        free(country);
   if(city)           free(city);
   if(asname)         free(asname);
-
+  if(categoryStats)  delete categoryStats;
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
   if(ip) delete ip;
@@ -160,7 +160,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), "%s.%d.json", k, vlan_id);
-  dns = NULL, http = NULL;
+  dns = NULL, http = NULL, categoryStats = NULL;
 
 #ifdef NTOPNG_PRO
   l7Policy = NULL;
@@ -552,7 +552,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "num_alerts", getNumAlerts());
 
     if(ip) {
-      if(ntop->getPrefs()->is_httpbl_enabled())     lua_push_str_table_entry(vm, "httpbl", get_httpbl());
+      if(ntop->getPrefs()->is_httpbl_enabled())
+	lua_push_str_table_entry(vm, "httpbl", get_httpbl());
     }
 
     lua_push_bool_table_entry(vm, "dump_host_traffic", dump_host_traffic);
@@ -560,6 +561,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     if(verbose) {
       char *rsp = serialize();
 
+      if(categoryStats) categoryStats->lua(vm);
       if(ndpiStats) ndpiStats->lua(iface, vm);
       lua_push_str_table_entry(vm, "json", rsp);
       free(rsp);
@@ -736,6 +738,7 @@ u_int32_t Host::key() {
 /* *************************************** */
 
 void Host::incStats(u_int8_t l4_proto, u_int ndpi_proto,
+		    struct site_categories *category,
 		    u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
 
@@ -766,6 +769,20 @@ void Host::incStats(u_int8_t l4_proto, u_int ndpi_proto,
       other_ip_rcvd.incStats(rcvd_packets, rcvd_bytes),
 	other_ip_sent.incStats(sent_packets, sent_bytes);
       break;
+    }
+
+    if(category && localHost) {
+      if(categoryStats == NULL)
+	categoryStats = new CategoryStats();
+
+      if(categoryStats) {
+	for(int i=0; i <MAX_NUM_CATEGORIES; i++)	  
+	  if(category->categories[i] == NTOP_UNKNOWN_CATEGORY_ID)
+	    break;
+	  else
+	    categoryStats->incStats(category->categories[i],
+				    sent_bytes+rcvd_bytes);      
+      }
     }
   }
 }
@@ -823,10 +840,11 @@ char* Host::serialize() {
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
   json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-
+  
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
 
+  if(categoryStats)  json_object_object_add(my_object, "categories", categoryStats->getJSONObject());
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
 
@@ -915,6 +933,16 @@ bool Host::deserialize(char *json_str, char *key) {
 
   if(json_object_object_get_ex(o, "http", &obj)) {
     if(http) http->deserialize(obj);
+  }
+
+  if(categoryStats) {
+    delete categoryStats;
+    categoryStats = NULL;
+  }
+
+  if(json_object_object_get_ex(o, "categories", &obj)) {
+    categoryStats = new CategoryStats;
+    if(categoryStats) categoryStats->deserialize(obj);
   }
 
   if(ndpiStats) {

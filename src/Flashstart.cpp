@@ -171,11 +171,10 @@ static void* flashstartThreadInfiniteLoop(void* ptr) {
 
 /* **************************************************** */
 
-void Flashstart::setCategory(NDPI_PROTOCOL_BITMASK *category, char *rsp) {
+void Flashstart::setCategory(struct site_categories *category, char *rsp) {
   char *tmp, *elem;
   bool found = false;
-
-  NDPI_ZERO(category);
+  int n = 0;
 
   elem = strtok_r(rsp, ",", &tmp);
 
@@ -187,19 +186,23 @@ void Flashstart::setCategory(NDPI_PROTOCOL_BITMASK *category, char *rsp) {
 
     if(id == -1)
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown category '%s'", elem);
-    else
-      NDPI_SET(category, id), found = true;
-    
+    else {
+      category->categories[n++] = id, found = true;
+      if(n == MAX_NUM_CATEGORIES) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: too many categories (%d)", n);
+	break;
+      }
+    }
+
     elem = strtok_r(NULL, ",", &tmp);
   }
 
-  if(!found)
-    NDPI_SET(category, NTOP_UNKNOWN_CATEGORY_ID);
+  if(!found) memset(category, 0, sizeof(struct site_categories));
 }
 
 /* **************************************************** */
 
-bool Flashstart::findCategory(char *name, NDPI_PROTOCOL_BITMASK *category, bool add_if_needed) {
+bool Flashstart::findCategory(char *name, struct site_categories *category, bool add_if_needed) {
   if(ntop->getPrefs()->is_flashstart_enabled()) {
     char buf[64] = { 0 };
     
@@ -216,16 +219,26 @@ bool Flashstart::findCategory(char *name, NDPI_PROTOCOL_BITMASK *category, bool 
 
 /* **************************************************** */
 
-void Flashstart::dumpCategories(lua_State* vm, NDPI_PROTOCOL_BITMASK *category) {
-  if(!NDPI_ISSET(category, NTOP_UNKNOWN_CATEGORY_ID)) {
+char* Flashstart::getCategoryName(u_int8_t id) {
+  struct category_mapping *s;
+  
+  for(s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
+    if(s->category == id)
+      return(s->name);
+
+  return((char*)NTOP_UNKNOWN_CATEGORY_STR);
+}
+
+/* **************************************************** */
+
+void Flashstart::dumpCategories(lua_State* vm, struct site_categories *category) {
+  if(category->categories[0] != NTOP_UNKNOWN_CATEGORY_ID) {
     lua_newtable(vm);
     
-    for(int i=1; i<numCategories; i++) {
-      if(NDPI_ISSET(category, i)) {
-	struct category_mapping *s;
-
-	for(s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
-	  if(s->category == i) {
+    for(int i=0; i<MAX_NUM_CATEGORIES; i++) {
+      if(category->categories[i] != NTOP_UNKNOWN_CATEGORY_ID) {
+	for(struct category_mapping *s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
+	  if(s->category == category->categories[i]) {
 	    lua_push_int_table_entry(vm, s->name, s->category);
 	    break;
 	  }
@@ -240,16 +253,16 @@ void Flashstart::dumpCategories(lua_State* vm, NDPI_PROTOCOL_BITMASK *category) 
 
 /* **************************************************** */
 
-void Flashstart::dumpCategories(NDPI_PROTOCOL_BITMASK *category, char *buf, u_int buf_len) {
-  if(!NDPI_ISSET(category, NTOP_UNKNOWN_CATEGORY_ID)) {
+void Flashstart::dumpCategories(struct site_categories *category, char *buf, u_int buf_len) {
+  if(category->categories[0] != NTOP_UNKNOWN_CATEGORY_ID) {
     buf[0] = '\0';
     
-    for(int i=1; i<numCategories; i++) {
-      if(NDPI_ISSET(category, i)) {
+    for(int i=0; i<MAX_NUM_CATEGORIES; i++) {
+      if(category->categories[i] != NTOP_UNKNOWN_CATEGORY_ID) {
 	struct category_mapping *s;
 
 	for(s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
-	  if(s->category == i) {
+	  if(s->category == category->categories[i]) {
 	    int l = strlen(buf);
 
 	    snprintf(buf, buf_len-l, "%s%s",
@@ -264,11 +277,14 @@ void Flashstart::dumpCategories(NDPI_PROTOCOL_BITMASK *category, char *buf, u_in
 
 /* **************************************************** */
 
-void Flashstart::queryFlashstart(char* symbolic_name) {
+void Flashstart::queryFlashstart(char* symbolic_name, bool skipCache) {
   char buf[32], *rsp;
   
-  rsp = ntop->getRedis()->getTrafficFilteringCategory(symbolic_name, buf, sizeof(buf)-1, false);
-  
+  if(!skipCache)
+    rsp = ntop->getRedis()->getTrafficFilteringCategory(symbolic_name, buf, sizeof(buf)-1, false);
+  else
+    rsp = NULL;
+
   if((rsp == NULL) || (rsp[0] == '\0')) {
     ntop->getRedis()->setTrafficFilteringAddress(symbolic_name, (char*)NTOP_UNKNOWN_CATEGORY_STR);
 
@@ -324,11 +340,11 @@ void Flashstart::queryDomain(int sock, char *domain, u_int queryId,
 
 int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockaddr_in *from) {
   struct dns_header *header = (struct dns_header *)rsp;
-  int i;
+  int i, rc = 0;
   u_int16_t qtype, offset;
   char qname[128], txt[128], *p;
 
-  if(ntohs(header->num_questions) != 1) return(-1);
+  if(ntohs(header->num_questions) != 1) return(rc);
   
   p = (char*)&rsp[sizeof(struct dns_header)-1];
 
@@ -350,7 +366,7 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
     char *category = (char*)NTOP_UNKNOWN_CATEGORY_STR;
 
     if(!strncmp(txt, "BLACKLIST:", 10)) {
-      category = &txt[10];
+      category = &txt[10], rc = 1;
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] %s=%s", qname, category);
     } else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
@@ -358,7 +374,7 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
     ntop->getRedis()->setTrafficFilteringAddress(qname, category);
   }
 
-  return(0);
+  return(rc);
 }
 
 /* **************************************************** */
@@ -380,10 +396,11 @@ u_int Flashstart::recvResponses(u_int msecTimeout) {
     u_char rsp[512];
     struct sockaddr_in from;
     socklen_t s;
-    int len = recvfrom(sock, rsp, sizeof(rsp), 0, (struct sockaddr*)&from, &s);
+    int len = recvfrom(sock, rsp, sizeof(rsp), 0,
+		       (struct sockaddr*)&from, &s);
 
     if(len > sizeof(struct dns_header))
-      parseDNSResponse(rsp, len, &from), num++;    
+      num += parseDNSResponse(rsp, len, &from);
   }
 
   return(num);
@@ -401,7 +418,7 @@ void* Flashstart::flashstartLoop(void* ptr) {
     int rc = r->popHostToTrafficFiltering(symbolic_ip, sizeof(symbolic_ip));
 
     if(rc == 0) {
-      h->queryFlashstart(symbolic_ip);
+      h->queryFlashstart(symbolic_ip, false);
       h->recvResponses(1);
     } else
       h->recvResponses(100);
@@ -425,7 +442,19 @@ void Flashstart::startLoop() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Called %s [rsp: %s]",
 				 url, rsp ? ret : "ERROR");
 
-    pthread_create(&flashstartThreadLoop, NULL,
-		   flashstartThreadInfiniteLoop, (void*)this);
+    if(rsp) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for Flashstart to initialize. Please wait...");
+      
+      while(true) {
+	queryFlashstart((char*)"ntop.org", true);
+	if(recvResponses(1000) > 0)
+	  break;
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, ".");
+      }
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flashstart ready to serve requests...");
+
+      pthread_create(&flashstartThreadLoop, NULL,
+		     flashstartThreadInfiniteLoop, (void*)this);
+    }
   }
 }

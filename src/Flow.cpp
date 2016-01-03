@@ -76,9 +76,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   passVerdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
-  NDPI_ZERO(&categorization.category);
-  NDPI_SET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID),
-    categorization.categorized_requested = false;
+  memset(&categorization.category, 0, sizeof(categorization.category));
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   protocol_processed = false, blacklist_alarm_emitted = false;
 
@@ -151,7 +149,7 @@ void Flow::categorizeFlow() {
   char *what;
 
   switch(ndpi_get_lower_proto(ndpi_detected_protocol)) {
-  case NDPI_PROTOCOL_DNS:
+    /* case NDPI_PROTOCOL_DNS: */
   case NDPI_PROTOCOL_SSL:
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
@@ -173,7 +171,7 @@ void Flow::categorizeFlow() {
 
   if(!categorization.categorized_requested)
     categorization.categorized_requested = true, toRequest = true, toQuery = true;
-  else if(NDPI_ISSET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID))
+  else if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)
     toRequest = true;
 
   if(toRequest) {
@@ -731,12 +729,15 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	NetworkStats *cli_network_stats;
 
 	cli_network_stats = cli_host->getNetworkStats(cli_network_id);
-	cli_host->incStats(protocol, ndpi_detected_protocol.protocol,
+	cli_host->incStats(protocol,
+			   ndpi_detected_protocol.protocol,
+			   &categorization.category,
 			   diff_sent_packets, diff_sent_bytes,
 			   diff_rcvd_packets, diff_rcvd_bytes);
+	  
 	// update per-subnet byte counters
-	if(cli_network_stats){ // only if the network is known and local
-	  if(!cli_and_srv_in_same_subnet){
+	if(cli_network_stats) { // only if the network is known and local
+	  if(!cli_and_srv_in_same_subnet) {
 	    cli_network_stats->incEgress(diff_sent_bytes);
 	    cli_network_stats->incIngress(diff_rcvd_bytes);
 	  } else // client and server ARE in the same subnet
@@ -744,7 +745,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	    cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
 	}
 
-	if(srv_host && cli_host->isLocalHost()){
+	if(srv_host && cli_host->isLocalHost()) {
 	  cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
 	}
 
@@ -757,10 +758,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
 	srv_network_stats = srv_host->getNetworkStats(srv_network_id);
 	srv_host->incStats(protocol, ndpi_detected_protocol.protocol,
-			   diff_rcvd_packets, diff_rcvd_bytes,
+			   NULL, diff_rcvd_packets, diff_rcvd_bytes,
 			   diff_sent_packets, diff_sent_bytes);
-	if(srv_network_stats){ // local and known server network
-	  if(!cli_and_srv_in_same_subnet){
+	if(srv_network_stats) { // local and known server network
+	  if(!cli_and_srv_in_same_subnet) {
 	    srv_network_stats->incIngress(diff_sent_bytes);
 	    srv_network_stats->incEgress(diff_rcvd_bytes);
 	  }
@@ -1182,7 +1183,7 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
-NDPI_PROTOCOL_BITMASK* Flow::getFlowCategory(bool force_categorization) {
+struct site_categories* Flow::getFlowCategory(bool force_categorization) {
   if(!categorization.categorized_requested) {
     if(ndpi_flow == NULL)
       categorization.categorized_requested = true;
@@ -1382,7 +1383,7 @@ json_object* Flow::flow2json(bool partial_dump) {
   }
 
   if(categorization.categorized_requested 
-     && (!NDPI_ISSET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID))) {
+     && (categorization.category.categories[0] != NTOP_UNKNOWN_CATEGORY_ID)) {
     char buf[64];
 
     ntop->get_flashstart()->dumpCategories(&categorization.category, buf, sizeof(buf));    
@@ -1785,7 +1786,7 @@ bool Flow::dumpFlowTraffic() {
 /* *************************************** */
 
 void Flow::checkFlowCategory() {
-  if(NDPI_ISSET(&categorization.category, NTOP_UNKNOWN_CATEGORY_ID))
+  if(categorization.category.categories[0] == NTOP_UNKNOWN_CATEGORY_ID)
     return;
 
   /* TODO: use category to emit verdict */

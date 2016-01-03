@@ -194,6 +194,7 @@ using namespace std;
 #include "Geolocation.h"
 #include "Flashstart.h"
 #include "GenericHost.h"
+#include "CategoryStats.h"
 #include "Host.h"
 #include "Flow.h"
 #include "FlowHash.h"

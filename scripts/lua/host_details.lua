@@ -234,6 +234,14 @@ else
    end
 end
 
+if(page == "categories") then
+  print("<li class=\"active\"><a href=\"#\">Categories</a></li>\n")
+else
+   if(host["categories"] ~= nil) then
+      print("<li><a href=\""..url.."&page=categories\">Categories</a></li>")
+   end
+end
+
 if(ntop.isPro()) then
    if(page == "snmp") then
       print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
@@ -1263,6 +1271,25 @@ print [[
    ]]
 
 end
+elseif(page == "categories") then
+
+print [[
+      <table class="table table-bordered table-striped">
+      	<tr><th class="text-left">Traffic Categories</th><td><div class="pie-chart" id="topTrafficCategories"></div></td></tr>
+	</div>
+
+        <script type='text/javascript'>
+	       window.onload=function() {
+
+				   do_pie("#topTrafficCategories", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/host_category_stats.lua', { ifname: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+  print [[
+				}
+
+	    </script>
+	</table>
+	]]
 elseif(page == "snmp") then
 
 if(ntop.isPro()) then

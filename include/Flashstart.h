@@ -24,6 +24,10 @@
 
 #include "ntop_includes.h"
 
+struct site_categories {
+  u_int8_t categories[MAX_NUM_CATEGORIES];
+};
+
 struct category_mapping {
   char *name;   /* key */
   u_int8_t category; /* value */
@@ -43,23 +47,25 @@ class Flashstart {
   void initMapping();
   void purgeMapping();
   void addMapping(const char *label, u_int8_t id);
-  void queryFlashstart(char *symbolic_name);
+  void queryFlashstart(char *symbolic_name, bool skipCache);
   int parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockaddr_in *from);
   u_int recvResponses(u_int msecTimeout);
   void queryDomain(int sock, char *domain, u_int queryId,
 		   const struct sockaddr *to, socklen_t tolen);     
-  void setCategory(NDPI_PROTOCOL_BITMASK *category, char *rsp);
+  void setCategory(struct site_categories *category, char *rsp);
 
  public:
   Flashstart(char *_user, char *_pwd);
   ~Flashstart();
 
+  inline u_int8_t getNumCategories() { return(numCategories); }
   int findMapping(char *label);
   void startLoop();
   void* flashstartLoop(void* ptr);
-  bool findCategory(char *name, NDPI_PROTOCOL_BITMASK *category, bool add_if_needed); 
-  void dumpCategories(lua_State* vm, NDPI_PROTOCOL_BITMASK *category);
-  void dumpCategories(NDPI_PROTOCOL_BITMASK *category, char *buf, u_int buf_len);
+  bool findCategory(char *name, struct site_categories *category, bool add_if_needed); 
+  void dumpCategories(lua_State* vm, struct site_categories *category);
+  void dumpCategories(struct site_categories *category, char *buf, u_int buf_len);
+  char* getCategoryName(u_int8_t id);
 };
 
 #endif /* _FLASHSTART_H_ */
