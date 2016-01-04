@@ -940,8 +940,9 @@ bool Host::deserialize(char *json_str, char *key) {
     categoryStats = NULL;
   }
 
-  if(json_object_object_get_ex(o, "categories", &obj)) {
-    categoryStats = new CategoryStats;
+  // deserialize categories only if flashstart is enabled for the current instance
+  if(json_object_object_get_ex(o, "categories", &obj) && ntop->get_flashstart()) {
+    categoryStats = new CategoryStats();
     if(categoryStats) categoryStats->deserialize(obj);
   }
 
