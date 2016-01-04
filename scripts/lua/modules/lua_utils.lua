@@ -704,7 +704,7 @@ end
 
 -- NOTE keep in sync with Flashstart::initMapping()
 
-local host_categories =	 {
+host_categories =	 {
       ["freetime"] = "Free Time",
       ["chat"] = "Chat",
       ["onlineauctions"] = "Auctions",

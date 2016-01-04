@@ -35,6 +35,7 @@ end
 
 host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
+host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 
 -- id = 0
 for _,_ifname in pairs(ifnames) do
@@ -124,48 +125,55 @@ for _,_ifname in pairs(ifnames) do
 
 	 -- Save hosts stats
 	 if(host_rrd_creation ~= "0") then
-	    hosts_stats = interface.getLocalHostsInfo()
             local networks_aggr = {}
-            local communities_aggr = {}
-	    for key, value in pairs(hosts_stats) do
-	       host = interface.getHostInfo(key)
+
+            for hosts_stats_ifname, hosts_stats in pairs(interface.getLocalHostsInfo()) do
+	    hosts_stats = hosts_stats["hosts"]
+
+	    for hostname, hoststats in pairs(hosts_stats) do
+	       host = interface.getHostInfo(hostname)
 
 	       if(host == nil) then
-		  if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] NULL host "..key.." !!!!\n") end
+		  if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] NULL host "..hostname.." !!!!\n") end
 	       else
 		  if(verbose) then
-		     print ("["..__FILE__()..":"..__LINE__().."] [" .. key .. "][local: ")
+		     print ("["..__FILE__()..":"..__LINE__().."] [" .. hostname .. "][local: ")
 		     print(tostring(host["localhost"]))
-		     print("]" .. (hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]) .. "]\n")
+		     print("]" .. (hoststats["bytes.sent"]+hoststats["bytes.rcvd"]) .. "]\n")
 		  end
 
 		  if(host.localhost) then
-                     local keypath = getPathFromKey(key)
-		     basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
+                     local keypath = getPathFromKey(hostname)
+		     local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
 
 		     if(not(ntop.exists(basedir))) then
 			if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", basedir, '\n') end
 			ntop.mkdir(basedir)
+
 		     end
 
+                   if host_categories_rrd_creation ~= "0" and not ntop.exists(fixPath(basedir.."/categories")) then
+                      ntop.mkdir(fixPath(basedir.."/categories"))
+                   end
+
                      -- Aggregate network stats
-		     network_key = hosts_stats[key]["local_network_name"]
+		     network_key = hoststats["local_network_name"]
 		     --io.write("==> Adding "..network_key.."\n")
                      if (networks_aggr[network_key] == nil) then
                        networks_aggr[network_key] = {}
                      end
                      if (networks_aggr[network_key]["bytes.sent"] == nil) then
-                       networks_aggr[network_key]["bytes.sent"] = hosts_stats[key]["bytes.sent"]
-                       networks_aggr[network_key]["bytes.rcvd"] = hosts_stats[key]["bytes.rcvd"]
+                       networks_aggr[network_key]["bytes.sent"] = hoststats["bytes.sent"]
+                       networks_aggr[network_key]["bytes.rcvd"] = hoststats["bytes.rcvd"]
                      else
-                       networks_aggr[network_key]["bytes.sent"] = networks_aggr[network_key]["bytes.sent"] + hosts_stats[key]["bytes.sent"]
-                       networks_aggr[network_key]["bytes.rcvd"] = networks_aggr[network_key]["bytes.rcvd"] + hosts_stats[key]["bytes.rcvd"]
+                       networks_aggr[network_key]["bytes.sent"] = networks_aggr[network_key]["bytes.sent"] + hoststats["bytes.sent"]
+                       networks_aggr[network_key]["bytes.rcvd"] = networks_aggr[network_key]["bytes.rcvd"] + hoststats["bytes.rcvd"]
                      end
 
 		     -- Traffic stats
 		     name = fixPath(basedir .. "/bytes.rrd")
 		     createRRDcounter(name, 300, verbose)
-		     ntop.rrd_update(name, "N:"..tolongint(hosts_stats[key]["bytes.sent"]) .. ":" .. tolongint(hosts_stats[key]["bytes.rcvd"]))
+		     ntop.rrd_update(name, "N:"..tolongint(hoststats["bytes.sent"]) .. ":" .. tolongint(hoststats["bytes.rcvd"]))
 		     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
 
 		     -- L4 Protocols
@@ -181,7 +189,7 @@ for _,_ifname in pairs(ifnames) do
 			   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
 			else
 			   -- L2 host
-			   --io.write("Discarding "..k.."@"..key.."\n")
+			   --io.write("Discarding "..k.."@"..hostname.."\n")
 			end
 		     end
 
@@ -216,15 +224,36 @@ for _,_ifname in pairs(ifnames) do
 
 			   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
 			end
+                        if(host_categories_rrd_creation ~= "0" and host.localhost) then
+                           if host["categories"] ~= nil then
+                              if networks_aggr[host["local_network_name"]]["categories"] == nil then
+                                 networks_aggr[host["local_network_name"]]["categories"] = {}
+                              end
+                              for cat_name, cat_bytes in pairs(host["categories"]) do
+                                   -- io.write('cat_name: '..cat_name..' cat_bytes:'..tostring(cat_bytes)..'\n')
+                                   name = fixPath(basedir.."/categories/"..cat_name..".rrd")
+                                   createSingleRRDcounter(name, 300, verbose)
+                                   ntop.rrd_update(name, "N:".. tolongint(cat_bytes))
+
+                                   if networks_aggr[host["local_network_name"]]["categories"][cat_name] == nil then
+                                      networks_aggr[host["local_network_name"]]["categories"][cat_name] = cat_bytes
+                                   else
+                                      networks_aggr[host["local_network_name"]]["categories"][cat_name] =
+                                      networks_aggr[host["local_network_name"]]["categories"][cat_name] + cat_bytes
+                                   end
+                              end
+                           end
+                        end
 
 			if(host["epp"]) then dumpSingleTreeCounters(basedir, "epp", host, verbose) end
 			if(host["dns"]) then dumpSingleTreeCounters(basedir, "dns", host, verbose) end
 		     end
 		  else
-		     -- print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..key.."\n")
+		     -- print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..hostname.."\n")
 		  end
 	       end -- if
 	    end -- for
+            end
 
             --- Create RRD for networks
             for n,m in pairs(networks_aggr) do
@@ -240,9 +269,17 @@ for _,_ifname in pairs(ifnames) do
               ntop.rrd_update(name, str)
               if (m["ndpi"]) then -- nDPI data could be disabled
                 for k in pairs(m["ndpi"]) do
-                  ndpiname = fixPath(base.."/"..k..".rrd")
+                  local ndpiname = fixPath(base.."/"..k..".rrd")
                   createRRDcounter(ndpiname, 300, verbose)
                   ntop.rrd_update(ndpiname, "N:"..tolongint(m["ndpi"][k]["bytes.sent"])..":"..tolongint(m["ndpi"][k]["bytes.rcvd"]))
+                end
+              end
+              if (m["categories"]) then
+                if not ntop.exists(fixPath(base.."/categories")) then ntop.mkdir(fixPath(base.."/categories")) end
+                for cat_name, cat_bytes in pairs(m["categories"]) do
+                  local catrrdname = fixPath(base.."/categories/"..cat_name..".rrd")
+                  createSingleRRDcounter(catrrdname, 300, verbose)
+                  ntop.rrd_update(catrrdname, "N:"..tolongint(cat_bytes))
                 end
               end
             end

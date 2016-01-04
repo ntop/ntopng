@@ -1290,6 +1290,42 @@ print [[/lua/host_category_stats.lua', { ifname: "]] print(ifId.."") print('", '
 	    </script>
 	</table>
 	]]
+  print [[
+     <table id="categoriesTable" class="table table-bordered table-striped tablesorter">
+     ]]
+
+     print("<thead><tr><th>Traffic Category</th><th colspan=3>Total</th></tr></thead>\n")
+
+  print ('<tbody id="host_details_categories_tbody">\n')
+  print ("</tbody>")
+  print("</table>\n")
+
+  print [[
+<script>
+function update_categories_table() {
+  $.ajax({
+    type: 'GET',
+    url: ']]
+print (ntop.getHttpPrefix())
+print [[/lua/host_details_categories.lua',
+    data: { ifid: ]] print('"') print(tostring(ifId)) print('"') print(", hostip: ") print('"'..host["ip"]..'"') print [[ },
+    success: function(content) {
+      $('#host_details_categories_tbody').html(content);
+      // Let the TableSorter plugin know that we updated the table
+      $('#h_categories_tbody').trigger("update");
+    }
+  });
+}
+update_categories_table();
+]]
+
+print("setInterval(update_categories_table, 5000);")
+
+print [[
+
+</script>
+
+]]  
 elseif(page == "snmp") then
 
 if(ntop.isPro()) then
