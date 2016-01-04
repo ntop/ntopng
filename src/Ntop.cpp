@@ -254,7 +254,7 @@ void Ntop::start() {
   time_t when = time(NULL);
 
   getTrace()->traceEvent(TRACE_NORMAL,
-			 "Welcome to ntopng %s v.%s - (C) 1998-15 ntop.org",
+			 "Welcome to ntopng %s v.%s - (C) 1998-16 ntop.org",
 			 PACKAGE_MACHINE, PACKAGE_VERSION);
 
   if(PACKAGE_OS[0] != '\0')

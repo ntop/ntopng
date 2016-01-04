@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -35,7 +35,7 @@ end
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    v = split(info["version"], " ")
 
-   print(" [ SystemId: <A HREF=\"http://www.nmon.net/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
+   print(" [ SystemId: <A HREF=\"https://shop.ntop.org/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
    
    if(info["version.embedded_edition"] == true) then
       print("embedded")
