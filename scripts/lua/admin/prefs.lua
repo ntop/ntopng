@@ -48,6 +48,12 @@ if(haveAdminPrivileges()) then
 		     "to keep application protocol statistics at the cost of using more disk space.",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation")
 
+   toggleTableButton("Category RRDs For Local Hosts and Networks",
+           "Toggle the creation of Category RRDs for local hosts and defined networks. Enabling their creation allows you "..
+           "to keep persistent traffic category statistics (e.g., social networks, news) at the cost of using more disk space.<br>"..
+           "Creation is only possible if the ntopng instance has been launched with option -k flashstart:&lt;user&gt;:&lt;password&gt;.",
+          "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization", "ntopng.prefs.host_categories_rrd_creation", not prefs.is_categorization_enabled)
+
    -- ================================================================================
    print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 

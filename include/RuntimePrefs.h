@@ -114,6 +114,27 @@ class RuntimePrefs {
    *
    * @param use_bps Preference boolean value.
    */
+  /**
+   * @brief Set the hosts categories rrd creation preference.
+   * @details Enable or disable the preference and save it in Redis.
+   *
+   * @param enable Preference boolean value.
+   */
+  void set_hosts_categories_rrd_creation(bool enable);
+  /**
+   * @brief Get the hosts categories rrd creation preference.
+   * @details Read for Redis the preference, if it doesn't exist
+   * the preference will be set to default value (true).
+   * @return The preference boolean value
+   */
+  bool are_hosts_categories_rrd_created();
+  /**
+   * @brief Set the throughput unit preference.
+   * @details Save the unit preference in Redis. The preference will be
+   * set to "bps" if @ref use_bps is true otherwise to "pps".
+   *
+   * @param use_bps Preference boolean value.
+   */
   void set_throughput_unit(bool use_bps);
 };
 
