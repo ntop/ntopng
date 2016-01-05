@@ -1237,7 +1237,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local scaling_factor = 8
 
    --io.write(prefixLabel.."\n")
-   if(prefixLabel == "Bytes") then
+   if(prefixLabel == "Bytes" or string.starts(rrdFile, 'categories/')) then
       prefixLabel = "Traffic"
    end
 
@@ -1272,7 +1272,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
          if append_ifname_to_labels then
              extra_info = getInterfaceName(ifid)
          end
-	 if host ~= nil and not string.starts(host, 'profile:') then
+	 if host ~= nil and not string.starts(host, 'profile:') and not string.starts(rrdFile, 'categories/') then
              extra_info = extra_info.." ".. firstToUpper(n)
          end
          if extra_info ~= "" then
@@ -1282,7 +1282,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
          end
       end
     end
-   
+
    local minval, maxval, lastval = 0, 0, 0
    local maxval_time, minval_time, lastval_time  = nil, nil, nil
    local sampling = 1
