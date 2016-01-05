@@ -150,14 +150,20 @@ end
 
 
 function getTopPeers(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
-   if(host == nil) then return nil end
+   if(host == nil or host == "") then return nil end
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
    if(l7proto == "") then l7proto = nil end
    if(protocol == "") then protocol = nil end
 
-   local sql = "SELECT CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END PEER_ADDR, "
+   sql = " SELECT "
+   if(version == 4) then
+      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END PEER_ADDR, "
+   else
+      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END PEER_ADDR, "
+   end
+
    sql = sql.."sum(BYTES) as TOT_BYTES, sum(PACKETS) as TOT_PACKETS, count(*) as TOT_FLOWS "
    sql = sql.." FROM flowsv"..version
 
