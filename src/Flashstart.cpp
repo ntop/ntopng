@@ -421,7 +421,7 @@ void* Flashstart::flashstartLoop(void* ptr) {
       h->queryFlashstart(symbolic_ip, false);
       h->recvResponses(1);
     } else
-      h->recvResponses(100);
+      h->recvResponses(1000);
   }
 
   return(NULL);

@@ -43,7 +43,7 @@ else
 	 print ",\n"
       end
 
-      print("\t { \"label\": \"" .. capitalize(value) .."\", \"value\": ".. key .." }")
+      print("\t { \"label\": \"" .. capitalize(getCategoryLabel(value)) .."\", \"value\": ".. key .." }")
       accumulate = accumulate + key
       num = num + 1
 

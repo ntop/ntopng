@@ -2662,8 +2662,12 @@ static int ntop_check_license(lua_State* vm) {
 static int ntop_get_info(lua_State* vm) {
   char rsp[256];
   int major, minor, patch;
+  bool verbose = true;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    verbose = lua_toboolean(vm, 1) ? true : false;
 
   lua_newtable(vm);
   lua_push_str_table_entry(vm, "product", (char*)"ntopng");
@@ -2685,33 +2689,35 @@ static int ntop_get_info(lua_State* vm) {
 			   );
   lua_push_int_table_entry(vm, "bits", (sizeof(void*) == 4) ? 32 : 64);
   lua_push_int_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
-  lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());
-  lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion(rsp, sizeof(rsp)));
-  lua_push_str_table_entry(vm, "version.httpd", (char*)mg_version());
-  lua_push_str_table_entry(vm, "version.git", (char*)NTOPNG_GIT_RELEASE);
-  lua_push_str_table_entry(vm, "version.luajit", (char*)LUAJIT_VERSION);
+  if(verbose) {
+    lua_push_str_table_entry(vm, "version.rrd", rrd_strversion());
+    lua_push_str_table_entry(vm, "version.redis", ntop->getRedis()->getVersion(rsp, sizeof(rsp)));
+    lua_push_str_table_entry(vm, "version.httpd", (char*)mg_version());
+    lua_push_str_table_entry(vm, "version.git", (char*)NTOPNG_GIT_RELEASE);
+    lua_push_str_table_entry(vm, "version.luajit", (char*)LUAJIT_VERSION);
 #ifdef HAVE_GEOIP
-  lua_push_str_table_entry(vm, "version.geoip", (char*)GeoIP_lib_version());
+    lua_push_str_table_entry(vm, "version.geoip", (char*)GeoIP_lib_version());
 #endif
-  lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
-  lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
+    lua_push_str_table_entry(vm, "version.ndpi", ndpi_revision());
+    lua_push_bool_table_entry(vm, "version.embedded_edition", ntop->getPrefs()->is_embedded_edition());
 
-  lua_push_bool_table_entry(vm, "pro.release", ntop->getPrefs()->is_pro_edition());
-  lua_push_int_table_entry(vm, "pro.demo_ends_at", ntop->getPrefs()->pro_edition_demo_ends_at());
+    lua_push_bool_table_entry(vm, "pro.release", ntop->getPrefs()->is_pro_edition());
+    lua_push_int_table_entry(vm, "pro.demo_ends_at", ntop->getPrefs()->pro_edition_demo_ends_at());
 #ifdef NTOPNG_PRO
-  lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());
-  lua_push_bool_table_entry(vm, "pro.use_redis_license", ntop->getPro()->use_redis_license());
-  lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
+    lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());
+    lua_push_bool_table_entry(vm, "pro.use_redis_license", ntop->getPro()->use_redis_license());
+    lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());
 #endif
 
 #if 0
-  ntop->getRedis()->get((char*)CONST_STR_NTOPNG_LICENSE, rsp, sizeof(rsp));
-  lua_push_str_table_entry(vm, "ntopng.license", rsp);
+    ntop->getRedis()->get((char*)CONST_STR_NTOPNG_LICENSE, rsp, sizeof(rsp));
+    lua_push_str_table_entry(vm, "ntopng.license", rsp);
 #endif
 
-  zmq_version(&major, &minor, &patch);
-  snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);
-  lua_push_str_table_entry(vm, "version.zmq", rsp);
+    zmq_version(&major, &minor, &patch);
+    snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);
+    lua_push_str_table_entry(vm, "version.zmq", rsp);
+  }
 
   return(CONST_LUA_OK);
 }
@@ -4640,7 +4646,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
 		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
 		   || (strcmp(rsp, user) != 0)) {
-		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid CSRF parameter specified [%s]", decoded_buf);
+		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid CSRF parameter specified [%s][%s][%s]", decoded_buf, rsp, user);
 		  free(equal);
 		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", PAGE_ERROR, tok, rsp));
 		} else

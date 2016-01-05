@@ -229,7 +229,8 @@ for _,_ifname in pairs(ifnames) do
                               if networks_aggr[host["local_network_name"]]["categories"] == nil then
                                  networks_aggr[host["local_network_name"]]["categories"] = {}
                               end
-                              for cat_name, cat_bytes in pairs(host["categories"]) do
+                              for _cat_name, cat_bytes in pairs(host["categories"]) do
+			           cat_name = getCategoryLabel(_cat_name)
                                    -- io.write('cat_name: '..cat_name..' cat_bytes:'..tostring(cat_bytes)..'\n')
                                    name = fixPath(basedir.."/categories/"..cat_name..".rrd")
                                    createSingleRRDcounter(name, 300, verbose)

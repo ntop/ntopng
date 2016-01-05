@@ -10,7 +10,7 @@ print [[
 
 ntop_version_check()
 
-info = ntop.getInfo()
+info = ntop.getInfo(false)
 
 print [[
 	<div class="container-fluid">

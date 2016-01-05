@@ -182,7 +182,7 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 -- ##############################################
 
 function sendHTTPHeaderIfName(mime, ifname, maxage)
-  info = ntop.getInfo()
+  info = ntop.getInfo(false)
 
   print('HTTP/1.1 200 OK\r\n')
   print('Cache-Control: max-age=0, no-cache, no-store\r\n')
@@ -705,7 +705,7 @@ end
 -- NOTE keep in sync with Flashstart::initMapping()
 
 host_categories =	 {
-      ["freetime"] = "Free Time",
+      ["freetime"] = "FreeTime",
       ["chat"] = "Chat",
       ["onlineauctions"] = "Auctions",
       ["onlinegames"] = "Online Games",
@@ -715,53 +715,67 @@ host_categories =	 {
       ["phishing"] = "Phishing",
       ["sexuality"] = "Sex",
       ["games"] = "Games",
-      ["socialnetworking"] = "Social Network",
-      ["jobsearch"] = "Job Search",
+      ["socialnetworking"] = "SocialNetwork",
+      ["jobsearch"] = "JobSearch",
       ["mail"] = "Webmail",
       ["news"] = "News",
-      ["proxy"] = "Anonymous Proxy",
+      ["proxy"] = "AnonymousProxy",
       ["publicite"] = "Advertisement",
       ["sports"] = "Sport",
       ["vacation"] = "Travel",
       ["ecommerce"] = "E-commerce",
-      ["instantmessaging"] = "Instant Messaging",
-      ["kidstimewasting"] = "Kid Games",
-      ["audio-video"] = "Audio/Video",
+      ["instantmessaging"] = "InstantMessaging",
+      ["kidstimewasting"] = "KidGames",
+      ["audio-video"] = "AudioVideo",
       ["books"] = "Books",
       ["government"] = "Gouvernment",
       ["malware"] = "Malware",
       ["medical"] = "Medicine",
       ["ann"] = "Ads",
       ["drugs"] = "Drugs",
-      ["dating"] = "Online Dating",
-      ["desktopsillies"] = "Desktop Images",
-      ["filehosting"] = "File hosting",
-      ["filesharing"] = "File sharing",
+      ["dating"] = "OnlineDating",
+      ["desktopsillies"] = "DesktopImages",
+      ["filehosting"] = "FileHosting",
+      ["filesharing"] = "FileSharing",
       ["gambling"] = "Gambling",
-      ["warez"] = "Cracks/Warez",
+      ["warez"] = "CracksWarez",
       ["radio"] = "Radio",
       ["updatesites"] = "Updates",
-      ["financial"] = "Finance/Banking",
+      ["financial"] = "FinanceBanking",
       ["adult"] = "Adults",
       ["fashion"] = "Fashion",
       ["showbiz"] = "Showbiz",
       ["ict"] = "ICT",
-      ["aziende"] = "Business",
-      ["education"] = "Education/School",
-      ["searchengines"] = "Search Engines",
+      ["company"] = "Business",
+      ["education"] = "EducationSchool",
+      ["searchengines"] = "SearchEngines",
       ["blog"] = "Blog",
       ["association"] = "Associations",
       ["music"] = "Musica",
       ["legal"] = "Legal",
       ["photo"] = "Photo",
       ["stats"] = "Webstat",
-      ["content"] = "Content Server",
-      ["domainforsale"] = "Domain for Sale",
+      ["content"] = "ContentServer",
+      ["domainforsale"] = "DomainForSale",
       ["weapons"] = "Guns",
       ["generic"] = "Generic"
 }
 
 -- #################################################################
+
+function getCategoryLabel(cat)
+   if((cat == "") or (cat == nil) or (cat == "???")) then
+      return("")
+   end
+
+  for c,v in pairs(host_categories) do
+   if(c == cat) then
+     return(v)
+   end
+  end
+
+  return(cat)
+end
 
 function getCategoryIcon(what, cat)
    if((cat == "") or (cat == nil) or (cat == "???")) then
@@ -1372,7 +1386,7 @@ function ntop_version_check()
    end
 
    if(rsp ~= nil) then
-      info = ntop.getInfo()
+      info = ntop.getInfo(false)
       new_version = version2int(rsp)
 
       version_elems  = split(info["version"], " ");
