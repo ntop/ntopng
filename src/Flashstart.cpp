@@ -148,7 +148,7 @@ void Flashstart::initMapping() {
   addMapping("fashion", ++numCategories);
   addMapping("showbiz", ++numCategories);
   addMapping("ict", ++numCategories);
-  addMapping("aziende", ++numCategories);
+  addMapping("company", ++numCategories);
   addMapping("education", ++numCategories);
   addMapping("searchengines", ++numCategories);
   addMapping("blog", ++numCategories);
