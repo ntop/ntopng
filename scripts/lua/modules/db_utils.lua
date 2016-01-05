@@ -201,3 +201,48 @@ function getTopPeers(interface_id, version, host, protocol, port, l7proto, info,
       return(res)
    end
 end
+
+function getTopL7Protocols(interface_id, version, host, protocol, port, info, begin_epoch, end_epoch)
+   if(host == nil or host == "") then return nil end
+   if(version == nil) then version = 4 end
+
+   if(info == "") then info = nil end
+   if(protocol == "") then protocol = nil end
+
+   sql = " SELECT L7_PROTO, "
+   sql = sql.."sum(BYTES) as TOT_BYTES, sum(PACKETS) as TOT_PACKETS, count(*) as TOT_FLOWS "
+   sql = sql.." FROM flowsv"..version
+
+   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+
+   if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
+
+   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+
+   if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
+
+   if((host ~= nil) and (host ~= "")) then
+      if(version == 4) then
+    sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
+      else
+    sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
+      end
+   end
+
+   -- we don't care about the order so we group by least and greatest
+   sql = sql.." group by L7_PROTO "
+
+   sql = sql.." order by TOT_BYTES desc limit 10"
+
+   if(db_debug == true) then io.write(sql.."\n") end
+
+   res = interface.execSQLQuery(sql)
+   if(type(res) == "string") then
+      if(db_debug == true) then io.write(res.."\n") end
+      return nil
+   else
+      return(res)
+   end
+end
