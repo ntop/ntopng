@@ -340,7 +340,7 @@ void Flashstart::queryDomain(int sock, char *domain, u_int queryId,
 
 int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockaddr_in *from) {
   struct dns_header *header = (struct dns_header *)rsp;
-  int i, rc = 0;
+  u_int32_t i, rc = 0;
   u_int16_t qtype, offset;
   char qname[128], txt[128], *p;
 
@@ -399,7 +399,7 @@ u_int Flashstart::recvResponses(u_int msecTimeout) {
     int len = recvfrom(sock, rsp, sizeof(rsp), 0,
 		       (struct sockaddr*)&from, &s);
 
-    if(len > sizeof(struct dns_header))
+    if(len > 0 && (u_int)len > sizeof(struct dns_header))
       num += parseDNSResponse(rsp, len, &from);
   }
 
