@@ -147,3 +147,51 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       return(res)
    end
 end
+
+
+function getTopPeers(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
+   if(host == nil) then return nil end
+   if(version == nil) then version = 4 end
+
+   if(info == "") then info = nil end
+   if(l7proto == "") then l7proto = nil end
+   if(protocol == "") then protocol = nil end
+
+   local sql = "SELECT CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END PEER_ADDR, "
+   sql = sql.."sum(BYTES) as TOT_BYTES, sum(PACKETS) as TOT_PACKETS, count(*) as TOT_FLOWS "
+   sql = sql.." FROM flowsv"..version
+
+   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+
+   if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
+   if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
+
+   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+
+   if((port ~= nil) and (port ~= "")) then sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
+
+   if((host ~= nil) and (host ~= "")) then
+      if(version == 4) then
+    sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
+      else
+    sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
+      end
+   end
+
+   -- we don't care about the order so we group by least and greatest
+   sql = sql.." group by least(IP_SRC_ADDR, IP_DST_ADDR), greatest(IP_SRC_ADDR, IP_DST_ADDR) "
+
+   sql = sql.." order by TOT_BYTES desc limit 10"
+
+   if(db_debug == true) then io.write(sql.."\n") end
+
+   res = interface.execSQLQuery(sql)
+   if(type(res) == "string") then
+      if(db_debug == true) then io.write(res.."\n") end
+      return nil
+   else
+      return(res)
+   end
+end
