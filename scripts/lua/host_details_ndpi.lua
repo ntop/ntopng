@@ -17,6 +17,7 @@ interface.select(ifid)
 host_info = hostkey2hostinfo(host_ip)
 host_vlan = host_info["vlan"]
 host = interface.getHostInfo(host_info["host"], host_vlan)
+host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 
 if(host == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Unable to find "..host_ip.." (data expired ?)</div>")
@@ -58,3 +59,10 @@ for _k in pairsByKeys(vals , desc) do
 
   print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
 end
+if host_ndpi_rrd_creation ~= "1" then
+print("<tr><td colspan=\"6\"> <small> <b>NOTE</b>:<p>")
+print("Historical per-protocol traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
+print(" When enabled, RRDs with 5-minute samples will be created for each protocol detected and historical data will become accessible by clicking on each protocol. ")
+
+end
+print("</small> </p></td></tr>")

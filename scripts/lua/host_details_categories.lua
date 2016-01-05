@@ -42,7 +42,7 @@ for _k,_label in pairsByKeys(vals , desc) do
   label = getCategoryLabel(_label)
   print("<tr><th>")
   fname = getRRDName(ifid, hostinfo2hostkey(host_info), "categories/"..label..".rrd")
-  if ntop.exists(fname) and host_categories_rrd_creation ~= "0" then
+  if ntop.exists(fname) then
     print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=categories/".. label ..".rrd\">"..label.."</A>")
   else
     print(label)
@@ -50,4 +50,9 @@ for _k,_label in pairsByKeys(vals , desc) do
   print("</th><td colspan=\"2\" class=\"text-right\">" .. bytesToSize(host["categories"][_label]) .. "</td>")
   print("<td class=\"text-right\">" .. round((host["categories"][_label] * 100)/total, 2).. " %</td></tr>")
 end
-  print("<tr><td colspan=\"4\"> <small> <b>NOTE</b>:<p>Percentages are related only to classified traffic.</p> </small> </td></tr>")
+print("<tr><td colspan=\"4\"> <small> <b>NOTE</b>:<p>Percentages are related only to classified traffic.")
+if host_categories_rrd_creation ~= "1" then
+  print("<br>Historical per-category traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
+  print(" When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category. ")
+end
+print("</small> </p></td></tr>")
