@@ -959,6 +959,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
   /* RRD prefs */
