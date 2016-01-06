@@ -1617,7 +1617,9 @@ else
 	 if(value ~= nil) then
 	    if(alerts ~= "") then alerts = alerts .. "," end
 	    alerts = alerts .. k .. ";" .. operator .. ";" .. value
-	 end
+         else
+            if ntop.isPro() then ntop.withdrawNagiosAlert(host_ip, tab, k, "OK, alarm not installed") end
+         end
       end
    end
 

@@ -749,9 +749,11 @@ else
 	 to_save = true
 	 value = tonumber(value)
 	 if(value ~= nil) then
-	    if(alerts ~= "") then alerts = alerts .. "," end
-	    alerts = alerts .. k .. ";" .. operator .. ";" .. value
-	 end
+	   if(alerts ~= "") then alerts = alerts .. "," end
+           alerts = alerts .. k .. ";" .. operator .. ";" .. value
+	 else
+           if ntop.isPro() then ntop.withdrawNagiosAlert(ifname_clean, tab, k, "alarm not installed") end
+         end
       end
    end
 
