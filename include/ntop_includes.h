@@ -189,6 +189,7 @@ using namespace std;
 #endif
 #include "ParserInterface.h"
 #include "CollectorInterface.h"
+#include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
 #include "ExportInterface.h"
 #include "Geolocation.h"

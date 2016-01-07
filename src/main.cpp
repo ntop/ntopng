@@ -151,6 +151,22 @@ int main(int argc, char *argv[])
 	endpoint = ifName;
 
       iface = new CollectorInterface(endpoint, topic);
+#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__))
+    } else if(strstr(ifName, "zcflow:")) {
+      u_int32_t cluster_id = 0;
+      u_int32_t queue_id = 0;
+      char *at = strchr(ifName, '@');
+
+      if (at != NULL) {
+	queue_id = atoi(&at[1]);
+        at[0] = '\0';
+      }
+      cluster_id = atoi(ifName);
+      if (at != NULL)
+        at[0] = '@';
+
+      iface = new ZCCollectorInterface(cluster_id, queue_id);
+#endif
     } else {
       iface = NULL;
 
