@@ -25,12 +25,24 @@
 
 /* **************************************************** */
 
-ZCCollectorInterface::ZCCollectorInterface(u_int32_t _cluster_id, u_int32_t _queue_id) {
+ZCCollectorInterface::ZCCollectorInterface(const char *name) : NetworkInterface(name) {
+  u_int32_t cluster_id = 0;
+  u_int32_t queue_id = 0;
+  char ifname[32];
+  char *at;
+
+  snprintf(ifname, sizeof(ifname), "%s", &name[7]);
+
+  at = strchr(ifname, '@');
+
+  if (at != NULL) {
+    queue_id = atoi(&at[1]);
+    at[0] = '\0';
+  }
+
+  cluster_id = atoi(ifname);
 
   num_drops = 0;
-
-  cluster_id = _cluster_id;
-  queue_id = _queue_id;
 
   zq = pfring_zc_ipc_attach_queue(cluster_id, queue_id, rx_only);
 

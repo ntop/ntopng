@@ -36,7 +36,7 @@ class ZCCollectorInterface : public NetworkInterface {
   pfring_zc_pkt_buff *buffer;
 
  public:
-  ZCCollectorInterface(u_int32_t cluster_id, u_int32_t queue_id);
+  ZCCollectorInterface(const char *name);
   ~ZCCollectorInterface();
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
