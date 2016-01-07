@@ -1,0 +1,15 @@
+With nProbe 100 (ntop's 100 Gbit flow probe) it is now possible to export flows to ntopng in order to see in realtime what happens.
+
+Example
+
+# cento -i zc:ethX -A
+
+Cento will print the interfaceId to use in ntopng
+
+07/Jan/2016 19:55:30 [MonitorInterface.cpp:40] Initialized ZC cluster 999 for the monitor interface
+07/Jan/2016 19:55:30 [MonitorInterface.cpp:43] You can now start ntopng as follows: ntopng -i zcflow:999
+
+then you cant start ntopng as follows:
+
+# ntopng -i zcflow:999
+
