@@ -1,4 +1,5 @@
 *~
+ntopng.sublime-*
 src/*.o
 src/*.obj
 third-party/json-c/config.h.in
