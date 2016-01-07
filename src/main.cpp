@@ -138,23 +138,27 @@ int main(int argc, char *argv[])
     if((ifName = ntop->get_if_name(i)) == NULL)
       continue;
 
-    /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
-    if(!strcmp(ifName, "dummy")) {
-      iface = new DummyInterface();
-    } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
-      char *at = strchr(ifName, '@');
-      char *topic = (char*)"flow", *endpoint;
+    try {
+      /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
+      if(!strcmp(ifName, "dummy")) {
+	iface = new DummyInterface();
+      } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
+	char *at = strchr(ifName, '@');
+	char *topic = (char*)"flow", *endpoint;
 
-      if(at != NULL)
-	endpoint = &at[1];
-      else
-	endpoint = ifName;
+	if(at != NULL)
+	  endpoint = &at[1];
+	else
+	  endpoint = ifName;
 
-      iface = new CollectorInterface(endpoint, topic);
-    } else {
-      iface = NULL;
+	iface = new CollectorInterface(endpoint, topic);
+#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__))
+      } else if(strstr(ifName, "zcflow:")) {
+	iface = new ZCCollectorInterface(ifName);
+#endif
+      } else {
+	iface = NULL;
 
-      try {
 #ifdef NTOPNG_PRO
 	if(strncmp(ifName, "bridge:", 7) == 0)
 	  iface = new PacketBridge(ifName);
@@ -169,33 +173,35 @@ int main(int argc, char *argv[])
 	if(iface == NULL)
 	  iface = new PF_RINGInterface(ifName);
 #endif
-      } catch(int) {
-	delete iface;
-	iface = NULL;
       }
-    }
 
-    if(iface == NULL) iface = new PcapInterface(ifName);
+      if(iface == NULL) iface = new PcapInterface(ifName);
 
-    if(affinity != NULL) {
-      if(indexAffinity == 0)
-        core_id_s = strtok(affinity, ",");
-      else 
-        core_id_s = strtok(NULL, ",");
+      if(iface) {
+	if(affinity != NULL) {
+	  if(indexAffinity == 0)
+	    core_id_s = strtok(affinity, ",");
+	  else 
+	    core_id_s = strtok(NULL, ",");
             
-      if(core_id_s != NULL)
-        core_id = atoi(core_id_s);
-      else
-        core_id = indexAffinity;
+	  if(core_id_s != NULL)
+	    core_id = atoi(core_id_s);
+	  else
+	    core_id = indexAffinity;
       
-      indexAffinity++;
-      iface->setCPUAffinity(core_id);
+	  indexAffinity++;
+	  iface->setCPUAffinity(core_id);
+	}
+
+	if(prefs->get_packet_filter() != NULL)
+	  iface->set_packet_filter(prefs->get_packet_filter());
+
+	ntop->registerInterface(iface);
+      }
+    } catch(...) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create interface %s", ifName);
+      iface = NULL;
     }
-
-    if(prefs->get_packet_filter() != NULL)
-      iface->set_packet_filter(prefs->get_packet_filter());
-
-    ntop->registerInterface(iface);
   }
 
   ntop->createExportInterface();
@@ -284,12 +290,12 @@ int main(int argc, char *argv[])
   signal(SIGTERM, sigproc);
   signal(SIGINT, sigproc);
 
-  #if defined(WIN32) && defined(DEMO_WIN32)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "-----------------------------------------------------------");
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "This is a demo version of ntopng limited to %d packets", MAX_NUM_PACKETS);
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Please go to http://shop.ntop.org for getting the full version");
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "-----------------------------------------------------------");
-  #endif
+#if defined(WIN32) && defined(DEMO_WIN32)
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "-----------------------------------------------------------");
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "This is a demo version of ntopng limited to %d packets", MAX_NUM_PACKETS);
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Please go to http://shop.ntop.org for getting the full version");
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "-----------------------------------------------------------");
+#endif
 
   ntop->start();
 
