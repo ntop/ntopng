@@ -20,7 +20,7 @@ end
 -- ############################################
 -- Runtime preference
 
-function prefsInputField(label, comment, key, value)
+function prefsInputField(label, comment, key, value, _input_type)
   if(_GET[key] ~= nil) then
     k = "ntopng.prefs."..key
     v_s = _GET[key]
@@ -35,7 +35,8 @@ function prefsInputField(label, comment, key, value)
     -- least but not last we ascynchronously notify the runtime ntopng instance for changes
     notifyNtopng(key)
   end
-
+  local input_type = "text"
+  if _input_type ~= nil then input_type = _input_type end
   print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
 
   print [[
@@ -44,7 +45,7 @@ print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFVa
 print [[
  <div class="input-group" >
       <div >
-        <input type="text" class="form-control" name="]] print(key) print [[" value="]] print(value.."") print [[">
+        <input type="]] print(input_type) print [[" class="form-control" name="]] print(key) print [[" value="]] print(value.."") print [[">
       <span class="input-group-btn">
         <button class="btn btn-default" type="submit">Save</button>
       </span>

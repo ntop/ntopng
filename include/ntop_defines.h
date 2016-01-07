@@ -297,6 +297,9 @@
 #define CONST_NAGIOS_HOST_NAME_PREFS       "ntopng.prefs.nagios_host_name"
 #define CONST_NAGIOS_SERVICE_NAME_PREFS    "ntopng.prefs.nagios_service_name"
 #endif
+#define CONST_NBOX_HOST               "ntopng.prefs.nbox_host"
+#define CONST_NBOX_USER               "ntopng.prefs.nbox_user"
+#define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
 #define CONST_LOCAL_HOST_IDLE_PREFS   "ntopng.prefs.local_host_max_idle"
 #define CONST_REMOTE_HOST_IDLE_PREFS  "ntopng.prefs.non_local_host_max_idle"
@@ -319,6 +322,7 @@
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION   "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT             "ntopng.prefs.thpt_content"  /* bps / pps */
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG             "ntopng.prefs.alerts_syslog"  /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_NBOX_INTEGRATION         "ntopng.prefs.nbox_integration" /* 0 / 1 */
 #ifdef NTOPNG_PRO
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"  /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"  /* 0 / 1 */
@@ -360,6 +364,9 @@
 #define CONST_DEFAULT_NAGIOS_HOST_NAME      "ntopng-host"
 #define CONST_DEFAULT_NAGIOS_SERVICE_NAME   "NtopngAlert"
 #endif
+#define CONST_DEFAULT_NBOX_HOST      "localhost"
+#define CONST_DEFAULT_NBOX_USER      "nbox"
+#define CONST_DEFAULT_NBOX_PASSWORD  "nbox"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"

@@ -84,6 +84,24 @@ if (ntop.isPro()) then
    prefsInputField("Nagios service_description", "The service description exactly as specified in Nagios passive service definition for the ntopng host. Default: NtopngAlert", "nagios_service_name", prefs.nagios_service_name)
 
 end
+   -- ================================================================================
+   print('<tr><th colspan=2 class="info">nBox integration</th></tr>')
+
+   local nbox_integration = ntop.getCache("ntopng.prefs.nbox_integration")
+   local nbox_host = ntop.getCache("ntopng.prefs.nbox_host")
+   local nbox_user = ntop.getCache("ntopng.prefs.nbox_user")
+   local nbox_password = ntop.getCache("ntopng.prefs.nbox_password")
+   if((nbox_integration == nil) or (nbox_integration == "")) then ntop.setCache("ntopng.prefs.nbox_integration", "0") end
+   if((nbox_host == nil) or (nbox_host == "")) then nbox_host = "localhost" end
+   if((nbox_user == nil) or (nbox_user == "")) then nbox_user = "nbox" end
+   if((nbox_password == nil) or (nbox_password == "")) then nbox_password = "nbox" end
+   toggleTableButton("Integrate with nBox",
+         "Enable sending ntopng requests (e.g., to download pcap files) to an nBox.",
+         "On", "1", "success", "Off", "0", "danger", "toggle_nbox_integration", "ntopng.prefs.nbox_integration")
+
+   prefsInputField("nBox Host", "Address of the nBox host. Default: localhost", "nbox_host", nbox_host)
+   prefsInputField("nBox User", "User that has privileges to access the nBox. Default: nbox", "nbox_user", nbox_user)
+   prefsInputField("nBox Password", "Passowrd associated to the nBox user. Default: nbox", "nbox_password", nbox_password, "password")
 
 -- TODO
 if(false) then

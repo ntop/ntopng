@@ -72,6 +72,22 @@ class RuntimePrefs {
 #endif
 
   /**
+   * @brief Set nbox integrations preference.
+   * @details Enable or disable the preference and save it in Redis.
+   *
+   * @param enable Preference boolean value.
+   */
+  void set_nbox_integration(bool enable);
+
+   /**
+   * @brief Get the nbox integration preference.
+   * @details Read for Redis the preference, if it doesn't exist
+   * the preference will be set to default value (FALSE).
+   * @return The preference boolean value
+   */
+  bool is_nbox_integration_enabled();
+
+  /**
    * @brief Get the alert syslog preference.
    * @details Read for Redis the preference, if it doesn't exist
    * the preference will be set to default value (TRUE).
