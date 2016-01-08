@@ -56,6 +56,14 @@ print [[
   </li>
 
    ]]
+if ntop.isPro() and ntop.getCache("ntopng.prefs.nbox_integration") == "1" then
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/n2disk_pcaps_download.lua"><i class="fa fa-download"></i> n2disk pcaps</a></li>')
+end
+
+print [[
+  </li>
+
+   ]]
 if(ntop.isPro()) then
 	print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Report</a></li>')
 end
