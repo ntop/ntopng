@@ -76,14 +76,14 @@ if (ntop.isPro()) then
 		     "Enable sending ntopng alerts to Nagios NSCA (Nagios Service Check Acceptor).",
 		     "On", "1", "success", "Off", "0", "danger", "toggle_alert_nagios", "ntopng.prefs.alerts_nagios")
 
-   prefsInputField("Nagios NSCA Host", "Address of the host where the Nagios NSCA daemon is running. Default: localhost.", "nagios_nsca_host", prefs.nagios_nsca_host)
-   prefsInputField("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "nagios_nsca_port", prefs.nagios_nsca_port)
-   prefsInputField("Nagios send_nsca executable", "Absolute path to the Nagios NSCA send_nsca utility. Default: /usr/local/nagios/bin/send_nsca", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable)
-   prefsInputField("Nagios send_nsca configuration", "Absolute path to the Nagios NSCA send_nsca utility configuration file. Default: /usr/local/nagios/etc/send_nsca.cfg", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf)
-   prefsInputField("Nagios host_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "nagios_host_name", prefs.nagios_host_name)
-   prefsInputField("Nagios service_description", "The service description exactly as specified in Nagios passive service definition for the ntopng host. Default: NtopngAlert", "nagios_service_name", prefs.nagios_service_name)
-
-end
+   if ntop.getCache("ntopng.prefs.alerts_nagios") == "1" then
+    prefsInputField("Nagios NSCA Host", "Address of the host where the Nagios NSCA daemon is running. Default: localhost.", "nagios_nsca_host", prefs.nagios_nsca_host)
+    prefsInputField("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "nagios_nsca_port", prefs.nagios_nsca_port)
+    prefsInputField("Nagios send_nsca executable", "Absolute path to the Nagios NSCA send_nsca utility. Default: /usr/local/nagios/bin/send_nsca", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable)
+    prefsInputField("Nagios send_nsca configuration", "Absolute path to the Nagios NSCA send_nsca utility configuration file. Default: /usr/local/nagios/etc/send_nsca.cfg", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf)
+    prefsInputField("Nagios host_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "nagios_host_name", prefs.nagios_host_name)
+    prefsInputField("Nagios service_description", "The service description exactly as specified in Nagios passive service definition for the ntopng host. Default: NtopngAlert", "nagios_service_name", prefs.nagios_service_name)
+   end
    -- ================================================================================
    print('<tr><th colspan=2 class="info">nBox integration</th></tr>')
 
@@ -95,13 +95,16 @@ end
    if((nbox_host == nil) or (nbox_host == "")) then nbox_host = "localhost" end
    if((nbox_user == nil) or (nbox_user == "")) then nbox_user = "nbox" end
    if((nbox_password == nil) or (nbox_password == "")) then nbox_password = "nbox" end
+
    toggleTableButton("Integrate with nBox",
          "Enable sending ntopng requests (e.g., to download pcap files) to an nBox.",
          "On", "1", "success", "Off", "0", "danger", "toggle_nbox_integration", "ntopng.prefs.nbox_integration")
-
-   prefsInputField("nBox Host", "Address of the nBox host. Default: localhost", "nbox_host", nbox_host)
-   prefsInputField("nBox User", "User that has privileges to access the nBox. Default: nbox", "nbox_user", nbox_user)
-   prefsInputField("nBox Password", "Passowrd associated to the nBox user. Default: nbox", "nbox_password", nbox_password, "password")
+   if ntop.getCache("ntopng.prefs.nbox_integration") == "1" then
+    prefsInputField("nBox Host", "Address of the nBox host. Default: localhost", "nbox_host", nbox_host)
+    prefsInputField("nBox User", "User that has privileges to access the nBox. Default: nbox", "nbox_user", nbox_user)
+    prefsInputField("nBox Password", "Passowrd associated to the nBox user. Default: nbox", "nbox_password", nbox_password, "password")
+   end
+end
 
 -- TODO
 if(false) then
