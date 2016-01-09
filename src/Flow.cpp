@@ -1212,6 +1212,9 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
   json_object *my_object;
   char *rsp;
 
+  if((cli_host == NULL) || (srv_host == NULL))
+    return(NULL);
+
   if(es_json) {
     ntop->getPrefs()->set_json_symbolic_labels_format(true);
     if((my_object = flow2json(partial_dump)) != NULL) {

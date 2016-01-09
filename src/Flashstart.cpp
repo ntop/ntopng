@@ -349,7 +349,7 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
   p = (char*)&rsp[sizeof(struct dns_header)-1];
 
   for(i=0; (p[i] != 0) && (i < (rsp_len-sizeof(struct dns_header))); i++) {
-    if(p[i] < 10) qname[i] = '.'; else qname[i] = p[i];
+    if(p[i] < 0x20) qname[i] = '.'; else qname[i] = p[i];
   }
 
   qname[i] = 0;
