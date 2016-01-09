@@ -174,35 +174,35 @@ int main(int argc, char *argv[])
 	  iface = new PF_RINGInterface(ifName);
 #endif
       }
-
-      if(iface == NULL) iface = new PcapInterface(ifName);
-
-      if(iface) {
-	if(affinity != NULL) {
-	  if(indexAffinity == 0)
-	    core_id_s = strtok(affinity, ",");
-	  else 
-	    core_id_s = strtok(NULL, ",");
-            
-	  if(core_id_s != NULL)
-	    core_id = atoi(core_id_s);
-	  else
-	    core_id = indexAffinity;
-      
-	  indexAffinity++;
-	  iface->setCPUAffinity(core_id);
-	}
-
-	if(prefs->get_packet_filter() != NULL)
-	  iface->set_packet_filter(prefs->get_packet_filter());
-
-	ntop->registerInterface(iface);
-      }
     } catch(...) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create interface %s", ifName);
       iface = NULL;
     }
-  }
+
+    if(iface == NULL) iface = new PcapInterface(ifName);
+
+    if(iface) {
+      if(affinity != NULL) {
+	if(indexAffinity == 0)
+	  core_id_s = strtok(affinity, ",");
+	else 
+	  core_id_s = strtok(NULL, ",");
+            
+	if(core_id_s != NULL)
+	  core_id = atoi(core_id_s);
+	else
+	  core_id = indexAffinity;
+      
+	indexAffinity++;
+	iface->setCPUAffinity(core_id);
+      }
+
+      if(prefs->get_packet_filter() != NULL)
+	iface->set_packet_filter(prefs->get_packet_filter());
+
+      ntop->registerInterface(iface);
+    }
+  } /* for */
 
   ntop->createExportInterface();
 
