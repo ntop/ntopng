@@ -33,7 +33,7 @@ elseif action == "schedule" then
 	local resp = ntop.httpGet(schedule_url, nbox_user, nbox_password, 10)
 	-- tprint(resp)
 	sendHTTPHeader('text/html; charset=iso-8859-1')
-	if resp["CONTENT"] ~= nil then
+	if resp ~= nil and resp["CONTENT"] ~= nil then
 		print(resp["CONTENT"])
 	else
 		print("{}")
@@ -42,8 +42,9 @@ elseif action == "status" then
 	local status_url = "https://"..nbox_host
 	status_url = status_url.."/ntop-bin/check_status_tasks_external.cgi"
 	local resp = ntop.httpGet(status_url, nbox_user, nbox_password, 10)
+	--tprint(resp)
 	sendHTTPHeader('text/html; charset=iso-8859-1')
-	if resp["CONTENT"] ~= nil then
+	if resp ~= nil and resp["CONTENT"] ~= nil then
 		local content = resp["CONTENT"]
 		-- resp is not valid json: is buggy @ 08-01-2016:
 		-- this is an example { "result" : "OK", "tasks" : { {"task_id" : "1_1452012196" , "status" : "done" } , {"task_id" : "1_1452012274" , "status" : "done" }}}
@@ -54,7 +55,7 @@ elseif action == "status" then
 		--tprint(content)
 		print(content)
 	else
-		print("{}")
+		print('{"tasks":[]}')
 	end
 elseif action == "download" then
 	local download_url = "https://"..nbox_host
@@ -63,7 +64,7 @@ elseif action == "download" then
 	download_url = download_url..task_id..".pcap"
 	local resp = ntop.httpGet(download_url, nbox_user, nbox_password, 10)
 	-- tprint(resp)
-	if resp["CONTENT"] ~= nil then
+	if resp ~= nil and resp["CONTENT"] ~= nil then
 		sendHTTPHeader(resp["CONTENT_TYPE"])
 		print(resp["CONTENT"])
 	else
