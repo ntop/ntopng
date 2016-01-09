@@ -21,7 +21,18 @@ if((nbox_password == nil) or (nbox_password == "")) then nbox_password = "nbox" 
 action     = _GET["action"]
 epoch_begin= _GET["epoch_begin"]
 epoch_end  = _GET["epoch_end"]
+host       = _GET["host"]
+l4proto    = _GET["l4proto"]
+port       = _GET["port"]
 task_id    = _GET["task_id"]
+
+function createBPF()
+	local bpf = ""
+	if host ~= nil and host ~= "" then bpf = "src or dst host "..host end
+	if port ~= nil and port ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."port "..port end
+	if l4proto ~= nil and l4proto ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."ip proto "..l4proto end
+	if bpf ~= "" then return "&bpf="..bpf else return "" end
+end
 
 if action == nil then
 	return "{}"
@@ -29,6 +40,7 @@ elseif action == "schedule" then
 	local schedule_url = "https://"..nbox_host
 	schedule_url = schedule_url.."/ntop-bin/sudowrapper_external.cgi?script=npcapextract_external.cgi"
 	schedule_url = schedule_url.."&ifname="..ifname.."&begin="..epoch_begin.."&end="..epoch_end
+	schedule_url = schedule_url..createBPF()
 	--io.write(schedule_url..'\n')
 	local resp = ntop.httpGet(schedule_url, nbox_user, nbox_password, 10)
 	-- tprint(resp)
