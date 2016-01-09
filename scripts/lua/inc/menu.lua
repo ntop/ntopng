@@ -52,14 +52,6 @@ if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical data explorer</a></li>')
 end
 
-print [[ 
-  </li>
-
-   ]]
-if ntop.isPro() and ntop.getCache("ntopng.prefs.nbox_integration") == "1" then
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/n2disk_pcaps_download.lua"><i class="fa fa-download"></i> n2disk pcaps</a></li>')
-end
-
 print [[
   </li>
 
