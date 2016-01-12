@@ -13,6 +13,7 @@
 # Short-Description: Start/stop ntopng web
 ### END INIT INFO
 
+DISTRO="unknown"
 if [ -f /lib/lsb/init-functions ]; then
    DISTRO="debian"
    . /lib/lsb/init-functions
@@ -55,6 +56,8 @@ error_handler() {
 }
 
 get_ntopng_pid() {
+    PID=0
+
     if [ -f "/etc/ntopng/ntopng.conf" ]; then
         PID_FILE=$(cat /etc/ntopng/ntopng.conf | grep -E '\-G=|--pid'|cut -d '=' -f 2)
     else
@@ -70,8 +73,7 @@ get_ntopng_pid() {
         if [ -z "${PID}" ]; then
 	    /bin/rm $PID_FILE
 	else
-	    echo ${PID}
-            if [ $PID -gt 0 ]; then
+            if [ "${PID}" -gt 0 ]; then
 		IS_EXISTING=$(ps auxw | grep -w $PID | grep -v grep | wc -l)
 		if [ ${IS_EXISTING} -gt 0 ]; then
 		    return $PID
@@ -82,7 +84,6 @@ get_ntopng_pid() {
         fi
     fi
 
-    PID=0
     return 0
 }
 
@@ -125,7 +126,7 @@ start_ntopng() {
 	[ ${DISTRO} == "centos" ] && echo -n "Starting ntopng: "
 
 	get_ntopng_pid
-	if [ ${PID} -gt 0 ]; then
+	if [ "${PID}" -gt 0 ]; then
 	    MSG="ntopng already running. Exiting"
 	    ERROR=1
 	    RETVAL=1
@@ -142,7 +143,7 @@ start_ntopng() {
 	for i in {1..5}
 	do
 	    get_ntopng_pid
-	    if [ $PID -gt 0 ]; then
+	    if [ "${PID}" -gt 0 ]; then
 		MSG="Started ntopng with PID $PID"
 		ERROR=0
 		break
@@ -179,7 +180,7 @@ stop_ntopng() {
 	return 0
     fi
 
-    if [ ${PID} -eq 0 ]; then
+    if [ "${PID}" -eq 0 ]; then
         if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
             MSG="Missing /etc/ntopng/ntopng.conf"
 	    ERROR=1
@@ -203,7 +204,7 @@ stop_ntopng() {
     for i in {1..5}
     do  
         get_ntopng_pid
-        if [ $PID -gt 0 ]; then
+        if [ "${PID}" -gt 0 ]; then
             kill -15 $PID > /dev/null
             MSG="Sent kill to ntop PID $PID"
             sleep 1
@@ -233,7 +234,7 @@ status_ntopng() {
     fi
 
     get_ntopng_pid
-    if [ $PID -gt 0 ]; then
+    if [ "${PID}" -gt 0 ]; then
         echo "ntopng running as ${PID}"
     else
 	echo "ntopng is not running"
