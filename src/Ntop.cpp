@@ -278,9 +278,9 @@ void Ntop::start() {
   prefs->loadInstanceNameDefaults();
   loadLocalInterfaceAddress();
 
-  for(int i=0; i<num_defined_interfaces; i++){
-    iface[i]->startPacketPolling();
+  for(int i=0; i<num_defined_interfaces; i++) {
     iface[i]->allocateNetworkStats();
+    iface[i]->startPacketPolling();
   }
 
   sleep(2);
@@ -1002,7 +1002,7 @@ NetworkInterfaceView* Ntop::getNetworkInterfaceView(const char *name) {
 
 /* ******************************************* */
 
-NetworkInterface* Ntop::getInterfaceById(int id){
+NetworkInterface* Ntop::getInterfaceById(int id) {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->get_id() == id) {
       return(iface[i]);
@@ -1014,7 +1014,7 @@ NetworkInterface* Ntop::getInterfaceById(int id){
 
 /* ******************************************* */
 
-NetworkInterfaceView* Ntop::getInterfaceViewById(int id){
+NetworkInterfaceView* Ntop::getInterfaceViewById(int id) {
   for(int i=0; i<num_defined_interface_views; i++) {
     if(ifaceViews[i]->get_id() == id)
       return(ifaceViews[i]);

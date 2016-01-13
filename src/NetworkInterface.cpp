@@ -2780,8 +2780,8 @@ void NetworkInterface::allocateNetworkStats() {
 
 /* **************************************** */
 
-NetworkStats* NetworkInterface::getNetworkStats(int16_t networkId) {
-  if((networkId < 0) || (networkId >= ntop->getNumLocalNetworks()))
+NetworkStats* NetworkInterface::getNetworkStats(u_int8_t networkId) {
+  if((networkStats == NULL) || (networkId >= ntop->getNumLocalNetworks()))
     return(NULL);
   else
     return(&networkStats[networkId]);

@@ -273,7 +273,7 @@ class NetworkInterface {
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql) { return(db ? db->exec_sql_query(vm, sql) : -1); };
-  NetworkStats* getNetworkStats(int16_t networkId);
+  NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
   void getsDPIStats(lua_State *vm);
   inline u_int64_t* getLastMinuteTrafficStats() { return((u_int64_t*)lastMinuteTraffic); }
