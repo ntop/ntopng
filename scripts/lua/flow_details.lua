@@ -159,7 +159,7 @@ else
    end
 
    if(flow["verdict.pass"] == false) then print("<strike>") end
-   print(flow["proto.l4"].." / <A HREF=\"/"..ntop.getHttpPrefix().."lua/") 
+   print(flow["proto.l4"].." / <A HREF=\""..ntop.getHttpPrefix().."/lua/")
    if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
    print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
    print(getApplicationLabel(flow["proto.ndpi"]))
