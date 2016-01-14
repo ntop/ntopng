@@ -559,6 +559,8 @@ end
 
 -- #######################
 
+-- IMPORTANT: keep it in sync with ParserInterface::ParserInterface()
+
 local flow_fields_description = {
     ["IN_BYTES"] = "Incoming flow bytes (src->dst)",
     ["IN_PKTS"] = "Incoming flow packets (src->dst)",

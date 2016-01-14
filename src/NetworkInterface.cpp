@@ -36,17 +36,8 @@ static void debug_printf(u_int32_t protocol, void *id_struct,
 
 /* **************************************** */
 
-static void *malloc_wrapper(unsigned long size)
-{
-  return malloc(size);
-}
-
-/* **************************************** */
-
-static void free_wrapper(void *freeable)
-{
-  free(freeable);
-}
+static void *malloc_wrapper(size_t size) { return malloc(size); }
+static void free_wrapper(void *freeable) { free(freeable);      }
 
 /* **************************************************** */
 

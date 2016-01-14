@@ -23,7 +23,392 @@
 
 /* **************************************************** */
 
-ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoint) { }
+/* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
+ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoint) { 
+  map = NULL;
+
+  addMapping("IN_BYTES", 1);
+  addMapping("IN_PKTS", 2);
+  addMapping("PROTOCOL", 4);
+  addMapping("PROTOCOL_MAP", 58500);
+  addMapping("SRC_TOS", 5);
+  addMapping("TCP_FLAGS", 6);
+  addMapping("L4_SRC_PORT", 7);
+  addMapping("L4_SRC_PORT_MAP", 58503);
+  addMapping("IPV4_SRC_ADDR", 8);
+  addMapping("IPV4_SRC_MASK", 9);
+  addMapping("INPUT_SNMP", 10);
+  addMapping("L4_DST_PORT", 11);
+  addMapping("L4_DST_PORT_MAP", 58507);
+  addMapping("L4_SRV_PORT", 58508);
+  addMapping("L4_SRV_PORT_MAP", 58509);
+  addMapping("IPV4_DST_ADDR", 12);
+  addMapping("IPV4_DST_MASK", 13);
+  addMapping("OUTPUT_SNMP", 14);
+  addMapping("IPV4_NEXT_HOP", 15);
+  addMapping("SRC_AS", 16);
+  addMapping("DST_AS", 17);
+  addMapping("LAST_SWITCHED", 21);
+  addMapping("FIRST_SWITCHED", 22);
+  addMapping("OUT_BYTES", 23);
+  addMapping("OUT_PKTS", 24);
+  addMapping("IPV6_SRC_ADDR", 27);
+  addMapping("IPV6_DST_ADDR", 28);
+  addMapping("IPV6_SRC_MASK", 29);
+  addMapping("IPV6_DST_MASK", 30);
+  addMapping("ICMP_TYPE", 32);
+  addMapping("SAMPLING_INTERVAL", 34);
+  addMapping("SAMPLING_ALGORITHM", 35);
+  addMapping("FLOW_ACTIVE_TIMEOUT", 36);
+  addMapping("FLOW_INACTIVE_TIMEOUT", 37);
+  addMapping("ENGINE_TYPE", 38);
+  addMapping("ENGINE_ID", 39);
+  addMapping("TOTAL_BYTES_EXP", 40);
+  addMapping("TOTAL_PKTS_EXP", 41);
+  addMapping("TOTAL_FLOWS_EXP", 42);
+  addMapping("MIN_TTL", 52);
+  addMapping("MAX_TTL", 53);
+  addMapping("DST_TOS", 55);
+  addMapping("IN_SRC_MAC", 56);
+  addMapping("SRC_VLAN", 58);
+  addMapping("DST_VLAN", 59);
+  addMapping("IP_PROTOCOL_VERSION", 60);
+  addMapping("DIRECTION", 61);
+  addMapping("IPV6_NEXT_HOP", 62);
+  addMapping("MPLS_LABEL_1", 70);
+  addMapping("MPLS_LABEL_2", 71);
+  addMapping("MPLS_LABEL_3", 72);
+  addMapping("MPLS_LABEL_4", 73);
+  addMapping("MPLS_LABEL_5", 74);
+  addMapping("MPLS_LABEL_6", 75);
+  addMapping("MPLS_LABEL_7", 76);
+  addMapping("MPLS_LABEL_8", 77);
+  addMapping("MPLS_LABEL_9", 78);
+  addMapping("MPLS_LABEL_10", 79);
+  addMapping("OUT_DST_MAC", 80);
+  addMapping("APPLICATION_ID", 95);
+  addMapping("PACKET_SECTION_OFFSET", 102);
+  addMapping("SAMPLED_PACKET_SIZE", 103);
+  addMapping("SAMPLED_PACKET_ID", 104);
+  addMapping("EXPORTER_IPV4_ADDRESS", 130);
+  addMapping("EXPORTER_IPV6_ADDRESS", 131);
+  addMapping("FLOW_ID", 148);
+  addMapping("FLOW_START_SEC", 150);
+  addMapping("FLOW_END_SEC", 151);
+  addMapping("FLOW_START_MILLISECONDS", 152);
+  addMapping("FLOW_END_MILLISECONDS", 153);
+  addMapping("BIFLOW_DIRECTION", 239);
+  addMapping("OBSERVATION_POINT_TYPE", 277);
+  addMapping("OBSERVATION_POINT_ID", 300);
+  addMapping("SELECTOR_ID", 302);
+  addMapping("IPFIX_SAMPLING_ALGORITHM", 304);
+  addMapping("SAMPLING_SIZE", 309);
+  addMapping("SAMPLING_POPULATION", 310);
+  addMapping("FRAME_LENGTH", 312);
+  addMapping("PACKETS_OBSERVED", 318);
+  addMapping("PACKETS_SELECTED", 319);
+  addMapping("SELECTOR_NAME", 335);
+  addMapping("APPLICATION_NAME", 57899);
+  addMapping("USER_NAME", 57900);
+  addMapping("FRAGMENTS", 57552);
+  addMapping("CLIENT_NW_LATENCY_MS", 57595);
+  addMapping("SERVER_NW_LATENCY_MS", 57596);
+  addMapping("APPL_LATENCY_MS", 57597);
+  addMapping("CUMULATIVE_ICMP_TYPE", 57570);
+  addMapping("SRC_IP_COUNTRY", 57573);
+  addMapping("SRC_IP_CITY", 57574);
+  addMapping("DST_IP_COUNTRY", 57575);
+  addMapping("DST_IP_CITY", 57576);
+  addMapping("FLOW_PROTO_PORT", 57577);
+  addMapping("UPSTREAM_TUNNEL_ID", 57578);
+  addMapping("LONGEST_FLOW_PKT", 57579);
+  addMapping("SHORTEST_FLOW_PKT", 57580);
+  addMapping("RETRANSMITTED_IN_BYTES", 57599);
+  addMapping("RETRANSMITTED_IN_PKTS", 57581);
+  addMapping("RETRANSMITTED_OUT_BYTES", 57600);
+  addMapping("RETRANSMITTED_OUT_PKTS", 57582);
+  addMapping("OOORDER_IN_PKTS", 57583);
+  addMapping("OOORDER_OUT_PKTS", 57584);
+  addMapping("UNTUNNELED_PROTOCOL", 57585);
+  addMapping("UNTUNNELED_IPV4_SRC_ADDR", 57586);
+  addMapping("UNTUNNELED_L4_SRC_PORT", 57587);
+  addMapping("UNTUNNELED_IPV4_DST_ADDR", 57588);
+  addMapping("UNTUNNELED_L4_DST_PORT", 57589);
+  addMapping("L7_PROTO", 57590);
+  addMapping("L7_PROTO_NAME", 57591);
+  addMapping("DOWNSTREAM_TUNNEL_ID", 57592);
+  addMapping("FLOW_USER_NAME", 57593);
+  addMapping("FLOW_SERVER_NAME", 57594);
+  addMapping("PLUGIN_NAME", 57598);
+  addMapping("UNTUNNELED_IPV6_SRC_ADDR", 57868);
+  addMapping("UNTUNNELED_IPV6_DST_ADDR", 57869);
+  addMapping("IN_SRC_OSI_SAP", 57821);
+  addMapping("OUT_DST_OSI_SAP", 57822);
+  addMapping("DURATION_IN", 57863);
+  addMapping("DURATION_OUT", 57864);
+  addMapping("TCP_WIN_MIN_IN", 57887);
+  addMapping("TCP_WIN_MAX_IN", 57888);
+  addMapping("TCP_WIN_MSS_IN", 57889);
+  addMapping("TCP_WIN_SCALE_IN", 57890);
+  addMapping("TCP_WIN_MIN_OUT", 57891);
+  addMapping("TCP_WIN_MAX_OUT", 57892);
+  addMapping("TCP_WIN_MSS_OUT", 57893);
+  addMapping("TCP_WIN_SCALE_OUT", 57894);
+  addMapping("PAYLOAD_HASH", 57910);
+  addMapping("SRC_AS_MAP", 57915);
+  addMapping("DST_AS_MAP", 57916);
+  addMapping("SRC_AS_PATH_1", 57762);
+  addMapping("SRC_AS_PATH_2", 57763);
+  addMapping("SRC_AS_PATH_3", 57764);
+  addMapping("SRC_AS_PATH_4", 57765);
+  addMapping("SRC_AS_PATH_5", 57766);
+  addMapping("SRC_AS_PATH_6", 57767);
+  addMapping("SRC_AS_PATH_7", 57768);
+  addMapping("SRC_AS_PATH_8", 57769);
+  addMapping("SRC_AS_PATH_9", 57770);
+  addMapping("SRC_AS_PATH_10", 57771);
+  addMapping("DST_AS_PATH_1", 57772);
+  addMapping("DST_AS_PATH_2", 57773);
+  addMapping("DST_AS_PATH_3", 57774);
+  addMapping("DST_AS_PATH_4", 57775);
+  addMapping("DST_AS_PATH_5", 57776);
+  addMapping("DST_AS_PATH_6", 57777);
+  addMapping("DST_AS_PATH_7", 57778);
+  addMapping("DST_AS_PATH_8", 57779);
+  addMapping("DST_AS_PATH_9", 57780);
+  addMapping("DST_AS_PATH_10", 57781);
+  addMapping("DHCP_CLIENT_MAC", 57825);
+  addMapping("DHCP_CLIENT_IP", 57826);
+  addMapping("DHCP_CLIENT_NAME", 57827);
+  addMapping("DHCP_REMOTE_ID", 57895);
+  addMapping("DHCP_SUBSCRIBER_ID", 57896);
+  addMapping("DHCP_MESSAGE_TYPE", 57901);
+  addMapping("DIAMETER_REQ_MSG_TYPE", 57871);
+  addMapping("DIAMETER_RSP_MSG_TYPE", 57872);
+  addMapping("DIAMETER_REQ_ORIGIN_HOST", 57873);
+  addMapping("DIAMETER_RSP_ORIGIN_HOST", 57874);
+  addMapping("DIAMETER_REQ_USER_NAME", 57875);
+  addMapping("DIAMETER_RSP_RESULT_CODE", 57876);
+  addMapping("DIAMETER_EXP_RES_VENDOR_ID", 57877);
+  addMapping("DIAMETER_EXP_RES_RESULT_CODE", 57878);
+  addMapping("DIAMETER_HOP_BY_HOP_ID", 57917);
+  addMapping("DNS_QUERY", 57677);
+  addMapping("DNS_QUERY_ID", 57678);
+  addMapping("DNS_QUERY_TYPE", 57679);
+  addMapping("DNS_RET_CODE", 57680);
+  addMapping("DNS_TTL_ANSWER", 57824);
+  addMapping("DNS_RESPONSE", 57870);
+  addMapping("FTP_LOGIN", 57828);
+  addMapping("FTP_PASSWORD", 57829);
+  addMapping("FTP_COMMAND", 57830);
+  addMapping("FTP_COMMAND_RET_CODE", 57831);
+  addMapping("GTPV0_REQ_MSG_TYPE", 57793);
+  addMapping("GTPV0_RSP_MSG_TYPE", 57794);
+  addMapping("GTPV0_TID", 57795);
+  addMapping("GTPV0_APN_NAME", 57798);
+  addMapping("GTPV0_END_USER_IP", 57796);
+  addMapping("GTPV0_END_USER_MSISDN", 57797);
+  addMapping("GTPV0_RAI_MCC", 57799);
+  addMapping("GTPV0_RAI_MNC", 57800);
+  addMapping("GTPV0_RAI_CELL_LAC", 57801);
+  addMapping("GTPV0_RAI_CELL_RAC", 57802);
+  addMapping("GTPV0_RESPONSE_CAUSE", 57803);
+  addMapping("GTPV1_REQ_MSG_TYPE", 57692);
+  addMapping("GTPV1_RSP_MSG_TYPE", 57693);
+  addMapping("GTPV1_C2S_TEID_DATA", 57694);
+  addMapping("GTPV1_C2S_TEID_CTRL", 57695);
+  addMapping("GTPV1_S2C_TEID_DATA", 57696);
+  addMapping("GTPV1_S2C_TEID_CTRL", 57697);
+  addMapping("GTPV1_END_USER_IP", 57698);
+  addMapping("GTPV1_END_USER_IMSI", 57699);
+  addMapping("GTPV1_END_USER_MSISDN", 57700);
+  addMapping("GTPV1_END_USER_IMEI", 57701);
+  addMapping("GTPV1_APN_NAME", 57702);
+  addMapping("GTPV1_RAI_MCC", 57703);
+  addMapping("GTPV1_RAI_MNC", 57704);
+  addMapping("GTPV1_RAI_LAC", 57814);
+  addMapping("GTPV1_RAI_RAC", 57815);
+  addMapping("GTPV1_ULI_MCC", 57816);
+  addMapping("GTPV1_ULI_MNC", 57817);
+  addMapping("GTPV1_ULI_CELL_LAC", 57705);
+  addMapping("GTPV1_ULI_CELL_CI", 57706);
+  addMapping("GTPV1_ULI_SAC", 57707);
+  addMapping("GTPV1_RESPONSE_CAUSE", 57804);
+  addMapping("GTPV2_REQ_MSG_TYPE", 57742);
+  addMapping("GTPV2_RSP_MSG_TYPE", 57743);
+  addMapping("GTPV2_C2S_S1U_GTPU_TEID", 57744);
+  addMapping("GTPV2_C2S_S1U_GTPU_IP", 57745);
+  addMapping("GTPV2_S2C_S1U_GTPU_TEID", 57746);
+  addMapping("GTPV2_S5_S8_GTPC_TEID", 57907);
+  addMapping("GTPV2_S2C_S1U_GTPU_IP", 57747);
+  addMapping("GTPV2_C2S_S5_S8_GTPU_TEID", 57911);
+  addMapping("GTPV2_S2C_S5_S8_GTPU_TEID", 57912);
+  addMapping("GTPV2_C2S_S5_S8_GTPU_IP", 57913);
+  addMapping("GTPV2_S2C_S5_S8_GTPU_IP", 57914);
+  addMapping("GTPV2_END_USER_IMSI", 57748);
+  addMapping("GTPV2_END_USER_MSISDN", 57749);
+  addMapping("GTPV2_APN_NAME", 57750);
+  addMapping("GTPV2_ULI_MCC", 57751);
+  addMapping("GTPV2_ULI_MNC", 57752);
+  addMapping("GTPV2_ULI_CELL_TAC", 57753);
+  addMapping("GTPV2_ULI_CELL_ID", 57754);
+  addMapping("GTPV2_RESPONSE_CAUSE", 57805);
+  addMapping("GTPV2_RAT_TYPE", 57755);
+  addMapping("GTPV2_PDN_IP", 57756);
+  addMapping("GTPV2_END_USER_IMEI", 57757);
+  addMapping("HTTP_URL", 57652);
+  addMapping("HTTP_METHOD", 57832);
+  addMapping("HTTP_RET_CODE", 57653);
+  addMapping("HTTP_REFERER", 57654);
+  addMapping("HTTP_UA", 57655);
+  addMapping("HTTP_MIME", 57656);
+  addMapping("HTTP_HOST", 57659);
+  addMapping("HTTP_FBOOK_CHAT", 57660);
+  addMapping("HTTP_SITE", 57833);
+  addMapping("IMAP_LOGIN", 57732);
+  addMapping("MYSQL_SERVER_VERSION", 57667);
+  addMapping("MYSQL_USERNAME", 57668);
+  addMapping("MYSQL_DB", 57669);
+  addMapping("MYSQL_QUERY", 57670);
+  addMapping("MYSQL_RESPONSE", 57671);
+  addMapping("MYSQL_APPL_LATENCY_USEC", 57792);
+  addMapping("NETBIOS_QUERY_NAME", 57982);
+  addMapping("NETBIOS_QUERY_TYPE", 57983);
+  addMapping("NETBIOS_QUERY_RSP", 57983);
+  addMapping("ORACLE_USERNAME", 57672);
+  addMapping("ORACLE_QUERY", 57673);
+  addMapping("ORACLE_RSP_CODE", 57674);
+  addMapping("ORACLE_RSP_STRING", 57675);
+  addMapping("ORACLE_QUERY_DURATION", 57676);
+  addMapping("POP_USER", 57682);
+  addMapping("SRC_PROC_PID", 57640);
+  addMapping("SRC_PROC_NAME", 57641);
+  addMapping("SRC_PROC_UID", 57897);
+  addMapping("SRC_PROC_USER_NAME", 57844);
+  addMapping("SRC_FATHER_PROC_PID", 57845);
+  addMapping("SRC_FATHER_PROC_NAME", 57846);
+  addMapping("SRC_PROC_ACTUAL_MEMORY", 57855);
+  addMapping("SRC_PROC_PEAK_MEMORY", 57856);
+  addMapping("SRC_PROC_AVERAGE_CPU_LOAD", 57857);
+  addMapping("SRC_PROC_NUM_PAGE_FAULTS", 57858);
+  addMapping("SRC_PROC_PCTG_IOWAIT", 57865);
+  addMapping("DST_PROC_PID", 57847);
+  addMapping("DST_PROC_NAME", 57848);
+  addMapping("DST_PROC_UID", 57898);
+  addMapping("DST_PROC_USER_NAME", 57849);
+  addMapping("DST_FATHER_PROC_PID", 57850);
+  addMapping("DST_FATHER_PROC_NAME", 57851);
+  addMapping("DST_PROC_ACTUAL_MEMORY", 57859);
+  addMapping("DST_PROC_PEAK_MEMORY", 57860);
+  addMapping("DST_PROC_AVERAGE_CPU_LOAD", 57861);
+  addMapping("DST_PROC_NUM_PAGE_FAULTS", 57862);
+  addMapping("DST_PROC_PCTG_IOWAIT", 57866);
+  addMapping("RADIUS_REQ_MSG_TYPE", 57712);
+  addMapping("RADIUS_RSP_MSG_TYPE", 57713);
+  addMapping("RADIUS_USER_NAME", 57714);
+  addMapping("RADIUS_CALLING_STATION_ID", 57715);
+  addMapping("RADIUS_CALLED_STATION_ID", 57716);
+  addMapping("RADIUS_NAS_IP_ADDR", 57717);
+  addMapping("RADIUS_NAS_IDENTIFIER", 57718);
+  addMapping("RADIUS_USER_IMSI", 57719);
+  addMapping("RADIUS_USER_IMEI", 57720);
+  addMapping("RADIUS_FRAMED_IP_ADDR", 57721);
+  addMapping("RADIUS_ACCT_SESSION_ID", 57722);
+  addMapping("RADIUS_ACCT_STATUS_TYPE", 57723);
+  addMapping("RADIUS_ACCT_IN_OCTETS", 57724);
+  addMapping("RADIUS_ACCT_OUT_OCTETS", 57725);
+  addMapping("RADIUS_ACCT_IN_PKTS", 57726);
+  addMapping("RADIUS_ACCT_OUT_PKTS", 57727);
+  addMapping("RTP_SSRC", 57909);
+  addMapping("RTP_FIRST_SEQ", 57622);
+  addMapping("RTP_FIRST_TS", 57623);
+  addMapping("RTP_LAST_SEQ", 57624);
+  addMapping("RTP_LAST_TS", 57625);
+  addMapping("RTP_IN_JITTER", 57626);
+  addMapping("RTP_OUT_JITTER", 57627);
+  addMapping("RTP_IN_PKT_LOST", 57628);
+  addMapping("RTP_OUT_PKT_LOST", 57629);
+  addMapping("RTP_IN_PKT_DROP", 57902);
+  addMapping("RTP_OUT_PKT_DROP", 57903);
+  addMapping("RTP_IN_PAYLOAD_TYPE", 57633);
+  addMapping("RTP_OUT_PAYLOAD_TYPE", 57630);
+  addMapping("RTP_IN_MAX_DELTA", 57631);
+  addMapping("RTP_OUT_MAX_DELTA", 57632);
+  addMapping("RTP_SIP_CALL_ID", 57820);
+  addMapping("RTP_MOS", 57906);
+  addMapping("RTP_IN_MOS", 57842);
+  addMapping("RTP_OUT_MOS", 57904);
+  addMapping("RTP_R_FACTOR", 57908);
+  addMapping("RTP_IN_R_FACTOR", 57843);
+  addMapping("RTP_OUT_R_FACTOR", 57905);
+  addMapping("RTP_IN_TRANSIT", 57853);
+  addMapping("RTP_OUT_TRANSIT", 57854);
+  addMapping("RTP_RTT", 57852);
+  addMapping("RTP_DTMF_TONES", 57867);
+  addMapping("S1AP_ENB_UE_S1AP_ID", 57879);
+  addMapping("S1AP_MME_UE_S1AP_ID", 57880);
+  addMapping("S1AP_MSG_EMM_TYPE_MME_TO_ENB", 57881);
+  addMapping("S1AP_MSG_ESM_TYPE_MME_TO_ENB", 57882);
+  addMapping("S1AP_MSG_EMM_TYPE_ENB_TO_MME", 57883);
+  addMapping("S1AP_MSG_ESM_TYPE_ENB_TO_MME", 57884);
+  addMapping("S1AP_CAUSE_ENB_TO_MME", 57885);
+  addMapping("S1AP_DETAILED_CAUSE_ENB_TO_MME", 57886);
+  addMapping("SIP_CALL_ID", 57602);
+  addMapping("SIP_CALLING_PARTY", 57603);
+  addMapping("SIP_CALLED_PARTY", 57604);
+  addMapping("SIP_RTP_CODECS", 57605);
+  addMapping("SIP_INVITE_TIME", 57606);
+  addMapping("SIP_TRYING_TIME", 57607);
+  addMapping("SIP_RINGING_TIME", 57608);
+  addMapping("SIP_INVITE_OK_TIME", 57609);
+  addMapping("SIP_INVITE_FAILURE_TIME", 57610);
+  addMapping("SIP_BYE_TIME", 57611);
+  addMapping("SIP_BYE_OK_TIME", 57612);
+  addMapping("SIP_CANCEL_TIME", 57613);
+  addMapping("SIP_CANCEL_OK_TIME", 57614);
+  addMapping("SIP_RTP_IPV4_SRC_ADDR", 57615);
+  addMapping("SIP_RTP_L4_SRC_PORT", 57616);
+  addMapping("SIP_RTP_IPV4_DST_ADDR", 57617);
+  addMapping("SIP_RTP_L4_DST_PORT", 57618);
+  addMapping("SIP_RESPONSE_CODE", 57619);
+  addMapping("SIP_REASON_CAUSE", 57620);
+  addMapping("SIP_C_IP", 57834);
+  addMapping("SIP_CALL_STATE", 57835);
+  addMapping("SMTP_MAIL_FROM", 57657);
+  addMapping("SMTP_RCPT_TO", 57658);
+  addMapping("SSDP_HOST", 57972);
+  addMapping("SSDP_USN", 57973);
+}
+
+/* **************************************************** */
+
+ParserInterface::~ParserInterface() {
+  for(struct FlowFieldMap *s=map; s != NULL; s=(struct FlowFieldMap*)s->hh.next) free(s->key);
+  HASH_CLEAR(hh, map);
+}
+
+/* **************************************************** */
+
+void ParserInterface::addMapping(const char *sym, int num) {
+  struct FlowFieldMap *m = (struct FlowFieldMap*)malloc(sizeof(struct FlowFieldMap));
+
+  if(m) {
+    m->key = strdup(sym), m->value = num;
+    if(m->key) HASH_ADD_STR(map, key, m);    
+  }
+}
+
+/* **************************************************** */
+
+int ParserInterface::getKeyId(char *sym) {
+  struct FlowFieldMap *s;
+
+  if(isdigit(sym[0])) return(atoi(sym));
+  
+  HASH_FIND_STR(map, sym, s);  /* s: output pointer */
+  
+  return(s ? s->value : -1);
+}
 
 /* **************************************************** */
 
@@ -52,11 +437,11 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
       const char *value = json_object_get_string(v);
 
       if((key != NULL) && (value != NULL)) {
-        u_int key_id;
+        int key_id;
 	json_object *additional_o = json_tokener_parse(value);
 
 	/* FIX: the key can either be numeric of a string */
-	key_id = atoi(key);
+	key_id = getKeyId((char*)key);
 
         switch(key_id) {
         case 0: //json additional object added by Flow::serialize()
@@ -207,7 +592,7 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
           break;
 
         default:
-          ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u", key_id);
+          ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u/%s", key_id, key);
           json_object_object_add(flow.additional_fields, key, json_object_new_string(value));
           break;
         } /* switch */

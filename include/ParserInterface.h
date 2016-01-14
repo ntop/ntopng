@@ -24,12 +24,24 @@
 
 #include "ntop_includes.h"
 
+struct FlowFieldMap {
+  char *key;
+  int value;
+  UT_hash_handle hh; /* makes this structure hashable */
+};
+
 class ParserInterface : public NetworkInterface {
  private:
+  struct FlowFieldMap *map;
+
+  int getKeyId(char *sym);
+  void addMapping(const char *sym, int num);
 
  public:
   ParserInterface(const char *endpoint);
-  static u_int8_t parse_flows(char *payload, int payload_size, u_int8_t source_id, void *data);
+  ~ParserInterface();
+
+  u_int8_t parse_flows(char *payload, int payload_size, u_int8_t source_id, void *data);
 };
 
 #endif /* _PARSER_INTERFACE_H_ */
