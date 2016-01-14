@@ -1204,10 +1204,10 @@ if((selected_found == true)
 	   or string.contains(selected_network, "/128"))) then
    nw = string.gsub(selected_network, "/32", "");
    nw = string.gsub(nw, "/128", "");
-   print("&nbsp;[ <A HREF=/lua/host_details.lua?host="..nw.."><i class=\"fa fa-desktop fa-lg\"></i> Show Host</A> ] ")
+   print("&nbsp;[ <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..nw.."\"><i class=\"fa fa-desktop fa-lg\"></i> Show Host</A> ] ")
 end
 
-print(' [ <A HREF=/lua/if_stats.lua?page=filtering&delete_network='..selected_network..'> <i class="fa fa-trash-o fa-lg"></i> Delete '.. selected_network ..'</A> ]')
+print(' [ <A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=filtering&delete_network='..selected_network..'"> <i class="fa fa-trash-o fa-lg"></i> Delete '.. selected_network ..'</A> ]')
 print('</td></tr>')
 
 -- ******************************************
