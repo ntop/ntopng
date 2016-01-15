@@ -69,7 +69,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 
 /* ******************************************* */
 
-void PeriodicActivities::runScript(char *path) {
+void PeriodicActivities::runScript(char *path, u_int32_t when) {
   struct stat statbuf;
 
   if(stat(path, &statbuf) == 0) {
@@ -89,7 +89,7 @@ void PeriodicActivities::runScript(char *path) {
     }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Starting script %s", path);
-    l->run_script(path, NULL);
+    l->run_script(path);
     delete l;
   } else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Missing script %s", path);
@@ -107,7 +107,7 @@ void PeriodicActivities::secondActivitiesLoop() {
     u_long usec_diff;
 
     gettimeofday(&begin, NULL);
-    runScript(script);
+    runScript(script, begin.tv_sec);
     gettimeofday(&end, NULL);
 
     usec_diff = (end.tv_sec * 1000000) + end.tv_usec - (begin.tv_sec * 1000000) - begin.tv_usec;
@@ -134,13 +134,13 @@ u_int32_t PeriodicActivities::roundTime(u_int32_t now, u_int32_t rounder) {
 void PeriodicActivities::minuteActivitiesLoop() {
   char script[MAX_PATH];
   u_int32_t next_run = (u_int32_t)time(NULL);
-
+  
   next_run = roundTime(next_run, 60);
   snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), MINUTE_SCRIPT_PATH);
 
   while(!ntop->getGlobals()->isShutdown()) {
     u_int now = (u_int)time(NULL);
-    
+
     if(now >= next_run) {
       /* 
 	 We need to make sure that minute actitivies 
@@ -151,8 +151,8 @@ void PeriodicActivities::minuteActivitiesLoop() {
       */
       sleep(1);
           
-      runScript(script);
-      next_run = roundTime(now + 60, 60);
+      runScript(script, next_run);
+      next_run = roundTime(now, 60);
     }
 
     sleep(1);
@@ -173,8 +173,8 @@ void PeriodicActivities::hourActivitiesLoop() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
-      runScript(script);
-      next_run = roundTime(now + 3600, 3600);
+      runScript(script, now);
+      next_run = roundTime(now, 3600);
     }
 
     sleep(1);
@@ -198,8 +198,8 @@ void PeriodicActivities::dayActivitiesLoop() {
     u_int now = (u_int)time(NULL);
 
     if(now >= next_run) {
-      runScript(script);
-      next_run = roundTime(now + 86400, 86400);
+      runScript(script, now);
+      next_run = roundTime(now, 86400);
     }
 
     sleep(1);

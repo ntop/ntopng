@@ -61,10 +61,9 @@ class Lua {
    * @details Run a script from within ntopng. No HTTP GUI.
    * 
    * @param script_path Full path of lua script.
-   * @param ifname Name of the interface for which we are running this script.
    * @return 0 if the script has been executed successfully.
    */
-  int run_script(char *script_path, char *ifname);
+  int run_script(char *script_path);
 
   /**
    * @brief Handling of request info of script.

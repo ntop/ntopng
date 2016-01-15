@@ -4420,7 +4420,7 @@ static int post_iterator(void *cls,
 /*
   Run a Lua script from within ntopng (no HTTP GUI)
 */
-int Lua::run_script(char *script_path, char *ifname) {
+int Lua::run_script(char *script_path) {
   int rc = 0;
 
   if(!L) return(-1);
@@ -4428,12 +4428,6 @@ int Lua::run_script(char *script_path, char *ifname) {
   try {
     luaL_openlibs(L); /* Load base libraries */
     lua_register_classes(L, false); /* Load custom classes */
-
-    if(ifname != NULL) {
-      /* Name of the interface for which we are running this script for */
-      lua_pushstring(L, ifname);
-      lua_setglobal(L, "ifname");
-    }
 
     if(strstr(script_path, "nv_graph"))
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", script_path);
@@ -4454,7 +4448,7 @@ int Lua::run_script(char *script_path, char *ifname) {
       rc = -1;
     }
   } catch(...) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, ifname ? ifname : "");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s]", script_path);
     rc = -2;
   }
 
