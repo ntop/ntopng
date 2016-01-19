@@ -26,7 +26,6 @@
 /* **************************************************** */
 
 ZCCollectorInterface::ZCCollectorInterface(const char *name) : NetworkInterface(name) {
-  u_int32_t cluster_id = 0;
   u_int32_t queue_id = 0;
   char ifname[32];
   char *at;
