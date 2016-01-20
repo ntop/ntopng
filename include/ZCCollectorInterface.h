@@ -26,7 +26,7 @@
 
 #if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__))
 
-class ZCCollectorInterface : public NetworkInterface {
+class ZCCollectorInterface : public ParserInterface {
  private:
   u_int32_t cluster_id, queue_id;
   u_int32_t num_drops;

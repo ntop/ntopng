@@ -25,16 +25,17 @@
 
 /* **************************************************** */
 
-ZCCollectorInterface::ZCCollectorInterface(const char *name) : NetworkInterface(name) {
-  u_int32_t queue_id = 0;
+ZCCollectorInterface::ZCCollectorInterface(const char *name) : ParserInterface(name) {
   char ifname[32];
   char *at;
+
+  cluster_id = queue_id = 0;
 
   snprintf(ifname, sizeof(ifname), "%s", &name[7]);
 
   at = strchr(ifname, '@');
 
-  if (at != NULL) {
+  if(at != NULL) {
     queue_id = atoi(&at[1]);
     at[0] = '\0';
   }
@@ -45,17 +46,17 @@ ZCCollectorInterface::ZCCollectorInterface(const char *name) : NetworkInterface(
 
   zq = pfring_zc_ipc_attach_queue(cluster_id, queue_id, rx_only);
 
-  if (zq == NULL)
+  if(zq == NULL)
     throw("pfring_zc_ipc_attach_queue error");
 
   zp = pfring_zc_ipc_attach_buffer_pool(cluster_id, queue_id);
 
-  if (zp == NULL)
+  if(zp == NULL)
     throw("pfring_zc_ipc_attach_buffer_pool error");
 
   buffer = pfring_zc_get_packet_handle_from_pool(zp);
 
-  if (buffer == NULL)
+  if(buffer == NULL)
     throw("pfring_zc_get_packet_handle_from_pool error");
 }
 
@@ -75,28 +76,27 @@ void ZCCollectorInterface::collect_flows() {
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows from ZC queue %u@%u", cluster_id, queue_id);
 
-  while (isRunning()) {
-
-    while (idle()) {
+  while(isRunning()) {
+    while(idle()) {
       purgeIdle(time(NULL));
       sleep(1);
-      if (ntop->getGlobals()->isShutdown()) return;
+      if(ntop->getGlobals()->isShutdown()) return;
     }
 
     rc = pfring_zc_recv_pkt(zq, &buffer, 0 /* wait_for_packet */);
 
-    if (rc > 0) {
-      //u_char *pkt_data = pfring_zc_pkt_buff_data(buffer, zq);
+    if(rc > 0) {
+      u_char *json = pfring_zc_pkt_buff_data(buffer, zq);
 
-      //TODO parse_zc_flows(pkt_data, buffer->len, this);
-
-    } else if (rc == 0) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", json);
+      parse_flows((char*)json, buffer->len, 0, (void*)this);
+    } else if(rc == 0) {
       usleep(1);
       purgeIdle(time(NULL));
-    } else { /* rc < 0 */
+    } else {
+      /* rc < 0 */
       break;
     }
-
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "ZC Flow collection is over.");
@@ -110,7 +110,7 @@ static void *packetPollLoop(void *ptr) {
   ZCCollectorInterface *iface = (ZCCollectorInterface *) ptr;
 
   /* Wait until the initialization completes */
-  while (!iface->isRunning()) sleep(1);
+  while(!iface->isRunning()) sleep(1);
 
   iface->collect_flows();
   return(NULL);
@@ -127,9 +127,9 @@ void ZCCollectorInterface::startPacketPolling() {
 /* **************************************************** */
 
 void ZCCollectorInterface::shutdown() {
-  void *res;
+  if(running) {
+    void *res;
 
-  if (running) {
     NetworkInterface::shutdown();
     pfring_zc_queue_breakloop(zq);
     pthread_join(pollLoop, &res);
@@ -140,7 +140,7 @@ void ZCCollectorInterface::shutdown() {
 
 bool ZCCollectorInterface::set_packet_filter(char *filter) {
   ntop->getTrace()->traceEvent(TRACE_ERROR,
-    "No filter can be set on a collector interface. Ignored %s", filter);
+			       "No filter can be set on a collector interface. Ignored %s", filter);
   return(false);
 }
 
