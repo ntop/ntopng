@@ -1272,59 +1272,70 @@ print [[
 
 end
 elseif(page == "categories") then
-
 print [[
-      <table class="table table-bordered table-striped">
-      	<tr><th class="text-left">Traffic Categories</th><td><div class="pie-chart" id="topTrafficCategories"></div></td></tr>
-	</div>
-
-        <script type='text/javascript'>
-	       window.onload=function() {
-
-				   do_pie("#topTrafficCategories", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_category_stats.lua', { ifname: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-  print [[
-				}
-
-	    </script>
-	</table>
-	]]
-  print [[
-     <table id="categoriesTable" class="table table-bordered table-striped tablesorter">
-     ]]
-
-     print("<thead><tr><th>Traffic Category</th><th colspan=3>Total</th></tr></thead>\n")
-
-  print ('<tbody id="host_details_categories_tbody">\n')
-  print ("</tbody>")
-  print("</table>\n")
-
-  print [[
-<script>
-function update_categories_table() {
-  $.ajax({
-    type: 'GET',
-    url: ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_details_categories.lua',
-    data: { ifid: ]] print('"') print(tostring(ifId)) print('"') print(", hostip: ") print('"'..host["ip"]..'"') print [[ },
-    success: function(content) {
-      $('#host_details_categories_tbody').html(content);
-      // Let the TableSorter plugin know that we updated the table
-      $('#h_categories_tbody').trigger("update");
-    }
-  });
-}
-update_categories_table();
+<div id="table-categories"></div>
+         <script type='text/javascript'>
+           $("#table-categories").datatable({
+                        title: "Traffic Categories",
+                        url: "]] print(ntop.getHttpPrefix().."/lua/get_host_categories.lua?"..hostinfo2url(host_info).."&ifid="..ifId) print [[",
 ]]
 
-print("setInterval(update_categories_table, 5000);")
+-- Set the preference table
+preference = tablePreferences("rows_number",_GET["perPage"])
+if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
+
+-- Automatic default sorted. NB: the column must exist.
+print ('sort: [ ["' .. getDefaultTableSort("host_categories") ..'","' .. getDefaultTableSortOrder("host_categories").. '"] ],')
+
 
 print [[
-
+               showPagination: true,
+                columns: [
+                         {
+                             title: "Category Id",
+                                 field: "column_id",
+                                 hidden: true,
+                                 sortable: true,
+                          },
+                          {
+                             title: "Traffic Category",
+                                 field: "column_label",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'left'
+                             }
+                                 },
+                             {
+                             title: "Traffic",
+                                 field: "column_bytes",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'right'
+                             }
+                                 },
+                             {
+                             title: "Traffic %",
+                                 field: "column_pct",
+                                 sortable: false,
+                             css: {
+                                textAlign: 'right'
+                             }
+                                 }
+                             ]
+               });
 </script>
-
+<div>
+<small> <b>NOTE</b>:<p>Percentages are related only to classified traffic.
+]]
+if ntop.getCache("ntopng.prefs.host_categories_rrd_creation") ~= "1" then
+  print("<br>Historical per-category traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
+  print(" When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category. ")
+else
+  print("Category labels can be clicked to browse historical data.")
+end
+print [[
+</small>
+</div>
 ]]  
 elseif(page == "snmp") then
 
