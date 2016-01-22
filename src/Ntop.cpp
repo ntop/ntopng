@@ -37,6 +37,7 @@ static const char* dirs[] = {
   NULL,
 #endif
   CONST_ALT_INSTALL_DIR,
+  CONST_ALT2_INSTALL_DIR,
   NULL
 };
 

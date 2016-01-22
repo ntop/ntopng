@@ -266,6 +266,7 @@
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
+#define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
 #define CONST_HTTP_PREFIX_STRING     "@HTTP_PREFIX@"
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
