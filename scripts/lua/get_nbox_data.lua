@@ -61,41 +61,6 @@ elseif action == "schedule" then
 		print("{}")
 	end
 elseif action == "status" then
-	local resp = ntop.httpGet(status_url, nbox_user, nbox_password, 10)
-	--tprint(resp)
-	sendHTTPHeader('text/html; charset=iso-8859-1')
-	if resp ~= nil and resp["CONTENT"] ~= nil then
-		local content = resp["CONTENT"]
-		-- resp is not valid json: is buggy @ 08-01-2016:
-		-- this is an example { "result" : "OK", "tasks" : { {"task_id" : "1_1452012196" , "status" : "done" } , {"task_id" : "1_1452012274" , "status" : "done" }}}
-		-- double {{ and }} are not allowed and we must convert them to [{ and }] respectively
-		content = string.gsub(content, "%s*","")
-		content = string.gsub(content, "{%s*{","[{")
-		content = string.gsub(content, "}%s*}","}]")
-		content = json.decode(content, 1, nil)
-		if content == nil or content["tasks"] == nil then
-			print('{"tasks":[]}')
-		else
-			for task_id, task in pairs(content["tasks"]) do
-				task["actions"] = ""
-				if task["status"] ~= "scheduled" then
-					task["actions"] = 
-					'<a href="'..download_url..task["task_id"]..'.pcap"><i class="fa fa-download fa-lg"></i></a> '
-				end
-				task["actions"] = task["actions"]..'<a href="'..activity_scheduler_url..'" target="_blank"><i class="fa fa-external-link fa-lg"></i></a> '
-			end
-			--tprint(content)
-			content["data"] = content["tasks"]
-			content["currentPage"] = 1
-			content["perPage"] = 10
-			content["totalRows"] = 10
-			print(json.encode(content, nil))
-		end
-
-	else
-		print('{"tasks":[]}')
-	end
-elseif action == "status2" then
 	-- datatable parameters
 	local current_page = _GET["currentPage"]
 	local per_page     = _GET["perPage"]
@@ -139,17 +104,6 @@ elseif action == "status2" then
 	if to_skip < 0 then to_skip = 0 end
 
 	sendHTTPHeader('text/html; charset=iso-8859-1')
---[[
-print [[
-{ "currentPage" : 1,
- "data" : [
-{ "key" : "78:31:C1:BD:5E:24","column_id" : "<A HREF='/lua/hosts_stats.lua?mac=78:31:C1:BD:5E:24'>Apple_BD:5E:24 (78:31:C1:BD:5E:24)</A>", "column_hosts" : "1","column_alerts" : "0", "column_task_id" : "78:31:C1:BD:5E:24&nbsp;", "column_actions" : "1 h, 12 min, 27 sec", "column_status" : "<div class='progress'><div class='progress-bar progress-bar-warning' style='width: 58%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: 42%;'>Rcvd</div></div>", "column_thpt" : "456.64 Kbit <i class='fa fa-arrow-up'></i>", "column_traffic" : "256.7 MB" }
-], "perPage" : 10,
-"sort" : [ [ "column_", "desc" ] ],
-"totalRows" : 1
-}
---]]
-
 	local resp = ntop.httpGet(status_url, nbox_user, nbox_password, 10)
 	if resp ~= nil and resp["CONTENT"] ~= nil then
 		local content = resp["CONTENT"]
@@ -202,8 +156,7 @@ print [[
 		end
 
 	else
-		-- print('{"tasks":[]}')
-		local a = 1
+		print('{"data":[]}')
 	end
 else
 	print("{}")
