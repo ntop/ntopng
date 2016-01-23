@@ -132,7 +132,7 @@ Prefs::~Prefs() {
 
 /* ******************************************* */
 
-static void* localmalloc(unsigned long size) { return(malloc(size)); }
+static void* localmalloc(size_t size) { return(malloc(size)); }
 
 /* ******************************************* */
 
