@@ -1273,10 +1273,26 @@ print [[
 end
 elseif(page == "categories") then
 print [[
+      <table class="table table-bordered table-striped">
+        <tr><th class="text-left">Traffic Categories</th><td><div class="pie-chart" id="topTrafficCategories"></div></td></tr>
+        </div>
+
+        <script type='text/javascript'>
+	     window.onload=function() {
+
+                                   do_pie("#topTrafficCategories", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/host_category_stats.lua', { ifname: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+  print [[
+	    }
+
+            </script>
+
+<tr><td colspan=2>
 <div id="table-categories"></div>
          <script type='text/javascript'>
            $("#table-categories").datatable({
-                        title: "Traffic Categories",
+                        title: "",
                         url: "]] print(ntop.getHttpPrefix().."/lua/get_host_categories.lua?"..hostinfo2url(host_info).."&ifid="..ifId) print [[",
 ]]
 
@@ -1306,7 +1322,7 @@ print [[
                              }
                                  },
                              {
-                             title: "Traffic",
+                             title: "Traffic Volume",
                                  field: "column_bytes",
                                  sortable: true,
                              css: {
@@ -1325,7 +1341,7 @@ print [[
                });
 </script>
 <div>
-<small> <b>NOTE</b>:<p>Percentages are related only to classified traffic.
+<small> <b>NOTE</b>: Percentages are related only to classified traffic.
 ]]
 if ntop.getCache("ntopng.prefs.host_categories_rrd_creation") ~= "1" then
   print("<br>Historical per-category traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
@@ -1336,6 +1352,9 @@ end
 print [[
 </small>
 </div>
+
+</td></tr>
+</table>
 ]]  
 elseif(page == "snmp") then
 
