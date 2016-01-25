@@ -78,6 +78,7 @@ Flow::Flow(NetworkInterface *_iface,
   first_seen = _first_seen, last_seen = _last_seen;
   memset(&categorization.category, 0, sizeof(categorization.category));
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
+  bytes_rate = new TimeSeries<float>(4096);
   protocol_processed = false, blacklist_alarm_emitted = false;
 
   synTime.tv_sec = synTime.tv_usec = 0,
@@ -787,6 +788,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
   if(last_update_time.tv_sec > 0) {
     float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
+    float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000.;
 
     if(tdiff_msec >= 1000 /* Do not updated when less than 1 second (1000 msec) */) {
       // bps
@@ -796,6 +798,9 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       if(bytes_msec < 0) bytes_msec = 0; /* Just to be safe */
 
       if((bytes_msec > 0) || iface->is_packet_interface()) {
+        bytes_rate->addDataPoint(t_sec, bytes_msec);
+        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Normalized slope is: %.2f", bytes_rate->discreteDerivative(true));
+
 	if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
 	else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
 	else                             bytes_thpt_trend = trend_stable;

@@ -101,6 +101,7 @@ class Flow : public GenericHashEntry {
 
   float bytes_thpt, top_bytes_thpt, pkts_thpt, top_pkts_thpt;
   ValueTrend bytes_thpt_trend,pkts_thpt_trend;
+  TimeSeries<float> *bytes_rate;
   u_int64_t cli2srv_last_packets, srv2cli_last_packets,
     prev_cli2srv_last_packets, prev_srv2cli_last_packets;
   u_int64_t cli2srv_last_bytes, srv2cli_last_bytes,

@@ -172,6 +172,7 @@ using namespace std;
 #include "NetworkInterface.h"
 #include "NetworkInterfaceView.h"
 #include "PcapInterface.h"
+#include "TimeSeries.h"
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
 #endif
