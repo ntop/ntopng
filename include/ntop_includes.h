@@ -113,6 +113,9 @@ extern "C" {
 #include "json.h"
 #include <sqlite3.h>
 #include "hiredis.h"
+#ifdef HAVE_LDAP
+#include <ldap.h>
+#endif
 };
 
 #include "third-party/uthash.h"
@@ -142,6 +145,9 @@ using namespace std;
 #include "CountMinSketch.h"
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
+#ifdef HAVE_LDAP
+#include "LdapAuthenticator.h"
+#endif
 #endif
 #include "Prefs.h"
 #include "Mutex.h"

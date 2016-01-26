@@ -230,6 +230,11 @@ if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" = xyes; then
   LDFLAGS="${LDFLAGS} -lnetfilter_queue"
 fi
 
+AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap"])
+if test "x$ac_cv_lib_ldap_ldap_initialize" = xyes; then
+  AC_DEFINE_UNQUOTED(HAVE_LDAP, 1, [LDAP support is present])
+fi
+
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
 AC_CHECK_LIB([rt], [clock_gettime],   [LDFLAGS="${LDFLAGS} -lrt"])
 
