@@ -188,6 +188,18 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS `%sv6_%u` ",
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(sql, true, true);
+
+    // FOURTH: add extra indices to speedup queries
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` "
+            "ADD INDEX `ix_%sv4_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
+	    ntop->getPrefs()->get_mysql_tablename(),
+            ntop->getPrefs()->get_mysql_tablename());
+    exec_sql_query(sql, true, true);
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` "
+            "ADD INDEX `ix_%sv6_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
+	    ntop->getPrefs()->get_mysql_tablename(),
+            ntop->getPrefs()->get_mysql_tablename());
+    exec_sql_query(sql, true, true);
 }
 
 /* ******************************************* */
