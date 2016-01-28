@@ -37,6 +37,7 @@ typedef struct {
 class Prefs {
  private:
   u_int8_t num_deferred_interfaces_to_register;
+  pcap_direction_t captureDirection;
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES];
   const char *http_binding_address, *https_binding_address;
   Ntop *ntop;
@@ -186,6 +187,8 @@ class Prefs {
 
   inline char* getInterfaceViewAt(int id) { return((id >= MAX_NUM_INTERFACES) ? NULL : ifViewNames[id].name); }
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
+  inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
+  inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
 };
 
 #endif /* _PREFS_H_ */

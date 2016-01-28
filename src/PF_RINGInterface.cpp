@@ -31,6 +31,7 @@
 
 PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
   u_int flags = ntop->getPrefs()->use_promiscuous() ? PF_RING_PROMISC : 0;
+  packet_direction direction;
 
   flags |= PF_RING_LONG_HEADER;
   flags |= PF_RING_DNA_SYMMETRIC_RSS;  /* Note that symmetric RSS is ignored by non-DNA drivers */
@@ -59,6 +60,15 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
   pfring_set_direction(pfring_handle, rx_only_direction);
   pfring_set_poll_watermark(pfring_handle, 8);
   pfring_set_application_name(pfring_handle, (char*)"ntopng");
+
+  switch(ntop->getPrefs()->getCaptureDirection()) {
+  case PCAP_D_INOUT: direction = rx_and_tx_direction; break;
+  case PCAP_D_IN:    direction = rx_only_direction; break;
+  case PCAP_D_OUT:   direction = tx_only_direction; break;
+  }
+
+  if(pfring_set_direction(pfring_handle, direction) != 0)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 }
 
 /* **************************************************** */
@@ -84,7 +94,7 @@ static void* packetPollLoop(void* ptr) {
 
   while(iface->isRunning()) {
     if(pfring_is_pkt_available(pd)) {
-      u_char *buffer; 
+      u_char *buffer;
       struct pfring_pkthdr hdr;
 
       if(pfring_recv(pd, &buffer, 0, &hdr, 0 /* wait_for_packet */) > 0) {
@@ -96,7 +106,7 @@ static void* packetPollLoop(void* ptr) {
 				  &a_shaper_id, &b_shaper_id);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
-	  
+
 	  if(!oom_warning_sent) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
 	    oom_warning_sent = true;
@@ -118,7 +128,7 @@ static void* packetPollLoop(void* ptr) {
 void PF_RINGInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
   pollLoopCreated = true;
-  NetworkInterface::startPacketPolling(); 
+  NetworkInterface::startPacketPolling();
 }
 
 /* **************************************************** */
@@ -126,7 +136,7 @@ void PF_RINGInterface::startPacketPolling() {
 void PF_RINGInterface::shutdown() {
   void *res;
 
-  if(running) { 
+  if(running) {
     NetworkInterface::shutdown();
     if(pfring_handle) pfring_breakloop(pfring_handle);
     pthread_join(pollLoop, &res);
@@ -137,10 +147,10 @@ void PF_RINGInterface::shutdown() {
 
 u_int PF_RINGInterface::getNumDroppedPackets() {
   pfring_stat stats;
- 
+
   if(pfring_stats(pfring_handle, &stats) >= 0) {
 #if 0
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][Rcvd: %llu][Drops: %llu][DroppedByFilter: %u]", 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][Rcvd: %llu][Drops: %llu][DroppedByFilter: %u]",
 				 ifname, stats.recv, stats.drop, stats.droppedbyfilter);
 #endif
     return(stats.drop);

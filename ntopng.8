@@ -1,4 +1,4 @@
-.\" This file Copyright 1998-2014-15 Luca Deri <deri@ntop.org>
+.\" This file Copyright 1998-16 ntop.org
 .\"
 .
 .de It
@@ -9,7 +9,7 @@
 .TP 1.2
 .B "\\$1 | \\$2"
 ..
-.TH NTOPNG 8 "Jul 2015 (ntopng 2.0.1)"
+.TH NTOPNG 8 "Dev 2015 (ntopng 2.2)"
 .SH NAME
 ntopng \- display top network users
 .SH SYNOPSIS
@@ -85,6 +85,7 @@ or
 .RB [ \-Z
 .IR <prefix> ]
 .RB [ \-\-shutdown\-when\-done ]
+.RB [ \-\-capture\-direction ]
 .RB [ \-v ]
 .RB [ \-V ]
 .RB [ \-h ]
@@ -337,6 +338,10 @@ you must use ntopng with \-Z "/ntopng/"
 
 .It \-\-shutdown\-when\-done
 Terminate ntopng when the input pcap file is over (debug only).
+
+.It \-\-capture\-direction
+Specify the packet capture direction for packet capture interfaces (no ZMQ).
+Supported values are: 0=RX+TX (default), 1=RX only, 2=TX only
 
 .It \-v|\-\-verbose
 Verbose tracing.

@@ -34,7 +34,7 @@ Prefs::Prefs(Ntop *_ntop) {
   resolve_all_host_ip = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
-  install_dir = NULL;
+  install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
@@ -239,6 +239,8 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "                                    | vss   - Timestamped packets by vssmonitoring.com\n"
 	 "                                    |         hardware devices\n"
+	 "--capture-direction                 | Specify packet capture direction\n"
+	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
@@ -363,6 +365,7 @@ static const struct option long_options[] = {
   { "disable-alerts",                    no_argument,       NULL, 'H' },
   { "export-flows",                      required_argument, NULL, 'I' },
   { "disable-host-persistency",          no_argument,       NULL, 'P' },
+  { "capture-direction",                 required_argument, NULL, 'Q' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
   { "enable-taps",                       no_argument,       NULL, 'T' },
   { "user",                              required_argument, NULL, 'U' },
@@ -489,6 +492,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'q':
     enable_auto_logout = false;
+    break;
+
+  case 'Q':
+    switch(atoi(optarg)) {
+    case 1:  setCaptureDirection(PCAP_D_IN);    break;
+    case 2:  setCaptureDirection(PCAP_D_OUT);   break;
+    default: setCaptureDirection(PCAP_D_INOUT); break;
+    }
     break;
 
   case 'P':
@@ -831,7 +842,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:N:G:HI:O:S:TU:X:W:VZ:",
+			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:N:G:HI:O:Q:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);
