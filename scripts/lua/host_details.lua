@@ -975,7 +975,8 @@ function update_ndpi_table() {
     url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_details_ndpi.lua',
-    data: { ifid: ]] print('"') print(tostring(ifId)) print('"') print(", hostip: ") print('"'..host["ip"]..'"') print [[ },
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ },
+    //data: { ifid: ]] print('"') print(tostring(ifId)) print('"') print(", hostip: ") print('"'..host["ip"]..'"') print [[ },
     success: function(content) {
       $('#host_details_ndpi_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table

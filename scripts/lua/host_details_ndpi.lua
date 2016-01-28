@@ -8,15 +8,16 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
-host_ip = _GET["hostip"]
-ifid = _GET["ifid"]
-
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
+
+ifid = _GET["ifid"]
+
 interface.select(ifid)
-host_info = hostkey2hostinfo(host_ip)
+host_info = url2hostinfo(_GET)
+host_ip = host_info["host"]
 host_vlan = host_info["vlan"]
-host = interface.getHostInfo(host_info["host"], host_vlan)
+host = interface.getHostInfo(host_ip, host_vlan)
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 
 if(host == nil) then
