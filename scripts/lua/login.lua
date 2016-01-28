@@ -57,8 +57,8 @@ print [[
 	 <h2 class="form-signin-heading" style="font-weight: bold;">Welcome to ]] print(info["product"]) print [[</h2>
   <div class="form-group has-feedback">
 
-      <input type="text" class="form-control" name="user" placeholder="Username" pattern="^[\w]{1,}$" required>
-      <input type="password" class="form-control" name="password" placeholder="Password" pattern="^[\w]{1,}$" required>
+      <input type="text" class="form-control" name="user" placeholder="Username" pattern="^[\w\.]{1,}$" required>
+      <input type="password" class="form-control" name="password" placeholder="Password" pattern="^[\w_]{1,}$" required>
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] print(_GET["referer"]) print [[">
     <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>

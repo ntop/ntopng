@@ -447,4 +447,11 @@
 #define NTOP_UNKNOWN_CATEGORY_ID   0
 
 #define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
+
+#define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
+#define PREF_LDAP_SERVER              "ntopng.prefs.ldap.server"
+#define PREF_LDAP_BIND_DN             "ntopng.prefs.ldap.bind_dn"
+#define PREF_LDAP_BIND_PWD            "ntopng.prefs.ldap.bind_pwd"
+#define PREF_LDAP_USER_GROUP          "ntopng.prefs.ldap.user_group"
+#define CONST_CACHED_USER_PASSWORD    "ntopng.user.ldap.%s.password"
 #endif /* _NTOP_DEFINES_H_ */

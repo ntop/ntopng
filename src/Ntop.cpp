@@ -690,18 +690,53 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 
 // Return 1 if username/password is allowed, 0 otherwise.
 bool Ntop::checkUserPassword(const char *user, const char *password) {
-  char key[64], val[64];
+  char key[64], val[64], password_hash[33];
+#ifdef NTOPNG_PRO
+  bool localAuth = true;
+#endif
 
   if((user == NULL) || (user[0] == '\0'))
     return(false);
+
+#ifdef NTOPNG_PRO
+  if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
+    if(!strcmp(val, "ldap") /* LDAP only */) localAuth = false;
+
+    if(strncmp(val, "ldap", 4) == 0) {
+      char ldapServer[64] = { 0 }, bind_dn[128] = { 0 }, bind_pwd[64] = { 0 }, group[64] = { 0 };
+
+      snprintf(key, sizeof(key), CONST_CACHED_USER_PASSWORD, user);
+      
+      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+	mg_md5(password_hash, password, NULL);
+	return((strcmp(password_hash, val) == 0) ? true : false);
+      }
+
+      ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
+      ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, sizeof(bind_dn));
+      ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, sizeof(bind_pwd));
+      ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, sizeof(group));
+      
+      if(ldapServer[0] && bind_dn[0]) {
+	bool ret = LdapAuthenticator::validUserLogin(ldapServer, bind_dn, bind_pwd, user, password, group);
+
+	if(ret) {
+	  /* Let's cache the password so we avoid talking to LDAP too often  */
+	  ntop->getRedis()->set(key, password_hash, 600 /* 10 mins cache */);
+	  return(true);
+	}
+      }
+    }
+  }
+
+  if(!localAuth) return(false);
+#endif
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) < 0) {
     return(false);
   } else {
-    char password_hash[33];
-
     mg_md5(password_hash, password, NULL);
     return((strcmp(password_hash, val) == 0) ? true : false);
   }
