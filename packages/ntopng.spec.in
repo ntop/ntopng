@@ -9,7 +9,7 @@ Source: ntopng-%{version}.tgz
 Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
-Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, GeoIP >= 1.4.8, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq, libnetfilter_queue
+Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, GeoIP >= 1.4.8, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq, openldap, libnetfilter_queue
 # Disable shared libs dependency check (needed by FPGA libs)
 AutoReqProv: no
 
