@@ -63,6 +63,8 @@ GeoIP* Geolocation::loadGeoDB(char *base_path, const char *db_name) {
 
   if(geo == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to read GeoIP database %s", path);
+  else
+    GeoIP_set_charset(geo, GEOIP_CHARSET_UTF8); /* Avoid UTF-8 issues (hopefully) */
 
   return(geo);
 }
