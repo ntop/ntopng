@@ -125,7 +125,7 @@ if (ntop.isPro()) then
    local labels = {"Local","LDAP","LDAP/Local"}
    local values = {"local","ldap","ldap_local"}
    local retVal = multipleTableButton("LDAP Authentication",
-         "Local (Local ntopng), LDAP (LDAP server), LDAP/Local (Tries to authenticate to a LDAP server, if fails then tries to authenticate to local ntopng)",
+         "Local (Local ntopng), LDAP (LDAP server), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication)",
          labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type")
     if ((retVal == "ldap") or (retVal == "ldap_local")) then
       local ldap_server = ntop.getCache("ntopng.prefs.ldap.server")
