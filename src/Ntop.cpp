@@ -691,14 +691,14 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 // Return 1 if username/password is allowed, 0 otherwise.
 bool Ntop::checkUserPassword(const char *user, const char *password) {
   char key[64], val[64], password_hash[33];
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   bool localAuth = true;
 #endif
 
   if((user == NULL) || (user[0] == '\0'))
     return(false);
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   if(ntop->getRedis()->get((char*)PREF_NTOP_AUTHENTICATION_TYPE, val, sizeof(val)) >= 0) {
     if(!strcmp(val, "ldap") /* LDAP only */) localAuth = false;
 
