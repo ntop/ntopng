@@ -706,11 +706,10 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
       char ldapServer[64] = { 0 }, bind_dn[128] = { 0 }, bind_pwd[64] = { 0 }, group[64] = { 0 };
 
       snprintf(key, sizeof(key), CONST_CACHED_USER_PASSWORD, user);
-      
-      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
-	mg_md5(password_hash, password, NULL);
-	return((strcmp(password_hash, val) == 0) ? true : false);
-      }
+      mg_md5(password_hash, password, NULL);
+
+      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+	return((strcmp(password_hash, val) == 0) ? true : false);      
 
       ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
       ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, sizeof(bind_dn));
