@@ -104,6 +104,46 @@ if (ntop.isPro()) then
     prefsInputField("nBox User", "User that has privileges to access the nBox. Default: nbox", "nbox_user", nbox_user)
     prefsInputField("nBox Password", "Passowrd associated to the nBox user. Default: nbox", "nbox_password", nbox_password, "password")
    end
+
+   print('<tr><th colspan=2 class="info">Authentication</th></tr>')
+
+   local js_body_funtion_script = "";
+   --if (field.substring(0, 7) != "ldap://") {
+   --  return "Invalid Value: missing \"ldap://\" at beginning.";
+   --}
+   js_body_funtion_script = js_body_funtion_script.."  if (field.substring(0, 7) != \"ldap://\") {\n"
+   js_body_funtion_script = js_body_funtion_script.."    return \"Invalid Value: missing \\\"ldap://\\\" at beginning.\";"
+   js_body_funtion_script = js_body_funtion_script.."  }\n"
+
+   js_body_funtion_script = js_body_funtion_script.."  var new_field = field.replace(\'ldap://\', \'\');\n"
+   js_body_funtion_script = js_body_funtion_script.."  var res = new_field.split(\":\");\n"
+   js_body_funtion_script = js_body_funtion_script.."  if(res.length != 2){\n"
+   js_body_funtion_script = js_body_funtion_script.."     return \"Invalid Value: missing ldap server address or port number.\";\n"
+   js_body_funtion_script = js_body_funtion_script.."  }\n"
+   js_body_funtion_script = js_body_funtion_script.."  return \"\";\n"
+
+   local labels = {"Local","LDAP","LDAP/Local"}
+   local values = {"local","ldap","ldap_local"}
+   local retVal = multipleTableButton("LDAP Authentication",
+         "Local (Local ntopng), LDAP (LDAP server), LDAP/Local (Tries to authenticate to a LDAP server, if fails then tries to authenticate to local ntopng)",
+         labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type")
+    if ((retVal == "ldap") or (retVal == "ldap_local")) then
+      local ldap_server = ntop.getCache("ntopng.prefs.ldap.server")
+      if((ldap_server == nil) or (ldap_server == "")) then
+        ldap_server = "ldap://localhost:389"
+        ntop.setCache("ntopng.prefs.ldap.server", ldap_server)
+      end
+      prefsInputFieldWithParamCheck("LDAP server address", "Address of LDAP server. Default: \"ldpa://localhost:389\"", "ntopng.prefs.ldap", "server", ldap_server, "text", js_body_funtion_script)
+      local ldap_bind_dn = ntop.getCache("ntopng.prefs.ldap.bind_dn")
+      if(ldap_bind_dn == nil) then ldap_bind_dn = "" end
+      prefsInputFieldWithParamCheck("LDAP Bind DN", "Bind Distinguished Name of LDAP server.", "ntopng.prefs.ldap", "bind_dn", ldap_bind_dn, "text", nil)
+      local ldap_bind_pwd = ntop.getCache("ntopng.prefs.ldap.bind_pwd")
+      if(ldap_bind_pwd == nil) then ldap_bind_pwd = "" end
+      prefsInputFieldWithParamCheck("LDAP Bind Password", "Bind Password of LDAP server.", "ntopng.prefs.ldap", "bind_pwd", ldap_bind_pwd, "password", nil)
+      local ldap_user_group = ntop.getCache("ntopng.prefs.ldap.user_group")
+      if(ldap_user_group == nil) then ldap_user_group = "" end
+      prefsInputFieldWithParamCheck("LDAP User Group", "Group name to which user has to belong in order to authenticate properly.", "ntopng.prefs.ldap", "user_group", ldap_user_group, "text", nil)
+    end
 end
 
 -- TODO
