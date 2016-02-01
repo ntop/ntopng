@@ -202,6 +202,58 @@ local function getHistoricalTopTalkers(ifid, ifname, epoch, add_vlan)
    return getTopTalkersFromJSON(res, add_vlan)
 end
 
+local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoch_end, add_vlan)
+   local json = require ("dkjson")
+   if epoch_start == nil or epoch_end == nil or epoch_start == "" or epoch_end == "" then
+      return json.encode({}, nil)
+   end
+
+   local query = ntop.getMinuteSamplingsInterval(ifid, tonumber(epoch_start), tonumber(epoch_end))
+   -- sum up the selected 1-minute top talker statistics to have an aggregated 'top'
+   -- please keep in mind that this is an approximation of the real top talkers
+   -- the resulting table will be like the following
+   --[[
+   table
+   senders table
+   senders.216.58.210.238 number 7743
+   senders.173.194.112.169 number 2586
+   ...
+   receivers table
+   receivers.216.58.210.238 number 5281
+   receivers.173.194.112.169 number 3093
+   ...
+   --]]
+   local res = {["senders"] = {}, ["receivers"] = {}}
+   for record,_ in pairs(query) do
+	record = json.decode(record)
+	if recod == nil then goto completed end
+	for _, vlan in pairs(record["vlan"]) do
+		local vlanid = vlan["label"]
+		local vlanname = vlan["name"]
+		-- TODO: handle vlans
+		for _, host_pair in pairs(vlan["hosts"]) do
+			for direction, top_hosts in pairs(host_pair) do
+				for _, host in pairs(top_hosts) do
+					local label = host["label"]
+					local traffic = tonumber(host["value"])
+					if label == nil then label = "" end
+					if traffic == nil then traffic = 0 end
+					if res[direction][label] == nil then
+						res[direction][label] = traffic
+					else
+						res[direction][label] = res[direction][label] + traffic
+					end
+					--host["label"] = host["value"]
+				end
+			end
+		end
+	end
+   end
+   ::completed::
+   -- tprint(res)
+   return json.encode(res, nil)
+end
+
 top_talkers_intf.name = "Top Talkers"
 top_talkers_intf.infoScript = "host_details.lua"
 top_talkers_intf.infoScriptKey = "host"
@@ -214,6 +266,7 @@ top_talkers_intf.getTopClean = getTopTalkersClean
 top_talkers_intf.getTopFromJSON = getTopTalkersFromJSON
 top_talkers_intf.printTopTable = printTopTalkersTable
 top_talkers_intf.getHistoricalTop = getHistoricalTopTalkers
+top_talkers_intf.getHistoricalTopInInterval = getHistoricalTopTalkersInInterval
 top_talkers_intf.topSectionInTableOp = topTalkersSectionInTableOP
 top_talkers_intf.numLevels = 2
 

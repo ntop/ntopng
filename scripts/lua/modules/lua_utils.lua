@@ -861,6 +861,22 @@ function isBroadcastMulticast(ip)
    return false
 end
 
+function isIPv4(ip)
+  if string.find(ip, ".") then
+    return true
+  end
+  return false
+end
+
+
+function isIPv6(ip)
+  if string.find(ip, ".") then
+    return false
+  end
+  return true
+end
+
+
 function addGauge(name, url, maxValue, width, height)
   if(url ~= nil) then print('<A HREF="'..url..'">') end
   print('<canvas id="'..name..'" height="'..height..'" width="'..width..'"></canvas>\n')

@@ -246,3 +246,151 @@ function getTopL7Protocols(interface_id, version, host, protocol, port, info, be
       return(res)
    end
 end
+
+
+function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch)
+   if host == nil or host == "" then return nil end
+
+   local version = 4
+   if isIPv6(host) then version = 6 end
+   if(info == "") then info = nil end
+
+   sql = " SELECT "
+   if(version == 4) then
+      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END peer_addr, "
+   else
+      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END peer_addr, "
+   end
+
+   sql = sql.."sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
+   sql = sql.." FROM flowsv"..version
+
+   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+
+   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+
+   if(version == 4) then
+      sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
+   else
+      sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
+   end
+
+   -- we don't care about the order so we group by least and greatest
+   sql = sql.." group by least(IP_SRC_ADDR, IP_DST_ADDR), greatest(IP_SRC_ADDR, IP_DST_ADDR) "
+
+   sql = sql.." order by TOT_BYTES desc limit 100"
+
+   if(db_debug == true) then io.write(sql.."\n") end
+
+   res = interface.execSQLQuery(sql)
+   if(type(res) == "string") then
+      if(db_debug == true) then io.write(res.."\n") end
+      return nil
+   else
+      return(res)
+   end
+end
+
+function getHostTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_epoch)
+   -- peer1 cannot be nil, peer2 can
+   -- if peer1 is nil nad peer2 is not nil, then top apps are for peer1
+   -- if both peer2 and peer2 are not nil, then top apps are computed between peer1 and peer2
+   if peer1 == nil or peer1 == "" then return nil end
+
+   local version = 4
+   if isIPv6(peer1) then version = 6 end
+   if(info == "") then info = nil end
+
+   sql = " SELECT L7_PROTO application, "
+   sql = sql.."sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
+   sql = sql.." FROM flowsv"..version
+
+   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+
+   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+
+   if(version == 4) then
+      sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer1.."') OR IP_DST_ADDR=INET_ATON('"..peer1.."'))"
+   else
+      sql = sql .." AND (IP_SRC_ADDR='"..peer1.."' OR IP_DST_ADDR='"..peer1.."')"
+   end
+
+   if peer2 then
+      if(version == 4) then
+         sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer2.."') OR IP_DST_ADDR=INET_ATON('"..peer2.."'))"
+      else
+         sql = sql .." AND (IP_SRC_ADDR='"..peer2.."' OR IP_DST_ADDR='"..peer2.."')"
+      end
+   end
+
+   -- we don't care about the order so we group by least and greatest
+   sql = sql.." group by L7_PROTO "
+
+   sql = sql.." order by TOT_BYTES desc limit 100"
+
+   if(db_debug == true) then io.write(sql.."\n") end
+
+   res = interface.execSQLQuery(sql)
+   if(type(res) == "string") then
+      if(db_debug == true) then io.write(res.."\n") end
+      return nil
+   else
+      return(res)
+   end
+end
+
+
+function getPeersTrafficHistogram(interface_id, peer1, peer2, info, begin_epoch, end_epoch)
+   if peer1 == nil or peer1 == "" or peer2 == nil or peer2 == "" then return nil end
+
+   local max_bins = 2000  -- do not return more than 2k datapoints
+   local interval = end_epoch - begin_epoch  -- the larger the interval the coarser the aggregation
+   local bin_width = math.floor(interval / max_bins)
+
+   local version = 4
+   if isIPv6(peer1) then version = 6 end
+   if(info == "") then info = nil end
+
+   if(version == 4) then
+      sql = " SELECT INET_NTOA(least(IP_SRC_ADDR, IP_DST_ADDR)) peer1_addr, INET_NTOA(greatest(IP_SRC_ADDR, IP_DST_ADDR)) peer2_addr, "
+   else
+      sql = " SELECT least(IP_SRC_ADDR, IP_DST_ADDR) peer1_addr, greatest(IP_SRC_ADDR, IP_DST_ADDR) peer2_addr, "
+   end
+   sql = sql.." MIN(FIRST_SWITCHED) first_switched_bin, " -- the oldest datapoint in each bin
+   sql = sql.." sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
+
+   sql = sql.." FROM flowsv"..version
+
+   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
+   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+
+   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+
+   if(version == 4) then
+      sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer1.."') OR IP_DST_ADDR=INET_ATON('"..peer2.."'))"
+      sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer2.."') OR IP_DST_ADDR=INET_ATON('"..peer2.."'))"
+   else
+      sql = sql .." AND (IP_SRC_ADDR='"..peer1.."' OR IP_DST_ADDR='"..peer2.."')"
+      sql = sql .." AND (IP_SRC_ADDR='"..peer2.."' OR IP_DST_ADDR='"..peer2.."')"
+   end
+
+   -- we don't care about the order so we group by least and greatest
+   sql = sql.." group by least(IP_SRC_ADDR, IP_DST_ADDR), greatest(IP_SRC_ADDR, IP_DST_ADDR), FIRST_SWITCHED DIV ("..bin_width..")"
+
+   sql = sql.." order by TOT_BYTES desc limit 100"
+
+   if(db_debug == true) then io.write(sql.."\n") end
+
+   res = interface.execSQLQuery(sql)
+   if(type(res) == "string") then
+      if(db_debug == true) then io.write(res.."\n") end
+      return nil
+   else
+      return(res)
+   end
+end
