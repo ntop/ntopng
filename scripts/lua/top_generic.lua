@@ -58,36 +58,40 @@ else
 	top = mod.getHistoricalTop(ifid, ifname, epoch_start, add_vlan)
         print(top)
      else
-        local res = {}
+        local res = {["status"] = "unable to parse the request, please check input parameters."}
         if stats_type == "top_talkers" then
-                if not peer1 and not peer2 then
-                        -- compute the top-talkers for the selected time interval
-                        res = mod.getHistoricalTopInInterval(ifid, ifname, epoch_start + 60, epoch_end + 60, add_vlan)
-                else
-                        res = getHostTopTalkers(ifid, peer1, nil, epoch_start + 60, epoch_end + 60)
+	   if not peer1 and not peer2 then
+	      -- compute the top-talkers for the selected time interval
+	      res = mod.getHistoricalTopInInterval(ifid, ifname, epoch_start + 60, epoch_end + 60, add_vlan)
 
-                        for _, record in pairs(res) do
-                                record["peer_label"] = ntop.getResolvedAddress(record["peer_addr"])  -- TODO: resolve names
-                        end
-                        -- tprint(res)
-                end
-        elseif stats_type =="top_applications" then
-                res = getHostTopApplications(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60)
+	      for _, record in pairs(res) do
+		 record["label"] = ntop.getResolvedAddress(record["addr"])
+	      end
+	   else
+	      res = getHostTopTalkers(ifid, peer1, nil, epoch_start + 60, epoch_end + 60)
 
-                -- add protocol labels
-                for _, record in pairs(res) do
-                        record["application_label"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(record["application"])))
-                end
-                -- tprint(res)
+	      for _, record in pairs(res) do
+		 record["peer_label"] = ntop.getResolvedAddress(record["peer_addr"])
+	      end
+	      -- tprint(res)
+	   end
+        elseif stats_type =="top_applications" and (peer1 or peer2) then
+	   res = getHostTopApplications(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60)
+
+	   -- add protocol labels
+	   for _, record in pairs(res) do
+	      record["application_label"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(record["application"])))
+	   end
+	   -- tprint(res)
         elseif stats_type =="peers_traffic_histogram" and peer1 and peer2 then
-                res = getPeersTrafficHistogram(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60)
+	   res = getPeersTrafficHistogram(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60)
 
-                for _, record in pairs(res) do
-                        record["peer1_label"] = ntop.getResolvedAddress(record["peer1_addr"])
-                        record["peer2_label"] = ntop.getResolvedAddress(record["peer2_addr"])
+	   for _, record in pairs(res) do
+	      record["peer1_label"] = ntop.getResolvedAddress(record["peer1_addr"])
+	      record["peer2_label"] = ntop.getResolvedAddress(record["peer2_addr"])
 
-                end
-                -- tprint(res)
+	   end
+	   -- tprint(res)
         end
         print(json.encode(res, nil))
      end

@@ -248,13 +248,26 @@ local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoc
 					end
 				end
 			end
+
+
+
+
 		end
 		::next_vlan::
 	end
 	::next_record::
    end
    -- tprint(res)
-   return json.encode(res, nil)
+   -- reformat the output so that it becomes easier to parse
+   local pretty_res = {}
+   for direction, hosts in pairs(res) do
+      local t = {}
+      for addr, traffic in pairs(hosts) do
+	 table.insert(pretty_res, {["addr"] = addr, ["bytes"] = traffic, ["direction"] = direction})
+      end
+   end
+   res = pretty_res
+   return res
 end
 
 top_talkers_intf.name = "Top Talkers"
