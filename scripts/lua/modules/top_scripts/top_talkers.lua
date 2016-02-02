@@ -225,16 +225,19 @@ local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoc
    --]]
    local res = {["senders"] = {}, ["receivers"] = {}}
    for record,_ in pairs(query) do
-	record = json.decode(record)
-	if recod == nil then goto completed end
+	record = parseJSON(record)
+	-- tprint(record)
+	if not record or not next(record) or not record["vlan"] then goto next_record end
+	-- tprint(record)
 	for _, vlan in pairs(record["vlan"]) do
 		local vlanid = vlan["label"]
 		local vlanname = vlan["name"]
 		-- TODO: handle vlans
+		if not vlan["hosts"] then goto next_vlan end
 		for _, host_pair in pairs(vlan["hosts"]) do
 			for direction, top_hosts in pairs(host_pair) do
 				for _, host in pairs(top_hosts) do
-					local label = host["label"]
+					local label = host["address"]
 					local traffic = tonumber(host["value"])
 					if label == nil then label = "" end
 					if traffic == nil then traffic = 0 end
@@ -243,13 +246,13 @@ local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoc
 					else
 						res[direction][label] = res[direction][label] + traffic
 					end
-					--host["label"] = host["value"]
 				end
 			end
 		end
+		::next_vlan::
 	end
+	::next_record::
    end
-   ::completed::
    -- tprint(res)
    return json.encode(res, nil)
 end

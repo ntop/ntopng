@@ -56,7 +56,6 @@ else
      elseif epoch_end == nil or epoch_end == "" then
 	epoch_start = epoch_start+60 -- we return the minute before the event as epochs are stored in the DB 'past' the time period
 	top = mod.getHistoricalTop(ifid, ifname, epoch_start, add_vlan)
-        tprint(top)
         print(top)
      else
         local res = {}
