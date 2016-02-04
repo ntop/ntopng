@@ -365,7 +365,7 @@ void Host::updateLocal() {
   if(ip)
     localHost = ip->isLocalHost(&local_network_id);
 
-  if(local_network_id > 0)
+  if(local_network_id >= 0)
     networkStats = getNetworkStats(local_network_id);
 
   if(0) {
