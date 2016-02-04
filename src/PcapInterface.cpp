@@ -33,13 +33,13 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
 
   pcap_handle = NULL, pcap_list = NULL;
   
-  if((stat(name, &buf) == 0) || (name[0] == '-')) {
+  if((stat(name, &buf) == 0) || (name[0] == '-') || !strncmp(name, "stdin", 5)) {
     /*
       The file exists so we need to check if it's a 
       text file or a pcap file
     */
 
-    if(strcmp(name, "-") == 0) {
+    if(strcmp(name, "-") == 0 || !strncmp(name, "stdin", 5)) {
       /* stdin */
       pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
       pcap_datalink_type = DLT_EN10MB;

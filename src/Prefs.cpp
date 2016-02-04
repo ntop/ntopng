@@ -920,7 +920,7 @@ void Prefs::add_network_interface(char *name, char *description) {
   int id = Utils::ifname2id(name);
 
   if(id < (MAX_NUM_INTERFACES-1)) {
-    ifNames[id].name = strdup(name);
+    ifNames[id].name = strdup(!strncmp(name, "-", 1) ? "stdin" : name);
     ifNames[id].description = strdup(description ? description : name);
     num_interfaces++;
   } else {

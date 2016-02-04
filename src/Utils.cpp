@@ -504,6 +504,7 @@ int Utils::ifname2id(const char *name) {
 
   if(name == NULL)                    return(-1);
   else if(!strncmp(name, "dummy", 5)) return(DUMMY_IFACE_ID);
+  else if(!strncmp(name, "stdin", 5) || !strncmp(name, "-", 1)) return(STDIN_IFACE_ID);
 
   if(ntop->getRedis()->hashGet((char*)CONST_IFACE_ID_PREFS, (char*)name, rsp, sizeof(rsp)) == 0) {
     /* Found */
