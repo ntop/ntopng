@@ -27,7 +27,7 @@
 
 /* **************************************************** */
 
-static void* packetPollLoop(void* ptr) {
+static void* divertPacketPollLoop(void* ptr) {
   DivertInterface *iface = (DivertInterface*)ptr;
   int fd;
 
@@ -40,7 +40,7 @@ static void* packetPollLoop(void* ptr) {
     int len;
     u_char packet[IP_MAXPACKET];
     struct sockaddr_in sin;
-    socklen_t sin_len;
+    socklen_t sin_len = sizeof(struct sockaddr_in);
     int a, b;
     u_int16_t c;
     struct pcap_pkthdr h;
@@ -57,11 +57,17 @@ static void* packetPollLoop(void* ptr) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Packet too short (%d bytes)", len);
       break;
     }
-
+   
     h.len = h.caplen = len, gettimeofday(&h.ts, NULL);
     iface->dissectPacket(&h, packet, &a, &b, &c);
-    
-    sendto(fd, packet, len, 0, (struct sockaddr *)&sin, sin_len);
+
+    /* Enable the row below to specify the firewall rule corresponding to the protocol */
+#if 0
+    sin.sin_port = c | 0x1000 /* DIVERT_ALTQ */;
+#endif
+    if(sendto(fd, packet, len, 0, (struct sockaddr *)&sin, sin_len) < 0)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "sendto(len=%d,sin_len=%d,altq=%d) failed [%d/%s]",
+				   len, sin_len, c, errno, strerror(errno));    
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leaving divert packet poll loop");
@@ -76,7 +82,7 @@ DivertInterface::DivertInterface(const char *name) : NetworkInterface(name) {
   
   port = atoi(&name[7]);
 
-  if((sock = socket(AF_INET, SOCK_RAW, IPPROTO_DIVERT)) == -1) {
+  if((sock = socket(PF_INET, SOCK_RAW, IPPROTO_DIVERT)) == -1) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to created divert socket");
     throw 1;
   }
@@ -104,7 +110,7 @@ DivertInterface::~DivertInterface() {
 /* **************************************************** */
 
 void DivertInterface::startPacketPolling() {
-  pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+  pthread_create(&pollLoop, NULL, divertPacketPollLoop, (void*)this);
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
