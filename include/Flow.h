@@ -35,7 +35,7 @@ class Flow : public GenericHashEntry {
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
-  struct ndpi_flow_struct *ndpi_flow;
+  struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
@@ -43,7 +43,7 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
 #endif
-  ndpi_protocol ndpi_detected_protocol;
+  ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *ndpi_proto_name;
   bool dump_flow_traffic, badFlow;
@@ -164,7 +164,7 @@ class Flow : public GenericHashEntry {
   void updateActivities();
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int out_pkts, u_int out_bytes, time_t last_seen);
   inline bool isDetectionCompleted()              { return(detection_completed);             };
-  inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpi_flow);                       };
+  inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpiFlow);                        };
   inline void* get_cli_id()                       { return(cli_id);                          };
   inline void* get_srv_id()                       { return(srv_id);                          };
   inline u_int32_t get_cli_ipv4()                 { return(cli_host->get_ip()->get_ipv4());  };
@@ -175,22 +175,22 @@ class Flow : public GenericHashEntry {
   inline u_int8_t  get_protocol()                 { return(protocol);                        };
   inline u_int64_t get_bytes()                    { return(cli2srv_bytes+srv2cli_bytes);     };
   inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
-  inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));     };
+  inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
   inline u_int64_t get_partial_packets()          { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
-  inline float get_bytes_thpt()                   { return(bytes_thpt);     };
+  inline float get_bytes_thpt()                   { return(bytes_thpt);                      };
 
   inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
   inline time_t get_partial_last_seen()           { return(get_last_seen()); };
   inline u_int32_t get_duration()                 { return(get_last_seen()-get_first_seen()); };
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
-  inline ndpi_protocol get_detected_protocol()    { return(ndpi_detected_protocol);          };
+  inline ndpi_protocol get_detected_protocol()    { return(ndpiDetectedProtocol);          };
   inline Host* get_cli_host()                     { return(cli_host);                        };
   inline Host* get_srv_host()                     { return(srv_host);                        };
   inline char* get_json_info()			  { return(json_info);                       };
-  inline ndpi_protocol_breed_t get_protocol_breed() { return(ndpi_get_proto_breed(iface->get_ndpi_struct(), ndpi_detected_protocol.protocol)); };
+  inline ndpi_protocol_breed_t get_protocol_breed() { return(ndpi_get_proto_breed(iface->get_ndpi_struct(), ndpiDetectedProtocol.protocol)); };
   inline char* get_protocol_breed_name()            { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(),
 										       ndpi_get_proto_breed(iface->get_ndpi_struct(),
-													    ndpi_detected_protocol.protocol))); };
+													    ndpiDetectedProtocol.protocol))); };
   char* get_detected_protocol_name();
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
@@ -228,7 +228,7 @@ class Flow : public GenericHashEntry {
   inline char* getSSLCertificate()  { return(ssl.certificate); }
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
-  void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id);
+  void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
 #ifdef NTOPNG_PRO
   inline void updateProfile()   { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
