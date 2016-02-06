@@ -174,8 +174,8 @@ class NetworkInterface {
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
-  bool packet_dissector(const struct pcap_pkthdr *h, const u_char *packet,
-			int *a_shaper_id, int *b_shaper_id);
+  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet,
+		     int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
   bool packetProcessing(const struct bpf_timeval *when,
 			const u_int64_t time,
 			struct ndpi_ethhdr *eth,
@@ -186,7 +186,8 @@ class NetworkInterface {
 			const struct pcap_pkthdr *h,
 			const u_char *packet,
 			int *a_shaper_id,
-			int *b_shaper_id);
+			int *b_shaper_id,
+			u_int16_t *ndpiProtocol);
   void flow_processing(ZMQ_Flow *zflow);
   void dumpFlows();
   void getnDPIStats(nDPIStats *stats);

@@ -638,7 +638,8 @@ bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
 					const struct pcap_pkthdr *h,
 					const u_char *packet,
 					int *a_shaper_id,
-					int *b_shaper_id) {
+					int *b_shaper_id,
+					u_int16_t *ndpiProtocol) {
   bool src2dst_direction;
   u_int8_t l4_proto;
   Flow *flow;
@@ -884,7 +885,7 @@ bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
 
     pass_verdict = flow->isPassVerdict();
 
-    flow->getFlowShapers(src2dst_direction, a_shaper_id, b_shaper_id);
+    flow->getFlowShapers(src2dst_direction, a_shaper_id, b_shaper_id, ndpiProtocol);
   } else
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
@@ -916,9 +917,10 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 /* **************************************************** */
 
-bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
-					const u_char *packet,
-					int *a_shaper_id, int *b_shaper_id) {
+bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
+				     const u_char *packet,
+				     int *a_shaper_id, int *b_shaper_id,
+				     u_int16_t *ndpiProtocol) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   static u_int64_t lasttime = 0;
@@ -1274,7 +1276,8 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
       try {
 	pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id, iph,
 					ip6, h->caplen - ip_offset, h->len,
-					h, packet, a_shaper_id, b_shaper_id);
+					h, packet, a_shaper_id, b_shaper_id,
+					ndpiProtocol);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -1356,7 +1359,8 @@ bool NetworkInterface::packet_dissector(const struct pcap_pkthdr *h,
 	try {
 	  pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id,
 					  iph, ip6, h->len - ip_offset, h->len,
-					  h, packet, a_shaper_id, b_shaper_id);
+					  h, packet, a_shaper_id, b_shaper_id,
+					  ndpiProtocol);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
