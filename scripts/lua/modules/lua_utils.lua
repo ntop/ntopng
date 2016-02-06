@@ -33,13 +33,13 @@ function aggregateInterfaceStats(ifstats)
 
       keys = { "profiles" }
       for _,key in pairs(keys) do
-      	 if(_v[key] ~= nil) then
+	 if(_v[key] ~= nil) then
 	   tot[key] = {}
-  	   for k,v in pairs(_v[key]) do
+	   for k,v in pairs(_v[key]) do
 	      --io.write(k.."\n")
 	      if(tot[key][k] == nil) then tot[key][k] = 0 end
 	      tot[key][k] = tot[key][k] + v
- 	   end
+	   end
 	 end
       end
 
@@ -342,12 +342,12 @@ function shortHostName(name)
       ret = ""
 
       for token in string.gmatch(name, "([%w-]+).") do
-        if(tot < max_len) then
-          if(n > 0) then ret = ret .. "." end
-          ret = ret .. token
-          tot = tot+string.len(token)
-          n = n + 1
-        end
+	if(tot < max_len) then
+	  if(n > 0) then ret = ret .. "." end
+	  ret = ret .. token
+	  tot = tot+string.len(token)
+	  n = n + 1
+	end
       end
 
       return(ret .. "...")
@@ -574,16 +574,16 @@ function tmax(t)
     local argmx, mx = nil, nil
     if (type(t) ~= "table") then return nil, nil end
     for k, v in pairs(t) do
-        -- first iteration
-        if mx == nil and argmx == nil then
-            mx = v
-            argmx = k
-        elseif (v == mx and k > argmx) or v > mx then
-        -- if there is a tie, prefer the greatest argument
-        -- otherwise grab the maximum
-            argmx = k
-            mx = v
-        end
+	-- first iteration
+	if mx == nil and argmx == nil then
+	    mx = v
+	    argmx = k
+	elseif (v == mx and k > argmx) or v > mx then
+	-- if there is a tie, prefer the greatest argument
+	-- otherwise grab the maximum
+	    argmx = k
+	    mx = v
+	end
     end
     return argmx, mx
 end
@@ -594,16 +594,16 @@ function tmin(t)
     local argmn, mn = nil, nil
     if (type(t) ~= "table") then return nil, nil end
     for k, v in pairs(t) do
-        -- first iteration
-        if mn == nil and argmn == nil then
-            mn = v
-            argmn = k
-        elseif (v == mn and k > argmn) or v < mn then
-        -- if there is a tie, prefer the greatest argument
-        -- otherwise grab the minimum
-            argmn = k
-            mn = v
-        end
+	-- first iteration
+	if mn == nil and argmn == nil then
+	    mn = v
+	    argmn = k
+	elseif (v == mn and k > argmn) or v < mn then
+	-- if there is a tie, prefer the greatest argument
+	-- otherwise grab the minimum
+	    argmn = k
+	    mn = v
+	end
     end
     return argmn, mn
 end
@@ -623,9 +623,9 @@ string.split = function(s, p)
       index = next_index
     else
       if index > 0 and index <= last_index then
-        table.insert(temp, string.sub(s, index, last_index))
+	table.insert(temp, string.sub(s, index, last_index))
       elseif index == 0 then
-        temp = nil
+	temp = nil
       end
       break
     end
@@ -1524,9 +1524,9 @@ end
  -- Table preferences
 
 function getDefaultTableSort(table_type)
-  table_key = getRedisPrefix("ntopng.prefs.table")
+   table_key = getRedisPrefix("ntopng.prefs.table")
   if(table_type ~= nil) then
-    value = ntop.getHashCache(table_key, "sort_"..table_type)
+     value = ntop.getHashCache(table_key, "sort_"..table_type)
   end
   if((value == nil) or (value == "")) then value = 'column_' end
   return(value)
@@ -1851,11 +1851,11 @@ function get_mac_classification(m)
 	 b = string.sub(mac_line, 1, 8)
 	 if (m == b) then
 	   t = split(mac_line, "\t")
-           file_mac.close()
+	   file_mac.close()
 	   rsp = split(t[2], " ")[1]
 	   mac_cache[m] = rsp
-           return rsp
-        end
+	   return rsp
+	end
       end
       mac_line = file_mac:read("*l")
    end

@@ -209,7 +209,6 @@ local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoc
    end
 
    local query = ntop.getMinuteSamplingsInterval(ifid, tonumber(epoch_start), tonumber(epoch_end))
-   tprint(query)
    -- sum up the selected 1-minute top talker statistics to have an aggregated 'top'
    -- please keep in mind that this is an approximation of the real top talkers
    -- the resulting table will be like the following

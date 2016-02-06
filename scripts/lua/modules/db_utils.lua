@@ -257,12 +257,12 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch)
 
    sql = " SELECT "
    if(version == 4) then
-      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END peer_addr, "
+      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END addr, "
    else
-      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END peer_addr, "
+      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END addr, "
    end
 
-   sql = sql.."sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
+   sql = sql.."sum(BYTES) as bytes, sum(PACKETS) as packets, count(*) as flows "
    sql = sql.." FROM flowsv"..version
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
@@ -280,7 +280,7 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch)
    -- we don't care about the order so we group by least and greatest
    sql = sql.." group by least(IP_SRC_ADDR, IP_DST_ADDR), greatest(IP_SRC_ADDR, IP_DST_ADDR) "
 
-   sql = sql.." order by TOT_BYTES desc limit 100"
+   sql = sql.." order by bytes desc limit 100"
 
    if(db_debug == true) then io.write(sql.."\n") end
 
@@ -293,14 +293,14 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch)
    end
 end
 
-function getHostTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_epoch)
-   -- peer1 cannot be nil, peer2 can
+function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_epoch)
+   -- if both peers are nil, top applications are overall in the time range
    -- if peer1 is nil nad peer2 is not nil, then top apps are for peer1
+   -- if peer2 is nil nad peer1 is not nil, then top apps are for peer2
    -- if both peer2 and peer2 are not nil, then top apps are computed between peer1 and peer2
-   if peer1 == nil or peer1 == "" then return nil end
-
    local version = 4
-   if isIPv6(peer1) then version = 6 end
+   if peer1 and peer1 ~= "" and isIPv6(peer1) then version = 6
+   elseif peer2 and peer2 ~= "" and isIPv6(peer2) then version = 6 end
    if(info == "") then info = nil end
 
    sql = " SELECT L7_PROTO application, "
@@ -313,24 +313,25 @@ function getHostTopApplications(interface_id, peer1, peer2, info, begin_epoch, e
 
    if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
 
-   if(version == 4) then
-      sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer1.."') OR IP_DST_ADDR=INET_ATON('"..peer1.."'))"
-   else
-      sql = sql .." AND (IP_SRC_ADDR='"..peer1.."' OR IP_DST_ADDR='"..peer1.."')"
-   end
-
-   if peer2 then
+   if peer1 and peer1 ~= "" then
       if(version == 4) then
-         sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer2.."') OR IP_DST_ADDR=INET_ATON('"..peer2.."'))"
+	 sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer1.."') OR IP_DST_ADDR=INET_ATON('"..peer1.."')) "
       else
-         sql = sql .." AND (IP_SRC_ADDR='"..peer2.."' OR IP_DST_ADDR='"..peer2.."')"
+	 sql = sql .." AND (IP_SRC_ADDR='"..peer1.."' OR IP_DST_ADDR='"..peer1.."') "
+      end
+   end
+   if peer2 and peer2 ~= "" then
+      if(version == 4) then
+	 sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..peer2.."') OR IP_DST_ADDR=INET_ATON('"..peer2.."'))"
+      else
+	 sql = sql .." AND (IP_SRC_ADDR='"..peer2.."' OR IP_DST_ADDR='"..peer2.."')"
       end
    end
 
    -- we don't care about the order so we group by least and greatest
    sql = sql.." group by L7_PROTO "
 
-   sql = sql.." order by TOT_BYTES desc limit 100"
+   sql = sql.." order by tot_bytes desc limit 100"
 
    if(db_debug == true) then io.write(sql.."\n") end
 
