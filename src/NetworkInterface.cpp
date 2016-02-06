@@ -1000,6 +1000,11 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = eth_offset;
 #endif /* DLT_RAW */
+  } else if(pcap_datalink_type == DLT_IPV4) {
+    eth_type = ETHERTYPE_IP;
+    memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
+    ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+    ip_offset = 0;
   } else {
     incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);

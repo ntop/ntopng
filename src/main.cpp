@@ -169,6 +169,11 @@ int main(int argc, char *argv[])
           iface = new NetfilterInterface(ifName);
 #endif
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+        if(iface == NULL && strncmp(ifName, "divert:", 7) == 0)
+          iface = new DivertInterface(ifName);
+#endif
+	
 #ifdef HAVE_PF_RING
 	if(iface == NULL)
 	  iface = new PF_RINGInterface(ifName);

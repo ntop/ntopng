@@ -1,0 +1,114 @@
+/*
+ *
+ * (C) 2013-16 - ntop.org
+ *
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ */
+
+#include "ntop_includes.h"
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+
+/* http://resin.csoft.net/cgi-bin/man.cgi?section=0&topic=divert */
+
+/* **************************************************** */
+
+static void* packetPollLoop(void* ptr) {
+  DivertInterface *iface = (DivertInterface*)ptr;
+  int fd;
+
+  /* Wait until the initialization completes */
+  while(!iface->isRunning()) sleep(1);
+
+  fd = iface->get_fd();
+
+  while(iface->isRunning()) {
+    int len;
+    u_char packet[IP_MAXPACKET];
+    struct sockaddr_in sin;
+    socklen_t sin_len;
+    int a, b;
+    u_int16_t c;
+    struct pcap_pkthdr h;
+    
+    len = recvfrom(fd, packet, sizeof(packet), 0,
+		   (struct sockaddr *)&sin, &sin_len);
+
+    if(len == 1) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Receive error");
+      break;
+    }
+
+    if(len < sizeof(struct ip)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Packet too short (%d bytes)", len);
+      break;
+    }
+
+    h.len = h.caplen = len, gettimeofday(&h.ts, NULL);
+    iface->dissectPacket(&h, packet, &a, &b, &c);
+    
+    sendto(fd, packet, len, 0, (struct sockaddr *)&sin, sin_len);
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Leaving divert packet poll loop");
+  return(NULL);
+}
+
+/* **************************************************** */
+
+DivertInterface::DivertInterface(const char *name) : NetworkInterface(name) {
+  struct sockaddr_in sin;
+  socklen_t sin_len;
+  
+  port = atoi(&name[7]);
+
+  if((sock = socket(AF_INET, SOCK_RAW, IPPROTO_DIVERT)) == -1) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to created divert socket");
+    throw 1;
+  }
+
+  memset(&sin, 0, sizeof(sin));
+  sin.sin_family = AF_INET, sin.sin_port = htons(port);
+  sin_len = sizeof(struct sockaddr_in);
+
+  if(bind(sock, (struct sockaddr *) &sin, sin_len) == -1) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind divert socket to port %d", port);
+    throw 1;
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created divert socket listening on port %d", port);
+  
+  pcap_datalink_type = DLT_IPV4;
+}
+
+/* **************************************************** */
+
+DivertInterface::~DivertInterface() {
+  closesocket(sock);
+}
+
+/* **************************************************** */
+
+void DivertInterface::startPacketPolling() {
+  pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
+  pollLoopCreated = true;
+  NetworkInterface::startPacketPolling();
+}
+
+/* **************************************************** */
+
+#endif /* defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__) */

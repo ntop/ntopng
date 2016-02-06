@@ -194,6 +194,9 @@ using namespace std;
 #include "NetfilterInterface.h"
 #endif
 #endif
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+#include "DivertInterface.h"
+#endif
 #include "ParserInterface.h"
 #include "CollectorInterface.h"
 #include "ZCCollectorInterface.h"
