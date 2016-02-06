@@ -225,37 +225,32 @@ local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoc
    --]]
    local res = {["senders"] = {}, ["receivers"] = {}}
    for record,_ in pairs(query) do
-	record = parseJSON(record)
-	-- tprint(record)
-	if not record or not next(record) or not record["vlan"] then goto next_record end
-	-- tprint(record)
-	for _, vlan in pairs(record["vlan"]) do
-		local vlanid = vlan["label"]
-		local vlanname = vlan["name"]
-		-- TODO: handle vlans
-		if not vlan["hosts"] then goto next_vlan end
-		for _, host_pair in pairs(vlan["hosts"]) do
-			for direction, top_hosts in pairs(host_pair) do
-				for _, host in pairs(top_hosts) do
-					local label = host["address"]
-					local traffic = tonumber(host["value"])
-					if label == nil then label = "" end
-					if traffic == nil then traffic = 0 end
-					if res[direction][label] == nil then
-						res[direction][label] = traffic
-					else
-						res[direction][label] = res[direction][label] + traffic
-					end
-				end
-			end
-
-
-
-
-		end
-		::next_vlan::
-	end
-	::next_record::
+      record = parseJSON(record)
+      if not record or not next(record) or not record["vlan"] then goto next_record end
+      -- tprint(record)
+      for _, vlan in pairs(record["vlan"]) do
+	   local vlanid = vlan["label"]
+	   local vlanname = vlan["name"]
+	   -- TODO: handle vlans
+	   if not vlan["hosts"] then goto next_vlan end
+	   for _, host_pair in pairs(vlan["hosts"]) do
+	      for direction, top_hosts in pairs(host_pair) do
+		 for _, host in pairs(top_hosts) do
+		    local label = host["address"]
+		    local traffic = tonumber(host["value"])
+		    if label == nil then label = "" end
+		    if traffic == nil then traffic = 0 end
+		    if res[direction][label] == nil then
+		       res[direction][label] = traffic
+		    else
+		       res[direction][label] = res[direction][label] + traffic
+		    end
+		 end
+	      end
+	   end
+	   ::next_vlan::
+      end
+      ::next_record::
    end
    -- tprint(res)
    -- reformat the output so that it becomes easier to parse
