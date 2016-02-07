@@ -1,0 +1,37 @@
+Using Divert with ntopng
+------------------------
+
+BSD-based operating systems (e.g. pfSense) use the divert interface to send
+packets to user-space applications such as ntopng. This mechanism is based
+on a socket interface, so that the communications happen on a local
+predefined port where packets are received. User space applications such
+as ntopng can read the traffic and reinject/drop/mark it.
+
+Supposing that you want to use port 7777 for the divert mechanism,
+all you need to do is divert traffic to it. Example:
+
+#
+# Preliminary checks
+#
+# http://www.cyberciti.biz/faq/howto-setup-freebsd-ipfw-firewall/
+# vi /etc/rc.conf
+# firewall_enable="YES"
+# firewall_script="/usr/local/etc/ipfw.rules"
+# ipdivert_load="YES"
+#
+#
+# kldload ipdivert.ko
+#
+ipfw -f flush
+ipfw add 410 divert 7777 udp from any to any via em0
+ipfw add 411 divert 7777 tcp from any to any via em0
+ipfw add 412 divert 7777 icmp from any to any via em0
+ipfw add 1000 allow ip from any to any
+
+The above examble sends to the divert port 7777 all UDP/TCP/ICMP traffic,
+while letting all the rest of the traffic pass through.
+
+Make sure you start ntopng as follows (ntopng will inspect the traffic and
+let it go through)
+
+# ntopng -i divert:7777
