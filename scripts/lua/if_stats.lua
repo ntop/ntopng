@@ -1003,7 +1003,7 @@ elseif(page == "filtering") then
       nets = ntop.getHashKeysCache(policy_key)
    end
 
-   tprint(nets)
+   -- tprint(nets)
    if((net == nil) and (nets ~= nil)) then
       -- If there is not &network= parameter then use the first network available
       for k,v in pairsByKeys(nets, asc) do
