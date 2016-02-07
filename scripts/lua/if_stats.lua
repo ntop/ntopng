@@ -303,7 +303,7 @@ if((page == "overview") or (page == nil)) then
 
 print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=6><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr>
 
-        <script type='text/javascript'>
+	<script type='text/javascript'>
 	       window.onload=function() {
 				   do_pie("#ifaceTrafficBreakdown", ']]
 print (ntop.getHttpPrefix())
@@ -357,17 +357,17 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
 elseif((page == "packets")) then
    print [[
       <table class="table table-bordered table-striped">
-        <tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
+	<tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
       </table>
 
-        <script type='text/javascript'>
-         window.onload=function() {
+	<script type='text/javascript'>
+	 window.onload=function() {
 
        do_pie("#sizeDistro", ']]
    print (ntop.getHttpPrefix())
    print [[/lua/if_pkt_distro.lua', { distr: "size", ifname: "]] print(_ifname.."\"")
    print [[
-           }, "", refresh);
+	   }, "", refresh);
     }
 
       </script><p>
@@ -392,8 +392,8 @@ elseif(page == "ndpi") then
 	       </tr>
   </div>
 
-        <script type='text/javascript'>
-         window.onload=function() {
+	<script type='text/javascript'>
+	 window.onload=function() {
 
        do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
@@ -466,7 +466,7 @@ elseif(page == "trafficprofiles") then
      local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
      local statschart_icon = ''
      if ntop.exists(rrdname) then
-         statschart_icon = '<A HREF='..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+	 statschart_icon = '<A HREF='..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 
      print("<tr><th>"..pname.."</th><td align=center>"..statschart_icon.."</td><td><span id=profile_"..trimmed..">"..bytesToSize(pbytes).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
@@ -478,20 +478,20 @@ print [[
    <script>
    var last_profile = [];
    var traffic_profiles_interval = window.setInterval(function() {
-   	  $.ajax({
-   		    type: 'GET',
-   		    url: ']]
+	  $.ajax({
+		    type: 'GET',
+		    url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/network_load.lua',
-   		    data: { ifname: "]] print(ifname) print [[" },
-   		    success: function(content) {
-   			var profiles = jQuery.parseJSON(content);
+		    data: { ifname: "]] print(ifname) print [[" },
+		    success: function(content) {
+			var profiles = jQuery.parseJSON(content);
 
 			if(profiles["profiles"] != null) {
 			   for (key in profiles["profiles"]) {
 			     k = '#profile_'+key.replace(" ", "");
 			     v = profiles["profiles"][key];
-   			     $(k).html(bytesToVolume(v));
+			     $(k).html(bytesToVolume(v));
 			     k += "_trend";
 			     last = last_profile[key];
 			     if(last == null) { last = 0; }
@@ -499,9 +499,9 @@ print [[
 			   }
 
 			   last_profile = profiles["profiles"];
- 			  }
+			  }
 			}
-          });
+	  });
 }, 3000);
 
    </script>
@@ -558,64 +558,64 @@ if(isAdministrator()) then
    print("<tr><th width=30%>Packet Dump</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="host" value="]]
-               print(ifstats.name)
-               print('"><input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
-               print('</input>')
-               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-               print('</form>')
+	 <input type="hidden" name="host" value="]]
+	       print(ifstats.name)
+	       print('"><input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
+	       print('</input>')
+	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th width=30%>Packet Dump To Disk</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="host" value="]]
-               print(ifstats.name)
-               print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
-               if(dump_traffic_checked ~= "") then
-                 dumped = interface.getInterfacePacketsDumpedFile()
-                 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
-               end
-               print('</input>')
-               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-               print('</form>')
+	 <input type="hidden" name="host" value="]]
+	       print(ifstats.name)
+	       print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
+	       if(dump_traffic_checked ~= "") then
+		 dumped = interface.getInterfacePacketsDumpedFile()
+		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+	       end
+	       print('</input>')
+	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="host" value="]]
-               print(ifstats.name)
-               print('"><input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
-               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-               print('</form>')
+	 <input type="hidden" name="host" value="]]
+	       print(ifstats.name)
+	       print('"><input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
+	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="host" value="]]
-               print(ifstats.name)
-               print('"><input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
-               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-               print('</form>')
+	 <input type="hidden" name="host" value="]]
+	       print(ifstats.name)
+	       print('"><input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
+	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th>Packet Dump To Tap</th><td>")
    if(interface.getInterfaceDumpTapName() ~= "") then
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="host" value="]]
-               print(ifstats.name)
-               print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
+	 <input type="hidden" name="host" value="]]
+	       print(ifstats.name)
+	       print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
-               if(dump_traffic_tap_checked ~= "") then
-                 dumped = interface.getInterfacePacketsDumpedTap()
-                 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
-               end
+	       if(dump_traffic_tap_checked ~= "") then
+		 dumped = interface.getInterfacePacketsDumpedTap()
+		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
+	       end
 	       print(' </input>')
-               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-               print('</form>')
+	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	       print('</form>')
    else
       print("Disabled. Please restart ntopng with --enable-taps")
 end
@@ -630,7 +630,7 @@ end
       print [[">]]
       print('1 : <input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="sampling_rate" placeholder="" min="0" step="100" max="100000" value="]]
-         srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
+	 srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
 	 if(srate ~= nil and srate ~= "" and srate ~= "0") then print(srate) else print("1000") end
 	 print [["></input>
       &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
@@ -658,12 +658,12 @@ end
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_pkts_file" placeholder="" min="0" step="1000" max="100000" value="]]
-         max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
+	 max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
 	 if(max_pkts_file ~= nil and max_pkts_file ~= "") then
-           print(max_pkts_file.."")
-         else
-           print(interface.getInterfaceDumpMaxPkts().."")
-         end
+	   print(max_pkts_file.."")
+	 else
+	   print(interface.getInterfaceDumpMaxPkts().."")
+	 end
 	 print [["></input> pkts &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
     <small>Maximum number of packets to store on a pcap file before creating a new file.</small>
@@ -677,12 +677,12 @@ end
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_sec_file" placeholder="" min="0" step="60" max="100000" value="]]
-         max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
+	 max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
 	 if(max_sec_file ~= nil and max_sec_file ~= "") then
-           print(max_sec_file.."")
-         else
-           print(interface.getInterfaceDumpMaxSec().."")
-         end
+	   print(max_sec_file.."")
+	 else
+	   print(interface.getInterfaceDumpMaxSec().."")
+	 end
 	 print [["></input>
 		  &nbsp;sec &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
@@ -697,12 +697,12 @@ end
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_files" placeholder="" min="0" step="1" max="100000000" value="]]
-         max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
+	 max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
 	 if(max_files ~= nil and max_files ~= "") then
-           print(tostring(tonumber(max_files)/1000000).."")
-         else
-           print(tostring(tonumber(interface.getInterfaceDumpMaxFiles())/1000000).."")
-         end
+	   print(tostring(tonumber(max_files)/1000000).."")
+	 else
+	   print(tostring(tonumber(interface.getInterfaceDumpMaxFiles())/1000000).."")
+	 end
 	 print [["></input>
 		  &nbsp; MB &nbsp;&nbsp;&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
@@ -750,10 +750,10 @@ else
 	 value = tonumber(value)
 	 if(value ~= nil) then
 	   if(alerts ~= "") then alerts = alerts .. "," end
-           alerts = alerts .. k .. ";" .. operator .. ";" .. value
+	   alerts = alerts .. k .. ";" .. operator .. ";" .. value
 	 else
-           if ntop.isPro() then ntop.withdrawNagiosAlert(ifname_clean, tab, k, "alarm not installed") end
-         end
+	   if ntop.isPro() then ntop.withdrawNagiosAlert(ifname_clean, tab, k, "alarm not installed") end
+	 end
       end
    end
 
@@ -853,12 +853,12 @@ else
    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
      <div class="modal-dialog">
        <div class="modal-content">
-         <div class="modal-header">
+	 <div class="modal-header">
        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
        <h3 id="myModalLabel">Confirm Action</h3>
      </div>
      <div class="modal-body">
-   	 <p>Do you really want to delete all configured alerts for interface ]] print(if_name) print [[?</p>
+	 <p>Do you really want to delete all configured alerts for interface ]] print(if_name) print [[?</p>
      </div>
      <div class="modal-footer">
        <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">
@@ -886,11 +886,11 @@ local ifname_clean = string.gsub(ifname, "/", "_")
    if(isAdministrator()) then
       trigger_alerts = _GET["trigger_alerts"]
       if(trigger_alerts ~= nil) then
-         if(trigger_alerts == "true") then
+	 if(trigger_alerts == "true") then
 	    ntop.delHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean)
-         else
+	 else
 	    ntop.setHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean, trigger_alerts)
-         end
+	 end
       end
    end
 
@@ -910,12 +910,12 @@ local ifname_clean = string.gsub(ifname, "/", "_")
 	    <input type="hidden" name="tab" value="alerts_preferences">
 	    <input type="hidden" name="host" value="]]
 
-         print(if_name)
-         print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
-         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print('<input type="hidden" name="page" value="config">')
-         print('</form>')
-         print('</td>')
+	 print(if_name)
+	 print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('<input type="hidden" name="page" value="config">')
+	 print('</form>')
+	 print('</td>')
 	 print [[</tr>]]
 
     print("</table>")
@@ -947,9 +947,9 @@ for i=0,max_num_shapers-1 do
 
    print [[
 	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="page" value="shaping">
+	 <input type="hidden" name="page" value="shaping">
 	 <input type="hidden" name="if_name" value="]] print(ifname) print[[">
-         <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
+	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
 
       if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -985,22 +985,6 @@ elseif(page == "filtering") then
 
    net = _GET["network"]
 
-   any_net = "0.0.0.0/0@0"
-
-   nets = ntop.getHashKeysCache(key, any_net)
-
-   if((nets == nil) or (nets == "")) then
-      nets = ntop.getHashKeysCache(policy_key)
-   end
-
-   if((net == nil) and (nets ~= nil)) then
-      -- If there is not &network= parameter then use the first network available
-      for k,v in pairsByKeys(nets, asc) do
-	 net = k
-	 break
-      end
-   end
-
    if(net ~= nil) then
       if(findString(net, "@") == nil) then
 	 net = net.."@0"
@@ -1010,6 +994,25 @@ elseif(page == "filtering") then
 	 ntop.setHashCache(policy_key, net, "")
       end
    end
+  
+   any_net = "0.0.0.0/0@0"
+   io.write('key: '..key..'\n')
+   nets = ntop.getHashKeysCache(key, any_net)
+
+   if((nets == nil) or (nets == "")) then
+      nets = ntop.getHashKeysCache(policy_key)
+   end
+
+   tprint(nets)
+   if((net == nil) and (nets ~= nil)) then
+      -- If there is not &network= parameter then use the first network available
+      for k,v in pairsByKeys(nets, asc) do
+	 net = k
+	 break
+      end
+   end
+
+
 
    -- io.write(net.."\n")
 
@@ -1036,9 +1039,7 @@ elseif(page == "filtering") then
    end
 
    print [[
-<div id="badnet" class="alert alert-danger" style="display: none">
-    <strong>Warning</strong> Invalid VLAN/network specified.
-</div>
+
 
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
   <input type=hidden name=page value=filtering>
@@ -1181,18 +1182,16 @@ end
     <tr><td colspan=2><button type="submit" class="btn btn-primary btn-block">Set Protocol Policy and Shaper</button></td></tr>
 
 <script>
-/* FIX - Check form */
-    function validateAddNetworkForm() {
-      if(is_network_mask($('#new_network').val())) {
-         var vlan= $('#new_vlan').val();
-
-         if((vlan >= 0) && (vlan <= 4095)) {
-           $('#badnet').hide();
-           return(true);
-         } else {
-           $('#badnet').show();
-           return false;
-         }
+    function validateAddNetworkForm(network_field_id, vlan_field_id) {
+      if(is_network_mask($(network_field_id).val())) {
+	 var vlan= $(vlan_field_id).val();
+	 if((vlan >= 0) && (vlan <= 4095)) {
+	   $('#badnet').hide();
+	   return(true);
+	 } else {
+	   $('#badnet').show();
+	   return false;
+	 }
       } else {
        //alert("Invalid network specified");
       $('#badnet').show();
@@ -1207,24 +1206,46 @@ end
 <tr><th colspan=2>Add VLAN/Network To Filter</th></tr>
 
 <tr><td colspan=2>
-<form class="form-inline">
-<div class="form-group">
-<input type=hidden name=page value="filtering">
-Local Network :
-<select name="new_network">
-    ]]
-
-
- locals = ntop.getLocalNetworks()
- for s,_ in pairs(locals) do
-    print('<option value="'..s..'">'..s..'</option>\n')
- end
-print [[
-</select>
-VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" size=4>
-<button type="submit" class="btn btn-primary btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
+<div id="badnet" class="alert alert-danger" style="display: none">
+    <strong>Warning</strong> Invalid VLAN/network specified.
 </div>
-</form>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <div class="col-md-6">
+      <form class="form-inline" onsubmit="return validateAddNetworkForm('#new_network', '#new_vlan');">
+      <div class="form-group">
+      <input type=hidden name=page value="filtering">
+      Local Network :
+      <select name="new_network" id="new_network">
+          ]]
+       locals = ntop.getLocalNetworks()
+       for s,_ in pairs(locals) do
+          print('<option value="'..s..'">'..s..'</option>\n')
+       end
+      print [[
+      </select>
+      VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" size=4>
+      <button type="submit" class="btn btn-primary btn-sm">Add Local VLAN/Network</button>
+      </div>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <form class="form-inline" onsubmit="return validateAddNetworkForm('#new_custom_network', '#new_custom_vlan');">
+      <div class="form-group">
+      <input type=hidden name=page value="filtering">
+      Network (CIDR) <input type="text" class=form-control id="new_custom_network" name="new_network" size=14>
+      VLAN <input type="text" class=form-control id="new_custom_vlan" name="new_vlan" value="0" size=4>
+      <button type="submit" class="btn btn-primary btn-sm">Add Custom VLAN/Network</button>
+      </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
 </td>
 
 </tr>
@@ -1232,10 +1253,10 @@ VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="
   </form>
   <script>
     var ndpiprotos1 = $('select[name="ndpiprotos"]').bootstrapDualListbox({
-                        nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
-                        selectedListLabel: 'Black Listed Protocols for ]] print(selected_network) print [[',
-                        moveOnSelect: false
-                      });
+			nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
+			selectedListLabel: 'Black Listed Protocols for ]] print(selected_network) print [[',
+			moveOnSelect: false
+		      });
     $("#ndpiprotosform").submit(function() {
       // alert($('[name="ndpiprotos"]').val());
       $('#blacklist').val($('[name="ndpiprotos"]').val());
@@ -1276,39 +1297,39 @@ end
 print [[
 setInterval(function() {
       $.ajax({
-          type: 'GET',
-          url: ']]
+	  type: 'GET',
+	  url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/network_load.lua',
-          data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
-          success: function(content) {
-        var rsp = jQuery.parseJSON(content);
+	  data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
+	  success: function(content) {
+	var rsp = jQuery.parseJSON(content);
 	var v = bytesToVolume(rsp.bytes);
-        $('#if_bytes').html(v);
-        $('#if_bytes').html(v);
-        $('#if_pkts').html(addCommas(rsp.packets)+"]]
+	$('#if_bytes').html(v);
+	$('#if_bytes').html(v);
+	$('#if_pkts').html(addCommas(rsp.packets)+"]]
 
 
 print(" Pkts\");")
 print [[
-        var pctg = 0;
-        var drops = "";
+	var pctg = 0;
+	var drops = "";
 
-        $('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
-        $('#drops_trend').html(get_trend(last_drops, rsp.drops));
-        last_pkts = rsp.packets;
-        last_drops = rsp.drops;
+	$('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
+	$('#drops_trend').html(get_trend(last_drops, rsp.drops));
+	last_pkts = rsp.packets;
+	last_drops = rsp.drops;
 
-        if((rsp.packets+rsp.drops) > 0) { pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2); }
-        if(rsp.drops > 0) { drops = '<span class="label label-danger">'; }
-        drops = drops + addCommas(rsp.drops)+" ]]
+	if((rsp.packets+rsp.drops) > 0) { pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2); }
+	if(rsp.drops > 0) { drops = '<span class="label label-danger">'; }
+	drops = drops + addCommas(rsp.drops)+" ]]
 
 print("Pkts")
 print [[";
 
-        if(pctg > 0)      { drops = drops + " [ "+pctg+" % ]"; }
-        if(rsp.drops > 0) { drops = drops + '</span>';         }
-        $('#if_drops').html(drops);
+	if(pctg > 0)      { drops = drops + " [ "+pctg+" % ]"; }
+	if(rsp.drops > 0) { drops = drops + '</span>';         }
+	$('#if_drops').html(drops);
 ]]
 
 if(ifstats["bridge.device_a"] ~= nil) then
@@ -1371,8 +1392,8 @@ print [[
 end
 
 print [[
-           }
-               });
+	   }
+	       });
        }, 3000)
 
 </script>
@@ -1384,7 +1405,7 @@ print [[
 <script>
 $(document).ready(function()
     {
-        $("#myTable").tablesorter();
+	$("#myTable").tablesorter();
     }
 );
 </script>

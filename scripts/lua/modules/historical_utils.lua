@@ -70,7 +70,7 @@ var totalRows = -1;
 $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
   var target = $(e.target).attr("href"); // activated tab
   $('#historical-top-applications-table').datatable({
-      title: "", id: "a-big-dog",]]
+      title: "",]]
       print("url: '"..ntop.getHttpPrefix().."/lua/get_historical_data.lua?stats_type=top_applications"..top_apps_url_params.."',")
 if preference ~= "" then print ('perPage: '..preference.. ",") end
 -- Automatic default sorted. NB: the column must be exists.
