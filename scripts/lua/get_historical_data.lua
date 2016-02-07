@@ -16,6 +16,7 @@ ifid = getInterfaceId(ifname)
 -- query parameters
 local epoch_start = _GET["epoch_start"]
 local epoch_end = _GET["epoch_end"]
+
 -- use this two params to see statistics of a single host
 -- or for a pair of them
 local peer1 = _GET["peer1"]
@@ -44,7 +45,7 @@ local current_page = _GET["currentPage"]
 local per_page     = _GET["perPage"]
 local sort_column  = _GET["sortColumn"]
 local sort_order   = _GET["sortOrder"]
-
+local total_rows   = _GET["totalRows"]
 
 if not sort_column or sort_column == "" then
    sort_column = getDefaultTableSort("historical_stats_"..stats_type)
@@ -85,8 +86,28 @@ end
 local to_skip = (current_page - 1) * per_page
 if to_skip < 0 then to_skip = 0 end
 
+-- prepare queries offset an limit depending on
+-- received values. A received value total_rows = -1 (or total_rows == nil)
+-- means that the interface doesn't know the number of rows
+-- and thus it is up to this script to compute it, and
+-- send it back to the caller
+
+if total_rows == nil or tonumber(total_rows) == nil then
+   total_rows = -1
+else
+   total_rows = tonumber(total_rows)
+end
+
+-- default: 100 rows starting from offset 0
+local offset = 0
+local limit = 100
+if total_rows ~= -1 then
+   offset = to_skip
+   limit = per_page
+end
+
+-- start building the response
 local res = {["status"] = "unable to parse the request, please check input parameters."}
-local res_by_key = {}
 if stats_type == "top_talkers" then
    if not peer1 and not peer2 then
       -- compute the top-talkers for the selected time interval
@@ -94,25 +115,21 @@ if stats_type == "top_talkers" then
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
-	 res_by_key[record["addr"]] = record
       end
    else
       res = getHostTopTalkers(ifid, peer1, nil, epoch_start + 60, epoch_end + 60)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
-	 res_by_key[record["addr"]] = record
       end
       -- tprint(res)
    end
 elseif stats_type =="top_applications" then
-
-   res = getTopApplications(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60)
+   res = getTopApplications(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60, sort_column, sort_order, offset, limit)
 
    -- add protocol labels
    for _, record in pairs(res) do
       record["label"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(record["application"])))
-      res_by_key[record["application"]] = record
    end
    -- tprint(res)
 elseif stats_type =="peers_traffic_histogram" and peer1 and peer2 then
@@ -121,32 +138,32 @@ elseif stats_type =="peers_traffic_histogram" and peer1 and peer2 then
    for _, record in pairs(res) do
       record["peer1_label"] = ntop.getResolvedAddress(record["peer1_addr"])
       record["peer2_label"] = ntop.getResolvedAddress(record["peer2_addr"])
-      res_by_key[record["peer1_addr"]..record["peer2_addr"]] = record
-
    end
    -- tprint(res)
 end
 
--- sort the result based on received parameters
-local sorter = {}
-for record_key, record in pairs(res_by_key) do
-   -- TODO: fix for double peers
-   if sort_column == "column_label" then sorter[record_key] = record["label"]
-   elseif sort_column == "column_address" then sorter[record_key] = record["address"]
-   elseif sort_column == "column_bytes" then sorter[record_key] = tonumber(record["bytes"])
-   elseif sort_column == "column_tot_bytes" then sorter[record_key] = tonumber(record["tot_bytes"])
-   elseif sort_column == "column_packets" then sorter[record_key] = tonumber(record["packets"])
-   elseif sort_column == "column_tot_packets" then sorter[record_key] = tonumber(record["tot_packets"])
-   elseif sort_column == "column_flows" then sorter[record_key] = tonumber(record["flows"])
-   elseif sort_column == "column_tot_flows" then sorter[record_key] = tonumber(record["tot_flows"])
-   else sorter[record_key] = record["label"] end
-   -- protect possible nils in sorting values
-   if sorter[record_key] == nil then sorter[record_key] = 0 end
+-- slice the result if the interface didn't know the total_rows
+local res_sliced = {}
+if total_rows ~= -1 then
+   -- nothing to slice here, query has already sliced the result
+   res_sliced = res
+else --  i.e., total_rows == -1, that it, it was unknown
+   -- slice the first page of the results
+   -- and update total_rows
+   local cur = 0
+   for _, record in pairs(res) do
+      if cur < per_page then
+	 table.insert(res_sliced, record)
+      end
+      cur = cur + 1
+   end
+   total_rows = cur
 end
 
--- make res_by_key compliant with column_ notation
+-- make res_formatted compliant with column_ notation
 -- also add hyperlinks, bytes format, etc.
-for record_key, record in pairs(res_by_key) do
+local res_formatted = {}
+for _, record in pairs(res_sliced) do
    local record_contents = {}
    if not record["label"] or record["label"] == "" then record["label"] = record["addr"] end
    record_contents["column_label"] = record["label"]
@@ -161,9 +178,9 @@ for record_key, record in pairs(res_by_key) do
       record_contents["column_bytes"] = "n.a."
    end
    if record["packets"] then
-      record_contents["column_packets"] = pktsToSize(tonumber(record["packets"]))
+      record_contents["column_packets"] = formatValue(tonumber(record["packets"]))
    elseif record["tot_packets"] then
-      record_contents["column_packets"] = pktsToSize(tonumber(record["tot_packets"]))
+      record_contents["column_packets"] = formatValue(tonumber(record["tot_packets"]))
    else
       record_contents["column_packets"] = "n.a."
    end
@@ -174,27 +191,16 @@ for record_key, record in pairs(res_by_key) do
    else
       record_contents["column_flows"] = "n.a."
    end
-   res_by_key[record_key] = record_contents
+   table.insert(res_formatted, record_contents)
 end
 
-local num_page = 0
-local total_rows = 0
-local result_data = {}
-for record_key,_ in pairsByValues(sorter, funct) do
-   if to_skip > 0 then
-      to_skip = to_skip - 1
-   elseif num_page < per_page then
-      table.insert(result_data, res_by_key[record_key])
-      num_page = num_page + 1
-   end
-   total_rows = total_rows + 1
-end
--- tprint(res_by_key)
+-- tprint(res_formatted)
+-- tprint(res)
 local result = {}
 result["perPage"] = per_page
 result["currentPage"] = current_page
 result["totalRows"] = total_rows
-result["data"] = result_data
+result["data"] = res_formatted
 result["sort"] = {{sort_column, sort_order}}
 
 print(json.encode(result, nil))

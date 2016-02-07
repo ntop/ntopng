@@ -293,11 +293,13 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch)
    end
 end
 
-function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_epoch)
+function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- if both peers are nil, top applications are overall in the time range
    -- if peer1 is nil nad peer2 is not nil, then top apps are for peer1
    -- if peer2 is nil nad peer1 is not nil, then top apps are for peer2
    -- if both peer2 and peer2 are not nil, then top apps are computed between peer1 and peer2
+   -- sort_column and sort_order are used to sort the results
+   -- offset and limit are used to paginate the results
    local version = 4
    if peer1 and peer1 ~= "" and isIPv6(peer1) then version = 6
    elseif peer2 and peer2 ~= "" and isIPv6(peer2) then version = 6 end
@@ -328,10 +330,28 @@ function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_e
       end
    end
 
-   -- we don't care about the order so we group by least and greatest
+
    sql = sql.." group by L7_PROTO "
 
-   sql = sql.." order by tot_bytes desc limit 100"
+   -- ORDER
+   local order_by_column = "tot_bytes" -- defaults to tot_bytes
+   if sort_column == "column_packets" or sort_column == "packets" or sort_column == "tot_packets" then
+      order_by_column = "tot_packets"
+   end
+   if sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
+      order_by_column = "tot_flows"
+   end
+
+   local order_by_order = "desc"
+   if sort_order == "asc" then order_by_order = "asc" end
+   sql = sql.." order by "..order_by_column.." "..order_by_order.." "
+
+   -- SLICE
+   local slice_offset = 0
+   local sclice_limit = 100
+   if tonumber(offset) >= 0 then slice_offset = offset end
+   if tonumber(limit) > 0 then slice_limit = limit end
+   sql = sql.."limit "..slice_offset..","..slice_limit.." "
 
    if(db_debug == true) then io.write(sql.."\n") end
 
