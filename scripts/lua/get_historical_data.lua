@@ -111,13 +111,13 @@ local res = {["status"] = "unable to parse the request, please check input param
 if stats_type == "top_talkers" then
    if not peer1 and not peer2 then
       -- compute the top-talkers for the selected time interval
-      res = require("top_scripts.top_talkers").getHistoricalTopInInterval(ifid, ifname, epoch_start + 60, epoch_end + 60, add_vlan)
+      res = getOverallTopTalkers(ifid, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
       end
    else
-      res = getHostTopTalkers(ifid, peer1, nil, epoch_start + 60, epoch_end + 60)
+      res = getHostTopTalkers(ifid, peer1, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
@@ -125,7 +125,7 @@ if stats_type == "top_talkers" then
       -- tprint(res)
    end
 elseif stats_type =="top_applications" then
-   res = getTopApplications(ifid, peer1, peer2, nil, epoch_start + 60, epoch_end + 60, sort_column, sort_order, offset, limit)
+   res = getTopApplications(ifid, peer1, peer2, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
    -- add protocol labels
    for _, record in pairs(res) do

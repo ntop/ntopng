@@ -12,7 +12,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
    local sort_column= getDefaultTableSort("historical_stats_top_talkers")
    if not sort_column or sort_column == "column_" then sort_column = "column_bytes" end
    print[[
-<div id="historical-top-talkers-table">
+<div id="historical-top-talkers-table" total_rows=-1>
 
 </div>
 
@@ -28,15 +28,17 @@ if preference ~= "" then print ('perPage: '..preference.. ",\n") end
 -- Automatic default sorted. NB: the column must be exists.
 print ('sort: [ ["'..sort_column..'","'..sort_order..'"] ],\n')
       print [[
+      post: {totalRows: function(){ return $('#historical-top-talkers-table').attr("total_rows");} },
       showFilter: true,
       showPagination: true,
+      tableCallback: function(){$('#historical-top-talkers-table').attr("total_rows", this.options.totalRows);},
       columns:
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Traffic Volume", field: "column_bytes", sortable: true},
-	  {title: "Packets", field: "column_packets", sortable: true},
-	  {title: "Flows", field: "column_flows", sortable: true}
+	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
+	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
+	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
 	]
   });
 
