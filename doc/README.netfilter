@@ -1,6 +1,15 @@
-Prerequisites
+Introduction
 -------------
-Netfilter support in ntopng is part of the Pro version.
+Netfilter support in ntopng is part of the packaged version available at http://packages.ntop.org.
+If you have a pro license you can drop/shape traffic from within ntopng, otherwise ntopng will
+just mark the traffic using the protocol identifier of the flow. Example Skype flows will be
+marked with id 125
+
+# ntopng -h|grep Skype
+[125] Skype
+
+Using the mark you can assign different QoS classes to your traffic, shape, drop etc. In
+essence thanks to ntopng you can implement an application-level firewall.
 
 Using NetFilter
 ---------------
