@@ -968,18 +968,18 @@ end
 
 selected = false
 if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
-   print('<li class="active"> <a href="#ipv4" role="tab" data-toggle="tab"> IPv4 Conversations </a> </li>\n')
+   print('<li class="active"> <a href="#ipv4" role="tab" data-toggle="tab"> IPv4 Flows </a> </li>\n')
    selected = true
 end
 
 if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
    if(selected == false) then print('<li class="active">\n') else print('<li>\n') end
-   print('<a href="#ipv6" role="tab" data-toggle="tab"> IPv6 Conversations </a> </li>\n')
+   print('<a href="#ipv6" role="tab" data-toggle="tab"> IPv6 Flows </a> </li>\n')
 end
 
 if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled then
-   print('<li><a href="#historical-top-talkers" role="tab" data-toggle="tab"> Top Talkers </a> </li>\n')
-   print('<li><a href="#historical-top-apps" role="tab" data-toggle="tab"> Top Applications </a> </li>\n')
+   print('<li><a href="#historical-top-talkers" role="tab" data-toggle="tab"> Talkers </a> </li>\n')
+   print('<li><a href="#historical-top-apps" role="tab" data-toggle="tab"> Protocols </a> </li>\n')
 end
 
 print [[
