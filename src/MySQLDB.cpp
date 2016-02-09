@@ -21,24 +21,56 @@
 
 #include "ntop_includes.h"
 
+/* **************************************************** */
+
+static void* queryLoop(void* ptr) {
+  return(((MySQLDB*)ptr)->queryLoop());
+}
+
+/* **************************************************** */
+
+void* MySQLDB::queryLoop() {
+  Redis *r = ntop->getRedis();
+  MYSQL mysql_alt;
+
+  if(connectToDB(&mysql_alt, true) == false)
+    return(NULL);
+
+  while(!ntop->getGlobals()->isShutdown()) {
+    char sql[2048];
+    int rc = r->lpop(CONST_SQL_QUEUE, sql, sizeof(sql));
+
+    if(rc == 0) {
+      if(exec_sql_query(&mysql_alt, sql, true, true, false) != 0) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
+	printf("\n%s\n", sql);
+      }
+    } else
+      sleep(1);    
+  }
+
+  mysql_close(&mysql_alt);
+  return(NULL);
+}
+
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   char sql[2048];
 
-  if(connectToDB(false) == false)
+  if(connectToDB(&mysql, false) == false)
     return;
 
   if(iface) {
     /* 1 - Create database if missing */
     snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS %s", ntop->getPrefs()->get_mysql_dbname());
-    if(exec_sql_query(sql, true) != 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+    if(exec_sql_query(&mysql, sql, true) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
       return;
     }
 
     if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
       return;
     }
 
@@ -72,10 +104,10 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
             ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8"
             "/*!50100 PARTITION BY HASH (`FIRST_SWITCHED`)"
             "PARTITIONS 32 */",
-            ntop->getPrefs()->get_mysql_tablename());
+            ntop->getPrefs()->get_mysql_tablename());						     
 
-    if(exec_sql_query(sql, true) != 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+    if(exec_sql_query(&mysql, sql, true) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
       return;
     }
 
@@ -111,8 +143,8 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
             "PARTITIONS 32 */",
 	     ntop->getPrefs()->get_mysql_tablename());
 
-    if(exec_sql_query(sql, true) != 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
+    if(exec_sql_query(&mysql, sql, true) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
       return;
     }
 
@@ -123,11 +155,11 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     /* Add fields if not present */
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` ADD `INFO` varchar(255)",
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
 
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` ADD `INFO` varchar(255)",
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
 
 #ifdef NTOPNG_PRO
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
@@ -135,71 +167,73 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
             "ADD INDEX `ix_%sv4_%u_profile` (PROFILE)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
             "ADD `PROFILE` varchar(255) DEFAULT NULL,"
             "ADD INDEX `ix_%sv6_%u_profile` (PROFILE)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
 #endif
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
             "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
             "ADD INDEX `ix_%sv4_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
             "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
             "ADD INDEX `ix_%sv6_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
             "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
             "ADD INDEX `ix_%sv4_%u_ntopng_interface` (INTERFACE)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
             "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
             "ADD INDEX `ix_%sv6_%u_ntopng_interface` (INTERFACE)",
 	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
 
     // SECOND: we trasfer old table contents into the new schema
     snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv4` "
             "SELECT * FROM `%sv4_%u`",
 	    ntop->getPrefs()->get_mysql_tablename(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv6` "
             "SELECT * FROM `%sv6_%u`",
 	    ntop->getPrefs()->get_mysql_tablename(),
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
 
     // THIRD: drop old tables (their contents have been transferred)
   }
     snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS `%sv6_%u` ",
             ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
 
     // FOURTH: add extra indices to speedup queries
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` "
             "ADD INDEX `ix_%sv4_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
 	    ntop->getPrefs()->get_mysql_tablename(),
             ntop->getPrefs()->get_mysql_tablename());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` "
             "ADD INDEX `ix_%sv6_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
 	    ntop->getPrefs()->get_mysql_tablename(),
             ntop->getPrefs()->get_mysql_tablename());
-    exec_sql_query(sql, true, true);
+    exec_sql_query(&mysql, sql, true, true);
+
+    pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 
 /* ******************************************* */
@@ -311,18 +345,14 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 
   free(json_buf);
 
-  if(exec_sql_query(sql, true) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error());
-    printf("\n%s\n", sql);
-    return(false);
-  }
+  ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
 
   return(true);
 }
 
 /* ******************************************* */
 
-bool MySQLDB::connectToDB(bool select_db) {
+bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   MYSQL *rc;
   unsigned long flags = CLIENT_COMPRESS;
   char *dbname = select_db ? ntop->getPrefs()->get_mysql_dbname() : NULL;
@@ -334,14 +364,14 @@ bool MySQLDB::connectToDB(bool select_db) {
 
   if(m) m->lock(__FILE__, __LINE__);
 
-  if(mysql_init(&mysql) == NULL) {
+  if(mysql_init(conn) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize MySQL connection");
     if(m) m->unlock(__FILE__, __LINE__);
     return(false);
   }
 
   if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socket */
-    rc = mysql_real_connect(&mysql,
+    rc = mysql_real_connect(conn,
 			    NULL, /* Host */
 			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
@@ -349,7 +379,7 @@ bool MySQLDB::connectToDB(bool select_db) {
 			    0, ntop->getPrefs()->get_mysql_host() /* socket */,
 			    flags);
   else
-    rc = mysql_real_connect(&mysql,
+    rc = mysql_real_connect(conn,
 			    ntop->getPrefs()->get_mysql_host(),
 			    ntop->getPrefs()->get_mysql_user(),
 			    ntop->getPrefs()->get_mysql_pw(),
@@ -359,7 +389,7 @@ bool MySQLDB::connectToDB(bool select_db) {
 
   if(rc == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to connect to MySQL: %s [%s:%s]\n",
-				 mysql_error(&mysql),
+				 mysql_error(conn),
 				 ntop->getPrefs()->get_mysql_host(),
 				 ntop->getPrefs()->get_mysql_user());
 
@@ -380,26 +410,33 @@ bool MySQLDB::connectToDB(bool select_db) {
 
 /* ******************************************* */
 
-int MySQLDB::exec_sql_query(char *sql, bool doReconnect, bool ignoreErrors) {
+/*
+  Locking is necessary when multiple queries are executed
+  simulatenously (e.g. via Lua)
+ */
+int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
+			    bool doReconnect, bool ignoreErrors,
+			    bool doLock) {
   int rc;
 
   if(!db_operational)
     return(-2);
 
-  if(m) m->lock(__FILE__, __LINE__);
-  if((rc = mysql_query(&mysql, sql)) != 0) {
+  if(doLock && m) m->lock(__FILE__, __LINE__);
+  if((rc = mysql_query(conn, sql)) != 0) {
     if(!ignoreErrors)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]", get_last_db_error(), sql);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%s]", 
+				   get_last_db_error(conn), sql);
 
-    switch(mysql_errno(&mysql)) {
+    switch(mysql_errno(conn)) {
     case CR_SERVER_LOST:
       if(doReconnect) {
-	mysql_close(&mysql);
-	if(m) m->unlock(__FILE__, __LINE__);
+	mysql_close(conn);
+	if(doLock && m) m->unlock(__FILE__, __LINE__);
 
-	connectToDB(true);
+	connectToDB(conn, true);
 
-	return(exec_sql_query(sql, false));
+	return(exec_sql_query(conn, sql, false));
       } else
 	ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
       break;
@@ -415,7 +452,7 @@ int MySQLDB::exec_sql_query(char *sql, bool doReconnect, bool ignoreErrors) {
     rc = 0;
   }
 
-  if(m) m->unlock(__FILE__, __LINE__);
+  if(doLock && m) m->unlock(__FILE__, __LINE__);
 
   return(rc);
 }
@@ -438,7 +475,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
   if(((rc = mysql_query(&mysql, sql)) != 0)
      || ((result = mysql_store_result(&mysql)) == NULL)) {
 
-    lua_pushstring(vm, get_last_db_error());
+    lua_pushstring(vm, get_last_db_error(&mysql));
     if(m) m->unlock(__FILE__, __LINE__);
     return(rc);
   }

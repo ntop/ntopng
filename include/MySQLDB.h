@@ -28,15 +28,17 @@ class MySQLDB : public DB {
  private:
   MYSQL mysql;
   bool db_operational;
+  pthread_t queryThreadLoop;
 
-  bool connectToDB(bool select_db);
-  char* get_last_db_error() { return((char*)mysql_error(&mysql)); }
-  int exec_sql_query(char *sql, bool doReconnect = true, bool ignoreErrors = false);
-  
+  bool connectToDB(MYSQL *conn, bool select_db);
+  char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
+  int exec_sql_query(MYSQL *conn, char *sql, bool doReconnect = true, bool ignoreErrors = false, bool doLock = true);
+
  public:
   MySQLDB(NetworkInterface *_iface = NULL);
   ~MySQLDB();
-  
+
+  void* queryLoop();
   bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql);
 };

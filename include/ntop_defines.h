@@ -291,8 +291,9 @@
 #define CONST_AGGREGATIONS            "aggregations"
 #define CONST_HOST_CONTACTS           "host_contacts"
 
-#define CONST_ALERT_MSG_QUEUE         "ntopng.alert_queue"
-#define CONST_ALERT_PREFS             "ntopng.prefs.alerts"
+#define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
+#define CONST_SQL_QUEUE                    "ntopng.sql_queue"
+#define CONST_ALERT_PREFS                  "ntopng.prefs.alerts"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
 #define CONST_NAGIOS_NSCA_PORT_PREFS       "ntopng.prefs.nagios_nsca_port"
@@ -334,6 +335,7 @@
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192
+#define CONST_MAX_MYSQL_QUEUE_LEN     8192
 #define CONST_MAX_NUM_READ_ALERTS     32
 #define CONST_MAX_THRESHOLD_CROSS_DURATION 3
 #define CONST_MAX_ACTIVITY_DURATION    86400 /* sec */
