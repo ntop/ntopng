@@ -124,6 +124,7 @@ void Host::computeHostSerial() {
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
   u_char* ant_mac =  iface->getAntennaMac();
+  char buf[64], host[96], json[8192];
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
@@ -168,8 +169,6 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   if(init_all) {
     if(ip) {
-      char buf[64], host[96], json[8192];
-
       snprintf(host, sizeof(host), "%s@%u", ip->print(buf, sizeof(buf)), vlan_id);
 
       updateLocal();
