@@ -124,12 +124,23 @@ if stats_type == "top_talkers" then
       end
       -- tprint(res)
    end
+   if res ~= nil then
+      for _, record in pairs(res) do
+	 record["label"] = shortenString(record["label"])
+	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details?host='..record["addr"]..'">'..record["label"]..'</a>'
+      end
+   end
 elseif stats_type =="top_applications" then
    res = getTopApplications(ifid, peer1, peer2, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
    -- add protocol labels
    for _, record in pairs(res) do
       record["label"] = getApplicationLabel(interface.getnDPIProtoName(tonumber(record["application"])))
+   end
+   if res ~= nil then
+      for _, record in pairs(res) do
+	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?protocol='..record["label"]..'">'..record["label"]..'</a>'
+      end
    end
    -- tprint(res)
 elseif stats_type =="peers_traffic_histogram" and peer1 and peer2 then
@@ -190,6 +201,9 @@ for _, record in pairs(res_sliced) do
       record_contents["column_flows"] = formatValue(tonumber(record["tot_flows"]))
    else
       record_contents["column_flows"] = "n.a."
+   end
+   if record["avg_flow_duration"] then
+      record_contents["column_avg_flow_duration"] = secondsToTime(tonumber(record["avg_flow_duration"]))
    end
    table.insert(res_formatted, record_contents)
 end

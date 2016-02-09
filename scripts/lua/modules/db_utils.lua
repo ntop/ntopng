@@ -251,11 +251,11 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    local sql = ""
    if v4_or_v6 == 6 then
       sql = " SELECT NULL addrv4, "..src_or_dst.." addrv6, "
-      sql = sql.."BYTES as bytes, PACKETS as packets "
+      sql = sql.."BYTES as bytes, PACKETS as packets, FIRST_SWITCHED, LAST_SWITCHED "
       sql = sql.."FROM flowsv6 "
    elseif v4_or_v6 == 4 then -- ipv4
       sql = " SELECT "..src_or_dst.." addrv4, NULL addrv6, "
-      sql = sql.."BYTES as bytes, PACKETS as packets "
+      sql = sql.."BYTES as bytes, PACKETS as packets, FIRST_SWITCHED, LAST_SWITCHED  "
       sql = sql.."FROM flowsv4 "
    else
       sql = ""
@@ -272,7 +272,8 @@ function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_c
 
    -- AGGREGATE AND CRUNCH DATA
    sql = "select CASE WHEN addrv4 IS NOT NULL THEN INET_NTOA(addrv4) ELSE addrv6 END addr, "
-   sql = sql.."SUM(bytes) tot_bytes, SUM(packets) tot_packets, count(*) tot_flows from "
+   sql = sql.."SUM(bytes) tot_bytes, SUM(packets) tot_packets, count(*) tot_flows, "
+   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration from "
 
    sql = sql.."("
    sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id)
@@ -292,6 +293,9 @@ function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_c
    end
    if sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "tot_flows"
+   end
+   if sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+      order_by_column = "avg_flow_duration"
    end
 
    local order_by_order = "desc"
@@ -333,7 +337,8 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch, sor
       sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END addr, "
    end
 
-   sql = sql.."sum(BYTES) as bytes, sum(PACKETS) as packets, count(*) as flows "
+   sql = sql.."sum(BYTES) as bytes, sum(PACKETS) as packets, count(*) as flows, "
+   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
    sql = sql.." FROM flowsv"..version
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
@@ -358,6 +363,9 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch, sor
    end
    if sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "flows"
+   end
+   if sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+      order_by_column = "avg_flow_duration"
    end
 
    local order_by_order = "desc"
@@ -397,7 +405,8 @@ function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_e
    if(info == "") then info = nil end
 
    sql = " SELECT L7_PROTO application, "
-   sql = sql.."sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
+   sql = sql.."sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows, "
+   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
    sql = sql.." FROM flowsv"..version
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
@@ -431,6 +440,9 @@ function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_e
    end
    if sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "tot_flows"
+   end
+   if sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+      order_by_column = "avg_flow_duration"
    end
 
    local order_by_order = "desc"
@@ -475,7 +487,8 @@ function getPeersTrafficHistogram(interface_id, peer1, peer2, info, begin_epoch,
       sql = " SELECT least(IP_SRC_ADDR, IP_DST_ADDR) peer1_addr, greatest(IP_SRC_ADDR, IP_DST_ADDR) peer2_addr, "
    end
    sql = sql.." MIN(FIRST_SWITCHED) first_switched_bin, " -- the oldest datapoint in each bin
-   sql = sql.." sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
+   sql = sql.." sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows, "
+   sql = sql.." (sum(FIRST_SWITCHED) - sum(LAST_SWITCHED)) / count(*) as avg_flow_duration "
 
    sql = sql.." FROM flowsv"..version
 
