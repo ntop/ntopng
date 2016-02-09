@@ -68,7 +68,7 @@ get_ntopng_pid() {
 	return 0
     fi
 
-    if [ -f $PID_FILE ]; then
+    if [ -f "$PID_FILE" ]; then
  	PID=$(cat $PID_FILE)
         if [ -z "${PID}" ]; then
 	    /bin/rm $PID_FILE
