@@ -4431,6 +4431,10 @@ static int parse_port_string(const struct vec *vec, struct socket *so) {
   so->lsa.sin.sin_port = htons((uint16_t) port);
 #endif
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+  so->lsa.sin.sin_len = sizeof(struct sockaddr_in);
+#endif
+  
   return 1;
 }
 
@@ -4439,7 +4443,14 @@ static int set_ports_option(struct mg_context *ctx) {
   int on = 1, success = 1;
   struct vec vec;
   struct socket so;
+  int rc_setsockopt = 0, rc_bind = 0, rc_listen = 0, sa_len = sizeof(so.lsa.sin);
+  const struct sockaddr *sa = (const struct sockaddr *)&so.lsa.sin;
 
+#if defined(USE_IPV6)
+  if(is_ip6_enabled)
+    sa = (const struct sockaddr *)&so.lsa.sin6, sa_len = sizeof(so.lsa.sin6);
+#endif
+  
   while (success && (list = next_option(list, &vec, NULL)) != NULL) {
     if (!parse_port_string(&vec, &so)) {
       cry(fc(ctx), "%s: %.*s: invalid port spec. Expecting list of: %s",
@@ -4448,19 +4459,19 @@ static int set_ports_option(struct mg_context *ctx) {
     } else if (so.is_ssl && ctx->ssl_ctx == NULL) {
       cry(fc(ctx), "Cannot add SSL socket, is -ssl_certificate option set?");
       success = 0;
-    } else if ((so.sock = socket(so.lsa.sa.sa_family, SOCK_STREAM, 6)) ==
+    } else if ((so.sock = socket(so.lsa.sa.sa_family, SOCK_STREAM, IPPROTO_TCP)) ==
                INVALID_SOCKET ||
                // On Windows, SO_REUSEADDR is recommended only for
                // broadcast UDP sockets
-               setsockopt(so.sock, SOL_SOCKET, SO_REUSEADDR,
+               (rc_setsockopt = setsockopt(so.sock, SOL_SOCKET, SO_REUSEADDR,
 #ifdef WIN32
-			  (const char*)
+					   (const char*)
 #else
-                          (void *) 
+					   (void *) 
 #endif					  
-			  &on, sizeof(on)) != 0 ||
-               bind(so.sock, &so.lsa.sa, sizeof(so.lsa)) != 0 ||
-               listen(so.sock, SOMAXCONN) != 0) {
+					   &on, sizeof(on))) != 0 ||
+               (rc_bind = bind(so.sock, sa, sa_len)) != 0 ||
+               (rc_listen = listen(so.sock, SOMAXCONN)) != 0) {
       cry(fc(ctx), "%s: cannot bind to %.*s: %s", __func__,
           (int) vec.len, vec.ptr, strerror(ERRNO));
       closesocket(so.sock);
@@ -5239,6 +5250,10 @@ struct mg_context *mg_start(const struct mg_callbacks *callbacks,
   check_ipv6_enabled();
 #endif
 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+  is_ip6_enabled = 0;
+#endif
+  
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
   WSADATA data;
   WSAStartup(MAKEWORD(2,2), &data);
