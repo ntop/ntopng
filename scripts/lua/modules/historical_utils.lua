@@ -33,12 +33,16 @@ var emptyBreadCrumb = function(){
   $('#bc-talkers').empty();
 };
 
-var updateBreadCrumb = function(host){
+var updateBreadCrumb = function(peer1, peer2){
   emptyBreadCrumb();
     $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
-  if (host) {
-    $("#bc-talkers").append('<li>Talkers with host ' + host + ' </li>');
+  if (peer1) {
+    $("#bc-talkers").append('<li>Talkers with host ' + peer1 + ' </li>');
+    if (peer2) {
+      $("#bc-talkers").append('<li>Applications between ' + peer1 + ' and ' + peer2 + ' </li>');
+    }
   }
+
 };
 
 // populates the breadcrump according to the current level of depth
@@ -57,6 +61,7 @@ var updateBreadCrumb = function(){
 
 var populateInterfaceTopTalkersTable = function(){
   $('#historical-host-top-talkers-table').hide();
+  $('#historical-apps-per-pair-of-hosts-table').hide();
   $('#historical-interface-top-talkers-table').show();
   if ($('#historical-interface-top-talkers-table').attr("loaded") != 1) {
     $('#historical-interface-top-talkers-table').attr("loaded", 1);
@@ -82,6 +87,7 @@ var populateInterfaceTopTalkersTable = function(){
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -93,6 +99,7 @@ var populateInterfaceTopTalkersTable = function(){
 
 var populateHostTopTalkersTable = function(host){
   $('#historical-interface-top-talkers-table').hide();
+  $('#historical-apps-per-pair-of-hosts-table').hide();
   $('#historical-host-top-talkers-table').show();
   // load the table only if it is the first time we've been called
   if ($('#historical-host-top-talkers-table').attr("loaded") != 1 || $('#historical-host-top-talkers-table').attr("host") != host) {
@@ -109,10 +116,18 @@ var populateHostTopTalkersTable = function(host){
 	showFilter: true,
 	showPagination: true,
 	tableCallback: function(){$('#historical-host-top-talkers-table').attr("total_rows", this.options.totalRows);},
+	rowCallback: function(row){
+	  var addr_td = $("td:eq(0)", row[0]);
+	  var label_td = $("td:eq(1)", row[0]);
+	  var addr = addr_td.text();
+	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange" title="Applications between ' + host + ' and ' + addr + '"></i></a>');
+	  return row;
+	},
 	columns:
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -120,6 +135,40 @@ var populateHostTopTalkersTable = function(host){
     });
   }
   updateBreadCrumb(host);
+};
+
+var populateAppsPerHostsPairTable = function(peer1, peer2){
+  $('#historical-interface-top-talkers-table').hide();
+  $('#historical-host-top-talkers-table').hide();
+  $('#historical-apps-per-pair-of-hosts-table').show();
+  // load the table only if it is the first time we've been called
+  if ($('#historical-apps-per-pair-of-hosts-table').attr("loaded") != 1 || $('#historical-apps-per-pair-of-hosts-table').attr("host") != host) {
+    $('#historical-apps-per-pair-of-hosts-table').attr("loaded", 1);
+    $('#historical-apps-per-pair-of-hosts-table').attr("peer1", peer1);
+    $('#historical-apps-per-pair-of-hosts-table').attr("peer2", peer2);
+    $('#historical-apps-per-pair-of-hosts-table').datatable({
+	title: "",]]
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_historical_data.lua?stats_type=top_applications"..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2,")
+  if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+  -- Automatic default sorted. NB: the column must be exists.
+  print ('sort: [ ["'..sort_column..'","'..sort_order..'"] ],\n')
+	print [[
+	post: {totalRows: function(){ return $('#historical-apps-per-pair-of-hosts-table').attr("total_rows");} },
+	showFilter: true,
+	showPagination: true,
+	tableCallback: function(){$('#historical-apps-per-pair-of-hosts-table').attr("total_rows", this.options.totalRows);},
+	columns:
+	[
+	  {title: "Address", field: "column_addr", hidden: true},
+	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
+	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
+	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
+	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	]
+    });
+  }
+  updateBreadCrumb(peer1, peer2);
 };
 
 // executes when the talkers tab is focused
