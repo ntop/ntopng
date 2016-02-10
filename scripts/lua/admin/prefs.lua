@@ -133,7 +133,7 @@ if (ntop.isPro()) then
         ldap_server = "ldap://localhost:389"
         ntop.setCache("ntopng.prefs.ldap.server", ldap_server)
       end
-      prefsInputFieldWithParamCheck("LDAP server address", "Address of LDAP server. Default: \"ldpa://localhost:389\"", "ntopng.prefs.ldap", "server", ldap_server, "text", js_body_funtion_script)
+      prefsInputFieldWithParamCheck("LDAP server address", "Address of LDAP server. Default: \"ldap://localhost:389\"", "ntopng.prefs.ldap", "server", ldap_server, "text", js_body_funtion_script)
       local ldap_bind_dn = ntop.getCache("ntopng.prefs.ldap.bind_dn")
       if(ldap_bind_dn == nil) then ldap_bind_dn = "" end
       prefsInputFieldWithParamCheck("LDAP Bind DN", "Bind Distinguished Name of LDAP server.", "ntopng.prefs.ldap", "bind_dn", ldap_bind_dn, "text", nil)
