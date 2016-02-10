@@ -83,11 +83,12 @@ Flow::Flow(NetworkInterface *_iface,
 
   synTime.tv_sec = synTime.tv_usec = 0,
     ackTime.tv_sec = ackTime.tv_usec = 0,
-    synAckTime.tv_sec = synAckTime.tv_usec = 0;
+    synAckTime.tv_sec = synAckTime.tv_usec = 0, 
+    rttSec = 0, cli2srv_window= srv2cli_window = 0;
   memset(&http, 0, sizeof(http)), memset(&dns, 0, sizeof(dns));
   memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
-
+  
   switch(protocol) {
   case IPPROTO_TCP:
   case IPPROTO_UDP:
@@ -567,7 +568,6 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
   lua_push_int_table_entry(vm, "sent.last", get_current_bytes_cli2srv());
   lua_push_int_table_entry(vm, "rcvd.last", get_current_bytes_srv2cli());
   lua_push_int_table_entry(vm, "duration", get_duration());
-
 
   lua_push_float_table_entry(vm, "client.latitude", get_cli_host()->get_latitude());
   lua_push_float_table_entry(vm, "client.longitude", get_cli_host()->get_longitude());
@@ -1066,6 +1066,9 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
       lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
       lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
+
+      lua_push_float_table_entry(vm, "tcp.max_thpt.cli2srv", getCli2SrvMaxThpt());
+      lua_push_float_table_entry(vm, "tcp.max_thpt.srv2cli", getSrv2CliMaxThpt());
     }
 
     if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
@@ -1522,6 +1525,9 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 
 	  /* Sanity check */
 	  if(clientNwLatency.tv_sec > 5) memset(&clientNwLatency, 0, sizeof(clientNwLatency));
+	  
+	  rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
+	    +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
 	}
       }
     } else
@@ -1566,8 +1572,8 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 /* *************************************** */
 
 void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
-			   u_int32_t seq_num,
-			   u_int32_t ack_seq_num, u_int8_t flags,
+			   u_int32_t seq_num, u_int32_t ack_seq_num, 
+			   u_int16_t window, u_int8_t flags,
 			   u_int16_t payload_Len, bool src2dst_direction) {
   u_int32_t next_seq_num;
   bool update_last_seqnum = true;
@@ -1577,9 +1583,10 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 
   if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[act: %u][ack: %u]", seq_num, ack_seq_num);
 
-  if(src2dst_direction == true) {
+  if(src2dst_direction) {
     if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[last: %u][next: %u]", tcp_stats_s2d.last, tcp_stats_s2d.next);
 
+    if(window > 0) srv2cli_window = window; /* Note the window is reverted */
     if(tcp_stats_s2d.next > 0) {
       if((tcp_stats_s2d.next != seq_num)
 	 && (tcp_stats_s2d.next != (seq_num-1))) {
@@ -1604,6 +1611,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
   } else {
     if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
 
+    if(window > 0) cli2srv_window = window; /* Note the window is reverted */
     if(tcp_stats_d2s.next > 0) {
       if((tcp_stats_d2s.next != seq_num)
 	 && (tcp_stats_d2s.next != (seq_num-1))) {

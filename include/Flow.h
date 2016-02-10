@@ -75,7 +75,8 @@ class Flow : public GenericHashEntry {
 
   /* TCP stats */
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
-  
+  u_int16_t cli2srv_window, srv2cli_window;
+
   time_t doNotExpireBefore; /* 
 			       Used for collected flows via ZMQ to make sure that they are not immediately
 			       expired if their last seen time is back in time with respect to ntopng 
@@ -84,6 +85,7 @@ class Flow : public GenericHashEntry {
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
+  float rttSec;
 
   struct {
     struct timeval firstSeenSent, lastSeenSent;
@@ -151,9 +153,9 @@ class Flow : public GenericHashEntry {
 		      u_int8_t flags, bool src2dst_direction);
 
   void updateTcpSeqNum(const struct bpf_timeval *when,
-		      u_int32_t seq_num,
-		      u_int32_t ack_seq_num, u_int8_t flags,
-		      u_int16_t payload_len, bool src2dst_direction);
+		       u_int32_t seq_num, u_int32_t ack_seq_num, 
+		       u_int16_t window, u_int8_t flags,
+		       u_int16_t payload_len, bool src2dst_direction);
   
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
@@ -233,6 +235,10 @@ class Flow : public GenericHashEntry {
   inline void updateProfile()   { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
+  inline float getFlowRTT() { return(rttSec); }
+  /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */
+  inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
+  inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
 };
 
 #endif /* _FLOW_H_ */

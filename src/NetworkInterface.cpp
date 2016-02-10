@@ -776,7 +776,7 @@ bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
 
     if(l4_proto == IPPROTO_TCP) {
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
-      flow->updateTcpSeqNum(when, ntohl(tcph->seq), ntohl(tcph->ack_seq),
+      flow->updateTcpSeqNum(when, ntohl(tcph->seq), ntohl(tcph->ack_seq), ntohs(tcph->window),
 			    tcp_flags, l4_packet_len - (4 * tcph->doff),
 			    src2dst_direction);
     }
