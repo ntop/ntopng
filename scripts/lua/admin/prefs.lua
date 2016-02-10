@@ -108,14 +108,13 @@ if (ntop.isPro()) then
    print('<tr><th colspan=2 class="info">Authentication</th></tr>')
 
    local js_body_funtion_script = "";
-   --if (field.substring(0, 7) != "ldap://") {
-   --  return "Invalid Value: missing \"ldap://\" at beginning.";
-   --}
-   js_body_funtion_script = js_body_funtion_script.."  if (field.substring(0, 7) != \"ldap://\") {\n"
-   js_body_funtion_script = js_body_funtion_script.."    return \"Invalid Value: missing \\\"ldap://\\\" at beginning.\";"
+
+   js_body_funtion_script = js_body_funtion_script.."  if ((field.substring(0, 7) != \"ldap://\") && (field.substring(0, 8) != \"ldaps://\")) {\n"
+   js_body_funtion_script = js_body_funtion_script.."    return \"Invalid Value: missing \\\"ldap://\\\" or \\\"ldaps://\\\" at beginning.\";"
    js_body_funtion_script = js_body_funtion_script.."  }\n"
 
-   js_body_funtion_script = js_body_funtion_script.."  var new_field = field.replace(\'ldap://\', \'\');\n"
+   js_body_funtion_script = js_body_funtion_script.."  var new_field = field.replace(\'ldaps://\', \'\');\n"
+   js_body_funtion_script = js_body_funtion_script.."  new_field = new_field.replace(\'ldap://\', \'\');\n"
    js_body_funtion_script = js_body_funtion_script.."  var res = new_field.split(\":\");\n"
    js_body_funtion_script = js_body_funtion_script.."  if(res.length != 2){\n"
    js_body_funtion_script = js_body_funtion_script.."     return \"Invalid Value: missing ldap server address or port number.\";\n"
@@ -143,6 +142,9 @@ if (ntop.isPro()) then
       local ldap_user_group = ntop.getCache("ntopng.prefs.ldap.user_group")
       if(ldap_user_group == nil) then ldap_user_group = "" end
       prefsInputFieldWithParamCheck("LDAP User Group", "Group name to which user has to belong in order to authenticate properly.", "ntopng.prefs.ldap", "user_group", ldap_user_group, "text", nil)
+      local ldap_admin_group = ntop.getCache("ntopng.prefs.ldap.admin_group")
+      if(ldap_admin_group == nil) then ldap_admin_group = "" end
+      prefsInputFieldWithParamCheck("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", ldap_admin_group, "text", nil)
     end
 end
 

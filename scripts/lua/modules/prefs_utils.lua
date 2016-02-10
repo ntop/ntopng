@@ -156,6 +156,7 @@ function prefsInputFieldWithParamCheck(label, comment, pre_key, key, value, _inp
       value = v
     elseif (v_s ~= nil) then
       -- fix for ldap preference
+      v_s = string.gsub(v_s, "ldaps:__", "ldaps://")
       v_s = string.gsub(v_s, "ldap:__", "ldap://")
       ntop.setCache(k, v_s)
       value = v_s
