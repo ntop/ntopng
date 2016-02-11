@@ -48,17 +48,17 @@ print [[
 <div class="form-group has-feedback">
   <label for="" class="control-label">New User Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-  <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w]{1,}$" required>
+  <input id="new_password_input" type="password" name="new_password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)\=\?\^\*@_]{1,}$" required>
 </div>
 </div>
 
 <div class="form-group has-feedback">
   <label for="" class="control-label">Confirm New User Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-  <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w]{1,}$" required>
+  <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_]{1,}$" required>
 </div>
 </div>
-
+<div><small>Allowed characters in the password are: upper and lower case letters, numbers and the following symbols: $!/()=?^*@_ </small></div>
 <div class="form-group has-feedback">
   <button id="password_reset_submit" class="btn btn-primary btn-block">Change User Password</button>
 </div>
@@ -104,7 +104,7 @@ print [[<script>
   var frmpassreset = $('#form_password_reset');
 
   frmpassreset.submit(function () {
-			    if(!isValid($("#new_password_input").val())) { password_alert.error("Password contains invalid chars (a-z, A-Z, 0-9, and _)"); return(false); }
+			    if(!isValidPassword($("#new_password_input").val())) { password_alert.error("Password contains invalid chars (a-z, A-Z, 0-9, and _)"); return(false); }
     if($("#new_password_input").val().length < 5) { password_alert.error("Password too short (< 5 characters)"); return(false); }
     if($("#new_password_input").val() != $("#confirm_new_password_input").val()) { password_alert.error("Passwords don't match"); return(false); }
 
