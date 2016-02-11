@@ -22,47 +22,62 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
 </ol>
 
 <div id="historical-container">
-  <div id="historical-interface-top-talkers-table" total_rows=-1 loaded=0> </div>
-  <div id="historical-host-top-talkers-table" total_rows=-1 loaded=0> </div>
-  <div id="historical-apps-per-pair-of-hosts-table" total_rows=-1 loaded=0> </div>
+  <div id="historical-interface-top-talkers-table" class="historical-interface" total_rows=-1 loaded=0> </div>
+  <div id="hosts-container"> </div>
+  <div id="apps-per-pair-container"> </div>
 </div>
 
 <script type="text/javascript">
+
+function hideAll(cla){
+  $('.' + cla).hide();
+}
+
+function showOne(cla, id){
+  $('.' + cla).not('#' + id).hide();
+  $('#' + id).show();
+}
+
+function hostkey2hostInfo(host_key) {
+    var info;
+    var hostinfo = [];
+
+    host_key = host_key.replace(/\:/g, "____");
+    host_key = host_key.replace(/\//g, "___");
+    host_key = host_key.replace(/\./g, "__");
+
+    info = host_key.split("@");
+    return(info);
+}
 
 var emptyBreadCrumb = function(){
   $('#bc-talkers').empty();
 };
 
-var updateBreadCrumb = function(peer1, peer2){
+var refreshBreadCrumbInterface = function(){
   emptyBreadCrumb();
     $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
-  if (peer1) {
-    $("#bc-talkers").append('<li>Talkers with host ' + peer1 + ' </li>');
-    if (peer2) {
-      $("#bc-talkers").append('<li>Applications between ' + peer1 + ' and ' + peer2 + ' </li>');
-    }
-  }
+}
 
-};
+var refreshBreadCrumbHost = function(host){
+  emptyBreadCrumb();
+    $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
+    $("#bc-talkers").append('<li>Talkers with host ' + host + ' </li>');
+}
 
-// populates the breadcrump according to the current level of depth
-/*
-var updateBreadCrumb = function(){
-  var root = $("#bc-talkers").attr("root");
-  if (root === "interface"){
-    $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
-  } else if (root === "host"){
-    //$("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
-    $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
-    $("#bc-talkers").append('<li>Talkers with host ]] print(host) print [[</li>');
- }
-};
-*/
+var refreshBreadCrumbPairs = function(peer1, peer2){
+  emptyBreadCrumb();
+    $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
+    $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">Talkers with host ' + peer1 + '</a></li>');
+    $("#bc-talkers").append('<li>Applications between ' + peer1 + ' and ' + peer2 + ' </li>');
+}
 
 var populateInterfaceTopTalkersTable = function(){
-  $('#historical-host-top-talkers-table').hide();
-  $('#historical-apps-per-pair-of-hosts-table').hide();
-  $('#historical-interface-top-talkers-table').show();
+  refreshBreadCrumbInterface();
+  hideAll("host-talkers");
+  hideAll("apps-per-host-pair");
+  showOne('historical-interface', 'historical-interface-top-talkers-table');
+
   if ($('#historical-interface-top-talkers-table').attr("loaded") != 1) {
     $('#historical-interface-top-talkers-table').attr("loaded", 1);
     $('#historical-interface-top-talkers-table').datatable({
@@ -94,28 +109,37 @@ var populateInterfaceTopTalkersTable = function(){
 	]
     });
   }
-  updateBreadCrumb();
 };
 
+
+
 var populateHostTopTalkersTable = function(host){
-  $('#historical-interface-top-talkers-table').hide();
-  $('#historical-apps-per-pair-of-hosts-table').hide();
-  $('#historical-host-top-talkers-table').show();
+  refreshBreadCrumbHost(host);
+
+  var div_id = 'host-' + hostkey2hostInfo(host)[0];
+  if ($('#'+div_id).length == 0)  // create the div only if it does not exist
+    $('#hosts-container').append('<div class="host-talkers" id="' + div_id + '" total_rows=-1 loaded=0></div>');
+
+  hideAll('historical-interface');
+  hideAll('apps-per-host-pair');
+  showOne("host-talkers", div_id);
+
   // load the table only if it is the first time we've been called
-  if ($('#historical-host-top-talkers-table').attr("loaded") != 1 || $('#historical-host-top-talkers-table').attr("host") != host) {
-    $('#historical-host-top-talkers-table').attr("loaded", 1);
-    $('#historical-host-top-talkers-table').attr("host", host);
-    $('#historical-host-top-talkers-table').datatable({
+  div_id='#'+div_id;
+  if ($(div_id).attr("loaded") != 1) {
+    $(div_id).attr("loaded", 1);
+    $(div_id).attr("host", host);
+    $(div_id).datatable({
 	title: "",]]
 	print("url: '"..ntop.getHttpPrefix().."/lua/get_historical_data.lua?stats_type=top_talkers"..interface_talkers_url_params.."&peer1=' + host ,")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
   print ('sort: [ ["'..sort_column..'","'..sort_order..'"] ],\n')
 	print [[
-	post: {totalRows: function(){ return $('#historical-host-top-talkers-table').attr("total_rows");} },
+	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$('#historical-host-top-talkers-table').attr("total_rows", this.options.totalRows);},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(0)", row[0]);
 	  var label_td = $("td:eq(1)", row[0]);
@@ -134,29 +158,42 @@ var populateHostTopTalkersTable = function(host){
 	]
     });
   }
-  updateBreadCrumb(host);
 };
 
 var populateAppsPerHostsPairTable = function(peer1, peer2){
-  $('#historical-interface-top-talkers-table').hide();
-  $('#historical-host-top-talkers-table').hide();
-  $('#historical-apps-per-pair-of-hosts-table').show();
+  refreshBreadCrumbPairs(peer1, peer2);
+
+  var kpeer1 = hostkey2hostInfo(peer1)[0];
+  var kpeer2 = hostkey2hostInfo(peer2)[0];
+  if (kpeer2 > kpeer1){
+    var tmp = kpeer1;
+    kpeer2 = kpeer1;
+    kpeer1 = tmp;
+  }
+  var div_id = 'pair-' + kpeer1 + "_" + kpeer2;
+  if ($('#'+div_id).length == 0)  // create the div only if it does not exist
+    $('#apps-per-pair-container').append('<div class="apps-per-host-pair" id="' + div_id + '" total_rows=-1 loaded=0></div>');
+
+  hideAll('historical-interface');
+  hideAll('host-talkers');
+  showOne('apps-per-host-pair', div_id);
+  div_id='#'+div_id;
   // load the table only if it is the first time we've been called
-  if ($('#historical-apps-per-pair-of-hosts-table').attr("loaded") != 1 || $('#historical-apps-per-pair-of-hosts-table').attr("host") != host) {
-    $('#historical-apps-per-pair-of-hosts-table').attr("loaded", 1);
-    $('#historical-apps-per-pair-of-hosts-table').attr("peer1", peer1);
-    $('#historical-apps-per-pair-of-hosts-table').attr("peer2", peer2);
-    $('#historical-apps-per-pair-of-hosts-table').datatable({
+  if ($(div_id).attr("loaded") != 1) {
+    $(div_id).attr("loaded", 1);
+    $(div_id).attr("peer1", peer1);
+    $(div_id).attr("peer2", peer2);
+    $(div_id).datatable({
 	title: "",]]
 	print("url: '"..ntop.getHttpPrefix().."/lua/get_historical_data.lua?stats_type=top_applications"..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2,")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
   print ('sort: [ ["'..sort_column..'","'..sort_order..'"] ],\n')
 	print [[
-	post: {totalRows: function(){ return $('#historical-apps-per-pair-of-hosts-table').attr("total_rows");} },
+	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$('#historical-apps-per-pair-of-hosts-table').attr("total_rows", this.options.totalRows);},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);},
 	columns:
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
@@ -168,7 +205,6 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	]
     });
   }
-  updateBreadCrumb(peer1, peer2);
 };
 
 // executes when the talkers tab is focused
