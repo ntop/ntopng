@@ -199,6 +199,12 @@ float Utils::timeval2ms(struct timeval *tv) {
 
 /* ****************************************************** */
 
+u_int32_t Utils::timeval2usec(const struct timeval *tv) {
+  return(tv->tv_sec*1000000+tv->tv_usec);
+}
+
+/* ****************************************************** */
+
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
 

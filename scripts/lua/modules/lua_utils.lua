@@ -231,34 +231,13 @@ end
 -- ##############################################
 
 function findString(str, tofind)
-  local upper_lower = true
   if(str == nil) then return(nil) end
   if(tofind == nil) then return(nil) end
 
-  str1    = string.gsub(str, "-", "_")
-  tofind1 = string.gsub(tofind, "-", "_")
-  rsp     = string.find(str1, tofind1, 1)
-
-  if(upper_lower) then
-    if(rsp == nil) then
-      -- Lowercase
-      str1 = string.lower(str1)
-      tofind1 = string.lower(tofind1)
-      rsp = string.find(str1, tofind1, 1)
-    end
-
-    if(rsp == nil) then
-      -- Uppercase
-      str1 = string.upper(str1)
-      tofind1 = string.upper(tofind1)
-      rsp = string.find(str1, tofind1, 1)
-    end
-  end
-  --print(str1 .. "/" .. tofind1.."\n")
-  --print(rsp)
-  --print("\n")
-
-  return(rsp)
+  str1    = string.lower(string.gsub(str, "-", "_"))
+  tofind1 = string.lower(string.gsub(tofind, "-", "_"))
+  
+  return(string.find(str1, tofind1, 1))
 end
 
 -- ##############################################
