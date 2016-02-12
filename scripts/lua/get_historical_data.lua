@@ -26,6 +26,9 @@ if peer2 and not peer1 then
 	peer2 = nil
 end
 
+-- this is to retrieve L7 appliation data
+local l7_proto_id = _GET["l7_proto_id"]
+
 local host_info = url2hostinfo(_GET)
 local host = nil
 if host_info["host"] then
@@ -109,15 +112,25 @@ end
 -- start building the response
 local res = {["status"] = "unable to parse the request, please check input parameters."}
 if stats_type == "top_talkers" then
-   if not peer1 and not peer2 then
-      -- compute the top-talkers for the selected time interval
+   if not peer1 and not peer2 and not l7_proto_id then
+      -- CASE 01: compute interface-wide top-talkers for the selected time interval
       res = getOverallTopTalkers(ifid, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
       end
-   else
-      res = getHostTopTalkers(ifid, peer1, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+   elseif not peer1 and not peer2 and l7_proto_id and l7_proto_id ~= "" then
+      -- CASE 02: compute top-talkers for the specified L7 protocol
+      res = getAppTopTalkers(ifid, l7_proto_id, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+
+      for _, record in pairs(res) do
+	 record["label"] = ntop.getResolvedAddress(record["addr"])
+      end
+   elseif peer1 and peer1 ~="" then
+      -- CASE 03: compute top-talkers with the given peer1
+      -- if l7_proto_id is specified and non-nil, then top-talkers are computed
+      -- with reference to peer1 and restricted to the application identified by l7_proto_id
+      res = getHostTopTalkers(ifid, peer1, l7_proto_id, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
@@ -127,7 +140,7 @@ if stats_type == "top_talkers" then
    if res ~= nil then
       for _, record in pairs(res) do
 	 record["label"] = shortenString(record["label"])
-	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details?host='..record["addr"]..'">'..record["label"]..'</a>'
+	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..record["addr"]..'">'..record["label"]..'</a>'
       end
    end
 elseif stats_type =="top_applications" then
@@ -179,6 +192,7 @@ for _, record in pairs(res_sliced) do
    if not record["label"] or record["label"] == "" then record["label"] = record["addr"] end
    record_contents["column_label"] = record["label"]
    record_contents["column_addr"] = record["addr"]
+   if record["application"] then record_contents["column_application"] = record["application"] end
    -- 'normalize' possible different names, e.g., group bytes or tot_bytes in bytes
    -- and rename fields with the 'column_' prefix that is conventionally used in the interface
    if record["bytes"] then

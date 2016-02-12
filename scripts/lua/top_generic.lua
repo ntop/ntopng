@@ -68,7 +68,7 @@ else
 		 record["label"] = ntop.getResolvedAddress(record["addr"])
 	      end
 	   else
-	      res = getHostTopTalkers(ifid, peer1, nil, epoch_start + 60, epoch_end + 60)
+	      res = getHostTopTalkers(ifid, peer1, nil, nil, epoch_start + 60, epoch_end + 60)
 
 	      for _, record in pairs(res) do
 		 record["peer_label"] = ntop.getResolvedAddress(record["peer_addr"])
