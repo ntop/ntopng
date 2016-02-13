@@ -79,6 +79,7 @@ class Utils {
   static char* tokenizer(char *arg, int c, char **data);
   static char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   static char* intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_short bufLen);
+  static u_int32_t timeval2usec(const struct timeval *tv);
 };
 
 #endif /* _UTILS_H_ */

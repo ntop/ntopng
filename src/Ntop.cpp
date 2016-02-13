@@ -87,7 +87,8 @@ Ntop::Ntop(char *appName) {
   umask(0);
 
   if(getcwd(startup_dir, sizeof(startup_dir)) == NULL)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Occurred while checking the current directory (errno=%d)", errno);
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Occurred while checking the current directory (errno=%d)", errno);
 
   dirs[0] = startup_dir;
 
