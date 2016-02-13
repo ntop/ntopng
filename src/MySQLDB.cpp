@@ -95,7 +95,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 #endif
             "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
             "`INTERFACE` varchar(64) DEFAULT NULL,"
-            "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`),"
+            "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`(200)),"
 #ifdef NTOPNG_PRO
             "KEY `ix_flowsv6_4_profile` (`PROFILE`),"
 #endif
@@ -132,7 +132,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 #endif
             "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
             "`INTERFACE` varchar(64) DEFAULT NULL,"
-            "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`),"
+            "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`(200)),"
 #ifdef NTOPNG_PRO
             "KEY `ix_flowsv4_4_profile` (`PROFILE`),"
 #endif
