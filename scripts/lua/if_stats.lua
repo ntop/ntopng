@@ -967,22 +967,6 @@ elseif(page == "filtering") then
 
    net = _GET["network"]
 
-   any_net = "0.0.0.0/0@0"  
-
-   nets = ntop.getHashKeysCache(key, any_net)
-
-   if((nets == nil) or (nets == "")) then
-      nets = ntop.getHashKeysCache(policy_key)
-   end
-   
-   if((net == nil) and (nets ~= nil)) then
-      -- If there is not &network= parameter then use the first network available
-      for k,v in pairsByKeys(nets, asc) do
-	 net = k
-	 break
-      end
-   end
-
    if(net ~= nil) then
       if(findString(net, "@") == nil) then
 	 net = net.."@0"
@@ -992,6 +976,24 @@ elseif(page == "filtering") then
 	 ntop.setHashCache(policy_key, net, "")
       end
    end
+
+   any_net = "0.0.0.0/0@0"
+
+   nets = ntop.getHashKeysCache(key, any_net)
+
+   if((nets == nil) or (nets == "")) then
+      nets = ntop.getHashKeysCache(policy_key)
+   end
+
+   if((net == nil) and (nets ~= nil)) then
+      -- If there is not &network= parameter then use the first network available
+      for k,v in pairsByKeys(nets, asc) do
+	 net = k
+	 break
+      end
+   end
+
+
 
    -- io.write(net.."\n")
 
@@ -1018,9 +1020,7 @@ elseif(page == "filtering") then
    end
 
    print [[
-<div id="badnet" class="alert alert-danger" style="display: none">
-    <strong>Warning</strong> Invalid VLAN/network specified.
-</div>
+
 
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
   <input type=hidden name=page value=filtering>
@@ -1056,7 +1056,7 @@ if((selected_found == true)
 	   or string.contains(selected_network, "/128"))) then
    nw = string.gsub(selected_network, "/32", "");
    nw = string.gsub(nw, "/128", "");
-   print("&nbsp;[ <A HREF=/lua/host_details.lua?host="..nw.."><i class=\"fa fa-desktop fa-lg\"></i> Show Host</A> ] ")
+   print("&nbsp;[ <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..nw.."\"><i class=\"fa fa-desktop fa-lg\"></i> Show Host</A> ] ")
 end
 
 print(' [ <A HREF=/lua/if_stats.lua?page=filtering&delete_network='..selected_network..'> <i class="fa fa-trash-o fa-lg"></i> Delete '.. selected_network ..'</A> ]')
@@ -1163,18 +1163,16 @@ end
     <tr><td colspan=2><button type="submit" class="btn btn-primary btn-block">Set Protocol Policy and Shaper</button></td></tr>
 
 <script>
-/* FIX - Check form */
-    function validateAddNetworkForm() {
-      if(is_network_mask($('#new_network').val())) {
-         var vlan= $('#new_vlan').val();
-
-         if((vlan >= 0) && (vlan <= 4095)) {
-           $('#badnet').hide();
-           return(true);
-         } else {
-           $('#badnet').show();
-           return false;
-         }
+    function validateAddNetworkForm(network_field_id, vlan_field_id) {
+      if(is_network_mask($(network_field_id).val())) {
+	 var vlan= $(vlan_field_id).val();
+	 if((vlan >= 0) && (vlan <= 4095)) {
+	   $('#badnet').hide();
+	   return(true);
+	 } else {
+	   $('#badnet').show();
+	   return false;
+	 }
       } else {
        //alert("Invalid network specified");
       $('#badnet').show();
@@ -1189,24 +1187,46 @@ end
 <tr><th colspan=2>Add VLAN/Network To Filter</th></tr>
 
 <tr><td colspan=2>
-<form class="form-inline">
-<div class="form-group">
-<input type=hidden name=page value="filtering">
-Local Network :
-<select name="new_network">
-    ]]
-
-
- locals = ntop.getLocalNetworks()
- for s,_ in pairs(locals) do
-    print('<option value="'..s..'">'..s..'</option>\n')
- end
-print [[
-</select>
-VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" size=4>
-<button type="submit" class="btn btn-primary btn-sm" onclick="return validateAddNetworkForm();">Add VLAN/Network</button>
+<div id="badnet" class="alert alert-danger" style="display: none">
+    <strong>Warning</strong> Invalid VLAN/network specified.
 </div>
-</form>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <div class="col-md-6">
+      <form class="form-inline" onsubmit="return validateAddNetworkForm('#new_network', '#new_vlan');">
+      <div class="form-group">
+      <input type=hidden name=page value="filtering">
+      Local Network :
+      <select name="new_network" id="new_network">
+          ]]
+       locals = ntop.getLocalNetworks()
+       for s,_ in pairs(locals) do
+          print('<option value="'..s..'">'..s..'</option>\n')
+       end
+      print [[
+      </select>
+      VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" size=4>
+      <button type="submit" class="btn btn-primary btn-sm">Add Local VLAN/Network</button>
+      </div>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <form class="form-inline" onsubmit="return validateAddNetworkForm('#new_custom_network', '#new_custom_vlan');">
+      <div class="form-group">
+      <input type=hidden name=page value="filtering">
+      Network (CIDR) <input type="text" class=form-control id="new_custom_network" name="new_network" size=14>
+      VLAN <input type="text" class=form-control id="new_custom_vlan" name="new_vlan" value="0" size=4>
+      <button type="submit" class="btn btn-primary btn-sm">Add Custom VLAN/Network</button>
+      </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
 </td>
 
 </tr>
@@ -1214,10 +1234,10 @@ VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="
   </form>
   <script>
     var ndpiprotos1 = $('select[name="ndpiprotos"]').bootstrapDualListbox({
-                        nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
-                        selectedListLabel: 'Black Listed Protocols for ]] print(selected_network) print [[',
-                        moveOnSelect: false
-                      });
+			nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
+			selectedListLabel: 'Black Listed Protocols for ]] print(selected_network) print [[',
+			moveOnSelect: false
+		      });
     $("#ndpiprotosform").submit(function() {
       // alert($('[name="ndpiprotos"]').val());
       $('#blacklist').val($('[name="ndpiprotos"]').val());
@@ -1252,57 +1272,57 @@ if(ifstats["bridge.device_a"] ~= nil) then
    print("var b_to_a_last_filtered_pkts  = " .. ifstats["bridge.b_to_a.filtered_pkts"] .. ";\n")
    print("var b_to_a_last_shaped_pkts  = " .. ifstats["bridge.b_to_a.shaped_pkts"] .. ";\n")
    print("var b_to_a_last_num_pkts_send_buffer_full  = " .. ifstats["bridge.b_to_a.num_pkts_send_buffer_full"] .. ";\n")
-   print("var b_to_a_last_num_pkts_send_error  = " .. ifstats["bridge.b_to_a.num_pkts_send_error"] .. ";\n")  
+   print("var b_to_a_last_num_pkts_send_error  = " .. ifstats["bridge.b_to_a.num_pkts_send_error"] .. ";\n")
 end
 
 print [[
 setInterval(function() {
       $.ajax({
-          type: 'GET',
-          url: ']]
+	  type: 'GET',
+	  url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/network_load.lua',
-          data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
-          success: function(content) {
-        var rsp = jQuery.parseJSON(content);
+	  data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
+	  success: function(content) {
+	var rsp = jQuery.parseJSON(content);
 	var v = bytesToVolume(rsp.bytes);
-        $('#if_bytes').html(v);
-        $('#if_bytes').html(v);
-        $('#if_pkts').html(addCommas(rsp.packets)+"]]
+	$('#if_bytes').html(v);
+	$('#if_bytes').html(v);
+	$('#if_pkts').html(addCommas(rsp.packets)+"]]
 
 
 print(" Pkts\");")
 print [[
-        var pctg = 0;
-        var drops = "";
+	var pctg = 0;
+	var drops = "";
 
-        $('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
-        $('#drops_trend').html(get_trend(last_drops, rsp.drops));
-        last_pkts = rsp.packets;
-        last_drops = rsp.drops;
+	$('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
+	$('#drops_trend').html(get_trend(last_drops, rsp.drops));
+	last_pkts = rsp.packets;
+	last_drops = rsp.drops;
 
-        if((rsp.packets+rsp.drops) > 0) { pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2); }
-        if(rsp.drops > 0) { drops = '<span class="label label-danger">'; }
-        drops = drops + addCommas(rsp.drops)+" ]]
+	if((rsp.packets+rsp.drops) > 0) { pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2); }
+	if(rsp.drops > 0) { drops = '<span class="label label-danger">'; }
+	drops = drops + addCommas(rsp.drops)+" ]]
 
 print("Pkts")
 print [[";
 
-        if(pctg > 0)      { drops = drops + " [ "+pctg+" % ]"; }
-        if(rsp.drops > 0) { drops = drops + '</span>';         }
-        $('#if_drops').html(drops);
+	if(pctg > 0)      { drops = drops + " [ "+pctg+" % ]"; }
+	if(rsp.drops > 0) { drops = drops + '</span>';         }
+	$('#if_drops').html(drops);
 ]]
 
 if(ifstats["bridge.device_a"] ~= nil) then
 print [[
    epoch_diff = rsp["epoch"]-last_epoch;
    $('#a_to_b_in_pkts').html(addCommas(rsp["a_to_b_in_pkts"])+" Pkts "+get_trend(a_to_b_last_in_pkts, rsp["a_to_b_in_pkts"]));
-   if((last_epoch > 0) && (epoch_diff > 0)) { 
+   if((last_epoch > 0) && (epoch_diff > 0)) {
       /* pps = (rsp["a_to_b_in_pkts"]-a_to_b_last_in_pkts) / epoch_diff; */
       bps = 8*(rsp["a_to_b_in_bytes"]-a_to_b_last_in_bytes) / epoch_diff;
-      $('#a_to_b_in_pps').html(" ["+fbits(bps)+"]"); 
+      $('#a_to_b_in_pps').html(" ["+fbits(bps)+"]");
     }
-   $('#a_to_b_out_pkts').html(addCommas(rsp["a_to_b_out_pkts"])+" Pkts "+get_trend(a_to_b_last_out_pkts, rsp["a_to_b_out_pkts"]));   
+   $('#a_to_b_out_pkts').html(addCommas(rsp["a_to_b_out_pkts"])+" Pkts "+get_trend(a_to_b_last_out_pkts, rsp["a_to_b_out_pkts"]));
    if((last_epoch > 0) && (epoch_diff > 0)) {
       /* pps = (rsp["a_to_b_out_pkts"]-a_to_b_last_out_pkts) / epoch_diff; */
       bps = 8*(rsp["a_to_b_out_bytes"]-a_to_b_last_out_bytes) / epoch_diff;
@@ -1315,10 +1335,10 @@ print [[
    $('#a_to_b_num_pkts_send_buffer_full').html(addCommas(rsp["a_to_b_num_pkts_send_buffer_full"])+" Pkts "+get_trend(a_to_b_last_num_pkts_send_buffer_full, rsp["a_to_b_num_pkts_send_buffer_full"]));
 
    $('#b_to_a_in_pkts').html(addCommas(rsp["b_to_a_in_pkts"])+" Pkts "+get_trend(b_to_a_last_in_pkts, rsp["b_to_a_in_pkts"]));
-   if((last_epoch > 0) && (epoch_diff > 0)) { 
+   if((last_epoch > 0) && (epoch_diff > 0)) {
       /* pps = (rsp["b_to_a_in_pkts"]-b_to_a_last_in_pkts) / epoch_diff; */
       bps = 8*(rsp["b_to_a_in_bytes"]-b_to_a_last_in_bytes) / epoch_diff;
-      $('#b_to_a_in_pps').html(" ["+fbits(bps)+"]"); 
+      $('#b_to_a_in_pps').html(" ["+fbits(bps)+"]");
     }
    $('#b_to_a_out_pkts').html(addCommas(rsp["b_to_a_out_pkts"])+" Pkts "+get_trend(b_to_a_last_out_pkts, rsp["b_to_a_out_pkts"]));
    if((last_epoch > 0) && (epoch_diff > 0)) {
@@ -1353,8 +1373,8 @@ print [[
 end
 
 print [[
-           }
-               });
+	   }
+	       });
        }, 3000)
 
 </script>
@@ -1366,7 +1386,7 @@ print [[
 <script>
 $(document).ready(function()
     {
-        $("#myTable").tablesorter();
+	$("#myTable").tablesorter();
     }
 );
 </script>
