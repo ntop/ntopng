@@ -1051,8 +1051,10 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "srv2cli.bytes", srv2cli_bytes);
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
+#ifdef NTOPNG_PRO
     lua_push_float_table_entry(vm, "cli2srv.trend", c2sBytes.getTrend());
     lua_push_float_table_entry(vm, "srv2cli.trend", s2cBytes.getTrend());
+#endif
 
     lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
     lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
@@ -1440,11 +1442,15 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   if((cli_host == NULL) || (srv_host == NULL)) return;
 
   if(cli2srv_direction) {
+#ifdef NTOPNG_PRO
     if(payload_len > 0) c2sBytes.update(payload_len, when);
+#endif
     cli2srv_packets++, cli2srv_bytes += pkt_len;
     cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
   } else {
+#ifdef NTOPNG_PRO
     if(payload_len > 0) s2cBytes.update(payload_len, when);
+#endif
     srv2cli_packets++, srv2cli_bytes += pkt_len;
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
   }
