@@ -4645,9 +4645,12 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
 		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
 		   || (strcmp(rsp, user) != 0)) {
-		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid CSRF parameter specified [%s][%s][%s]", decoded_buf, rsp, user);
+		  ntop->getTrace()->traceEvent(TRACE_WARNING, 
+					       "Invalid CSRF parameter specified [%s][%s][%s]: page expired?", 
+					       decoded_buf, rsp, user);
 		  free(equal);
-		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", PAGE_ERROR, tok, rsp));
+		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", 
+				    PAGE_ERROR, tok, rsp));
 		} else
 		  ntop->getRedis()->del(decoded_buf);
 	      }
