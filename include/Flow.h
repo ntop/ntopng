@@ -42,6 +42,7 @@ class Flow : public GenericHashEntry {
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
+  CounterTrend c2sBytes, s2cBytes;
 #endif
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
@@ -143,7 +144,7 @@ class Flow : public GenericHashEntry {
   u_int32_t getFatherPid(bool client);
   char* get_username(bool client);
   char* get_proc_name(bool client);
-  u_int32_t getNextTcpSeq ( u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
+  u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   void makeVerdict();
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
@@ -162,7 +163,8 @@ class Flow : public GenericHashEntry {
   void setDetectedProtocol(ndpi_protocol proto_id);
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
-  void incStats(bool cli2srv_direction, u_int pkt_len);
+  void incStats(bool cli2srv_direction, u_int pkt_len, 
+		u_int payload_len, const struct bpf_timeval *when);
   void updateActivities();
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int out_pkts, u_int out_bytes, time_t last_seen);
   inline bool isDetectionCompleted()              { return(detection_completed);             };

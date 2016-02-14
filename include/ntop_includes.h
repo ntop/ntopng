@@ -145,6 +145,7 @@ using namespace std;
 #include "CountMinSketch.h"
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
+#include "CounterTrend.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
 #endif

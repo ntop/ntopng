@@ -323,7 +323,8 @@ function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_c
 end
 
 
-function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getHostTopTalkers(interface_id, host, l7_proto_id, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+   -- obtains host top talkers, possibly restricting the range only to l7_proto_id
    if host == nil or host == "" then return nil end
 
    local version = 4
@@ -346,6 +347,8 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch, sor
    sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
 
    if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+
+   if l7_proto_id and L7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end
 
    if(version == 4) then
       sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
@@ -385,6 +388,82 @@ function getHostTopTalkers(interface_id, host, info, begin_epoch, end_epoch, sor
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
       return {}
+   elseif res == nil then
+      return {}
+   else
+      return(res)
+   end
+end
+
+function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id)
+   local sql = ""
+   if v4_or_v6 == 6 then
+      sql = " SELECT NULL addrv4, "..src_or_dst.." addrv6, "
+      sql = sql.."BYTES as bytes, PACKETS as packets, FIRST_SWITCHED, LAST_SWITCHED "
+      sql = sql.."FROM flowsv6 "
+   elseif v4_or_v6 == 4 then -- ipv4
+      sql = " SELECT "..src_or_dst.." addrv4, NULL addrv6, "
+      sql = sql.."BYTES as bytes, PACKETS as packets, FIRST_SWITCHED, LAST_SWITCHED  "
+      sql = sql.."FROM flowsv4 "
+   else
+      sql = ""
+   end
+   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
+   sql = sql.." AND (INTERFACE='"..getInterfaceName(ifid).."' OR INTERFACE IS NULL) "
+   sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id)
+   return sql..'\n'
+end
+
+function getAppTopTalkers(interface_id, l7_proto_id, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+   -- retrieves top talkers in the given time range
+   if(info == "") then info = nil end
+
+   -- AGGREGATE AND CRUNCH DATA
+   sql = "select CASE WHEN addrv4 IS NOT NULL THEN INET_NTOA(addrv4) ELSE addrv6 END addr, "
+   sql = sql.."SUM(bytes) tot_bytes, SUM(packets) tot_packets, count(*) tot_flows, "
+   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration from "
+
+   sql = sql.."("
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql.." UNION ALL "
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql.." UNION ALL "
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql.." UNION ALL "
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql..") talkers"
+   sql = sql.." group by addr "
+
+   -- ORDER
+   local order_by_column = "tot_bytes" -- defaults to tot_bytes
+   if sort_column == "column_packets" or sort_column == "packets" or sort_column == "tot_packets" then
+      order_by_column = "tot_packets"
+   end
+   if sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
+      order_by_column = "tot_flows"
+   end
+   if sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+      order_by_column = "avg_flow_duration"
+   end
+
+   local order_by_order = "desc"
+   if sort_order == "asc" then order_by_order = "asc" end
+   sql = sql.." order by "..order_by_column.." "..order_by_order.." "
+
+   -- SLICE
+   local slice_offset = 0
+   local sclice_limit = 100
+   if tonumber(offset) >= 0 then slice_offset = offset end
+   if tonumber(limit) > 0 then slice_limit = limit end
+   sql = sql.."limit "..slice_offset..","..slice_limit.." "
+
+   if(db_debug == true) then io.write(sql.."\n") end
+
+   res = interface.execSQLQuery(sql)
+   if(type(res) == "string") then
+      if(db_debug == true) then io.write(res.."\n") end
+      return nil
    elseif res == nil then
       return {}
    else

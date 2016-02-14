@@ -772,7 +772,7 @@ bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, h->len);
+    flow->incStats(src2dst_direction, h->len, payload_len, &h->ts);
 
     if(l4_proto == IPPROTO_TCP) {
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
