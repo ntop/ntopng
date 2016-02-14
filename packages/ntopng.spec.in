@@ -59,9 +59,8 @@ if test -d "/etc/systemd"; then
    mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
    cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/systemd/scripts/
    cp $HOME/ntopng/packages/etc/systemd/system/ntopng.service    $RPM_BUILD_ROOT/etc/systemd/system/
-else
-   cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
+cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 cp $HOME/ntopng/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
 find $RPM_BUILD_ROOT -name ".git" | xargs /bin/rm -rf
 find $RPM_BUILD_ROOT -name ".svn" | xargs /bin/rm -rf
@@ -81,9 +80,8 @@ rm -fr $RPM_BUILD_ROOT
 %if 0%{?centos_ver} == 7
 /etc/systemd/scripts/ntopng
 /etc/systemd/system/ntopng.service
-%else
-/etc/init.d/ntopng
 %endif
+/etc/init.d/ntopng
 /etc/logrotate.d/ntopng
 /usr/share/ntopng
 # Don't overwrite ntopng-cert.pem is the file is already present
