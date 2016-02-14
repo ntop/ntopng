@@ -457,5 +457,7 @@
 #define PREF_LDAP_BIND_DN             "ntopng.prefs.ldap.bind_dn"
 #define PREF_LDAP_BIND_PWD            "ntopng.prefs.ldap.bind_pwd"
 #define PREF_LDAP_USER_GROUP          "ntopng.prefs.ldap.user_group"
+#define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
 #define CONST_CACHED_USER_PASSWORD    "ntopng.user.ldap.%s.password"
+#define CONST_CACHED_USER_GROUP       "ntopng.user.%s.group"
 #endif /* _NTOP_DEFINES_H_ */

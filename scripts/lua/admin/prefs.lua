@@ -105,7 +105,7 @@ if (ntop.isPro()) then
     prefsInputField("nBox Password", "Passowrd associated to the nBox user. Default: nbox", "nbox_password", nbox_password, "password")
    end
 
-   print('<tr><th colspan=2 class="info">Authentication</th></tr>')
+   print('<tr><th colspan=2 class="info">User Authentication</th></tr>')
 
    local js_body_funtion_script = "";
 
@@ -124,7 +124,7 @@ if (ntop.isPro()) then
    local labels = {"Local","LDAP","LDAP/Local"}
    local values = {"local","ldap","ldap_local"}
    local retVal = multipleTableButton("LDAP Authentication",
-         "Local (Local ntopng), LDAP (LDAP server), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication)",
+         "Local (Local only), LDAP (LDAP server only), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication).",
          labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type")
     if ((retVal == "ldap") or (retVal == "ldap_local")) then
       local ldap_server = ntop.getCache("ntopng.prefs.ldap.server")
@@ -132,16 +132,16 @@ if (ntop.isPro()) then
         ldap_server = "ldap://localhost:389"
         ntop.setCache("ntopng.prefs.ldap.server", ldap_server)
       end
-      prefsInputFieldWithParamCheck("LDAP server address", "Address of LDAP server. Default: \"ldap://localhost:389\"", "ntopng.prefs.ldap", "server", ldap_server, "text", js_body_funtion_script)
+      prefsInputFieldWithParamCheck("LDAP Server Address", "IP address of LDAP server. Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", ldap_server, "text", js_body_funtion_script)
       local ldap_bind_dn = ntop.getCache("ntopng.prefs.ldap.bind_dn")
       if(ldap_bind_dn == nil) then ldap_bind_dn = "" end
-      prefsInputFieldWithParamCheck("LDAP Bind DN", "Bind Distinguished Name of LDAP server.", "ntopng.prefs.ldap", "bind_dn", ldap_bind_dn, "text", nil)
+      prefsInputFieldWithParamCheck("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", ldap_bind_dn, "text", nil)
       local ldap_bind_pwd = ntop.getCache("ntopng.prefs.ldap.bind_pwd")
       if(ldap_bind_pwd == nil) then ldap_bind_pwd = "" end
-      prefsInputFieldWithParamCheck("LDAP Bind Password", "Bind Password of LDAP server.", "ntopng.prefs.ldap", "bind_pwd", ldap_bind_pwd, "password", nil)
+      prefsInputFieldWithParamCheck("LDAP Authentication Password", "Password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", ldap_bind_pwd, "password", nil)
       local ldap_user_group = ntop.getCache("ntopng.prefs.ldap.user_group")
       if(ldap_user_group == nil) then ldap_user_group = "" end
-      prefsInputFieldWithParamCheck("LDAP User Group", "Group name to which user has to belong in order to authenticate properly.", "ntopng.prefs.ldap", "user_group", ldap_user_group, "text", nil)
+      prefsInputFieldWithParamCheck("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", ldap_user_group, "text", nil)
       local ldap_admin_group = ntop.getCache("ntopng.prefs.ldap.admin_group")
       if(ldap_admin_group == nil) then ldap_admin_group = "" end
       prefsInputFieldWithParamCheck("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", ldap_admin_group, "text", nil)

@@ -172,7 +172,7 @@ static int is_authorized(const struct mg_connection *conn,
   string auth_header = auth_header_p ? auth_header_p  : "";
   istringstream iss(auth_header);
   getline(iss, auth_type, ' ');
-  if (auth_type == "Basic") {
+  if(auth_type == "Basic") {
     string decoded_auth, user_s = "", pword_s = "";
     /* In case auth type is Basic, info are encoded in base64 */
     getline(iss, auth_string, ' ');
@@ -187,7 +187,7 @@ static int is_authorized(const struct mg_connection *conn,
   mg_get_cookie(conn, "user", username, username_len);
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
 
-  if (!strcmp(username, NTOP_NOLOGIN_USER) && !user_login_disabled)
+  if(!strcmp(username, NTOP_NOLOGIN_USER) && !user_login_disabled)
     /* Trying to access web interface with nologin after ntopng restart
        with different settings */
     return 0;
