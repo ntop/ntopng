@@ -78,7 +78,9 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, l7proto, l
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
-      return nil
+      return {}
+   elseif res == nil then
+      return {}
    else
       return(res)
    end
@@ -104,7 +106,9 @@ function getFlowInfo(interface_id, version, flow_idx)
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
-      return nil
+      return {}
+   elseif res == nil then
+      return {}
    else
       return(res)
    end
@@ -142,7 +146,9 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
-      return nil
+      return {}
+   elseif res == nil then
+      return {}
    else
       return(res)
    end
@@ -150,7 +156,7 @@ end
 
 
 function getTopPeers(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
-   if(host == nil or host == "") then return nil end
+   if(host == nil or host == "") then return {} end
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
@@ -196,14 +202,16 @@ function getTopPeers(interface_id, version, host, protocol, port, l7proto, info,
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
-      return nil
+      return {}
+   elseif res == nil then
+      return {}
    else
       return(res)
    end
 end
 
 function getTopL7Protocols(interface_id, version, host, protocol, port, info, begin_epoch, end_epoch)
-   if(host == nil or host == "") then return nil end
+   if(host == nil or host == "") then return {} end
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
@@ -241,7 +249,9 @@ function getTopL7Protocols(interface_id, version, host, protocol, port, info, be
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
-      return nil
+      return {}
+   elseif res == nil then
+      return {}
    else
       return(res)
    end
@@ -314,7 +324,7 @@ function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_c
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
-      return nil
+      return {}
    elseif res == nil then
       return {}
    else
@@ -325,7 +335,7 @@ end
 
 function getHostTopTalkers(interface_id, host, l7_proto_id, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- obtains host top talkers, possibly restricting the range only to l7_proto_id
-   if host == nil or host == "" then return nil end
+   if host == nil or host == "" then return {} end
 
    local version = 4
    if isIPv6(host) then version = 6 end
@@ -463,7 +473,7 @@ function getAppTopTalkers(interface_id, l7_proto_id, info, begin_epoch, end_epoc
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
-      return nil
+      return {}
    elseif res == nil then
       return {}
    else
@@ -550,7 +560,7 @@ end
 
 
 function getPeersTrafficHistogram(interface_id, peer1, peer2, info, begin_epoch, end_epoch)
-   if peer1 == nil or peer1 == "" or peer2 == nil or peer2 == "" then return nil end
+   if peer1 == nil or peer1 == "" or peer2 == nil or peer2 == "" then return {} end
 
    local max_bins = 2000  -- do not return more than 2k datapoints
    local interval = end_epoch - begin_epoch  -- the larger the interval the coarser the aggregation
