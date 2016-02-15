@@ -429,7 +429,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 // this is the entry point for the navigation that starts at hosts
 var populateHostTopAppsTable = function(host){
   emptyAppsBreadCrumb();
-  $("#bc-apps").append('<li>Protocols spoken by ]] print(ntop.getResolvedAddress(host)) print [[</li>');
+  $("#bc-apps").append('<li>Protocols spoken by ' + host +'</li>');
 
   hideAll("app-talkers");
   hideAll("peers-by-app");
