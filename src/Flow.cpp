@@ -61,7 +61,7 @@ Flow::Flow(NetworkInterface *_iface,
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
-    ssl.certificate = NULL;
+    ssl.certificate = NULL, bt_hash = NULL;
 
   src2dst_tcp_flags = dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     bytes_thpt = top_bytes_thpt = pkts_thpt = top_pkts_thpt = 0;
@@ -204,6 +204,7 @@ Flow::~Flow() {
   if(dns.last_query)   free(dns.last_query);
   if(ssl.certificate)  free(ssl.certificate);
   if(ndpi_proto_name)  free(ndpi_proto_name);
+  if(bt_hash)          free(bt_hash);
 
   deleteFlowMemory();
 }
@@ -264,6 +265,22 @@ void Flow::processDetectedProtocol() {
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   switch(l7proto) {
+  case NDPI_PROTOCOL_BITTORRENT:
+    if(bt_hash == NULL) {
+      int i, j, n = 0;
+      char bittorrent_hash[21];
+
+      for(i=0, j = 0; i<20; i++) {
+	sprintf(&bittorrent_hash[j], "%02x", ndpiFlow->bittorent_hash[i]);
+	j += 2,	n += ndpiFlow->bittorent_hash[i];
+      }
+      
+      if(n > 0) bt_hash = strdup(bittorrent_hash);
+
+      protocol_processed = true;
+    }
+    break;
+
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
       if(dns.last_query) free(dns.last_query);
@@ -1076,6 +1093,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     }
 
     if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
+    if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
+
     lua_push_int_table_entry(vm, "tcp_flags", getTcpFlags());
 
     if(protocol == IPPROTO_TCP) {

@@ -266,6 +266,8 @@ for key, value in pairs(flows_stats) do
       info = shortenString(flows_stats[key]["http.last_url"])
       elseif(flows_stats[key]["ssl.certificate"] ~= nil) then
       info = shortenString(flows_stats[key]["ssl.certificate"])
+      elseif(flows_stats[key]["bittorrent_hash"] ~= nil) then
+      info = shortenString(flows_stats[key]["bittorrent_hash"])
    end
    flows_stats[key]["info"] = info   
 

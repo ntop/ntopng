@@ -343,6 +343,10 @@ else
       print("</td></tr>\n")
    end
 
+   if(flow["bittorrent_hash"] ~= nil) then 
+      print("<tr><th>BitTorrent hash</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
+   end
+
    if(flow["http.last_url"] ~= nil) then
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")

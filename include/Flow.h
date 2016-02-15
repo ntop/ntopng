@@ -46,7 +46,7 @@ class Flow : public GenericHashEntry {
 #endif
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
-  char *json_info, *host_server_name, *ndpi_proto_name;
+  char *json_info, *host_server_name, *ndpi_proto_name, *bt_hash;
   bool dump_flow_traffic, badFlow;
 
   struct {
@@ -149,6 +149,7 @@ class Flow : public GenericHashEntry {
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   inline char* getFlowServerInfo() { return(host_server_name); };
+  inline char* getBitTorrentHash() { return(bt_hash);          };
 
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
