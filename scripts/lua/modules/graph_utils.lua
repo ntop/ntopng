@@ -421,6 +421,23 @@ font-family: Arial, Helvetica, sans-serif;
 
 <div>
 
+<div class="container-fluid">
+  <ul class="nav nav-tabs" role="tablist" id="historical-tabs-container">
+    <li class="active"> <a href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
+]]
+if  ntop.getPrefs().is_dump_flows_to_mysql_enabled then
+  print('<li><a href="#ipv4" role="tab" data-toggle="tab" id="tab-ipv4"> IPv4 Flows </a> </li>\n')
+  print('<li><a href="#ipv6" role="tab" data-toggle="tab" id="tab-ipv6"> IPv6 Flows </a> </li>\n')
+end
+
+print[[
+</ul>
+
+
+  <div class="tab-content">
+    <div class="tab-pane fade active in" id="historical-tab-chart">
+
+
 <table border=0>
 <tr><td valign=top>
 ]]
@@ -548,14 +565,23 @@ print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div>
 
 
 print [[
-
    </table>
 ]]
 end -- topArray ~= nil
 
-print[[</div></td></tr></table><p>]]
-printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
-print [[
+print[[</div></td></tr></table>
+
+    </div> <!-- closes div id "historical-tab-chart "-->
+]]
+
+if ntop.getPrefs().is_dump_flows_to_mysql_enabled then
+   printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
+end
+
+print[[
+  </div> <!-- closes div class "tab-content" -->
+</div> <!-- closes div class "container-fluid" -->
+
 <script>
 
 var palette = new Rickshaw.Color.Palette();
@@ -951,12 +977,6 @@ function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, por
       title = ""
    end
 
-   print [[
-   <div class="container-fluid">
-
-    <!-- Nav tabs -->
-    <ul class="nav nav-tabs" role="tablist">
-]]
 
 if(host ~= nil) then
   local chunks = {host:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")}
@@ -966,54 +986,33 @@ if(host ~= nil) then
 end
 
 
-selected = false
-if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
-   print('<li class="active"> <a href="#ipv4" role="tab" data-toggle="tab"> IPv4 Flows </a> </li>\n')
-   selected = true
-end
-
-if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
-   if(selected == false) then print('<li class="active">\n') else print('<li>\n') end
-   print('<a href="#ipv6" role="tab" data-toggle="tab"> IPv6 Flows </a> </li>\n')
-end
-
-if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled then
-   print('<li><a href="#historical-top-talkers" role="tab" data-toggle="tab"> Talkers </a> </li>\n')
-   print('<li><a href="#historical-top-apps" role="tab" data-toggle="tab"> Protocols </a> </li>\n')
-end
-
+if (not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
 print [[
-    </ul>
-
-    <!-- Tab panes -->
-    <div class="tab-content">
-   ]]
-
-if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled then
-print('<div class="tab-pane fade" id="historical-top-talkers">')
-historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
-print('</div>')
-print('<div class="tab-pane fade" id="historical-top-apps">')
-historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
-print('</div>')
-end
-
-if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
-print [[
-      <div class="tab-pane fade active in" id="ipv4"> <div id="table-flows4"></div> </div>
+  <div class="tab-pane fade" id="ipv4"> <div id="table-flows4"></div> </div>
+]]
+else
+print[[
+  <script>
+    $('#tab-ipv4').remove()
+  </script>
 ]]
 end
 
 if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
-   if(selected == false) then print('<div class="tab-pane fade active in" id="ipv6">\n') else print('<div class="tab-pane fade" id="ipv6">\n') end
-   print('<div id="table-flows6"></div> </div>')
+print[[
+  <div class="tab-pane fade" id="ipv6"> <div id="table-flows6"></div> </div>
+]]
+else
+print[[
+  <script>
+    $('#tab-ipv6').remove()
+  </script>
+]]
 end
 
 print [[
-    </div>
-</div>
 
-<script>
+      <script>
    ]]
 
 if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
