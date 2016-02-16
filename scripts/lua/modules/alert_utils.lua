@@ -343,7 +343,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 
                 if not is_alert_re_arming(ifname_clean, mode, t[1]) then
                     if verbose then io.write("queuing alert\n") end
-                    re_arm_alert(network_name, mode, t[1])
+                    re_arm_alert(ifname_clean, mode, t[1])
                     ntop.queueAlert(alert_level, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
