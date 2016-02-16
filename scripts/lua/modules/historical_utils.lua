@@ -45,11 +45,11 @@ end
 
 
 function historicalPcapButton(button_id, pcap_request_data_container_div_id)
-
+  print("<br><br>")
   if ntop.isPro() and (ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges()) then
-	  print("<div class=\"alert alert alert-info\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>")
+	  print("<div class=\"alert alert alert-info\"><img src=".. ntop.getHttpPrefix() .. "/img/info_icon.png>")
 	  print("<br>In order to be able to request pcaps containing recorded traffic for the selected criteria, admin privileges are required and nBox integration must be enabled ")
-	  print("via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.</div>")
+	  print("via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a>.</div>")
   else
 	  print [[
   <div class="panel-body">
