@@ -1,5 +1,8 @@
 require "lua_utils"
 
+local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=status"
+local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=schedule"
+
 function commonJsUtils()
 print[[
 
@@ -40,8 +43,6 @@ function buildPcapRequestData(source_div_id){
 ]]
 end
 
-local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=status"
-local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=schedule"
 
 function historicalPcapButton(button_id, pcap_request_data_container_div_id)
 
@@ -614,5 +615,74 @@ $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
 
 </script>
 
+]]
+end
+
+
+function historicalPcapsTable()
+print[[
+<div id="table-pcaps"></div>
+<script>
+
+var populatePcapsTable = function(){
+  $("#table-pcaps").datatable({
+    title: "Pcaps",
+    url: "]] print (ntop.getHttpPrefix()) print [[/lua/get_nbox_data.lua?action=status" ,
+    title: "Pcap Requests and Statuses",
+]]
+
+-- Set the preference table
+preference = tablePreferences("rows_number","5")
+if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
+
+-- Automatic default sorted. NB: the column must exist.
+print ('sort: [ ["' .. getDefaultTableSort("pcaps") ..'","' .. getDefaultTableSortOrder("pcaps").. '"] ],')
+
+print [[
+               showPagination: true,
+                columns: [
+                         {
+                             title: "Task Id",
+                                 field: "column_task_id",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'left'
+                             }
+                                 },
+                             {
+                             title: "Status",
+                                 field: "column_status",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'center'
+                             }
+
+                                 },
+                             {
+                             title: "Actions",
+                                 field: "column_actions",
+                                 sortable: true,
+                             css: {
+                                textAlign: 'center'
+                             }
+                                 }
+                             ]
+               });
+
+};
+
+$('a[href="#historical-pcaps"]').on('shown.bs.tab', function (e) {
+  if ($('a[href="#historical-pcaps"]').attr("loaded") == 1){
+    // do nothing if the tabs have already been computed and populated
+    return;
+  }
+
+  var target = $(e.target).attr("href"); // activated tab
+  populatePcapsTable();
+  // Finally set a loaded flag for the current tab
+  $('a[href="#historical-pcaps"]').attr("loaded", 1);
+});
+
+</script>
 ]]
 end
