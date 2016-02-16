@@ -24,7 +24,77 @@ function hostkey2hostid(host_key) {
     return(info);
 }
 
+function buildPcapRequestData(source_div_id){
+  var epoch_begin = $('#' + source_div_id).attr("epoch_begin");
+  var epoch_end = $('#' + source_div_id).attr("epoch_end");
+  var ifname = $('#' + source_div_id).attr("ifname");
+  var host = $('#' + source_div_id).attr("host");
+  var peer = $('#' + source_div_id).attr("peer");
+  var res = {epoch_begin: epoch_begin, epoch_end: epoch_end};
+  if (typeof ifname != 'undefined') res.ifname = ifname;
+  if (typeof host != 'undefined') res.host = host;
+  if (typeof peer != 'undefined') res.peer = peer;
+  return res;
+}
+
 ]]
+end
+
+local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=status"
+local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=schedule"
+
+function historicalPcapButton(button_id, pcap_request_data_container_div_id)
+
+  if ntop.isPro() and (ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges()) then
+	  print("<div class=\"alert alert alert-info\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>")
+	  print("<br>In order to be able to request pcaps containing recorded traffic for the selected criteria, admin privileges are required and nBox integration must be enabled ")
+	  print("via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.</div>")
+  else
+	  print [[
+  <div class="panel-body">
+     <div class="row">
+	  <div class='col-md-10'>
+	  Request a pcap containing the recorded traffic matching search criteria. Requests will be queued and pcaps will be available for download once generated.
+	  </div>
+
+	  <div class='col-md-2'>
+	    <form name="request_pcap_form">
+	      <input type="submit" value="Request pcap" class="btn btn-default" id="]] print(button_id) print[[">
+	    </form>
+	    <br>
+	    <span id="download_msg_]] print(button_id) print[["></span>
+	  </div>
+	  <script type="text/javascript">
+	  $('#]] print(button_id) print[[').click(function (event)
+	  {
+	     event.preventDefault();
+	     var perror = function(msg){
+		  alert("Request failed: " + msg);
+		  $('#download_msg_]] print(button_id) print[[').html("Request failed.<br>");
+		  $('#]] print(button_id) print[[').prop('value', 'Request pcap [retry]')};
+	     $.ajax({type: 'GET', url: "]] print(pcap_request_url) print [[",
+		data: buildPcapRequestData(']] print(pcap_request_data_container_div_id) print[['),
+		success: function(data) {
+		   data = jQuery.parseJSON(data);
+		   if (data["result"] === "KO"){
+		    perror(data["description"]);
+		  } else if (data["result"] == "OK"){
+		    $('#download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('OK, request sent.');
+		  } else { alert('Unknown response.'); }
+		},
+		error: function() {
+		   perror('An HTTP error occurred.');
+		}
+	     });
+
+	   });
+	  </script>
+
+  </div>
+  </div>
+  <br>
+  ]]
+  end
 end
 
 function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
@@ -48,11 +118,15 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
 <ol class="breadcrumb" id="bc-talkers" style="margin-bottom: 5px;"]] print('root="'..breadcrumb_root..'"') print [[>
 </ol>
 
-<div id="historical-container">
+
+<!-- attach some status information to the historical container -->
+<div id="historical-container" epoch_begin="" epoch_end="" ifname="" host="" peer="">
   <div id="historical-interface-top-talkers-table" class="historical-interface" total_rows=-1 loaded=0> </div>
   <div id="hosts-container"> </div>
   <div id="apps-per-pair-container"> </div>
 </div>
+
+]] historicalPcapButton("pcap-button-top-talkers", "historical-container") print [[
 
 <script type="text/javascript">
 ]] commonJsUtils() print[[
@@ -63,13 +137,18 @@ var emptyBreadCrumb = function(){
 
 var refreshBreadCrumbInterface = function(){
   emptyBreadCrumb();
-    $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
+  $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
+  $('#historical-container').attr("ifname", "]] print(getInterfaceName(ifid)) print [[");
+  $('#historical-container').removeAttr("host");
+  $('#historical-container').removeAttr("peer");
 }
 
 var refreshBreadCrumbHost = function(host){
   emptyBreadCrumb();
     $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
     $("#bc-talkers").append('<li>Talkers with host ' + host + ' </li>');
+  $('#historical-container').attr("host", host);
+  $('#historical-container').removeAttr("peer");
 }
 
 var refreshBreadCrumbPairs = function(peer1, peer2){
@@ -77,6 +156,7 @@ var refreshBreadCrumbPairs = function(peer1, peer2){
     $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
     $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">Talkers with host ' + peer1 + '</a></li>');
     $("#bc-talkers").append('<li>Applications between ' + peer1 + ' and ' + peer2 + ' </li>');
+  $('#historical-container').attr("peer", peer2);
 }
 
 var populateInterfaceTopTalkersTable = function(){
@@ -228,6 +308,9 @@ $('a[href="#historical-top-talkers"]').on('shown.bs.tab', function (e) {
     populateHostTopTalkersTable(']] print(host) print[[');
   }
 
+  // set epoch_begin and epoch_end status information to the container div
+  $('#historical-container').attr("epoch_begin", "]] print(tostring(epoch_begin)) print[[");
+  $('#historical-container').attr("epoch_end", "]] print(tostring(epoch_end)) print[[");
   // Finally set a loaded flag for the current tab
   $('a[href="#historical-top-talkers"]').attr("loaded", 1);
 });
@@ -258,6 +341,8 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
   <div id="apps-container"> </div>
   <div id="peers-per-host-by-app-container"> </div>
 </div>
+
+]] historicalPcapButton("pcap-button-top-protocols", "historical-apps-container") print [[
 
 <script type="text/javascript">
 var totalRows = -1;
@@ -520,6 +605,9 @@ $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
     populateHostTopAppsTable(']] print(host) print[[');
   }
 
+  // set epoch_begin and epoch_end status information to the container div
+  $('#historical-apps-container').attr("epoch_begin", "]] print(tostring(epoch_begin)) print[[");
+  $('#historical-apps-container').attr("epoch_end", "]] print(tostring(epoch_end)) print[[");
   // Finally set a loaded flag for the current tab
   $('a[href="#historical-top-apps"]').attr("loaded", 1);
 });

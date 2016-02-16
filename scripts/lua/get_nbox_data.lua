@@ -32,6 +32,7 @@ action       = _GET["action"]
 epoch_begin  = _GET["epoch_begin"]
 epoch_end    = _GET["epoch_end"]
 host         = _GET["host"]
+peer         = _GET["peer"]
 l4proto      = _GET["l4proto"]
 port         = _GET["port"]
 task_id      = _GET["task_id"]
@@ -41,6 +42,7 @@ task_id      = _GET["task_id"]
 function createBPF()
 	local bpf = ""
 	if host ~= nil and host ~= "" then bpf = "src or dst host "..host end
+	if peer ~= nil and peer ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."src or dst host "..peer end
 	if port ~= nil and port ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."port "..port end
 	if l4proto ~= nil and l4proto ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."ip proto "..l4proto end
 	if bpf ~= "" then return "&bpf="..bpf else return "" end
@@ -51,7 +53,7 @@ if action == nil then
 elseif action == "schedule" then
 	schedule_url = schedule_url.."&ifname="..ifname.."&begin="..epoch_begin.."&end="..epoch_end
 	schedule_url = schedule_url..createBPF()
-	--io.write(schedule_url..'\n')
+	-- io.write(schedule_url..'\n')
 	local resp = ntop.httpGet(schedule_url, nbox_user, nbox_password, 10)
 	-- tprint(resp)
 	sendHTTPHeader('text/html; charset=iso-8859-1')
@@ -120,7 +122,7 @@ elseif action == "status" then
 			local tasks = {}
 			for _,task in pairs(content["tasks"]) do
 				if task["status"] ~= "scheduled" then
-					task["actions"] = 
+					task["actions"] =
 					'<a href="'..download_url..task["task_id"]..'.pcap"><i class="fa fa-download fa-lg"></i></a> '
 				end
 				task["actions"] = task["actions"]..'<a href="'..activity_scheduler_url..'" target="_blank"><i class="fa fa-external-link fa-lg"></i></a> '
@@ -161,5 +163,3 @@ elseif action == "status" then
 else
 	print("{}")
 end
-
-
