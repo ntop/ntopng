@@ -575,7 +575,12 @@ print[[</div></td></tr></table>
 ]]
 
 if ntop.getPrefs().is_dump_flows_to_mysql_enabled then
-   printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
+  if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
+    -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
+    printTopFlows(ifid, (host or ''), start_time, end_time, rrdFile, '', '', '', 5, 5)
+  else
+    printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
+  end
 end
 
 print[[
