@@ -204,7 +204,6 @@ var populateInterfaceTopTalkersTable = function(){
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -251,7 +250,6 @@ var populateHostTopTalkersTable = function(host){
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -298,7 +296,6 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -414,7 +411,6 @@ print [[
 	[
 	  {title: "Protocol id", field: "column_application", hidden: true},
 	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -465,7 +461,6 @@ var populateAppTopTalkersTable = function(proto_id){
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -517,7 +512,6 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	[
 	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -561,7 +555,6 @@ print [[
 	[
 	  {title: "Protocol id", field: "column_application", hidden: true},
 	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Avg. Flow Duration", field: "column_avg_flow_duration", sortable: true, css: {textAlign:'center'}},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
