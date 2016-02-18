@@ -59,7 +59,7 @@ get_ntopng_pid() {
     PID=0
 
     if [ -f "/etc/ntopng/ntopng.conf" ]; then
-        PID_FILE=$(cat /etc/ntopng/ntopng.conf | grep -E '\-G=|--pid'|cut -d '=' -f 2)
+        PID_FILE=$(cat /etc/ntopng/ntopng.conf | grep -v '^#' | grep -E '\-G=|--pid'|cut -d '=' -f 2)
     else
         PID_FILE="/var/tmp/ntopng.pid"
     fi
