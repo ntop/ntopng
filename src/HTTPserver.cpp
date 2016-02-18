@@ -479,8 +479,6 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     use_http = true;
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->%s<--", ports);
- 
   static char *http_options[] = {
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
