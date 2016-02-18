@@ -453,7 +453,7 @@ print[[
   <div class="tab-content">
     <div class="tab-pane fade active in" id="historical-tab-chart">
 
-
+<br>
 <table border=0>
 <tr><td valign=top>
 ]]
