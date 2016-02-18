@@ -180,11 +180,17 @@ int main(int argc, char *argv[])
 #endif
       }
     } catch(...) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create interface %s", ifName);
       iface = NULL;
     }
 
-    if(iface == NULL) iface = new PcapInterface(ifName);
+    if(iface == NULL) {
+      try {
+	iface = new PcapInterface(ifName);
+      } catch(...) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create interface %s", ifName);
+	iface = NULL;
+      }
+    }
 
     if(iface) {
       if(affinity != NULL) {
