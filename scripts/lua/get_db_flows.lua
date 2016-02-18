@@ -34,6 +34,7 @@ profile = _GET["profile"]
 limit = _GET["limit"]
 
 format = _GET["format"]
+if(format == nil) then format = "json" end
 
 ip_version = _GET["version"]
 if(ip_version == nil) then ip_version = "4" end

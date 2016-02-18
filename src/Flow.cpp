@@ -1444,6 +1444,9 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)http.last_return_code));
   }
 
+  if(bt_hash)
+    json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
+
   if(ssl.certificate)
     json_object_object_add(my_object, "SSL_CERTIFICATE", json_object_new_string(ssl.certificate));
 
