@@ -349,8 +349,24 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
    if(zoomLevel == nil) then zoomLevel = "1h" end
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then
-      -- Refresh the page every minute unless a specific epoch has been selected
-      print("<script>setInterval(function() { window.location.reload();}, 60*1000); </script>\n");
+      -- Refresh the page every minute unless:
+      -- ** a specific epoch has been selected or
+      -- ** the user is browsing historical top talkers and protocols
+      print[[
+       <script>
+       setInterval(function() {
+         var talkers_loaded, protocols_loaded;
+         if($('a[href="#historical-top-talkers"]').length){
+           talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
+         }
+         if($('a[href="#historical-top-apps"]').length){
+           protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
+         }
+         if(typeof talkers_loaded == 'undefined' && typeof protocols_loaded == 'undefined'){
+           window.location.reload();
+         }
+       }, 60*1000);
+       </script>]]
    end
 
    if ntop.isPro() then
