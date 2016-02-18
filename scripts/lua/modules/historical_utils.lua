@@ -45,16 +45,16 @@ end
 
 
 function historicalPcapButton(button_id, pcap_request_data_container_div_id)
+  if not ntop.isPro() then return end -- integrate only in the Pro version
   print("<br><br>")
-  if ntop.isPro() and (ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges()) then
-	  print("<div class=\"alert alert alert-info\"><img src=".. ntop.getHttpPrefix() .. "/img/info_icon.png>")
-	  print("<br>In order to be able to request pcaps containing recorded traffic for the selected criteria, admin privileges are required and nBox integration must be enabled ")
-	  print("via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a>.</div>")
+
+  if false then
+     a = 1
   else
 	  print [[
   <div class="panel-body">
      <div class="row">
-	  <div class='col-md-10'>
+	  <div class='col-md-10' id="info_]] print(button_id) print[[">
 	  Request a pcap containing the recorded traffic matching search criteria. Requests will be queued and pcaps will be available for download once generated.
 	  </div>
 
@@ -66,6 +66,20 @@ function historicalPcapButton(button_id, pcap_request_data_container_div_id)
 	    <span id="download_msg_]] print(button_id) print[["></span>
 	  </div>
 	  <script type="text/javascript">
+]]
+
+
+  if ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges() then
+     print[[
+     $('#]] print(button_id) print[[').prop('disabled', true);
+     $('#info_]] print(button_id) print[[').html(
+         "<small>In order to be able to request pcaps containing recorded traffic for the selected criteria, admin privileges are required and nBox integration must be enabled" + 
+	 " via ntopng <a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a>.</small>");
+     ]]
+  end
+
+
+print[[
 	  $('#]] print(button_id) print[[').click(function (event)
 	  {
 	     event.preventDefault();
