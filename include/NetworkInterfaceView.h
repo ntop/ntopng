@@ -52,7 +52,7 @@ class NetworkInterfaceView {
   void getNetworksStats(lua_State* vm);
   bool hasSeenVlanTaggedPackets();
   int getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
-	       Host *host,  bool local_only,
+	       Host *host, int ndpi_proto, bool local_only,
 	       char *sortColumn, u_int32_t maxHits,
 	       u_int32_t toSkip, bool a2zSortOrder);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);

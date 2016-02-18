@@ -715,6 +715,7 @@ typedef struct {
   int ud;
 } lcontext;
 
+#if 0
 static lcontext *lsqlite_make_context(lua_State *L) {
   lcontext *ctx = (lcontext*)lua_newuserdata(L, sizeof(lcontext));
   lua_rawgeti(L, LUA_REGISTRYINDEX, sqlite_ctx_meta_ref);
@@ -723,6 +724,7 @@ static lcontext *lsqlite_make_context(lua_State *L) {
   ctx->ud = LUA_NOREF;
   return ctx;
 }
+#endif
 
 static lcontext *lsqlite_getcontext(lua_State *L, int index) {
   lcontext *ctx = (lcontext*)luaL_checkudata(L, index, sqlite_ctx_meta);
@@ -911,7 +913,7 @@ static int db_interrupt(lua_State *L) {
 /*
 ** Registering SQL functions:
 */
-
+#if 0
 static void db_push_value(lua_State *L, sqlite3_value *value) {
   switch (sqlite3_value_type(value)) {
   case SQLITE_TEXT:
@@ -1058,6 +1060,7 @@ static void db_sql_finalize_function(sqlite3_context *context) {
   lua_settop(L, top);
 }
 
+
 /*
 ** Register a normal function
 ** Params: db, function name, number arguments, [ callback | step, finalize], user data
@@ -1131,7 +1134,6 @@ static int db_register_function(lua_State *L, int aggregate) {
   return 1;
 }
 
-#if 0
 static int db_create_function(lua_State *L) {
   return db_register_function(L, 0);
 }

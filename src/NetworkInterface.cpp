@@ -1753,6 +1753,7 @@ struct flowHostRetriever {
   /* Search criteria */
   patricia_tree_t *allowed_hosts;
   Host *host;
+  int ndpi_proto;
   enum flowSortField sorter;
   bool local_only;
 
@@ -1773,6 +1774,11 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && (retriever->host != f->get_cli_host())
        && (retriever->host != f->get_srv_host()))
     return(false); /* false = keep on walking */
+
+    if((retriever->ndpi_proto != -1)
+       && (f->get_detected_protocol().protocol != retriever->ndpi_proto)
+       && (f->get_detected_protocol().master_protocol != retriever->ndpi_proto))      
+      return(false); /* false = keep on walking */
 
     if(retriever->local_only) {
       if((!f->get_cli_host()->isLocalHost())
@@ -1907,7 +1913,8 @@ int stringSorter(const void *_a, const void *_b) {
 
 int NetworkInterface::getFlows(lua_State* vm,
 			       patricia_tree_t *allowed_hosts,
-			       Host *host, bool local_only,
+			       Host *host, int ndpi_proto,
+			       bool local_only,
 			       char *sortColumn,
 			       u_int32_t maxHits,
 			       u_int32_t toSkip,
@@ -1916,7 +1923,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   int (*sorter)(const void *_a, const void *_b);
   bool highDetails = (local_only || (maxHits != CONST_MAX_NUM_HITS)) ? true : false;
 
-  retriever.host = host, retriever.local_only = local_only;
+  retriever.host = host, retriever.ndpi_proto = ndpi_proto, retriever.local_only = local_only;
   retriever.actNumEntries = 0, retriever.maxNumEntries = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 

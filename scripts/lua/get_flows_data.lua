@@ -88,7 +88,7 @@ end
 --io.write("->"..sortColumn.."/"..perPage.."/"..sortOrder.."\n")
 interface.select(ifname)
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
-res = interface.getFlowsInfo(host, sortColumn, perPage, to_skip, sOrder)
+res = interface.getFlowsInfo(host, application, sortColumn, perPage, to_skip, sOrder)
 
 flows_stats,total = aggregateFlowsStats(res)
 

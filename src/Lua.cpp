@@ -1033,6 +1033,7 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char buf[64];
   char *host_ip = NULL, *sortColumn = (char*)"column_client";
+  int l7_proto = -1;
   u_int16_t vlan_id = 0;
   Host *host = NULL;
   bool a2zSortOrder = true;
@@ -1048,22 +1049,29 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
     host = ntop_interface->getHost(host_ip, vlan_id);
   }
 
-  if(lua_type(vm, 2) == LUA_TSTRING) {
-    sortColumn = (char*)lua_tostring(vm, 2);
+  if((lua_type(vm, 2) == LUA_TSTRING) || (lua_type(vm, 2) == LUA_TNIL)) {
+    if(lua_type(vm, 2) == LUA_TSTRING) {
+      char *proto = (char*)lua_tostring(vm, 2);
+
+      l7_proto = ntop_interface->getFirst()->get_ndpi_proto_id(proto);
+    }
+
+    if(lua_type(vm, 3) == LUA_TSTRING)
+      sortColumn = (char*)lua_tostring(vm, 3);
     
-    if(lua_type(vm, 3) == LUA_TNUMBER)
-      maxHits = (u_int16_t)lua_tonumber(vm, 3);
-
     if(lua_type(vm, 4) == LUA_TNUMBER)
-      toSkip = (u_int16_t)lua_tonumber(vm, 4);
+      maxHits = (u_int16_t)lua_tonumber(vm, 4);
 
-    if(lua_type(vm, 5) == LUA_TBOOLEAN)
-      a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
+    if(lua_type(vm, 5) == LUA_TNUMBER)
+      toSkip = (u_int16_t)lua_tonumber(vm, 5);
+
+    if(lua_type(vm, 6) == LUA_TBOOLEAN)
+      a2zSortOrder = lua_toboolean(vm, 6) ? true : false;
   }
   
   if(ntop_interface) {
     int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), 
-					    host, localOnly, sortColumn, maxHits,
+					    host, l7_proto, localOnly, sortColumn, maxHits,
 					    toSkip, a2zSortOrder);
 
     /* FIX: do something with flows number */

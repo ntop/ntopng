@@ -144,7 +144,8 @@ bool NetworkInterfaceView::hasSeenVlanTaggedPackets() {
 
 int NetworkInterfaceView::getFlows(lua_State* vm,
 				   patricia_tree_t *allowed_hosts,
-				   Host *host, bool local_only,
+				   Host *host, int ndpi_proto,
+				   bool local_only,
 				   char *sortColumn,
 				   u_int32_t maxHits,
 				   u_int32_t toSkip,
@@ -154,7 +155,7 @@ int NetworkInterfaceView::getFlows(lua_State* vm,
   lua_newtable(vm);
 
   for(int i = 0; i<numInterfaces; i++) {
-    int rc = physIntf[i]->getFlows(vm, allowed_hosts, host, 
+    int rc = physIntf[i]->getFlows(vm, allowed_hosts, host, ndpi_proto,
 				   local_only, sortColumn, maxHits, 
 				   toSkip, a2zSortOrder);
     
