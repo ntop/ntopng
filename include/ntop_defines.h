@@ -442,6 +442,10 @@
 #define closesocket(c)		close(c)
 #endif
 
+#ifndef DLT_IPV4
+#define DLT_IPV4  228
+#endif
+
 #define HTTPBL_STRING              "httpbl:"
 #define FLASHSTART_STRING          "flashstart:"
 #define NUM_FLASHSTART_SERVERS     2

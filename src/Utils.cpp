@@ -888,7 +888,10 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, timeout);
+
+#ifdef CURLOPT_CONNECTTIMEOUT_MS
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
+#endif
 
     v = curl_version_info(CURLVERSION_NOW);
     snprintf(ua, sizeof(ua), "ntopng v.%s (curl %s)", PACKAGE_VERSION, v->version);
@@ -1304,7 +1307,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
 /* **************************************** */
 
 u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
-#ifdef linux
+#if defined(linux) && (!defined(__GNUC_RH_RELEASE__) || (__GNUC_RH_RELEASE__ != 44))
   int sock, rc;
   struct ifreq ifr;
   struct ethtool_cmd edata;
