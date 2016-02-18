@@ -841,7 +841,7 @@ function isBroadcastMulticast(ip)
 end
 
 function isIPv4(ip)
-  if string.find(ip, ".") then
+  if string.find(ip, "%.") then
     return true
   end
   return false
@@ -849,8 +849,8 @@ end
 
 
 function isIPv6(ip)
-  if string.find(ip, ".") then
-    return false
+   if string.find(ip, "%.") then
+     return false
   end
   return true
 end
