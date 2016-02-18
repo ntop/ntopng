@@ -194,16 +194,16 @@ var populateInterfaceTopTalkersTable = function(){
 	showPagination: true,
 	tableCallback: function(){$('#historical-interface-top-talkers-table').attr("total_rows", this.options.totalRows);},
 	rowCallback: function(row){
-	  var addr_td = $("td:eq(0)", row[0]);
-	  var label_td = $("td:eq(1)", row[0]);
+	  var addr_td = $("td:eq(1)", row[0]);
+	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
 	  label_td.append('&nbsp;<a onclick="populateHostTopTalkersTable(\'' + addr +'\');"><i class="fa fa-pie-chart" title="Talkers with this host"></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "IP Address", field: "column_addr", hidden: false, sortable: true},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -240,16 +240,16 @@ var populateHostTopTalkersTable = function(host){
 	showPagination: true,
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);},
 	rowCallback: function(row){
-	  var addr_td = $("td:eq(0)", row[0]);
-	  var label_td = $("td:eq(1)", row[0]);
+	  var addr_td = $("td:eq(1)", row[0]);
+	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
 	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange" title="Applications between ' + host + ' and ' + addr + '"></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "IP Address", field: "column_addr", hidden: false, sortable: true},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -294,8 +294,8 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);},
 	columns:
 	[
-	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -451,16 +451,16 @@ var populateAppTopTalkersTable = function(proto_id){
 	showPagination: true,
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);},
 	rowCallback: function(row){
-	  var addr_td = $("td:eq(0)", row[0]);
-	  var label_td = $("td:eq(1)", row[0]);
+	  var addr_td = $("td:eq(1)", row[0]);
+	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
 	  label_td.append('&nbsp;<a onclick="populatePeersPerHostByApplication(\'' + addr +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="' + app + ' talkers with ' + addr + '"></i></a>');
 	  return row;
 	},
 	columns:
 	[
-	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -500,8 +500,8 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);},
 /*
 	rowCallback: function(row){
-	  var addr_td = $("td:eq(0)", row[0]);
-	  var label_td = $("td:eq(1)", row[0]);
+	  var addr_td = $("td:eq(1)", row[0]);
+	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
 	  var label = addr_td.text();
 	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange" title="Hosts talking ' + label + ' with ' + host + '"></i></a>');
@@ -510,8 +510,8 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 */
 	columns:
 	[
-	  {title: "Address", field: "column_addr", hidden: true},
 	  {title: "Host Name", field: "column_label", sortable: true},
+	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
