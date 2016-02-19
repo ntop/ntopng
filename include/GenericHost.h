@@ -38,10 +38,10 @@ class GenericHost : public GenericHashEntry {
   u_int8_t source_id;
 
   /* Throughput */
-  float bytes_thpt, pkts_thpt;
-  float last_bytes_thpt, last_pkts_thpt;
-  ValueTrend bytes_thpt_trend, pkts_thpt_trend;
-  float bytes_thpt_diff;
+  float bytes_thpt, goodput_bytes_thpt, pkts_thpt;
+  float last_bytes_thpt, last_goodput_bytes_thpt, last_pkts_thpt;
+  ValueTrend bytes_thpt_trend, bytes_goodput_thpt_trend, pkts_thpt_trend;
+  float bytes_thpt_diff, bytes_goodput_thpt_diff;
   u_int64_t last_bytes, last_packets;
   u_int64_t last_bytes_periodic;
   struct timeval last_update_time;
@@ -64,7 +64,8 @@ class GenericHost : public GenericHashEntry {
   inline ActivityStats* getActivityStats() { return(&activityStats); };
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   void incStats(u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets, 
-		u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+		u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   inline u_int32_t get_host_serial()  { return(host_serial);               };
   inline void incNumAlerts()          { num_alerts_detected++;             };
   inline u_int32_t getNumAlerts()     { return(num_alerts_detected);       };

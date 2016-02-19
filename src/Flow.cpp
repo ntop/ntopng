@@ -29,8 +29,9 @@ Flow::Flow(NetworkInterface *_iface,
 	   u_int8_t srv_mac[6], IpAddress *_srv_ip, u_int16_t _srv_port,
 	   time_t _first_seen, time_t _last_seen) : GenericHashEntry(_iface) {
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
-  cli2srv_packets = 0, cli2srv_bytes = 0, srv2cli_packets = 0, srv2cli_bytes = 0, cli2srv_last_packets = 0,
-    cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
+  cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0, 
+    srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
+    cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, ndpiFlow = NULL, badFlow = false;
 
   l7_protocol_guessed = detection_completed = false;
@@ -64,12 +65,14 @@ Flow::Flow(NetworkInterface *_iface,
     ssl.certificate = NULL, bt_hash = NULL;
 
   src2dst_tcp_flags = dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
-    bytes_thpt = top_bytes_thpt = pkts_thpt = top_pkts_thpt = 0;
+    bytes_thpt = goodput_bytes_thpt = top_bytes_thpt = pkts_thpt = top_pkts_thpt = 0;
   cli2srv_last_bytes = prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = prev_srv2cli_last_bytes = 0;
   cli2srv_last_packets = prev_cli2srv_last_packets = 0, srv2cli_last_packets = prev_srv2cli_last_packets = 0;
 
   last_db_dump.cli2srv_packets = 0, last_db_dump.srv2cli_packets = 0,
-    last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0, last_db_dump.last_dump = 0;
+    last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0, 
+    last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0, 
+    last_db_dump.last_dump = 0;
 
   iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
@@ -540,6 +543,30 @@ u_int64_t Flow::get_current_bytes_srv2cli() {
 
 /* *************************************** */
 
+u_int64_t Flow::get_current_goodput_bytes_cli2srv() {
+  int64_t diff = cli2srv_goodput_bytes - cli2srv_last_goodput_bytes;
+
+  /*
+    We need to do this as due to concurrency issues,
+    we might have a negative value
+  */
+  return((diff > 0) ? diff : 0);
+};
+
+/* *************************************** */
+
+u_int64_t Flow::get_current_goodput_bytes_srv2cli() {
+  int64_t diff = srv2cli_goodput_bytes - srv2cli_last_goodput_bytes;
+
+  /*
+    We need to do this as due to concurrency issues,
+    we might have a negative value
+  */
+  return((diff > 0) ? diff : 0);
+};
+
+/* *************************************** */
+
 u_int64_t Flow::get_current_packets_cli2srv() {
   int64_t diff = cli2srv_packets - cli2srv_last_packets;
 
@@ -584,6 +611,10 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
   lua_push_int_table_entry(vm, "rcvd", srv2cli_bytes);
   lua_push_int_table_entry(vm, "sent.last", get_current_bytes_cli2srv());
   lua_push_int_table_entry(vm, "rcvd.last", get_current_bytes_srv2cli());
+  lua_push_int_table_entry(vm, "goodput_sent", cli2srv_goodput_bytes);
+  lua_push_int_table_entry(vm, "goodput_rcvd", srv2cli_goodput_bytes);
+  lua_push_int_table_entry(vm, "goodput_sent.last", get_current_goodput_bytes_cli2srv());
+  lua_push_int_table_entry(vm, "goodput_rcvd.last", get_current_goodput_bytes_srv2cli());
   lua_push_int_table_entry(vm, "duration", get_duration());
 
   lua_push_float_table_entry(vm, "client.latitude", get_cli_host()->get_latitude());
@@ -700,14 +731,15 @@ bool Flow::dumpFlow(bool partial_dump) {
 /* *************************************** */
 
 void Flow::update_hosts_stats(struct timeval *tv) {
-  u_int64_t sent_packets, sent_bytes, rcvd_packets, rcvd_bytes;
-  u_int64_t diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes;
+  u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
+  u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+    diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
   int16_t cli_network_id;
   int16_t srv_network_id;
 
-  if(check_tor) {
+  if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_UNKNOWN)) {
     char rsp[256];
 
     if(ntop->getRedis()->getAddress(ssl.certificate, rsp, sizeof(rsp), false) == 0) {
@@ -722,15 +754,21 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       }
     }
   }
-  sent_packets = cli2srv_packets, sent_bytes = cli2srv_bytes;
-  diff_sent_packets = sent_packets - cli2srv_last_packets, diff_sent_bytes = sent_bytes - cli2srv_last_bytes;
-  prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_packets = cli2srv_last_packets;
-  cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes;
 
-  rcvd_packets = srv2cli_packets, rcvd_bytes = srv2cli_bytes;
-  diff_rcvd_packets = rcvd_packets - srv2cli_last_packets, diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes;
-  prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_packets = srv2cli_last_packets;
-  srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes;
+  sent_packets = cli2srv_packets, sent_bytes = cli2srv_bytes, sent_goodput_bytes = cli2srv_goodput_bytes;
+  diff_sent_packets = sent_packets - cli2srv_last_packets, 
+    diff_sent_bytes = sent_bytes - cli2srv_last_bytes, diff_sent_goodput_bytes = sent_goodput_bytes - cli2srv_last_goodput_bytes;
+  prev_cli2srv_last_bytes = cli2srv_last_bytes, prev_cli2srv_last_goodput_bytes = cli2srv_last_goodput_bytes, 
+    prev_cli2srv_last_packets = cli2srv_last_packets;
+  cli2srv_last_packets = sent_packets, cli2srv_last_bytes = sent_bytes,
+    cli2srv_last_goodput_bytes = sent_goodput_bytes;
+
+  rcvd_packets = srv2cli_packets, rcvd_bytes = srv2cli_bytes, rcvd_goodput_bytes = srv2cli_goodput_bytes;
+  diff_rcvd_packets = rcvd_packets - srv2cli_last_packets, 
+    diff_rcvd_bytes = rcvd_bytes - srv2cli_last_bytes, diff_rcvd_goodput_bytes = rcvd_goodput_bytes - srv2cli_last_goodput_bytes;
+  prev_srv2cli_last_bytes = srv2cli_last_bytes, prev_srv2cli_last_goodput_bytes = srv2cli_last_goodput_bytes, 
+    prev_srv2cli_last_packets = srv2cli_last_packets;
+  srv2cli_last_packets = rcvd_packets, srv2cli_last_bytes = rcvd_bytes, srv2cli_last_goodput_bytes = rcvd_goodput_bytes;
 
   if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
@@ -750,8 +788,8 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	cli_host->incStats(protocol,
 			   ndpiDetectedProtocol.protocol,
 			   &categorization.category,
-			   diff_sent_packets, diff_sent_bytes,
-			   diff_rcvd_packets, diff_rcvd_bytes);
+			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
+			   diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes);
 	  
 	// update per-subnet byte counters
 	if(cli_network_stats) { // only if the network is known and local
@@ -776,9 +814,11 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
 	srv_network_stats = srv_host->getNetworkStats(srv_network_id);
 	srv_host->incStats(protocol, ndpiDetectedProtocol.protocol,
-			   NULL, diff_rcvd_packets, diff_rcvd_bytes,
-			   diff_sent_packets, diff_sent_bytes);
-	if(srv_network_stats) { // local and known server network
+			   NULL, diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes,
+			   diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes);
+
+	if(srv_network_stats) { 
+	  // local and known server network
 	  if(!cli_and_srv_in_same_subnet) {
 	    srv_network_stats->incIngress(diff_sent_bytes);
 	    srv_network_stats->incEgress(diff_rcvd_bytes);
@@ -810,24 +850,29 @@ void Flow::update_hosts_stats(struct timeval *tv) {
     if(tdiff_msec >= 1000 /* Do not updated when less than 1 second (1000 msec) */) {
       // bps
       u_int64_t diff_bytes = cli2srv_last_bytes+srv2cli_last_bytes-prev_cli2srv_last_bytes-prev_srv2cli_last_bytes;
+      u_int64_t diff_goodput_bytes = cli2srv_last_goodput_bytes+srv2cli_last_goodput_bytes-prev_cli2srv_last_goodput_bytes-prev_srv2cli_last_goodput_bytes;
       float bytes_msec = ((float)(diff_bytes*1000))/tdiff_msec;
+      float goodput_bytes_msec = ((float)(diff_goodput_bytes*1000))/tdiff_msec;
 
       if(bytes_msec < 0) bytes_msec = 0; /* Just to be safe */
+      if(goodput_bytes_msec < 0) goodput_bytes_msec = 0; /* Just to be safe */
 
       if((bytes_msec > 0) || iface->is_packet_interface()) {
-        //bytes_rate->addDataPoint(t_sec, bytes_msec);
-        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Normalized slope is: %.2f", bytes_rate->discreteDerivative(true));
-
 	if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
 	else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
 	else                             bytes_thpt_trend = trend_stable;
+
+	if(goodput_bytes_thpt < goodput_bytes_msec)      goodput_bytes_thpt_trend = trend_up;
+	else if(goodput_bytes_thpt > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
+	else                                             goodput_bytes_thpt_trend = trend_stable;
 
 	if(false)
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
 				       bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
 
-	bytes_thpt = bytes_msec;
+	bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
+	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
 	// pps
 	u_int64_t diff_pkts = cli2srv_last_packets+srv2cli_last_packets-prev_cli2srv_last_packets-prev_srv2cli_last_packets;
@@ -858,7 +903,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   if(dumpFlow(true)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
-      last_db_dump.srv2cli_bytes = srv2cli_bytes, last_db_dump.last_dump = last_seen;
+      last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,
+      last_db_dump.srv2cli_bytes = srv2cli_bytes, 
+      last_db_dump.srv2cli_goodput_bytes = srv2cli_goodput_bytes, 
+      last_db_dump.last_dump = last_seen;
   }
 
   checkBlacklistedFlow();
@@ -1000,6 +1048,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
     lua_push_int_table_entry(vm, "srv.port", get_srv_port());
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
+    lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
   } else {
     if(src) {
       lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
@@ -1058,6 +1107,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
     lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
     lua_push_int_table_entry(vm, "bytes.last", get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
+    lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
+    lua_push_int_table_entry(vm, "goodput_bytes.last", get_current_goodput_bytes_cli2srv() + get_current_goodput_bytes_srv2cli());
     lua_push_int_table_entry(vm, "packets", cli2srv_packets+srv2cli_packets);
     lua_push_int_table_entry(vm, "packets.last", get_current_packets_cli2srv() + get_current_packets_srv2cli());
     lua_push_int_table_entry(vm, "seen.first", get_first_seen());
@@ -1066,6 +1117,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
     lua_push_int_table_entry(vm, "cli2srv.bytes", cli2srv_bytes);
     lua_push_int_table_entry(vm, "srv2cli.bytes", srv2cli_bytes);
+    lua_push_int_table_entry(vm, "cli2srv.goodput_bytes", cli2srv_goodput_bytes);
+    lua_push_int_table_entry(vm, "srv2cli.goodput_bytes", srv2cli_goodput_bytes);
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
 #ifdef NTOPNG_PRO
@@ -1467,13 +1520,13 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 #ifdef NTOPNG_PRO
     if(payload_len > 0) c2sBytes.update(payload_len, when);
 #endif
-    cli2srv_packets++, cli2srv_bytes += pkt_len;
+    cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
     cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
   } else {
 #ifdef NTOPNG_PRO
     if(payload_len > 0) s2cBytes.update(payload_len, when);
 #endif
-    srv2cli_packets++, srv2cli_bytes += pkt_len;
+    srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
   }
 };
@@ -1498,14 +1551,18 @@ void Flow::updateActivities() {
 
 /* *************************************** */
 
-void Flow::addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes,
-			u_int out_pkts, u_int out_bytes, time_t last_seen) {
+void Flow::addFlowStats(bool cli2srv_direction,
+			u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
+			u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes,
+			time_t last_seen) {
   updateSeen(last_seen);
 
   if(cli2srv_direction)
-    cli2srv_packets += in_pkts, cli2srv_bytes += in_bytes, srv2cli_packets += out_pkts, srv2cli_bytes += out_bytes;
+    cli2srv_packets += in_pkts, cli2srv_bytes += in_bytes, cli2srv_goodput_bytes += in_goodput_bytes, 
+      srv2cli_packets += out_pkts, srv2cli_bytes += out_bytes, srv2cli_goodput_bytes += out_goodput_bytes; 
   else
-    cli2srv_packets += out_pkts, cli2srv_bytes += out_bytes, srv2cli_packets += in_pkts, srv2cli_bytes += in_bytes;
+    cli2srv_packets += out_pkts, cli2srv_bytes += out_bytes, cli2srv_goodput_bytes += out_goodput_bytes, 
+      srv2cli_packets += in_pkts, srv2cli_bytes += in_bytes, srv2cli_goodput_bytes += in_goodput_bytes;
 
   updateActivities();
 }

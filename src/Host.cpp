@@ -738,12 +738,12 @@ u_int32_t Host::key() {
 
 void Host::incStats(u_int8_t l4_proto, u_int ndpi_proto,
 		    struct site_categories *category,
-		    u_int64_t sent_packets, u_int64_t sent_bytes,
-		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+		    u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
 
   if(sent_packets || rcvd_packets) {
-    ((GenericHost*)this)->incStats(l4_proto, ndpi_proto, sent_packets,
-				   sent_bytes, rcvd_packets, rcvd_bytes);
+    ((GenericHost*)this)->incStats(l4_proto, ndpi_proto, sent_packets, sent_bytes, sent_goodput_bytes,
+				   rcvd_packets, rcvd_bytes, rcvd_goodput_bytes);
 
     if(sent_packets == 1) sent_stats.incStats((u_int)sent_bytes);
     if(rcvd_packets == 1) recv_stats.incStats((u_int)rcvd_bytes);

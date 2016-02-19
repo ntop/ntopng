@@ -253,18 +253,22 @@ else
    end
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
-     print("<tr><th width=30%>Max (Estimated) TCP Throughput</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
+     print("<tr><th width=30%>"..
+     '<a href="#" data-toggle="tooltip" title="Computed as TCP Window Size / RTT">'..
+     "Max (Estimated) TCP Throughput</a><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
      print("</td><td>"..flow["cli.ip"].." <i class=\"fa fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
-   end
+        end
 
-    -- print("<tr><th width=30%>Througput Trend</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
-    -- print(flow["cli2srv.trend"])
-    -- print("</td><td>"..flow["cli.ip"].." <i class=\"fa fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
-    -- print(flow["srv2cli.trend"])
-    -- print("</td></tr>\n")
+   if((flow["cli2srv.trend"] ~= nil) and false) then
+     print("<tr><th width=30%>Througput Trend</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
+     print(flow["cli2srv.trend"])
+     print("</td><td>"..flow["cli.ip"].." <i class=\"fa fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
+     print(flow["srv2cli.trend"])
+     print("</td></tr>\n")
+    end
 
    if((flow["tcp_flags"] ~= nil) and (flow["tcp_flags"] > 0)) then
       print("<tr><th width=30%>TCP Flags</th><td colspan=2>")

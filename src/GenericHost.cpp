@@ -108,8 +108,8 @@ void GenericHost::updateActivities() {
 /* *************************************** */
 
 void GenericHost::incStats(u_int8_t l4_proto, u_int ndpi_proto,
-			   u_int64_t sent_packets, u_int64_t sent_bytes,
-			   u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+			   u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+			   u_int64_t rcvd_packets, u_int64_t rcvd_bytes,  u_int64_t rcvd_goodput_bytes) {
   if(sent_packets || rcvd_packets) {
     sent.incStats(sent_packets, sent_bytes), rcvd.incStats(rcvd_packets, rcvd_bytes);
 

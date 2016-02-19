@@ -566,8 +566,8 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
 
   flow->addFlowStats(src2dst_direction,
 		     zflow->pkt_sampling_rate*zflow->in_pkts,
-		     zflow->pkt_sampling_rate*zflow->in_bytes,
-		     zflow->pkt_sampling_rate*zflow->out_pkts,
+		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,
+		     zflow->pkt_sampling_rate*zflow->out_pkts, 0,
 		     zflow->pkt_sampling_rate*zflow->out_bytes,
 		     zflow->last_switched);
   p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
@@ -1030,7 +1030,6 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
   }
 
  decode_packet_eth:
-
   if(eth_type == ETHERTYPE_BATMAN) {
     /* ethernet now contains the L2 layer of the antennas */
 
@@ -1383,12 +1382,12 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
     Host *dstHost = findHostByMac(ethernet->h_dest, vlan_id, true);
 
     if(srcHost) {
-      srcHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 1, h->len, 0, 0);
+      srcHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 1, h->len, h->len-ip_offset, 0, 0, 0);
       srcHost->updateActivities();
     }
 
     if(dstHost) {
-      dstHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 0, 0, 1, h->len);
+      dstHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 0, 0, 0, 1, h->len, h->len-ip_offset);
       dstHost->updateActivities();
     }
 

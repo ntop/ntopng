@@ -73,6 +73,8 @@ class Flow : public GenericHashEntry {
   /* Stats */
   u_int32_t cli2srv_packets, srv2cli_packets;
   u_int64_t cli2srv_bytes, srv2cli_bytes;
+  /* https://en.wikipedia.org/wiki/Goodput */
+  u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
 
   /* TCP stats */
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
@@ -97,18 +99,21 @@ class Flow : public GenericHashEntry {
   struct {
     u_int32_t cli2srv_packets, srv2cli_packets;
     u_int64_t cli2srv_bytes, srv2cli_bytes;
+    u_int64_t cli2srv_goodput_bytes, srv2cli_goodput_bytes;
     u_int32_t last_dump;
   } last_db_dump;
 
   struct timeval last_update_time;
 
-  float bytes_thpt, top_bytes_thpt, pkts_thpt, top_pkts_thpt;
-  ValueTrend bytes_thpt_trend,pkts_thpt_trend;
+  float bytes_thpt, goodput_bytes_thpt, top_bytes_thpt, top_goodput_bytes_thpt, pkts_thpt, top_pkts_thpt;
+  ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
   //TimeSeries<float> *bytes_rate;
   u_int64_t cli2srv_last_packets, srv2cli_last_packets,
     prev_cli2srv_last_packets, prev_srv2cli_last_packets;
   u_int64_t cli2srv_last_bytes, srv2cli_last_bytes,
-    prev_cli2srv_last_bytes, prev_srv2cli_last_bytes;
+    cli2srv_last_goodput_bytes, srv2cli_last_goodput_bytes,
+    prev_cli2srv_last_bytes, prev_srv2cli_last_bytes,
+    prev_cli2srv_last_goodput_bytes, prev_srv2cli_last_goodput_bytes;
 
   //  tcpFlags = tp->th_flags, tcpSeqNum = ntohl(tp->th_seq), tcpAckNum = ntohl(tp->th_ack), tcpWin = ntohs(tp->th_win);
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
@@ -167,7 +172,8 @@ class Flow : public GenericHashEntry {
   void incStats(bool cli2srv_direction, u_int pkt_len, 
 		u_int payload_len, const struct bpf_timeval *when);
   void updateActivities();
-  void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int out_pkts, u_int out_bytes, time_t last_seen);
+  void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
+		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, time_t last_seen);
   inline bool isDetectionCompleted()              { return(detection_completed);             };
   inline struct ndpi_flow_struct* get_ndpi_flow() { return(ndpiFlow);                        };
   inline void* get_cli_id()                       { return(cli_id);                          };
@@ -179,10 +185,13 @@ class Flow : public GenericHashEntry {
   inline u_int16_t get_vlan_id()                  { return(vlanId);                          };
   inline u_int8_t  get_protocol()                 { return(protocol);                        };
   inline u_int64_t get_bytes()                    { return(cli2srv_bytes+srv2cli_bytes);     };
+  inline u_int64_t get_goodput_bytes()            { return(cli2srv_goodput_bytes+srv2cli_goodput_bytes);     };
   inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
   inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
+  inline u_int64_t get_partial_goodput_bytes()    { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
   inline u_int64_t get_partial_packets()          { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
   inline float get_bytes_thpt()                   { return(bytes_thpt);                      };
+  inline float get_goodput_bytes_thpt()           { return(goodput_bytes_thpt);              };
 
   inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
   inline time_t get_partial_last_seen()           { return(get_last_seen()); };
@@ -203,6 +212,8 @@ class Flow : public GenericHashEntry {
 
   u_int64_t get_current_bytes_cli2srv();
   u_int64_t get_current_bytes_srv2cli();
+  u_int64_t get_current_goodput_bytes_cli2srv();
+  u_int64_t get_current_goodput_bytes_srv2cli();
   u_int64_t get_current_packets_cli2srv();
   u_int64_t get_current_packets_srv2cli();
   void handle_process(ProcessInfo *pinfo, bool client_process);

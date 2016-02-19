@@ -128,8 +128,8 @@ class Host : public GenericHost {
   inline bool equal(IpAddress *_ip)  { return(ip && _ip && ip->equal(_ip)); };
   void incStats(u_int8_t l4_proto, u_int ndpi_proto,
 		struct site_categories *category,
-		u_int64_t sent_packets, u_int64_t sent_bytes,
-		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   void updateHostTrafficPolicy(char *key);
   char* serialize();
