@@ -3840,8 +3840,17 @@ static int ntop_reload_traffic_profiles(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop_interface)
-    ntop_interface->updateFlowProfiles(); /* Reload profiles in memory */
+  if(ntop_interface) {
+    char *old_profile, *new_profile;
+
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if((old_profile = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+    
+    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if((new_profile = (char*)lua_tostring(vm, 2)) == NULL)     return(CONST_LUA_PARAM_ERROR);
+    
+    ntop_interface->updateFlowProfiles(old_profile, new_profile); /* Reload profiles in memory */
+  }
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);

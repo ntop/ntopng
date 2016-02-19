@@ -73,9 +73,9 @@ void NetworkInterfaceView::loadDumpPrefs() {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterfaceView::updateFlowProfiles() {
+void NetworkInterfaceView::updateFlowProfiles(char *old_profile, char *new_profile) {
   for(int i = 0; i<numInterfaces; i++)
-    physIntf[i]->updateFlowProfiles();
+    physIntf[i]->updateFlowProfiles(old_profile, new_profile);
 }
 #endif
 

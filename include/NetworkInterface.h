@@ -279,7 +279,7 @@ class NetworkInterface {
   void getsDPIStats(lua_State *vm);
   inline u_int64_t* getLastMinuteTrafficStats() { return((u_int64_t*)lastMinuteTraffic); }
 #ifdef NTOPNG_PRO
-  void updateFlowProfiles();
+  void updateFlowProfiles(char *old_profile, char *new_profile);
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif

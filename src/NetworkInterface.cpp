@@ -1660,7 +1660,7 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
   return(false); /* false = keep on walking */
 }
 
-void NetworkInterface::updateFlowProfiles() {
+void NetworkInterface::updateFlowProfiles(char *old_profile, char *new_profile) {
   if(ntop->getPro()->has_valid_license()) {
     FlowProfiles *oldP = flow_profiles, *newP = new FlowProfiles();
 
