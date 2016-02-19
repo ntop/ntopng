@@ -2,6 +2,7 @@
 -- (C) 2013-15 - ntop.org
 --
 require "lua_utils"
+require "db_utils"
 require "historical_utils"
 
 top_rrds = {
@@ -961,11 +962,21 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    epoch_end = epoch
    epoch_begin = epoch-d
 
-   printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', 5, 5)
+   local tot_flows = { }
+   local versions = { ['IPv4']=4, ['IPv6']=6 }
+   for k,v in pairs(versions) do
+      local res = getNumFlows(ifId, v, (host or ''), '', '', (l7proto or ''), '', epoch_begin, epoch_end)
+
+      for _,flow in pairs(res) do
+	 tot_flows[v] = flow['TOT_FLOWS']
+      end
+   end
+
+   printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', tot_flows[4], tot_flows[6])
 end
 
 function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
-   url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end.."&l4proto="..l4proto.."&port="..port.."&info="..info
+   url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
 
    if(l7proto ~= "") then
       if(not(isnumber(l7proto))) then
@@ -1009,7 +1020,10 @@ end
 
 if (not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
 print [[
-  <div class="tab-pane fade" id="ipv4"> <div id="table-flows4"></div> </div>
+      <div class="tab-pane fade" id="ipv4">
+        <div id="table-flows4"></div>
+        <i class="fa fa-download fa-lg"></i> <A HREF="]] print(url_update.."&version=4&format=txt") print [[">Download  Flows</A>
+      </div>
 ]]
 else
 print[[
@@ -1021,7 +1035,10 @@ end
 
 if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
 print[[
-  <div class="tab-pane fade" id="ipv6"> <div id="table-flows6"></div> </div>
+  <div class="tab-pane fade" id="ipv6">
+    <div id="table-flows6"></div>
+    <i class="fa fa-download fa-lg"></i> <A HREF="]] print(url_update.."&version=6&format=txt") print [[">Download  Flows</A>
+  </div>
 ]]
 else
 print[[

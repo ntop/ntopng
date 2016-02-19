@@ -459,13 +459,10 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
 
 /* ******************************************* */
 
-#define MAX_NUM_FIELDS  255
-#define MAX_NUM_ROWS    999
-
-int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
+int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
   MYSQL_RES *result;
   MYSQL_ROW row;
-  char *fields[MAX_NUM_FIELDS] = { NULL };
+  char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
   int num_fields, rc, num = 0;
 
   if(!db_operational)
@@ -480,7 +477,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
     return(rc);
   }
 
-  num_fields = min_val(mysql_num_fields(result), MAX_NUM_FIELDS);
+  num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
   lua_newtable(vm);
 
   num = 0;
@@ -503,7 +500,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql) {
     lua_insert(vm, -2);
     lua_settable(vm, -3);
 
-    if(num >= MAX_NUM_ROWS) break;
+    if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
   }
 
   mysql_free_result(result);

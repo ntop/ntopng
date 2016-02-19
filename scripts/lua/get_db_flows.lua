@@ -53,7 +53,7 @@ if(format == "txt") then
 end
 
 res = getInterfaceTopFlows(ifId, ip_version, host, (l7proto or ""), (l4proto or ""), (port or ""), (info or ""),
-			   epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC', limit)
+			   epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC')
 
 if(format == "txt") then
    -- TXT

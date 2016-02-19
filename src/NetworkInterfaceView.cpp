@@ -461,7 +461,7 @@ int NetworkInterfaceView::getDumpTrafficMaxSecPerFile() { return(getFirst()->get
 int NetworkInterfaceView::getDumpTrafficMaxFiles()      {  return(getFirst()->getDumpTrafficMaxFiles());     }
 PacketDumper *NetworkInterfaceView::getPacketDumper()              { return(getFirst()->getPacketDumper());       }
 PacketDumperTuntap *NetworkInterfaceView::getPacketDumperTap()     { return(getFirst()->getPacketDumperTap());    }
-int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) { return(getFirst()->exec_sql_query(vm, sql)); }
+int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql, bool limit_rows) { return(getFirst()->exec_sql_query(vm, sql, limit_rows)); }
 
 /* *************************************** */
 
