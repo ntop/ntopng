@@ -158,7 +158,7 @@ else
    end
 
    if(flow["verdict.pass"] == false) then print("<strike>") end
-   print(flow["proto.l4"].." / <A HREF=\""..ntop.getHttpPrefix().."/lua/") 
+   print(flow["proto.l4"].." / <A HREF=\""..ntop.getHttpPrefix().."/lua/")
    if((flow.client_process ~= nil) or (flow.server_process ~= nil))then	print("s") end
    print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
    print(getApplicationLabel(flow["proto.ndpi"]).." ("..flow["proto.ndpi_id"]..")")
@@ -184,14 +184,14 @@ else
       print("<tr><th width=30% rowspan=2>Flow Shapers</th>")
       c = flowinfo2hostname(flow,"cli",ifstats.vlan)
       s = flowinfo2hostname(flow,"srv",ifstats.vlan)
-      
+
       shaper_key = "ntopng.prefs."..ifstats.id..".shaper_max_rate"
-      
+
       cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_a"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_b"]) if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
       print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
-      
+
       cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_a"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_b"]) if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
@@ -203,7 +203,8 @@ else
    print("<tr><th width=30%>First / Last Seen</th><td nowrap><div id=first_seen>" .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " ago]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " ago]" .. "</div></td></tr>\n")
 
-   print("<tr><th width=30%>Total Traffic Volume</th><td colspan=2><span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td></tr>\n")
+   print("<tr><th width=30%>Total Traffic</th><td>Total: <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
+   print("<td><A HREF=https://en.wikipedia.org/wiki/Goodput>Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>".. round((flow["goodput_bytes"]*100)/flow["bytes"], 1).."</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
 
    print("<tr><th width=30%>Client vs Server Traffic Breakdown</th><td colspan=2>")
    cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
@@ -220,22 +221,21 @@ else
 
    if(flow["tcp.nw_latency.client"] ~= nil) then
       s = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
-      
+
       if(s > 0) then
 	 print("<tr><th width=30%>Network Latency Breakdown</th><td colspan=2>")
 	 cli2srv = round(((flow["tcp.nw_latency.client"] * 100) / s), 0)
-	 
+
 	 c = string.format("%.3f", flow["tcp.nw_latency.client"])
 	 print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv.. '%;">'.. c ..' ms (client)</div>')
-	 
+
 	 s = string.format("%.3f", flow["tcp.nw_latency.server"])
 	 print('<div class="progress-bar progress-bar-info" style="width: ' .. (100-cli2srv) .. '%;">' .. s .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
       end
    end
 
-   print("<tr><th width=30%>Client to Server Traffic</th><td colspan=2><span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td></tr>\n")
-   print("<tr><th width=30%>Server to Client Traffic</th><td colspan=2><span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+   print("<tr><th width=30%>Client to Server / Server to Client Traffic</th><td><span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td><span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
    if(flow["tcp.seq_problems"]) then
       print("<tr><th width=30% rowspan=5>TCP Packet Analysis</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'>")
@@ -249,15 +249,15 @@ else
       print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td colspan=2>")
       print(flow["ssl.certificate"])
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["ssl.certificate"], flow["category"])) end
-      print("</td></tr>\n")      
+      print("</td></tr>\n")
    end
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
      '<a href="#" data-toggle="tooltip" title="Computed as TCP Window Size / RTT">'..
-     "Max (Estimated) TCP Throughput</a><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
+     "Max (Estimated) TCP Throughput</a><td nowrap> Client <i class=\"fa fa-arrow-right\"></i> Server: ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
-     print("</td><td>"..flow["cli.ip"].." <i class=\"fa fa-arrow-left\"></i> "..flow["srv.ip"]..": ")
+     print("</td><td> Client <i class=\"fa fa-arrow-left\"></i> Server: ")
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
         end
@@ -310,7 +310,6 @@ else
       end
 
       print("</td><td><span id=thpt_load_chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
-
       print("</td></tr>\n")
    else
       if((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
@@ -347,21 +346,21 @@ else
       print("</td></tr>\n")
    end
 
-   if(flow["bittorrent_hash"] ~= nil) then 
+   if(flow["bittorrent_hash"] ~= nil) then
       print("<tr><th>BitTorrent hash</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
    end
 
    if(flow["http.last_url"] ~= nil) then
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
-      if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.vlan) end 
+      if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.vlan) end
       print(s)
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
 
       print("</td></tr>\n")
       print("<tr><th>URL</th><td>")
 
-      if(flow["http.last_url"] ~= "") then 	 
+      if(flow["http.last_url"] ~= "") then
 	 print("<A HREF=\"http://"..s)
 	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
 	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link fa-lg\">")
@@ -371,7 +370,7 @@ else
 
       print("</td></tr>\n")
       print("<tr><th>Response Code</th><td>"..flow["http.last_return_code"].."</td></tr>\n")
-   else		      
+   else
       if((flow["host_server_name"] ~= nil) and (flow["dns.last_query"] == nil)) then
 	 print("<tr><th width=30%>Server Name</th><td colspan=2>"..flow["host_server_name"].."</td></tr>\n")
       end
@@ -380,7 +379,7 @@ else
    if(flow["profile"] ~= nil) then
       print("<tr><th width=30%><A HREF=".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua>Profile Name</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
-   
+
    dump_flow_to_disk = flow["dump.disk"]
    if(dump_flow_to_disk == true) then
     dump_flow_to_disk_checked = 'checked="checked"'
@@ -389,7 +388,7 @@ else
     dump_flow_to_disk_checked = ""
     dump_flow_to_disk_value = "true" -- Opposite
    end
-   
+
    print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
@@ -456,6 +455,7 @@ if(flow ~= nil) then
       print("var throughput = " .. flow["throughput_"..throughput_type] .. ";")
    end
    print("var bytes = " .. flow["bytes"] .. ";")
+   print("var goodput_bytes = " .. flow["goodput_bytes"] .. ";")
 end
 
 print [[
@@ -486,10 +486,11 @@ print [[/lua/flow_stats.lua',
 			$('#first_seen').html(rsp["seen.first"]);
 			$('#last_seen').html(rsp["seen.last"]);
 			$('#volume').html(bytesToVolume(rsp.bytes));
+                        $('#goodput_volume').html(bytesToVolume(rsp["goodput_bytes"]));
+                        $('#goodput_percentage').html(((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1));
 			$('#cli2srv').html(addCommas(rsp["cli2srv.packets"])+" Pkts / "+bytesToVolume(rsp["cli2srv.bytes"]));
 			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / "+bytesToVolume(rsp["srv2cli.bytes"]));
 			$('#throughput').html(rsp.throughput);
-						
 
 			$('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
 			$('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
@@ -497,9 +498,6 @@ print [[/lua/flow_stats.lua',
 			$('#s2clost').html(formatPackets(rsp["s2clost"]));
 			$('#c2sretr').html(formatPackets(rsp["c2sretr"]));
 			$('#s2cretr').html(formatPackets(rsp["s2cretr"]));
-
-
-
 
 			/* **************************************** */
 
@@ -519,6 +517,12 @@ print [[/lua/flow_stats.lua',
 			   $('#volume_trend').html("<i class=\"fa fa-minus\"></i>");
 			} else {
 			   $('#volume_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+			}
+
+			if(goodput_bytes == rsp["goodput_bytes"]) {
+			   $('#goodput_volume_trend').html("<i class=\"fa fa-minus\"></i>");
+			} else {
+			   $('#goodput_volume_trend').html("<i class=\"fa fa-arrow-up\"></i>");
 			}
 
 			if(throughput > rsp["throughput_raw"]) {
