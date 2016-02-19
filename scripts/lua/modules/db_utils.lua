@@ -75,7 +75,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, l7proto, l
 
    if(db_debug == true) then io.write(sql.."\n") end
 
-   res = interface.execSQLQuery(sql)
+   res = interface.execSQLQuery(sql, false) -- do not limit the maximum number of flows
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
       return {}
@@ -122,6 +122,25 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    if(info == "") then info = nil end
    if(l7proto == "") then l7proto = nil end
    if(protocol == "") then protocol = nil end
+
+   if(l7proto ~= "") then
+      if(not(isnumber(l7proto))) then
+	 local id
+
+	 l7proto = string.gsub(l7proto, "%.rrd", "")
+
+	 if(string.ends(l7proto, ".rrd")) then l7proto = string.sub(l7proto, 1, -5) end
+
+	 id = interface.getnDPIProtoId(l7proto)
+
+	 if(id ~= -1) then
+	    l7proto = id
+	    title = "Top "..l7proto.." Flows"
+	 else
+	    l7proto = ""
+	 end
+      end
+   end
 
    sql = "select COUNT(*) AS TOT_FLOWS, SUM(BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
