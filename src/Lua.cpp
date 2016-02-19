@@ -403,7 +403,7 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN) {
     show_details = lua_toboolean(vm, 1) ? true : false;
-    
+
     if(lua_type(vm, 2) == LUA_TSTRING) {
       sortColumn = (char*)lua_tostring(vm, 2);
       
@@ -2610,6 +2610,7 @@ static int ntop_reload_shapers(lua_State *vm) {
 
 static int ntop_interface_exec_sql_query(lua_State *vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+  bool limit_rows = true;  // honour the limit by default
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2621,7 +2622,11 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
     if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-    if(ntop_interface->exec_sql_query(vm, sql) == -1)
+    if(lua_type(vm, 2) == LUA_TBOOLEAN) {
+      limit_rows = lua_toboolean(vm, 2) ? true : false;
+    }
+
+    if(ntop_interface->exec_sql_query(vm, sql, limit_rows) == -1)
       lua_pushnil(vm);
 
     return(CONST_LUA_OK);

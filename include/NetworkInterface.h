@@ -273,7 +273,7 @@ class NetworkInterface {
   u_char* getAntennaMac()	     { return (antenna_mac);     }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);
-  inline int exec_sql_query(lua_State *vm, char *sql) { return(db ? db->exec_sql_query(vm, sql) : -1); };
+  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows) { return(db ? db->exec_sql_query(vm, sql, limit_rows) : -1); };
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
   void getsDPIStats(lua_State *vm);

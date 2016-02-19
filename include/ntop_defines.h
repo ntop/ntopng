@@ -454,6 +454,10 @@
 #define NTOP_UNKNOWN_CATEGORY_STR  "???"
 #define NTOP_UNKNOWN_CATEGORY_ID   0
 
+// MySQL-related defined
+#define MYSQL_MAX_NUM_FIELDS  255
+#define MYSQL_MAX_NUM_ROWS    999
+
 #define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
 
 #define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
