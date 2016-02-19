@@ -98,7 +98,7 @@ interface.select(ifname)
 to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
-if((mac ~= nil) or (antenna_mac ~= nil)) then
+if((mac ~= nil) or (antenna_mac ~= nil) or (mode == "local")) then
    hosts_stats = interface.getLocalHostsInfo(false, sortColumn, perPage, to_skip, sOrder) -- false = little details
 else  
    hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder) -- false = little details
