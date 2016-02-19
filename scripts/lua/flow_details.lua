@@ -487,7 +487,11 @@ print [[/lua/flow_stats.lua',
 			$('#last_seen').html(rsp["seen.last"]);
 			$('#volume').html(bytesToVolume(rsp.bytes));
                         $('#goodput_volume').html(bytesToVolume(rsp["goodput_bytes"]));
-                        $('#goodput_percentage').html(((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1));
+                        pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
+                        if(pctg < 40) { pctg = "<font color=red>"+pctg+"</font>"; }
+                        else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
+                       
+                        $('#goodput_percentage').html(pctg);
 			$('#cli2srv').html(addCommas(rsp["cli2srv.packets"])+" Pkts / "+bytesToVolume(rsp["cli2srv.bytes"]));
 			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / "+bytesToVolume(rsp["srv2cli.bytes"]));
 			$('#throughput').html(rsp.throughput);
