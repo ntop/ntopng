@@ -73,7 +73,7 @@ function historicalPcapButton(button_id, pcap_request_data_container_div_id)
      print[[
      $('#]] print(button_id) print[[').prop('disabled', true);
      $('#info_]] print(button_id) print[[').html(
-         "<small>In order to be able to request pcaps containing recorded traffic for the selected criteria, admin privileges are required and nBox integration must be enabled" + 
+	 "<small>In order to be able to request pcaps containing recorded traffic for the selected criteria, admin privileges are required and nBox integration must be enabled" +
 	 " via ntopng <a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a>.</small>");
      ]]
   end
@@ -365,6 +365,7 @@ var emptyAppsBreadCrumb = function(){
 
 var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
   emptyAppsBreadCrumb();
+
   var root = $("#bc-apps").attr("root");
   var app = $('#historical-interface-top-apps-table').attr("proto");
   if (root === "interface"){
@@ -380,6 +381,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
 
 var populateInterfaceTopAppsTable = function(){
   emptyAppsBreadCrumb();
+  $('#historical-apps-container').removeAttr("host");
   $("#bc-apps").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
 
   hideAll("app-talkers");
@@ -422,6 +424,7 @@ print [[
 
 var populateAppTopTalkersTable = function(proto_id){
   emptyAppsBreadCrumb();
+  $('#historical-apps-container').removeAttr("host");
   var app = $('#historical-interface-top-apps-table').attr("proto");
   $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
   $("#bc-apps").append('<li> ' + app + ' talkers</li>');
@@ -472,6 +475,7 @@ var populateAppTopTalkersTable = function(proto_id){
 
 var populatePeersPerHostByApplication = function(host, proto_id){
   refreshHostPeersByAppBreadCrumb(host, proto_id);
+  $('#historical-apps-container').attr("host", host);
 
   var div_id = 'app-' + proto_id + '-host-' + hostkey2hostid(host)[0];
   if ($('#'+div_id).length == 0)  // create the div only if it does not exist
@@ -523,6 +527,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 // this is the entry point for the navigation that starts at hosts
 var populateHostTopAppsTable = function(host){
   emptyAppsBreadCrumb();
+  $('#historical-apps-container').attr("host", host);
   $("#bc-apps").append('<li>Protocols spoken by ' + host +'</li>');
 
   hideAll("app-talkers");
@@ -646,35 +651,35 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 print ('sort: [ ["' .. getDefaultTableSort("pcaps") ..'","' .. getDefaultTableSortOrder("pcaps").. '"] ],')
 
 print [[
-               showPagination: true,
-                columns: [
-                         {
-                             title: "Task Id",
-                                 field: "column_task_id",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'left'
-                             }
-                                 },
-                             {
-                             title: "Status",
-                                 field: "column_status",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'center'
-                             }
+	       showPagination: true,
+		columns: [
+			 {
+			     title: "Task Id",
+				 field: "column_task_id",
+				 sortable: true,
+			     css: {
+				textAlign: 'left'
+			     }
+				 },
+			     {
+			     title: "Status",
+				 field: "column_status",
+				 sortable: true,
+			     css: {
+				textAlign: 'center'
+			     }
 
-                                 },
-                             {
-                             title: "Actions",
-                                 field: "column_actions",
-                                 sortable: true,
-                             css: {
-                                textAlign: 'center'
-                             }
-                                 }
-                             ]
-               });
+				 },
+			     {
+			     title: "Actions",
+				 field: "column_actions",
+				 sortable: true,
+			     css: {
+				textAlign: 'center'
+			     }
+				 }
+			     ]
+	       });
 
 };
 
