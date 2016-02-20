@@ -123,7 +123,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    if(l7proto == "") then l7proto = nil end
    if(protocol == "") then protocol = nil end
 
-   if(l7proto ~= "") then
+   if l7proto ~= "" and l7proto ~= nil then
       if(not(isnumber(l7proto))) then
 	 local id
 
