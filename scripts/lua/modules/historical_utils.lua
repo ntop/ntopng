@@ -366,15 +366,15 @@ var emptyAppsBreadCrumb = function(){
 var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
   emptyAppsBreadCrumb();
   var root = $("#bc-apps").attr("root");
-    var app = $('#historical-interface-top-apps-table').attr("proto");
+  var app = $('#historical-interface-top-apps-table').attr("proto");
   if (root === "interface"){
     $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
     $("#bc-apps").append('<li><a onclick="populateAppTopTalkersTable(\'' + proto_id + '\');">' + app + ' talkers</a></li>');
     $("#bc-apps").append('<li> ' + app + ' talkers with ' + peer1 + ' </li>');
   } else if (root == "host"){
     var host = $('#historical-interface-top-apps-table').attr("host");
-    $("#bc-apps").append('<li><a onclick="populateHostTopAppsTable(host);">Protocols spoken by ' + peer1 + '</a></li>');
-    $("#bc-apps").append('<li> ' + app + ' talkers with ' + peer1 + ' </li>');
+    $("#bc-apps").append('<li><a onclick="populateHostTopAppsTable(\'' + host + '\');">Protocols spoken by ' + host + '</a></li>');
+    $("#bc-apps").append('<li> ' + app + ' talkers with ' + host + ' </li>');
   }
 }
 
