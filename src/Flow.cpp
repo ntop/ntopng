@@ -271,7 +271,7 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_BITTORRENT:
     if(bt_hash == NULL) {
       int i, j, n = 0;
-      char bittorrent_hash[21];
+      char bittorrent_hash[41];
 
       for(i=0, j = 0; i<20; i++) {
 	sprintf(&bittorrent_hash[j], "%02x", ndpiFlow->bittorent_hash[i]);
@@ -389,17 +389,17 @@ void Flow::processDetectedProtocol() {
     break;
   } /* switch */
 
+#ifdef NTOPNG_PRO
+  if((ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_UNKNOWN) && (!l7_protocol_guessed))
+    ntop->getFlowChecker()->flowCheck(this);
+#endif
+
   if(protocol_processed
      /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
      && (l7proto != NDPI_PROTOCOL_DNS))
     deleteFlowMemory();
 
   makeVerdict();
-
-#ifdef NTOPNG_PRO
-  if(!l7_protocol_guessed)
-    ntop->getFlowChecker()->flowCheck(this);
-#endif
 }
 
 /* *************************************** */
