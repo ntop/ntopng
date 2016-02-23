@@ -982,11 +982,10 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
   lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+  lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
 #ifdef NTOPNG_PRO
-  if(ntop->getNagios())
-      ntop->getNagios()->lua(vm);
-  lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
+  if(ntop->getNagios()) ntop->getNagios()->lua(vm);
 
   memset(HTTP_stats_base_dir, '\0', MAX_PATH);
   strncat(HTTP_stats_base_dir, (const char*)ntop->get_working_dir(), MAX_PATH);
