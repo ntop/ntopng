@@ -42,7 +42,7 @@ class Flow : public GenericHashEntry {
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
-  CounterTrend c2sBytes, s2cBytes;
+  CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;

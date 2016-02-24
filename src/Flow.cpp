@@ -679,7 +679,7 @@ char* Flow::print(char *buf, u_int buf_len) {
   if((cli_host == NULL) || (srv_host == NULL)) return(buf);
 
   snprintf(buf, buf_len,
-	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes]\n",
+	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes]",
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
@@ -845,7 +845,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
   if(last_update_time.tv_sec > 0) {
     float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
-    //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000.;
+    //float t_sec = (float)(tv->tv_sec)+(float)(tv->tv_usec)/1000;
 
     if(tdiff_msec >= 1000 /* Do not updated when less than 1 second (1000 msec) */) {
       // bps
@@ -873,6 +873,21 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
+
+#ifdef NTOPNG_PRO
+	throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);
+	thptRatioTrend.update(((double)goodput_bytes_thpt*100)/(double)bytes_thpt);
+
+	if(false) {
+	  char buf[256];
+	  
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
+				       print(buf, sizeof(buf)),
+				       thptRatioTrend.getLongTerm(), thptRatioTrend.getMidTerm(), thptRatioTrend.getShortTerm(),
+				       thptRatioTrend.getTrendMsg(),
+				       ((float)(100*(cli2srv_goodput_bytes+srv2cli_goodput_bytes)))/(float)(cli2srv_bytes+srv2cli_bytes));
+	}
+#endif
 
 	// pps
 	u_int64_t diff_pkts = cli2srv_last_packets+srv2cli_last_packets-prev_cli2srv_last_packets-prev_srv2cli_last_packets;
@@ -1122,8 +1137,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
 #ifdef NTOPNG_PRO
-    lua_push_float_table_entry(vm, "cli2srv.trend", c2sBytes.getTrend());
-    lua_push_float_table_entry(vm, "srv2cli.trend", s2cBytes.getTrend());
+    // lua_push_float_table_entry(vm, "cli2srv.trend", c2sBytes.getTrend());
+    // lua_push_float_table_entry(vm, "srv2cli.trend", s2cBytes.getTrend());
 #endif
 
     lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
@@ -1517,15 +1532,9 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   if((cli_host == NULL) || (srv_host == NULL)) return;
 
   if(cli2srv_direction) {
-#ifdef NTOPNG_PRO
-    if(payload_len > 0) c2sBytes.update(payload_len, when);
-#endif
     cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
     cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
   } else {
-#ifdef NTOPNG_PRO
-    if(payload_len > 0) s2cBytes.update(payload_len, when);
-#endif
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
   }
