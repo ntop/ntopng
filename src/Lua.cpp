@@ -395,7 +395,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
-  char *sortColumn = (char*)"column_ip";
+  char *sortColumn = (char*)"column_ip", *country = NULL;
   bool a2zSortOrder = true;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
 
@@ -415,6 +415,9 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 	
 	  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
 	    a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
+
+	    if(lua_type(vm, 6) == LUA_TSTRING)
+	      country = (char*)lua_tostring(vm, 6);
 	  }
 	}
       }
@@ -424,7 +427,8 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
   if(ntop_interface)
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, show_local_only,
-                                       sortColumn, maxHits, toSkip, a2zSortOrder);
+                                       country, sortColumn, maxHits, 
+				       toSkip, a2zSortOrder);
 
   return(CONST_LUA_OK);
 }

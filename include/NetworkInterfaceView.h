@@ -46,7 +46,7 @@ class NetworkInterfaceView {
   int getActiveHostsList(lua_State* vm,
 			 patricia_tree_t *allowed_hosts,
 			 bool host_details, bool local_only,
-			 char *sortColumn, u_int32_t maxHits,
+			 char *countryFilter, char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);

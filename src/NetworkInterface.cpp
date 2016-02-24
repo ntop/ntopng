@@ -1752,6 +1752,7 @@ struct flowHostRetriever {
   /* Search criteria */
   patricia_tree_t *allowed_hosts;
   Host *host;
+  char *country;
   int ndpi_proto;
   enum flowSortField sorter;
   bool local_only;
@@ -1839,6 +1840,13 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   if(h && (!h->idle()) && h->match(retriever->allowed_hosts)) {
     if(retriever->local_only && (!h->isLocalHost()))
       return(false); /* false = keep on walking */
+
+    if(retriever->country) {
+      if(h->get_country() && (strcmp(h->get_country(), retriever->country) == 0))
+	;
+      else
+	return(false); /* false = keep on walking */
+    }
 
     retriever->elems[retriever->actNumEntries].hostValue = h;
 
@@ -1979,13 +1987,13 @@ int NetworkInterface::getFlows(lua_State* vm,
 
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, bool local_only,
-					 char *sortColumn, u_int32_t maxHits,
+					 char *countryFilter, char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
 
   struct flowHostRetriever retriever;
   int (*sorter)(const void *_a, const void *_b);
   
-  retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only;
+  retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter;
   retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 

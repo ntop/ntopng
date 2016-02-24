@@ -111,14 +111,15 @@ void NetworkInterfaceView::getnDPIStats(nDPIStats *stats) {
 int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 					     patricia_tree_t *allowed_hosts,
 					     bool host_details, bool local_only,
-					     char *sortColumn, u_int32_t maxHits,
+					     char *countryFilter, char *sortColumn, 
+					     u_int32_t maxHits,
 					     u_int32_t toSkip, bool a2zSortOrder) {
   int ret = 0;
 
   lua_newtable(vm);
   for(int i = 0; i<numInterfaces; i++) {
     int rc = physIntf[i]->getActiveHostsList(vm, allowed_hosts, host_details, local_only, 
-					     sortColumn, maxHits,
+					     countryFilter, sortColumn, maxHits,
 					     toSkip, a2zSortOrder);
     if(rc < 0) return(ret); 
     rc += ret;
