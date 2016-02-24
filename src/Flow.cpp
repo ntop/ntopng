@@ -876,17 +876,19 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
 #ifdef NTOPNG_PRO
 	throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);
-	thptRatioTrend.update(((double)goodput_bytes_thpt*100)/(double)bytes_thpt);
+	thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec);
 
-	if(false) {
+#ifdef DEBUG_TREND
+	if((cli2srv_goodput_bytes+srv2cli_goodput_bytes) > 0) {
 	  char buf[256];
 	  
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Goodpt long/mid/short %.3f/%.3f/%.3f][ratio: %s][goodput/thpt: %.3f]",
 				       print(buf, sizeof(buf)),
-				       thptRatioTrend.getLongTerm(), thptRatioTrend.getMidTerm(), thptRatioTrend.getShortTerm(),
-				       thptRatioTrend.getTrendMsg(),
+				       goodputTrend.getLongTerm(), goodputTrend.getMidTerm(), goodputTrend.getShortTerm(),
+				       goodputTrend.getTrendMsg(),
 				       ((float)(100*(cli2srv_goodput_bytes+srv2cli_goodput_bytes)))/(float)(cli2srv_bytes+srv2cli_bytes));
 	}
+#endif
 #endif
 
 	// pps
