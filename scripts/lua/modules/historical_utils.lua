@@ -74,14 +74,23 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
     data:buildPcapRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
-      $.each(data, function(hosts, hostnames){
-        if (hosts.split(',').length == 1){
-          var option_data = '<option value="' + hosts + '"> ' + hostnames + '</option>';
-        }else if (hosts.split(',').length == 2) {
-          var option_data = '<option value="' + hosts + '"> ' + hostnames.split(",").join(" <---> ") + '</option>';
-        }
-        $(option_data).appendTo('#'+select_id);
-      });
+      // if no favourite has been added, we hide the div that contains the dropdown
+      if(Object.keys(data).length == 0){
+        $('#' + select_id).parent().closest('div').hide();
+
+      // alternatively, we ajax data to the dropdown menu
+      } else {
+        $('#' + select_id).parent().closest('div').show();
+        $('<option value="noaction"> select favorites...</option>').appendTo('#' + select_id);
+        $.each(data, function(hosts, hostnames){
+          if (hosts.split(',').length == 1){
+            var option_data = '<option value="' + hosts + '"> ' + hostnames + '</option>';
+          }else if (hosts.split(',').length == 2) {
+            var option_data = '<option value="' + hosts + '"> ' + hostnames.split(",").join(" <---> ") + '</option>';
+          }
+          $(option_data).appendTo('#'+select_id);
+        });
+      }
      },
      error:function(){
        perror('An HTTP error occurred.');
@@ -89,12 +98,42 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
   });
   $('#' + select_id).change(function() {
     var host = $(this).find(':selected').val();
+    if (host == "noaction"){
+      return;
+    }
     host = host.split(',');
     if (host.length == 1){
       populateHostTopTalkersTable(host[0]);
     } else if (host.length == 2){
       populateAppsPerHostsPairTable(host[0], host[1]);
     }
+  });
+}
+
+
+function removeAllFavourites(stats_type, favourite_type, select_id){
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=del_all&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+    success:function(data){
+      // remove all the exising options...
+      $('#'+select_id).find('option').remove();
+
+      // and hide the container div...
+      $('#' + select_id).parent().closest('div').hide();
+
+     // refresh the right breacrumb
+     if (stats_type == "top_talkers"){
+       if(favourite_type == "talker"){
+         $('.bc-item-add.talker').show();
+         $('.bc-item-remove.talker').hide();
+       } else if (favourite_type == "apps_per_host_pair"){
+         $('.bc-item-add.host-pair').show();
+         $('.bc-item-remove.host-pair').hide();
+       }
+     }
+     },
+     error:function(){
+       perror('An HTTP error occurred.');
+     }
   });
 }
 
@@ -200,12 +239,12 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
     <div class="form-group">
     <div class='col-md-3'>
       <form name="top_talkers_faves">
-        <b>Favorite Talkers</b>
+        <b>Favorite Talkers</b><span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> all </a></small></span>
         <select name="top_talkers_talker" id="top_talkers_talker" class="form-control">
         </select>
     </div>
     <div class='col-md-6'>
-        <b>Favorite applications between pairs of talkers</b>
+        <b>Favorite applications between pairs of talkers</b><span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> all </a></small></span>
         <select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
         </select>
       </form>
@@ -243,10 +282,10 @@ var refreshBreadCrumbHost = function(host){
   // the second is shown if it has been added...
 
   // first pair: shown if the host has not been favourited
-  $("#bc-talkers").append('<li class="bc-item-add">Talkers with ' + host + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-add talker">Talkers with ' + host + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a> </li>');
 
   // second pair: shown if the host has been favourited
-  $("#bc-talkers").append('<li class="bc-item-remove">Talkers with ' + host + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-remove talker">Talkers with ' + host + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_talkers_talker > option[value=\'' + host + '\']').length == 0){
@@ -270,18 +309,21 @@ var refreshBreadCrumbHost = function(host){
 
 var refreshBreadCrumbPairs = function(peer1, peer2){
   emptyBreadCrumb();
+  $('#historical-container').attr("host", peer1);
+  $('#historical-container').attr("peer", peer2);
+
   $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
   $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">Talkers with ' + peer1 + '</a></li>');
 
   // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case 
 
   // first li: shown if the pair has been favourited
-  $("#bc-talkers").append('<li class="bc-item-add">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a></li>');
+  $("#bc-talkers").append('<li class="bc-item-add host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a></li>');
   $('#historical-container').attr("peer", peer2);
 
   // second li: shown if the pair has not been favorited
-  $("#bc-talkers").append('<li class="bc-item-remove">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a></li>');
-  $('#historical-container').attr("peer", peer2);
+  $("#bc-talkers").append('<li class="bc-item-remove host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a></li>');
+
 
   // check which li has to be shown, depending on the content of a dropdown menu
   if($('#top_talkers_host_pairs > option[value=\'' + peer1 + ',' + peer2 + '\']').length == 0){
