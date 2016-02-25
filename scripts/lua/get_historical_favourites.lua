@@ -27,7 +27,7 @@ local l7_proto_id = _GET["l7_proto_id"]
 
 -- specify the type of stats
 local action = _GET["action"]
-if action == nil or (action ~= "set" and stats_type ~= "get") then
+if action == nil or (action ~= "set" and action ~= "get" and action ~= "del") then
    -- default to get
    stats_type = "get"
 end
@@ -61,7 +61,7 @@ if action == "get" then
       res[h] = ntop.getHashCache(k, h)
       if res[h] == "" or res[h] == nil then res[h] = h end
    end
-elseif action == "set" then
+elseif action == "set" or action == "del" then
    local entry = ""
    local resolved = ""
    if host ~= "" and host ~= nil then
@@ -73,7 +73,11 @@ elseif action == "set" then
       resolved = resolved..','..ntop.getResolvedAddress(peer)
    end
    if entry ~= "" then
-      ntop.setHashCache(k, entry, resolved)
+      if action == "set" then
+	 ntop.setHashCache(k, entry, resolved)
+      elseif action == "del" then
+	 ntop.delHashCache(k, entry)
+      end
    end
    res = {}
 else
