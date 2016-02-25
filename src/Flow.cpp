@@ -270,16 +270,7 @@ void Flow::processDetectedProtocol() {
   switch(l7proto) {
   case NDPI_PROTOCOL_BITTORRENT:
     if(bt_hash == NULL) {
-      int i, j, n = 0;
-      char bittorrent_hash[41];
-
-      for(i=0, j = 0; i<20; i++) {
-	sprintf(&bittorrent_hash[j], "%02x", ndpiFlow->bittorent_hash[i]);
-	j += 2,	n += ndpiFlow->bittorent_hash[i];
-      }
-      
-      if(n > 0) bt_hash = strdup(bittorrent_hash);
-
+      setBittorrentHash((char*)ndpiFlow->bittorent_hash);
       protocol_processed = true;
     }
     break;
@@ -1805,6 +1796,33 @@ bool Flow::match(patricia_tree_t *ptree) {
   else
     return(false);
 };
+
+/* *************************************** */
+
+void Flow::setBittorrentHash(char *hash) {
+  int i, j, n = 0;
+  char bittorrent_hash[41];
+  
+  for(i=0, j = 0; i<20; i++) {
+    u_char c = hash[i] & 0xFF;
+    sprintf(&bittorrent_hash[j], "%02x", c);
+    j += 2, n += c;
+  }
+  
+  if(n > 0) bt_hash = strdup(bittorrent_hash);  
+}
+
+/* *************************************** */
+
+void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
+  /* This dissector is called only for uTP/UDP protocol */
+
+  if(payload_len > 47) {
+    char *bt_proto = ndpi_strnstr((const char *)&payload[20], "BitTorrent protocol", payload_len-20);
+    
+    if(bt_proto) setBittorrentHash(&bt_proto[27]);
+  }
+}
 
 /* *************************************** */
 

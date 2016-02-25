@@ -123,6 +123,7 @@ class Flow : public GenericHashEntry {
   void allocFlowMemory();
   bool checkTor(char *hostname);
   void checkFlowCategory();
+  void setBittorrentHash(char *hash);
 
  public:
   Flow(NetworkInterface *_iface,
@@ -238,6 +239,7 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
+  void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
   inline char* getDnsLastQuery()    { return(dns.last_query);  }
   inline char* getHTTPLastURL()     { return(http.last_url);   }

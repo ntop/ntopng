@@ -805,6 +805,13 @@ bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
      && flow->get_cli_host()
      && flow->get_srv_host()) {
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
+    case NDPI_PROTOCOL_BITTORRENT:
+      if((flow->getBitTorrentHash() == NULL)
+	 && (l4_proto == IPPROTO_UDP)
+	 && (flow->get_packets() < 8))
+	flow->dissectBittorrent((char*)payload, payload_len);
+      break;
+
     case NDPI_PROTOCOL_HTTP:
       if(payload_len > 0)
 	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
