@@ -54,6 +54,19 @@ function addToFavourites(source_div_id, stats_type, favourite_type, select_id){
   });
 }
 
+function removeFromFavourites(source_div_id, stats_type, favourite_type, select_id){
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=del&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+    data:buildPcapRequestData(source_div_id),
+    success:function(data){
+      data=jQuery.parseJSON(data);
+      populateFavourites(source_div_id, stats_type, favourite_type, select_id);
+     },
+     error:function(){
+       perror('An HTTP error occurred.');
+     }
+  });
+}
+
 
 function populateFavourites(source_div_id, stats_type, favourite_type, select_id){
   $('#'+select_id).find('option').remove();
@@ -185,13 +198,13 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
 
   <div class="row">
     <div class="form-group">
-    <div class='col-md-2'>
+    <div class='col-md-3'>
       <form name="top_talkers_faves">
         <b>Favorite Talkers</b>
         <select name="top_talkers_talker" id="top_talkers_talker" class="form-control">
         </select>
     </div>
-    <div class='col-md-3'>
+    <div class='col-md-6'>
         <b>Favorite applications between pairs of talkers</b>
         <select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
         </select>
@@ -224,18 +237,66 @@ var refreshBreadCrumbInterface = function(){
 
 var refreshBreadCrumbHost = function(host){
   emptyBreadCrumb();
-    $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
-    $("#bc-talkers").append('<li>Talkers with ' + host + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o"></i></a> </li>');
+  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
+
+  // append a pair of li to the breadcrumb: the first is shown if the host has not been added to the favourites,
+  // the second is shown if it has been added...
+
+  // first pair: shown if the host has not been favourited
+  $("#bc-talkers").append('<li class="bc-item-add">Talkers with ' + host + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a> </li>');
+
+  // second pair: shown if the host has been favourited
+  $("#bc-talkers").append('<li class="bc-item-remove">Talkers with ' + host + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a> </li>');
+
+  // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
+  if($('#top_talkers_talker > option[value=\'' + host + '\']').length == 0){
+    $('.bc-item-add').show();
+    $('.bc-item-remove').hide();
+  } else {
+    // the host has already been added to favourites
+    $('.bc-item-remove').show();
+    $('.bc-item-add').hide();
+  }
+
+  // we also add a function to toggle the currently active li
+  $('.bc-item-add, .bc-item-remove').on('click', function(){
+    $('.bc-item-add, .bc-item-remove').toggle();
+  });
+
+  // finally we add some status variables to the historical container
   $('#historical-container').attr("host", host);
   $('#historical-container').removeAttr("peer");
 }
 
 var refreshBreadCrumbPairs = function(peer1, peer2){
   emptyBreadCrumb();
-    $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
-    $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">Talkers with ' + peer1 + '</a></li>');
-    $("#bc-talkers").append('<li>Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o"></i></a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">Talkers with ' + peer1 + '</a></li>');
+
+  // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case 
+
+  // first li: shown if the pair has been favourited
+  $("#bc-talkers").append('<li class="bc-item-add">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a></li>');
   $('#historical-container').attr("peer", peer2);
+
+  // second li: shown if the pair has not been favorited
+  $("#bc-talkers").append('<li class="bc-item-remove">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a></li>');
+  $('#historical-container').attr("peer", peer2);
+
+  // check which li has to be shown, depending on the content of a dropdown menu
+  if($('#top_talkers_host_pairs > option[value=\'' + peer1 + ',' + peer2 + '\']').length == 0){
+    $('.bc-item-add').show();
+    $('.bc-item-remove').hide();
+  } else {
+    // the host has already been added to favourites
+    $('.bc-item-remove').show();
+    $('.bc-item-add').hide();
+  }
+
+  // we also add a function to toggle the currently active li
+  $('.bc-item-add, .bc-item-remove').on('click', function(){
+    $('.bc-item-add, .bc-item-remove').toggle();
+  });
 }
 
 var populateInterfaceTopTalkersTable = function(){
@@ -278,7 +339,6 @@ var populateInterfaceTopTalkersTable = function(){
 
 var populateHostTopTalkersTable = function(host){
   refreshBreadCrumbHost(host);
-
   var div_id = 'host-' + hostkey2hostid(host)[0];
   if ($('#'+div_id).length == 0)  // create the div only if it does not exist
     $('#hosts-container').append('<div class="host-talkers" id="' + div_id + '" total_rows=-1 loaded=0></div>');
