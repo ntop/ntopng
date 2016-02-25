@@ -705,32 +705,37 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
 
     if(strncmp(val, "ldap", 4) == 0) {
       bool is_admin;
-      char ldapServer[64] = { 0 }, bind_dn[128] = { 0 }, 
-				     bind_pwd[64] = { 0 }, group[64] = { 0 }, 
-							     admin_group[64] = { 0 };
+      char ldapServer[64] = { 0 }, ldapAccountType[64] = { 0 }, ldapAnonymousBind[32] = { 0 },
+           bind_dn[128] = { 0 }, bind_pwd[64] = { 0 }, group[64] = { 0 },
+           search_path[128] = { 0 }, admin_group[64] = { 0 };
 
+      if(!password || !password[0])
+        return false;
       snprintf(key, sizeof(key), CONST_CACHED_USER_PASSWORD, user);
       mg_md5(password_hash, password, NULL);
 
       if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
-	return((strcmp(password_hash, val) == 0) ? true : false);      
+	return((strcmp(password_hash, val) == 0) ? true : false);
 
       ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
+      ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, sizeof(ldapAccountType));
+      ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, sizeof(ldapAnonymousBind));
       ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, sizeof(bind_dn));
       ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, sizeof(bind_pwd));
+      ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, sizeof(search_path));
       ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, sizeof(group));
       ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, sizeof(admin_group));
-      
-      if(ldapServer[0] && bind_dn[0]) {
-	bool ret = LdapAuthenticator::validUserLogin(ldapServer, bind_dn, bind_pwd, 
-						     user, password, group, admin_group, &is_admin);
+
+      if(ldapServer[0]) {
+	bool ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType, ldapAnonymousBind, bind_dn, bind_pwd,
+						     search_path, user, password, group, admin_group, &is_admin);
 
 	if(ret) {
 	  /* Let's cache the password so we avoid talking to LDAP too often  */
 	  ntop->getRedis()->set(key, password_hash, 600 /* 10 mins cache */);
-	  
+
 	  snprintf(key, sizeof(key), CONST_CACHED_USER_GROUP, user);
-	  ntop->getRedis()->set(key, 
+	  ntop->getRedis()->set(key,
 				is_admin ?  (char*)"administrator" : (char*)"unprivileged",
 				600 /* 10 mins cache */);
 	  return(true);
