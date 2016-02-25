@@ -430,7 +430,7 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
   var kpeer1 = hostkey2hostid(peer1)[0];
   var kpeer2 = hostkey2hostid(peer2)[0];
   if (kpeer2 > kpeer1){
-    var tmp = kpeer1;
+    var tmp = kpeer2;
     kpeer2 = kpeer1;
     kpeer1 = tmp;
   }
