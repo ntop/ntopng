@@ -805,7 +805,13 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 var populateHostTopAppsTable = function(host){
   emptyAppsBreadCrumb();
   $('#historical-apps-container').attr("host", host);
+  $('#historical-apps-container').removeAttr("proto");
+  $('#historical-apps-container').removeAttr("proto_id");
   $("#bc-apps").append('<li>Protocols spoken by ' + host +'</li>');
+
+  // remove the favourite top apps dropdowns
+  $('#top_applications_app').parent().closest('div').detach();
+  $('#top_applications_host_peers_by_app').parent().closest('div').detach();
 
   hideAll("app-talkers");
   hideAll("peers-by-app");
