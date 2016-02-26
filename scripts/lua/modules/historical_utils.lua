@@ -949,6 +949,14 @@ print [[
 				textAlign: 'left'
 			     }
 				 },
+                             {
+			     title: "Filter (BPF)",
+				 field: "column_bpf",
+				 sortable: true,
+			     css: {
+				textAlign: 'left'
+			     }
+				 },
 			     {
 			     title: "Status",
 				 field: "column_status",

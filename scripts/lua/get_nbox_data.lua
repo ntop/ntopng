@@ -116,6 +116,7 @@ elseif action == "status" then
 		content = string.gsub(content, "{%s*{","[{")
 		content = string.gsub(content, "}%s*}","}]")
 		content = json.decode(content, 1, nil)
+		tprint(content)
 		if content == nil or content["tasks"] == nil then
 			print('{"data":[]}')
 		else
@@ -126,13 +127,18 @@ elseif action == "status" then
 					'<a href="'..download_url..task["task_id"]..'.pcap"><i class="fa fa-download fa-lg"></i></a> '
 				end
 				task["actions"] = task["actions"]..'<a href="'..activity_scheduler_url..'" target="_blank"><i class="fa fa-external-link fa-lg"></i></a> '
+				if task["bpf"] == nil then task["bpf"] = "" end
 				tasks[task["task_id"]] =
-				{["column_task_id"] = task["task_id"], ["column_status"] = task["status"], ["column_actions"] = task["actions"]}
+				   {["column_task_id"] = task["task_id"],
+				    ["column_status"] = task["status"],
+				    ["column_actions"] = task["actions"],
+				    ["column_bpf"] = task["bpf"]}
 			end
 			local sorter = {}
 			for task_id, task in pairs(tasks) do
 				if sort_column == "column_task_id" then sorter[task_id] = task_id
 				elseif sort_column == "column_status" then sorter[task_id] = task["column_status"]
+				elseif sort_column == "column_bpf" then sorter[task_id] = task["column_bpf"]
 				elseif sort_column == "column_actions" then sorter[task_id] = task["column_actions"]
 				else sorter[task_id] = task_id end
 			end
