@@ -163,9 +163,9 @@ function removeAllFavourites(stats_type, favourite_type, select_id){
        if(favourite_type == "host_peers_by_app"){
 	 $('.bc-app-item-add.host-peers-by-app').show();
 	 $('.bc-app-item-remove.host-peers-by-app').hide();
-       } else if (favourite_type == "host_peers_by_app"){
-	 $('.bc-app-item-add.host-peers-by-app').show();
-	 $('.bc-app-item-remove.host-pai').hide();
+       } else if (favourite_type == "app"){
+	 $('.bc-app-item-add.app').show();
+	 $('.bc-app-item-remove.app').hide();
        }
      }
      },
