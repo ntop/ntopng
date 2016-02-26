@@ -239,12 +239,12 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
     <div class="form-group">
     <div class='col-md-3'>
       <form name="top_talkers_faves">
-        <b>Favorite Talkers</b><span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> all </a></small></span>
+        <i class="fa fa-heart"></i> &nbsp;talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> all </a></small></span>
         <select name="top_talkers_talker" id="top_talkers_talker" class="form-control">
         </select>
     </div>
     <div class='col-md-6'>
-        <b>Favorite applications between pairs of talkers</b><span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> all </a></small></span>
+         <i class="fa fa-heart"></i> &nbsp;applications between pairs of talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> all </a></small></span>
         <select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
         </select>
       </form>
@@ -282,10 +282,10 @@ var refreshBreadCrumbHost = function(host){
   // the second is shown if it has been added...
 
   // first pair: shown if the host has not been favourited
-  $("#bc-talkers").append('<li class="bc-item-add talker">Talkers with ' + host + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-add talker">Talkers with ' + host + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
 
   // second pair: shown if the host has been favourited
-  $("#bc-talkers").append('<li class="bc-item-remove talker">Talkers with ' + host + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-remove talker">Talkers with ' + host + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_talkers_talker > option[value=\'' + host + '\']').length == 0){
@@ -318,11 +318,11 @@ var refreshBreadCrumbPairs = function(peer1, peer2){
   // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case 
 
   // first li: shown if the pair has been favourited
-  $("#bc-talkers").append('<li class="bc-item-add host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Add to Favorites"></i></a></li>');
+  $("#bc-talkers").append('<li class="bc-item-add host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Save"></i></a></li>');
   $('#historical-container').attr("peer", peer2);
 
   // second li: shown if the pair has not been favorited
-  $("#bc-talkers").append('<li class="bc-item-remove host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Remove from Favorites"></i></a></li>');
+  $("#bc-talkers").append('<li class="bc-item-remove host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Unsave"></i></a></li>');
 
 
   // check which li has to be shown, depending on the content of a dropdown menu
