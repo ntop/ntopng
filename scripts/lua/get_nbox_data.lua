@@ -116,7 +116,6 @@ elseif action == "status" then
 		content = string.gsub(content, "{%s*{","[{")
 		content = string.gsub(content, "}%s*}","}]")
 		content = json.decode(content, 1, nil)
-		tprint(content)
 		if content == nil or content["tasks"] == nil then
 			print('{"data":[]}')
 		else
