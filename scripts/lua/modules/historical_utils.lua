@@ -34,10 +34,12 @@ function buildPcapRequestData(source_div_id){
   var ifname = $('#' + source_div_id).attr("ifname");
   var host = $('#' + source_div_id).attr("host");
   var peer = $('#' + source_div_id).attr("peer");
+  var l7_proto_id = $('#' + source_div_id).attr("proto_id");
   var res = {epoch_begin: epoch_begin, epoch_end: epoch_end};
   if (typeof ifname != 'undefined') res.ifname = ifname;
   if (typeof host != 'undefined') res.host = host;
   if (typeof peer != 'undefined') res.peer = peer;
+  if (typeof l7_proto_id != 'undefined') res.l7_proto_id = l7_proto_id;
   return res;
 }
 
@@ -69,6 +71,8 @@ function removeFromFavourites(source_div_id, stats_type, favourite_type, select_
 
 
 function populateFavourites(source_div_id, stats_type, favourite_type, select_id){
+  var multival_separator = " <---> ";
+
   $('#'+select_id).find('option').remove();
   $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=get&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     data:buildPcapRequestData(source_div_id),
@@ -76,38 +80,64 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
       data=jQuery.parseJSON(data);
       // if no favourite has been added, we hide the div that contains the dropdown
       if(Object.keys(data).length == 0){
-        $('#' + select_id).parent().closest('div').hide();
+	$('#' + select_id).parent().closest('div').hide();
 
       // alternatively, we ajax data to the dropdown menu
       } else {
-        $('#' + select_id).parent().closest('div').show();
-        $('<option value="noaction"> select favorites...</option>').appendTo('#' + select_id);
-        $.each(data, function(hosts, hostnames){
-          if (hosts.split(',').length == 1){
-            var option_data = '<option value="' + hosts + '"> ' + hostnames + '</option>';
-          }else if (hosts.split(',').length == 2) {
-            var option_data = '<option value="' + hosts + '"> ' + hostnames.split(",").join(" <---> ") + '</option>';
-          }
-          $(option_data).appendTo('#'+select_id);
-        });
+	$('#' + select_id).parent().closest('div').show();
+	$('<option value="noaction"> select favorites...</option>').appendTo('#' + select_id);
+	$.each(data, function(key, value){
+	  if (key.split(',').length == 1){
+	    var option_data = '<option value="' + key + '"> ' + value + '</option>';
+	  }else if (key.split(',').length == 2) {
+	    var option_data = '<option value="' + key + '"> ' + value.split(",").join(multival_separator) + '</option>';
+	  }
+	  $(option_data).appendTo('#'+select_id);
+	});
+	$('#' + select_id).change(function() {
+	  if (stats_type == "top_talkers"){
+	    var host = $(this).find(':selected').val();
+	    if (host == "noaction"){
+	      return;
+	    }
+	    host = host.split(',');
+	    if (host.length == 1){
+	      populateHostTopTalkersTable(host[0]);
+	    } else if (host.length == 2){
+	      populateAppsPerHostsPairTable(host[0], host[1]);
+	    }
+	  } else if (stats_type == "top_applications"){
+	    var value = $(this).find(':selected').val();
+	    var human_readable = $(this).find(':selected').text();
+
+	    if (value == "noaction"){
+	      return;
+	    }
+	    value = value.split(',');
+	    if (value.length == 1){
+	      // only the l7 protocol id in value[0]
+	      var proto = human_readable;
+	      $('#historical-apps-container').attr("proto", proto);
+	      $('#historical-apps-container').attr("proto_id", value[0]);
+	      populateAppTopTalkersTable(value[0]);
+	    } else if (value.length == 2){
+	      // both the l7 protocol id and the peer have been selected
+	      var proto = human_readable.split(multival_separator)[0];
+	      var addr = human_readable.split(multival_separator)[1];
+	      $('#historical-apps-container').attr("proto", proto);
+	      $('#historical-apps-container').attr("proto_id", value[0]);
+	      $('#historical-apps-container').attr("host", addr);
+	      populatePeersPerHostByApplication(value[1], value[0]);
+	    }
+	  }
+	});
       }
      },
      error:function(){
        perror('An HTTP error occurred.');
      }
   });
-  $('#' + select_id).change(function() {
-    var host = $(this).find(':selected').val();
-    if (host == "noaction"){
-      return;
-    }
-    host = host.split(',');
-    if (host.length == 1){
-      populateHostTopTalkersTable(host[0]);
-    } else if (host.length == 2){
-      populateAppsPerHostsPairTable(host[0], host[1]);
-    }
-  });
+
 }
 
 
@@ -123,11 +153,19 @@ function removeAllFavourites(stats_type, favourite_type, select_id){
      // refresh the right breacrumb
      if (stats_type == "top_talkers"){
        if(favourite_type == "talker"){
-         $('.bc-item-add.talker').show();
-         $('.bc-item-remove.talker').hide();
+	 $('.bc-item-add.talker').show();
+	 $('.bc-item-remove.talker').hide();
        } else if (favourite_type == "apps_per_host_pair"){
-         $('.bc-item-add.host-pair').show();
-         $('.bc-item-remove.host-pair').hide();
+	 $('.bc-item-add.host-pair').show();
+	 $('.bc-item-remove.host-pair').hide();
+       }
+     } else if (stats_type == "top_applications"){
+       if(favourite_type == "host_peers_by_app"){
+	 $('.bc-app-item-add.host-peers-by-app').show();
+	 $('.bc-app-item-remove.host-peers-by-app').hide();
+       } else if (favourite_type == "host_peers_by_app"){
+	 $('.bc-app-item-add.host-peers-by-app').show();
+	 $('.bc-app-item-remove.host-pai').hide();
        }
      }
      },
@@ -239,14 +277,14 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
     <div class="form-group">
     <div class='col-md-3'>
       <form name="top_talkers_faves">
-        <i class="fa fa-heart"></i> &nbsp;talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> all </a></small></span>
-        <select name="top_talkers_talker" id="top_talkers_talker" class="form-control">
-        </select>
+	<i class="fa fa-heart"></i> &nbsp;talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> all </a></small></span>
+	<select name="top_talkers_talker" id="top_talkers_talker" class="form-control">
+	</select>
     </div>
     <div class='col-md-6'>
-         <i class="fa fa-heart"></i> &nbsp;applications between pairs of talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> all </a></small></span>
-        <select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
-        </select>
+	 <i class="fa fa-heart"></i> &nbsp;applications between pairs of talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> all </a></small></span>
+	<select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
+	</select>
       </form>
     </div>
     </div>
@@ -315,7 +353,7 @@ var refreshBreadCrumbPairs = function(peer1, peer2){
   $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
   $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">Talkers with ' + peer1 + '</a></li>');
 
-  // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case 
+  // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case
 
   // first li: shown if the pair has been favourited
   $("#bc-talkers").append('<li class="bc-item-add host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Save"></i></a></li>');
@@ -519,7 +557,28 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
 </ol>
 
 <div id="historical-apps-container">
+
+
+  <div class="row">
+    <div class="form-group">
+    <div class='col-md-3'>
+      <form name="top_apps_faves">
+	<i class="fa fa-heart"></i> &nbsp;protocols <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'app', 'top_applications_app')"><i class="fa fa-trash"></i> all </a></small></span>
+	<select name="top_applications_app" id="top_applications_app" class="form-control">
+	</select>
+    </div>
+    <div class='col-md-6'>
+	 <i class="fa fa-heart"></i> &nbsp; host peers by protocol <span style="float:right"><small><a onclick="removeAllFavourites('top_applications', 'host_peers_by_app', 'top_applications_host_peers_by_app')"><i class="fa fa-trash"></i> all </a></small></span>
+	<select name="top_applications_host_peers_by_app" id="top_applications_host_peers_by_app" class="form-control">
+	</select>
+      </form>
+    </div>
+    </div>
+  </div>
+
+
   <div id="historical-interface-top-apps-table" class="historical-interface-apps" total_rows=-1 loaded=0> </div>
+  <div id="host-apps-container"> </div>
   <div id="apps-container"> </div>
   <div id="peers-per-host-by-app-container"> </div>
 </div>
@@ -537,13 +596,40 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
   emptyAppsBreadCrumb();
 
   var root = $("#bc-apps").attr("root");
-  var app = $('#historical-interface-top-apps-table').attr("proto");
+  var app = $('#historical-apps-container').attr("proto");
+
   if (root === "interface"){
     $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
     $("#bc-apps").append('<li><a onclick="populateAppTopTalkersTable(\'' + proto_id + '\');">' + app + ' talkers</a></li>');
-    $("#bc-apps").append('<li> ' + app + ' talkers with ' + peer1 + ' </li>');
+
+    // append two li: one is to be shown when the favourites has not beena added;
+    // the other is shown when the favourites has been added
+
+    // first li: there is no exising favorited peer --> app pair saved
+    $("#bc-apps").append('<li class="bc-app-item-add host-peers-by-app"> ' + app + ' talkers with ' + peer1 + ' <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
+
+    // second li: there is an already exising favorited peer --> app pair saved
+    $("#bc-apps").append('<li class="bc-app-item-remove host-peers-by-app"> ' + app + ' talkers with ' + peer1 + ' <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
+
+  // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
+  if($('#top_applications_host_peers_by_app > option[value=\'' + proto_id + ',' + peer1 + '\']').length == 0){
+    $('.bc-app-item-add').show();
+    $('.bc-app-item-remove').hide();
+  } else {
+    // the host has already been added to favourites
+    $('.bc-app-item-remove').show();
+    $('.bc-app-item-add').hide();
+  }
+
+  // we also add a function to toggle the currently active li
+  $('.bc-app-item-add, .bc-app-item-remove').on('click', function(){
+    $('.bc-app-item-add, .bc-app-item-remove').toggle();
+  });
+
+
+
   } else if (root == "host"){
-    var host = $('#historical-interface-top-apps-table').attr("host");
+    var host = $('#historical-apps-container').attr("host");
     $("#bc-apps").append('<li><a onclick="populateHostTopAppsTable(\'' + host + '\');">Protocols spoken by ' + host + '</a></li>');
     $("#bc-apps").append('<li> ' + app + ' talkers with ' + host + ' </li>');
   }
@@ -576,7 +662,7 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-interface-top-apps-table\').attr(\'proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="Get Talkers using this protocol"></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="Get Talkers using this protocol"></i></a>');
 	  return row;
 	},
       columns:
@@ -595,10 +681,31 @@ print [[
 var populateAppTopTalkersTable = function(proto_id){
   emptyAppsBreadCrumb();
   $('#historical-apps-container').removeAttr("host");
-  var app = $('#historical-interface-top-apps-table').attr("proto");
-  $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
-  $("#bc-apps").append('<li> ' + app + ' talkers</li>');
+  var app = $('#historical-apps-container').attr("proto");
 
+  // UPDATE THE BREADCRUMB
+  $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
+
+  // add two li: show the first li when no favourite has been added; show the second li in the other case
+  $("#bc-apps").append('<li class="bc-app-item-add app"> ' + app + ' talkers <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'app\', \'top_applications_app\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
+  $("#bc-apps").append('<li class="bc-app-item-remove app"> ' + app + ' talkers <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'app\', \'top_applications_app\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
+
+  // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
+  if($('#top_applications_app > option[value=\'' + proto_id + '\']').length == 0){
+    $('.bc-app-item-add').show();
+    $('.bc-app-item-remove').hide();
+  } else {
+    // the host has already been added to favourites
+    $('.bc-app-item-remove').show();
+    $('.bc-app-item-add').hide();
+  }
+
+  // we also add a function to toggle the currently active li
+  $('.bc-app-item-add, .bc-app-item-remove').on('click', function(){
+    $('.bc-app-item-add, .bc-app-item-remove').toggle();
+  });
+
+  // LOAD TABLE CONTENTS
   var div_id = 'app-' + proto_id;
   if ($('#'+div_id).length == 0)  // create the div only if it does not exist
     $('#apps-container').append('<div class="app-talkers" id="' + div_id + '" total_rows=-1 loaded=0></div>');
@@ -723,7 +830,7 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-interface-top-apps-table\').attr(\'proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
 	  return row;
 	},
       columns:
@@ -791,6 +898,11 @@ $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
   // set epoch_begin and epoch_end status information to the container div
   $('#historical-apps-container').attr("epoch_begin", "]] print(tostring(epoch_begin)) print[[");
   $('#historical-apps-container').attr("epoch_end", "]] print(tostring(epoch_end)) print[[");
+
+  // populate favourites dropdowns
+  populateFavourites('historical-apps-container', 'top_applications', 'app', 'top_applications_app');
+  populateFavourites('historical-apps-container', 'top_applications', 'host_peers_by_app', 'top_applications_host_peers_by_app');
+
   // Finally set a loaded flag for the current tab
   $('a[href="#historical-top-apps"]').attr("loaded", 1);
 });

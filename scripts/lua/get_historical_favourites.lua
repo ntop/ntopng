@@ -39,7 +39,9 @@ if stats_type == nil or (stats_type ~= "top_talkers" and stats_type ~= "top_appl
 end
 
 local favourite_type = _GET["favourite_type"]
-if favourite_type == nil or (favourite_type ~= "talker" and favourite_type ~= "apps_per_host_pair") then
+if favourite_type == nil or
+   (favourite_type ~= "talker" and favourite_type ~= "apps_per_host_pair" and
+    favourite_type ~= "app" and favourite_type ~= "host_peers_by_app") then
    -- default to talkers
    -- infer the favourite type by looking at peers
    favourite_type = "talker"
@@ -64,18 +66,36 @@ if action == "get" then
 elseif action == "set" or action == "del" then
    local entry = ""
    local resolved = ""
-   if host ~= "" and host ~= nil then
-      entry = host
-      resolved = ntop.getResolvedAddress(host)
+
+   -- TOP TALKERS favourites
+   if favourite_type == "talker" or favourite_type == "apps_per_host_pair" then
+      if host ~= "" and host ~= nil then
+	 entry = host
+	 resolved = ntop.getResolvedAddress(host)
+
+	 if peer ~= "" and peer ~= nil then
+	    entry = entry..','..peer
+	    resolved = resolved..','..ntop.getResolvedAddress(peer)
+	 end
+      end
+
+   -- TOP APPLICATIONS favourites
+   elseif favourite_type == "app" or favourite_type == "host_peers_by_app" then
+      if l7_proto_id ~= "" and l7_proto_id ~= nil then
+	 entry = l7_proto_id
+	 resolved = interface.getnDPIProtoName(tonumber(l7_proto_id))
+	 if host ~= "" and host ~= nil then
+	    entry = entry..','..host
+	    resolved = resolved..','..ntop.getResolvedAddress(host)
+	 end
+      end
    end
-   if peer ~= "" and peer ~= nil then
-      entry = entry..','..peer
-      resolved = resolved..','..ntop.getResolvedAddress(peer)
-   end
+
    if entry ~= "" then
       if action == "set" then
 	 ntop.setHashCache(k, entry, resolved)
       elseif action == "del" then
+	 io.write('deletiing..'..k..' ' .. entry..'\n')
 	 ntop.delHashCache(k, entry)
       end
    end
