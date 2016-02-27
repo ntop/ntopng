@@ -85,7 +85,7 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
       // alternatively, we ajax data to the dropdown menu
       } else {
 	$('#' + select_id).parent().closest('div').show();
-	$('<option value="noaction"> select favorites...</option>').appendTo('#' + select_id);
+	$('<option value="noaction"> Select saved...</option>').appendTo('#' + select_id);
 	$.each(data, function(key, value){
 	  if (key.split(',').length == 1){
 	    var option_data = '<option value="' + key + '"> ' + value + '</option>';
@@ -130,6 +130,12 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
 	      populatePeersPerHostByApplication(value[1], value[0]);
 	    }
 	  }
+          // finally, put the dropdown in the default position
+          // after waiting a couple of seconds to give the user the feeling its
+          // choice has had an impact
+          setTimeout(function(){
+            $('#'+select_id + '>option:eq(0)').prop("selected", true);
+          }, 2000);
 	});
       }
      },
