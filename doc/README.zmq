@@ -1,0 +1,49 @@
+(sFlow/NetFlow) Flow Collection via ZMQ
+---------------------------------------
+As described in http://www.ntop.org/nprobe/why-nprobejsonzmq-instead-of-native-sflownetflow-support-in-ntopng/
+ntopng does not natively handle netflow but it rather does that via ZMQ.
+
+In ZMQ we have reverted the NetFlow collector/probe paradigm. When used via ZMQ ntopng connects to the
+flow source (nProbe in this case) it subscribes to the specified topic so that only the interesting
+information is received.
+
+Example:
+Suppose you start nprobe on host IP 1.2.3.4 and ntopng on host IP 5.6.7.8. Instruct nProbe to
+create a ZMQ endpoint on all host interfaces at port 5556. In this case nProbe waits for
+ntopng connections. This way you can attach/detach as many ntopng instances you like
+without having to reconfigure nProbe
+# nprobe --zmq "tcp://*:5556" -i eth1 -n none
+
+Then you need to start ntopng to connect to the above doing
+# ntopng -i tcp://1.2.3.4:5556
+
+NOTE: The --zmq parameter has a double dash '-'
+
+
+Using ZMQ Behind a Firewall
+---------------------------
+The above ZMQ communication paradigm might not work in case there is a firewall between nProbe
+and ntopng.
+
+* Scenario A
+- Both nProbe and ntop are on the same private network (firewall protected)
+The firewall does not create any trouble to ZMQ communications.
+
+* Scenario B
+- nProbe is on a public network/IP
+- ntopng is on a private network/IP protected by a firewall
+In this case the ZMQ paradigm works well as ntopng connects to nProbe.
+
+* Scenario C
+- nProbe is on a private network/IP
+- ntopng is on a public network/IP protected by a firewall
+In this case the ZMQ paradigm does not work as the firewall prevents ntopng (connection initiator)
+to connect tp nProbe. In this case you need to revert the ZMQ paradigm by swapping
+roles of nProbe/ntopng. This can be done as follows. Suppose nprobe runs n host IP 192.168.1.100 and
+ntopng on host IP 46.101.x.y. In this case you need to start the applications as follows
+
+# nprobe --zmq-probe-mode --zmq "tcp://46.101.x.y:5556" -i eth1 -n none
+# ntopng --zmq-collector-mode -i "tcp://*:5556"
+
+In essence you revert the roles of nProbe and ntopng. In this setup they behave as 
+NetFlow/IPFIX probes do.
