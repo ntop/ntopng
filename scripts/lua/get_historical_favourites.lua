@@ -51,11 +51,11 @@ end
 local res = {["status"] = "unable to parse the request, please check input parameters."}
 
 -- prepare the redis key
-local k = getRedisPrefix("ntopng.prefs")..'.historical_favourites.'..stats_type..'.'..favourite_type
+local k = getRedisPrefix("ntopng.prefs")..'.'..tostring(ifid)..'.historical_favourites.'..stats_type..'.'..favourite_type
+
 if action == "get" then
    -- retrieve all the elements set for this kind of preference
    res = ntop.getHashKeysCache(k)
-
    if res == nil then res = {} end
    -- now it's time to retrieve has values that contain resolved addresses
    -- and are a more-user friendly way to represent hosts

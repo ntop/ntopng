@@ -325,7 +325,6 @@ var emptyBreadCrumb = function(){
 var refreshBreadCrumbInterface = function(){
   emptyBreadCrumb();
   $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
-  $('#historical-container').attr("ifname", "]] print(getInterfaceName(ifid)) print [[");
   $('#historical-container').removeAttr("host");
   $('#historical-container').removeAttr("peer");
 }
@@ -547,6 +546,8 @@ $('a[href="#historical-top-talkers"]').on('shown.bs.tab', function (e) {
   }
 
   var target = $(e.target).attr("href"); // activated tab
+
+  $('#historical-container').attr("ifname", "]] print(getInterfaceName(ifid)) print [[");
 
   // populate favourites dropdowns
   populateFavourites('historical-container', 'top_talkers', 'talker', 'top_talkers_talker');
@@ -950,6 +951,7 @@ $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
   // set epoch_begin and epoch_end status information to the container div
   $('#historical-apps-container').attr("epoch_begin", "]] print(tostring(epoch_begin)) print[[");
   $('#historical-apps-container').attr("epoch_end", "]] print(tostring(epoch_end)) print[[");
+  $("#historical-apps-container").attr("ifname", "]] print(getInterfaceName(ifid)) print [[");
 
   // populate favourites dropdowns
   populateFavourites('historical-apps-container', 'top_applications', 'app', 'top_applications_app');
