@@ -140,7 +140,6 @@ if stats_type == "top_talkers" then
    if res ~= nil then
       for _, record in pairs(res) do
 	 record["label"] = shortenString(record["label"])
-	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..record["addr"]..'">'..record["label"]..'</a>'
       end
    end
 elseif stats_type =="top_applications" then
@@ -152,7 +151,6 @@ elseif stats_type =="top_applications" then
    end
    if res ~= nil then
       for _, record in pairs(res) do
-	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?protocol='..interface.getnDPIProtoName(tonumber(record["application"]))..'">'..record["label"]..'</a>'
       end
    end
    -- tprint(res)
