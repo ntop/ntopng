@@ -406,6 +406,7 @@ var populateInterfaceTopTalkersTable = function(){
   if ($('#historical-interface-top-talkers-table').attr("loaded") == 1) {
     enableAllDropdowns();
   } else {
+    disableAllDropdowns();
     $('#historical-interface-top-talkers-table').attr("loaded", 1);
     $('#historical-interface-top-talkers-table').datatable({
 	title: "",]]
