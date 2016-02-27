@@ -89,7 +89,7 @@ void ZCCollectorInterface::collect_flows() {
       u_char *json = pfring_zc_pkt_buff_data(buffer, zq);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", json);
-      parse_flows((char*)json, buffer->len, 0, (void*)this);
+      parseFlow((char*)json, buffer->len, 0, (void*)this);
     } else if(rc == 0) {
       usleep(1);
       purgeIdle(time(NULL));
