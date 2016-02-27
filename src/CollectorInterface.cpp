@@ -45,12 +45,22 @@ CollectorInterface::CollectorInterface(const char *_endpoint, const char *_topic
 
     subscriber[num_subscribers].socket = zmq_socket(context, ZMQ_SUB);
 
-    if(zmq_connect(subscriber[num_subscribers].socket, e) != 0) {
-      zmq_close(subscriber[num_subscribers].socket);
-      zmq_ctx_destroy(context);
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to ZMQ endpoint %s", e);
-      free(tmp);
-      throw("Unable to connect to the specified ZMQ endpoint");
+    if(ntop->getPrefs()->is_zmq_collector_mode()) {     
+      if(zmq_bind(subscriber[num_subscribers].socket, e) != 0) {
+	zmq_close(subscriber[num_subscribers].socket);
+	zmq_ctx_destroy(context);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to ZMQ endpoint %s", e);
+	free(tmp);
+	throw("Unable to bind to the specified ZMQ endpoint");
+      }
+    } else {
+      if(zmq_connect(subscriber[num_subscribers].socket, e) != 0) {
+	zmq_close(subscriber[num_subscribers].socket);
+	zmq_ctx_destroy(context);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to ZMQ endpoint %s", e);
+	free(tmp);
+	throw("Unable to connect to the specified ZMQ endpoint");
+      }
     }
 
     if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_SUBSCRIBE, topic, strlen(topic)) != 0) {
@@ -91,7 +101,10 @@ void CollectorInterface::collect_flows() {
   zmq_pollitem_t items[CONST_MAX_NUM_ZMQ_SUBSCRIBERS];
   int rc, size;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows on %s", ifname);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows on %s [%s]",
+			       ifname,
+			       ntop->getPrefs()->is_zmq_collector_mode() ? 
+			       "nprobe->ntopng" : "ntopng->nprobe");
 
   while(isRunning()) {
     while(idle()) {
