@@ -41,7 +41,8 @@ class ParserInterface : public NetworkInterface {
   ParserInterface(const char *endpoint);
   ~ParserInterface();
 
-  u_int8_t parse_flows(char *payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data);
+  u_int8_t parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data);
 };
 
 #endif /* _PARSER_INTERFACE_H_ */

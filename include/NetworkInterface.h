@@ -47,6 +47,7 @@ class L7Policer;
 class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name.*/
+  char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr;
   string ip_addresses;
   int id;
   bool bridge_interface, has_mesh_networks_traffic;
@@ -133,9 +134,11 @@ class NetworkInterface {
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
-  inline char* get_ndpi_proto_breed_name(u_int id) { return(ndpi_get_proto_breed_name(ndpi_struct,
-										      ndpi_get_proto_breed(ndpi_struct,
-													   id))); };
+  inline char* get_ndpi_proto_breed_name(u_int id) { 
+    return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
+  inline void setRemoteIfname(char *name)      { if(!remoteIfname)      remoteIfname = strdup(name);   };
+  inline void setRemoteIfIPaddr(char *ip)      { if(!remoteIfIPaddr)    remoteIfIPaddr = strdup(ip);   };
+  inline void setRemoteProbeAddr(char *ip)     { if(!remoteProbeIPaddr) remoteProbeIPaddr = strdup(ip);};
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
@@ -176,19 +179,19 @@ class NetworkInterface {
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
   bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet,
 		     int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
-  bool packetProcessing(const struct bpf_timeval *when,
-			const u_int64_t time,
-			struct ndpi_ethhdr *eth,
-			u_int16_t vlan_id,
-			struct ndpi_iphdr *iph,
-			struct ndpi_ipv6hdr *ip6,
-			u_int16_t ipsize, u_int16_t rawsize,
-			const struct pcap_pkthdr *h,
-			const u_char *packet,
-			int *a_shaper_id,
-			int *b_shaper_id,
-			u_int16_t *ndpiProtocol);
-  void flow_processing(ZMQ_Flow *zflow);
+  bool processPacket(const struct bpf_timeval *when,
+		     const u_int64_t time,
+		     struct ndpi_ethhdr *eth,
+		     u_int16_t vlan_id,
+		     struct ndpi_iphdr *iph,
+		     struct ndpi_ipv6hdr *ip6,
+		     u_int16_t ipsize, u_int16_t rawsize,
+		     const struct pcap_pkthdr *h,
+		     const u_char *packet,
+		     int *a_shaper_id,
+		     int *b_shaper_id,
+		     u_int16_t *ndpiProtocol);
+  void processFlow(ZMQ_Flow *zflow);
   void dumpFlows();
   void getnDPIStats(nDPIStats *stats);
   void updateFlowsL7Policy();
@@ -283,6 +286,8 @@ class NetworkInterface {
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif
+  void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
+		      char *remoteProbeAddress, u_int64_t remBytes, u_int64_t remPkts);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

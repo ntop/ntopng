@@ -50,7 +50,7 @@ void DummyInterface::forgeFlow(u_int iteration) {
 	     iteration, iteration*1500,
 	     now-60, now, sport, dport);
 
-    parse_flows(payload, sizeof(payload), 1 /* source_id */, this /* iface */);
+    parseFlow(payload, sizeof(payload), 1 /* source_id */, this /* iface */);
   }
 
   if(id == 0) sleep(1);

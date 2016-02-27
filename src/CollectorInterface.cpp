@@ -23,12 +23,11 @@
 
 /* **************************************************** */
 
-CollectorInterface::CollectorInterface(const char *_endpoint, const char *_topic)
-  : ParserInterface(_endpoint) {
+CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
   char *tmp, *e;
+  const char *topics[] = { "flow", "event", NULL };
 
   num_drops = 0, num_subscribers = 0;
-  topic = strdup(_topic);
 
   context = zmq_ctx_new();
 
@@ -63,12 +62,14 @@ CollectorInterface::CollectorInterface(const char *_endpoint, const char *_topic
       }
     }
 
-    if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_SUBSCRIBE, topic, strlen(topic)) != 0) {
-      zmq_close(subscriber[num_subscribers].socket);
-      zmq_ctx_destroy(context);
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to the specified ZMQ endpoint");
-      free(tmp);
-      throw("Unable to subscribe to the specified ZMQ endpoint");
+    for(int i=0; topics[i] != NULL; i++) {
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_SUBSCRIBE, topics[i], strlen(topics[i])) != 0) {
+	zmq_close(subscriber[num_subscribers].socket);
+	zmq_ctx_destroy(context);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to subscribe to topic %s", topics[i]);
+	free(tmp);
+	throw("Unable to subscribe to the specified ZMQ endpoint");
+      }
     }
 
     subscriber[num_subscribers].endpoint = strdup(e);
@@ -88,7 +89,6 @@ CollectorInterface::~CollectorInterface() {
     zmq_close(subscriber[i].socket);
   }
 
-  if(topic) free(topic);
   zmq_ctx_destroy(context);
 }
 
@@ -138,8 +138,11 @@ void CollectorInterface::collect_flows() {
 	if(size > 0) {
 	  payload[size] = '\0';
 
-	  parse_flows(payload, sizeof(payload), source_id, this);
-
+	  if(strcmp(h.url, "event") == 0)
+	    parseEvent(payload, size, source_id, this);
+	  else
+	    parseFlow(payload, size, source_id, this);
+	  
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", h.size, payload);
 	}
       }

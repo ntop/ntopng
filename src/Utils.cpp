@@ -561,6 +561,8 @@ char* Utils::sanitizeHostName(char *str) {
   return(str);
 }
 
+/* **************************************************** */
+
 char* Utils::stripHTML(const char * const str) {
     if (!str) return NULL;
     int len = strlen(str), j = 0;
@@ -962,6 +964,8 @@ static char to_hex(char code) {
   return hex[code & 15];
 }
 
+/* **************************************************** */
+
 static int alphanum(char code) {
   int i;
   static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -970,6 +974,8 @@ static int alphanum(char code) {
   }
   return 0;
 }
+
+/* **************************************************** */
 
 // Encodes a URL to hexadecimal format.
 char* Utils::urlEncode(char *url) {
@@ -1010,6 +1016,8 @@ static void newString(String *str) {
   return;
 }
 
+/* **************************************************** */
+
 // This callback function will be passed to 'curl_easy_setopt' in order to write curl output to a variable.
 static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
   size_t new_len = str->l + (size * nmemb);
@@ -1024,6 +1032,8 @@ static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
 
   return (size * nmemb);
 }
+
+/* **************************************************** */
 
 // Adding this function that performs a simple HTTP GET request using libcurl.
 // The function returns a string that contains the reply.

@@ -39,6 +39,8 @@ class EthStats {
 
   void lua(lua_State *vm);
   void incStats(u_int16_t proto, u_int32_t num_pkts, u_int32_t num_bytes, u_int pkt_overhead);
+  inline void  setNumPackets(u_int64_t v) { return(raw.setPkts(v));  };
+  inline void  setNumBytes(u_int64_t v)   { return(raw.setBytes(v)); };
   inline u_int64_t getNumPackets() { return(raw.getPkts());  };
   inline u_int64_t getNumBytes()   { return(raw.getBytes()); };
 

@@ -43,7 +43,7 @@ static void free_wrapper(void *freeable) { free(freeable);      }
 
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
-  ifname = NULL, flows_hash = NULL, hosts_hash = NULL,
+  ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
     ndpi_struct = NULL,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     sprobe_interface = false, has_vlan_packets = false,
@@ -96,6 +96,7 @@ NetworkInterface::NetworkInterface(const char *name) {
   if(name == NULL) name = "1"; /* First available interface */
 #endif
 
+  remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL;
   if(strcmp(name, "-") == 0) name = "stdin";
 
   if(ntop->getRedis())
@@ -411,6 +412,9 @@ NetworkInterface::~NetworkInterface() {
 
   deleteDataStructures();
 
+  if(remoteIfname)      free(remoteIfname);
+  if(remoteIfIPaddr)    free(remoteIfIPaddr);
+  if(remoteProbeIPaddr) free(remoteProbeIPaddr);
   if(db) delete db;
   if(statsManager) delete statsManager;
   if(networkStats) delete []networkStats;
@@ -537,7 +541,7 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
 /* **************************************************** */
 
-void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
+void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
@@ -574,9 +578,13 @@ void NetworkInterface::flow_processing(ZMQ_Flow *zflow) {
   flow->setDetectedProtocol(p);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
-  flow->updateInterfaceStats(src2dst_direction,
-			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
-			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+
+  /* In case we're using a "modern" nProbe these stats are propagated automatically */
+  if(!remoteIfname)
+    flow->updateInterfaceStats(src2dst_direction,
+			       zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
+			       zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+
   incStats(last_pkt_rcvd, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
@@ -627,19 +635,19 @@ void NetworkInterface::dumpPacketTap(const struct pcap_pkthdr *h, const u_char *
 
 /* **************************************************** */
 
-bool NetworkInterface::packetProcessing(const struct bpf_timeval *when,
-					const u_int64_t time,
-					struct ndpi_ethhdr *eth,
-					u_int16_t vlan_id,
-					struct ndpi_iphdr *iph,
-					struct ndpi_ipv6hdr *ip6,
-					u_int16_t ipsize,
-					u_int16_t rawsize,
-					const struct pcap_pkthdr *h,
-					const u_char *packet,
-					int *a_shaper_id,
-					int *b_shaper_id,
-					u_int16_t *ndpiProtocol) {
+bool NetworkInterface::processPacket(const struct bpf_timeval *when,
+				     const u_int64_t time,
+				     struct ndpi_ethhdr *eth,
+				     u_int16_t vlan_id,
+				     struct ndpi_iphdr *iph,
+				     struct ndpi_ipv6hdr *ip6,
+				     u_int16_t ipsize,
+				     u_int16_t rawsize,
+				     const struct pcap_pkthdr *h,
+				     const u_char *packet,
+				     int *a_shaper_id,
+				     int *b_shaper_id,
+				     u_int16_t *ndpiProtocol) {
   bool src2dst_direction;
   u_int8_t l4_proto;
   Flow *flow;
@@ -1285,10 +1293,10 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       }
 
       try {
-	pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id, iph,
-					ip6, h->caplen - ip_offset, h->len,
-					h, packet, a_shaper_id, b_shaper_id,
-					ndpiProtocol);
+	pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id, iph,
+				     ip6, h->caplen - ip_offset, h->len,
+				     h, packet, a_shaper_id, b_shaper_id,
+				     ndpiProtocol);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -1368,10 +1376,10 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	  }
 	}
 	try {
-	  pass_verdict = packetProcessing(&h->ts, time, ethernet, vlan_id,
-					  iph, ip6, h->len - ip_offset, h->len,
-					  h, packet, a_shaper_id, b_shaper_id,
-					  ndpiProtocol);
+	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,
+				       iph, ip6, h->len - ip_offset, h->len,
+				       h, packet, a_shaper_id, b_shaper_id,
+				       ndpiProtocol);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
@@ -2259,6 +2267,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", ifname);
+  if(remoteIfname) lua_push_str_table_entry(vm, "remote.name",   remoteIfname);
+  if(remoteIfIPaddr) lua_push_str_table_entry(vm, "remote.ip",   remoteIfIPaddr);
+  if(remoteProbeIPaddr) lua_push_str_table_entry(vm, "probe.ip", remoteProbeIPaddr);
   lua_push_int_table_entry(vm,  "id", id);
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
@@ -2823,3 +2834,15 @@ void NetworkInterface::updateSecondTraffic(time_t when) {
   currentMinuteTraffic[sec] = max_val(0, bytes-lastSecTraffic);
   lastSecTraffic = bytes;
 };
+
+/* **************************************** */
+
+void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
+				      char *remoteProbeAddress,
+				      u_int64_t remBytes, u_int64_t remPkts) {
+  if(name)               setRemoteIfname(name);
+  if(address)            setRemoteIfIPaddr(address);
+  if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
+  ifSpeed = speedMbit;
+  ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
+}

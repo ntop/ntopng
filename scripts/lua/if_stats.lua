@@ -228,7 +228,11 @@ if((page == "overview") or (page == nil)) then
    interface.setInterfaceIdleState(on_state)
    print("</td></tr>\n")
 
-   print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
+   if(ifstats["remote.name"] ~= nil) then
+     print("<tr><th>Remote Probe</th><td><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td><td><b>Interface IP</b>: "..ifstats["remote.ip"].."</td><td><b>Probe IP</b>: "..ifstats["probe.ip"].."</td></tr>\n") 
+   end
+
+   print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name.."</td>\n")
 
    if(ifstats.name ~= nil) then
       label = getInterfaceNameAlias(ifstats.name)
@@ -259,7 +263,9 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(ifstats.speed*1000) .. "</td><th>MTU</th><td colspan=3>"..ifstats.mtu.." bytes</td></tr>\n")
+   if(ifstats["remote.name"] == nil) then
+     print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(ifstats.speed*1000) .. "</td><th>MTU</th><td colspan=3>"..ifstats.mtu.." bytes</td></tr>\n")
+   end
 
    if(ifstats.ip_addresses ~= "") then
       tokens = split(ifstats.ip_addresses, ",")
@@ -311,7 +317,7 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
       print ("}\n</script>\n")
 
    print("<tr><th colspan=7>Ingress Traffic</th></tr>\n")
-   print("<tr><th>Received Traffic</th><td width=20%><span if=if_bytes_1>"..bytesToSize(ifstats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.packets) .. " ".. label .."</span>] ")
+   print("<tr><th>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.packets) .. " ".. label .."</span>] ")
    print("<span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
 
    if(ifstats.drops > 0) then print('<span class="label label-danger">') end
@@ -1305,7 +1311,6 @@ print [[/lua/network_load.lua',
 	  success: function(content) {
 	var rsp = jQuery.parseJSON(content);
 	var v = bytesToVolume(rsp.bytes);
-	$('#if_bytes').html(v);
 	$('#if_bytes').html(v);
 	$('#if_pkts').html(addCommas(rsp.packets)+"]]
 
