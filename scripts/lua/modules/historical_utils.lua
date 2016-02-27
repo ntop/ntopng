@@ -504,9 +504,9 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);},
 	columns:
 	[
-	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
-	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
+	  {title: "Protocol id", field: "column_application", hidden: true},
+	  {title: "Application", field: "column_label", sortable: false},
+	  {title: "Traffic Volume", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
 	]
