@@ -142,12 +142,12 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
 	      populatePeersPerHostByApplication(value[1], value[0]);
 	    }
 	  }
-          // finally, put the dropdown in the default position
-          // after waiting a couple of seconds to give the user the feeling its
-          // choice has had an impact
-          setTimeout(function(){
-            $('#'+select_id + '>option:eq(0)').prop("selected", true);
-          }, 2000);
+	  // finally, put the dropdown in the default position
+	  // after waiting a couple of seconds to give the user the feeling its
+	  // choice has had an impact
+	  setTimeout(function(){
+	    $('#'+select_id + '>option:eq(0)').prop("selected", true);
+	  }, 2000);
 	});
       }
      },
@@ -201,33 +201,33 @@ function historicalPcapButton(button_id, pcap_request_data_container_div_id)
   if not ntop.isPro() then return end -- integrate only in the Pro version
   print("<br><br>")
 
-  if false then
-     a = 1
-  else
 	  print [[
   <div class="panel-body">
      <div class="row">
-	  <div class='col-md-10' id="info_]] print(button_id) print[[">
-	  Request a pcap containing the recorded traffic matching search criteria. Requests will be queued and pcaps will be available for download once generated.
-	  </div>
+       <div class='col-md-10' id="info_]] print(button_id) print[[">
+       </div>
 
-	  <div class='col-md-2'>
-	    <form name="request_pcap_form">
-	      <input type="submit" value="Request pcap" class="btn btn-default" id="]] print(button_id) print[[">
-	    </form>
-	    <br>
-	    <span id="download_msg_]] print(button_id) print[["></span>
-	  </div>
-	  <script type="text/javascript">
+       <div class='col-md-2 pull-right'>
+	 <span style="float: right">
+	   <form name="request_pcap_form">
+	     <input type="submit" value="Request pcap" class="btn btn-default" id="]] print(button_id) print[[">
+	   </form>
+	 </span>
+       </div>
+     </div>
+  </div>
+
+  <span id="download_msg_]] print(button_id) print[[" style="float: right"></span>
+  <script type="text/javascript">
 ]]
 
 
   if ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges() then
      print[[
      $('#]] print(button_id) print[[').prop('disabled', true);
-     $('#info_]] print(button_id) print[[').html(
-	 "<small>In order to be able to request pcaps containing recorded traffic for the selected criteria, admin privileges are required and nBox integration must be enabled" +
-	 " via ntopng <a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> Preferences</a>.</small>");
+     $('#download_msg_]] print(button_id) print[[').html(
+	 "<small>nBox integration is disabled. <br>" +
+	 " Enable it via <a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> preferences</a>.</small>");
      ]]
   end
 
@@ -238,7 +238,7 @@ print[[
 	     event.preventDefault();
 	     var perror = function(msg){
 		  alert("Request failed: " + msg);
-		  $('#download_msg_]] print(button_id) print[[').html("Request failed.<br>");
+		  $('#download_msg_]] print(button_id) print[[').show().fadeOut(4000).html("<small>Request failed.</small>");
 		  $('#]] print(button_id) print[[').prop('value', 'Request pcap [retry]')};
 	     $.ajax({type: 'GET', url: "]] print(pcap_request_url) print [[",
 		data: buildPcapRequestData(']] print(pcap_request_data_container_div_id) print[['),
@@ -247,7 +247,7 @@ print[[
 		   if (data["result"] === "KO"){
 		    perror(data["description"]);
 		  } else if (data["result"] == "OK"){
-		    $('#download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('OK, request sent.');
+		    $('#download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('<small>OK, request sent.</small>');
 		  } else { alert('Unknown response.'); }
 		},
 		error: function() {
@@ -258,11 +258,9 @@ print[[
 	   });
 	  </script>
 
-  </div>
-  </div>
+
   <br>
   ]]
-  end
 end
 
 function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
@@ -293,18 +291,18 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
 
   <div class="row">
     <div class="form-group">
-    <div class='col-md-3'>
-      <form name="top_talkers_faves">
+      <div class='col-md-3'>
+	<form name="top_talkers_faves">
 	<i class="fa fa-heart"></i> &nbsp;talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'talker', 'top_talkers_talker')"><i class="fa fa-trash"></i> all </a></small></span>
 	<select name="top_talkers_talker" id="top_talkers_talker" class="form-control">
 	</select>
-    </div>
-    <div class='col-md-6'>
+      </div>
+      <div class='col-md-6'>
 	 <i class="fa fa-heart"></i> &nbsp;applications between pairs of talkers <span style="float:right"><small><a onclick="removeAllFavourites('top_talkers', 'apps_per_host_pair', 'top_talkers_host_pairs')"><i class="fa fa-trash"></i> all </a></small></span>
 	<select name="top_talkers_host_pairs" id="top_talkers_host_pairs" class="form-control">
 	</select>
-      </form>
-    </div>
+	</form>
+      </div>
     </div>
   </div>
 
@@ -998,7 +996,7 @@ print [[
 				textAlign: 'left'
 			     }
 				 },
-                             {
+			     {
 			     title: "Filter (BPF)",
 				 field: "column_bpf",
 				 sortable: true,
