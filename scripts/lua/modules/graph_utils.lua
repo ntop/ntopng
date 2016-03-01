@@ -1017,12 +1017,23 @@ if(host ~= nil) then
   end
 end
 
+-- prepare some attributes that will be attached to divs
+local div_data = ""
+if epoch_begin ~= "" and epoch_begin ~= nil then
+   div_data = div_data..' epoch_begin="'..tostring(epoch_begin)..'" '
+end
+if epoch_end ~= "" and epoch_end ~= nil then
+   div_data = div_data..' epoch_end="'..tostring(epoch_end)..'" '
+end
+if host ~= "" and host ~= nil then
+   div_data = div_data..' host="'..tostring(host)..'" '
+end
 
 if (not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
 print [[
-      <div class="tab-pane fade" id="ipv4">
+      <div class="tab-pane fade" id="ipv4" ]] print(div_data) print[[">
         <div id="table-flows4"></div>
-        <i class="fa fa-download fa-lg"></i> <A HREF="]] print(url_update.."&version=4&format=txt") print [[">Download  Flows</A>
+]] historicalDownloadButtonsBar('flows_v4', 'ipv4') print[[
       </div>
 ]]
 else
@@ -1035,9 +1046,9 @@ end
 
 if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
 print[[
-  <div class="tab-pane fade" id="ipv6">
+      <div class="tab-pane fade" id="ipv6" ]] print(div_data) print[[">
     <div id="table-flows6"></div>
-    <i class="fa fa-download fa-lg"></i> <A HREF="]] print(url_update.."&version=6&format=txt") print [[">Download  Flows</A>
+]] historicalDownloadButtonsBar('flows_v6', 'ipv6') print[[
   </div>
 ]]
 else

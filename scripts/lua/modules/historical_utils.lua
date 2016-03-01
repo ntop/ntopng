@@ -3,6 +3,7 @@ require "lua_utils"
 local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=status"
 local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=schedule"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
+local flows_download_url = ntop.getHttpPrefix().."/lua/get_db_flows.lua"
 
 function commonJsUtils()
 print[[
@@ -40,24 +41,29 @@ function hostkey2hostid(host_key) {
     return(info);
 }
 
-function buildPcapRequestData(source_div_id){
+function buildRequestData(source_div_id){
   var epoch_begin = $('#' + source_div_id).attr("epoch_begin");
   var epoch_end = $('#' + source_div_id).attr("epoch_end");
   var ifname = $('#' + source_div_id).attr("ifname");
+  var ifId = "]] print(tostring(ifId)) print [[";
   var host = $('#' + source_div_id).attr("host");
   var peer = $('#' + source_div_id).attr("peer");
   var l7_proto_id = $('#' + source_div_id).attr("proto_id");
   var res = {epoch_begin: epoch_begin, epoch_end: epoch_end};
   if (typeof ifname != 'undefined') res.ifname = ifname;
+  if (typeof ifId != 'undefined') res.ifId = ifId;
   if (typeof host != 'undefined') res.host = host;
   if (typeof peer != 'undefined') res.peer = peer;
-  if (typeof l7_proto_id != 'undefined') res.l7_proto_id = l7_proto_id;
+  if (typeof l7_proto_id != 'undefined'){
+    res.l7_proto_id = l7_proto_id;
+    res.l7proto = l7_proto_id;
+  };
   return res;
 }
 
 function addToFavourites(source_div_id, stats_type, favourite_type, select_id){
   $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=set&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
-    data:buildPcapRequestData(source_div_id),
+    data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
       populateFavourites(source_div_id, stats_type, favourite_type, select_id);
@@ -70,7 +76,7 @@ function addToFavourites(source_div_id, stats_type, favourite_type, select_id){
 
 function removeFromFavourites(source_div_id, stats_type, favourite_type, select_id){
   $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=del&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
-    data:buildPcapRequestData(source_div_id),
+    data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
       populateFavourites(source_div_id, stats_type, favourite_type, select_id);
@@ -87,7 +93,7 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
 
   $('#'+select_id).find('option').remove();
   $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=get&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
-    data:buildPcapRequestData(source_div_id),
+    data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
       // if no favourite has been added, we hide the div that contains the dropdown
@@ -197,68 +203,95 @@ function removeAllFavourites(stats_type, favourite_type, select_id){
 end
 
 
-function historicalPcapButton(button_id, pcap_request_data_container_div_id)
+function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div_id)
   if not ntop.isPro() then return end -- integrate only in the Pro version
-  print("<br><br>")
-
 	  print [[
-  <div class="panel-body">
+
      <div class="row">
-       <div class='col-md-10' id="info_]] print(button_id) print[[">
+
+       <div class='col-md-3'>
+	 Download flows: <a class="btn btn-default btn-sm" href="#" role="button"id="download_flows_v4_]] print(button_id) print[[">IPv4</a>&nbsp;<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[">IPv6</a>
        </div>
 
-       <div class='col-md-2 pull-right'>
-	 <span style="float: right">
-	   <form name="request_pcap_form">
-	     <input type="submit" value="Request pcap" class="btn btn-default" id="]] print(button_id) print[[">
-	   </form>
-	 </span>
+       <div class='col-md-2'>
+	 Extract pcap: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
+       </div>
+
+       <div class='col-md-7'>
        </div>
      </div>
-  </div>
 
-  <span id="download_msg_]] print(button_id) print[[" style="float: right"></span>
+     <div class="row">
+     <div class='col-md-3'><div></div></div>
+     <div class='col-md-2'>
+
+     </div>
+     <div class='col-md-7'></div>
+     </div>
+
+
+
   <script type="text/javascript">
 ]]
 
 
-  if ntop.getCache("ntopng.prefs.nbox_integration") ~= "1" or not haveAdminPrivileges() then
-     print[[
-     $('#]] print(button_id) print[[').prop('disabled', true);
-     $('#download_msg_]] print(button_id) print[[').html(
+
+print[[
+
+  $('#download_flows_v4_]] print(button_id) print[[').click(function (event){
+    window.location.href="]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[['));
+    return false;
+  });
+
+  $('#download_flows_v6_]] print(button_id) print[[').click(function (event){
+    window.location.href="]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[['));
+    return false;
+  });
+]]
+
+if ntop.getCache("ntopng.prefs.nbox_integration") == "1" and haveAdminPrivileges() then
+print[[
+   $('#extract_pcap_]] print(button_id) print[[').click(function (event)
+  {
+    event.preventDefault();
+    var perror = function(msg){
+      alert("Request failed: " + msg);
+      $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html("<small>Request failed.</small>");
+    };
+
+    $.ajax({type: 'GET', url: "]] print(pcap_request_url) print [[",
+    data: buildRequestData(']] print(pcap_request_data_container_div_id) print[['),
+      success: function(data) {
+	data = jQuery.parseJSON(data);
+	if (data["result"] === "KO"){
+	  perror(data["description"]);
+	} else if (data["result"] == "OK"){
+	  $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('<small>OK, request sent.</small>');
+	} else { alert('Unknown response.'); }
+      },
+      error: function() {
+	perror('An HTTP error occurred.');
+      }
+    });
+  });
+]]
+
+else -- either the nbox integration is disabled or the user doesn't have admin privilieges
+
+   print[[
+  $('#extract_pcap_]] print(button_id) print[[').click(function (event)
+  {
+     event.preventDefault();
+     $('#pcap_download_msg_]] print(button_id) print[[').show().fadeOut(4000).html(
 	 "<small>nBox integration is disabled. <br>" +
 	 " Enable it via <a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua\"><i class=\"fa fa-flask\"></i> preferences</a>.</small>");
+     });
      ]]
   end
 
 
 print[[
-	  $('#]] print(button_id) print[[').click(function (event)
-	  {
-	     event.preventDefault();
-	     var perror = function(msg){
-		  alert("Request failed: " + msg);
-		  $('#download_msg_]] print(button_id) print[[').show().fadeOut(4000).html("<small>Request failed.</small>");
-		  $('#]] print(button_id) print[[').prop('value', 'Request pcap [retry]')};
-	     $.ajax({type: 'GET', url: "]] print(pcap_request_url) print [[",
-		data: buildPcapRequestData(']] print(pcap_request_data_container_div_id) print[['),
-		success: function(data) {
-		   data = jQuery.parseJSON(data);
-		   if (data["result"] === "KO"){
-		    perror(data["description"]);
-		  } else if (data["result"] == "OK"){
-		    $('#download_msg_]] print(button_id) print[[').show().fadeOut(4000).html('<small>OK, request sent.</small>');
-		  } else { alert('Unknown response.'); }
-		},
-		error: function() {
-		   perror('An HTTP error occurred.');
-		}
-	     });
-
-	   });
-	  </script>
-
-
+ </script>
   <br>
   ]]
 end
@@ -311,7 +344,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
   <div id="apps-per-pair-container"> </div>
 </div>
 
-]] historicalPcapButton("pcap-button-top-talkers", "historical-container") print [[
+]] historicalDownloadButtonsBar("pcap-button-top-talkers", "historical-container") print [[
 
 <script type="text/javascript">
 ]] commonJsUtils() print[[
@@ -614,7 +647,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
   <div id="peers-per-host-by-app-container"> </div>
 </div>
 
-]] historicalPcapButton("pcap-button-top-protocols", "historical-apps-container") print [[
+]] historicalDownloadButtonsBar("pcap-button-top-protocols", "historical-apps-container") print [[
 
 <script type="text/javascript">
 var totalRows = -1;
@@ -881,7 +914,7 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
 	  return row;
 	},
       columns:
