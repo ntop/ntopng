@@ -1069,7 +1069,7 @@ function getSIPTableRows(info)
      end
      string_table = string_table .. "</div></td><td><div id=time_invite_failure>\n"
      if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch)_1) .. " ago]"
+        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
 
@@ -1086,7 +1086,7 @@ function getSIPTableRows(info)
      string_table = string_table .. "</div></td></tr>\n"
 
      time, time_epoch = getFlowValue(info, "SIP_CANCEL_TIME")
-     time_1, tonumber(time_epoch_1) = getFlowValue(info, "SIP_CANCEL_OK_TIME")
+     time_1, time_epoch_1 = getFlowValue(info, "SIP_CANCEL_OK_TIME")
      string_table = string_table .. "<tr><th width=30%>Time of Cancel / Cancel Ok</th><td><div id=time_cancel>"
      if(time_epoch ~= "0") then
         string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
