@@ -1044,19 +1044,19 @@ function getSIPTableRows(info)
 
      time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
      if(time_epoch ~= "0") then
-       string_table = string_table.."<tr><th width=30%>Time of Invite</th><td colspan=2> <div id=time_invite>" .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]</div></td></tr>\n"
+	string_table = string_table.."<tr><th width=30%>Time of Invite</th><td colspan=2> <div id=time_invite>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
      else
        string_table = string_table.."<tr><th width=30%>Time of Invite</th><td colspan=2></td><div id=time_invite></div></tr>\n"
      end
      time, time_epoch = getFlowValue(info, "SIP_TRYING_TIME")
      if(time_epoch ~= "0") then
-       string_table = string_table.."<tr><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying>" .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]</div></td></tr>\n"
+       string_table = string_table.."<tr><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
      else
        string_table = string_table.."<tr><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying></div></td></tr>\n"
      end
      time, time_epoch = getFlowValue(info, "SIP_RINGING_TIME")
      if(time_epoch ~= "0") then
-       string_table = string_table.."<tr><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing>" .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]</div></td></tr>\n"
+       string_table = string_table.."<tr><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
      else
        string_table = string_table.."<tr><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing></div></td></tr>\n"
      end
@@ -1065,11 +1065,11 @@ function getSIPTableRows(info)
      time_1, time_epoch_1 = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
      string_table = string_table .. "<tr><th width=30%>Time of Invite Ok / Invite Failure</th><td><div id=time_invite_ok>"
      if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
+        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
      end
      string_table = string_table .. "</div></td><td><div id=time_invite_failure>\n"
      if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-time_epoch_1) .. " ago]"
+        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch)_1) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
 
@@ -1077,23 +1077,23 @@ function getSIPTableRows(info)
      time_1, time_epoch_1 = getFlowValue(info, "SIP_BYE_OK_TIME")
      string_table = string_table .. "<tr><th width=30%>Time of Bye / Bye Ok</th><td><div id=time_bye>"
      if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
+        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
      end
      string_table = string_table .. "</div></td><td><div id=time_bye_ok>\n"
      if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-time_epoch_1) .. " ago]"
+        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
 
      time, time_epoch = getFlowValue(info, "SIP_CANCEL_TIME")
-     time_1, time_epoch_1 = getFlowValue(info, "SIP_CANCEL_OK_TIME")
+     time_1, tonumber(time_epoch_1) = getFlowValue(info, "SIP_CANCEL_OK_TIME")
      string_table = string_table .. "<tr><th width=30%>Time of Cancel / Cancel Ok</th><td><div id=time_cancel>"
      if(time_epoch ~= "0") then
         string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
      end
      string_table = string_table .. "</div></td><td><div id=time_cancel_ok>\n"
-     if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-time_epoch_1) .. " ago]"
+     if(tonumber(time_epoch_1) ~= "0") then
+        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
 
