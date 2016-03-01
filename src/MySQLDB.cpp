@@ -469,9 +469,17 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
     return(-2);
 
   if(m) m->lock(__FILE__, __LINE__);
-  if(((rc = mysql_query(&mysql, sql)) != 0)
-     || ((result = mysql_store_result(&mysql)) == NULL)) {
 
+  if((rc = mysql_query(&mysql, sql)) != 0) {
+    if(mysql_errno(&mysql) == CR_SERVER_LOST) {
+      if(m) m->unlock(__FILE__, __LINE__);
+      connectToDB(&mysql, true);
+      if(m) m->lock(__FILE__, __LINE__);
+      rc = mysql_query(&mysql, sql);
+    }
+  }
+
+  if((rc != 0) || ((result = mysql_store_result(&mysql)) == NULL)) {
     lua_pushstring(vm, get_last_db_error(&mysql));
     if(m) m->unlock(__FILE__, __LINE__);
     return(rc);
