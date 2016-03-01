@@ -95,7 +95,6 @@ elseif action == "set" or action == "del" then
       if action == "set" then
 	 ntop.setHashCache(k, entry, resolved)
       elseif action == "del" then
-	 io.write('deletiing..'..k..' ' .. entry..'\n')
 	 ntop.delHashCache(k, entry)
       end
    end
