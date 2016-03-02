@@ -429,6 +429,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
 				   get_last_db_error(conn), sql);
 
     switch(mysql_errno(conn)) {
+    case CR_SERVER_GONE_ERROR:
     case CR_SERVER_LOST:
       if(doReconnect) {
 	mysql_close(conn);
@@ -471,7 +472,10 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
   if(m) m->lock(__FILE__, __LINE__);
 
   if((rc = mysql_query(&mysql, sql)) != 0) {
-    if(mysql_errno(&mysql) == CR_SERVER_LOST) {
+    int rc = mysql_errno(&mysql);
+    
+    if((rc == CR_SERVER_LOST)
+       || (rc == CR_SERVER_GONE_ERROR)) {
       if(m) m->unlock(__FILE__, __LINE__);
       connectToDB(&mysql, true);
       if(m) m->lock(__FILE__, __LINE__);
