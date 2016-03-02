@@ -1005,7 +1005,7 @@ end
 
 function getFlowValue(info, field)
    local return_value = ""
-   local value_original = ""
+   local value_original = "0"
    for key,value in pairs(info) do
      if(rtemplate[tonumber(key)] == field)then
        return_value = handleCustomFlowField(key, value)
@@ -1014,6 +1014,7 @@ function getFlowValue(info, field)
    end
    return_value = string.gsub(return_value, "<", "&lt;")
    return_value = string.gsub(return_value, ">", "&gt;")
+
    return return_value , value_original
 end
 
