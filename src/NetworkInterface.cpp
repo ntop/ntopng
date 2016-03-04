@@ -800,9 +800,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       struct ndpi_id_struct *cli = (struct ndpi_id_struct*)flow->get_cli_id();
       struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
-      flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
-							      ip, ipsize, (u_int32_t)time,
-							      cli, srv));
+      if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS)
+	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow));
+      else
+	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
+								ip, ipsize, (u_int32_t)time,
+								cli, srv));
     } else {
       // FIX - only handle unfragmented packets
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");
