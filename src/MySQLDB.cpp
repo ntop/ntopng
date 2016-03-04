@@ -42,8 +42,8 @@ void* MySQLDB::queryLoop() {
 
     if(rc == 0) {
       if(exec_sql_query(&mysql_alt, sql, true, true, false) != 0) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-	printf("\n%s\n", sql);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(&mysql));
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
       }
     } else
       sleep(1);    
@@ -473,14 +473,18 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
 
   if((rc = mysql_query(&mysql, sql)) != 0) {
     int rc = mysql_errno(&mysql);
+
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d]", 
+				 get_last_db_error(&mysql), rc);
     
-    if((rc == CR_SERVER_LOST)
-       || (rc == CR_SERVER_GONE_ERROR)) {
-      if(m) m->unlock(__FILE__, __LINE__);
-      connectToDB(&mysql, true);
-      if(m) m->lock(__FILE__, __LINE__);
-      rc = mysql_query(&mysql, sql);
-    }
+    if(m) m->unlock(__FILE__, __LINE__);
+    connectToDB(&mysql, true);
+
+    if(!db_operational)
+      return(-2);
+    
+    if(m) m->lock(__FILE__, __LINE__);
+    rc = mysql_query(&mysql, sql);
   }
 
   if((rc != 0) || ((result = mysql_store_result(&mysql)) == NULL)) {
