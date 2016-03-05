@@ -1034,13 +1034,24 @@ end
 
 function getSIPTableRows(info)
    local string_table = ""
+   local called_party = ""
+   local calling_party = ""
+   local sip_rtp_src_addr = 0
+   local sip_rtp_dst_addr = 0
    -- check if there is a SIP field
    sip_found = isThereProtocol("SIP", info)
 
    if(sip_found == 1) then
      string_table = string_table.."<tr><th colspan=3 class=\"info\" >SIP Protocol Information</th></tr>\n"
      string_table = string_table.."<tr><th width=30%> Call-ID </th><td colspan=2><div id=call_id>" .. getFlowValue(info, "SIP_CALL_ID") .. "</div></td></tr>\n"
-     string_table = string_table.."<tr><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party>" .. getFlowValue(info, "SIP_CALLING_PARTY") .. " <i class=\"fa fa-exchange fa-lg\"></i> " .. getFlowValue(info, "SIP_CALLED_PARTY") .. "</div></td></tr>\n"
+     called_party = getFlowValue(info, "SIP_CALLED_PARTY")
+     calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
+     if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
+       string_table = string_table.."<tr><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
+     else
+       string_table = string_table.."<tr><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fa fa-exchange fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
+     end
+
      string_table = string_table.."<tr><th width=30%>RTP Codecs</th><td colspan=2> <div id=rtp_codecs>" .. getFlowValue(info, "SIP_RTP_CODECS") .. "</></td></tr>\n"
 
      time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
@@ -1099,9 +1110,26 @@ function getSIPTableRows(info)
      string_table = string_table .. "</div></td></tr>\n"
 
      string_table = string_table.."<tr><th width=30%>RTP Stream Pears (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
-     if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil))then
-       string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") .. ":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT").." <i class=\"fa fa-exchange fa-lg\"></i> "..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR") .. ":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
+
+
+     if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~="")) then
+       sip_rtp_src_addr = 1
+       string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
      end
+     if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
+       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
+     end
+     if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
+       string_table = string_table.." <i class=\"fa fa-exchange fa-lg\"></i> "
+     end
+     if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
+       sip_rtp_dst_addr = 1
+       string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+     end
+     if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
+       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+     end
+
      string_table = string_table.."</div></td></tr>\n"
 
      string_table = string_table.."<tr><th width=30%> Failure Response Code </th><td colspan=2><div id=response_code>" .. getFlowValue(info, "SIP_RESPONSE_CODE") .. "</div></td></tr>\n"

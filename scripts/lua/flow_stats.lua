@@ -132,8 +132,19 @@ else
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
       sip_found = isThereProtocol("SIP", info)
       if(sip_found == 1) then
+        local called_party = ""
+        local calling_party = ""
+        local sip_rtp_src_addr = 0
+        local sip_rtp_dst_addr = 0
         print(', "sip.call_id":"'..getFlowValue(info, "SIP_CALL_ID")..'"')
-        print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
+        called_party = getFlowValue(info, "SIP_CALLED_PARTY")
+        calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
+        if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
+          print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
+        else
+          print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
+        end
+
         print(', "sip.rtp_codecs":"'..getFlowValue(info, "SIP_RTP_CODECS")..'"')
         time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
         if(time_epoch ~= "0") then
@@ -189,9 +200,28 @@ else
         else
           print(', "sip.time_cancel_ok":""')
         end
-        if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil))then
-          print(', "sip.rtp_stream":"' .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")..' <i class=\\\"fa fa-exchange fa-lg\\\"></i> '..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR") .. ':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT") ..'"')
+
+        print(', "sip.rtp_stream":"');
+        if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~="")) then
+          sip_rtp_src_addr = 1
+          print(getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR"))
         end
+        if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
+          print(':'..getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR"))
+        end
+        if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
+          print(' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ')
+        end
+        if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
+          sip_rtp_dst_addr = 1
+          print(getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR"))
+        end
+        if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
+          print(':'..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR"))
+        end
+        print('"');
+
+
         print(', "sip.response_code":"'..getFlowValue(info, "SIP_RESPONSE_CODE")..'"')
         val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
         if(val_original ~= "0") then
