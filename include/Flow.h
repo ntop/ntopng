@@ -196,7 +196,7 @@ class Flow : public GenericHashEntry {
 
   inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
   inline time_t get_partial_last_seen()           { return(get_last_seen()); };
-  inline u_int32_t get_duration()                 { return(get_last_seen()-get_first_seen()); };
+  inline u_int32_t get_duration()                 { return((u_int32_t)(get_last_seen()-get_first_seen())); };
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
   inline ndpi_protocol get_detected_protocol()    { return(ndpiDetectedProtocol);          };
   inline Host* get_cli_host()                     { return(cli_host);                        };

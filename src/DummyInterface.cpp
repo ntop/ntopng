@@ -67,7 +67,7 @@ static void* packetPollLoop(void* ptr) {
 
   while(iface->isRunning()) {
     iface->forgeFlow(++iteration);
-    usleep(10);
+    _usleep(10);
   }
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over.");

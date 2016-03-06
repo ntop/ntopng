@@ -396,7 +396,7 @@ u_int Flashstart::recvResponses(u_int msecTimeout) {
     u_char rsp[512];
     struct sockaddr_in from;
     socklen_t s;
-    int len = recvfrom(sock, rsp, sizeof(rsp), 0,
+    int len = recvfrom(sock, (char*)rsp, sizeof(rsp), 0,
 		       (struct sockaddr*)&from, &s);
 
     if(len > 0 && (u_int)len > sizeof(struct dns_header))
