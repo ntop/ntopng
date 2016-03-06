@@ -477,6 +477,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d]", 
 				 get_last_db_error(&mysql), rc);
     
+    mysql_close(&mysql);
     if(m) m->unlock(__FILE__, __LINE__);
     connectToDB(&mysql, true);
 
