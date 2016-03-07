@@ -472,7 +472,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
   if(m) m->lock(__FILE__, __LINE__);
 
   if((rc = mysql_query(&mysql, sql)) != 0) {
-    int rc = mysql_errno(&mysql);
+    rc = mysql_errno(&mysql);
 
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d]", 
 				 get_last_db_error(&mysql), rc);
@@ -509,9 +509,8 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
       }
     }
 
-    for(int i = 0; i < num_fields; i++) {
-      lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
-    }
+    for(int i = 0; i < num_fields; i++)
+      lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");    
 
     lua_pushnumber(vm, ++num);
     lua_insert(vm, -2);
