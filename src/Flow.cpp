@@ -40,6 +40,22 @@ Flow::Flow(NetworkInterface *_iface,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 5 /* sec */;
 
+  ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
+  json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
+    dissect_next_http_packet = false,
+    check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
+    ssl.certificate = NULL, bt_hash = NULL;
+
+  src2dst_tcp_flags = dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
+    bytes_thpt = goodput_bytes_thpt = top_bytes_thpt = pkts_thpt = top_pkts_thpt = 0;
+  cli2srv_last_bytes = prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = prev_srv2cli_last_bytes = 0;
+  cli2srv_last_packets = prev_cli2srv_last_packets = 0, srv2cli_last_packets = prev_srv2cli_last_packets = 0;
+
+  last_db_dump.cli2srv_packets = 0, last_db_dump.srv2cli_packets = 0,
+    last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0, 
+    last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0, 
+    last_db_dump.last_dump = 0;
+
   switch(protocol) {
   case IPPROTO_ICMP:
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMP,
@@ -57,22 +73,6 @@ Flow::Flow(NetworkInterface *_iface,
     ndpiDetectedProtocol.protocol = ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
     break;
   }
-
-  ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
-  json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
-    dissect_next_http_packet = false,
-    check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
-    ssl.certificate = NULL, bt_hash = NULL;
-
-  src2dst_tcp_flags = dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
-    bytes_thpt = goodput_bytes_thpt = top_bytes_thpt = pkts_thpt = top_pkts_thpt = 0;
-  cli2srv_last_bytes = prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = prev_srv2cli_last_bytes = 0;
-  cli2srv_last_packets = prev_cli2srv_last_packets = 0, srv2cli_last_packets = prev_srv2cli_last_packets = 0;
-
-  last_db_dump.cli2srv_packets = 0, last_db_dump.srv2cli_packets = 0,
-    last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0, 
-    last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0, 
-    last_db_dump.last_dump = 0;
 
   iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
@@ -112,18 +112,6 @@ Flow::Flow(NetworkInterface *_iface,
   trafficProfile = NULL;
 #endif
   // refresh_process();
-}
-
-/* *************************************** */
-
-Flow::Flow(NetworkInterface *_iface,
-	   u_int16_t _vlanId, u_int8_t _protocol,
-	   u_int8_t cli_mac[6], IpAddress *_cli_ip, u_int16_t _cli_port,
-	   u_int8_t srv_mac[6], IpAddress *_srv_ip, u_int16_t _srv_port) : GenericHashEntry(_iface) {
-  time_t now = iface->getTimeLastPktRcvd();
-
-  Flow(_iface, _vlanId, _protocol, cli_mac, _cli_ip, _cli_port,
-       srv_mac, _srv_ip, _srv_port, now, now);
 }
 
 /* *************************************** */

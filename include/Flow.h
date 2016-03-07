@@ -129,10 +129,6 @@ class Flow : public GenericHashEntry {
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
        u_int8_t cli_mac[6], IpAddress *_cli_ip, u_int16_t _cli_port,
-       u_int8_t srv_mac[6], IpAddress *_srv_ip, u_int16_t _srv_port);
-  Flow(NetworkInterface *_iface,
-       u_int16_t _vlanId, u_int8_t _protocol,
-       u_int8_t cli_mac[6], IpAddress *_cli_ip, u_int16_t _cli_port,
        u_int8_t srv_mac[6], IpAddress *_srv_ip, u_int16_t _srv_port,
        time_t _first_seen, time_t _last_seen);
   ~Flow();
