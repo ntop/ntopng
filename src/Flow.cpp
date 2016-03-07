@@ -32,7 +32,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0, 
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, ndpiFlow = NULL, badFlow = false;
+    cli_host = srv_host = NULL, badFlow = false;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -142,7 +142,7 @@ void Flow::allocFlowMemory() {
 /* *************************************** */
 
 void Flow::deleteFlowMemory() {
-  if(ndpiFlow) { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL; }
+  if(ndpiFlow)  { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL; }
   if(cli_id)    { free(cli_id);    cli_id = NULL;    }
   if(srv_id)    { free(srv_id);    srv_id = NULL;    }
 }

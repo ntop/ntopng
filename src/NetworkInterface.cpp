@@ -881,10 +881,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     flow->processDetectedProtocol();
 
-    /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
-    if(ndpi_is_proto(flow->get_detected_protocol(), NDPI_PROTOCOL_DNS))
-      flow->deleteFlowMemory();
-
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
