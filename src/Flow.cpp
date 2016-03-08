@@ -32,7 +32,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0, 
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, badFlow = false;
+    cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -179,6 +179,11 @@ void Flow::categorizeFlow() {
 
 Flow::~Flow() {
   struct timeval tv = { 0, 0 };
+
+  if(good_low_flow_detected) {
+    if(cli_host) cli_host->decLowGoodputFlows(true);
+    if(srv_host) cli_host->decLowGoodputFlows(false);
+  }
 
   checkBlacklistedFlow();
   update_hosts_stats(&tv);
@@ -851,6 +856,21 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
+	
+	if((((cli2srv_goodput_bytes+srv2cli_goodput_bytes)*100)/(cli2srv_bytes+srv2cli_bytes)) < GOODPUT_THRESHOLD) {
+	  if(!good_low_flow_detected) {
+	    if(cli_host) cli_host->incLowGoodputFlows(true);
+	    if(srv_host) cli_host->incLowGoodputFlows(false);
+	    good_low_flow_detected = true;
+	  }
+	} else {
+	  if(good_low_flow_detected) {
+	    /* back to normal */
+	    if(cli_host) cli_host->decLowGoodputFlows(true);
+	    if(srv_host) cli_host->decLowGoodputFlows(false);
+	    good_low_flow_detected = false;
+	  }
+	}
 
 #ifdef NTOPNG_PRO
 	throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);

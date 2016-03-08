@@ -531,6 +531,9 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 	lua_push_int_table_entry(vm, "bridge.egress_shaper_id", egress_shaper_id);
 	lua_push_int_table_entry(vm, "bridge.host_quota_mb", host_quota_mb);
       }
+
+      lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
+      lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
     }
 
     lua_push_int_table_entry(vm, "seen.first", first_seen);

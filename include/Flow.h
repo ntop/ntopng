@@ -38,7 +38,8 @@ class Flow : public GenericHashEntry {
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
-    ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
+    ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed,
+    good_low_flow_detected;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;

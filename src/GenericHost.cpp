@@ -34,7 +34,7 @@ GenericHost::GenericHost(NetworkInterface *_iface) : GenericHashEntry(_iface) {
   last_bytes_periodic = 0, bytes_thpt_diff = 0;
   last_packets = 0, last_pkts_thpt = pkts_thpt = 0, pkts_thpt_trend = trend_unknown;
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0, vlan_id = 0;
-  num_alerts_detected = 0, source_id = 0;
+  num_alerts_detected = 0, source_id = 0, low_goodput_client_flows = low_goodput_server_flows = 0;
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 }
 

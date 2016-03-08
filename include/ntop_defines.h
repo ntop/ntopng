@@ -458,6 +458,8 @@
 #define MYSQL_MAX_NUM_FIELDS  255
 #define MYSQL_MAX_NUM_ROWS    999
 
+#define GOODPUT_THRESHOLD      50 /* 50% */
+
 #define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
 
 #define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
