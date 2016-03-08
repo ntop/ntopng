@@ -153,3 +153,13 @@ String.prototype.capitalize = function() {
 
     return(res.join(" "));
 }
+
+function drawTrend(current, last, withColor) {
+  if(current == last) {
+    return("<i class=\"fa fa-minus\"></i>");
+  } else if(current > last) {
+    return("<i class=\"fa fa-arrow-up\""+withColor+"></i>");
+  } else {
+    return("<i class=\"fa fa-arrow-down\"></i>");
+  }   
+}

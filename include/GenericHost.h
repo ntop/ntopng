@@ -80,8 +80,6 @@ class GenericHost : public GenericHashEntry {
   inline u_int8_t getSourceId()       { return(source_id);                 };
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };
   virtual bool match(patricia_tree_t *ptree)             { return(true);   };
-  inline void incLowGoodputFlows(bool asClient) { if(asClient) low_goodput_client_flows++; else low_goodput_server_flows++; }
-  inline void decLowGoodputFlows(bool asClient) { if(asClient) low_goodput_client_flows--; else low_goodput_server_flows--; }
 };
 
 #endif /* _GENERIC_HOST_H_ */

@@ -182,7 +182,7 @@ Flow::~Flow() {
 
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
-    if(srv_host) cli_host->decLowGoodputFlows(false);
+    if(srv_host) srv_host->decLowGoodputFlows(false);
   }
 
   checkBlacklistedFlow();
@@ -227,7 +227,6 @@ void Flow::checkBlacklistedFlow() {
 	       print(fbuf, sizeof(fbuf)));
 
       ntop->getRedis()->queueAlert(alert_level_warning, alert_dangerous_host, alert_msg);
-      badFlow = true, setDropVerdict();
     }
 
     blacklist_alarm_emitted = true;
@@ -857,18 +856,20 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 	
-	if((((cli2srv_goodput_bytes+srv2cli_goodput_bytes)*100)/(cli2srv_bytes+srv2cli_bytes)) < GOODPUT_THRESHOLD) {
-	  if(!good_low_flow_detected) {
-	    if(cli_host) cli_host->incLowGoodputFlows(true);
-	    if(srv_host) cli_host->incLowGoodputFlows(false);
-	    good_low_flow_detected = true;
-	  }
-	} else {
-	  if(good_low_flow_detected) {
-	    /* back to normal */
-	    if(cli_host) cli_host->decLowGoodputFlows(true);
-	    if(srv_host) cli_host->decLowGoodputFlows(false);
-	    good_low_flow_detected = false;
+	if(protocol == IPPROTO_TCP) {
+	  if(isLowGoodput()) {
+	    if(!good_low_flow_detected) {
+	      if(cli_host) cli_host->incLowGoodputFlows(true);
+	      if(srv_host) srv_host->incLowGoodputFlows(false);
+	      good_low_flow_detected = true;
+	    }
+	  } else {
+	    if(good_low_flow_detected) {
+	      /* back to normal */
+	      if(cli_host) cli_host->decLowGoodputFlows(true);
+	      if(srv_host) srv_host->decLowGoodputFlows(false);
+	      good_low_flow_detected = false;
+	    }
 	  }
 	}
 
@@ -1140,6 +1141,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     // lua_push_float_table_entry(vm, "cli2srv.trend", c2sBytes.getTrend());
     // lua_push_float_table_entry(vm, "srv2cli.trend", s2cBytes.getTrend());
 #endif
+
+    lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
     lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
     lua_push_bool_table_entry(vm, "dump.disk", getDumpFlowTraffic());
@@ -1987,4 +1990,13 @@ void Flow::getFlowShapers(bool src2dst_direction,
     *a_shaper_id = *b_shaper_id = 0;
 
   *ndpiProtocol = ndpiDetectedProtocol.protocol;
+}
+
+/* *************************************** */
+
+bool Flow::isLowGoodput() { 
+  if(protocol == IPPROTO_UDP) 
+    return(false); 
+  else 
+    return(((((cli2srv_goodput_bytes+srv2cli_goodput_bytes)*100)/(cli2srv_bytes+srv2cli_bytes)) < FLOW_GOODPUT_THRESHOLD) ? true : false); 
 }

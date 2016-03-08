@@ -48,7 +48,9 @@ typedef enum {
   alert_dangerous_host,
   alert_periodic_activity,
   alert_quota,
-  alert_malware_detection
+  alert_malware_detection,
+  alert_host_under_attack,
+  alert_host_attacker
 } AlertType;
 
 typedef enum {

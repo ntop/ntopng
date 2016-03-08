@@ -438,7 +438,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    -- if(value["category"] ~= nil) then print (", \"column_category\" : \"" .. value["category"] .. "\", ") else print (",") end
    print (", \"column_proto_l4\" : \"")
 
-   if(value["tcp.seq_problems"] == true) then
+   if((value["tcp.seq_problems"] == true) or (value["flow_goodput.low"] == true)) then
       print("<font color=#B94A48>"..value["proto.l4"].."</font>")
    else
       print(value["proto.l4"])

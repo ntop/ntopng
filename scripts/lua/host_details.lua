@@ -580,12 +580,16 @@ end
 
    print("<tr><th>Traffic Sent / Received</th><td><span id=pkts_sent>" .. formatPackets(host["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(host["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(host["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(host["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
-   -- print("<tr><th>Flows 'As Client' / 'As Server'</th><td><span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=as_client_trend></span></td><td><span id=flows_as_server>" .. formatValue(host["flows.as_server"]) .. "</span> <span id=as_server_trend></td></tr>\n")
+   print("<tr><th rowspan=2>Active Flows / Active Low Goodput / Total </th><th>'As Client'</th><th>'As Server'</th></tr>\n")
+   print("<tr><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
+   print("/ <span id=low_goodput_as_client>" .. formatValue(host["low_goodput_flows.as_client"]) .. "</span> <span id=low_goodput_trend_as_client></span>\n")
+   print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
+   print("</td>\n")
 
-
-   print("<tr><th rowspan=2>Flows Active / Total </th><th>'As Client'</th><th>'As Server'</th></tr>")
-   print("<tr><td><span id=flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=as_client_trend></span> / " .. formatValue(host["flows.as_client"]) .. "</td>")
-   print("<td><span id=flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span> <span id=as_server_trend></span> / " .. formatValue(host["flows.as_server"]) .. "</td></tr>")
+   print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
+   print("/ <span id=low_goodput_as_server>" .. formatValue(host["low_goodput_flows.as_server"]) .. "</span> <span id=low_goodput_trend_as_server></span>\n")
+   print("/ <span id=flows_as_server>"..formatValue(host["flows.as_server"]) .. "</span> <span id=trend_as_server></span> \n")
+   print("</td></tr>\n")
 
 
    if(host["tcp.packets.seq_problems"]) then
@@ -2132,12 +2136,18 @@ end
 end
 
 if (host ~= nil) then
-   print [[ <script>]]
+   print [[ 
+   <script>
+  ]]
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
    print("var last_num_alerts = " .. host["num_alerts"] .. ";\n")
-   print("var last_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
-   print("var last_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
+   print("var last_active_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
+   print("var last_active_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
+   print("var last_flows_as_server = " .. host["flows.as_server"] .. ";\n")
+   print("var last_flows_as_client = " .. host["flows.as_client"] .. ";\n")
+   print("var last_low_goodput_flows_as_client = " .. host["low_goodput_flows.as_client"] .. ";\n")
+   print("var last_low_goodput_flows_as_server = " .. host["low_goodput_flows.as_server"] .. ";\n")
    print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
@@ -2190,8 +2200,12 @@ if (host ~= nil) then
    			   $('#name').html(host["name"]);
    			}
    			$('#num_alerts').html(host["num_alerts"]);
-   			$('#flows_as_client').html(addCommas(host["active_flows.as_client"]));
-   			$('#flows_as_server').html(addCommas(host["active_flows.as_server"]));
+   			$('#active_flows_as_client').html(addCommas(host["active_flows.as_client"]));
+   			$('#flows_as_client').html(addCommas(host["flows.as_client"]));
+   			$('#low_goodput_as_client').html(addCommas(host["low_goodput_flows.as_client"]));
+   			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
+   			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
+   			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
    		  ]]
 
    if(host["dns"] ~= nil) then
@@ -2287,60 +2301,29 @@ if (host ~= nil) then
    print [[
    			/* **************************************** */
 
-   			if(host["active_flows.as_client"] == last_flows_as_client) {
-   			   $('#as_client_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#as_client_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["active_flows.as_server"] == last_flows_as_server) {
-   			   $('#as_server_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#as_server_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(last_num_alerts == host["num_alerts"]) {
-   			   $('#alerts_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#alerts_trend').html("<i class=\"fa fa-arrow-up\" style=\"color: #B94A48;\"></i>");
-   			}
-
-   			if(last_pkts_sent == host["packets.sent"]) {
-   			   $('#sent_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#sent_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(last_pkts_rcvd == host["packets.rcvd"]) {
-   			   $('#rcvd_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#rcvd_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["tcp.packets.retransmissions"] == last_tcp_retransmissions) {
-   			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["tcp.packets.out_of_order"] == last_tcp_ooo) {
-   			   $('#pkt_ooo_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#pkt_ooo_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["tcp.packets.lost"] == last_tcp_lost) {
-   			   $('#pkt_lost_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#pkt_lost_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
+			$('#trend_as_active_client').html(drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
+			$('#trend_as_client').html(drawTrend(host["flows.as_client"], last_flows_as_client, ""));
+			$('#low_goodput_trend_as_client').html(drawTrend(host["low_goodput_flows.as_client"], last_low_goodput_flows_as_client, " style=\"color: #B94A48;\""));
+			$('#trend_as_active_server').html(drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
+			$('#trend_as_server').html(drawTrend(host["flows.as_server"], last_flows_as_server, ""));
+			$('#low_goodput_trend_as_server').html(drawTrend(host["low_goodput_flows.as_server"], last_low_goodput_flows_as_server, " style=\"color: #B94A48;\""));
+			
+			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
+			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
+			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
+			$('#pkt_retransmissions_trend').html(drawTrend(host["tcp.packets.retransmissions"], last_tcp_retransmissions, ""));
+			$('#pkt_ooo_trend').html(drawTrend(host["tcp.packets.out_of_order"], last_tcp_ooo, ""));
+ 		        $('#pkt_lost_trend').html(drawTrend(host["tcp.packets.lost"], last_tcp_lost, ""));
 
    			last_num_alerts = host["num_alerts"];
    			last_pkts_sent = host["packets.sent"];
    			last_pkts_rcvd = host["packets.rcvd"];
-   			last_flows_as_server = host["active_flows.as_server"];
-   			last_flows_as_client = host["active_flows.as_client"];
-
+   			last_active_flows_as_client = host["active_flows.as_client"];
+   			last_active_flows_as_server = host["active_flows.as_server"];
+   			last_flows_as_client = host["flows.as_client"];
+   			last_low_goodput_flows_as_server = host["low_goodput_flows.as_server"];
+   			last_low_goodput_flows_as_client = host["low_goodput_flows.as_client"];
+   			last_flows_as_server = host["flows.as_server"];
    			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
    			last_tcp_ooo = host["tcp.packets.out_of_order"];
    			last_tcp_lost = host["tcp.packets.lost"];

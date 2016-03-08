@@ -125,7 +125,8 @@ class Flow : public GenericHashEntry {
   bool checkTor(char *hostname);
   void checkFlowCategory();
   void setBittorrentHash(char *hash);
-
+  bool isLowGoodput();
+  
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,

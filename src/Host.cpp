@@ -143,7 +143,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
-  max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
+  max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS, good_low_flow_detected = false;
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
@@ -1300,4 +1300,43 @@ void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
 
 /* *************************************** */
 
+void Host::incLowGoodputFlows(bool asClient) {
+  bool alert = false;
+  
+  if(asClient) {
+    if(++low_goodput_client_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  } else {
+    if(++low_goodput_server_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  }  
 
+  if(alert && (!good_low_flow_detected)) {
+    char alert_msg[1024], *c, c_buf[64];
+
+    c = get_ip()->print(c_buf, sizeof(c_buf));
+    
+    snprintf(alert_msg, sizeof(alert_msg),
+	     "Host <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> has %d low goodput active %s flows",
+	     c, iface->get_name(), get_name() ? get_name() : c,
+	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
+    
+    ntop->getRedis()->queueAlert(alert_level_error, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
+    good_low_flow_detected = true;
+  }
+}
+
+/* *************************************** */
+
+void Host::decLowGoodputFlows(bool asClient) { 
+  bool alert = false;
+
+  if(asClient) {
+    if(--low_goodput_client_flows < HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  } else {
+    if(--low_goodput_server_flows < HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  }  
+
+  if(alert && good_low_flow_detected) {
+    /* TODO: send end of alarm */
+    good_low_flow_detected = false;
+  }
+}
