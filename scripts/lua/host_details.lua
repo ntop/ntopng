@@ -323,14 +323,17 @@ print [[
 
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
+   print("<tr><th width=35%>")
 
    if(host["ip"] ~= nil) then
       if((host["antenna_mac"] ~= nil) and (host["antenna_mac"] ~= "00:00:00:00:00:00")) then
-	 print("<tr><th width=35%>Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
-      end
-
-      if(host["mac"]  ~= "00:00:00:00:00:00") then
-         print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
+	 print("Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
+      else
+	 if(host["mac"]  ~= "00:00:00:00:00:00") then
+	    print("(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
+	 else
+	    print("Traffic Dump</th><td colspan=2>")
+	 end
       end
 
       if(host["localhost"] == true) then
