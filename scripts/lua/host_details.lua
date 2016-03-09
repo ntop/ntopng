@@ -323,16 +323,15 @@ print [[
 
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
-   print("<tr><th width=35%>")
 
    if(host["ip"] ~= nil) then
       if((host["antenna_mac"] ~= nil) and (host["antenna_mac"] ~= "00:00:00:00:00:00")) then
-	 print("Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
+	 print("<tr><th width=35%>Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
       else
 	 if(host["mac"]  ~= "00:00:00:00:00:00") then
-	    print("(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
+	    print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
 	 else
-	    print("Traffic Dump</th><td colspan=2>")
+	    if(host["localhost"] == true) then print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")  end
 	 end
       end
 
@@ -356,15 +355,16 @@ if((page == "overview") or (page == nil)) then
 	    dump_traffic_checked = ""
 	    dump_traffic_value = "true" -- Opposite
 	 end
+
 	 if(isAdministrator()) then
 	 print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
 	 <input type="hidden" name="host" value="]]
-	       print(host_info["host"])
-	       print('"><input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='..ifname..'&page=packetdump">Dump Traffic</a> </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
-	    end
+	 print(host_info["host"])
+	 print('"><input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='..ifname..'&page=packetdump">Dump Traffic</a> </input>')
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('</form>')
+	 end
 	    print('</td></tr>')
 	    end
 	    print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])

@@ -38,7 +38,7 @@ end
 print(" v."..info["version"])
 
 print("</br>for user ")
-print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua">'.._SESSION["user"].. '</a> and interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='.. ifname..'">')
+print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua">'.._SESSION["user"].. '</a> and interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua">')
 
 alias = getInterfaceNameAlias(ifname)
 
@@ -99,7 +99,7 @@ print [[
 	<div>]]
 print [[  <a href="]]
       print (ntop.getHttpPrefix())
-      print [[/lua/if_stats.lua?if_name=]] print(ifname) print [[">
+      print [[/lua/if_stats.lua">
 	    <table style="border-collapse:collapse; !important">
 	    <tr><td title="Local to Remote Traffic"><i class="fa fa-cloud-upload"></i>&nbsp;</td><td class="network-load-chart-local2remote">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-local2remote-text"></td></tr>
 	    <tr><td title="Remote to Local Traffic"><i class="fa fa-cloud-download"></i>&nbsp;</td><td class="network-load-chart-remote2local">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-remote2local-text"></td></tr>

@@ -178,7 +178,7 @@ for k,v in pairsByKeys(ifnames, asc) do
    --io.write(k.."="..v.."\n")
 
    if(v == ifname) then
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..v.."\">")
+      print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..k.."\">")
    else
       print("<a href=\""..ntop.getHttpPrefix().."/lua/set_active_interface.lua?id="..k.."\">")
    end
