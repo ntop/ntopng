@@ -856,7 +856,9 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 	
-	if(protocol == IPPROTO_TCP) {
+	if((iface->get_type() != CONST_INTERFACE_TYPE_ZMQ) 
+	   && (protocol == IPPROTO_TCP)
+	   && (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_SSH)) {
 	  if(isLowGoodput()) {
 	    if(!good_low_flow_detected) {
 	      if(cli_host) cli_host->incLowGoodputFlows(true);
