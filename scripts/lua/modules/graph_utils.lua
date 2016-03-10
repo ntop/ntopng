@@ -356,16 +356,16 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       print[[
        <script>
        setInterval(function() {
-         var talkers_loaded, protocols_loaded;
-         if($('a[href="#historical-top-talkers"]').length){
-           talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
-         }
-         if($('a[href="#historical-top-apps"]').length){
-           protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
-         }
-         if(typeof talkers_loaded == 'undefined' && typeof protocols_loaded == 'undefined'){
-           window.location.reload();
-         }
+	 var talkers_loaded, protocols_loaded;
+	 if($('a[href="#historical-top-talkers"]').length){
+	   talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
+	 }
+	 if($('a[href="#historical-top-apps"]').length){
+	   protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
+	 }
+	 if(typeof talkers_loaded == 'undefined' && typeof protocols_loaded == 'undefined'){
+	   window.location.reload();
+	 }
        }, 60*1000);
        </script>]]
    end
@@ -699,7 +699,7 @@ infoHTML += "<ul>";
 $.ajax({
 	  type: 'GET',
 	  url: ']]
-	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?m=top_talkers&epoch='+point.value.x+'&addvlan=true")
+	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?m=top_talkers&epoch='+point.value.x+'&addvlan=true&id="..tostring(ifid))
 	    print [[',
 		  data: { epoch: point.value.x },
 		  async: false,
@@ -1028,11 +1028,14 @@ end
 if host ~= "" and host ~= nil then
    div_data = div_data..' host="'..tostring(host)..'" '
 end
+if l7proto ~= "" and l7proto ~= nil then
+   div_data = div_data..' proto_id="'..l7proto..'" '
+end
 
 if (not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
 print [[
       <div class="tab-pane fade" id="ipv4" ]] print(div_data) print[[">
-        <div id="table-flows4"></div>
+	<div id="table-flows4"></div>
 ]] historicalDownloadButtonsBar('flows_v4', 'ipv4') print[[
       </div>
 ]]

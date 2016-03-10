@@ -296,12 +296,28 @@ print[[
   ]]
 end
 
-function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
+function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto)
    local breadcrumb_root = "interface"
    local host_talkers_url_params = ""
    local interface_talkers_url_params = ""
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_start="..epoch_begin
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_end="..epoch_end
+
+   if l7proto ~= "" and l7proto ~= nil and not string.starts(tostring(l7proto), 'all') then
+      if not isnumber(l7proto) then
+	 local id
+	 l7proto = string.gsub(l7proto, "%.rrd", "")
+	 id = interface.getnDPIProtoId(l7proto)
+	 if id ~= -1 then
+	    l7proto = id
+	    interface_talkers_url_params = interface_talkers_url_params.."&l7_proto_id="..l7proto
+	 else
+	    l7proto = ""
+	 end
+      end
+
+   end
+
    if host and host ~= "" then
       host_talkers_url_params = interface_talkers_url_params.."&peer1="..host
       breadcrumb_root = "host"
@@ -319,7 +335,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host)
 
 
 <!-- attach some status information to the historical container -->
-<div id="historical-container" epoch_begin="" epoch_end="" ifname="" host="" peer="">
+<div id="historical-container" epoch_begin="" epoch_end="" ifname="" host="" peer="" proto_id="">
 
 
   <div class="row">
@@ -595,7 +611,14 @@ $('a[href="#historical-top-talkers"]').on('shown.bs.tab', function (e) {
   // set epoch_begin and epoch_end status information to the container div
   $('#historical-container').attr("epoch_begin", "]] print(tostring(epoch_begin)) print[[");
   $('#historical-container').attr("epoch_end", "]] print(tostring(epoch_end)) print[[");
-  // Finally set a loaded flag for the current tab
+  ]]
+
+if l7proto ~= nil and l7proto ~= "" and not string.starts(tostring(l7proto), 'all') then
+   print[[$('#historical-container').attr("proto_id", "]] print(tostring(l7proto)) print[[");]]
+end
+
+  print[[
+   // Finally set a loaded flag for the current tab
   $('a[href="#historical-top-talkers"]').attr("loaded", 1);
 });
 </script>

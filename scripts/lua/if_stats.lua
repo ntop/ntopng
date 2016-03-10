@@ -16,12 +16,28 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 page = _GET["page"]
 if_name = _GET["if_name"]
+ifid = (_GET["id"] or _GET["ifId"])
 
-if(if_name == nil) then if_name = ifname end
+-- parse interface names and possibly fall back to the selected interface:
+-- priority goes to the interface id
+if ifid ~= nil and ifid ~= "" then
+   if_name = getInterfaceName(ifid)
+
+-- if not interface id is specified we look for the interface name
+elseif if_name ~= nil and if_name ~= "" then
+   ifid = tostring(interface.name2id(if_name))
+
+-- finally, we fall back to the default selected interface name
+else
+   -- fall-back to the default interface
+   if_name = ifname
+   ifid = interface.name2id(ifname)
+end
+
+interface.select(if_name)
 
 max_num_shapers = 10
-interface.select(if_name)
-ifid = interface.name2id(ifname)
+
 shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
 ifstats = aggregateInterfaceStats(interface.getStats())
 
@@ -98,13 +114,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
-if(if_name == nil) then
-   _ifname = ifname
-else
-   _ifname = if_name
-end
-
-url= ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name=' .. _ifname
+url= ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
 
 
 --   Added global javascript variable, in order to disable the refresh of pie chart in case
@@ -117,9 +127,10 @@ print [[
     <ul class="nav navbar-nav">
 ]]
 
---io.write(ifname.."\n")
-short_name = getHumanReadableInterfaceName(ifname)
-if(short_name ~= ifname) then
+
+short_name = getHumanReadableInterfaceName(if_name)
+
+if(short_name ~= if_name) then
    short_name = short_name .. "..."
 end
 
@@ -373,7 +384,7 @@ elseif((page == "packets")) then
 
        do_pie("#sizeDistro", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/if_pkt_distro.lua', { distr: "size", ifname: "]] print(_ifname.."\"")
+   print [[/lua/if_pkt_distro.lua', { distr: "size", ifname: "]] print(if_name.."\"")
    print [[
 	   }, "", refresh);
     }
@@ -386,7 +397,6 @@ elseif(page == "ndpi") then
 --for k,v in pairs(fc) do
 --   io.write(k.."="..v.."\n")
 --end
-
 
    print [[
 	    <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
@@ -405,15 +415,15 @@ elseif(page == "ndpi") then
 
        do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { mode: "sinceStartup", ifname: "]] print(_ifname) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "sinceStartup", ifname: "]] print(_ifname) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "count", ifname: "]] print(_ifname) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "count", id: "]] print(ifid) print [[" }, "", refresh);
     }
 
       </script><p>
@@ -437,7 +447,7 @@ function update_ndpi_table() {
     url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/if_stats_ndpi.lua',
-    data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
+    data: { id: "]] print(ifid) print [[" },
     success: function(content) {
       $('#if_stats_ndpi_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
@@ -491,7 +501,7 @@ print [[
 		    url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/network_load.lua',
-		    data: { ifname: "]] print(ifname) print [[" },
+		    data: { ifname: "]] print(if_name) print [[" },
 		    success: function(content) {
 			var profiles = jQuery.parseJSON(content);
 
@@ -721,7 +731,7 @@ end
 end
 elseif(page == "alerts") then
 local if_name = ifstats.name
-local ifname_clean = string.gsub(ifname, "/", "_")
+local ifname_clean = string.gsub(if_name, "/", "_")
 local tab = _GET["tab"]
 local re_arm_minutes = nil
 
@@ -735,7 +745,7 @@ for _,e in pairs(alerts_granularity) do
    l = e[2]
 
    if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
-   print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..if_name.."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
+   print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..ifid.."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
 end
 
 -- Before doing anything we need to check if we need to save values
@@ -777,8 +787,8 @@ else
       alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, ifname_clean)
    end
    if _GET["re_arm_minutes"] then
-       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean, _GET["re_arm_minutes"])
-   end
+       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean, _GET["re_arm_minutes"]) 
+  end
        re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean)
    if not re_arm_minutes then re_arm_minutes="" end
 end
@@ -956,7 +966,7 @@ for i=0,max_num_shapers-1 do
    print [[
 	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
 	 <input type="hidden" name="page" value="shaping">
-	 <input type="hidden" name="if_name" value="]] print(ifname) print[[">
+	 <input type="hidden" name="if_name" value="]] print(if_name) print[[">
 	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
 
       if(isAdministrator()) then
