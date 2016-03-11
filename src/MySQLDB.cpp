@@ -33,7 +33,7 @@ void* MySQLDB::queryLoop() {
   Redis *r = ntop->getRedis();
   MYSQL mysql_alt;
 
-  if(connectToDB(&mysql_alt, true) == false)
+  if(!connectToDB(&mysql_alt, true))
     return(NULL);
 
   while(!ntop->getGlobals()->isShutdown()) {
@@ -44,6 +44,9 @@ void* MySQLDB::queryLoop() {
       if(exec_sql_query(&mysql_alt, sql, true, true, false) != 0) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(&mysql));
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
+	mysql_close(&mysql_alt);
+	if(!connectToDB(&mysql_alt, true))
+	  return(NULL);
       }
     } else
       sleep(1);    

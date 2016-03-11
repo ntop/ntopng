@@ -459,7 +459,7 @@
 #define MYSQL_MAX_NUM_ROWS    999
 
 #define HOST_LOW_GOODPUT_THRESHOLD  10 /* No more than 10 low goodput flows per host */
-#define FLOW_GOODPUT_THRESHOLD      50 /* 50% */
+#define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
 #define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
 
