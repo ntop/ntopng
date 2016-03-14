@@ -858,6 +858,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	
 	if((strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))
 	   && (protocol == IPPROTO_TCP)
+	   && (get_goodput_bytes() > 0)
 	   && (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_SSH)) {
 	  if(isLowGoodput()) {
 	    if(!good_low_flow_detected) {
