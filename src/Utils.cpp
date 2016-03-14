@@ -1243,9 +1243,8 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
 /* **************************************** */
 
-#ifdef linux
 
-static char* macaddr_str (const char *mac, char *buf) {
+char* Utils::macaddr_str (const char *mac, char *buf) {
   sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
           mac[0] & 0xFF, mac[1] & 0xFF, mac[2] & 0xFF,
           mac[3] & 0xFF, mac[4] & 0xFF, mac[5] & 0xFF);
@@ -1253,6 +1252,8 @@ static char* macaddr_str (const char *mac, char *buf) {
 }
 
 /* **************************************** */
+
+#ifdef linux
 
 void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
   int _sock, res;
