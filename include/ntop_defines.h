@@ -261,6 +261,7 @@
 #define NTOPNG_NDPI_OS_PROTO_ID      (NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS-2)
 #define CONST_DEFAULT_HOME_NET       "192.168.1.0/24"
 #define CONST_DEFAULT_DATA_DIR       "/var/tmp/ntopng"
+#define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED 1
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
@@ -322,6 +323,8 @@
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
+
+#define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED          "ntopng.prefs.is_autologon_enabled"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION   "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */

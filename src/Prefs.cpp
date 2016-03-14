@@ -317,6 +317,9 @@ void Prefs::loadIdleDefaults() {
   other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
   other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
+
+  // sets to the default value in redis if no key is found
+  getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
 }
 
 /* ******************************************* */
@@ -971,6 +974,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_categorization_enabled", flashstart ? true : false);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
+  lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
   lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);

@@ -143,6 +143,8 @@ static int is_authorized(const struct mg_connection *conn,
                          const struct mg_request_info *request_info,
 			 char *username, u_int username_len) {
   char session_id[33], buf[128];
+  char key[64], user[32];
+  char password[32];
   const char *auth_header_p;
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
@@ -193,8 +195,6 @@ static int is_authorized(const struct mg_connection *conn,
     return 0;
 
   if(session_id[0] == '\0') {
-    char password[32];
-
     /* Last resort: see if we have a user and password matching */
     mg_get_cookie(conn, "password", password, sizeof(password));
 
@@ -203,9 +203,15 @@ static int is_authorized(const struct mg_connection *conn,
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Received session %s/%s", session_id, username);
 
-  if(ntop->getPrefs()->do_auto_logout()) {
-    char key[64], user[32];
-
+  snprintf(key, sizeof(key), CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED);
+  ntop->getRedis()->get(key, buf, sizeof(buf));
+  // do_auto_logout() is the getter for the command-line specified
+  // preference that defaults to true (i.e., auto_logout is enabled by default)
+  // If do_auto_logout() is disabled, then the runtime auto logout preference
+  // is taken into accout.
+  // If do_auto_logout() is false, then the auto logout is disabled regardless
+  // of runtime preferences.
+  if(ntop->getPrefs()->do_auto_logout() && strncmp(buf, (char*)"1", 1) == 0) {
     snprintf(key, sizeof(key), "sessions.%s", session_id);
     if((ntop->getRedis()->get(key, user, sizeof(user)) < 0)
        || strcmp(user, username) /* Users don't match */) {
