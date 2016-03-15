@@ -25,7 +25,7 @@
 
 /* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
 ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoint) { 
-  map = NULL;
+  map = NULL, once = false;
 
   addMapping("IN_BYTES", 1);
   addMapping("IN_PKTS", 2);
@@ -424,7 +424,8 @@ int ParserInterface::getKeyId(char *sym) {
   if(o != NULL) {
     struct json_object_iterator it = json_object_iter_begin(o);
     struct json_object_iterator itEnd = json_object_iter_end(o);
-    char remote_ifname[32] = { 0 }, remote_ifaddress[64] = { 0 }, remote_probe_address[64] = { 0 };
+    char remote_ifname[32] = { 0 }, remote_ifaddress[64] = { 0 }, 
+				      remote_probe_address[64] = { 0 }, remote_probe_public_address[64] = { 0 };
     u_int64_t remote_bytes = 0, remote_pkts = 0;
     u_int32_t remote_ifspeed = 0;
 
@@ -442,6 +443,7 @@ int ParserInterface::getKeyId(char *sym) {
 	else if(!strcmp(key, "if.ip"))   snprintf(remote_ifaddress, sizeof(remote_ifaddress), "%s", value);
 	else if(!strcmp(key, "if.speed")) remote_ifspeed = atol(value);
 	else if(!strcmp(key, "probe.ip")) snprintf(remote_probe_address, sizeof(remote_probe_address), "%s", value);
+	else if(!strcmp(key, "probe.public_ip")) snprintf(remote_probe_public_address, sizeof(remote_probe_public_address), "%s", value);
 	else if(!strcmp(key, "bytes"))    remote_bytes = atol(value);
 	else if(!strcmp(key, "packets"))  remote_pkts = atol(value);
 	
@@ -451,15 +453,19 @@ int ParserInterface::getKeyId(char *sym) {
     } // while json_object_iter_equal
     
       /* Process Flow */
-    iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed, remote_probe_address, remote_bytes, remote_pkts);
+    iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed, 
+			  remote_probe_address, remote_probe_public_address,
+			  remote_bytes, remote_pkts);
     
     /* Dispose memory */
     json_object_put(o);
   } else {
     // if o != NULL
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "Invalid message received: your nProbe sender is outdated or invalid JSON?");
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
+    if(!once)
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+    once = true;
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
     return -1;
   }
 
@@ -668,9 +674,11 @@ int ParserInterface::getKeyId(char *sym) {
     json_object_put(flow.additional_fields);
   } else {
     // if o != NULL
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "Invalid message received: your nProbe sender is outdated or invalid JSON?");
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
+    if(!once)
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+    once = true;
+     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
     return -1;
   }
 

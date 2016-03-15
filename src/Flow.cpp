@@ -38,7 +38,7 @@ Flow::Flow(NetworkInterface *_iface,
   dump_flow_traffic = false, ndpi_proto_name = NULL,
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_UNKNOWN,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
-    doNotExpireBefore = iface->getTimeLastPktRcvd() + 5 /* sec */;
+    doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
