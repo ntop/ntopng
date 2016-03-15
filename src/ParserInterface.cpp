@@ -652,6 +652,15 @@ int ParserInterface::getKeyId(char *sym) {
         case DST_PROC_PCTG_IOWAIT:
           flow.dst_process.percentage_iowait_time = ((float)atol(value))/((float)100);
           break;
+	case DNS_QUERY:
+	  flow.dns_query = strdup(value);
+	  break;
+	case HTTP_URL:
+	  flow.http_url = strdup(value);
+	  break;
+	case HTTP_SITE:
+	  flow.http_site = strdup(value);
+	  break;
 
         default:
           ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u/%s", key_id, key);
@@ -670,6 +679,10 @@ int ParserInterface::getKeyId(char *sym) {
     iface->processFlow(&flow);
 
     /* Dispose memory */
+    if(flow.dns_query) free(flow.dns_query);
+    if(flow.http_url)  free(flow.http_url);
+    if(flow.http_site) free(flow.http_site);
+
     json_object_put(o);
     json_object_put(flow.additional_fields);
   } else {
@@ -678,7 +691,7 @@ int ParserInterface::getKeyId(char *sym) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
     once = true;
-     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
     return -1;
   }
 

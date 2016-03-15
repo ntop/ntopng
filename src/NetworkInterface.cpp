@@ -600,6 +600,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       flow->guessProtocol();
   }
 
+  if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
+  if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
+  if(zflow->http_site) flow->setServerName(zflow->http_site);
+
 #if 0
   if(!is_packet_interface()) {
     struct timeval tv, *last_update;
@@ -1827,8 +1831,8 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
 	break;
       case column_info:
-	if(f->getDnsLastQuery())        retriever->elems[retriever->actNumEntries++].stringValue = f->getDnsLastQuery();
-	else if(f->getHTTPLastURL())    retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPLastURL();
+	if(f->getDNSQuery())            retriever->elems[retriever->actNumEntries++].stringValue = f->getDNSQuery();
+	else if(f->getHTTPURL())        retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPURL();
 	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumEntries++].stringValue = f->getSSLCertificate();
 	else retriever->elems[retriever->actNumEntries++].stringValue = (char*)"";
 	break;

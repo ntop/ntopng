@@ -154,7 +154,7 @@ class Flow : public GenericHashEntry {
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   inline char* getFlowServerInfo() { return(host_server_name); };
   inline char* getBitTorrentHash() { return(bt_hash);          };
-
+  inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = strdup(v); }
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
 
@@ -239,8 +239,10 @@ class Flow : public GenericHashEntry {
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-  inline char* getDnsLastQuery()    { return(dns.last_query);  }
-  inline char* getHTTPLastURL()     { return(http.last_url);   }
+  inline char* getDNSQuery()        { return(dns.last_query);  }
+  inline void  setDNSQuery(char *v) { if(dns.last_query) free(dns.last_query);  dns.last_query = strdup(v); }
+  inline char* getHTTPURL()         { return(http.last_url);   }
+  inline void  setHTTPURL(char *v)  { if(http.last_url) free(http.last_url);  http.last_url = strdup(v); }
   inline char* getSSLCertificate()  { return(ssl.certificate); }
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }

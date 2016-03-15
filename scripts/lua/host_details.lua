@@ -516,8 +516,8 @@ end
    if((host["asn"] ~= nil) and (host["asn"] > 0)) then
       print("<tr><th>ASN</th><td>")
 
-      print("<A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn ..">"..host.asname.."</A> [ ASN <A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn..">".. host.asn.."</A> ]</td>")
-      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">Whois Lookup</A> <i class="fa fa-external-link fa-lg"></i></td>')
+      print("<A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn ..">"..host.asname.."</A> [ ASN <A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn..">".. host.asn.."</A> ]</td>")`%
+      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">Whois Lookup</A> <i class="fa fa-external-link"></i></td>')
       print("</td></tr>\n")
    end
 
@@ -535,7 +535,7 @@ end
 	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
       end
 
-      print(host["name"] .. "</span></A> <i class=\"fa fa-external-link fa-lg\"></i> ")
+      print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
       if(host["localhost"] == true) then print('<span class="label label-success">Local</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">System <i class=\"fa fa-flag\"></i></span>') end
@@ -1103,7 +1103,7 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
   	      print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
       	      for k,v in pairsByKeys(vh, asc) do
 		 local j = string.gsub(k, "%.", "___")
-		 print("<tr><th><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link fa-lg'></i></th><td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
+		 print("<tr><th><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i></th><td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
 		 print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
 		 print("<td align=right><span id="..j.."_num_vhost_req_serv>"..formatValue(vh[k]["http.requests"]).."</span></td></tr>\n")
 	      end

@@ -125,7 +125,7 @@ elseif action == "status" then
 					task["actions"] =
 					'<a href="'..download_url..task["task_id"]..'.pcap"><i class="fa fa-download fa-lg"></i></a> '
 				end
-				task["actions"] = task["actions"]..'<a href="'..activity_scheduler_url..'" target="_blank"><i class="fa fa-external-link fa-lg"></i></a> '
+				task["actions"] = task["actions"]..'<a href="'..activity_scheduler_url..'" target="_blank"><i class="fa fa-external-link"></i></a> '
 				if task["bpf"] == nil then task["bpf"] = "" end
 				tasks[task["task_id"]] =
 				   {["column_task_id"] = task["task_id"],

@@ -358,7 +358,7 @@ else
       if(string.ends(flow["dns.last_query"], "arpa")) then
 	 print(flow["dns.last_query"])
       else
-	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link fa-lg'></i>")
+	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
       end
 
       if(flow["category"] ~= nil) then
@@ -385,7 +385,7 @@ else
       if(flow["http.last_url"] ~= "") then
 	 print("<A HREF=\"http://"..s)
 	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link fa-lg\">")
+	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link\">")
       else
 	 print(shortenString(flow["http.last_url"]))
       end
