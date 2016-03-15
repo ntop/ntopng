@@ -1073,6 +1073,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "cli.source_id", get_cli_host()->getSourceId());
       lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "cli.mac", Utils::macaddr_str((char*)src->get_mac(), buf));
       lua_push_int_table_entry(vm, "cli.key", get_cli_host()->key());
 
       lua_push_bool_table_entry(vm, "cli.systemhost", get_cli_host()->isSystemHost());
@@ -1090,6 +1091,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_str_table_entry(vm, "srv.host", get_srv_host()->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "srv.source_id", get_cli_host()->getSourceId());
       lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "srv.mac", Utils::macaddr_str((char*)dst->get_mac(), buf));
       lua_push_int_table_entry(vm, "srv.key", get_srv_host()->key());
       lua_push_bool_table_entry(vm, "srv.systemhost", get_srv_host()->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);

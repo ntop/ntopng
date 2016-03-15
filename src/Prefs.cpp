@@ -704,7 +704,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 
       if(mysql_host && mysql_user) {
 	if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
-	if((mysql_tablename == NULL) || (mysql_tablename[0] == '\0')) mysql_tablename  = strdup("flows");
+	if((mysql_tablename == NULL)
+	   || (mysql_tablename[0] == '\0')
+	   || 1 /*forcefully defaults the table name*/) mysql_tablename  = strdup("flows");
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0'))               mysql_pw  = strdup("");
 
 	dump_flows_on_mysql = true;
