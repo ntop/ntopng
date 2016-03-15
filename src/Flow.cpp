@@ -2008,5 +2008,5 @@ bool Flow::isLowGoodput() {
   if(protocol == IPPROTO_UDP)
     return(false);
   else
-    return(((((cli2srv_goodput_bytes+srv2cli_goodput_bytes)*100)/(cli2srv_bytes+srv2cli_bytes)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
+    return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
 }
