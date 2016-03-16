@@ -46,10 +46,11 @@ Flow::Flow(NetworkInterface *_iface,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     ssl.certificate = NULL, bt_hash = NULL;
 
-  src2dst_tcp_flags = dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
-    bytes_thpt = goodput_bytes_thpt = top_bytes_thpt = pkts_thpt = top_pkts_thpt = 0;
-  cli2srv_last_bytes = prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = prev_srv2cli_last_bytes = 0;
-  cli2srv_last_packets = prev_cli2srv_last_packets = 0, srv2cli_last_packets = prev_srv2cli_last_packets = 0;
+  src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
+    bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, pkts_thpt = 0, top_pkts_thpt = 0;
+  cli2srv_last_bytes = 0, prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = 0, prev_srv2cli_last_bytes = 0;
+  cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
+  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0;
 
   last_db_dump.cli2srv_packets = 0, last_db_dump.srv2cli_packets = 0,
     last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0,
