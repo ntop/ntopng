@@ -105,7 +105,6 @@ if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
    end
 end
 
-
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
 active_page = "if_stats"
@@ -730,8 +729,7 @@ end
    print("</table>")
 end
 elseif(page == "alerts") then
-local if_name = ifstats.name
-local ifname_clean = string.gsub(if_name, "/", "_")
+local ifname_clean = "iface_"..tostring(ifid)
 local tab = _GET["tab"]
 local re_arm_minutes = nil
 
@@ -809,7 +807,7 @@ if(alerts ~= nil) then
 end
 
 if(tab == "alerts_preferences") then
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", ifname_clean)
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..tostring(ifid))
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       alerts_checked = 'checked="checked"'
       alerts_value = "false" -- Opposite
@@ -830,7 +828,7 @@ else
    ]]
 
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print("<input type=hidden name=host value=\""..if_name.."\">\n")
+   print("<input type=hidden name=ifId value=\""..ifid.."\">\n")
    print("<input type=hidden name=tab value="..tab..">\n")
 
    for k,v in pairsByKeys(alert_functions_description, asc) do
@@ -899,15 +897,15 @@ else
 end
 elseif(page == "config") then
 local if_name = ifstats.name
-local ifname_clean = string.gsub(ifname, "/", "_")
+local ifname_clean = "iface_"..tostring(ifid)
 
    if(isAdministrator()) then
       trigger_alerts = _GET["trigger_alerts"]
       if(trigger_alerts ~= nil) then
 	 if(trigger_alerts == "true") then
-	    ntop.delHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean)
+	    ntop.delHashCache("ntopng.prefs.alerts", ifname_clean)
 	 else
-	    ntop.setHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean, trigger_alerts)
+	    ntop.setHashCache("ntopng.prefs.alerts", ifname_clean, trigger_alerts)
 	 end
       end
    end
@@ -926,9 +924,9 @@ local ifname_clean = string.gsub(ifname, "/", "_")
 	    <tr><th>Interface Alerts</th><td nowrap>
 	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
 	    <input type="hidden" name="tab" value="alerts_preferences">
-	    <input type="hidden" name="host" value="]]
+	    <input type="hidden" name="ifId" value="]]
 
-	 print(if_name)
+	 print(ifid)
 	 print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('<input type="hidden" name="page" value="config">')

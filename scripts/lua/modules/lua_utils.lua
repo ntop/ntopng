@@ -961,6 +961,7 @@ function purifyInterfaceName(interface_name)
   -- io.write(debug.traceback().."\n")
   interface_name = string.gsub(interface_name, "@", "_")
   interface_name = string.gsub(interface_name, ":", "_")
+  interface_name = string.gsub(interface_name, "/", "_")
   return(interface_name)
 end
 
