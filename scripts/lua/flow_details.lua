@@ -212,16 +212,20 @@ else
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " ago]" .. "</div></td></tr>\n")
 
    print("<tr><th width=30% rowspan=3>Total Traffic</th><td>Total: <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
-   print("<td><A HREF=https://en.wikipedia.org/wiki/Goodput>Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
-   pctg = round((flow["goodput_bytes"]*100)/flow["bytes"], 1)
-   if(pctg < 50) then
-    pctg = "<font color=red>"..pctg.."</font>"
-   elseif(pctg < 60) then
-    pctg = "<font color=orange>"..pctg.."</font>"
+   if(ifstats.type ~= "zmq") then
+      print("<td><A HREF=https://en.wikipedia.org/wiki/Goodput>Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
+      pctg = round((flow["goodput_bytes"]*100)/flow["bytes"], 1)
+      if(pctg < 50) then
+	 pctg = "<font color=red>"..pctg.."</font>"
+      elseif(pctg < 60) then
+	 pctg = "<font color=orange>"..pctg.."</font>"
+      end
+      print(pctg)
+      
+      print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
+   else
+      print("<td>&nbsp;</td></tr>\n")
    end
-   print(pctg)
-
-   print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
 
    print("<tr><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>Client <i class=\"fa fa-arrow-left\"></i> Server: <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
@@ -354,7 +358,7 @@ else
       if(string.ends(flow["dns.last_query"], "arpa")) then
 	 print(flow["dns.last_query"])
       else
-	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link fa-lg'></i>")
+	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
       end
 
       if(flow["category"] ~= nil) then
@@ -381,7 +385,7 @@ else
       if(flow["http.last_url"] ~= "") then
 	 print("<A HREF=\"http://"..s)
 	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link fa-lg\">")
+	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link\">")
       else
 	 print(shortenString(flow["http.last_url"]))
       end

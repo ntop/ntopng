@@ -43,7 +43,7 @@ static void free_wrapper(void *freeable) { free(freeable);      }
 
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
-  ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
+  ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
     ndpi_struct = NULL,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     sprobe_interface = false, has_vlan_packets = false,
@@ -96,7 +96,7 @@ NetworkInterface::NetworkInterface(const char *name) {
   if(name == NULL) name = "1"; /* First available interface */
 #endif
 
-  remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL;
+  remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
   if(strcmp(name, "-") == 0) name = "stdin";
 
   if(ntop->getRedis())
@@ -415,6 +415,7 @@ NetworkInterface::~NetworkInterface() {
   if(remoteIfname)      free(remoteIfname);
   if(remoteIfIPaddr)    free(remoteIfIPaddr);
   if(remoteProbeIPaddr) free(remoteProbeIPaddr);
+  if(remoteProbePublicIPaddr) free(remoteProbePublicIPaddr);
   if(db) delete db;
   if(statsManager) delete statsManager;
   if(networkStats) delete []networkStats;
@@ -598,6 +599,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     if(zflow->l7_proto == NDPI_PROTOCOL_UNKNOWN)
       flow->guessProtocol();
   }
+
+  if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
+  if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
+  if(zflow->http_site) flow->setServerName(zflow->http_site);
 
 #if 0
   if(!is_packet_interface()) {
@@ -1826,8 +1831,8 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_bytes();
 	break;
       case column_info:
-	if(f->getDnsLastQuery())        retriever->elems[retriever->actNumEntries++].stringValue = f->getDnsLastQuery();
-	else if(f->getHTTPLastURL())    retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPLastURL();
+	if(f->getDNSQuery())            retriever->elems[retriever->actNumEntries++].stringValue = f->getDNSQuery();
+	else if(f->getHTTPURL())        retriever->elems[retriever->actNumEntries++].stringValue = f->getHTTPURL();
 	else if(f->getSSLCertificate()) retriever->elems[retriever->actNumEntries++].stringValue = f->getSSLCertificate();
 	else retriever->elems[retriever->actNumEntries++].stringValue = (char*)"";
 	break;
@@ -2267,8 +2272,9 @@ void NetworkInterface::lua(lua_State *vm) {
 
   lua_push_str_table_entry(vm, "name", ifname);
   if(remoteIfname) lua_push_str_table_entry(vm, "remote.name",   remoteIfname);
-  if(remoteIfIPaddr) lua_push_str_table_entry(vm, "remote.ip",   remoteIfIPaddr);
+  if(remoteIfIPaddr) lua_push_str_table_entry(vm, "remote.if_addr",   remoteIfIPaddr);
   if(remoteProbeIPaddr) lua_push_str_table_entry(vm, "probe.ip", remoteProbeIPaddr);
+  if(remoteProbePublicIPaddr) lua_push_str_table_entry(vm, "probe.public_ip", remoteProbePublicIPaddr);
   lua_push_int_table_entry(vm,  "id", id);
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
@@ -2837,11 +2843,12 @@ void NetworkInterface::updateSecondTraffic(time_t when) {
 /* **************************************** */
 
 void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
-				      char *remoteProbeAddress,
+				      char *remoteProbeAddress, char *remoteProbePublicAddress,
 				      u_int64_t remBytes, u_int64_t remPkts) {
   if(name)               setRemoteIfname(name);
   if(address)            setRemoteIfIPaddr(address);
   if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
+  if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
   ifSpeed = speedMbit;
   ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
 }

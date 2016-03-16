@@ -1469,3 +1469,14 @@ char* Utils::intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_s
     return(ret);
 }
 
+/* ****************************************************** */
+
+void Utils::xor_encdec(u_char *data, int data_len, u_char *key) {
+  int i, y;
+
+  for(i = 0, y = 0; i < data_len; i++) {
+    data[i] ^= key[y++];
+    if(key[y] == 0) y = 0;
+  }
+}
+

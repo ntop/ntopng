@@ -62,6 +62,7 @@ class Prefs {
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
+  char *zmq_encryption_pwd;
   Flashstart *flashstart;
   char *http_prefix;
   char *instance_name;
@@ -178,14 +179,14 @@ class Prefs {
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
   inline bool are_taps_enabled() { return(enable_taps); };
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
-  inline bool use_promiscuous()       { return(use_promiscuous_mode); };
-  inline bool is_zmq_collector_mode() { return(zmq_collector_mode);   }
-  inline char* get_mysql_host()       { return(mysql_host);      };
-  inline char* get_mysql_dbname()     { return(mysql_dbname);    };
-  inline char* get_mysql_tablename()  { return(mysql_tablename); };
-  inline char* get_mysql_user()       { return(mysql_user);      };
-  inline char* get_mysql_pw()         { return(mysql_pw);        };
-
+  inline bool use_promiscuous()         { return(use_promiscuous_mode); };
+  inline bool is_zmq_collector_mode()   { return(zmq_collector_mode);   }
+  inline char* get_mysql_host()         { return(mysql_host);         };
+  inline char* get_mysql_dbname()       { return(mysql_dbname);       };
+  inline char* get_mysql_tablename()    { return(mysql_tablename);    };
+  inline char* get_mysql_user()         { return(mysql_user);         };
+  inline char* get_mysql_pw()           { return(mysql_pw);           };
+  inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd); };
   inline char* getInterfaceViewAt(int id) { return((id >= MAX_NUM_INTERFACES) ? NULL : ifViewNames[id].name); }
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }

@@ -136,15 +136,49 @@ void CollectorInterface::collect_flows() {
 	size = zmq_recv(items[source_id].socket, payload, payload_len, 0);
 
 	if(size > 0) {
+	  char *uncompressed = NULL;
+	  u_int uncompressed_len;
+
 	  payload[size] = '\0';
 
-	  if(strcmp(h.url, "event") == 0)
-	    parseEvent(payload, size, source_id, this);
-	  else
-	    parseFlow(payload, size, source_id, this);
+	  if(payload[0] == 0 /* Compressed traffic */) {
+#ifdef HAVE_ZLIB	    
+	    int err;
+	    uLongf uLen;
+	    
+	    uLen = uncompressed_len = 3*size;
+	    uncompressed = (char*)malloc(uncompressed_len+1);
+	    if((err = uncompress((Bytef*)uncompressed, &uLen, (Bytef*)&payload[1], size-1)) != Z_OK) {
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d]", err);
+	      return;
+	    }
+
+	    uncompressed_len = uLen, uncompressed[uLen] = '\0';
+#else
+	    static bool once = false;
+	    
+	    if(!once)
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to uncompress ZMQ traffic"), once = true;
+
+	    return;
+#endif
+	  } else
+	    uncompressed = payload, uncompressed_len = size;
+	
+	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
+	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());	  
 	  
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", h.size, payload);
-	}
+	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", uncompressed); */
+
+	  if(strcmp(h.url, "event") == 0)
+	    parseEvent(uncompressed, uncompressed_len, source_id, this);
+	  else
+	    parseFlow(uncompressed, uncompressed_len, source_id, this);
+	  
+	  if(uncompressed) free(uncompressed);
+
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", uncompressed_len, uncompressed);
+	} /* size > 0 */
       }
     } /* for */
   }

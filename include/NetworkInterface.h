@@ -47,7 +47,7 @@ class L7Policer;
 class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name.*/
-  char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr;
+  char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   string ip_addresses;
   int id;
   bool bridge_interface, has_mesh_networks_traffic;
@@ -139,6 +139,7 @@ class NetworkInterface {
   inline void setRemoteIfname(char *name)      { if(!remoteIfname)      remoteIfname = strdup(name);   };
   inline void setRemoteIfIPaddr(char *ip)      { if(!remoteIfIPaddr)    remoteIfIPaddr = strdup(ip);   };
   inline void setRemoteProbeAddr(char *ip)     { if(!remoteProbeIPaddr) remoteProbeIPaddr = strdup(ip);};
+  inline void setRemoteProbePublicAddr(char *ip) { if(!remoteProbePublicIPaddr) remoteProbePublicIPaddr = strdup(ip);};
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
@@ -287,7 +288,8 @@ class NetworkInterface {
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
-		      char *remoteProbeAddress, u_int64_t remBytes, u_int64_t remPkts);
+		      char *remoteProbeAddress, char *remoteProbePublicAddress,
+		      u_int64_t remBytes, u_int64_t remPkts);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

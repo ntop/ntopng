@@ -116,6 +116,9 @@ extern "C" {
 #ifdef HAVE_LDAP
 #include <ldap.h>
 #endif
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
 };
 
 #include "third-party/uthash.h"

@@ -33,6 +33,7 @@ struct FlowFieldMap {
 class ParserInterface : public NetworkInterface {
  private:
   struct FlowFieldMap *map;
+  bool once;
 
   int getKeyId(char *sym);
   void addMapping(const char *sym, int num);

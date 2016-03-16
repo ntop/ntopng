@@ -226,6 +226,8 @@ fi
 AC_CHECK_LIB([nl], [nl_handle_alloc], [LDFLAGS="${LDFLAGS} -lnl"])
 AC_CHECK_LIB([rt], [clock_gettime],   [LDFLAGS="${LDFLAGS} -lrt"])
 
+AC_CHECK_LIB([z], [zlibVersion], [LDFLAGS="${LDFLAGS} -lz"; AC_DEFINE_UNQUOTED(HAVE_ZLIB, 1, [zlib is present])])
+
 dnl> ldl (used by edjdb)
 AC_CHECK_LIB([dl], [dlopen], [LDFLAGS="${LDFLAGS} -ldl"])
 

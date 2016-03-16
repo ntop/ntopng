@@ -40,7 +40,7 @@ Prefs::Prefs(Ntop *_ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
-  http_prefix = strdup("");
+  http_prefix = strdup(""), zmq_encryption_pwd = NULL;
   instance_name = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
@@ -195,6 +195,7 @@ void usage() {
 	 "[--zmq-collector-mode]              | Force ZMQ sockets to operate in collector mode. If\n"
 	 "                                    | used nprobe must use --zmq-probe-mode so that it can\n"
 	 "                                    | behave as a probe.\n"
+	 "--zmq-encrypt-pwd <pwd>             | Encrypt the ZMQ data using the specified password\n"
 	 "[--disable-autologout|-q]           | Disable web interface logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
 	 "                                    | 0 - Disable login only for localhost\n"
@@ -386,6 +387,7 @@ static const struct option long_options[] = {
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "zmq-collector-mode",                no_argument,       NULL, 214 },
+  { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -776,6 +778,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 214:
     zmq_collector_mode = true;
+    break;
+
+  case 215:
+    zmq_encryption_pwd = strdup(optarg);
     break;
 
 #ifdef NTOPNG_PRO
