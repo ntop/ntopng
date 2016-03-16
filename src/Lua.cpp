@@ -38,6 +38,8 @@ extern "C" {
 #include "../third-party/snmp/snmp.c"
 #include "../third-party/snmp/asn1.c"
 #include "../third-party/snmp/net.c"
+#include "../third-party/microutf8/microutf8.h"
+#include "../third-party/microutf8/microutf8.c"
 };
 
 #include "../third-party/lsqlite3/lsqlite3.c"
@@ -4580,12 +4582,15 @@ void Lua::purifyHTTPParameter(char *param) {
       case '<':
       case '>':
       case '@':
+      case '#':
 	break;
 
       default:
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '%c' in URI [%s]", c, param);
-	ampercent[0] = '\0';
-	return;
+	if(!Utils::isPrintableChar(c)) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '%c' in URI [%s]", c, param);
+	  ampercent[0] = '\0';
+	  return;
+	}
       }
 
 

@@ -611,7 +611,7 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
       char h[3] = { a, b, 0 };
       char hexval = (char)strtol(h, (char **)NULL, 16);
 
-      if(isprint(hexval))
+      //      if(iswprint(hexval))
 	*dst++ = hexval;
 
       src += 3;
@@ -694,6 +694,20 @@ static const char* xssAttempts[] = {
   NULL
 };
 
+/* ************************************************************ */
+
+/* http://www.ascii-code.com */
+
+bool Utils::isPrintableChar(u_char c) {
+  if(isprint(c)) return(true);
+  
+  if((c >= 192) && (c <= 255))
+    return(true);
+    
+  return(false);
+}
+
+/* ************************************************************ */
 
 void Utils::purifyHTTPparam(char *param, bool strict) {
   if(strict) {
@@ -723,7 +737,7 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
 	// || (param[i] == '.')
 	;
     } else {
-      is_good = isprint(param[i])
+      is_good = Utils::isPrintableChar(param[i])
 	&& (param[i] != '<')
 	&& (param[i] != '>');
     }

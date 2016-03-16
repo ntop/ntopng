@@ -82,6 +82,7 @@ class Utils {
   static char* intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_short bufLen);
   static u_int32_t timeval2usec(const struct timeval *tv);
   static void xor_encdec(u_char *data, int data_len, u_char *key);
+  static bool isPrintableChar(u_char c);
 };
 
 #endif /* _UTILS_H_ */
