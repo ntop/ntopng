@@ -257,8 +257,8 @@ if((page == "overview") or (page == nil)) then
 
       print [[
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="id" value="]]
+      print(ifstats.id)
       print [[">]]
 
       if(isAdministrator()) then
