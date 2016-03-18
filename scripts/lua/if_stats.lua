@@ -1013,7 +1013,7 @@ elseif(page == "filtering") then
    end
   
    any_net = "0.0.0.0/0@0"
-   io.write('key: '..key..'\n')
+   --io.write('key: '..key..'\n')
    nets = ntop.getHashKeysCache(key, any_net)
 
    if((nets == nil) or (nets == "")) then
@@ -1029,10 +1029,7 @@ elseif(page == "filtering") then
       end
    end
 
-
-
    -- io.write(net.."\n")
-
    if((net ~= nil) and (_GET["blacklist"] ~= nil)) then
       ntop.setHashCache(policy_key, net, _GET["blacklist"])
 
@@ -1047,7 +1044,8 @@ elseif(page == "filtering") then
       key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
       ntop.setHashCache(key, net, egress_shaper_id)
       -- ******************************
-      interface.reloadL7Rules()
+      interface.reloadL7Rules(net)
+      -- io.write("reloading shapers for "..net.."\n")
    end
 
    selected_network = net
@@ -1056,8 +1054,6 @@ elseif(page == "filtering") then
    end
 
    print [[
-
-
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
   <input type=hidden name=page value=filtering>
   <table class="table table-striped table-bordered">

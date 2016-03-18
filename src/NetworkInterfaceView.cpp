@@ -82,9 +82,9 @@ void NetworkInterfaceView::updateFlowProfiles(char *old_profile, char *new_profi
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterfaceView::refreshL7Rules() {
+void NetworkInterfaceView::refreshL7Rules(patricia_tree_t *ptree) {
   for(int i = 0; i<numInterfaces; i++)
-    physIntf[i]->refreshL7Rules();
+    physIntf[i]->refreshL7Rules(ptree);
 }
 #endif
 

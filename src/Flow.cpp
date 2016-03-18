@@ -240,7 +240,7 @@ void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
 
   if(protocol_processed || (ndpiFlow == NULL)) {
-    makeVerdict();
+    makeVerdict(false);
     return;
   }
 
@@ -383,20 +383,24 @@ void Flow::processDetectedProtocol() {
      && (l7proto != NDPI_PROTOCOL_DNS))
     deleteFlowMemory();
 
-  makeVerdict();
+  makeVerdict(false);
 }
 
 /* *************************************** */
 
 /* This method is used to decide whether this flow must pass or not */
 
-void Flow::makeVerdict() {
+void Flow::makeVerdict(bool reset) {
 #ifdef NTOPNG_PRO
   if(ntop->getPro()->has_valid_license() && get_cli_host() && get_srv_host()) {
     if(get_cli_host()->doDropProtocol(ndpiDetectedProtocol)
-       || get_srv_host()->doDropProtocol(ndpiDetectedProtocol))
+       || get_srv_host()->doDropProtocol(ndpiDetectedProtocol)) {
       setDropVerdict();
+      return;
+    }
   }
+
+  if(reset) passVerdict = true;
 #endif
 }
 

@@ -195,7 +195,7 @@ class NetworkInterface {
   void processFlow(ZMQ_Flow *zflow);
   void dumpFlows();
   void getnDPIStats(nDPIStats *stats);
-  void updateFlowsL7Policy();
+  void updateFlowsL7Policy(patricia_tree_t *ptree);
   void updateHostStats();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
@@ -242,14 +242,14 @@ class NetworkInterface {
   inline StatsManager *getStatsManager()   { return statsManager; }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules();
+  void refreshL7Rules(patricia_tree_t *ptree);
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
 
   PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
-  void updateHostsL7Policy();
+  void updateHostsL7Policy(patricia_tree_t *ptree);
   bool updateDumpAllTrafficPolicy(void);
   bool updateDumpTrafficDiskPolicy();
   bool updateDumpTrafficTapPolicy();

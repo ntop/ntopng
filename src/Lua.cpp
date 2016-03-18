@@ -2586,9 +2586,20 @@ static int ntop_reload_l7_rules(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_interface) {
+    char *net;
+    patricia_tree_t *ptree;
+
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+    if((net = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+    ptree = New_Patricia(128);
+    ptree_add_rule(ptree, net);
+
 #ifdef NTOPNG_PRO
-    ntop_interface->refreshL7Rules();
+    ntop_interface->refreshL7Rules(ptree);
 #endif
+
+    Destroy_Patricia(ptree, free_ptree_data);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
