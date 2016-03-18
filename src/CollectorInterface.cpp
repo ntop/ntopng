@@ -142,7 +142,7 @@ void CollectorInterface::collect_flows() {
 	  payload[size] = '\0';
 
 	  if(payload[0] == 0 /* Compressed traffic */) {
-#ifdef HAVE_ZLIB	    
+#ifdef HAVE_ZLIB
 	    int err;
 	    uLongf uLen;
 	    
@@ -174,8 +174,11 @@ void CollectorInterface::collect_flows() {
 	    parseEvent(uncompressed, uncompressed_len, source_id, this);
 	  else
 	    parseFlow(uncompressed, uncompressed_len, source_id, this);
-	  
-	  if(uncompressed) free(uncompressed);
+
+#ifdef HAVE_ZLIB
+	  if(payload[0] == 0 /* only if the traffic was actually compressed */)
+	    if(uncompressed) free(uncompressed);
+#endif
 
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", uncompressed_len, uncompressed);
 	} /* size > 0 */
