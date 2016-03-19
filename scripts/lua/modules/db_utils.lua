@@ -163,6 +163,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
    if(db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
+
    if(type(res) == "string") then
       if(db_debug == true) then io.write(res.."\n") end
       return {}

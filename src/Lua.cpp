@@ -2641,7 +2641,7 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
       limit_rows = lua_toboolean(vm, 2) ? true : false;
     }
 
-    if(ntop_interface->exec_sql_query(vm, sql, limit_rows) == -1)
+    if(ntop_interface->exec_sql_query(vm, sql, limit_rows) < 0)
       lua_pushnil(vm);
 
     return(CONST_LUA_OK);
