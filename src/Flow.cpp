@@ -1531,7 +1531,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
 
   if(ssl.certificate)
-    json_object_object_add(my_object, "SSL_CERTIFICATE", json_object_new_string(ssl.certificate));
+    json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(ssl.certificate));
 
   json_object_object_add(my_object, "PASS_VERDICT", json_object_new_boolean(passVerdict ? (json_bool)1 : (json_bool)0));
 
