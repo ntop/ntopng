@@ -1559,27 +1559,39 @@ void NetworkInterface::updateHostStats() {
 /* **************************************************** */
 
 static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
-  ((Host*)node)->updateHostL7Policy();
+  Host *h = (Host*)node;
+  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
+
+  if((ptree == NULL) || h->match(ptree))
+    ((Host*)node)->updateHostL7Policy();
+
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-void NetworkInterface::updateHostsL7Policy() {
-  hosts_hash->walk(update_host_l7_policy, NULL);
+void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
+  hosts_hash->walk(update_host_l7_policy, ptree);
 }
 
 /* **************************************************** */
 
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
-  ((Flow*)node)->makeVerdict();
+  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
+  Flow *f = (Flow*)node;
+  
+  if((ptree == NULL)
+     || (f->get_cli_host() && f->get_cli_host()->match(ptree))
+     || (f->get_srv_host() && f->get_srv_host()->match(ptree)))
+    ((Flow*)node)->makeVerdict(true);
+
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-void NetworkInterface::updateFlowsL7Policy() {
-  flows_hash->walk(update_flow_l7_policy, NULL);
+void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree) {
+  flows_hash->walk(update_flow_l7_policy, ptree);
 }
 
 /* **************************************************** */
@@ -2769,9 +2781,9 @@ void NetworkInterface::addAllAvailableInterfaces() {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshL7Rules() {
+void NetworkInterface::refreshL7Rules(patricia_tree_t *ptree) {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshL7Rules();
+    policer->refreshL7Rules(ptree);
 }
 #endif
 

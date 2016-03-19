@@ -257,8 +257,8 @@ if((page == "overview") or (page == nil)) then
 
       print [[
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="id" value="]]
+      print(ifstats.id)
       print [[">]]
 
       if(isAdministrator()) then
@@ -576,8 +576,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%>Packet Dump</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -587,8 +587,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%>Packet Dump To Disk</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
 	       if(dump_traffic_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedFile()
@@ -602,8 +602,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
@@ -612,8 +612,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
@@ -623,8 +623,8 @@ if(isAdministrator()) then
    if(interface.getInterfaceDumpTapName() ~= "") then
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifId)
 	       print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
@@ -643,8 +643,8 @@ end
    print [[<td>]]
    if(dump_security_checked ~= "") then
    print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifId" value="]]
+      print(ifId)
       print [[">]]
       print('1 : <input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="sampling_rate" placeholder="" min="0" step="100" max="100000" value="]]
@@ -671,8 +671,8 @@ end
    print("<tr><th width=250>Max Packets per File</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifid" value="]]
+      print(ifid)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_pkts_file" placeholder="" min="0" step="1000" max="100000" value="]]
@@ -690,8 +690,8 @@ end
    print("<tr><th width=250>Max Duration of File</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifId" value="]]
+      print(ifid)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_sec_file" placeholder="" min="0" step="60" max="100000" value="]]
@@ -710,8 +710,8 @@ end
    print("<tr><th width=250>Max Size of Dump Files</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifid" value="]]
+      print(ifid)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_files" placeholder="" min="0" step="1" max="100000000" value="]]
@@ -1013,7 +1013,7 @@ elseif(page == "filtering") then
    end
   
    any_net = "0.0.0.0/0@0"
-   io.write('key: '..key..'\n')
+   --io.write('key: '..key..'\n')
    nets = ntop.getHashKeysCache(key, any_net)
 
    if((nets == nil) or (nets == "")) then
@@ -1029,10 +1029,7 @@ elseif(page == "filtering") then
       end
    end
 
-
-
    -- io.write(net.."\n")
-
    if((net ~= nil) and (_GET["blacklist"] ~= nil)) then
       ntop.setHashCache(policy_key, net, _GET["blacklist"])
 
@@ -1047,7 +1044,8 @@ elseif(page == "filtering") then
       key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
       ntop.setHashCache(key, net, egress_shaper_id)
       -- ******************************
-      interface.reloadL7Rules()
+      interface.reloadL7Rules(net)
+      -- io.write("reloading shapers for "..net.."\n")
    end
 
    selected_network = net
@@ -1056,8 +1054,6 @@ elseif(page == "filtering") then
    end
 
    print [[
-
-
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
   <input type=hidden name=page value=filtering>
   <table class="table table-striped table-bordered">

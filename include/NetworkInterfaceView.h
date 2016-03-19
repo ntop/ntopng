@@ -86,7 +86,7 @@ class NetworkInterfaceView {
   void getnDPIFlowsCount(lua_State *vm);
   void lua(lua_State *vm);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules();
+  void refreshL7Rules(patricia_tree_t *ptree);
   void refreshShapers();
 #endif
   void loadDumpPrefs();
