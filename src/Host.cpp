@@ -1309,6 +1309,7 @@ void Host::incLowGoodputFlows(bool asClient) {
     if(++low_goodput_server_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   }  
 
+#if 0
   if(alert && (!good_low_flow_detected)) {
     char alert_msg[1024], *c, c_buf[64];
 
@@ -1322,6 +1323,7 @@ void Host::incLowGoodputFlows(bool asClient) {
     ntop->getRedis()->queueAlert(alert_level_error, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
     good_low_flow_detected = true;
   }
+#endif
 }
 
 /* *************************************** */
