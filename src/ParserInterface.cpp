@@ -142,6 +142,10 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("PLUGIN_NAME", 57598);
   addMapping("UNTUNNELED_IPV6_SRC_ADDR", 57868);
   addMapping("UNTUNNELED_IPV6_DST_ADDR", 57869);
+  addMapping("SRC_IP_LONG", 57920);
+  addMapping("SRC_IP_LAT", 57921);
+  addMapping("DST_IP_LONG", 57922);
+  addMapping("DST_IP_LAT", 57923);
   addMapping("IN_SRC_OSI_SAP", 57821);
   addMapping("OUT_DST_OSI_SAP", 57822);
   addMapping("DURATION_IN", 57863);

@@ -181,6 +181,10 @@
 #define PLUGIN_NAME           NTOP_BASE_ID+126
 #define RETRANSMITTED_IN_BYTES  NTOP_BASE_ID+127
 #define RETRANSMITTED_OUT_BYTES NTOP_BASE_ID+128
+#define SRC_IP_LONG           NTOP_BASE_ID+448
+#define SRC_IP_LAT            NTOP_BASE_ID+449
+#define DST_IP_LONG           NTOP_BASE_ID+450
+#define DST_IP_LAT            NTOP_BASE_ID+451
 #define UNTUNNELED_IPV6_SRC_ADDR NTOP_BASE_ID+396
 #define UNTUNNELED_IPV6_DST_ADDR NTOP_BASE_ID+397
 #define NUM_PKTS_TTL_EQ_1     NTOP_BASE_ID+347
@@ -468,6 +472,6 @@
 #define APPLICATION_NAME                       NTOP_BASE_ID+427 /* App-Id */
 #define USER_NAME                              NTOP_BASE_ID+428 /* User-Id */
 
-/* Last used identifier is NTOP_BASE_ID+437 (RTP_SSRC) */
+/* Last used identifier is NTOP_BASE_ID+451 (DST_IP_LAT) */
 
 #endif /* _NTOP_FLOW_H_ */
