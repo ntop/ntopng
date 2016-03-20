@@ -160,7 +160,9 @@ void usage() {
 #ifndef WIN32
 	 "[--data-dir|-d] <path>              | Data directory (must be writable).\n"
 	 "                                    | Default: %s\n"
-	 "[--install-dir|-t] <path>           | Set the installation directory to <dir>. Testing only.\n"
+	 "[--install-dir|-t] <path>           | Set the installation directory to <dir>.\n"
+	 "                                    | Should be set when installing ntopng \n"
+	 "                                    | under custom directories\n"
 	 "[--daemon|-e]                       | Daemonize ntopng\n"
 #endif
 	 "[--httpdocs-dir|-1] <path>          | HTTP documents root directory.\n"
