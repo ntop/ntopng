@@ -1755,6 +1755,7 @@ enum flowSortField {
   /* Flows */
   column_client = 0,
   column_server,
+  column_vlan,  
   column_proto_l4,
   column_ndpi,
   column_duration,
@@ -1827,6 +1828,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
       case column_server:
 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
+      case column_vlan:
+	retriever->elems[retriever->actNumEntries++].numericValue = f->get_vlan_id();
+	break;	
       case column_proto_l4:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
 	break;
@@ -1895,6 +1899,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
 
 	  retriever->elems[retriever->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
 	}
+	break;
+      case column_vlan:
+	retriever->elems[retriever->actNumEntries++].numericValue = h->get_vlan_id();
 	break;
       case column_since:
 	retriever->elems[retriever->actNumEntries++].numericValue = h->get_first_seen();
@@ -1971,6 +1978,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   }
 
   if(!strcmp(sortColumn, "column_client")) retriever.sorter = column_client, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server")) retriever.sorter = column_server, sorter = hostSorter;
   else if(!strcmp(sortColumn, "column_proto_l4")) retriever.sorter = column_proto_l4, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_ndpi")) retriever.sorter = column_ndpi, sorter = numericSorter;
@@ -2034,6 +2042,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   }
 
   if((!strcmp(sortColumn, "column_ip")) || (!strcmp(sortColumn, "column_"))) retriever.sorter = column_ip, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;  
   else if(!strcmp(sortColumn, "column_alerts")) retriever.sorter = column_alerts, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_name")) retriever.sorter = column_name, sorter = stringSorter;
   else if(!strcmp(sortColumn, "column_since")) retriever.sorter = column_since, sorter = numericSorter;
