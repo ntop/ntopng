@@ -422,7 +422,7 @@ function check_networks_threshold(ifname, mode)
         end
         statspath = fixPath(statspath .. "/alarmed_subnet_stats_lastdump")
 
-        if ntop.exists(fname) then
+        if ntop.exists(statspath) then
             -- Read old version
             old_dump = persistence.load(statspath)
             if (old_dump ~= nil) then
