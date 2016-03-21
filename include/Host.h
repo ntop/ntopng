@@ -28,7 +28,7 @@ class Host : public GenericHost {
  private:
   u_int8_t mac_address[6], antenna_mac_address[6];
   u_int32_t asn;
-  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12];
+  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *topSitesKey;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
   u_int32_t host_quota_mb;
   u_int16_t num_uses;
@@ -168,6 +168,7 @@ class Host : public GenericHost {
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
+  void incrVisitedWebSite(char *hostname);
 };
 
 #endif /* _HOST_H_ */

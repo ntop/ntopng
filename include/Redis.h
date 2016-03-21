@@ -57,8 +57,9 @@ class Redis {
   int keys(const char *pattern, char ***keys_p);
   int hashKeys(const char *pattern, char ***keys_p);
   int del(char *key); 
-  int zincrbyAndTrim(char *key, char *member, u_int value, u_int trim_len);
-
+  int zIncr(char *key, char *member);
+  int zTrim(char *key, u_int trim_len);
+  int zRevRange(const char *pattern, char ***keys_p);
   int pushHostToResolve(char *hostname, bool dont_check_for_existance, bool localHost);
   int popHostToResolve(char *hostname, u_int hostname_len);
 

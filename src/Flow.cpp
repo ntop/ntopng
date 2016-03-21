@@ -256,6 +256,9 @@ void Flow::processDetectedProtocol() {
 
     host_server_name = strdup((char*)ndpiFlow->host_server_name);
     categorizeFlow();
+    
+    if(cli_host && cli_host->isLocalHost())
+      cli_host->incrVisitedWebSite(host_server_name);
   }
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);

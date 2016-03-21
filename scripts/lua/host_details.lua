@@ -1058,6 +1058,19 @@ end
       if(host["http"] ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
 
+	 if(host["sites"] ~= nil) then
+	    top_len = table.len(host["sites"])
+	    if(top_len > 10) then top_len = 10 end
+	    print("<tr><th rowspan="..(1+top_len)..">Top Visited Sites</th><th colspan=2>Name</th><th colspan=2>Contacts</th></tr>\n")
+	    num = 0
+	    for k,v in pairsByValues(host["sites"], rev) do
+	       print("<tr><th colspan=2>"..k.."</th><td align=right cospan=2>"..v.."</td></tr>\n")
+	       num = num + 1
+	       
+	       if(num == 10) then break end
+	    end	    
+	 end
+
 	 print("<tr><th rowspan=6 width=20%><A HREF=http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods>HTTP Queries</A></th><th width=20%>Method</th><th width=20%>Requests</th><th colspan=2>Distribution</th></tr>")
 	 print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(host["http"]["query.num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 

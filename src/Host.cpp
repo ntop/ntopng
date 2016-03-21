@@ -57,6 +57,7 @@ Host::~Host() {
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
+  if(topSitesKey) ntop->getRedis()->del(topSitesKey);
   if(ip && (!ip->isEmpty())) dumpStats(false);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
@@ -91,6 +92,7 @@ Host::~Host() {
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
   if(ip) delete ip;
   if(m) delete m;
+  if(topSitesKey) free(topSitesKey);
 }
 
 /* *************************************** */
@@ -161,7 +163,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), "%s.%d.json", k, vlan_id);
-  dns = NULL, http = NULL, categoryStats = NULL;
+  dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL;
 
 #ifdef NTOPNG_PRO
   l7Policy = NULL;
@@ -169,11 +171,18 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   if(init_all) {
     if(ip) {
-      snprintf(host, sizeof(host), "%s@%u", ip->print(buf, sizeof(buf)), vlan_id);
+      char sitesBuf[64], *strIP = ip->print(buf, sizeof(buf));
+      
+      snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
 
       updateLocal();
       updateHostTrafficPolicy(host);
       systemHost = ip->isLocalInterfaceAddress();
+
+      if(localHost) {
+	snprintf(sitesBuf, sizeof(sitesBuf), "sites.%s", strIP);
+	topSitesKey = strdup(sitesBuf);
+      }
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s (%s)", k, localHost ? "local": "remote");
 
@@ -534,6 +543,32 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 
       lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
       lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
+
+
+      if(topSitesKey) {
+	int rc;
+	char **sites;
+
+	if((rc = ntop->getRedis()->zRevRange(topSitesKey, &sites)) > 0) {
+	  lua_newtable(vm);
+	  
+	  for(int i = 0; i < rc; i++) {
+	    if((sites[i] == NULL) || (sites[i+1] == NULL))
+	      continue; /* safety check */
+	    
+	    lua_push_int_table_entry(vm, sites[i], atoi(sites[i+1]));
+	    	    
+	    free(sites[i]), free(sites[i+1]);
+	    i++;
+	  }
+
+	  lua_pushstring(vm, "sites");
+	  lua_insert(vm, -2);
+	  lua_settable(vm, -3);
+
+	  free(sites);
+	}
+      }
     }
 
     lua_push_int_table_entry(vm, "seen.first", first_seen);
@@ -1150,6 +1185,8 @@ void Host::updateStats(struct timeval *tv) {
 
   if(!localHost || !triggerAlerts()) return;
 
+  ntop->getRedis()->zTrim(topSitesKey, 10);
+
   if(isAboveQuota()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
     char ip_buf[48], *h, msg[512];
@@ -1340,5 +1377,19 @@ void Host::decLowGoodputFlows(bool asClient) {
   if(alert && good_low_flow_detected) {
     /* TODO: send end of alarm */
     good_low_flow_detected = false;
+  }
+}
+
+/* *************************************** */
+
+void Host::incrVisitedWebSite(char *hostname) {
+  if(topSitesKey && (strstr(hostname, "in-addr.arpa") == NULL)) {
+    char *firstdot = strchr(hostname, '.');
+    
+    if(firstdot) {
+      char *nextdot = strchr(&firstdot[1], '.');
+
+      ntop->getRedis()->zIncr(topSitesKey, nextdot ? &firstdot[1] : hostname);
+    }
   }
 }
