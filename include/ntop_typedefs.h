@@ -59,6 +59,11 @@ typedef enum {
   alert_level_error,
 } AlertLevel;
 
+typedef enum {
+  IPV4 = 4,
+  IPV6 = 6
+} IPVersion;
+
 #ifdef NTOPNG_PRO
 typedef enum {
   status_ok = 0,

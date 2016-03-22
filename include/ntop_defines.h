@@ -293,7 +293,9 @@
 #define CONST_HOST_CONTACTS           "host_contacts"
 
 #define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
-#define CONST_SQL_QUEUE                    "ntopng.sql_queue"
+#define CONST_SQL_QUEUE_V4                 "ntopng.sql_queue_v4"
+#define CONST_SQL_QUEUE_V6                 "ntopng.sql_queue_v6"
+#define CONST_SQL_BATCH_SIZE               200
 #define CONST_ALERT_PREFS                  "ntopng.prefs.alerts"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
