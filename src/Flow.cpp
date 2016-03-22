@@ -256,9 +256,6 @@ void Flow::processDetectedProtocol() {
 
     host_server_name = strdup((char*)ndpiFlow->host_server_name);
     categorizeFlow();
-    
-    if(cli_host && cli_host->isLocalHost())
-      cli_host->incrVisitedWebSite(host_server_name);
   }
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
@@ -356,6 +353,13 @@ void Flow::processDetectedProtocol() {
 	ntop->getRedis()->pushHostToResolve(ssl.certificate, false, true /* Fake to resolve it ASAP */);
       }
     }
+
+    if(ssl.certificate
+       && cli_host
+       && cli_host->isLocalHost())
+      cli_host->incrVisitedWebSite(ssl.certificate);
+
+    protocol_processed = true;
     break;
 
     /* No break here !*/
@@ -372,6 +376,9 @@ void Flow::processDetectedProtocol() {
 
       if(srv_host && (ndpiFlow->detected_os[0] != '\0') && cli_host)
 	cli_host->setOS((char*)ndpiFlow->detected_os);
+
+      if(cli_host && cli_host->isLocalHost())
+	cli_host->incrVisitedWebSite(host_server_name);
     }
     break;
   } /* switch */

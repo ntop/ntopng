@@ -418,15 +418,36 @@ int Redis::hashKeys(const char *pattern, char ***keys_p) {
 
 /* **************************************** */
 
-int Redis::del(char *key) {
+int Redis::oneOperator(const char *operation, char *key) {
   int rc;
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
-  reply = (redisReply*)redisCommand(redis, "DEL %s", key);
+  reply = (redisReply*)redisCommand(redis, "%s %s", operation, key);
   if(!reply) reconnectRedis();
 
   if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
+  l->unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
+/* **************************************** */
+
+int Redis::twoOperators(const char *operation, char *op1, char *op2) {
+  int rc;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+  reply = (redisReply*)redisCommand(redis, "%s %s %s", operation, op1, op2);
+  if(!reply) reconnectRedis();
+
+  if(reply 
+     && (reply->type == REDIS_REPLY_ERROR)
+     && strcmp(reply->str, "ERR no such key"))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
   if(reply) freeReplyObject(reply), rc = 0; else rc = -1;

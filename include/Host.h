@@ -37,7 +37,7 @@ class Host : public GenericHost {
   float latitude, longitude;
   IpAddress *ip;
   Mutex *m;
-  time_t nextResolveAttempt;
+  time_t nextResolveAttempt, nextSitesUpdate;
 #ifdef NTOPNG_PRO
   CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
 #endif
@@ -72,6 +72,7 @@ class Host : public GenericHost {
   void loadFlowRateAlertPrefs(void);
   void loadSynAlertPrefs(void);
   void loadFlowsAlertPrefs(void);
+  void getSites(lua_State* vm, char *k, const char *label);
 
  public:
   Host(NetworkInterface *_iface);

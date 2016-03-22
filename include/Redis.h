@@ -27,6 +27,7 @@
 class Host;
 
 class Redis {
+ private:
   redisContext *redis;
   Mutex *l;
   char *redis_host;
@@ -38,6 +39,11 @@ class Redis {
   void setDefaults();
   void reconnectRedis();
   int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size);
+  int oneOperator(const char *operation, char *key);
+  int twoOperators(const char *operation, char *op1, char *op2);
+  int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
+	       bool dont_check_for_existance, bool localHost);
+  int popHost(const char* ns_list, char *hostname, u_int hostname_len);
 
  public:
   Redis(char *redis_host = (char*)"127.0.0.1", u_int16_t redis_port = 6379, u_int8_t _redis_db_id = 0);
@@ -138,12 +144,9 @@ class Redis {
    * @brief Flush all queued alerts
    *
    */
-  inline void flushAllQueuedAlerts() { del((char*)CONST_ALERT_MSG_QUEUE); };
-
- private:
-  int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
-	       bool dont_check_for_existance, bool localHost);
-  int popHost(const char* ns_list, char *hostname, u_int hostname_len);
+  inline void flushAllQueuedAlerts() { delKey((char*)CONST_ALERT_MSG_QUEUE);       };
+  int delKey(char *key)              { return(oneOperator("DEL", key));            };
+  int rename(char *oldk, char *newk) { return(twoOperators("RENAME", oldk, newk)); };
 };
 
 #endif /* _REDIS_H_ */

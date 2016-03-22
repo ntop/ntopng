@@ -838,13 +838,13 @@ bool Ntop::deleteUser(char *username) {
   char key[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
-  ntop->getRedis()->del(key);
+  ntop->getRedis()->delKey(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-  ntop->getRedis()->del(key);
+  ntop->getRedis()->delKey(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  return((ntop->getRedis()->del(key) >= 0) ? true : false);
+  return((ntop->getRedis()->delKey(key) >= 0) ? true : false);
 }
 
 /* ******************************************* */
