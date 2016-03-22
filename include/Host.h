@@ -72,6 +72,7 @@ class Host : public GenericHost {
   void loadFlowRateAlertPrefs(void);
   void loadSynAlertPrefs(void);
   void loadFlowsAlertPrefs(void);
+  void getSites(lua_State* vm, char *k, const char *label);
 
  public:
   Host(NetworkInterface *_iface);

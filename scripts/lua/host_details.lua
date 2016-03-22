@@ -1059,15 +1059,36 @@ end
 	 print("<table class=\"table table-bordered table-striped\">\n")
 
 	 if(host["sites"] ~= nil) then
-	    top_len = table.len(host["sites"])
-	    if(top_len > 10) then top_len = 10 end
-	    print("<tr><th rowspan="..(1+top_len)..">Top Visited Sites</th><th colspan=2>Name</th><th colspan=2>Contacts</th></tr>\n")
-	    num = 0
+	    old_top_len = table.len(host["sites.old"])  if(old_top_len > 10) then old_top_len = 10 end
+	    top_len = table.len(host["sites"])          if(top_len > 10) then top_len = 10 end
+	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
+
+	    print("<tr><th rowspan="..(1+num)..">Top Visited Sites</th><th>Current Sites</th><th>Contacts</th><th>Last Minite Sites</th><th>Contacts</th></tr>\n")
+	    sites = {} 
 	    for k,v in pairsByValues(host["sites"], rev) do
-	       print("<tr><th colspan=2>"..k.."</th><td align=right cospan=2>"..v.."</td></tr>\n")
-	       num = num + 1
+	       table.insert(sites, { k, v })
+	    end
+
+	    sites_old = {} 
+	    for k,v in pairsByValues(host["sites.old"], rev) do
+	       table.insert(sites_old, { k, v })
+	    end
+
+	    for i=1,num do
+	       if(sites[i] == nil) then sites[i] = { "", 0 } end
+	       if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
+	       print("<tr><th>")
+	       if(sites[i][1] ~= "") then 
+		  print("<A HREF=http://www."..sites[i][1]..">"..sites[i][1].."</A> <i class=\"fa fa-external-link\"></i></th>"
+			.. "<td align=right>"..sites[i][2].."</td>\n") else print("&nbsp;</th><td>&nbsp;</td>") 
+	       end
 	       
-	       if(num == 10) then break end
+	       print("</th><th>")
+
+	       if(sites_old[i][1] ~= "") then 
+		  print("<A HREF=http://www."..sites_old[i][1]..">"..sites_old[i][1].."</A> <i class=\"fa fa-external-link\"></i></th>"
+			.. "<td align=right>"..sites_old[i][2].."</td></tr>\n") else print("&nbsp;</th><td>&nbsp;</td></tr>\n") 
+	       end
 	    end	    
 	 end
 
@@ -1162,13 +1183,9 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
   print [[
          title: "Active Flows",]]
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
-
-prefs = ntop.getPrefs()
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
-
-
+  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
+  prefs = ntop.getPrefs()
+  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
 else
 
 print [[

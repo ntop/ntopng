@@ -790,7 +790,7 @@ static int ntop_delete_redis_key(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-  ntop->getRedis()->del(key);
+  ntop->getRedis()->delKey(key);
   return(CONST_LUA_OK);
 }
 
@@ -4692,7 +4692,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", 
 				    PAGE_ERROR, tok, rsp));
 		} else
-		  ntop->getRedis()->del(decoded_buf);
+		  ntop->getRedis()->delKey(decoded_buf);
 	      }
 
 	      lua_push_str_table_entry(L, tok, decoded_buf);
