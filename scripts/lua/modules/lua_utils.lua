@@ -1954,3 +1954,9 @@ end
 function trimSpace(what)
    return(string.gsub(what, "%s+", ""))
 end
+
+-- ###############################################
+
+function formatWebSite(domain)
+   return("<A target=\"_blank\" HREF=http://www."..domain..">"..domain.."</A> <i class=\"fa fa-external-link\"></i></th>")
+end

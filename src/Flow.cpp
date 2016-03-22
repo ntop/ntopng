@@ -353,6 +353,13 @@ void Flow::processDetectedProtocol() {
 	ntop->getRedis()->pushHostToResolve(ssl.certificate, false, true /* Fake to resolve it ASAP */);
       }
     }
+
+    if(ssl.certificate
+       && cli_host
+       && cli_host->isLocalHost())
+      cli_host->incrVisitedWebSite(ssl.certificate);
+
+    protocol_processed = true;
     break;
 
     /* No break here !*/

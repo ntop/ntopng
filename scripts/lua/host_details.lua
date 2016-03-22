@@ -1063,7 +1063,7 @@ end
 	    top_len = table.len(host["sites"])          if(top_len > 10) then top_len = 10 end
 	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
 
-	    print("<tr><th rowspan="..(1+num)..">Top Visited Sites</th><th>Current Sites</th><th>Contacts</th><th>Last Minite Sites</th><th>Contacts</th></tr>\n")
+	    print("<tr><th rowspan="..(1+num)..">Top Visited Sites</th><th>Current Sites</th><th>Contacts</th><th>Last 5 Minute Sites</th><th>Contacts</th></tr>\n")
 	    sites = {} 
 	    for k,v in pairsByValues(host["sites"], rev) do
 	       table.insert(sites, { k, v })
@@ -1079,15 +1079,15 @@ end
 	       if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
 	       print("<tr><th>")
 	       if(sites[i][1] ~= "") then 
-		  print("<A HREF=http://www."..sites[i][1]..">"..sites[i][1].."</A> <i class=\"fa fa-external-link\"></i></th>"
-			.. "<td align=right>"..sites[i][2].."</td>\n") else print("&nbsp;</th><td>&nbsp;</td>") 
+		  print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n") 
+	       else
+		  print("&nbsp;</th><td>&nbsp;</td>\n")
 	       end
 	       
-	       print("</th><th>")
-
 	       if(sites_old[i][1] ~= "") then 
-		  print("<A HREF=http://www."..sites_old[i][1]..">"..sites_old[i][1].."</A> <i class=\"fa fa-external-link\"></i></th>"
-			.. "<td align=right>"..sites_old[i][2].."</td></tr>\n") else print("&nbsp;</th><td>&nbsp;</td></tr>\n") 
+		  print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td></tr>\n")
+	       else
+		  print("&nbsp;</th><td>&nbsp;</td></tr>\n") 
 	       end
 	    end	    
 	 end
@@ -1759,10 +1759,10 @@ end
    print [[
    <tr><td colspan=2  style="text-align: left; white-space: nowrap;" ></td></tr>
    <tr>
-     <td style="text-align: left; white-space: nowrap;" ><b>Re-arm minutes</b></td>
+     <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
      <td>
      <input type="number" name="re_arm_minutes" style="width: 50px;" value=]] print(tostring(re_arm_minutes)) print[[><br>
-     <small>The re-arm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+     <small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
      </td>
    </tr>
 

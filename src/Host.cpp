@@ -161,6 +161,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
+  nextSitesUpdate = 0;
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
@@ -1208,13 +1209,17 @@ void Host::updateStats(struct timeval *tv) {
 
   if(!localHost || !triggerAlerts()) return;
 
-  if(topSitesKey) {
-    char oldk[64];
+  if(tv->tv_sec >= nextSitesUpdate) {
+    if(nextSitesUpdate > 0) {
+      char oldk[64];
+      
+      snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+      ntop->getRedis()->rename(topSitesKey, oldk);
+      
+      ntop->getRedis()->zTrim(oldk, 10);
+    }
 
-    snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-    ntop->getRedis()->rename(topSitesKey, oldk);
-
-    ntop->getRedis()->zTrim(oldk, 10);
+    nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 
   if(isAboveQuota()) {
