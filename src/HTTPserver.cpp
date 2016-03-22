@@ -416,7 +416,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
-  static char ports[32], ssl_cert_path[MAX_PATH] = { 0 };
+  static char ports[256], ssl_cert_path[MAX_PATH] = { 0 };
   char *_a = NULL, *_b = NULL;
   const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
   const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();

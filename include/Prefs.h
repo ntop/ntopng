@@ -39,7 +39,7 @@ class Prefs {
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES];
-  const char *http_binding_address, *https_binding_address;
+  char *http_binding_address, *https_binding_address;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
@@ -84,8 +84,8 @@ class Prefs {
   int setOption(int optkey, char *optarg);
   int checkOptions();
 
-  void bind_http_to_loopback()  { http_binding_address  = CONST_LOOPBACK_ADDRESS; };
-  void bind_https_to_loopback() { https_binding_address = CONST_LOOPBACK_ADDRESS; };
+  void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
+  void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
 
  public:
   Prefs(Ntop *_ntop);

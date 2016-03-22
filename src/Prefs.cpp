@@ -45,7 +45,8 @@ Prefs::Prefs(Ntop *_ntop) {
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
-  http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
+  http_binding_address = NULL;
+  https_binding_address = NULL; // CONST_ANY_ADDRESS;
   httpbl_key = NULL, flashstart = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
@@ -117,6 +118,7 @@ Prefs::~Prefs() {
   if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
   if(instance_name)    free(instance_name);
+
   free(http_prefix);
   free(redis_host);
   free(local_networks);
@@ -127,6 +129,8 @@ Prefs::~Prefs() {
   if(mysql_user)      free(mysql_user);
   if(mysql_pw)        free(mysql_pw);
 
+  if(http_binding_address)  free(http_binding_address);
+  if(https_binding_address) free(https_binding_address);
   /* NOTE: flashstart is deleted by the Ntop class */
 }
 
@@ -175,10 +179,18 @@ void usage() {
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
 	 "                                    | (default: disabled). Available options:\n"
 	 "                                    | httpbl:<api_key>        See README.httpbl\n"
-	 "[--http-port|-w] <[:]http port>     | HTTP port. Set to 0 to disable http server.\n"
-	 "                                    | Prepend a : before the port to listen to the\n"
-	 "                                    | loopback address. Default: %u\n"
-	 "[--https-port|-W] <[:]https port>   | HTTPS port. See usage of -w above. Default: %u\n"
+	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
+	 "                                    | Addr can be any valid ipv4 (e.g., 192.168.1.1)\n"
+	 "                                    | or ipv6 (e.g., [3ffe:2a00:100:7031::1]) address.\n"
+	 "                                    | Surround ipv6 addresses with square brackets.\n"
+	 "                                    | Prepend a ':' without addr before the port\n"
+	 "                                    | to listen on the loopback address.\n"
+	 "                                    | Default port: %u\n"
+	 "                                    | Examples:\n"
+	 "                                    | -w :3000\n"
+	 "                                    | -w 192.168.1.1:3001\n"
+	 "                                    | -w [3ffe:2a00:100:7031::1]:3002\n"
+	 "[--https-port|-W] <[:]https port>   | HTTPS. See usage of -w above. Default: %u\n"
 	 "[--local-networks|-m] <local nets>  | Local nets list (default: 192.168.1.0/24)\n"
 	 "                                    | (e.g. -m \"192.168.0.0/24,172.16.0.0/16\")\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
@@ -533,19 +545,39 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'w':
-    double_dot = strchr(optarg, ':');
-    if(double_dot)
-      http_port = atoi(&double_dot[1]), bind_http_to_loopback();
-    else
+    if (strchr(optarg, ':') == NULL){
+      // only the port
       http_port = atoi(optarg);
+    } else if (optarg[0] == ':'){
+      // first char == ':' binds to the loopback address
+      http_port = atoi(&optarg[1]);
+      bind_http_to_loopback();
+    } else {
+      // ':' is after the first character, so
+      // we need to parse both the ip address and the port
+      double_dot = strrchr(optarg, ':');
+      u_int len = double_dot - optarg;
+      http_binding_address = strndup(optarg, len);
+      http_port = atoi(&double_dot[1]);
+    }
     break;
 
   case 'W':
-    double_dot = strchr(optarg, ':');
-    if(double_dot)
-      https_port = atoi(&double_dot[1]), bind_https_to_loopback();
-    else
+    if (strchr(optarg, ':') == NULL){
+      // only the port
       https_port = atoi(optarg);
+    } else if (optarg[0] == ':'){
+      // first char == ':' binds to the loopback address
+      https_port = atoi(&optarg[1]);
+      bind_https_to_loopback();
+    } else {
+      // ':' is after the first character, so
+      // we need to parse both the ip address and the port
+      double_dot = strrchr(optarg, ':');
+      u_int len = double_dot - optarg;
+      https_binding_address = strndup(optarg, len);
+      https_port = atoi(&double_dot[1]);
+    }
     break;
 
   case 'Z':
@@ -854,6 +886,10 @@ int Prefs::checkOptions() {
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
 
+  if(http_binding_address == NULL)
+    http_binding_address = strdup((char*)CONST_ANY_ADDRESS);
+  if(https_binding_address == NULL)
+    https_binding_address = strdup((char*)CONST_ANY_ADDRESS);
   return(0);
 }
 
