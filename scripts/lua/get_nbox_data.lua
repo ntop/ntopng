@@ -45,6 +45,7 @@ function createBPF()
 	if peer ~= nil and peer ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."src or dst host "..peer end
 	if port ~= nil and port ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."port "..port end
 	if l4proto ~= nil and l4proto ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."ip proto "..l4proto end
+        if bpf ~= "" then bpf=escapeHTML(bpf) end
 	if bpf ~= "" then return "&bpf="..bpf else return "" end
 end
 
