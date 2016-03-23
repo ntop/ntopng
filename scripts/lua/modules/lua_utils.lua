@@ -673,6 +673,18 @@ function secondsToTime(seconds)
   return msg
 end
 
+function msToTime(ms)
+  if(ms > 1000) then
+    return secondsToTime(ms/1000)
+  else
+    if(ms < 1) then
+      return("< 1 ms")
+    else
+      return(round(ms, 4).." ms")
+    end
+  end
+end
+
 function starts(String,Start)
   return string.sub(String,1,string.len(Start))==Start
 end

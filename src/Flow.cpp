@@ -40,6 +40,8 @@ Flow::Flow(NetworkInterface *_iface,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
+  memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
+
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
     dissect_next_http_packet = false,
@@ -56,6 +58,7 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0,
     last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0,
     last_db_dump.last_dump = 0;
+  
 
   switch(protocol) {
   case IPPROTO_ICMP:
@@ -1245,6 +1248,10 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
+
+    /* ********************* */
+    dumpPacketStats(vm, true);
+    dumpPacketStats(vm, false);
   }
 
   if(asListElement) {
@@ -1555,10 +1562,46 @@ json_object* Flow::flow2json(bool partial_dump) {
 
 /* *************************************** */
 
+void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *when) {
+  if(stats->lastTime.tv_sec != 0) {
+    float deltaMS = (float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&stats->lastTime))/(float)1000;
+
+    if(deltaMS > 0) {
+      if(stats->max_ms == 0)
+	stats->min_ms = stats->max_ms = deltaMS;
+      else {
+	if(deltaMS > stats->max_ms) stats->max_ms = deltaMS;
+	if(deltaMS < stats->min_ms) stats->min_ms = deltaMS;
+      }
+      
+      stats->total_delta_ms += deltaMS;
+    }
+  }
+
+  memcpy(&stats->lastTime, when, sizeof(struct timeval));
+}
+
+/* *************************************** */
+
+void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
+  lua_newtable(vm);
+
+  lua_push_float_table_entry(vm, "min", cli2srv_direction ? getCli2SrvMinInterArrivalTime() : getSrv2CliMinInterArrivalTime());
+  lua_push_float_table_entry(vm, "max", cli2srv_direction ? getCli2SrvMaxInterArrivalTime() : getSrv2CliMaxInterArrivalTime());
+  lua_push_float_table_entry(vm, "avg", cli2srv_direction ? getCli2SrvAvgInterArrivalTime() : getSrv2CliAvgInterArrivalTime());
+
+  lua_pushstring(vm, cli2srv_direction ? "interarrival.cli2srv" : "interarrival.srv2cli");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int payload_len, const struct timeval *when) {
   updateSeen();
-
+  updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
+  
   if((cli_host == NULL) || (srv_host == NULL)) return;
 
   if(cli2srv_direction) {

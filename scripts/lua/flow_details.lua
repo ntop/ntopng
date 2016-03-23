@@ -133,7 +133,7 @@ else
 
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
-     print("<tr><th width=30%>Flow Peers</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">")
+     print("<tr><th width=30%>Flow Peers [ Client / Server ]</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">")
      print(flowinfo2hostname(flow,"cli",ifstats.vlan))
      if(flow["cli.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
 
@@ -259,6 +259,17 @@ else
       end
    end
 
+   print("<tr><th width=30%>Packet Inter-Arrival Time [ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
+   print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
+   print("</td>\n")
+   if(flow["srv2cli.packets"] == 0) then
+     print("<td>&nbsp;")
+   else
+     print("<td nowrap>Client <i class=\"fa fa-arrow-left\"></i> Server: ")
+     print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
+   end
+   print("</td></tr>\n")
+
    if(flow["tcp.seq_problems"]) then
       print("<tr><th width=30% rowspan=5>TCP Packet Analysis</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'>")
       print("<tr><th>&nbsp;</th><th>Client <i class=\"fa fa-arrow-right\"></i> Server / Client <i class=\"fa fa-arrow-left\"></i> Server</th></tr>\n")
@@ -297,8 +308,9 @@ else
 
       flow_completed = false
       flow_reset = false
+      flows_syn_seen = false
       if(hasbit(flow["tcp_flags"],0x01)) then print('<span class="label label-info">FIN</span> ')  flow_completed = true end
-      if(hasbit(flow["tcp_flags"],0x02)) then print('<span class="label label-info">SYN</span> ')  end
+      if(hasbit(flow["tcp_flags"],0x02)) then print('<span class="label label-info">SYN</span> ')  flows_syn_seen = true end
       if(hasbit(flow["tcp_flags"],0x04)) then print('<span class="label label-danger">RST</span> ') flow_completed = true flow_reset = true end
       if(hasbit(flow["tcp_flags"],0x08)) then print('<span class="label label-info">PUSH</span> ') end
       if(hasbit(flow["tcp_flags"],0x10)) then print('<span class="label label-info">ACK</span> ')  end
@@ -310,7 +322,12 @@ else
 	 if(flow_completed) then
 	    print(" <small>This flow is completed and will soon expire.</small>")
 	 else
-	    print(" <small>This flow is active.</small>")
+  	    print(" <small>This flow is active. We have not seen flow begin: peer roles (client/server) might be inaccurate.</small>")
+	    if(not(flows_syn_seen)) then
+	      print("")
+	    else
+	      print(" <small>This flow is active.</small>")
+	    end
 	 end
       end
 

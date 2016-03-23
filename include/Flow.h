@@ -29,6 +29,16 @@ typedef struct {
   u_int64_t last, next;
 } TCPPacketStats;
 
+typedef struct {
+  struct timeval lastTime;
+  u_int64_t total_delta_ms;
+  float min_ms, max_ms; 
+} InterarrivalStats;
+
+typedef struct {
+  InterarrivalStats pktTime;  
+} FlowPacketStats;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -91,10 +101,7 @@ class Flow : public GenericHashEntry {
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
   float rttSec;
 
-  struct {
-    struct timeval firstSeenSent, lastSeenSent;
-    struct timeval firstSeenRcvd, lastSeenRcvd;
-  } flowTimers;
+  FlowPacketStats cli2srvStats, srv2cliStats;
 
   /* Counter values at last host update */
   struct {
@@ -126,7 +133,9 @@ class Flow : public GenericHashEntry {
   void checkFlowCategory();
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
-  
+  void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
+  void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
+
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -255,6 +264,13 @@ class Flow : public GenericHashEntry {
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */
   inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
   inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
+
+  inline u_int32_t getCli2SrvMinInterArrivalTime() { return(cli2srvStats.pktTime.min_ms); }
+  inline u_int32_t getCli2SrvMaxInterArrivalTime() { return(cli2srvStats.pktTime.max_ms); }
+  inline u_int32_t getCli2SrvAvgInterArrivalTime() { return((cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (cli2srv_packets-1)); }
+  inline u_int32_t getSrv2CliMinInterArrivalTime() { return(srv2cliStats.pktTime.min_ms); }
+  inline u_int32_t getSrv2CliMaxInterArrivalTime() { return(srv2cliStats.pktTime.max_ms); }
+  inline u_int32_t getSrv2CliAvgInterArrivalTime() { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
 };
 
 #endif /* _FLOW_H_ */
