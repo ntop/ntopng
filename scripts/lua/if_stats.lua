@@ -13,6 +13,612 @@ require "alert_utils"
 require "db_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
+function mydrawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
+                 selectedEpoch, selected_epoch_sanitized, topArray)
+   local debug_rrd = false
+
+   if(ntop.isPro()) then
+      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
+      return
+   end
+
+   ifs = {}
+   ifids = {}
+   for iname in string.gmatch(ifname, "[^,]+") do
+       ifids[interface.name2id(iname)]=iname
+   end
+
+
+   if(zoomLevel == nil) then
+      zoomLevel = "1h"
+   end
+
+   nextZoomLevel = zoomLevel;
+   epoch = tonumber(selectedEpoch);
+
+   for k,v in ipairs(zoom_vals) do
+      if(zoom_vals[k][1] == zoomLevel) then
+         if(k > 1) then
+	    nextZoomLevel = zoom_vals[k-1][1]
+         end
+         if(epoch) then
+	    start_time = epoch - zoom_vals[k][3]/2
+	    end_time = epoch + zoom_vals[k][3]/2
+         else
+	    start_time = zoom_vals[k][2]
+	    end_time = "now"
+         end
+      end
+   end
+if(show_timeseries == 1) then
+   print [[
+<div class="btn-group">
+  <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
+  <ul class="dropdown-menu">
+]]
+
+for k,v in pairs(top_rrds) do
+   print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+end
+
+   print('<li class="divider"></li>\n')
+   dirs = ntop.getDirs()
+   p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
+   if(host ~= nil) then
+      p = p .. getPathFromKey(host)
+      go_deep = true
+   else
+      go_deep = false
+   end
+   d = fixPath(p)
+
+   navigatedir(baseurl .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=', "*", d, d, go_deep, true)
+
+   print [[
+  </ul>
+</div><!-- /btn-group -->
+]]
+end -- show_timeseries == 1
+
+print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
+
+for k,v in ipairs(zoom_vals) do
+
+   print('<label class="btn btn-link ')
+
+   if(zoom_vals[k][1] == zoomLevel) then
+      print("active")
+   end
+   print('">')
+   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. zoom_vals[k][1] .. '&epoch=' .. (selectedEpoch or '') ..'">'.. zoom_vals[k][1] ..'</input></label>\n')
+                                      
+end
+print [[
+          </div>
+          ]]
+
+
+   names =  {}
+   series = {}
+
+   local maxval_bits_time = 0
+   local maxval_bits = 0
+   local minval_bits = 0
+   local minval_bits_time = 0
+   local lastval_bits = 0
+   local lastval_bits_time = 0
+   local total_bytes = 0
+   local num_points = 0
+   local step = 1
+
+   dirs = ntop.getDirs()
+   num = 0
+   print [[
+
+   <style>
+    #Chart_container {
+   display: inline-block;
+   font-family: Arial, Helvetica, sans-serif;
+   }
+   #chart {
+          float: left;
+          }
+   #legend {
+     float: left;
+     margin-left: 15px;
+     color: black;
+     background: white;
+   }
+   #y_axis {
+      float: left;
+      width: 40px;
+   }
+
+   </style>
+   <div>
+   
+   <script>
+   $('input:radio[id^=zoom_level_]').change( function() {
+       window.open(this.value,'_self',false);
+     });
+   </script>
+       
+   <br />
+   <p>
+   <div style="margin-left: 10px; display: table">
+       <div id="chart_container" style="display: table-row">
+       
+   ]]
+
+   prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
+   if(prefixLabel == "Bytes") then
+      prefixLabel = "Traffic"
+   end
+   
+   for ifid, ifname in pairs(ifids) do
+     series[ifid]={}
+     rrdname = getRRDName(ifid, host, rrdFile)
+     if(ntop.notEmptyFile(rrdname)) then
+      
+      local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+      --print("=> here we go")
+      local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
+      local num_points_found = table.getn(fdata)
+      local sample_rate = round(num_points_found / max_num_points)
+
+      if(sample_rate < 1) then
+	 sample_rate = 1
+      end
+
+      -- DEBUG
+      -- tprint(fdata, 1)
+
+      step = fstep
+
+      sampling = 0
+      --sample_rate = 1
+      sample_rate = sample_rate-1
+      accumulated = 0
+      local id = 0
+      for i, v in ipairs(fdata) do
+	 s = {}
+	 s[0] = fstart + (i-1)*fstep
+	 num_points = num_points + 1
+
+	 local elemId = 1
+	 for _, w in ipairs(v) do
+	    if(w ~= w) then
+	       -- This is a NaN
+	       v = 0
+	    else
+	       --io.write(w.."\n")
+	       v = tonumber(w)
+	       if(v < 0) then
+		  v = 0
+	       end
+	    end
+
+	    if(v > 0) then
+	       lastval_bits_time = s[0]
+	       lastval_bits = v
+	    end
+
+	    s[elemId] = v*8 -- bps
+	    --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
+	    elemId = elemId + 1
+	 end
+         if (elemId > num) then
+           num=elemId
+         end
+	 total_bytes = total_bytes + v*fstep
+	 --if((v*fstep) > 0) then io.write(" | " .. (v*fstep) .." | [sampling: ".. sampling .. "/" .. sample_rate.."]\n") end
+
+	 if(sampling == sample_rate) then
+	    if(sample_rate > 0) then
+	       s[1] = accumulated / sample_rate
+	    end
+	    series[ifid][id] = s
+	    id = id + 1
+	    sampling = 0
+	    accumulated = 0
+	 else
+	    accumulated = accumulated + s[1]
+	    sampling = sampling + 1
+	 end
+      end
+      num=num - 1
+      for key, value in pairs(series[ifid]) do
+	 local t = 0
+--         print (num)
+	 for elemId=0,(num-1) do
+	    --io.write(key.."="..value[elemId+1].. "\n")
+	    t = t + value[elemId+1] -- bps
+	 end
+
+	 t = t * step
+
+	 if(((minval_bits_time == 0) or (minval_bits >= t)) and (value[0] < lastval_bits_time)) then
+	    --io.write(value[0].."\t".. t .. "\t".. lastval_bits_time .. "\n")
+	    minval_bits_time = value[0]
+	    minval_bits = t
+	 end
+
+	 if((maxval_bits_time == 0) or (maxval_bits <= t)) then
+	    maxval_bits_time = value[0]
+	    maxval_bits = t
+	 end
+      end
+
+
+if(string.contains(rrdFile, "num_")) then
+   formatter_fctn = "fint"
+else
+   formatter_fctn = "fpackets"
+end
+
+if (topArray ~= nil) then
+print [[
+   <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell; width: 20%">
+   ]]
+                       
+                       print('<tr><th>'..ifname..'</th><th colspan=2>'..prefixLabel..'</th></tr>');
+print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
+
+if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. formatValue(round(maxval_bits/step), 1) .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(lastval_bits/step), 1) .. '</td></tr>\n')
+
+   print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(total_bytes*8/(step*num_points), 2)) .. '</td></tr>\n')
+   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(total_bytes)) .. '</td></tr>\n')
+else
+   formatter_fctn = "fbits"
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. bitsToSize(minval_bits/step) .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. bitsToSize(maxval_bits/step) .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. bitsToSize(lastval_bits/step)  .. '</td></tr>\n')
+   print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(total_bytes*8/(step*num_points)) .. '</td></tr>\n')
+   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(total_bytes) .. '</td></tr>\n')
+end
+print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
+
+
+print [[
+
+   </table>
+]]
+end -- topArray ~= nil
+end
+end -- for each ifids
+
+print('<table class="table table-bordered table-striped">  <tr><th>Selection Time</th><td><div id=when></div></td></tr></table>\n')
+
+print[[
+   </td></tr>
+   <tr><td><div id="legend"></div></td><td><div id="chart_legend"></div></td></tr>
+   <tr><td colspan=2>
+   </table>
+
+   <p><font color=lightgray><small>NOTE: Click on the graph to zoom.</small></font>
+   <div id="y_axis"></div>
+
+   <div id="chart" style="margin-right: 50px; margin-left: 10px; display: table-cell"></div>
+</div>
+
+</div>
+
+<script>
+
+
+var palette = new Rickshaw.Color.Palette();
+
+var graph = new Rickshaw.Graph( {
+				   element: document.getElementById("chart"),
+				   width: 600,
+				   height: 250,
+				   renderer: 'area',
+				   series: [
+
+				]]
+          
+--if(names ~= nil) then
+   local first=1;
+   for ifid, ifname in pairs(ifids) do
+     for elemId=0,(num-1) do
+--      if(elemId > 0) then
+      if(first==0) then
+	 print ","
+      end
+      first=0;
+
+--      name = strsplit(names[elemId], "/")
+--      name = name[#name]
+      print ("{\nname: '".. ifname .."&nbsp;:&nbsp;"..prefixLabel.."',\n")
+
+      print("color: palette.color(),\ndata: [\n")
+
+      n = 0
+      for key, value in pairs(series[ifid]) do
+	 if(n > 0) then
+	    print(",\n")
+	 end
+	 print ("\t{ x: "..  value[0] .. ", y: ".. value[elemId+1] .. " }")
+--	 print ("\t{ x: "..  value[0] .. ", y: ".. value[1] .. " }")
+	 n = n + 1
+      end
+
+      print("\n]}\n")
+   end
+end
+
+print [[
+				   ]
+				} );
+
+graph.render();
+
+var chart_legend = document.querySelector('#chart_legend');
+
+
+function fdate(when) {
+      var epoch = when*1000;
+      var d = new Date(epoch);
+
+      return(d);
+}
+
+function fbits(bits) {
+	var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+	if(bits == 0) return 'n/a';
+	var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
+	return Math.round(bits / Math.pow(1024, i), 2) + ' ' + sizes[i];
+}
+
+function capitaliseFirstLetter(string)
+{
+   return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/**
+ * Convert number of bytes into human readable format
+ *
+ * @param integer bytes     Number of bytes to convert
+ * @param integer precision Number of digits after the decimal separator
+ * @return string
+ */
+   function formatBytes(bytes, precision)
+      {
+	 var kilobyte = 1024;
+	 var megabyte = kilobyte * 1024;
+	 var gigabyte = megabyte * 1024;
+	 var terabyte = gigabyte * 1024;
+
+	 if((bytes >= 0) && (bytes < kilobyte)) {
+	    return bytes + ' B';
+	 } else if((bytes >= kilobyte) && (bytes < megabyte)) {
+	    return (bytes / kilobyte).toFixed(precision) + ' KB';
+	 } else if((bytes >= megabyte) && (bytes < gigabyte)) {
+	    return (bytes / megabyte).toFixed(precision) + ' MB';
+	 } else if((bytes >= gigabyte) && (bytes < terabyte)) {
+	    return (bytes / gigabyte).toFixed(precision) + ' GB';
+	 } else if(bytes >= terabyte) {
+	    return (bytes / terabyte).toFixed(precision) + ' TB';
+	 } else {
+	    return bytes + ' B';
+	 }
+      }
+
+var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
+    graph: graph,
+    xFormatter: function(x) { return new Date( x * 1000 ); },
+    yFormatter: function(bits) { return(]] print(formatter_fctn) print [[(bits)); },
+    render: function(args) {
+		var graph = this.graph;
+		var points = args.points;
+		var point = points.filter( function(p) { return p.active } ).shift();
+
+		if(point.value.y === null) return;
+
+		var formattedXValue = fdate(point.value.x); // point.formattedXValue;
+		var formattedYValue = ]] 
+	  print(formatter_fctn) 
+	  print [[(point.value.y); // point.formattedYValue;
+		var infoHTML = "";
+]]
+
+if(topArray ~= nil) then
+print[[
+var seconds;
+
+$.ajax ({
+  type: 'GET',
+  url: ']]
+  print(ntop.getHttpPrefix().."/lua/modules/get_real_epochs.lua?epoch='+point.value.x,")
+print[[
+  data: { epoch: point.value.x },
+  async: false,
+  success: function(content) {
+    var res = content.split(" ");
+    seconds = parseInt(res[0]) - parseInt(res[1]);
+  }
+  });
+
+   infoHTML += "<ul>";
+]]
+
+   for n,v in pairs(topArray) do
+      modulename = n
+      sectionname = v["name"]
+      levels = v["levels"]
+      scriptname = v["script"]
+      key = v["key"]
+      
+      if (string.lower(sectionname) ~= "top talkers") then
+	 goto continue
+      end
+      
+      -- Support only 1 or 2 levels by now
+      if (levels < 1 or levels > 2) then goto continue end
+      print [[
+	    $.ajax({
+		      type: 'GET',
+		      url: ']]
+		      print(ntop.getHttpPrefix().."/lua/top_generic.lua?m="..modulename.."&epoch='+point.value.x+'&addvlan=true")
+      if (levels == 2) then
+			 print [[',
+			       data: { epoch: point.value.x },
+			       async: false,
+			       success: function(content) {
+					      var info = jQuery.parseJSON(content);]]
+					print [[
+					      var elements = 0;
+                                $.each(info, function(i, n) {
+                                  elements++;
+                                  return false;
+                                });
+                                if (elements > 0)
+                                  infoHTML += "<li>]]print(sectionname)print[[<ul>";]]
+                     print[[
+				$.each(info, function(i, n) {
+                                  var nonempty = 0;
+                                  $.each(n, function(j, m) {
+                                    nonempty++;
+                                    return false;
+                                  });
+                                  if (nonempty != 0)
+				    infoHTML += "<li>"+capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
+				  var items = 0;
+				  $.each(n, function(j, m) {
+				    if(items < 3) {
+				      infoHTML += "<li><a href=']]
+    print(scriptname.."?"..key.."=")
+    print[["+m.address+"'>"+m.label; if ("]]print(sectionname)print[[".toLowerCase() == "Operating Systems") infoHTML += getOSIcon(m.label); if ("]]print(sectionname)print[[".toLowerCase() == "countries") infoHTML += " <img src=']] print(ntop.getHttpPrefix()) print [[/img/blank.gif' class='flag flag-"+m.label.toLowerCase()+"'>"; infoHTML += "</a>"; if (m.vlan != "0") infoHTML += " ("+m.vlanm+")"; infoHTML += " ("+]] print(formatter_fctn) print [[((m.value*8)/seconds)+")</li>";
+				      items++;
+                                    }
+				  });
+                                  if (nonempty != 0)
+				    infoHTML += "</ol></li>";
+				});
+				infoHTML += "</ul></li></li>";
+			}
+		});
+    ]]
+    elseif (levels == 1) then
+    print [[',
+			data: { epoch: point.value.x },
+			async: false,
+			success: function(content) {
+				var info = jQuery.parseJSON(content);
+				var items = 0;
+				$.each(info, function(i, n) {
+    ]]
+    print('if(items == 0) infoHTML += "<li>'..sectionname..' [Avg Traffic/sec]<ol>";')
+    print[[
+				   if(items < 3)
+				     infoHTML += "<li><a href=']]
+    print(scriptname.."?"..key.."=")
+    print[["+n.label+"'>"+n.name+"</a>";]]
+    if (sectionname ~= "VLANs") then
+      print[[if (n.vlan != "0") infoHTML += " ("+n.vlanm+")"+]]
+    else
+      print[[infoHTML +=]]
+    end
+    print[[" ("+]] print(formatter_fctn) print [[((n.value*8)/seconds)+")</li>";
+				   items++;
+				});
+                                if(items > 0)
+                                   infoHTML += "</ol></li></ul>";
+			}
+		});
+    ]]
+    end -- levels
+    ::continue::
+  end -- for
+    print[[infoHTML += "</ul>";]]
+end -- topArray
+print [[
+		this.element.innerHTML = '';
+		this.element.style.left = graph.x(point.value.x) + 'px';
+
+		/*var xLabel = document.createElement('div');
+		xLabel.setAttribute("style", "opacity: 0.5; background-color: #EEEEEE; filter: alpha(opacity=0.5)");
+		xLabel.className = 'x_label';
+		xLabel.innerHTML = formattedXValue + infoHTML;
+		this.element.appendChild(xLabel);
+		*/
+		$('#when').html(formattedXValue);
+		$('#talkers').html(infoHTML);
+
+
+		var item = document.createElement('div');
+
+		item.className = 'item';
+		item.innerHTML = this.formatter(point.series, point.value.x, point.value.y, formattedXValue, formattedYValue, point);
+		item.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
+		this.element.appendChild(item);
+
+		var dot = document.createElement('div');
+		dot.className = 'dot';
+		dot.style.top = item.style.top;
+		dot.style.borderColor = point.series.color;
+		this.element.appendChild(dot);
+
+		if(point.active) {
+			item.className = 'item active';
+			dot.className = 'dot active';
+		}
+
+		this.show();
+
+		if(typeof this.onRender == 'function') {
+			this.onRender(args);
+		}
+
+		// Put the selected graph epoch into the legend
+		//chart_legend.innerHTML = point.value.x; // Epoch
+
+		this.selected_epoch = point.value.x;
+
+		//event
+	}
+} );
+
+var hover = new Hover( { graph: graph } );
+
+var legend = new Rickshaw.Graph.Legend( {
+					   graph: graph,
+					   element: document.getElementById('legend')
+					} );
+
+//var axes = new Rickshaw.Graph.Axis.Time( { graph: graph } ); axes.render();
+
+var yAxis = new Rickshaw.Graph.Axis.Y({
+    graph: graph,
+    tickFormat: ]] print(formatter_fctn) print [[
+});
+var xAxis = new Rickshaw.Graph.Axis.Time({
+    graph: graph
+});
+
+xAxis.render();
+
+yAxis.render();
+
+$("#chart").click(function() {
+  if(hover.selected_epoch)
+    window.location.href = ']]
+print(baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. nextZoomLevel .. '&epoch=')
+print[['+hover.selected_epoch;
+});
+
+</script>
+
+]]
+--else
+--   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> File "..rrdname.." cannot be found</div>")
+--end
+end
+-- ########################################################
+
 
 page = _GET["page"]
 if_name = _GET["if_name"]
@@ -114,6 +720,614 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
 url= ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
+
+function mydrawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
+                 selectedEpoch, selected_epoch_sanitized, topArray)
+   local debug_rrd = false
+
+   if(ntop.isPro()) then
+      drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
+      return
+   end
+
+   ifs = {}
+   ifids = {}
+   for iname in string.gmatch(ifname, "[^,]+") do
+       ifids[interface.name2id(iname)]=iname
+   end
+
+
+   if(zoomLevel == nil) then
+      zoomLevel = "1h"
+   end
+
+   nextZoomLevel = zoomLevel;
+   epoch = tonumber(selectedEpoch);
+
+   for k,v in ipairs(zoom_vals) do
+      if(zoom_vals[k][1] == zoomLevel) then
+         if(k > 1) then
+	    nextZoomLevel = zoom_vals[k-1][1]
+         end
+         if(epoch) then
+	    start_time = epoch - zoom_vals[k][3]/2
+	    end_time = epoch + zoom_vals[k][3]/2
+         else
+	    start_time = zoom_vals[k][2]
+	    end_time = "now"
+         end
+      end
+   end
+if(show_timeseries == 1) then
+   print [[
+<div class="btn-group">
+  <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
+  <ul class="dropdown-menu">
+]]
+
+for k,v in pairs(top_rrds) do
+   print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+end
+
+   print('<li class="divider"></li>\n')
+   dirs = ntop.getDirs()
+   p = dirs.workingdir .. "/" .. purifyInterfaceName(ifid) .. "/rrd/"
+   if(host ~= nil) then
+      p = p .. getPathFromKey(host)
+      go_deep = true
+   else
+      go_deep = false
+   end
+   d = fixPath(p)
+
+   navigatedir(baseurl .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=', "*", d, d, go_deep, true)
+
+   print [[
+  </ul>
+</div><!-- /btn-group -->
+]]
+end -- show_timeseries == 1
+
+print('&nbsp;Timeframe:  <div class="btn-group" data-toggle="buttons" id="graph_zoom">\n')
+
+for k,v in ipairs(zoom_vals) do
+
+   print('<label class="btn btn-link ')
+
+   if(zoom_vals[k][1] == zoomLevel) then
+      print("active")
+   end
+   print('">')
+   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. zoom_vals[k][1] .. '&epoch=' .. (selectedEpoch or '') ..'">'.. zoom_vals[k][1] ..'</input></label>\n')
+                                      
+end
+print [[
+          </div>
+          ]]
+
+
+   names =  {}
+   series = {}
+
+   local maxval_bits_time = 0
+   local maxval_bits = 0
+   local minval_bits = 0
+   local minval_bits_time = 0
+   local lastval_bits = 0
+   local lastval_bits_time = 0
+   local total_bytes = 0
+   local num_points = 0
+   local step = 1
+
+   dirs = ntop.getDirs()
+   num = 0
+   print [[
+
+   <style>
+    #Chart_container {
+   display: inline-block;
+   font-family: Arial, Helvetica, sans-serif;
+   }
+   #chart {
+          float: left;
+          }
+   #legend {
+     float: left;
+     margin-left: 15px;
+     color: black;
+     background: white;
+   }
+   #y_axis {
+      float: left;
+      width: 40px;
+   }
+
+   </style>
+   <div>
+   
+   <script>
+   $('input:radio[id^=zoom_level_]').change( function() {
+       window.open(this.value,'_self',false);
+     });
+   </script>
+       
+   <br />
+   <p>
+   <div style="margin-left: 10px; display: table">
+       <div id="chart_container" style="display: table-row">
+       
+   ]]
+
+   prefixLabel = l4Label(string.gsub(rrdFile, ".rrd", ""))
+   if(prefixLabel == "Bytes") then
+      prefixLabel = "Traffic"
+   end
+   
+   for ifid, ifname in pairs(ifids) do
+     series[ifid]={}
+     rrdname = getRRDName(ifid, host, rrdFile)
+     if(ntop.notEmptyFile(rrdname)) then
+      
+      local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
+      --print("=> here we go")
+      local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
+      local num_points_found = table.getn(fdata)
+      local sample_rate = round(num_points_found / max_num_points)
+
+      if(sample_rate < 1) then
+	 sample_rate = 1
+      end
+
+      -- DEBUG
+      -- tprint(fdata, 1)
+
+      step = fstep
+
+      sampling = 0
+      --sample_rate = 1
+      sample_rate = sample_rate-1
+      accumulated = 0
+      local id = 0
+      for i, v in ipairs(fdata) do
+	 s = {}
+	 s[0] = fstart + (i-1)*fstep
+	 num_points = num_points + 1
+
+	 local elemId = 1
+	 for _, w in ipairs(v) do
+	    if(w ~= w) then
+	       -- This is a NaN
+	       v = 0
+	    else
+	       --io.write(w.."\n")
+	       v = tonumber(w)
+	       if(v < 0) then
+		  v = 0
+	       end
+	    end
+
+	    if(v > 0) then
+	       lastval_bits_time = s[0]
+	       lastval_bits = v
+	    end
+
+	    s[elemId] = v*8 -- bps
+	    --if(s[elemId] > 0) then io.write("[".. elemId .. "]=" .. s[elemId] .."\n") end
+	    elemId = elemId + 1
+	 end
+         if (elemId > num) then
+           num=elemId
+         end
+	 total_bytes = total_bytes + v*fstep
+	 --if((v*fstep) > 0) then io.write(" | " .. (v*fstep) .." | [sampling: ".. sampling .. "/" .. sample_rate.."]\n") end
+
+	 if(sampling == sample_rate) then
+	    if(sample_rate > 0) then
+	       s[1] = accumulated / sample_rate
+	    end
+	    series[ifid][id] = s
+	    id = id + 1
+	    sampling = 0
+	    accumulated = 0
+	 else
+	    accumulated = accumulated + s[1]
+	    sampling = sampling + 1
+	 end
+      end
+      num=num - 1
+      for key, value in pairs(series[ifid]) do
+	 local t = 0
+--         print (num)
+	 for elemId=0,(num-1) do
+	    --io.write(key.."="..value[elemId+1].. "\n")
+	    t = t + value[elemId+1] -- bps
+	 end
+
+	 t = t * step
+
+	 if(((minval_bits_time == 0) or (minval_bits >= t)) and (value[0] < lastval_bits_time)) then
+	    --io.write(value[0].."\t".. t .. "\t".. lastval_bits_time .. "\n")
+	    minval_bits_time = value[0]
+	    minval_bits = t
+	 end
+
+	 if((maxval_bits_time == 0) or (maxval_bits <= t)) then
+	    maxval_bits_time = value[0]
+	    maxval_bits = t
+	 end
+      end
+
+
+if(string.contains(rrdFile, "num_")) then
+   formatter_fctn = "fint"
+else
+   formatter_fctn = "fpackets"
+end
+
+if (topArray ~= nil) then
+print [[
+   <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell; width: 20%">
+   ]]
+                       
+                       print('<tr><th>'..ifname..'</th><th colspan=2>'..prefixLabel..'</th></tr>');
+print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
+
+if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. formatValue(round(minval_bits/step), 1) .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. formatValue(round(maxval_bits/step), 1) .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. formatValue(round(lastval_bits/step), 1) .. '</td></tr>\n')
+
+   print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(total_bytes*8/(step*num_points), 2)) .. '</td></tr>\n')
+   print('   <tr><th>Total Number</th><td colspan=2>' ..  formatValue(round(total_bytes)) .. '</td></tr>\n')
+else
+   formatter_fctn = "fbits"
+   print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_bits_time) .. '</td><td>' .. bitsToSize(minval_bits/step) .. '</td></tr>\n')
+   print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_bits_time) .. '</td><td>' .. bitsToSize(maxval_bits/step) .. '</td></tr>\n')
+   print('   <tr><th>Last</th><td>' .. os.date("%x %X", last_time) .. '</td><td>' .. bitsToSize(lastval_bits/step)  .. '</td></tr>\n')
+   print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(total_bytes*8/(step*num_points)) .. '</td></tr>\n')
+   print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(total_bytes) .. '</td></tr>\n')
+end
+print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
+
+
+print [[
+
+   </table>
+]]
+end -- topArray ~= nil
+end
+end -- for each ifids
+
+print('<table class="table table-bordered table-striped">  <tr><th>Selection Time</th><td><div id=when></div></td></tr></table>\n')
+
+print[[
+   </td></tr>
+   <tr><td><div id="legend"></div></td><td><div id="chart_legend"></div></td></tr>
+   <tr><td colspan=2>
+   </table>
+
+   <p><font color=lightgray><small>NOTE: Click on the graph to zoom.</small></font>
+   <div id="y_axis"></div>
+
+   <div id="chart" style="margin-right: 50px; margin-left: 10px; display: table-cell"></div>
+</div>
+
+</div>
+
+<script>
+
+
+var palette = new Rickshaw.Color.Palette();
+
+var graph = new Rickshaw.Graph( {
+				   element: document.getElementById("chart"),
+				   width: 600,
+				   height: 250,
+				   renderer: 'area',
+				   series: [
+
+				]]
+          
+--if(names ~= nil) then
+   local first=1;
+   for ifid, ifname in pairs(ifids) do
+     for elemId=0,(num-1) do
+--      if(elemId > 0) then
+      if(first==0) then
+	 print ","
+      end
+      first=0;
+
+--      name = strsplit(names[elemId], "/")
+--      name = name[#name]
+      print ("{\nname: '".. ifname .."&nbsp;:&nbsp;"..prefixLabel.."',\n")
+
+      print("color: palette.color(),\ndata: [\n")
+
+      n = 0
+      for key, value in pairs(series[ifid]) do
+	 if(n > 0) then
+	    print(",\n")
+	 end
+	 print ("\t{ x: "..  value[0] .. ", y: ".. value[elemId+1] .. " }")
+--	 print ("\t{ x: "..  value[0] .. ", y: ".. value[1] .. " }")
+	 n = n + 1
+      end
+
+      print("\n]}\n")
+   end
+end
+
+print [[
+				   ]
+				} );
+
+graph.render();
+
+var chart_legend = document.querySelector('#chart_legend');
+
+
+function fdate(when) {
+      var epoch = when*1000;
+      var d = new Date(epoch);
+
+      return(d);
+}
+
+function fbits(bits) {
+	var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
+	if(bits == 0) return 'n/a';
+	var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
+	return Math.round(bits / Math.pow(1024, i), 2) + ' ' + sizes[i];
+}
+
+function capitaliseFirstLetter(string)
+{
+   return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/**
+ * Convert number of bytes into human readable format
+ *
+ * @param integer bytes     Number of bytes to convert
+ * @param integer precision Number of digits after the decimal separator
+ * @return string
+ */
+   function formatBytes(bytes, precision)
+      {
+	 var kilobyte = 1024;
+	 var megabyte = kilobyte * 1024;
+	 var gigabyte = megabyte * 1024;
+	 var terabyte = gigabyte * 1024;
+
+	 if((bytes >= 0) && (bytes < kilobyte)) {
+	    return bytes + ' B';
+	 } else if((bytes >= kilobyte) && (bytes < megabyte)) {
+	    return (bytes / kilobyte).toFixed(precision) + ' KB';
+	 } else if((bytes >= megabyte) && (bytes < gigabyte)) {
+	    return (bytes / megabyte).toFixed(precision) + ' MB';
+	 } else if((bytes >= gigabyte) && (bytes < terabyte)) {
+	    return (bytes / gigabyte).toFixed(precision) + ' GB';
+	 } else if(bytes >= terabyte) {
+	    return (bytes / terabyte).toFixed(precision) + ' TB';
+	 } else {
+	    return bytes + ' B';
+	 }
+      }
+
+var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
+    graph: graph,
+    xFormatter: function(x) { return new Date( x * 1000 ); },
+    yFormatter: function(bits) { return(]] print(formatter_fctn) print [[(bits)); },
+    render: function(args) {
+		var graph = this.graph;
+		var points = args.points;
+		var point = points.filter( function(p) { return p.active } ).shift();
+
+		if(point.value.y === null) return;
+
+		var formattedXValue = fdate(point.value.x); // point.formattedXValue;
+		var formattedYValue = ]] 
+	  print(formatter_fctn) 
+	  print [[(point.value.y); // point.formattedYValue;
+		var infoHTML = "";
+]]
+
+if(topArray ~= nil) then
+print[[
+var seconds;
+
+$.ajax ({
+  type: 'GET',
+  url: ']]
+  print(ntop.getHttpPrefix().."/lua/modules/get_real_epochs.lua?epoch='+point.value.x,")
+print[[
+  data: { epoch: point.value.x },
+  async: false,
+  success: function(content) {
+    var res = content.split(" ");
+    seconds = parseInt(res[0]) - parseInt(res[1]);
+  }
+  });
+
+   infoHTML += "<ul>";
+]]
+
+   for n,v in pairs(topArray) do
+      modulename = n
+      sectionname = v["name"]
+      levels = v["levels"]
+      scriptname = v["script"]
+      key = v["key"]
+      
+      if (string.lower(sectionname) ~= "top talkers") then
+	 goto continue
+      end
+      
+      -- Support only 1 or 2 levels by now
+      if (levels < 1 or levels > 2) then goto continue end
+      print [[
+	    $.ajax({
+		      type: 'GET',
+		      url: ']]
+		      print(ntop.getHttpPrefix().."/lua/top_generic.lua?m="..modulename.."&epoch='+point.value.x+'&addvlan=true")
+      if (levels == 2) then
+			 print [[',
+			       data: { epoch: point.value.x },
+			       async: false,
+			       success: function(content) {
+					      var info = jQuery.parseJSON(content);]]
+					print [[
+					      var elements = 0;
+                                $.each(info, function(i, n) {
+                                  elements++;
+                                  return false;
+                                });
+                                if (elements > 0)
+                                  infoHTML += "<li>]]print(sectionname)print[[<ul>";]]
+                     print[[
+				$.each(info, function(i, n) {
+                                  var nonempty = 0;
+                                  $.each(n, function(j, m) {
+                                    nonempty++;
+                                    return false;
+                                  });
+                                  if (nonempty != 0)
+				    infoHTML += "<li>"+capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
+				  var items = 0;
+				  $.each(n, function(j, m) {
+				    if(items < 3) {
+				      infoHTML += "<li><a href=']]
+    print(scriptname.."?"..key.."=")
+    print[["+m.address+"'>"+m.label; if ("]]print(sectionname)print[[".toLowerCase() == "Operating Systems") infoHTML += getOSIcon(m.label); if ("]]print(sectionname)print[[".toLowerCase() == "countries") infoHTML += " <img src=']] print(ntop.getHttpPrefix()) print [[/img/blank.gif' class='flag flag-"+m.label.toLowerCase()+"'>"; infoHTML += "</a>"; if (m.vlan != "0") infoHTML += " ("+m.vlanm+")"; infoHTML += " ("+]] print(formatter_fctn) print [[((m.value*8)/seconds)+")</li>";
+				      items++;
+                                    }
+				  });
+                                  if (nonempty != 0)
+				    infoHTML += "</ol></li>";
+				});
+				infoHTML += "</ul></li></li>";
+			}
+		});
+    ]]
+    elseif (levels == 1) then
+    print [[',
+			data: { epoch: point.value.x },
+			async: false,
+			success: function(content) {
+				var info = jQuery.parseJSON(content);
+				var items = 0;
+				$.each(info, function(i, n) {
+    ]]
+    print('if(items == 0) infoHTML += "<li>'..sectionname..' [Avg Traffic/sec]<ol>";')
+    print[[
+				   if(items < 3)
+				     infoHTML += "<li><a href=']]
+    print(scriptname.."?"..key.."=")
+    print[["+n.label+"'>"+n.name+"</a>";]]
+    if (sectionname ~= "VLANs") then
+      print[[if (n.vlan != "0") infoHTML += " ("+n.vlanm+")"+]]
+    else
+      print[[infoHTML +=]]
+    end
+    print[[" ("+]] print(formatter_fctn) print [[((n.value*8)/seconds)+")</li>";
+				   items++;
+				});
+                                if(items > 0)
+                                   infoHTML += "</ol></li></ul>";
+			}
+		});
+    ]]
+    end -- levels
+    ::continue::
+  end -- for
+    print[[infoHTML += "</ul>";]]
+end -- topArray
+print [[
+		this.element.innerHTML = '';
+		this.element.style.left = graph.x(point.value.x) + 'px';
+
+		/*var xLabel = document.createElement('div');
+		xLabel.setAttribute("style", "opacity: 0.5; background-color: #EEEEEE; filter: alpha(opacity=0.5)");
+		xLabel.className = 'x_label';
+		xLabel.innerHTML = formattedXValue + infoHTML;
+		this.element.appendChild(xLabel);
+		*/
+		$('#when').html(formattedXValue);
+		$('#talkers').html(infoHTML);
+
+
+		var item = document.createElement('div');
+
+		item.className = 'item';
+		item.innerHTML = this.formatter(point.series, point.value.x, point.value.y, formattedXValue, formattedYValue, point);
+		item.style.top = this.graph.y(point.value.y0 + point.value.y) + 'px';
+		this.element.appendChild(item);
+
+		var dot = document.createElement('div');
+		dot.className = 'dot';
+		dot.style.top = item.style.top;
+		dot.style.borderColor = point.series.color;
+		this.element.appendChild(dot);
+
+		if(point.active) {
+			item.className = 'item active';
+			dot.className = 'dot active';
+		}
+
+		this.show();
+
+		if(typeof this.onRender == 'function') {
+			this.onRender(args);
+		}
+
+		// Put the selected graph epoch into the legend
+		//chart_legend.innerHTML = point.value.x; // Epoch
+
+		this.selected_epoch = point.value.x;
+
+		//event
+	}
+} );
+
+var hover = new Hover( { graph: graph } );
+
+var legend = new Rickshaw.Graph.Legend( {
+					   graph: graph,
+					   element: document.getElementById('legend')
+					} );
+
+//var axes = new Rickshaw.Graph.Axis.Time( { graph: graph } ); axes.render();
+
+var yAxis = new Rickshaw.Graph.Axis.Y({
+    graph: graph,
+    tickFormat: ]] print(formatter_fctn) print [[
+});
+var xAxis = new Rickshaw.Graph.Axis.Time({
+    graph: graph
+});
+
+xAxis.render();
+
+yAxis.render();
+
+$("#chart").click(function() {
+  if(hover.selected_epoch)
+    window.location.href = ']]
+print(baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. nextZoomLevel .. '&epoch=')
+print[['+hover.selected_epoch;
+});
+
+</script>
+
+]]
+--else
+--   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> File "..rrdname.." cannot be found</div>")
+--end
+end
+-- ########################################################
+
+
 
 
 --   Added global javascript variable, in order to disable the refresh of pie chart in case
@@ -475,7 +1689,7 @@ elseif(page == "historical") then
 
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
 
-   drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
+   mydrawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Graph</th><th>Traffic</th></tr>\n")
