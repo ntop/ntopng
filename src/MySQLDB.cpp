@@ -62,7 +62,7 @@ int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers){
       strcat(sql, flows[i]);
       free(flows[i]);
     }
-    if(exec_sql_query(mysql_alt, sql, true, true, false) != 0) {
+    if(exec_sql_query(mysql_alt, sql, true, true, false) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(mysql_alt));
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error with batch insertion to %s", sql_queue);
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Query: %s", sql);
@@ -95,7 +95,7 @@ void* MySQLDB::queryLoop() {
     }
     // and ping the connection
     /*
-    if(exec_sql_query(&mysql_alt, (char*)"SELECT 1", true, true, false) != 0) {
+    if(exec_sql_query(&mysql_alt, (char*)"SELECT 1", true, true, false) < 0) {
       mysql_close(&mysql_alt);
       if(!connectToDB(&mysql_alt, true))
 	return NULL; // failed to reconnect
@@ -117,7 +117,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   if(iface) {
     /* 1 - Create database if missing */
     snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS %s", ntop->getPrefs()->get_mysql_dbname());
-    if(exec_sql_query(&mysql, sql, true) != 0) {
+    if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
       return;
     }
@@ -159,7 +159,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	    "PARTITIONS 32 */",
 	    ntop->getPrefs()->get_mysql_tablename());
 
-    if(exec_sql_query(&mysql, sql, true) != 0) {
+    if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
       return;
     }
@@ -196,7 +196,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	    "PARTITIONS 32 */",
 	     ntop->getPrefs()->get_mysql_tablename());
 
-    if(exec_sql_query(&mysql, sql, true) != 0) {
+    if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
       return;
     }
@@ -286,6 +286,47 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	    ntop->getPrefs()->get_mysql_tablename());
     exec_sql_query(&mysql, sql, true, true);
 
+    // FIFTH: add an extra column with the interface id to speed up certain quer
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
+	     ntop->getPrefs()->get_mysql_tablename());
+    exec_sql_query(&mysql, sql, true, true);
+
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
+	    ntop->getPrefs()->get_mysql_tablename());
+    exec_sql_query(&mysql, sql, true, true);
+
+    // SIXTH: populate the brand new column INTERFACE_ID with the ids of interfaces
+    // and set to NULL the column INTERFACE
+    snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
+    exec_sql_query(&mysql, sql, true, true);
+    snprintf(sql, sizeof(sql), "UPDATE `%sv6` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
+    exec_sql_query(&mysql, sql, true, true);
+    snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
+    exec_sql_query(&mysql, sql, true, true);
+    snprintf(sql, sizeof(sql), "UPDATE `%sv6` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
+    exec_sql_query(&mysql, sql, true, true);
+
+    // SEVENTH: check if the INTERFACE column can be dropped
+    snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv4` WHERE INTERFACE IS NOT NULL LIMIT 1",
+	     ntop->getPrefs()->get_mysql_tablename());
+    if (exec_sql_query(&mysql, sql, true, true) == 0){
+      snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` DROP COLUMN INTERFACE",
+	       ntop->getPrefs()->get_mysql_tablename());
+      exec_sql_query(&mysql, sql, true, true);
+    }
+    snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv6` WHERE INTERFACE IS NOT NULL LIMIT 1",
+	     ntop->getPrefs()->get_mysql_tablename());
+    if (exec_sql_query(&mysql, sql, true, true) == 0){
+      snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` DROP COLUMN INTERFACE",
+	       ntop->getPrefs()->get_mysql_tablename());
+      exec_sql_query(&mysql, sql, true, true);
+    }
+
+    // TODO: add indices on the field INTERFACE_ID
     pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 
@@ -301,7 +342,7 @@ char* MySQLDB::get_insert_into_values(IPVersion vers){
 
   snprintf(sql,
 	   sizeof(sql),
-	   "INSERT INTO `%sv%i` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE"
+	   "INSERT INTO `%sv%i` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
 #ifdef NTOPNG_PRO
 	   ",PROFILE"
 #endif
@@ -359,7 +400,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 
   if(f->get_cli_host()->get_ip()->isIPv4()){
     snprintf(sql, sizeof(sql),
-	     " ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%s'"
+	     " ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
 #ifdef NTOPNG_PRO
 	     ",'%s'"  // this is the string for traffic profile
 #endif
@@ -375,7 +416,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf,
 	     ntop->getPrefs()->get_instance_name(),
-	     iface->get_name()
+	     iface->get_id()
 #ifdef NTOPNG_PRO
 	     ,f->get_profile_name()
 #endif
@@ -383,7 +424,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
     ntop->getRedis()->lpush(CONST_SQL_QUEUE_V4, sql, CONST_MAX_MYSQL_QUEUE_LEN);
   }  else {
     snprintf(sql, sizeof(sql),
-	     " ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%s'"
+	     " ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
 #ifdef NTOPNG_PRO
 	     ",'%s'"  // this is the string for traffic profile
 #endif
@@ -399,7 +440,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf,
 	     ntop->getPrefs()->get_instance_name(),
-	     iface->get_name()
+	     iface->get_id()
 #ifdef NTOPNG_PRO
 	     ,f->get_profile_name()
 #endif
@@ -481,6 +522,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
 			    bool doReconnect, bool ignoreErrors,
 			    bool doLock) {
   int rc;
+  MYSQL_RES *result;
 
   if(!db_operational)
     return(-2);
@@ -513,7 +555,12 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
     rc = -1;
   } else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully executed '%s'", sql);
-    rc = 0;
+    // we want to return the number of rows which is more informative
+    // than a simple 0
+    if((result = mysql_store_result(&mysql)) == NULL)
+      rc = 0;  // unable to retrieve the result but still the query succeded
+    else
+      rc = mysql_num_rows(result);
   }
 
   if(doLock && m) m->unlock(__FILE__, __LINE__);

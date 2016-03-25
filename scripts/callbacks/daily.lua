@@ -24,16 +24,15 @@ scanAlerts("day")
 local debug = false
 local delete_keys = true
 
-
 function harverstExpiredMySQLFlows(ifname, mysql_retention)
    sql = "DELETE FROM flowsv4 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE = '"..ifname.."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
    interface.execSQLQuery(sql)
    if(debug) then io.write(sql.."\n") end
 
    sql = "DELETE FROM flowsv6 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE = '"..ifname.."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
    interface.execSQLQuery(sql)
    if(debug) then io.write(sql.."\n") end

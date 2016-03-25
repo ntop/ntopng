@@ -54,7 +54,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, l7proto, l
    if(port ~= "") then follow = follow .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")" end
    if(info ~= "") then follow = follow .." AND (INFO='"..info.."')" end
    follow = follow.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   follow = follow.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+   follow = follow.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if host_or_profile ~= nil and host_or_profile ~= "" and string.starts(host_or_profile, 'profile:') then
       host_or_profile = string.gsub(host_or_profile, 'profile:', '')
@@ -144,7 +144,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
 
    sql = "select COUNT(*) AS TOT_FLOWS, SUM(BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
    if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
@@ -195,7 +195,7 @@ function getTopPeers(interface_id, version, host, protocol, port, l7proto, info,
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if((l7proto ~= nil) and (l7proto ~= "")) then sql = sql .." AND L7_PROTO="..l7proto end
    if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
@@ -243,7 +243,7 @@ function getTopL7Protocols(interface_id, version, host, protocol, port, info, be
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if((protocol ~= nil) and (protocol ~= "")) then sql = sql .." AND PROTOCOL="..protocol end
 
@@ -292,7 +292,7 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    end
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(ifid).."' OR INTERFACE IS NULL) "
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
    return sql..'\n'
 end
 
@@ -374,7 +374,7 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, info, begin_epoch, e
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
 
@@ -440,7 +440,7 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
    end
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(ifid).."' OR INTERFACE IS NULL) "
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
    sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id)
    return sql..'\n'
 end
@@ -520,7 +520,7 @@ function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_e
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
 
@@ -603,7 +603,7 @@ function getPeersTrafficHistogram(interface_id, peer1, peer2, info, begin_epoch,
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
-   sql = sql.." AND (INTERFACE='"..getInterfaceName(interface_id).."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
    if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
 
