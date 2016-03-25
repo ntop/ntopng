@@ -559,8 +559,10 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
     // than a simple 0
     if((result = mysql_store_result(&mysql)) == NULL)
       rc = 0;  // unable to retrieve the result but still the query succeded
-    else
+    else{
+      mysql_free_result(result);
       rc = mysql_num_rows(result);
+    }
   }
 
   if(doLock && m) m->unlock(__FILE__, __LINE__);
