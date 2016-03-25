@@ -1273,15 +1273,20 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
   int _sock, res;
   struct ifreq ifr;
   macstr_t mac_addr_buf;
+  char *colon;
 
   memset (&ifr, 0, sizeof(struct ifreq));
+
+  colon = strchr(ifname, ':');
+  if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
+    ifname = colon+1;
 
   /* Dummy socket, just to make ioctls with */
   _sock = socket(PF_INET, SOCK_DGRAM, 0);
   strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
   res = ioctl(_sock, SIOCGIFHWADDR, &ifr);
   if(res < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr for %s", ifname);
   } else
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
 
