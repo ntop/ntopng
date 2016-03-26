@@ -28,14 +28,15 @@ static void* queryLoop(void* ptr) {
 }
 
 /* **************************************************** */
-int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers){
+
+int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers) {
   Redis *r = ntop->getRedis();
   char **flows = NULL;
-  char sql[2048 * CONST_SQL_BATCH_SIZE];
+  char *sql;
   char *insert_into, *sql_queue;
   char *separator = (char*)",";
 
-  switch(vers){
+  switch(vers) {
   case IPV4:
     sql_queue = (char*)CONST_SQL_QUEUE_V4;
     break;
@@ -46,6 +47,9 @@ int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers){
     return -1;
   }
 
+  if((sql = (char*)malloc(CONST_MAX_SQL_QUERY_LEN * CONST_SQL_BATCH_SIZE)) == NULL)
+    return(-1);
+
   insert_into = get_insert_into_values(vers);
   int rc = r->lpop(sql_queue, &flows, CONST_SQL_BATCH_SIZE);
 
@@ -55,13 +59,16 @@ int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers){
 
     strcpy(sql, insert_into);
     strcat(sql, flows[0]);
-    for (int i = 1; i < rc; i++){
-      if (flows[i] == NULL)
+
+    for(int i = 1; i < rc; i++) {
+      if(flows[i] == NULL)
 	continue;
+
       strcat(sql, separator);
       strcat(sql, flows[i]);
       free(flows[i]);
     }
+
     if(exec_sql_query(mysql_alt, sql, true, true, false) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(mysql_alt));
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error with batch insertion to %s", sql_queue);
@@ -70,12 +77,15 @@ int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers){
     }
   }
 
-  if(flows) free(flows);
+  if(flows)       free(flows);
   if(insert_into) free(insert_into);
+
+  free(sql);
   return(rc);
 }
 
 /* **************************************************** */
+
 void* MySQLDB::queryLoop() {
   MYSQL mysql_alt;
 
@@ -85,23 +95,22 @@ void* MySQLDB::queryLoop() {
   while(!ntop->getGlobals()->isShutdown()) {
     int bv4 = insert_batch(&mysql_alt, IPV4);
     int bv6 = insert_batch(&mysql_alt, IPV6);
-
-    if (bv4 > 0 || bv6 > 0)
-      continue; // more work to do
-
-    if(bv4 == 0 && bv6 == 0){
+    
+    if((bv4 == 0) && (bv6 == 0)) {
       // take a nap
       sleep(1);
     }
+
     // and ping the connection
     /*
-    if(exec_sql_query(&mysql_alt, (char*)"SELECT 1", true, true, false) < 0) {
+      if(exec_sql_query(&mysql_alt, (char*)"SELECT 1", true, true, false) < 0) {
       mysql_close(&mysql_alt);
       if(!connectToDB(&mysql_alt, true))
-	return NULL; // failed to reconnect
-    }
+      return NULL; // failed to reconnect
+      }
     */
   }
+
   mysql_close(&mysql_alt);
   return NULL;
 }
@@ -109,7 +118,7 @@ void* MySQLDB::queryLoop() {
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
-  char sql[2048];
+  char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if(connectToDB(&mysql, false) == false)
     return;
@@ -129,35 +138,35 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 
     /* 2.1 - Create table if missing [IPv6] */
     snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv6` ("
-	    "`idx` int(11) NOT NULL AUTO_INCREMENT,"
-	    "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
-	    "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
-	    "`IP_SRC_ADDR` varchar(48) DEFAULT NULL,"
-	    "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
-	    "`IP_DST_ADDR` varchar(48) DEFAULT NULL,"
-	    "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
-	    "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
-	    "`BYTES` int(10) unsigned DEFAULT NULL,"
-	    "`PACKETS` int(10) unsigned DEFAULT NULL,"
-	    "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
-	    "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
-	    "`INFO` varchar(255) DEFAULT NULL,"
-	    "`JSON` blob,"
+	     "`idx` int(11) NOT NULL AUTO_INCREMENT,"
+	     "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
+	     "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
+	     "`IP_SRC_ADDR` varchar(48) DEFAULT NULL,"
+	     "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
+	     "`IP_DST_ADDR` varchar(48) DEFAULT NULL,"
+	     "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
+	     "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
+	     "`BYTES` int(10) unsigned DEFAULT NULL,"
+	     "`PACKETS` int(10) unsigned DEFAULT NULL,"
+	     "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+	     "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+	     "`INFO` varchar(255) DEFAULT NULL,"
+	     "`JSON` blob,"
 #ifdef NTOPNG_PRO
-	    "`PROFILE` varchar(255) DEFAULT NULL,"
+	     "`PROFILE` varchar(255) DEFAULT NULL,"
 #endif
-	    "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
-	    "`INTERFACE` varchar(64) DEFAULT NULL,"
-	    "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`(200)),"
+	     "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+	     "`INTERFACE` varchar(64) DEFAULT NULL,"
+	     "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`(200)),"
 #ifdef NTOPNG_PRO
-	    "KEY `ix_flowsv6_4_profile` (`PROFILE`),"
+	     "KEY `ix_flowsv6_4_profile` (`PROFILE`),"
 #endif
-	    "KEY `ix_flowsv6_4_ntopng_instance_name` (`NTOPNG_INSTANCE_NAME`(255)),"
-	    "KEY `ix_flowsv6_4_ntopng_interface` (`INTERFACE`)"
-	    ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8"
-	    "/*!50100 PARTITION BY HASH (`FIRST_SWITCHED`)"
-	    "PARTITIONS 32 */",
-	    ntop->getPrefs()->get_mysql_tablename());
+	     "KEY `ix_flowsv6_4_ntopng_instance_name` (`NTOPNG_INSTANCE_NAME`(255)),"
+	     "KEY `ix_flowsv6_4_ntopng_interface` (`INTERFACE`)"
+	     ") ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8"
+	     "/*!50100 PARTITION BY HASH (`FIRST_SWITCHED`)"
+	     "PARTITIONS 32 */",
+	     ntop->getPrefs()->get_mysql_tablename());
 
     if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
@@ -166,34 +175,34 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 
     /* 2.2 - Create table if missing [IPv4] */
     snprintf(sql, sizeof(sql), "CREATE TABLE IF NOT EXISTS `%sv4` ("
-	    "`idx` int(11) NOT NULL AUTO_INCREMENT,"
-	    "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
-	    "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
-	    "`IP_SRC_ADDR` int(10) unsigned DEFAULT NULL,"
-	    "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
-	    "`IP_DST_ADDR` int(10) unsigned DEFAULT NULL,"
-	    "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
-	    "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
-	    "`BYTES` int(10) unsigned DEFAULT NULL,"
-	    "`PACKETS` int(10) unsigned DEFAULT NULL,"
-	    "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
-	    "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
-	    "`INFO` varchar(255) DEFAULT NULL,"
-	    "`JSON` blob,"
+	     "`idx` int(11) NOT NULL AUTO_INCREMENT,"
+	     "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
+	     "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
+	     "`IP_SRC_ADDR` int(10) unsigned DEFAULT NULL,"
+	     "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
+	     "`IP_DST_ADDR` int(10) unsigned DEFAULT NULL,"
+	     "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
+	     "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
+	     "`BYTES` int(10) unsigned DEFAULT NULL,"
+	     "`PACKETS` int(10) unsigned DEFAULT NULL,"
+	     "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+	     "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
+	     "`INFO` varchar(255) DEFAULT NULL,"
+	     "`JSON` blob,"
 #ifdef NTOPNG_PRO
-	    "`PROFILE` varchar(255) DEFAULT NULL,"
+	     "`PROFILE` varchar(255) DEFAULT NULL,"
 #endif
-	    "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
-	    "`INTERFACE` varchar(64) DEFAULT NULL,"
-	    "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`(200)),"
+	     "`NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+	     "`INTERFACE` varchar(64) DEFAULT NULL,"
+	     "KEY `idx` (`idx`,`IP_SRC_ADDR`,`IP_DST_ADDR`,`FIRST_SWITCHED`,`LAST_SWITCHED`,`INFO`(200)),"
 #ifdef NTOPNG_PRO
-	    "KEY `ix_flowsv4_4_profile` (`PROFILE`),"
+	     "KEY `ix_flowsv4_4_profile` (`PROFILE`),"
 #endif
-	    "KEY `ix_flowsv4_4_ntopng_instance_name` (`NTOPNG_INSTANCE_NAME`(255)),"
-	    "KEY `ix_flowsv4_4_ntopng_interface` (`INTERFACE`)"
-	    ") ENGINE=InnoDB AUTO_INCREMENT=520 DEFAULT CHARSET=utf8"
-	    "/*!50100 PARTITION BY HASH (`FIRST_SWITCHED`)"
-	    "PARTITIONS 32 */",
+	     "KEY `ix_flowsv4_4_ntopng_instance_name` (`NTOPNG_INSTANCE_NAME`(255)),"
+	     "KEY `ix_flowsv4_4_ntopng_interface` (`INTERFACE`)"
+	     ") ENGINE=InnoDB AUTO_INCREMENT=520 DEFAULT CHARSET=utf8"
+	     "/*!50100 PARTITION BY HASH (`FIRST_SWITCHED`)"
+	     "PARTITIONS 32 */",
 	     ntop->getPrefs()->get_mysql_tablename());
 
     if(exec_sql_query(&mysql, sql, true) < 0) {
@@ -216,118 +225,119 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 
 #ifdef NTOPNG_PRO
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
-	    "ADD `PROFILE` varchar(255) DEFAULT NULL,"
-	    "ADD INDEX `ix_%sv4_%u_profile` (PROFILE)",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "ADD `PROFILE` varchar(255) DEFAULT NULL,"
+	     "ADD INDEX `ix_%sv4_%u_profile` (PROFILE)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
-	    "ADD `PROFILE` varchar(255) DEFAULT NULL,"
-	    "ADD INDEX `ix_%sv6_%u_profile` (PROFILE)",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "ADD `PROFILE` varchar(255) DEFAULT NULL,"
+	     "ADD INDEX `ix_%sv6_%u_profile` (PROFILE)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
 #endif
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
-	    "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
-	    "ADD INDEX `ix_%sv4_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+	     "ADD INDEX `ix_%sv4_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
-	    "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
-	    "ADD INDEX `ix_%sv6_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "ADD `NTOPNG_INSTANCE_NAME` varchar(256) DEFAULT NULL,"
+	     "ADD INDEX `ix_%sv6_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` "
-	    "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
-	    "ADD INDEX `ix_%sv4_%u_ntopng_interface` (INTERFACE)",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
+	     "ADD INDEX `ix_%sv4_%u_ntopng_interface` (INTERFACE)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` "
-	    "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
-	    "ADD INDEX `ix_%sv6_%u_ntopng_interface` (INTERFACE)",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
+	     "ADD INDEX `ix_%sv6_%u_ntopng_interface` (INTERFACE)",
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
 
     // SECOND: we trasfer old table contents into the new schema
     snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv4` "
-	    "SELECT * FROM `%sv4_%u`",
-	    ntop->getPrefs()->get_mysql_tablename(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "SELECT * FROM `%sv4_%u`",
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
     snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv6` "
-	    "SELECT * FROM `%sv6_%u`",
-	    ntop->getPrefs()->get_mysql_tablename(),
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+	     "SELECT * FROM `%sv6_%u`",
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
 
     // THIRD: drop old tables (their contents have been transferred)
   }
-    snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
-    snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS `%sv6_%u` ",
-	    ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+  snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+  exec_sql_query(&mysql, sql, true, true);
+  snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS `%sv6_%u` ",
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
+  exec_sql_query(&mysql, sql, true, true);
 
-    // FOURTH: add extra indices to speedup queries
-    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` "
-	    "ADD INDEX `ix_%sv4_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
-	    ntop->getPrefs()->get_mysql_tablename(),
-	    ntop->getPrefs()->get_mysql_tablename());
-    exec_sql_query(&mysql, sql, true, true);
-    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` "
-	    "ADD INDEX `ix_%sv6_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
-	    ntop->getPrefs()->get_mysql_tablename(),
-	    ntop->getPrefs()->get_mysql_tablename());
-    exec_sql_query(&mysql, sql, true, true);
+  // FOURTH: add extra indices to speedup queries
+  snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` "
+	   "ADD INDEX `ix_%sv4_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
+	   ntop->getPrefs()->get_mysql_tablename(),
+	   ntop->getPrefs()->get_mysql_tablename());
+  exec_sql_query(&mysql, sql, true, true);
+  snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` "
+	   "ADD INDEX `ix_%sv6_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
+	   ntop->getPrefs()->get_mysql_tablename(),
+	   ntop->getPrefs()->get_mysql_tablename());
+  exec_sql_query(&mysql, sql, true, true);
 
-    // FIFTH: add an extra column with the interface id to speed up certain quer
-    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
+  // FIFTH: add an extra column with the interface id to speed up certain quer
+  snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
+	   ntop->getPrefs()->get_mysql_tablename());
+  exec_sql_query(&mysql, sql, true, true);
+
+  snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
+	   ntop->getPrefs()->get_mysql_tablename());
+  exec_sql_query(&mysql, sql, true, true);
+
+  // SIXTH: populate the brand new column INTERFACE_ID with the ids of interfaces
+  // and set to NULL the column INTERFACE
+  snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
+  exec_sql_query(&mysql, sql, true, true);
+  snprintf(sql, sizeof(sql), "UPDATE `%sv6` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
+  exec_sql_query(&mysql, sql, true, true);
+  snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
+  exec_sql_query(&mysql, sql, true, true);
+  snprintf(sql, sizeof(sql), "UPDATE `%sv6` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
+	   ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
+  exec_sql_query(&mysql, sql, true, true);
+
+  // SEVENTH: check if the INTERFACE column can be dropped
+  snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv4` WHERE INTERFACE IS NOT NULL LIMIT 1",
+	   ntop->getPrefs()->get_mysql_tablename());
+  if(exec_sql_query(&mysql, sql, true, true) == 0) {
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` DROP COLUMN INTERFACE",
 	     ntop->getPrefs()->get_mysql_tablename());
     exec_sql_query(&mysql, sql, true, true);
+  }
 
-    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
-	    ntop->getPrefs()->get_mysql_tablename());
-    exec_sql_query(&mysql, sql, true, true);
-
-    // SIXTH: populate the brand new column INTERFACE_ID with the ids of interfaces
-    // and set to NULL the column INTERFACE
-    snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
-	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
-    exec_sql_query(&mysql, sql, true, true);
-    snprintf(sql, sizeof(sql), "UPDATE `%sv6` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
-	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
-    exec_sql_query(&mysql, sql, true, true);
-    snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
-	     ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
-    exec_sql_query(&mysql, sql, true, true);
-    snprintf(sql, sizeof(sql), "UPDATE `%sv6` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
-	     ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
-    exec_sql_query(&mysql, sql, true, true);
-
-    // SEVENTH: check if the INTERFACE column can be dropped
-    snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv4` WHERE INTERFACE IS NOT NULL LIMIT 1",
+  snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv6` WHERE INTERFACE IS NOT NULL LIMIT 1",
+	   ntop->getPrefs()->get_mysql_tablename());
+  if(exec_sql_query(&mysql, sql, true, true) == 0) {
+    snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` DROP COLUMN INTERFACE",
 	     ntop->getPrefs()->get_mysql_tablename());
-    if (exec_sql_query(&mysql, sql, true, true) == 0){
-      snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` DROP COLUMN INTERFACE",
-	       ntop->getPrefs()->get_mysql_tablename());
-      exec_sql_query(&mysql, sql, true, true);
-    }
-    snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv6` WHERE INTERFACE IS NOT NULL LIMIT 1",
-	     ntop->getPrefs()->get_mysql_tablename());
-    if (exec_sql_query(&mysql, sql, true, true) == 0){
-      snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` DROP COLUMN INTERFACE",
-	       ntop->getPrefs()->get_mysql_tablename());
-      exec_sql_query(&mysql, sql, true, true);
-    }
+    exec_sql_query(&mysql, sql, true, true);
+  }
 
-    // TODO: add indices on the field INTERFACE_ID
-    pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
+  // TODO: add indices on the field INTERFACE_ID
+  pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 
 /* ******************************************* */
@@ -337,12 +347,14 @@ MySQLDB::~MySQLDB() {
 }
 
 /* ******************************************* */
-char* MySQLDB::get_insert_into_values(IPVersion vers){
-  char sql[8192];
+
+char* MySQLDB::get_insert_into_values(IPVersion vers) {
+  char sql[CONST_MAX_SQL_QUERY_LEN];
 
   snprintf(sql,
 	   sizeof(sql),
-	   "INSERT INTO `%sv%i` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
+	   "INSERT INTO `%sv%i` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
+	   "BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
 #ifdef NTOPNG_PRO
 	   ",PROFILE"
 #endif
@@ -357,7 +369,7 @@ char* MySQLDB::get_insert_into_values(IPVersion vers){
 /* ******************************************* */
 
 bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
-  char sql[8192], cli_str[64], srv_str[64], *json_buf;
+  char sql[CONST_MAX_SQL_QUERY_LEN], cli_str[64], srv_str[64], *json_buf;
   u_int32_t bytes, packets, first_seen, last_seen;
 
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
@@ -398,7 +410,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
     last_seen = f->get_last_seen();
   }
 
-  if(f->get_cli_host()->get_ip()->isIPv4()){
+  if(f->get_cli_host()->get_ip()->isIPv4()) {
     snprintf(sql, sizeof(sql),
 	     " ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
 #ifdef NTOPNG_PRO
@@ -448,8 +460,6 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
     ntop->getRedis()->lpush(CONST_SQL_QUEUE_V6, sql, CONST_MAX_MYSQL_QUEUE_LEN);
   }
   free(json_buf);
-
-
 
   return(true);
 }
@@ -517,7 +527,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 /*
   Locking is necessary when multiple queries are executed
   simulatenously (e.g. via Lua)
- */
+*/
 int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
 			    bool doReconnect, bool ignoreErrors,
 			    bool doLock) {

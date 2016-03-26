@@ -1373,6 +1373,7 @@ void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
 /* *************************************** */
 
 void Host::incLowGoodputFlows(bool asClient) {
+#if 0
   bool alert = false;
 
   if(asClient) {
@@ -1381,7 +1382,6 @@ void Host::incLowGoodputFlows(bool asClient) {
     if(++low_goodput_server_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   }
 
-#if 0
   if(alert && (!good_low_flow_detected)) {
     char alert_msg[1024], *c, c_buf[64];
 
@@ -1418,7 +1418,13 @@ void Host::decLowGoodputFlows(bool asClient) {
 /* *************************************** */
 
 void Host::incrVisitedWebSite(char *hostname) {
-  if(topSitesKey && (strstr(hostname, "in-addr.arpa") == NULL)) {
+  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+  
+  if(topSitesKey 
+    && (strstr(hostname, "in-addr.arpa") == NULL)
+    && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
+    ) {
+#if 0
     char *firstdot = strchr(hostname, '.');
 
     if(firstdot) {
@@ -1426,5 +1432,8 @@ void Host::incrVisitedWebSite(char *hostname) {
 
       ntop->getRedis()->zIncr(topSitesKey, nextdot ? &firstdot[1] : hostname);
     }
+#else
+    ntop->getRedis()->zIncr(topSitesKey, hostname);
+#endif
   }
 }
