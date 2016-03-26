@@ -11,21 +11,15 @@ local json = require ("dkjson")
 
 interface.select(ifname)
 
-local nbox_host = ntop.getCache("ntopng.prefs.nbox_host")
 local nbox_user = ntop.getCache("ntopng.prefs.nbox_user")
 local nbox_password = ntop.getCache("ntopng.prefs.nbox_password")
-if((nbox_host == nil) or (nbox_host == "")) then nbox_host = "localhost" end
 if((nbox_user == nil) or (nbox_user == "")) then nbox_user = "nbox" end
 if((nbox_password == nil) or (nbox_password == "")) then nbox_password = "nbox" end
 
-local base_url = "https://"..nbox_host
+local base_url = "https://localhost"
 
 local status_url = base_url.."/ntop-bin/check_status_tasks_external.cgi"
 local schedule_url = base_url.."/ntop-bin/sudowrapper_external.cgi?script=npcapextract_external.cgi"
-local activity_scheduler_url = base_url.."/ntop-bin/config_scheduler.cgi"
-local download_url = base_url.."/ntop-bin/sudowrapper.cgi"
-download_url = download_url.."?script=n2disk_filemanager.cgi&opt=download_pcap&dir=/storage/n2disk/&pcap_name=/storage/n2disk/"
-
 
 -- Query parameters
 action       = _GET["action"]
@@ -123,10 +117,9 @@ elseif action == "status" then
 			local tasks = {}
 			for _,task in pairs(content["tasks"]) do
 				if task["status"] ~= "scheduled" then
-					task["actions"] =
-					'<a href="'..download_url..task["task_id"]..'.pcap"><i class="fa fa-download fa-lg"></i></a> '
+					task["actions"] ='<a href="javascript:void(0);" onclick=\'download_pcap_from_nbox("'..task["task_id"]..'")\';><i class="fa fa-download fa-lg"></i></a> '
 				end
-				task["actions"] = task["actions"]..'<a href="'..activity_scheduler_url..'" target="_blank"><i class="fa fa-external-link"></i></a> '
+				task["actions"] = task["actions"]..'<a href="javascript:void(0);" onclick="jump_to_nbox_activity_scheduler()";><i class="fa fa-external-link"></i></a> '
 				if task["bpf"] == nil then task["bpf"] = "" end
 				tasks[task["task_id"]] =
 				   {["column_task_id"] = task["task_id"],

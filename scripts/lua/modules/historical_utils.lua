@@ -1027,6 +1027,32 @@ print[[
 <div id="table-pcaps"></div>
 <script>
 
+function jump_to_nbox_activity_scheduler(){
+  var url = document.URL;
+  res = url.split("http://");
+  if(res[0]=="") url=res[1]; else url=res[0];
+  res = url.split("https://");
+  if(res[0]=="") url=res[1]; else url=res[0];
+  res = url.split("/");
+  url = res[0];
+  res = url.split(":");
+  url = res[0];
+  window.open("https://"+url+"/ntop-bin/config_scheduler.cgi", "_blank");
+}
+
+function download_pcap_from_nbox(task_id){
+  var url = document.URL;
+  res = url.split("http://");
+  if(res[0]=="") url=res[1]; else url=res[0];
+  res = url.split("https://");
+  if(res[0]=="") url=res[1]; else url=res[0];
+  res = url.split("/");
+  url = res[0];
+  res = url.split(":");
+  url = res[0];
+  window.open("https://"+url+"/ntop-bin/sudowrapper.cgi?script=n2disk_filemanager.cgi&opt=download_pcap&dir=/storage/n2disk/&pcap_name=/storage/n2disk/"+task_id+".pcap", "_blank");
+}
+
 var populatePcapsTable = function(){
   $("#table-pcaps").datatable({
     title: "Pcaps",

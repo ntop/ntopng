@@ -306,7 +306,6 @@
 #define CONST_NAGIOS_HOST_NAME_PREFS       "ntopng.prefs.nagios_host_name"
 #define CONST_NAGIOS_SERVICE_NAME_PREFS    "ntopng.prefs.nagios_service_name"
 #endif
-#define CONST_NBOX_HOST               "ntopng.prefs.nbox_host"
 #define CONST_NBOX_USER               "ntopng.prefs.nbox_user"
 #define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
