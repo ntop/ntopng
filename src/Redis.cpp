@@ -151,6 +151,27 @@ int Redis::get(char *key, char *rsp, u_int rsp_len) {
 
   return(rc);
 }
+/* **************************************** */
+
+int Redis::del(char *key){
+  int rc;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+  reply = (redisReply*)redisCommand(redis, "DEL %s", key);
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR)){
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    rc = -1;
+  } else {
+    rc = 0;
+  }
+
+  if(reply) freeReplyObject(reply);
+  l->unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
 
 /* **************************************** */
 

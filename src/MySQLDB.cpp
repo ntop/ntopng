@@ -249,7 +249,12 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   // and set to NULL the column INTERFACE
   snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
-  exec_sql_query(&mysql, sql, true, true);
+  if (exec_sql_query(&mysql, sql, true, true) == 0){
+    // change succeeded, we have to flush possibly existing mysql queues
+    // that may have different format
+    ntop->getRedis()->del((char*)CONST_SQL_QUEUE);
+  }
+
   snprintf(sql, sizeof(sql), "UPDATE `%sv6` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
   exec_sql_query(&mysql, sql, true, true);
