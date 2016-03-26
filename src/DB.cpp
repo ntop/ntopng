@@ -49,3 +49,9 @@ int DB::exec_sql_query(lua_State *vm, char *sql, bool limit_rows) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
 }
+
+/* ******************************************* */
+
+void DB::startDBLoop() {
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
+}

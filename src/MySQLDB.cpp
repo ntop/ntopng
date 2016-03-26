@@ -29,90 +29,31 @@ static void* queryLoop(void* ptr) {
 
 /* **************************************************** */
 
-int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers) {
-  Redis *r = ntop->getRedis();
-  char **flows = NULL;
-  char *sql;
-  char *insert_into, *sql_queue;
-  char *separator = (char*)",";
-
-  switch(vers) {
-  case IPV4:
-    sql_queue = (char*)CONST_SQL_QUEUE_V4;
-    break;
-  case IPV6:
-    sql_queue = (char*)CONST_SQL_QUEUE_V6;
-    break;
-  default:
-    return -1;
-  }
-
-  if((sql = (char*)malloc(CONST_MAX_SQL_QUERY_LEN * CONST_SQL_BATCH_SIZE)) == NULL)
-    return(-1);
-
-  insert_into = get_insert_into_values(vers);
-  int rc = r->lpop(sql_queue, &flows, CONST_SQL_BATCH_SIZE);
-
-  // build up the sql query
-  if(rc > 0 && flows[0] != NULL) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Batch insertion of %i flows from %s", rc, sql_queue);
-
-    strcpy(sql, insert_into);
-    strcat(sql, flows[0]);
-
-    for(int i = 1; i < rc; i++) {
-      if(flows[i] == NULL)
-	continue;
-
-      strcat(sql, separator);
-      strcat(sql, flows[i]);
-      free(flows[i]);
-    }
-
-    if(exec_sql_query(mysql_alt, sql, true, true, false) < 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(mysql_alt));
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error with batch insertion to %s", sql_queue);
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Query: %s", sql);
-      rc = -1;
-    }
-  }
-
-  if(flows)       free(flows);
-  if(insert_into) free(insert_into);
-
-  free(sql);
-  return(rc);
-}
-
-/* **************************************************** */
-
 void* MySQLDB::queryLoop() {
+  Redis *r = ntop->getRedis();
   MYSQL mysql_alt;
 
   if(!connectToDB(&mysql_alt, true))
-    return NULL;
+    return(NULL);
 
   while(!ntop->getGlobals()->isShutdown()) {
-    int bv4 = insert_batch(&mysql_alt, IPV4);
-    int bv6 = insert_batch(&mysql_alt, IPV6);
-    
-    if((bv4 == 0) && (bv6 == 0)) {
-      // take a nap
-      sleep(1);
-    }
+    char sql[2048];
+    int rc = r->lpop(CONST_SQL_QUEUE, sql, sizeof(sql));
 
-    // and ping the connection
-    /*
-      if(exec_sql_query(&mysql_alt, (char*)"SELECT 1", true, true, false) < 0) {
-      mysql_close(&mysql_alt);
-      if(!connectToDB(&mysql_alt, true))
-      return NULL; // failed to reconnect
+    if(rc == 0) {
+      if(exec_sql_query(&mysql_alt, sql, true, true, false) != 0) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(&mysql_alt));
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
+	mysql_close(&mysql_alt);
+	if(!connectToDB(&mysql_alt, true))
+	  return(NULL);
       }
-    */
+    } else
+      sleep(1);    
   }
 
   mysql_close(&mysql_alt);
-  return NULL;
+  return(NULL);
 }
 
 /* ******************************************* */
@@ -335,15 +276,18 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     ntop->getPrefs()->get_mysql_tablename());
     exec_sql_query(&mysql, sql, true, true);
   }
-
-  // TODO: add indices on the field INTERFACE_ID
-  pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 
 /* ******************************************* */
 
 MySQLDB::~MySQLDB() {
   mysql_close(&mysql);
+}
+
+/* ******************************************* */
+
+void MySQLDB::startDBLoop() {
+  pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
 }
 
 /* ******************************************* */
@@ -412,11 +356,17 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 
   if(f->get_cli_host()->get_ip()->isIPv4()) {
     snprintf(sql, sizeof(sql),
-	     " ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
+	     "INSERT INTO `%sv4` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
+	     "BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
+#ifdef NTOPNG_PRO
+	     ",PROFILE"
+#endif
+	     ") VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
 #ifdef NTOPNG_PRO
 	     ",'%s'"  // this is the string for traffic profile
 #endif
 	     ") ",
+	     ntop->getPrefs()->get_mysql_tablename(),
 	     f->get_vlan_id(),
 	     f->get_detected_protocol().protocol,
 	     htonl(f->get_cli_host()->get_ip()->get_ipv4()),
@@ -433,14 +383,19 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     ,f->get_profile_name()
 #endif
 	     );
-    ntop->getRedis()->lpush(CONST_SQL_QUEUE_V4, sql, CONST_MAX_MYSQL_QUEUE_LEN);
   }  else {
     snprintf(sql, sizeof(sql),
-	     " ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
+	     "INSERT INTO `%sv6` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
+	     "BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
+#ifdef NTOPNG_PRO
+	     ",PROFILE"
+#endif
+	     ") VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
 #ifdef NTOPNG_PRO
 	     ",'%s'"  // this is the string for traffic profile
 #endif
 	     ") ",
+	     ntop->getPrefs()->get_mysql_tablename(),
 	     f->get_vlan_id(),
 	     f->get_detected_protocol().protocol,
 	     f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
@@ -457,9 +412,10 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     ,f->get_profile_name()
 #endif
 	     );
-    ntop->getRedis()->lpush(CONST_SQL_QUEUE_V6, sql, CONST_MAX_MYSQL_QUEUE_LEN);
   }
   free(json_buf);
+
+  ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
 
   return(true);
 }

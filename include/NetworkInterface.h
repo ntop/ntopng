@@ -290,6 +290,7 @@ class NetworkInterface {
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,
 		      u_int64_t remBytes, u_int64_t remPkts);
+  void startDBLoop() { if(db) db->startDBLoop(); };
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
