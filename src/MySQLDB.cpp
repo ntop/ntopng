@@ -52,21 +52,28 @@ int MySQLDB::insert_batch(MYSQL *mysql_alt, IPVersion vers) {
 
   insert_into = get_insert_into_values(vers);
   int rc = r->lpop(sql_queue, &flows, CONST_SQL_BATCH_SIZE);
-
+  bool do_header=true;
   // build up the sql query
   if(rc > 0 && flows[0] != NULL) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Batch insertion of %i flows from %s", rc, sql_queue);
 
-    strcpy(sql, insert_into);
-    strcat(sql, flows[0]);
-
-    for(int i = 1; i < rc; i++) {
+    for(int i = 0; i < rc; i++) {
       if(flows[i] == NULL)
 	continue;
 
-      strcat(sql, separator);
-      strcat(sql, flows[i]);
+      if (strlen(flows[i]) < CONST_MAX_SQL_QUERY_LEN){
+	if(do_header){
+	  strcpy(sql, insert_into);
+	  strcat(sql, flows[i]);
+	  do_header = false;
+	} else {
+	strcat(sql, separator);
+	strcat(sql, flows[i]);
+	}
+      }
+
       free(flows[i]);
+
     }
 
     if(exec_sql_query(mysql_alt, sql, true, true, false) < 0) {
