@@ -45,7 +45,7 @@ class Prefs {
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, use_promiscuous_mode, zmq_collector_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
-    enable_users_login, disable_localhost_login;
+    enable_users_login, disable_localhost_login, online_license_check;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
@@ -170,7 +170,7 @@ class Prefs {
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
-
+  inline bool checkLicenseOnline()               { return(online_license_check);  };
   inline char* get_es_type()  { return(es_type);  };
   inline char* get_es_index() { return(es_index); };
   inline char* get_es_url()   { return(es_url);   };

@@ -278,7 +278,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 	 if((num < perPage) or (all ~= nil))then
 	    if(num > 0) then print ",\n" end
 	    print ('{ ')
-	    print ('\"key\" : \"'..hostinfo2jqueryid(hosts_stats[key])..'\",')
+	    symkey = hostinfo2jqueryid(hosts_stats[key])
+	    print ('\"key\" : \"'..symkey..'\",')
 
 	    print ("\"column_ip\" : \"<A HREF='")
 

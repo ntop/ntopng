@@ -31,7 +31,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
-  resolve_all_host_ip = false;
+  resolve_all_host_ip = false, online_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -398,6 +398,7 @@ static const struct option long_options[] = {
   { "httpdocs-dir",                      required_argument, NULL, '1' },
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
+  { "online-license-check",              no_argument,       NULL, 211 },
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "zmq-collector-mode",                no_argument,       NULL, 214 },
@@ -407,7 +408,6 @@ static const struct option long_options[] = {
   { "check-license",                     no_argument,       NULL, 253 },
   { "community",                         no_argument,       NULL, 254 },
 #endif
-
   /* End of options */
   { NULL,                                no_argument,       NULL,  0 }
 };
@@ -794,6 +794,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'X':
     max_num_flows = max_val(atoi(optarg), 1024);
+    break;
+
+  case 211:
+    online_license_check = true;
     break;
 
   case 212:
