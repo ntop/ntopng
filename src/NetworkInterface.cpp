@@ -44,7 +44,7 @@ static void free_wrapper(void *freeable) { free(freeable);      }
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
-    ndpi_struct = NULL,
+    ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
     sprobe_interface = inline_interface = false,has_vlan_packets = false,
     last_pkt_rcvd = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
@@ -2880,5 +2880,15 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
   if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
   if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
   ifSpeed = speedMbit;
-  ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
+
+  if(zmq_initial_pkts == 0) {
+    zmq_initial_bytes = remBytes, zmq_initial_pkts = remPkts;
+  } else {
+    remBytes -= zmq_initial_bytes, remPkts -= zmq_initial_pkts;
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]", 
+				 ifname, remBytes, ethStats.getNumBytes(), remBytes-ethStats.getNumBytes(),
+				 remPkts, ethStats.getNumPackets(), remPkts-ethStats.getNumPackets());
+    ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
+  }
 }
