@@ -398,7 +398,7 @@ void ParserInterface::addMapping(const char *sym, int num) {
 
   if(m) {
     m->key = strdup(sym), m->value = num;
-    if(m->key) HASH_ADD_STR(map, key, m);    
+    if(m->key) HASH_ADD_STR(map, key, m); else free(m);
   }
 }
 

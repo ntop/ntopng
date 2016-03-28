@@ -213,7 +213,8 @@ prefix_toa2x (prefix_t *prefix, char *buff, int with_len)
     assert (prefix->bitlen <= sizeof(struct in_addr) * 8);
     a = prefix_touchar (prefix);
     if(with_len) {
-      sprintf (buff, "%d.%d.%d.%d/%d", a[0], a[1], a[2], a[3],
+      sprintf (buff, "%d.%d.%d.%d/%u",
+	       a[0], a[1], a[2], a[3],
 	       prefix->bitlen);
     }
     else {
@@ -227,7 +228,7 @@ prefix_toa2x (prefix_t *prefix, char *buff, int with_len)
     r = (char *) inet_ntop (AF_INET6, &prefix->add.sin6, buff, 48 /* a guess value */ );
     if(r && with_len) {
       assert (prefix->bitlen <= sizeof(struct in6_addr) * 8);
-      sprintf (buff + strlen (buff), "/%d", prefix->bitlen);
+      sprintf (buff + strlen (buff), "/%u", prefix->bitlen);
     }
     return (buff);
   }

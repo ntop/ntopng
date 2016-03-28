@@ -228,6 +228,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
 #ifdef NTOPNG_PRO
 void Ntop::registerNagios(void) {
+  if(nagios_manager) { delete nagios_manager; nagios_manager = NULL; }
   nagios_manager = new NagiosManager();
 }
 #endif
@@ -727,8 +728,16 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
       ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, sizeof(admin_group));
 
       if(ldapServer[0]) {
-	bool ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType, ldapAnonymousBind, bind_dn, bind_pwd,
-						     search_path, user, password, group, admin_group, &is_admin);
+	bool ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType, 
+						     (atoi(ldapAnonymousBind) == 0) ? false : true,
+						     bind_dn[0] != '\0' ? bind_dn : NULL,
+						     bind_pwd[0] != '\0' ? bind_pwd : NULL,
+						     search_path[0] != '\0' ? search_path : NULL, 
+						     user, 
+						     password[0] != '\0' ? password : NULL,
+						     group[0] != '\0' ? group : NULL,
+						     admin_group[0] != '\0' ? admin_group : NULL,
+						     &is_admin);
 
 	if(ret) {
 	  /* Let's cache the password so we avoid talking to LDAP too often  */
@@ -1130,7 +1139,7 @@ NetworkInterfaceView* Ntop::getInterfaceView(char *name) {
 
 /* ******************************************* */
 
-/* NOTUSED */
+#ifdef NOTUSED
 int Ntop::getInterfaceIdByName(char *name) {
   /* This method accepts both interface names or Ids */
   int if_id = atoi(name);
@@ -1155,6 +1164,7 @@ int Ntop::getInterfaceIdByName(char *name) {
 
   return(-1);
 }
+#endif
 
 /* ******************************************* */
 

@@ -297,6 +297,7 @@ void MySQLDB::startDBLoop() {
 
 /* ******************************************* */
 
+#ifdef NOTUSED
 char* MySQLDB::get_insert_into_values(IPVersion vers) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
@@ -314,6 +315,7 @@ char* MySQLDB::get_insert_into_values(IPVersion vers) {
 
   return strdup(sql);
 }
+#endif
 
 /* ******************************************* */
 

@@ -613,9 +613,11 @@ char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
 
 /* **************************************** */
 
+#ifdef NOTUSED
 int Redis::popDomainToCategorize(char *domainname, u_int domainname_len) {
   return(lpop(DOMAIN_TO_CATEGORIZE, domainname, domainname_len));
 }
+#endif
 
 /* **************************************** */
 
@@ -760,6 +762,7 @@ char* Redis::getVersion(char *str, u_int str_len) {
 
 /* **************************************** */
 
+#ifdef NOTUSED
 int Redis::hashIncr(char *key, char *field, u_int32_t value) {
   int rc;
   redisReply *reply;
@@ -776,6 +779,7 @@ int Redis::hashIncr(char *key, char *field, u_int32_t value) {
 
   return(rc);
 }
+#endif
 
 /* **************************************** */
 

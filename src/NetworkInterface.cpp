@@ -45,6 +45,9 @@ static void free_wrapper(void *freeable) { free(freeable);      }
 NetworkInterface::NetworkInterface() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
     ndpi_struct = NULL,
+    sprobe_interface = inline_interface = false,has_vlan_packets = false,
+    last_pkt_rcvd = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
+    pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
@@ -475,6 +478,7 @@ int NetworkInterface::dumpDBFlow(time_t when, bool partial_dump, Flow *f) {
 
 /* **************************************************** */
 
+#ifdef NOTUSED
 static bool node_proto_guess_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   char buf[512];
@@ -483,13 +487,16 @@ static bool node_proto_guess_walker(GenericHashEntry *node, void *user_data) {
 
   return(false); /* false = keep on walking */
 }
+#endif
 
 /* **************************************************** */
 
+#ifdef NOTUSED
 void NetworkInterface::dumpFlows() {
   /* NOTUSED */
   flows_hash->walk(node_proto_guess_walker, NULL);
 }
+#endif
 
 /* **************************************************** */
 
@@ -2807,6 +2814,7 @@ void NetworkInterface::refreshShapers() {
 
 /* **************************************** */
 
+#ifdef NOTUSED
 void NetworkInterface::addInterfaceAddress(char *addr) {
   if(ip_addresses.size() == 0)
     ip_addresses = addr;
@@ -2816,6 +2824,7 @@ void NetworkInterface::addInterfaceAddress(char *addr) {
     ip_addresses = ip_addresses + "," + s;
   }
 }
+#endif
 
 /* **************************************** */
 

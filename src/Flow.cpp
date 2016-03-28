@@ -1313,6 +1313,7 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
 /* *************************************** */
 
+#ifdef NOTUSED
 struct site_categories* Flow::getFlowCategory(bool force_categorization) {
   if(!categorization.categorized_requested) {
     if(ndpiFlow == NULL)
@@ -1327,6 +1328,7 @@ struct site_categories* Flow::getFlowCategory(bool force_categorization) {
 
   return(&categorization.category);
 }
+#endif
 
 /* *************************************** */
 
@@ -1372,6 +1374,7 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
 
 /* *************************************** */
 
+#ifdef NOTUSED
 json_object* Flow::flow2es(json_object *flow_object) {
   char buf[64];
   struct tm* tm_info;
@@ -1401,6 +1404,7 @@ json_object* Flow::flow2es(json_object *flow_object) {
 
   return(flow_object);
 }
+#endif
 
 /* *************************************** */
 

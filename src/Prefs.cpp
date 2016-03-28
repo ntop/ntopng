@@ -42,6 +42,9 @@ Prefs::Prefs(Ntop *_ntop) {
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup(""), zmq_encryption_pwd = NULL;
   instance_name = NULL;
+  categorization_enabled = enable_users_login = false;
+  categorization_key = NULL, zmq_encryption_pwd = NULL;
+  es_index = es_url = es_user = es_pwd = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);

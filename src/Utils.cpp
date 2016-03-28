@@ -122,6 +122,7 @@ char* Utils::l4proto2name(u_int8_t proto) {
 
 /* ****************************************************** */
 
+#ifdef NOTUSED
 bool Utils::isIPAddress(char *ip) {
   struct in_addr addr4;
   struct in6_addr addr6;
@@ -139,6 +140,7 @@ bool Utils::isIPAddress(char *ip) {
 
   return(false);
 }
+#endif
 
 /* ****************************************************** */
 
@@ -193,9 +195,11 @@ u_int32_t Utils::hashString(char *key) {
 
 /* ****************************************************** */
 
+#ifdef NOTUSED
 float Utils::timeval2ms(struct timeval *tv) {
   return((float)tv->tv_sec*1000+(float)tv->tv_usec/1000);
 }
+#endif
 
 /* ****************************************************** */
 
@@ -327,6 +331,7 @@ static inline bool is_base64(unsigned char c) {
 
 /* **************************************************** */
 
+#ifdef NOTUSED
 std::string Utils::base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
   std::string ret;
   int i = 0;
@@ -366,6 +371,7 @@ std::string Utils::base64_encode(unsigned char const* bytes_to_encode, unsigned 
 
   return ret;
 }
+#endif
 
 /* **************************************************** */
 
@@ -973,13 +979,16 @@ char* Utils::getURL(char *url, char *buf, u_int buf_len) {
 
 // Support functions for 'urlEncode'.
 
+#ifdef NOTUSED
 static char to_hex(char code) {
   static char hex[] = "0123456789ABCDEF";
   return hex[code & 15];
 }
+#endif
 
 /* **************************************************** */
 
+#ifdef NOTUSED
 static int alphanum(char code) {
   int i;
   static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -988,10 +997,12 @@ static int alphanum(char code) {
   }
   return 0;
 }
+#endif
 
 /* **************************************************** */
 
 // Encodes a URL to hexadecimal format.
+#ifdef NOTUSED
 char* Utils::urlEncode(char *url) {
   char *pstr = url;
   char *buf = (char *) malloc(strlen(url) * 3 + 1);
@@ -1013,10 +1024,12 @@ char* Utils::urlEncode(char *url) {
   *pbuf = '\0';
   return buf;
 }
+#endif
 
 /* **************************************** */
 
 // The following one initializes a new string.
+#ifdef NOTUSED
 static void newString(String *str) {
   str->l = 0;
   str->s = (char *) malloc((str->l) + 1);
@@ -1029,10 +1042,12 @@ static void newString(String *str) {
   }
   return;
 }
+#endif
 
 /* **************************************************** */
 
 // This callback function will be passed to 'curl_easy_setopt' in order to write curl output to a variable.
+#ifdef NOTUSED
 static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
   size_t new_len = str->l + (size * nmemb);
   str->s = (char *) realloc(str->s, new_len + 1);
@@ -1046,9 +1061,11 @@ static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
 
   return (size * nmemb);
 }
+#endif
 
 /* **************************************************** */
 
+#ifdef NOTUSED
 // Adding this function that performs a simple HTTP GET request using libcurl.
 // The function returns a string that contains the reply.
 char* Utils::curlHTTPGet(char *url, long *http_code) {
@@ -1076,6 +1093,7 @@ char* Utils::curlHTTPGet(char *url, long *http_code) {
   }
   return NULL;
 }
+#endif
 
 /* **************************************** */
 
