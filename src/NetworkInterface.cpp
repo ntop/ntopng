@@ -2881,7 +2881,10 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
   if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
   ifSpeed = speedMbit;
 
-  if(zmq_initial_pkts == 0) {
+  if((zmq_initial_pkts == 0) /* ntopng has been restarted */
+     || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */
+     ) {
+    /* Start over */
     zmq_initial_bytes = remBytes, zmq_initial_pkts = remPkts;
   } else {
     remBytes -= zmq_initial_bytes, remPkts -= zmq_initial_pkts;
