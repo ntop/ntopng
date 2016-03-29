@@ -41,7 +41,7 @@ void* MySQLDB::queryLoop() {
     int rc = r->lpop(CONST_SQL_QUEUE, sql, sizeof(sql));
 
     if(rc == 0) {
-      if(exec_sql_query(&mysql_alt, sql, true, true, false) != 0) {
+      if(exec_sql_query(&mysql_alt, sql, true, true, false) < 0) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(&mysql_alt));
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
 	mysql_close(&mysql_alt);

@@ -695,6 +695,10 @@ char* Flow::print(char *buf, u_int buf_len) {
 bool Flow::dumpFlow(bool partial_dump) {
   bool rc = false;
 
+  if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
+     && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
+    return rc;
+
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->get_export_interface()) {
