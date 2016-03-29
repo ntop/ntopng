@@ -262,6 +262,7 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "--capture-direction                 | Specify packet capture direction\n"
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
+	 "--online-license-check              | Check license online\n"
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
