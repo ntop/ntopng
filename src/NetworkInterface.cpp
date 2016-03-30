@@ -693,19 +693,21 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   Flow *flow;
   u_int8_t *eth_src = eth->h_source, *eth_dst = eth->h_dest;
   IpAddress src_ip, dst_ip;
-  u_int16_t src_port, dst_port, payload_len;
+  u_int16_t src_port = 0, dst_port = 0, payload_len = 0;
   struct ndpi_tcphdr *tcph = NULL;
   struct ndpi_udphdr *udph = NULL;
   u_int16_t l4_packet_len;
-  u_int8_t *l4, tcp_flags = 0, *payload;
+  u_int8_t *l4, tcp_flags = 0, *payload = NULL;
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
 
+ decode_ip:
   if(iph != NULL) {
     /* IPv4 */
     if(ipsize < 20) {
-      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, 
+	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
 
@@ -777,11 +779,29 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
+  } else if(l4_proto == IPPROTO_GRE) {
+    struct grev1_header gre;
+    int offset = sizeof(struct grev1_header);
+
+    memcpy(&gre, l4, sizeof(struct grev1_header));
+    gre.flags_and_version = ntohs(gre.flags_and_version);
+    gre.proto = ntohs(gre.proto);
+    
+    if(gre.flags_and_version & (GRE_HEADER_CHECKSUM | GRE_HEADER_ROUTING)) offset += 4;
+    if(gre.flags_and_version & GRE_HEADER_KEY)      offset += 4;
+    if(gre.flags_and_version & GRE_HEADER_SEQ_NUM)  offset += 4;
+    
+    if(gre.proto == ETHERTYPE_IP) {
+      iph = (struct ndpi_iphdr*)(l4 + offset), ip6 = NULL;
+      goto decode_ip;
+    } else if(gre.proto == ETHERTYPE_IPV6) {
+      iph = (struct ndpi_iphdr*)(l4 + offset), ip6 = NULL;
+      goto decode_ip;
+    } else {
+      /* Unknown encapsulation */
+    }
   } else {
     /* non TCP/UDP protocols */
-
-    src_port = dst_port = 0;
-    payload = NULL, payload_len = 0;
   }
 
   if(iph != NULL) {

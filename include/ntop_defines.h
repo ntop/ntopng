@@ -458,15 +458,24 @@
 #define MAX_NUM_CATEGORIES         3
 #define NTOP_UNKNOWN_CATEGORY_STR  "???"
 #define NTOP_UNKNOWN_CATEGORY_ID   0
-
 // MySQL-related defined
 #define MYSQL_MAX_NUM_FIELDS  255
 #define MYSQL_MAX_NUM_ROWS    999
 
+/* GRE (Generic Route Encapsulation) */
+#ifndef IPPROTO_GRE
+#define IPPROTO_GRE 47
+#endif
+
+#define GRE_HEADER_CHECKSUM      0x8000 /* 32 bit */
+#define GRE_HEADER_ROUTING       0x4000 /* 32 bit */
+#define GRE_HEADER_KEY           0x2000 /* 32 bit */
+#define GRE_HEADER_SEQ_NUM       0x1000 /* 32 bit */
+
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
-#define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
+#define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
 
 #define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
 #define PREF_LDAP_ACCOUNT_TYPE        "ntopng.prefs.ldap.account_type"
@@ -479,4 +488,5 @@
 #define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
 #define CONST_CACHED_USER_PASSWORD    "ntopng.user.ldap.%s.password"
 #define CONST_CACHED_USER_GROUP       "ntopng.user.%s.group"
+
 #endif /* _NTOP_DEFINES_H_ */

@@ -128,4 +128,9 @@ struct active_flow_stats {
     breeds_bytes[NUM_BREEDS];
 };
 
+struct grev1_header {
+  u_int16_t flags_and_version;
+  u_int16_t proto;
+};
+
 #endif /* _NTOP_TYPEDEFS_H_ */
