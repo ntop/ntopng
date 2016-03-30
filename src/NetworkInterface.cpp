@@ -46,7 +46,7 @@ NetworkInterface::NetworkInterface() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
     sprobe_interface = inline_interface = false,has_vlan_packets = false,
-    last_pkt_rcvd = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
+      last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     sprobe_interface = false, has_vlan_packets = false,
@@ -178,7 +178,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     NDPI_BITMASK_SET_ALL(all);
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
-    last_pkt_rcvd = 0, pollLoopCreated = false, bridge_interface = false;
+    last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = 0, antenna_mac = NULL;
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
@@ -553,9 +553,37 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
+  time_t now = time(NULL);
 
-  if((time_t)zflow->last_switched > (time_t)last_pkt_rcvd)
-    last_pkt_rcvd = zflow->last_switched;
+  if(last_pkt_rcvd_remote > 0) {
+    int drift = now - last_pkt_rcvd_remote;
+
+    if(drift >= 0)
+      zflow->last_switched += drift, zflow->first_switched += drift;
+    else {
+      u_int32_t d = (u_int32_t)-drift;
+
+      if(d < zflow->last_switched)  zflow->last_switched  += drift;
+      if(d < zflow->first_switched) zflow->first_switched += drift;
+    }
+
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
+				 zflow->first_switched,  zflow->last_switched,  
+				 zflow->last_switched-zflow->first_switched, drift,
+				 now, last_pkt_rcvd_remote);
+#endif
+  } else {
+    /* Old nProbe */
+
+    if((time_t)zflow->last_switched > (time_t)last_pkt_rcvd_remote)
+      last_pkt_rcvd_remote = zflow->last_switched;
+
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]", 
+				 zflow->first_switched,  zflow->last_switched,  zflow->last_switched- zflow->first_switched);
+#endif
+  }
 
   /* Updating Flow */
   flow = getFlow(zflow->src_mac, zflow->dst_mac,
@@ -571,7 +599,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->l4_proto == IPPROTO_TCP) {
     struct timeval when;
 
-    when.tv_sec = (long)last_pkt_rcvd, when.tv_usec = 0;
+    when.tv_sec = (long)now, when.tv_usec = 0;
     flow->updateTcpFlags((const struct bpf_timeval*)&when,
 			 zflow->tcp_flags, src2dst_direction);
   }
@@ -593,7 +621,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 			       zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			       zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
 
-  incStats(last_pkt_rcvd, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
@@ -785,7 +813,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* Updating Flow */
   flow = getFlow(eth_src, eth_dst, vlan_id, &src_ip, &dst_ip, src_port, dst_port,
-		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, &new_flow);
+		 l4_proto, &src2dst_direction, last_pkt_rcvd_remote, last_pkt_rcvd_remote, &new_flow);
 
   if(flow == NULL) {
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
@@ -2874,12 +2902,13 @@ void NetworkInterface::updateSecondTraffic(time_t when) {
 
 void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 				      char *remoteProbeAddress, char *remoteProbePublicAddress,
-				      u_int64_t remBytes, u_int64_t remPkts) {
+				      u_int64_t remBytes, u_int64_t remPkts,
+				      u_int32_t remTime) {
   if(name)               setRemoteIfname(name);
   if(address)            setRemoteIfIPaddr(address);
   if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
   if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit;
+  ifSpeed = speedMbit, last_pkt_rcvd_remote = remTime;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */

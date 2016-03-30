@@ -84,7 +84,8 @@ class NetworkInterface {
   StatsManager *statsManager;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
-  time_t last_pkt_rcvd, next_idle_flow_purge, next_idle_host_purge;
+  time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
+    next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
   PacketDumper *pkt_dumper;
   PacketDumperTuntap *pkt_dumper_tap;
@@ -290,7 +291,7 @@ class NetworkInterface {
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,
-		      u_int64_t remBytes, u_int64_t remPkts);
+		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time);
   void startDBLoop() { if(db) db->startDBLoop(); };
 };
 
