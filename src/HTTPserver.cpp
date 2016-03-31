@@ -103,37 +103,37 @@ static inline bool authorized_localhost_users_login_disabled(const struct mg_con
 
 static void set_cookie(const struct mg_connection *conn,
                        char *user, char *referer) {
-    char key[256], session_id[64], random[64];
+  char key[256], session_id[64], random[64];
 
-    // Authentication success:
-    //   1. create new session
-    //   2. set session ID token in the cookie
-    //
-    // The most secure way is to stay HTTPS all the time. However, just to
-    // show the technique, we redirect to HTTP after the successful
-    // authentication. The danger of doing this is that session cookie can
-    // be stolen and an attacker may impersonate the user.
-    // Secure application must use HTTPS all the time.
+  // Authentication success:
+  //   1. create new session
+  //   2. set session ID token in the cookie
+  //
+  // The most secure way is to stay HTTPS all the time. However, just to
+  // show the technique, we redirect to HTTP after the successful
+  // authentication. The danger of doing this is that session cookie can
+  // be stolen and an attacker may impersonate the user.
+  // Secure application must use HTTPS all the time.
 
-    snprintf(random, sizeof(random), "%d", rand());
+  snprintf(random, sizeof(random), "%d", rand());
 
-    generate_session_id(session_id, random, user);
+  generate_session_id(session_id, random, user);
 
-    // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
+  // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
 
-    /* http://en.wikipedia.org/wiki/HTTP_cookie */
-    mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
-              "Set-Cookie: session=%s; path=/; max-age=%u; HttpOnly\r\n"  // Session ID
-              "Set-Cookie: user=%s; path=/; max-age=%u; HttpOnly\r\n"  // Set user, needed by Javascript code
-              "Location: %s%s\r\n\r\n",
-              session_id, HTTP_SESSION_DURATION,
-              user, HTTP_SESSION_DURATION,
-			  ntop->getPrefs()->get_http_prefix(), referer ? referer : "/");
+  /* http://en.wikipedia.org/wiki/HTTP_cookie */
+  mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
+	    "Set-Cookie: session=%s; path=/; max-age=%u; HttpOnly\r\n"  // Session ID
+	    "Set-Cookie: user=%s; path=/; max-age=%u; HttpOnly\r\n"  // Set user, needed by Javascript code
+	    "Location: %s%s\r\n\r\n",
+	    session_id, HTTP_SESSION_DURATION,
+	    user, HTTP_SESSION_DURATION,
+	    ntop->getPrefs()->get_http_prefix(), referer ? referer : "/");
 
-    /* Save session in redis */
-    snprintf(key, sizeof(key), "sessions.%s", session_id);
-    ntop->getRedis()->set(key, user, HTTP_SESSION_DURATION);
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
+  /* Save session in redis */
+  snprintf(key, sizeof(key), "sessions.%s", session_id);
+  ntop->getRedis()->set(key, user, HTTP_SESSION_DURATION);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
 }
 
 /* ****************************************** */
@@ -148,7 +148,7 @@ static int is_authorized(const struct mg_connection *conn,
   const char *auth_header_p;
   string auth_type = "", auth_string = "";
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
-                             authorized_localhost_users_login_disabled(conn);
+    authorized_localhost_users_login_disabled(conn);
 
   if(user_login_disabled) {
     mg_get_cookie(conn, "user", username, username_len);
@@ -340,7 +340,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   if((len > 4)
      && ((strcmp(&request_info->uri[len-4], ".css") == 0)
-     || (strcmp(&request_info->uri[len-3], ".js")) == 0))
+	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if(!is_authorized(conn, request_info, username, sizeof(username))) {
     redirect_to_login(conn, request_info);

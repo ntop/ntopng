@@ -248,7 +248,6 @@ print [[/lua/export_data.lua"><i class="fa fa-share"></i> Export Data</a></li>
     </li>
    ]]
 
-
 if(_COOKIE["user"] ~= nil and _COOKIE["user"] ~= ntop.getNologinUser()) then
 print [[
     <li class="dropdown">
