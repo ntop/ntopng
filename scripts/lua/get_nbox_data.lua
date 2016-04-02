@@ -36,10 +36,10 @@ task_id      = _GET["task_id"]
 function createBPF()
 	local bpf = ""
 	if host ~= nil and host ~= "" then bpf = "src or dst host "..host end
-	if peer ~= nil and peer ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."src or dst host "..peer end
-	if port ~= nil and port ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."port "..port end
-	if l4proto ~= nil and l4proto ~= "" then if bpf ~= "" then bpf = bpf.." and " end bpf = bpf.."ip proto "..l4proto end
-        if bpf ~= "" then bpf=escapeHTML(bpf) end
+	if peer ~= nil and peer ~= "" then if bpf ~= "" then bpf = "("..bpf..") and " end bpf = bpf.."(src or dst host "..peer..")" end
+	if port ~= nil and port ~= "" then if bpf ~= "" then bpf = "("..bpf..") and " end bpf = bpf.."(port "..port..")" end
+	if l4proto ~= nil and l4proto ~= "" then if bpf ~= "" then bpf = "("..bpf..") and " end bpf = bpf.."(ip proto "..l4proto..")" end
+  if bpf ~= "" then bpf=escapeHTML(bpf) end
 	if bpf ~= "" then return "&bpf="..bpf else return "" end
 end
 
@@ -48,9 +48,7 @@ if action == nil then
 elseif action == "schedule" then
 	schedule_url = schedule_url.."&ifname="..ifname.."&begin="..epoch_begin.."&end="..epoch_end
 	schedule_url = schedule_url..createBPF()
-	-- io.write(schedule_url..'\n')
 	local resp = ntop.httpGet(schedule_url, nbox_user, nbox_password, 10)
-	-- tprint(resp)
 	sendHTTPHeader('text/html; charset=iso-8859-1')
 	if resp ~= nil and resp["CONTENT"] ~= nil then
 		print(resp["CONTENT"])
@@ -107,7 +105,6 @@ elseif action == "status" then
 		-- resp is not valid json: is buggy @ 08-01-2016:
 		-- this is an example { "result" : "OK", "tasks" : { {"task_id" : "1_1452012196" , "status" : "done" } , {"task_id" : "1_1452012274" , "status" : "done" }}}
 		-- double {{ and }} are not allowed and we must convert them to [{ and }] respectively
-		content = string.gsub(content, "%s*","")
 		content = string.gsub(content, "{%s*{","[{")
 		content = string.gsub(content, "}%s*}","}]")
 		content = json.decode(content, 1, nil)
@@ -120,6 +117,7 @@ elseif action == "status" then
 					task["actions"] ='<a href="javascript:void(0);" onclick=\'download_pcap_from_nbox("'..task["task_id"]..'")\';><i class="fa fa-download fa-lg"></i></a> '
 				end
 				task["actions"] = task["actions"]..'<a href="javascript:void(0);" onclick="jump_to_nbox_activity_scheduler()";><i class="fa fa-external-link"></i></a> '
+
 				if task["bpf"] == nil then task["bpf"] = "" end
 				tasks[task["task_id"]] =
 				   {["column_task_id"] = task["task_id"],
