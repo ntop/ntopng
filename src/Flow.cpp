@@ -1057,7 +1057,7 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
 /* *************************************** */
 
 void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
-	       bool detailed_dump, bool asListElement) {
+	       bool detailed_dump, bool skipNewTable) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
   bool src_match, dst_match;
@@ -1067,7 +1067,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
   src_match = src->match(ptree), dst_match = dst->match(ptree);
   if((!src_match) && (!dst_match)) return;
 
-  lua_newtable(vm);
+  if(! skipNewTable)
+    lua_newtable(vm);
 
   if(!detailed_dump) {
     if(src) {
@@ -1258,11 +1259,17 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     dumpPacketStats(vm, false);
   }
 
+  // this is used to dynamicall update entries in the gui
+  lua_push_int_table_entry(vm, "ntopng.key", key()); // Key
+
+  /*
   if(asListElement) {
     lua_pushnumber(vm, key()); // Key
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+  */
+
 }
 
 /* *************************************** */

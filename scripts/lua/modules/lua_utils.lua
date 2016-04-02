@@ -104,12 +104,13 @@ end
 -- ##########################################
 
 function aggregateFlowsStats(flowstats)
+   -- TODO: prevent possible flow overlap when using interface views
    if(flowstats == nil) then return(flowstats) end
 
    local tot = 0
    local res = { }
    for ifname,_v in pairs(flowstats) do
-      for k,v in pairs(_v["flows"]) do
+      for k,v in ipairs(_v["flows"]) do
 	    --io.write(k.."\n")
 	    res[k] = v
       end

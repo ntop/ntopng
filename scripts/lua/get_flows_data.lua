@@ -93,7 +93,7 @@ res = interface.getFlowsInfo(host, application, sortColumn, perPage, to_skip, sO
 flows_stats,total = aggregateFlowsStats(res)
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
-
+-- tprint(flows_stats)
 -- Prepare host
 host_list = {}
 num_host_list = 0
@@ -110,8 +110,8 @@ num = 0
 
 if(flows_stats == nil) then flows_stats = { } end
 
-for key, value in pairs(flows_stats) do
-   --io.write(">>>> "..key.."\n")
+for key, value in ipairs(flows_stats) do
+   -- io.write(">>>> "..key.."\n")
    if(debug) then io.write("==================\n")end
 
    process = true
@@ -337,11 +337,17 @@ else
    funct = rev
 end
 
+
+--[[ TODO: check that actually vals is no longer needed
 for _key, _value in pairsByKeys(vals, funct) do
    key = vals[_key]
    value = flows_stats[key]
+--]]
 
-   --   print(key.."="..flows_stats[key]["duration"].."\n");
+for _key, _value in ipairs(flows_stats) do
+   key = vals[_key]
+   value = _value
+   --   print(key.."="..value["duration"].."\n");
    --   print(key.."=".."\n");
    -- print(key.."/num="..num.."/perPage="..perPage.."/toSkip="..to_skip.."\n")
       if((num < perPage) or (all ~= nil))then
@@ -371,11 +377,11 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    -- Flow username
    i, j = nil
-   if(flows_stats[key]["moreinfo.json"] ~= nil) then
-      i, j = string.find(flows_stats[key]["moreinfo.json"], '"57593":')
+   if(value["moreinfo.json"] ~= nil) then
+      i, j = string.find(value["moreinfo.json"], '"57593":')
    end
    if(i ~= nil) then
-      has_user = string.sub(flows_stats[key]["moreinfo.json"], j+2, j+3)
+      has_user = string.sub(value["moreinfo.json"], j+2, j+3)
       if(has_user == '""') then has_user = nil end
    end
    if(has_user ~= nil) then src_key = src_key .. " <i class='fa fa-user'></i>" end
@@ -406,10 +412,9 @@ for _key, _value in pairsByKeys(vals, funct) do
      dst_port=":"..value["srv.port"]
    end     
 
-   print ("{ \"key\" : \"" .. key..'\"')
-
+   print ("{ \"key\" : \"" .. value["ntopng.key"]..'\"')
    descr=cli_name..":"..value["cli.port"].." &lt;-&gt; "..srv_name..":"..value["srv.port"]
-   print (", \"column_key\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key=" .. key .. "&label=" .. descr)
+   print (", \"column_key\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key=" .. value["ntopng.key"] .. "&label=" .. descr)
    print ("'><span class='label label-info'>Info</span></A>")
    print ("\", \"column_client\" : \"" .. src_key)
 
