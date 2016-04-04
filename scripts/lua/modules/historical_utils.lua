@@ -48,15 +48,22 @@ function buildRequestData(source_div_id){
   var ifId = "]] print(tostring(ifId)) print [[";
   var host = $('#' + source_div_id).attr("host");
   var peer = $('#' + source_div_id).attr("peer");
-  var l7_proto_id = $('#' + source_div_id).attr("proto_id");
+  var l7_proto_id = $('#' + source_div_id).attr("l7_proto_id");
+  var l4_proto_id = $('#' + source_div_id).attr("l4_proto_id");
+  var port = $('#' + source_div_id).attr("port");
   var res = {epoch_begin: epoch_begin, epoch_end: epoch_end};
   if (typeof ifname != 'undefined') res.ifname = ifname;
   if (typeof ifId != 'undefined') res.ifId = ifId;
   if (typeof host != 'undefined') res.host = host;
   if (typeof peer != 'undefined') res.peer = peer;
+  if (typeof port != 'undefined') res.port = port;
   if (typeof l7_proto_id != 'undefined'){
     res.l7_proto_id = l7_proto_id;
     res.l7proto = l7_proto_id;
+  };
+  if (typeof l4_proto_id != 'undefined'){
+    res.l4_proto_id = l4_proto_id;
+    res.l4proto = l4_proto_id;
   };
   return res;
 }
@@ -631,7 +638,15 @@ $('a[href="#historical-top-talkers"]').on('shown.bs.tab', function (e) {
   ]]
 
 if l7proto ~= nil and l7proto ~= "" and not string.starts(tostring(l7proto), 'all') then
-   print[[$('#historical-container').attr("proto_id", "]] print(tostring(l7proto)) print[[");]]
+   print[[$('#historical-container').attr("l7_proto_id", "]] print(tostring(l7proto)) print[[");]]
+end
+
+if l4proto ~= nil and l4proto ~= "" then
+   print[[$('#historical-container').attr("l4_proto_id", "]] print(tostring(l4proto)) print[[");]]
+end
+
+if port ~= nil and port ~= "" then
+   print[[$('#historical-container').attr("port", "]] print(tostring(port)) print[[");]]
 end
 
   print[[

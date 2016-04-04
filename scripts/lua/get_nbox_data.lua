@@ -28,6 +28,7 @@ epoch_end    = _GET["epoch_end"]
 host         = _GET["host"]
 peer         = _GET["peer"]
 l4proto      = _GET["l4proto"]
+l7proto      = _GET["l7proto"]
 port         = _GET["port"]
 task_id      = _GET["task_id"]
 

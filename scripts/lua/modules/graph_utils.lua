@@ -1029,7 +1029,13 @@ if host ~= "" and host ~= nil then
    div_data = div_data..' host="'..tostring(host)..'" '
 end
 if l7proto ~= "" and l7proto ~= nil then
-   div_data = div_data..' proto_id="'..l7proto..'" '
+   div_data = div_data..' l7_proto_id="'..l7proto..'" '
+end
+if l4proto ~= "" and l4proto ~= nil then
+   div_data = div_data..' l4_proto_id="'..l4proto..'" '
+end
+if port ~= "" and port ~= nil then
+   div_data = div_data..' port="'..port..'" '
 end
 
 if (not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
