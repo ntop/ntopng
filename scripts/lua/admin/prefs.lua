@@ -66,6 +66,13 @@ if(haveAdminPrivileges()) then
 	  "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization", "ntopng.prefs.host_categories_rrd_creation", not prefs.is_categorization_enabled)
 
    -- ================================================================================
+   print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
+
+   minute_top_talkers_retention = ntop.getCache("ntopng.prefs.minute_top_talkers_retention")
+   if((minute_top_talkers_retention == nil) or (minute_top_talkers_retention == "")) then minute_top_talkers_retention = "365" end
+   prefsInputField("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "minute_top_talkers_retention", minute_top_talkers_retention)
+
+   -- ================================================================================
    print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 
    mysql_retention = ntop.getCache("ntopng.prefs.mysql_retention")

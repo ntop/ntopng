@@ -55,12 +55,15 @@ mysql_retention = ntop.getCache("ntopng.prefs.mysql_retention")
 if((mysql_retention == nil) or (mysql_retention == "")) then mysql_retention = "30" end
 mysql_retention = os.time() - 86400*tonumber(mysql_retention)
 
+minute_top_talkers_retention = ntop.getCache("ntopng.prefs.minute_top_talkers_retention")
+if((minute_top_talkers_retention == nil) or (minute_top_talkers_retention == "")) then minute_top_talkers_retention = "365" end
+
 ifnames = interface.getIfNames()
 for _,_ifname in pairs(ifnames) do
-   interface.select(purifyInterfaceName(_ifname))
-   interface_id = getInterfaceId(ifname)
+   interface.select(_ifname)
+   interface_id = getInterfaceId(_ifname)
 
-   ntop.deleteMinuteStatsOlderThan(interface_id, 365)
+   ntop.deleteMinuteStatsOlderThan(interface_id, tonumber(minute_top_talkers_retention))
 
    harverstExpiredMySQLFlows(_ifname, mysql_retention)
 
