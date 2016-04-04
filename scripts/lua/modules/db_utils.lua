@@ -485,14 +485,24 @@ end
 
 function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id)
    local sql = ""
+   local sql_bytes_packets = ""
+   if src_or_dst     == "IP_DST_ADDR" then
+      -- if this is a destination address, we account it INGRESS traffic
+      sql_bytes_packets = "BYTES as in_bytes, PACKETS as in_packets,     0 as out_bytes,       0 as out_packets, "
+   elseif src_or_dst == "IP_SRC_ADDR" then
+      -- if this is a source address, we account the traffic as EGRESS
+      sql_bytes_packets = "    0 as in_bytes,       0 as in_packets, BYTES as out_bytes, PACKETS as out_packets, "
+   else
+      return nil -- make sure to exit early if no valid data has been passed
+   end
    if v4_or_v6 == 6 then
       sql = " SELECT NULL addrv4, "..src_or_dst.." addrv6, "
-      sql = sql.."BYTES as bytes, PACKETS as packets, FIRST_SWITCHED, LAST_SWITCHED "
-      sql = sql.."FROM flowsv6 "
+      sql = sql..sql_bytes_packets
+      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM flowsv6 "
    elseif v4_or_v6 == 4 then -- ipv4
       sql = " SELECT "..src_or_dst.." addrv4, NULL addrv6, "
-      sql = sql.."BYTES as bytes, PACKETS as packets, FIRST_SWITCHED, LAST_SWITCHED  "
-      sql = sql.."FROM flowsv4 "
+      sql = sql..sql_bytes_packets
+      sql = sql.."FIRST_SWITCHED, LAST_SWITCHED FROM flowsv4 "
    else
       sql = ""
    end
@@ -509,7 +519,10 @@ function getAppTopTalkers(interface_id, l7_proto_id, info, begin_epoch, end_epoc
 
    -- AGGREGATE AND CRUNCH DATA
    sql = "select CASE WHEN addrv4 IS NOT NULL THEN INET_NTOA(addrv4) ELSE addrv6 END addr, "
-   sql = sql.."SUM(bytes) tot_bytes, SUM(packets) tot_packets, count(*) tot_flows, "
+   sql = sql.."SUM(in_bytes + out_bytes) tot_bytes, SUM(in_packets + out_packets) tot_packets, "
+   sql = sql.."SUM(in_bytes)             in_bytes,               SUM(in_packets)  in_packets , "
+   sql = sql.."SUM(out_bytes)            out_bytes,              SUM(out_packets) out_packets, "
+   sql = sql.."count(*) tot_flows, "
    sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration from "
 
    sql = sql.."("
@@ -527,11 +540,17 @@ function getAppTopTalkers(interface_id, l7_proto_id, info, begin_epoch, end_epoc
    local order_by_column = "tot_bytes" -- defaults to tot_bytes
    if sort_column == "column_packets" or sort_column == "packets" or sort_column == "tot_packets" then
       order_by_column = "tot_packets"
-   end
-   if sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
+   elseif sort_column == "column_in_packets" or sort_column == "in_packets" then
+      order_by_column = "in_packets"
+   elseif sort_column == "column_out_packets" or sort_column == "out_packets" then
+      order_by_column = "out_packets"
+   elseif sort_column == "column_in_bytes" or sort_column == "in_bytes" then
+      order_by_column = "in_bytes"
+   elseif sort_column == "column_out_bytes" or sort_column == "out_bytes" then
+      order_by_column = "out_bytes"
+   elseif sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "tot_flows"
-   end
-   if sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+   elseif sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
       order_by_column = "avg_flow_duration"
    end
 

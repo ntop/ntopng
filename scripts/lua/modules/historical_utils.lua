@@ -314,6 +314,8 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto)
 	 else
 	    l7proto = ""
 	 end
+      elseif tonumber(l7proto) ~= nil then
+	 interface_talkers_url_params = interface_talkers_url_params.."&l7_proto_id="..tonumber(l7proto)
       end
 
    end
