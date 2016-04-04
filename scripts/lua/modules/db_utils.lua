@@ -667,7 +667,7 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "
 
-   if(1 or db_debug == true) then io.write(sql.."\n") end
+   if(db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
