@@ -207,6 +207,26 @@ for _, record in pairs(res_sliced) do
    else
       record_contents["column_packets"] = "n.a."
    end
+   if record["in_packets"] then
+      record_contents["column_in_packets"] = formatValue(tonumber(record["in_packets"]))
+   else
+      record_contents["column_in_packets"] = "n.a."
+   end
+   if record["out_packets"] then
+      record_contents["column_out_packets"] = formatValue(tonumber(record["out_packets"]))
+   else
+      record_contents["column_out_packets"] = "n.a."
+   end
+   if record["in_bytes"] then
+      record_contents["column_in_bytes"] = bytesToSize(tonumber(record["in_bytes"]))
+   else
+      record_contents["column_in_bytes"] = "n.a."
+   end
+   if record["out_bytes"] then
+      record_contents["column_out_bytes"] = bytesToSize(tonumber(record["out_bytes"]))
+   else
+      record_contents["column_out_bytes"] = "n.a."
+   end
    if record["flows"] then
       record_contents["column_flows"] = formatValue(tonumber(record["flows"]))
    elseif record["tot_flows"] then
@@ -222,6 +242,7 @@ end
 
 -- tprint(res_formatted)
 -- tprint(res)
+
 local result = {}
 result["perPage"] = per_page
 result["currentPage"] = current_page
