@@ -296,7 +296,7 @@ print[[
   ]]
 end
 
-function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto)
+function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, l4proto, port)
    local breadcrumb_root = "interface"
    local host_talkers_url_params = ""
    local interface_talkers_url_params = ""
@@ -317,7 +317,14 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto)
       elseif tonumber(l7proto) ~= nil then
 	 interface_talkers_url_params = interface_talkers_url_params.."&l7_proto_id="..tonumber(l7proto)
       end
+   end
 
+   if l4proto ~= "" and l4proto ~= nil and tonumber(l4proto) ~= nil then
+      interface_talkers_url_params = interface_talkers_url_params.."&l4_proto_id="..tonumber(l4proto)
+   end
+
+   if port ~= "" and port ~= nil and tonumber(port) ~= nil then
+      interface_talkers_url_params = interface_talkers_url_params.."&port="..tonumber(port)
    end
 
    if host and host ~= "" then

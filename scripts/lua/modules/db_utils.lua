@@ -290,7 +290,7 @@ function getTopL7Protocols(interface_id, version, host, protocol, port, info, be
    end
 end
 
-function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid)
+function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l4proto, port)
    local sql = ""
    local sql_bytes_packets = ""
    if src_or_dst     == "IP_DST_ADDR" then
@@ -316,11 +316,18 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
    sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
+   if((l4proto ~= nil) and (l4proto ~= "") and (l4proto ~= "-1")) then
+      sql = sql .." AND PROTOCOL="..l4proto
+   end
+   if((port ~= nil) and (port ~= "")) then
+      sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
+   end
    return sql..'\n'
 end
 
-function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
+
    if(info == "") then info = nil end
 
    -- AGGREGATE AND CRUNCH DATA
@@ -332,13 +339,13 @@ function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_c
    sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration from "
 
    sql = sql.."("
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port)
    sql = sql..") talkers"
    sql = sql.." group by addr "
 
@@ -371,7 +378,7 @@ function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_c
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "
 
-   if(db_debug == true) then io.write(sql.."\n") end
+   if(1 or db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
@@ -385,7 +392,7 @@ function getOverallTopTalkers(interface_id, info, begin_epoch, end_epoch, sort_c
 end
 
 
-function getHostTopTalkers(interface_id, host, l7_proto_id, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- obtains host top talkers, possibly restricting the range only to l7_proto_id
    if host == nil or host == "" then return {} end
 
@@ -423,9 +430,15 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, info, begin_epoch, e
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
-   if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
+   if((port ~= nil) and (port ~= "")) then
+      sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
+   end
+   if(info ~= nil) then
+      sql = sql .." AND (INFO='"..info.."')"
+   end
 
-   if l7_proto_id and L7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end
+   if l7_proto_id and l7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end
+   if l4_proto_id and l4_proto_id ~="" then sql = sql.." AND PROTOCOL = "..tonumber(l4_proto_id) end
 
    if(version == 4) then
       sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
@@ -483,7 +496,7 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, info, begin_epoch, e
    end
 end
 
-function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id)
+function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id, l4_proto_id, port)
    local sql = ""
    local sql_bytes_packets = ""
    if src_or_dst     == "IP_DST_ADDR" then
@@ -510,10 +523,16 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
    sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
    sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id)
+   if((l4_proto_id ~= nil) and (l4_proto_id ~= "") and (l4_proto_id ~= "-1")) then
+      sql = sql .." AND PROTOCOL="..l4_proto_id
+   end
+   if((port ~= nil) and (port ~= "")) then
+      sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
+   end
    return sql..'\n'
 end
 
-function getAppTopTalkers(interface_id, l7_proto_id, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
    if(info == "") then info = nil end
 
@@ -526,13 +545,13 @@ function getAppTopTalkers(interface_id, l7_proto_id, info, begin_epoch, end_epoc
    sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration from "
 
    sql = sql.."("
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
    sql = sql..") talkers"
    sql = sql.." group by addr "
 
@@ -578,7 +597,7 @@ function getAppTopTalkers(interface_id, l7_proto_id, info, begin_epoch, end_epoc
    end
 end
 
-function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id, port, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
    -- if both peers are nil, top applications are overall in the time range
    -- if peer1 is nil nad peer2 is not nil, then top apps are for peer1
    -- if peer2 is nil nad peer1 is not nil, then top apps are for peer2
@@ -599,6 +618,12 @@ function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_e
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
+
+   if((port ~= nil) and (port ~= "")) then
+      sql = sql .." AND (L4_SRC_PORT="..port.." OR L4_DST_PORT="..port..")"
+   end
+   if l7_proto_id and l7_proto_id ~="" then sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id) end
+   if l4_proto_id and l4_proto_id ~="" then sql = sql.." AND PROTOCOL = "..tonumber(l4_proto_id) end
    if(info ~= nil) then sql = sql .." AND (INFO='"..info.."')" end
 
    if peer1 and peer1 ~= "" then
@@ -642,7 +667,7 @@ function getTopApplications(interface_id, peer1, peer2, info, begin_epoch, end_e
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "
 
-   if(db_debug == true) then io.write(sql.."\n") end
+   if(1 or db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
