@@ -180,8 +180,7 @@ class NetworkInterface {
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
-  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet,
-		     int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
+  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, bool *shaped, u_int16_t *ndpiProtocol);
   bool processPacket(const struct bpf_timeval *when,
 		     const u_int64_t time,
 		     struct ndpi_ethhdr *eth,
@@ -191,8 +190,7 @@ class NetworkInterface {
 		     u_int16_t ipsize, u_int16_t rawsize,
 		     const struct pcap_pkthdr *h,
 		     const u_char *packet,
-		     int *a_shaper_id,
-		     int *b_shaper_id,
+		     bool *shaped,
 		     u_int16_t *ndpiProtocol);
   void processFlow(ZMQ_Flow *zflow);
   void dumpFlows();
@@ -288,6 +286,7 @@ class NetworkInterface {
   void updateFlowProfiles(char *old_profile, char *new_profile);
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
+  bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,

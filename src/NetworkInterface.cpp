@@ -685,8 +685,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 				     u_int16_t rawsize,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
-				     int *a_shaper_id,
-				     int *b_shaper_id,
+				     bool *shaped,
 				     u_int16_t *ndpiProtocol) {
   bool src2dst_direction;
   u_int8_t l4_proto;
@@ -701,7 +700,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
-
+  int a_shaper_id = DEFAULT_SHAPER_ID, b_shaper_id = DEFAULT_SHAPER_ID; /* Default */
+		       
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
@@ -939,11 +939,21 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       break;
     }
 
-    flow->processDetectedProtocol();
-
-    incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	     flow->get_detected_protocol().protocol,
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+    flow->processDetectedProtocol(), *shaped = false;
+    pass_verdict = flow->isPassVerdict();
+    flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, ndpiProtocol);
+    
+#ifdef NTOPNG_PRO
+    if(pass_verdict) {
+      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
+      if(!pass_verdict) *shaped = true;
+    }
+#endif
+    
+    if(pass_verdict)
+      incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+	       flow->get_detected_protocol().protocol,
+	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
     bool dump_is_unknown = dump_unknown_traffic
       && (!flow->isDetectionCompleted() ||
@@ -957,9 +967,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
     }
 
-    pass_verdict = flow->isPassVerdict();
-
-    flow->getFlowShapers(src2dst_direction, a_shaper_id, b_shaper_id, ndpiProtocol);
   } else
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
@@ -992,8 +999,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
-				     const u_char *packet,
-				     int *a_shaper_id, int *b_shaper_id,
+				     const u_char *packet, bool *shaped,
 				     u_int16_t *ndpiProtocol) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
@@ -1354,8 +1360,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       try {
 	pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id, iph,
 				     ip6, h->caplen - ip_offset, h->len,
-				     h, packet, a_shaper_id, b_shaper_id,
-				     ndpiProtocol);
+				     h, packet, shaped, ndpiProtocol);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -1437,8 +1442,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	try {
 	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,
 				       iph, ip6, h->len - ip_offset, h->len,
-				       h, packet, a_shaper_id, b_shaper_id,
-				       ndpiProtocol);
+				       h, packet, shaped, ndpiProtocol);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
@@ -1745,6 +1749,8 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
   flow->updateProfile();
   return(false); /* false = keep on walking */
 }
+
+/* **************************************************** */
 
 void NetworkInterface::updateFlowProfiles(char *old_profile, char *new_profile) {
   if(ntop->getPro()->has_valid_license()) {
