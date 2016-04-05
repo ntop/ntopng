@@ -2063,12 +2063,27 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   if(a2zSortOrder) {
     for(int i=toSkip, num=0; i<(int)retriever.actNumEntries; i++) {
+      lua_newtable(vm);
+
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
+
+      lua_pushnumber(vm, num + 1);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3); 
+
       if(++num >= (int)maxHits) break;
+
     }
   } else {
     for(int i=(retriever.actNumEntries-1-toSkip), num=0; i>=0; i--) {
+      lua_newtable(vm);
+
       retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
+
+      lua_pushnumber(vm, num + 1);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
       if(++num >= (int)maxHits) break;
     }
   }
@@ -2686,9 +2701,12 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
   if(user == NULL)
     user = f->get_username(false);
 
-  if(user && (strcmp(user, info->username) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */, true);
-
+  if(user && (strcmp(user, info->username) == 0)){
+    f->lua(info->vm, NULL, false /* Minimum details */, false);
+    lua_pushnumber(info->vm, f->key()); // Key
+    lua_insert(info->vm, -2);
+    lua_settable(info->vm, -3);
+  }
   return(false); /* false = keep on walking */
 }
 
@@ -2711,13 +2729,20 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
   struct proc_name_flows *info = (struct proc_name_flows*)user_data;
   char *name = f->get_proc_name(true);
 
-  if(name && (strcmp(name, info->proc_name) == 0))
-    f->lua(info->vm, NULL, false /* Minimum details */, true);
-  else {
+  if(name && (strcmp(name, info->proc_name) == 0)){
+      f->lua(info->vm, NULL, false /* Minimum details */, false);
+      lua_pushnumber(info->vm, f->key()); // Key
+      lua_insert(info->vm, -2);
+      lua_settable(info->vm, -3);
+  } else {
     name = f->get_proc_name(false);
 
-    if(name && (strcmp(name, info->proc_name) == 0))
-      f->lua(info->vm, NULL, false /* Minimum details */, true);
+    if(name && (strcmp(name, info->proc_name) == 0)){
+        f->lua(info->vm, NULL, false /* Minimum details */, false);
+        lua_pushnumber(info->vm, f->key()); // Key
+        lua_insert(info->vm, -2);
+        lua_settable(info->vm, -3);
+    }
   }
 
   return(false); /* false = keep on walking */
@@ -2741,8 +2766,12 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
   Flow *f = (Flow*)node;
   struct pid_flows *info = (struct pid_flows*)pid_data;
 
-  if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */, true);
+  if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid)){
+    f->lua(info->vm, NULL, false /* Minimum details */, false);
+    lua_pushnumber(info->vm, f->key()); // Key
+    lua_insert(info->vm, -2);
+    lua_settable(info->vm, -3);
+  }
 
   return(false); /* false = keep on walking */
 }
@@ -2762,8 +2791,12 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
   Flow *f = (Flow*)node;
   struct pid_flows *info = (struct pid_flows*)father_pid_data;
 
-  if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid))
-    f->lua(info->vm, NULL, false /* Minimum details */, true);
+  if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid)){
+    f->lua(info->vm, NULL, false /* Minimum details */, false);
+    lua_pushnumber(info->vm, f->key()); // Key
+    lua_insert(info->vm, -2);
+    lua_settable(info->vm, -3);
+  }
 
   return(false); /* false = keep on walking */
 }
