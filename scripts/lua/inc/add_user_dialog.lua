@@ -78,7 +78,7 @@ print [[
 <script>
 
   function isValid(str) { /* return /^[\w%]+$/.test(str); */ return true; }
-  function isValidPassword(str) { return /^[\w\$\\!\/\(\)\=\?\^\*@_]{1,}$/.test(str); }
+  function isValidPassword(str) { return /^[\w\$\\!\/\(\)\=\?\^\*@_\-]{1,}$/.test(str); }
 
   var frmadduser = $('#form_add_user');
 
