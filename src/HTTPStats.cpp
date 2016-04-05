@@ -98,6 +98,82 @@ u_int32_t HTTPStats::luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h)
     return(0);
 }
 
+void HTTPStats::getRequests(const struct http_query_stats *q,
+			    u_int32_t *num_get, u_int32_t *num_post, u_int32_t *num_head,
+			    u_int32_t *num_put, u_int32_t *num_other){
+  if (q == NULL)
+    return;
+  *num_get   += q->num_get;
+  *num_post  += q->num_post;
+  *num_head  += q->num_head;
+  *num_put   += q->num_put;
+  *num_other += q->num_other;
+}
+
+void HTTPStats::getResponses(const struct http_response_stats *r,
+			     u_int32_t *num_1xx, u_int32_t *num_2xx, u_int32_t *num_3xx,
+			     u_int32_t *num_4xx, u_int32_t *num_5xx){
+  if (r == NULL)
+    return;
+  *num_1xx  += r->num_1xx;
+  *num_2xx  += r->num_2xx;
+  *num_3xx  += r->num_3xx;
+  *num_4xx  += r->num_4xx;
+  *num_5xx  += r->num_5xx;
+}
+
+void HTTPStats::luaAddDirection(lua_State *vm, char* direction) {
+  u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
+  u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
+  char buf[64];
+
+  if(strncmp(direction, (char*)".as_sender", 9)    == 0 || direction[0] == '\0'){
+    getRequests(&query[AS_SENDER], &num_get, &num_post, &num_head, &num_put, &num_other);
+    getResponses(&response[AS_SENDER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
+  }
+
+  if(strncmp(direction, (char*)".as_receiver", 11) == 0 || direction[0] == '\0'){
+    getRequests(&query[AS_RECEIVER], &num_get, &num_post, &num_head, &num_put, &num_other);
+    getResponses(&response[AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
+  }
+
+  snprintf(buf, sizeof(buf), "query%s.total", direction);
+  lua_push_int_table_entry(vm, buf, num_get + num_post + num_head + num_put + num_other);
+
+  snprintf(buf, sizeof(buf), "query%s.num_get", direction);
+  lua_push_int_table_entry(vm, buf, num_get);
+
+  snprintf(buf, sizeof(buf), "query%s.num_post", direction);
+  lua_push_int_table_entry(vm, buf, num_post);
+
+  snprintf(buf, sizeof(buf), "query%s.num_head", direction);
+  lua_push_int_table_entry(vm, buf, num_head);
+
+  snprintf(buf, sizeof(buf), "query%s.num_put", direction);
+  lua_push_int_table_entry(vm, buf, num_put);
+
+  snprintf(buf, sizeof(buf), "query%s.num_other", direction);
+  lua_push_int_table_entry(vm, buf, num_other);
+
+  snprintf(buf, sizeof(buf), "response%s.total", direction);
+  lua_push_int_table_entry(vm, buf, num_1xx + num_2xx + num_3xx + num_4xx + num_5xx);
+
+  snprintf(buf, sizeof(buf), "response%s.num_1xx", direction);
+  lua_push_int_table_entry(vm, buf, num_1xx);
+
+  snprintf(buf, sizeof(buf), "response%s.num_2xx", direction);
+  lua_push_int_table_entry(vm, buf, num_2xx);
+
+  snprintf(buf, sizeof(buf), "response%s.num_3xx", direction);
+  lua_push_int_table_entry(vm, buf, num_3xx);
+
+  snprintf(buf, sizeof(buf), "response%s.num_4xx", direction);
+  lua_push_int_table_entry(vm, buf, num_4xx);
+
+  snprintf(buf, sizeof(buf), "response%s.num_5xx", direction);
+  lua_push_int_table_entry(vm, buf, num_5xx);
+}
+
 /* **************************************************** */
 
 void HTTPStats::lua(lua_State *vm) {
@@ -115,19 +191,9 @@ void HTTPStats::lua(lua_State *vm) {
     lua_settable(vm, -3);
   }
 
-  lua_push_int_table_entry(vm, "query.total", query.num_get+query.num_get+query.num_post+query.num_head+query.num_put);
-  lua_push_int_table_entry(vm, "query.num_get", query.num_get);
-  lua_push_int_table_entry(vm, "query.num_post", query.num_post);
-  lua_push_int_table_entry(vm, "query.num_head", query.num_head);
-  lua_push_int_table_entry(vm, "query.num_put", query.num_put);
-  lua_push_int_table_entry(vm, "query.num_other", query.num_other);
-
-  lua_push_int_table_entry(vm, "response.total", response.num_1xx+response.num_2xx+response.num_3xx+response.num_4xx+response.num_5xx);
-  lua_push_int_table_entry(vm, "response.num_1xx", response.num_1xx);
-  lua_push_int_table_entry(vm, "response.num_2xx", response.num_2xx);
-  lua_push_int_table_entry(vm, "response.num_3xx", response.num_3xx);
-  lua_push_int_table_entry(vm, "response.num_4xx", response.num_4xx);
-  lua_push_int_table_entry(vm, "response.num_5xx", response.num_5xx);
+  luaAddDirection(vm, (char*)"\0"); /* sum sender + receiver */
+  luaAddDirection(vm, (char*)".as_sender");
+  luaAddDirection(vm, (char*)".as_receiver");
 
   lua_pushstring(vm, "http");
   lua_insert(vm, -2);
@@ -150,68 +216,168 @@ char* HTTPStats::serialize() {
 
 void HTTPStats::deserialize(json_object *o) {
   json_object *obj;
+  struct http_query_stats    *q;
+  struct http_response_stats *r;
+  const char *        direction;
+  char buf[64];
+  const char *directions[2]  = {".as_sender", ".as_receiver"};
+  const u_int8_t indices[2]  = {AS_SENDER,       AS_RECEIVER};
 
   if(!o) return;
 
   memset(&query, 0, sizeof(query)), memset(&response, 0, sizeof(response));
 
-  if (json_object_object_get_ex(o, "query.num_get", &obj))   query.num_get = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "query.num_post", &obj))  query.num_post = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "query.num_head", &obj))  query.num_head = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "query.num_put", &obj))   query.num_put = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "query.num_other", &obj)) query.num_other = (u_int32_t)json_object_get_int64(obj);
+  for(u_int8_t i = 0; i <2; i++){
+    direction = directions[i];
+    q = &query[indices[i]];
+    r = &response[indices[i]];
 
-  if (json_object_object_get_ex(o, "response.num_1xx", &obj)) response.num_1xx = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "response.num_2xx", &obj)) response.num_2xx = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "response.num_3xx", &obj)) response.num_3xx = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "response.num_4xx", &obj)) response.num_4xx = (u_int32_t)json_object_get_int64(obj);
-  if (json_object_object_get_ex(o, "response.num_1xx", &obj)) response.num_1xx = (u_int32_t)json_object_get_int64(obj);
+    snprintf(buf, sizeof(buf), "query%s.num_get", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      q->num_get = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "query%s.num_post", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      q->num_post = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "query%s.num_head", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      q->num_head = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "query%s.num_put", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      q->num_put = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "query%s.num_other", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      q->num_other = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "response%s.num_1xx", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      r->num_1xx = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "response%s.num_2xx", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      r->num_2xx = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "response%s.num_3xx", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      r->num_3xx = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "response%s.num_4xx", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      r->num_4xx = (u_int32_t)json_object_get_int64(obj);
+
+    snprintf(buf, sizeof(buf), "response%s.num_5xx", direction);
+    if (json_object_object_get_ex(o, buf, &obj))
+      r->num_5xx = (u_int32_t)json_object_get_int64(obj);
+  }
+}
+
+/* ******************************************* */
+
+void  HTTPStats::JSONObjectAddDirection(json_object *my_object, char *direction) {
+  u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
+  u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
+  char buf[64];
+
+  if(my_object == NULL)
+    return;
+
+  if(strncmp(direction, (char*)".as_sender", 9)         == 0){
+    getRequests(&query[AS_SENDER], &num_get, &num_post, &num_head, &num_put, &num_other);
+    getResponses(&response[AS_SENDER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
+  }else if(strncmp(direction, (char*)".as_receiver", 11) == 0){
+    getRequests(&query[AS_RECEIVER], &num_get, &num_post, &num_head, &num_put, &num_other);
+    getResponses(&response[AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
+  } else {
+    return;
+  }
+
+  if(num_get > 0){
+    snprintf(buf, sizeof(buf), "query%s.num_get", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_get));
+  }
+
+  if(num_post > 0){
+    snprintf(buf, sizeof(buf), "query%s.num_post", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_post));
+  }
+
+  if(num_head > 0){
+    snprintf(buf, sizeof(buf), "query%s.num_head", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_head));
+  }
+
+  if(num_put > 0){
+    snprintf(buf, sizeof(buf), "query%s.num_put", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_put));
+  }
+
+  if(num_other > 0){
+    snprintf(buf, sizeof(buf), "query%s.num_other", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_other));
+  }
+
+  if(num_1xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.num_1xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_1xx));
+  }
+
+  if(num_2xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.num_2xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_2xx));
+  }
+
+  if(num_3xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.num_3xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_3xx));
+  }
+
+  if(num_4xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.num_4xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_4xx));
+  }
+
+  if(num_5xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.num_5xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(num_5xx));
+  }
 }
 
 /* ******************************************* */
 
 json_object* HTTPStats::getJSONObject() {
   json_object *my_object = json_object_new_object();
-
-  if(query.num_get > 0) json_object_object_add(my_object, "query.num_get", json_object_new_int64(query.num_get));
-  if(query.num_post > 0) json_object_object_add(my_object, "query.num_post", json_object_new_int64(query.num_post));
-  if(query.num_head > 0) json_object_object_add(my_object, "query.num_head", json_object_new_int64(query.num_head));
-  if(query.num_put > 0) json_object_object_add(my_object, "query.num_put", json_object_new_int64(query.num_put));
-  if(query.num_other > 0) json_object_object_add(my_object, "query.num_other", json_object_new_int64(query.num_other));
-
-  if(response.num_1xx > 0) json_object_object_add(my_object, "response.num_1xx", json_object_new_int64(response.num_1xx));
-  if(response.num_2xx > 0) json_object_object_add(my_object, "response.num_2xx", json_object_new_int64(response.num_2xx));
-  if(response.num_3xx > 0) json_object_object_add(my_object, "response.num_3xx", json_object_new_int64(response.num_3xx));
-  if(response.num_4xx > 0) json_object_object_add(my_object, "response.num_4xx", json_object_new_int64(response.num_4xx));
-  if(response.num_5xx > 0) json_object_object_add(my_object, "response.num_5xx", json_object_new_int64(response.num_5xx));
-
+  JSONObjectAddDirection(my_object, (char*)".as_sender");
+  JSONObjectAddDirection(my_object, (char*)".as_receiver");
   return(my_object);
 }
 
 /* ******************************************* */
 
-void HTTPStats::incRequest(char *method) {
-  if(method[0] == 'G') query.num_get++;
-  else if((method[0] == 'P') && (method[1] == 'O')) query.num_post++;
-  else if(method[0] == 'H') query.num_head++;
-  else if((method[0] == 'P') && (method[1] == 'U')) query.num_put++;
-  else query.num_other++;
+void HTTPStats::incRequest(struct http_query_stats *q, const char *method) {
+  if(method[0] == 'G') q->num_get++;
+  else if((method[0] == 'P') && (method[1] == 'O')) q->num_post++;
+  else if(method[0] == 'H') q->num_head++;
+  else if((method[0] == 'P') && (method[1] == 'U')) q->num_put++;
+  else q->num_other++;
 }
 
 /* ******************************************* */
 
-void HTTPStats::incResponse(char *return_code) {
+void HTTPStats::incResponse(struct http_response_stats *r, const char *return_code) {
   char *code;
 
   if(!return_code) return; else code = strchr(return_code, ' ');
   if(!code) return;
 
   switch(code[1]) {
-  case '1': response.num_1xx++; break;
-  case '2': response.num_2xx++; break;
-  case '3': response.num_3xx++; break;
-  case '4': response.num_4xx++; break;
-  case '5': response.num_5xx++; break;
+  case '1': r->num_1xx++; break;
+  case '2': r->num_2xx++; break;
+  case '3': r->num_3xx++; break;
+  case '4': r->num_4xx++; break;
+  case '5': r->num_5xx++; break;
   }
 }
 
@@ -229,9 +395,9 @@ bool HTTPStats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req
 
   if(!virtualHosts) return(rc); /* Looks like we're running out of memory */
 
-  /* 
+  /*
      Needed because this method can be called by both
-     NetworkInterface::updateHostStats() and 
+     NetworkInterface::updateHostStats() and
      Flow::~Flow() on the same instance and thus
      create a memory leak
   */
@@ -240,7 +406,7 @@ bool HTTPStats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req
     if(virtualHosts->hasEmptyRoom()) {
       if((vh = new VirtualHost(h, virtual_host_name)) == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
-      } else {	
+      } else {
 	if(virtualHosts->add(vh) == false) {
 	  /* Unable to add a new virtual host */
 	  delete vh;
@@ -250,8 +416,8 @@ bool HTTPStats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req
       }
     } else {
       if(!warning_shown) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, 
-				     "Too many virtual hosts %u: enlarge hash", 
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Too many virtual hosts %u: enlarge hash",
 				     virtualHosts->getNumEntries());
 	warning_shown = true;
       }
