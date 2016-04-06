@@ -367,9 +367,12 @@ void HTTPStats::incRequest(struct http_query_stats *q, const char *method) {
 /* ******************************************* */
 
 void HTTPStats::incResponse(struct http_response_stats *r, const char *return_code) {
-  char *code;
+  const char *code;
 
-  if(!return_code) return; else code = strchr(return_code, ' ');
+  if(!return_code) 
+    return; 
+
+  code = strchr(return_code, ' ');
   if(!code) return;
 
   switch(code[1]) {
