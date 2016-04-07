@@ -61,11 +61,15 @@ else
 	    ["srv.ip"] = fl["srv.ip"], ["cli.ip"] = fl["cli.ip"],
 	    ["srv.port"] = fl["srv.port"], ["cli.port"] = fl["cli.port"],
 	    ["proto.ndpi_id"] = fl["proto.ndpi_id"], ["proto.ndpi"] = fl["proto.ndpi"],
-	    ["bytes"] = fl["bytes"]
+	    ["bytes"] = fl["bytes"],
+	    ["cli2srv.throughput_bps"] = round(fl["throughput_cli2srv_bps"], 2),
+	    ["srv2cli.throughput_bps"] = round(fl["throughput_srv2cli_bps"], 2),
+	    ["cli2srv.throughput_pps"] = round(fl["throughput_cli2srv_pps"], 2),
+	    ["srv2cli.throughput_pps"] = round(fl["throughput_srv2cli_pps"], 2)
 	 }
       end
       hj["flows"] = flows
-      hj["flows_count"] = math.min(total, host_stats_flows_num)
+      hj["flows_count"] = total
    end
    print(json.encode(hj, nil))
 end

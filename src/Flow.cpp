@@ -49,7 +49,10 @@ Flow::Flow(NetworkInterface *_iface,
     ssl.certificate = NULL, bt_hash = NULL;
 
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
-    bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, pkts_thpt = 0, top_pkts_thpt = 0;
+    bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, top_pkts_thpt = 0;
+  bytes_thpt_cli2srv  = 0, goodput_bytes_thpt_cli2srv = 0;
+  bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
+  pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   cli2srv_last_bytes = 0, prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = 0, prev_srv2cli_last_bytes = 0;
   cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0;
@@ -853,19 +856,36 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
     if(tdiff_msec >= 1000 /* Do not updated when less than 1 second (1000 msec) */) {
       // bps
-      u_int64_t diff_bytes = cli2srv_last_bytes+srv2cli_last_bytes-prev_cli2srv_last_bytes-prev_srv2cli_last_bytes;
-      u_int64_t diff_goodput_bytes = cli2srv_last_goodput_bytes+srv2cli_last_goodput_bytes-prev_cli2srv_last_goodput_bytes-prev_srv2cli_last_goodput_bytes;
-      float bytes_msec = ((float)(diff_bytes*1000))/tdiff_msec;
-      float goodput_bytes_msec = ((float)(diff_goodput_bytes*1000))/tdiff_msec;
+      u_int64_t diff_bytes_cli2srv = cli2srv_last_bytes - prev_cli2srv_last_bytes;
+      u_int64_t diff_bytes_srv2cli = srv2cli_last_bytes - prev_srv2cli_last_bytes;
+      u_int64_t diff_bytes         = diff_bytes_cli2srv + diff_bytes_srv2cli;
 
-      if(bytes_msec < 0) bytes_msec = 0; /* Just to be safe */
-      if(goodput_bytes_msec < 0) goodput_bytes_msec = 0; /* Just to be safe */
+      u_int64_t diff_goodput_bytes_cli2srv = cli2srv_last_goodput_bytes - prev_cli2srv_last_goodput_bytes;
+      u_int64_t diff_goodput_bytes_srv2cli = srv2cli_last_goodput_bytes - prev_srv2cli_last_goodput_bytes;
+
+      float bytes_msec_cli2srv         = ((float)(diff_bytes_cli2srv*1000))/tdiff_msec;
+      float bytes_msec_srv2cli         = ((float)(diff_bytes_srv2cli*1000))/tdiff_msec;
+      float bytes_msec                 = bytes_msec_cli2srv + bytes_msec_srv2cli;
+
+      float goodput_bytes_msec_cli2srv = ((float)(diff_goodput_bytes_cli2srv*1000))/tdiff_msec;
+      float goodput_bytes_msec_srv2cli = ((float)(diff_goodput_bytes_srv2cli*1000))/tdiff_msec;
+      float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
+
+      /* Just to be safe */
+      if(bytes_msec < 0)                 bytes_msec                 = 0;
+      if(bytes_msec_cli2srv < 0)         bytes_msec_cli2srv         = 0;
+      if(bytes_msec_srv2cli < 0)         bytes_msec_srv2cli         = 0;
+      if(goodput_bytes_msec < 0)         goodput_bytes_msec         = 0;
+      if(goodput_bytes_msec_cli2srv < 0) goodput_bytes_msec_cli2srv = 0;
+      if(goodput_bytes_msec_srv2cli < 0) goodput_bytes_msec_srv2cli = 0;
 
       if((bytes_msec > 0) || iface->is_packet_interface()) {
+	// refresh trend stats for the overall throughput
 	if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
 	else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
 	else                             bytes_thpt_trend = trend_stable;
 
+	// refresh goodput stats for the overall throughput
 	if(goodput_bytes_thpt < goodput_bytes_msec)      goodput_bytes_thpt_trend = trend_up;
 	else if(goodput_bytes_thpt > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
 	else                                             goodput_bytes_thpt_trend = trend_stable;
@@ -873,6 +893,12 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(false)
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
 				       bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
+
+	// update the old values with the newely calculated ones
+	bytes_thpt_cli2srv         = bytes_msec_cli2srv;
+	bytes_thpt_srv2cli         = bytes_msec_srv2cli;
+	goodput_bytes_thpt_cli2srv = goodput_bytes_msec_cli2srv;
+	goodput_bytes_thpt_srv2cli = goodput_bytes_msec_srv2cli;
 
 	bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
@@ -916,15 +942,25 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 #endif
 
 	// pps
-	u_int64_t diff_pkts = cli2srv_last_packets+srv2cli_last_packets-prev_cli2srv_last_packets-prev_srv2cli_last_packets;
-	float pkts_msec = ((float)(diff_pkts*1000))/tdiff_msec;
+	u_int64_t diff_pkts_cli2srv = cli2srv_last_packets - prev_cli2srv_last_packets;
+	u_int64_t diff_pkts_srv2cli = srv2cli_last_packets - prev_srv2cli_last_packets;
+	u_int64_t diff_pkts         = diff_pkts_cli2srv + diff_pkts_srv2cli;
 
-	if(pkts_msec < 0) pkts_msec = 0; /* Just to be safe */
+	float pkts_msec_cli2srv     = ((float)(diff_pkts_cli2srv*1000))/tdiff_msec;
+	float pkts_msec_srv2cli     = ((float)(diff_pkts_srv2cli*1000))/tdiff_msec;
+	float pkts_msec             = pkts_msec_cli2srv + pkts_msec_srv2cli;
+
+	/* Just to be safe */
+	if(pkts_msec < 0)         pkts_msec         = 0;
+	if(pkts_msec_cli2srv < 0) pkts_msec_cli2srv = 0;
+	if(pkts_msec_srv2cli < 0) pkts_msec_srv2cli = 0;
 
 	if(pkts_thpt < pkts_msec)      pkts_thpt_trend = trend_up;
 	else if(pkts_thpt > pkts_msec) pkts_thpt_trend = trend_down;
 	else                           pkts_thpt_trend = trend_stable;
 
+	pkts_thpt_cli2srv = pkts_msec_cli2srv;
+	pkts_thpt_srv2cli = pkts_msec_srv2cli;
 	pkts_thpt = pkts_msec;
 	if(top_pkts_thpt < pkts_thpt) top_pkts_thpt = pkts_thpt;
 
@@ -1241,15 +1277,26 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     if(client_proc) processLua(vm, client_proc, true);
     if(server_proc) processLua(vm, server_proc, false);
 
-    lua_push_float_table_entry(vm, "top_throughput_bps", top_bytes_thpt);
-    lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
-    lua_push_int_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
+    // overall throughput stats
+    lua_push_float_table_entry(vm, "top_throughput_bps",   top_bytes_thpt);
+    lua_push_float_table_entry(vm, "throughput_bps",       bytes_thpt);
+    lua_push_int_table_entry(vm,   "throughput_trend_bps", bytes_thpt_trend);
+    lua_push_float_table_entry(vm, "top_throughput_pps",   top_pkts_thpt);
+    lua_push_float_table_entry(vm, "throughput_pps",       pkts_thpt);
+    lua_push_int_table_entry(vm,   "throughput_trend_pps", pkts_thpt_trend);
 
-    lua_push_float_table_entry(vm, "top_throughput_pps", top_pkts_thpt);
-    lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt);
-    lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
+    // thoughut stats cli2srv and srv2cli breakdown
+    lua_push_float_table_entry(vm, "throughput_cli2srv_bps", bytes_thpt_cli2srv);
+    lua_push_float_table_entry(vm, "throughput_srv2cli_bps", bytes_thpt_srv2cli);
+    lua_push_float_table_entry(vm, "throughput_cli2srv_pps", pkts_thpt_cli2srv);
+    lua_push_float_table_entry(vm, "throughput_srv2cli_pps", pkts_thpt_srv2cli);
+
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt_cli2srv: %.2f]", bytes_thpt_cli2srv);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt_srv2cli: %.2f]", bytes_thpt_srv2cli);
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt_cli2srv: %.2f]", pkts_thpt_cli2srv);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt_srv2cli: %.2f]", pkts_thpt_srv2cli);
 
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);

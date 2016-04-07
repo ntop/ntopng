@@ -113,7 +113,10 @@ class Flow : public GenericHashEntry {
 
   struct timeval last_update_time;
 
-  float bytes_thpt, goodput_bytes_thpt, top_bytes_thpt, top_goodput_bytes_thpt, pkts_thpt, top_pkts_thpt;
+  float bytes_thpt, goodput_bytes_thpt, top_bytes_thpt, top_goodput_bytes_thpt, top_pkts_thpt;
+  float bytes_thpt_cli2srv, goodput_bytes_thpt_cli2srv;
+  float bytes_thpt_srv2cli, goodput_bytes_thpt_srv2cli;
+  float pkts_thpt, pkts_thpt_cli2srv, pkts_thpt_srv2cli;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
   //TimeSeries<float> *bytes_rate;
   u_int64_t cli2srv_last_packets, srv2cli_last_packets,
