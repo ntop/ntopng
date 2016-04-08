@@ -578,7 +578,7 @@ else
 end
 
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
-print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
+print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
 
 
 print [[
