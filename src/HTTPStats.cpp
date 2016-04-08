@@ -34,7 +34,13 @@ HTTPStats::HTTPStats(HostHash *_h) {
   h = _h, warning_shown = false;
   memset(&query, 0, sizeof(query));
   memset(&response, 0, sizeof(response));
-
+  memset(&query_rate, 0, sizeof(query_rate));
+  memset(&response_rate, 0, sizeof(response_rate));
+  memset(&last_query_sample, 0, sizeof(last_query_sample));
+  memset(&last_response_sample, 0, sizeof(last_response_sample));
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  memcpy(&last_update_time, &tv, sizeof(struct timeval));
   if((virtualHosts = new VirtualHostHash(NULL, 1, 4096)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
   }
@@ -122,7 +128,55 @@ void HTTPStats::getResponses(const struct http_response_stats *r,
   *num_5xx  += r->num_5xx;
 }
 
-void HTTPStats::luaAddDirection(lua_State *vm, char* direction) {
+void HTTPStats::getRequestsRates(const struct http_query_rates *dq,
+			    u_int16_t *rate_get, u_int16_t *rate_post, u_int16_t *rate_head,
+			    u_int16_t *rate_put, u_int16_t *rate_other){
+  if (dq == NULL)
+    return;
+  *rate_get   += dq->rate_get;
+  *rate_post  += dq->rate_post;
+  *rate_head  += dq->rate_head;
+  *rate_put   += dq->rate_put;
+  *rate_other += dq->rate_other;
+}
+
+void HTTPStats::getResponsesRates(const struct http_response_rates *dr,
+			     u_int16_t *rate_1xx, u_int16_t *rate_2xx, u_int16_t *rate_3xx,
+			     u_int16_t *rate_4xx, u_int16_t *rate_5xx){
+  if (dr == NULL)
+    return;
+  *rate_1xx  += dr->rate_1xx;
+  *rate_2xx  += dr->rate_2xx;
+  *rate_3xx  += dr->rate_3xx;
+  *rate_4xx  += dr->rate_4xx;
+  *rate_5xx  += dr->rate_5xx;
+}
+
+void HTTPStats::getRequestsDelta(const struct http_query_stats *q0, const struct http_query_stats *q1,
+			    u_int32_t *delta_get, u_int32_t *delta_post, u_int32_t *delta_head,
+			    u_int32_t *delta_put, u_int32_t *delta_other){
+  if (q0 == NULL || q1 == NULL)
+    return;
+  *delta_get   += q1->num_get   - q0->num_get;
+  *delta_post  += q1->num_post  - q0->num_post;
+  *delta_head  += q1->num_head  - q0->num_head;
+  *delta_put   += q1->num_put   - q0->num_put;
+  *delta_other += q1->num_other - q0->num_other;
+}
+
+void HTTPStats::getResponsesDelta(const struct http_response_stats *r0, const struct http_response_stats *r1,
+			     u_int32_t *delta_1xx, u_int32_t *delta_2xx, u_int32_t *delta_3xx,
+			     u_int32_t *delta_4xx, u_int32_t *delta_5xx){
+  if (r0 == NULL || r1 == NULL)
+    return;
+  *delta_1xx  += r1->num_1xx - r0->num_1xx;
+  *delta_2xx  += r1->num_2xx - r0->num_2xx;
+  *delta_3xx  += r1->num_3xx - r0->num_3xx;
+  *delta_4xx  += r1->num_4xx - r0->num_4xx;
+  *delta_5xx  += r1->num_5xx - r0->num_5xx;
+}
+
+void HTTPStats::luaAddCounters(lua_State *vm, char* direction) {
   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
   u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
   char buf[64];
@@ -174,6 +228,59 @@ void HTTPStats::luaAddDirection(lua_State *vm, char* direction) {
   lua_push_int_table_entry(vm, buf, num_5xx);
 }
 
+void HTTPStats::luaAddRates(lua_State *vm, char* direction) {
+  u_int16_t rate_get = 0, rate_post = 0, rate_head = 0, rate_put = 0, rate_other = 0;
+  u_int16_t rate_1xx = 0, rate_2xx = 0, rate_3xx = 0, rate_4xx = 0, rate_5xx =0;
+  char buf[64];
+
+  if(strncmp(direction, (char*)".as_sender", 9)    == 0 || direction[0] == '\0'){
+    getRequestsRates(&query_rate[AS_SENDER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
+    getResponsesRates(&response_rate[AS_SENDER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
+  }
+
+  if(strncmp(direction, (char*)".as_receiver", 11) == 0 || direction[0] == '\0'){
+    getRequestsRates(&query_rate[AS_RECEIVER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
+    getResponsesRates(&response_rate[AS_RECEIVER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
+  }
+
+  snprintf(buf, sizeof(buf), "query%s.rate_total", direction);
+  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %f", buf, rate_get + rate_post + rate_head + rate_put + rate_other);
+  lua_push_int_table_entry(vm, buf, rate_get + rate_post + rate_head + rate_put + rate_other);
+
+  snprintf(buf, sizeof(buf), "query%s.rate_get", direction);
+  lua_push_int_table_entry(vm, buf, rate_get);
+
+  snprintf(buf, sizeof(buf), "query%s.rate_post", direction);
+  lua_push_int_table_entry(vm, buf, rate_post);
+
+  snprintf(buf, sizeof(buf), "query%s.rate_head", direction);
+  lua_push_int_table_entry(vm, buf, rate_head);
+
+  snprintf(buf, sizeof(buf), "query%s.rate_put", direction);
+  lua_push_int_table_entry(vm, buf, rate_put);
+
+  snprintf(buf, sizeof(buf), "query%s.rate_other", direction);
+  lua_push_int_table_entry(vm, buf, rate_other);
+
+  snprintf(buf, sizeof(buf), "response%s.rate_total", direction);
+  lua_push_int_table_entry(vm, buf, rate_1xx + rate_2xx + rate_3xx + rate_4xx + rate_5xx);
+
+  snprintf(buf, sizeof(buf), "response%s.rate_1xx", direction);
+  lua_push_int_table_entry(vm, buf, rate_1xx);
+
+  snprintf(buf, sizeof(buf), "response%s.rate_2xx", direction);
+  lua_push_int_table_entry(vm, buf, rate_2xx);
+
+  snprintf(buf, sizeof(buf), "response%s.rate_3xx", direction);
+  lua_push_int_table_entry(vm, buf, rate_3xx);
+
+  snprintf(buf, sizeof(buf), "response%s.rate_4xx", direction);
+  lua_push_int_table_entry(vm, buf, rate_4xx);
+
+  snprintf(buf, sizeof(buf), "response%s.rate_5xx", direction);
+  lua_push_int_table_entry(vm, buf, rate_5xx);
+}
+
 /* **************************************************** */
 
 void HTTPStats::lua(lua_State *vm) {
@@ -191,9 +298,12 @@ void HTTPStats::lua(lua_State *vm) {
     lua_settable(vm, -3);
   }
 
-  luaAddDirection(vm, (char*)"\0"); /* sum sender + receiver */
-  luaAddDirection(vm, (char*)".as_sender");
-  luaAddDirection(vm, (char*)".as_receiver");
+  luaAddCounters(vm, (char*)"\0"); /* sum sender + receiver */
+  luaAddCounters(vm, (char*)".as_sender");
+  luaAddCounters(vm, (char*)".as_receiver");
+  luaAddRates(vm, (char*)"\0"); /* sum sender + receiver */
+  luaAddRates(vm, (char*)".as_sender");
+  luaAddRates(vm, (char*)".as_receiver");
 
   lua_pushstring(vm, "http");
   lua_insert(vm, -2);
@@ -225,8 +335,7 @@ void HTTPStats::deserialize(json_object *o) {
 
   if(!o) return;
 
-  memset(&query, 0, sizeof(query)), memset(&response, 0, sizeof(response));
-
+  // please keep in mind that we no not deserialize rates
   for(u_int8_t i = 0; i <2; i++){
     direction = directions[i];
     q = &query[indices[i]];
@@ -272,11 +381,17 @@ void HTTPStats::deserialize(json_object *o) {
     if (json_object_object_get_ex(o, buf, &obj))
       r->num_5xx = (u_int32_t)json_object_get_int64(obj);
   }
+
+  memcpy(&last_query_sample,    &query,    sizeof(query));
+  memcpy(&last_response_sample, &response, sizeof(response));
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  memcpy(&last_update_time, &tv, sizeof(struct timeval));
 }
 
 /* ******************************************* */
 
-void  HTTPStats::JSONObjectAddDirection(json_object *my_object, char *direction) {
+void  HTTPStats::JSONObjectAddCounters(json_object *my_object, char *direction) {
   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
   u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
   char buf[64];
@@ -347,10 +462,83 @@ void  HTTPStats::JSONObjectAddDirection(json_object *my_object, char *direction)
 
 /* ******************************************* */
 
+void  HTTPStats::JSONObjectAddRates(json_object *my_object, char *direction) {
+  u_int16_t rate_get = 0, rate_post = 0, rate_head = 0, rate_put = 0, rate_other = 0;
+  u_int16_t rate_1xx = 0, rate_2xx  = 0, rate_3xx  = 0, rate_4xx = 0, rate_5xx   = 0;
+  char buf[64];
+
+  if(my_object == NULL)
+    return;
+
+  if(strncmp(direction, (char*)".as_sender", 9)         == 0){
+    getRequestsRates(&query_rate[AS_SENDER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
+    getResponsesRates(&response_rate[AS_SENDER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
+  }else if(strncmp(direction, (char*)".as_receiver", 11) == 0){
+    getRequestsRates(&query_rate[AS_RECEIVER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
+    getResponsesRates(&response_rate[AS_RECEIVER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
+  } else {
+    return;
+  }
+
+  if(rate_get > 0){
+    snprintf(buf, sizeof(buf), "query%s.rate_get", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_get));
+  }
+
+  if(rate_post > 0){
+    snprintf(buf, sizeof(buf), "query%s.rate_post", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_post));
+  }
+
+  if(rate_head > 0){
+    snprintf(buf, sizeof(buf), "query%s.rate_head", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_head));
+  }
+
+  if(rate_put > 0){
+    snprintf(buf, sizeof(buf), "query%s.rate_put", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_put));
+  }
+
+  if(rate_other > 0){
+    snprintf(buf, sizeof(buf), "query%s.rate_other", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_other));
+  }
+
+  if(rate_1xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.rate_1xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_1xx));
+  }
+
+  if(rate_2xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.rate_2xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_2xx));
+  }
+
+  if(rate_3xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.rate_3xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_3xx));
+  }
+
+  if(rate_4xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.rate_4xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_4xx));
+  }
+
+  if(rate_5xx > 0){
+    snprintf(buf, sizeof(buf), "response%s.rate_5xx", direction);
+    json_object_object_add(my_object, buf, json_object_new_int64(rate_5xx));
+  }
+}
+
+/* ******************************************* */
+
 json_object* HTTPStats::getJSONObject() {
   json_object *my_object = json_object_new_object();
-  JSONObjectAddDirection(my_object, (char*)".as_sender");
-  JSONObjectAddDirection(my_object, (char*)".as_receiver");
+  JSONObjectAddCounters(my_object, (char*)".as_sender");
+  JSONObjectAddCounters(my_object, (char*)".as_receiver");
+  JSONObjectAddRates(my_object, (char*)".as_sender");
+  JSONObjectAddRates(my_object, (char*)".as_receiver");
   return(my_object);
 }
 
@@ -369,8 +557,8 @@ void HTTPStats::incRequest(struct http_query_stats *q, const char *method) {
 void HTTPStats::incResponse(struct http_response_stats *r, const char *return_code) {
   const char *code;
 
-  if(!return_code) 
-    return; 
+  if(!return_code)
+    return;
 
   code = strchr(return_code, ' ');
   if(!code) return;
@@ -450,4 +638,38 @@ void HTTPStats::updateStats(struct timeval *tv) {
     virtualHosts->walk(update_http_stats, tv);
     virtualHosts->purgeIdle();
   }
+  float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
+  if (tdiff_msec < 1000)
+    return;  // too earl
+
+  // refresh the last update time with the new values
+  // also refresh the statistics on request variations
+  const u_int8_t indices[2]  = {AS_SENDER,       AS_RECEIVER};
+  for(u_int8_t i = 0; i < 2 ; i++){
+    u_int8_t direction = indices[i];
+    struct http_query_rates    *dq = &query_rate[direction];
+    struct http_response_rates *dr = &response_rate[direction];
+    u_int32_t      d_get = 0,      d_post = 0,      d_head = 0,      d_put = 0,      d_other = 0;
+    u_int32_t      d_1xx = 0,      d_2xx  = 0,       d_3xx = 0,      d_4xx = 0,        d_5xx = 0;
+
+    getRequestsDelta(&last_query_sample[direction], &query[direction], &d_get, &d_post, &d_head, &d_put, &d_other);
+    getResponsesDelta(&last_response_sample[direction],&response[direction], &d_1xx, &d_2xx, &d_3xx, &d_4xx, &d_5xx);
+
+    dq -> rate_get   = (u_int16_t)(d_get   * 1000 / tdiff_msec + .5f);
+    dq -> rate_post  = (u_int16_t)(d_post  * 1000 / tdiff_msec + .5f);
+    dq -> rate_head  = (u_int16_t)(d_head  * 1000 / tdiff_msec + .5f);
+    dq -> rate_put   = (u_int16_t)(d_put   * 1000 / tdiff_msec + .5f);
+    dq -> rate_other = (u_int16_t)(d_other * 1000 / tdiff_msec + .5f);
+
+    dr -> rate_1xx   = (u_int16_t)(d_1xx   * 1000 / tdiff_msec + .5f);
+    dr -> rate_2xx   = (u_int16_t)(d_2xx   * 1000 / tdiff_msec + .5f);
+    dr -> rate_3xx   = (u_int16_t)(d_3xx   * 1000 / tdiff_msec + .5f);
+    dr -> rate_4xx   = (u_int16_t)(d_4xx   * 1000 / tdiff_msec + .5f);
+    dr -> rate_5xx   = (u_int16_t)(d_5xx   * 1000 / tdiff_msec + .5f);
+  }
+
+  last_update_time.tv_sec  = tv->tv_sec;
+  last_update_time.tv_usec = tv->tv_usec;
+  memcpy(&last_query_sample,    &query,    sizeof(query));
+  memcpy(&last_response_sample, &response, sizeof(response));
 }

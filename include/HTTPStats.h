@@ -29,9 +29,20 @@ class Host;
 struct http_query_stats {
   u_int32_t num_get, num_post, num_head, num_put, num_other;
 };
-
 struct http_response_stats {
   u_int32_t num_1xx, num_2xx, num_3xx, num_4xx, num_5xx;
+};
+
+// to be more efficient, we keep rates as 16 bit integers
+// rather than float. Indeed, decimal places in request rates
+// are not so informative to justify the use of floats. For example
+// if a host is making 198 or 198.1 reqs/sec there is not a big deal of
+// difference
+struct http_response_rates {
+  u_int16_t rate_1xx, rate_2xx, rate_3xx, rate_4xx, rate_5xx;
+};
+struct http_query_rates {
+  u_int16_t rate_get, rate_post, rate_head, rate_put, rate_other;
 };
 
 enum {
@@ -41,8 +52,14 @@ enum {
 
 class HTTPStats {
  private:
-  struct http_query_stats query[2];
+  struct http_query_stats    query[2];
   struct http_response_stats response[2];
+  struct http_query_rates    query_rate[2];
+  struct http_response_rates response_rate[2];
+  struct http_query_stats    last_query_sample[2];
+  struct http_response_stats last_response_sample[2];
+  struct timeval last_update_time;
+
   Mutex m;
   HostHash *h;
   bool warning_shown;
@@ -59,8 +76,26 @@ class HTTPStats {
 		   u_int32_t *num_1xx, u_int32_t *num_2xx, u_int32_t *num_3xx,
 		   u_int32_t *num_4xx, u_int32_t *num_5xx);
 
-  void luaAddDirection(lua_State *vm, char *direction);
-  void JSONObjectAddDirection(json_object *j, char *direction);
+  void getRequestsRates(const struct http_query_rates *dq,
+		   u_int16_t *rate_get, u_int16_t *rate_post, u_int16_t *rate_head,
+		   u_int16_t *rate_put, u_int16_t *rate_other);
+
+  void getResponsesRates(const struct http_response_rates *dr,
+		   u_int16_t *rate_1xx, u_int16_t *rate_2xx, u_int16_t *rate_3xx,
+		   u_int16_t *rate_4xx, u_int16_t *rate_5xx);
+
+  void getRequestsDelta(const struct http_query_stats *q0, const struct http_query_stats *q1,
+		   u_int32_t *delta_get, u_int32_t *delta_post, u_int32_t *delta_head,
+		   u_int32_t *delta_put, u_int32_t *delta_other);
+
+  void getResponsesDelta(const struct http_response_stats *r0 , const struct http_response_stats *r1,
+		   u_int32_t *delta_1xx, u_int32_t *delta_2xx, u_int32_t *delta_3xx,
+		   u_int32_t *delta_4xx, u_int32_t *delta_5xx);
+
+  void luaAddCounters(lua_State *vm, char *direction);
+  void luaAddRates(lua_State *vm, char *direction);
+  void JSONObjectAddCounters(json_object *j, char *direction);
+  void JSONObjectAddRates(json_object *j, char *direction);
 
  public:
   HTTPStats(HostHash *_h);

@@ -378,7 +378,7 @@ function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, en
    if tonumber(limit) > 0 then slice_limit = limit end
    sql = sql.."limit "..slice_offset..","..slice_limit.." "
 
-   if(1 or db_debug == true) then io.write(sql.."\n") end
+   if(db_debug == true) then io.write(sql.."\n") end
 
    res = interface.execSQLQuery(sql)
    if(type(res) == "string") then
