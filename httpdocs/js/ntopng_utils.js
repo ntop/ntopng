@@ -46,13 +46,23 @@ function is_network_mask(what) {
 
 function fbits(bits) {
     var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
-    if(bits == 0) return '0';
-    var i = parseInt(Math.floor(Math.log(bits) / Math.log(1000)));
+    if(bits <= 0) return '0';
+    var bits_log1000 = Math.log(bits) / Math.log(1000)
+    var i = parseInt(Math.floor(bits_log1000));
     if (i < 0 || isNaN(i)) {
-	i = 0;
 	return "< 1 " + sizes[0];
+    } else if (i >= sizes.length) { // prevents overflows
+	return "> "   + sizes[sizes.length - 1]
+    } else if (i <= 1) {
+	return Math.round(bits / Math.pow(1000, i)) + ' ' + sizes[i]
+    } else {
+	var ret = parseFloat(bits / Math.pow(1000, i)).toFixed(2)
+	if (ret % 1 == 0)
+	    ret = Math.round(ret)
+	return ret + ' ' + sizes[i]
     }
-    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
+//    console.log('bits:' + bits+ ' ' + parseFloat(bits / Math.pow(1000, i)))
+//    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
 
 function fpackets(pps) {
