@@ -873,7 +873,7 @@ char* Host::serialize() {
 
 json_object* Host::getJSONObject() {
   json_object *my_object;
-  char *rsp, buf[32];
+  char buf[32];
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
@@ -920,9 +920,6 @@ json_object* Host::getJSONObject() {
   if(categoryStats)  json_object_object_add(my_object, "categories", categoryStats->getJSONObject());
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
-
-  //ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
-  rsp = strdup(json_object_to_json_string(my_object));
 
   return(my_object);
 }
