@@ -50,7 +50,7 @@ enum {
   AS_RECEIVER
 };
 
-class HTTPStats {
+class HTTPstats {
  private:
   struct http_query_stats    query[2];
   struct http_response_stats response[2];
@@ -92,14 +92,15 @@ class HTTPStats {
 		   u_int32_t *delta_1xx, u_int32_t *delta_2xx, u_int32_t *delta_3xx,
 		   u_int32_t *delta_4xx, u_int32_t *delta_5xx);
 
-  void luaAddCounters(lua_State *vm, char *direction);
-  void luaAddRates(lua_State *vm, char *direction);
-  void JSONObjectAddCounters(json_object *j, char *direction);
-  void JSONObjectAddRates(json_object *j, char *direction);
+  void luaAddCounters(lua_State *vm, bool as_sender);
+  void luaAddRates(lua_State *vm, bool as_sender);
+  void JSONObjectAddCounters(json_object *j, bool as_sender);
+  void JSONObjectAddRates(json_object *j, bool as_sender);
+  inline u_int16_t makeRate(u_int16_t v, float tdiff) { return((u_int16_t)((((float)v* 1000)/tdiff) + .5f)); }
 
  public:
-  HTTPStats(HostHash *_h);
-  ~HTTPStats();
+  HTTPstats(HostHash *_h);
+  ~HTTPstats();
 
   inline u_int32_t get_num_virtual_hosts() { return(virtualHosts ? virtualHosts->getNumEntries() : 0); }
 

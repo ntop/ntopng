@@ -51,7 +51,7 @@ class Host : public GenericHost {
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
   DnsStats *dns;
-  HTTPStats *http;
+  HTTPstats *http;
   bool trigger_host_alerts, good_low_flow_detected;
   u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
   NetworkStats *networkStats;
@@ -68,7 +68,7 @@ class Host : public GenericHost {
   void initialize(u_int8_t mac[6], u_int16_t _vlan_id, bool init_all);
   void refreshHTTPBL();
   void computeHostSerial();
-
+  json_object* getJSONObject();
   void loadFlowRateAlertPrefs(void);
   void loadSynAlertPrefs(void);
   void loadFlowsAlertPrefs(void);
@@ -92,8 +92,8 @@ class Host : public GenericHost {
   inline int16_t get_local_network_id()             { return(local_network_id);      };
   inline PacketStats* get_sent_stats()              { return(&sent_stats);           };
   inline PacketStats* get_recv_stats()              { return(&recv_stats);           };
-  inline HTTPStats* getHTTPStats()                  { return(http);     };
-  inline HTTPStats* getHTTP()                       { return(http);                  };
+  inline HTTPstats* getHTTPstats()                  { return(http);     };
+  inline HTTPstats* getHTTP()                       { return(http);                  };
   inline void set_ipv4(u_int32_t _ipv4)             { ip->set_ipv4(_ipv4);           };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip->set_ipv6(_ipv6);           };
   u_int32_t key();

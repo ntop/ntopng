@@ -177,7 +177,7 @@ using namespace std;
 #include "GenericHash.h"
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
-#include "HTTPStats.h"
+#include "HTTPstats.h"
 #include "Redis.h"
 #include "StatsManager.h"
 #include "DB.h"

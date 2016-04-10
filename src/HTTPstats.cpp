@@ -30,7 +30,7 @@ struct http_walk_info {
 
 /* *************************************** */
 
-HTTPStats::HTTPStats(HostHash *_h) {
+HTTPstats::HTTPstats(HostHash *_h) {
   struct timeval tv;
 
   h = _h, warning_shown = false;
@@ -50,7 +50,7 @@ HTTPStats::HTTPStats(HostHash *_h) {
 
 /* *************************************** */
 
-HTTPStats::~HTTPStats() {
+HTTPstats::~HTTPstats() {
   if(virtualHosts) delete(virtualHosts);
 }
 
@@ -95,7 +95,7 @@ static bool http_stats_summary(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-u_int32_t HTTPStats::luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h) {
+u_int32_t HTTPstats::luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h) {
   if(virtualHosts) {
     struct http_walk_info info;
 
@@ -108,7 +108,7 @@ u_int32_t HTTPStats::luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h)
 
 /* *************************************** */
 
-void HTTPStats::getRequests(const struct http_query_stats *q,
+void HTTPstats::getRequests(const struct http_query_stats *q,
 			    u_int32_t *num_get, u_int32_t *num_post, u_int32_t *num_head,
 			    u_int32_t *num_put, u_int32_t *num_other){
   if (q == NULL)
@@ -122,7 +122,7 @@ void HTTPStats::getRequests(const struct http_query_stats *q,
 
 /* *************************************** */
 
-void HTTPStats::getResponses(const struct http_response_stats *r,
+void HTTPstats::getResponses(const struct http_response_stats *r,
 			     u_int32_t *num_1xx, u_int32_t *num_2xx, u_int32_t *num_3xx,
 			     u_int32_t *num_4xx, u_int32_t *num_5xx){
   if (r == NULL)
@@ -136,7 +136,7 @@ void HTTPStats::getResponses(const struct http_response_stats *r,
 
 /* *************************************** */
 
-void HTTPStats::getRequestsRates(const struct http_query_rates *dq,
+void HTTPstats::getRequestsRates(const struct http_query_rates *dq,
 				 u_int16_t *rate_get, u_int16_t *rate_post, u_int16_t *rate_head,
 				 u_int16_t *rate_put, u_int16_t *rate_other){
   if (dq == NULL)
@@ -150,7 +150,7 @@ void HTTPStats::getRequestsRates(const struct http_query_rates *dq,
 
 /* *************************************** */
 
-void HTTPStats::getResponsesRates(const struct http_response_rates *dr,
+void HTTPstats::getResponsesRates(const struct http_response_rates *dr,
 				  u_int16_t *rate_1xx, u_int16_t *rate_2xx, u_int16_t *rate_3xx,
 				  u_int16_t *rate_4xx, u_int16_t *rate_5xx){
   if (dr == NULL)
@@ -164,7 +164,7 @@ void HTTPStats::getResponsesRates(const struct http_response_rates *dr,
 
 /* *************************************** */
 
-void HTTPStats::getRequestsDelta(const struct http_query_stats *q0, const struct http_query_stats *q1,
+void HTTPstats::getRequestsDelta(const struct http_query_stats *q0, const struct http_query_stats *q1,
 				 u_int32_t *delta_get, u_int32_t *delta_post, u_int32_t *delta_head,
 				 u_int32_t *delta_put, u_int32_t *delta_other){
   if (q0 == NULL || q1 == NULL)
@@ -178,7 +178,7 @@ void HTTPStats::getRequestsDelta(const struct http_query_stats *q0, const struct
 
 /* *************************************** */
 
-void HTTPStats::getResponsesDelta(const struct http_response_stats *r0, const struct http_response_stats *r1,
+void HTTPstats::getResponsesDelta(const struct http_response_stats *r0, const struct http_response_stats *r1,
 				  u_int32_t *delta_1xx, u_int32_t *delta_2xx, u_int32_t *delta_3xx,
 				  u_int32_t *delta_4xx, u_int32_t *delta_5xx){
   if (r0 == NULL || r1 == NULL)
@@ -192,116 +192,75 @@ void HTTPStats::getResponsesDelta(const struct http_response_stats *r0, const st
 
 /* *************************************** */
 
-void HTTPStats::luaAddCounters(lua_State *vm, char* direction) {
+void HTTPstats::luaAddCounters(lua_State *vm, bool as_sender) {
   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
   u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
-  char buf[64];
 
-  if(strncmp(direction, (char*)".as_sender", 9)    == 0 || direction[0] == '\0'){
-    getRequests(&query[AS_SENDER], &num_get, &num_post, &num_head, &num_put, &num_other);
-    getResponses(&response[AS_SENDER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
-  }
+  getRequests(&query[as_sender ? AS_SENDER : AS_RECEIVER], &num_get, &num_post, &num_head, &num_put, &num_other);
+  getResponses(&response[as_sender ? AS_SENDER : AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
+  
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "total", num_get+num_post+num_head+num_put+num_other);
+  lua_push_int_table_entry(vm, "num_get", num_get);
+  lua_push_int_table_entry(vm, "num_post", num_post);
+  lua_push_int_table_entry(vm, "num_head", num_head);
+  lua_push_int_table_entry(vm, "num_put", num_put);
+  lua_push_int_table_entry(vm, "num_other", num_other);
+  lua_pushstring(vm, "query");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  if(strncmp(direction, (char*)".as_receiver", 11) == 0 || direction[0] == '\0'){
-    getRequests(&query[AS_RECEIVER], &num_get, &num_post, &num_head, &num_put, &num_other);
-    getResponses(&response[AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
-  }
-
-  snprintf(buf, sizeof(buf), "query%s.total", direction);
-  lua_push_int_table_entry(vm, buf, num_get + num_post + num_head + num_put + num_other);
-
-  snprintf(buf, sizeof(buf), "query%s.num_get", direction);
-  lua_push_int_table_entry(vm, buf, num_get);
-
-  snprintf(buf, sizeof(buf), "query%s.num_post", direction);
-  lua_push_int_table_entry(vm, buf, num_post);
-
-  snprintf(buf, sizeof(buf), "query%s.num_head", direction);
-  lua_push_int_table_entry(vm, buf, num_head);
-
-  snprintf(buf, sizeof(buf), "query%s.num_put", direction);
-  lua_push_int_table_entry(vm, buf, num_put);
-
-  snprintf(buf, sizeof(buf), "query%s.num_other", direction);
-  lua_push_int_table_entry(vm, buf, num_other);
-
-  snprintf(buf, sizeof(buf), "response%s.total", direction);
-  lua_push_int_table_entry(vm, buf, num_1xx + num_2xx + num_3xx + num_4xx + num_5xx);
-
-  snprintf(buf, sizeof(buf), "response%s.num_1xx", direction);
-  lua_push_int_table_entry(vm, buf, num_1xx);
-
-  snprintf(buf, sizeof(buf), "response%s.num_2xx", direction);
-  lua_push_int_table_entry(vm, buf, num_2xx);
-
-  snprintf(buf, sizeof(buf), "response%s.num_3xx", direction);
-  lua_push_int_table_entry(vm, buf, num_3xx);
-
-  snprintf(buf, sizeof(buf), "response%s.num_4xx", direction);
-  lua_push_int_table_entry(vm, buf, num_4xx);
-
-  snprintf(buf, sizeof(buf), "response%s.num_5xx", direction);
-  lua_push_int_table_entry(vm, buf, num_5xx);
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "total", num_1xx+num_2xx+num_3xx+num_4xx+num_5xx);
+  lua_push_int_table_entry(vm, "num_1xx", num_1xx);
+  lua_push_int_table_entry(vm, "num_2xx", num_2xx);
+  lua_push_int_table_entry(vm, "num_3xx", num_3xx);
+  lua_push_int_table_entry(vm, "num_4xx", num_4xx);
+  lua_push_int_table_entry(vm, "num_5xx", num_5xx);
+  lua_pushstring(vm, "response");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
 
-void HTTPStats::luaAddRates(lua_State *vm, char* direction) {
+void HTTPstats::luaAddRates(lua_State *vm, bool as_sender) {
   u_int16_t rate_get = 0, rate_post = 0, rate_head = 0, rate_put = 0, rate_other = 0;
   u_int16_t rate_1xx = 0, rate_2xx = 0, rate_3xx = 0, rate_4xx = 0, rate_5xx =0;
-  char buf[64];
+  
+  getRequestsRates(&query_rate[as_sender ? AS_SENDER : AS_RECEIVER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
+  getResponsesRates(&response_rate[as_sender ? AS_SENDER : AS_RECEIVER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
+  
+  lua_newtable(vm);
 
-  if(strncmp(direction, (char*)".as_sender", 9)    == 0 || direction[0] == '\0'){
-    getRequestsRates(&query_rate[AS_SENDER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
-    getResponsesRates(&response_rate[AS_SENDER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
-  }
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "get", rate_get);
+  lua_push_int_table_entry(vm, "post", rate_post);
+  lua_push_int_table_entry(vm, "head", rate_head);
+  lua_push_int_table_entry(vm, "put", rate_put);
+  lua_push_int_table_entry(vm, "other", rate_other);
+  lua_pushstring(vm, "query");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  if(strncmp(direction, (char*)".as_receiver", 11) == 0 || direction[0] == '\0'){
-    getRequestsRates(&query_rate[AS_RECEIVER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
-    getResponsesRates(&response_rate[AS_RECEIVER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
-  }
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "1xx", rate_1xx);
+  lua_push_int_table_entry(vm, "2xx", rate_2xx);
+  lua_push_int_table_entry(vm, "3xx", rate_3xx);
+  lua_push_int_table_entry(vm, "4xx", rate_4xx);
+  lua_push_int_table_entry(vm, "5xx", rate_5xx);
+  lua_pushstring(vm, "response");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
-  snprintf(buf, sizeof(buf), "query%s.rate_total", direction);
-  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %f", buf, rate_get + rate_post + rate_head + rate_put + rate_other);
-  lua_push_int_table_entry(vm, buf, rate_get + rate_post + rate_head + rate_put + rate_other);
-
-  snprintf(buf, sizeof(buf), "query%s.rate_get", direction);
-  lua_push_int_table_entry(vm, buf, rate_get);
-
-  snprintf(buf, sizeof(buf), "query%s.rate_post", direction);
-  lua_push_int_table_entry(vm, buf, rate_post);
-
-  snprintf(buf, sizeof(buf), "query%s.rate_head", direction);
-  lua_push_int_table_entry(vm, buf, rate_head);
-
-  snprintf(buf, sizeof(buf), "query%s.rate_put", direction);
-  lua_push_int_table_entry(vm, buf, rate_put);
-
-  snprintf(buf, sizeof(buf), "query%s.rate_other", direction);
-  lua_push_int_table_entry(vm, buf, rate_other);
-
-  snprintf(buf, sizeof(buf), "response%s.rate_total", direction);
-  lua_push_int_table_entry(vm, buf, rate_1xx + rate_2xx + rate_3xx + rate_4xx + rate_5xx);
-
-  snprintf(buf, sizeof(buf), "response%s.rate_1xx", direction);
-  lua_push_int_table_entry(vm, buf, rate_1xx);
-
-  snprintf(buf, sizeof(buf), "response%s.rate_2xx", direction);
-  lua_push_int_table_entry(vm, buf, rate_2xx);
-
-  snprintf(buf, sizeof(buf), "response%s.rate_3xx", direction);
-  lua_push_int_table_entry(vm, buf, rate_3xx);
-
-  snprintf(buf, sizeof(buf), "response%s.rate_4xx", direction);
-  lua_push_int_table_entry(vm, buf, rate_4xx);
-
-  snprintf(buf, sizeof(buf), "response%s.rate_5xx", direction);
-  lua_push_int_table_entry(vm, buf, rate_5xx);
+  lua_pushstring(vm, "rate");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* **************************************************** */
 
-void HTTPStats::lua(lua_State *vm) {
+void HTTPstats::lua(lua_State *vm) {
   lua_newtable(vm);
 
   if(virtualHosts) {
@@ -316,13 +275,20 @@ void HTTPStats::lua(lua_State *vm) {
     lua_settable(vm, -3);
   }
 
-  luaAddCounters(vm, (char*)"\0"); /* sum sender + receiver */
-  luaAddCounters(vm, (char*)".as_sender");
-  luaAddCounters(vm, (char*)".as_receiver");
-  luaAddRates(vm, (char*)"\0"); /* sum sender + receiver */
-  luaAddRates(vm, (char*)".as_sender");
-  luaAddRates(vm, (char*)".as_receiver");
+  lua_newtable(vm);
+  luaAddCounters(vm, true);
+  luaAddRates(vm, true);
+  lua_pushstring(vm, "sender");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
+  lua_newtable(vm);
+  luaAddRates(vm, false);
+  luaAddCounters(vm, false);
+  lua_pushstring(vm, "receiver");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  
   lua_pushstring(vm, "http");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -330,7 +296,7 @@ void HTTPStats::lua(lua_State *vm) {
 
 /* *************************************** */
 
-char* HTTPStats::serialize() {
+char* HTTPstats::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
 
@@ -342,7 +308,7 @@ char* HTTPStats::serialize() {
 
 /* ******************************************* */
 
-void HTTPStats::deserialize(json_object *o) {
+void HTTPstats::deserialize(json_object *o) {
   json_object *obj;
   struct http_query_stats    *q;
   struct http_response_stats *r;
@@ -350,6 +316,7 @@ void HTTPStats::deserialize(json_object *o) {
   char buf[64];
   const char *directions[2]  = {".as_sender", ".as_receiver"};
   const u_int8_t indices[2]  = {AS_SENDER,       AS_RECEIVER};
+  struct timeval tv;
 
   if(!o) return;
 
@@ -402,167 +369,94 @@ void HTTPStats::deserialize(json_object *o) {
 
   memcpy(&last_query_sample,    &query,    sizeof(query));
   memcpy(&last_response_sample, &response, sizeof(response));
-  struct timeval tv;
+
   gettimeofday(&tv, NULL);
   memcpy(&last_update_time, &tv, sizeof(struct timeval));
 }
 
 /* ******************************************* */
 
-void  HTTPStats::JSONObjectAddCounters(json_object *my_object, char *direction) {
+void HTTPstats::JSONObjectAddCounters(json_object *my_object, bool as_sender) {
   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
   u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
-  char buf[64];
+  json_object *sub_object = json_object_new_object();
 
-  if(my_object == NULL)
-    return;
+  if(!my_object) return;
 
-  if(strncmp(direction, (char*)".as_sender", 9)         == 0){
-    getRequests(&query[AS_SENDER], &num_get, &num_post, &num_head, &num_put, &num_other);
-    getResponses(&response[AS_SENDER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
-  }else if(strncmp(direction, (char*)".as_receiver", 11) == 0){
-    getRequests(&query[AS_RECEIVER], &num_get, &num_post, &num_head, &num_put, &num_other);
-    getResponses(&response[AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
-  } else {
-    return;
-  }
+  getRequests(&query[as_sender ? AS_SENDER : AS_RECEIVER], &num_get, &num_post, &num_head, &num_put, &num_other);
+  getResponses(&response[as_sender ? AS_SENDER : AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
 
-  if(num_get > 0){
-    snprintf(buf, sizeof(buf), "query%s.num_get", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_get));
-  }
+  if(!(sub_object = json_object_new_object())) return;
+  if(num_get > 0)  json_object_object_add(sub_object, "num_get", json_object_new_int64(num_get));
+  if(num_post > 0) json_object_object_add(sub_object, "num_post", json_object_new_int64(num_post));
+  if(num_head > 0) json_object_object_add(sub_object, "num_head", json_object_new_int64(num_head));
+  if(num_put > 0)  json_object_object_add(sub_object, "num_put", json_object_new_int64(num_put));
+  if(num_other > 0) json_object_object_add(sub_object, "num_other", json_object_new_int64(num_other));
+  json_object_object_add(my_object, "request", sub_object);
 
-  if(num_post > 0){
-    snprintf(buf, sizeof(buf), "query%s.num_post", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_post));
-  }
-
-  if(num_head > 0){
-    snprintf(buf, sizeof(buf), "query%s.num_head", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_head));
-  }
-
-  if(num_put > 0){
-    snprintf(buf, sizeof(buf), "query%s.num_put", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_put));
-  }
-
-  if(num_other > 0){
-    snprintf(buf, sizeof(buf), "query%s.num_other", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_other));
-  }
-
-  if(num_1xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.num_1xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_1xx));
-  }
-
-  if(num_2xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.num_2xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_2xx));
-  }
-
-  if(num_3xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.num_3xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_3xx));
-  }
-
-  if(num_4xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.num_4xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_4xx));
-  }
-
-  if(num_5xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.num_5xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(num_5xx));
-  }
+  if(!(sub_object = json_object_new_object())) return;
+  if(num_1xx > 0) json_object_object_add(sub_object, "num_1xx", json_object_new_int64(num_1xx));
+  if(num_2xx > 0) json_object_object_add(sub_object, "num_2xx", json_object_new_int64(num_2xx));
+  if(num_3xx > 0) json_object_object_add(sub_object, "num_3xx", json_object_new_int64(num_3xx));
+  if(num_4xx > 0) json_object_object_add(sub_object, "num_4xx", json_object_new_int64(num_4xx));
+  if(num_5xx > 0) json_object_object_add(sub_object, "num_5xx", json_object_new_int64(num_5xx));
+  json_object_object_add(my_object, "response", sub_object);
 }
 
 /* ******************************************* */
 
-void  HTTPStats::JSONObjectAddRates(json_object *my_object, char *direction) {
+void HTTPstats::JSONObjectAddRates(json_object *my_object, bool as_sender) {
   u_int16_t rate_get = 0, rate_post = 0, rate_head = 0, rate_put = 0, rate_other = 0;
   u_int16_t rate_1xx = 0, rate_2xx  = 0, rate_3xx  = 0, rate_4xx = 0, rate_5xx   = 0;
-  char buf[64];
+  json_object *sub_object = json_object_new_object();
 
-  if(my_object == NULL)
-    return;
+  if(!my_object) return;
 
-  if(strncmp(direction, (char*)".as_sender", 9)         == 0){
-    getRequestsRates(&query_rate[AS_SENDER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
-    getResponsesRates(&response_rate[AS_SENDER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
-  }else if(strncmp(direction, (char*)".as_receiver", 11) == 0){
-    getRequestsRates(&query_rate[AS_RECEIVER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
-    getResponsesRates(&response_rate[AS_RECEIVER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
-  } else {
-    return;
-  }
+  getRequestsRates(&query_rate[as_sender ? AS_SENDER : AS_RECEIVER], &rate_get, &rate_post, &rate_head, &rate_put, &rate_other);
+  getResponsesRates(&response_rate[as_sender ? AS_SENDER : AS_RECEIVER], &rate_1xx, &rate_2xx, &rate_3xx, &rate_4xx, &rate_5xx);
 
-  if(rate_get > 0){
-    snprintf(buf, sizeof(buf), "query%s.rate_get", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_get));
-  }
+  if(!(sub_object = json_object_new_object())) return;
+  if(rate_get > 0)   json_object_object_add(my_object, "", json_object_new_int64(rate_get));
+  if(rate_post > 0)  json_object_object_add(my_object, "", json_object_new_int64(rate_post));
+  if(rate_head > 0)  json_object_object_add(my_object, "", json_object_new_int64(rate_head));
+  if(rate_put > 0)   json_object_object_add(my_object, "", json_object_new_int64(rate_put));
+  if(rate_other > 0) json_object_object_add(my_object, "", json_object_new_int64(rate_other));
+  json_object_object_add(my_object, "request", sub_object);
 
-  if(rate_post > 0){
-    snprintf(buf, sizeof(buf), "query%s.rate_post", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_post));
-  }
-
-  if(rate_head > 0){
-    snprintf(buf, sizeof(buf), "query%s.rate_head", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_head));
-  }
-
-  if(rate_put > 0){
-    snprintf(buf, sizeof(buf), "query%s.rate_put", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_put));
-  }
-
-  if(rate_other > 0){
-    snprintf(buf, sizeof(buf), "query%s.rate_other", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_other));
-  }
-
-  if(rate_1xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.rate_1xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_1xx));
-  }
-
-  if(rate_2xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.rate_2xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_2xx));
-  }
-
-  if(rate_3xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.rate_3xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_3xx));
-  }
-
-  if(rate_4xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.rate_4xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_4xx));
-  }
-
-  if(rate_5xx > 0){
-    snprintf(buf, sizeof(buf), "response%s.rate_5xx", direction);
-    json_object_object_add(my_object, buf, json_object_new_int64(rate_5xx));
-  }
+  if(!(sub_object = json_object_new_object())) return;
+  if(rate_1xx > 0)   json_object_object_add(my_object, "", json_object_new_int64(rate_1xx));
+  if(rate_2xx > 0)   json_object_object_add(my_object, "", json_object_new_int64(rate_2xx));
+  if(rate_3xx > 0)   json_object_object_add(my_object, "", json_object_new_int64(rate_3xx));
+  if(rate_4xx > 0)   json_object_object_add(my_object, "", json_object_new_int64(rate_4xx));
+  if(rate_5xx > 0)   json_object_object_add(my_object, "", json_object_new_int64(rate_5xx));
+  json_object_object_add(my_object, "response", sub_object);
 }
 
 /* ******************************************* */
 
-json_object* HTTPStats::getJSONObject() {
-  json_object *my_object = json_object_new_object();
-  JSONObjectAddCounters(my_object, (char*)".as_sender");
-  JSONObjectAddCounters(my_object, (char*)".as_receiver");
-  JSONObjectAddRates(my_object, (char*)".as_sender");
-  JSONObjectAddRates(my_object, (char*)".as_receiver");
+json_object* HTTPstats::getJSONObject() {
+  json_object *sub_object, *my_object = json_object_new_object();
+
+  if(!my_object) return(NULL);
+
+  if((sub_object = json_object_new_object()) != NULL) {
+    JSONObjectAddCounters(my_object, true);
+    JSONObjectAddRates(my_object, true);
+    json_object_object_add(my_object, "sender", sub_object);
+  }
+
+  if((sub_object = json_object_new_object()) != NULL) {
+    JSONObjectAddCounters(my_object, false);
+    JSONObjectAddRates(my_object, false);
+    json_object_object_add(my_object, "receiver", sub_object);
+  }
+  
   return(my_object);
 }
 
 /* ******************************************* */
 
-void HTTPStats::incRequest(struct http_query_stats *q, const char *method) {
+void HTTPstats::incRequest(struct http_query_stats *q, const char *method) {
   if(method[0] == 'G') q->num_get++;
   else if((method[0] == 'P') && (method[1] == 'O')) q->num_post++;
   else if(method[0] == 'H') q->num_head++;
@@ -572,7 +466,7 @@ void HTTPStats::incRequest(struct http_query_stats *q, const char *method) {
 
 /* ******************************************* */
 
-void HTTPStats::incResponse(struct http_response_stats *r, const char *return_code) {
+void HTTPstats::incResponse(struct http_response_stats *r, const char *return_code) {
   const char *code;
 
   if(!return_code)
@@ -592,7 +486,7 @@ void HTTPStats::incResponse(struct http_response_stats *r, const char *return_co
 
 /* ******************************************* */
 
-bool HTTPStats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_requests,
+bool HTTPstats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_requests,
 				      u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
   VirtualHost *vh;
   bool rc = false;
@@ -651,20 +545,21 @@ static bool update_http_stats(GenericHashEntry *node, void *user_data) {
 
 /* ******************************************* */
 
-void HTTPStats::updateStats(struct timeval *tv) {
-  float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
-  if (tdiff_msec < 1000)
-    return;  // too earl
+void HTTPstats::updateStats(struct timeval *tv) {
+  float tdiff_msec = Utils::timeval2ms(tv) - Utils::timeval2ms(&last_update_time);
+
+  if(tdiff_msec < 1000) return;  // too early
+
+  // refresh the last update time with the new values
+  // also refresh the statistics on request variations
+  const u_int8_t indices[2]  = {AS_SENDER, AS_RECEIVER};
 
   if(virtualHosts) {
     virtualHosts->walk(update_http_stats, tv);
     virtualHosts->purgeIdle();
   }
 
-  // refresh the last update time with the new values
-  // also refresh the statistics on request variations
-  const u_int8_t indices[2]  = {AS_SENDER, AS_RECEIVER};
-  for(u_int8_t i = 0; i < 2 ; i++){
+  for(u_int8_t i = 0; i < 2 ; i++) {
     u_int8_t direction = indices[i];
     struct http_query_rates    *dq = &query_rate[direction];
     struct http_response_rates *dr = &response_rate[direction];
@@ -674,21 +569,19 @@ void HTTPStats::updateStats(struct timeval *tv) {
     getRequestsDelta(&last_query_sample[direction], &query[direction], &d_get, &d_post, &d_head, &d_put, &d_other);
     getResponsesDelta(&last_response_sample[direction],&response[direction], &d_1xx, &d_2xx, &d_3xx, &d_4xx, &d_5xx);
 
-    dq -> rate_get   = (u_int16_t)(d_get   * 1000 / tdiff_msec + .5f);
-    dq -> rate_post  = (u_int16_t)(d_post  * 1000 / tdiff_msec + .5f);
-    dq -> rate_head  = (u_int16_t)(d_head  * 1000 / tdiff_msec + .5f);
-    dq -> rate_put   = (u_int16_t)(d_put   * 1000 / tdiff_msec + .5f);
-    dq -> rate_other = (u_int16_t)(d_other * 1000 / tdiff_msec + .5f);
-
-    dr -> rate_1xx   = (u_int16_t)(d_1xx   * 1000 / tdiff_msec + .5f);
-    dr -> rate_2xx   = (u_int16_t)(d_2xx   * 1000 / tdiff_msec + .5f);
-    dr -> rate_3xx   = (u_int16_t)(d_3xx   * 1000 / tdiff_msec + .5f);
-    dr -> rate_4xx   = (u_int16_t)(d_4xx   * 1000 / tdiff_msec + .5f);
-    dr -> rate_5xx   = (u_int16_t)(d_5xx   * 1000 / tdiff_msec + .5f);
+    dq -> rate_get   = makeRate(d_get, tdiff_msec),
+      dq -> rate_post  = makeRate(d_post, tdiff_msec),
+      dq -> rate_head  = makeRate(d_head, tdiff_msec),
+      dq -> rate_put   = makeRate(d_put, tdiff_msec),
+      dq -> rate_other = makeRate(d_other, tdiff_msec),      
+      dr -> rate_1xx   = makeRate(d_1xx, tdiff_msec),
+      dr -> rate_2xx   = makeRate(d_2xx, tdiff_msec),
+      dr -> rate_3xx   = makeRate(d_3xx, tdiff_msec),
+      dr -> rate_4xx   = makeRate(d_4xx, tdiff_msec),
+      dr -> rate_5xx   = makeRate(d_5xx, tdiff_msec);
   }
-
-  last_update_time.tv_sec  = tv->tv_sec;
-  last_update_time.tv_usec = tv->tv_usec;
+  
+  last_update_time.tv_sec  = tv->tv_sec, last_update_time.tv_usec = tv->tv_usec;
   memcpy(&last_query_sample,    &query,    sizeof(query));
   memcpy(&last_response_sample, &response, sizeof(response));
 }

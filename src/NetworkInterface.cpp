@@ -2821,7 +2821,7 @@ struct virtual_host_valk_info {
 static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data) {
   Host *h = (Host*)node;
   struct virtual_host_valk_info *info = (struct virtual_host_valk_info*)data;
-  HTTPStats *s = h->getHTTPStats();
+  HTTPstats *s = h->getHTTPstats();
 
   if(s)
     info->num += s->luaVirtualHosts(info->vm, info->key, h);

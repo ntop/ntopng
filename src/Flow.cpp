@@ -109,7 +109,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   default:
     ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(),
-							    protocol, 0, 0, 0, 0);
+							  protocol, 0, 0, 0, 0);
     break;
   }
 
@@ -430,10 +430,10 @@ void Flow::guessProtocol() {
     if(cli_host && srv_host) {
       /* We can guess the protocol */
       ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), protocol,
-							      ntohl(cli_host->get_ip()->get_ipv4()),
-							      ntohs(cli_port),
-							      ntohl(srv_host->get_ip()->get_ipv4()),
-							      ntohs(srv_port));
+							    ntohl(cli_host->get_ip()->get_ipv4()),
+							    ntohs(cli_port),
+							    ntohl(srv_host->get_ip()->get_ipv4()),
+							    ntohs(srv_port));
     }
 
     l7_protocol_guessed = true;
@@ -1311,11 +1311,11 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
   lua_push_int_table_entry(vm, "ntopng.key", key()); // Key
 
   /*
-  if(asListElement) {
+    if(asListElement) {
     lua_pushnumber(vm, key()); // Key
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-  }
+    }
   */
 
 }
@@ -1478,7 +1478,6 @@ json_object* Flow::flow2json(bool partial_dump) {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
     struct tm* tm_info;
 
@@ -1491,10 +1490,10 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "type", json_object_new_string(ntop->getPrefs()->get_es_type()));
 
     // MAC addresses are set only when dumping to ES to optimize space consumption
-  json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_string(Utils::macaddr_str((char*)cli_host->get_mac(), buf)));
-  json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_string(Utils::macaddr_str((char*)srv_host->get_mac(), buf)));
+    json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(Utils::macaddr_str((char*)cli_host->get_mac(), buf)));
+    json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(Utils::macaddr_str((char*)srv_host->get_mac(), buf)));
   }
 
   json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
@@ -1596,12 +1595,12 @@ json_object* Flow::flow2json(bool partial_dump) {
 #ifdef NTOPNG_PRO
   // Traffic profile information, if any
   if(trafficProfile && trafficProfile->getName())
-      json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));
+    json_object_object_add(my_object, "PROFILE", json_object_new_string(trafficProfile->getName()));
 #endif
   if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
-      json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME", json_object_new_string(ntop->getPrefs()->get_instance_name()));
+    json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME", json_object_new_string(ntop->getPrefs()->get_instance_name()));
   if(iface && iface->get_name())
-      json_object_object_add(my_object, "INTERFACE", json_object_new_string(iface->get_name()));
+    json_object_object_add(my_object, "INTERFACE", json_object_new_string(iface->get_name()));
   if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
 
   if(http.last_url && http.last_method) {
@@ -1970,14 +1969,14 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 /* *************************************** */
 
 void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
-  HTTPStats *h;
+  HTTPstats *h;
 
   if(src2dst_direction) {
     char *space;
 
     // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
-    h = cli_host->getHTTPStats(); if(h) h->incRequestAsSender(payload); /* Sent */
-    h = srv_host->getHTTPStats(); if(h) h->incRequestAsReceiver(payload); /* Rcvd */
+    h = cli_host->getHTTPstats(); if(h) h->incRequestAsSender(payload); /* Sent */
+    h = srv_host->getHTTPstats(); if(h) h->incRequestAsReceiver(payload); /* Rcvd */
     dissect_next_http_packet = true;
 
     if(payload && ((space = strchr(payload, ' ')) != NULL)) {
@@ -2021,8 +2020,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       char *space;
 
       // payload[10]=0; ntop->getTrace()->traceEvent(TRACE_WARNING, "[len: %u][%s]", payload_len, payload);
-      h = cli_host->getHTTPStats(); if(h) h->incResponseAsReceiver(payload); /* Rcvd */
-      h = srv_host->getHTTPStats(); if(h) h->incResponseAsSender(payload); /* Sent */
+      h = cli_host->getHTTPstats(); if(h) h->incResponseAsReceiver(payload); /* Rcvd */
+      h = srv_host->getHTTPstats(); if(h) h->incResponseAsSender(payload); /* Sent */
       dissect_next_http_packet = false;
 
       if((space = strchr(payload, ' ')) != NULL) {

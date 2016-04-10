@@ -200,7 +200,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
       if(localHost || systemHost) {
 	dns = new DnsStats();
-	http = new HTTPStats(iface->get_hosts_hash());
+	http = new HTTPstats(iface->get_hosts_hash());
       }
 
       if(((localHost || systemHost)
@@ -860,6 +860,18 @@ char* Host::get_string_key(char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Host::serialize() {
+  json_object *my_object = getJSONObject();
+  char *rsp = strdup(json_object_to_json_string(my_object));
+
+  /* Free memory */
+  json_object_put(my_object);
+
+  return(rsp);
+}
+
+/* *************************************** */
+
+json_object* Host::getJSONObject() {
   json_object *my_object;
   char *rsp, buf[32];
 
@@ -912,10 +924,7 @@ char* Host::serialize() {
   //ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
   rsp = strdup(json_object_to_json_string(my_object));
 
-  /* Free memory */
-  json_object_put(my_object);
-
-  return(rsp);
+  return(my_object);
 }
 
 /* *************************************** */
