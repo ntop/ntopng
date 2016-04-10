@@ -74,6 +74,9 @@ class NetworkInterface {
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
   time_t lastSecUpdate;
   
+  struct {
+    u_int64_t pktRetr, pktOOO, pktLost;
+  } tcpPacketStats;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts;
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to memorize the hosts information.*/
@@ -159,7 +162,9 @@ class NetworkInterface {
   int dumpFlow(time_t when, bool partial_dump, Flow *f);
   int dumpDBFlow(time_t when, bool partial_dump, Flow *f);
   int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
-
+  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num; };
+  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO  += num; };
+  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num; };
   void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
   void updateSecondTraffic(time_t when);
 

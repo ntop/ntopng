@@ -11,7 +11,10 @@ top_rrds = {
    ["drops.rrd"] = "Packet Drops",
    ["num_flows.rrd"] = "Active Flows",
    ["num_hosts.rrd"] = "Active Hosts",
-   ["num_http_hosts.rrd"] = "Active HTTP Servers"
+   ["num_http_hosts.rrd"] = "Active HTTP Servers",
+   ["tcp_lost.rrd"] = "TCP Packets Lost",
+   ["tcp_ooo.rrd"] = "TCP Packets Out-Of-Order",
+   ["tcp_retransmissions.rrd"] = "TCP Retransmitted Packets",
 }
 
 -- ########################################################
@@ -547,6 +550,7 @@ print [[
 
 
 ]]
+
 if(string.contains(rrdFile, "num_")) then
    formatter_fctn = "fint"
 else
@@ -562,7 +566,7 @@ print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
 rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
-if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
+if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
@@ -1313,10 +1317,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       prefixLabel = "Traffic"
    end
 
-   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops"))
-    then
-	-- do not scale number, packets, and drops
-	scaling_factor = 1
+   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
+      -- do not scale number, packets, and drops
+      scaling_factor = 1
    end
 
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end

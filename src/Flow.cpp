@@ -1825,14 +1825,14 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
       if((tcp_stats_s2d.next != seq_num)
 	 && (tcp_stats_s2d.next != (seq_num-1))) {
 	if(tcp_stats_s2d.last == seq_num) {
-	  tcp_stats_s2d.pktRetr++, cli_host->incRetransmittedPkts(1);
+	  tcp_stats_s2d.pktRetr++, cli_host->incRetransmittedPkts(1), iface->incRetransmittedPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet retransmission");
 	} else if((tcp_stats_s2d.last > seq_num)
 		  && (seq_num < tcp_stats_s2d.next)) {
-	  tcp_stats_s2d.pktLost++, cli_host->incLostPkts(1);
+	  tcp_stats_s2d.pktLost++, cli_host->incLostPkts(1), iface->incLostPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet lost [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
 	} else {
-	  tcp_stats_s2d.pktOOO++, cli_host->incOOOPkts(1);
+	  tcp_stats_s2d.pktOOO++, cli_host->incOOOPkts(1), iface->incOOOPkts(1);
 
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_s2d.last) ? true : false;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet OOO [last: %u][act: %u]", tcp_stats_s2d.last, seq_num);
@@ -1850,15 +1850,15 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
       if((tcp_stats_d2s.next != seq_num)
 	 && (tcp_stats_d2s.next != (seq_num-1))) {
 	if(tcp_stats_d2s.last == seq_num) {
-	  tcp_stats_d2s.pktRetr++, srv_host->incRetransmittedPkts(1);
+	  tcp_stats_d2s.pktRetr++, srv_host->incRetransmittedPkts(1), iface->incRetransmittedPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet retransmission");
 	  // bytes
 	} else if((tcp_stats_d2s.last > seq_num)
 		  && (seq_num < tcp_stats_d2s.next)) {
-	  tcp_stats_d2s.pktLost++, srv_host->incLostPkts(1);
+	  tcp_stats_d2s.pktLost++, srv_host->incLostPkts(1), iface->incLostPkts(1);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet lost [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);
 	} else {
-	  tcp_stats_d2s.pktOOO++, srv_host->incOOOPkts(1);
+	  tcp_stats_d2s.pktOOO++, srv_host->incOOOPkts(1), iface->incOOOPkts(1);
 	  update_last_seqnum = ((seq_num - 1) > tcp_stats_d2s.last) ? true : false;
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[last: %u][next: %u]", tcp_stats_d2s.last, tcp_stats_d2s.next);
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "Packet OOO [last: %u][act: %u]", tcp_stats_d2s.last, seq_num);

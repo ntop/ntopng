@@ -270,19 +270,23 @@ else
    end
    print("</td></tr>\n")
 
-   if(flow["tcp.seq_problems"]) then
-      print("<tr><th width=30% rowspan=5>TCP Packet Analysis</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'>")
+   if(flow["tcp.seq_problems"] ~= nil) then
+      rowspan = 2
+      if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then rowspan = rowspan+1 end
+      if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0)       then rowspan = rowspan+1 end
+      if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0)                       then rowspan = rowspan+1 end
+
+      print("<tr><th width=30% rowspan="..rowspan..">TCP Packet Analysis</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
       print("<tr><th>&nbsp;</th><th>Client <i class=\"fa fa-arrow-right\"></i> Server / Client <i class=\"fa fa-arrow-left\"></i> Server</th></tr>\n")
 
-      if((flow["cli2srv.retransmissions"] > 0) or (flow["srv2cli.retransmissions"] >0)) then
+      if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then
         print("<tr><th>Retransmissions</th><td align=right><span id=c2sretr>".. formatPackets(flow["cli2srv.retransmissions"]) .."</span> / <span id=s2cretr>".. formatPackets(flow["srv2cli.retransmissions"]) .."</span></td></tr>\n")
       end
-      if((flow["cli2srv.out_of_order"] > 0) or (flow["srv2cli.out_of_order"] >0))then
+      if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0) then
         print("<tr><th>Out of Order</th><td align=right><span id=c2sOOO>".. formatPackets(flow["cli2srv.out_of_order"]) .."</span> / <span id=s2cOOO>".. formatPackets(flow["srv2cli.out_of_order"]) .."</span></td></tr>\n")
       end
-
-      if((flow["cli2srv.lost"] > 0) or (flow["srv2cli.lost"] > 0)) then
-            print("<tr><th>Lost</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
+      if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0) then
+        print("<tr><th>Lost</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
       end
    end
 

@@ -29,6 +29,8 @@ function dumpInterfaceStats(interface_name)
       print(', "is_view": '..tostring(ifstats.isView))
       print(', "local2remote": '.. ifstats["localstats"]["bytes"]["local2remote"]..', "remote2local": '..ifstats["localstats"]["bytes"]["remote2local"])
 
+      print(', "tcpPacketStats": { "retransmissions": '..tostring(ifstats.tcpPacketStats.retransmissions)..', "out_of_order": '..tostring(ifstats.tcpPacketStats.out_of_order)..', "lost":'..tostring(ifstats.tcpPacketStats.lost)..' }')
+
       if(ifstats["bridge.device_a"] ~= nil) then
 	 print(', "a_to_b_in_pkts": '.. ifstats["bridge.a_to_b.in_pkts"])
 	 print(', "a_to_b_in_bytes": '.. ifstats["bridge.a_to_b.in_bytes"])

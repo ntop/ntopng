@@ -115,8 +115,7 @@ rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
 url= ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
 
-
---   Added global javascript variable, in order to disable the refresh of pie chart in case
+--  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
 print('\n<script>var refresh = 3000 /* ms */;</script>\n')
 
@@ -374,8 +373,12 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
 
    print("</table>\n")
 elseif((page == "packets")) then
-   print [[
-      <table class="table table-bordered table-striped">
+   print [[ <table class="table table-bordered table-striped"> ]]
+      print("<tr><th width=30% rowspan=3>TCP Packets Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+      print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
+      print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+
+    print [[ 
 	<tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
       </table>
 
@@ -1321,11 +1324,20 @@ print [[/lua/network_load.lua',
 	$('#if_bytes').html(v);
 	$('#if_pkts').html(addCommas(rsp.packets)+"]]
 
-
 print(" Pkts\");")
 print [[
 	var pctg = 0;
 	var drops = "";
+	var last_pkt_retransmissions = ]] print(ifstats.tcpPacketStats.retransmissions) print [[;
+	var last_pkt_ooo =  ]] print(ifstats.tcpPacketStats.out_of_order) print [[;
+	var last_pkt_lost = ]] print(ifstats.tcpPacketStats.lost) print [[;
+
+	$('#pkt_retransmissions').html(rsp.tcpPacketStats.retransmissions+" Pkts"); $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
+	$('#pkt_ooo').html(rsp.tcpPacketStats.out_of_order+" Pkts");  $('#pkt_ooo_trend').html(get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
+	$('#pkt_lost').html(rsp.tcpPacketStats.lost+" Pkts"); $('#pkt_lost_trend').html(get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
+	last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
+	last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
+	last_pkt_lost = rsp.tcpPacketStats.lost;
 
 	$('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
 	$('#drops_trend').html(get_trend(last_drops, rsp.drops));

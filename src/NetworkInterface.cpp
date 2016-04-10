@@ -191,15 +191,14 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1,
     pkt_dumper = NULL, antenna_mac = NULL;
 
+  tcpPacketStats.pktRetr = tcpPacketStats.pktOOO = tcpPacketStats.pktLost = 0;
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
-  db = NULL;
-  
+  db = NULL; 
 #ifdef NTOPNG_PRO
   policer = NULL;
 #endif
-
   statsManager = NULL, ifSpeed = 0;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_traffic = dump_security_packets = dump_to_tap = false;
@@ -2398,6 +2397,14 @@ void NetworkInterface::lua(lua_State *vm) {
   localStats.lua(vm);
   ndpiStats.lua(this, vm);
   pktStats.lua(vm, "pktSizeDistribution");
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "retransmissions", tcpPacketStats.pktRetr);
+  lua_push_int_table_entry(vm, "out_of_order", tcpPacketStats.pktOOO);
+  lua_push_int_table_entry(vm, "lost", tcpPacketStats.pktLost);
+  lua_pushstring(vm, "tcpPacketStats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   if(pkt_dumper) pkt_dumper->lua(vm);
 #ifdef NTOPNG_PRO
