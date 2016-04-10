@@ -129,7 +129,6 @@ void GenericHost::updateStats(struct timeval *tv) {
     float tdiff = (float)((tv->tv_sec-last_update_time.tv_sec)*1000+(tv->tv_usec-last_update_time.tv_usec)/1000);
     // Calculate bps throughput
     u_int64_t new_bytes = sent.getNumBytes()+rcvd.getNumBytes();
-
     float bytes_msec = ((float)((new_bytes-last_bytes)*1000))/tdiff;
 
     if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;

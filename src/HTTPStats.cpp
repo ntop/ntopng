@@ -31,6 +31,8 @@ struct http_walk_info {
 /* *************************************** */
 
 HTTPStats::HTTPStats(HostHash *_h) {
+  struct timeval tv;
+
   h = _h, warning_shown = false;
   memset(&query, 0, sizeof(query));
   memset(&response, 0, sizeof(response));
@@ -38,7 +40,7 @@ HTTPStats::HTTPStats(HostHash *_h) {
   memset(&response_rate, 0, sizeof(response_rate));
   memset(&last_query_sample, 0, sizeof(last_query_sample));
   memset(&last_response_sample, 0, sizeof(last_response_sample));
-  struct timeval tv;
+
   gettimeofday(&tv, NULL);
   memcpy(&last_update_time, &tv, sizeof(struct timeval));
   if((virtualHosts = new VirtualHostHash(NULL, 1, 4096)) == NULL) {
@@ -58,11 +60,11 @@ static bool http_stats_summary(GenericHashEntry *node, void *user_data) {
   VirtualHost *host = (VirtualHost*)node;
   struct http_walk_info *info =  (struct http_walk_info*)user_data;
 
- if(host->get_name()) {
-   if((info->virtual_host != NULL) && strcmp(info->virtual_host, host->get_name()))
-     return(false); /* false = keep on walking */
+  if(host->get_name()) {
+    if((info->virtual_host != NULL) && strcmp(info->virtual_host, host->get_name()))
+      return(false); /* false = keep on walking */
 
-   info->num++;
+    info->num++;
 
     lua_newtable(info->vm);
 
@@ -104,6 +106,8 @@ u_int32_t HTTPStats::luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h)
     return(0);
 }
 
+/* *************************************** */
+
 void HTTPStats::getRequests(const struct http_query_stats *q,
 			    u_int32_t *num_get, u_int32_t *num_post, u_int32_t *num_head,
 			    u_int32_t *num_put, u_int32_t *num_other){
@@ -115,6 +119,8 @@ void HTTPStats::getRequests(const struct http_query_stats *q,
   *num_put   += q->num_put;
   *num_other += q->num_other;
 }
+
+/* *************************************** */
 
 void HTTPStats::getResponses(const struct http_response_stats *r,
 			     u_int32_t *num_1xx, u_int32_t *num_2xx, u_int32_t *num_3xx,
@@ -128,9 +134,11 @@ void HTTPStats::getResponses(const struct http_response_stats *r,
   *num_5xx  += r->num_5xx;
 }
 
+/* *************************************** */
+
 void HTTPStats::getRequestsRates(const struct http_query_rates *dq,
-			    u_int16_t *rate_get, u_int16_t *rate_post, u_int16_t *rate_head,
-			    u_int16_t *rate_put, u_int16_t *rate_other){
+				 u_int16_t *rate_get, u_int16_t *rate_post, u_int16_t *rate_head,
+				 u_int16_t *rate_put, u_int16_t *rate_other){
   if (dq == NULL)
     return;
   *rate_get   += dq->rate_get;
@@ -140,9 +148,11 @@ void HTTPStats::getRequestsRates(const struct http_query_rates *dq,
   *rate_other += dq->rate_other;
 }
 
+/* *************************************** */
+
 void HTTPStats::getResponsesRates(const struct http_response_rates *dr,
-			     u_int16_t *rate_1xx, u_int16_t *rate_2xx, u_int16_t *rate_3xx,
-			     u_int16_t *rate_4xx, u_int16_t *rate_5xx){
+				  u_int16_t *rate_1xx, u_int16_t *rate_2xx, u_int16_t *rate_3xx,
+				  u_int16_t *rate_4xx, u_int16_t *rate_5xx){
   if (dr == NULL)
     return;
   *rate_1xx  += dr->rate_1xx;
@@ -152,9 +162,11 @@ void HTTPStats::getResponsesRates(const struct http_response_rates *dr,
   *rate_5xx  += dr->rate_5xx;
 }
 
+/* *************************************** */
+
 void HTTPStats::getRequestsDelta(const struct http_query_stats *q0, const struct http_query_stats *q1,
-			    u_int32_t *delta_get, u_int32_t *delta_post, u_int32_t *delta_head,
-			    u_int32_t *delta_put, u_int32_t *delta_other){
+				 u_int32_t *delta_get, u_int32_t *delta_post, u_int32_t *delta_head,
+				 u_int32_t *delta_put, u_int32_t *delta_other){
   if (q0 == NULL || q1 == NULL)
     return;
   *delta_get   += q1->num_get   - q0->num_get;
@@ -164,9 +176,11 @@ void HTTPStats::getRequestsDelta(const struct http_query_stats *q0, const struct
   *delta_other += q1->num_other - q0->num_other;
 }
 
+/* *************************************** */
+
 void HTTPStats::getResponsesDelta(const struct http_response_stats *r0, const struct http_response_stats *r1,
-			     u_int32_t *delta_1xx, u_int32_t *delta_2xx, u_int32_t *delta_3xx,
-			     u_int32_t *delta_4xx, u_int32_t *delta_5xx){
+				  u_int32_t *delta_1xx, u_int32_t *delta_2xx, u_int32_t *delta_3xx,
+				  u_int32_t *delta_4xx, u_int32_t *delta_5xx){
   if (r0 == NULL || r1 == NULL)
     return;
   *delta_1xx  += r1->num_1xx - r0->num_1xx;
@@ -175,6 +189,8 @@ void HTTPStats::getResponsesDelta(const struct http_response_stats *r0, const st
   *delta_4xx  += r1->num_4xx - r0->num_4xx;
   *delta_5xx  += r1->num_5xx - r0->num_5xx;
 }
+
+/* *************************************** */
 
 void HTTPStats::luaAddCounters(lua_State *vm, char* direction) {
   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
@@ -227,6 +243,8 @@ void HTTPStats::luaAddCounters(lua_State *vm, char* direction) {
   snprintf(buf, sizeof(buf), "response%s.num_5xx", direction);
   lua_push_int_table_entry(vm, buf, num_5xx);
 }
+
+/* *************************************** */
 
 void HTTPStats::luaAddRates(lua_State *vm, char* direction) {
   u_int16_t rate_get = 0, rate_post = 0, rate_head = 0, rate_put = 0, rate_other = 0;
@@ -587,10 +605,10 @@ bool HTTPStats::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req
   if(!virtualHosts) return(rc); /* Looks like we're running out of memory */
 
   /*
-     Needed because this method can be called by both
-     NetworkInterface::updateHostStats() and
-     Flow::~Flow() on the same instance and thus
-     create a memory leak
+    Needed because this method can be called by both
+    NetworkInterface::updateHostStats() and
+    Flow::~Flow() on the same instance and thus
+    create a memory leak
   */
   m.lock(__FILE__, __LINE__);
   if((vh = virtualHosts->get(virtual_host_name)) == NULL) {
@@ -634,17 +652,18 @@ static bool update_http_stats(GenericHashEntry *node, void *user_data) {
 /* ******************************************* */
 
 void HTTPStats::updateStats(struct timeval *tv) {
-  if(virtualHosts) {
-    virtualHosts->walk(update_http_stats, tv);
-    virtualHosts->purgeIdle();
-  }
   float tdiff_msec = ((float)(tv->tv_sec-last_update_time.tv_sec)*1000)+((tv->tv_usec-last_update_time.tv_usec)/(float)1000);
   if (tdiff_msec < 1000)
     return;  // too earl
 
+  if(virtualHosts) {
+    virtualHosts->walk(update_http_stats, tv);
+    virtualHosts->purgeIdle();
+  }
+
   // refresh the last update time with the new values
   // also refresh the statistics on request variations
-  const u_int8_t indices[2]  = {AS_SENDER,       AS_RECEIVER};
+  const u_int8_t indices[2]  = {AS_SENDER, AS_RECEIVER};
   for(u_int8_t i = 0; i < 2 ; i++){
     u_int8_t direction = indices[i];
     struct http_query_rates    *dq = &query_rate[direction];
