@@ -223,8 +223,7 @@ if(user_group == "administrator") then
   print [[/lua/admin/users.lua"><i class="fa fa-user"></i> Manage Users</a></li>
       ]]
 else
-  print(ntop.getHttpPrefix())
-  print [[/lua/admin/change_user_password.lua"><i class="fa fa-user"></i> Change Password</a></li>
+  print [[#password_dialog"  data-toggle="modal"><i class="fa fa-user"></i> Change Password</a></li>
       ]]
 end
 
@@ -275,7 +274,9 @@ print [[/lua/show_alerts.lua">
    ]]
 end
 
-
+if(user_group ~= "administrator") then
+   dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
+end
 dofile(dirs.installdir .. "/scripts/lua/inc/search_host_box.lua")
 
 function file_exists(name)
