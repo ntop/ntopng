@@ -92,6 +92,7 @@ class NetworkInterface {
   u_char* antenna_mac;
   NetworkStats *networkStats;
 
+  void init();
   void deleteDataStructures();
   Flow* getFlow(u_int8_t *src_eth, u_int8_t *dst_eth, u_int16_t vlan_id,
   		IpAddress *src_ip, IpAddress *dst_ip,
@@ -103,7 +104,7 @@ class NetworkInterface {
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
-  bool checkIdle();
+  bool checkIdle();  
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
 

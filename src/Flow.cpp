@@ -86,6 +86,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   passVerdict = true;
   first_seen = _first_seen, last_seen = _last_seen;
+  categorization.categorized_requested = false;
   memset(&categorization.category, 0, sizeof(categorization.category));
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   //bytes_rate = new TimeSeries<float>(4096);
@@ -866,7 +867,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       float bytes_msec_cli2srv         = ((float)(diff_bytes_cli2srv*1000))/tdiff_msec;
       float bytes_msec_srv2cli         = ((float)(diff_bytes_srv2cli*1000))/tdiff_msec;
       float bytes_msec                 = bytes_msec_cli2srv + bytes_msec_srv2cli;
-
+      
       float goodput_bytes_msec_cli2srv = ((float)(diff_goodput_bytes_cli2srv*1000))/tdiff_msec;
       float goodput_bytes_msec_srv2cli = ((float)(diff_goodput_bytes_srv2cli*1000))/tdiff_msec;
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;

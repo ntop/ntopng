@@ -42,52 +42,7 @@ static void free_wrapper(void *freeable) { free(freeable);      }
 /* **************************************************** */
 
 /* Method used for collateral activities */
-NetworkInterface::NetworkInterface() {
-  ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
-    ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
-    sprobe_interface = inline_interface = false,has_vlan_packets = false,
-      last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
-    pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
-    purge_idle_flows_hosts = true, id = (u_int8_t)-1,
-    sprobe_interface = false, has_vlan_packets = false,
-    pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
-    inline_interface = false, running = false,
-    has_mesh_networks_traffic = false, pkt_dumper = NULL;
-  pollLoopCreated = false, bridge_interface = false;
-  if(ntop->getPrefs()->are_taps_enabled())
-    pkt_dumper_tap = new PacketDumperTuntap(this);
-  else
-    pkt_dumper_tap = NULL;
-
-  has_mesh_networks_traffic = false,
-    ip_addresses = "", networkStats = NULL,
-    pcap_datalink_type = 0, cpu_affinity = -1,
-    pkt_dumper = NULL, antenna_mac = NULL;
-
-  memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
-  resetSecondTraffic();
-
-  if(ntop->getPrefs()->do_dump_flows_on_mysql())
-    db = new MySQLDB(this);
-  else
-    db = NULL;
-
-#ifdef NTOPNG_PRO
-  policer = NULL;
-#endif
-
-  statsManager = NULL, ifSpeed = 0;
-  checkIdle();
-  dump_all_traffic = dump_to_disk = dump_unknown_traffic = dump_security_packets = dump_to_tap = false;
-  dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
-  dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
-  dump_max_duration = CONST_MAX_DUMP_DURATION;
-  dump_max_files = CONST_MAX_DUMP;
-  ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
-#ifdef NTOPNG_PRO
-  flow_profiles = NULL;
-#endif
-}
+NetworkInterface::NetworkInterface() { init(); }
 
 /* **************************************************** */
 
@@ -95,6 +50,7 @@ NetworkInterface::NetworkInterface(const char *name) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64];
 
+  init();
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
 #endif
@@ -142,7 +98,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     }
   }
 
-  pkt_dumper_tap = NULL;
+  pkt_dumper_tap = NULL, lastSecUpdate = 0;
   ifname = strdup(name);
 
   if(id >= 0) {
@@ -188,8 +144,6 @@ NetworkInterface::NetworkInterface(const char *name) {
 
     if(ntop->getPrefs()->do_dump_flows_on_mysql())
       db = new MySQLDB(this);
-    else
-      db = NULL;
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
@@ -211,6 +165,52 @@ NetworkInterface::NetworkInterface(const char *name) {
   loadDumpPrefs();
 
   statsManager = new StatsManager(id, "top_talkers.db");
+}
+
+/* **************************************************** */
+
+void NetworkInterface::init() {
+  ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL, remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
+    ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
+    sprobe_interface = inline_interface = false,has_vlan_packets = false,
+      last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
+    pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
+    purge_idle_flows_hosts = true, id = (u_int8_t)-1,
+    sprobe_interface = false, has_vlan_packets = false,
+    pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
+    inline_interface = false, running = false,
+    has_mesh_networks_traffic = false, pkt_dumper = NULL;
+  pollLoopCreated = false, bridge_interface = false;
+  if(ntop->getPrefs()->are_taps_enabled())
+    pkt_dumper_tap = new PacketDumperTuntap(this);
+  else
+    pkt_dumper_tap = NULL;
+
+  has_mesh_networks_traffic = false,
+    ip_addresses = "", networkStats = NULL,
+    pcap_datalink_type = 0, cpu_affinity = -1,
+    pkt_dumper = NULL, antenna_mac = NULL;
+
+  memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
+  resetSecondTraffic();
+
+  db = NULL;
+  
+#ifdef NTOPNG_PRO
+  policer = NULL;
+#endif
+
+  statsManager = NULL, ifSpeed = 0;
+  checkIdle();
+  dump_all_traffic = dump_to_disk = dump_unknown_traffic = dump_security_packets = dump_to_tap = false;
+  dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
+  dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
+  dump_max_duration = CONST_MAX_DUMP_DURATION;
+  dump_max_files = CONST_MAX_DUMP;
+  ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
+#ifdef NTOPNG_PRO
+  flow_profiles = NULL;
+#endif
 }
 
 /* **************************************************** */
