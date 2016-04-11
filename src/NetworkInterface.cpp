@@ -181,7 +181,7 @@ void NetworkInterface::init() {
     inline_interface = false, running = false,
     has_mesh_networks_traffic = false, pkt_dumper = NULL;
   pollLoopCreated = false, bridge_interface = false;
-  if(ntop->getPrefs()->are_taps_enabled())
+  if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
     pkt_dumper_tap = NULL;
