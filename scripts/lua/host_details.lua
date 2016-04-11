@@ -64,6 +64,7 @@ interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
 ifId = ifstats.id
 
+is_packetdump_enabled = interface.isLocalPacketdumpEnabled()
 host = nil
 family = nil
 
@@ -333,11 +334,13 @@ if((page == "overview") or (page == nil)) then
 	 if(host["mac"]  ~= "00:00:00:00:00:00") then
 	    print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
 	 else
-	    if(host["localhost"] == true) then print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")  end
+	    if(host["localhost"] == true and is_packetdump_enabled) then
+	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
+	    end
 	 end
       end
 
-      if(host["localhost"] == true) then
+      if(host["localhost"] == true and is_packetdump_enabled) then
 	 dump_status = host["dump_host_traffic"]
 
 	 if(_GET["dump_traffic"] ~= nil) then

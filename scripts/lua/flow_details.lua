@@ -101,10 +101,11 @@ throughput_type = getThroughputType()
 
 flow_key = _GET["flow_key"]
 
+interface.select(ifname)
+is_packetdump_enabled = interface.isLocalPacketdumpEnabled()
 if(flow_key == nil) then
    flow = nil
 else
-   interface.select(ifname)
    flow = interface.findFlowByKey(tonumber(flow_key))
 end
 
@@ -116,7 +117,7 @@ else
       interface.dropFlowTraffic(tonumber(flow_key))
       flow["verdict.pass"] = false
    end
-   if(_GET["dump_flow_to_disk"] ~= nil) then
+   if(_GET["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
       interface.dumpFlowTraffic(tonumber(flow_key), ternary(_GET["dump_flow_to_disk"] == "true", 1, 0))
       flow["dump.disk"] = ternary(_GET["dump_flow_to_disk"] == "true", true, false)
    end
@@ -431,25 +432,27 @@ else
       print("<tr><th width=30%><A HREF=".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua>Profile Name</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
 
-   dump_flow_to_disk = flow["dump.disk"]
-   if(dump_flow_to_disk == true) then
-    dump_flow_to_disk_checked = 'checked="checked"'
-    dump_flow_to_disk_value = "false" -- Opposite
-   else
-    dump_flow_to_disk_checked = ""
-    dump_flow_to_disk_value = "true" -- Opposite
-   end
+   if is_packetdump_enabled then
+      dump_flow_to_disk = flow["dump.disk"]
+      if(dump_flow_to_disk == true) then
+	 dump_flow_to_disk_checked = 'checked="checked"'
+	 dump_flow_to_disk_value = "false" -- Opposite
+      else
+	 dump_flow_to_disk_checked = ""
+	 dump_flow_to_disk_value = "true" -- Opposite
+      end
 
-   print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
-   print [[
+      print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
+      print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
 	 <input type="hidden" name="flow_key" value="]]
-	       print(flow_key)
-	       print('"><input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
-	       print(' </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
-   print("</td></tr>\n")
+      print(flow_key)
+      print('"><input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
+      print(' </input>')
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print('</form>')
+      print("</td></tr>\n")
+   end
 
    if (flow["moreinfo.json"] ~= nil) then
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)

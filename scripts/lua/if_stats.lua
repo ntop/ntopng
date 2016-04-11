@@ -36,6 +36,14 @@ end
 
 interface.select(if_name)
 
+-- local pcap dump is disabled if the nbox integration is enabled or
+-- if the user is not an administrator or if the interface:
+-- is a view
+-- is not a packet interface (i.e., it is zmq)
+is_packetdump_enabled = interface.isLocalPacketdumpEnabled()
+is_view = interface.isView()
+is_packet_interface = interface.isPacketInterface()
+
 max_num_shapers = 10
 
 shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
@@ -47,65 +55,60 @@ if(_GET["custom_name"] ~=nil) then
    end
 end
 
-if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
-   interface.loadDumpPrefs()
-end
+if is_packetdump_enabled then
+   if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
+   end
+   if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
+   end
+   if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
+   end
+   if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
+   end
+   if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
+   end
 
-if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["sampling_rate"]) ~= nil) then
-     page = "packetdump"
-     val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
-     interface.loadDumpPrefs()
+   if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["sampling_rate"]) ~= nil) then
+	 page = "packetdump"
+	 val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
+      end
    end
-end
-if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["max_pkts_file"]) ~= nil) then
-     page = "packetdump"
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
-     interface.loadDumpPrefs()
+   if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["max_pkts_file"]) ~= nil) then
+	 page = "packetdump"
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
+      end
    end
-end
-if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["max_sec_file"]) ~= nil) then
-     page = "packetdump"
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
-     interface.loadDumpPrefs()
+   if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["max_sec_file"]) ~= nil) then
+	 page = "packetdump"
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
+      end
    end
-end
-if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["max_files"]) ~= nil) then
-     page = "packetdump"
-     local max_files_size = tonumber(_GET["max_files"])
-     max_files_size = max_files_size * 1000000
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
-     interface.loadDumpPrefs()
+   if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["max_files"]) ~= nil) then
+	 page = "packetdump"
+	 local max_files_size = tonumber(_GET["max_files"])
+	 max_files_size = max_files_size * 1000000
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
+      end
    end
+   interface.loadDumpPrefs()
 end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
 active_page = "if_stats"
 
@@ -174,13 +177,11 @@ if(table.len(ifstats.profiles) > 0) then
   end
 end
 
-if(not(ifstats.isView)) then
-   if(isAdministrator()) then
-      if(page == "packetdump") then
-	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-      else
-	 print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-      end
+if is_packetdump_enabled then
+   if(page == "packetdump") then
+      print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   else
+      print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
 end
 
@@ -477,8 +478,8 @@ elseif(page == "historical") then
    topArray = makeTopStatsScriptsArray()
 
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
-
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
+   --drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Graph</th><th>Traffic</th></tr>\n")
@@ -529,9 +530,7 @@ print [[
 ]]
 elseif(page == "packetdump") then
 
-
-if(isAdministrator()) then
-  interface.select(if_name)
+if is_packetdump_enabled then
   dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
   dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
   dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')

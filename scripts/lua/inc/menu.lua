@@ -17,6 +17,7 @@ print [[
         <ul class="nav nav-pills pull-right">
    ]]
 
+
 interface.select(ifname)
 ifId = interface.getStats().id
 
@@ -319,4 +320,7 @@ print [[
 ]]
 
 print("</A></h3>\n</div>\n")
+
+-- select the original interface back to prevent possible issues
+interface.select(ifname)
 

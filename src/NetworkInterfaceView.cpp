@@ -53,7 +53,6 @@ NetworkInterfaceView::NetworkInterfaceView(const char *_name) {
 	iface = strtok(NULL, ",");
     }
   }
-
   name = strdup(_name);
 }
 
@@ -361,6 +360,14 @@ Host* NetworkInterfaceView::findHostsByIP(patricia_tree_t *allowed_hosts,
 
   return(NULL);
 }
+/* **************************************** */
+
+bool NetworkInterfaceView::isPacketInterface() {
+  for(int i = 0; i<numInterfaces; i++)
+    if(!physIntf[i]->is_packet_interface()) return false;
+
+  return true;
+}
 
 /* **************************************** */
 
@@ -487,5 +494,5 @@ void NetworkInterfaceView::lua(lua_State *vm) {
 
   lua_push_str_table_entry(vm, "name", name);
   lua_push_int_table_entry(vm, "id", id);
-  lua_push_bool_table_entry(vm, "isView", n > 1 ? true : false);
+  lua_push_bool_table_entry(vm, "isView", is_actual_view());
 }

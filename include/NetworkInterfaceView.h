@@ -41,6 +41,7 @@ class NetworkInterfaceView {
   inline int get_numInterfaces()       { return(numInterfaces); }
   inline NetworkInterface *getFirst()  { return(physIntf[0]);   }
   inline int get_id()                  { return(id);            }
+  inline bool is_actual_view()         { return (numInterfaces > 1 ? true : false); };
 
   void getnDPIStats(nDPIStats *stats);
   int getActiveHostsList(lua_State* vm,
@@ -69,7 +70,8 @@ class NetworkInterfaceView {
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void listHTTPHosts(lua_State *vm, char *key);
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
-  int isRunning();
+  bool isPacketInterface();
+  int  isRunning();
   bool idle();
   void setIdleState(bool new_state);
   void getnDPIProtocols(lua_State *vm);
