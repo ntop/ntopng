@@ -538,7 +538,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	iface[ifId]->addInterfaceAddress(buf_orig);
 #endif
 
-	for(u_int32_t i = cidr, j = 0; i > 0; i -= 8, ++j)
+	for(int i = cidr, j = 0; i > 0; i -= 8, ++j)
 	  s6->sin6_addr.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
 
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
