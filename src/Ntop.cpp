@@ -692,7 +692,7 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 
 // Return 1 if username/password is allowed, 0 otherwise.
 bool Ntop::checkUserPassword(const char *user, const char *password) {
-  char key[64], val[64], password_hash[33];
+  char key[64], val[64], val_group[64], password_hash[33];
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   bool localAuth = true;
 #endif
@@ -715,8 +715,13 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
       snprintf(key, sizeof(key), CONST_CACHED_USER_PASSWORD, user);
       mg_md5(password_hash, password, NULL);
 
-      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+	snprintf(key, sizeof(key), CONST_CACHED_USER_GROUP, user);
+	if(ntop->getRedis()->get(key, val_group, sizeof(val_group)) >= 0) {
+	  ntop->getRedis()->set(key, val_group, 600 /* 10 mins cache */);
+        }
 	return((strcmp(password_hash, val) == 0) ? true : false);
+      }
 
       ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
       ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, sizeof(ldapAccountType));
