@@ -31,6 +31,13 @@ if test -d /opt/local/lib; then :
   LDFLAGS="${LDFLAGS} -L/opt/local/lib"
 fi
 
+if [ test -f /usr/bin/lsb_release ]; then
+   CODENAME=`/usr/bin/lsb_release -c|cut -f 2`
+   if [[ $CODENAME == "wheezy" ]]; then :
+     CPPFLAGS="${CPPFLAGS} -DOLD_NETFILTER_INTERFACE=1"
+   fi
+fi
+
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
 GIT_RELEASE="@GIT_RELEASE@"
