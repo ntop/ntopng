@@ -277,7 +277,12 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] == nil) then
-     print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(ifstats.speed*1000) .. "</td><th>MTU</th><td colspan=3>"..ifstats.mtu.." bytes</td></tr>\n")
+      local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+      local speed = ntop.getCache(speed_key)
+      if speed == nil or speed == "" or tonumber(speed) == nil then
+	 speed = ifstats.speed
+      end
+      print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td><th>MTU</th><td colspan=3>"..ifstats.mtu.." bytes</td></tr>\n")
    end
 
    if(ifstats.ip_addresses ~= "") then
