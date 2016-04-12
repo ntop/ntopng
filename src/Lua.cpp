@@ -1844,27 +1844,6 @@ static int ntop_get_interface_endpoint(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
-/* ****************************************** */
-
-static int ntop_interface_is_local_packetdump_enabled(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  char rsp[2];
-  Redis *redis = ntop->getRedis();
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface || redis->get((char*)CONST_RUNTIME_PREFS_NBOX_INTEGRATION, rsp, sizeof(rsp)))
-    return(CONST_LUA_ERROR);
-  rsp[1] = 0;
-
-  lua_pushboolean(vm,
-		  Utils::isUserAdministrator(vm)       &&
-		  strncmp((char*)"1", rsp, 1)          &&
-		  !ntop_interface->is_actual_view()    &&
-		  ntop_interface->isPacketInterface());
-
-  return(CONST_LUA_OK);
-}
 
 /* ****************************************** */
 
@@ -4246,7 +4225,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getEndpoint",                    ntop_get_interface_endpoint },
   { "incrDrops",                      ntop_increase_drops },
   { "isView",                         ntop_interface_is_interface_view   },
-  { "isLocalPacketdumpEnabled",       ntop_interface_is_local_packetdump_enabled },
   { "isPacketInterface",              ntop_interface_is_packet_interface },
   { "isRunning",                      ntop_interface_is_running },
   { "isIdle",                         ntop_interface_is_idle },

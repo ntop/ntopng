@@ -64,7 +64,7 @@ interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
 ifId = ifstats.id
 
-is_packetdump_enabled = interface.isLocalPacketdumpEnabled()
+is_packetdump_enabled = isLocalPacketdumpEnabled()
 host = nil
 family = nil
 

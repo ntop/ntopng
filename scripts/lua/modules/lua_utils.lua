@@ -1515,6 +1515,16 @@ function isLoopback(name)
   end
 end
 
+function isLocalPacketdumpEnabled()
+   local nbox_integration = ntop.getCache("ntopng.prefs.nbox_integration")
+   if nbox_integration == nil or nbox_integration ~= "1" then
+      nbox_integration = false
+   else
+      nbox_integration = true
+   end
+   return isAdministrator() and not nbox_integration and not interface.isView() and interface.isPacketInterface()
+end
+
 function processColor(proc)
   if(proc == nil) then
     return("")

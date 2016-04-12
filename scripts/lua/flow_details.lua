@@ -102,7 +102,7 @@ throughput_type = getThroughputType()
 flow_key = _GET["flow_key"]
 
 interface.select(ifname)
-is_packetdump_enabled = interface.isLocalPacketdumpEnabled()
+is_packetdump_enabled = isLocalPacketdumpEnabled()
 if(flow_key == nil) then
    flow = nil
 else

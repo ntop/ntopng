@@ -40,7 +40,7 @@ interface.select(if_name)
 -- if the user is not an administrator or if the interface:
 -- is a view
 -- is not a packet interface (i.e., it is zmq)
-is_packetdump_enabled = interface.isLocalPacketdumpEnabled()
+is_packetdump_enabled = isLocalPacketdumpEnabled()
 is_view = interface.isView()
 is_packet_interface = interface.isPacketInterface()
 
