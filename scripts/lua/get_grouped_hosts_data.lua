@@ -184,6 +184,7 @@ end
 --[[
 Prepares a json containing table data, together with HTML.
 --]]
+
 function print_single_group(value)
    print ('{ ')
    print ('\"key\" : \"'..value["id"]..'\",')
@@ -215,12 +216,18 @@ function print_single_group(value)
 
    if (group_col == "local_network_id" or network_n ~= nil) then
       print(value["name"]..'</A> ')
-
       if(value["id"] ~= "-1") then
 	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
-
       print('", ')
+
+   elseif group_col == "vlan" or vlan_n ~= nil then
+      print(value["id"]..'</A> ')
+      if value["id"] ~= "0" then
+	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan_id='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      end
+      print('", ')
+
    elseif((group_col == "mac") or (group_col == "antenna_mac")) then
       print(get_symbolic_mac(value["id"])..'</A>", ')
    else
