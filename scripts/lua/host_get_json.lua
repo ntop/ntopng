@@ -42,6 +42,7 @@ else
    -- hosts stats are on by default, one must explicitly disable them
    if host_stats == nil or host_stats == "" or host_stats == "true" or host_stats == "1" then
       hj = json.decode(host["json"])
+      hj["http"] = host["http"]
    end
 
    -- host flow stats are off by default and must be explicitly enabled
