@@ -395,7 +395,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
-  char *sortColumn = (char*)"column_ip";
+  char *sortColumn = (char*)"column_ip", *country = NULL;
   bool a2zSortOrder = true;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
 
@@ -403,7 +403,7 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN) {
     show_details = lua_toboolean(vm, 1) ? true : false;
-    
+
     if(lua_type(vm, 2) == LUA_TSTRING) {
       sortColumn = (char*)lua_tostring(vm, 2);
       
@@ -415,6 +415,9 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 	
 	  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
 	    a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
+
+	    if(lua_type(vm, 6) == LUA_TSTRING)
+	      country = (char*)lua_tostring(vm, 6);
 	  }
 	}
       }
@@ -424,7 +427,8 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
   if(ntop_interface)
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, show_local_only,
-                                       sortColumn, maxHits, toSkip, a2zSortOrder);
+                                       country, sortColumn, maxHits, 
+				       toSkip, a2zSortOrder);
 
   return(CONST_LUA_OK);
 }
@@ -786,7 +790,7 @@ static int ntop_delete_redis_key(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-  ntop->getRedis()->del(key);
+  ntop->getRedis()->delKey(key);
   return(CONST_LUA_OK);
 }
 
@@ -1843,6 +1847,32 @@ static int ntop_get_interface_endpoint(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_is_interface_view(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, ntop_interface->is_actual_view());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_is_packet_interface(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, ntop_interface->isPacketInterface());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_is_running(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
@@ -2582,9 +2612,20 @@ static int ntop_reload_l7_rules(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(ntop_interface) {
+    char *net;
+    patricia_tree_t *ptree;
+
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+    if((net = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+    ptree = New_Patricia(128);
+    ptree_add_rule(ptree, net);
+
 #ifdef NTOPNG_PRO
-    ntop_interface->refreshL7Rules();
+    ntop_interface->refreshL7Rules(ptree);
 #endif
+
+    Destroy_Patricia(ptree, free_ptree_data);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
@@ -2610,6 +2651,7 @@ static int ntop_reload_shapers(lua_State *vm) {
 
 static int ntop_interface_exec_sql_query(lua_State *vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+  bool limit_rows = true;  // honour the limit by default
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2621,7 +2663,11 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
     if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-    if(ntop_interface->exec_sql_query(vm, sql) == -1)
+    if(lua_type(vm, 2) == LUA_TBOOLEAN) {
+      limit_rows = lua_toboolean(vm, 2) ? true : false;
+    }
+
+    if(ntop_interface->exec_sql_query(vm, sql, limit_rows) < 0)
       lua_pushnil(vm);
 
     return(CONST_LUA_OK);
@@ -3840,8 +3886,17 @@ static int ntop_reload_traffic_profiles(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop_interface)
-    ntop_interface->updateFlowProfiles(); /* Reload profiles in memory */
+  if(ntop_interface) {
+    char *old_profile, *new_profile;
+
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if((old_profile = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+    
+    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if((new_profile = (char*)lua_tostring(vm, 2)) == NULL)     return(CONST_LUA_PARAM_ERROR);
+    
+    ntop_interface->updateFlowProfiles(old_profile, new_profile); /* Reload profiles in memory */
+  }
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -4169,6 +4224,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getInterfacePacketsDumpedTap",   ntop_get_interface_pkts_dumped_tap },
   { "getEndpoint",                    ntop_get_interface_endpoint },
   { "incrDrops",                      ntop_increase_drops },
+  { "isView",                         ntop_interface_is_interface_view   },
+  { "isPacketInterface",              ntop_interface_is_packet_interface },
   { "isRunning",                      ntop_interface_is_running },
   { "isIdle",                         ntop_interface_is_idle },
   { "setInterfaceIdleState",          ntop_interface_set_idle },
@@ -4562,12 +4619,15 @@ void Lua::purifyHTTPParameter(char *param) {
       case '<':
       case '>':
       case '@':
+      case '#':
 	break;
 
       default:
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '%c' in URI [%s]", c, param);
-	ampercent[0] = '\0';
-	return;
+	if(!Utils::isPrintableChar(c)) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded char '%c' in URI [%s]", c, param);
+	  ampercent[0] = '\0';
+	  return;
+	}
       }
 
 
@@ -4660,7 +4720,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", 
 				    PAGE_ERROR, tok, rsp));
 		} else
-		  ntop->getRedis()->del(decoded_buf);
+		  ntop->getRedis()->delKey(decoded_buf);
 	      }
 
 	      lua_push_str_table_entry(L, tok, decoded_buf);

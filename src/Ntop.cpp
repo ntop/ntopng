@@ -228,6 +228,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
 #ifdef NTOPNG_PRO
 void Ntop::registerNagios(void) {
+  if(nagios_manager) { delete nagios_manager; nagios_manager = NULL; }
   nagios_manager = new NagiosManager();
 }
 #endif
@@ -536,7 +537,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	iface[ifId]->addInterfaceAddress(buf_orig);
 #endif
 
-	for(u_int32_t i = cidr, j = 0; i > 0; i -= 8, ++j)
+	for(int i = cidr, j = 0; i > 0; i -= 8, ++j)
 	  s6->sin6_addr.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
 
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
@@ -691,7 +692,7 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
 
 // Return 1 if username/password is allowed, 0 otherwise.
 bool Ntop::checkUserPassword(const char *user, const char *password) {
-  char key[64], val[64], password_hash[33];
+  char key[64], val[64], val_group[64], password_hash[33];
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   bool localAuth = true;
 #endif
@@ -705,32 +706,50 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
 
     if(strncmp(val, "ldap", 4) == 0) {
       bool is_admin;
-      char ldapServer[64] = { 0 }, bind_dn[128] = { 0 }, 
-				     bind_pwd[64] = { 0 }, group[64] = { 0 }, 
-							     admin_group[64] = { 0 };
+      char ldapServer[64] = { 0 }, ldapAccountType[64] = { 0 }, ldapAnonymousBind[32] = { 0 },
+           bind_dn[128] = { 0 }, bind_pwd[64] = { 0 }, group[64] = { 0 },
+           search_path[128] = { 0 }, admin_group[64] = { 0 };
 
+      if(!password || !password[0])
+        return false;
       snprintf(key, sizeof(key), CONST_CACHED_USER_PASSWORD, user);
       mg_md5(password_hash, password, NULL);
 
-      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
-	return((strcmp(password_hash, val) == 0) ? true : false);      
+      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+	snprintf(key, sizeof(key), CONST_CACHED_USER_GROUP, user);
+	if(ntop->getRedis()->get(key, val_group, sizeof(val_group)) >= 0) {
+	  ntop->getRedis()->set(key, val_group, 600 /* 10 mins cache */);
+        }
+	return((strcmp(password_hash, val) == 0) ? true : false);
+      }
 
       ntop->getRedis()->get((char*)PREF_LDAP_SERVER, ldapServer, sizeof(ldapServer));
+      ntop->getRedis()->get((char*)PREF_LDAP_ACCOUNT_TYPE, ldapAccountType, sizeof(ldapAccountType));
+      ntop->getRedis()->get((char*)PREF_LDAP_BIND_ANONYMOUS, ldapAnonymousBind, sizeof(ldapAnonymousBind));
       ntop->getRedis()->get((char*)PREF_LDAP_BIND_DN, bind_dn, sizeof(bind_dn));
       ntop->getRedis()->get((char*)PREF_LDAP_BIND_PWD, bind_pwd, sizeof(bind_pwd));
+      ntop->getRedis()->get((char*)PREF_LDAP_SEARCH_PATH, search_path, sizeof(search_path));
       ntop->getRedis()->get((char*)PREF_LDAP_USER_GROUP, group, sizeof(group));
       ntop->getRedis()->get((char*)PREF_LDAP_ADMIN_GROUP, admin_group, sizeof(admin_group));
-      
-      if(ldapServer[0] && bind_dn[0]) {
-	bool ret = LdapAuthenticator::validUserLogin(ldapServer, bind_dn, bind_pwd, 
-						     user, password, group, admin_group, &is_admin);
+
+      if(ldapServer[0]) {
+	bool ret = LdapAuthenticator::validUserLogin(ldapServer, ldapAccountType, 
+						     (atoi(ldapAnonymousBind) == 0) ? false : true,
+						     bind_dn[0] != '\0' ? bind_dn : NULL,
+						     bind_pwd[0] != '\0' ? bind_pwd : NULL,
+						     search_path[0] != '\0' ? search_path : NULL, 
+						     user, 
+						     password[0] != '\0' ? password : NULL,
+						     group[0] != '\0' ? group : NULL,
+						     admin_group[0] != '\0' ? admin_group : NULL,
+						     &is_admin);
 
 	if(ret) {
 	  /* Let's cache the password so we avoid talking to LDAP too often  */
 	  ntop->getRedis()->set(key, password_hash, 600 /* 10 mins cache */);
-	  
+
 	  snprintf(key, sizeof(key), CONST_CACHED_USER_GROUP, user);
-	  ntop->getRedis()->set(key, 
+	  ntop->getRedis()->set(key,
 				is_admin ?  (char*)"administrator" : (char*)"unprivileged",
 				600 /* 10 mins cache */);
 	  return(true);
@@ -833,13 +852,13 @@ bool Ntop::deleteUser(char *username) {
   char key[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
-  ntop->getRedis()->del(key);
+  ntop->getRedis()->delKey(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-  ntop->getRedis()->del(key);
+  ntop->getRedis()->delKey(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  return((ntop->getRedis()->del(key) >= 0) ? true : false);
+  return((ntop->getRedis()->delKey(key) >= 0) ? true : false);
 }
 
 /* ******************************************* */
@@ -1125,7 +1144,7 @@ NetworkInterfaceView* Ntop::getInterfaceView(char *name) {
 
 /* ******************************************* */
 
-/* NOTUSED */
+#ifdef NOTUSED
 int Ntop::getInterfaceIdByName(char *name) {
   /* This method accepts both interface names or Ids */
   int if_id = atoi(name);
@@ -1150,6 +1169,7 @@ int Ntop::getInterfaceIdByName(char *name) {
 
   return(-1);
 }
+#endif
 
 /* ******************************************* */
 
@@ -1194,10 +1214,9 @@ void Ntop::registerInterface(NetworkInterface *_if) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface %s [id: %d]",
 				 _if->get_name(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
-    return;
-  }
-
-  ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
+    _if->startDBLoop();
+  } else
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
 };
 
 /* ******************************************* */

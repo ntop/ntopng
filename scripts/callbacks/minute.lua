@@ -17,7 +17,6 @@ require "top_structure"
 when = os.time()
 
 local verbose = ntop.verboseTrace()
-
 -- Scan "minute" alerts
 scanAlerts("min")
 
@@ -126,10 +125,10 @@ for _,_ifname in pairs(ifnames) do
 	 -- Save hosts stats
 	 if(host_rrd_creation ~= "0") then
             local networks_aggr = {}
+	    local vlans_aggr    = {}
 
             for hosts_stats_ifname, hosts_stats in pairs(interface.getLocalHostsInfo()) do
 	    hosts_stats = hosts_stats["hosts"]
-
 	    for hostname, hoststats in pairs(hosts_stats) do
 	       host = interface.getHostInfo(hostname)
 
@@ -142,6 +141,20 @@ for _,_ifname in pairs(ifnames) do
 		     print("]" .. (hoststats["bytes.sent"]+hoststats["bytes.rcvd"]) .. "]\n")
 		  end
 
+		  -- Aggregate VLAN stats
+		  local host_vlan = hoststats["vlan"]
+		  if host_vlan ~= nil and host_vlan ~= 0 then
+		     if vlans_aggr[host_vlan] == nil then
+			vlans_aggr[host_vlan] = {}
+		     elseif vlans_aggr[host_vlan]["bytes.sent"] == nil then
+			vlans_aggr[host_vlan]["bytes.sent"] = hoststats["bytes.sent"]
+			vlans_aggr[host_vlan]["bytes.rcvd"] = hoststats["bytes.rcvd"]
+		     else
+			vlans_aggr[host_vlan]["bytes.sent"] = vlans_aggr[host_vlan]["bytes.sent"] + hoststats["bytes.sent"]
+			vlans_aggr[host_vlan]["bytes.rcvd"] = vlans_aggr[host_vlan]["bytes.rcvd"] + hoststats["bytes.rcvd"]
+		     end
+		  end
+
 		  if(host.localhost) then
                      local keypath = getPathFromKey(hostname)
 		     local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
@@ -151,13 +164,14 @@ for _,_ifname in pairs(ifnames) do
 			ntop.mkdir(basedir)
 
 		     end
-
-                   if host_categories_rrd_creation ~= "0" and not ntop.exists(fixPath(basedir.."/categories")) then
-                      ntop.mkdir(fixPath(basedir.."/categories"))
-                   end
+ 
+                    if host_categories_rrd_creation ~= "0" and not ntop.exists(fixPath(basedir.."/categories")) then
+                       ntop.mkdir(fixPath(basedir.."/categories"))
+                    end
 
                      -- Aggregate network stats
 		     network_key = hoststats["local_network_name"]
+
 		     --io.write("==> Adding "..network_key.."\n")
                      if (networks_aggr[network_key] == nil) then
                        networks_aggr[network_key] = {}
@@ -174,7 +188,9 @@ for _,_ifname in pairs(ifnames) do
 		     name = fixPath(basedir .. "/bytes.rrd")
 		     createRRDcounter(name, 300, verbose)
 		     ntop.rrd_update(name, "N:"..tolongint(hoststats["bytes.sent"]) .. ":" .. tolongint(hoststats["bytes.rcvd"]))
-		     if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n') end
+		     if(verbose) then
+			print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
+		     end
 
 		     -- L4 Protocols
 		     for id, _ in ipairs(l4_keys) do
@@ -255,6 +271,19 @@ for _,_ifname in pairs(ifnames) do
 	       end -- if
 	    end -- for
             end
+
+	    -- create RRD for vlans
+	    local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
+	    for vlan_id, vlan_stats in pairs(vlans_aggr) do
+	       local vlanpath = getPathFromKey(vlan_id)
+	       vlanpath = fixPath(basedir.. "/" .. vlanpath)
+	       if not ntop.exists(vlanpath) then
+		  ntop.mkdir(vlanpath)
+	       end
+	       vlanpath = fixPath(vlanpath .. "/bytes.rrd")
+	       createRRDcounter(vlanpath, 300, false)
+	       ntop.rrd_update(vlanpath, "N:"..tolongint(vlan_stats["bytes.sent"]) .. ":" .. tolongint(vlan_stats["bytes.rcvd"]))
+	    end
 
             --- Create RRD for networks
             for n,m in pairs(networks_aggr) do

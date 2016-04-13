@@ -24,16 +24,15 @@ scanAlerts("day")
 local debug = false
 local delete_keys = true
 
-
 function harverstExpiredMySQLFlows(ifname, mysql_retention)
    sql = "DELETE FROM flowsv4 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE = '"..ifname.."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
    interface.execSQLQuery(sql)
    if(debug) then io.write(sql.."\n") end
 
    sql = "DELETE FROM flowsv6 where FIRST_SWITCHED < "..mysql_retention
-   sql = sql.." AND (INTERFACE = '"..ifname.."' OR INTERFACE IS NULL)"
+   sql = sql.." AND (INTERFACE_ID = "..getInterfaceId(ifname)..")"
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."' OR NTOPNG_INSTANCE_NAME IS NULL)"
    interface.execSQLQuery(sql)
    if(debug) then io.write(sql.."\n") end
@@ -56,12 +55,15 @@ mysql_retention = ntop.getCache("ntopng.prefs.mysql_retention")
 if((mysql_retention == nil) or (mysql_retention == "")) then mysql_retention = "30" end
 mysql_retention = os.time() - 86400*tonumber(mysql_retention)
 
+minute_top_talkers_retention = ntop.getCache("ntopng.prefs.minute_top_talkers_retention")
+if((minute_top_talkers_retention == nil) or (minute_top_talkers_retention == "")) then minute_top_talkers_retention = "365" end
+
 ifnames = interface.getIfNames()
 for _,_ifname in pairs(ifnames) do
-   interface.select(purifyInterfaceName(_ifname))
-   interface_id = getInterfaceId(ifname)
+   interface.select(_ifname)
+   interface_id = getInterfaceId(_ifname)
 
-   ntop.deleteMinuteStatsOlderThan(interface_id, 365)
+   ntop.deleteMinuteStatsOlderThan(interface_id, tonumber(minute_top_talkers_retention))
 
    harverstExpiredMySQLFlows(_ifname, mysql_retention)
 

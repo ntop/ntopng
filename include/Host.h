@@ -28,7 +28,7 @@ class Host : public GenericHost {
  private:
   u_int8_t mac_address[6], antenna_mac_address[6];
   u_int32_t asn;
-  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12];
+  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *topSitesKey;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
   u_int32_t host_quota_mb;
   u_int16_t num_uses;
@@ -37,7 +37,7 @@ class Host : public GenericHost {
   float latitude, longitude;
   IpAddress *ip;
   Mutex *m;
-  time_t nextResolveAttempt;
+  time_t nextResolveAttempt, nextSitesUpdate;
 #ifdef NTOPNG_PRO
   CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
 #endif
@@ -51,12 +51,12 @@ class Host : public GenericHost {
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
   DnsStats *dns;
-  HTTPStats *http;
-  bool trigger_host_alerts;
+  HTTPstats *http;
+  bool trigger_host_alerts, good_low_flow_detected;
   u_int32_t max_new_flows_sec_threshold, max_num_syn_sec_threshold, max_num_active_flows;
   NetworkStats *networkStats;
   CategoryStats *categoryStats;
-  
+
 #ifdef NTOPNG_PRO
   NDPI_PROTOCOL_BITMASK *l7Policy;
 #endif
@@ -68,10 +68,11 @@ class Host : public GenericHost {
   void initialize(u_int8_t mac[6], u_int16_t _vlan_id, bool init_all);
   void refreshHTTPBL();
   void computeHostSerial();
-
+  json_object* getJSONObject();
   void loadFlowRateAlertPrefs(void);
   void loadSynAlertPrefs(void);
   void loadFlowsAlertPrefs(void);
+  void getSites(lua_State* vm, char *k, const char *label);
 
  public:
   Host(NetworkInterface *_iface);
@@ -82,6 +83,8 @@ class Host : public GenericHost {
 
   void updateLocal();
   void updateStats(struct timeval *tv);
+  void incLowGoodputFlows(bool asClient);
+  void decLowGoodputFlows(bool asClient);
   void resetPeriodicStats(void);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num; };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO += num;  };
@@ -89,8 +92,8 @@ class Host : public GenericHost {
   inline int16_t get_local_network_id()             { return(local_network_id);      };
   inline PacketStats* get_sent_stats()              { return(&sent_stats);           };
   inline PacketStats* get_recv_stats()              { return(&recv_stats);           };
-  inline HTTPStats* getHTTPStats()                  { return(http);     };
-  inline HTTPStats* getHTTP()                       { return(http);                  };
+  inline HTTPstats* getHTTPstats()                  { return(http);     };
+  inline HTTPstats* getHTTP()                       { return(http);                  };
   inline void set_ipv4(u_int32_t _ipv4)             { ip->set_ipv4(_ipv4);           };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip->set_ipv6(_ipv6);           };
   u_int32_t key();
@@ -119,7 +122,7 @@ class Host : public GenericHost {
   void incUses() { num_uses++; }
   void decUses() { num_uses--; }
   bool idle();
-  void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details, 
+  void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);
   void resolveHostName();
   void setName(char *name);
@@ -138,7 +141,7 @@ class Host : public GenericHost {
   void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
 
   void incNumFlows(bool as_client);
-  void decNumFlows(bool as_client);  
+  void decNumFlows(bool as_client);
 
   inline void incIngressDrops(u_int num_bytes)           { ingress_drops.incStats(num_bytes);             };
   inline void incEgressDrops(u_int num_bytes)            { egress_drops.incStats(num_bytes);              };
@@ -147,7 +150,7 @@ class Host : public GenericHost {
   inline void incNumDNSResponsesSent(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesSent(ret_code); };
   inline void incNumDNSResponsesRcvd(u_int32_t ret_code) { if(dns) dns->incNumDNSResponsesRcvd(ret_code); };
   inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
-  
+
   inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
 
   void readAlertPrefs();
@@ -162,10 +165,11 @@ class Host : public GenericHost {
   bool isAboveQuota(void);
   void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
-  void getPeerBytes(lua_State* vm, u_int32_t peer_key);    
+  void getPeerBytes(lua_State* vm, u_int32_t peer_key);
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
+  void incrVisitedWebSite(char *hostname);
 };
 
 #endif /* _HOST_H_ */

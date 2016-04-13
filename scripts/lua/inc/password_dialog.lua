@@ -23,7 +23,7 @@ print [[
   password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
 </script>
 
-  <form data-toggle="validator" id="form_password_reset" class="form-horizontal" method="get" action="password_reset.lua">
+  <form data-toggle="validator" id="form_password_reset" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua">
 ]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
@@ -48,17 +48,17 @@ print [[
 <div class="form-group has-feedback">
   <label for="" class="control-label">New User Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-  <input id="new_password_input" type="password" name="new_password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)\=\?\^\*@_]{1,}$" required>
+  <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
 </div>
 </div>
 
 <div class="form-group has-feedback">
   <label for="" class="control-label">Confirm New User Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-  <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_]{1,}$" required>
+  <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
 </div>
 </div>
-<div><small>Allowed characters in the password are: upper and lower case letters, numbers and the following symbols: $!/()=?^*@_ </small></div>
+<div><small>Allowed password characters are ISO 8895-1 (latin1) upper and lower case letters, numbers and special symbols.  </small></div>
 <div class="form-group has-feedback">
   <button id="password_reset_submit" class="btn btn-primary btn-block">Change User Password</button>
 </div>
@@ -71,7 +71,7 @@ if(user_group=="administrator") then
 
 print [[
 <div id="pref_part_separator"><hr/></div>
-<form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="get" action="change_user_prefs.lua">
+<form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
   <div class="form-group has-feedback">
@@ -101,22 +101,38 @@ print [[
 end
 
 print [[<script>
-  var frmpassreset = $('#form_password_reset');
+  function isValid(str) { /* return /^[\w%]+$/.test(str); */ return true; }
+  function isValidPassword(str) { return /^[\w\$\\!\/\(\)\=\?\^\*@_\-^\u0000-\u00ff]{1,}$/.test(str); }
 
+  var frmpassreset = $('#form_password_reset');
   frmpassreset.submit(function () {
-			    if(!isValidPassword($("#new_password_input").val())) { password_alert.error("Password contains invalid chars (a-z, A-Z, 0-9, and _)"); return(false); }
-    if($("#new_password_input").val().length < 5) { password_alert.error("Password too short (< 5 characters)"); return(false); }
-    if($("#new_password_input").val() != $("#confirm_new_password_input").val()) { password_alert.error("Passwords don't match"); return(false); }
+    if(!isValidPassword($("#new_password_input").val())) {
+      password_alert.error("Password contains invalid chars. Please use valid ISO8895-1 (latin1) letters and numbers."); return(false);
+    }
+    if($("#new_password_input").val().length < 5) {
+      password_alert.error("Password too short (< 5 characters)"); return(false);
+    }
+    if($("#new_password_input").val() != $("#confirm_new_password_input").val()) {
+      password_alert.error("Passwords don't match"); return(false);
+    }
+
+    // escape characters to send out valid latin-1 encoded characters
+    $('#old_password_input').val(escape($('#old_password_input').val()))
+    $('#new_password_input').val(escape($('#new_password_input').val()))
+    $('#confirm_new_password_input').val(escape($('#confirm_new_password_input').val()))
 
     $.ajax({
       type: frmpassreset.attr('method'),
       url: frmpassreset.attr('action'),
       data: frmpassreset.serialize(),
       success: function (data) {
+
         var response = jQuery.parseJSON(data);
         if(response.result == 0) {
           password_alert.success(response.message);
-   	  window.location.href = 'users.lua';
+   	  // window.location.href = 'users.lua';
+          window.location.href = window.location.href;
+
        } else
           password_alert.error(response.message);
     ]]
@@ -160,7 +176,7 @@ print [[
       success: function (response) {
         if(response.result == 0) {
           password_alert.success(response.message);
-   	  window.location.href = 'users.lua';
+          window.location.href= window.location.href;
        } else
           password_alert.error(response.message);
       }
@@ -195,9 +211,11 @@ function reset_pwd_dialog(user) {
       return(true);
 }
 
+/*
 $('#password_reset_submit').click(function() {
   $('#form_password_reset').submit();
 });
+*/
 </script>
 
 </div>

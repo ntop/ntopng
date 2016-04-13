@@ -60,7 +60,7 @@ local function topNetworksSectionInTableOP(tblarray, arithOp)
           local found = false
           if (ret[outer_cnt][key] == nil) then ret[outer_cnt][key] = {} end
           for _,el in pairs(ret[outer_cnt][key]) do
-            if (found == false and el["address"] == record["address"]) then
+            if (found == false and el["label"] == record["label"]) then
               el["value"] = arithOp(el["value"], record["value"])
               found = true
             end
@@ -209,7 +209,7 @@ end
 top_networks_intf.name = "Networks"
 top_networks_intf.infoScript = "hosts_stats.lua"
 top_networks_intf.infoScriptKey = "network"
-top_networks_intf.key = "local_network_id"
+top_networks_intf.key = "network"
 top_networks_intf.JSONkey = "networks"
 top_networks_intf.uniqueKey = "top_local_nets"
 top_networks_intf.getTop = getTopNetworks

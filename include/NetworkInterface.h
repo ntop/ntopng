@@ -47,6 +47,7 @@ class L7Policer;
 class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name.*/
+  char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   string ip_addresses;
   int id;
   bool bridge_interface, has_mesh_networks_traffic;
@@ -72,7 +73,11 @@ class NetworkInterface {
     lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
   time_t lastSecUpdate;
-
+  
+  struct {
+    u_int64_t pktRetr, pktOOO, pktLost;
+  } tcpPacketStats;
+  u_int64_t zmq_initial_bytes, zmq_initial_pkts;
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to memorize the hosts information.*/
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
@@ -82,13 +87,15 @@ class NetworkInterface {
   StatsManager *statsManager;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
-  time_t last_pkt_rcvd, next_idle_flow_purge, next_idle_host_purge;
+  time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
+    next_idle_flow_purge, next_idle_host_purge;
   bool running, is_idle;
   PacketDumper *pkt_dumper;
   PacketDumperTuntap *pkt_dumper_tap;
   u_char* antenna_mac;
   NetworkStats *networkStats;
 
+  void init();
   void deleteDataStructures();
   Flow* getFlow(u_int8_t *src_eth, u_int8_t *dst_eth, u_int16_t vlan_id,
   		IpAddress *src_ip, IpAddress *dst_ip,
@@ -100,7 +107,7 @@ class NetworkInterface {
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
-  bool checkIdle();
+  bool checkIdle();  
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
 
@@ -133,9 +140,12 @@ class NetworkInterface {
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
-  inline char* get_ndpi_proto_breed_name(u_int id) { return(ndpi_get_proto_breed_name(ndpi_struct,
-										      ndpi_get_proto_breed(ndpi_struct,
-													   id))); };
+  inline char* get_ndpi_proto_breed_name(u_int id) { 
+    return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
+  inline void setRemoteIfname(char *name)      { if(!remoteIfname)      remoteIfname = strdup(name);   };
+  inline void setRemoteIfIPaddr(char *ip)      { if(!remoteIfIPaddr)    remoteIfIPaddr = strdup(ip);   };
+  inline void setRemoteProbeAddr(char *ip)     { if(!remoteProbeIPaddr) remoteProbeIPaddr = strdup(ip);};
+  inline void setRemoteProbePublicAddr(char *ip) { if(!remoteProbePublicIPaddr) remoteProbePublicIPaddr = strdup(ip);};
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
@@ -152,13 +162,15 @@ class NetworkInterface {
   int dumpFlow(time_t when, bool partial_dump, Flow *f);
   int dumpDBFlow(time_t when, bool partial_dump, Flow *f);
   int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
-
+  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num; };
+  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO  += num; };
+  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num; };
   void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
   void updateSecondTraffic(time_t when);
 
   inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
-    ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
+    if(!remoteIfname) ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(ndpi_proto, 0, 0, 1, pkt_len);
     pktStats.incStats(pkt_len);
     if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
@@ -174,31 +186,29 @@ class NetworkInterface {
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
-  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet,
-		     int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
-  bool packetProcessing(const struct bpf_timeval *when,
-			const u_int64_t time,
-			struct ndpi_ethhdr *eth,
-			u_int16_t vlan_id,
-			struct ndpi_iphdr *iph,
-			struct ndpi_ipv6hdr *ip6,
-			u_int16_t ipsize, u_int16_t rawsize,
-			const struct pcap_pkthdr *h,
-			const u_char *packet,
-			int *a_shaper_id,
-			int *b_shaper_id,
-			u_int16_t *ndpiProtocol);
-  void flow_processing(ZMQ_Flow *zflow);
+  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, bool *shaped, u_int16_t *ndpiProtocol);
+  bool processPacket(const struct bpf_timeval *when,
+		     const u_int64_t time,
+		     struct ndpi_ethhdr *eth,
+		     u_int16_t vlan_id,
+		     struct ndpi_iphdr *iph,
+		     struct ndpi_ipv6hdr *ip6,
+		     u_int16_t ipsize, u_int16_t rawsize,
+		     const struct pcap_pkthdr *h,
+		     const u_char *packet,
+		     bool *shaped,
+		     u_int16_t *ndpiProtocol);
+  void processFlow(ZMQ_Flow *zflow);
   void dumpFlows();
   void getnDPIStats(nDPIStats *stats);
-  void updateFlowsL7Policy();
+  void updateFlowsL7Policy(patricia_tree_t *ptree);
   void updateHostStats();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
   int getActiveHostsList(lua_State* vm,
 			 patricia_tree_t *allowed_hosts,
 			 bool host_details, bool local_only,
-			 char *sortColumn, u_int32_t maxHits,
+			 char *countryFilter, char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
@@ -238,14 +248,14 @@ class NetworkInterface {
   inline StatsManager *getStatsManager()   { return statsManager; }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules();
+  void refreshL7Rules(patricia_tree_t *ptree);
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
 
   PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
-  void updateHostsL7Policy();
+  void updateHostsL7Policy(patricia_tree_t *ptree);
   bool updateDumpAllTrafficPolicy(void);
   bool updateDumpTrafficDiskPolicy();
   bool updateDumpTrafficTapPolicy();
@@ -273,16 +283,21 @@ class NetworkInterface {
   u_char* getAntennaMac()	     { return (antenna_mac);     }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);
-  inline int exec_sql_query(lua_State *vm, char *sql) { return(db ? db->exec_sql_query(vm, sql) : -1); };
+  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows) { return(db ? db->exec_sql_query(vm, sql, limit_rows) : -1); };
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
   void getsDPIStats(lua_State *vm);
   inline u_int64_t* getLastMinuteTrafficStats() { return((u_int64_t*)lastMinuteTraffic); }
 #ifdef NTOPNG_PRO
-  void updateFlowProfiles();
+  void updateFlowProfiles(char *old_profile, char *new_profile);
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
+  bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
 #endif
+  void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
+		      char *remoteProbeAddress, char *remoteProbePublicAddress,
+		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time);
+  void startDBLoop() { if(db) db->startDBLoop(); };
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

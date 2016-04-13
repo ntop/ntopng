@@ -348,7 +348,7 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
   
   p = (char*)&rsp[sizeof(struct dns_header)-1];
 
-  for(i=0; (p[i] != 0) && (i < (rsp_len-sizeof(struct dns_header))); i++) {
+  for(i=0; (i < (rsp_len-sizeof(struct dns_header))) && (p[i] != 0); i++) {
     if(p[i] < 0x20) qname[i] = '.'; else qname[i] = p[i];
   }
 
@@ -396,7 +396,7 @@ u_int Flashstart::recvResponses(u_int msecTimeout) {
     u_char rsp[512];
     struct sockaddr_in from;
     socklen_t s;
-    int len = recvfrom(sock, rsp, sizeof(rsp), 0,
+    int len = recvfrom(sock, (char*)rsp, sizeof(rsp), 0,
 		       (struct sockaddr*)&from, &s);
 
     if(len > 0 && (u_int)len > sizeof(struct dns_header))

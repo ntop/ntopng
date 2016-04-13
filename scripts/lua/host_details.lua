@@ -64,6 +64,7 @@ interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
 ifId = ifstats.id
 
+is_packetdump_enabled = isLocalPacketdumpEnabled()
 host = nil
 family = nil
 
@@ -214,11 +215,13 @@ else
    end
 end
 
+http = host["http"]
+
 if(page == "http") then
   print("<li class=\"active\"><a href=\"#\">HTTP")
 else
-   if((host["http"] ~= nil)
-   and ((host["http"]["query.total"]+ host["http"]["response.total"]) > 0)) then
+   if((http ~= nil)
+      and ((http["sender"]["query"]["total"]+ http["receiver"]["response"]["total"]) > 0)) then
       print("<li><a href=\""..url.."&page=http\">HTTP")
    end
 end
@@ -327,13 +330,17 @@ if((page == "overview") or (page == nil)) then
    if(host["ip"] ~= nil) then
       if((host["antenna_mac"] ~= nil) and (host["antenna_mac"] ~= "00:00:00:00:00:00")) then
 	 print("<tr><th width=35%>Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
+      else
+	 if(host["mac"]  ~= "00:00:00:00:00:00") then
+	    print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
+	 else
+	    if(host["localhost"] == true and is_packetdump_enabled) then
+	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
+	    end
+	 end
       end
 
-      if(host["mac"]  ~= "00:00:00:00:00:00") then
-         print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
-      end
-
-      if(host["localhost"] == true) then
+      if(host["localhost"] == true and is_packetdump_enabled) then
 	 dump_status = host["dump_host_traffic"]
 
 	 if(_GET["dump_traffic"] ~= nil) then
@@ -353,15 +360,16 @@ if((page == "overview") or (page == nil)) then
 	    dump_traffic_checked = ""
 	    dump_traffic_value = "true" -- Opposite
 	 end
+
 	 if(isAdministrator()) then
 	 print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
 	 <input type="hidden" name="host" value="]]
-	       print(host_info["host"])
-	       print('"><input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='..ifname..'&page=packetdump">Dump Traffic</a> </input>')
-	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	       print('</form>')
-	    end
+	 print(host_info["host"])
+	 print('"><input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='..ifname..'&page=packetdump">Dump Traffic</a> </input>')
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('</form>')
+	 end
 	    print('</td></tr>')
 	    end
 	    print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
@@ -514,7 +522,7 @@ end
       print("<tr><th>ASN</th><td>")
 
       print("<A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn ..">"..host.asname.."</A> [ ASN <A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn..">".. host.asn.."</A> ]</td>")
-      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">Whois Lookup</A> <i class="fa fa-external-link fa-lg"></i></td>')
+      print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">Whois Lookup</A> <i class="fa fa-external-link"></i></td>')
       print("</td></tr>\n")
    end
 
@@ -532,7 +540,7 @@ end
 	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
       end
 
-      print(host["name"] .. "</span></A> <i class=\"fa fa-external-link fa-lg\"></i> ")
+      print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
       if(host["localhost"] == true) then print('<span class="label label-success">Local</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">System <i class=\"fa fa-flag\"></i></span>') end
@@ -580,12 +588,16 @@ end
 
    print("<tr><th>Traffic Sent / Received</th><td><span id=pkts_sent>" .. formatPackets(host["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(host["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(host["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(host["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
-   -- print("<tr><th>Flows 'As Client' / 'As Server'</th><td><span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=as_client_trend></span></td><td><span id=flows_as_server>" .. formatValue(host["flows.as_server"]) .. "</span> <span id=as_server_trend></td></tr>\n")
+   print("<tr><th rowspan=2>Active Flows / Active Low Goodput / Total </th><th>'As Client'</th><th>'As Server'</th></tr>\n")
+   print("<tr><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
+   print("/ <span id=low_goodput_as_client>" .. formatValue(host["low_goodput_flows.as_client"]) .. "</span> <span id=low_goodput_trend_as_client></span>\n")
+   print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
+   print("</td>\n")
 
-
-   print("<tr><th rowspan=2>Flows Active / Total </th><th>'As Client'</th><th>'As Server'</th></tr>")
-   print("<tr><td><span id=flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=as_client_trend></span> / " .. formatValue(host["flows.as_client"]) .. "</td>")
-   print("<td><span id=flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span> <span id=as_server_trend></span> / " .. formatValue(host["flows.as_server"]) .. "</td></tr>")
+   print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
+   print("/ <span id=low_goodput_as_server>" .. formatValue(host["low_goodput_flows.as_server"]) .. "</span> <span id=low_goodput_trend_as_server></span>\n")
+   print("/ <span id=flows_as_server>"..formatValue(host["flows.as_server"]) .. "</span> <span id=trend_as_server></span> \n")
+   print("</td></tr>\n")
 
 
    if(host["tcp.packets.seq_problems"]) then
@@ -1048,11 +1060,45 @@ end
         print("</table>\n")
       end
    elseif(page == "http") then
-      if(host["http"] ~= nil) then
+      if(http ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")
 
+	 if(host["sites"] ~= nil) then
+	    old_top_len = table.len(host["sites.old"])  if(old_top_len > 10) then old_top_len = 10 end
+	    top_len = table.len(host["sites"])          if(top_len > 10) then top_len = 10 end
+	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
+
+	    print("<tr><th rowspan="..(1+num)..">Top Visited Sites</th><th>Current Sites</th><th>Contacts</th><th>Last 5 Minute Sites</th><th>Contacts</th></tr>\n")
+	    sites = {} 
+	    for k,v in pairsByValues(host["sites"], rev) do
+	       table.insert(sites, { k, v })
+	    end
+
+	    sites_old = {} 
+	    for k,v in pairsByValues(host["sites.old"], rev) do
+	       table.insert(sites_old, { k, v })
+	    end
+
+	    for i=1,num do
+	       if(sites[i] == nil) then sites[i] = { "", 0 } end
+	       if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
+	       print("<tr><th>")
+	       if(sites[i][1] ~= "") then 
+		  print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n") 
+	       else
+		  print("&nbsp;</th><td>&nbsp;</td>\n")
+	       end
+	       
+	       if(sites_old[i][1] ~= "") then 
+		  print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td></tr>\n")
+	       else
+		  print("&nbsp;</th><td>&nbsp;</td></tr>\n") 
+	       end
+	    end	    
+	 end
+
 	 print("<tr><th rowspan=6 width=20%><A HREF=http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods>HTTP Queries</A></th><th width=20%>Method</th><th width=20%>Requests</th><th colspan=2>Distribution</th></tr>")
-	 print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(host["http"]["query.num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
+	 print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(http["sender"]["query"]["num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 
 print [[
          <div class="pie-chart" id="httpQueries"></div>
@@ -1065,13 +1111,13 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 ]]
 
 	 print("</td></tr>")
-	 print("<tr><th>POST</th><td style=\"text-align: right;\"><span id=http_query_num_post>".. formatValue(host["http"]["query.num_post"]) .."</span> <span id=trend_http_query_num_post></span></td></tr>")
-	 print("<tr><th>HEAD</th><td style=\"text-align: right;\"><span id=http_query_num_head>".. formatValue(host["http"]["query.num_head"]) .."</span> <span id=trend_http_query_num_head></span></td></tr>")
-	 print("<tr><th>PUT</th><td style=\"text-align: right;\"><span id=http_query_num_put>".. formatValue(host["http"]["query.num_put"]) .."</span> <span id=trend_http_query_num_put></span></td></tr>")
-	 print("<tr><th>Other Method</th><td style=\"text-align: right;\"><span id=http_query_num_other>".. formatValue(host["http"]["query.num_other"]) .."</span> <span id=trend_http_query_num_other></span></td></tr>")
+	 print("<tr><th>POST</th><td style=\"text-align: right;\"><span id=http_query_num_post>".. formatValue(http["sender"]["query"]["num_post"]) .."</span> <span id=trend_http_query_num_post></span></td></tr>")
+	 print("<tr><th>HEAD</th><td style=\"text-align: right;\"><span id=http_query_num_head>".. formatValue(http["sender"]["query"]["num_head"]) .."</span> <span id=trend_http_query_num_head></span></td></tr>")
+	 print("<tr><th>PUT</th><td style=\"text-align: right;\"><span id=http_query_num_put>".. formatValue(http["sender"]["query"]["num_put"]) .."</span> <span id=trend_http_query_num_put></span></td></tr>")
+	 print("<tr><th>Other Method</th><td style=\"text-align: right;\"><span id=http_query_num_other>".. formatValue(http["sender"]["query"]["num_other"]) .."</span> <span id=trend_http_query_num_other></span></td></tr>")
 	 print("<tr><th colspan=4>&nbsp;</th></tr>")
 	 print("<tr><th rowspan=6 width=20%><A HREF=http://en.wikipedia.org/wiki/List_of_HTTP_status_codes>HTTP Responses</A></th><th width=20%>Response code</th><th width=20%>Responses</th><th colspan=2>Distribution</th></tr>")
-	 print("<tr><th>1xx (Informational)</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>".. formatValue(host["http"]["response.num_1xx"]) .."</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
+	 print("<tr><th>1xx (Informational)</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>".. formatValue(http["receiver"]["response"]["num_1xx"]) .."</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
 
 print [[
          <div class="pie-chart" id="httpResponses"></div>
@@ -1083,20 +1129,20 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
          </script>
 ]]
 	 print("</td></tr>")
-	 print("<tr><th>2xx (Success)</th><td style=\"text-align: right;\"><span id=http_response_num_2xx>".. formatValue(host["http"]["response.num_2xx"]) .."</span> <span id=trend_http_response_num_2xx></span></td></tr>")
-	 print("<tr><th>3xx (Redirection)</th><td style=\"text-align: right;\"><span id=http_response_num_3xx>".. formatValue(host["http"]["response.num_3xx"]) .."</span> <span id=trend_http_response_num_3xx></span></td></tr>")
-	 print("<tr><th>4xx (Client Error)</th><td style=\"text-align: right;\"><span id=http_response_num_4xx>".. formatValue(host["http"]["response.num_4xx"]) .."</span> <span id=trend_http_response_num_4xx></span></td></tr>")
-	 print("<tr><th>5xx (Server Error)</th><td style=\"text-align: right;\"><span id=http_response_num_5xx>".. formatValue(host["http"]["response.num_5xx"]) .."</span> <span id=trend_http_response_num_5xx></span></td></tr>")
+	 print("<tr><th>2xx (Success)</th><td style=\"text-align: right;\"><span id=http_response_num_2xx>".. formatValue(http["receiver"]["response"]["num_2xx"]) .."</span> <span id=trend_http_response_num_2xx></span></td></tr>")
+	 print("<tr><th>3xx (Redirection)</th><td style=\"text-align: right;\"><span id=http_response_num_3xx>".. formatValue(http["receiver"]["response"]["num_3xx"]) .."</span> <span id=trend_http_response_num_3xx></span></td></tr>")
+	 print("<tr><th>4xx (Client Error)</th><td style=\"text-align: right;\"><span id=http_response_num_4xx>".. formatValue(http["receiver"]["response"]["num_4xx"]) .."</span> <span id=trend_http_response_num_4xx></span></td></tr>")
+	 print("<tr><th>5xx (Server Error)</th><td style=\"text-align: right;\"><span id=http_response_num_5xx>".. formatValue(http["receiver"]["response"]["num_5xx"]) .."</span> <span id=trend_http_response_num_5xx></span></td></tr>")
 
 	 -- TODO: add dynamic update via ajax
-         vh = host["http"]["virtual_hosts"]
+         vh = http["virtual_hosts"]
 	 if(vh ~= nil) then
   	    num = table.len(vh)
 	    if(num > 0) then
   	      print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
       	      for k,v in pairsByKeys(vh, asc) do
 		 local j = string.gsub(k, "%.", "___")
-		 print("<tr><th><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link fa-lg'></i></th><td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
+		 print("<tr><th><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i></th><td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
 		 print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
 		 print("<td align=right><span id="..j.."_num_vhost_req_serv>"..formatValue(vh[k]["http.requests"]).."</span></td></tr>\n")
 	      end
@@ -1142,13 +1188,9 @@ print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSo
   print [[
          title: "Active Flows",]]
 
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
-
-prefs = ntop.getPrefs()
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
-
-
+  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
+  prefs = ntop.getPrefs()
+  ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_bottom.inc")
 else
 
 print [[
@@ -1722,10 +1764,10 @@ end
    print [[
    <tr><td colspan=2  style="text-align: left; white-space: nowrap;" ></td></tr>
    <tr>
-     <td style="text-align: left; white-space: nowrap;" ><b>Re-arm minutes</b></td>
+     <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
      <td>
      <input type="number" name="re_arm_minutes" style="width: 50px;" value=]] print(tostring(re_arm_minutes)) print[[><br>
-     <small>The re-arm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+     <small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
      </td>
    </tr>
 
@@ -2132,12 +2174,18 @@ end
 end
 
 if (host ~= nil) then
-   print [[ <script>]]
+   print [[ 
+   <script>
+  ]]
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
    print("var last_num_alerts = " .. host["num_alerts"] .. ";\n")
-   print("var last_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
-   print("var last_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
+   print("var last_active_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
+   print("var last_active_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
+   print("var last_flows_as_server = " .. host["flows.as_server"] .. ";\n")
+   print("var last_flows_as_client = " .. host["flows.as_client"] .. ";\n")
+   print("var last_low_goodput_flows_as_client = " .. host["low_goodput_flows.as_client"] .. ";\n")
+   print("var last_low_goodput_flows_as_server = " .. host["low_goodput_flows.as_server"] .. ";\n")
    print("var last_tcp_retransmissions = " .. host["tcp.packets.retransmissions"] .. ";\n")
    print("var last_tcp_ooo = " .. host["tcp.packets.out_of_order"] .. ";\n")
    print("var last_tcp_lost = " .. host["tcp.packets.lost"] .. ";\n")
@@ -2151,17 +2199,17 @@ if (host ~= nil) then
       print("var last_dns_rcvd_num_replies_error = " .. host["dns"]["rcvd"]["num_replies_error"] .. ";\n")
    end
 
-   if(host["http"] ~= nil) then
-      print("var last_http_query_num_get = " .. host["http"]["query.num_get"] .. ";\n")
-      print("var last_http_query_num_post = " .. host["http"]["query.num_post"] .. ";\n")
-      print("var last_http_query_num_head = " .. host["http"]["query.num_head"] .. ";\n")
-      print("var last_http_query_num_put = " .. host["http"]["query.num_put"] .. ";\n")
-      print("var last_http_query_num_other = " .. host["http"]["query.num_other"] .. ";\n")
-      print("var last_http_response_num_1xx = " .. host["http"]["response.num_1xx"] .. ";\n")
-      print("var last_http_response_num_2xx = " .. host["http"]["response.num_2xx"] .. ";\n")
-      print("var last_http_response_num_3xx = " .. host["http"]["response.num_3xx"] .. ";\n")
-      print("var last_http_response_num_4xx = " .. host["http"]["response.num_4xx"] .. ";\n")
-      print("var last_http_response_num_5xx = " .. host["http"]["response.num_5xx"] .. ";\n")
+   if(http ~= nil) then
+      print("var last_http_query_num_get = " .. http["sender"]["query"]["num_get"] .. ";\n")
+      print("var last_http_query_num_post = " .. http["sender"]["query"]["num_post"] .. ";\n")
+      print("var last_http_query_num_head = " .. http["sender"]["query"]["num_head"] .. ";\n")
+      print("var last_http_query_num_put = " .. http["sender"]["query"]["num_put"] .. ";\n")
+      print("var last_http_query_num_other = " .. http["sender"]["query"]["num_other"] .. ";\n")
+      print("var last_http_response_num_1xx = " .. http["receiver"]["response"]["num_1xx"] .. ";\n")
+      print("var last_http_response_num_2xx = " .. http["receiver"]["response"]["num_2xx"] .. ";\n")
+      print("var last_http_response_num_3xx = " .. http["receiver"]["response"]["num_3xx"] .. ";\n")
+      print("var last_http_response_num_4xx = " .. http["receiver"]["response"]["num_4xx"] .. ";\n")
+      print("var last_http_response_num_5xx = " .. http["receiver"]["response"]["num_5xx"] .. ";\n")
    end
 
    print [[
@@ -2175,6 +2223,7 @@ if (host ~= nil) then
    		    /* error: function(content) { alert("JSON Error: inactive host purged or ntopng terminated?"); }, */
    		    success: function(content) {
    			var host = jQuery.parseJSON(content);
+                        var http = host.http;
    			$('#first_seen').html(epoch2Seen(host["seen.first"]));
    			$('#last_seen').html(epoch2Seen(host["seen.last"]));
    			$('#pkts_sent').html(formatPackets(host["packets.sent"]));
@@ -2190,8 +2239,12 @@ if (host ~= nil) then
    			   $('#name').html(host["name"]);
    			}
    			$('#num_alerts').html(host["num_alerts"]);
-   			$('#flows_as_client').html(addCommas(host["active_flows.as_client"]));
-   			$('#flows_as_server').html(addCommas(host["active_flows.as_server"]));
+   			$('#active_flows_as_client').html(addCommas(host["active_flows.as_client"]));
+   			$('#flows_as_client').html(addCommas(host["flows.as_client"]));
+   			$('#low_goodput_as_client').html(addCommas(host["low_goodput_flows.as_client"]));
+   			$('#active_flows_as_server').html(addCommas(host["active_flows.as_server"]));
+   			$('#flows_as_server').html(addCommas(host["flows.as_server"]));
+   			$('#low_goodput_as_server').html(addCommas(host["low_goodput_flows.as_server"]));
    		  ]]
 
    if(host["dns"] ~= nil) then
@@ -2247,15 +2300,15 @@ if (host ~= nil) then
    		     ]]
    end
 
-   if((host ~= nil) and (host["http"] ~= nil)) then
-      vh = host["http"]["virtual_hosts"]
+   if((host ~= nil) and (http ~= nil)) then
+      vh = http["virtual_hosts"]
       if(vh ~= nil) then
          num = table.len(vh)
          if(num > 0) then
    	 print [[
    	       var last_http_val = {};
-   	       if((host !== undefined) && (host["http"] !== undefined)) {
-   		  $.each(host["http"]["virtual_hosts"], function(idx, obj) {
+   	       if((host !== undefined) && (http !== undefined)) {
+   		  $.each(http["virtual_hosts"], function(idx, obj) {
    		      var key = idx.replace(/\./g,'___');
    		      $('#'+key+'_bytes_vhost_rcvd').html(bytesToVolume(obj["bytes.rcvd"])+" "+get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
    		      $('#'+key+'_bytes_vhost_sent').html(bytesToVolume(obj["bytes.sent"])+" "+get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
@@ -2270,16 +2323,16 @@ if (host ~= nil) then
 
       methods = { "get", "post", "head", "put", "other" }
       for i, method in ipairs(methods) do
-         print('\t$("#http_query_num_'..method..'").html(addCommas(host["http"]["query.num_'..method..'"]));\n')
-         print('\tif(host["http"]["query.num_'..method..'"] == last_http_query_num_'..method..') {\n\t$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
-         print('} else {\n\tlast_http_query_num_'..method..' = host["http"]["query.num_'..method..'"];$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
+         print('\t$("#http_query_num_'..method..'").html(addCommas(http["sender"]["query"]["num_'..method..'"]));\n')
+         print('\tif(http["sender"]["query"]["num_'..method..'"] == last_http_query_num_'..method..') {\n\t$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
+         print('} else {\n\tlast_http_query_num_'..method..' = http["sender"]["query"]["num_'..method..'"];$("#trend_http_query_num_'..method..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
       end
 
       retcodes = { "1xx", "2xx", "3xx", "4xx", "5xx" }
       for i, retcode in ipairs(retcodes) do
-         print('\t$("#http_response_num_'..retcode..'").html(addCommas(host["http"]["response.num_'..retcode..'"]));\n')
-         print('\tif(host["http"]["response.num_'..retcode..'"] == last_http_response_num_'..retcode..') {\n\t$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
-         print('} else {\n\tlast_http_response_num_'..retcode..' = host["http"]["response.num_'..retcode..'"];$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
+         print('\t$("#http_response_num_'..retcode..'").html(addCommas(http["receiver"]["response"]["num_'..retcode..'"]));\n')
+         print('\tif(http["receiver"]["response"]["num_'..retcode..'"] == last_http_response_num_'..retcode..') {\n\t$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-minus\"></i>\');\n')
+         print('} else {\n\tlast_http_response_num_'..retcode..' = http["receiver"]["response"]["num_'..retcode..'"];$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fa fa-arrow-up\"></i>\'); }\n')
       end
    end
    end
@@ -2287,60 +2340,29 @@ if (host ~= nil) then
    print [[
    			/* **************************************** */
 
-   			if(host["active_flows.as_client"] == last_flows_as_client) {
-   			   $('#as_client_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#as_client_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["active_flows.as_server"] == last_flows_as_server) {
-   			   $('#as_server_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#as_server_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(last_num_alerts == host["num_alerts"]) {
-   			   $('#alerts_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#alerts_trend').html("<i class=\"fa fa-arrow-up\" style=\"color: #B94A48;\"></i>");
-   			}
-
-   			if(last_pkts_sent == host["packets.sent"]) {
-   			   $('#sent_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#sent_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(last_pkts_rcvd == host["packets.rcvd"]) {
-   			   $('#rcvd_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#rcvd_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["tcp.packets.retransmissions"] == last_tcp_retransmissions) {
-   			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#pkt_retransmissions_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["tcp.packets.out_of_order"] == last_tcp_ooo) {
-   			   $('#pkt_ooo_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#pkt_ooo_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
-
-   			if(host["tcp.packets.lost"] == last_tcp_lost) {
-   			   $('#pkt_lost_trend').html("<i class=\"fa fa-minus\"></i>");
-   			} else {
-   			   $('#pkt_lost_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   			}
+			$('#trend_as_active_client').html(drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
+			$('#trend_as_client').html(drawTrend(host["flows.as_client"], last_flows_as_client, ""));
+			$('#low_goodput_trend_as_client').html(drawTrend(host["low_goodput_flows.as_client"], last_low_goodput_flows_as_client, " style=\"color: #B94A48;\""));
+			$('#trend_as_active_server').html(drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
+			$('#trend_as_server').html(drawTrend(host["flows.as_server"], last_flows_as_server, ""));
+			$('#low_goodput_trend_as_server').html(drawTrend(host["low_goodput_flows.as_server"], last_low_goodput_flows_as_server, " style=\"color: #B94A48;\""));
+			
+			$('#alerts_trend').html(drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
+			$('#sent_trend').html(drawTrend(host["packets.sent"], last_pkts_sent, ""));
+			$('#rcvd_trend').html(drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
+			$('#pkt_retransmissions_trend').html(drawTrend(host["tcp.packets.retransmissions"], last_tcp_retransmissions, ""));
+			$('#pkt_ooo_trend').html(drawTrend(host["tcp.packets.out_of_order"], last_tcp_ooo, ""));
+ 		        $('#pkt_lost_trend').html(drawTrend(host["tcp.packets.lost"], last_tcp_lost, ""));
 
    			last_num_alerts = host["num_alerts"];
    			last_pkts_sent = host["packets.sent"];
    			last_pkts_rcvd = host["packets.rcvd"];
-   			last_flows_as_server = host["active_flows.as_server"];
-   			last_flows_as_client = host["active_flows.as_client"];
-
+   			last_active_flows_as_client = host["active_flows.as_client"];
+   			last_active_flows_as_server = host["active_flows.as_server"];
+   			last_flows_as_client = host["flows.as_client"];
+   			last_low_goodput_flows_as_server = host["low_goodput_flows.as_server"];
+   			last_low_goodput_flows_as_client = host["low_goodput_flows.as_client"];
+   			last_flows_as_server = host["flows.as_server"];
    			last_tcp_retransmissions = host["tcp.packets.retransmissions"];
    			last_tcp_ooo = host["tcp.packets.out_of_order"];
    			last_tcp_lost = host["tcp.packets.lost"];

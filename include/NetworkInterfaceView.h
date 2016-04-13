@@ -41,12 +41,13 @@ class NetworkInterfaceView {
   inline int get_numInterfaces()       { return(numInterfaces); }
   inline NetworkInterface *getFirst()  { return(physIntf[0]);   }
   inline int get_id()                  { return(id);            }
+  inline bool is_actual_view()         { return (numInterfaces > 1 ? true : false); };
 
   void getnDPIStats(nDPIStats *stats);
   int getActiveHostsList(lua_State* vm,
 			 patricia_tree_t *allowed_hosts,
 			 bool host_details, bool local_only,
-			 char *sortColumn, u_int32_t maxHits,
+			 char *countryFilter, char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
@@ -69,7 +70,8 @@ class NetworkInterfaceView {
   void findProcNameFlows(lua_State *vm, char *proc_name);
   void listHTTPHosts(lua_State *vm, char *key);
   void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
-  int isRunning();
+  bool isPacketInterface();
+  int  isRunning();
   bool idle();
   void setIdleState(bool new_state);
   void getnDPIProtocols(lua_State *vm);
@@ -86,14 +88,14 @@ class NetworkInterfaceView {
   void getnDPIFlowsCount(lua_State *vm);
   void lua(lua_State *vm);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules();
+  void refreshL7Rules(patricia_tree_t *ptree);
   void refreshShapers();
 #endif
   void loadDumpPrefs();
   Host* findHostsByIP(patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  int exec_sql_query(lua_State *vm, char *sql);
+  int exec_sql_query(lua_State *vm, char *sql, bool limit_rows);
 #ifdef NTOPNG_PRO
-  void updateFlowProfiles();
+  void updateFlowProfiles(char *old_profile, char *new_profile);
 #endif
 };
 

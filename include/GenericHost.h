@@ -34,7 +34,7 @@ class GenericHost : public GenericHashEntry {
   nDPIStats *ndpiStats;
   TrafficStats sent, rcvd;
   ActivityStats activityStats;
-  u_int32_t num_alerts_detected;
+  u_int32_t num_alerts_detected, low_goodput_client_flows, low_goodput_server_flows;
   u_int8_t source_id;
 
   /* Throughput */
@@ -56,7 +56,7 @@ class GenericHost : public GenericHashEntry {
   GenericHost(NetworkInterface *_iface);
   ~GenericHost();
 
-    inline double pearsonCorrelation(GenericHost *h) { return(activityStats.pearsonCorrelation(h->getActivityStats())); };
+  inline double pearsonCorrelation(GenericHost *h) { return(activityStats.pearsonCorrelation(h->getActivityStats())); };
   inline bool isLocalHost()                { return(localHost || systemHost); };
   inline bool isSystemHost()               { return(systemHost); };
   inline void setSystemHost()              { systemHost = true;  };

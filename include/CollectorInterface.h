@@ -33,14 +33,13 @@ typedef struct {
 
 class CollectorInterface : public ParserInterface {
  private:
-  char *topic;
   void *context;
   u_int32_t num_drops;
   u_int8_t num_subscribers;
   zmq_subscriber subscriber[CONST_MAX_NUM_ZMQ_SUBSCRIBERS];
 
  public:
-  CollectorInterface(const char *_endpoint, const char *_topic);
+  CollectorInterface(const char *_endpoint);
   ~CollectorInterface();
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZMQ);      };

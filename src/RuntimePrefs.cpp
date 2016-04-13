@@ -160,8 +160,10 @@ bool RuntimePrefs::are_hosts_categories_rrd_created() {
 
 /* ******************************************* */
 
+#ifdef NOTUSED
 void RuntimePrefs::set_throughput_unit(bool use_bps) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_THPT_CONTENT,
 			use_bps ? (char*)"bps" : (char*)"pps", 0);
 }
+#endif
 

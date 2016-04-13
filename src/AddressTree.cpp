@@ -84,6 +84,7 @@ static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *ad
 
 /* ******************************************* */
 
+#ifdef NOTUSED
 static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
   prefix_t prefix;
   patricia_node_t *node;
@@ -103,6 +104,7 @@ static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int 
   
   return(rc);
 }
+#endif
 
 /* ******************************************* */
 
@@ -173,6 +175,7 @@ patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line) {
 
 /* ******************************************* */
 
+#ifdef NOTUSED
 static int ptree_remove_rule(patricia_tree_t *ptree, char *line) {
   char *ip, *bits, *slash = NULL;
   struct in_addr addr4;
@@ -224,12 +227,15 @@ static int ptree_remove_rule(patricia_tree_t *ptree, char *line) {
 
   return(rc);
 }
+#endif
 
 /* ******************************************* */
 
+#ifdef NOTUSED
 bool AddressTree::removeAddress(char *net) {
   return(ptree_remove_rule(ptree, net) == 1 ? false /* not found */ : true /* found */);
 }
+#endif
 
 /* ******************************************* */
 
@@ -262,18 +268,18 @@ int16_t AddressTree::addAddress(char *_net) {
 
 /* ******************************************* */
 
+#ifdef NOTUSED
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
 bool AddressTree::addAddresses(char *rule) {
   char *net = strtok(rule, ",");
   
   while(net != NULL) {
-    int16_t rc;
-    
-    if((rc = addAddress(net)) < 0) return false;
+    if(addAddress(net) < 0) return false;
     net = strtok(NULL, ",");
   }
   return true;
 }
+#endif
 
 /* ******************************************* */
 

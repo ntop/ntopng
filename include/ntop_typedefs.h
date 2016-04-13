@@ -48,7 +48,9 @@ typedef enum {
   alert_dangerous_host,
   alert_periodic_activity,
   alert_quota,
-  alert_malware_detection
+  alert_malware_detection,
+  alert_host_under_attack,
+  alert_host_attacker
 } AlertType;
 
 typedef enum {
@@ -56,6 +58,11 @@ typedef enum {
   alert_level_warning,
   alert_level_error,
 } AlertLevel;
+
+typedef enum {
+  IPV4 = 4,
+  IPV6 = 6
+} IPVersion;
 
 #ifdef NTOPNG_PRO
 typedef enum {
@@ -105,7 +112,7 @@ typedef struct zmq_flow {
   u_int32_t first_switched, last_switched;
   json_object *additional_fields;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-
+  char *http_url, *http_site, *dns_query;
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
@@ -119,6 +126,11 @@ struct active_flow_stats {
   u_int32_t num_flows, 
     ndpi_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS],
     breeds_bytes[NUM_BREEDS];
+};
+
+struct grev1_header {
+  u_int16_t flags_and_version;
+  u_int16_t proto;
 };
 
 #endif /* _NTOP_TYPEDEFS_H_ */

@@ -39,13 +39,13 @@ class Prefs {
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES];
-  const char *http_binding_address, *https_binding_address;
+  char *http_binding_address, *https_binding_address;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-    enable_auto_logout, use_promiscuous_mode,
+    enable_auto_logout, use_promiscuous_mode, zmq_collector_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
-    enable_users_login, disable_localhost_login;
+    enable_users_login, disable_localhost_login, online_license_check;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
@@ -62,6 +62,7 @@ class Prefs {
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
+  char *zmq_encryption_pwd;
   Flashstart *flashstart;
   char *http_prefix;
   char *instance_name;
@@ -83,8 +84,8 @@ class Prefs {
   int setOption(int optkey, char *optarg);
   int checkOptions();
 
-  void bind_http_to_loopback()  { http_binding_address  = CONST_LOOPBACK_ADDRESS; };
-  void bind_https_to_loopback() { https_binding_address = CONST_LOOPBACK_ADDRESS; };
+  void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
+  void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
 
  public:
   Prefs(Ntop *_ntop);
@@ -169,7 +170,7 @@ class Prefs {
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };
-
+  inline bool checkLicenseOnline()               { return(online_license_check);  };
   inline char* get_es_type()  { return(es_type);  };
   inline char* get_es_index() { return(es_index); };
   inline char* get_es_url()   { return(es_url);   };
@@ -178,13 +179,14 @@ class Prefs {
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
   inline bool are_taps_enabled() { return(enable_taps); };
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
-  inline bool use_promiscuous()  { return(use_promiscuous_mode); };
-  inline char* get_mysql_host()      { return(mysql_host);      };
-  inline char* get_mysql_dbname()    { return(mysql_dbname);    };
-  inline char* get_mysql_tablename() { return(mysql_tablename); };
-  inline char* get_mysql_user()      { return(mysql_user);      };
-  inline char* get_mysql_pw()        { return(mysql_pw);        };
-
+  inline bool use_promiscuous()         { return(use_promiscuous_mode); };
+  inline bool is_zmq_collector_mode()   { return(zmq_collector_mode);   }
+  inline char* get_mysql_host()         { return(mysql_host);         };
+  inline char* get_mysql_dbname()       { return(mysql_dbname);       };
+  inline char* get_mysql_tablename()    { return(mysql_tablename);    };
+  inline char* get_mysql_user()         { return(mysql_user);         };
+  inline char* get_mysql_pw()           { return(mysql_pw);           };
+  inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd); };
   inline char* getInterfaceViewAt(int id) { return((id >= MAX_NUM_INTERFACES) ? NULL : ifViewNames[id].name); }
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }

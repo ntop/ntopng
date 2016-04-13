@@ -31,7 +31,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
-  resolve_all_host_ip = false;
+  resolve_all_host_ip = false, online_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -40,12 +40,16 @@ Prefs::Prefs(Ntop *_ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
-  http_prefix = strdup("");
+  http_prefix = strdup(""), zmq_encryption_pwd = NULL;
   instance_name = NULL;
+  categorization_enabled = false, enable_users_login = true;
+  categorization_key = NULL, zmq_encryption_pwd = NULL;
+  es_index = es_url = es_user = es_pwd = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
   change_user = true, daemonize = false;
   user = strdup(CONST_DEFAULT_NTOP_USER);
-  http_binding_address = https_binding_address = CONST_ANY_ADDRESS;
+  http_binding_address = NULL;
+  https_binding_address = NULL; // CONST_ANY_ADDRESS;
   httpbl_key = NULL, flashstart = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
@@ -56,7 +60,7 @@ Prefs::Prefs(Ntop *_ntop) {
   disable_alerts = false;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
-  disable_host_persistency = false;
+  disable_host_persistency = zmq_collector_mode = false;
   num_interfaces = 0, num_interface_views = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
@@ -117,6 +121,7 @@ Prefs::~Prefs() {
   if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
   if(instance_name)    free(instance_name);
+
   free(http_prefix);
   free(redis_host);
   free(local_networks);
@@ -127,6 +132,8 @@ Prefs::~Prefs() {
   if(mysql_user)      free(mysql_user);
   if(mysql_pw)        free(mysql_pw);
 
+  if(http_binding_address)  free(http_binding_address);
+  if(https_binding_address) free(https_binding_address);
   /* NOTE: flashstart is deleted by the Ntop class */
 }
 
@@ -160,7 +167,9 @@ void usage() {
 #ifndef WIN32
 	 "[--data-dir|-d] <path>              | Data directory (must be writable).\n"
 	 "                                    | Default: %s\n"
-	 "[--install-dir|-t] <path>           | Set the installation directory to <dir>. Testing only.\n"
+	 "[--install-dir|-t] <path>           | Set the installation directory to <dir>.\n"
+	 "                                    | Should be set when installing ntopng \n"
+	 "                                    | under custom directories\n"
 	 "[--daemon|-e]                       | Daemonize ntopng\n"
 #endif
 	 "[--httpdocs-dir|-1] <path>          | HTTP documents root directory.\n"
@@ -173,10 +182,18 @@ void usage() {
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
 	 "                                    | (default: disabled). Available options:\n"
 	 "                                    | httpbl:<api_key>        See README.httpbl\n"
-	 "[--http-port|-w] <[:]http port>     | HTTP port. Set to 0 to disable http server.\n"
-	 "                                    | Prepend a : before the port to listen to the\n"
-	 "                                    | loopback address. Default: %u\n"
-	 "[--https-port|-W] <[:]https port>   | HTTPS port. See usage of -w above. Default: %u\n"
+	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
+	 "                                    | Addr can be any valid ipv4 (e.g., 192.168.1.1)\n"
+	 "                                    | or ipv6 (e.g., [3ffe:2a00:100:7031::1]) address.\n"
+	 "                                    | Surround ipv6 addresses with square brackets.\n"
+	 "                                    | Prepend a ':' without addr before the port\n"
+	 "                                    | to listen on the loopback address.\n"
+	 "                                    | Default port: %u\n"
+	 "                                    | Examples:\n"
+	 "                                    | -w :3000\n"
+	 "                                    | -w 192.168.1.1:3001\n"
+	 "                                    | -w [3ffe:2a00:100:7031::1]:3002\n"
+	 "[--https-port|-W] <[:]https port>   | HTTPS. See usage of -w above. Default: %u\n"
 	 "[--local-networks|-m] <local nets>  | Local nets list (default: 192.168.1.0/24)\n"
 	 "                                    | (e.g. -m \"192.168.0.0/24,172.16.0.0/16\")\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
@@ -192,6 +209,10 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate when a pcap has been read (debug only)\n"
+	 "[--zmq-collector-mode]              | Force ZMQ sockets to operate in collector mode. If\n"
+	 "                                    | used nprobe must use --zmq-probe-mode so that it can\n"
+	 "                                    | behave as a probe.\n"
+	 "--zmq-encrypt-pwd <pwd>             | Encrypt the ZMQ data using the specified password\n"
 	 "[--disable-autologout|-q]           | Disable web interface logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
 	 "                                    | 0 - Disable login only for localhost\n"
@@ -241,6 +262,7 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "--capture-direction                 | Specify packet capture direction\n"
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
+	 "--online-license-check              | Check license online\n"
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
@@ -314,6 +336,9 @@ void Prefs::loadIdleDefaults() {
   other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
   other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
+
+  // sets to the default value in redis if no key is found
+  getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
 }
 
 /* ******************************************* */
@@ -377,14 +402,16 @@ static const struct option long_options[] = {
   { "httpdocs-dir",                      required_argument, NULL, '1' },
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
+  { "online-license-check",              no_argument,       NULL, 211 },
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
+  { "zmq-collector-mode",                no_argument,       NULL, 214 },
+  { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
   { "community",                         no_argument,       NULL, 254 },
 #endif
-
   /* End of options */
   { NULL,                                no_argument,       NULL,  0 }
 };
@@ -522,19 +549,39 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'w':
-    double_dot = strchr(optarg, ':');
-    if(double_dot)
-      http_port = atoi(&double_dot[1]), bind_http_to_loopback();
-    else
+    if (strchr(optarg, ':') == NULL){
+      // only the port
       http_port = atoi(optarg);
+    } else if (optarg[0] == ':'){
+      // first char == ':' binds to the loopback address
+      http_port = atoi(&optarg[1]);
+      bind_http_to_loopback();
+    } else {
+      // ':' is after the first character, so
+      // we need to parse both the ip address and the port
+      double_dot = strrchr(optarg, ':');
+      u_int len = double_dot - optarg;
+      http_binding_address = strndup(optarg, len);
+      http_port = atoi(&double_dot[1]);
+    }
     break;
 
   case 'W':
-    double_dot = strchr(optarg, ':');
-    if(double_dot)
-      https_port = atoi(&double_dot[1]), bind_https_to_loopback();
-    else
+    if (strchr(optarg, ':') == NULL){
+      // only the port
       https_port = atoi(optarg);
+    } else if (optarg[0] == ':'){
+      // first char == ':' binds to the loopback address
+      https_port = atoi(&optarg[1]);
+      bind_https_to_loopback();
+    } else {
+      // ':' is after the first character, so
+      // we need to parse both the ip address and the port
+      double_dot = strrchr(optarg, ':');
+      u_int len = double_dot - optarg;
+      https_binding_address = strndup(optarg, len);
+      https_port = atoi(&double_dot[1]);
+    }
     break;
 
   case 'Z':
@@ -695,7 +742,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 
       if(mysql_host && mysql_user) {
 	if((mysql_dbname == NULL) || (mysql_dbname[0] == '\0'))       mysql_dbname  = strdup("ntopng");
-	if((mysql_tablename == NULL) || (mysql_tablename[0] == '\0')) mysql_tablename  = strdup("flows");
+	if((mysql_tablename == NULL)
+	   || (mysql_tablename[0] == '\0')
+	   || 1 /*forcefully defaults the table name*/) mysql_tablename  = strdup("flows");
 	if((mysql_pw == NULL) || (mysql_pw[0] == '\0'))               mysql_pw  = strdup("");
 
 	dump_flows_on_mysql = true;
@@ -751,6 +800,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     max_num_flows = max_val(atoi(optarg), 1024);
     break;
 
+  case 211:
+    online_license_check = true;
+    break;
+
   case 212:
     if(!strcmp(optarg, "ixia"))
       enable_ixia_timestamps = true;
@@ -763,6 +816,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 213:
     shutdown_when_done = true;
+    break;
+
+  case 214:
+    zmq_collector_mode = true;
+    break;
+
+  case 215:
+    zmq_encryption_pwd = strdup(optarg);
     break;
 
 #ifdef NTOPNG_PRO
@@ -833,6 +894,10 @@ int Prefs::checkOptions() {
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
 
+  if(http_binding_address == NULL)
+    http_binding_address = strdup((char*)CONST_ANY_ADDRESS);
+  if(https_binding_address == NULL)
+    https_binding_address = strdup((char*)CONST_ANY_ADDRESS);
   return(0);
 }
 
@@ -963,6 +1028,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dns_resolution_enabled", enable_dns_resolution);
   lua_push_bool_table_entry(vm, "is_categorization_enabled", flashstart ? true : false);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
+  lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
   lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
@@ -982,11 +1048,10 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
   lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+  lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
 #ifdef NTOPNG_PRO
-  if(ntop->getNagios())
-      ntop->getNagios()->lua(vm);
-  lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
+  if(ntop->getNagios()) ntop->getNagios()->lua(vm);
 
   memset(HTTP_stats_base_dir, '\0', MAX_PATH);
   strncat(HTTP_stats_base_dir, (const char*)ntop->get_working_dir(), MAX_PATH);

@@ -57,6 +57,13 @@ Host::~Host() {
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
+  if(topSitesKey) {
+    char oldk[64];
+
+    snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+    ntop->getRedis()->rename(topSitesKey, oldk);
+  }
+
   if(ip && (!ip->isEmpty())) dumpStats(false);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
@@ -91,6 +98,7 @@ Host::~Host() {
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
   if(ip) delete ip;
   if(m) delete m;
+  if(topSitesKey) free(topSitesKey);
 }
 
 /* *************************************** */
@@ -131,10 +139,10 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 #endif
 
   if(ant_mac)
-    memcpy(antenna_mac_address, ant_mac, 6); 
+    memcpy(antenna_mac_address, ant_mac, 6);
   else
     memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
-    
+
   if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
 
   //if(_vlanId > 0) ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN => %d", _vlanId);
@@ -143,7 +151,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
-  max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
+  max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS, good_low_flow_detected = false;
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
@@ -153,6 +161,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
+  nextSitesUpdate = 0;
   if((m = new(std::nothrow) Mutex()) == NULL)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
@@ -161,7 +170,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), "%s.%d.json", k, vlan_id);
-  dns = NULL, http = NULL, categoryStats = NULL;
+  dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL;
 
 #ifdef NTOPNG_PRO
   l7Policy = NULL;
@@ -169,17 +178,29 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   if(init_all) {
     if(ip) {
-      snprintf(host, sizeof(host), "%s@%u", ip->print(buf, sizeof(buf)), vlan_id);
+      char sitesBuf[64], *strIP = ip->print(buf, sizeof(buf));
+
+      snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
 
       updateLocal();
       updateHostTrafficPolicy(host);
       systemHost = ip->isLocalInterfaceAddress();
 
+      if(localHost) {
+	char oldk[64];
+
+	snprintf(sitesBuf, sizeof(sitesBuf), "sites.%s", strIP);
+	topSitesKey = strdup(sitesBuf);
+
+	snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+	ntop->getRedis()->rename(topSitesKey, oldk);
+      }
+
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s (%s)", k, localHost ? "local": "remote");
 
       if(localHost || systemHost) {
 	dns = new DnsStats();
-	http = new HTTPStats(iface->get_hosts_hash());
+	http = new HTTPstats(iface->get_hosts_hash());
       }
 
       if(((localHost || systemHost)
@@ -202,11 +223,11 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	// else ntop->getRedis()->pushHostToResolve(host, false, localHost);
       }
 
-      if((!localHost || systemHost) 
+      if((!localHost || systemHost)
 	 && ntop->getPrefs()->is_httpbl_enabled()
 	 && ip->isIPv4()) {
 	// http:bl only works for IPv4 addresses
-	if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory, 
+	if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
 							sizeof(trafficCategory), true) == 0) {
           if(strcmp(trafficCategory, NULL_BL)) {
 	    blacklisted_host = true;
@@ -393,10 +414,10 @@ void Host::set_mac(char *m) {
   u_int32_t mac[6] = { 0 };
 
   if(!strcmp(m, "00:00:00:00:00:00")) return;
-  
+
   sscanf(m, "%02X:%02X:%02X:%02X:%02X:%02X",
 	 &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-  
+
   mac_address[0] = mac[0], mac_address[1] = mac[1],
     mac_address[2] = mac[2], mac_address[3] = mac[3],
     mac_address[4] = mac[4], mac_address[5] = mac[5];
@@ -404,8 +425,36 @@ void Host::set_mac(char *m) {
 
 /* *************************************** */
 
+void Host::getSites(lua_State* vm, char *k, const char *label) {
+  int rc;
+  char **sites;
+
+  lua_newtable(vm);
+
+  if((rc = ntop->getRedis()->zRevRange(k, &sites)) > 0) {
+
+    for(int i = 0; i < rc; i++) {
+      if((sites[i] == NULL) || (sites[i+1] == NULL))
+	continue; /* safety check */
+
+      lua_push_int_table_entry(vm, sites[i], atoi(sites[i+1]));
+
+      free(sites[i]), free(sites[i+1]);
+      i++;
+    }
+
+    free(sites);
+  }
+
+  lua_pushstring(vm, label);
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void Host::lua(lua_State* vm, patricia_tree_t *ptree,
-	       bool host_details, bool verbose, 
+	       bool host_details, bool verbose,
 	       bool returnHost, bool asListElement) {
   char buf[64];
   char buf_id[64];
@@ -424,13 +473,13 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_nil_table_entry(vm, "ip");
     lua_push_nil_table_entry(vm, "ipkey");
   }
-  
+
   if((antenna_mac_address[0] != 0)
      && (antenna_mac_address[1] != 0)
      && (antenna_mac_address[2] != 0)
      && (antenna_mac_address[3] != 0)
      && (antenna_mac_address[4] != 0)
-     && (antenna_mac_address[5] != 0))  
+     && (antenna_mac_address[5] != 0))
     lua_push_str_table_entry(vm, "antenna_mac", get_mac(buf, sizeof(buf), antenna_mac_address));
 
   lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf), mac_address));
@@ -530,6 +579,19 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 	lua_push_int_table_entry(vm, "bridge.ingress_shaper_id", ingress_shaper_id);
 	lua_push_int_table_entry(vm, "bridge.egress_shaper_id", egress_shaper_id);
 	lua_push_int_table_entry(vm, "bridge.host_quota_mb", host_quota_mb);
+      }
+
+      lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
+      lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
+
+
+      if(topSitesKey) {
+	char oldk[64];
+
+	snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+
+	getSites(vm, topSitesKey, "sites");
+	getSites(vm, oldk, "sites.old");
       }
     }
 
@@ -636,14 +698,14 @@ void Host::setName(char *name) {
 /* ***************************************** */
 
 void Host::refreshHTTPBL() {
-  if(ip 
-     && ip->isIPv4() 
-     && (!localHost) 
+  if(ip
+     && ip->isIPv4()
+     && (!localHost)
      && (trafficCategory[0] == '\0')
      && ntop->get_httpbl()) {
     char buf[128] =  { 0 };
     char* ip_addr = ip->print(buf, sizeof(buf));
-    
+
     ntop->get_httpbl()->findCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
   }
 }
@@ -657,8 +719,8 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
     char *addr, redis_buf[64];
     int rc;
     time_t now = time(NULL);
-    
-    if(nextResolveAttempt 
+
+    if(nextResolveAttempt
        && ((nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
       return(symbolic_name);
     } else
@@ -775,12 +837,12 @@ void Host::incStats(u_int8_t l4_proto, u_int ndpi_proto,
 	categoryStats = new CategoryStats();
 
       if(categoryStats) {
-	for(int i=0; i <MAX_NUM_CATEGORIES; i++)	  
+	for(int i=0; i <MAX_NUM_CATEGORIES; i++)
 	  if(category->categories[i] == NTOP_UNKNOWN_CATEGORY_ID)
 	    break;
 	  else
 	    categoryStats->incStats(category->categories[i],
-				    sent_bytes+rcvd_bytes);      
+				    sent_bytes+rcvd_bytes);
       }
     }
   }
@@ -798,8 +860,20 @@ char* Host::get_string_key(char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Host::serialize() {
+  json_object *my_object = getJSONObject();
+  char *rsp = strdup(json_object_to_json_string(my_object));
+
+  /* Free memory */
+  json_object_put(my_object);
+
+  return(rsp);
+}
+
+/* *************************************** */
+
+json_object* Host::getJSONObject() {
   json_object *my_object;
-  char *rsp, buf[32];
+  char buf[32];
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
@@ -839,7 +913,7 @@ char* Host::serialize() {
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
   json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));
-  
+
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */
   //json_object_object_add(my_object, "activityStats", activityStats.getJSONObject());
 
@@ -847,13 +921,7 @@ char* Host::serialize() {
   if(dns)  json_object_object_add(my_object, "dns", dns->getJSONObject());
   if(http) json_object_object_add(my_object, "http", http->getJSONObject());
 
-  //ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
-  rsp = strdup(json_object_to_json_string(my_object));
-
-  /* Free memory */
-  json_object_put(my_object);
-
-  return(rsp);
+  return(my_object);
 }
 
 /* *************************************** */
@@ -1147,6 +1215,19 @@ void Host::updateStats(struct timeval *tv) {
 
   if(!localHost || !triggerAlerts()) return;
 
+  if(tv->tv_sec >= nextSitesUpdate) {
+    if(nextSitesUpdate > 0) {
+      char oldk[64];
+      
+      snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+      ntop->getRedis()->rename(topSitesKey, oldk);
+      
+      ntop->getRedis()->zTrim(oldk, 10);
+    }
+
+    nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
+  }
+
   if(isAboveQuota()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
     char ip_buf[48], *h, msg[512];
@@ -1282,7 +1363,7 @@ void Host::incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
 
 void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
   lua_newtable(vm);
-  
+
 #ifdef NTOPNG_PRO
   if(sent_to_sketch && rcvd_from_sketch) {
     lua_push_int_table_entry(vm, "sent", sent_to_sketch->estimate(peer_key));
@@ -1297,4 +1378,68 @@ void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
 
 /* *************************************** */
 
+void Host::incLowGoodputFlows(bool asClient) {
+#if 0
+  bool alert = false;
 
+  if(asClient) {
+    if(++low_goodput_client_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  } else {
+    if(++low_goodput_server_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  }
+
+  if(alert && (!good_low_flow_detected)) {
+    char alert_msg[1024], *c, c_buf[64];
+
+    c = get_ip()->print(c_buf, sizeof(c_buf));
+
+    snprintf(alert_msg, sizeof(alert_msg),
+	     "Host <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> has %d low goodput active %s flows",
+	     c, iface->get_name(), get_name() ? get_name() : c,
+	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
+
+    ntop->getRedis()->queueAlert(alert_level_error, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
+    good_low_flow_detected = true;
+  }
+#endif
+}
+
+/* *************************************** */
+
+void Host::decLowGoodputFlows(bool asClient) {
+  bool alert = false;
+
+  if(asClient) {
+    if(--low_goodput_client_flows < HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  } else {
+    if(--low_goodput_server_flows < HOST_LOW_GOODPUT_THRESHOLD) alert = true;
+  }
+
+  if(alert && good_low_flow_detected) {
+    /* TODO: send end of alarm */
+    good_low_flow_detected = false;
+  }
+}
+
+/* *************************************** */
+
+void Host::incrVisitedWebSite(char *hostname) {
+  u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
+  
+  if(topSitesKey 
+    && (strstr(hostname, "in-addr.arpa") == NULL)
+    && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
+    ) {
+#if 0
+    char *firstdot = strchr(hostname, '.');
+
+    if(firstdot) {
+      char *nextdot = strchr(&firstdot[1], '.');
+
+      ntop->getRedis()->zIncr(topSitesKey, nextdot ? &firstdot[1] : hostname);
+    }
+#else
+    ntop->getRedis()->zIncr(topSitesKey, hostname);
+#endif
+  }
+}

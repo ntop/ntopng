@@ -144,14 +144,14 @@ int main(int argc, char *argv[])
 	iface = new DummyInterface();
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
 	char *at = strchr(ifName, '@');
-	char *topic = (char*)"flow", *endpoint;
+	char *endpoint;
 
 	if(at != NULL)
 	  endpoint = &at[1];
 	else
 	  endpoint = ifName;
 
-	iface = new CollectorInterface(endpoint, topic);
+	iface = new CollectorInterface(endpoint);
 #if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__))
       } else if(strstr(ifName, "zcflow:")) {
 	iface = new ZCCollectorInterface(ifName);

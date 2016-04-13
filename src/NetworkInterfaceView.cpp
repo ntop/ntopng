@@ -53,7 +53,6 @@ NetworkInterfaceView::NetworkInterfaceView(const char *_name) {
 	iface = strtok(NULL, ",");
     }
   }
-
   name = strdup(_name);
 }
 
@@ -73,18 +72,18 @@ void NetworkInterfaceView::loadDumpPrefs() {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterfaceView::updateFlowProfiles() {
+void NetworkInterfaceView::updateFlowProfiles(char *old_profile, char *new_profile) {
   for(int i = 0; i<numInterfaces; i++)
-    physIntf[i]->updateFlowProfiles();
+    physIntf[i]->updateFlowProfiles(old_profile, new_profile);
 }
 #endif
 
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterfaceView::refreshL7Rules() {
+void NetworkInterfaceView::refreshL7Rules(patricia_tree_t *ptree) {
   for(int i = 0; i<numInterfaces; i++)
-    physIntf[i]->refreshL7Rules();
+    physIntf[i]->refreshL7Rules(ptree);
 }
 #endif
 
@@ -111,14 +110,15 @@ void NetworkInterfaceView::getnDPIStats(nDPIStats *stats) {
 int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 					     patricia_tree_t *allowed_hosts,
 					     bool host_details, bool local_only,
-					     char *sortColumn, u_int32_t maxHits,
+					     char *countryFilter, char *sortColumn, 
+					     u_int32_t maxHits,
 					     u_int32_t toSkip, bool a2zSortOrder) {
   int ret = 0;
 
   lua_newtable(vm);
   for(int i = 0; i<numInterfaces; i++) {
     int rc = physIntf[i]->getActiveHostsList(vm, allowed_hosts, host_details, local_only, 
-					     sortColumn, maxHits,
+					     countryFilter, sortColumn, maxHits,
 					     toSkip, a2zSortOrder);
     if(rc < 0) return(ret); 
     rc += ret;
@@ -360,6 +360,14 @@ Host* NetworkInterfaceView::findHostsByIP(patricia_tree_t *allowed_hosts,
 
   return(NULL);
 }
+/* **************************************** */
+
+bool NetworkInterfaceView::isPacketInterface() {
+  for(int i = 0; i<numInterfaces; i++)
+    if(!physIntf[i]->is_packet_interface()) return false;
+
+  return true;
+}
 
 /* **************************************** */
 
@@ -461,7 +469,7 @@ int NetworkInterfaceView::getDumpTrafficMaxSecPerFile() { return(getFirst()->get
 int NetworkInterfaceView::getDumpTrafficMaxFiles()      {  return(getFirst()->getDumpTrafficMaxFiles());     }
 PacketDumper *NetworkInterfaceView::getPacketDumper()              { return(getFirst()->getPacketDumper());       }
 PacketDumperTuntap *NetworkInterfaceView::getPacketDumperTap()     { return(getFirst()->getPacketDumperTap());    }
-int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql) { return(getFirst()->exec_sql_query(vm, sql)); }
+int NetworkInterfaceView::exec_sql_query(lua_State *vm, char *sql, bool limit_rows) { return(getFirst()->exec_sql_query(vm, sql, limit_rows)); }
 
 /* *************************************** */
 
@@ -486,5 +494,5 @@ void NetworkInterfaceView::lua(lua_State *vm) {
 
   lua_push_str_table_entry(vm, "name", name);
   lua_push_int_table_entry(vm, "id", id);
-  lua_push_bool_table_entry(vm, "isView", n > 1 ? true : false);
+  lua_push_bool_table_entry(vm, "isView", is_actual_view());
 }

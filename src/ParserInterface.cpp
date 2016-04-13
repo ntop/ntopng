@@ -25,7 +25,7 @@
 
 /* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
 ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoint) { 
-  map = NULL;
+  map = NULL, once = false;
 
   addMapping("IN_BYTES", 1);
   addMapping("IN_PKTS", 2);
@@ -142,6 +142,10 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("PLUGIN_NAME", 57598);
   addMapping("UNTUNNELED_IPV6_SRC_ADDR", 57868);
   addMapping("UNTUNNELED_IPV6_DST_ADDR", 57869);
+  addMapping("SRC_IP_LONG", 57920);
+  addMapping("SRC_IP_LAT", 57921);
+  addMapping("DST_IP_LONG", 57922);
+  addMapping("DST_IP_LAT", 57923);
   addMapping("IN_SRC_OSI_SAP", 57821);
   addMapping("OUT_DST_OSI_SAP", 57822);
   addMapping("DURATION_IN", 57863);
@@ -394,7 +398,7 @@ void ParserInterface::addMapping(const char *sym, int num) {
 
   if(m) {
     m->key = strdup(sym), m->value = num;
-    if(m->key) HASH_ADD_STR(map, key, m);    
+    if(m->key) HASH_ADD_STR(map, key, m); else free(m);
   }
 }
 
@@ -412,10 +416,73 @@ int ParserInterface::getKeyId(char *sym) {
 
 /* **************************************************** */
 
- u_int8_t ParserInterface::parse_flows(char *payload, int payload_size, u_int8_t source_id, void *data) {
-   json_object *o;
-   ZMQ_Flow flow;
-   NetworkInterface * iface = (NetworkInterface*)data;
+u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data) {
+  json_object *o;
+  NetworkInterface * iface = (NetworkInterface*)data;
+   
+  // payload[payload_size] = '\0';
+   
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  o = json_tokener_parse(payload);  
+   
+  if(o != NULL) {
+    struct json_object_iterator it = json_object_iter_begin(o);
+    struct json_object_iterator itEnd = json_object_iter_end(o);
+    char remote_ifname[32] = { 0 }, remote_ifaddress[64] = { 0 };
+    char remote_probe_address[64] = { 0 }, remote_probe_public_address[64] = { 0 };
+    u_int64_t remote_bytes = 0, remote_pkts = 0;
+    u_int32_t remote_ifspeed = 0, remote_time = 0;
+
+    while(!json_object_iter_equal(&it, &itEnd)) {
+      const char *key   = json_object_iter_peek_name(&it);
+      json_object *v    = json_object_iter_peek_value(&it);
+      const char *value = json_object_get_string(v);
+
+      if((key != NULL) && (value != NULL)) {
+	/* 
+	   Example
+	   { "if.name": "en0", "if.speed": 1000, "if.ip": "fe80::c62c:3ff:fe06:49fe%en0", "probe.ip": "192.168.1.5", "time" : 1456595814, "bytes": 18505, "packets": 85 }
+	*/	
+	if(!strcmp(key, "if.name"))      snprintf(remote_ifname, sizeof(remote_ifname), "%s", value);
+	else if(!strcmp(key, "if.ip"))   snprintf(remote_ifaddress, sizeof(remote_ifaddress), "%s", value);
+	else if(!strcmp(key, "if.speed")) remote_ifspeed = atol(value);
+	else if(!strcmp(key, "probe.ip")) snprintf(remote_probe_address, sizeof(remote_probe_address), "%s", value);
+	else if(!strcmp(key, "probe.public_ip")) snprintf(remote_probe_public_address, sizeof(remote_probe_public_address), "%s", value);
+	else if(!strcmp(key, "bytes"))    remote_bytes = atol(value);
+	else if(!strcmp(key, "packets"))  remote_pkts = atol(value);
+	else if(!strcmp(key, "time"))     remote_time = atol(value);
+	
+	/* Move to the next element */
+	json_object_iter_next(&it);
+      }
+    } // while json_object_iter_equal
+    
+      /* Process Flow */
+    iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed, 
+			  remote_probe_address, remote_probe_public_address,
+			  remote_bytes, remote_pkts, remote_time);
+    
+    /* Dispose memory */
+    json_object_put(o);
+  } else {
+    // if o != NULL
+    if(!once)
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+    once = true;
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
+    return -1;
+  }
+
+  return 0;
+}
+
+/* **************************************************** */
+
+u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data) {
+  json_object *o;
+  ZMQ_Flow flow;
+  NetworkInterface * iface = (NetworkInterface*)data;
 
   // payload[payload_size] = '\0';
 
@@ -456,9 +523,9 @@ int ParserInterface::getKeyId(char *sym) {
               const char *additional_value = json_object_get_string(additional_v);
 
               if((additional_key != NULL) && (additional_value != NULL)) {
-                  json_object_object_add(flow.additional_fields, additional_key, json_object_new_string(additional_value));
-                }
-               json_object_iter_next(&additional_it);
+		json_object_object_add(flow.additional_fields, additional_key, json_object_new_string(additional_value));
+	      }
+	      json_object_iter_next(&additional_it);
             }
           }
           break;
@@ -590,6 +657,15 @@ int ParserInterface::getKeyId(char *sym) {
         case DST_PROC_PCTG_IOWAIT:
           flow.dst_process.percentage_iowait_time = ((float)atol(value))/((float)100);
           break;
+	case DNS_QUERY:
+	  flow.dns_query = strdup(value);
+	  break;
+	case HTTP_URL:
+	  flow.http_url = strdup(value);
+	  break;
+	case HTTP_SITE:
+	  flow.http_site = strdup(value);
+	  break;
 
         default:
           ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u/%s", key_id, key);
@@ -605,20 +681,26 @@ int ParserInterface::getKeyId(char *sym) {
     } // while json_object_iter_equal
 
     /* Process Flow */
-    iface->flow_processing(&flow);
+    iface->processFlow(&flow);
 
     /* Dispose memory */
+    if(flow.dns_query) free(flow.dns_query);
+    if(flow.http_url)  free(flow.http_url);
+    if(flow.http_site) free(flow.http_site);
+
     json_object_put(o);
     json_object_put(flow.additional_fields);
   } else {
     // if o != NULL
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "Invalid message received: your nProbe sender is outdated or invalid JSON?");
+    if(!once)
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+    once = true;
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
     return -1;
   }
 
   return 0;
- }
+}
 
- /* **************************************************** */
+/* **************************************************** */

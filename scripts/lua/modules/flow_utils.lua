@@ -690,6 +690,10 @@ local flow_fields_description = {
     ["PLUGIN_NAME"] = "Plugin name used by this flow (if any)",
     ["UNTUNNELED_IPV6_SRC_ADDR"] = "Untunneled IPv6 source address",
     ["UNTUNNELED_IPV6_DST_ADDR"] = "Untunneled IPv6 destination address",
+    ["SRC_IP_LONG"] = "Longitude where the src IP is located",
+    ["SRC_IP_LAT"] = "Latitude where the src IP is located",
+    ["DST_IP_LONG"] = "Longitude where the dst IP is located",
+    ["DST_IP_LAT"] = "Latitude where the dst IP is located",
     ["NUM_PKTS_TTL_EQ_1"] = "# packets with TTL = 1",
     ["NUM_PKTS_TTL_2_5"] = "# packets with TTL > 1 and TTL <= 5",
     ["NUM_PKTS_TTL_5_32"] = "# packets with TTL > 5 and TTL <= 32",
@@ -1005,7 +1009,7 @@ end
 
 function getFlowValue(info, field)
    local return_value = ""
-   local value_original = ""
+   local value_original = "0"
    for key,value in pairs(info) do
      if(rtemplate[tonumber(key)] == field)then
        return_value = handleCustomFlowField(key, value)
@@ -1014,6 +1018,7 @@ function getFlowValue(info, field)
    end
    return_value = string.gsub(return_value, "<", "&lt;")
    return_value = string.gsub(return_value, ">", "&gt;")
+
    return return_value , value_original
 end
 
@@ -1033,30 +1038,41 @@ end
 
 function getSIPTableRows(info)
    local string_table = ""
+   local called_party = ""
+   local calling_party = ""
+   local sip_rtp_src_addr = 0
+   local sip_rtp_dst_addr = 0
    -- check if there is a SIP field
    sip_found = isThereProtocol("SIP", info)
 
    if(sip_found == 1) then
      string_table = string_table.."<tr><th colspan=3 class=\"info\" >SIP Protocol Information</th></tr>\n"
      string_table = string_table.."<tr><th width=30%> Call-ID </th><td colspan=2><div id=call_id>" .. getFlowValue(info, "SIP_CALL_ID") .. "</div></td></tr>\n"
-     string_table = string_table.."<tr><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party>" .. getFlowValue(info, "SIP_CALLING_PARTY") .. " <i class=\"fa fa-exchange fa-lg\"></i> " .. getFlowValue(info, "SIP_CALLED_PARTY") .. "</div></td></tr>\n"
+     called_party = getFlowValue(info, "SIP_CALLED_PARTY")
+     calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
+     if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
+       string_table = string_table.."<tr><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
+     else
+       string_table = string_table.."<tr><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party>" .. calling_party .. " <i class=\"fa fa-exchange fa-lg\"></i> " .. called_party .. "</div></td></tr>\n"
+     end
+
      string_table = string_table.."<tr><th width=30%>RTP Codecs</th><td colspan=2> <div id=rtp_codecs>" .. getFlowValue(info, "SIP_RTP_CODECS") .. "</></td></tr>\n"
 
      time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
      if(time_epoch ~= "0") then
-       string_table = string_table.."<tr><th width=30%>Time of Invite</th><td colspan=2> <div id=time_invite>" .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]</div></td></tr>\n"
+	string_table = string_table.."<tr><th width=30%>Time of Invite</th><td colspan=2> <div id=time_invite>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
      else
        string_table = string_table.."<tr><th width=30%>Time of Invite</th><td colspan=2></td><div id=time_invite></div></tr>\n"
      end
      time, time_epoch = getFlowValue(info, "SIP_TRYING_TIME")
      if(time_epoch ~= "0") then
-       string_table = string_table.."<tr><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying>" .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]</div></td></tr>\n"
+       string_table = string_table.."<tr><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
      else
        string_table = string_table.."<tr><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying></div></td></tr>\n"
      end
      time, time_epoch = getFlowValue(info, "SIP_RINGING_TIME")
      if(time_epoch ~= "0") then
-       string_table = string_table.."<tr><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing>" .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]</div></td></tr>\n"
+       string_table = string_table.."<tr><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
      else
        string_table = string_table.."<tr><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing></div></td></tr>\n"
      end
@@ -1065,11 +1081,11 @@ function getSIPTableRows(info)
      time_1, time_epoch_1 = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
      string_table = string_table .. "<tr><th width=30%>Time of Invite Ok / Invite Failure</th><td><div id=time_invite_ok>"
      if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
+        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
      end
      string_table = string_table .. "</div></td><td><div id=time_invite_failure>\n"
      if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-time_epoch_1) .. " ago]"
+        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
 
@@ -1077,11 +1093,11 @@ function getSIPTableRows(info)
      time_1, time_epoch_1 = getFlowValue(info, "SIP_BYE_OK_TIME")
      string_table = string_table .. "<tr><th width=30%>Time of Bye / Bye Ok</th><td><div id=time_bye>"
      if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
+        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
      end
      string_table = string_table .. "</div></td><td><div id=time_bye_ok>\n"
      if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-time_epoch_1) .. " ago]"
+        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
 
@@ -1092,15 +1108,32 @@ function getSIPTableRows(info)
         string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
      end
      string_table = string_table .. "</div></td><td><div id=time_cancel_ok>\n"
-     if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-time_epoch_1) .. " ago]"
+     if(tonumber(time_epoch_1) ~= "0") then
+        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
 
      string_table = string_table.."<tr><th width=30%>RTP Stream Pears (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
-     if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil))then
-       string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") .. ":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT").." <i class=\"fa fa-exchange fa-lg\"></i> "..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR") .. ":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
+
+
+     if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~="")) then
+       sip_rtp_src_addr = 1
+       string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
      end
+     if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
+       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
+     end
+     if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
+       string_table = string_table.." <i class=\"fa fa-exchange fa-lg\"></i> "
+     end
+     if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
+       sip_rtp_dst_addr = 1
+       string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+     end
+     if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
+       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+     end
+
      string_table = string_table.."</div></td></tr>\n"
 
      string_table = string_table.."<tr><th width=30%> Failure Response Code </th><td colspan=2><div id=response_code>" .. getFlowValue(info, "SIP_RESPONSE_CODE") .. "</div></td></tr>\n"

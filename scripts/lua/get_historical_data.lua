@@ -29,6 +29,12 @@ end
 -- this is to retrieve L7 appliation data
 local l7_proto_id = _GET["l7_proto_id"]
 
+-- and this to focus only on a certain l4 proto
+local l4_proto_id = _GET["l4_proto_id"]
+
+-- also add a port
+local port = _GET["port"]
+
 local host_info = url2hostinfo(_GET)
 local host = nil
 if host_info["host"] then
@@ -114,14 +120,14 @@ local res = {["status"] = "unable to parse the request, please check input param
 if stats_type == "top_talkers" then
    if not peer1 and not peer2 and not l7_proto_id then
       -- CASE 01: compute interface-wide top-talkers for the selected time interval
-      res = getOverallTopTalkers(ifid, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+      res = getOverallTopTalkers(ifid, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
       end
    elseif not peer1 and not peer2 and l7_proto_id and l7_proto_id ~= "" then
       -- CASE 02: compute top-talkers for the specified L7 protocol
-      res = getAppTopTalkers(ifid, l7_proto_id, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+      res = getAppTopTalkers(ifid, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
@@ -130,7 +136,7 @@ if stats_type == "top_talkers" then
       -- CASE 03: compute top-talkers with the given peer1
       -- if l7_proto_id is specified and non-nil, then top-talkers are computed
       -- with reference to peer1 and restricted to the application identified by l7_proto_id
-      res = getHostTopTalkers(ifid, peer1, l7_proto_id, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+      res = getHostTopTalkers(ifid, peer1, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
@@ -140,11 +146,10 @@ if stats_type == "top_talkers" then
    if res ~= nil then
       for _, record in pairs(res) do
 	 record["label"] = shortenString(record["label"])
-	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..record["addr"]..'" target="_blank">'..record["label"]..'</a>'
       end
    end
 elseif stats_type =="top_applications" then
-   res = getTopApplications(ifid, peer1, peer2, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
+   res = getTopApplications(ifid, peer1, peer2, l7_proto_id, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
 
    -- add protocol labels
    for _, record in pairs(res) do
@@ -152,7 +157,6 @@ elseif stats_type =="top_applications" then
    end
    if res ~= nil then
       for _, record in pairs(res) do
-	 record["label"] = '<a href="'..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?protocol='..interface.getnDPIProtoName(tonumber(record["application"]))..'" target="_blank">'..record["label"]..'</a>'
       end
    end
    -- tprint(res)
@@ -209,6 +213,26 @@ for _, record in pairs(res_sliced) do
    else
       record_contents["column_packets"] = "n.a."
    end
+   if record["in_packets"] then
+      record_contents["column_in_packets"] = formatValue(tonumber(record["in_packets"]))
+   else
+      record_contents["column_in_packets"] = "n.a."
+   end
+   if record["out_packets"] then
+      record_contents["column_out_packets"] = formatValue(tonumber(record["out_packets"]))
+   else
+      record_contents["column_out_packets"] = "n.a."
+   end
+   if record["in_bytes"] then
+      record_contents["column_in_bytes"] = bytesToSize(tonumber(record["in_bytes"]))
+   else
+      record_contents["column_in_bytes"] = "n.a."
+   end
+   if record["out_bytes"] then
+      record_contents["column_out_bytes"] = bytesToSize(tonumber(record["out_bytes"]))
+   else
+      record_contents["column_out_bytes"] = "n.a."
+   end
    if record["flows"] then
       record_contents["column_flows"] = formatValue(tonumber(record["flows"]))
    elseif record["tot_flows"] then
@@ -224,6 +248,7 @@ end
 
 -- tprint(res_formatted)
 -- tprint(res)
+
 local result = {}
 result["perPage"] = per_page
 result["currentPage"] = current_page

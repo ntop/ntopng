@@ -41,14 +41,14 @@ print [[
   <div class="form-group has-feedback">
     <label class="form-label">Password</label>
        <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-	 <input id="password_input" type="password" name="password" value="" class="form-control" pattern="^[\w]{1,}$" required>
+<input id="password_input" type="password" name="password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
     </div>
   </div>
 
   <div class="form-group has-feedback">
     <label class="form-label">Confirm Password</label>
    <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-	 <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w]{1,}$" required>
+   <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
     </div>
   </div>
 
@@ -77,9 +77,6 @@ print [[
   </form>
 <script>
 
-  function isValid(str) { /* return /^[\w%]+$/.test(str); */ return true; }
-  function isValidPassword(str) { return /^[\w\$\\!\/\(\)\=\?\^\*@_]{1,}$/.test(str); }
-
   var frmadduser = $('#form_add_user');
 
   function resetAddUserForm() {
@@ -93,72 +90,70 @@ print [[
   resetAddUserForm();
 
   frmadduser.submit(function () {
-                          if(!isValid($("#username_input").val())) {
-			     add_user_alert.error("Username must contain only letters and numbers");
-			     return(false);
-                          }
+    if(!isValid($("#username_input").val())) {
+      add_user_alert.error("Username must contain only letters and numbers");
+      return(false);
+    }
+    if($("#username_input").val().length < 5) {
+      add_user_alert.error("Username too short (5 or more characters)");
+      return(false);
+    }
 
-			  if($("#username_input").val().length < 5) {
-			     add_user_alert.error("Username too short (5 or more characters)");
-			     return(false);
-			  }
+    if($("#full_name_input").val().length < 5) {
+      add_user_alert.error("Full name too short (5 or more characters)");
+      return(false);
+    }
 
-			  if($("#full_name_input").val().length < 5) {
-			     add_user_alert.error("Full name too short (5 or more characters)");
-			     return(false);
-			  }
+    if($("#password_input").val().length < 5) {
+      add_user_alert.error("Password too short (5 or more characters)");
+      return(false);
+    }
 
-			  if($("#password_input").val().length < 5) {
-			     add_user_alert.error("Password too short (5 or more characters)");
-			     return(false);
-			  }
+    if($("#password_input").val() !=  $("#confirm_password_input").val()) {
+      add_user_alert.error("Password don't match");
+      return(false);
+    }
 
-			  if($("#password_input").val() !=  $("#confirm_password_input").val()) {
-				add_user_alert.error("Password don't match");
-				return(false);
-			     }
+    // escape characters to send out valid latin-1 encoded characters
+    $('#password_input').val(escape($('#password_input').val()))
+    $('#confirm_password_input').val(escape($('#confirm_password_input').val()))
 
-			  if($("#allowed_networks_input").val().length == 0) {
-				add_user_alert.error("Network list not specified");
-				return(false);
-			     } else {
-			     var arrayOfStrings = $("#allowed_networks_input").val().split(",");
-
-			     for (var i=0; i < arrayOfStrings.length; i++) {
-				if(!is_network_mask(arrayOfStrings[i])) {
-				   add_user_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
-				   return(false);
-				}
-			     }
-			  }
-
-			  $.getJSON('validate_new_user.lua?user='+$("#username_input").val()+"&networks="+$("#allowed_networks_input").val(), function(data){
-			       if (!data.valid) {
-				  add_user_alert.error(data.msg);
-			       }
-			    else {
-    $.ajax({
-      type: frmadduser.attr('method'),
-      url: frmadduser.attr('action'),
-      data: frmadduser.serialize(),
-      success: function (data) {
-        var response = jQuery.parseJSON(data);
-        if (response.result == 0) {
-          add_user_alert.success(response.message);
-          window.location.href = 'users.lua';
-        } else {
-          add_user_alert.error(response.message);
+    if($("#allowed_networks_input").val().length == 0) {
+      add_user_alert.error("Network list not specified");
+      return(false);
+    } else {
+      var arrayOfStrings = $("#allowed_networks_input").val().split(",");
+      for (var i=0; i < arrayOfStrings.length; i++) {
+        if(!is_network_mask(arrayOfStrings[i])) {
+          add_user_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
+          return(false);
         }
-        frmadduser[0].reset();
       }
-    });
-   }
+    }
+
+    $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?user='+$("#username_input").val()+"&networks="+$("#allowed_networks_input").val(), function(data){
+      if (!data.valid) {
+        add_user_alert.error(data.msg);
+      } else {
+        $.ajax({
+          type: frmadduser.attr('method'),
+          url: frmadduser.attr('action'),
+          data: frmadduser.serialize(),
+          success: function (data) {
+          var response = jQuery.parseJSON(data);
+          if (response.result == 0) {
+            add_user_alert.success(response.message);
+            window.location.href = 'users.lua';
+          } else {
+            add_user_alert.error(response.message);
+          }
+          frmadduser[0].reset();
+        }
+      });
+     }
    });
-
-
-
-    return false;
-  });
+   return false;
+});
 </script>
 
 </div> <!-- modal-body -->

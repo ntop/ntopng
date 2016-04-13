@@ -116,6 +116,9 @@ extern "C" {
 #ifdef HAVE_LDAP
 #include <ldap.h>
 #endif
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
 };
 
 #include "third-party/uthash.h"
@@ -149,6 +152,9 @@ using namespace std;
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
 #endif
+#ifdef HAVE_KAFKA
+#include "KafkaManager.h"
+#endif
 #endif
 #include "Prefs.h"
 #include "Mutex.h"
@@ -171,7 +177,7 @@ using namespace std;
 #include "GenericHash.h"
 #include "VirtualHost.h"
 #include "VirtualHostHash.h"
-#include "HTTPStats.h"
+#include "HTTPstats.h"
 #include "Redis.h"
 #include "StatsManager.h"
 #include "DB.h"

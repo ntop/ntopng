@@ -42,7 +42,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    else
       print("pro")
    end
-   print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fa fa-external-link fa-lg'></i> ]")
+   print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fa fa-external-link'></i> ]")
 
 print [[
     <br><small>Click on the above URL to generate your professional version license, or 

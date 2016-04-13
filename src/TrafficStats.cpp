@@ -29,10 +29,12 @@ TrafficStats::TrafficStats() {
 
 /* *************************************** */
 
+#ifdef NOTUSED
 void TrafficStats::printStats() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%llu Bytes/%llu Packets",
 				      numBytes, numPkts);
 }
+#endif
 
 /* *************************************** */
 

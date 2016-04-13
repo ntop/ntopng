@@ -2,6 +2,7 @@
 -- (C) 2013-15 - ntop.org
 --
 require "lua_utils"
+require "db_utils"
 require "historical_utils"
 
 top_rrds = {
@@ -10,7 +11,10 @@ top_rrds = {
    ["drops.rrd"] = "Packet Drops",
    ["num_flows.rrd"] = "Active Flows",
    ["num_hosts.rrd"] = "Active Hosts",
-   ["num_http_hosts.rrd"] = "Active HTTP Servers"
+   ["num_http_hosts.rrd"] = "Active HTTP Servers",
+   ["tcp_lost.rrd"] = "TCP Packets Lost",
+   ["tcp_ooo.rrd"] = "TCP Packets Out-Of-Order",
+   ["tcp_retransmissions.rrd"] = "TCP Retransmitted Packets",
 }
 
 -- ########################################################
@@ -178,6 +182,10 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
        host_or_network = string.gsub(host_or_network, 'profile:', '')
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
+
+      host_or_network = string.gsub(host_or_network, 'vlan:', '')
+       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    else
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
@@ -355,16 +363,16 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       print[[
        <script>
        setInterval(function() {
-         var talkers_loaded, protocols_loaded;
-         if($('a[href="#historical-top-talkers"]').length){
-           talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
-         }
-         if($('a[href="#historical-top-apps"]').length){
-           protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
-         }
-         if(typeof talkers_loaded == 'undefined' && typeof protocols_loaded == 'undefined'){
-           window.location.reload();
-         }
+	 var talkers_loaded, protocols_loaded;
+	 if($('a[href="#historical-top-talkers"]').length){
+	   talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
+	 }
+	 if($('a[href="#historical-top-apps"]').length){
+	   protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
+	 }
+	 if(typeof talkers_loaded == 'undefined' && typeof protocols_loaded == 'undefined'){
+	   window.location.reload();
+	 }
        }, 60*1000);
        </script>]]
    end
@@ -455,7 +463,7 @@ print[[
 
 <br>
 <table border=0>
-<tr><td valign=top>
+<tr><td valign="top">
 ]]
 
 
@@ -500,10 +508,11 @@ for k,v in ipairs(zoom_vals) do
    -- but exclude applications. Application statistics are gathered
    -- every 5 minutes
    local net_or_profile = false
+
    if host and (string.starts(host, 'net:') or string.starts(host, 'profile:')) then
        net_or_profile = true
    end
-   if zoom_vals[k][1] == '1m' and (not net_or_profile and not top_rrds[rrdFile]) then
+   if zoom_vals[k][1] == '1m' and (net_or_profile or (not net_or_profile and not top_rrds[rrdFile])) then
        goto continue
    end
    print('<label class="btn btn-link ')
@@ -546,6 +555,7 @@ print [[
 
 
 ]]
+
 if(string.contains(rrdFile, "num_")) then
    formatter_fctn = "fint"
 else
@@ -561,7 +571,7 @@ print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
 rrd = rrd2json(ifid, host, rrdFile, start_time, end_time, true, false) -- the latest false means: expand_interface_views
 
-if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
+if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops")) then
    print('   <tr><th>Min</th><td>' .. os.date("%x %X", rrd.minval_time) .. '</td><td>' .. formatValue(rrd.minval) .. '</td></tr>\n')
    print('   <tr><th>Max</th><td>' .. os.date("%x %X", rrd.maxval_time) .. '</td><td>' .. formatValue(rrd.maxval) .. '</td></tr>\n')
    print('   <tr><th>Last</th><td>' .. os.date("%x %X", rrd.lastval_time) .. '</td><td>' .. formatValue(round(rrd.lastval), 1) .. '</td></tr>\n')
@@ -577,7 +587,7 @@ else
 end
 
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
-print('   <tr><th>Minute<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
+print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
 
 
 print [[
@@ -698,7 +708,7 @@ infoHTML += "<ul>";
 $.ajax({
 	  type: 'GET',
 	  url: ']]
-	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?m=top_talkers&epoch='+point.value.x+'&addvlan=true")
+	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?m=top_talkers&epoch='+point.value.x+'&addvlan=true&id="..tostring(ifid))
 	    print [[',
 		  data: { epoch: point.value.x },
 		  async: false,
@@ -961,11 +971,21 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    epoch_end = epoch
    epoch_begin = epoch-d
 
-   printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', 5, 5)
+   local tot_flows = { }
+   local versions = { ['IPv4']=4, ['IPv6']=6 }
+   for k,v in pairs(versions) do
+      local res = getNumFlows(ifId, v, (host or ''), '', '', (l7proto or ''), '', epoch_begin, epoch_end)
+
+      for _,flow in pairs(res) do
+	 tot_flows[v] = flow['TOT_FLOWS']
+      end
+   end
+
+   printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', tot_flows[4], tot_flows[6])
 end
 
 function printTopFlows(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
-   url_update = "/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end.."&l4proto="..l4proto.."&port="..port.."&info="..info
+   url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
 
    if(l7proto ~= "") then
       if(not(isnumber(l7proto))) then
@@ -1006,10 +1026,33 @@ if(host ~= nil) then
   end
 end
 
+-- prepare some attributes that will be attached to divs
+local div_data = ""
+if epoch_begin ~= "" and epoch_begin ~= nil then
+   div_data = div_data..' epoch_begin="'..tostring(epoch_begin)..'" '
+end
+if epoch_end ~= "" and epoch_end ~= nil then
+   div_data = div_data..' epoch_end="'..tostring(epoch_end)..'" '
+end
+if host ~= "" and host ~= nil then
+   div_data = div_data..' host="'..tostring(host)..'" '
+end
+if l7proto ~= "" and l7proto ~= nil then
+   div_data = div_data..' l7_proto_id="'..l7proto..'" '
+end
+if l4proto ~= "" and l4proto ~= nil then
+   div_data = div_data..' l4_proto_id="'..l4proto..'" '
+end
+if port ~= "" and port ~= nil then
+   div_data = div_data..' port="'..port..'" '
+end
 
 if (not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
 print [[
-  <div class="tab-pane fade" id="ipv4"> <div id="table-flows4"></div> </div>
+      <div class="tab-pane fade" id="ipv4" ]] print(div_data) print[[">
+	<div id="table-flows4"></div>
+]] historicalDownloadButtonsBar('flows_v4', 'ipv4') print[[
+      </div>
 ]]
 else
 print[[
@@ -1021,7 +1064,10 @@ end
 
 if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
 print[[
-  <div class="tab-pane fade" id="ipv6"> <div id="table-flows6"></div> </div>
+      <div class="tab-pane fade" id="ipv6" ]] print(div_data) print[[">
+    <div id="table-flows6"></div>
+]] historicalDownloadButtonsBar('flows_v6', 'ipv6') print[[
+  </div>
 ]]
 else
 print[[
@@ -1276,10 +1322,9 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       prefixLabel = "Traffic"
    end
 
-   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "packets")  or string.contains(rrdFile, "drops"))
-    then
-	-- do not scale number, packets, and drops
-	scaling_factor = 1
+   if(string.contains(rrdFile, "num_") or string.contains(rrdFile, "tcp_") or string.contains(rrdFile, "packets") or string.contains(rrdFile, "drops")) then
+      -- do not scale number, packets, and drops
+      scaling_factor = 1
    end
 
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end

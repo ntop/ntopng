@@ -499,4 +499,32 @@ void __cdecl win_usleep(__int64 usec)
 	CloseHandle(timer);
 }
 
+#if 0
+/*
+The strndup function copies not more than n characters (characters that
+follow a null character are not copied) from string to a dynamically
+allocated buffer. The copied string shall always be null terminated.
+*/
+char *strndup(const char *string, size_t s)
+{
+	char *p, *r;
+	if (string == NULL)
+		return NULL;
+	p = (char*)string;
+	while (s > 0) {
+		if (*p == 0)
+			break;
+		p++;
+		s--;
+	}
+	s = (p - string);
+	r = (char*)malloc(1 + s);
+	if (r) {
+		strncpy(r, string, s);
+		r[s] = 0;
+	}
+	return r;
+}
+#endif
+
 #endif /* WIN32 */

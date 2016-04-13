@@ -173,7 +173,8 @@
 
 #define CONST_EST_MAX_FLOWS            200000
 #define CONST_EST_MAX_HOSTS            200000
-#define MIN_HOST_RESOLUTION_FREQUENCY  60 /* 1 min */
+#define MIN_HOST_RESOLUTION_FREQUENCY  60  /* 1 min */
+#define HOST_SITES_REFRESH             300 /* 5 min */
 
 #define BATADV_COMPAT_VERSION_15 15
 #define BATADV_COMPAT_VERSION_14 14
@@ -261,6 +262,7 @@
 #define NTOPNG_NDPI_OS_PROTO_ID      (NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS-2)
 #define CONST_DEFAULT_HOME_NET       "192.168.1.0/24"
 #define CONST_DEFAULT_DATA_DIR       "/var/tmp/ntopng"
+#define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED 1
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
@@ -293,6 +295,8 @@
 
 #define CONST_ALERT_MSG_QUEUE              "ntopng.alert_queue"
 #define CONST_SQL_QUEUE                    "ntopng.sql_queue"
+#define CONST_SQL_BATCH_SIZE               32
+#define CONST_MAX_SQL_QUERY_LEN            8192
 #define CONST_ALERT_PREFS                  "ntopng.prefs.alerts"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"
@@ -302,7 +306,6 @@
 #define CONST_NAGIOS_HOST_NAME_PREFS       "ntopng.prefs.nagios_host_name"
 #define CONST_NAGIOS_SERVICE_NAME_PREFS    "ntopng.prefs.nagios_service_name"
 #endif
-#define CONST_NBOX_HOST               "ntopng.prefs.nbox_host"
 #define CONST_NBOX_USER               "ntopng.prefs.nbox_user"
 #define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
@@ -322,6 +325,8 @@
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
+
+#define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED          "ntopng.prefs.is_autologon_enabled"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION   "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */
@@ -453,15 +458,35 @@
 #define MAX_NUM_CATEGORIES         3
 #define NTOP_UNKNOWN_CATEGORY_STR  "???"
 #define NTOP_UNKNOWN_CATEGORY_ID   0
+// MySQL-related defined
+#define MYSQL_MAX_NUM_FIELDS  255
+#define MYSQL_MAX_NUM_ROWS    999
 
-#define NTOP_ES_TEMPLATE        "ntopng_template_elk.json"
+/* GRE (Generic Route Encapsulation) */
+#ifndef IPPROTO_GRE
+#define IPPROTO_GRE 47
+#endif
+
+#define GRE_HEADER_CHECKSUM      0x8000 /* 32 bit */
+#define GRE_HEADER_ROUTING       0x4000 /* 32 bit */
+#define GRE_HEADER_KEY           0x2000 /* 32 bit */
+#define GRE_HEADER_SEQ_NUM       0x1000 /* 32 bit */
+
+#define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
+#define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
+
+#define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
 
 #define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
+#define PREF_LDAP_ACCOUNT_TYPE        "ntopng.prefs.ldap.account_type"
 #define PREF_LDAP_SERVER              "ntopng.prefs.ldap.server"
+#define PREF_LDAP_BIND_ANONYMOUS      "ntopng.prefs.ldap.anonymous_bind"
 #define PREF_LDAP_BIND_DN             "ntopng.prefs.ldap.bind_dn"
 #define PREF_LDAP_BIND_PWD            "ntopng.prefs.ldap.bind_pwd"
+#define PREF_LDAP_SEARCH_PATH         "ntopng.prefs.ldap.search_path"
 #define PREF_LDAP_USER_GROUP          "ntopng.prefs.ldap.user_group"
 #define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
 #define CONST_CACHED_USER_PASSWORD    "ntopng.user.ldap.%s.password"
 #define CONST_CACHED_USER_GROUP       "ntopng.user.%s.group"
+
 #endif /* _NTOP_DEFINES_H_ */

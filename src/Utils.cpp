@@ -122,6 +122,7 @@ char* Utils::l4proto2name(u_int8_t proto) {
 
 /* ****************************************************** */
 
+#ifdef NOTUSED
 bool Utils::isIPAddress(char *ip) {
   struct in_addr addr4;
   struct in6_addr addr6;
@@ -139,6 +140,7 @@ bool Utils::isIPAddress(char *ip) {
 
   return(false);
 }
+#endif
 
 /* ****************************************************** */
 
@@ -327,6 +329,7 @@ static inline bool is_base64(unsigned char c) {
 
 /* **************************************************** */
 
+#ifdef NOTUSED
 std::string Utils::base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
   std::string ret;
   int i = 0;
@@ -366,6 +369,7 @@ std::string Utils::base64_encode(unsigned char const* bytes_to_encode, unsigned 
 
   return ret;
 }
+#endif
 
 /* **************************************************** */
 
@@ -561,6 +565,8 @@ char* Utils::sanitizeHostName(char *str) {
   return(str);
 }
 
+/* **************************************************** */
+
 char* Utils::stripHTML(const char * const str) {
     if (!str) return NULL;
     int len = strlen(str), j = 0;
@@ -609,7 +615,7 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
       char h[3] = { a, b, 0 };
       char hexval = (char)strtol(h, (char **)NULL, 16);
 
-      if(isprint(hexval))
+      //      if(iswprint(hexval))
 	*dst++ = hexval;
 
       src += 3;
@@ -692,6 +698,20 @@ static const char* xssAttempts[] = {
   NULL
 };
 
+/* ************************************************************ */
+
+/* http://www.ascii-code.com */
+
+bool Utils::isPrintableChar(u_char c) {
+  if(isprint(c)) return(true);
+  
+  if((c >= 192) && (c <= 255))
+    return(true);
+    
+  return(false);
+}
+
+/* ************************************************************ */
 
 void Utils::purifyHTTPparam(char *param, bool strict) {
   if(strict) {
@@ -721,7 +741,7 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
 	// || (param[i] == '.')
 	;
     } else {
-      is_good = isprint(param[i])
+      is_good = Utils::isPrintableChar(param[i])
 	&& (param[i] != '<')
 	&& (param[i] != '>');
     }
@@ -957,11 +977,16 @@ char* Utils::getURL(char *url, char *buf, u_int buf_len) {
 
 // Support functions for 'urlEncode'.
 
+#ifdef NOTUSED
 static char to_hex(char code) {
   static char hex[] = "0123456789ABCDEF";
   return hex[code & 15];
 }
+#endif
 
+/* **************************************************** */
+
+#ifdef NOTUSED
 static int alphanum(char code) {
   int i;
   static char alnum[] = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -970,8 +995,12 @@ static int alphanum(char code) {
   }
   return 0;
 }
+#endif
+
+/* **************************************************** */
 
 // Encodes a URL to hexadecimal format.
+#ifdef NOTUSED
 char* Utils::urlEncode(char *url) {
   char *pstr = url;
   char *buf = (char *) malloc(strlen(url) * 3 + 1);
@@ -993,10 +1022,12 @@ char* Utils::urlEncode(char *url) {
   *pbuf = '\0';
   return buf;
 }
+#endif
 
 /* **************************************** */
 
 // The following one initializes a new string.
+#ifdef NOTUSED
 static void newString(String *str) {
   str->l = 0;
   str->s = (char *) malloc((str->l) + 1);
@@ -1009,8 +1040,12 @@ static void newString(String *str) {
   }
   return;
 }
+#endif
+
+/* **************************************************** */
 
 // This callback function will be passed to 'curl_easy_setopt' in order to write curl output to a variable.
+#ifdef NOTUSED
 static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
   size_t new_len = str->l + (size * nmemb);
   str->s = (char *) realloc(str->s, new_len + 1);
@@ -1024,7 +1059,11 @@ static size_t writeFunc(void *ptr, size_t size, size_t nmemb, String *str) {
 
   return (size * nmemb);
 }
+#endif
 
+/* **************************************************** */
+
+#ifdef NOTUSED
 // Adding this function that performs a simple HTTP GET request using libcurl.
 // The function returns a string that contains the reply.
 char* Utils::curlHTTPGet(char *url, long *http_code) {
@@ -1052,6 +1091,7 @@ char* Utils::curlHTTPGet(char *url, long *http_code) {
   }
   return NULL;
 }
+#endif
 
 /* **************************************** */
 
@@ -1233,9 +1273,8 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
 /* **************************************** */
 
-#ifdef linux
 
-static char* macaddr_str (const char *mac, char *buf) {
+char* Utils::macaddr_str (const char *mac, char *buf) {
   sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
           mac[0] & 0xFF, mac[1] & 0xFF, mac[2] & 0xFF,
           mac[3] & 0xFF, mac[4] & 0xFF, mac[5] & 0xFF);
@@ -1244,19 +1283,26 @@ static char* macaddr_str (const char *mac, char *buf) {
 
 /* **************************************** */
 
+#ifdef linux
+
 void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
   int _sock, res;
   struct ifreq ifr;
   macstr_t mac_addr_buf;
+  char *colon;
 
   memset (&ifr, 0, sizeof(struct ifreq));
+
+  colon = strchr(ifname, ':');
+  if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
+    ifname = colon+1;
 
   /* Dummy socket, just to make ioctls with */
   _sock = socket(PF_INET, SOCK_DGRAM, 0);
   strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
   res = ioctl(_sock, SIOCGIFHWADDR, &ifr);
   if(res < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr for %s", ifname);
   } else
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
 
@@ -1456,5 +1502,16 @@ char* Utils::intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_s
     return(buf);
   } else
     return(ret);
+}
+
+/* ****************************************************** */
+
+void Utils::xor_encdec(u_char *data, int data_len, u_char *key) {
+  int i, y;
+
+  for(i = 0, y = 0; i < data_len; i++) {
+    data[i] ^= key[y++];
+    if(key[y] == 0) y = 0;
+  }
 }
 

@@ -98,10 +98,10 @@ interface.select(ifname)
 to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
-if((mac ~= nil) or (antenna_mac ~= nil)) then
-   hosts_stats = interface.getLocalHostsInfo(false, sortColumn, perPage, to_skip, sOrder) -- false = little details
-else  
-   hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder) -- false = little details
+if((mac ~= nil) or (antenna_mac ~= nil) or (mode == "local")) then
+   hosts_stats = interface.getLocalHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
+else
+   hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
 end
 
 hosts_stats,total = aggregateHostsStats(hosts_stats)
@@ -278,8 +278,9 @@ for _key, _value in pairsByKeys(vals, funct) do
 	 if((num < perPage) or (all ~= nil))then
 	    if(num > 0) then print ",\n" end
 	    print ('{ ')
-	    print ('\"key\" : \"'..hostinfo2jqueryid(hosts_stats[key])..'\",')
-	    
+	    symkey = hostinfo2jqueryid(hosts_stats[key])
+	    print ('\"key\" : \"'..symkey..'\",')
+
 	    print ("\"column_ip\" : \"<A HREF='")
 
 	    if(sort_mode == "network") then
@@ -313,18 +314,18 @@ for _key, _value in pairsByKeys(vals, funct) do
 
 	    print("\"column_name\" : \"")
 
-	    if(value["name"] == nil) then 
+	    if(value["name"] == nil) then
 	       value["name"] = ntop.getResolvedAddress(key)
 	    end
 
-	    if(value["name"] == "") then 
+	    if(value["name"] == "") then
 	       value["name"] = key
 	    end
-	    
+
 	    if(long_names) then
       	       print(value["name"])
             else
-	       print(shortHostName(value["name"]))	
+	       print(shortHostName(value["name"]))
 	    end
 
 	    if(value["ip"] ~= nil) then
@@ -366,7 +367,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 	       end
 	    end
 
-	    
+
 	    print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
 	    print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
 

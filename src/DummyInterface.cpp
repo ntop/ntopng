@@ -50,7 +50,7 @@ void DummyInterface::forgeFlow(u_int iteration) {
 	     iteration, iteration*1500,
 	     now-60, now, sport, dport);
 
-    parse_flows(payload, sizeof(payload), 1 /* source_id */, this /* iface */);
+    parseFlow(payload, sizeof(payload), 1 /* source_id */, this /* iface */);
   }
 
   if(id == 0) sleep(1);
@@ -67,7 +67,7 @@ static void* packetPollLoop(void* ptr) {
 
   while(iface->isRunning()) {
     iface->forgeFlow(++iteration);
-    usleep(10);
+    _usleep(10);
   }
   
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over.");

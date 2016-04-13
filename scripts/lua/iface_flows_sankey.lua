@@ -109,7 +109,7 @@ if ((num == 0) and (tracked_host == nil)) then
    -- 2.1 It looks like in this network there are many flows with no clear predominant traffic
    --     Then we take the host with most traffic and print flows belonging to it
 
-   hosts_stats = interface.getHosts()
+   hosts_stats = interface.getHostsInfo()
    for key, value in pairs(hosts_stats) do
       value = hosts_stats[key]["traffic"]
       if((value ~= nil) and (value > top_value)) then

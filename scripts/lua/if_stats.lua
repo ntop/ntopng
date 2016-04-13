@@ -16,12 +16,36 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 page = _GET["page"]
 if_name = _GET["if_name"]
+ifid = (_GET["id"] or _GET["ifId"])
 
-if(if_name == nil) then if_name = ifname end
+-- parse interface names and possibly fall back to the selected interface:
+-- priority goes to the interface id
+if ifid ~= nil and ifid ~= "" then
+   if_name = getInterfaceName(ifid)
+
+-- if not interface id is specified we look for the interface name
+elseif if_name ~= nil and if_name ~= "" then
+   ifid = tostring(interface.name2id(if_name))
+
+-- finally, we fall back to the default selected interface name
+else
+   -- fall-back to the default interface
+   if_name = ifname
+   ifid = interface.name2id(ifname)
+end
+
+interface.select(if_name)
+
+-- local pcap dump is disabled if the nbox integration is enabled or
+-- if the user is not an administrator or if the interface:
+-- is a view
+-- is not a packet interface (i.e., it is zmq)
+is_packetdump_enabled = isLocalPacketdumpEnabled()
+is_view = interface.isView()
+is_packet_interface = interface.isPacketInterface()
 
 max_num_shapers = 10
-interface.select(if_name)
-ifid = interface.name2id(ifname)
+
 shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
 ifstats = aggregateInterfaceStats(interface.getStats())
 
@@ -31,66 +55,60 @@ if(_GET["custom_name"] ~=nil) then
    end
 end
 
-if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
-   interface.loadDumpPrefs()
-end
-if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-   page = "packetdump"
-   ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
-   interface.loadDumpPrefs()
-end
+if is_packetdump_enabled then
+   if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
+   end
+   if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
+   end
+   if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
+   end
+   if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
+   end
+   if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      page = "packetdump"
+      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
+   end
 
-if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["sampling_rate"]) ~= nil) then
-     page = "packetdump"
-     val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
-     interface.loadDumpPrefs()
+   if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["sampling_rate"]) ~= nil) then
+	 page = "packetdump"
+	 val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
+      end
    end
-end
-if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["max_pkts_file"]) ~= nil) then
-     page = "packetdump"
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
-     interface.loadDumpPrefs()
+   if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["max_pkts_file"]) ~= nil) then
+	 page = "packetdump"
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
+      end
    end
-end
-if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["max_sec_file"]) ~= nil) then
-     page = "packetdump"
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
-     interface.loadDumpPrefs()
+   if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["max_sec_file"]) ~= nil) then
+	 page = "packetdump"
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
+      end
    end
-end
-if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
-   if(tonumber(_GET["max_files"]) ~= nil) then
-     page = "packetdump"
-     local max_files_size = tonumber(_GET["max_files"])
-     max_files_size = max_files_size * 1000000
-     ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
-     interface.loadDumpPrefs()
+   if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
+      if(tonumber(_GET["max_files"]) ~= nil) then
+	 page = "packetdump"
+	 local max_files_size = tonumber(_GET["max_files"])
+	 max_files_size = max_files_size * 1000000
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
+      end
    end
+   interface.loadDumpPrefs()
 end
-
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
+
 print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">")
 active_page = "if_stats"
 
@@ -98,16 +116,9 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
-if(if_name == nil) then
-   _ifname = ifname
-else
-   _ifname = if_name
-end
+url= ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
 
-url= ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name=' .. _ifname
-
-
---   Added global javascript variable, in order to disable the refresh of pie chart in case
+--  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
 print('\n<script>var refresh = 3000 /* ms */;</script>\n')
 
@@ -117,9 +128,10 @@ print [[
     <ul class="nav navbar-nav">
 ]]
 
---io.write(ifname.."\n")
-short_name = getHumanReadableInterfaceName(ifname)
-if(short_name ~= ifname) then
+
+short_name = getHumanReadableInterfaceName(if_name)
+
+if(short_name ~= if_name) then
    short_name = short_name .. "..."
 end
 
@@ -165,13 +177,11 @@ if(table.len(ifstats.profiles) > 0) then
   end
 end
 
-if(not(ifstats.isView)) then
-   if(isAdministrator()) then
-      if(page == "packetdump") then
-	 print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-      else
-	 print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
-      end
+if is_packetdump_enabled then
+   if(page == "packetdump") then
+      print("<li class=\"active\"><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
+   else
+      print("<li><a href=\""..url.."&page=packetdump\"><i class=\"fa fa-hdd-o fa-lg\"></i></a></li>")
    end
 end
 
@@ -228,7 +238,14 @@ if((page == "overview") or (page == nil)) then
    interface.setInterfaceIdleState(on_state)
    print("</td></tr>\n")
 
-   print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name .. "</td>\n")
+   if(ifstats["remote.name"] ~= nil) then
+      print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>") 
+      if(ifstats["remote.ip"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
+      print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td>")
+      if(ifstats["probe.public_ip"] ~= nil) then print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td></tr>\n") end
+   end
+
+   print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name.."</td>\n")
 
    if(ifstats.name ~= nil) then
       label = getInterfaceNameAlias(ifstats.name)
@@ -240,8 +257,8 @@ if((page == "overview") or (page == nil)) then
 
       print [[
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="id" value="]]
+      print(ifstats.id)
       print [[">]]
 
       if(isAdministrator()) then
@@ -259,7 +276,14 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(ifstats.speed*1000) .. "</td><th>MTU</th><td colspan=3>"..ifstats.mtu.." bytes</td></tr>\n")
+   if(ifstats["remote.name"] == nil) then
+      local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+      local speed = ntop.getCache(speed_key)
+      if speed == nil or speed == "" or tonumber(speed) == nil then
+	 speed = ifstats.speed
+      end
+      print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td><th>MTU</th><td colspan=3>"..ifstats.mtu.." bytes</td></tr>\n")
+   end
 
    if(ifstats.ip_addresses ~= "") then
       tokens = split(ifstats.ip_addresses, ",")
@@ -311,7 +335,7 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
       print ("}\n</script>\n")
 
    print("<tr><th colspan=7>Ingress Traffic</th></tr>\n")
-   print("<tr><th>Received Traffic</th><td width=20%><span if=if_bytes_1>"..bytesToSize(ifstats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.packets) .. " ".. label .."</span>] ")
+   print("<tr><th>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.packets) .. " ".. label .."</span>] ")
    print("<span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
 
    if(ifstats.drops > 0) then print('<span class="label label-danger">') end
@@ -355,8 +379,12 @@ print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\",
 
    print("</table>\n")
 elseif((page == "packets")) then
-   print [[
-      <table class="table table-bordered table-striped">
+   print [[ <table class="table table-bordered table-striped"> ]]
+      print("<tr><th width=30% rowspan=3>TCP Packets Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
+      print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
+      print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
+
+    print [[ 
 	<tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
       </table>
 
@@ -365,7 +393,7 @@ elseif((page == "packets")) then
 
        do_pie("#sizeDistro", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/if_pkt_distro.lua', { distr: "size", ifname: "]] print(_ifname.."\"")
+   print [[/lua/if_pkt_distro.lua', { distr: "size", ifname: "]] print(if_name.."\"")
    print [[
 	   }, "", refresh);
     }
@@ -378,7 +406,6 @@ elseif(page == "ndpi") then
 --for k,v in pairs(fc) do
 --   io.write(k.."="..v.."\n")
 --end
-
 
    print [[
 	    <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
@@ -397,15 +424,15 @@ elseif(page == "ndpi") then
 
        do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { mode: "sinceStartup", ifname: "]] print(_ifname) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "sinceStartup", ifname: "]] print(_ifname) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "count", ifname: "]] print(_ifname) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "count", id: "]] print(ifid) print [[" }, "", refresh);
     }
 
       </script><p>
@@ -429,7 +456,7 @@ function update_ndpi_table() {
     url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/if_stats_ndpi.lua',
-    data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
+    data: { id: "]] print(ifid) print [[" },
     success: function(content) {
       $('#if_stats_ndpi_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
@@ -456,8 +483,8 @@ elseif(page == "historical") then
    topArray = makeTopStatsScriptsArray()
 
    if(rrd_file == nil) then rrd_file = "bytes.rrd" end
-
    drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray)
+   --drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Graph</th><th>Traffic</th></tr>\n")
@@ -483,7 +510,7 @@ print [[
 		    url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/network_load.lua',
-		    data: { ifname: "]] print(ifname) print [[" },
+		    data: { ifname: "]] print(if_name) print [[" },
 		    success: function(content) {
 			var profiles = jQuery.parseJSON(content);
 
@@ -508,9 +535,7 @@ print [[
 ]]
 elseif(page == "packetdump") then
 
-
-if(isAdministrator()) then
-  interface.select(if_name)
+if is_packetdump_enabled then
   dump_all_traffic = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic')
   dump_status_tap = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_tap')
   dump_status_disk = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_disk')
@@ -558,8 +583,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%>Packet Dump</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -569,8 +594,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%>Packet Dump To Disk</th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
 	       if(dump_traffic_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedFile()
@@ -584,8 +609,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
@@ -594,8 +619,8 @@ if(isAdministrator()) then
    print("<tr><th width=30%></th><td>")
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifid)
 	       print('"><input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
@@ -605,8 +630,8 @@ if(isAdministrator()) then
    if(interface.getInterfaceDumpTapName() ~= "") then
    print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(ifstats.name)
+	 <input type="hidden" name="ifId" value="]]
+	       print(ifId)
 	       print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
@@ -625,8 +650,8 @@ end
    print [[<td>]]
    if(dump_security_checked ~= "") then
    print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifId" value="]]
+      print(ifId)
       print [[">]]
       print('1 : <input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="sampling_rate" placeholder="" min="0" step="100" max="100000" value="]]
@@ -653,8 +678,8 @@ end
    print("<tr><th width=250>Max Packets per File</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifid" value="]]
+      print(ifid)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_pkts_file" placeholder="" min="0" step="1000" max="100000" value="]]
@@ -672,8 +697,8 @@ end
    print("<tr><th width=250>Max Duration of File</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifId" value="]]
+      print(ifid)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_sec_file" placeholder="" min="0" step="60" max="100000" value="]]
@@ -692,8 +717,8 @@ end
    print("<tr><th width=250>Max Size of Dump Files</th>\n")
    print [[<td>
     <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="if_name" value="]]
-      print(ifstats.name)
+       <input type="hidden" name="ifid" value="]]
+      print(ifid)
       print [[">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_files" placeholder="" min="0" step="1" max="100000000" value="]]
@@ -712,8 +737,7 @@ end
    print("</table>")
 end
 elseif(page == "alerts") then
-local if_name = ifstats.name
-local ifname_clean = string.gsub(ifname, "/", "_")
+local ifname_clean = "iface_"..tostring(ifid)
 local tab = _GET["tab"]
 local re_arm_minutes = nil
 
@@ -727,7 +751,7 @@ for _,e in pairs(alerts_granularity) do
    l = e[2]
 
    if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
-   print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..if_name.."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
+   print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..ifid.."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
 end
 
 -- Before doing anything we need to check if we need to save values
@@ -769,8 +793,8 @@ else
       alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, ifname_clean)
    end
    if _GET["re_arm_minutes"] then
-       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean, _GET["re_arm_minutes"])
-   end
+       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean, _GET["re_arm_minutes"]) 
+  end
        re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", ifname_clean)
    if not re_arm_minutes then re_arm_minutes="" end
 end
@@ -791,7 +815,7 @@ if(alerts ~= nil) then
 end
 
 if(tab == "alerts_preferences") then
-   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", ifname_clean)
+   suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", "iface_"..tostring(ifid))
    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
       alerts_checked = 'checked="checked"'
       alerts_value = "false" -- Opposite
@@ -812,7 +836,7 @@ else
    ]]
 
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print("<input type=hidden name=host value=\""..if_name.."\">\n")
+   print("<input type=hidden name=ifId value=\""..ifid.."\">\n")
    print("<input type=hidden name=tab value="..tab..">\n")
 
    for k,v in pairsByKeys(alert_functions_description, asc) do
@@ -881,15 +905,15 @@ else
 end
 elseif(page == "config") then
 local if_name = ifstats.name
-local ifname_clean = string.gsub(ifname, "/", "_")
+local ifname_clean = "iface_"..tostring(ifid)
 
    if(isAdministrator()) then
       trigger_alerts = _GET["trigger_alerts"]
       if(trigger_alerts ~= nil) then
 	 if(trigger_alerts == "true") then
-	    ntop.delHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean)
+	    ntop.delHashCache("ntopng.prefs.alerts", ifname_clean)
 	 else
-	    ntop.setHashCache("ntopng.prefs.alerts", "iface_"..ifname_clean, trigger_alerts)
+	    ntop.setHashCache("ntopng.prefs.alerts", ifname_clean, trigger_alerts)
 	 end
       end
    end
@@ -908,9 +932,9 @@ local ifname_clean = string.gsub(ifname, "/", "_")
 	    <tr><th>Interface Alerts</th><td nowrap>
 	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
 	    <input type="hidden" name="tab" value="alerts_preferences">
-	    <input type="hidden" name="host" value="]]
+	    <input type="hidden" name="ifId" value="]]
 
-	 print(if_name)
+	 print(ifid)
 	 print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('<input type="hidden" name="page" value="config">')
@@ -948,7 +972,7 @@ for i=0,max_num_shapers-1 do
    print [[
 	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
 	 <input type="hidden" name="page" value="shaping">
-	 <input type="hidden" name="if_name" value="]] print(ifname) print[[">
+	 <input type="hidden" name="if_name" value="]] print(if_name) print[[">
 	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
 
       if(isAdministrator()) then
@@ -996,7 +1020,7 @@ elseif(page == "filtering") then
    end
   
    any_net = "0.0.0.0/0@0"
-   io.write('key: '..key..'\n')
+   --io.write('key: '..key..'\n')
    nets = ntop.getHashKeysCache(key, any_net)
 
    if((nets == nil) or (nets == "")) then
@@ -1012,10 +1036,7 @@ elseif(page == "filtering") then
       end
    end
 
-
-
    -- io.write(net.."\n")
-
    if((net ~= nil) and (_GET["blacklist"] ~= nil)) then
       ntop.setHashCache(policy_key, net, _GET["blacklist"])
 
@@ -1030,7 +1051,8 @@ elseif(page == "filtering") then
       key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
       ntop.setHashCache(key, net, egress_shaper_id)
       -- ******************************
-      interface.reloadL7Rules()
+      interface.reloadL7Rules(net)
+      -- io.write("reloading shapers for "..net.."\n")
    end
 
    selected_network = net
@@ -1039,8 +1061,6 @@ elseif(page == "filtering") then
    end
 
    print [[
-
-
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
   <input type=hidden name=page value=filtering>
   <table class="table table-striped table-bordered">
@@ -1306,14 +1326,22 @@ print [[/lua/network_load.lua',
 	var rsp = jQuery.parseJSON(content);
 	var v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
-	$('#if_bytes').html(v);
 	$('#if_pkts').html(addCommas(rsp.packets)+"]]
-
 
 print(" Pkts\");")
 print [[
 	var pctg = 0;
 	var drops = "";
+	var last_pkt_retransmissions = ]] print(ifstats.tcpPacketStats.retransmissions) print [[;
+	var last_pkt_ooo =  ]] print(ifstats.tcpPacketStats.out_of_order) print [[;
+	var last_pkt_lost = ]] print(ifstats.tcpPacketStats.lost) print [[;
+
+	$('#pkt_retransmissions').html(rsp.tcpPacketStats.retransmissions+" Pkts"); $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
+	$('#pkt_ooo').html(rsp.tcpPacketStats.out_of_order+" Pkts");  $('#pkt_ooo_trend').html(get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
+	$('#pkt_lost').html(rsp.tcpPacketStats.lost+" Pkts"); $('#pkt_lost_trend').html(get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
+	last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
+	last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
+	last_pkt_lost = rsp.tcpPacketStats.lost;
 
 	$('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
 	$('#drops_trend').html(get_trend(last_drops, rsp.drops));

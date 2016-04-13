@@ -71,6 +71,7 @@ class Utils {
   static ticks getticks();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
+  static char* macaddr_str (const char *mac, char *buf);
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static u_int32_t getMaxIfSpeed(const char *ifname);
   static u_int16_t getIfMTU(const char *ifname);
@@ -80,6 +81,8 @@ class Utils {
   static char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   static char* intoaV6(struct ndpi_in6_addr ipv6, u_int8_t bitmask, char* buf, u_short bufLen);
   static u_int32_t timeval2usec(const struct timeval *tv);
+  static void xor_encdec(u_char *data, int data_len, u_char *key);
+  static bool isPrintableChar(u_char c);
 };
 
 #endif /* _UTILS_H_ */

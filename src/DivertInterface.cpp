@@ -30,6 +30,7 @@
 static void* divertPacketPollLoop(void* ptr) {
   DivertInterface *iface = (DivertInterface*)ptr;
   int fd;
+  bool shaped;
 
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
@@ -41,7 +42,6 @@ static void* divertPacketPollLoop(void* ptr) {
     u_char packet[IP_MAXPACKET];
     struct sockaddr_in sin;
     socklen_t sin_len = sizeof(struct sockaddr_in);
-    int a, b;
     u_int16_t c;
     struct pcap_pkthdr h;
     
@@ -59,7 +59,7 @@ static void* divertPacketPollLoop(void* ptr) {
     }
    
     h.len = h.caplen = len, gettimeofday(&h.ts, NULL);
-    iface->dissectPacket(&h, packet, &a, &b, &c);
+    iface->dissectPacket(&h, packet, &shaped, &c);
 
     /* Enable the row below to specify the firewall rule corresponding to the protocol */
 #if 0

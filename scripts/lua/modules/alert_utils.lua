@@ -299,7 +299,7 @@ end
 -- #################################
 
 function check_interface_alert(ifname, mode, old_table, new_table)
-    local ifname_clean = string.gsub(ifname, "/", "_")
+   local ifname_clean = "iface_"..tostring(getInterfaceId(ifname))
     if(verbose) then
         print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
@@ -422,7 +422,7 @@ function check_networks_threshold(ifname, mode)
         end
         statspath = fixPath(statspath .. "/alarmed_subnet_stats_lastdump")
 
-        if ntop.exists(fname) then
+        if ntop.exists(statspath) then
             -- Read old version
             old_dump = persistence.load(statspath)
             if (old_dump ~= nil) then
@@ -478,8 +478,7 @@ end
 
 function scanAlerts(granularity)
     local ifnames = interface.getIfNames()
-    for _,_ifname in pairs(ifnames) do
-        ifname = purifyInterfaceName(_ifname)
+    for _,ifname in pairs(ifnames) do
         if(verbose) then print("[minute.lua] Processing interface " .. ifname.."<p>\n") end
 
         check_interface_threshold(ifname, granularity)

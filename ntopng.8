@@ -85,7 +85,11 @@ or
 .RB [ \-Z
 .IR <prefix> ]
 .RB [ \-\-shutdown\-when\-done ]
+.RB [ \-\-zmq\-collector\-mode ]
+.RB [ \-\-zmq\-encrypt\-pwd
+.IR <apssword> ]
 .RB [ \-\-capture\-direction ]
+.RB [ \-\-online\-license\-check ]
 .RB [ \-v ]
 .RB [ \-V ]
 .RB [ \-h ]
@@ -339,9 +343,18 @@ you must use ntopng with \-Z "/ntopng/"
 .It \-\-shutdown\-when\-done
 Terminate ntopng when the input pcap file is over (debug only).
 
+.It \-\-zmq\-collector\-mode
+When ZMQ is used, ntopng acts as a client with respect to the ZMQ producer (typically nProbe). In case nProbe is behind a firewall this paradigm needs to be changed and thus nProbe needs to be started with --zmq-probe-mode and ntiong with --zmq-collector-mode.
+
+.It \-\-zmq\-encrypt\-pwd
+This is the passowrd used by the symmetric encryption on the probe side. Note that in case you have multiple ZMQ endpoints, the same password is used for all of them.
+
 .It \-\-capture\-direction
 Specify the packet capture direction for packet capture interfaces (no ZMQ).
 Supported values are: 0=RX+TX (default), 1=RX only, 2=TX only
+
+.It \-\-online\-license\-check
+In case the license does not match (e.g. you are running ntopng on a VM/container) you can use this option to check your license instead of using the local license file. Using this option we make sure that changes in yoru system do not interfere with license check (thing that we cannot guarantee with file-based licenses).
 
 .It \-v|\-\-verbose
 Verbose tracing.
@@ -418,15 +431,15 @@ should not need to specifically install such libraries.
 .
 
 .SH USER SUPPORT
-Please send bug reports to the ntop-dev <ntop-dev@ntop.org> mailing list. The
+Please send bug reports to https://github.com/ntop/ntopng/issues. The
 ntopng <ntop@ntop.org> mailing list is used for discussing ntopng usage issues. In
 order to post messages on the lists a (free) subscription is required
-to limit/avoid spam. Please do NOT contact the author directly unless this is
+to limit/avoid spam. Please do NOT contact the authors directly unless this is
 a personal question.
 
-Commercial support is available upon request. Please see the ntopng site for further info.
+Commercial support is available upon request. Please see the ntop site for further info.
 
-Please send code patches to <patch@ntop.org>.
+Please send code patches via the github pull requests mechanism.
 
 .SH LICENCE
-ntopng is distributed under the GNU GPL licence (http://www.gnu.org/).
+ntopng is distributed under the GNU GPLv3 licence (http://www.gnu.org/).

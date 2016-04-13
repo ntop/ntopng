@@ -54,6 +54,17 @@ function aggregateInterfaceStats(ifstats)
 	 end
       end
 
+      keys = { "tcpPacketStats" }
+      for _,key in pairs(keys) do
+	 if(tot[key] == nil) then tot[key] = { } end
+
+	 for k,v in pairs(_v[key]) do
+	    --io.write(k.."\n")
+	    if(tot[key][k] == nil) then tot[key][k] = 0 end
+	    tot[key][k] = tot[key][k] + v
+	 end
+      end
+
       keys = { "localstats", "ndpi" }
       for _,key in pairs(keys) do
 	 -- io.write(key.."\n")
@@ -104,12 +115,13 @@ end
 -- ##########################################
 
 function aggregateFlowsStats(flowstats)
+   -- TODO: prevent possible flow overlap when using interface views
    if(flowstats == nil) then return(flowstats) end
 
    local tot = 0
    local res = { }
    for ifname,_v in pairs(flowstats) do
-      for k,v in pairs(_v["flows"]) do
+      for k,v in ipairs(_v["flows"]) do
 	    --io.write(k.."\n")
 	    res[k] = v
       end
@@ -181,7 +193,7 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 -- ##############################################
 
-function sendHTTPHeaderIfName(mime, ifname, maxage)
+function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition)
   info = ntop.getInfo(false)
 
   print('HTTP/1.1 200 OK\r\n')
@@ -193,20 +205,21 @@ function sendHTTPHeaderIfName(mime, ifname, maxage)
   if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; HttpOnly\r\n') end
   if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/\r\n') end
   print('Content-Type: '.. mime ..'\r\n')
+  if(content_disposition ~= nil) then print('Content-Disposition: '..content_disposition..'\r\n') end
   print('Last-Modified: '..os.date("!%a, %m %B %Y %X %Z").."\r\n")
   print('\r\n')
 end
 
 -- ##############################################
 
-function sendHTTPHeaderLogout(mime)
-  sendHTTPHeaderIfName(mime, nil, 0)
+function sendHTTPHeaderLogout(mime, content_disposition)
+  sendHTTPHeaderIfName(mime, nil, 0, content_disposition)
 end
 
 -- ##############################################
 
-function sendHTTPHeader(mime)
-  sendHTTPHeaderIfName(mime, nil, 3600)
+function sendHTTPHeader(mime, content_disposition)
+  sendHTTPHeaderIfName(mime, nil, 3600, content_disposition)
 end
 
 -- ##############################################
@@ -374,7 +387,9 @@ alert_type_keys = {
   { "<i class='fa fa-frown-o'></i> Blacklist Host",  3 },
   { "<i class='fa fa-clock-o'></i> Periodic Activity",  4 },
   { "<i class='fa fa-sort-asc'></i> Quota Exceeded",  5 },
-  { "<i class='fa fa-ban'></i> Malware Detected",  6 }
+  { "<i class='fa fa-ban'></i> Malware Detected",  6 },
+  { "<i class='fa fa-bomb'></i> Ongoing Attacker",  7 },
+  { "<i class='fa fa-bomb'></i> Under Attack",  8 }
 }
 
 function alertSeverityLabel(v)
@@ -671,6 +686,18 @@ function secondsToTime(seconds)
   return msg
 end
 
+function msToTime(ms)
+  if(ms > 1000) then
+    return secondsToTime(ms/1000)
+  else
+    if(ms < 1) then
+      return("< 1 ms")
+    else
+      return(round(ms, 4).." ms")
+    end
+  end
+end
+
 function starts(String,Start)
   return string.sub(String,1,string.len(Start))==Start
 end
@@ -959,6 +986,7 @@ function purifyInterfaceName(interface_name)
   -- io.write(debug.traceback().."\n")
   interface_name = string.gsub(interface_name, "@", "_")
   interface_name = string.gsub(interface_name, ":", "_")
+  interface_name = string.gsub(interface_name, "/", "_")
   return(interface_name)
 end
 
@@ -1488,6 +1516,16 @@ function isLoopback(name)
   end
 end
 
+function isLocalPacketdumpEnabled()
+   local nbox_integration = ntop.getCache("ntopng.prefs.nbox_integration")
+   if nbox_integration == nil or nbox_integration ~= "1" then
+      nbox_integration = false
+   else
+      nbox_integration = true
+   end
+   return isAdministrator() and not nbox_integration and not interface.isView() and interface.isPacketInterface()
+end
+
 function processColor(proc)
   if(proc == nil) then
     return("")
@@ -1950,4 +1988,10 @@ end
 
 function trimSpace(what)
    return(string.gsub(what, "%s+", ""))
+end
+
+-- ###############################################
+
+function formatWebSite(site)
+   return("<A target=\"_blank\" HREF=http://"..site..">"..site.."</A> <i class=\"fa fa-external-link\"></i></th>")
 end

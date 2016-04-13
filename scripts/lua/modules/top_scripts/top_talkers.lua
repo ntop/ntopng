@@ -203,6 +203,7 @@ local function getHistoricalTopTalkers(ifid, ifname, epoch, add_vlan)
 end
 
 local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoch_end, add_vlan)
+
    -- retrieves Aggregated top Talkers value from sqlite
    local json = require ("dkjson")
    if epoch_start == nil or epoch_end == nil or epoch_start == "" or epoch_end == "" then

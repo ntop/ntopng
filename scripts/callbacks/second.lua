@@ -42,5 +42,10 @@ for _,ifname in pairs(ifnames) do
       makeRRD(basedir, ifname, "num_hosts", 1, ifstats.hosts)
       makeRRD(basedir, ifname, "num_flows", 1, ifstats.flows)
       makeRRD(basedir, ifname, "num_http_hosts", 1, ifstats.http_hosts)
+
+      -- TCP stats
+      makeRRD(basedir, ifname, "tcp_retransmissions", 1, ifstats.tcpPacketStats.retransmissions)
+      makeRRD(basedir, ifname, "tcp_ooo", 1, ifstats.tcpPacketStats.out_of_order)
+      makeRRD(basedir, ifname, "tcp_lost", 1, ifstats.tcpPacketStats.lost)
    end
 end -- for _,ifname in pairs(ifnames) do

@@ -27,12 +27,12 @@ function displayProc(proc)
       cpu_load = round(proc.average_cpu_load, 2)..""
       if(proc.average_cpu_load < 33) then
 	     if(proc.average_cpu_load == 0) then proc.average_cpu_load = "< 1" end
-	        print("<font color=green>"..cpu_load.." %</font>")
-         elseif(proc.average_cpu_load < 66) then
-	        print("<font color=orange><b>"..cpu_load.." %</b></font>")
-         else
-	        print("<font color=red><b>"..cpu_load.." %</b></font>")
-         end
+		print("<font color=green>"..cpu_load.." %</font>")
+	 elseif(proc.average_cpu_load < 66) then
+		print("<font color=orange><b>"..cpu_load.." %</b></font>")
+	 else
+		print("<font color=red><b>"..cpu_load.." %</b></font>")
+	 end
       print(" </span></td></tr>\n")
 
       print("<tr><th width=30%>I/O Wait Time Percentage</th><td colspan=2><span id=percentage_iowait_time_"..proc.pid..">")
@@ -40,12 +40,12 @@ function displayProc(proc)
       cpu_load = round(proc.percentage_iowait_time, 2)..""
       if(proc.percentage_iowait_time < 33) then
 	     if(proc.percentage_iowait_time == 0) then proc.percentage_iowait_time = "< 1" end
-	        print("<font color=green>"..cpu_load.." %</font>")
-         elseif(proc.percentage_iowait_time < 66) then
-	        print("<font color=orange><b>"..cpu_load.." %</b></font>")
-         else
-	        print("<font color=red><b>"..cpu_load.." %</b></font>")
-         end
+		print("<font color=green>"..cpu_load.." %</font>")
+	 elseif(proc.percentage_iowait_time < 66) then
+		print("<font color=orange><b>"..cpu_load.." %</b></font>")
+	 else
+		print("<font color=red><b>"..cpu_load.." %</b></font>")
+	 end
       print(" </span></td></tr>\n")
 
 
@@ -86,8 +86,8 @@ end
 print [[
 
 <div class="bs-docs-example">
-            <nav class="navbar navbar-default" role="navigation">
-              <div class="navbar-collapse collapse">
+	    <nav class="navbar navbar-default" role="navigation">
+	      <div class="navbar-collapse collapse">
 <ul class="nav navbar-nav">
 	 <li><a href="#">Flow: ]] print(a) print [[ </a></li>
 <li class="active"><a href="#">Overview</a></li>
@@ -101,10 +101,11 @@ throughput_type = getThroughputType()
 
 flow_key = _GET["flow_key"]
 
+interface.select(ifname)
+is_packetdump_enabled = isLocalPacketdumpEnabled()
 if(flow_key == nil) then
    flow = nil
 else
-   interface.select(ifname)
    flow = interface.findFlowByKey(tonumber(flow_key))
 end
 
@@ -116,7 +117,7 @@ else
       interface.dropFlowTraffic(tonumber(flow_key))
       flow["verdict.pass"] = false
    end
-   if(_GET["dump_flow_to_disk"] ~= nil) then
+   if(_GET["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
       interface.dumpFlowTraffic(tonumber(flow_key), ternary(_GET["dump_flow_to_disk"] == "true", 1, 0))
       flow["dump.disk"] = ternary(_GET["dump_flow_to_disk"] == "true", true, false)
    end
@@ -126,27 +127,35 @@ else
    if (ifstats.vlan and (flow["vlan"] ~= nil)) then
       print("<tr><th width=30%>")
       if(ifstats.sprobe) then
-         print('Source Id')
+	 print('Source Id')
       else
-         print('VLAN ID')
+	 print('VLAN ID')
       end
 
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
-     print("<tr><th width=30%>Flow Peers</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">")
+     print("<tr><th width=30%>Flow Peers [ Client / Server ]</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">")
      print(flowinfo2hostname(flow,"cli",ifstats.vlan))
-   if(flow["cli.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
+     if(flow["cli.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
+
    print("</A>")
    if(flow["cli.port"] > 0) then
-      print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["cli.port"].. "\">" .. flow["cli.port"])
+      print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["cli.port"].. "\">" .. flow["cli.port"].."</A>")
    end
-   print("</A> <i class=\"fa fa-exchange fa-lg\"></i> \n")
+   if(flow["cli.mac"] ~= nil and flow["cli.mac"]~= "" and flow["cli.mac"] ~= "00:00:00:00:00:00") then
+      print(" [<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["cli.mac"].. "\">" .. flow["cli.mac"].."]".."</A>")
+   end
+   print("&nbsp; <i class=\"fa fa-exchange fa-lg\"></i> \n")
+
    print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(flow,"srv") .. "\">")
    print(flowinfo2hostname(flow,"srv",ifstats.vlan))
    if(flow["srv.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
    print("</A>")
    if(flow["srv.port"] > 0) then
       print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["srv.port"].. "\">" .. flow["srv.port"].. "</A>")
+   end
+   if(flow["srv.mac"] ~= nil and flow["srv.mac"]~= "" and flow["srv.mac"] ~= "00:00:00:00:00:00") then
+      print(" [<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["srv.mac"].. "\">" .. flow["srv.mac"].."]".."</A>")
    end
    print("</td></tr>\n")
 
@@ -203,10 +212,25 @@ else
    print("<tr><th width=30%>First / Last Seen</th><td nowrap><div id=first_seen>" .. formatEpoch(flow["seen.first"]) ..  " [" .. secondsToTime(os.time()-flow["seen.first"]) .. " ago]" .. "</div></td>\n")
    print("<td nowrap><div id=last_seen>" .. formatEpoch(flow["seen.last"]) .. " [" .. secondsToTime(os.time()-flow["seen.last"]) .. " ago]" .. "</div></td></tr>\n")
 
-   print("<tr><th width=30%>Total Traffic</th><td>Total: <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
-   print("<td><A HREF=https://en.wikipedia.org/wiki/Goodput>Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>".. round((flow["goodput_bytes"]*100)/flow["bytes"], 1).."</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
+   print("<tr><th width=30% rowspan=3>Total Traffic</th><td>Total: <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
+   if((ifstats.type ~= "zmq") and ((flow["proto.l4"] == "TCP") or (flow["proto.l4"] == "UDP"))) then
+      print("<td><A HREF=https://en.wikipedia.org/wiki/Goodput>Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
+      pctg = round((flow["goodput_bytes"]*100)/flow["bytes"], 1)
+      if(pctg < 50) then
+	 pctg = "<font color=red>"..pctg.."</font>"
+      elseif(pctg < 60) then
+	 pctg = "<font color=orange>"..pctg.."</font>"
+      end
+      print(pctg)
 
-   print("<tr><th width=30%>Client vs Server Traffic Breakdown</th><td colspan=2>")
+      print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
+   else
+      print("<td>&nbsp;</td></tr>\n")
+   end
+
+   print("<tr><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>Client <i class=\"fa fa-arrow-left\"></i> Server: <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+
+   print("<tr><td colspan=2>")
    cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
 
    cli_name = shortHostName(ntop.getResolvedAddress(flow["cli.ip"]))
@@ -218,6 +242,7 @@ else
    end
    print('<div class="progress"><div class="progress-bar progress-bar-warning" style="width: ' .. cli2srv.. '%;">'.. cli_name..'</div><div class="progress-bar progress-bar-info" style="width: ' .. (100-cli2srv) .. '%;">' .. srv_name .. '</div></div>')
    print("</td></tr>\n")
+
 
    if(flow["tcp.nw_latency.client"] ~= nil) then
       s = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
@@ -235,14 +260,35 @@ else
       end
    end
 
-   print("<tr><th width=30%>Client to Server / Server to Client Traffic</th><td><span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td><span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+   print("<tr><th width=30%>Packet Inter-Arrival Time [ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
+   print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
+   print("</td>\n")
+   if(flow["srv2cli.packets"] == 0) then
+     print("<td>&nbsp;")
+   else
+     print("<td nowrap>Client <i class=\"fa fa-arrow-left\"></i> Server: ")
+     print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
+   end
+   print("</td></tr>\n")
 
-   if(flow["tcp.seq_problems"]) then
-      print("<tr><th width=30% rowspan=5>TCP Packet Analysis</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'>")
-      print("<tr><th>&nbsp;</th><th>Client to Server / Server to Client</th></tr>\n")
-      print("<tr><th>Retransmissions</th><td align=right><span id=c2sretr>".. formatPackets(flow["cli2srv.retransmissions"]) .."</span> / <span id=s2cretr>".. formatPackets(flow["srv2cli.retransmissions"]) .."</span></td></tr>\n")
-      print("<tr><th>Out of Order</th><td align=right><span id=c2sOOO>".. formatPackets(flow["cli2srv.out_of_order"]) .."</span> / <span id=s2cOOO>".. formatPackets(flow["srv2cli.out_of_order"]) .."</span></td></tr>\n")
-      print("<tr><th>Lost</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
+   if(flow["tcp.seq_problems"] ~= nil) then
+      rowspan = 2
+      if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then rowspan = rowspan+1 end
+      if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0)       then rowspan = rowspan+1 end
+      if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0)                       then rowspan = rowspan+1 end
+
+      print("<tr><th width=30% rowspan="..rowspan..">TCP Packet Analysis</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
+      print("<tr><th>&nbsp;</th><th>Client <i class=\"fa fa-arrow-right\"></i> Server / Client <i class=\"fa fa-arrow-left\"></i> Server</th></tr>\n")
+
+      if((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"]) > 0) then
+        print("<tr><th>Retransmissions</th><td align=right><span id=c2sretr>".. formatPackets(flow["cli2srv.retransmissions"]) .."</span> / <span id=s2cretr>".. formatPackets(flow["srv2cli.retransmissions"]) .."</span></td></tr>\n")
+      end
+      if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0) then
+        print("<tr><th>Out of Order</th><td align=right><span id=c2sOOO>".. formatPackets(flow["cli2srv.out_of_order"]) .."</span> / <span id=s2cOOO>".. formatPackets(flow["srv2cli.out_of_order"]) .."</span></td></tr>\n")
+      end
+      if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0) then
+        print("<tr><th>Lost</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
+      end
    end
 
    if(flow["ssl.certificate"] ~= nil) then
@@ -260,7 +306,7 @@ else
      print("</td><td> Client <i class=\"fa fa-arrow-left\"></i> Server: ")
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
-        end
+	end
 
    if((flow["cli2srv.trend"] ~= nil) and false) then
      print("<tr><th width=30%>Througput Trend</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
@@ -275,8 +321,9 @@ else
 
       flow_completed = false
       flow_reset = false
+      flows_syn_seen = false
       if(hasbit(flow["tcp_flags"],0x01)) then print('<span class="label label-info">FIN</span> ')  flow_completed = true end
-      if(hasbit(flow["tcp_flags"],0x02)) then print('<span class="label label-info">SYN</span> ')  end
+      if(hasbit(flow["tcp_flags"],0x02)) then print('<span class="label label-info">SYN</span> ')  flows_syn_seen = true end
       if(hasbit(flow["tcp_flags"],0x04)) then print('<span class="label label-danger">RST</span> ') flow_completed = true flow_reset = true end
       if(hasbit(flow["tcp_flags"],0x08)) then print('<span class="label label-info">PUSH</span> ') end
       if(hasbit(flow["tcp_flags"],0x10)) then print('<span class="label label-info">ACK</span> ')  end
@@ -288,7 +335,12 @@ else
 	 if(flow_completed) then
 	    print(" <small>This flow is completed and will soon expire.</small>")
 	 else
-	    print(" <small>This flow is active.</small>")
+  	    print(" <small>This flow is active. We have not seen flow begin: peer roles (client/server) might be inaccurate.</small>")
+	    if(not(flows_syn_seen)) then
+	      print("")
+	    else
+	      print(" <small>This flow is active.</small>")
+	    end
 	 end
       end
 
@@ -298,15 +350,15 @@ else
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>Actual / Peak Throughput</th><td width=20%>")
       if (throughput_type == "bps") then
-         print("<span id=throughput>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
+	 print("<span id=throughput>" .. bitsToSize(8*flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
       elseif (throughput_type == "pps") then
-         print("<span id=throughput>" .. pktsToSize(flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
+	 print("<span id=throughput>" .. pktsToSize(flow["throughput_bps"]) .. "</span> <span id=throughput_trend></span>")
       end
 
       if (throughput_type == "bps") then
-         print(" / <span id=top_throughput>" .. bitsToSize(8*flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
+	 print(" / <span id=top_throughput>" .. bitsToSize(8*flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
       elseif (throughput_type == "pps") then
-         print(" / <span id=top_throughput>" .. pktsToSize(flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
+	 print(" / <span id=top_throughput>" .. pktsToSize(flow["top_throughput_bps"]) .. "</span> <span id=top_throughput_trend></span>")
       end
 
       print("</td><td><span id=thpt_load_chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
@@ -322,12 +374,12 @@ else
       end
 
       if(flow.client_process ~= nil) then
-         print("<tr><th colspan=3 class=\"info\">Client Process Information</th></tr>\n")
-         displayProc(flow.client_process)
+	 print("<tr><th colspan=3 class=\"info\">Client Process Information</th></tr>\n")
+	 displayProc(flow.client_process)
       end
       if(flow.server_process ~= nil) then
-         print("<tr><th colspan=3 class=\"info\">Server Process Information</th></tr>\n")
-         displayProc(flow.server_process)
+	 print("<tr><th colspan=3 class=\"info\">Server Process Information</th></tr>\n")
+	 displayProc(flow.server_process)
       end
    end
 
@@ -336,7 +388,7 @@ else
       if(string.ends(flow["dns.last_query"], "arpa")) then
 	 print(flow["dns.last_query"])
       else
-	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link fa-lg'></i>")
+	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
       end
 
       if(flow["category"] ~= nil) then
@@ -363,7 +415,7 @@ else
       if(flow["http.last_url"] ~= "") then
 	 print("<A HREF=\"http://"..s)
 	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link fa-lg\">")
+	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link\">")
       else
 	 print(shortenString(flow["http.last_url"]))
       end
@@ -380,25 +432,27 @@ else
       print("<tr><th width=30%><A HREF=".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua>Profile Name</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
 
-   dump_flow_to_disk = flow["dump.disk"]
-   if(dump_flow_to_disk == true) then
-    dump_flow_to_disk_checked = 'checked="checked"'
-    dump_flow_to_disk_value = "false" -- Opposite
-   else
-    dump_flow_to_disk_checked = ""
-    dump_flow_to_disk_value = "true" -- Opposite
-   end
+   if is_packetdump_enabled then
+      dump_flow_to_disk = flow["dump.disk"]
+      if(dump_flow_to_disk == true) then
+	 dump_flow_to_disk_checked = 'checked="checked"'
+	 dump_flow_to_disk_value = "false" -- Opposite
+      else
+	 dump_flow_to_disk_checked = ""
+	 dump_flow_to_disk_value = "true" -- Opposite
+      end
 
-   print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
-   print [[
+      print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
+      print [[
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="flow_key" value="]]
-               print(flow_key)
-               print('"><input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
-               print(' </input>')
-               print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-               print('</form>')
-   print("</td></tr>\n")
+	 <input type="hidden" name="flow_key" value="]]
+      print(flow_key)
+      print('"><input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
+      print(' </input>')
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print('</form>')
+      print("</td></tr>\n")
+   end
 
    if (flow["moreinfo.json"] ~= nil) then
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
@@ -418,15 +472,15 @@ else
       num = 0
 
       for key,value in pairs(info) do
-         if(num == 0) then
-   	 print("<tr><th colspan=3 class=\"info\">Additional Flow Elements</th></tr>\n")
-         end
+	 if(num == 0) then
+	 print("<tr><th colspan=3 class=\"info\">Additional Flow Elements</th></tr>\n")
+	 end
 
-       	 if(value ~= "") then
+	 if(value ~= "") then
 	      print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value) .. "</td></tr>\n")
 	 end
 
-         num = num + 1
+	 num = num + 1
       end
    end
    print("</table>\n")
@@ -486,12 +540,13 @@ print [[/lua/flow_stats.lua',
 			$('#first_seen').html(rsp["seen.first"]);
 			$('#last_seen').html(rsp["seen.last"]);
 			$('#volume').html(bytesToVolume(rsp.bytes));
-                        $('#goodput_volume').html(bytesToVolume(rsp["goodput_bytes"]));
-                        pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
-                        if(pctg < 40) { pctg = "<font color=red>"+pctg+"</font>"; }
-                        else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
-                       
-                        $('#goodput_percentage').html(pctg);
+			$('#goodput_volume').html(bytesToVolume(rsp["goodput_bytes"]));
+			pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
+
+			/* 50 is the same threashold specified in FLOW_GOODPUT_THRESHOLD */
+			if(pctg < 50) { pctg = "<font color=red>"+pctg+"</font>"; } else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
+
+			$('#goodput_percentage').html(pctg);
 			$('#cli2srv').html(addCommas(rsp["cli2srv.packets"])+" Pkts / "+bytesToVolume(rsp["cli2srv.bytes"]));
 			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / "+bytesToVolume(rsp["srv2cli.bytes"]));
 			$('#throughput').html(rsp.throughput);
@@ -533,250 +588,250 @@ print [[/lua/flow_stats.lua',
 			   $('#throughput_trend').html("<i class=\"fa fa-arrow-down\"></i>");
 			} else if(throughput < rsp["throughput_raw"]) {
 			   $('#throughput_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-   		           $('#top_throughput').html(rsp["top_throughput_display"]);
+			   $('#top_throughput').html(rsp["top_throughput_display"]);
 			} else {
 			   $('#throughput_trend').html("<i class=\"fa fa-minus\"></i>");
 			}]]
 
       if(isThereSIP) then
-        print [[
-          $('#call_id').html(rsp["sip.call_id"]);
-          $('#calling_called_party').html(rsp["sip.calling_called_party"]);
-          $('#rtp_codecs').html(rsp["sip.rtp_codecs"]);
-          $('#time_invite').html(rsp["sip.time_invite"]);
-          $('#time_trying').html(rsp["sip.time_trying"]);
-          $('#time_ringing').html(rsp["sip.time_ringing"]);
-          $('#time_invite_ok').html(rsp["sip.time_invite_ok"]);
-          $('#time_invite_failure').html(rsp["sip.time_invite_failure"]);
-          $('#time_bye').html(rsp["sip.time_bye"]);
-          $('#time_bye_ok').html(rsp["sip.time_bye_ok"]);
-          $('#time_cancel').html(rsp["sip.time_cancel"]);
-          $('#time_cancel_ok').html(rsp["sip.time_cancel_ok"]);
-          $('#rtp_stream').html(rsp["sip.rtp_stream"]);
-          $('#response_code').html(rsp["sip.response_code"]);
-          $('#reason_cause').html(rsp["sip.reason_cause"]);
-          $('#c_ip').html(rsp["sip.c_ip"]);
-          $('#call_state').html(rsp["sip.call_state"]);
+	print [[
+	  $('#call_id').html(rsp["sip.call_id"]);
+	  $('#calling_called_party').html(rsp["sip.calling_called_party"]);
+	  $('#rtp_codecs').html(rsp["sip.rtp_codecs"]);
+	  $('#time_invite').html(rsp["sip.time_invite"]);
+	  $('#time_trying').html(rsp["sip.time_trying"]);
+	  $('#time_ringing').html(rsp["sip.time_ringing"]);
+	  $('#time_invite_ok').html(rsp["sip.time_invite_ok"]);
+	  $('#time_invite_failure').html(rsp["sip.time_invite_failure"]);
+	  $('#time_bye').html(rsp["sip.time_bye"]);
+	  $('#time_bye_ok').html(rsp["sip.time_bye_ok"]);
+	  $('#time_cancel').html(rsp["sip.time_cancel"]);
+	  $('#time_cancel_ok').html(rsp["sip.time_cancel_ok"]);
+	  $('#rtp_stream').html(rsp["sip.rtp_stream"]);
+	  $('#response_code').html(rsp["sip.response_code"]);
+	  $('#reason_cause').html(rsp["sip.reason_cause"]);
+	  $('#c_ip').html(rsp["sip.c_ip"]);
+	  $('#call_state').html(rsp["sip.call_state"]);
       ]]
       end
       if(isThereRTP) then
-        print [[
-          $('#sync_source_id').html(rsp["rtp.sync_source_id"]);
-          $('#first_flow_timestamp').html(rsp["rtp.first_flow_timestamp"]);
-          $('#last_flow_timestamp').html(rsp["rtp.last_flow_timestamp"]);
-          $('#first_flow_seq').html(rsp["rtp.first_flow_seq"]);
-          $('#last_flow_seq').html(rsp["rtp.last_flow_seq"]);
-          $('#jitter_in').html(rsp["rtp.jitter_in"]+" ms");
-          if(jitter_in_trend){
-            if(rsp["rtp.jitter_in"] > jitter_in_trend){
-                  $('#jitter_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.jitter_in"] < jitter_in_trend){
-                  $('#jitter_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#jitter_in_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#jitter_in_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          jitter_in_trend = rsp["rtp.jitter_in"];
-          $('#jitter_out').html(rsp["rtp.jitter_out"]+" ms");
-          if(jitter_out_trend){
-            if(rsp["rtp.jitter_out"] > jitter_out_trend){
-                  $('#jitter_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.jitter_out"] < jitter_out_trend){
-                  $('#jitter_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#jitter_out_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#jitter_out_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          jitter_out_trend = rsp["rtp.jitter_out"];
+	print [[
+	  $('#sync_source_id').html(rsp["rtp.sync_source_id"]);
+	  $('#first_flow_timestamp').html(rsp["rtp.first_flow_timestamp"]);
+	  $('#last_flow_timestamp').html(rsp["rtp.last_flow_timestamp"]);
+	  $('#first_flow_seq').html(rsp["rtp.first_flow_seq"]);
+	  $('#last_flow_seq').html(rsp["rtp.last_flow_seq"]);
+	  $('#jitter_in').html(rsp["rtp.jitter_in"]+" ms");
+	  if(jitter_in_trend){
+	    if(rsp["rtp.jitter_in"] > jitter_in_trend){
+		  $('#jitter_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.jitter_in"] < jitter_in_trend){
+		  $('#jitter_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#jitter_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#jitter_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  jitter_in_trend = rsp["rtp.jitter_in"];
+	  $('#jitter_out').html(rsp["rtp.jitter_out"]+" ms");
+	  if(jitter_out_trend){
+	    if(rsp["rtp.jitter_out"] > jitter_out_trend){
+		  $('#jitter_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.jitter_out"] < jitter_out_trend){
+		  $('#jitter_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#jitter_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#jitter_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  jitter_out_trend = rsp["rtp.jitter_out"];
 
-          $('#packet_lost_in').html(formatPackets(rsp["rtp.packet_lost_in"]));
-          if(packet_lost_in_trend){
-            if(rsp["rtp.packet_lost_in"] > packet_lost_in_trend){
-                  $('#packet_lost_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else {
-                  $('#packet_lost_in_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#packet_lost_in_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          packet_lost_in_trend = rsp["rtp.packet_lost_in"];
+	  $('#packet_lost_in').html(formatPackets(rsp["rtp.packet_lost_in"]));
+	  if(packet_lost_in_trend){
+	    if(rsp["rtp.packet_lost_in"] > packet_lost_in_trend){
+		  $('#packet_lost_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else {
+		  $('#packet_lost_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#packet_lost_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  packet_lost_in_trend = rsp["rtp.packet_lost_in"];
 
-          $('#packet_lost_out').html(formatPackets(rsp["rtp.packet_lost_out"]));
-          if(packet_lost_out_trend){
-            if(rsp["rtp.packet_lost_out"] > packet_lost_out_trend){
-                  $('#packet_lost_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else {
-                  $('#packet_lost_out_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#packet_lost_out_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          packet_lost_out_trend = rsp["rtp.packet_lost_out"];
+	  $('#packet_lost_out').html(formatPackets(rsp["rtp.packet_lost_out"]));
+	  if(packet_lost_out_trend){
+	    if(rsp["rtp.packet_lost_out"] > packet_lost_out_trend){
+		  $('#packet_lost_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else {
+		  $('#packet_lost_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#packet_lost_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  packet_lost_out_trend = rsp["rtp.packet_lost_out"];
 
-          $('#packet_drop_in').html(formatPackets(rsp["rtp.packet_drop_in"]));
-          if(packet_drop_in_trend){
-            if(rsp["rtp.packet_drop_in"] > packet_drop_in_trend){
-                  $('#packet_drop_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else {
-                  $('#packet_drop_in_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#packet_drop_in_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          packet_drop_in_trend = rsp["rtp.packet_drop_in"];
+	  $('#packet_drop_in').html(formatPackets(rsp["rtp.packet_drop_in"]));
+	  if(packet_drop_in_trend){
+	    if(rsp["rtp.packet_drop_in"] > packet_drop_in_trend){
+		  $('#packet_drop_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else {
+		  $('#packet_drop_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#packet_drop_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  packet_drop_in_trend = rsp["rtp.packet_drop_in"];
 
-          $('#packet_drop_out').html(formatPackets(rsp["rtp.packet_drop_out"]));
-          if(packet_drop_out_trend){
-            if(rsp["rtp.packet_drop_out"] > packet_drop_out_trend){
-                  $('#packet_drop_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else {
-                  $('#packet_drop_out_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#packet_drop_out_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          packet_drop_out_trend = rsp["rtp.packet_drop_out"];
+	  $('#packet_drop_out').html(formatPackets(rsp["rtp.packet_drop_out"]));
+	  if(packet_drop_out_trend){
+	    if(rsp["rtp.packet_drop_out"] > packet_drop_out_trend){
+		  $('#packet_drop_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else {
+		  $('#packet_drop_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#packet_drop_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  packet_drop_out_trend = rsp["rtp.packet_drop_out"];
 
-          $('#payload_type_in').html(rsp["rtp.payload_type_in"]);
-          $('#payload_type_out').html(rsp["rtp.payload_type_out"]);
+	  $('#payload_type_in').html(rsp["rtp.payload_type_in"]);
+	  $('#payload_type_out').html(rsp["rtp.payload_type_out"]);
 
-          $('#max_delta_time_in').html(rsp["rtp.max_delta_time_in"]+" ms");
-          if(max_delta_time_in_trend){
-            if(rsp["rtp.max_delta_time_in"] > max_delta_time_in_trend){
-                  $('#max_delta_time_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.max_delta_time_in"] < max_delta_time_in_trend){
-                  $('#max_delta_time_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#max_delta_time_in_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#max_delta_time_in_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          max_delta_time_in_trend = rsp["rtp.max_delta_time_in"];
+	  $('#max_delta_time_in').html(rsp["rtp.max_delta_time_in"]+" ms");
+	  if(max_delta_time_in_trend){
+	    if(rsp["rtp.max_delta_time_in"] > max_delta_time_in_trend){
+		  $('#max_delta_time_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.max_delta_time_in"] < max_delta_time_in_trend){
+		  $('#max_delta_time_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#max_delta_time_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#max_delta_time_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  max_delta_time_in_trend = rsp["rtp.max_delta_time_in"];
 
 
-          $('#max_delta_time_out').html(rsp["rtp.max_delta_time_out"]+" ms");
-          if(max_delta_time_out_trend){
-            if(rsp["rtp.max_delta_time_out"] > max_delta_time_out_trend){
-                  $('#max_delta_time_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.max_delta_time_out"] < max_delta_time_out_trend){
-                  $('#max_delta_time_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#max_delta_time_out_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#max_delta_time_out_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          max_delta_time_out_trend = rsp["rtp.max_delta_time_out"];
+	  $('#max_delta_time_out').html(rsp["rtp.max_delta_time_out"]+" ms");
+	  if(max_delta_time_out_trend){
+	    if(rsp["rtp.max_delta_time_out"] > max_delta_time_out_trend){
+		  $('#max_delta_time_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.max_delta_time_out"] < max_delta_time_out_trend){
+		  $('#max_delta_time_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#max_delta_time_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#max_delta_time_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  max_delta_time_out_trend = rsp["rtp.max_delta_time_out"];
 
-          $('#rtp_sip_call_id').html(rsp["rtp.rtp_sip_call_id"]);
+	  $('#rtp_sip_call_id').html(rsp["rtp.rtp_sip_call_id"]);
 
-          $('#mos_average').html(rsp["rtp.mos_average"]);
-          if(mos_average_trend){
-            if(rsp["rtp.mos_average"] > mos_average_trend){
-                  $('#mos_average_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.mos_average"] < mos_average_trend){
-                  $('#mos_average_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#mos_average_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#mos_average_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          mos_average_trend = rsp["rtp.mos_average"];
+	  $('#mos_average').html(rsp["rtp.mos_average"]);
+	  if(mos_average_trend){
+	    if(rsp["rtp.mos_average"] > mos_average_trend){
+		  $('#mos_average_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.mos_average"] < mos_average_trend){
+		  $('#mos_average_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#mos_average_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#mos_average_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  mos_average_trend = rsp["rtp.mos_average"];
 
-          $('#r_factor_average').html(rsp["rtp.r_factor_average"]);
-          if(r_factor_average_trend){
-            if(rsp["rtp.r_factor_average"] > r_factor_average_trend){
-                  $('#r_factor_average_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.r_factor_average"] < r_factor_average_trend){
-                  $('#r_factor_average_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#r_factor_average_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#r_factor_average_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          r_factor_average_trend = rsp["rtp.r_factor_average"];
+	  $('#r_factor_average').html(rsp["rtp.r_factor_average"]);
+	  if(r_factor_average_trend){
+	    if(rsp["rtp.r_factor_average"] > r_factor_average_trend){
+		  $('#r_factor_average_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.r_factor_average"] < r_factor_average_trend){
+		  $('#r_factor_average_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#r_factor_average_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#r_factor_average_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  r_factor_average_trend = rsp["rtp.r_factor_average"];
 
-          $('#mos_in').html(rsp["rtp.mos_in"]);
-          if(mos_in_trend){
-            if(rsp["rtp.mos_in"] > mos_in_trend){
-                  $('#mos_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.mos_in"] < mos_in_trend){
-                  $('#mos_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#mos_in_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#mos_in_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          mos_in_trend = rsp["rtp.mos_in"];
+	  $('#mos_in').html(rsp["rtp.mos_in"]);
+	  if(mos_in_trend){
+	    if(rsp["rtp.mos_in"] > mos_in_trend){
+		  $('#mos_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.mos_in"] < mos_in_trend){
+		  $('#mos_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#mos_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#mos_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  mos_in_trend = rsp["rtp.mos_in"];
 
-          $('#r_factor_in').html(rsp["rtp.r_factor_in"]);
-          if(r_factor_in_trend){
-            if(rsp["rtp.r_factor_in"] > r_factor_in_trend){
-                  $('#r_factor_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.r_factor_in"] < r_factor_in_trend){
-                  $('#r_factor_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#r_factor_in_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#r_factor_in_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          r_factor_in_trend = rsp["rtp.r_factor_in"];
+	  $('#r_factor_in').html(rsp["rtp.r_factor_in"]);
+	  if(r_factor_in_trend){
+	    if(rsp["rtp.r_factor_in"] > r_factor_in_trend){
+		  $('#r_factor_in_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.r_factor_in"] < r_factor_in_trend){
+		  $('#r_factor_in_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#r_factor_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#r_factor_in_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  r_factor_in_trend = rsp["rtp.r_factor_in"];
 
-          $('#mos_out').html(rsp["rtp.mos_out"]);
-          if(mos_out_trend){
-            if(rsp["rtp.mos_out"] > mos_out_trend){
-                  $('#mos_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.mos_out"] < mos_out_trend){
-                  $('#mos_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#mos_out_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#mos_out_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          mos_out_trend = rsp["rtp.mos_out"];
+	  $('#mos_out').html(rsp["rtp.mos_out"]);
+	  if(mos_out_trend){
+	    if(rsp["rtp.mos_out"] > mos_out_trend){
+		  $('#mos_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.mos_out"] < mos_out_trend){
+		  $('#mos_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#mos_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#mos_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  mos_out_trend = rsp["rtp.mos_out"];
 
-          $('#r_factor_out').html(rsp["rtp.r_factor_out"]);
-          if(r_factor_out_trend){
-            if(rsp["rtp.r_factor_out"] > r_factor_out_trend){
-                  $('#r_factor_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.r_factor_out"] < r_factor_out_trend){
-                  $('#r_factor_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#r_factor_out_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#r_factor_out_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          r_factor_out_trend = rsp["rtp.r_factor_out"];
+	  $('#r_factor_out').html(rsp["rtp.r_factor_out"]);
+	  if(r_factor_out_trend){
+	    if(rsp["rtp.r_factor_out"] > r_factor_out_trend){
+		  $('#r_factor_out_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.r_factor_out"] < r_factor_out_trend){
+		  $('#r_factor_out_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#r_factor_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#r_factor_out_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  r_factor_out_trend = rsp["rtp.r_factor_out"];
 
-          $('#rtp_transit_in').html(rsp["rtp.rtp_transit_in"]);
-          $('#rtp_transit_out').html(rsp["rtp.rtp_transit_out"]);
+	  $('#rtp_transit_in').html(rsp["rtp.rtp_transit_in"]);
+	  $('#rtp_transit_out').html(rsp["rtp.rtp_transit_out"]);
 
-          $('#rtp_rtt').html(rsp["rtp.rtp_rtt"]+ " ms");
-          if(rtp_rtt_trend){
-            if(rsp["rtp.rtp_rtt"] > rtp_rtt_trend){
-                  $('#rtp_rtt_trend').html("<i class=\"fa fa-arrow-up\"></i>");
-            } else if(rsp["rtp.rtp_rtt"] < rtp_rtt_trend){
-                  $('#rtp_rtt_trend').html("<i class=\"fa fa-arrow-down\"></i>");
-            } else {
-                  $('#rtp_rtt_trend').html("<i class=\"fa fa-minus\"></i>");
-            }
-          }else{
-              $('#rtp_rtt_trend').html("<i class=\"fa fa-minus\"></i>");
-          }
-          rtp_rtt_trend = rsp["rtp.rtp_rtt"];
+	  $('#rtp_rtt').html(rsp["rtp.rtp_rtt"]+ " ms");
+	  if(rtp_rtt_trend){
+	    if(rsp["rtp.rtp_rtt"] > rtp_rtt_trend){
+		  $('#rtp_rtt_trend').html("<i class=\"fa fa-arrow-up\"></i>");
+	    } else if(rsp["rtp.rtp_rtt"] < rtp_rtt_trend){
+		  $('#rtp_rtt_trend').html("<i class=\"fa fa-arrow-down\"></i>");
+	    } else {
+		  $('#rtp_rtt_trend').html("<i class=\"fa fa-minus\"></i>");
+	    }
+	  }else{
+	      $('#rtp_rtt_trend').html("<i class=\"fa fa-minus\"></i>");
+	  }
+	  rtp_rtt_trend = rsp["rtp.rtp_rtt"];
 
-          $('#dtmf_tones').html(rsp["rtp.dtmf_tones"]);
+	  $('#dtmf_tones').html(rsp["rtp.dtmf_tones"]);
 
       ]]
       end
@@ -785,18 +840,18 @@ print [[			cli2srv_packets = rsp["cli2srv.packets"];
 			throughput = rsp["throughput_raw"];
 			bytes = rsp["bytes"];
 
-         /* **************************************** */
-         // Processes information update, based on the pid
+	 /* **************************************** */
+	 // Processes information update, based on the pid
 
-         for (var pid in rsp["processes"]) {
-            var proc = rsp["processes"][pid]
-            // console.log(pid);
-            // console.log(proc);
-            if (proc["memory"])           $('#memory_'+pid).html(proc["memory"]);
-            if (proc["average_cpu_load"]) $('#average_cpu_load_'+pid).html(proc["average_cpu_load"]);
-            if (proc["percentage_iowait_time"]) $('#percentage_iowait_time_'+pid).html(proc["percentage_iowait_time"]);
-            if (proc["page_faults"])      $('#page_faults_'+pid).html(proc["page_faults"]);
-         }
+	 for (var pid in rsp["processes"]) {
+	    var proc = rsp["processes"][pid]
+	    // console.log(pid);
+	    // console.log(proc);
+	    if (proc["memory"])           $('#memory_'+pid).html(proc["memory"]);
+	    if (proc["average_cpu_load"]) $('#average_cpu_load_'+pid).html(proc["average_cpu_load"]);
+	    if (proc["percentage_iowait_time"]) $('#percentage_iowait_time_'+pid).html(proc["percentage_iowait_time"]);
+	    if (proc["page_faults"])      $('#page_faults_'+pid).html(proc["page_faults"]);
+	 }
 
 			/* **************************************** */
 
@@ -805,7 +860,7 @@ print [[			cli2srv_packets = rsp["cli2srv.packets"];
 			values.push(rsp.throughput_raw);
 			thptChart.text(values.join(",")).change();
 		     }
-	           });
+		   });
 		 }
 
 ]]

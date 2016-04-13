@@ -53,11 +53,32 @@ if(format == "txt") then
 end
 
 res = getInterfaceTopFlows(ifId, ip_version, host, (l7proto or ""), (l4proto or ""), (port or ""), (info or ""),
-			   epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC', limit)
+			   epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC')
 
 if(format == "txt") then
    -- TXT
-   sendHTTPHeader('text/plain; charset=iso-8859-1')
+   local filename="ntopng_flows"
+   if ip_version ~= nil and ip_version ~= "" then filename = filename.."_IPv"..ip_version end
+   if host ~= nil and host ~= "" then filename = filename .."_host_"..getPathFromKey(host) end
+   if l4proto ~= nil and l4proto ~="" then filename = filename .."_l4proto_"..l4ProtoToName(l4proto) end
+   if l7proto ~= nil and l7proto ~= "" then
+      local protos = {}
+      for proto_name, proto_id in pairs(interface.getnDPIProtocols()) do
+	 protos[proto_id] = proto_name
+      end
+      local l7proto_label = l4proto
+      if protos[l7proto] ~= nil then l7proto_label = protos[l7proto] end
+      filename = filename .."_l7proto_"..l7proto_label
+   end
+   if port ~= nil and port ~= "" then filename = filename .."_port_"..tostring(port) end
+   if epoch_begin ~= nil and epoch_begin ~= "" then
+      filename = filename.."_from_"..string.gsub(formatEpoch(epoch_begin), ' ', '-')
+   end
+   if epoch_end ~= nil and epoch_begin ~= "" then
+      filename = filename.."_to_"..string.gsub(formatEpoch(epoch_end), ' ', '-')
+   end
+   filename = filename..".txt"
+   sendHTTPHeader('text/plain; charset=iso-8859-1', 'attachment; filename="'..filename..'"')
    local num = 0
    for _,flow in pairs(res) do
       if(num == 0) then

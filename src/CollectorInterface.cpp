@@ -23,12 +23,11 @@
 
 /* **************************************************** */
 
-CollectorInterface::CollectorInterface(const char *_endpoint, const char *_topic)
-  : ParserInterface(_endpoint) {
+CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
   char *tmp, *e;
+  const char *topics[] = { "flow", "event", NULL };
 
   num_drops = 0, num_subscribers = 0;
-  topic = strdup(_topic);
 
   context = zmq_ctx_new();
 
@@ -45,20 +44,32 @@ CollectorInterface::CollectorInterface(const char *_endpoint, const char *_topic
 
     subscriber[num_subscribers].socket = zmq_socket(context, ZMQ_SUB);
 
-    if(zmq_connect(subscriber[num_subscribers].socket, e) != 0) {
-      zmq_close(subscriber[num_subscribers].socket);
-      zmq_ctx_destroy(context);
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to ZMQ endpoint %s", e);
-      free(tmp);
-      throw("Unable to connect to the specified ZMQ endpoint");
+    if(ntop->getPrefs()->is_zmq_collector_mode()) {     
+      if(zmq_bind(subscriber[num_subscribers].socket, e) != 0) {
+	zmq_close(subscriber[num_subscribers].socket);
+	zmq_ctx_destroy(context);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to ZMQ endpoint %s", e);
+	free(tmp);
+	throw("Unable to bind to the specified ZMQ endpoint");
+      }
+    } else {
+      if(zmq_connect(subscriber[num_subscribers].socket, e) != 0) {
+	zmq_close(subscriber[num_subscribers].socket);
+	zmq_ctx_destroy(context);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to ZMQ endpoint %s", e);
+	free(tmp);
+	throw("Unable to connect to the specified ZMQ endpoint");
+      }
     }
 
-    if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_SUBSCRIBE, topic, strlen(topic)) != 0) {
-      zmq_close(subscriber[num_subscribers].socket);
-      zmq_ctx_destroy(context);
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to the specified ZMQ endpoint");
-      free(tmp);
-      throw("Unable to subscribe to the specified ZMQ endpoint");
+    for(int i=0; topics[i] != NULL; i++) {
+      if(zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_SUBSCRIBE, topics[i], strlen(topics[i])) != 0) {
+	zmq_close(subscriber[num_subscribers].socket);
+	zmq_ctx_destroy(context);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to subscribe to topic %s", topics[i]);
+	free(tmp);
+	throw("Unable to subscribe to the specified ZMQ endpoint");
+      }
     }
 
     subscriber[num_subscribers].endpoint = strdup(e);
@@ -78,7 +89,6 @@ CollectorInterface::~CollectorInterface() {
     zmq_close(subscriber[i].socket);
   }
 
-  if(topic) free(topic);
   zmq_ctx_destroy(context);
 }
 
@@ -91,7 +101,10 @@ void CollectorInterface::collect_flows() {
   zmq_pollitem_t items[CONST_MAX_NUM_ZMQ_SUBSCRIBERS];
   int rc, size;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows on %s", ifname);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows on %s [%s]",
+			       ifname,
+			       ntop->getPrefs()->is_zmq_collector_mode() ? 
+			       "nprobe->ntopng" : "ntopng->nprobe");
 
   while(isRunning()) {
     while(idle()) {
@@ -123,12 +136,52 @@ void CollectorInterface::collect_flows() {
 	size = zmq_recv(items[source_id].socket, payload, payload_len, 0);
 
 	if(size > 0) {
+	  char *uncompressed = NULL;
+	  u_int uncompressed_len;
+
 	  payload[size] = '\0';
 
-	  parse_flows(payload, sizeof(payload), source_id, this);
+	  if(payload[0] == 0 /* Compressed traffic */) {
+#ifdef HAVE_ZLIB
+	    int err;
+	    uLongf uLen;
+	    
+	    uLen = uncompressed_len = 3*size;
+	    uncompressed = (char*)malloc(uncompressed_len+1);
+	    if((err = uncompress((Bytef*)uncompressed, &uLen, (Bytef*)&payload[1], size-1)) != Z_OK) {
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Uncompress error [%d]", err);
+	      return;
+	    }
 
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", h.size, payload);
-	}
+	    uncompressed_len = uLen, uncompressed[uLen] = '\0';
+#else
+	    static bool once = false;
+	    
+	    if(!once)
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to uncompress ZMQ traffic"), once = true;
+
+	    return;
+#endif
+	  } else
+	    uncompressed = payload, uncompressed_len = size;
+	
+	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
+	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());	  
+	  
+	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", uncompressed); */
+
+	  if(strcmp(h.url, "event") == 0)
+	    parseEvent(uncompressed, uncompressed_len, source_id, this);
+	  else
+	    parseFlow(uncompressed, uncompressed_len, source_id, this);
+
+#ifdef HAVE_ZLIB
+	  if(payload[0] == 0 /* only if the traffic was actually compressed */)
+	    if(uncompressed) free(uncompressed);
+#endif
+
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", uncompressed_len, uncompressed);
+	} /* size > 0 */
       }
     } /* for */
   }

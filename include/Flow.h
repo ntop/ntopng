@@ -29,6 +29,16 @@ typedef struct {
   u_int64_t last, next;
 } TCPPacketStats;
 
+typedef struct {
+  struct timeval lastTime;
+  u_int64_t total_delta_ms;
+  float min_ms, max_ms; 
+} InterarrivalStats;
+
+typedef struct {
+  InterarrivalStats pktTime;  
+} FlowPacketStats;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -38,11 +48,12 @@ class Flow : public GenericHashEntry {
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
-    ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed;
+    ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed,
+    good_low_flow_detected;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
-  CounterTrend c2sBytes, s2cBytes;
+  CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
@@ -90,10 +101,7 @@ class Flow : public GenericHashEntry {
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
   float rttSec;
 
-  struct {
-    struct timeval firstSeenSent, lastSeenSent;
-    struct timeval firstSeenRcvd, lastSeenRcvd;
-  } flowTimers;
+  FlowPacketStats cli2srvStats, srv2cliStats;
 
   /* Counter values at last host update */
   struct {
@@ -105,7 +113,10 @@ class Flow : public GenericHashEntry {
 
   struct timeval last_update_time;
 
-  float bytes_thpt, goodput_bytes_thpt, top_bytes_thpt, top_goodput_bytes_thpt, pkts_thpt, top_pkts_thpt;
+  float bytes_thpt, goodput_bytes_thpt, top_bytes_thpt, top_goodput_bytes_thpt, top_pkts_thpt;
+  float bytes_thpt_cli2srv, goodput_bytes_thpt_cli2srv;
+  float bytes_thpt_srv2cli, goodput_bytes_thpt_srv2cli;
+  float pkts_thpt, pkts_thpt_cli2srv, pkts_thpt_srv2cli;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
   //TimeSeries<float> *bytes_rate;
   u_int64_t cli2srv_last_packets, srv2cli_last_packets,
@@ -123,12 +134,12 @@ class Flow : public GenericHashEntry {
   void allocFlowMemory();
   bool checkTor(char *hostname);
   void checkFlowCategory();
+  void setBittorrentHash(char *hash);
+  bool isLowGoodput();
+  void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
+  void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
 
  public:
-  Flow(NetworkInterface *_iface,
-       u_int16_t _vlanId, u_int8_t _protocol,
-       u_int8_t cli_mac[6], IpAddress *_cli_ip, u_int16_t _cli_port,
-       u_int8_t srv_mac[6], IpAddress *_srv_ip, u_int16_t _srv_port);
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
        u_int8_t cli_mac[6], IpAddress *_cli_ip, u_int16_t _cli_port,
@@ -150,12 +161,12 @@ class Flow : public GenericHashEntry {
   char* get_username(bool client);
   char* get_proc_name(bool client);
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
-  void makeVerdict();
+  void makeVerdict(bool reset);
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   inline char* getFlowServerInfo() { return(host_server_name); };
   inline char* getBitTorrentHash() { return(bt_hash);          };
-
+  inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = strdup(v); }
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
 
@@ -195,7 +206,7 @@ class Flow : public GenericHashEntry {
 
   inline time_t get_partial_first_seen()          { return(last_db_dump.last_dump == 0 ? get_first_seen() : last_db_dump.last_dump); };
   inline time_t get_partial_last_seen()           { return(get_last_seen()); };
-  inline u_int32_t get_duration()                 { return(get_last_seen()-get_first_seen()); };
+  inline u_int32_t get_duration()                 { return((u_int32_t)(get_last_seen()-get_first_seen())); };
   inline char* get_protocol_name()                { return(Utils::l4proto2name(protocol));   };
   inline ndpi_protocol get_detected_protocol()    { return(ndpiDetectedProtocol);          };
   inline Host* get_cli_host()                     { return(cli_host);                        };
@@ -238,9 +249,12 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
+  void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-  inline char* getDnsLastQuery()    { return(dns.last_query);  }
-  inline char* getHTTPLastURL()     { return(http.last_url);   }
+  inline char* getDNSQuery()        { return(dns.last_query);  }
+  inline void  setDNSQuery(char *v) { if(dns.last_query) free(dns.last_query);  dns.last_query = strdup(v); }
+  inline char* getHTTPURL()         { return(http.last_url);   }
+  inline void  setHTTPURL(char *v)  { if(http.last_url) free(http.last_url);  http.last_url = strdup(v); }
   inline char* getSSLCertificate()  { return(ssl.certificate); }
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
@@ -253,6 +267,13 @@ class Flow : public GenericHashEntry {
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */
   inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
   inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
+
+  inline u_int32_t getCli2SrvMinInterArrivalTime() { return(cli2srvStats.pktTime.min_ms); }
+  inline u_int32_t getCli2SrvMaxInterArrivalTime() { return(cli2srvStats.pktTime.max_ms); }
+  inline u_int32_t getCli2SrvAvgInterArrivalTime() { return((cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (cli2srv_packets-1)); }
+  inline u_int32_t getSrv2CliMinInterArrivalTime() { return(srv2cliStats.pktTime.min_ms); }
+  inline u_int32_t getSrv2CliMaxInterArrivalTime() { return(srv2cliStats.pktTime.max_ms); }
+  inline u_int32_t getSrv2CliAvgInterArrivalTime() { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
 };
 
 #endif /* _FLOW_H_ */

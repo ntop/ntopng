@@ -45,7 +45,13 @@ bool DB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 
 /* ******************************************* */
 
-int DB::exec_sql_query(lua_State *vm, char *sql) {
+int DB::exec_sql_query(lua_State *vm, char *sql, bool limit_rows) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
+}
+
+/* ******************************************* */
+
+void DB::startDBLoop() {
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
 }
