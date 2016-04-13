@@ -32,11 +32,11 @@ typedef struct {
 typedef struct {
   struct timeval lastTime;
   u_int64_t total_delta_ms;
-  float min_ms, max_ms; 
+  float min_ms, max_ms;
 } InterarrivalStats;
 
 typedef struct {
-  InterarrivalStats pktTime;  
+  InterarrivalStats pktTime;
 } FlowPacketStats;
 
 class Flow : public GenericHashEntry {
@@ -68,7 +68,7 @@ class Flow : public GenericHashEntry {
   struct {
     char *last_query;
   } dns;
-  
+
   struct {
     char *certificate;
   } ssl;
@@ -91,9 +91,9 @@ class Flow : public GenericHashEntry {
   TCPPacketStats tcp_stats_s2d, tcp_stats_d2s;
   u_int16_t cli2srv_window, srv2cli_window;
 
-  time_t doNotExpireBefore; /* 
+  time_t doNotExpireBefore; /*
 			       Used for collected flows via ZMQ to make sure that they are not immediately
-			       expired if their last seen time is back in time with respect to ntopng 
+			       expired if their last seen time is back in time with respect to ntopng
 			    */
 
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
@@ -171,16 +171,16 @@ class Flow : public GenericHashEntry {
 		      u_int8_t flags, bool src2dst_direction);
 
   void updateTcpSeqNum(const struct bpf_timeval *when,
-		       u_int32_t seq_num, u_int32_t ack_seq_num, 
+		       u_int32_t seq_num, u_int32_t ack_seq_num,
 		       u_int16_t window, u_int8_t flags,
 		       u_int16_t payload_len, bool src2dst_direction);
-  
+
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
   void setDetectedProtocol(ndpi_protocol proto_id);
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
-  void incStats(bool cli2srv_direction, u_int pkt_len, 
+  void incStats(bool cli2srv_direction, u_int pkt_len,
 		u_int payload_len, const struct bpf_timeval *when);
   void updateActivities();
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
@@ -248,6 +248,7 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
+  inline bool isSuspiciousFlow();
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
