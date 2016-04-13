@@ -193,7 +193,7 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 -- ##############################################
 
-function sendHTTPHeaderIfName(mime, ifname, maxage)
+function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition)
   info = ntop.getInfo(false)
 
   print('HTTP/1.1 200 OK\r\n')
@@ -205,20 +205,21 @@ function sendHTTPHeaderIfName(mime, ifname, maxage)
   if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; HttpOnly\r\n') end
   if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/\r\n') end
   print('Content-Type: '.. mime ..'\r\n')
+  if(content_disposition ~= nil) then print('Content-Disposition: '..content_disposition..'\r\n') end
   print('Last-Modified: '..os.date("!%a, %m %B %Y %X %Z").."\r\n")
   print('\r\n')
 end
 
 -- ##############################################
 
-function sendHTTPHeaderLogout(mime)
-  sendHTTPHeaderIfName(mime, nil, 0)
+function sendHTTPHeaderLogout(mime, content_disposition)
+  sendHTTPHeaderIfName(mime, nil, 0, content_disposition)
 end
 
 -- ##############################################
 
-function sendHTTPHeader(mime)
-  sendHTTPHeaderIfName(mime, nil, 3600)
+function sendHTTPHeader(mime, content_disposition)
+  sendHTTPHeaderIfName(mime, nil, 3600, content_disposition)
 end
 
 -- ##############################################

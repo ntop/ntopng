@@ -246,12 +246,12 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 print[[
 
   $('#download_flows_v4_]] print(button_id) print[[').click(function (event){
-    window.location.href="]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[['));
+    window.location.assign("]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
     return false;
   });
 
   $('#download_flows_v6_]] print(button_id) print[[').click(function (event){
-    window.location.href="]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[['));
+    window.location.assign("]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
     return false;
   });
 ]]
