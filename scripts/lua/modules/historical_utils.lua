@@ -142,15 +142,15 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
 	    if (value.length == 1){
 	      // only the l7 protocol id in value[0]
 	      var proto = human_readable;
-	      $('#historical-apps-container').attr("proto", proto);
-	      $('#historical-apps-container').attr("proto_id", value[0]);
+	      $('#historical-apps-container').attr("l7_proto", proto);
+	      $('#historical-apps-container').attr("l7_proto_id", value[0]);
 	      populateAppTopTalkersTable(value[0]);
 	    } else if (value.length == 2){
 	      // both the l7 protocol id and the peer have been selected
 	      var proto = human_readable.split(multival_separator)[0];
 	      var addr = human_readable.split(multival_separator)[1];
-	      $('#historical-apps-container').attr("proto", proto);
-	      $('#historical-apps-container').attr("proto_id", value[0]);
+	      $('#historical-apps-container').attr("l7_proto", proto);
+	      $('#historical-apps-container').attr("l7_proto_id", value[0]);
 	      $('#historical-apps-container').attr("host", addr);
 	      populatePeersPerHostByApplication(value[1], value[0]);
 	    }
@@ -351,7 +351,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
 
 
 <!-- attach some status information to the historical container -->
-<div id="historical-container" epoch_begin="" epoch_end="" ifname="" host="" peer="" proto_id="">
+<div id="historical-container" epoch_begin="" epoch_end="" ifname="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="">
 
 
   <div class="row">
@@ -400,10 +400,10 @@ var refreshBreadCrumbHost = function(host){
   // the second is shown if it has been added...
 
   // first pair: shown if the host has not been favourited
-  $("#bc-talkers").append('<li class="bc-item-add talker">Talkers with ' + host + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-add talker">' + host + ' talkers <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
 
   // second pair: shown if the host has been favourited
-  $("#bc-talkers").append('<li class="bc-item-remove talker">Talkers with ' + host + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
+  $("#bc-talkers").append('<li class="bc-item-remove talker">' + host + ' talkers <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'talker\', \'top_talkers_talker\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_talkers_talker > option[value=\'' + host + '\']').length == 0){
@@ -431,7 +431,7 @@ var refreshBreadCrumbPairs = function(peer1, peer2){
   $('#historical-container').attr("peer", peer2);
 
   $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
-  $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">Talkers with ' + peer1 + '</a></li>');
+  $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">' + peer1 + ' talkers</a></li>');
 
   // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case
 
@@ -675,7 +675,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
 <ol class="breadcrumb" id="bc-apps" style="margin-bottom: 5px;"]] print('root="'..breadcrumb_root..'"') print [[>
 </ol>
 
-<div id="historical-apps-container">
+<div id="historical-apps-container" epoch_begin="" epoch_end="" ifname="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="">
 
 
   <div class="row">
@@ -715,7 +715,7 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
   emptyAppsBreadCrumb();
 
   var root = $("#bc-apps").attr("root");
-  var app = $('#historical-apps-container').attr("proto");
+  var app = $('#historical-apps-container').attr("l7_proto");
 
   if (root === "interface"){
     $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
@@ -749,8 +749,12 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
 
   } else if (root == "host"){
     var host = $('#historical-apps-container').attr("host");
-    $("#bc-apps").append('<li><a onclick="populateHostTopAppsTable(\'' + host + '\');">Protocols spoken by ' + host + '</a></li>');
-    $("#bc-apps").append('<li> ' + app + ' talkers with ' + host + ' </li>');
+    $("#bc-apps").append('<li><a onclick="populateHostTopAppsTable(\'' + host + '\');">' + host + ' protocols</a></li>');
+    if(app.toLowerCase().endsWith("unknown")){
+      $("#bc-apps").append('<li> Unknown protocol talkers with ' + host + ' </li>');
+    } else {
+      $("#bc-apps").append('<li> ' + app + ' talkers with ' + host + ' </li>');
+    }
   }
 }
 
@@ -784,7 +788,7 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="Get Talkers using this protocol"></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populateAppTopTalkersTable(\'' + proto_id +'\');"><i class="fa fa-pie-chart" title="Get Talkers using this protocol"></i></a>');
 	  return row;
 	},
       columns:
@@ -803,7 +807,7 @@ print [[
 var populateAppTopTalkersTable = function(proto_id){
   emptyAppsBreadCrumb();
   $('#historical-apps-container').removeAttr("host");
-  var app = $('#historical-apps-container').attr("proto");
+  var app = $('#historical-apps-container').attr("l7_proto");
 
   // UPDATE THE BREADCRUMB
   $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
@@ -935,9 +939,9 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 var populateHostTopAppsTable = function(host){
   emptyAppsBreadCrumb();
   $('#historical-apps-container').attr("host", host);
-  $('#historical-apps-container').removeAttr("proto");
-  $('#historical-apps-container').removeAttr("proto_id");
-  $("#bc-apps").append('<li>Protocols spoken by ' + host +'</li>');
+  $('#historical-apps-container').removeAttr("l7_proto");
+  $('#historical-apps-container').removeAttr("l7_proto_id");
+  $("#bc-apps").append('<li>' + host +' protocols</li>');
 
   // remove the favourite top apps dropdowns
   $('#top_applications_app').parent().closest('div').detach();
@@ -969,7 +973,7 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
-	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
+	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
 	  return row;
 	},
       columns:
