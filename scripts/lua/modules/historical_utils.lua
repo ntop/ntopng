@@ -374,6 +374,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
   <div id="historical-interface-top-talkers-table" class="historical-interface" total_rows=-1 loaded=0> </div>
   <div id="hosts-container"> </div>
   <div id="apps-per-pair-container"> </div>
+  <div id="flows-per-pair-container"> </div>
 </div>
 
 ]] historicalDownloadButtonsBar("pcap-button-top-talkers", "historical-container") print [[
@@ -425,10 +426,15 @@ var refreshBreadCrumbHost = function(host){
   $('#historical-container').removeAttr("peer");
 }
 
-var refreshBreadCrumbPairs = function(peer1, peer2){
+var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
   emptyBreadCrumb();
   $('#historical-container').attr("host", peer1);
   $('#historical-container').attr("peer", peer2);
+  if (typeof l7_proto_id !== "undefined"){
+    $('#historical-container').attr("l7_proto_id", l7_proto_id);
+  } else {
+    $('#historical-container').removeAttr("l7_proto_id");
+  }
 
   $("#bc-talkers").append('<li><a onclick="populateInterfaceTopTalkersTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
   $("#bc-talkers").append('<li><a onclick="populateHostTopTalkersTable(\'' + peer1 + '\');">' + peer1 + ' talkers</a></li>');
@@ -436,12 +442,16 @@ var refreshBreadCrumbPairs = function(peer1, peer2){
   // here we append to li: one will be shown if the pair of peers is favourited, the other is shown in the opposite case
 
   // first li: shown if the pair has been favourited
-  $("#bc-talkers").append('<li class="bc-item-add host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Save"></i></a></li>');
+  var bc_talkers_li_text = 'Applications between ' + peer1 + ' and ' + peer2;
+  if (typeof l7_proto_id !== "undefined"){
+    bc_talkers_li_text = '<a onclick="populateAppsPerHostsPairTable(\'' + peer1 + '\',\'' + peer2 + '\');">' + bc_talkers_li_text + '</a>';
+  }
+
+  $("#bc-talkers").append('<li class="bc-item-add host-pair">' + bc_talkers_li_text + ' <a onclick="addToFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart-o" title="Save"></i></a></li>');
   $('#historical-container').attr("peer", peer2);
 
   // second li: shown if the pair has not been favorited
-  $("#bc-talkers").append('<li class="bc-item-remove host-pair">Applications between ' + peer1 + ' and ' + peer2 + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Unsave"></i></a></li>');
-
+  $("#bc-talkers").append('<li class="bc-item-remove host-pair">' + bc_talkers_li_text + ' <a onclick="removeFromFavourites(\'historical-container\', \'top_talkers\', \'apps_per_host_pair\', \'top_talkers_host_pairs\');"><i class="fa fa-heart" title="Unsave"></i></a></li>');
 
   // check which li has to be shown, depending on the content of a dropdown menu
   if($('#top_talkers_host_pairs > option[value=\'' + peer1 + ',' + peer2 + '\']').length == 0){
@@ -457,12 +467,18 @@ var refreshBreadCrumbPairs = function(peer1, peer2){
   $('.bc-item-add, .bc-item-remove').on('click', function(){
     $('.bc-item-add, .bc-item-remove').toggle();
   });
+
+  // finally add a possible l7 protocol indication
+  if (typeof l7_proto_id !== "undefined"){
+    $("#bc-talkers").append('<li>Flows</li>');
+  }
 }
 
 var populateInterfaceTopTalkersTable = function(){
   refreshBreadCrumbInterface();
   hideAll("host-talkers");
   hideAll("apps-per-host-pair");
+  hideAll('flows-per-host-pair');
   showOne('historical-interface', 'historical-interface-top-talkers-table');
 
 
@@ -513,6 +529,7 @@ var populateHostTopTalkersTable = function(host){
 
   hideAll('historical-interface');
   hideAll('apps-per-host-pair');
+  hideAll('flows-per-host-pair');
   showOne("host-talkers", div_id);
 
   // load the table only if it is the first time we've been called
@@ -546,13 +563,13 @@ var populateHostTopTalkersTable = function(host){
 	[
 	  {title: "Host Name", field: "column_label", sortable: true},
 	  {title: "IP Address", field: "column_addr", hidden: false, sortable: true},
-	  {title: "Total Traffic", field: "column_bytes",              sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Packets", field: "column_packets",                   sortable: true, css: {textAlign:'right'}},
-	  {title: "Traffic Sent",     field: "column_out_bytes",       sortable: true,css: {textAlign:'right'}},
-	  {title: "Packets Sent",     field: "column_out_packets",     sortable: true, css: {textAlign:'right'}},
+	  {title: "Total Traffic",    field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Packets",    field: "column_packets",    sortable: true, css: {textAlign:'right'}},
+	  {title: "Traffic Sent",     field: "column_out_bytes",  sortable: true,css: {textAlign:'right'}},
+	  {title: "Packets Sent",     field: "column_out_packets",sortable: true, css: {textAlign:'right'}},
 	  {title: "Traffic Received", field: "column_in_bytes",   sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets Received", field: "column_in_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "Flows", field: "column_flows",                 sortable: true, css: {textAlign:'right'}}
 	]
     });
   }
@@ -574,6 +591,7 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 
   hideAll('historical-interface');
   hideAll('host-talkers');
+  hideAll('flows-per-host-pair');
   showOne('apps-per-host-pair', div_id);
 
   div_id='#'+div_id;
@@ -597,6 +615,15 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	showFilter: true,
 	showPagination: true,
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdowns();},
+	rowCallback: function(row){
+	  var l7_proto_id_td = $("td:eq(0)", row[0]);
+	  var label_td = $("td:eq(1)", row[0]);
+	  var label = label_td.text();
+	  var l7_proto_id = l7_proto_id_td.text();
+          var num_flows = $("td:eq(4)", row[0]).text();
+	  label_td.append('&nbsp;<a onclick="populateFlowsPerHostsPairTable(\'' + peer1 +'\',\'' + peer2 +'\',\'' + l7_proto_id +'\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="' + label + ' application flows between ' + peer1 + ' and ' + peer2 + '"></i></a>');
+	  return row;
+	},
 	columns:
 	[
 	  {title: "Protocol id", field: "column_application", hidden: true},
@@ -604,6 +631,69 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	]
+    });
+  }
+};
+
+var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flows){
+  refreshBreadCrumbPairs(peer1, peer2, l7_proto_id);
+
+  var kpeer1 = hostkey2hostid(peer1)[0];
+  var kpeer2 = hostkey2hostid(peer2)[0];
+  if (kpeer2 > kpeer1){
+    var tmp = kpeer2;
+    kpeer2 = kpeer1;
+    kpeer1 = tmp;
+  }
+  var div_id = 'flows-pair-' + kpeer1 + "_" + kpeer2;
+  if(typeof l7_proto_id !== "undefined"){
+    div_id = div_id + "_" + l7_proto_id;
+  }
+  if ($('#'+div_id).length == 0)  // create the div only if it does not exist
+    $('#flows-per-pair-container').append('<div class="flows-per-host-pair" id="' + div_id + '" total_rows=-1 loaded=0></div>');
+
+  hideAll('historical-interface');
+  hideAll('host-talkers');
+  hideAll('apps-per-host-pair');
+  showOne('flows-per-host-pair', div_id);
+
+  div_id='#'+div_id;
+
+  // if the table has already been loaded, we just show up all the dropdowns
+  if ($(div_id).attr("loaded") == 1) {
+    enableAllDropdowns();
+  } else {   // load the table only if it is the first time we've been called
+    disableAllDropdowns();
+    $(div_id).attr("loaded", 1);
+    $(div_id).attr("peer1", peer1);
+    $(div_id).attr("peer2", peer2);
+    $(div_id).attr("l7_proto_id", l7_proto_id);
+    $(div_id).datatable({
+	title: "",]]
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..tostring(ifId)..interface_talkers_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+  if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+  -- Automatic default sorted. NB: the column must be exists.
+	print [[
+	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
+	showFilter: true,
+	showPagination: true,
+totalRows: 100,
+	sort: [ [ "BYTES","desc"] ],
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdowns();},
+	columns:
+	[
+	  {title: "Key",         field: "idx",            hidden: true},
+	  {title: "",            field: "FLOW_URL",       sortable:false, css:{textAlign:'center'}},
+	  {title: "Application", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
+	  {title: "L4 Proto",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
+	  {title: "Client",      field: "CLIENT",         sortable: false},
+	  {title: "Server",      field: "SERVER",         sortable: false},
+	  {title: "Begin",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
+	  {title: "End",         field: "LAST_SWITCHED",  sortable: true, css:{textAlign:'center'}},
+	  {title: "Traffic",     field: "BYTES",          sortable: true, css:{textAlign:'right'}},
+	  {title: "Info",        field: "INFO",           sortable: true, css:{textAlign:'right'}},
+	  {title: "Avg Thpt",    field: "AVG_THROUGHPUT", sortable: false, css:{textAlign:'right'}}
 	]
     });
   }
