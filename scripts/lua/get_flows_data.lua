@@ -15,7 +15,6 @@ interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
 -- printGETParameters(_GET)
 
-
 -- Table parameters
 all = _GET["all"]
 currentPage = _GET["currentPage"]
@@ -50,7 +49,7 @@ end
 if((sortColumn == nil) or (sortColumn == "column_"))then
   sortColumn = getDefaultTableSort("flows")
 else
-   if((sortColumn ~= "column_") and (sortColumn ~= "")) then  
+   if((sortColumn ~= "column_") and (sortColumn ~= "")) then
     tablePreferences("sort_flows",sortColumn)
   end
 end
@@ -58,8 +57,8 @@ end
 if(sortOrder == nil) then
   sortOrder = getDefaultTableSortOrder("flows")
 else
-  if((sortColumn ~= "column_") and (sortColumn ~= "")) then   
-    tablePreferences("sort_order_flows",sortOrder) 
+  if((sortColumn ~= "column_") and (sortColumn ~= "")) then
+    tablePreferences("sort_order_flows",sortOrder)
   end
 end
 
@@ -112,24 +111,24 @@ if(flows_stats == nil) then flows_stats = { } end
 
 for key, value in ipairs(flows_stats) do
    -- io.write(">>>> "..key.."\n")
-   if(debug) then io.write("==================\n")end
+   if(debug) then io.write("==================\n") end
 
    process = true
    client_process = 0
    server_process = 0
-   
+
    if(debug) then io.write("Cli:"..flows_stats[key]["cli.ip"].."\t") end
    if(debug) then io.write("Srv:"..flows_stats[key]["srv.ip"].."\n") end
- 
+
    if(vhost ~= nil) then
-      if((flows_stats[key]["cli.host"] ~= vhost) 
+      if((flows_stats[key]["cli.host"] ~= vhost)
       and (flows_stats[key]["srv.host"] ~= vhost)
    and (flows_stats[key]["http.server_name"] ~= vhost)
    and (flows_stats[key]["dns.last_query"] ~= vhost)) then
 	 process = false
       end
    end
-   
+
    if(network_id ~= nil) then
       process = process and ((flows_stats[key]["cli.network_id"] == network_id) or (flows_stats[key]["srv.network_id"] == network_id))
    end
@@ -142,40 +141,40 @@ for key, value in ipairs(flows_stats) do
 
    ---------------- USER ----------------
    if(user ~= nil) then
-      if(debug) then io.write("User:"..user.."\n")end
+      if(debug) then io.write("User:"..user.."\n") end
 
       if(flows_stats[key]["client_process"] ~= nil) then
          if(debug) then io.write("Client user:"..flows_stats[key]["client_process"]["user_name"].."\n") end
          if((flows_stats[key]["client_process"]["user_name"] == user)) then
             client_process = 1
          end
-         if(debug) then io.write("USER: => ClientProcess -\t"..client_process.."\n")end
+         if(debug) then io.write("USER: => ClientProcess -\t"..client_process.."\n") end
       end
 
       if(flows_stats[key]["server_process"] ~= nil) then
          if(debug) then io.write("Server user:"..flows_stats[key]["server_process"]["user_name"].."\n") end
          if((flows_stats[key]["server_process"]["user_name"] == user)) then
             server_process = 1
-            if(debug) then io.write("USER: => 1ServerProcess -\t"..server_process.."\n")end
+            if(debug) then io.write("USER: => 1ServerProcess -\t"..server_process.."\n") end
          end
-         if(debug) then io.write("USER: => ServerProcess -\t"..server_process.."\n")end
+         if(debug) then io.write("USER: => ServerProcess -\t"..server_process.."\n") end
       end
 
       process = process and ((client_process == 1) or (server_process == 1))
 
    end
-   if(debug and (not process)) then io.write("Stop user\n")end
+   if(debug and (not process)) then io.write("Stop user\n") end
 
    ---------------- PID ----------------
    if(pid ~= nil) then
-      if(debug) then io.write("Pid:"..pid.."\n")end
+      if(debug) then io.write("Pid:"..pid.."\n") end
 
       if(flows_stats[key]["client_process"] ~= nil) then
          if(debug) then io.write("Client pid:"..flows_stats[key]["client_process"]["pid"].."\n") end
          if((flows_stats[key]["client_process"]["pid"] == pid)) then
             client_process = 1
          end
-         if(debug) then io.write("PID: => ClientProcess -\t"..client_process.."\n")end
+         if(debug) then io.write("PID: => ClientProcess -\t"..client_process.."\n") end
       end
 
       if(flows_stats[key]["server_process"] ~= nil) then
@@ -183,24 +182,24 @@ for key, value in ipairs(flows_stats) do
          if((flows_stats[key]["server_process"]["pid"] == pid)) then
             server_process = 1
          end
-         if(debug) then io.write("PID: => ServerProcess -\t"..server_process.."\n")end
+         if(debug) then io.write("PID: => ServerProcess -\t"..server_process.."\n") end
       end
 
        process = process and  ((client_process == 1) or (server_process == 1))
 
    end
-   if(debug and (not process)) then io.write("Stop Pid\n")end
+   if(debug and (not process)) then io.write("Stop Pid\n") end
 
    ---------------- NAME ----------------
    if(name ~= nil) then
-      if(debug) then io.write("Name:"..name.."\n")end
+      if(debug) then io.write("Name:"..name.."\n") end
 
       if(flows_stats[key]["client_process"] ~= nil) then
          if(debug) then io.write("Client name:"..flows_stats[key]["client_process"]["name"].."\n") end
          if((flows_stats[key]["client_process"]["name"] == name)) then
             client_process = 1
          end
-         if(debug) then io.write("ClientProcess -\t"..client_process.."\n")end
+         if(debug) then io.write("ClientProcess -\t"..client_process.."\n") end
       end
 
       if(flows_stats[key]["server_process"] ~= nil) then
@@ -208,33 +207,32 @@ for key, value in ipairs(flows_stats) do
          if((flows_stats[key]["server_process"]["name"] == name)) then
             server_process = 1
          end
-         if(debug) then io.write("ServerProcess -\t"..server_process.."\n")end
+         if(debug) then io.write("ServerProcess -\t"..server_process.."\n") end
       end
       process = process and ((client_process == 1) or (server_process == 1))
 
    end
-   if(debug and (not process)) then io.write("Stop name\n")end
+   if(debug and (not process)) then io.write("Stop name\n") end
 
    ---------------- APP ----------------
    if(application ~= nil) then
       process = process and (string.ends(flows_stats[key]["proto.ndpi"], application))
    end
-   if(debug and (not process)) then io.write("Stop ndpi\n")end
+   if(debug and (not process)) then io.write("Stop ndpi\n") end
 
    ---------------- PORT ----------------
    if(port ~= nil) then
       process = process and ((flows_stats[key]["cli.port"] == port) or (flows_stats[key]["srv.port"] == port))
    end
-   if(debug and (not process)) then io.write("Stop port\n")end
+   if(debug and (not process)) then io.write("Stop port\n") end
 
    ---------------- HOST ----------------
-   if(num_host_list > 0) then
+   if((num_host_list > 0) and process) then
       if(single_host == 1) then
-
-      if(debug) then io.write("Host:"..host_info["host"].."\n")end
-      if(debug) then io.write("Cli:"..flows_stats[key]["cli.ip"].."\n")end
-      if(debug) then io.write("Srv:"..flows_stats[key]["srv.ip"].."\n")end
-      if(debug) then io.write("vlan:"..flows_stats[key]["vlan"].."  ".. host_info["vlan"].."\n")end
+      if(debug) then io.write("Host:"..host_info["host"].."\n") end
+      if(debug) then io.write("Cli:"..flows_stats[key]["cli.ip"].."\n") end
+      if(debug) then io.write("Srv:"..flows_stats[key]["srv.ip"].."\n") end
+      if(debug) then io.write("vlan:"..flows_stats[key]["vlan"].."  ".. host_info["vlan"].."\n") end
 
       process = process and ((flows_stats[key]["cli.ip"] == host_info["host"]) or (flows_stats[key]["srv.ip"] == host_info["host"]))
       process = process and (flows_stats[key]["vlan"] == host_info["vlan"])
@@ -242,7 +240,6 @@ for key, value in ipairs(flows_stats) do
       else
       cli_num = findStringArray(flows_stats[key]["cli.ip"],host_list)
       srv_num = findStringArray(flows_stats[key]["srv.ip"],host_list)
-
 
       if( (cli_num ~= nil) and (srv_num ~= nil) ) then
          if(cli_num and srv_num) then
@@ -253,14 +250,13 @@ for key, value in ipairs(flows_stats) do
       else
          process = process and false
       end
-
       end
    end
 
-   if(debug and (not process)) then io.write("Stop Host\n")end
+   if(debug and (not process)) then io.write("Stop Host\n") end
 
    info = ""
-   if(flows_stats[key]["dns.last_query"] ~= nil) then 
+   if(flows_stats[key]["dns.last_query"] ~= nil) then
       info = shortenString(flows_stats[key]["dns.last_query"])
       elseif(flows_stats[key]["http.last_url"] ~= nil) then
       info = shortenString(flows_stats[key]["http.last_url"])
@@ -269,15 +265,15 @@ for key, value in ipairs(flows_stats) do
       elseif(flows_stats[key]["bittorrent_hash"] ~= nil) then
       info = shortenString(flows_stats[key]["bittorrent_hash"])
    end
-   flows_stats[key]["info"] = info   
+   flows_stats[key]["info"] = info
 
-   if(flows_stats[key]["profile"] ~= nil) then 
+   if(flows_stats[key]["profile"] ~= nil) then
       flows_stats[key]["info"] = "<span class='label label-primary'>"..flows_stats[key]["profile"].."</span> "..info
    end
-   
+
    ---------------- TABLE SORTING ----------------
    if(process) then
-      if(debug_process) then io.write("Flow Processing\n")end
+      if(debug_process) then io.write("Flow Processing\n") end
       if(debug_process) then io.write("Cli: "..flows_stats[key]["cli.ip"].."\t") end
       if(debug_process) then io.write("Srv: "..flows_stats[key]["srv.ip"].."\n") end
       -- postfix is used to create a unique key otherwise entries with the same key will disappear
@@ -323,8 +319,8 @@ for key, value in ipairs(flows_stats) do
    vkey = flows_stats[key]["bytes"]+postfix
       end
 
-      --      print("-->"..num.."="..vkey.."\n")
-      vals[vkey] = key
+          --io.write("-->"..key.."="..vkey.."\n")
+          vals[vkey] = key
    end
 end
 
@@ -337,19 +333,17 @@ else
    funct = rev
 end
 
-
 --[[ TODO: check that actually vals is no longer needed
 for _key, _value in pairsByKeys(vals, funct) do
    key = vals[_key]
    value = flows_stats[key]
 --]]
 
-for _key, _value in ipairs(flows_stats) do
+for _key, _value in pairsByKeys(vals, funct) do
    key = vals[_key]
-   value = _value
-   --   print(key.."="..value["duration"].."\n");
-   --   print(key.."=".."\n");
-   -- print(key.."/num="..num.."/perPage="..perPage.."/toSkip="..to_skip.."\n")
+   value = flows_stats[key]
+
+     if(key ~= nil) then
       if((num < perPage) or (all ~= nil))then
    if(num > 0) then
       print ",\n"
@@ -392,10 +386,10 @@ for _key, _value in ipairs(flows_stats) do
          else
       src_port=""
          end
-   else			    
+   else
      src_key = abbreviateString(cli_name, 20)
      src_port=":"..value["cli.port"]
-   end     
+   end
 
    if(value["srv.allowed_host"]) then
    dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. abbreviateString(srv_name, 20)
@@ -407,10 +401,10 @@ for _key, _value in ipairs(flows_stats) do
          else
       dst_port=""
          end
-  else			    
+  else
      dst_key = abbreviateString(srv_name, 20)
      dst_port=":"..value["srv.port"]
-   end     
+   end
 
    print ("{ \"key\" : \"" .. value["ntopng.key"]..'\"')
    descr=cli_name..":"..value["cli.port"].." &lt;-&gt; "..srv_name..":"..value["srv.port"]
@@ -506,9 +500,10 @@ for _key, _value in ipairs(flows_stats) do
    end
 
    print(" \" }\n")
-   
+
    num = num + 1
    end
+end
 end -- for
 
 print ("\n], \"perPage\" : " .. perPage.. ",\n")

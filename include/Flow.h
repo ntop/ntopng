@@ -99,7 +99,8 @@ class Flow : public GenericHashEntry {
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
-  float rttSec;
+  struct timeval c2sFirstGoodputTime;
+  float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
 

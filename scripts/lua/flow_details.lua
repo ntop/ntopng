@@ -260,6 +260,10 @@ else
       end
    end
 
+   if(flow["tcp.appl_latency"] > 0) then
+   print("<tr><th width=30%>Application Latency</th><td nowrap>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
+   end
+
    print("<tr><th width=30%>Packet Inter-Arrival Time [ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
    print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
    print("</td>\n")
@@ -277,6 +281,9 @@ else
       if((flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"]) > 0)       then rowspan = rowspan+1 end
       if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0)                       then rowspan = rowspan+1 end
 
+      if(((flow["cli2srv.retransmissions"] + flow["srv2cli.retransmissions"])
+            + (flow["cli2srv.out_of_order"] + flow["srv2cli.out_of_order"])
+	    + (flow["cli2srv.lost"] + flow["srv2cli.lost"])) > 0) then
       print("<tr><th width=30% rowspan="..rowspan..">TCP Packet Analysis</th><td colspan=2 cellpadding='0' width='100%' cellspacing='0' style='padding-top: 0px; padding-left: 0px;padding-bottom: 0px; padding-right: 0px;'></tr>")
       print("<tr><th>&nbsp;</th><th>Client <i class=\"fa fa-arrow-right\"></i> Server / Client <i class=\"fa fa-arrow-left\"></i> Server</th></tr>\n")
 
@@ -288,6 +295,7 @@ else
       end
       if((flow["cli2srv.lost"] + flow["srv2cli.lost"]) > 0) then
         print("<tr><th>Lost</th><td align=right><span id=c2slost>".. formatPackets(flow["cli2srv.lost"]) .."</span> / <span id=s2clost>".. formatPackets(flow["srv2cli.lost"]) .."</span></td></tr>\n")
+      end
       end
    end
 
@@ -333,9 +341,9 @@ else
 	 print(" <small>This flow has been reset and probably the server application is down.</small>")
       else
 	 if(flow_completed) then
-	    print(" <small>This flow is completed and will soon expire.</small>")
+	    print(" <small>This flow is completed and will expire soon.</small>")
 	 else
-  	    print(" <small>This flow is active. We have not seen flow begin: peer roles (client/server) might be inaccurate.</small>")
+  	    print(" <small>We have not seen flow begin: peer roles (client/server) might be inaccurate.</small>")
 	    if(not(flows_syn_seen)) then
 	      print("")
 	    else
