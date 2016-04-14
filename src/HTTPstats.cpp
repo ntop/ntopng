@@ -347,6 +347,11 @@ void HTTPstats::deserialize(json_object *my_object) {
 
   if(!my_object) return;
 
+  memset(&query, 0, sizeof(query));
+  memset(&response, 0, sizeof(response));
+  memset(&query_rate, 0, sizeof(query_rate));
+  memset(&response_rate, 0, sizeof(response_rate));
+
   for (u_int8_t direction = 0; direction < 2; direction++){
     u_int8_t d = direction == AS_SENDER ? AS_SENDER : AS_RECEIVER;
     q  = &query[d];
