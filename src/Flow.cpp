@@ -61,7 +61,7 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0,
     last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0,
     last_db_dump.last_dump = 0;
-  
+
 
   switch(protocol) {
   case IPPROTO_ICMP:
@@ -867,7 +867,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       float bytes_msec_cli2srv         = ((float)(diff_bytes_cli2srv*1000))/tdiff_msec;
       float bytes_msec_srv2cli         = ((float)(diff_bytes_srv2cli*1000))/tdiff_msec;
       float bytes_msec                 = bytes_msec_cli2srv + bytes_msec_srv2cli;
-      
+
       float goodput_bytes_msec_cli2srv = ((float)(diff_goodput_bytes_cli2srv*1000))/tdiff_msec;
       float goodput_bytes_msec_srv2cli = ((float)(diff_goodput_bytes_srv2cli*1000))/tdiff_msec;
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
@@ -1635,7 +1635,7 @@ void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *whe
 	if(deltaMS > stats->max_ms) stats->max_ms = deltaMS;
 	if(deltaMS < stats->min_ms) stats->min_ms = deltaMS;
       }
-      
+
       stats->total_delta_ms += deltaMS;
     }
   }
@@ -1663,7 +1663,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int payload_len, const struct timeval *when) {
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
-  
+
   if((cli_host == NULL) || (srv_host == NULL)) return;
 
   if(cli2srv_direction) {
@@ -1762,6 +1762,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 
 	  rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
 	    +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
+
 	}
       }
     } else
@@ -2122,6 +2123,25 @@ void Flow::getFlowShapers(bool src2dst_direction,
     *a_shaper_id = *b_shaper_id = 0;
 
   *ndpiProtocol = ndpiDetectedProtocol.protocol;
+}
+
+/* *************************************** */
+
+bool Flow::isSuspiciousFlowThpt() {
+  if(protocol == IPPROTO_TCP) {
+    float compareTime = Utils::timeval2ms(&clientNwLatency)*1.5;
+    
+    if(cli2srv_direction && isLowGoodput()) {
+      if((cli2srvStats.pktTime.min_ms > compareTime)
+	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP) 
+	     && (cli2srvStats.pktTime.min_ms > 3000 /* 3 sec */))
+	 || (cli2srvStats.pktTime.min_ms > 6000000 /* 10 mins */)
+	 )
+	return(true);
+    }
+  }
+  
+  return(false);
 }
 
 /* *************************************** */
