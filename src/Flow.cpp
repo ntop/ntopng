@@ -2127,28 +2127,22 @@ void Flow::getFlowShapers(bool src2dst_direction,
 
 /* *************************************** */
 
-bool Flow::isSuspiciousFlow() {
-    bool ris = false;
-    if(protocol == IPPROTO_TCP){
-        u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
-        //50% of host client latency, expressed in ms
-        float compareTime = ((clientNwLatency.tv_sec*(float)1000)+(clientNwLatency.tv_usec/(float)1000)*1.5);
-        //check if min arrival time is greater then compareTime
-        if(cli2srvStats.pktTime.min_ms>compareTime&&cli2srv_direction&&isLowGoodput()){
-                ris=true;
-        }
-        //check http keep alive time, default 5 sec in apache server, i set it to 3 sec, 60%
-        if(l7proto==NDPI_PROTOCOL_HTTP&&cli2srvStats.pktTime.min_ms>3000&&cli2srv_direction){
-            ris = true;
-        }
-        //just to be safe, 10 minutes idle time
-        if(cli2srvStats.pktTime.min_ms>6000000&&cli2srv_direction&&isLowGoodput()){
-            ris = true;
-        }
+bool Flow::isSuspiciousFlowThpt() {
+  if(protocol == IPPROTO_TCP) {
+    float compareTime = Utils::timeval2ms(&clientNwLatency)*1.5;
+    
+    if(cli2srv_direction && isLowGoodput()) {
+      if((cli2srvStats.pktTime.min_ms > compareTime)
+	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP) 
+	     && (cli2srvStats.pktTime.min_ms > 3000 /* 3 sec */))
+	 || (cli2srvStats.pktTime.min_ms > 6000000 /* 10 mins */)
+	 )
+	return(true);
     }
-    return ris;
+  }
+  
+  return(false);
 }
-
 
 /* *************************************** */
 
