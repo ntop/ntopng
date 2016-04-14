@@ -2,31 +2,75 @@ Introduction
 -------------
 Netfilter support in ntopng is part of the packaged version available at http://packages.ntop.org.
 If you have a pro license you can drop/shape traffic from within ntopng, otherwise ntopng will
-just mark the traffic using the protocol identifier of the flow. Example Skype flows will be
-marked with id 125
+just mark the traffic using the protocol identifier of the flow. The full list of protocol identifiers
+can be obtained by running ntopng with the help flag -h. For example, Skype flows will be
+marked with protocol identifier 125.
 
 # ntopng -h|grep Skype
 [125] Skype
 
-Using the mark you can assign different QoS classes to your traffic, shape, drop etc. In
-essence thanks to ntopng you can implement an application-level firewall.
+You can leverage protocol identifiers to assign different QoS classes to your traffic(e.g., shape, drop, etc). In
+essence you can implement an application-level firewall.
 
 Using NetFilter
 ---------------
-If you use ntopng over netfilter you need to: 
 
-# 1 - Create queueId (0 in the example below) and divert traffic to it. For instance
-you can decided to send ntopng all the ICMP and TCP traffic for inspection
-iptables -A OUTPUT -p icmp -j NFQUEUE --queue-num 0
-iptables -A OUTPUT -p tcp -j NFQUEUE --queue-num 0
+If you use ntopng over netfilter you need to:
+
+# 1 - Create a queueId and divert traffic to it.
+
+Following is an example to create a net filter queue with queueId equal to 0:
+	# iptables -A FORWARD -i eth1 -j NFQUEUE --queue-num 0
+	With this rule all incoming traffic on eth1 interface in the forwarding phase will go to
+	the netfilter queue 0.
+
 
 # 2 - start ntopng on device nf:X
-ntopng -i nf:0
+	# ntopng -i nf:0
+
+For example, if you run ntopng with -i nf:0 parameter, it will be able to get traffic from
+netfilter queue 0 and to decide whether to drop or accept it.
+
+
+Use Case
+---------------
+A typical use case of ntopng over netfilter is when you have set the NAT ip forwarding
+between two interfaces (let’s say eth1 and eth2) and you want to monitor and
+policy the traffic via ntopng during the forwarding phase (monitoring interface eth0).
+The use case can be graphically illustrated as:
+
+
+				       Linux NAT
+			       <----------------------->
+ Internet (default route)        --------------------                     Private Network
+				 |                  |
+	 (public ip) eth1--------|      ntopng      |-------eth2 (private network)
+				 |                  |
+				 --------------------
+					 / \
+					  |
+					  |
+					  | eth0 (monitoring interface)
+
+
+The configuration needed is:
+
+# 1 - Enable forwarding:
+	# echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# 2 - Set netfilter queue rules:
+	# iptables -A FORWARD -i eth1 -j NFQUEUE --queue-num 0
+	# iptables -A FORWARD -i eth2 -j NFQUEUE --queue-num 0
+
+# 3 - Run ntopng:
+	# ntopng -i nf:0
+
+The configuration above works and was tested on ubuntu 14.04. Commands may slightly change on
+other distributions.
 
 
 NOTE
 ----
 When you send traffic to NFQUEUE if ntopng is NOT running, packets will be
-blocked in the IP stack as they are not processed. So make sure that ntopng
+blocked in the IP stack as they don’t get processed. So make sure ntopng
 is running all the time before using this mechanism.
-
