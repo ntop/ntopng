@@ -3290,6 +3290,7 @@ static void handle_cgi_request(struct mg_connection *conn, const char *prog) {
   struct file fout = STRUCT_FILE_INITIALIZER;
   pid_t pid;
 
+  memset(&ri, 0, sizeof(ri));
   prepare_cgi_environment(conn, prog, &blk);
 
   // CGI must be executed in its own directory. 'dir' must point to the
