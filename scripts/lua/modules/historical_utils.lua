@@ -470,7 +470,7 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
 
   // finally add a possible l7 protocol indication
   if (typeof l7_proto_id !== "undefined"){
-    $("#bc-talkers").append('<li>Flows</li>');
+     $("#bc-talkers").append('<li>Application flows</li>');
   }
 }
 
@@ -790,6 +790,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
   <div id="host-apps-container"> </div>
   <div id="apps-container"> </div>
   <div id="peers-per-host-by-app-container"> </div>
+  <div id="flows-per-pair-by-app-container"> </div>
 </div>
 
 ]] historicalDownloadButtonsBar("pcap-button-top-protocols", "historical-apps-container") print [[
@@ -801,11 +802,17 @@ var emptyAppsBreadCrumb = function(){
   $('#bc-apps').empty();
 };
 
-var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
+var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
   emptyAppsBreadCrumb();
 
   var root = $("#bc-apps").attr("root");
   var app = $('#historical-apps-container').attr("l7_proto");
+
+  if (typeof peer2 !== "undefined"){
+    $('#historical-apps-container').attr("peer", peer2);
+  } else {
+    $('#historical-apps-container').removeAttr("peer");
+  }
 
   if (root === "interface"){
     $("#bc-apps").append('<li><a onclick="populateInterfaceTopAppsTable();">Interface ]] print(getInterfaceName(ifid)) print [[</a></li>');
@@ -815,10 +822,15 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
     // the other is shown when the favourites has been added
 
     // first li: there is no exising favorited peer --> app pair saved
-    $("#bc-apps").append('<li class="bc-app-item-add host-peers-by-app"> ' + app + ' talkers with ' + peer1 + ' <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
+    var bc_apps_text = app + ' talkers with ' + peer1;
+    if (typeof peer2 !== "undefined"){
+      bc_apps_text = '<a onclick="populatePeersPerHostByApplication(\'' + peer1 + '\',\'' + proto_id + '\');">' + bc_apps_text + '</a>';
+    }
+
+    $("#bc-apps").append('<li class="bc-app-item-add host-peers-by-app">' + bc_apps_text + ' <a onclick="addToFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart-o" title="Save"></i></a> </li>');
 
     // second li: there is an already exising favorited peer --> app pair saved
-    $("#bc-apps").append('<li class="bc-app-item-remove host-peers-by-app"> ' + app + ' talkers with ' + peer1 + ' <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
+    $("#bc-apps").append('<li class="bc-app-item-remove host-peers-by-app"> ' + bc_apps_text + ' <a onclick="removeFromFavourites(\'historical-apps-container\', \'top_applications\', \'host_peers_by_app\', \'top_applications_host_peers_by_app\');"><i class="fa fa-heart" title="Unsave"></i></a> </li>');
 
   // here we decide which li has to be shown, depending on the elements contained in the drop-down menu
   if($('#top_applications_host_peers_by_app > option[value=\'' + proto_id + ',' + peer1 + '\']').length == 0){
@@ -835,17 +847,26 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id){
     $('.bc-app-item-add, .bc-app-item-remove').toggle();
   });
 
-
-
   } else if (root == "host"){
     var host = $('#historical-apps-container').attr("host");
     $("#bc-apps").append('<li><a onclick="populateHostTopAppsTable(\'' + host + '\');">' + host + ' protocols</a></li>');
+
+    var bc_apps_text = ""
     if(app.toLowerCase().endsWith("unknown")){
-      $("#bc-apps").append('<li> Unknown protocol talkers with ' + host + ' </li>');
+      bc_apps_text = 'Unknown protocol talkers with ' + host;
     } else {
-      $("#bc-apps").append('<li> ' + app + ' talkers with ' + host + ' </li>');
+      bc_apps_text = app + ' talkers with ' + host;
     }
+    if (typeof peer2 !== "undefined"){
+      bc_apps_text = '<a onclick="populatePeersPerHostByApplication(\'' + peer1 + '\',\'' + proto_id + '\');">' + bc_apps_text + '</a>';
+    }
+    $("#bc-apps").append('<li>' + bc_apps_text + '</li>');
   }
+
+  if (typeof peer2 !== "undefined"){
+    $("#bc-apps").append('<li>' +$("#historical-apps-container").attr("l7_proto") + ' protocol flows between ' + peer1 + ' and ' + peer2 + '</li>');
+  }
+
 }
 
 var populateInterfaceTopAppsTable = function(){
@@ -855,6 +876,7 @@ var populateInterfaceTopAppsTable = function(){
 
   hideAll("app-talkers");
   hideAll("peers-by-app");
+  hideAll('flows-per-host-pair-by-app-container');
   showOne('historical-interface-apps', 'historical-interface-top-apps-table');
 
   if ($('#historical-interface-top-apps-table').attr("loaded") == 1) {
@@ -928,6 +950,7 @@ var populateAppTopTalkersTable = function(proto_id){
 
   hideAll('historical-interface-apps');
   hideAll('peers-by-app');
+  hideAll('flows-per-host-pair-by-app-container');
   showOne('app-talkers', div_id);
 
   // load the table only if it is the first time we've been called
@@ -980,6 +1003,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 
   hideAll('historical-interface-apps');
   hideAll('app-talkers');
+  hideAll('flows-per-host-pair-by-app-container');
   showOne('peers-by-app', div_id);
 
   // load the table only if it is the first time we've been called
@@ -1003,16 +1027,14 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	showFilter: true,
 	showPagination: true,
 	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdowns();},
-/*
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
-	  var label = addr_td.text();
-	  label_td.append('&nbsp;<a onclick="populateAppsPerHostsPairTable(\'' + host +'\',\'' + addr +'\');"><i class="fa fa-exchange" title="Hosts talking ' + label + ' with ' + host + '"></i></a>');
+          var num_flows = $("td:eq(4)", row[0]).text();
+          label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="' + $('#historical-apps-container').attr("l7_proto") + ' protocol flows between ' + host + ' and ' + addr + '"></i></a>');
 	  return row;
 	},
-*/
 	columns:
 	[
 	  {title: "Host Name", field: "column_label", sortable: true},
@@ -1020,6 +1042,69 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	]
+    });
+  }
+};
+
+var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto_id, num_flows){
+  refreshHostPeersByAppBreadCrumb(peer1, l7_proto_id, peer2);
+
+  var kpeer1 = hostkey2hostid(peer1)[0];
+  var kpeer2 = hostkey2hostid(peer2)[0];
+  if (kpeer2 > kpeer1){
+    var tmp = kpeer2;
+    kpeer2 = kpeer1;
+    kpeer1 = tmp;
+  }
+  var div_id = 'app-flows-pair-' + kpeer1 + "_" + kpeer2;
+  if(typeof l7_proto_id !== "undefined"){
+    div_id = div_id + "_" + l7_proto_id;
+  }
+  if ($('#'+div_id).length == 0)  // create the div only if it does not exist
+    $('#flows-per-pair-by-app-container').append('<div class="flows-per-host-pair-by-app-container" id="' + div_id + '" total_rows=-1 loaded=0></div>');
+
+  hideAll('historical-interface-apps');
+  hideAll('app-talkers');
+  hideAll('peers-by-app');
+  showOne('flows-per-host-pair-by-app-container', div_id);
+
+  div_id='#'+div_id;
+
+  // if the table has already been loaded, we just show up all the dropdowns
+  if ($(div_id).attr("loaded") == 1) {
+    enableAllDropdowns();
+  } else {   // load the table only if it is the first time we've been called
+    disableAllDropdowns();
+    $(div_id).attr("loaded", 1);
+    $(div_id).attr("peer1", peer1);
+    $(div_id).attr("peer2", peer2);
+    $(div_id).attr("l7_proto_id", l7_proto_id);
+    $(div_id).datatable({
+	title: "",]]
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..tostring(ifId)..top_apps_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+  if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+  -- Automatic default sorted. NB: the column must be exists.
+	print [[
+	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
+	showFilter: true,
+	showPagination: true,
+totalRows: 100,
+	sort: [ [ "BYTES","desc"] ],
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdowns();},
+	columns:
+	[
+	  {title: "Key",         field: "idx",            hidden: true},
+	  {title: "",            field: "FLOW_URL",       sortable:false, css:{textAlign:'center'}},
+	  {title: "Application", field: "L7_PROTO",       sortable: true, css:{textAlign:'center'}},
+	  {title: "L4 Proto",    field: "PROTOCOL",       sortable: true, css:{textAlign:'center'}},
+	  {title: "Client",      field: "CLIENT",         sortable: false},
+	  {title: "Server",      field: "SERVER",         sortable: false},
+	  {title: "Begin",       field: "FIRST_SWITCHED", sortable: true, css:{textAlign:'center'}},
+	  {title: "End",         field: "LAST_SWITCHED",  sortable: true, css:{textAlign:'center'}},
+	  {title: "Traffic",     field: "BYTES",          sortable: true, css:{textAlign:'right'}},
+	  {title: "Info",        field: "INFO",           sortable: true, css:{textAlign:'right'}},
+	  {title: "Avg Thpt",    field: "AVG_THROUGHPUT", sortable: false, css:{textAlign:'right'}}
 	]
     });
   }
@@ -1039,6 +1124,7 @@ var populateHostTopAppsTable = function(host){
 
   hideAll("app-talkers");
   hideAll("peers-by-app");
+  hideAll('flows-per-host-pair-by-app-container');
   showOne('historical-interface-apps', 'historical-interface-top-apps-table');
 
   if ($('#historical-interface-top-apps-table').attr("loaded") == 1) {
@@ -1063,6 +1149,7 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
+        var num_flows = $("td:eq(4)", row[0]).text();
 	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
 	  return row;
 	},
