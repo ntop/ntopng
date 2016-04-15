@@ -507,15 +507,15 @@ var populateInterfaceTopTalkersTable = function(){
 	},
 	columns:
 	[
-	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "IP Address", field: "column_addr", hidden: false, sortable: true},
+	  {title: "Host Name",     field: "column_label",       sortable: true},
+	  {title: "IP Address",    field: "column_addr",        sortable:true, hidden: false},
 	  {title: "Total Traffic", field: "column_bytes",       sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Packets", field: "column_packets",            sortable: true, css: {textAlign:'right'}},
-	  {title: "Ingress Traffic",  field: "column_in_bytes",   sortable: true,css: {textAlign:'right'}},
-	  {title: "Ingress Packets", field: "column_in_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Egress  Traffic",  field: "column_out_bytes",  sortable: true,css: {textAlign:'right'}},
-	  {title: "Egress  Packets", field: "column_out_packets",sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
+	  {title: "Total Packets", field: "column_packets",     sortable: true, css: {textAlign:'right'}},
+	  {title: "Srv. Traffic",  field: "column_srv_bytes",   sortable: true,css: {textAlign:'right'}},
+	  {title: "Srv. Packets",  field: "column_srv_packets", sortable: true, css: {textAlign:'right'}},
+	  {title: "Cli. Traffic",  field: "column_cli_bytes",   sortable: true,css: {textAlign:'right'}},
+	  {title: "Cli. Packets",  field: "column_cli_packets", sortable: true, css: {textAlign:'right'}},
+	  {title: "Flows",         field: "column_flows",       sortable: true, css: {textAlign:'right'}}
 	]
     });
   }
@@ -561,15 +561,15 @@ var populateHostTopTalkersTable = function(host){
 	},
 	columns:
 	[
-	  {title: "Host Name", field: "column_label", sortable: true},
-	  {title: "IP Address", field: "column_addr", hidden: false, sortable: true},
-	  {title: "Total Traffic",    field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Packets",    field: "column_packets",    sortable: true, css: {textAlign:'right'}},
-	  {title: "Traffic Sent",     field: "column_out_bytes",  sortable: true,css: {textAlign:'right'}},
-	  {title: "Packets Sent",     field: "column_out_packets",sortable: true, css: {textAlign:'right'}},
-	  {title: "Traffic Received", field: "column_in_bytes",   sortable: true,css: {textAlign:'right'}},
-	  {title: "Packets Received", field: "column_in_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows",                 sortable: true, css: {textAlign:'right'}}
+	  {title: "Host Name",     field: "column_label",      sortable: true},
+	  {title: "IP Address",    field: "column_addr",       sortable:true, hidden: false},
+	  {title: "Total Traffic", field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Packets", field: "column_packets",    sortable: true, css: {textAlign:'right'}},
+	  {title: "Cli. Traffic",  field: "column_cli_bytes",  sortable: true,css: {textAlign:'right'}},
+	  {title: "Cli. Packets",  field: "column_cli_packets",sortable: true, css: {textAlign:'right'}},
+	  {title: "Srv. Traffic",  field: "column_srv_bytes",  sortable: true,css: {textAlign:'right'}},
+	  {title: "Srv. Packets",  field: "column_srv_packets",sortable: true, css: {textAlign:'right'}},
+	  {title: "Flows", field: "column_flows",              sortable: true, css: {textAlign:'right'}}
 	]
     });
   }
