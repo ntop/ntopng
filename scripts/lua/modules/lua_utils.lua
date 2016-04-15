@@ -1981,12 +1981,17 @@ end
 -- ###############################################
 
 function tolongint(what)
-   return(string.format("%u", what))
+   if(what == nil) then
+      return(0)
+   else
+      return(string.format("%u", what))
+   end
 end
 
 -- ###############################################
 
 function trimSpace(what)
+   if(what == nil) then return("") end
    return(string.gsub(what, "%s+", ""))
 end
 
