@@ -67,9 +67,9 @@ if((group_col == "mac") or (group_col == "antenna_mac")) then
    -- for n in pairs(hosts_stats) do 
    --    io.write("= "..n..'\n')
    -- end
-
 else
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+  --    hosts_stats,total = aggregateHostsStats(interface.getGroupedHosts(vlan_n, as_n, network_n, country_n, os_n))
+  hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
 end
 
 to_skip = (currentPage-1) * perPage

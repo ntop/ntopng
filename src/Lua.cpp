@@ -406,13 +406,13 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 
     if(lua_type(vm, 2) == LUA_TSTRING) {
       sortColumn = (char*)lua_tostring(vm, 2);
-      
+
       if(lua_type(vm, 3) == LUA_TNUMBER) {
 	maxHits = (u_int16_t)lua_tonumber(vm, 3);
-	
+
 	if(lua_type(vm, 4) == LUA_TNUMBER) {
 	  toSkip = (u_int16_t)lua_tonumber(vm, 4);
-	
+
 	  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
 	    a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
 
@@ -427,7 +427,9 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
   if(ntop_interface)
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, show_local_only,
-                                       country, sortColumn, maxHits, 
+                                       country,
+				       0 /* vlan_id */, NULL /* osFilter */, 0 /* asnFilter */, -1 /* networkFilter */,
+				       sortColumn, maxHits,
 				       toSkip, a2zSortOrder);
 
   return(CONST_LUA_OK);
@@ -1062,7 +1064,7 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
 
     if(lua_type(vm, 3) == LUA_TSTRING)
       sortColumn = (char*)lua_tostring(vm, 3);
-    
+
     if(lua_type(vm, 4) == LUA_TNUMBER)
       maxHits = (u_int16_t)lua_tonumber(vm, 4);
 
@@ -1072,9 +1074,9 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
     if(lua_type(vm, 6) == LUA_TBOOLEAN)
       a2zSortOrder = lua_toboolean(vm, 6) ? true : false;
   }
-  
+
   if(ntop_interface) {
-    int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), 
+    int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm),
 					    host, l7_proto, localOnly, sortColumn, maxHits,
 					    toSkip, a2zSortOrder);
 
@@ -1147,6 +1149,35 @@ static int ntop_get_interface_host_info(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if((!ntop_interface) || !ntop_interface->getHostInfo(vm, get_allowed_nets(vm), host_ip, vlan_id))
+    return(CONST_LUA_ERROR);
+  else
+    return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/**
+ * @brief Get the host information of network interface grouped according to the criteria.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or the host is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_grouped_interface_host(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+  char *country_s, *os_s;
+  u_int16_t vlan_n;
+  int as_n, network_n;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR); else vlan_n = (u_int16_t)lua_tonumber(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR); else as_n = (u_int16_t)lua_tonumber(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR); else network_n = (u_int16_t)lua_tonumber(vm, 3);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR); else country_s = (char*)lua_tostring(vm, 4);
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING)) return(CONST_LUA_ERROR); else os_s = (char*)lua_tostring(vm, 5);
+
+  if((!ntop_interface) || !ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, false, country_s, vlan_n, os_s, as_n,
+							      network_n, (char*)"column_ip", -1 /* maxHits */, 0 /* toSkip */, true /* a2zSortOrder */))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -2732,7 +2763,7 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "version", (char*)PACKAGE_VERSION);
   lua_push_str_table_entry(vm, "git", (char*)NTOPNG_GIT_RELEASE);
 
-  snprintf(rsp, sizeof(rsp), "%s [%s][%s]", 
+  snprintf(rsp, sizeof(rsp), "%s [%s][%s]",
 	   PACKAGE_OSNAME, PACKAGE_MACHINE, PACKAGE_OS);
   lua_push_str_table_entry(vm, "platform", rsp);
   lua_push_str_table_entry(vm, "OS",
@@ -3892,10 +3923,10 @@ static int ntop_reload_traffic_profiles(lua_State* vm) {
 
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
     if((old_profile = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
-    
+
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
     if((new_profile = (char*)lua_tostring(vm, 2)) == NULL)     return(CONST_LUA_PARAM_ERROR);
-    
+
     ntop_interface->updateFlowProfiles(old_profile, new_profile); /* Reload profiles in memory */
   }
 
@@ -4190,6 +4221,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getHostInfo",            ntop_get_interface_host_info },
+  { "getGroupedHosts",        ntop_get_grouped_interface_host },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
   { "correlateHostActivity",  ntop_correalate_host_activity },
@@ -4714,11 +4746,11 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
 		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
 		   || (strcmp(rsp, user) != 0)) {
-		  ntop->getTrace()->traceEvent(TRACE_WARNING, 
-					       "Invalid CSRF parameter specified [%s][%s][%s]: page expired?", 
+		  ntop->getTrace()->traceEvent(TRACE_WARNING,
+					       "Invalid CSRF parameter specified [%s][%s][%s]: page expired?",
 					       decoded_buf, rsp, user);
 		  free(equal);
-		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", 
+		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?",
 				    PAGE_ERROR, tok, rsp));
 		} else
 		  ntop->getRedis()->delKey(decoded_buf);

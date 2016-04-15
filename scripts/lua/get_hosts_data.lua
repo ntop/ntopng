@@ -102,6 +102,7 @@ if((mac ~= nil) or (antenna_mac ~= nil) or (mode == "local")) then
    hosts_stats = interface.getLocalHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
 else
    hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
+--   hosts_stats = interface.getGroupedHosts(vlan_n, as_n, network_n, country_n, os_n)
 end
 
 hosts_stats,total = aggregateHostsStats(hosts_stats)
