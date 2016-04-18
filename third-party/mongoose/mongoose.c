@@ -1554,6 +1554,12 @@ static int pull(FILE *fp, struct mg_connection *conn, char *buf, int len) {
 #ifndef NO_SSL
   } else if (conn->ssl != NULL) {
     nread = SSL_read(conn->ssl, buf, len);
+    
+#ifdef DEBUG
+    buf[len] = '\0';
+    printf("%s", buf);
+#endif
+
 #endif
   } else {
     nread = recv(conn->client.sock, buf, (size_t) len, 0);
