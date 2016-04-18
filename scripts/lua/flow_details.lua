@@ -260,7 +260,7 @@ else
       end
    end
 
-   if(flow["tcp.appl_latency"] > 0) then
+   if(flow["tcp.appl_latency"] ~= nil and flow["tcp.appl_latency"] > 0) then
    print("<tr><th width=30%>Application Latency</th><td nowrap>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
    end
 
