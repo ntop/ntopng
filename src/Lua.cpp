@@ -395,8 +395,11 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
-  char *sortColumn = (char*)"column_ip", *country = NULL;
+  char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL;
   bool a2zSortOrder = true;
+  u_int16_t vlan_filter,  *vlan_filter_ptr    = NULL;
+  u_int32_t asn_filter,   *asn_filter_ptr     = NULL;
+  int16_t network_filter, *network_filter_ptr = NULL;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -423,14 +426,19 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
       }
     }
   }
+  if(lua_type(vm, 7) == LUA_TSTRING) os_filter      = (char*)lua_tostring(vm, 7);
+  if(lua_type(vm, 8) == LUA_TNUMBER) vlan_filter    = (u_int16_t)lua_tonumber(vm, 8), vlan_filter_ptr = &vlan_filter;
+  if(lua_type(vm, 9) == LUA_TNUMBER) asn_filter     = (u_int32_t)lua_tonumber(vm, 9), asn_filter_ptr = &asn_filter;
+  if(lua_type(vm,10) == LUA_TNUMBER) network_filter = (int16_t)lua_tonumber(vm, 10),  network_filter_ptr = &network_filter;
 
-  if(ntop_interface)
+  if(!ntop_interface ||
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, show_local_only,
                                        country,
-				       0 /* vlan_id */, NULL /* osFilter */, 0 /* asnFilter */, -1 /* networkFilter */,
+				       vlan_filter_ptr, os_filter, asn_filter_ptr, network_filter_ptr,
 				       sortColumn, maxHits,
-				       toSkip, a2zSortOrder);
+				       toSkip, a2zSortOrder) < 0)
+    return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
 }
@@ -1164,20 +1172,21 @@ static int ntop_get_interface_host_info(lua_State* vm) {
  */
 static int ntop_get_grouped_interface_host(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  char *country_s, *os_s;
-  u_int16_t vlan_n;
-  int as_n, network_n;
+  char *country_s = NULL, *os_s = NULL;
+  u_int16_t vlan_n,    *vlan_ptr    = NULL;
+  u_int32_t as_n,      *as_ptr      = NULL;
+  int16_t   network_n, *network_ptr = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR); else vlan_n = (u_int16_t)lua_tonumber(vm, 1);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR); else as_n = (u_int16_t)lua_tonumber(vm, 2);
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR); else network_n = (u_int16_t)lua_tonumber(vm, 3);
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR); else country_s = (char*)lua_tostring(vm, 4);
-  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING)) return(CONST_LUA_ERROR); else os_s = (char*)lua_tostring(vm, 5);
+  if(lua_type(vm, 1) == LUA_TNUMBER) vlan_n    = (u_int16_t)lua_tonumber(vm, 1), vlan_ptr  = &vlan_n;
+  if(lua_type(vm, 2) == LUA_TNUMBER) as_n      = (u_int32_t)lua_tonumber(vm, 2), as_ptr    = &as_n;
+  if(lua_type(vm, 3) == LUA_TNUMBER) network_n = (int16_t)lua_tonumber(vm, 3), network_ptr = &network_n;
+  if(lua_type(vm, 4) == LUA_TSTRING) country_s = (char*)lua_tostring(vm, 4);
+  if(lua_type(vm, 5) == LUA_TSTRING) os_s      = (char*)lua_tostring(vm, 5);
 
-  if((!ntop_interface) || !ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, false, country_s, vlan_n, os_s, as_n,
-							      network_n, (char*)"column_ip", -1 /* maxHits */, 0 /* toSkip */, true /* a2zSortOrder */))
+  if(!ntop_interface || ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, false, country_s, vlan_ptr, os_s, as_ptr,
+							      network_ptr, (char*)"column_ip", CONST_MAX_NUM_HITS, 0 /* toSkip */, true /* a2zSortOrder */) < 0)
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);

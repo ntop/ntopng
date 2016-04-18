@@ -111,7 +111,7 @@ int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 					     patricia_tree_t *allowed_hosts,
 					     bool host_details, bool local_only,
 					     char *countryFilter,
-					     u_int16_t vlan_id, char *osFilter, u_int32_t asnFilter, int networkFilter,
+					     u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
 					     char *sortColumn,
 					     u_int32_t maxHits,
 					     u_int32_t toSkip, bool a2zSortOrder) {

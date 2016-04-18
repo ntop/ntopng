@@ -1848,9 +1848,10 @@ struct flowHostRetriever {
   int ndpi_proto;
   enum flowSortField sorter;
   bool local_only; 
-  u_int16_t vlan_id;
+  u_int16_t *vlan_id;
   char *osFilter;
-  int asnFilter, networkFilter;
+  u_int32_t *asnFilter;
+  int16_t *networkFilter;
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
@@ -1932,79 +1933,58 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 /* **************************************************** */
 
 static bool host_search_walker(GenericHashEntry *he, void *user_data) {
-  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
+  struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Host *h = (Host*)he;
 
-  if(h && (!h->idle()) && h->match(retriever->allowed_hosts)) {
-    if(retriever->local_only && (!h->isLocalHost()))
-      return(false); /* false = keep on walking */
+  if(!h || h->idle() || !h->match(r->allowed_hosts))
+    return(false);
 
-    if((retriever->vlan_id > 0) && (retriever->vlan_id != h->get_vlan_id()))
-      return(false); /* false = keep on walking */
+  if((r->local_only    && !h->isLocalHost()) ||
+     (r->vlan_id       && *(r->vlan_id)       != h->get_vlan_id())          ||
+     (r->asnFilter     && *(r->asnFilter)     != h->get_asn())              ||
+     (r->networkFilter && *(r->networkFilter) != h->get_local_network_id()) ||
+     (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
+     (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter))))
+    return(false); /* false = keep on walking */
 
-    if((retriever->asnFilter > 0) && (retriever->asnFilter != h->get_asn()))
-      return(false); /* false = keep on walking */
+  r->elems[r->actNumEntries].hostValue = h;
 
-    if((retriever->networkFilter != -1) && (retriever->networkFilter != h->get_local_network_id()))
-      return(false); /* false = keep on walking */
-
-    if(retriever->country) {
-      if(h->get_country() && (strcmp(h->get_country(), retriever->country) == 0))
-	;
-      else
-	return(false); /* false = keep on walking */
+  switch(r->sorter) {
+  case column_ip:
+    r->elems[r->actNumEntries++].hostValue = h;
+    break;
+  case column_alerts:
+    r->elems[r->actNumEntries++].numericValue = h->getNumAlerts();
+    break;
+  case column_name:
+    {
+      char buf[64];
+      r->elems[r->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
     }
+    break;
+  case column_vlan:
+    r->elems[r->actNumEntries++].numericValue = h->get_vlan_id();
+    break;
+  case column_since:
+    r->elems[r->actNumEntries++].numericValue = h->get_first_seen();
+    break;
+  case column_asn:
+    r->elems[r->actNumEntries++].numericValue = h->get_asn();
+    break;
+  case column_thpt:
+    r->elems[r->actNumEntries++].numericValue = h->getBytesThpt();
+    break;
+  case column_traffic:
+    r->elems[r->actNumEntries++].numericValue = h->getNumBytes();
+    break;
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    break;
+  }
 
-    if(retriever->osFilter) {
-      if(h->get_os() && (strcmp(h->get_os(), retriever->osFilter) == 0))
-	;
-      else
-	return(false); /* false = keep on walking */
-    }
-
-    retriever->elems[retriever->actNumEntries].hostValue = h;
-
-    if(h->match(retriever->allowed_hosts)) {
-      switch(retriever->sorter) {
-      case column_ip:
-	retriever->elems[retriever->actNumEntries++].hostValue = h;
-	break;
-      case column_alerts:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->getNumAlerts();
-	break;
-      case column_name:
-	{
-	  char buf[64];
-
-	  retriever->elems[retriever->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
-	}
-	break;
-      case column_vlan:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->get_vlan_id();
-	break;
-      case column_since:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->get_first_seen();
-	break;
-      case column_asn:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->get_asn();
-	break;
-      case column_thpt:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->getBytesThpt();
-	break;
-      case column_traffic:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->getNumBytes();
-	break;
-      default:
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
-	break;
-      }
-    }
-
-    if(retriever->actNumEntries == retriever->maxNumEntries)
-      return(true); /* Limit reached */
-    else
-      return(false); /* false = keep on walking */
-  } else
+  if(r->actNumEntries == r->maxNumEntries)
+    return(true); /* Limit reached */
+  else
     return(false); /* false = keep on walking */
 }
 
@@ -2121,10 +2101,11 @@ int NetworkInterface::getFlows(lua_State* vm,
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, bool local_only,
 					 char *countryFilter, 
-					 u_int16_t vlan_id, char *osFilter, u_int32_t asnFilter, int networkFilter,
+					 u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
+
   int (*sorter)(const void *_a, const void *_b);
   
   retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
