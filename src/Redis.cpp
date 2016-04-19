@@ -961,14 +961,14 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
 
 /* ******************************************* */
 
-void Redis::queueAlert(AlertLevel level, AlertType t, char *msg) {
+void Redis::queueAlert(AlertLevel level, AlertStatus s, AlertType t, char *msg) {
   char what[1024];
 
   if(ntop->getPrefs()->are_alerts_disabled()) return;
 
-  snprintf(what, sizeof(what), "%u|%u|%u|%s",
+  snprintf(what, sizeof(what), "%u|%u|%u|%u|%s",
 	   (unsigned int)time(NULL), (unsigned int)level,
-	   (unsigned int)t, msg);
+	   (unsigned int)s, (unsigned int)t, msg);
 
 #ifndef WIN32
   // Print alerts into syslog

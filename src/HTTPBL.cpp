@@ -222,12 +222,11 @@ void HTTPBL::queryHTTPBL(char* numeric_ip) {
       /* https://www.projecthoneypot.org/httpbl_api.php */
 
       /* We need to figure out the current list of peers speaking with this host */
-
       snprintf(alert_msg, sizeof(alert_msg),
 	       "Host <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> blacklisted on HTTP:BL [code=%s]",
 	       numeric_ip, iface, numeric_ip, query_resp);
 
-      ntop->getRedis()->queueAlert(alert_level_warning, alert_dangerous_host, alert_msg);
+      ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent, alert_dangerous_host, alert_msg);
       break;
   }
 

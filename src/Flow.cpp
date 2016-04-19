@@ -233,7 +233,7 @@ void Flow::checkBlacklistedFlow() {
 	       s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
-      ntop->getRedis()->queueAlert(alert_level_warning, alert_dangerous_host, alert_msg);
+      ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent, alert_dangerous_host, alert_msg);
     }
 
     blacklist_alarm_emitted = true;

@@ -3808,6 +3808,7 @@ static int ntop_flush_all_queued_alerts(lua_State* vm) {
 static int ntop_queue_alert(lua_State* vm) {
   Redis *redis = ntop->getRedis();
   int alert_level;
+  int alert_status;
   int alert_type;
   char *alert_msg;
 
@@ -3817,12 +3818,16 @@ static int ntop_queue_alert(lua_State* vm) {
   alert_level = (int)lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  alert_type = (int)lua_tonumber(vm, 2);
+  alert_status = (int)lua_tonumber(vm, 2);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  alert_msg = (char*)lua_tostring(vm, 3);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_type = (int)lua_tonumber(vm, 3);
 
-  redis->queueAlert((AlertLevel)alert_level, (AlertType)alert_type, alert_msg);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_msg = (char*)lua_tostring(vm, 4);
+
+  redis->queueAlert((AlertLevel)alert_level, (AlertStatus)alert_status, 
+		    (AlertType)alert_type, alert_msg);
   return(CONST_LUA_OK);
 }
 

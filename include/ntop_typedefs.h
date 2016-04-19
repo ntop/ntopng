@@ -60,6 +60,12 @@ typedef enum {
 } AlertLevel;
 
 typedef enum {
+  alert_on = 1,       /* An issue has been discovered and an alert has been triggered */
+  alert_off = 2,      /* A previous alert has been fixed */
+  alert_permanent = 3 /* Alert that can't be fixed (e.g. a flow with an anomaly) */
+} AlertStatus;
+
+typedef enum {
   IPV4 = 4,
   IPV6 = 6
 } IPVersion;
