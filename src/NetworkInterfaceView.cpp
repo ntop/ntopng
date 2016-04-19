@@ -132,6 +132,33 @@ int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
   }
 
   return(ret);
+}/* **************************************************** */
+
+int NetworkInterfaceView::getActiveHostsGroup(lua_State* vm,
+					      patricia_tree_t *allowed_hosts,
+					      bool host_details, bool local_only,
+					      char *countryFilter,
+					      u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
+					      char *sortColumn, char *groupBy,
+					      u_int32_t maxHits,
+					      u_int32_t toSkip, bool a2zSortOrder) {
+  int ret = 0;
+
+  lua_newtable(vm);
+  for(int i = 0; i<numInterfaces; i++) {
+    int rc = physIntf[i]->getActiveHostsGroup(vm, allowed_hosts, host_details, local_only, countryFilter,
+					     vlan_id, osFilter, asnFilter, networkFilter,
+					     sortColumn, groupBy, maxHits,
+					     toSkip, a2zSortOrder);
+    if(rc < 0) return(ret);
+    rc += ret;
+
+    lua_pushstring(vm, physIntf[i]->get_name()); // Key
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  return(ret);
 }
 
 /* **************************************************** */

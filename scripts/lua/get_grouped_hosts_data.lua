@@ -97,6 +97,9 @@ vals = {}
 
 stats_by_group_col = {}
 
+--kk=interface.getGroupedHosts(false, sortColumn, group_col, perPage, to_skip, sOrder, country_n, os_n, tonumber(vlan_n), tonumber(asn_n), tonumber(network_n)) -- false = little details)
+--tprint(kk)
+
 --[[
 The idea here is to group host statistics by the value specified in
 group_col. For example, if group_col=='local_network_id', then statistics

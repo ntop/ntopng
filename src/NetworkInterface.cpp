@@ -1859,7 +1859,6 @@ struct flowHostRetriever {
 };
 
 /* **************************************************** */
-/* **************************************************** */
 
 static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
@@ -2169,6 +2168,53 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   free(retriever.elems);
 
   return(retriever.actNumEntries);
+}/* **************************************************** */
+
+int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowed_hosts,
+					  bool host_details, bool local_only,
+					  char *countryFilter,
+					  u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
+					  char *sortColumn, char* groupBy, u_int32_t maxHits,
+					  u_int32_t toSkip, bool a2zSortOrder) {
+  struct flowHostRetriever retriever;
+  int (*sorter)(const void *_a, const void *_b);
+  int num_entries;
+  retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
+    retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter, retriever.sorter=column_ip;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
+
+  if(retriever.elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  hosts_hash->disablePurge();
+  hosts_hash->walk(host_search_walker, (void*)&retriever);
+
+  Grouper *gper;
+  if((gper = new(std::nothrow) Grouper(groupBy)) == NULL){
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to allocate memory for a Grouper.");
+    return(-1);
+  }
+
+  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+    Host *h = retriever.elems[i].hostValue;
+    gper->group(h);
+  }
+
+  hosts_hash->enablePurge();
+  free(retriever.elems);
+
+  //  gper->print();
+  gper->lua(vm);
+
+  num_entries = gper->numEntries();
+  delete gper;
+  gper = NULL;
+
+  return num_entries;
 }
 
 /* **************************************************** */
