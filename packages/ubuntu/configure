@@ -1715,6 +1715,9 @@ if  test -f /usr/bin/lsb_release  &&  test -d $HOME/PF_RING ; then
     if test "$UBUNTU_SUB_RELEASE" = "8"; then
        UBUNTU_RELEASE="14.04"
     fi
+    if test "$UBUNTU_SUB_RELEASE" = "7"; then
+       UBUNTU_RELEASE="12.04"
+    fi
   fi
   EXTRA_DEPS="$EXTRA_DEPS, libhiredis0.10"
   SUDO=""
