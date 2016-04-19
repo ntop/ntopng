@@ -55,13 +55,12 @@ Flow::Flow(NetworkInterface *_iface,
   pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   cli2srv_last_bytes = 0, prev_cli2srv_last_bytes = 0, srv2cli_last_bytes = 0, prev_srv2cli_last_bytes = 0;
   cli2srv_last_packets = 0, prev_cli2srv_last_packets = 0, srv2cli_last_packets = 0, prev_srv2cli_last_packets = 0;
-  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0;
+  top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
 
   last_db_dump.cli2srv_packets = 0, last_db_dump.srv2cli_packets = 0,
     last_db_dump.cli2srv_bytes = 0, last_db_dump.srv2cli_bytes = 0,
     last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0,
     last_db_dump.last_dump = 0;
-  
 
   switch(protocol) {
   case IPPROTO_ICMP:
@@ -84,9 +83,8 @@ Flow::Flow(NetworkInterface *_iface,
   iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
-  passVerdict = true;
-  first_seen = _first_seen, last_seen = _last_seen;
-  categorization.categorized_requested = false;
+  passVerdict = true, categorization.categorized_requested = false;
+  first_seen = _first_seen, last_seen = _last_seen;  
   memset(&categorization.category, 0, sizeof(categorization.category));
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   //bytes_rate = new TimeSeries<float>(4096);
@@ -95,7 +93,8 @@ Flow::Flow(NetworkInterface *_iface,
   synTime.tv_sec = synTime.tv_usec = 0,
     ackTime.tv_sec = ackTime.tv_usec = 0,
     synAckTime.tv_sec = synAckTime.tv_usec = 0,
-    rttSec = 0, cli2srv_window= srv2cli_window = 0;
+    rttSec = 0, cli2srv_window= srv2cli_window = 0,
+    c2sFirstGoodputTime.tv_sec = c2sFirstGoodputTime.tv_usec = 0;
   memset(&http, 0, sizeof(http)), memset(&dns, 0, sizeof(dns));
   memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
@@ -867,7 +866,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
       float bytes_msec_cli2srv         = ((float)(diff_bytes_cli2srv*1000))/tdiff_msec;
       float bytes_msec_srv2cli         = ((float)(diff_bytes_srv2cli*1000))/tdiff_msec;
       float bytes_msec                 = bytes_msec_cli2srv + bytes_msec_srv2cli;
-      
+
       float goodput_bytes_msec_cli2srv = ((float)(diff_goodput_bytes_cli2srv*1000))/tdiff_msec;
       float goodput_bytes_msec_srv2cli = ((float)(diff_goodput_bytes_srv2cli*1000))/tdiff_msec;
       float goodput_bytes_msec         = goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
@@ -1223,7 +1222,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
       lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
       lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
-
+      lua_push_float_table_entry(vm, "tcp.appl_latency", applLatencyMsec);
       lua_push_float_table_entry(vm, "tcp.max_thpt.cli2srv", getCli2SrvMaxThpt());
       lua_push_float_table_entry(vm, "tcp.max_thpt.srv2cli", getSrv2CliMaxThpt());
     }
@@ -1635,7 +1634,7 @@ void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *whe
 	if(deltaMS > stats->max_ms) stats->max_ms = deltaMS;
 	if(deltaMS < stats->min_ms) stats->min_ms = deltaMS;
       }
-      
+
       stats->total_delta_ms += deltaMS;
     }
   }
@@ -1663,7 +1662,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int payload_len, const struct timeval *when) {
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
-  
+
   if((cli_host == NULL) || (srv_host == NULL)) return;
 
   if(cli2srv_direction) {
@@ -1672,6 +1671,16 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   } else {
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
+  }
+  
+  if((applLatencyMsec == 0) && (payload_len > 0)) {
+    if(cli2srv_direction) {
+      memcpy(&c2sFirstGoodputTime, when, sizeof(struct timeval));
+    } else {
+      if(c2sFirstGoodputTime.tv_sec != 0)
+	applLatencyMsec = ((float)(Utils::timeval2usec((struct timeval*)when)
+				   - Utils::timeval2usec(&c2sFirstGoodputTime)))/1000;
+    }
   }
 };
 
@@ -1762,6 +1771,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 
 	  rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
 	    +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
+
 	}
       }
     } else
@@ -2122,6 +2132,25 @@ void Flow::getFlowShapers(bool src2dst_direction,
     *a_shaper_id = *b_shaper_id = 0;
 
   *ndpiProtocol = ndpiDetectedProtocol.protocol;
+}
+
+/* *************************************** */
+
+bool Flow::isSuspiciousFlowThpt() {
+  if(protocol == IPPROTO_TCP) {
+    float compareTime = Utils::timeval2ms(&clientNwLatency)*1.5;
+    
+    if(cli2srv_direction && isLowGoodput()) {
+      if((cli2srvStats.pktTime.min_ms > compareTime)
+	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP) 
+	     && (cli2srvStats.pktTime.min_ms > 3000 /* 3 sec */))
+	 || (cli2srvStats.pktTime.min_ms > 6000000 /* 10 mins */)
+	 )
+	return(true);
+    }
+  }
+  
+  return(false);
 }
 
 /* *************************************** */

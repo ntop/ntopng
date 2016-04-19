@@ -11,7 +11,10 @@ local json = require ("dkjson")
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-ifid = getInterfaceId(ifname)
+local ifid = _GET["ifId"]
+if ifid == nil or ifid == "" then
+   ifid = getInterfaceId(ifname)
+end
 
 -- use this two params to see statistics of a single host
 -- or for a pair of them

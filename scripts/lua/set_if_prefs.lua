@@ -47,6 +47,10 @@ if((_GET["ifSpeed"] ~= nil) and (string.len(_GET["ifSpeed"]) > 0)) then
    
    -- set Redis cache for the speed to the associated interface
    ntop.setCache(key, tostring(ifSpeed))
+elseif _GET["ifSpeed"] ~= nil and _GET["ifSpeed"] == "" then
+   -- reset to the default detected value
+   ntop.setCache(key, tostring(ifstats.speed))
+   ifSpeed = ifstats.speed
 else
    if((ifSpeed ~= nil) and (string.len(ifSpeed) > 0)) then
       ifSpeed = tonumber(ifSpeed)

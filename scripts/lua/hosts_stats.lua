@@ -198,7 +198,7 @@ if(network_url == "") then
 else
    print('buttons: [ \'')
 
-   print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network..'><i class=\"fa fa-area-chart fa-lg\"></i></A>')
+   print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'><i class=\"fa fa-area-chart fa-lg\"></i></A>')
    print('\' ],')
 end
 

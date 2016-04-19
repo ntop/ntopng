@@ -64,7 +64,7 @@ interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
 ifId = ifstats.id
 
-is_packetdump_enabled = interface.isLocalPacketdumpEnabled()
+is_packetdump_enabled = isLocalPacketdumpEnabled()
 host = nil
 family = nil
 
@@ -2223,6 +2223,7 @@ if (host ~= nil) then
    		    /* error: function(content) { alert("JSON Error: inactive host purged or ntopng terminated?"); }, */
    		    success: function(content) {
    			var host = jQuery.parseJSON(content);
+                        var http = host.http;
    			$('#first_seen').html(epoch2Seen(host["seen.first"]));
    			$('#last_seen').html(epoch2Seen(host["seen.last"]));
    			$('#pkts_sent').html(formatPackets(host["packets.sent"]));

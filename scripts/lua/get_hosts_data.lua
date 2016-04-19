@@ -101,7 +101,9 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 if((mac ~= nil) or (antenna_mac ~= nil) or (mode == "local")) then
    hosts_stats = interface.getLocalHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
 else
-   hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
+   -- hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
+   hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country, os_, tonumber(vlan), tonumber(asn), tonumber(network)) -- false = little details
+   -- tprint(hosts_stats)
 end
 
 hosts_stats,total = aggregateHostsStats(hosts_stats)

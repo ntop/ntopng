@@ -182,6 +182,10 @@ function getRRDName(ifid, host_or_network, rrdFile)
    elseif host_or_network ~= nil and string.starts(host_or_network, 'profile:') then
        host_or_network = string.gsub(host_or_network, 'profile:', '')
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'vlan:') then
+
+      host_or_network = string.gsub(host_or_network, 'vlan:', '')
+       rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
    else
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
@@ -459,7 +463,7 @@ print[[
 
 <br>
 <table border=0>
-<tr><td valign=top>
+<tr><td valign="top">
 ]]
 
 
@@ -504,10 +508,11 @@ for k,v in ipairs(zoom_vals) do
    -- but exclude applications. Application statistics are gathered
    -- every 5 minutes
    local net_or_profile = false
+
    if host and (string.starts(host, 'net:') or string.starts(host, 'profile:')) then
        net_or_profile = true
    end
-   if zoom_vals[k][1] == '1m' and (not net_or_profile and not top_rrds[rrdFile]) then
+   if zoom_vals[k][1] == '1m' and (net_or_profile or (not net_or_profile and not top_rrds[rrdFile])) then
        goto continue
    end
    print('<label class="btn btn-link ')

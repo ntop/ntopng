@@ -26,7 +26,7 @@ interface.select(ifname)
 _ifstats = aggregateInterfaceStats(interface.getStats())
 
 if(info["pro.release"]) then
-   print(" Professional")
+   print(" Pro [Small Business Edition]")
 else
    print(" Community")
 end

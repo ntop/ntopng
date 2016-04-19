@@ -395,8 +395,11 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
-  char *sortColumn = (char*)"column_ip", *country = NULL;
+  char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL;
   bool a2zSortOrder = true;
+  u_int16_t vlan_filter,  *vlan_filter_ptr    = NULL;
+  u_int32_t asn_filter,   *asn_filter_ptr     = NULL;
+  int16_t network_filter, *network_filter_ptr = NULL;
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
@@ -406,13 +409,13 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 
     if(lua_type(vm, 2) == LUA_TSTRING) {
       sortColumn = (char*)lua_tostring(vm, 2);
-      
+
       if(lua_type(vm, 3) == LUA_TNUMBER) {
 	maxHits = (u_int16_t)lua_tonumber(vm, 3);
-	
+
 	if(lua_type(vm, 4) == LUA_TNUMBER) {
 	  toSkip = (u_int16_t)lua_tonumber(vm, 4);
-	
+
 	  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
 	    a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
 
@@ -423,12 +426,19 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
       }
     }
   }
+  if(lua_type(vm, 7) == LUA_TSTRING) os_filter      = (char*)lua_tostring(vm, 7);
+  if(lua_type(vm, 8) == LUA_TNUMBER) vlan_filter    = (u_int16_t)lua_tonumber(vm, 8), vlan_filter_ptr = &vlan_filter;
+  if(lua_type(vm, 9) == LUA_TNUMBER) asn_filter     = (u_int32_t)lua_tonumber(vm, 9), asn_filter_ptr = &asn_filter;
+  if(lua_type(vm,10) == LUA_TNUMBER) network_filter = (int16_t)lua_tonumber(vm, 10),  network_filter_ptr = &network_filter;
 
-  if(ntop_interface)
+  if(!ntop_interface ||
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, show_local_only,
-                                       country, sortColumn, maxHits, 
-				       toSkip, a2zSortOrder);
+                                       country,
+				       vlan_filter_ptr, os_filter, asn_filter_ptr, network_filter_ptr,
+				       sortColumn, maxHits,
+				       toSkip, a2zSortOrder) < 0)
+    return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
 }
@@ -1062,7 +1072,7 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
 
     if(lua_type(vm, 3) == LUA_TSTRING)
       sortColumn = (char*)lua_tostring(vm, 3);
-    
+
     if(lua_type(vm, 4) == LUA_TNUMBER)
       maxHits = (u_int16_t)lua_tonumber(vm, 4);
 
@@ -1072,9 +1082,9 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
     if(lua_type(vm, 6) == LUA_TBOOLEAN)
       a2zSortOrder = lua_toboolean(vm, 6) ? true : false;
   }
-  
+
   if(ntop_interface) {
-    int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), 
+    int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm),
 					    host, l7_proto, localOnly, sortColumn, maxHits,
 					    toSkip, a2zSortOrder);
 
@@ -1147,6 +1157,36 @@ static int ntop_get_interface_host_info(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if((!ntop_interface) || !ntop_interface->getHostInfo(vm, get_allowed_nets(vm), host_ip, vlan_id))
+    return(CONST_LUA_ERROR);
+  else
+    return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/**
+ * @brief Get the host information of network interface grouped according to the criteria.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or the host is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_grouped_interface_host(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+  char *country_s = NULL, *os_s = NULL;
+  u_int16_t vlan_n,    *vlan_ptr    = NULL;
+  u_int32_t as_n,      *as_ptr      = NULL;
+  int16_t   network_n, *network_ptr = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) vlan_n    = (u_int16_t)lua_tonumber(vm, 1), vlan_ptr  = &vlan_n;
+  if(lua_type(vm, 2) == LUA_TNUMBER) as_n      = (u_int32_t)lua_tonumber(vm, 2), as_ptr    = &as_n;
+  if(lua_type(vm, 3) == LUA_TNUMBER) network_n = (int16_t)lua_tonumber(vm, 3), network_ptr = &network_n;
+  if(lua_type(vm, 4) == LUA_TSTRING) country_s = (char*)lua_tostring(vm, 4);
+  if(lua_type(vm, 5) == LUA_TSTRING) os_s      = (char*)lua_tostring(vm, 5);
+
+  if(!ntop_interface || ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm), false, false, country_s, vlan_ptr, os_s, as_ptr,
+							      network_ptr, (char*)"column_ip", CONST_MAX_NUM_HITS, 0 /* toSkip */, true /* a2zSortOrder */) < 0)
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -1841,27 +1881,6 @@ static int ntop_get_interface_endpoint(lua_State* vm) {
 
     lua_pushfstring(vm, "%s", endpoint ? endpoint : "");
   }
-
-  return(CONST_LUA_OK);
-}
-/* ****************************************** */
-
-static int ntop_interface_is_local_packetdump_enabled(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  char rsp[2];
-  Redis *redis = ntop->getRedis();
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface || redis->get((char*)CONST_RUNTIME_PREFS_NBOX_INTEGRATION, rsp, sizeof(rsp)))
-    return(CONST_LUA_ERROR);
-  rsp[1] = 0;
-
-  lua_pushboolean(vm,
-		  Utils::isUserAdministrator(vm)       &&
-		  strncmp((char*)"1", rsp, 1)          &&
-		  !ntop_interface->is_actual_view()    &&
-		  ntop_interface->isPacketInterface());
 
   return(CONST_LUA_OK);
 }
@@ -2753,7 +2772,8 @@ static int ntop_get_info(lua_State* vm) {
   lua_push_str_table_entry(vm, "version", (char*)PACKAGE_VERSION);
   lua_push_str_table_entry(vm, "git", (char*)NTOPNG_GIT_RELEASE);
 
-  snprintf(rsp, sizeof(rsp), "%s (%s)", PACKAGE_OSNAME, PACKAGE_MACHINE);
+  snprintf(rsp, sizeof(rsp), "%s [%s][%s]",
+	   PACKAGE_OSNAME, PACKAGE_MACHINE, PACKAGE_OS);
   lua_push_str_table_entry(vm, "platform", rsp);
   lua_push_str_table_entry(vm, "OS",
 #ifdef WIN32
@@ -3912,10 +3932,10 @@ static int ntop_reload_traffic_profiles(lua_State* vm) {
 
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
     if((old_profile = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
-    
+
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
     if((new_profile = (char*)lua_tostring(vm, 2)) == NULL)     return(CONST_LUA_PARAM_ERROR);
-    
+
     ntop_interface->updateFlowProfiles(old_profile, new_profile); /* Reload profiles in memory */
   }
 
@@ -4210,6 +4230,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getHostInfo",            ntop_get_interface_host_info },
+  { "getGroupedHosts",        ntop_get_grouped_interface_host },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
   { "resetPeriodicStats",     ntop_host_reset_periodic_stats },
   { "correlateHostActivity",  ntop_correalate_host_activity },
@@ -4246,7 +4267,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getEndpoint",                    ntop_get_interface_endpoint },
   { "incrDrops",                      ntop_increase_drops },
   { "isView",                         ntop_interface_is_interface_view   },
-  { "isLocalPacketdumpEnabled",       ntop_interface_is_local_packetdump_enabled },
   { "isPacketInterface",              ntop_interface_is_packet_interface },
   { "isRunning",                      ntop_interface_is_running },
   { "isIdle",                         ntop_interface_is_idle },
@@ -4735,11 +4755,11 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
 		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
 		   || (strcmp(rsp, user) != 0)) {
-		  ntop->getTrace()->traceEvent(TRACE_WARNING, 
-					       "Invalid CSRF parameter specified [%s][%s][%s]: page expired?", 
+		  ntop->getTrace()->traceEvent(TRACE_WARNING,
+					       "Invalid CSRF parameter specified [%s][%s][%s]: page expired?",
 					       decoded_buf, rsp, user);
 		  free(equal);
-		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?", 
+		  return(send_error(conn, 500 /* Internal server error */, "Internal server error: CSRF attack?",
 				    PAGE_ERROR, tok, rsp));
 		} else
 		  ntop->getRedis()->delKey(decoded_buf);

@@ -85,7 +85,7 @@ print("<tr><th>Version</th><td>"..ntopng_git_url)
 if(info["pro.release"] == false) then
    print(" - Community")
 else
-   print(" - Professional")
+   print(" - Pro Small Business")
 end
 
 if(info["version.embedded_edition"] == true) then

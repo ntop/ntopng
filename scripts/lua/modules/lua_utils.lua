@@ -193,7 +193,7 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 -- ##############################################
 
-function sendHTTPHeaderIfName(mime, ifname, maxage)
+function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition)
   info = ntop.getInfo(false)
 
   print('HTTP/1.1 200 OK\r\n')
@@ -205,20 +205,21 @@ function sendHTTPHeaderIfName(mime, ifname, maxage)
   if(_SESSION ~= nil) then print('Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; HttpOnly\r\n') end
   if(ifname ~= nil) then print('Set-Cookie: ifname=' .. ifname .. '; path=/\r\n') end
   print('Content-Type: '.. mime ..'\r\n')
+  if(content_disposition ~= nil) then print('Content-Disposition: '..content_disposition..'\r\n') end
   print('Last-Modified: '..os.date("!%a, %m %B %Y %X %Z").."\r\n")
   print('\r\n')
 end
 
 -- ##############################################
 
-function sendHTTPHeaderLogout(mime)
-  sendHTTPHeaderIfName(mime, nil, 0)
+function sendHTTPHeaderLogout(mime, content_disposition)
+  sendHTTPHeaderIfName(mime, nil, 0, content_disposition)
 end
 
 -- ##############################################
 
-function sendHTTPHeader(mime)
-  sendHTTPHeaderIfName(mime, nil, 3600)
+function sendHTTPHeader(mime, content_disposition)
+  sendHTTPHeaderIfName(mime, nil, 3600, content_disposition)
 end
 
 -- ##############################################
@@ -1515,6 +1516,16 @@ function isLoopback(name)
   end
 end
 
+function isLocalPacketdumpEnabled()
+   local nbox_integration = ntop.getCache("ntopng.prefs.nbox_integration")
+   if nbox_integration == nil or nbox_integration ~= "1" then
+      nbox_integration = false
+   else
+      nbox_integration = true
+   end
+   return isAdministrator() and not nbox_integration and not interface.isView() and interface.isPacketInterface()
+end
+
 function processColor(proc)
   if(proc == nil) then
     return("")
@@ -1970,12 +1981,17 @@ end
 -- ###############################################
 
 function tolongint(what)
-   return(string.format("%u", what))
+   if(what == nil) then
+      return(0)
+   else
+      return(string.format("%u", what))
+   end
 end
 
 -- ###############################################
 
 function trimSpace(what)
+   if(what == nil) then return("") end
    return(string.gsub(what, "%s+", ""))
 end
 

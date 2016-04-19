@@ -62,14 +62,21 @@ end
 interface.select(ifname)
 
 if((group_col == "mac") or (group_col == "antenna_mac")) then
-   hosts_stats,total = aggregateHostsStats(interface.getLocalHostsInfo())
+   hosts_stats,total = aggregateHostsStats(interface.getLocalHostsInfo(false))
    --PRINT
    -- for n in pairs(hosts_stats) do 
    --    io.write("= "..n..'\n')
    -- end
-
 else
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+--[[
+   hosts_stats,total = interface.getGroupedHosts(
+					      tonumber(vlan_n) or 0,
+					      tonumber(as_n) or 0,
+					      tonumber(network_n) or -1,
+					      country_n or "", os_n or "")
+--]]
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo(false))
+--   tprint(hosts_stats)
 end
 
 to_skip = (currentPage-1) * perPage
@@ -184,6 +191,7 @@ end
 --[[
 Prepares a json containing table data, together with HTML.
 --]]
+
 function print_single_group(value)
    print ('{ ')
    print ('\"key\" : \"'..value["id"]..'\",')
@@ -215,12 +223,18 @@ function print_single_group(value)
 
    if (group_col == "local_network_id" or network_n ~= nil) then
       print(value["name"]..'</A> ')
-
       if(value["id"] ~= "-1") then
 	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
-
       print('", ')
+
+   elseif group_col == "vlan" or vlan_n ~= nil then
+      print(value["id"]..'</A> ')
+      if value["id"] ~= "0" then
+	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan_id='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      end
+      print('", ')
+
    elseif((group_col == "mac") or (group_col == "antenna_mac")) then
       print(get_symbolic_mac(value["id"])..'</A>", ')
    else
