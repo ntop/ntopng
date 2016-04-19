@@ -276,6 +276,8 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMinInterArrivalTime() { return(srv2cliStats.pktTime.min_ms); }
   inline u_int32_t getSrv2CliMaxInterArrivalTime() { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime() { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
+  inline bool isIdleFlow() { return(((getCli2SrvMaxInterArrivalTime() > CONST_MAX_IDLE_INTERARRIVAL_TIME)
+				     && (getSrv2CliMaxInterArrivalTime() > CONST_MAX_IDLE_INTERARRIVAL_TIME))); }
 };
 
 #endif /* _FLOW_H_ */

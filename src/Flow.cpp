@@ -1306,7 +1306,9 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     dumpPacketStats(vm, false);
   }
 
-  // this is used to dynamicall update entries in the gui
+  lua_push_bool_table_entry(vm, "flow.idle", isIdleFlow());
+
+  // this is used to dynamicall update entries in the GUI
   lua_push_int_table_entry(vm, "ntopng.key", key()); // Key
 
   /*
@@ -1316,7 +1318,6 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_settable(vm, -3);
     }
   */
-
 }
 
 /* *************************************** */

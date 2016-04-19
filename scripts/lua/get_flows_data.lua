@@ -271,6 +271,7 @@ for key, value in ipairs(flows_stats) do
       flows_stats[key]["info"] = "<span class='label label-primary'>"..flows_stats[key]["profile"].."</span> "..info
    end
 
+
    ---------------- TABLE SORTING ----------------
    if(process) then
       if(debug_process) then io.write("Flow Processing\n") end
@@ -436,6 +437,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    -- if(value["category"] ~= nil) then print (", \"column_category\" : \"" .. value["category"] .. "\", ") else print (",") end
    print (", \"column_proto_l4\" : \"")
+
+   if(value["flow.idle"]) then print("<i class='fa fa-clock-o fa-lg'></i> ") end
 
    if ((((value["proto.l4"] == "TCP") or (value["proto.l4"] == "UDP")))
       and ((value["tcp.seq_problems"] == true) or (value["flow_goodput.low"] == true))) then

@@ -261,11 +261,14 @@ else
    end
 
    if(flow["tcp.appl_latency"] ~= nil and flow["tcp.appl_latency"] > 0) then
-   print("<tr><th width=30%>Application Latency</th><td nowrap>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
+   print("<tr><th width=30%>Application Latency</th><td colspan=2>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
    end
 
    if(flow["cli2srv.packets"] > 1) then
-   print("<tr><th width=30%>Packet Inter-Arrival Time [ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
+
+   print("<tr><th width=30%")
+   if(flow["flow.idle"] == true) then print(" rowspan=2") end
+   print(">Packet Inter-Arrival Time [ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
    print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
    print("</td>\n")
    if(flow["srv2cli.packets"] < 2) then
@@ -275,6 +278,7 @@ else
      print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
    end
    print("</td></tr>\n")
+   if(flow["flow.idle"] == true) then print("<tr><td colspan=2><i class='fa fa-clock-o'></i> <small>This looks like an <font color=red>idle flow</font> with periodic transmissions just to keep it alive.</small></td></tr>") end
    end
 
    if(flow["tcp.seq_problems"] ~= nil) then
@@ -340,7 +344,7 @@ else
       if(hasbit(flow["tcp_flags"],0x20)) then print('<span class="label label-info">URG</span> ')  end
 
       if(flow_reset) then
-	 print(" <small>This flow has been reset and probably the server application is down.</small>")
+	 print(" <small>This flow has been reset: one of the flow peers disconnected.</small>")
       else
 	 if(flow_completed) then
 	    print(" <small>This flow is completed and will expire soon.</small>")

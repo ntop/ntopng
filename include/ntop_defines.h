@@ -359,7 +359,7 @@
 
 #define CONST_ANY_ADDRESS              "" /* Good for v4 and v6 */
 #define CONST_LOOPBACK_ADDRESS         "127.0.0.1"
-
+#define CONST_MAX_IDLE_INTERARRIVAL_TIME  60000 /* 1 min (msec) */
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MTU              1514
 
@@ -386,7 +386,6 @@
 #endif
 
 #ifdef WIN32
-
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
