@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -264,16 +264,18 @@ else
    print("<tr><th width=30%>Application Latency</th><td nowrap>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
    end
 
+   if(flow["cli2srv.packets"] > 1) then
    print("<tr><th width=30%>Packet Inter-Arrival Time [ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
    print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
    print("</td>\n")
-   if(flow["srv2cli.packets"] == 0) then
+   if(flow["srv2cli.packets"] < 2) then
      print("<td>&nbsp;")
    else
      print("<td nowrap>Client <i class=\"fa fa-arrow-left\"></i> Server: ")
      print(msToTime(flow["interarrival.srv2cli"]["min"]).." / "..msToTime(flow["interarrival.srv2cli"]["avg"]).." / "..msToTime(flow["interarrival.srv2cli"]["max"]))
    end
    print("</td></tr>\n")
+   end
 
    if(flow["tcp.seq_problems"] ~= nil) then
       rowspan = 2
