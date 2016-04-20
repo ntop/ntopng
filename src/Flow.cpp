@@ -455,7 +455,11 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
     }
 
 #ifdef NTOPNG_PRO
-    if(detection_completed) updateProfile();
+    // Update the profile even if the detection is not yet completed.
+    // Indeed, even if the L7 detection is not yet completed
+    // the flow already carries information on all the other fields,
+    // e.g., IP src and DST, vlan, L4 proto, etc
+    updateProfile();
 #endif
   }
 }
@@ -705,6 +709,10 @@ bool Flow::dumpFlow(bool partial_dump) {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->get_export_interface()) {
+
+    if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
+      // force profile detection even if the L7 Protocol has not been detected
+      updateProfile();
 
     if(partial_dump) {
       time_t now = time(NULL);
