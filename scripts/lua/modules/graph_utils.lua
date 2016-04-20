@@ -1080,6 +1080,15 @@ end
 print [[
 
       <script>
+      $('a[href="#ipv4"]').on('shown.bs.tab', function (e) {
+        if ($('a[href="#ipv4"]').attr("loaded") == 1){
+          // do nothing if the tab has already been computed and populated
+          return;
+        }
+
+        // if here, then we actually have to load the datatable
+        $('a[href="#ipv4"]').attr("loaded", 1);
+
    ]]
 
 if(not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
@@ -1191,6 +1200,7 @@ print [[
 
 
 	    var table4 = $("#table-flows4").datatable(graph_options4);
+      });  // closes the event handler on shown.bs.tab
       ]]
    end
 
@@ -1198,6 +1208,16 @@ print [[
       if((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0")) then print("</script>") return end
 
 print [[
+      $('a[href="#ipv6"]').on('shown.bs.tab', function (e) {
+        if ($('a[href="#ipv6"]').attr("loaded") == 1){
+          // do nothing if the tab has already been computed and populated
+          return;
+        }
+
+        // if here, then we actually have to load the datatable
+        $('a[href="#ipv6"]').attr("loaded", 1);
+
+
 	    var url_update6 = "]] print(url_update.."&limit="..limitv6) print [[&version=6";
 
 	    var graph_options6 = {
@@ -1297,6 +1317,7 @@ print [[
 
 
 	 var table6 = $("#table-flows6").datatable(graph_options6);
+      }); // closes the event handler on shown.bs.tab
 	 </script>
 ]]
 
