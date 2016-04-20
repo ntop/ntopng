@@ -32,16 +32,21 @@ static void* queryLoop(void* ptr) {
 void* MySQLDB::queryLoop() {
   Redis *r = ntop->getRedis();
   MYSQL mysql_alt;
+  char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if(!connectToDB(&mysql_alt, true))
     return(NULL);
 
   while(!ntop->getGlobals()->isShutdown()) {
-    char sql[2048];
     int rc = r->lpop(CONST_SQL_QUEUE, sql, sizeof(sql));
 
     if(rc == 0) {
-      if(exec_sql_query(&mysql_alt, sql, true, true, false) < 0) {
+      if (strlen(sql) >= CONST_MAX_SQL_QUERY_LEN - 1){
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Tried to execute a query longer than %u. Skipping.",
+				     CONST_MAX_SQL_QUERY_LEN - 2);
+	continue;  // prevents overflown queries to generate mysql errors
+      } else if(exec_sql_query(&mysql_alt, sql, true, true, false) < 0) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(&mysql_alt));
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
 	mysql_close(&mysql_alt);
