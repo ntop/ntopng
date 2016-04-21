@@ -52,6 +52,7 @@ class Ntop {
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables.*/
   u_int num_cpus; /**< Number of physical CPU cores. */
   Redis *redis; /**< Pointer of Radius server.*/
+  ElasticSearch *elastic_search; /**< Pointer of Elastic Search.*/
   PeriodicActivities *pa; /**< Instance of periodical activities.*/
   AddressResolution *address;
   Prefs *prefs;
@@ -313,6 +314,7 @@ class Ntop {
   inline NtopGlobals*      getGlobals()              { return(globals); };
   inline Trace*            getTrace()                { return(globals->getTrace()); };
   inline Redis*            getRedis()                { return(redis);               };
+  inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Prefs*            getPrefs()                { return(prefs);               };
   inline RuntimePrefs*            getRuntimePrefs()                { return(runtimeprefs);               };
 
@@ -341,6 +343,7 @@ class Ntop {
   inline char* getLocalNetworkName(int16_t local_network_id) { return(address->get_local_network((u_int8_t)local_network_id)); };
   void createExportInterface();
   void initRedis();
+  void initElasticSearch();
 
   inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
   inline int getUdpSock()               { return(udp_socket); }

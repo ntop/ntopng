@@ -451,8 +451,7 @@ int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
 
   if(json) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] %s", json);
-
-    rc = ntop->getRedis()->lpush(CONST_ES_QUEUE_NAME, (char*)json, CONST_MAX_ES_MSG_QUEUE_LEN);
+    rc = ntop->getElasticSearch()->sendToES(json);
     free(json);
   } else
     rc = -1;

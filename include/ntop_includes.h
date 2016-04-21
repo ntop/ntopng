@@ -181,6 +181,7 @@ using namespace std;
 #include "VirtualHostHash.h"
 #include "HTTPstats.h"
 #include "Redis.h"
+#include "ElasticSearch.h"
 #include "StatsManager.h"
 #include "DB.h"
 #include "MySQLDB.h"

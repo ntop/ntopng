@@ -139,4 +139,9 @@ struct grev1_header {
   u_int16_t proto;
 };
 
+struct string_list {
+  char *str;
+  struct string_list *prev, *next;
+};
+
 #endif /* _NTOP_TYPEDEFS_H_ */

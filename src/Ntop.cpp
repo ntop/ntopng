@@ -219,6 +219,8 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   initRedis();
 
+  initElasticSearch();
+
 #ifdef NTOPNG_PRO
   pro->check_license(true, false);
 #endif
@@ -239,6 +241,14 @@ void Ntop::initRedis() {
   if(redis) delete(redis);
 
   redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
+}
+
+/* ******************************************* */
+
+void Ntop::initElasticSearch() {
+  if(elastic_search) delete(elastic_search);
+
+  elastic_search = new ElasticSearch();
 }
 
 /* ******************************************* */

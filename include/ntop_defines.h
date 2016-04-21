@@ -152,7 +152,6 @@
 #define CONST_STR_USER_NETS       "ntopng.user.%s.allowed_nets"
 #define CONST_ALLOWED_NETS        "allowed_nets"
 #define CONST_USER                "user"
-#define CONST_ES_QUEUE_NAME       "ntopng.es"
 
 #define CONST_INTERFACE_TYPE_PCAP      "pcap"
 #define CONST_INTERFACE_TYPE_PCAP_DUMP "pcap dump"
@@ -474,8 +473,6 @@
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
-#define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
-
 #define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
 #define PREF_LDAP_ACCOUNT_TYPE        "ntopng.prefs.ldap.account_type"
 #define PREF_LDAP_SERVER              "ntopng.prefs.ldap.server"
@@ -487,5 +484,9 @@
 #define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
 #define CONST_CACHED_USER_PASSWORD    "ntopng.user.ldap.%s.password"
 #define CONST_CACHED_USER_GROUP       "ntopng.user.%s.group"
+
+/* Elastic Search */
+#define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
+#define ES_MAX_QUEUE_LEN              32768
 
 #endif /* _NTOP_DEFINES_H_ */

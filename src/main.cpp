@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 
   ntop->createExportInterface();
 
-  ntop->getRedis()->startFlowDump();
+  ntop->getElasticSearch()->startFlowDump();
 
   if(ntop->getInterfaceAtId(0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
