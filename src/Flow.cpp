@@ -710,9 +710,11 @@ bool Flow::dumpFlow(bool partial_dump) {
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->get_export_interface()) {
 
+#ifdef NTOPNG_PRO
     if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
       // force profile detection even if the L7 Protocol has not been detected
       updateProfile();
+#endif
 
     if(partial_dump) {
       time_t now = time(NULL);
