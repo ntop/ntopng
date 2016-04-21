@@ -614,7 +614,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->updateActivities();
 
   /* In case we're using a "modern" nProbe these stats are propagated automatically */
-  if(!remoteIfname)
+  if(1 /* not sure what is a "modern" probe, see #512 */ || !remoteIfname)
     flow->updateInterfaceStats(src2dst_direction,
 			       zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			       zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));

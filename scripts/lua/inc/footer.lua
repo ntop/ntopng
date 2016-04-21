@@ -284,7 +284,6 @@ print [[/lua/logout.lua");  }, */
 	        prev_local   = rsp.local2remote;
 	        prev_remote  = rsp.remote2local;
 	      }
-
 	      var values = updatingChart_local2remote.text().split(",")
 	      var values1 = updatingChart_remote2local.text().split(",")
 	      var bytes_diff = rsp.bytes-prev_bytes;
