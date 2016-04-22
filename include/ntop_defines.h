@@ -185,8 +185,8 @@
 #define BATADV14_BCAST		 0x04
 #define BATADV14_VIS		 0x05
 #define BATADV14_UNICAST_FRAG	 0x06
-#define BATADV14_TT_QUERY	 0x07 
-#define BATADV14_ROAM_ADV	 0x08 
+#define BATADV14_TT_QUERY	 0x07
+#define BATADV14_ROAM_ADV	 0x08
 #define BATADV14_UNICAST_4ADDR	 0x09
 #define BATADV14_CODED		 0x0a
 
@@ -429,7 +429,7 @@
 #define unlink(a) _unlink(a)
 #endif
 
-#if defined(__arm__) || defined(__mips__) 
+#if defined(__arm__) || defined(__mips__)
 #define NTOPNG_EMBEDDED_EDITION         1
 #endif
 
@@ -482,8 +482,8 @@
 #define PREF_LDAP_SEARCH_PATH         "ntopng.prefs.ldap.search_path"
 #define PREF_LDAP_USER_GROUP          "ntopng.prefs.ldap.user_group"
 #define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
-#define CONST_CACHED_USER_PASSWORD    "ntopng.user.ldap.%s.password"
-#define CONST_CACHED_USER_GROUP       "ntopng.user.%s.group"
+#define PREF_LDAP_GROUP_OF_USER       "ntopng.prefs.ldap.%s.group_of_user"
+#define PREF_USER_TYPE_LOG            "ntopng.prefs.user.%s.type_log"
 
 /* Elastic Search */
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"

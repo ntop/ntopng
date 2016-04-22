@@ -650,6 +650,18 @@ bool Utils::isUserAdministrator(lua_State* vm) {
   if(!strncmp(username, NTOP_NOLOGIN_USER, strlen(username)))
     return(true);
 
+#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
+  snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, username);
+  if (ntop->getRedis()->get(key, val, sizeof(val)) >= 0){
+    if( !strcmp(val,"ldap") ) {
+      snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, username);
+      if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+        return(!strcmp(val, CONST_ADMINISTRATOR_USER));
+      }
+    }
+  }
+#endif
+
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
     return(!strcmp(val, NTOP_NOLOGIN_USER) ||
@@ -704,10 +716,10 @@ static const char* xssAttempts[] = {
 
 bool Utils::isPrintableChar(u_char c) {
   if(isprint(c)) return(true);
-  
+
   if((c >= 192) && (c <= 255))
     return(true);
-    
+
   return(false);
 }
 
@@ -723,7 +735,7 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
       }
     }
   }
-  
+
   for(int i=0; param[i] != '\0'; i++) {
     bool is_good;
 
@@ -914,10 +926,10 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
 #endif
 
     v = curl_version_info(CURLVERSION_NOW);
-    snprintf(ua, sizeof(ua), "%s [%s][%s]", 
+    snprintf(ua, sizeof(ua), "%s [%s][%s]",
 	     PACKAGE_STRING, PACKAGE_MACHINE, PACKAGE_OS);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
-  
+
     if(vm) lua_newtable(vm);
 
     if(curl_easy_perform(curl) == CURLE_OK) {
@@ -933,13 +945,13 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     if(vm) {
       if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
 	lua_push_int_table_entry(vm, "RESPONSE_CODE", response_code);
-	
+
       if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
 	lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
-	
+
       if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
 	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
-    }    
+    }
 
     if(return_content && state)
       free(state);
@@ -1515,4 +1527,3 @@ void Utils::xor_encdec(u_char *data, int data_len, u_char *key) {
     if(key[y] == 0) y = 0;
   }
 }
-
