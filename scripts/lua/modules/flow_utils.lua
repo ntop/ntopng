@@ -509,7 +509,7 @@ function handleCustomFlowField(key, value)
     if(value ~= '0') then
       return(formatEpoch(value))
     else
-      return ""
+      return "0"
     end
   elseif((rtemplate[tonumber(key)] == 'RTP_IN_JITTER') or (rtemplate[tonumber(key)] == 'RTP_OUT_JITTER')) then
     if(value ~= nil and value ~= '0') then
