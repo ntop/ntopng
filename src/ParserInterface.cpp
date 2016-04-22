@@ -382,6 +382,9 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("SMTP_RCPT_TO", 57658);
   addMapping("SSDP_HOST", 57972);
   addMapping("SSDP_USN", 57973);
+
+  addMapping("SSL_SERVER_NAME", 57660);
+  addMapping("BITTORRENT_HASH", 57661);
 }
 
 /* **************************************************** */
@@ -666,6 +669,12 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	case HTTP_SITE:
 	  flow.http_site = strdup(value);
 	  break;
+	case SSL_SERVER_NAME:
+	  flow.ssl_server_name = strdup(value);
+	  break;
+	case BITTORRENT_HASH:
+	  flow.bittorrent_hash = strdup(value);
+	  break;
 
         default:
           ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u/%s", key_id, key);
@@ -687,6 +696,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
     if(flow.dns_query) free(flow.dns_query);
     if(flow.http_url)  free(flow.http_url);
     if(flow.http_site) free(flow.http_site);
+    if(flow.ssl_server_name) free(flow.ssl_server_name);
+    if(flow.bittorrent_hash) free(flow.bittorrent_hash);
 
     json_object_put(o);
     json_object_put(flow.additional_fields);

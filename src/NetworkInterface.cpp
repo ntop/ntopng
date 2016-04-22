@@ -636,6 +636,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
   if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
   if(zflow->http_site) flow->setServerName(zflow->http_site);
+  if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
+  if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
 
 #if 0
   if(!is_packet_interface()) {
@@ -2176,8 +2178,8 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
 					  char *sortColumn, char* groupBy, u_int32_t maxHits,
 					  u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
-  int (*sorter)(const void *_a, const void *_b);
   int num_entries;
+
   retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
     retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter, retriever.sorter=column_ip;
   retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();

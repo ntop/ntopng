@@ -118,7 +118,7 @@ typedef struct zmq_flow {
   u_int32_t first_switched, last_switched;
   json_object *additional_fields;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-  char *http_url, *http_site, *dns_query;
+  char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
