@@ -613,12 +613,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
 
-  /* In case we're using a "modern" nProbe these stats are propagated automatically */
-  if(!remoteIfname)
-    flow->updateInterfaceStats(src2dst_direction,
-			       zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
-			       zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-
+  flow->updateInterfaceStats(src2dst_direction,
+			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
+			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+  
   incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
