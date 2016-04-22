@@ -42,6 +42,7 @@ binary-arch: build install
 	dh_installinit
 	dh_installman
 # install the files into debian/tmp.
+	mkdir -p ./debian/tmp
 	cp -r ../etc/ ./usr/ ./debian/tmp	
 	-rm ./debian/tmp/usr/share/ntopng/httpdocs/geoip/*.dat
 	-find ./debian/tmp -name .svn -exec /bin/rm -rf {} ';'

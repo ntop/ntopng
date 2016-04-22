@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 # Uncomment this to turn on verbose mode.
-# export DH_VERBOSE=1
+export DH_VERBOSE=1
 
 #
 # debian/compat
@@ -38,11 +38,11 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_clean -k
+# install the files into debian/tmp.
+	cp -r ./usr/ ./debian/tmp
 	dh_installdirs
 	dh_installinit
 	dh_installman
-# install the files into debian/tmp.
-	cp -r ./usr/ ./debian/tmp
 	dh_link
 	dh_strip
 	dh_compress

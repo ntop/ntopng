@@ -51,7 +51,7 @@ ntopng-data:
 	@SUDO@ \rm -rf ./usr ./debian/tmp
 	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/tmp
 	cd ../../ ; ./configure; make geoip
-	cp ../../httpdocs/geoip/* ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
+	cp ../../httpdocs/geoip/*.dat* ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
 	-gunzip ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/*.gz
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
