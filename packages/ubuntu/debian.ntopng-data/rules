@@ -38,11 +38,12 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_clean -k
+	mkdir -p ./debian/ntopng-data
 	dh_installinit
 	dh_installman
 #	dh_install --fail-missing
 	dh_link
-	dh_strip
+#	dh_strip
 	dh_compress
 	dh_fixperms
 	dh_installdeb
