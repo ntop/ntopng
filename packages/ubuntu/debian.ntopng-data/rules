@@ -38,16 +38,17 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_clean -k
-# install the files into debian/tmp.
-	cp -r ./usr/ ./debian/tmp
-	dh_installdirs
 	dh_installinit
 	dh_installman
+#	dh_install --fail-missing
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
 	dh_installdeb
+# install the files into debian/ntopng-data.
+# The next statememt must be after all dh_install* statements
+	cp -a ./usr ./debian/ntopng-data
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
