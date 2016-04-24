@@ -67,6 +67,7 @@ class NetworkInterface {
   nDPIStats ndpiStats;
   PacketStats pktStats;
   FlowHash *flows_hash; /**< Hash used to memorize the flows information.*/
+  u_int32_t last_remote_pps, last_remote_bps;
 
   /* Second update */
   u_int64_t lastSecTraffic,
@@ -305,7 +306,8 @@ class NetworkInterface {
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,
-		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time);
+		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time,
+		      u_int32_t last_pps, u_int32_t last_bps);
   void startDBLoop() { if(db) db->startDBLoop(); };
 };
 

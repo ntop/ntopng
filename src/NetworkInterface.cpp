@@ -175,7 +175,7 @@ void NetworkInterface::init() {
     sprobe_interface = inline_interface = false,has_vlan_packets = false,
       last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
-    purge_idle_flows_hosts = true, id = (u_int8_t)-1,
+    purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false,
@@ -2434,6 +2434,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+  lua_push_int_table_entry(vm, "remote_pps", last_remote_pps);
+  lua_push_int_table_entry(vm, "remote_bps", last_remote_bps);
+
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_int_table_entry(vm, "mtu", ifMTU);
@@ -3016,12 +3019,12 @@ void NetworkInterface::updateSecondTraffic(time_t when) {
 void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 				      char *remoteProbeAddress, char *remoteProbePublicAddress,
 				      u_int64_t remBytes, u_int64_t remPkts,
-				      u_int32_t remTime) {
+				      u_int32_t remTime, u_int32_t last_pps, u_int32_t last_bps) {
   if(name)               setRemoteIfname(name);
   if(address)            setRemoteIfIPaddr(address);
   if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
   if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit, last_pkt_rcvd_remote = remTime;
+  ifSpeed = speedMbit, last_pkt_rcvd_remote = remTime, last_remote_pps = last_pps, last_remote_bps = last_bps;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */

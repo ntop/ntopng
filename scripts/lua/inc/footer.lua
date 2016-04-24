@@ -292,7 +292,6 @@ print [[/lua/logout.lua");  }, */
 	      var remote_diff = rsp.remote2local-prev_remote;
 	      var epoch_diff = rsp.epoch - prev_epoch;
 		  
-
 	      if(epoch_diff > 0) {
 		if(bytes_diff > 0) {
 		   var v = local_diff-remote_diff;
@@ -311,6 +310,9 @@ print [[/lua/logout.lua");  }, */
 		var bps_local2remote = Math.round((local_diff*8) / epoch_diff);
 		var bps_remote2local = Math.round((remote_diff*8) / epoch_diff);
 		
+                if(rsp.remote_pps != 0)  { pps = rsp.remote_pps; }
+                if(rsp.remote_bps != 0)  { bps = rsp.remote_bps; }
+
 		$('#gauge_text_allTraffic').html(bitsToSize(bps, 1000) + " [" + addCommas(pps) + " pps]");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
