@@ -5,7 +5,7 @@ SHELL=/bin/sh
 OS := $(shell uname -s)
 PWD=@PWD@
 GPP=@GPP@
-INSTALL_DIR=$(prefix)
+INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
 
 ######
