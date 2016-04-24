@@ -241,9 +241,6 @@ int main(int argc, char *argv[])
     }
   }
 
-  if(prefs->do_change_user())
-    Utils::dropPrivileges();
-
 #ifndef WIN32
   if(prefs->get_pid_path() != NULL) {
     FILE *fd;
@@ -265,6 +262,9 @@ int main(int argc, char *argv[])
 				   prefs->get_pid_path());
   }
 #endif
+
+  if(prefs->do_change_user())
+    Utils::dropPrivileges();
 
   ntop->loadGeolocation(prefs->get_docs_dir());
   ntop->registerHTTPserver(new HTTPserver(prefs->get_http_port(),
