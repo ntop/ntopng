@@ -1885,9 +1885,11 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
     if(f->match(retriever->allowed_hosts)) {
       switch(retriever->sorter) {
       case column_client:
-	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
+	f->get_cli_host()->incUses(); /* Make sure the host won't be purged while processing */
+ 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
       case column_server:
+	f->get_srv_host()->incUses(); /* Make sure the host won't be purged while processing */
 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
       case column_vlan:
@@ -1945,11 +1947,12 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter))))
     return(false); /* false = keep on walking */
 
+  h->incUses(); /* Make sure the host won't be purged while processing */
   r->elems[r->actNumEntries].hostValue = h;
 
   switch(r->sorter) {
   case column_ip:
-    r->elems[r->actNumEntries++].hostValue = h;
+    r->elems[r->actNumEntries++].hostValue = h; /* hostValue was already set */
     break;
   case column_alerts:
     r->elems[r->actNumEntries++].numericValue = h->getNumAlerts();
@@ -2131,6 +2134,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   hosts_hash->disablePurge();
   hosts_hash->walk(host_search_walker, (void*)&retriever);
 
+  // for(int i=0; i<retriever.actNumEntries; i++) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%u] %p", i, retriever.elems[i].hostValue);
+
   qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   lua_newtable(vm);
@@ -2140,15 +2145,21 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
 
   if(a2zSortOrder) {
     for(int i=toSkip, num=0; i<(int)retriever.actNumEntries; i++) {
-      retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */, 
-					host_details, false, false, true);
-      if(++num >= (int)maxHits) break;
+      Host *h = retriever.elems[i].hostValue;
+
+      if(num < (int)maxHits)
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+
+      num++, h->decUses(); /* The host can be purged again */
     }
   } else {
     for(int i=(retriever.actNumEntries-1-toSkip), num=0; i>=0; i--) {
-      retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */,
-					host_details, false, false, true);
-      if(++num >= (int)maxHits) break;
+      Host *h = retriever.elems[i].hostValue;
+
+      if(num < (int)maxHits)
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+
+      num++, h->decUses(); /* The host can be purged again */
     }
   }
 
@@ -2177,6 +2188,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
 					  u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
   int num_entries;
+  Grouper *gper;
 
   retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
     retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter, retriever.sorter=column_ip;
@@ -2191,7 +2203,6 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   hosts_hash->disablePurge();
   hosts_hash->walk(host_search_walker, (void*)&retriever);
 
-  Grouper *gper;
   if((gper = new(std::nothrow) Grouper(groupBy)) == NULL){
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
@@ -2200,7 +2211,9 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
 
   for(int i=0; i<(int)retriever.actNumEntries; i++) {
     Host *h = retriever.elems[i].hostValue;
+
     gper->group(h);
+    h->decUses(); /* The host can be purged again */
   }
 
   hosts_hash->enablePurge();
