@@ -102,6 +102,7 @@ print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".
 if(isAdministrator()) then print("Administrator") else print("Unprivileged User") end
 print("]</td></tr>\n")
 print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTime(info["uptime"]).."</td></tr>\n")
+print("<tr><th>Command Line</th><td>ntopng "..info["command_line"].."</td></tr>\n")
 print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
 ndpi_ver = info["version.ndpi"]
