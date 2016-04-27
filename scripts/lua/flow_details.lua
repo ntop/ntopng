@@ -264,7 +264,7 @@ else
    print("<tr><th width=30%>Application Latency</th><td colspan=2>"..msToTime(flow["tcp.appl_latency"]).."</td></tr>\n")
    end
 
-   if(flow["cli2srv.packets"] > 1) then
+   if((flow["cli2srv.packets"] > 1) and (flow["interarrival.cli2srv"]["max"] > 0)) then
 
    print("<tr><th width=30%")
    if(flow["flow.idle"] == true) then print(" rowspan=2") end
