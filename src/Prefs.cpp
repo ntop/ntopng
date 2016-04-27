@@ -419,11 +419,29 @@ static const struct option long_options[] = {
 /* ******************************************* */
 
 int Prefs::setOption(int optkey, char *optarg) {
-  char *double_dot, *p;
-  int len = strlen(optarg)+6;
+  char *double_dot, *p, *opt = NULL;
+  int len = (optarg ? strlen(optarg) : 0)+6;
+
+  for(int i=0; ; i++) {
+    if(long_options[i].val == optkey) {
+      opt = (char*)long_options[i].name;
+      len += strlen(opt)+2;
+      break;
+    }
+  }
 
   if((p = (char*)malloc(len)) != NULL) {
-    snprintf(p, len-1, "-%c %s ", optkey, optarg);
+    if(opt) {
+      if(optarg)
+	snprintf(p, len-1, "--%s \"%s\" ", opt, optarg);
+      else
+	snprintf(p, len-1, "--%s ", opt);      
+    } else {
+      if(optarg)
+	snprintf(p, len-1, "-%c %s ", optkey, optarg);
+      else
+	snprintf(p, len-1, "-%c ", optkey);
+    }
 
     if(cli == NULL)
       cli = p;
