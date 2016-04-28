@@ -139,6 +139,10 @@ class Flow : public GenericHashEntry {
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
+  inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
+    return(1000 /* msec */ 
+	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
+  }
 
  public:
   Flow(NetworkInterface *_iface,
@@ -271,14 +275,16 @@ class Flow : public GenericHashEntry {
   inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
   inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
 
-  inline u_int32_t getCli2SrvMinInterArrivalTime() { return(cli2srvStats.pktTime.min_ms); }
-  inline u_int32_t getCli2SrvMaxInterArrivalTime() { return(cli2srvStats.pktTime.max_ms); }
-  inline u_int32_t getCli2SrvAvgInterArrivalTime() { return((cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (cli2srv_packets-1)); }
-  inline u_int32_t getSrv2CliMinInterArrivalTime() { return(srv2cliStats.pktTime.min_ms); }
-  inline u_int32_t getSrv2CliMaxInterArrivalTime() { return(srv2cliStats.pktTime.max_ms); }
-  inline u_int32_t getSrv2CliAvgInterArrivalTime() { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
-  inline bool isIdleFlow() { return(((getCli2SrvMaxInterArrivalTime() > CONST_MAX_IDLE_INTERARRIVAL_TIME)
-				     && (getSrv2CliMaxInterArrivalTime() > CONST_MAX_IDLE_INTERARRIVAL_TIME))); }
+  inline u_int32_t getCli2SrvCurrentInterArrivalTime(time_t now) { return(getCurrentInterArrivalTime(now, true));  }
+  inline u_int32_t getSrv2CliCurrentInterArrivalTime(time_t now) { return(getCurrentInterArrivalTime(now, false)); }
+
+  inline u_int32_t getCli2SrvMinInterArrivalTime()  { return(cli2srvStats.pktTime.min_ms); }
+  inline u_int32_t getCli2SrvMaxInterArrivalTime()  { return(cli2srvStats.pktTime.max_ms); }
+  inline u_int32_t getCli2SrvAvgInterArrivalTime()  { return((cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (cli2srv_packets-1)); }
+  inline u_int32_t getSrv2CliMinInterArrivalTime()  { return(srv2cliStats.pktTime.min_ms); }
+  inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
+  inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
+  bool isIdleFlow(time_t now);
 };
 
 #endif /* _FLOW_H_ */

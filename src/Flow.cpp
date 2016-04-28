@@ -84,7 +84,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   passVerdict = true, categorization.categorized_requested = false;
-  first_seen = _first_seen, last_seen = _last_seen;  
+  first_seen = _first_seen, last_seen = _last_seen;
   memset(&categorization.category, 0, sizeof(categorization.category));
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
   //bytes_rate = new TimeSeries<float>(4096);
@@ -1316,7 +1316,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     dumpPacketStats(vm, false);
   }
 
-  lua_push_bool_table_entry(vm, "flow.idle", isIdleFlow());
+  lua_push_bool_table_entry(vm, "flow.idle", isIdleFlow(iface->getTimeLastPktRcvd()));
 
   // this is used to dynamicall update entries in the GUI
   lua_push_int_table_entry(vm, "ntopng.key", key()); // Key
@@ -1634,6 +1634,40 @@ json_object* Flow::flow2json(bool partial_dump) {
 
 /* *************************************** */
 
+/* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
+bool Flow::isIdleFlow(time_t now) {
+  int threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
+
+  if(protocol == IPPROTO_TCP) {
+    if(!twh_over) {
+      if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
+	 && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
+	return(true); /* The client has not completed the 3WH within the expected time */
+
+      if(synTime.tv_sec > 0) {
+	/* We have seen the beginning of the flow */
+	threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH;
+	/* We are checking if the 3WH process takes too long and thus if this is a possible attack */
+      }
+    } else {
+      /* The 3WH has been completed */
+      if((applLatencyMsec == 0) /* The client has not yet completed the request or
+				   the connection is idle after its setup */
+	 && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
+	return(true);  /* Connection established and no data exchanged yet */
+    }
+  }
+
+  /* Check if there is not traffic for a long time on this flow */
+  if((getCli2SrvCurrentInterArrivalTime(now) > threshold_ms)
+     || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > threshold_ms)))
+    return(true);
+
+  return(false); /* Not idle */
+}
+
+/* *************************************** */
+
 void Flow::updatePacketStats(InterarrivalStats *stats, const struct timeval *when) {
   if(stats->lastTime.tv_sec != 0) {
     float deltaMS = (float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&stats->lastTime))/(float)1000;
@@ -1683,7 +1717,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
   }
-  
+
   if((applLatencyMsec == 0) && (payload_len > 0)) {
     if(cli2srv_direction) {
       memcpy(&c2sFirstGoodputTime, when, sizeof(struct timeval));
@@ -2150,17 +2184,17 @@ void Flow::getFlowShapers(bool src2dst_direction,
 bool Flow::isSuspiciousFlowThpt() {
   if(protocol == IPPROTO_TCP) {
     float compareTime = Utils::timeval2ms(&clientNwLatency)*1.5;
-    
+
     if(cli2srv_direction && isLowGoodput()) {
       if((cli2srvStats.pktTime.min_ms > compareTime)
-	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP) 
+	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP)
 	     && (cli2srvStats.pktTime.min_ms > 3000 /* 3 sec */))
 	 || (cli2srvStats.pktTime.min_ms > 6000000 /* 10 mins */)
 	 )
 	return(true);
     }
   }
-  
+
   return(false);
 }
 
