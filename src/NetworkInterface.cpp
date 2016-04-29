@@ -1774,7 +1774,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
   Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
-    h->lua(vm, allowed_hosts, true, true, true, false);
+    h->lua(vm, allowed_hosts, true, true, true, false, false);
     return(true);
   } else
     return(false);
@@ -2098,6 +2098,57 @@ int NetworkInterface::getFlows(lua_State* vm,
 }
 
 /* **************************************************** */
+int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts){
+  struct flowHostRetriever retriever;
+  memset(&retriever, 0, sizeof(retriever));
+
+  // there's not even the need to use the retriever or to sort results here
+  // we use the retriever just to leverage on the exising code.
+  retriever.allowed_hosts = allowed_hosts, retriever.local_only = false;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.sorter = column_vlan; // just a placeholder, we don't care as we won't sort
+  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
+
+  if(retriever.elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  hosts_hash->disablePurge();
+  hosts_hash->walk(host_search_walker, (void*)&retriever);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
+
+  lua_newtable(vm);
+
+  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+    Host *h = retriever.elems[i].hostValue;
+
+    if(i < CONST_MAX_NUM_HITS)
+      h->lua(vm, NULL /* Already checked */,
+	     false /* host details */,
+	     false /* verbose */,
+	     false /* return host */,
+	     true  /* as list element*/,
+	     true  /* exclude deserialized bytes */);
+
+    h->decUses(); /* The host can be purged again */
+    }
+
+
+  lua_pushstring(vm, "hosts"); // Key
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  hosts_hash->enablePurge();
+
+  free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+
+/* **************************************************** */
 
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, bool local_only,
@@ -2148,7 +2199,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
       Host *h = retriever.elems[i].hostValue;
 
       if(num < (int)maxHits)
-	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
 
       num++, h->decUses(); /* The host can be purged again */
     }
@@ -2157,7 +2208,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
       Host *h = retriever.elems[i].hostValue;
 
       if(num < (int)maxHits)
-	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
 
       num++, h->decUses(); /* The host can be purged again */
     }
@@ -2178,7 +2229,9 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   free(retriever.elems);
 
   return(retriever.actNumEntries);
-}/* **************************************************** */
+}
+
+/* **************************************************** */
 
 int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowed_hosts,
 					  bool host_details, bool local_only,

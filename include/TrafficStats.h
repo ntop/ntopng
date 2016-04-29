@@ -27,14 +27,17 @@
 class TrafficStats {
  private:
   u_int64_t numPkts, numBytes;
+  u_int64_t numDeserializedPkts, numDeserializedBytes;
 
  public:
   TrafficStats();
   
   inline void incStats(u_int64_t num_pkts, u_int64_t num_bytes) { numPkts += num_pkts, numBytes += num_bytes; };  
-  inline void incStats(u_int pkt_len) { numPkts++, numBytes += pkt_len; };  
-  inline u_int64_t getNumPkts()       { return(numPkts);                };
-  inline u_int64_t getNumBytes()      { return(numBytes);               };
+  inline void incStats(u_int pkt_len)       { numPkts++, numBytes += pkt_len; };
+  inline u_int64_t getNumPkts()             { return(numPkts);                };
+  inline u_int64_t getNumBytes()            { return(numBytes);               };
+  inline u_int64_t getNumDeserializedPkts() { return(numDeserializedPkts);    };
+  inline u_int64_t getNumDeserializedBytes(){ return(numDeserializedBytes);   };
   void printStats();
 
   char* serialize();

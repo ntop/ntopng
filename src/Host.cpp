@@ -455,7 +455,8 @@ void Host::getSites(lua_State* vm, char *k, const char *label) {
 
 void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 	       bool host_details, bool verbose,
-	       bool returnHost, bool asListElement) {
+	       bool returnHost, bool asListElement,
+	       bool exclude_deserialized_bytes) {
   char buf[64];
   char buf_id[64];
   char *ipaddr = NULL;
@@ -486,8 +487,10 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   lua_push_int_table_entry(vm, "vlan", vlan_id);
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
-  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
-  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+  lua_push_int_table_entry(vm, "bytes.sent",
+			   sent.getNumBytes() - (exclude_deserialized_bytes ? sent.getNumDeserializedBytes() : 0));
+  lua_push_int_table_entry(vm, "bytes.rcvd",
+			   rcvd.getNumBytes() - (exclude_deserialized_bytes ? rcvd.getNumDeserializedBytes() : 0));
 
   if(ip) {
     char *local_net;

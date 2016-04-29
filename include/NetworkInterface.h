@@ -206,6 +206,23 @@ class NetworkInterface {
   void updateHostStats();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
+
+  /**
+   * @brief Returns host statistics during latest activity
+   * @details Local hosts statistics may be flushed to redis when they become inactive.
+   *          When they become active again, redis-stored statistics are restored.
+   *          There is a limited number of cases that only need host statistics during
+   *          the latest activity. This is for example true when computing
+   *          minute-by-minute top statistics.
+   *
+   *          The function is handy to retrieve compact, unsorted host statistics
+   *          without including deserialized values for total local host bytes (sent and received).
+   *
+   * @param vm The lua state.
+   * @param allowed_hosts A patricia tree containing allowed hosts.
+   */
+  int getLatestActivityHostsList(lua_State* vm,
+				 patricia_tree_t *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
 			 patricia_tree_t *allowed_hosts,
 			 bool host_details, bool local_only,

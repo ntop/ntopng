@@ -44,6 +44,8 @@ class NetworkInterfaceView {
   inline bool is_actual_view()         { return (numInterfaces > 1 ? true : false); };
 
   void getnDPIStats(nDPIStats *stats);
+  int getLatestActivityHostsList(lua_State* vm,
+				 patricia_tree_t *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
 			 patricia_tree_t *allowed_hosts,
 			 bool host_details, bool local_only,
