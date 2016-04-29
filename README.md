@@ -1,7 +1,7 @@
 ![ntop][ntopng_logo] ![ntop][ntop_logo]
 # ntopng 
 
-[![Build Status](https://travis-ci.org/ntop/ntopng.png?branch=master)](https://travis-ci.org/ntop/ntopng)
+[![Build Status](https://travis-ci.org/ntop/ntopng.png?branch=dev)](https://travis-ci.org/ntop/ntopng)
 
 ## Introduction
 
@@ -15,7 +15,7 @@ We build binary packages for the following platforms:
 * Ubuntu Linux Server x64
 * CentOS/RedHat Linux x64
 * Windows x64
-* BeagleBoard ARM (based on Ubuntu Linux)
+* RaspberryPI/BeagleBoard ARM (based on Ubuntu Linux)
 * Ubiquity Networks EdgeRouter (MIPS)
 
 Enjoy.
