@@ -613,7 +613,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
 
-  flow->updateInterfaceStats(src2dst_direction,
+  flow->updateInterfaceLocalStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
   
@@ -850,7 +850,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* Protocol Detection */
   flow->updateActivities();
-  flow->updateInterfaceStats(src2dst_direction, 1, h->len);
+  flow->updateInterfaceLocalStats(src2dst_direction, 1, h->len);
 
   if(!flow->isDetectionCompleted()) {
     if(!is_fragment) {

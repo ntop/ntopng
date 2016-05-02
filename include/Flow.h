@@ -257,7 +257,7 @@ class Flow : public GenericHashEntry {
   inline bool isSuspiciousFlowThpt();
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
-  void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
+  void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
   inline char* getDNSQuery()        { return(dns.last_query);  }
   inline void  setDNSQuery(char *v) { if(dns.last_query) free(dns.last_query);  dns.last_query = strdup(v); }
   inline char* getHTTPURL()         { return(http.last_url);   }

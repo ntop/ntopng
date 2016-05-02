@@ -1732,13 +1732,13 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
 /* *************************************** */
 
-void Flow::updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len) {
+void Flow::updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len) {
   Host *from = src2dst_direction ? cli_host : srv_host;
   Host *to = src2dst_direction ? srv_host : cli_host;
 
-  iface->updateLocalStats(num_pkts, pkt_len,
-			  from ? from->isLocalHost() : false,
-			  to ? to->isLocalHost() : false);
+  iface->incLocalStats(num_pkts, pkt_len,
+		       from ? from->isLocalHost() : false,
+		       to ? to->isLocalHost() : false);
 }
 
 /* *************************************** */
