@@ -122,8 +122,8 @@
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-15 ntop.org"
-#define DEFAULT_PID_PATH        "/var/tmp/ntopng.pid"
+#define NTOP_COPYRIGHT          "(C) 1998-2016 ntop.org"
+#define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define DOMAIN_CATEGORY         "ntopng.domain.category"
 #define DOMAIN_TO_CATEGORIZE    "ntopng.domain.tocategorize"
 #define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"
