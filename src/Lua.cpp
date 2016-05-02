@@ -444,6 +444,18 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 }
 
 /* ****************************************** */
+static int ntop_get_interface_latest_activity_hosts_info(lua_State* vm){
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface ||
+     ntop_interface->getLatestActivityHostsList(vm, get_allowed_nets(vm)))
+
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
 
 /**
  * @brief Get the host information of network interface grouped according to the criteria.
@@ -4302,6 +4314,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setHostDumpPolicy",      ntop_set_host_dump_policy },
   { "setHostQuota",           ntop_set_host_quota },
   { "getPeerHitRate",            ntop_get_host_hit_rate },
+  { "getLatestActivityHostsInfo",     ntop_get_interface_latest_activity_hosts_info },
   { "getInterfaceDumpDiskPolicy",     ntop_get_interface_dump_disk_policy },
   { "getInterfaceDumpTapPolicy",      ntop_get_interface_dump_tap_policy },
   { "getInterfaceDumpTapName",        ntop_get_interface_dump_tap_name },

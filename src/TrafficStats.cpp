@@ -25,6 +25,7 @@
 
 TrafficStats::TrafficStats() {
   numPkts = 0, numBytes = 0;
+  numDeserializedPkts = 0, numDeserializedBytes = 0;
 }
 
 /* *************************************** */
@@ -56,14 +57,14 @@ void TrafficStats::deserialize(json_object *o) {
   if(!o) return;
 
   if(json_object_object_get_ex(o, "packets", &obj))
-    numPkts = json_object_get_int64(obj);
+    numPkts = numDeserializedPkts = json_object_get_int64(obj);
   else
-    numPkts = 0;
+    numPkts = numDeserializedPkts = 0;
   
   if(json_object_object_get_ex(o, "bytes", &obj))
-    numBytes = json_object_get_int64(obj);
+    numBytes = numDeserializedBytes = json_object_get_int64(obj);
   else
-    numBytes = 0;
+    numBytes = numDeserializedBytes = 0;
 }
 
 /* ******************************************* */

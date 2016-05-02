@@ -171,11 +171,16 @@ class NetworkInterface {
 
   inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
-    if(!remoteIfname) ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
+    ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
     ndpiStats.incStats(ndpi_proto, 0, 0, 1, pkt_len);
     pktStats.incStats(pkt_len);
     if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
   };
+  inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
+
+    localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
+  };
+
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
@@ -206,6 +211,23 @@ class NetworkInterface {
   void updateHostStats();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
+
+  /**
+   * @brief Returns host statistics during latest activity
+   * @details Local hosts statistics may be flushed to redis when they become inactive.
+   *          When they become active again, redis-stored statistics are restored.
+   *          There is a limited number of cases that only need host statistics during
+   *          the latest activity. This is for example true when computing
+   *          minute-by-minute top statistics.
+   *
+   *          The function is handy to retrieve compact, unsorted host statistics
+   *          without including deserialized values for total local host bytes (sent and received).
+   *
+   * @param vm The lua state.
+   * @param allowed_hosts A patricia tree containing allowed hosts.
+   */
+  int getLatestActivityHostsList(lua_State* vm,
+				 patricia_tree_t *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
 			 patricia_tree_t *allowed_hosts,
 			 bool host_details, bool local_only,
@@ -285,8 +307,6 @@ class NetworkInterface {
 
   Host* findHostsByIP(patricia_tree_t *allowed_hosts,
 		      char *host_ip, u_int16_t vlan_id);
-  inline void updateLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
-    localStats.incStats(num_pkts, pkt_len, localsender, localreceiver); }
 
   inline HostHash* get_hosts_hash()  { return(hosts_hash);       }
   inline bool is_bridge_interface()  { return(bridge_interface); }

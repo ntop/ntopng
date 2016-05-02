@@ -104,6 +104,24 @@ void NetworkInterfaceView::getnDPIStats(nDPIStats *stats) {
   for(int i = 0; i<numInterfaces; i++)
     physIntf[i]->getnDPIStats(stats);
 }
+/* **************************************************** */
+
+int NetworkInterfaceView::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts) {
+  int ret = 0;
+
+  lua_newtable(vm);
+  for(int i = 0; i<numInterfaces; i++) {
+    int rc = physIntf[i]->getLatestActivityHostsList(vm, allowed_hosts);
+    if(rc < 0) return(ret);
+    rc += ret;
+
+    lua_pushstring(vm, physIntf[i]->get_name()); // Key
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  return(ret);
+}
 
 /* **************************************************** */
 
@@ -132,7 +150,9 @@ int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
   }
 
   return(ret);
-}/* **************************************************** */
+}
+
+/* **************************************************** */
 
 int NetworkInterfaceView::getActiveHostsGroup(lua_State* vm,
 					      patricia_tree_t *allowed_hosts,

@@ -359,6 +359,9 @@
 #define CONST_ANY_ADDRESS              "" /* Good for v4 and v6 */
 #define CONST_LOOPBACK_ADDRESS         "127.0.0.1"
 #define CONST_MAX_IDLE_INTERARRIVAL_TIME  60000 /* 1 min (msec) */
+#define CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH         3000  /* 3 sec (msec) */
+#define CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK 6  /* 6 sec */
+#define CONST_MAX_IDLE_NO_DATA_AFTER_ACK  10 /* 10 sec */
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MTU              1514
 
