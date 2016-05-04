@@ -385,6 +385,13 @@ INSTALL_DIR=${prefix}
 MAN_DIR=${prefix}
 fi
 
+if [ test -f /usr/bin/lsb_release ]; then
+   CODENAME=`/usr/bin/lsb_release -c|cut -f 2`
+   if [[ $CODENAME == "wheezy" ]]; then :
+     CPPFLAGS="${CPPFLAGS} -DOLD_NETFILTER_INTERFACE=1"
+   fi
+fi
+
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
 AC_DEFINE_UNQUOTED(PACKAGE_OS, "${OS}", [OS Name])
