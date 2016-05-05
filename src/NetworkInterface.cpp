@@ -3001,6 +3001,7 @@ void NetworkInterface::addAllAvailableInterfaces() {
 
       devpointer = devpointer->next;
     } /* for */
+    pcap_freealldevs(devpointer);
   }
 }
 

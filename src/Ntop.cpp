@@ -165,6 +165,7 @@ Ntop::~Ntop() {
   if(flashstart) delete flashstart;
   if(httpd)      delete httpd;
   if(custom_ndpi_protos) delete(custom_ndpi_protos);
+  if(elastic_search) delete(elastic_search);
 
   Destroy_Patricia(local_interface_addresses, NULL);
   delete address;
