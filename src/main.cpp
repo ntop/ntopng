@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
       fclose(fd);
 
       if(n > 0) {
-	chmod(prefs->get_pid_path(), 0777);
+	chmod(prefs->get_pid_path(), 0644);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "PID stored in file %s",
 				     prefs->get_pid_path());
       } else
