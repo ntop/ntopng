@@ -205,7 +205,7 @@ stop_ntopng() {
     do  
         get_ntopng_pid
         if [ "${PID}" -gt 0 ]; then
-            kill -15 $PID > /dev/null
+            kill -15 $PID &> /dev/null
             MSG="Sent kill to ntop PID $PID"
             sleep 1
         else
