@@ -13,7 +13,9 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
-   ifstats = aggregateInterfaceStats(interface.getStats())
+
+   ifstats = interface.getStats()
+   ifstats = aggregateInterfaceStats(ifstats)
 
    stats = interface.getFlowsStats()
 

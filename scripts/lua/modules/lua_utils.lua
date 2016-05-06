@@ -67,17 +67,20 @@ function aggregateInterfaceStats(ifstats)
 
       keys = { "localstats", "ndpi" }
       for _,key in pairs(keys) do
+	 if(tot[key] == nil) then tot[key] = { } end
 	 -- io.write(key.."\n")
 
-	 tot[key] = { }
 	 for k,v in pairs(_v[key]) do
 	    if(tot[key][k] == nil) then tot[key][k] = { } end
 	    for k1,v1 in pairs(_v[key][k]) do
-	       --io.write(k1.."="..type(v1).."\n")
+	       -- io.write(k1.."="..type(v1).."\n")
 
 	       if(type(v1) == "number") then
-		  if(tot[key][k][k1] == nil) then tot[key][k][k1] = 0 end
+		  if(tot[key][k][k1] == nil) then
+		     tot[key][k][k1] = 0
+		  end
 		  tot[key][k][k1] = tot[key][k][k1] + v1
+		  -- io.write("tot["..key.."]["..k.."]["..k1.."]="..tot[key][k][k1].."\n")
 	       else
 		  tot[key][k][k1] = v1
 	       end
