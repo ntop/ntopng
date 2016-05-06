@@ -43,7 +43,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
-  json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
+  json_info = strdup("{}"), cli2srv_direction = true, twh_over = false, ssl_hs_over = false, ssl_hs_started = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     ssl.certificate = NULL, bt_hash = NULL;
@@ -93,6 +93,10 @@ Flow::Flow(NetworkInterface *_iface,
   synTime.tv_sec = synTime.tv_usec = 0,
     ackTime.tv_sec = ackTime.tv_usec = 0,
     synAckTime.tv_sec = synAckTime.tv_usec = 0,
+    sslSynTime.tv_sec = sslSynTime.tv_usec = 0,
+    ssl_hs_end_time.tv_sec = ssl_hs_end_time.tv_usec = 0,
+    sslFirstData_time.tv_sec = sslFirstData_time.tv_usec = 0,
+    ssl_hs_delta_time = ssl_delta_firstData = 0,
     rttSec = 0, cli2srv_window= srv2cli_window = 0,
     c2sFirstGoodputTime.tv_sec = c2sFirstGoodputTime.tv_usec = 0;
   memset(&http, 0, sizeof(http)), memset(&dns, 0, sizeof(dns));
@@ -914,7 +918,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)
+	if((iface->get_type() != CONST_INTERFACE_TYPE_ZMQ)
 	   && (protocol == IPPROTO_TCP)
 	   && (get_goodput_bytes() > 0)
 	   && (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_SSH)) {
@@ -1636,10 +1640,10 @@ json_object* Flow::flow2json(bool partial_dump) {
 
 /* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
 bool Flow::isIdleFlow(time_t now) {
-  u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
+  int threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
 
-  if((protocol == IPPROTO_TCP) 
-     && strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
+  if((protocol == IPPROTO_TCP)
+     && (iface->get_type() != CONST_INTERFACE_TYPE_ZMQ)) {
     if(!twh_over) {
       if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
 	 && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
@@ -2093,6 +2097,36 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       }
     }
   }
+}
+
+/* *************************************** */
+
+void Flow::dissectSSL(bool src2dst_direction, u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when){
+
+    if(payload!=NULL&&twh_over){
+        if(!ssl_hs_over){
+            if(payload[0] == 0x16){
+                //handshake packet
+                if(payload[5]==0x1){
+                    //client-hello
+                    memcpy(&sslFirstData_time, when, sizeof(struct timeval));
+                    ssl_hs_started = true;
+                }
+                else if(payload[5]==0x4 && ssl_hs_started){
+                    //newsession ticket, the end of ssl handshake
+                    ssl_hs_over = true;
+                    memcpy(&ssl_hs_end_time, when, sizeof(struct timeval));
+                    ssl_hs_delta_time = ((float)(ssl_hs_end_time.tv_sec+sslFirstData_time.tv_sec))+
+                                        ((float)(ssl_hs_end_time.tv_usec+sslFirstData_time.tv_usec))/(float)1000000;
+                    printf("flow ssl hs delta time: %f\n", ssl_hs_delta_time);
+                }
+            }
+        }else if(ssl_hs_over && payload[0] == 0x17){
+            //application data packet
+            memcpy(&sslFirstData_time, when, sizeof(struct timeval));
+        }
+    }
+
 }
 
 /* *************************************** */

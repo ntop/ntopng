@@ -195,7 +195,7 @@ void NetworkInterface::init() {
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
-  db = NULL; 
+  db = NULL;
 #ifdef NTOPNG_PRO
   policer = NULL;
 #endif
@@ -567,7 +567,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				 zflow->first_switched,  zflow->last_switched,  
+				 zflow->first_switched,  zflow->last_switched,
 				 zflow->last_switched-zflow->first_switched, drift,
 				 now, last_pkt_rcvd_remote);
 #endif
@@ -578,7 +578,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       last_pkt_rcvd_remote = zflow->last_switched;
 
 #ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]", 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
 				 zflow->first_switched,  zflow->last_switched,  zflow->last_switched- zflow->first_switched);
 #endif
   }
@@ -616,7 +616,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->updateInterfaceLocalStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-  
+
   incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
@@ -699,12 +699,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
   int a_shaper_id = DEFAULT_SHAPER_ID, b_shaper_id = DEFAULT_SHAPER_ID; /* Default */
-		       
+
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
     if(ipsize < 20) {
-      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, 
+      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -784,11 +784,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     memcpy(&gre, l4, sizeof(struct grev1_header));
     gre.flags_and_version = ntohs(gre.flags_and_version);
     gre.proto = ntohs(gre.proto);
-    
+
     if(gre.flags_and_version & (GRE_HEADER_CHECKSUM | GRE_HEADER_ROUTING)) offset += 4;
     if(gre.flags_and_version & GRE_HEADER_KEY)      offset += 4;
     if(gre.flags_and_version & GRE_HEADER_SEQ_NUM)  offset += 4;
-    
+
     if(gre.proto == ETHERTYPE_IP) {
       iph = (struct ndpi_iphdr*)(l4 + offset), ip6 = NULL;
       goto decode_ip;
@@ -886,6 +886,10 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
       break;
 
+    case NDPI_PROTOCOL_SSL:
+    flow->dissectSSL(src2dst_direction,payload,payload_len, when);
+      break;
+
     case NDPI_PROTOCOL_DNS:
       struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
 
@@ -940,14 +944,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     flow->processDetectedProtocol(), *shaped = false;
     pass_verdict = flow->isPassVerdict();
     flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, ndpiProtocol);
-    
+
 #ifdef NTOPNG_PRO
     if(pass_verdict) {
       pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
       if(!pass_verdict) *shaped = true;
     }
 #endif
-    
+
     if(pass_verdict)
       incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       flow->get_detected_protocol().protocol,
@@ -1636,7 +1640,7 @@ void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
   patricia_tree_t *ptree = (patricia_tree_t*)user_data;
   Flow *f = (Flow*)node;
-  
+
   if((ptree == NULL)
      || (f->get_cli_host() && f->get_cli_host()->match(ptree))
      || (f->get_srv_host() && f->get_srv_host()->match(ptree)))
@@ -1814,7 +1818,7 @@ enum flowSortField {
   /* Flows */
   column_client = 0,
   column_server,
-  column_vlan,  
+  column_vlan,
   column_proto_l4,
   column_ndpi,
   column_duration,
@@ -1846,7 +1850,7 @@ struct flowHostRetriever {
   char *country;
   int ndpi_proto;
   enum flowSortField sorter;
-  bool local_only; 
+  bool local_only;
   u_int16_t *vlan_id;
   char *osFilter;
   u_int32_t *asnFilter;
@@ -1871,7 +1875,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 
     if((retriever->ndpi_proto != -1)
        && (f->get_detected_protocol().protocol != retriever->ndpi_proto)
-       && (f->get_detected_protocol().master_protocol != retriever->ndpi_proto))      
+       && (f->get_detected_protocol().master_protocol != retriever->ndpi_proto))
       return(false); /* false = keep on walking */
 
     if(retriever->local_only) {
@@ -1879,7 +1883,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	 || (!f->get_srv_host()->isLocalHost()))
 	return(false); /* false = keep on walking */
     }
-    
+
     retriever->elems[retriever->actNumEntries].flow = f;
 
     if(f->match(retriever->allowed_hosts)) {
@@ -1894,7 +1898,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 	break;
       case column_vlan:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_vlan_id();
-	break;	
+	break;
       case column_proto_l4:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
 	break;
@@ -2068,7 +2072,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 
       lua_pushnumber(vm, num + 1);
       lua_insert(vm, -2);
-      lua_settable(vm, -3); 
+      lua_settable(vm, -3);
 
       if(++num >= (int)maxHits) break;
 
@@ -2152,14 +2156,14 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
 
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, bool local_only,
-					 char *countryFilter, 
+					 char *countryFilter,
 					 u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
 
   int (*sorter)(const void *_a, const void *_b);
-  
+
   retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
     retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter;
   retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
@@ -2171,7 +2175,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   }
 
   if((!strcmp(sortColumn, "column_ip")) || (!strcmp(sortColumn, "column_"))) retriever.sorter = column_ip, sorter = hostSorter;
-  else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;  
+  else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_alerts")) retriever.sorter = column_alerts, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_name")) retriever.sorter = column_name, sorter = stringSorter;
   else if(!strcmp(sortColumn, "column_since")) retriever.sorter = column_since, sorter = numericSorter;
@@ -2222,7 +2226,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
 
   if(sorter == stringSorter) {
     for(u_int i=0; i<retriever.maxNumEntries; i++)
-      if(retriever.elems[i].stringValue) 
+      if(retriever.elems[i].stringValue)
 	free(retriever.elems[i].stringValue);
   }
 
@@ -3101,7 +3105,7 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
   } else {
     remBytes -= zmq_initial_bytes, remPkts -= zmq_initial_pkts;
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]", 
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]",
 				 ifname, remBytes, ethStats.getNumBytes(), remBytes-ethStats.getNumBytes(),
 				 remPkts, ethStats.getNumPackets(), remPkts-ethStats.getNumPackets());
     ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
