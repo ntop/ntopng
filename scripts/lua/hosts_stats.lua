@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -74,7 +74,6 @@ end
 if(country ~= nil) then
    print('&country='..country)
 end
-
 
 if(network ~= nil) then
    network_url='&network='..network
@@ -198,7 +197,7 @@ if(network_url == "") then
 else
    print('buttons: [ \'')
 
-   print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network..'><i class=\"fa fa-area-chart fa-lg\"></i></A>')
+   print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'><i class=\"fa fa-area-chart fa-lg\"></i></A>')
    print('\' ],')
 end
 

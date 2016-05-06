@@ -9,8 +9,8 @@ all: clean ntopng ntopng-data
 ntopng:
 	if test -e "./debian"; then @SUDO@ /bin/rm -f debian; fi
 	ln -s ./debian.ntopng ./debian
-	@SUDO@ /bin/rm -rf ./usr ./debian/tmp
-	\mkdir -p ${NTOPNG_BUILD}/usr/bin ${NTOPNG_BUILD}/usr/share/man/man8 ${NTOPNG_BUILD}/usr/share/ntopng ./debian/tmp
+	@SUDO@ /bin/rm -rf ./usr ./debian/ntopng
+	\mkdir -p ${NTOPNG_BUILD}/usr/bin ${NTOPNG_BUILD}/usr/share/man/man8 ${NTOPNG_BUILD}/usr/share/ntopng ./debian/ntopng
 	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/bin/
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8
 	cp -r $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
@@ -34,7 +34,7 @@ ntopng:
 	@/bin/rm -f ../ntopng_*deb
 	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc -b
 	@CHOWN@
-	dpkg-sig --sign builder -k 7921DF34 ../ntopng_*deb
+	dpkg-sig --sign builder -k D1EB60BE ../ntopng_*deb
 	@\rm -f ../ntopng_*dsc ../ntopng_*.gz ../ntopng_*changes
 	@/bin/mv ../ntopng_*deb .
 	@echo
@@ -48,10 +48,10 @@ ntopng:
 ntopng-data:
 	if test -e "./debian"; then @SUDO@ /bin/rm -f debian; fi
 	ln -s ./debian.ntopng-data ./debian
-	@SUDO@ \rm -rf ./usr ./debian/tmp
-	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/tmp
+	@SUDO@ \rm -rf ./usr ./debian/ntopng-data
+	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/ntopng-data
 	cd ../../ ; ./configure; make geoip
-	cp ../../httpdocs/geoip/* ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
+	cp ../../httpdocs/geoip/*.dat* ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip
 	-gunzip ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/*.gz
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
@@ -61,7 +61,7 @@ ntopng-data:
 	@/bin/rm -f ../ntopng-data_*deb
 	@SUDO@ dpkg-buildpackage -rfakeroot -d -us -uc
 	@SUDO@ chown ${USER}:${GROUP} ../ntopng-data_*deb
-	dpkg-sig --sign builder -k 7921DF34 ../ntopng-data_*deb
+	dpkg-sig --sign builder -k D1EB60BE ../ntopng-data_*deb
 	@\rm -f ../ntopng-data_*dsc ../ntopng-data_*.gz ../ntopng-data_*changes
 	@/bin/mv ../ntopng-data_*deb .
 	@echo
@@ -79,4 +79,4 @@ install:
 	echo "dummy install"
 
 clean:
-	-@SUDO@ rm -rf *~ *deb debian/tmp ./usr
+	-@SUDO@ rm -rf *~ *deb debian.ntopng/ntopng-data debian.ntopng-data/ntopng ./usr

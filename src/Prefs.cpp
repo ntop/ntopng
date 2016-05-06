@@ -24,7 +24,7 @@
 /* ******************************************* */
 
 Prefs::Prefs(Ntop *_ntop) {
-  num_deferred_interfaces_to_register = 0;
+  num_deferred_interfaces_to_register = 0, cli = NULL;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
   ntop = _ntop, sticky_hosts = location_none;
   local_networks = strdup(CONST_DEFAULT_HOME_NET","CONST_DEFAULT_LOCAL_NETS);
@@ -125,7 +125,7 @@ Prefs::~Prefs() {
   free(http_prefix);
   free(redis_host);
   free(local_networks);
-
+  if(cli)             free(cli);
   if(mysql_host)      free(mysql_host);
   if(mysql_dbname)    free(mysql_dbname);
   if(mysql_tablename) free(mysql_tablename);
@@ -419,7 +419,42 @@ static const struct option long_options[] = {
 /* ******************************************* */
 
 int Prefs::setOption(int optkey, char *optarg) {
-  char *double_dot;
+  char *double_dot, *p, *opt = NULL;
+  int len = (optarg ? strlen(optarg) : 0)+6;
+
+  for(int i=0; ; i++) {
+    if(long_options[i].val == optkey) {
+      opt = (char*)long_options[i].name;
+      len += strlen(opt)+2;
+      break;
+    }
+  }
+
+  if((p = (char*)malloc(len)) != NULL) {
+    if(opt) {
+      if(optarg)
+	snprintf(p, len-1, "--%s \"%s\" ", opt, optarg);
+      else
+	snprintf(p, len-1, "--%s ", opt);      
+    } else {
+      if(optarg)
+	snprintf(p, len-1, "-%c %s ", optkey, optarg);
+      else
+	snprintf(p, len-1, "-%c ", optkey);
+    }
+
+    if(cli == NULL)
+      cli = p;
+    else {
+      int l = strlen(cli);
+      char *backup = cli;
+
+      if((cli = (char*)realloc(cli, l+len)) != NULL)
+	strcpy(&cli[l], p);
+      else
+	cli = backup;
+    }
+  }
 
   switch(optkey) {
   case 'B':
@@ -1048,8 +1083,9 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
   lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
-  lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
+  lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
+  
 #ifdef NTOPNG_PRO
   if(ntop->getNagios()) ntop->getNagios()->lua(vm);
 

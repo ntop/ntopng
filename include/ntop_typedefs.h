@@ -60,6 +60,12 @@ typedef enum {
 } AlertLevel;
 
 typedef enum {
+  alert_on = 1,       /* An issue has been discovered and an alert has been triggered */
+  alert_off = 2,      /* A previous alert has been fixed */
+  alert_permanent = 3 /* Alert that can't be fixed (e.g. a flow with an anomaly) */
+} AlertStatus;
+
+typedef enum {
   IPV4 = 4,
   IPV6 = 6
 } IPVersion;
@@ -112,7 +118,7 @@ typedef struct zmq_flow {
   u_int32_t first_switched, last_switched;
   json_object *additional_fields;
   u_int8_t src_mac[6], dst_mac[6], direction, source_id;
-  char *http_url, *http_site, *dns_query;
+  char *http_url, *http_site, *dns_query, *ssl_server_name, *bittorrent_hash;
   /* Process Extensions */
   ProcessInfo src_process, dst_process;
 } ZMQ_Flow;
@@ -131,6 +137,11 @@ struct active_flow_stats {
 struct grev1_header {
   u_int16_t flags_and_version;
   u_int16_t proto;
+};
+
+struct string_list {
+  char *str;
+  struct string_list *prev, *next;
 };
 
 #endif /* _NTOP_TYPEDEFS_H_ */

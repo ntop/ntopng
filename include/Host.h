@@ -112,6 +112,7 @@ class Host : public GenericHost {
   inline int get_ingress_shaper_id()           { return(ingress_shaper_id); }
   inline int get_egress_shaper_id()            { return(egress_shaper_id);  }
   inline u_int32_t get_asn()                   { return(asn);              }
+  inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return((ip && ip->isPrivateAddress()) ? true : false); }
   inline float get_latitude()                  { return(latitude);         }
   inline float get_longitude()                 { return(longitude);        }
@@ -123,7 +124,8 @@ class Host : public GenericHost {
   void decUses() { num_uses--; }
   bool idle();
   void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details,
-	   bool verbose, bool returnHost, bool asListElement);
+	   bool verbose, bool returnHost, bool asListElement,
+	   bool exclude_deserialized_bytes);
   void resolveHostName();
   void setName(char *name);
   void set_host_label(char *label_name);

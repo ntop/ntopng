@@ -1,6 +1,6 @@
 
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()

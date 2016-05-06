@@ -1,6 +1,41 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
+
+--[[
+Top statistics are calculated by ntopng minute.lua callback
+and keep track of minute-by-minute top hosts, asn, networks, and so on.
+
+Since local hosts are dumped to redis, top statistics for such
+hosts may be inaccurate when a local host:
+1. goes idle and ntopng flushes its counters, say X and Y, to redis
+2. becomes active again and ntopng restores its counters from redis
+
+Without additional logic, top statistics would not know that
+the local host has been pulled out from redis and would consider
+X and Y as the last minute statistics while, in practice, they
+are just counters of a past active period.
+
+For this reason we have implemented a function that gives
+hosts statistics without counting deserialized byte values:
+interface.getLatestActivityHostsInfo()
+
+For example, say 192.168.2.130 is a local host
+
+latest = interface.getLatestActivityHostsInfo()
+alltime = interface.getHostsInfo()
+tprint(latest["en4"]["hosts"]["192.168.2.130"]["bytes.rcvd"])
+tprint(alltime["en4"]["hosts"]["192.168.2.130"]["bytes.rcvd"])
+
+Result in
+ number 1581811117
+ number 5664436991
+
+and the correct number to consider when computing minute statistics
+is the one obtained via getLatestActivityHostsInfo() as the other
+includes deserialized data.
+
+--]]
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -21,10 +56,10 @@ function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_k
    -- { "id1" : { "key1": "value1", "key2": "value2", ...}, "id2 : { ... } }
    -- filter out the needed values
    _filtered_stats = {}
+
    for id,content in pairs(stats) do
       _filtered_stats[id] = content[sort_field_key]
    end
-
   local file_key = sort_field_key
   if (lastdump_key ~= nil) then
     file_key = file_key.."_"..lastdump_key
@@ -115,7 +150,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
    local num = 0
 
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   hosts_stats,total = aggregateHostsStats(interface.getLatestActivityHostsInfo())
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
    talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
@@ -280,7 +315,7 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
    rsp = ""
 
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   hosts_stats,total = aggregateHostsStats(interface.getLatestActivityHostsInfo())
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
    if (loc ~= nil) then
      hosts_stats = filterBy(hosts_stats, "localhost", loc)
@@ -379,7 +414,7 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
    --if(ifname == nil) then ifname = "any" end
 
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   hosts_stats,total = aggregateHostsStats(interface.getLatestActivityHostsInfo())
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
    talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")

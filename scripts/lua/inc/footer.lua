@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 require "os"
@@ -26,7 +26,7 @@ interface.select(ifname)
 _ifstats = aggregateInterfaceStats(interface.getStats())
 
 if(info["pro.release"]) then
-   print(" Professional")
+   print(" Pro [Small Business Edition]")
 else
    print(" Community")
 end
@@ -284,16 +284,14 @@ print [[/lua/logout.lua");  }, */
 	        prev_local   = rsp.local2remote;
 	        prev_remote  = rsp.remote2local;
 	      }
-
 	      var values = updatingChart_local2remote.text().split(",")
 	      var values1 = updatingChart_remote2local.text().split(",")
-	      var bytes_diff = rsp.bytes-prev_bytes;
-	      var packets_diff = rsp.packets-prev_packets;
-	      var local_diff = rsp.local2remote-prev_local;
-	      var remote_diff = rsp.remote2local-prev_remote;
-	      var epoch_diff = rsp.epoch - prev_epoch;
-		  
-
+	      var bytes_diff   = Math.max(rsp.bytes-prev_bytes, 0);
+	      var packets_diff = Math.max(rsp.packets-prev_packets, 0);
+	      var local_diff   = Math.max(rsp.local2remote-prev_local, 0);
+	      var remote_diff  = Math.max(rsp.remote2local-prev_remote, 0);
+	      var epoch_diff   = Math.max(rsp.epoch - prev_epoch, 0);
+		  console.debug(remote_diff)
 	      if(epoch_diff > 0) {
 		if(bytes_diff > 0) {
 		   var v = local_diff-remote_diff;
@@ -312,10 +310,12 @@ print [[/lua/logout.lua");  }, */
 		var bps_local2remote = Math.round((local_diff*8) / epoch_diff);
 		var bps_remote2local = Math.round((remote_diff*8) / epoch_diff);
 		
+                if(rsp.remote_pps != 0)  { pps = Math.max(rsp.remote_pps, 0); }
+                if(rsp.remote_bps != 0)  { bps = Math.max(rsp.remote_bps, 0); }
+
 		$('#gauge_text_allTraffic').html(bitsToSize(bps, 1000) + " [" + addCommas(pps) + " pps]");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
-		
 		var msg = "<i class=\"fa fa-time fa-lg\"></i>Uptime: "+rsp.uptime+"<br>";
 
 		if(rsp.alerts > 0) {

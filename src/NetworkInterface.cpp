@@ -175,7 +175,7 @@ void NetworkInterface::init() {
     sprobe_interface = inline_interface = false,has_vlan_packets = false,
       last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0, running = false, has_mesh_networks_traffic = false,
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
-    purge_idle_flows_hosts = true, id = (u_int8_t)-1,
+    purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false,
@@ -451,8 +451,7 @@ int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
 
   if(json) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] %s", json);
-
-    rc = ntop->getRedis()->lpush(CONST_ES_QUEUE_NAME, (char*)json, CONST_MAX_ES_MSG_QUEUE_LEN);
+    rc = ntop->getElasticSearch()->sendToES(json);
     free(json);
   } else
     rc = -1;
@@ -614,12 +613,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
 
-  /* In case we're using a "modern" nProbe these stats are propagated automatically */
-  if(!remoteIfname)
-    flow->updateInterfaceStats(src2dst_direction,
-			       zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
-			       zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-
+  flow->updateInterfaceLocalStats(src2dst_direction,
+			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
+			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+  
   incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
@@ -637,6 +634,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->dns_query) flow->setDNSQuery(zflow->dns_query);
   if(zflow->http_url)  flow->setHTTPURL(zflow->http_url);
   if(zflow->http_site) flow->setServerName(zflow->http_site);
+  if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
+  if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
 
 #if 0
   if(!is_packet_interface()) {
@@ -851,7 +850,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* Protocol Detection */
   flow->updateActivities();
-  flow->updateInterfaceStats(src2dst_direction, 1, h->len);
+  flow->updateInterfaceLocalStats(src2dst_direction, 1, h->len);
 
   if(!flow->isDetectionCompleted()) {
     if(!is_fragment) {
@@ -1775,7 +1774,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
   Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
-    h->lua(vm, allowed_hosts, true, true, true, false);
+    h->lua(vm, allowed_hosts, true, true, true, false, false);
     return(true);
   } else
     return(false);
@@ -1847,14 +1846,17 @@ struct flowHostRetriever {
   char *country;
   int ndpi_proto;
   enum flowSortField sorter;
-  bool local_only;
+  bool local_only; 
+  u_int16_t *vlan_id;
+  char *osFilter;
+  u_int32_t *asnFilter;
+  int16_t *networkFilter;
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
   struct flowHostRetrieveList *elems;
 };
 
-/* **************************************************** */
 /* **************************************************** */
 
 static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
@@ -1883,9 +1885,11 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
     if(f->match(retriever->allowed_hosts)) {
       switch(retriever->sorter) {
       case column_client:
-	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
+	f->get_cli_host()->incUses(); /* Make sure the host won't be purged while processing */
+ 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
       case column_server:
+	f->get_srv_host()->incUses(); /* Make sure the host won't be purged while processing */
 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
       case column_vlan:
@@ -1929,63 +1933,59 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
 /* **************************************************** */
 
 static bool host_search_walker(GenericHashEntry *he, void *user_data) {
-  struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
+  struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Host *h = (Host*)he;
 
-  if(h && (!h->idle()) && h->match(retriever->allowed_hosts)) {
-    if(retriever->local_only && (!h->isLocalHost()))
-      return(false); /* false = keep on walking */
+  if(!h || h->idle() || !h->match(r->allowed_hosts))
+    return(false);
 
-    if(retriever->country) {
-      if(h->get_country() && (strcmp(h->get_country(), retriever->country) == 0))
-	;
-      else
-	return(false); /* false = keep on walking */
+  if((r->local_only    && !h->isLocalHost()) ||
+     (r->vlan_id       && *(r->vlan_id)       != h->get_vlan_id())          ||
+     (r->asnFilter     && *(r->asnFilter)     != h->get_asn())              ||
+     (r->networkFilter && *(r->networkFilter) != h->get_local_network_id()) ||
+     (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
+     (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter))))
+    return(false); /* false = keep on walking */
+
+  h->incUses(); /* Make sure the host won't be purged while processing */
+  r->elems[r->actNumEntries].hostValue = h;
+
+  switch(r->sorter) {
+  case column_ip:
+    r->elems[r->actNumEntries++].hostValue = h; /* hostValue was already set */
+    break;
+  case column_alerts:
+    r->elems[r->actNumEntries++].numericValue = h->getNumAlerts();
+    break;
+  case column_name:
+    {
+      char buf[64];
+      r->elems[r->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
     }
+    break;
+  case column_vlan:
+    r->elems[r->actNumEntries++].numericValue = h->get_vlan_id();
+    break;
+  case column_since:
+    r->elems[r->actNumEntries++].numericValue = h->get_first_seen();
+    break;
+  case column_asn:
+    r->elems[r->actNumEntries++].numericValue = h->get_asn();
+    break;
+  case column_thpt:
+    r->elems[r->actNumEntries++].numericValue = h->getBytesThpt();
+    break;
+  case column_traffic:
+    r->elems[r->actNumEntries++].numericValue = h->getNumBytes();
+    break;
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    break;
+  }
 
-    retriever->elems[retriever->actNumEntries].hostValue = h;
-
-    if(h->match(retriever->allowed_hosts)) {
-      switch(retriever->sorter) {
-      case column_ip:
-	retriever->elems[retriever->actNumEntries++].hostValue = h;
-	break;
-      case column_alerts:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->getNumAlerts();
-	break;
-      case column_name:
-	{
-	  char buf[64];
-
-	  retriever->elems[retriever->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
-	}
-	break;
-      case column_vlan:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->get_vlan_id();
-	break;
-      case column_since:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->get_first_seen();
-	break;
-      case column_asn:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->get_asn();
-	break;
-      case column_thpt:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->getBytesThpt();
-	break;
-      case column_traffic:
-	retriever->elems[retriever->actNumEntries++].numericValue = h->getNumBytes();
-	break;
-      default:
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
-	break;
-      }
-    }
-
-    if(retriever->actNumEntries == retriever->maxNumEntries)
-      return(true); /* Limit reached */
-    else
-      return(false); /* false = keep on walking */
-  } else
+  if(r->actNumEntries == r->maxNumEntries)
+    return(true); /* Limit reached */
+  else
     return(false); /* false = keep on walking */
 }
 
@@ -2098,16 +2098,70 @@ int NetworkInterface::getFlows(lua_State* vm,
 }
 
 /* **************************************************** */
+int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts){
+  struct flowHostRetriever retriever;
+  memset(&retriever, 0, sizeof(retriever));
+
+  // there's not even the need to use the retriever or to sort results here
+  // we use the retriever just to leverage on the exising code.
+  retriever.allowed_hosts = allowed_hosts, retriever.local_only = false;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.sorter = column_vlan; // just a placeholder, we don't care as we won't sort
+  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
+
+  if(retriever.elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  hosts_hash->disablePurge();
+  hosts_hash->walk(host_search_walker, (void*)&retriever);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
+
+  lua_newtable(vm);
+
+  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+    Host *h = retriever.elems[i].hostValue;
+
+    if(i < CONST_MAX_NUM_HITS)
+      h->lua(vm, NULL /* Already checked */,
+	     false /* host details */,
+	     false /* verbose */,
+	     false /* return host */,
+	     true  /* as list element*/,
+	     true  /* exclude deserialized bytes */);
+
+    h->decUses(); /* The host can be purged again */
+    }
+
+
+  lua_pushstring(vm, "hosts"); // Key
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  hosts_hash->enablePurge();
+
+  free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+
+/* **************************************************** */
 
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, bool local_only,
-					 char *countryFilter, char *sortColumn, u_int32_t maxHits,
+					 char *countryFilter, 
+					 u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
+					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
-
   struct flowHostRetriever retriever;
+
   int (*sorter)(const void *_a, const void *_b);
   
-  retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter;
+  retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
+    retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter;
   retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
@@ -2131,6 +2185,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   hosts_hash->disablePurge();
   hosts_hash->walk(host_search_walker, (void*)&retriever);
 
+  // for(int i=0; i<retriever.actNumEntries; i++) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%u] %p", i, retriever.elems[i].hostValue);
+
   qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   lua_newtable(vm);
@@ -2140,15 +2196,21 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
 
   if(a2zSortOrder) {
     for(int i=toSkip, num=0; i<(int)retriever.actNumEntries; i++) {
-      retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */, 
-					host_details, false, false, true);
-      if(++num >= (int)maxHits) break;
+      Host *h = retriever.elems[i].hostValue;
+
+      if(num < (int)maxHits)
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
+
+      num++, h->decUses(); /* The host can be purged again */
     }
   } else {
     for(int i=(retriever.actNumEntries-1-toSkip), num=0; i>=0; i--) {
-      retriever.elems[i].hostValue->lua(vm, NULL /* Already checked */,
-					host_details, false, false, true);
-      if(++num >= (int)maxHits) break;
+      Host *h = retriever.elems[i].hostValue;
+
+      if(num < (int)maxHits)
+	h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
+
+      num++, h->decUses(); /* The host can be purged again */
     }
   }
 
@@ -2167,6 +2229,57 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   free(retriever.elems);
 
   return(retriever.actNumEntries);
+}
+
+/* **************************************************** */
+
+int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowed_hosts,
+					  bool host_details, bool local_only,
+					  char *countryFilter,
+					  u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
+					  char *sortColumn, char* groupBy, u_int32_t maxHits,
+					  u_int32_t toSkip, bool a2zSortOrder) {
+  struct flowHostRetriever retriever;
+  int num_entries;
+  Grouper *gper;
+
+  retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
+    retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter, retriever.sorter=column_ip;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
+
+  if(retriever.elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  hosts_hash->disablePurge();
+  hosts_hash->walk(host_search_walker, (void*)&retriever);
+
+  if((gper = new(std::nothrow) Grouper(groupBy)) == NULL){
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to allocate memory for a Grouper.");
+    return(-1);
+  }
+
+  for(int i=0; i<(int)retriever.actNumEntries; i++) {
+    Host *h = retriever.elems[i].hostValue;
+
+    gper->group(h);
+    h->decUses(); /* The host can be purged again */
+  }
+
+  hosts_hash->enablePurge();
+  free(retriever.elems);
+
+  //  gper->print();
+  gper->lua(vm);
+
+  num_entries = gper->numEntries();
+  delete gper;
+  gper = NULL;
+
+  return num_entries;
 }
 
 /* **************************************************** */
@@ -2386,6 +2499,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  lua_push_int_table_entry(vm, "remote_pps", last_remote_pps);
+  lua_push_int_table_entry(vm, "remote_bps", last_remote_bps);
 
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
@@ -2885,6 +3001,7 @@ void NetworkInterface::addAllAvailableInterfaces() {
 
       devpointer = devpointer->next;
     } /* for */
+    pcap_freealldevs(devpointer);
   }
 }
 
@@ -2969,12 +3086,12 @@ void NetworkInterface::updateSecondTraffic(time_t when) {
 void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 				      char *remoteProbeAddress, char *remoteProbePublicAddress,
 				      u_int64_t remBytes, u_int64_t remPkts,
-				      u_int32_t remTime) {
+				      u_int32_t remTime, u_int32_t last_pps, u_int32_t last_bps) {
   if(name)               setRemoteIfname(name);
   if(address)            setRemoteIfIPaddr(address);
   if(remoteProbeAddress) setRemoteProbeAddr(remoteProbeAddress);
   if(remoteProbePublicAddress) setRemoteProbePublicAddr(remoteProbePublicAddress);
-  ifSpeed = speedMbit, last_pkt_rcvd_remote = remTime;
+  ifSpeed = speedMbit, last_pkt_rcvd_remote = remTime, last_remote_pps = last_pps, last_remote_bps = last_bps;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (remBytes < zmq_initial_bytes) /* nProbe has been restarted */

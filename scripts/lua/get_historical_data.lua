@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -121,7 +121,6 @@ if stats_type == "top_talkers" then
    if not peer1 and not peer2 and not l7_proto_id then
       -- CASE 01: compute interface-wide top-talkers for the selected time interval
       res = getOverallTopTalkers(ifid, l4_proto_id, port, nil, epoch_start, epoch_end, sort_column, sort_order, offset, limit)
-
       for _, record in pairs(res) do
 	 record["label"] = ntop.getResolvedAddress(record["addr"])
       end
@@ -213,25 +212,25 @@ for _, record in pairs(res_sliced) do
    else
       record_contents["column_packets"] = "n.a."
    end
-   if record["in_packets"] then
-      record_contents["column_in_packets"] = formatValue(tonumber(record["in_packets"]))
+   if record["srv_packets"] then
+      record_contents["column_srv_packets"] = formatValue(tonumber(record["srv_packets"]))
    else
-      record_contents["column_in_packets"] = "n.a."
+      record_contents["column_srv_packets"] = "n.a."
    end
-   if record["out_packets"] then
-      record_contents["column_out_packets"] = formatValue(tonumber(record["out_packets"]))
+   if record["cli_packets"] then
+      record_contents["column_cli_packets"] = formatValue(tonumber(record["cli_packets"]))
    else
-      record_contents["column_out_packets"] = "n.a."
+      record_contents["column_cli_packets"] = "n.a."
    end
-   if record["in_bytes"] then
-      record_contents["column_in_bytes"] = bytesToSize(tonumber(record["in_bytes"]))
+   if record["srv_bytes"] then
+      record_contents["column_srv_bytes"] = bytesToSize(tonumber(record["srv_bytes"]))
    else
-      record_contents["column_in_bytes"] = "n.a."
+      record_contents["column_srv_bytes"] = "n.a."
    end
-   if record["out_bytes"] then
-      record_contents["column_out_bytes"] = bytesToSize(tonumber(record["out_bytes"]))
+   if record["cli_bytes"] then
+      record_contents["column_cli_bytes"] = bytesToSize(tonumber(record["cli_bytes"]))
    else
-      record_contents["column_out_bytes"] = "n.a."
+      record_contents["column_cli_bytes"] = "n.a."
    end
    if record["flows"] then
       record_contents["column_flows"] = formatValue(tonumber(record["flows"]))

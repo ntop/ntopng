@@ -1554,6 +1554,12 @@ static int pull(FILE *fp, struct mg_connection *conn, char *buf, int len) {
 #ifndef NO_SSL
   } else if (conn->ssl != NULL) {
     nread = SSL_read(conn->ssl, buf, len);
+    
+#ifdef DEBUG
+    buf[len] = '\0';
+    printf("%s", buf);
+#endif
+
 #endif
   } else {
     nread = recv(conn->client.sock, buf, (size_t) len, 0);
@@ -3290,6 +3296,7 @@ static void handle_cgi_request(struct mg_connection *conn, const char *prog) {
   struct file fout = STRUCT_FILE_INITIALIZER;
   pid_t pid;
 
+  memset(&ri, 0, sizeof(ri));
   prepare_cgi_environment(conn, prog, &blk);
 
   // CGI must be executed in its own directory. 'dir' must point to the

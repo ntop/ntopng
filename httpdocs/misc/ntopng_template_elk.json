@@ -6,18 +6,8 @@
     "mappings" : {
 	"_default_" : {
 	    "_all" : {"enabled" : true, "omit_norms" : true},
-	    "dynamic_templates" : [ {
-		"string_fields" : {
-		    "match" : "*",
-		    "match_mapping_type" : "string",
-		    "mapping" : {
-			"type" : "string", "index" : "analyzed", "omit_norms" : true,
-			"fields" : {
-			    "raw" : {"type": "string", "index" : "not_analyzed", "ignore_above" : 256}
-			}
-		    }
-		}
-	    }, {
+	    "dynamic_templates" : [
+	    {
 		"geo_fields" : {
 		    "match" : "*_IP_LOCATION",
 		    "mapping": {
@@ -32,7 +22,19 @@
 			"type": "ip"
                     }
 		}
-	    } ],
+	    }, {
+		"string_fields" : {
+		    "match" : "*",
+		    "match_mapping_type" : "string",
+		    "mapping" : {
+			"type" : "string", "index" : "analyzed", "omit_norms" : true,
+			"fields" : {
+			    "raw" : {"type": "string", "index" : "not_analyzed", "ignore_above" : 256}
+			}
+		    }
+		}
+	    }
+	    ],
 	    "properties" : {
 		"@version": { "type": "string", "index": "not_analyzed" }
 	    }

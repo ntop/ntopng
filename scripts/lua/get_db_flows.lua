@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -16,8 +16,12 @@ ifstats = aggregateInterfaceStats(interface.getStats())
 
 ifId = _GET["ifId"]
 host = _GET["host"]
+peer = _GET["peer"]
 epoch = _GET["epoch"]
 l7proto = _GET["l7proto"]
+if l7proto == nil or l7proto == "" then
+   l7proto = _GET["l7_proto_id"]
+end
 
 currentPage = _GET["currentPage"]
 perPage = _GET["perPage"]
@@ -25,9 +29,15 @@ sortColumn = _GET["sortColumn"]
 sortOrder = _GET["sortOrder"]
 
 epoch_begin = _GET["epoch_begin"]
+if epoch_begin == nil or epoch_begin == "" then
+   epoch_begin = _GET["epoch_start"]
+end
 epoch_end = _GET["epoch_end"]
 
 l4proto = _GET["l4proto"]
+if l4proto == nil or l4proto == "" then
+   l4proto = _GET["l4_proto_id"]
+end
 port = _GET["port"]
 info = _GET["info"]
 profile = _GET["profile"]
@@ -52,7 +62,7 @@ if(format == "txt") then
    perPage = limit
 end
 
-res = getInterfaceTopFlows(ifId, ip_version, host, (l7proto or ""), (l4proto or ""), (port or ""), (info or ""),
+res = getInterfaceTopFlows(ifId, ip_version, host, peer, (l7proto or ""), (l4proto or ""), (port or ""), (info or ""),
 			   epoch_begin, epoch_end, (currentPage-1)*perPage, perPage, sortColumn or 'BYTES', sortOrder or 'DESC')
 
 if(format == "txt") then

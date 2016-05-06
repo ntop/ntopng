@@ -27,14 +27,6 @@
 #include "third-party/hiredis/sds.c"
 #endif
 
-/* **************************************************** */
-
-static void* esLoop(void* ptr) {
-    ntop->getRedis()->pushEStemplate();  // sends ES ntopng template
-    ntop->getRedis()->indexESdata();
-  return(NULL);
-}
-
 /* **************************************** */
 
 Redis::Redis(char *_redis_host, u_int16_t _redis_port, u_int8_t _redis_db_id) {
@@ -54,12 +46,6 @@ Redis::~Redis() {
   delete l;
 }
 
-/* **************************************** */
-
-void Redis::startFlowDump() {
-  if(ntop->getPrefs()->do_dump_flows_on_es())
-    pthread_create(&esThreadLoop, NULL, esLoop, (void*)this);
-}
 
 /* **************************************** */
 
@@ -961,14 +947,14 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
 
 /* ******************************************* */
 
-void Redis::queueAlert(AlertLevel level, AlertType t, char *msg) {
+void Redis::queueAlert(AlertLevel level, AlertStatus s, AlertType t, char *msg) {
   char what[1024];
 
   if(ntop->getPrefs()->are_alerts_disabled()) return;
 
-  snprintf(what, sizeof(what), "%u|%u|%u|%s",
+  snprintf(what, sizeof(what), "%u|%u|%u|%u|%s",
 	   (unsigned int)time(NULL), (unsigned int)level,
-	   (unsigned int)t, msg);
+	   (unsigned int)s, (unsigned int)t, msg);
 
 #ifndef WIN32
   // Print alerts into syslog
@@ -1127,113 +1113,4 @@ u_int Redis::getQueuedAlerts(patricia_tree_t *allowed_hosts, char **alerts, u_in
   return(i);
 }
 
-/* **************************************** */
 
-void Redis::indexESdata() {
-  const u_int watermark = 8, min_buf_size = 512;
-  char postbuf[16384];
-
-  while(!ntop->getGlobals()->isShutdown()) {
-    u_int l = llen(CONST_ES_QUEUE_NAME);
-
-    if(l >= watermark) {
-      u_int len, num_flows;
-      char index_name[64], header[256];
-      struct tm* tm_info;
-      struct timeval tv;
-      time_t t;
-
-      gettimeofday(&tv, NULL);
-      t = tv.tv_sec;
-      tm_info = gmtime(&t);
-
-      strftime(index_name, sizeof(index_name), ntop->getPrefs()->get_es_index(), tm_info);
-
-      snprintf(header, sizeof(header),
-	       "{\"index\": {\"_type\": \"%s\", \"_index\": \"%s\"}}",
-	       ntop->getPrefs()->get_es_type(), index_name);
-      len = 0, num_flows = 0;
-
-      for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
-	char rsp[4096];
-	int rc = lpop(CONST_ES_QUEUE_NAME, rsp, sizeof(rsp));
-
-	if(rc >= 0) {
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", rsp);
-	  len += snprintf(&postbuf[len], sizeof(postbuf)-len, "%s\n%s\n", header, rsp), num_flows++;
-	} else
-	  break;
-      } /* for */
-
-      postbuf[len] = '\0';
-
-      if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
-				  ntop->getPrefs()->get_es_pwd(),
-				  ntop->getPrefs()->get_es_url(),
-				  postbuf)) {
-	/* Post failure */
-	sleep(1);
-      } else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Sent %u flow(s) to ES", num_flows);
-    } else
-      sleep(1);
-  } /* while */
-}
-
-/* **************************************** */
-
-/* Send ntopng index template to Elastic Search */
-void Redis::pushEStemplate() {
-  char *postbuf = NULL, *es_host = NULL;
-  char template_path[MAX_PATH], es_template_url[MAX_PATH], es_url[MAX_PATH];
-  ifstream template_file;
-  u_int8_t max_attempts = 3;
-  u_int16_t length = 0;
-
-  // store the original es update url
-  strncpy(es_url, ntop->getPrefs()->get_es_url(), MAX_PATH);
-  // prepare the template file path...
-  snprintf(template_path, sizeof(template_path), "%s/misc/%s",
-	   ntop->get_docs_dir(), NTOP_ES_TEMPLATE);
-  ntop->fixPath(template_path);
-
-  // and the ES url (keep only host and port by retaining only characters left of the first slash)
-  if(!strncmp(es_url, "http://", 7)){  // url starts either with http or https
-    Utils::tokenizer(es_url + 7, '/', &es_host);
-    snprintf(es_template_url, MAX_PATH, "http://%s/_template/ntopng_template", es_host);
-  } else if(!strncmp(es_url, "https://", 8)){
-    Utils::tokenizer(es_url + 8, '/', &es_host);
-    snprintf(es_template_url, MAX_PATH, "https://%s/_template/ntopng_template", es_host);
-  } else {
-    Utils::tokenizer(es_url, '/', &es_host);
-    snprintf(es_template_url, MAX_PATH, "%s/_template/ntopng_template", es_host);
-  }
-
-  template_file.open(template_path);   // open input file
-  template_file.seekg(0, ios::end);    // go to the end
-  length = template_file.tellg();      // report location (this is the length)
-  template_file.seekg(0, ios::beg);    // go back to the beginning
-  postbuf = new char[length+1];        // allocate memory for a buffer of appropriate dimension
-  template_file.read(postbuf, length); // read the whole file into the buffer
-  postbuf[length] = '\0';
-  if(template_file.is_open())
-    template_file.close();           // close file handle
-
-  while(max_attempts > 0) {
-    if(!Utils::postHTTPJsonData(ntop->getPrefs()->get_es_user(),
-				ntop->getPrefs()->get_es_pwd(),
-				es_template_url,
-				postbuf)) {
-      /* Post failure */
-      sleep(1);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "ntopng template successfully sent to ES");
-      if(postbuf) free(postbuf);
-      break;
-    }
-    max_attempts--;
-  } /* while */
-
-  if(max_attempts == 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to send ntopng template (%s) to ES", template_path);
-}

@@ -99,7 +99,8 @@ class Flow : public GenericHashEntry {
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
-  float rttSec;
+  struct timeval c2sFirstGoodputTime;
+  float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
 
@@ -138,6 +139,10 @@ class Flow : public GenericHashEntry {
   bool isLowGoodput();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
+  inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
+    return(1000 /* msec */ 
+	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
+  }
 
  public:
   Flow(NetworkInterface *_iface,
@@ -166,6 +171,7 @@ class Flow : public GenericHashEntry {
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
   inline char* getFlowServerInfo() { return(host_server_name); };
   inline char* getBitTorrentHash() { return(bt_hash);          };
+  inline void  setBTHash(char *h)  { if(!h) return; if(bt_hash) { free(bt_hash); bt_hash = NULL; }; bt_hash = strdup(h); }
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = strdup(v); }
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
@@ -248,10 +254,10 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
-  inline bool isSuspiciousFlow();
+  inline bool isSuspiciousFlowThpt();
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
-  void updateInterfaceStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
+  void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
   inline char* getDNSQuery()        { return(dns.last_query);  }
   inline void  setDNSQuery(char *v) { if(dns.last_query) free(dns.last_query);  dns.last_query = strdup(v); }
   inline char* getHTTPURL()         { return(http.last_url);   }
@@ -269,12 +275,16 @@ class Flow : public GenericHashEntry {
   inline float getCli2SrvMaxThpt() { return(rttSec ? ((float)(cli2srv_window*8)/rttSec) : 0); }
   inline float getSrv2CliMaxThpt() { return(rttSec ? ((float)(srv2cli_window*8)/rttSec) : 0); }
 
-  inline u_int32_t getCli2SrvMinInterArrivalTime() { return(cli2srvStats.pktTime.min_ms); }
-  inline u_int32_t getCli2SrvMaxInterArrivalTime() { return(cli2srvStats.pktTime.max_ms); }
-  inline u_int32_t getCli2SrvAvgInterArrivalTime() { return((cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (cli2srv_packets-1)); }
-  inline u_int32_t getSrv2CliMinInterArrivalTime() { return(srv2cliStats.pktTime.min_ms); }
-  inline u_int32_t getSrv2CliMaxInterArrivalTime() { return(srv2cliStats.pktTime.max_ms); }
-  inline u_int32_t getSrv2CliAvgInterArrivalTime() { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
+  inline u_int32_t getCli2SrvCurrentInterArrivalTime(time_t now) { return(getCurrentInterArrivalTime(now, true));  }
+  inline u_int32_t getSrv2CliCurrentInterArrivalTime(time_t now) { return(getCurrentInterArrivalTime(now, false)); }
+
+  inline u_int32_t getCli2SrvMinInterArrivalTime()  { return(cli2srvStats.pktTime.min_ms); }
+  inline u_int32_t getCli2SrvMaxInterArrivalTime()  { return(cli2srvStats.pktTime.max_ms); }
+  inline u_int32_t getCli2SrvAvgInterArrivalTime()  { return((cli2srv_packets < 2) ? 0 : cli2srvStats.pktTime.total_delta_ms / (cli2srv_packets-1)); }
+  inline u_int32_t getSrv2CliMinInterArrivalTime()  { return(srv2cliStats.pktTime.min_ms); }
+  inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
+  inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
+  bool isIdleFlow(time_t now);
 };
 
 #endif /* _FLOW_H_ */

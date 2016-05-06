@@ -382,6 +382,9 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("SMTP_RCPT_TO", 57658);
   addMapping("SSDP_HOST", 57972);
   addMapping("SSDP_USN", 57973);
+
+  addMapping("SSL_SERVER_NAME", 57660);
+  addMapping("BITTORRENT_HASH", 57661);
 }
 
 /* **************************************************** */
@@ -431,7 +434,7 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
     char remote_ifname[32] = { 0 }, remote_ifaddress[64] = { 0 };
     char remote_probe_address[64] = { 0 }, remote_probe_public_address[64] = { 0 };
     u_int64_t remote_bytes = 0, remote_pkts = 0;
-    u_int32_t remote_ifspeed = 0, remote_time = 0;
+    u_int32_t remote_ifspeed = 0, remote_time = 0, avg_bps = 0, avg_pps = 0;
 
     while(!json_object_iter_equal(&it, &itEnd)) {
       const char *key   = json_object_iter_peek_name(&it);
@@ -450,17 +453,21 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
 	else if(!strcmp(key, "probe.public_ip")) snprintf(remote_probe_public_address, sizeof(remote_probe_public_address), "%s", value);
 	else if(!strcmp(key, "bytes"))    remote_bytes = atol(value);
 	else if(!strcmp(key, "packets"))  remote_pkts = atol(value);
-	else if(!strcmp(key, "time"))     remote_time = atol(value);
+	else if(!strcmp(key, "time"))     remote_time = atol(value); /* Format 1461424017.299 <sec>.<msec> */
+	else if(!strcmp(key, "avg.bps"))  avg_bps = atol(value);
+	else if(!strcmp(key, "avg.pps"))  avg_pps = atol(value);
 	
 	/* Move to the next element */
 	json_object_iter_next(&it);
       }
     } // while json_object_iter_equal
     
-      /* Process Flow */
+    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%u/%u", avg_bps, avg_pps); */
+
+    /* Process Flow */
     iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed, 
 			  remote_probe_address, remote_probe_public_address,
-			  remote_bytes, remote_pkts, remote_time);
+			  remote_bytes, remote_pkts, remote_time, avg_pps, avg_bps);
     
     /* Dispose memory */
     json_object_put(o);
@@ -666,6 +673,12 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	case HTTP_SITE:
 	  flow.http_site = strdup(value);
 	  break;
+	case SSL_SERVER_NAME:
+	  flow.ssl_server_name = strdup(value);
+	  break;
+	case BITTORRENT_HASH:
+	  flow.bittorrent_hash = strdup(value);
+	  break;
 
         default:
           ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u/%s", key_id, key);
@@ -687,6 +700,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
     if(flow.dns_query) free(flow.dns_query);
     if(flow.http_url)  free(flow.http_url);
     if(flow.http_site) free(flow.http_site);
+    if(flow.ssl_server_name) free(flow.ssl_server_name);
+    if(flow.bittorrent_hash) free(flow.bittorrent_hash);
 
     json_object_put(o);
     json_object_put(flow.additional_fields);

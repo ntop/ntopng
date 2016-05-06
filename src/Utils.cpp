@@ -867,7 +867,6 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
   curl = curl_easy_init();
 
   if(curl) {
-    curl_version_info_data *v;
     DownloadState *state = NULL;
     long response_code;
     char *content_type, *redirection;
@@ -913,8 +912,8 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
 #endif
 
-    v = curl_version_info(CURLVERSION_NOW);
-    snprintf(ua, sizeof(ua), "ntopng v.%s (curl %s)", PACKAGE_VERSION, v->version);
+    snprintf(ua, sizeof(ua), "%s [%s][%s]", 
+	     PACKAGE_STRING, PACKAGE_MACHINE, PACKAGE_OS);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
   
     if(vm) lua_newtable(vm);

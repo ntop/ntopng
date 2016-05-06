@@ -38,7 +38,7 @@ class Prefs {
  private:
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
-  char *deferred_interfaces_to_register[MAX_NUM_INTERFACES];
+  char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
   char *http_binding_address, *https_binding_address;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
@@ -179,14 +179,15 @@ class Prefs {
   inline bool shutdownWhenDone() { return(shutdown_when_done); }
   inline bool are_taps_enabled() { return(enable_taps); };
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
-  inline bool use_promiscuous()         { return(use_promiscuous_mode); };
-  inline bool is_zmq_collector_mode()   { return(zmq_collector_mode);   }
-  inline char* get_mysql_host()         { return(mysql_host);         };
-  inline char* get_mysql_dbname()       { return(mysql_dbname);       };
-  inline char* get_mysql_tablename()    { return(mysql_tablename);    };
-  inline char* get_mysql_user()         { return(mysql_user);         };
-  inline char* get_mysql_pw()           { return(mysql_pw);           };
-  inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd); };
+  inline bool use_promiscuous()         { return(use_promiscuous_mode);  };
+  inline bool is_zmq_collector_mode()   { return(zmq_collector_mode);    }
+  inline char* get_mysql_host()         { return(mysql_host);            };
+  inline char* get_mysql_dbname()       { return(mysql_dbname);          };
+  inline char* get_mysql_tablename()    { return(mysql_tablename);       };
+  inline char* get_mysql_user()         { return(mysql_user);            };
+  inline char* get_mysql_pw()           { return(mysql_pw);              };
+  inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
+  inline char* get_command_line()       { return(cli ? cli : (char*)""); };
   inline char* getInterfaceViewAt(int id) { return((id >= MAX_NUM_INTERFACES) ? NULL : ifViewNames[id].name); }
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }

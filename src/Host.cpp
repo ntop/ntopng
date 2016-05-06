@@ -455,7 +455,8 @@ void Host::getSites(lua_State* vm, char *k, const char *label) {
 
 void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 	       bool host_details, bool verbose,
-	       bool returnHost, bool asListElement) {
+	       bool returnHost, bool asListElement,
+	       bool exclude_deserialized_bytes) {
   char buf[64];
   char buf_id[64];
   char *ipaddr = NULL;
@@ -486,8 +487,10 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   lua_push_int_table_entry(vm, "vlan", vlan_id);
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
-  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
-  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+  lua_push_int_table_entry(vm, "bytes.sent",
+			   sent.getNumBytes() - (exclude_deserialized_bytes ? sent.getNumDeserializedBytes() : 0));
+  lua_push_int_table_entry(vm, "bytes.rcvd",
+			   rcvd.getNumBytes() - (exclude_deserialized_bytes ? rcvd.getNumDeserializedBytes() : 0));
 
   if(ip) {
     char *local_net;
@@ -1067,7 +1070,7 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 #endif
 
     h = ip->print(ip_buf, sizeof(ip_buf));
-
+    
     if(syn_sent) {
       error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
       snprintf(msg, sizeof(msg),
@@ -1077,21 +1080,24 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 	       counter->getOverThresholdDuration(),
 	       f->print(flow_buf, sizeof(flow_buf)));
     } else {
+      char attacker_buf[64], *attacker_str;
       Host *attacker = f->get_srv_host();
       IpAddress *aip = attacker->get_ip();
       char aip_buf[48], *aip_ptr;
+
+      attacker_str = attacker->get_ip()->print(attacker_buf, sizeof(attacker_buf));
       aip_ptr = aip->print(aip_buf, sizeof(aip_buf));
       error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is under SYN flood attack by host %s [%u SYNs received in the last %u sec] %s";
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_name(), h, aip_ptr,
+	       h, iface->get_name(), attacker_str, aip_ptr,
 	       counter->getCurrentHits(),
 	       counter->getOverThresholdDuration(),
 	       f->print(flow_buf, sizeof(flow_buf)));
     }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
-    ntop->getRedis()->queueAlert(alert_level_error, alert_syn_flood, msg);
+    ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_syn_flood, msg);
     incNumAlerts();
   }
 }
@@ -1115,7 +1121,7 @@ void Host::incNumFlows(bool as_client) {
 	       h, iface->get_name(), h, num_active_flows_as_client);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      ntop->getRedis()->queueAlert(alert_level_error, alert_flow_flood, msg);
+      ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
       incNumAlerts();
     }
   } else {
@@ -1132,7 +1138,7 @@ void Host::incNumFlows(bool as_client) {
 	       h, iface->get_name(), h, num_active_flows_as_server);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      ntop->getRedis()->queueAlert(alert_level_error, alert_flow_flood, msg);
+      ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
       incNumAlerts();
     }
   }
@@ -1158,7 +1164,7 @@ void Host::decNumFlows(bool as_client) {
 		 h, iface->get_name(), h, num_active_flows_as_client);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	ntop->getRedis()->queueAlert(alert_level_info, alert_flow_flood, msg);
+	ntop->getRedis()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
 	incNumAlerts();
       }
     } else
@@ -1178,7 +1184,7 @@ void Host::decNumFlows(bool as_client) {
 		 h, iface->get_name(), h, num_active_flows_as_server);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	ntop->getRedis()->queueAlert(alert_level_info, alert_flow_flood, msg);
+	ntop->getRedis()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
 	incNumAlerts();
       }
     } else
@@ -1236,7 +1242,7 @@ void Host::updateStats(struct timeval *tv) {
     snprintf(msg, sizeof(msg),
              error_msg, ntop->getPrefs()->get_http_prefix(),
              h, iface->get_name(), h, host_quota_mb);
-    ntop->getRedis()->queueAlert(alert_level_warning, alert_quota, msg);
+    ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent, alert_quota, msg);
   }
 }
 
@@ -1398,7 +1404,7 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     c, iface->get_name(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
-    ntop->getRedis()->queueAlert(alert_level_error, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
+    ntop->getRedis()->queueAlert(alert_level_error, alert_on, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
     good_low_flow_detected = true;
   }
 #endif

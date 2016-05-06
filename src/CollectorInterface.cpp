@@ -145,7 +145,7 @@ void CollectorInterface::collect_flows() {
 #ifdef HAVE_ZLIB
 	    int err;
 	    uLongf uLen;
-	    
+
 	    uLen = uncompressed_len = 3*size;
 	    uncompressed = (char*)malloc(uncompressed_len+1);
 	    if((err = uncompress((Bytef*)uncompressed, &uLen, (Bytef*)&payload[1], size-1)) != Z_OK) {
@@ -158,7 +158,7 @@ void CollectorInterface::collect_flows() {
 	    static bool once = false;
 	    
 	    if(!once)
-	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to uncompress ZMQ traffic"), once = true;
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to uncompress ZMQ traffic: ntopng compiled without zlib"), once = true;
 
 	    return;
 #endif

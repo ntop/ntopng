@@ -193,8 +193,9 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
             if(rc) then
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-                local alert_level = 1 -- alert_level_warning
-                local alert_type = 2 -- alert_threshold_exceeded
+                local alert_level  = 1 -- alert_level_warning
+                local alert_status = 1 -- alert_on
+                local alert_type   = 2 -- alert_threshold_exceeded
 
                 -- only if the alert is not in its re-arming period...
                 if not is_alert_re_arming(key, mode, t[1]) then
@@ -202,7 +203,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
                     -- re-arm the alert
                     re_arm_alert(key, mode, t[1])
                     -- and send it to ntopng
-                    ntop.queueAlert(alert_level, alert_type, alert_msg)
+                    ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
                         ntop.sendNagiosAlert(key, mode, t[1], alert_msg)
@@ -272,12 +273,13 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             if(rc) then
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF="..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
                 local alert_level = 1 -- alert_level_warning
+                local alert_status = 1 -- alert_on
                 local alert_type = 2 -- alert_threshold_exceeded
 
                 if not is_alert_re_arming(network_name, mode, t[1]) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, mode, t[1])
-                    ntop.queueAlert(alert_level, alert_type, alert_msg)
+                    ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
                         ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
@@ -339,12 +341,13 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..ifname..
                 ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
                 local alert_level = 1 -- alert_level_warning
+                local alert_status = 1 -- alert_on
                 local alert_type = 2 -- alert_threshold_exceeded
 
                 if not is_alert_re_arming(ifname_clean, mode, t[1]) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, mode, t[1])
-                    ntop.queueAlert(alert_level, alert_type, alert_msg)
+                    ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
                         ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)

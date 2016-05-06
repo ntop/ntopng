@@ -293,10 +293,11 @@ function getQueuedAlerts(initial_idx, max_num_alerts)
 --! @memberof ntop
 --! @brief Returns the redis queued alerts
 --! @tparam integer alert_level The alert level. See AlertLevel in ntop_typedefs.h
+--! @tparam integer alert_status The alert status. See AlertStatus in ntop_typedefs.h
 --! @tparam integer alert_type The alert type. See AlertType in ntop_typedefs.h
 --! @tparam string alert_message A string message that describes the alert being reported.
 --! @details Returns up to the the number of queued alerts
-   function queueAlert(alert_level, alert_type, alert_message)
+   function queueAlert(alert_level, alert_status, alert_type, alert_message)
 
 --! @memberof ntop
 --! @brief Get the host name associated with the host id in the hash stored at key.

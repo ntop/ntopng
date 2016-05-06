@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -62,14 +62,21 @@ end
 interface.select(ifname)
 
 if((group_col == "mac") or (group_col == "antenna_mac")) then
-   hosts_stats,total = aggregateHostsStats(interface.getLocalHostsInfo())
+   hosts_stats,total = aggregateHostsStats(interface.getLocalHostsInfo(false))
    --PRINT
    -- for n in pairs(hosts_stats) do 
    --    io.write("= "..n..'\n')
    -- end
-
 else
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+--[[
+   hosts_stats,total = interface.getGroupedHosts(
+					      tonumber(vlan_n) or 0,
+					      tonumber(as_n) or 0,
+					      tonumber(network_n) or -1,
+					      country_n or "", os_n or "")
+--]]
+   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo(false))
+--   tprint(hosts_stats)
 end
 
 to_skip = (currentPage-1) * perPage
@@ -89,6 +96,9 @@ now = os.time()
 vals = {}
 
 stats_by_group_col = {}
+
+--kk=interface.getGroupedHosts(false, sortColumn, group_col, perPage, to_skip, sOrder, country_n, os_n, tonumber(vlan_n), tonumber(asn_n), tonumber(network_n)) -- false = little details)
+--tprint(kk)
 
 --[[
 The idea here is to group host statistics by the value specified in

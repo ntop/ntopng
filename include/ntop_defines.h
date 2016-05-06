@@ -122,8 +122,8 @@
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-15 ntop.org"
-#define DEFAULT_PID_PATH        "/var/tmp/ntopng.pid"
+#define NTOP_COPYRIGHT          "(C) 1998-2016 ntop.org"
+#define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define DOMAIN_CATEGORY         "ntopng.domain.category"
 #define DOMAIN_TO_CATEGORIZE    "ntopng.domain.tocategorize"
 #define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"
@@ -152,7 +152,6 @@
 #define CONST_STR_USER_NETS       "ntopng.user.%s.allowed_nets"
 #define CONST_ALLOWED_NETS        "allowed_nets"
 #define CONST_USER                "user"
-#define CONST_ES_QUEUE_NAME       "ntopng.es"
 
 #define CONST_INTERFACE_TYPE_PCAP      "pcap"
 #define CONST_INTERFACE_TYPE_PCAP_DUMP "pcap dump"
@@ -186,8 +185,8 @@
 #define BATADV14_BCAST		 0x04
 #define BATADV14_VIS		 0x05
 #define BATADV14_UNICAST_FRAG	 0x06
-#define BATADV14_TT_QUERY	 0x07 
-#define BATADV14_ROAM_ADV	 0x08 
+#define BATADV14_TT_QUERY	 0x07
+#define BATADV14_ROAM_ADV	 0x08
 #define BATADV14_UNICAST_4ADDR	 0x09
 #define BATADV14_CODED		 0x0a
 
@@ -359,7 +358,10 @@
 
 #define CONST_ANY_ADDRESS              "" /* Good for v4 and v6 */
 #define CONST_LOOPBACK_ADDRESS         "127.0.0.1"
-
+#define CONST_MAX_IDLE_INTERARRIVAL_TIME  60000 /* 1 min (msec) */
+#define CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH         3000  /* 3 sec (msec) */
+#define CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK 6  /* 6 sec */
+#define CONST_MAX_IDLE_NO_DATA_AFTER_ACK  10 /* 10 sec */
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MTU              1514
 
@@ -386,7 +388,6 @@
 #endif
 
 #ifdef WIN32
-
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -431,7 +432,7 @@
 #define unlink(a) _unlink(a)
 #endif
 
-#if defined(__arm__) || defined(__mips__) 
+#if defined(__arm__) || defined(__mips__)
 #define NTOPNG_EMBEDDED_EDITION         1
 #endif
 
@@ -475,8 +476,6 @@
 #define HOST_LOW_GOODPUT_THRESHOLD  25 /* No more than X low goodput flows per host */
 #define FLOW_GOODPUT_THRESHOLD      40 /* 40% */
 
-#define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
-
 #define PREF_NTOP_AUTHENTICATION_TYPE "ntopng.prefs.auth_type"
 #define PREF_LDAP_ACCOUNT_TYPE        "ntopng.prefs.ldap.account_type"
 #define PREF_LDAP_SERVER              "ntopng.prefs.ldap.server"
@@ -486,7 +485,11 @@
 #define PREF_LDAP_SEARCH_PATH         "ntopng.prefs.ldap.search_path"
 #define PREF_LDAP_USER_GROUP          "ntopng.prefs.ldap.user_group"
 #define PREF_LDAP_ADMIN_GROUP         "ntopng.prefs.ldap.admin_group"
-#define CONST_CACHED_USER_PASSWORD    "ntopng.user.ldap.%s.password"
-#define CONST_CACHED_USER_GROUP       "ntopng.user.%s.group"
+#define PREF_LDAP_GROUP_OF_USER       "ntopng.prefs.ldap.%s.group_of_user"
+#define PREF_USER_TYPE_LOG            "ntopng.prefs.user.%s.type_log"
+
+/* Elastic Search */
+#define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
+#define ES_MAX_QUEUE_LEN              32768
 
 #endif /* _NTOP_DEFINES_H_ */

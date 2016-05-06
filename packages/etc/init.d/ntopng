@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) 2003-13 - ntop.org
+# (C) 2003-16 - ntop.org
 #
 # chkconfig: 2345 80 30
 #
@@ -61,7 +61,7 @@ get_ntopng_pid() {
     if [ -f "/etc/ntopng/ntopng.conf" ]; then
         PID_FILE=$(cat /etc/ntopng/ntopng.conf | grep -v '^#' | grep -E '\-G=|--pid'|cut -d '=' -f 2)
     else
-        PID_FILE="/var/tmp/ntopng.pid"
+        PID_FILE="/var/run/ntopng.pid"
     fi
 
     if [ -z "$PID_FILE" ]; then
@@ -105,7 +105,7 @@ start_ntopng() {
 
     if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
 	echo "Generating configuration file /etc/ntopng/ntopng.conf"
-	echo "-G=/var/tmp/ntopng.pid" > /etc/ntopng/ntopng.conf
+	echo "-G=/var/run/ntopng.pid" > /etc/ntopng/ntopng.conf
         if [ -d /storage ]; then
             if [ ! -d /storage/ntopng ]; then
                 mkdir /storage/ntopng
@@ -205,7 +205,7 @@ stop_ntopng() {
     do  
         get_ntopng_pid
         if [ "${PID}" -gt 0 ]; then
-            kill -15 $PID > /dev/null
+            kill -15 $PID &> /dev/null
             MSG="Sent kill to ntop PID $PID"
             sleep 1
         else

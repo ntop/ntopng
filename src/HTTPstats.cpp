@@ -311,7 +311,7 @@ char* HTTPstats::serialize() {
 void HTTPstats::JSONObjectAddCounters(json_object *my_object, bool as_sender) {
   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
   u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
-  json_object *sub_object = json_object_new_object();
+  json_object *sub_object;
 
   if(!my_object) return;
 
@@ -346,6 +346,11 @@ void HTTPstats::deserialize(json_object *my_object) {
   struct http_response_rates *dr;
 
   if(!my_object) return;
+
+  memset(&query, 0, sizeof(query));
+  memset(&response, 0, sizeof(response));
+  memset(&query_rate, 0, sizeof(query_rate));
+  memset(&response_rate, 0, sizeof(response_rate));
 
   for (u_int8_t direction = 0; direction < 2; direction++){
     u_int8_t d = direction == AS_SENDER ? AS_SENDER : AS_RECEIVER;
@@ -398,7 +403,7 @@ void HTTPstats::deserialize(json_object *my_object) {
 void HTTPstats::JSONObjectAddRates(json_object *my_object, bool as_sender) {
   u_int16_t rate_get = 0, rate_post = 0, rate_head = 0, rate_put = 0, rate_other = 0;
   u_int16_t rate_1xx = 0, rate_2xx  = 0, rate_3xx  = 0, rate_4xx = 0, rate_5xx   = 0;
-  json_object *sub_object = json_object_new_object();
+  json_object *sub_object;
 
   if(!my_object) return;
 

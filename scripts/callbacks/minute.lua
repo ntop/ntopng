@@ -1,5 +1,5 @@
 --
--- (C) 2013-15 - ntop.org
+-- (C) 2013-16 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -127,7 +127,7 @@ for _,_ifname in pairs(ifnames) do
             local networks_aggr = {}
 	    local vlans_aggr    = {}
 
-            for hosts_stats_ifname, hosts_stats in pairs(interface.getLocalHostsInfo()) do
+            for hosts_stats_ifname, hosts_stats in pairs(interface.getLocalHostsInfo(false)) do
 	    hosts_stats = hosts_stats["hosts"]
 	    for hostname, hoststats in pairs(hosts_stats) do
 	       host = interface.getHostInfo(hostname)
