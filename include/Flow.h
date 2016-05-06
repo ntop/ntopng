@@ -49,7 +49,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed,
-    good_low_flow_detected;
+    good_low_flow_detected, ssl_hs_started, ssl_hs_over;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -97,10 +97,11 @@ class Flow : public GenericHashEntry {
 			    */
 
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
+  struct timeval sslSynTime, ssl_hs_end_time,sslFirstData_time;
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
   struct timeval c2sFirstGoodputTime;
-  float rttSec, applLatencyMsec;
+  float rttSec, applLatencyMsec, ssl_hs_delta_time, ssl_delta_firstData;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
 
@@ -140,7 +141,7 @@ class Flow : public GenericHashEntry {
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
-    return(1000 /* msec */ 
+    return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
 
@@ -257,6 +258,7 @@ class Flow : public GenericHashEntry {
   inline bool isSuspiciousFlowThpt();
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
+  void dissectSSL(bool src2dst_direction, u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
   inline char* getDNSQuery()        { return(dns.last_query);  }
   inline void  setDNSQuery(char *v) { if(dns.last_query) free(dns.last_query);  dns.last_query = strdup(v); }
