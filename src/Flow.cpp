@@ -914,7 +914,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if((iface->get_type() != CONST_INTERFACE_TYPE_ZMQ)
+	if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)
 	   && (protocol == IPPROTO_TCP)
 	   && (get_goodput_bytes() > 0)
 	   && (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_SSH)) {
@@ -1636,10 +1636,10 @@ json_object* Flow::flow2json(bool partial_dump) {
 
 /* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
 bool Flow::isIdleFlow(time_t now) {
-  int threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
+  u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
 
   if((protocol == IPPROTO_TCP) 
-     && (iface->get_type() != CONST_INTERFACE_TYPE_ZMQ)) {
+     && strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
     if(!twh_over) {
       if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
 	 && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
