@@ -240,9 +240,9 @@ if((page == "overview") or (page == nil)) then
 
    if(ifstats["remote.name"] ~= nil) then
       print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>") 
-      if(ifstats["remote.ip"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
-      print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td>")
-      if(ifstats["probe.public_ip"] ~= nil) then print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td></tr>\n") end
+      if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
+      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td>") end      
+      if(ifstats["probe.public_ip"] ~= "") then print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td></tr>\n") end
    end
 
    print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name.."</td>\n")

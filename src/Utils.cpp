@@ -1358,6 +1358,8 @@ u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
   struct ethtool_cmd edata;
   u_int32_t ifSpeed = 1000;
 
+  if(strncmp(ifname, "zc:", 3) == 0) ifname = &ifname[3];
+
   memset(&ifr, 0, sizeof(struct ifreq));
 
   sock = socket(PF_INET, SOCK_DGRAM, 0);

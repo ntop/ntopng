@@ -644,7 +644,9 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
 	 || iface->is_sprobe_interface())
 	lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
       else
-	lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
+	lua_push_str_table_entry(vm, "proto.ndpi", 
+				 (strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ) == 0) ? (char*)NDPI_PROTOCOL_UNKNOWN :
+				 (char*)CONST_TOO_EARLY);
 
       lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.protocol);
     }
@@ -1636,33 +1638,34 @@ json_object* Flow::flow2json(bool partial_dump) {
 
 /* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
 bool Flow::isIdleFlow(time_t now) {
-  u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
+  if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
+    u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
 
-  if((protocol == IPPROTO_TCP) 
-     && strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
-    if(!twh_over) {
-      if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
-	 && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
-	return(true); /* The client has not completed the 3WH within the expected time */
+    if(protocol == IPPROTO_TCP) {
+      if(!twh_over) {
+	if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
+	   && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
+	  return(true); /* The client has not completed the 3WH within the expected time */
 
-      if(synTime.tv_sec > 0) {
-	/* We have seen the beginning of the flow */
-	threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH;
-	/* We are checking if the 3WH process takes too long and thus if this is a possible attack */
+	if(synTime.tv_sec > 0) {
+	  /* We have seen the beginning of the flow */
+	  threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH;
+	  /* We are checking if the 3WH process takes too long and thus if this is a possible attack */
+	}
+      } else {
+	/* The 3WH has been completed */
+	if((applLatencyMsec == 0) /* The client has not yet completed the request or
+				     the connection is idle after its setup */
+	   && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
+	  return(true);  /* Connection established and no data exchanged yet */
       }
-    } else {
-      /* The 3WH has been completed */
-      if((applLatencyMsec == 0) /* The client has not yet completed the request or
-				   the connection is idle after its setup */
-	 && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
-	return(true);  /* Connection established and no data exchanged yet */
     }
-  }
 
-  /* Check if there is not traffic for a long time on this flow */
-  if((getCli2SrvCurrentInterArrivalTime(now) > threshold_ms)
-     || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > threshold_ms)))
-    return(true);
+    /* Check if there is no traffic for a long time on this flow */
+    if((getCli2SrvCurrentInterArrivalTime(now) > threshold_ms)
+       || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > threshold_ms)))
+      return(true);
+  }
 
   return(false); /* Not idle */
 }
