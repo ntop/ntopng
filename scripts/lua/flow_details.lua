@@ -215,13 +215,13 @@ else
    print("<tr><th width=30% rowspan=3>Total Traffic</th><td>Total: <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
    if((ifstats.type ~= "zmq") and ((flow["proto.l4"] == "TCP") or (flow["proto.l4"] == "UDP"))) then
       print("<td><A HREF=https://en.wikipedia.org/wiki/Goodput>Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
-      pctg = round((flow["goodput_bytes"]*100)/flow["bytes"], 1)
+      pctg = round(((flow["goodput_bytes"]*100)/flow["bytes"]), 2)
       if(pctg < 50) then
 	 pctg = "<font color=red>"..pctg.."</font>"
       elseif(pctg < 60) then
 	 pctg = "<font color=orange>"..pctg.."</font>"
       end
-      print(pctg)
+      print(pctg.."")
 
       print("</span> %) <span id=goodput_volume_trend></span> </td></tr>\n")
    else
