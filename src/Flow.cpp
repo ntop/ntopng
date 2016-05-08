@@ -32,7 +32,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_packets = 0, cli2srv_bytes = 0, cli2srv_goodput_bytes = 0,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
-    cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false;
+    cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, is_IdleFlow = false;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -43,7 +43,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
-  json_info = strdup("{}"), cli2srv_direction = true, twh_over = false, ssl_hs_over = false, ssl_hs_started = false,
+  json_info = strdup("{}"), cli2srv_direction = true, twh_over = false, ssl_hs_over = false, ssl_hs_started = false, ssl_firstData_seen = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
     ssl.certificate = NULL, bt_hash = NULL;
@@ -1641,33 +1641,64 @@ json_object* Flow::flow2json(bool partial_dump) {
 /* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
 bool Flow::isIdleFlow(time_t now) {
   int threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
-
+  u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
   if((protocol == IPPROTO_TCP)
      && (iface->get_type() != CONST_INTERFACE_TYPE_ZMQ)) {
     if(!twh_over) {
       if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
-	 && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK))
+	 && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK)){
+	is_IdleFlow = true;
 	return(true); /* The client has not completed the 3WH within the expected time */
-
+    }
       if(synTime.tv_sec > 0) {
 	/* We have seen the beginning of the flow */
 	threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH;
 	/* We are checking if the 3WH process takes too long and thus if this is a possible attack */
       }
-    } else {
-      /* The 3WH has been completed */
-      if((applLatencyMsec == 0) /* The client has not yet completed the request or
+    } /* The 3WH has been completed */
+    else if((applLatencyMsec == 0) /* The client has not yet completed the request or
 				   the connection is idle after its setup */
-	 && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
+	 && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK)){
+	is_IdleFlow = true;
 	return(true);  /* Connection established and no data exchanged yet */
     }
+    else {
+        switch(l7proto) {
+            /*
+            case NDPI_PROTOCOL_SSL:
+                //ssl hs is started but not completed
+                if(ssl_hs_started){
+                    if(!ssl_hs_over){
+                        //3 sec to complete the ssl hs, or flow is in idle
+                        if((now - sslSynTime.tv_sec) > 3){
+                            is_IdleFlow = true;
+                            return(true);
+                        }
+                    }
+                    //ssl hs started and completed, need to check first appdata arrival time
+                    else{
+                        if(!ssl_firstData_seen){
+                            if((now - ssl_hs_end_time.tv_sec) > 3){
+                             is_IdleFlow = true;
+                             return (true);
+                            }
+                        }
+                    }
+                }
+            break;
+            */
+            default:
+	     		/* Check if there is not traffic for a long time on this flow */
+                if((getCli2SrvCurrentInterArrivalTime(now) > threshold_ms)
+                || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > threshold_ms))){
+                    is_IdleFlow = true;
+                    return(true);
+                }
+            break;
+	    }
+    }
   }
-
-  /* Check if there is not traffic for a long time on this flow */
-  if((getCli2SrvCurrentInterArrivalTime(now) > threshold_ms)
-     || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > threshold_ms)))
-    return(true);
-
+  is_IdleFlow = false;
   return(false); /* Not idle */
 }
 
@@ -2102,28 +2133,29 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 /* *************************************** */
 
 void Flow::dissectSSL(bool src2dst_direction, u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when){
-
     if(payload!=NULL&&twh_over){
         if(!ssl_hs_over){
             if(payload[0] == 0x16){
                 //handshake packet
                 if(payload[5]==0x1){
                     //client-hello
-                    memcpy(&sslFirstData_time, when, sizeof(struct timeval));
+                    memcpy(&sslSynTime, when, sizeof(struct timeval));
                     ssl_hs_started = true;
                 }
                 else if(payload[5]==0x4 && ssl_hs_started){
                     //newsession ticket, the end of ssl handshake
                     ssl_hs_over = true;
                     memcpy(&ssl_hs_end_time, when, sizeof(struct timeval));
-                    ssl_hs_delta_time = ((float)(ssl_hs_end_time.tv_sec+sslFirstData_time.tv_sec))+
-                                        ((float)(ssl_hs_end_time.tv_usec+sslFirstData_time.tv_usec))/(float)1000000;
-                    printf("flow ssl hs delta time: %f\n", ssl_hs_delta_time);
+                    ssl_hs_delta_time = ((float)(ssl_hs_end_time.tv_sec-sslSynTime.tv_sec)) +
+                                        ((float)(ssl_hs_end_time.tv_usec-sslSynTime.tv_usec))/(float)1000000;
                 }
             }
-        }else if(ssl_hs_over && payload[0] == 0x17){
+        }else if(ssl_hs_over && payload[0] == 0x17&&!ssl_firstData_seen){
             //application data packet
+            ssl_firstData_seen = true;
             memcpy(&sslFirstData_time, when, sizeof(struct timeval));
+            ssl_delta_firstData = ((float)(sslFirstData_time.tv_sec-ssl_hs_end_time.tv_sec)) +
+                                  ((float)(sslFirstData_time.tv_usec-ssl_hs_end_time.tv_usec))/(float)1000000;
         }
     }
 
@@ -2220,7 +2252,7 @@ bool Flow::isSuspiciousFlowThpt() {
   if(protocol == IPPROTO_TCP) {
     float compareTime = Utils::timeval2ms(&clientNwLatency)*1.5;
 
-    if(cli2srv_direction && isLowGoodput()) {
+    if(cli2srv_direction && isLowGoodput() && is_IdleFlow) {
       if((cli2srvStats.pktTime.min_ms > compareTime)
 	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP)
 	     && (cli2srvStats.pktTime.min_ms > 3000 /* 3 sec */))
