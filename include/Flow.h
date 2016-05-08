@@ -49,7 +49,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed,
-    good_low_flow_detected, ssl_hs_started, ssl_hs_over;
+    good_low_flow_detected, ssl_hs_started, ssl_hs_over, ssl_firstData_seen;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -58,7 +58,7 @@ class Flow : public GenericHashEntry {
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *ndpi_proto_name, *bt_hash;
-  bool dump_flow_traffic, badFlow;
+  bool dump_flow_traffic, badFlow, is_IdleFlow;
 
   struct {
     char *last_url, *last_method;
