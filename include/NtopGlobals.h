@@ -29,7 +29,6 @@ class NtopGlobals {
   time_t start_time;
   u_int ifMTU, snaplen;
   Trace *trace;
-  u_int32_t detection_tick_resolution;
   Mutex *mutex;
   u_int16_t file_id;
 
@@ -44,7 +43,6 @@ class NtopGlobals {
   inline bool  isShutdown()            { return(is_shutdown);       };
   inline bool  decode_tunnels()        { return(do_decode_tunnels); };
   inline void  shutdown()              { is_shutdown = true;        };
-  inline u_int32_t get_detection_tick_resolution() { return(detection_tick_resolution); };
   char* get_temp_filename(char *buf, u_int buf_len);
 };
 

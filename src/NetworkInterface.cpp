@@ -27,18 +27,6 @@
 
 static bool help_printed = false;
 
-/* **************************************** */
-
-static void debug_printf(u_int32_t protocol, void *id_struct,
-			 ndpi_log_level_t log_level,
-			 const char *format, ...) {
-}
-
-/* **************************************** */
-
-static void *malloc_wrapper(size_t size) { return malloc(size); }
-static void free_wrapper(void *freeable) { free(freeable);      }
-
 /* **************************************************** */
 
 /* Method used for collateral activities */
@@ -113,8 +101,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
-    ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(),
-					     malloc_wrapper, free_wrapper, debug_printf);
+    ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Global structure initialization failed");
       exit(-1);
@@ -390,7 +377,7 @@ void NetworkInterface::deleteDataStructures() {
   if(hosts_hash)   { delete(hosts_hash); hosts_hash = NULL;     }
 
   if(ndpi_struct) {
-    ndpi_exit_detection_module(ndpi_struct, free_wrapper);
+    ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;
   }
 
@@ -1003,7 +990,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
   u_int64_t time;
   static u_int64_t lasttime = 0;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
-  u_int32_t res = ntop->getGlobals()->get_detection_tick_resolution(), null_type;
+  u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
 
@@ -1025,7 +1012,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 
   setTimeLastPktRcvd(h->ts.tv_sec);
 
-  time = ((uint64_t) h->ts.tv_sec) * res + h->ts.tv_usec / (1000000 / res);
+  time = ((uint64_t) h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
   if(lasttime > time) time = lasttime;
 
   lasttime = time;
