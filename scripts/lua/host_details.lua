@@ -223,10 +223,10 @@ else
    if((http ~= nil)
       and ((http["sender"]["query"]["total"]+ http["receiver"]["response"]["total"]) > 0)) then
       print("<li><a href=\""..url.."&page=http\">HTTP")
+      if(host["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. host["active_http_hosts"] .."</span>") end
    end
 end
 
-if(host["active_http_hosts"] > 0) then print(" <span class='badge badge-top-right'>".. host["active_http_hosts"] .."</span>") end
 print("</a></li>\n")
 
 if(page == "flows") then
