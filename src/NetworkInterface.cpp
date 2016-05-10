@@ -1872,11 +1872,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
     if(f->match(retriever->allowed_hosts)) {
       switch(retriever->sorter) {
       case column_client:
-	f->get_cli_host()->incUses(); /* Make sure the host won't be purged while processing */
  	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
       case column_server:
-	f->get_srv_host()->incUses(); /* Make sure the host won't be purged while processing */
 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
       case column_vlan:
@@ -2120,16 +2118,13 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
 	     true  /* as list element*/,
 	     true  /* exclude deserialized bytes */);
 
-    h->decUses(); /* The host can be purged again */
-    }
-
+  }
 
   lua_pushstring(vm, "hosts"); // Key
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
   hosts_hash->enablePurge();
-
   free(retriever.elems);
 
   return(retriever.actNumEntries);
