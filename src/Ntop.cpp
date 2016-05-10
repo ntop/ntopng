@@ -51,6 +51,7 @@ Ntop::Ntop(char *appName) {
   httpbl = NULL, flashstart = NULL;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
+  elastic_search = NULL;
   num_cpus = -1;
   num_defined_interfaces = num_defined_interface_views = 0;
   local_interface_addresses = New_Patricia(128);
