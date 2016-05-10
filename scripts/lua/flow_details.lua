@@ -458,10 +458,12 @@ else
 
       print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
       print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="flow_key" value="]]
-      print(flow_key)
-      print('"><input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
+        <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
+	  <input type="hidden" name="flow_key" value="]] print(flow_key .. '">')
+      if _GET["label"] ~= nil and _GET["label"] ~= "" then
+	 print('<input type="hidden" name="label" value="' .. _GET["label"] ..'">')
+      end
+      print('<input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
       print(' </input>')
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print('</form>')
