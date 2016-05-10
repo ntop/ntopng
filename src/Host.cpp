@@ -1359,16 +1359,19 @@ void Host::readAlertPrefs() {
 /* *************************************** */
 
 void Host::incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes) {
+#ifdef NOTUSED // check for memory corruptions here!
 #ifdef NTOPNG_PRO
   if(sent_bytes) sent_to_sketch->update(peer->key(), sent_bytes);
   if(rcvd_bytes) rcvd_from_sketch->update(peer->key(), rcvd_bytes);
+#endif
 #endif
 }
 
 /* *************************************** */
 
 void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
-  lua_newtable(vm);
+#ifdef NOTUSED
+ lua_newtable(vm);
 
 #ifdef NTOPNG_PRO
   if(sent_to_sketch && rcvd_from_sketch) {
@@ -1380,6 +1383,7 @@ void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
 
   lua_push_int_table_entry(vm, "sent", 0);
   lua_push_int_table_entry(vm, "rcvd", 0);
+#endif
 }
 
 /* *************************************** */

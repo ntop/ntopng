@@ -1707,7 +1707,8 @@ static int ntop_set_host_dump_policy(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_host_hit_rate(lua_State* vm) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+#ifdef NOTUSED
+    NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
   char buf[64];
@@ -1731,6 +1732,9 @@ static int ntop_get_host_hit_rate(lua_State* vm) {
 
   h->getPeerBytes(vm, peer_key);
   return(CONST_LUA_OK);
+#else
+  return(CONST_LUA_ERROR); // not supported
+#endif
 }
 
 /* ****************************************** */

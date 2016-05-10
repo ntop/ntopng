@@ -820,12 +820,11 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	    cli_network_stats->incInner(diff_sent_bytes + diff_rcvd_bytes);
 	}
 
+#ifdef NOTUSED
 	if(srv_host && cli_host->isLocalHost()) {
 	  cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
 	}
-
-	if(srv_host && cli_host->isLocalHost())
-	  cli_host->incHitter(srv_host, diff_sent_bytes, diff_rcvd_bytes);
+#endif
       }
 
       if(srv_host) {
@@ -844,8 +843,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	  }
 	}
 
+#ifdef NOTUSED
 	if(cli_host && srv_host->isLocalHost())
 	  srv_host->incHitter(cli_host, diff_rcvd_bytes, diff_sent_bytes);
+#endif
 
 	if(host_server_name
 	   && (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)
