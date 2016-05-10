@@ -90,7 +90,7 @@ if per_page == nil then
    per_page = getDefaultTableSize()
 else
    per_page = tonumber(per_page)
-   tablePreferences("rows_number", per_page)
+   tablePreferences("historical_rows_number", per_page)
 end
 local to_skip = (current_page - 1) * per_page
 if to_skip < 0 then to_skip = 0 end

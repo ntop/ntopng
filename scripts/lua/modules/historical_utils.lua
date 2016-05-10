@@ -340,7 +340,8 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
    else
       host_talkers_url_params = interface_talkers_url_params
    end
-   local preference = tablePreferences("rows_number",_GET["perPage"])
+
+   local preference = tablePreferences("historical_rows_number",_GET["perPage"])
    local sort_order = getDefaultTableSortOrder("historical_stats_top_talkers")
    local sort_column= getDefaultTableSort("historical_stats_top_talkers")
    if not sort_column or sort_column == "column_" then sort_column = "column_bytes" end
@@ -756,7 +757,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
    if host and host ~= "" then
       breadcrumb_root="host"
    end
-   local preference = tablePreferences("rows_number",_GET["perPage"])
+   local preference = tablePreferences("historical_rows_number",_GET["perPage"])
    local sort_order = getDefaultTableSortOrder("historical_stats_top_applications")
    local sort_column= getDefaultTableSort("historical_stats_top_applications")
    if not sort_column or sort_column == "column_" then sort_column = "column_bytes" end
