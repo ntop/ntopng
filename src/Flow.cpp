@@ -95,8 +95,8 @@ Flow::Flow(NetworkInterface *_iface,
     synAckTime.tv_sec = synAckTime.tv_usec = 0,
     sslSynTime.tv_sec = sslSynTime.tv_usec = 0,
     ssl_hs_end_time.tv_sec = ssl_hs_end_time.tv_usec = 0,
-    sslFirstData_time.tv_sec = sslFirstData_time.tv_usec = 0,
-    ssl_hs_delta_time = ssl_delta_firstData = 0,
+    ssl_LastData_time.tv_sec = ssl_LastData_time.tv_usec = 0,
+    ssl_hs_delta_time = ssl_delta_firstData = ssl_deltaTime_data = 0,
     rttSec = 0, cli2srv_window= srv2cli_window = 0,
     c2sFirstGoodputTime.tv_sec = c2sFirstGoodputTime.tv_usec = 0;
   memset(&http, 0, sizeof(http)), memset(&dns, 0, sizeof(dns));
@@ -918,7 +918,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 	if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
 	if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
 
-	if((iface->get_type() != CONST_INTERFACE_TYPE_ZMQ)
+	if(strcmp(iface->get_type(),CONST_INTERFACE_TYPE_ZMQ)!=0
 	   && (protocol == IPPROTO_TCP)
 	   && (get_goodput_bytes() > 0)
 	   && (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_SSH)) {
@@ -1643,10 +1643,10 @@ bool Flow::isIdleFlow(time_t now) {
   int threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
   u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
   if((protocol == IPPROTO_TCP)
-     && (iface->get_type() != CONST_INTERFACE_TYPE_ZMQ)) {
+     && (strcmp(iface->get_type(),CONST_INTERFACE_TYPE_ZMQ)!=0)) {
     if(!twh_over) {
       if((synAckTime.tv_sec > 0) /* We have seen SYN|ACK but 3WH is NOT over */
-	  && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK)) return(true); /* The client has not completed the 3WH within the expected time */
+	  && ((now - synAckTime.tv_sec) > CONST_MAX_IDLE_INTERARRIVAL_TIME_NO_TWH_SYN_ACK)) is_IdleFlow = true; /* The client has not completed the 3WH within the expected time */
 
       if(synTime.tv_sec > 0) {
 	  /* We have seen the beginning of the flow */
@@ -1656,25 +1656,25 @@ bool Flow::isIdleFlow(time_t now) {
     } /* The 3WH has been completed */
     else if((applLatencyMsec == 0) /* The client has not yet completed the request or
 				   the connection is idle after its setup */
-	 && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK)) return(true);  /* Connection established and no data exchanged yet */
+	 && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK)) is_IdleFlow = true;  /* Connection established and no data exchanged yet */
 
     else if((getCli2SrvCurrentInterArrivalTime(now) > 60000)
-    || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > 60000))) return(true);
+    || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > 60000))) is_IdleFlow = true;
 
     else {
         switch(l7proto) {
             case NDPI_PROTOCOL_SSL:
-                if(ssl_hs_delta_time>3000 || ssl_delta_firstData>3000 ||
-                 getCli2SrvCurrentInterArrivalTime(now) > 46000 || (srv2cli_packets > 0) && getSrv2CliCurrentInterArrivalTime(now) > 46000){
-                    return(true);
+                if(ssl_hs_delta_time>3000 || ssl_delta_firstData>3000 || ssl_deltaTime_data>46000 ||
+                 getCli2SrvCurrentInterArrivalTime(now) > 46000 || ((srv2cli_packets > 0) && getSrv2CliCurrentInterArrivalTime(now) > 46000)){
+                    is_IdleFlow = true;
                 }
             break;
 	    }
     }
   }
   if((getCli2SrvCurrentInterArrivalTime(now) > 50000)
-    || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > 50000))) return(true);
-  return(false); /* Not idle */
+    || ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > 50000))) is_IdleFlow = true;
+  return is_IdleFlow;
 }
 
 /* *************************************** */
@@ -2122,24 +2122,19 @@ void Flow::dissectSSL(bool src2dst_direction, u_int8_t *payload, u_int16_t paylo
                     ssl_hs_over = true;
                     memcpy(&ssl_hs_end_time, when, sizeof(struct timeval));
                     ssl_hs_delta_time = ((float)(Utils::timeval2usec(&ssl_hs_end_time) - Utils::timeval2usec(&sslSynTime)))/1000;
-                    /*
-                    ssl_hs_delta_time = ((float)(ssl_hs_end_time.tv_sec-sslSynTime.tv_sec)) +
-                                        ((float)(ssl_hs_end_time.tv_usec-sslSynTime.tv_usec))/(float)1000000;
-                    */
                 }
             }
         }else if(ssl_hs_over && payload[0] == 0x17){
+            //application data packet
             if(ssl_firstData_seen){
-                //application data packet
+                //first data seen, save delta time between first data and the ssl hs
                 ssl_firstData_seen = false;
-                memcpy(&sslFirstData_time, when, sizeof(struct timeval));
-                ssl_delta_firstData = ((float)(Utils::timeval2usec(&sslFirstData_time) - Utils::timeval2usec(&ssl_hs_end_time)))/1000;
-                /*
-                ssl_delta_firstData = ((float)(sslFirstData_time.tv_sec-ssl_hs_end_time.tv_sec)) +
-                                  ((float)(sslFirstData_time.tv_usec-ssl_hs_end_time.tv_usec))/(float)1000000;
-                */
+                memcpy(&ssl_LastData_time, when, sizeof(struct timeval));
+                ssl_delta_firstData = ((float)(Utils::timeval2usec(&ssl_LastData_time) - Utils::timeval2usec(&ssl_hs_end_time)))/1000;
             }else{
-                memcpy(&sslFirstData_time, when, sizeof(struct timeval));
+                //not first data, saves delta data time
+                ssl_deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&ssl_LastData_time)))/1000;
+                memcpy(&ssl_LastData_time, when, sizeof(struct timeval));
             }
         }
     }
@@ -2256,5 +2251,42 @@ bool Flow::isLowGoodput() {
   if(protocol == IPPROTO_UDP)
     return(false);
   else
-    return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
+    return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */ )) < FLOW_GOODPUT_THRESHOLD) ? true : false);
+}
+
+/* *************************************** */
+
+//0 -> normal flow
+//1 -> slow TCP connection
+//2 -> slow Header Flow
+//3 -> slow Post Flow
+//4 -> low goodput flow
+int Flow::check_flow_status(){
+  if(protocol == IPPROTO_TCP){
+    u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
+    if(!twh_over){
+        if(is_IdleFlow) return 1;//slow syn flow
+        else return 0;
+    }
+    else{
+        switch(l7proto) {
+            case NDPI_PROTOCOL_SSL:
+                if(!ssl_hs_over && is_IdleFlow) return 2;
+            break;
+
+            case NDPI_PROTOCOL_HTTP:
+                if(/* !header_HTTP_completed &&*/is_IdleFlow) return 2;
+            break;
+
+            default:
+                if(is_IdleFlow && isLowGoodput()) return 3;
+                if(is_IdleFlow && !isLowGoodput()) return 2;
+                if(!is_IdleFlow && isLowGoodput()) return 4;
+            break;
+	    }
+    }
+  }
+  //other cases, UDP uses flooding to make attacks, not used with slow dos attacks
+  return 0;
+
 }
