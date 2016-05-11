@@ -179,7 +179,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
          else
 	    if(num > 0) then rsp = rsp .. " }," end
 	    rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
-	       ..hosts_stats[id]["name"]..'", "url": "'
+	       ..(hosts_stats[id]["name"] or 'n.a.')..'", "url": "'
                   ..ntop.getHttpPrefix()..
 	       '/lua/host_details.lua?host='..id..'", "value": '..value..
 	       ', "local": "'..tostring(hosts_stats[id]["localhost"])..'"'
@@ -209,7 +209,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
          else
 	    if(num > 0) then rsp = rsp .. " }," end
 	    rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
-                  ..hosts_stats[id]["name"]..'", "url": "'
+	       ..(hosts_stats[id]["name"] or 'n.a.')..'", "url": "'
                   ..ntop.getHttpPrefix()..
                   '/lua/host_details.lua?host='..id..'", "value": '..value..
                   ', "local": "'..tostring(hosts_stats[id]["localhost"])..'"'

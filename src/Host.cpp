@@ -216,10 +216,8 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	 || ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
 	char rsp[256];
 
-	if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0) {
-	  if(symbolic_name) free(symbolic_name);
-	  symbolic_name = strdup(rsp);
-	}
+	if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0)
+	  setName(rsp);
 	// else ntop->getRedis()->pushHostToResolve(host, false, localHost);
       }
 
@@ -251,8 +249,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	       mac_address[0], mac_address[1], mac_address[2],
 	       mac_address[3], mac_address[4], mac_address[5]);
 
-      if(symbolic_name) free(symbolic_name);
-      symbolic_name = strdup(buf);
+      setName(buf);
       localHost = true;
     }
 
@@ -510,7 +507,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     }
 
     lua_push_str_table_entry(vm, "name",
-			     host_details ? get_name(buf, sizeof(buf), false) :  symbolic_name);
+			     get_name(buf, sizeof(buf), false));
     lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
     local_net = ntop->getLocalNetworkName(local_network_id);
@@ -739,11 +736,8 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
     if(rc == 0)
       setName(redis_buf);
-    else {
-      if(symbolic_name != NULL) free(symbolic_name);
-
-      symbolic_name = strdup(addr);
-    }
+    else
+      setName(addr);
 
     return(symbolic_name);
   }
