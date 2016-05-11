@@ -97,11 +97,11 @@ class Flow : public GenericHashEntry {
 			    */
 
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
-  struct timeval sslSynTime, ssl_hs_end_time, sslFirstData_time;
+  struct timeval sslSynTime, ssl_hs_end_time, ssl_LastData_time;
   struct timeval clientNwLatency; /* The RTT/2 between the client and nprobe */
   struct timeval serverNwLatency; /* The RTT/2 between nprobe and the server */
   struct timeval c2sFirstGoodputTime;
-  float rttSec, applLatencyMsec, ssl_hs_delta_time, ssl_delta_firstData;
+  float rttSec, applLatencyMsec, ssl_hs_delta_time, ssl_delta_firstData, ssl_deltaTime_data;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
 
@@ -138,6 +138,7 @@ class Flow : public GenericHashEntry {
   void checkFlowCategory();
   void setBittorrentHash(char *hash);
   bool isLowGoodput();
+  int check_flow_status();
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
