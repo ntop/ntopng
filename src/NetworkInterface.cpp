@@ -1932,7 +1932,6 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter))))
     return(false); /* false = keep on walking */
 
-  h->incUses(); /* Make sure the host won't be purged while processing */
   r->elems[r->actNumEntries].hostValue = h;
 
   switch(r->sorter) {
@@ -2183,7 +2182,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
       if(num < (int)maxHits)
 	h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
 
-      num++, h->decUses(); /* The host can be purged again */
+      num++;
     }
   } else {
     for(int i=(retriever.actNumEntries-1-toSkip), num=0; i>=0; i--) {
@@ -2192,7 +2191,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
       if(num < (int)maxHits)
 	h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
 
-      num++, h->decUses(); /* The host can be purged again */
+      num++;
     }
   }
 
@@ -2248,7 +2247,6 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
     Host *h = retriever.elems[i].hostValue;
 
     gper->group(h);
-    h->decUses(); /* The host can be purged again */
   }
 
   hosts_hash->enablePurge();
