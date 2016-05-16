@@ -196,9 +196,9 @@ Flow::~Flow() {
 
   if(status != status_normal) {
     char buf[128], *f;
-    
+
     f = print(buf, sizeof(buf));
-    
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
 				 Utils::flowstatus2str(status), f);
   }
@@ -1697,9 +1697,9 @@ bool Flow::isIdleFlow() {
 	   && (ackTime.tv_sec > 0)
 	   && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
 	  return(true);  /* Connection established and no data exchanged yet */
-	
+
 	else if((getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)
-		|| ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME))) 
+		|| ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)))
 	  return(true);
 	else {
 	  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
@@ -1713,7 +1713,7 @@ bool Flow::isIdleFlow() {
 	    }
             break;
 	  }
-	}       
+	}
       }
     }
 
@@ -2306,38 +2306,41 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
 /* ***************************************************** */
 
 FlowStatus Flow::getFlowStatus() {
-  bool isIdle = isIdleFlow();
+  if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
+    if(getTcpFlags() & TH_RST)     return status_connection_reset;
+  } else {
+    bool isIdle = isIdleFlow();
 
-  if(protocol == IPPROTO_TCP) {
-    u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
+    if(protocol == IPPROTO_TCP) {
+      u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
-    if(!twh_over) {
-      if(isIdle)
-	return status_suspicious_tcp_syn_probing;
-      else
-	return status_normal;
-    } else {
-      /* 3WH is over */
+      if(!twh_over) {
+	if(isIdle)
+	  return status_suspicious_tcp_syn_probing;
+	else
+	  return status_normal;
+      } else {
+	/* 3WH is over */
 
-      switch(l7proto) {
-      case NDPI_PROTOCOL_SSL:
-	if(!ssl.hs_over && isIdle)
-	  return status_slow_application_header;
-	break;
+	switch(l7proto) {
+	case NDPI_PROTOCOL_SSL:
+	  if(!ssl.hs_over && isIdle)
+	    return status_slow_application_header;
+	  break;
 
-      case NDPI_PROTOCOL_HTTP:
-	if(/* !header_HTTP_completed &&*/isIdle) 
-	  return status_slow_application_header;
-	break;
+	case NDPI_PROTOCOL_HTTP:
+	  if(/* !header_HTTP_completed &&*/isIdle)
+	    return status_slow_application_header;
+	  break;
+	}
+
+	if(getTcpFlags() & TH_RST)     return status_connection_reset;
+	if(isIdle  && isLowGoodput())  return status_slow_data_exchange;
+	if(isIdle  && !isLowGoodput()) return status_slow_tcp_connection;
+	if(!isIdle && isLowGoodput())  return status_low_goodput;
       }
-
-      if(getTcpFlags() & TH_RST)     return status_connection_reset;      
-      if(isIdle  && isLowGoodput())  return status_slow_data_exchange;
-      if(isIdle  && !isLowGoodput()) return status_slow_tcp_connection;
-      if(!isIdle && isLowGoodput())  return status_low_goodput;
     }
   }
 
-  //other cases, UDP uses flooding to make attacks, not used with slow dos attacks
   return status_normal;
 }
