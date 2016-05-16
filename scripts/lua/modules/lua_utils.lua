@@ -2006,12 +2006,12 @@ end
 -- Update Utils::flowstatus2str
 function getFlowStatus(status) 
   if(status == 0) then return("<font color=green>Normal</font>")
-  elseif(status == 1) then return("<font color=red>Slow TCP Connection</font>")
-  elseif(status == 2) then return("<font color=red>Slow Application Header</font>")
-  elseif(status == 3) then return("<font color=red>Slow Data Exchange (Slowloris?)</font>")
-  elseif(status == 4) then return("<font color=red>Low Goodput</font>")
-  elseif(status == 5) then return("<font color=red>Suspicious TCP Probing (or server port down)</font>")
-  elseif(status == 6) then return("<font color=red>TCP Connection Reset</font>")
+  elseif(status == 1) then return("<font color=orange>Slow TCP Connection</font>")
+  elseif(status == 2) then return("<font color=orange>Slow Application Header</font>")
+  elseif(status == 3) then return("<font color=orange>Slow Data Exchange (Slowloris?)</font>")
+  elseif(status == 4) then return("<font color=orange>Low Goodput</font>")
+  elseif(status == 5) then return("<font color=orange>Suspicious TCP Probing (or server port down)</font>")
+  elseif(status == 6) then return("<font color=orange>TCP Connection Reset</font>")
   else return("<font color=orange>Unknown status ("..status..")</font>")   
   end
 end

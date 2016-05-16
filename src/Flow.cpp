@@ -2310,6 +2310,7 @@ FlowStatus Flow::getFlowStatus() {
     if(getTcpFlags() & TH_RST)     return status_connection_reset;
   } else {
     bool isIdle = isIdleFlow();
+    bool lowGoodput = isLowGoodput();
 
     if(protocol == IPPROTO_TCP) {
       u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
@@ -2334,10 +2335,10 @@ FlowStatus Flow::getFlowStatus() {
 	  break;
 	}
 
-	if(getTcpFlags() & TH_RST)     return status_connection_reset;
-	if(isIdle  && isLowGoodput())  return status_slow_data_exchange;
-	if(isIdle  && !isLowGoodput()) return status_slow_tcp_connection;
-	if(!isIdle && isLowGoodput())  return status_low_goodput;
+	if(getTcpFlags() & TH_RST) return status_connection_reset;
+	if(isIdle  && lowGoodput)  return status_slow_data_exchange;
+	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
+	if(!isIdle && lowGoodput)  return status_low_goodput;
       }
     }
   }

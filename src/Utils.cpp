@@ -276,10 +276,13 @@ const char* Utils::flowstatus2str(FlowStatus s) {
     break;
   case 5:
     return("Suspicious TCP Probing (or server port down)");
-    break;    
+    break;
   case 6:
     return("TCP Connection Reset");
-    break;    
+    break;
+  default:
+    return("Unknown status");
+    break;
   }
 }
 
@@ -732,10 +735,10 @@ static const char* xssAttempts[] = {
 
 bool Utils::isPrintableChar(u_char c) {
   if(isprint(c)) return(true);
-  
+
   if((c >= 192) && (c <= 255))
     return(true);
-    
+
   return(false);
 }
 
@@ -751,7 +754,7 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
       }
     }
   }
-  
+
   for(int i=0; param[i] != '\0'; i++) {
     bool is_good;
 
@@ -940,10 +943,10 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
 #endif
 
-    snprintf(ua, sizeof(ua), "%s [%s][%s]", 
+    snprintf(ua, sizeof(ua), "%s [%s][%s]",
 	     PACKAGE_STRING, PACKAGE_MACHINE, PACKAGE_OS);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
-  
+
     if(vm) lua_newtable(vm);
 
     if(curl_easy_perform(curl) == CURLE_OK) {
@@ -959,13 +962,13 @@ bool Utils::httpGet(lua_State* vm, char *url, char *username,
     if(vm) {
       if(curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
 	lua_push_int_table_entry(vm, "RESPONSE_CODE", response_code);
-	
+
       if((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
 	lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
-	
+
       if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
 	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
-    }    
+    }
 
     if(return_content && state)
       free(state);
@@ -1543,4 +1546,3 @@ void Utils::xor_encdec(u_char *data, int data_len, u_char *key) {
     if(key[y] == 0) y = 0;
   }
 }
-
