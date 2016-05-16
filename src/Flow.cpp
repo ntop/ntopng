@@ -62,6 +62,12 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0,
     last_db_dump.last_dump = 0;
 
+  ssl.hs_started = ssl.hs_over = false, ssl.firstdata_seen = false,
+    ssl.clienthello_time.tv_sec = ssl.clienthello_time.tv_usec = 0,
+    ssl.hs_end_time.tv_sec = ssl.hs_end_time.tv_usec = 0,
+    ssl.lastdata_time.tv_sec = ssl.lastdata_time.tv_usec = 0,
+    ssl.hs_delta_time = ssl.delta_firstData = ssl.deltaTime_data = 0;
+
   switch(protocol) {
   case IPPROTO_ICMP:
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMP,
@@ -186,6 +192,16 @@ void Flow::categorizeFlow() {
 
 Flow::~Flow() {
   struct timeval tv = { 0, 0 };
+  FlowStatus status = getFlowStatus();
+
+  if(status != status_normal) {
+    char buf[128], *f;
+    
+    f = print(buf, sizeof(buf));
+    
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
+				 Utils::flowstatus2str(status), f);
+  }
 
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
@@ -644,7 +660,7 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
 	 || iface->is_sprobe_interface())
 	lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
       else
-	lua_push_str_table_entry(vm, "proto.ndpi", 
+	lua_push_str_table_entry(vm, "proto.ndpi",
 				 (strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ) == 0) ? (char*)NDPI_PROTOCOL_UNKNOWN :
 				 (char*)CONST_TOO_EARLY);
 
@@ -678,23 +694,41 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
   lua_settable(vm, -3);
 }
 
+/* ****************************************************** */
+
+char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
+  snprintf(buf, buf_len, "%s%s%s%s%s",
+	   (flags & TH_SYN) ? " SYN" : "",
+	   (flags & TH_ACK) ? " ACK" : "",
+	   (flags & TH_FIN) ? " FIN" : "",
+	   (flags & TH_RST) ? " RST" : "",
+	   (flags & TH_PUSH) ? " PUSH" : "");
+  if(buf[0] == ' ')
+    return(&buf[1]);
+  else
+    return(buf);
+}
 /* *************************************** */
 
 char* Flow::print(char *buf, u_int buf_len) {
-  char buf1[32], buf2[32];
+  char buf1[32], buf2[32], buf3[32];
 
   buf[0] = '\0';
 
   if((cli_host == NULL) || (srv_host == NULL)) return(buf);
 
   snprintf(buf, buf_len,
-	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes]",
+	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s",
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
 	   ndpiDetectedProtocol.protocol, get_detected_protocol_name(),
 	   cli2srv_packets, srv2cli_packets,
-	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes);
+	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
+	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
+	   ssl.certificate ? "[" : "",
+	   ssl.certificate ? ssl.certificate : "",
+	   ssl.certificate ? "]" : "");
 
   return(buf);
 }
@@ -1319,7 +1353,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     dumpPacketStats(vm, false);
   }
 
-  lua_push_bool_table_entry(vm, "flow.idle", isIdleFlow(iface->getTimeLastPktRcvd()));
+  lua_push_bool_table_entry(vm, "flow.idle", isIdleFlow());
+  lua_push_int_table_entry(vm, "flow.status", getFlowStatus());
 
   // this is used to dynamicall update entries in the GUI
   lua_push_int_table_entry(vm, "ntopng.key", key()); // Key
@@ -1638,7 +1673,9 @@ json_object* Flow::flow2json(bool partial_dump) {
 /* *************************************** */
 
 /* https://blogs.akamai.com/2013/09/slow-dos-on-the-rise.html */
-bool Flow::isIdleFlow(time_t now) {
+bool Flow::isIdleFlow() {
+  time_t now = iface->getTimeLastPktRcvd();
+
   if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
     u_int32_t threshold_ms = CONST_MAX_IDLE_INTERARRIVAL_TIME;
 
@@ -1657,8 +1694,26 @@ bool Flow::isIdleFlow(time_t now) {
 	/* The 3WH has been completed */
 	if((applLatencyMsec == 0) /* The client has not yet completed the request or
 				     the connection is idle after its setup */
+	   && (ackTime.tv_sec > 0)
 	   && ((now - ackTime.tv_sec) > CONST_MAX_IDLE_NO_DATA_AFTER_ACK))
 	  return(true);  /* Connection established and no data exchanged yet */
+	
+	else if((getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME)
+		|| ((srv2cli_packets > 0) && (getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_IDLE_INTERARRIVAL_TIME))) 
+	  return(true);
+	else {
+	  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
+	  case NDPI_PROTOCOL_SSL:
+	    if((ssl.hs_delta_time > CONST_SSL_MAX_DELTA)
+	       || (ssl.delta_firstData > CONST_SSL_MAX_DELTA)
+	       || (ssl.deltaTime_data > CONST_MAX_SSL_IDLE_TIME)
+	       || (getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)
+	       || ((srv2cli_packets > 0) && getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)) {
+	      return(true);
+	    }
+            break;
+	  }
+	}       
       }
     }
 
@@ -1824,6 +1879,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 
 	}
       }
+
+      twh_over = true;
     } else
       twh_over = true;
   }
@@ -2193,8 +2250,8 @@ bool Flow::isSuspiciousFlowThpt() {
     if(cli2srv_direction && isLowGoodput()) {
       if((cli2srvStats.pktTime.min_ms > compareTime)
 	 || ((ndpi_get_lower_proto(ndpiDetectedProtocol) == NDPI_PROTOCOL_HTTP)
-	     && (cli2srvStats.pktTime.min_ms > 3000 /* 3 sec */))
-	 || (cli2srvStats.pktTime.min_ms > 6000000 /* 10 mins */)
+	     && (cli2srvStats.pktTime.min_ms > CONST_MAX_IDLE_PKT_TIME))
+	 || (cli2srvStats.pktTime.min_ms > CONST_MAX_IDLE_FLOW_TIME)
 	 )
 	return(true);
     }
@@ -2210,4 +2267,77 @@ bool Flow::isLowGoodput() {
     return(false);
   else
     return((((get_goodput_bytes()*100)/(get_bytes()+1 /* avoid zero divisions */)) < FLOW_GOODPUT_THRESHOLD) ? true : false);
+}
+
+/* *************************************** */
+
+void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when) {
+  if(payload && twh_over) {
+    if(!ssl.hs_over) {
+      if(payload[0] == 0x16) {
+	//handshake packet
+	if(payload[5] == 0x1) {
+	  //client-hello
+	  memcpy(&ssl.clienthello_time, when, sizeof(struct timeval));
+	  ssl.hs_started = true;
+	} else if((payload[5] == 0x4) && ssl.hs_started) {
+	  //new session ticket, the end of ssl handshake
+	  ssl.hs_over = true;
+	  memcpy(&ssl.hs_end_time, when, sizeof(struct timeval));
+	  ssl.hs_delta_time = ((float)(Utils::timeval2usec(&ssl.hs_end_time) - Utils::timeval2usec(&ssl.clienthello_time)))/1000;
+	}
+      }
+    } else if(ssl.hs_over && (payload[0] == 0x17)) {
+      //application data packet
+      if(!ssl.firstdata_seen) {
+	//first data seen, save delta time between first data and the ssl hs
+	ssl.firstdata_seen = true;
+	memcpy(&ssl.lastdata_time, when, sizeof(struct timeval));
+	ssl.delta_firstData = ((float)(Utils::timeval2usec(&ssl.lastdata_time) - Utils::timeval2usec(&ssl.hs_end_time)))/1000;
+      } else {
+	//not first data, saves delta data time
+	ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&ssl.lastdata_time)))/1000;
+	memcpy(&ssl.lastdata_time, when, sizeof(struct timeval));
+      }
+    }
+  }
+}
+
+/* ***************************************************** */
+
+FlowStatus Flow::getFlowStatus() {
+  bool isIdle = isIdleFlow();
+
+  if(protocol == IPPROTO_TCP) {
+    u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
+
+    if(!twh_over) {
+      if(isIdle)
+	return status_suspicious_tcp_syn_probing;
+      else
+	return status_normal;
+    } else {
+      /* 3WH is over */
+
+      switch(l7proto) {
+      case NDPI_PROTOCOL_SSL:
+	if(!ssl.hs_over && isIdle)
+	  return status_slow_application_header;
+	break;
+
+      case NDPI_PROTOCOL_HTTP:
+	if(/* !header_HTTP_completed &&*/isIdle) 
+	  return status_slow_application_header;
+	break;
+      }
+
+      if(getTcpFlags() & TH_RST)     return status_connection_reset;      
+      if(isIdle  && isLowGoodput())  return status_slow_data_exchange;
+      if(isIdle  && !isLowGoodput()) return status_slow_tcp_connection;
+      if(!isIdle && isLowGoodput())  return status_low_goodput;
+    }
+  }
+
+  //other cases, UDP uses flooding to make attacks, not used with slow dos attacks
+  return status_normal;
 }

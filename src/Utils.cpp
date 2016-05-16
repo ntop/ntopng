@@ -257,6 +257,34 @@ bool Utils::mkdir_tree(char *path) {
 
 /* **************************************************** */
 
+const char* Utils::flowstatus2str(FlowStatus s) {
+  switch(s) {
+  case 0:
+    return("Normal");
+    break;
+  case 1:
+    return("Slow TCP Connection");
+    break;
+  case 2:
+    return("Slow Application Header");
+    break;
+  case 3:
+    return("Slow Data Exchange (Slowloris?)");
+    break;
+  case 4:
+    return("Low Goodput");
+    break;
+  case 5:
+    return("Suspicious TCP Probing (or server port down)");
+    break;    
+  case 6:
+    return("TCP Connection Reset");
+    break;    
+  }
+}
+
+/* **************************************************** */
+
 const char* Utils::trend2str(ValueTrend t) {
   switch(t) {
   case trend_up:

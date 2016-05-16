@@ -144,4 +144,20 @@ struct string_list {
   struct string_list *prev, *next;
 };
 
+/*
+  Remember to update
+  - Utils.cpp      Utils::flowstatus2str()
+  - lua_utils.lua  getFlowStatus(status)  
+ */
+typedef enum {
+  status_normal = 0,
+  status_slow_tcp_connection /* 1 */,
+  status_slow_application_header /* 2 */,
+  status_slow_data_exchange /* 3 */,
+  status_low_goodput /* 4 */,
+  status_suspicious_tcp_syn_probing /* 5 */,
+  status_connection_reset /* 6 */
+} FlowStatus;
+
+
 #endif /* _NTOP_TYPEDEFS_H_ */

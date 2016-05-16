@@ -48,7 +48,7 @@ class Flow : public GenericHashEntry {
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
-    ssl_flow_without_certificate_name, check_tor, l7_protocol_guessed,
+    check_tor, l7_protocol_guessed,
     good_low_flow_detected;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
@@ -71,6 +71,9 @@ class Flow : public GenericHashEntry {
 
   struct {
     char *certificate;
+    bool hs_started, hs_over, firstdata_seen;
+    struct timeval clienthello_time, hs_end_time, lastdata_time;
+    float hs_delta_time, delta_firstData, deltaTime_data;
   } ssl;
 
   struct {
@@ -143,7 +146,10 @@ class Flow : public GenericHashEntry {
     return(1000 /* msec */ 
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
-
+  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
+  FlowStatus getFlowStatus();
+  char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
+  
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -284,7 +290,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMinInterArrivalTime()  { return(srv2cliStats.pktTime.min_ms); }
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
-  bool isIdleFlow(time_t now);
+  bool isIdleFlow();
 };
 
 #endif /* _FLOW_H_ */

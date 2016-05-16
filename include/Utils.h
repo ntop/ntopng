@@ -83,6 +83,7 @@ class Utils {
   static u_int32_t timeval2usec(const struct timeval *tv);
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
+  static const char* flowstatus2str(FlowStatus s);
 };
 
 #endif /* _UTILS_H_ */

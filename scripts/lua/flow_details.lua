@@ -361,6 +361,8 @@ else
       print("</td></tr>\n")
    end
 
+   print("<tr><th width=30%>Flow Status</th><td colspan=2>"..getFlowStatus(flow["flow.status"]).."</td></tr>\n")
+
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>Actual / Peak Throughput</th><td width=20%>")
       if (throughput_type == "bps") then
