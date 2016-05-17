@@ -132,7 +132,7 @@ void Host::computeHostSerial() {
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
   u_char* ant_mac =  iface->getAntennaMac();
-  char buf[64], host[96], json[8192];
+  char buf[64], host[96];
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
@@ -203,13 +203,19 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	http = new HTTPstats(iface->get_hosts_hash());
       }
 
-      if(((localHost || systemHost)
-	  && ntop->getPrefs()->is_host_persistency_enabled())
-	 && (!ntop->getRedis()->get(redis_key, json, sizeof(json)))) {
-	/* Found saved copy of the host so let's start from the previous state */
-        // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-	deserialize(json, redis_key);
+      if((localHost || systemHost)
+	 && ntop->getPrefs()->is_host_persistency_enabled()){
+	char *json;
+	if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_ERROR,
+				       "Unable to allocate memory to deserialize %s", redis_key);
+	else if (!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
+	  /* Found saved copy of the host so let's start from the previous state */
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
+	  deserialize(json, redis_key);
+	}
+	if(json) free(json);
       }
 
       if(localHost || systemHost
