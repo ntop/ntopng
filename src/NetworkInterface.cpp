@@ -2012,6 +2012,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   int (*sorter)(const void *_a, const void *_b);
   bool highDetails = (local_only || (maxHits != CONST_MAX_NUM_HITS)) ? true : false;
 
+  if(maxHits > CONST_MAX_NUM_HITS) maxHits = CONST_MAX_NUM_HITS;
   retriever.host = host, retriever.ndpi_proto = ndpi_proto, retriever.local_only = local_only;
   retriever.actNumEntries = 0, retriever.maxNumEntries = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
@@ -2140,10 +2141,11 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   struct flowHostRetriever retriever;
 
   int (*sorter)(const void *_a, const void *_b);
-  
+
+  if(maxHits > CONST_MAX_NUM_HITS) maxHits = CONST_MAX_NUM_HITS;
   retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
     retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.actNumEntries = 0, retriever.maxNumEntries = maxHits;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
   if(retriever.elems == NULL) {
@@ -2178,7 +2180,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   if(a2zSortOrder) {
     for(int i=toSkip, num=0; i<(int)retriever.actNumEntries; i++) {
       Host *h = retriever.elems[i].hostValue;
-
+      
       if(num < (int)maxHits)
 	h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
 
@@ -2224,9 +2226,10 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   int num_entries;
   Grouper *gper;
 
+  if(maxHits > CONST_MAX_NUM_HITS) maxHits = CONST_MAX_NUM_HITS;
   retriever.allowed_hosts = allowed_hosts, retriever.local_only = local_only, retriever.country = countryFilter,
     retriever.vlan_id = vlan_id, retriever.osFilter = osFilter, retriever.asnFilter = asnFilter, retriever.networkFilter = networkFilter, retriever.sorter=column_ip;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.actNumEntries = 0, retriever.maxNumEntries = maxHits;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
   if(retriever.elems == NULL) {

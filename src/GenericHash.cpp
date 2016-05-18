@@ -181,6 +181,8 @@ u_int GenericHash::purgeIdle() {
      || purgeLock.is_locked())
     return(0);
 
+  disablePurge();
+
   for(u_int j = 0; j < num_hashes / PURGE_FRACTION; j++) {
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
@@ -195,7 +197,6 @@ u_int GenericHash::purgeIdle() {
       while(head) {
 	GenericHashEntry *next = head->next();
 
-#if 1
 	if(head->idle()) {
 	  if(prev == NULL) {
 	    table[i] = next;
@@ -210,25 +211,6 @@ u_int GenericHash::purgeIdle() {
 	  prev = head;
 	  head = next;
 	}
-#else
-	if(head->is_ready_to_be_purged()) {
-	  if(prev == NULL) {
-	    table[i] = next;
-	  } else {
-	    prev->set_next(next);
-	  }
-
-	  num_purged++, current_size--;
-	  delete(head);
-	  head = next;
-	} else {
-	  if(head->idle())
-	    head->set_to_purge();
-
-	  prev = head;
-	  head = next;
-	}
-#endif
       } /* while */
 
       locks[i]->unlock(__FILE__, __LINE__);
@@ -236,6 +218,7 @@ u_int GenericHash::purgeIdle() {
     }
   }
 
+  enablePurge();
   return(num_purged);
 }
 
