@@ -1315,17 +1315,24 @@ char* Utils::macaddr_str (const char *mac, char *buf) {
 
 #ifdef linux
 
-void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
+void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   int _sock, res;
   struct ifreq ifr;
   macstr_t mac_addr_buf;
-  char *colon;
+  char *colon, *at;
+  char ifname[32];
 
   memset (&ifr, 0, sizeof(struct ifreq));
 
-  colon = strchr(ifname, ':');
+  /* Handle PF_RING interfaces zc:ens2f1@3 */
+  colon = strchr(_ifname, ':');
   if (colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
-    ifname = colon+1;
+    _ifname = colon+1;
+
+  snprintf(ifname, sizeof(ifname), "%s", _ifname);
+  at = strchr(ifname, '@');
+  if(at != NULL)
+    at[0] = '\0';
 
   /* Dummy socket, just to make ioctls with */
   _sock = socket(PF_INET, SOCK_DGRAM, 0);
