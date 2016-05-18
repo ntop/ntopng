@@ -140,9 +140,17 @@ Prefs::~Prefs() {
 /* ******************************************* */
 
 /* C-binding needed by Win32 service call */
-void usage() {
-  NetworkInterface n("dummy");
+void nDPIusage() {
+  printf("\nnDPI detected protocols:\n");
 
+  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module();
+  ndpi_dump_protocols(ndpi_struct);
+
+  exit(0);
+}
+
+/* C-binding needed by Win32 service call */
+void usage() {
   printf("ntopng %s v.%s - "NTOP_COPYRIGHT"\n\n"
 	 "Usage:\n"
 	 "  ntopng <configuration file path>\n"
@@ -270,6 +278,7 @@ void usage() {
 #endif
 	 "[--verbose|-v]                      | Verbose tracing\n"
 	 "[--version|-V]                      | Print version and quit\n"
+	 "--print-ndpi-protocols              | Print the nDPI protocols recognized di ntopng\n"
 	 "[--help|-h]                         | Help\n"
 	 , PACKAGE_MACHINE, PACKAGE_VERSION,
 #ifndef WIN32
@@ -282,12 +291,9 @@ void usage() {
 	 CONST_DEFAULT_USERS_FILE);
 
   printf("\n");
+
+  NetworkInterface n("dummy");
   n.printAvailableInterfaces(true, 0, NULL, 0);
-
-  printf("\nnDPI detected protocols:\n");
-
-  struct ndpi_detection_module_struct *ndpi_struct = ndpi_init_detection_module();
-  ndpi_dump_protocols(ndpi_struct);
 
   exit(0);
 }
@@ -398,6 +404,7 @@ static const struct option long_options[] = {
   { "httpdocs-dir",                      required_argument, NULL, '1' },
   { "scripts-dir",                       required_argument, NULL, '2' },
   { "callbacks-dir",                     required_argument, NULL, '3' },
+  { "print-ndpi-protocols",              no_argument,       NULL, 210 },
   { "online-license-check",              no_argument,       NULL, 211 },
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
@@ -539,7 +546,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       disable_dns_responses_decoding();
       break;
     default:
-      help();
+      usage();
     }
     break;
 
@@ -829,6 +836,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'X':
     max_num_flows = max_val(atoi(optarg), 1024);
+    break;
+
+  case 210:
+    nDPIhelp();
     break;
 
   case 211:

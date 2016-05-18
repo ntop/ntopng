@@ -29,6 +29,7 @@ class Flow;
 class Flashstart;
 
 extern void usage();
+extern void nDPIusage();
 
 typedef struct {
   char *name, *description;
@@ -80,10 +81,11 @@ class Prefs {
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
 
-  inline void help() { usage(); };
+  inline void help()      { usage();     }
+  inline void nDPIhelp()  { nDPIusage(); }
   int setOption(int optkey, char *optarg);
   int checkOptions();
-
+  
   void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
   void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
 
