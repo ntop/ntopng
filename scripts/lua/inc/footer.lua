@@ -291,7 +291,7 @@ print [[/lua/logout.lua");  }, */
 	      var local_diff   = Math.max(rsp.local2remote-prev_local, 0);
 	      var remote_diff  = Math.max(rsp.remote2local-prev_remote, 0);
 	      var epoch_diff   = Math.max(rsp.epoch - prev_epoch, 0);
-		  console.debug(remote_diff)
+
 	      if(epoch_diff > 0) {
 		if(bytes_diff > 0) {
 		   var v = local_diff-remote_diff;
