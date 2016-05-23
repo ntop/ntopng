@@ -653,19 +653,16 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
     lua_push_str_table_entry(vm,  "client.city", get_cli_host()->get_city() ? get_cli_host()->get_city() : (char*)"");
     lua_push_str_table_entry(vm,  "server.city", get_srv_host()->get_city() ? get_srv_host()->get_city() : (char*)"");
 
-    if(verbose) {
-      if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-	 || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
-	 || iface->is_ndpi_enabled()
-	 || iface->is_sprobe_interface())
-	lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
-      else
-	lua_push_str_table_entry(vm, "proto.ndpi",
-				 (strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ) == 0) ? (char*)NDPI_PROTOCOL_UNKNOWN :
-				 (char*)CONST_TOO_EARLY);
+    if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
+       || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
+       || iface->is_ndpi_enabled()
+       || iface->is_sprobe_interface())
+      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
+    else
+      lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
-      lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.protocol);
-    }
+    lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.protocol);
+
   }
 
   // Key

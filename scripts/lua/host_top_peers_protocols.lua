@@ -31,13 +31,19 @@ for key, value in pairs(flows) do
    if(peers[peer] == nil) then peers[peer] = 0  end
    peers[peer] = peers[peer] + v
 
-   if(ndpi[flow["proto.ndpi"]] == nil) then ndpi[flow["proto.ndpi"]] = 0 end
+   if flow["proto.ndpi"] == nil then
+      goto continue
+   elseif ndpi[flow["proto.ndpi"]] == nil then
+      ndpi[flow["proto.ndpi"]] = 0
+   end
+
    ndpi[flow["proto.ndpi"]] = ndpi[flow["proto.ndpi"]] + v
 
    if(peers_proto[peer] == nil) then peers_proto[peer] = {}  end
    if(peers_proto[peer][flow["proto.ndpi"]] == nil) then peers_proto[peer][flow["proto.ndpi"]] = 0 end
    peers_proto[peer][flow["proto.ndpi"]] = peers_proto[peer][flow["proto.ndpi"]] + v
 
+   ::continue::
    tot = tot + v
 end
 

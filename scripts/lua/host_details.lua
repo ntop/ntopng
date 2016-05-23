@@ -847,15 +847,15 @@ hostChart.xAxis().tickFormat(function(_v) {
                 return d.l7proto_url;
             },
             function (d) {
-                return bytesToVolume(d.traffic);
+                return bytesToVolume(Math.pow(10, d.traffic));
             }
         ])
         // (optional) sort using the given field, :default = function(d){return d;}
         .sortBy(function (d) {
-            return d.dd;
+            return +d.traffic;
         })
         // (optional) sort order, :default ascending
-        .order(d3.ascending)
+        .order(d3.descending)
         // (optional) custom renderlet to post-process chart using D3
         .renderlet(function (table) {
             table.selectAll(".dc-table-group").classed("info", true);
