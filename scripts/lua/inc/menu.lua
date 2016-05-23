@@ -175,7 +175,7 @@ for v,k in pairs(interface.getIfNames()) do
 end
 
 for k,v in pairsByKeys(ifnames, asc) do
-   print("      <li>")   
+   print("      <li>")
    --io.write(k.."="..v.."\n")
 
    if(v == ifname) then
@@ -183,10 +183,10 @@ for k,v in pairsByKeys(ifnames, asc) do
    else
       print("<a href=\""..ntop.getHttpPrefix().."/lua/set_active_interface.lua?id="..k.."\">")
    end
-   
+
    if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
    if (isPausedInterface(v)) then  print('<i class="fa fa-pause"></i> ') end
-   
+
    print(getHumanReadableInterfaceName(v..""))
    if(views[v] == true) then print(' <i class="fa fa-eye"></i> ') end
    print("</a>")
@@ -323,4 +323,3 @@ print("</A></h3>\n</div>\n")
 
 -- select the original interface back to prevent possible issues
 interface.select(ifname)
-
