@@ -45,7 +45,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
       sql = "select IP_SRC_ADDR, IP_DST_ADDR"
    end
 
-   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO,INFO"
+   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,idx,L7_PROTO,INFO"
    if ntop.isPro() then follow = follow..",PROFILE" end
    follow = follow.." from flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
 
@@ -303,13 +303,14 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    local sql_bytes_packets = ""
    if src_or_dst     == "IP_DST_ADDR" then
       -- if this is a destination address, we account it INGRESS traffic
-      sql_bytes_packets = "BYTES as srv_bytes, PACKETS as srv_packets,     0 as cli_bytes,       0 as cli_packets, "
+      sql_bytes_packets = "OUT_BYTES as bytes_sent, IN_BYTES  as bytes_rcvd, PACKETS as packets, "
    elseif src_or_dst == "IP_SRC_ADDR" then
       -- if this is a source address, we account the traffic as EGRESS
-      sql_bytes_packets = "    0 as srv_bytes,       0 as srv_packets, BYTES as cli_bytes, PACKETS as cli_packets, "
+      sql_bytes_packets = " IN_BYTES as bytes_sent, OUT_BYTES as bytes_rcvd, PACKETS as packets, "
    else
       return nil -- make sure to exit early if no valid data has been passed
    end
+
    if v4_or_v6 == 6 then
       sql = " SELECT NULL addrv4, "..src_or_dst.." addrv6, "
       sql = sql..sql_bytes_packets
@@ -340,11 +341,12 @@ function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, en
 
    -- AGGREGATE AND CRUNCH DATA
    sql = "select CASE WHEN addrv4 IS NOT NULL THEN INET_NTOA(addrv4) ELSE addrv6 END addr, "
-   sql = sql.."SUM(srv_bytes + cli_bytes) tot_bytes, SUM(srv_packets + cli_packets) tot_packets, "
-   sql = sql.."SUM(srv_bytes)             srv_bytes,               SUM(srv_packets) srv_packets, "
-   sql = sql.."SUM(cli_bytes)             cli_bytes,               SUM(cli_packets) cli_packets, "
-   sql = sql.."count(*) tot_flows, "
-   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration from "
+   sql = sql.."SUM(bytes_sent + bytes_rcvd) tot_bytes, SUM(packets) tot_packets, "
+   sql = sql.."SUM(bytes_sent)             bytes_sent, "
+   sql = sql.."SUM(bytes_rcvd)             bytes_rcvd, "
+   sql = sql.."count(*) tot_flows "
+   -- sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
+   sql = sql.." FROM "
 
    sql = sql.."("
    sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port)
@@ -361,18 +363,14 @@ function getOverallTopTalkers(interface_id, l4proto, port, info, begin_epoch, en
    local order_by_column = "tot_bytes" -- defaults to tot_bytes
    if     sort_column == "column_packets" or sort_column == "packets" or sort_column == "tot_packets" then
       order_by_column = "tot_packets"
-   elseif sort_column == "column_srv_packets" or sort_column == "srv_packets" then
-      order_by_column = "srv_packets"
-   elseif sort_column == "column_cli_packets" or sort_column == "cli_packets" then
-      order_by_column = "cli_packets"
-   elseif sort_column == "column_srv_bytes" or sort_column == "srv_bytes" then
-      order_by_column = "srv_bytes"
-   elseif sort_column == "column_cli_bytes" or sort_column == "cli_bytes" then
-      order_by_column = "cli_bytes"
+   elseif sort_column == "column_bytes_sent" or sort_column == "bytes_sent" then
+      order_by_column = "bytes_sent"
+   elseif sort_column == "column_bytes_rcvd" or sort_column == "bytes_rcvd" then
+      order_by_column = "bytes_rcvd"
    elseif sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "tot_flows"
-   elseif sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
-      order_by_column = "avg_flow_duration"
+   -- elseif sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+   --   order_by_column = "avg_flow_duration"
    end
 
    local order_by_order = "desc"
@@ -409,27 +407,23 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
    if(info == "") then info = nil end
 
    sql = " SELECT addr, "
-   sql = sql.."sum(peer_srv_bytes + peer_cli_bytes) as tot_bytes, sum(peer_srv_packets + peer_cli_packets) as tot_packets, "
-   sql = sql.."sum(peer_srv_bytes) as srv_bytes, sum(peer_srv_packets) as srv_packets, "
-   sql = sql.."sum(peer_cli_bytes) as cli_bytes, sum(peer_cli_packets) as cli_packets, "
-   sql = sql.."count(*) as flows, "
-   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
+   sql = sql.."sum(peer_bytes_sent + peer_bytes_rcvd) as tot_bytes, sum(peer_packets) as tot_packets, "
+   sql = sql.."sum(peer_bytes_sent) as bytes_sent, "
+   sql = sql.."sum(peer_bytes_rcvd) as bytes_rcvd, "
+   sql = sql.."count(*) as flows "
+   -- sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
 
-   sql = sql .. "FROM ( SELECT "
+   sql = sql .. "FROM ( SELECT PACKETS as peer_packets, "
    if(version == 4) then
       sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN INET_NTOA(IP_DST_ADDR) ELSE INET_NTOA(IP_SRC_ADDR) END addr, "
       -- when the selected host is the source, we consider its peer that is a destination an thus RECEIVES bytes and packets
       -- similarly, when the selected host is the destination, we consider its peer as a source that SENDS bytes and packets
-      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN BYTES ELSE 0 END peer_srv_bytes, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = INET_ATON('"..host.."') THEN BYTES ELSE 0 END peer_cli_bytes, "
-      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN PACKETS ELSE 0 END peer_srv_packets, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = INET_ATON('"..host.."') THEN PACKETS ELSE 0 END peer_cli_packets, "
+      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN OUT_BYTES ELSE IN_BYTES  END peer_bytes_sent, "
+      sql = sql.." CASE WHEN IP_SRC_ADDR = INET_ATON('"..host.."') THEN IN_BYTES  ELSE OUT_BYTES END peer_bytes_rcvd, "
    else
       sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END addr, "
-      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN BYTES ELSE 0 END peer_srv_bytes, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = '"..host.."' THEN BYTES ELSE 0 END peer_cli_bytes, "
-      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN PACKETS ELSE 0 END peer_srv_packets, "
-      sql = sql.." CASE WHEN IP_DST_ADDR = '"..host.."' THEN PACKETS ELSE 0 END peer_cli_packets, "
+      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN OUT_BYTES ELSE IN_BYTES  END peer_bytes_sent, "
+      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IN_BYTES  ELSE OUT_BUTES END peer_bytes_rcvd, "
    end
    sql = sql.." FIRST_SWITCHED, LAST_SWITCHED "
    sql = sql.." FROM flowsv"..version
@@ -465,18 +459,14 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
       order_by_column = "tot_packets"
    elseif sort_column == "column_bytes" or sort_column == "bytes" or sort_column == "tot_bytes" then
       order_by_column = "tot_bytes"
-   elseif sort_column == "column_peer_srv_packets" or sort_column == "srv_packets" then
-      order_by_column = "srv_packets"
-   elseif sort_column == "column_peer_cli_packets" or sort_column == "cli_packets" then
-      order_by_column = "cli_packets"
-   elseif sort_column == "column_peer_srv_bytes" or sort_column == "srv_bytes" then
-      order_by_column = "srv_bytes"
-   elseif sort_column == "column_peer_cli_bytes" or sort_column == "cli_bytes" then
-      order_by_column = "cli_bytes"
+   elseif sort_column == "column_bytes_sent" or sort_column == "bytes_sent" then
+      order_by_column = "bytes_sent"
+   elseif sort_column == "column_bytes_rcvd" or sort_column == "bytes_rcvd" then
+      order_by_column = "bytes_rcvd"
    elseif sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "flows"
-   elseif sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
-      order_by_column = "avg_flow_duration"
+  --  elseif sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+  --     order_by_column = "avg_flow_duration"
    end
 
    local order_by_order = "desc"
@@ -618,8 +608,8 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
    if(info == "") then info = nil end
 
    sql = " SELECT L7_PROTO application, "
-   sql = sql.."sum(BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows, "
-   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
+   sql = sql.."sum(IN_BYTES + OUT_BYTES) as tot_bytes, sum(PACKETS) as tot_packets, count(*) as tot_flows "
+   -- sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
    sql = sql.." FROM flowsv"..version
 
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
@@ -660,9 +650,9 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
    if sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "tot_flows"
    end
-   if sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
-      order_by_column = "avg_flow_duration"
-   end
+   -- if sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+   --   order_by_column = "avg_flow_duration"
+   --end
 
    local order_by_order = "desc"
    if sort_order == "asc" then order_by_order = "asc" end

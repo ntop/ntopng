@@ -208,9 +208,13 @@ class Flow : public GenericHashEntry {
   inline u_int16_t get_vlan_id()                  { return(vlanId);                          };
   inline u_int8_t  get_protocol()                 { return(protocol);                        };
   inline u_int64_t get_bytes()                    { return(cli2srv_bytes+srv2cli_bytes);     };
+  inline u_int64_t get_bytes_cli2srv()            { return(cli2srv_bytes);                   };
+  inline u_int64_t get_bytes_srv2cli()            { return(srv2cli_bytes);                   };
   inline u_int64_t get_goodput_bytes()            { return(cli2srv_goodput_bytes+srv2cli_goodput_bytes);     };
   inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
   inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
+  inline u_int64_t get_partial_bytes_cli2srv()    { return(cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
+  inline u_int64_t get_partial_bytes_srv2cli()    { return(srv2cli_bytes - last_db_dump.srv2cli_bytes);       };
   inline u_int64_t get_partial_goodput_bytes()    { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
   inline u_int64_t get_partial_packets()          { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
   inline float get_bytes_thpt()                   { return(bytes_thpt);                      };

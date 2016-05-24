@@ -508,15 +508,13 @@ var populateInterfaceTopTalkersTable = function(){
 	},
 	columns:
 	[
-	  {title: "Host Name",     field: "column_label",       sortable: true},
-	  {title: "IP Address",    field: "column_addr",        sortable:true, hidden: false},
-	  {title: "Total Traffic", field: "column_bytes",       sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Packets", field: "column_packets",     sortable: true, css: {textAlign:'right'}},
-	  {title: "Srv. Traffic",  field: "column_srv_bytes",   sortable: true,css: {textAlign:'right'}},
-	  {title: "Srv. Packets",  field: "column_srv_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Cli. Traffic",  field: "column_cli_bytes",   sortable: true,css: {textAlign:'right'}},
-	  {title: "Cli. Packets",  field: "column_cli_packets", sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows",         field: "column_flows",       sortable: true, css: {textAlign:'right'}}
+	  {title: "Host Name",     field: "column_label",         sortable: true},
+	  {title: "IP Address",    field: "column_addr",          sortable:true, hidden: false},
+	  {title: "Traffic Sent", field: "column_bytes_sent",     sortable: true,css: {textAlign:'right'}},
+	  {title: "Traffic Received", field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Traffic", field: "column_bytes",         sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Packets", field: "column_packets",       sortable: true, css: {textAlign:'right'}},
+	  {title: "Flows",         field: "column_flows",         sortable: true, css: {textAlign:'right'}}
 	]
     });
   }
@@ -562,15 +560,13 @@ var populateHostTopTalkersTable = function(host){
 	},
 	columns:
 	[
-	  {title: "Host Name",     field: "column_label",      sortable: true},
-	  {title: "IP Address",    field: "column_addr",       sortable:true, hidden: false},
-	  {title: "Total Traffic", field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
-	  {title: "Total Packets", field: "column_packets",    sortable: true, css: {textAlign:'right'}},
-	  {title: "Cli. Traffic",  field: "column_cli_bytes",  sortable: true,css: {textAlign:'right'}},
-	  {title: "Cli. Packets",  field: "column_cli_packets",sortable: true, css: {textAlign:'right'}},
-	  {title: "Srv. Traffic",  field: "column_srv_bytes",  sortable: true,css: {textAlign:'right'}},
-	  {title: "Srv. Packets",  field: "column_srv_packets",sortable: true, css: {textAlign:'right'}},
-	  {title: "Flows", field: "column_flows",              sortable: true, css: {textAlign:'right'}}
+	  {title: "Host Name",       field: "column_label",      sortable: true},
+	  {title: "IP Address",      field: "column_addr",       sortable:true, hidden: false},
+	  {title: "Traffic Sent",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
+	  {title: "Traffic Received",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Traffic",   field: "column_bytes",      sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Packets",   field: "column_packets",    sortable: true, css: {textAlign:'right'}},
+	  {title: "Flows",           field: "column_flows",      sortable: true, css: {textAlign:'right'}}
 	]
     });
   }
@@ -629,7 +625,7 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	[
 	  {title: "Protocol id", field: "column_application", hidden: true},
 	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Traffic Volume", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
+	  {title: "Total Traffic", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
 	]
@@ -908,7 +904,7 @@ print [[
 	[
 	  {title: "Protocol id", field: "column_application", hidden: true},
 	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Traffic Volume", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
+	  {title: "Total Traffic", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
 	]
@@ -985,7 +981,7 @@ var populateAppTopTalkersTable = function(proto_id){
 	[
 	  {title: "Host Name", field: "column_label", sortable: true},
 	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
-	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Traffic", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
 	]
@@ -1040,7 +1036,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	[
 	  {title: "Host Name", field: "column_label", sortable: true},
 	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
-	  {title: "Traffic Volume", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
+	  {title: "Total Traffic", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
 	]
@@ -1158,7 +1154,7 @@ print [[
 	[
 	  {title: "Protocol id", field: "column_application", hidden: true},
 	  {title: "Application", field: "column_label", sortable: false},
-	  {title: "Traffic Volume", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
+	  {title: "Total Traffic", field: "column_bytes", sortable: true, css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
 	]

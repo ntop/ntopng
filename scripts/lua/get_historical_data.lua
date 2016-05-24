@@ -212,25 +212,15 @@ for _, record in pairs(res_sliced) do
    else
       record_contents["column_packets"] = "n.a."
    end
-   if record["srv_packets"] then
-      record_contents["column_srv_packets"] = formatValue(tonumber(record["srv_packets"]))
+   if record["bytes_sent"] then
+      record_contents["column_bytes_sent"] = bytesToSize(tonumber(record["bytes_sent"]))
    else
-      record_contents["column_srv_packets"] = "n.a."
+      record_contents["column_bytes_sent"] = "n.a."
    end
-   if record["cli_packets"] then
-      record_contents["column_cli_packets"] = formatValue(tonumber(record["cli_packets"]))
+   if record["bytes_rcvd"] then
+      record_contents["column_bytes_rcvd"] = bytesToSize(tonumber(record["bytes_rcvd"]))
    else
-      record_contents["column_cli_packets"] = "n.a."
-   end
-   if record["srv_bytes"] then
-      record_contents["column_srv_bytes"] = bytesToSize(tonumber(record["srv_bytes"]))
-   else
-      record_contents["column_srv_bytes"] = "n.a."
-   end
-   if record["cli_bytes"] then
-      record_contents["column_cli_bytes"] = bytesToSize(tonumber(record["cli_bytes"]))
-   else
-      record_contents["column_cli_bytes"] = "n.a."
+      record_contents["column_bytes_rcvd"] = "n.a."
    end
    if record["flows"] then
       record_contents["column_flows"] = formatValue(tonumber(record["flows"]))

@@ -278,13 +278,34 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     ntop->getPrefs()->get_mysql_tablename());
     exec_sql_query(&mysql, sql, true, true);
   }
-
   snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv6` WHERE INTERFACE IS NOT NULL LIMIT 1",
 	   ntop->getPrefs()->get_mysql_tablename());
   if(exec_sql_query(&mysql, sql, true, true) == 0) {
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` DROP COLUMN INTERFACE",
 	     ntop->getPrefs()->get_mysql_tablename());
     exec_sql_query(&mysql, sql, true, true);
+  }
+
+  // EIGHTH: move column BYTES to BYTES_IN and add BYTES_OUT
+  // note that this operation will arbitrarily move the old BYTES contents to BYTES_IN
+  const u_int16_t ipvers[2] = {4, 6};
+  for (u_int16_t i = 0; i < sizeof(ipvers); i++){
+    snprintf(sql, sizeof(sql), "SHOW COLUMNS FROM `%sv%hu` LIKE 'BYTES'",
+	     ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+    if(exec_sql_query(&mysql, sql, true, true) > 0){
+      // if here, the column BYTES exists so we want to alter the table
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "MySQL schema update. Altering table %sv%hu: "
+				   "renaming BYTES to IN_BYTES and adding OUT_BYTES",
+				   ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+
+      snprintf(sql, sizeof(sql),
+	       "ALTER TABLE `%sv%hu` "
+	       "CHANGE BYTES IN_BYTES INT(10) DEFAULT 0, "
+	       "ADD OUT_BYTES INT(10) DEFAULT 0 AFTER IN_BYTES",
+	       ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+      exec_sql_query(&mysql, sql, true, true);
+    }
   }
 }
 
@@ -326,7 +347,8 @@ char* MySQLDB::get_insert_into_values(IPVersion vers) {
 
 bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   char sql[CONST_MAX_SQL_QUERY_LEN], cli_str[64], srv_str[64], *json_buf;
-  u_int32_t bytes, packets, first_seen, last_seen;
+  u_int32_t packets, first_seen, last_seen;
+  u_int32_t bytes_cli2srv, bytes_srv2cli;
 
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
     return(false);
@@ -355,12 +377,14 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }
 
   if(partial_dump) {
-    bytes = f->get_partial_bytes();
+    bytes_cli2srv = f->get_partial_bytes_cli2srv();
+    bytes_srv2cli = f->get_partial_bytes_srv2cli();
     packets = f->get_partial_packets();
     first_seen = f->get_partial_first_seen();
     last_seen = f->get_partial_last_seen();
   } else {
-    bytes = f->get_bytes();
+    bytes_cli2srv = f->get_bytes_cli2srv();
+    bytes_srv2cli = f->get_bytes_srv2cli();
     packets = f->get_packets();
     first_seen = f->get_first_seen();
     last_seen = f->get_last_seen();
@@ -369,11 +393,11 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   if(f->get_cli_host()->get_ip()->isIPv4()) {
     snprintf(sql, sizeof(sql),
 	     "INSERT INTO `%sv4` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
-	     "BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
+	     "IN_BYTES,OUT_BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
 #ifdef NTOPNG_PRO
 	     ",PROFILE"
 #endif
-	     ") VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
+	     ") VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
 #ifdef NTOPNG_PRO
 	     ",'%s'"  // this is the string for traffic profile
 #endif
@@ -386,7 +410,8 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     htonl(f->get_srv_host()->get_ip()->get_ipv4()),
 	     f->get_srv_port(),
 	     f->get_protocol(),
-	     bytes, packets, first_seen, last_seen,
+	     bytes_cli2srv, bytes_srv2cli,
+	     packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf,
 	     ntop->getPrefs()->get_instance_name(),
@@ -398,11 +423,11 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }  else {
     snprintf(sql, sizeof(sql),
 	     "INSERT INTO `%sv6` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
-	     "BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
+	     "IN_BYTES,OUT_BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
 #ifdef NTOPNG_PRO
 	     ",PROFILE"
 #endif
-	     ") VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
+	     ") VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
 #ifdef NTOPNG_PRO
 	     ",'%s'"  // this is the string for traffic profile
 #endif
@@ -415,7 +440,8 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
 	     f->get_srv_port(),
 	     f->get_protocol(),
-	     bytes, packets, first_seen, last_seen,
+	     bytes_cli2srv, bytes_srv2cli,
+	     packets, first_seen, last_seen,
 	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
 	     json_buf,
 	     ntop->getPrefs()->get_instance_name(),
