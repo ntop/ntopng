@@ -48,8 +48,8 @@ else
    -- host flow stats are off by default and must be explicitly enabled
    if host_stats_flows ~= nil and host_stats_flows ~= "" then
       if host_stats_flows_num == nil or tonumber(host_stats_flows_num) == nil then
-	 -- default the number of flows returned to 20 ...
-	 host_stats_flows_num = 20
+	 -- default: do not limit the number of flows
+	 host_stats_flows_num = 99999
       else
 	 -- ... unless otherwise specified
 	 host_stats_flows_num = tonumber(host_stats_flows_num)
