@@ -617,7 +617,7 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	  var label_td = $("td:eq(1)", row[0]);
 	  var label = label_td.text();
 	  var l7_proto_id = l7_proto_id_td.text();
-          var num_flows = $("td:eq(4)", row[0]).text();
+          var num_flows = parseInt($("td:eq(4)", row[0]).text());
 	  label_td.append('&nbsp;<a onclick="populateFlowsPerHostsPairTable(\'' + peer1 +'\',\'' + peer2 +'\',\'' + l7_proto_id +'\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="' + label + ' application flows between ' + peer1 + ' and ' + peer2 + '"></i></a>');
 	  return row;
 	},
@@ -1030,7 +1030,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
-          var num_flows = $("td:eq(6)", row[0]).text();
+          var num_flows = parseInt($("td:eq(6)", row[0]).text());
           label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="' + $('#historical-apps-container').attr("l7_proto") + ' protocol flows between ' + host + ' and ' + addr + '"></i></a>');
 	  return row;
 	},
@@ -1150,7 +1150,7 @@ print [[
 	var proto_label_td = $("td:eq(1)", row[0]);
 	var proto_id = proto_id_td.text();
 	var proto_label = proto_label_td.text();
-        var num_flows = $("td:eq(4)", row[0]).text();
+        var num_flows = parseInt($("td:eq(4)", row[0]).text());
 	proto_label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');$(\'#historical-apps-container\').attr(\'l7_proto\', \'' + proto_label + '\');populatePeersPerHostByApplication(\'' + host +'\',\'' + proto_id +'\');"><i class="fa fa-exchange" title="Hosts talking ' + proto_id + ' with ' + host + '"></i></a>');
 	  return row;
 	},
