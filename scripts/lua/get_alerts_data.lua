@@ -33,11 +33,12 @@ total = 0
 for _key,_value in pairs(alerts) do
    if(total > 0) then print(",\n") end
    values = split(string.gsub(_value, "\n", ""), "|")
+
    column_id = "<form class=form-inline style='margin-bottom: 0px;' method=get action='"..ntop.getHttpPrefix().."/lua/show_alerts.lua'><input type=hidden name=id_to_delete value="..(initial_idx+tonumber(_key)).."><input type=hidden name=currentPage value=".. currentPage .."><input type=hidden name=perPage value=".. perPage .."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
    column_date = os.date("%c", values[1])
    column_severity = alertSeverityLabel(tonumber(values[2]))
-   column_type = alertTypeLabel(tonumber(values[3]))
-   column_msg = values[4]
+   column_type = alertTypeLabel(tonumber(values[4]))
+   column_msg = values[5]
 
    print('{ "column_key" : "'..column_id..'", "column_date" : "'..column_date..'", "column_severity" : "'..column_severity..'", "column_type" : "'..column_type..'", "column_msg" : "'..column_msg..'" }')
 
