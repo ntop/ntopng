@@ -105,7 +105,7 @@ function getFlowInfo(interface_id, version, flow_idx)
       sql = "select IP_SRC_ADDR, IP_DST_ADDR"
    end
 
-   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,BYTES,idx,L7_PROTO,INFO,CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON from flowsv"..version
+   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,idx,L7_PROTO,INFO,CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON from flowsv"..version
    follow = follow.." where idx="..flow_idx
    sql = sql .. follow
 
@@ -150,7 +150,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       end
    end
 
-   sql = "select COUNT(*) AS TOT_FLOWS, SUM(BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = "select COUNT(*) AS TOT_FLOWS, SUM(IN_BYTES + OUT_BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL)"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
@@ -300,13 +300,13 @@ end
 
 function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l4proto, port)
    local sql = ""
-   local sql_bytes_packets = ""
+   local sql_bytes_packets = "PACKETS as packets, "
    if src_or_dst     == "IP_DST_ADDR" then
       -- if this is a destination address, we account it INGRESS traffic
-      sql_bytes_packets = "OUT_BYTES as bytes_sent, IN_BYTES  as bytes_rcvd, PACKETS as packets, "
+      sql_bytes_packets = sql_bytes_packets .. "OUT_BYTES as bytes_sent, IN_BYTES  as bytes_rcvd, "
    elseif src_or_dst == "IP_SRC_ADDR" then
       -- if this is a source address, we account the traffic as EGRESS
-      sql_bytes_packets = " IN_BYTES as bytes_sent, OUT_BYTES as bytes_rcvd, PACKETS as packets, "
+      sql_bytes_packets = sql_bytes_packets .. " IN_BYTES as bytes_sent, OUT_BYTES as bytes_rcvd, "
    else
       return nil -- make sure to exit early if no valid data has been passed
    end
@@ -496,16 +496,18 @@ end
 
 function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id, l4_proto_id, port)
    local sql = ""
-   local sql_bytes_packets = ""
+   local sql_bytes_packets = "PACKETS as packets, "
+
    if src_or_dst     == "IP_DST_ADDR" then
       -- if this is a destination address, we account it INGRESS traffic
-      sql_bytes_packets = "BYTES as srv_bytes, PACKETS as srv_packets,     0 as cli_bytes,       0 as cli_packets, "
+      sql_bytes_packets = sql_bytes_packets .. "OUT_BYTES as bytes_sent, IN_BYTES  as bytes_rcvd, "
    elseif src_or_dst == "IP_SRC_ADDR" then
       -- if this is a source address, we account the traffic as EGRESS
-      sql_bytes_packets = "    0 as srv_bytes,       0 as srv_packets, BYTES as cli_bytes, PACKETS as cli_packets, "
+      sql_bytes_packets = sql_bytes_packets .. " IN_BYTES as bytes_sent, OUT_BYTES as bytes_rcvd, "
    else
       return nil -- make sure to exit early if no valid data has been passed
    end
+
    if v4_or_v6 == 6 then
       sql = " SELECT NULL addrv4, "..src_or_dst.." addrv6, "
       sql = sql..sql_bytes_packets
@@ -517,6 +519,7 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
    else
       sql = ""
    end
+
    sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL) "
    sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
@@ -536,11 +539,12 @@ function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, info, be
 
    -- AGGREGATE AND CRUNCH DATA
    sql = "select CASE WHEN addrv4 IS NOT NULL THEN INET_NTOA(addrv4) ELSE addrv6 END addr, "
-   sql = sql.."SUM(srv_bytes + cli_bytes) tot_bytes, SUM(srv_packets + cli_packets) tot_packets, "
-   sql = sql.."SUM(srv_bytes)             srv_bytes,               SUM(srv_packets) srv_packets, "
-   sql = sql.."SUM(cli_bytes)             cli_bytes,               SUM(cli_packets) cli_packets, "
-   sql = sql.."count(*) tot_flows, "
-   sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration from "
+   sql = sql.."SUM(bytes_sent + bytes_rcvd) tot_bytes, SUM(packets) tot_packets, "
+   sql = sql.."SUM(bytes_sent)             bytes_sent, "
+   sql = sql.."SUM(bytes_rcvd)             bytes_rcvd, "
+   sql = sql.."count(*) tot_flows "
+   -- sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
+   sql = sql.." FROM "
 
    sql = sql.."("
    sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port)
@@ -557,18 +561,14 @@ function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, info, be
    local order_by_column = "tot_bytes" -- defaults to tot_bytes
    if sort_column == "column_packets" or sort_column == "packets" or sort_column == "tot_packets" then
       order_by_column = "tot_packets"
-   elseif sort_column == "column_srv_packets" or sort_column == "srv_packets" then
-      order_by_column = "srv_packets"
-   elseif sort_column == "column_cli_packets" or sort_column == "cli_packets" then
-      order_by_column = "cli_packets"
-   elseif sort_column == "column_srv_bytes" or sort_column == "srv_bytes" then
-      order_by_column = "srv_bytes"
-   elseif sort_column == "column_cli_bytes" or sort_column == "cli_bytes" then
-      order_by_column = "cli_bytes"
+   elseif sort_column == "column_bytes_sent" or sort_column == "bytes_sent" then
+      order_by_column = "bytes_sent"
+   elseif sort_column == "column_bytes_rcvd" or sort_column == "bytes_rcvd" then
+      order_by_column = "bytes_rcvd"
    elseif sort_column == "column_flows" or sort_column == "flows" or sort_column == "tot_flows" then
       order_by_column = "tot_flows"
-   elseif sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
-      order_by_column = "avg_flow_duration"
+   -- elseif sort_column == "column_avg_flow_duration" or sort_column == "avg_flow_duration" then
+   --    order_by_column = "avg_flow_duration"
    end
 
    local order_by_order = "desc"

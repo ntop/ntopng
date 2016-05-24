@@ -981,6 +981,8 @@ var populateAppTopTalkersTable = function(proto_id){
 	[
 	  {title: "Host Name", field: "column_label", sortable: true},
 	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
+	  {title: "Traffic Sent",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
+	  {title: "Traffic Received",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "Total Traffic", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
@@ -1036,6 +1038,8 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	[
 	  {title: "Host Name", field: "column_label", sortable: true},
 	  {title: "Address", field: "column_addr", hidden: false, sortable: true},
+	  {title: "Traffic Sent",    field: "column_bytes_sent", sortable: true,css: {textAlign:'right'}},
+	  {title: "Traffic Received",field: "column_bytes_rcvd", sortable: true,css: {textAlign:'right'}},
 	  {title: "Total Traffic", field: "column_bytes", sortable: true,css: {textAlign:'right'}},
 	  {title: "Packets", field: "column_packets", sortable: true, css: {textAlign:'right'}},
 	  {title: "Flows", field: "column_flows", sortable: true, css: {textAlign:'right'}}
