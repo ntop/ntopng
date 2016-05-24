@@ -1030,7 +1030,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
 	  var addr = addr_td.text();
-          var num_flows = $("td:eq(4)", row[0]).text();
+          var num_flows = $("td:eq(6)", row[0]).text();
           label_td.append('&nbsp;<a onclick="$(\'#historical-apps-container\').attr(\'l7_proto_id\', \'' + proto_id + '\');populateFlowsPerHostPairByApplicationTable(\'' + host +'\',\'' + addr + '\',\'' + proto_id + '\',\'' + num_flows +'\');"><i class="fa fa-tasks" title="' + $('#historical-apps-container').attr("l7_proto") + ' protocol flows between ' + host + ' and ' + addr + '"></i></a>');
 	  return row;
 	},
