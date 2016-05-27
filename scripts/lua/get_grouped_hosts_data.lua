@@ -143,7 +143,7 @@ for key,value in pairs(hosts_stats) do
 	 elseif (group_col == "local_network_id") then
 	    stats_by_group_col[id]["name"] = value["local_network_name"]
 	    if (stats_by_group_col[id]["name"] == nil) then
-	       stats_by_group_col[id]["name"] = "Unknown network"
+	       stats_by_group_col[id]["name"] = "Remote networks"
 	    end
 
 	 elseif (group_col == "os") then
