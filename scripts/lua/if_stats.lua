@@ -487,7 +487,7 @@ elseif(page == "historical") then
    --drawRRD(ifstats.id, nil, rrd_file, _GET["graph_zoom"], url.."&page=historical", 1, _GET["epoch"], selected_epoch, topArray, _GET["comparison_period"])
 elseif(page == "trafficprofiles") then
    print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Graph</th><th>Traffic</th></tr>\n")
+   print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><th width=5%>Chart</th><th>Traffic</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
      local trimmed = trimSpace(pname)
      local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")

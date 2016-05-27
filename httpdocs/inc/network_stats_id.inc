@@ -12,6 +12,7 @@ function network_table_setID (row) {
   row.find("td").eq(index++).attr('id', network_key+"_key");
   row.find("td").eq(index++).attr('id', network_key+"_number");
   // network_stats_top
+  row.find("td").eq(index++).attr('id', network_key+"_chart");
   row.find("td").eq(index++).attr('id', network_key+"_hosts");
   row.find("td").eq(index++).attr('id', network_key+"_alerts");
   row.find("td").eq(index++).attr('id', network_key+"_since");
