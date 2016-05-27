@@ -370,7 +370,7 @@ end
 
 
    print[[
-       <table class="table">
+       <table class="table table-bordered">
          <col width="20%">
          <col width="80%">
          <tr><td style="padding-right: 20px;">
