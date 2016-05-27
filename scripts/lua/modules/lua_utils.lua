@@ -2015,3 +2015,8 @@ function getFlowStatus(status)
   else return("<font color=orange>Unknown status ("..status..")</font>")   
   end
 end
+
+-- prints purged information for hosts / flows
+function purgedErrorString()
+    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=data_purge"><i class="fa fa-flask"></i> Preferences</A>.'
+end

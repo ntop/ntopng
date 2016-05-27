@@ -110,11 +110,11 @@ if(host == nil) then
       sendHTTPHeader('text/html; charset=iso-8859-1')
       ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
       dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Host ".. hostinfo2hostkey(host_info) .. " cannot be found.")
+      print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> Host '.. hostinfo2hostkey(host_info) .. ' cannot be found. ')
       if((json ~= nil) and (json ~= "")) then
-	 print('<p>Such host as been purged from memory due to inactivity. Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
+	 print(' Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
       else
-	 print('<p>Perhaps this host has been previously purged from memory or it has never been observed by this instance.</p>\n')
+	 print(purgedErrorString())
       end
 
       print("</div>")

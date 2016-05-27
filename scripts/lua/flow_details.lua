@@ -110,7 +110,7 @@ else
 end
 
 if(flow == nil) then
-   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> This flow cannot be found. Very likely it is expired and ntopng has purged it from main memory. You can set flow purge settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=data_purge"><i class="fa fa-flask"></i> Preferences</A>. </div>')
+   print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> This flow cannot be found. '.. purgedErrorString()..'</div>')
 else
 
    if(_GET["drop_flow_policy"] == "true") then
