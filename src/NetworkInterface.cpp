@@ -27,6 +27,7 @@
 
 static bool help_printed = false;
 
+#if 0
 /* **************************************** */
 
 static void debug_printf(u_int32_t protocol, void *id_struct,
@@ -47,6 +48,7 @@ static void free_wrapper(void *freeable)
 {
   free(freeable);
 }
+#endif
 
 /* **************************************************** */
 
@@ -159,8 +161,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
     // init global detection structure
-    ndpi_struct = ndpi_init_detection_module(ntop->getGlobals()->get_detection_tick_resolution(),
-					     malloc_wrapper, free_wrapper, debug_printf);
+    ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Global structure initialization failed");
       _exit(-1);
@@ -393,7 +394,7 @@ void NetworkInterface::deleteDataStructures() {
   if(hosts_hash)   { delete(hosts_hash); hosts_hash = NULL;     }
 
   if(ndpi_struct) {
-    ndpi_exit_detection_module(ndpi_struct, free_wrapper);
+    ndpi_exit_detection_module(ndpi_struct);
     ndpi_struct = NULL;
   }
 
