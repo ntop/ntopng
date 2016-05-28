@@ -476,16 +476,26 @@ else
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
 
       -- get SIP rows
-      local sip_table_rows = getSIPTableRows(info)
-      print(sip_table_rows)
+      if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
+        local sip_table_rows = getSIPTableRows(info)
+        print(sip_table_rows)
+      end
       info = removeProtocolFields("SIP",info)
-      isThereSIP = isThereProtocol(SIP, info)
+      isThereSIP = 0
+      if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
+        isThereSIP = isThereProtocol(SIP, info)
+      end
 
       -- get RTP rows
-      local rtp_table_rows = getRTPTableRows(info)
-      print(rtp_table_rows)
+      if(ntop.isPro() and (flow["proto.ndpi"] == "RTP")) then
+        local rtp_table_rows = getRTPTableRows(info)
+        print(rtp_table_rows)
+      end
       info = removeProtocolFields("RTP",info)
-      isThereRTP = isThereProtocol(RTP, info)
+      isThereRTP = 0
+      if(ntop.isPro() and (flow["proto.ndpi"] == "RTP")) then
+        isThereRTP = isThereProtocol(RTP, info)
+      end
 
       num = 0
 
