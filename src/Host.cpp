@@ -1389,16 +1389,17 @@ void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
 /* *************************************** */
 
 void Host::incLowGoodputFlows(bool asClient) {
-#if 0
   bool alert = false;
-
+  
   if(asClient) {
     if(++low_goodput_client_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   } else {
     if(++low_goodput_server_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   }
 
+  /* TODO: decide if an alert should be sent in a future version */
   if(alert && (!good_low_flow_detected)) {
+#if 0
     char alert_msg[1024], *c, c_buf[64];
 
     c = get_ip()->print(c_buf, sizeof(c_buf));
@@ -1409,9 +1410,9 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
     ntop->getRedis()->queueAlert(alert_level_error, alert_on, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
+#endif
     good_low_flow_detected = true;
   }
-#endif
 }
 
 /* *************************************** */
@@ -1426,7 +1427,7 @@ void Host::decLowGoodputFlows(bool asClient) {
   }
 
   if(alert && good_low_flow_detected) {
-    /* TODO: send end of alarm */
+    /* TODO: send end of alert */
     good_low_flow_detected = false;
   }
 }

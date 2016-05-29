@@ -166,6 +166,7 @@ void NetworkInterface::init() {
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false,
+      tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false, 
     has_mesh_networks_traffic = false, pkt_dumper = NULL;
   pollLoopCreated = false, bridge_interface = false;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
@@ -516,8 +517,10 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 	oom_warning_sent = true;
       }
 
+      triggerTooManyFlowsAlert();
       return(NULL);
     }
+
     if(flows_hash->add(ret)) {
       *src2dst_direction = true;
       return(ret);
@@ -529,6 +532,36 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
   } else {
     *new_flow = false;
     return(ret);
+  }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::triggerTooManyFlowsAlert() {
+  if(!tooManyFlowsAlertTriggered) {
+    char alert_msg[512];
+  
+    snprintf(alert_msg, sizeof(alert_msg),
+	     "Interface <A HREF='/lua/if_stats.lua?id=%d'>%s</A> has too many flows. Please extend the --max-num-flows/-X command line option",
+	     id, get_name());
+    
+    ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
+    tooManyFlowsAlertTriggered = true;
+  }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::triggerTooManyHostsAlert() {
+  if(!tooManyHostsAlertTriggered) {
+    char alert_msg[512];
+  
+    snprintf(alert_msg, sizeof(alert_msg),
+	     "Interface <A HREF='/lua/if_stats.lua?id=%d'>%s</A> has too many hosts. Please extend the --max-num-hosts/-x command line option",
+	     id, get_name());
+    
+    ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
+    tooManyHostsAlertTriggered = true;
   }
 }
 
@@ -1515,6 +1548,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   if((*src) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
       *src = *dst = NULL;
+      triggerTooManyHostsAlert();
       return;
     }
 
@@ -1523,6 +1557,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       //ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *src;
       *src = *dst = NULL;
+      triggerTooManyHostsAlert();
       return;
     }
   }
@@ -1534,6 +1569,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   if((*dst) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
       *dst = NULL;
+      triggerTooManyHostsAlert();
       return;
     }
 
@@ -1542,6 +1578,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many hosts in interface %s", ifname);
       delete *dst;
       *dst = NULL;
+      triggerTooManyHostsAlert();
       return;
     }
   }

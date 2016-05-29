@@ -59,7 +59,7 @@ class NetworkInterface {
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap.*/
   pthread_t pollLoop;
-  bool pollLoopCreated;
+  bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered;
   u_int32_t ifSpeed;
   u_int16_t ifMTU;
   bool mtuWarningShown;
@@ -111,6 +111,8 @@ class NetworkInterface {
   bool checkIdle();  
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
+  void triggerTooManyHostsAlert();
+  void triggerTooManyFlowsAlert();
 
  public:
   /**

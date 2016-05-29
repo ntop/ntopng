@@ -50,7 +50,8 @@ typedef enum {
   alert_quota,
   alert_malware_detection,
   alert_host_under_attack,
-  alert_host_attacker
+  alert_host_attacker,
+  alert_app_misconfiguration
 } AlertType;
 
 typedef enum {
