@@ -165,7 +165,6 @@ using namespace std;
 #include "TrafficStats.h"
 #include "NetworkStats.h"
 #include "Grouper.h"
-#include "GrouperEntry.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
 #include "EthStats.h"

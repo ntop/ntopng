@@ -109,7 +109,7 @@ elseif mode == "remote" then
 end
 
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, country, os_, tonumber(vlan), tonumber(asn), tonumber(network)) -- false = little details
-tprint(hosts_stats)
+-- tprint(hosts_stats)
 
 hosts_stats,total = aggregateHostsStats(hosts_stats)
 

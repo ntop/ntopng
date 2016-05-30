@@ -24,7 +24,6 @@
 
 #include "ntop_includes.h"
 
-class GrouperEntry;
 class Host;
 
 struct groupStats{
@@ -50,10 +49,6 @@ class Grouper {
   char *group_label;
   groupStats stats;
 
-  void incStats(const char* group_key);
-  void incStats(int   group_key);
-  GrouperEntry *getGrouperEntryAt(const char *group_key, const char *label);
-  GrouperEntry *getGrouperEntryAt(int group_key, const char *label);
  public:
   Grouper(sortField sf);
   ~Grouper();
@@ -64,10 +59,7 @@ class Grouper {
   int8_t incStats(Host *h);
   int8_t newGroup(Host *h);
 
-  void group(Host *h);
-
   void lua(lua_State* vm);
-  void print();
 };
 
 #endif /* _GROUPER_H_ */
