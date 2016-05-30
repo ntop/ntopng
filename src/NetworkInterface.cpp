@@ -3045,7 +3045,6 @@ void NetworkInterface::refreshShapers() {
 
 /* **************************************** */
 
-#ifdef NOTUSED
 void NetworkInterface::addInterfaceAddress(char *addr) {
   if(ip_addresses.size() == 0)
     ip_addresses = addr;
@@ -3055,7 +3054,6 @@ void NetworkInterface::addInterfaceAddress(char *addr) {
     ip_addresses = ip_addresses + "," + s;
   }
 }
-#endif
 
 /* **************************************** */
 
