@@ -1159,18 +1159,136 @@ function getRTPTableRows(info)
    if(rtp_found == 1) then
      string_table = string_table.."<tr><th colspan=3 class=\"info\" >RTP Protocol Information</th></tr>\n"
      string_table = string_table.."<tr><th width=30%> Sync Source ID </th><td colspan=2><div id=sync_source_id>" .. getFlowValue(info, "RTP_SSRC") .. "</div></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>First / Last Flow Timestamp</th><td><div id=first_flow_timestamp><i class='fa fa-clock-o fa-lg'></i>  "..getFlowValue(info, "RTP_FIRST_TS").."</div></td><td><div id=last_flow_timestamp><i class='fa fa-clock-o fa-lg'></i>  "..getFlowValue(info, "RTP_LAST_TS").."</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>First / Last Flow Timestamp</th><td><div id=first_flow_timestamp>"
+     rtp_first_ts = getFlowValue(info, "RTP_FIRST_TS")
+     if((rtp_first_ts ~= nil) and (rtp_first_ts ~= "")) then
+       string_table = string_table .. "<i class='fa fa-clock-o fa-lg'></i>  "..rtp_first_ts
+     end
+     string_table = string_table .. "</div></td><td><div id=last_flow_timestamp>"
+     rtp_last_ts = getFlowValue(info, "RTP_LAST_TS")
+     if((rtp_last_ts ~= nil) and (rtp_last_ts ~= "")) then
+       string_table = string_table .. "<i class='fa fa-clock-o fa-lg'></i>  "..rtp_last_ts
+     end
+     string_table = string_table .. "</div></td></tr>\n"
      string_table = string_table .. "<tr><th width=30%>First / Last Flow Sequence</th><td><div id=first_flow_sequence>"..getFlowValue(info, "RTP_FIRST_SEQ").."</div></td><td><div id=last_flow_sequence>"..getFlowValue(info, "RTP_LAST_SEQ").."</div></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>Jitter IN / OUT</th><td><span id=jitter_in>"..getFlowValue(info, "RTP_IN_JITTER").." ms </span> <span id=jitter_in_trend></span></td><td><span id=jitter_out>"..getFlowValue(info, "RTP_OUT_JITTER").." ms </span> <span id=jitter_out_trend></span></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>Packet Lost in Stream IN / OUT</th><td><span id=packet_lost_in>"..formatPackets(getFlowValue(info, "RTP_IN_PKT_LOST")).."</span> <span id=packet_lost_in_trend></span></td><td><span id=packet_lost_out>"..formatPackets(getFlowValue(info, "RTP_OUT_PKT_LOST")).." </span> <span id=packet_lost_out_trend></span></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>Packet Discarded in Jitter Buffer IN / OUT</th><td><span id=packet_drop_in>"..formatPackets(getFlowValue(info, "RTP_IN_PKT_DROP")).."</span> <span id=packet_drop_in_trend></span></td><td><span id=packet_drop_out>"..formatPackets(getFlowValue(info, "RTP_OUT_PKT_DROP")).." </span> <span id=packet_drop_out_trend></span></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>Jitter IN / OUT</th><td><span id=jitter_in>"
+     rtp_in_jitter = getFlowValue(info, "RTP_IN_JITTER")
+     if((rtp_in_jitter ~= nil) and (rtp_in_jitter ~= "")) then
+       string_table = string_table .. rtp_in_jitter.." ms "
+     end
+     string_table = string_table .. "</span> <span id=jitter_in_trend></span></td><td><span id=jitter_out>"
+     rtp_out_jitter = getFlowValue(info, "RTP_OUT_JITTER")
+     if((rtp_out_jitter ~= nil) and (rtp_out_jitter ~= "")) then
+       string_table = string_table .. rtp_out_jitter.." ms "
+     end
+     string_table = string_table .. "</span> <span id=jitter_out_trend></span></td></tr>\n"
+
+     string_table = string_table .. "<tr><th width=30%>Packet Lost in Stream IN / OUT</th><td><span id=packet_lost_in>"
+     rtp_in_pkt_lost = getFlowValue(info, "RTP_IN_PKT_LOST")
+     if((rtp_in_pkt_lost ~= nil) and (rtp_in_pkt_lost ~= "")) then
+       string_table = string_table .. formatPackets(rtp_in_pkt_lost)
+     end
+     string_table = string_table .. "</span> <span id=packet_lost_in_trend></span></td><td><span id=packet_lost_out>"
+     rtp_out_pkt_lost = getFlowValue(info, "RTP_OUT_PKT_LOST")
+     if((rtp_out_pkt_lost ~= nil) and (rtp_out_pkt_lost ~= "")) then
+       string_table = string_table .. formatPackets(rtp_out_pkt_lost)
+     end
+     string_table = string_table .. " </span> <span id=packet_lost_out_trend></span></td></tr>\n"
+
+     string_table = string_table .. "<tr><th width=30%>Packet Discarded in Jitter Buffer IN / OUT</th><td><span id=packet_drop_in>"
+     rtp_in_pkt_drop = getFlowValue(info, "RTP_IN_PKT_DROP")
+     if((rtp_in_pkt_drop ~= nil) and (rtp_in_pkt_drop ~= "")) then
+       string_table = string_table .. formatPackets(rtp_in_pkt_drop)
+     end
+     string_table = string_table .. "</span> <span id=packet_drop_in_trend></span></td><td><span id=packet_drop_out>"
+     rtp_out_pkt_drop = getFlowValue(info, "RTP_OUT_PKT_DROP")
+     if((rtp_out_pkt_drop ~= nil) and (rtp_out_pkt_drop ~= "")) then
+       string_table = string_table .. formatPackets(rtp_out_pkt_drop)
+     end
+     string_table = string_table .. " </span> <span id=packet_drop_out_trend></span></td></tr>\n"
+
      string_table = string_table .. "<tr><th width=30%>Payload Type IN / OUT</th><td><div id=payload_type_in>"..getFlowValue(info, "RTP_IN_PAYLOAD_TYPE").."</div></td><td><div id=payload_type_out>"..getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE").."</div></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>Max Delta Time between Packets IN / OUT</th><td><span id=max_delta_time_in>"..getFlowValue(info, "RTP_IN_MAX_DELTA").." ms </span> <span id=max_delta_time_in_trend></span></td><td><span id=max_delta_time_out>"..getFlowValue(info, "RTP_OUT_MAX_DELTA").." ms </span> <span id=max_delta_time_out_trend></span></td></tr>\n"
+
+     string_table = string_table .. "<tr><th width=30%>Max Delta Time between Packets IN / OUT</th><td><span id=max_delta_time_in>"
+     rtp_in_max_delta = getFlowValue(info, "RTP_IN_MAX_DELTA")
+     if((rtp_in_max_delta ~= nil) and (rtp_in_max_delta ~= "")) then
+       string_table = string_table .. rtp_in_max_delta .. " ms "
+     end
+     string_table = string_table .. "</span> <span id=max_delta_time_in_trend></span></td><td><span id=max_delta_time_out>"
+     rtp_out_max_delta = getFlowValue(info, "RTP_OUT_MAX_DELTA")
+     if((rtp_out_max_delta ~= nil) and (rtp_out_max_delta ~= "")) then
+       string_table = string_table .. rtp_out_max_delta .. " ms "
+     end
+     string_table = string_table .. "</span> <span id=max_delta_time_out_trend></span></td></tr>\n"
      string_table = string_table .. "<tr><th width=30%> SIP Call Id  </th><td colspan=2><div id=rtp_sip_call_id>" .. getFlowValue(info, "RTP_SIP_CALL_ID") .. "</div></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (Average MOS/R-Factor) </th><td colspan=2><span><i class='fa fa-signal'></i>  </span><span id=mos_average>"..getFlowValue(info, "RTP_MOS").." </span> <span id=mos_average_trend></span><span> / </span><span id=r_factor_average>"..getFlowValue(info, "RTP_R_FACTOR").." </span> <span id=r_factor_average_trend></span></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (MOS/R-Factor) IN / OUT </th><td><span><i class='fa fa-signal'></i>  </span><span id=mos_in>"..getFlowValue(info, "RTP_IN_MOS").." </span> <span id=mos_in_trend></span><span> / </span><span id=r_factor_in>"..getFlowValue(info, "RTP_IN_R_FACTOR").." </span> <span id=r_factor_in_trend></span></td><td><span><i class='fa fa-signal'></i>  </span><span id=mos_out>"..getFlowValue(info, "RTP_OUT_MOS").." </span> <span id=mos_out_trend></span><span> / </span><span id=r_factor_out>"..getFlowValue(info, "RTP_OUT_R_FACTOR").." </span> <span id=r_factor_out_trend></span></td></tr>\n"
+
+     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (Average MOS/R-Factor) </th><td colspan=2><span>"
+     rtp_mos = getFlowValue(info, "RTP_MOS")
+     rtp_r_factor = getFlowValue(info, "RTP_R_FACTOR")
+     if(((rtp_mos ~= nil) and (rtp_mos ~= "")) or ((rtp_r_factor ~= nil) and (rtp_r_factor ~= ""))) then
+       string_table = string_table .. "<i class='fa fa-signal'></i> "
+     end
+     string_table = string_table .. "</span><span id=mos_average>"
+     if((rtp_mos ~= nil) and (rtp_mos ~= "")) then
+       string_table = string_table .. rtp_mos
+     end
+     string_table = string_table .. "</span> <span id=mos_average_trend></span>"
+     if((rtp_r_factor ~= nil) and (rtp_r_factor ~= "")) then
+       string_table = string_table .. "<span> / </span>"
+     end
+     string_table = string_table .. "<span id=r_factor_average>"
+     if((rtp_r_factor ~= nil) and (rtp_r_factor ~= "")) then
+       string_table = string_table .. rtp_r_factor
+     end
+     string_table = string_table .. " </span> <span id=r_factor_average_trend></span></td></tr>\n"
+
+
+     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (MOS/R-Factor) IN / OUT </th><td><span>"
+     rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")
+     rtp_in_r_factor = getFlowValue(info, "RTP_IN_R_FACTOR")
+     if(((rtp_in_mos ~= nil) and (rtp_in_mos ~= "")) or ((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= ""))) then
+       string_table = string_table .. "<i class='fa fa-signal'></i> "
+     end
+     string_table = string_table .. "</span><span id=mos_in>"
+     if((rtp_in_mos ~= nil) and (rtp_in_mos ~= "")) then
+       string_table = string_table .. rtp_in_mos
+     end
+     string_table = string_table .. "</span> <span id=mos_in_trend></span>"
+     if((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= "")) then
+       string_table = string_table .. "<span> / </span>"
+     end
+     string_table = string_table .. "<span id=r_factor_in>"
+     if((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= "")) then
+       string_table = string_table .. rtp_in_r_factor
+     end
+     string_table = string_table .. "</span> <span id=r_factor_in_trend></span></td><td><span>"
+     rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")
+     rtp_out_r_factor = getFlowValue(info, "RTP_OUT_R_FACTOR")
+     if(((rtp_out_mos ~= nil) and (rtp_out_mos ~= "")) or ((rtp_out_r_factor ~= nil) and (rtp_out_r_factor ~= ""))) then
+       string_table = string_table .. "<i class='fa fa-signal'></i> "
+     end
+     string_table = string_table .. "</span><span id=mos_out>"
+     if((rtp_out_mos ~= nil) and (rtp_out_mos ~= "")) then
+       string_table = string_table .. rtp_out_mos
+     end
+     string_table = string_table .. "</span> <span id=mos_out_trend></span>"
+     if((rtp_out_r_factor ~= nil) and (rtp_out_r_factor ~= "")) then
+       string_table = string_table .. "<span> / </span>"
+     end
+     string_table = string_table .. "<span id=r_factor_out>"
+     if((rtp_out_r_factor ~= nil) and (rtp_out_r_factor ~= "")) then
+       string_table = string_table .. rtp_out_r_factor
+     end
+     string_table = string_table .. " </span> <span id=r_factor_out_trend></span></td></tr>\n"
+
      string_table = string_table .. "<tr><th width=30%>RTP Transit IN / OUT</th><td><div id=rtop_transit_in>"..getFlowValue(info, "RTP_IN_TRANSIT").."</div></td><td><div id=rtp_transit_out>"..getFlowValue(info, "RTP_OUT_TRANSIT").."</div></td></tr>\n"
-     string_table = string_table .. "<tr><th width=30%>Round Trip Time</th><td colspan=2><span id=rtp_rtt>"..getFlowValue(info, "RTP_RTT").." ms </span> <span id=rtp_rtt_trend></span></td></tr>\n"
+
+     string_table = string_table .. "<tr><th width=30%>Round Trip Time</th><td colspan=2><span id=rtp_rtt>"
+     rtp_rtt = getFlowValue(info, "RTP_RTT")
+     if((rtp_rtt ~= nil) and (rtp_rtt ~= "")) then
+       string_table = string_table .. rtp_rtt .. " ms "
+     end
+     string_table = string_table .. "</span> <span id=rtp_rtt_trend></span></td></tr>\n"
      string_table = string_table .. "<tr><th width=30%>DTMF tones sent during the call</th><td colspan=2><span id=dtmf_tones>"..getFlowValue(info, "RTP_DTMF_TONES").."</span></td></tr>\n"
    end
    return string_table
