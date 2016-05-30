@@ -1274,7 +1274,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
     if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
 
-    lua_push_int_table_entry(vm, "tcp_flags", getTcpFlags());
+    lua_push_int_table_entry(vm, "cli2srv.tcp_flags", src2dst_tcp_flags);
+    lua_push_int_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);
 
     if(protocol == IPPROTO_TCP) {
       lua_push_int_table_entry(vm, "cli2srv.retransmissions", tcp_stats_s2d.pktRetr);

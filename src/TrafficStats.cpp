@@ -70,12 +70,12 @@ void TrafficStats::deserialize(json_object *o) {
 /* ******************************************* */
 
 json_object* TrafficStats::getJSONObject() {
-  json_object *my_object;
-
-  my_object = json_object_new_object();
-
-  json_object_object_add(my_object, "packets", json_object_new_int64(numPkts));
-  json_object_object_add(my_object, "bytes", json_object_new_int64(numBytes));
+  json_object *my_object = json_object_new_object();
   
+  if(my_object) {
+    json_object_object_add(my_object, "packets", json_object_new_int64(numPkts));
+    json_object_object_add(my_object, "bytes", json_object_new_int64(numBytes));
+  }
+
   return(my_object);
 }

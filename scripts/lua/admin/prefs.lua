@@ -115,7 +115,7 @@ function printTraffic()
   print('<form>')
   print('<input type=hidden name="subpage_active" value="traffic"/>\n')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Traffic Metrics Storage (RRD)</th></tr>')
+  print('<tr><th colspan=2 class="info">Metrics Storage (RRD)</th></tr>')
 
   toggleTableButtonPrefs("RRDs For Local Hosts",
                 "Toggle the creation of RRDs for local hosts. Turn it off to save storage space.",
@@ -379,15 +379,16 @@ end
 if prefs.is_autologout_enabled == true then
              print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=web_gui" class="list-group-item ]] print(web_gui_active) print[[">Web User Interface</a>]]
 end
-             print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=traffic" class="list-group-item ]] print(traffic_active) print[[">Traffic Metrics Storage</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=top_talkers" class="list-group-item ]] print(top_talkers_active) print[[">Top Talkers Storage</a>
+
+             print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=top_talkers" class="list-group-item ]] print(top_talkers_active) print[[">Top Talkers Storage</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=mysql" class="list-group-item ]] print(mysql_active) print[[">MySQL Database</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a> ]]
 if (ntop.isPro()) then
              print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=nbox" class="list-group-item ]] print(nbox_active) print[[">nBox Integration</a> ]]
              print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=user_auth" class="list-group-item ]] print(user_auth_active) print[[">User Authentication</a>]]
 end
-             print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=data_purge" class="list-group-item ]] print(data_purge_active) print[[">Data Purge</a>
+             print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=data_purge" class="list-group-item ]] print(data_purge_active) print[[">Data Purge</a>]]
+             print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=traffic" class="list-group-item ]] print(traffic_active) print[[">Metrics Storage</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=stats_rrds" class="list-group-item ]] print(stats_rrds_active) print[[">Stats RRDs</a>
            </div>
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
@@ -397,9 +398,6 @@ if (subpage_active == "report") then
 end
 if (subpage_active == "web_gui") then
   printWebGUI()
-end
-if (subpage_active == "traffic") then
-  printTraffic()
 end
 if (subpage_active == "top_talkers") then
   printTopTalkers()
@@ -422,6 +420,9 @@ if (subpage_active == "user_auth") then
 end
 if (subpage_active == "data_purge") then
   printDataPurge()
+end
+if (subpage_active == "traffic") then
+  printTraffic()
 end
 if (subpage_active == "stats_rrds") then
   printStatsRrds()

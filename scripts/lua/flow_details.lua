@@ -143,7 +143,7 @@ else
       print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["cli.port"].. "\">" .. flow["cli.port"].."</A>")
    end
    if(flow["cli.mac"] ~= nil and flow["cli.mac"]~= "" and flow["cli.mac"] ~= "00:00:00:00:00:00") then
-      print(" [<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["cli.mac"].. "\">" .. flow["cli.mac"].."]".."</A>")
+      print(" [ <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["cli.mac"].. "\">" .. flow["cli.mac"].."</A> ]")
    end
    print("&nbsp; <i class=\"fa fa-exchange fa-lg\"></i> \n")
 
@@ -155,7 +155,7 @@ else
       print(":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. flow["srv.port"].. "\">" .. flow["srv.port"].. "</A>")
    end
    if(flow["srv.mac"] ~= nil and flow["srv.mac"]~= "" and flow["srv.mac"] ~= "00:00:00:00:00:00") then
-      print(" [<A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["srv.mac"].. "\">" .. flow["srv.mac"].."]".."</A>")
+      print(" [ <A HREF=\""..ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac=" .. flow["srv.mac"].. "\">" .. flow["srv.mac"].."</A> ]")
    end
    print("</td></tr>\n")
 
@@ -330,21 +330,33 @@ else
      print("</td></tr>\n")
     end
 
-   if((flow["tcp_flags"] ~= nil) and (flow["tcp_flags"] > 0)) then
-      print("<tr><th width=30%>TCP Flags</th><td colspan=2>")
+   flags = flow["cli2srv.tcp_flags"] or flow["srv2cli.tcp_flags"]
+
+   if((flags ~= nil) and (flags > 0)) then
+      print("<tr><th width=30% rowspan=2>TCP Flags</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
+      printTCPFlags(flow["cli2srv.tcp_flags"])
+      print("</td><td nowrap>Client <i class=\"fa fa-arrow-left\"></i> Server: ")
+      printTCPFlags(flow["srv2cli.tcp_flags"])
+      print("</td></tr>\n")
+
+      print("<tr><td colspan=2>")
 
       flow_completed = false
       flow_reset = false
       flows_syn_seen = false
-      if(hasbit(flow["tcp_flags"],0x01)) then print('<span class="label label-info">FIN</span> ')  flow_completed = true end
-      if(hasbit(flow["tcp_flags"],0x02)) then print('<span class="label label-info">SYN</span> ')  flows_syn_seen = true end
-      if(hasbit(flow["tcp_flags"],0x04)) then print('<span class="label label-danger">RST</span> ') flow_completed = true flow_reset = true end
-      if(hasbit(flow["tcp_flags"],0x08)) then print('<span class="label label-info">PUSH</span> ') end
-      if(hasbit(flow["tcp_flags"],0x10)) then print('<span class="label label-info">ACK</span> ')  end
-      if(hasbit(flow["tcp_flags"],0x20)) then print('<span class="label label-info">URG</span> ')  end
+      resetter = ""
+
+      if(hasbit(flags,0x01)) then flow_completed = true end
+      if(hasbit(flags,0x02)) then flows_syn_seen = true end
+      if(hasbit(flags,0x04)) then 		 
+         flow_completed = true 
+	 flow_reset = true 
+	 
+	 if(hasbit(flow["cli2srv.tcp_flags"],0x04)) then resetter = "client" else resetter = "server" end
+     end
 
       if(flow_reset) then
-	 print(" <small>This flow has been reset: one of the flow peers disconnected.</small>")
+	 print(" <small>This flow has been reset by "..resetter..".</small>")
       else
 	 if(flow_completed) then
 	    print(" <small>This flow is completed and will expire soon.</small>")
