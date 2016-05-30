@@ -1,4 +1,3 @@
-
 --
 -- (C) 2013-16 - ntop.org
 --
@@ -55,7 +54,8 @@ else
 	 host_stats_flows_num = tonumber(host_stats_flows_num)
       end
       local total = 0
-      local flows = interface.getFlowsInfo(host, nil, "column_bytes", host_stats_flows_num, 0, false)
+
+      local flows = interface.getFlowsInfo(host_info["host"], nil, "column_bytes", host_stats_flows_num, 0, false)
       flows,total = aggregateFlowsStats(flows)
       for i, fl in ipairs(flows) do
 	 flows[i] = {

@@ -1134,6 +1134,11 @@ function flowinfo2hostname(flow_info, host_type, vlan)
    local name
    local orig_name
 
+   if(host_type == "srv") then
+      if(flow_info["host_server_name"] ~= nil) then return(flow_info["host_server_name"]) end
+      if(flow_info["ssl.certificate"] ~= nil)  then return(flow_info["ssl.certificate"]) end
+   end
+
    name = flow_info[host_type..".host"]
 
    if((name == "") or (name == nil)) then
@@ -2019,4 +2024,14 @@ end
 -- prints purged information for hosts / flows
 function purgedErrorString()
     return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=data_purge"><i class="fa fa-flask"></i> Preferences</A>.'
+end
+
+-- print TCP flags
+function printTCPFlags(flags)
+      if(hasbit(flags,0x01)) then print('<span class="label label-info">FIN</span> ') end
+      if(hasbit(flags,0x02)) then print('<span class="label label-info">SYN</span> ')  end
+      if(hasbit(flags,0x04)) then print('<span class="label label-danger">RST</span> ') end
+      if(hasbit(flags,0x08)) then print('<span class="label label-info">PUSH</span> ') end
+      if(hasbit(flags,0x10)) then print('<span class="label label-info">ACK</span> ')  end
+      if(hasbit(flags,0x20)) then print('<span class="label label-info">URG</span> ')  end
 end
