@@ -392,7 +392,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
+static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
   char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL;
@@ -433,7 +433,7 @@ static int ntop_get_interface_hosts(lua_State* vm, bool show_local_only) {
 
   if(!ntop_interface ||
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
-                                       show_details, show_local_only,
+                                       show_details, location,
                                        country,
 				       vlan_filter_ptr, os_filter, asn_filter_ptr, network_filter_ptr,
 				       sortColumn, maxHits,
@@ -466,35 +466,29 @@ static int ntop_get_interface_latest_activity_hosts_info(lua_State* vm){
 static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
-  char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL;
-  char *groupBy;
-  bool a2zSortOrder = true;
+  char *country = NULL, *os_filter = NULL;
+  char *groupBy = (char*)"column_ip";
   u_int16_t vlan_filter,  *vlan_filter_ptr    = NULL;
   u_int32_t asn_filter,   *asn_filter_ptr     = NULL;
   int16_t network_filter, *network_filter_ptr = NULL;
-  u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN) show_details = lua_toboolean(vm, 1) ? true : false;
-  if(lua_type(vm, 2) == LUA_TSTRING)  sortColumn = (char*)lua_tostring(vm, 2);
-  if(lua_type(vm, 3) == LUA_TSTRING)  groupBy    = (char*)lua_tostring(vm, 3);
-  if(lua_type(vm, 4) == LUA_TNUMBER)  maxHits    = (u_int16_t)lua_tonumber(vm, 4);
-  if(lua_type(vm, 5) == LUA_TNUMBER)  toSkip     = (u_int16_t)lua_tonumber(vm, 5);
-  if(lua_type(vm, 6) == LUA_TBOOLEAN) a2zSortOrder = lua_toboolean(vm, 6) ? true : false;
-  if(lua_type(vm, 7) == LUA_TSTRING)  country = (char*)lua_tostring(vm, 7);
-  if(lua_type(vm, 8) == LUA_TSTRING)  os_filter      = (char*)lua_tostring(vm, 8);
-  if(lua_type(vm, 9) == LUA_TNUMBER)  vlan_filter    = (u_int16_t)lua_tonumber(vm, 9), vlan_filter_ptr = &vlan_filter;
-  if(lua_type(vm,10) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 10), asn_filter_ptr = &asn_filter;
-  if(lua_type(vm,11) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 11),  network_filter_ptr = &network_filter;
+  if(lua_type(vm, 2) == LUA_TSTRING)  groupBy    = (char*)lua_tostring(vm, 2);
+  if(lua_type(vm, 3) == LUA_TSTRING)  country = (char*)lua_tostring(vm, 3);
+  if(lua_type(vm, 4) == LUA_TSTRING)  os_filter      = (char*)lua_tostring(vm, 4);
+  if(lua_type(vm, 5) == LUA_TNUMBER)  vlan_filter    = (u_int16_t)lua_tonumber(vm, 5), vlan_filter_ptr = &vlan_filter;
+  if(lua_type(vm, 6) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 6), asn_filter_ptr = &asn_filter;
+  if(lua_type(vm, 7) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 7),  network_filter_ptr = &network_filter;
 
   if(!ntop_interface ||
     ntop_interface->getActiveHostsGroup(vm, get_allowed_nets(vm),
-					show_details, false,
+					show_details, location_all,
 					country,
-					vlan_filter_ptr, os_filter, asn_filter_ptr, network_filter_ptr,
-					sortColumn, groupBy, maxHits,
-					toSkip, a2zSortOrder) < 0)
+					vlan_filter_ptr, os_filter,
+					asn_filter_ptr, network_filter_ptr,
+					groupBy) < 0)
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);
@@ -508,7 +502,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, false));
+  return(ntop_get_interface_hosts(vm, location_all));
 }
 
 /**
@@ -519,7 +513,18 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
  * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
  */
 static int ntop_get_interface_local_hosts_info(lua_State* vm) {
-  return(ntop_get_interface_hosts(vm, true));
+  return(ntop_get_interface_hosts(vm, location_local_only));
+}
+
+/**
+ * @brief Get remote hosts information of network interface.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the remote host information.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
+  return(ntop_get_interface_hosts(vm, location_remote_only));
 }
 
 /* ****************************************** */
@@ -1100,7 +1105,7 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  * @param vm The lua state.
  * @return CONST_LUA_OK.
  */
-static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
+static int ntop_get_interface_flows(lua_State* vm, LocationPolicy location) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char buf[64];
   char *host_ip = NULL, *sortColumn = (char*)"column_client";
@@ -1142,7 +1147,7 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
 
   if(ntop_interface) {
     int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm),
-					    host, l7_proto, localOnly, sortColumn, maxHits,
+					    host, l7_proto, location, sortColumn, maxHits,
 					    toSkip, a2zSortOrder);
 
     /* FIX: do something with flows number */
@@ -1152,8 +1157,9 @@ static int ntop_get_interface_flows(lua_State* vm, bool localOnly) {
   return(CONST_LUA_OK);
 }
 
-static int ntop_get_interface_flows_info(lua_State* vm)       { return(ntop_get_interface_flows(vm, false)); }
-static int ntop_get_interface_local_flows_info(lua_State* vm) { return(ntop_get_interface_flows(vm, true));  }
+static int ntop_get_interface_flows_info(lua_State* vm)        { return(ntop_get_interface_flows(vm, location_all));          }
+static int ntop_get_interface_local_flows_info(lua_State* vm)  { return(ntop_get_interface_flows(vm, location_local_only));   }
+static int ntop_get_interface_remote_flows_info(lua_State* vm) { return(ntop_get_interface_flows(vm, location_remote_only));  }
 
 /* ****************************************** */
 
@@ -4291,6 +4297,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIProtocols",       ntop_get_ndpi_protocols },
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
+  { "getRemoteHostsInfo",     ntop_get_interface_remote_hosts_info },
   { "getHostInfo",            ntop_get_interface_host_info },
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
   { "getNetworksStats",       ntop_get_interface_networks_stats },
@@ -4301,6 +4308,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "restoreHost",            ntop_restore_interface_host },
   { "getFlowsInfo",           ntop_get_interface_flows_info },
   { "getLocalFlowsInfo",      ntop_get_interface_local_flows_info },
+  { "getRemoteFlowsInfo",     ntop_get_interface_remote_flows_info },
   { "getFlowsStats",          ntop_get_interface_flows_stats },
   { "getFlowPeers",           ntop_get_interface_flows_peers },
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },

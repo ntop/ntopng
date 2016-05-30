@@ -1313,6 +1313,17 @@ char* Utils::macaddr_str (const char *mac, char *buf) {
 
 /* **************************************** */
 
+
+u_int64_t Utils::macaddr_int (const u_int8_t *mac) {
+  u_int64_t mac_int = 0;
+  for(u_int8_t i=0; i<6; i++){
+    mac_int |= (mac[i] & 0xFF) << (5-i)*8;
+  }
+  return mac_int;
+}
+
+/* **************************************** */
+
 #ifdef linux
 
 void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {

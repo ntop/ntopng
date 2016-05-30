@@ -72,6 +72,7 @@ class Utils {
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
   static char* macaddr_str (const char *mac, char *buf);
+  static u_int64_t macaddr_int(const u_int8_t *mac);
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static u_int32_t getMaxIfSpeed(const char *ifname);
   static u_int16_t getIfMTU(const char *ifname);

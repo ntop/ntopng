@@ -98,15 +98,21 @@ interface.select(ifname)
 to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
-if((mac ~= nil) or (antenna_mac ~= nil) or (mode == "local")) then
-   hosts_stats = interface.getLocalHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
-else
-   -- hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country) -- false = little details
-   hosts_stats = interface.getHostsInfo(false, sortColumn, perPage, to_skip, sOrder, country, os_, tonumber(vlan), tonumber(asn), tonumber(network)) -- false = little details
-   -- tprint(hosts_stats)
+-- if((mac ~= nil) or (antenna_mac ~= nil) or (mode == "local")) then
+
+
+hosts_retrv_function = interface.getHostsInfo
+if mode == "local" then
+   hosts_retrv_function = interface.getLocalHostsInfo
+elseif mode == "remote" then
+   hosts_retrv_function = interface.getRemoteHostsInfo
 end
 
+hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, country, os_, tonumber(vlan), tonumber(asn), tonumber(network)) -- false = little details
+tprint(hosts_stats)
+
 hosts_stats,total = aggregateHostsStats(hosts_stats)
+
 -- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
 
 -- io.write("->"..total.." ["..sortColumn.."]\n")
@@ -117,11 +123,9 @@ if(all ~= nil) then
 end
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
-num = 0
 
 now = os.time()
 vals = {}
-num = 0
 
 sort_mode = mode
 -- for k,v in pairs(hosts_stats) do io.write(k.."\n") end
@@ -164,16 +168,13 @@ if(mode == "network") then
    mode = "local"
 end
 
-
---
+num = 0
 for key, value in pairs(hosts_stats) do
    num = num + 1
    postfix = string.format("0.%04u", num)
    ok = true
 
-   if(not((mode == "all")
-       or ((mode == "local") and (value["localhost"] == true))
-    or ((mode == "remote") and (value["localhost"] ~= true)))) then
+   if not(mode == "all" or mode == "remote" or mode == "local") then
       ok = false
    end
 
@@ -211,7 +212,7 @@ for key, value in pairs(hosts_stats) do
       end
    end
 
-   if(ok) then
+   if ok == true then
       --io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
       if(sortColumn == "column_") then
@@ -254,8 +255,6 @@ for key, value in pairs(hosts_stats) do
       end
    end
 end
-
-table.sort(vals)
 
 if(sortOrder == "asc") then
    funct = asc
@@ -403,9 +402,11 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    else
 	       print("0")
 	    end
-	    if(value["localhost"] ~= nil) then
+	    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
 	       print ("\", \"column_location\" : \"")
-	       if(value["localhost"] == true) then print("<span class='label label-success'>Local</span>") else print("<span class='label label-default'>Remote</span>") end
+	       if value["localhost"] == true or value["systemhost"] == true then
+		  print("<span class='label label-success'>Local</span>") else print("<span class='label label-default'>Remote</span>")
+	       end
 	    end
 
 	    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)

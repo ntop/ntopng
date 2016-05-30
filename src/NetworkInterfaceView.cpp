@@ -127,7 +127,7 @@ int NetworkInterfaceView::getLatestActivityHostsList(lua_State* vm, patricia_tre
 
 int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 					     patricia_tree_t *allowed_hosts,
-					     bool host_details, bool local_only,
+					     bool host_details, LocationPolicy location,
 					     char *countryFilter,
 					     u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
 					     char *sortColumn,
@@ -137,7 +137,7 @@ int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 
   lua_newtable(vm);
   for(int i = 0; i<numInterfaces; i++) {
-    int rc = physIntf[i]->getActiveHostsList(vm, allowed_hosts, host_details, local_only, countryFilter, 
+    int rc = physIntf[i]->getActiveHostsList(vm, allowed_hosts, host_details, location, countryFilter,
 					     vlan_id, osFilter, asnFilter, networkFilter,
 					     sortColumn, maxHits,
 					     toSkip, a2zSortOrder);
@@ -156,27 +156,19 @@ int NetworkInterfaceView::getActiveHostsList(lua_State* vm,
 
 int NetworkInterfaceView::getActiveHostsGroup(lua_State* vm,
 					      patricia_tree_t *allowed_hosts,
-					      bool host_details, bool local_only,
+					      bool host_details, LocationPolicy location,
 					      char *countryFilter,
-					      u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
-					      char *sortColumn, char *groupBy,
-					      u_int32_t maxHits,
-					      u_int32_t toSkip, bool a2zSortOrder) {
+					      u_int16_t *vlan_id,
+					      char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
+					      char *groupBy) {
   int ret = 0;
 
   lua_newtable(vm);
-  for(int i = 0; i<numInterfaces; i++) {
-    int rc = physIntf[i]->getActiveHostsGroup(vm, allowed_hosts, host_details, local_only, countryFilter,
-					     vlan_id, osFilter, asnFilter, networkFilter,
-					     sortColumn, groupBy, maxHits,
-					     toSkip, a2zSortOrder);
-    if(rc < 0) return(ret);
-    rc += ret;
-
-    lua_pushstring(vm, physIntf[i]->get_name()); // Key
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
+  int rc = getFirst()->getActiveHostsGroup(vm, allowed_hosts, host_details, location, countryFilter,
+					   vlan_id, osFilter, asnFilter, networkFilter,
+					   groupBy);
+  if(rc < 0) return(ret);
+  rc += ret;
 
   return(ret);
 }
@@ -195,7 +187,7 @@ bool NetworkInterfaceView::hasSeenVlanTaggedPackets() {
 int NetworkInterfaceView::getFlows(lua_State* vm,
 				   patricia_tree_t *allowed_hosts,
 				   Host *host, int ndpi_proto,
-				   bool local_only,
+				   LocationPolicy location,
 				   char *sortColumn,
 				   u_int32_t maxHits,
 				   u_int32_t toSkip,
@@ -206,7 +198,7 @@ int NetworkInterfaceView::getFlows(lua_State* vm,
 
   for(int i = 0; i<numInterfaces; i++) {
     int rc = physIntf[i]->getFlows(vm, allowed_hosts, host, ndpi_proto,
-				   local_only, sortColumn, maxHits,
+				   location, sortColumn, maxHits,
 				   toSkip, a2zSortOrder);
 
     if(rc < 0) return(ret);

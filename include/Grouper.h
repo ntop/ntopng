@@ -27,27 +27,45 @@
 class GrouperEntry;
 class Host;
 
-enum grouper_dimension_t {ASN, OS, MAC, COUNTRY, INVALID};
+struct groupStats{
+  u_int32_t num_hosts;
+  u_int64_t bytes_sent;
+  u_int64_t bytes_rcvd;
+  time_t first_seen;
+  time_t last_seen;
+  u_int32_t num_alerts;
+  float throughput_bps;
+  float throughput_pps;
+  float throughput_trend_bps_diff;
+  char country[3];
+};
 
-//template <class T>
 class Grouper {
  private:
-  grouper_dimension_t dimension;
-  //  map<T,    GrouperEntry*> grouper;
-  map<int,    GrouperEntry*> number_grouper;
-  map<string, GrouperEntry*> string_grouper;
+  sortField sorter;
+
+  int64_t group_id_i;
+  bool group_id_set;
+  char *group_id_s;
+  char *group_label;
+  groupStats stats;
 
   void incStats(const char* group_key);
   void incStats(int   group_key);
   GrouperEntry *getGrouperEntryAt(const char *group_key, const char *label);
   GrouperEntry *getGrouperEntryAt(int group_key, const char *label);
  public:
-  Grouper(const char *dimension);
+  Grouper(sortField sf);
   ~Grouper();
+
+  inline u_int32_t getNumEntries(){return stats.num_hosts;}
+
+  bool inGroup(Host *h);
+  int8_t incStats(Host *h);
+  int8_t newGroup(Host *h);
 
   void group(Host *h);
 
-  u_int32_t numEntries(){return number_grouper.size() + string_grouper.size();};
   void lua(lua_State* vm);
   void print();
 };

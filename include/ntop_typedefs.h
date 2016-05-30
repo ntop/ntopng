@@ -160,5 +160,29 @@ typedef enum {
   status_connection_reset /* 6 */
 } FlowStatus;
 
+typedef enum {
+  /* Flows */
+  column_client = 0,
+  column_server,
+  column_vlan,
+  column_proto_l4,
+  column_ndpi,
+  column_duration,
+  column_thpt,
+  column_bytes,
+  column_info,
+  /* Hosts */
+  column_ip,
+  column_alerts,
+  column_name,
+  column_since,
+  column_asn,
+  column_local_network_id,
+  column_country,
+  column_mac,
+  column_os,
+  /* column_thpt, */
+  column_traffic
+} sortField;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

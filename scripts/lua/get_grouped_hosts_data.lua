@@ -97,8 +97,8 @@ vals = {}
 
 stats_by_group_col = {}
 
---kk=interface.getGroupedHosts(false, sortColumn, group_col, perPage, to_skip, sOrder, country_n, os_n, tonumber(vlan_n), tonumber(asn_n), tonumber(network_n)) -- false = little details)
---tprint(kk)
+kk=interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n)) -- false = little details)
+tprint(kk)
 
 --[[
 The idea here is to group host statistics by the value specified in
@@ -129,7 +129,7 @@ for key,value in pairs(hosts_stats) do
       value[group_col] = tostring(value[group_col])
 
       id = value[group_col]
-      
+
       existing = stats_by_group_col[id]
       if (existing == nil) then
 	 stats_by_group_col[id] = {}
@@ -190,7 +190,7 @@ for key,value in pairs(hosts_stats) do
       stats_by_group_col[id]["country"] = value["country"]
    end
 end
-
+stats_by_group_col = kk["groups"]
 --[[
 Prepares a json containing table data, together with HTML.
 --]]
@@ -201,23 +201,23 @@ function print_single_group(value)
 
    print ("\"column_id\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/")
    if (group_col == "asn" or as_n ~= nil) then
-      print("hosts_stats.lua?asn=" ..value["id"] .. "'>")
+      print("hosts_stats.lua?asn=" ..tostring(value["id"]) .. "'>")
    elseif (group_col == "vlan" or vlan_n ~= nil) then
       print("hosts_stats.lua?vlan="..value["id"].."'>")
    elseif (group_col == "country" or country_n ~= nil) then
       print("hosts_stats.lua?country="..value["id"].."'>")
-      print("&nbsp&nbsp&nbsp "..getFlag(value["country"]).."&nbsp&nbsp")
+      print(getFlag(value["country"]).."&nbsp&nbsp")
    elseif (group_col == "os" or os_n ~= nil) then        
       print("hosts_stats.lua?os=".. string.gsub(value["id"], " ", '%%20')  .."'>")
       if(value["id"] ~= nil ) then
 	 print("".. getOSIcon(value["id"]) .."")
       end      
    elseif (group_col == "local_network_id" or network_n ~= nil) then
-      print("hosts_stats.lua?network="..value["id"].."'>")
+      print("hosts_stats.lua?network="..tostring(value["id"]).."'>")
    elseif (group_col == "antenna_mac") then
       print("hosts_stats.lua?antenna_mac="..value["id"].."'>")
    elseif (group_col == "mac") then
-      print("hosts_stats.lua?mac="..value["id"].."'>")
+      print("hosts_stats.lua?mac="..value["name"].."'>")
       --PRINT
       -- io.write("ID = "..value["id"]..'\n')
    else
@@ -226,21 +226,26 @@ function print_single_group(value)
 
    if (group_col == "local_network_id" or network_n ~= nil) then
       print(value["name"]..'</A> ')
-      if(value["id"] ~= "-1") then
-	 print('", "column_chart": "')
+      print('", "column_chart": "')
+      if(tonumber(value["id"]) ~= -1) then
 	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      else
+	 print("-")
       end
       print('", ')
 
    elseif group_col == "vlan" or vlan_n ~= nil then
       print(value["id"]..'</A> ')
+      print('", "column_chart": "')
       if value["id"] ~= "0" then
 	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan_id='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
       print('", ')
 
    elseif((group_col == "mac") or (group_col == "antenna_mac")) then
-      print(get_symbolic_mac(value["id"])..'</A>", ')
+      print(get_symbolic_mac(value["name"])..'</A>", ')
+   elseif(group_col == "country" and value["id"] == "Uncategorized") then
+      print('</A>'..value["id"]..'", ')
    else
       print(value["id"]..'</A>", ')
    end
@@ -257,7 +262,7 @@ function print_single_group(value)
 
    --- TODO: name for VLANs?
    if (group_col == "asn" or as_n ~= nil) then
-      print("\"column_name\" : \""..printASN(tonumber(value["id"]), value["name"]))
+      print("\"column_name\" : \""..printASN(value["id"], value["name"]))
    elseif ( group_col == "country" or country_n ~= nil) then
       print("\"column_name\" : \""..value["id"])
       
@@ -297,7 +302,7 @@ end
 
 
 if (as_n ~= nil) then
-   as_val = stats_by_group_col[as_n]
+   as_val = stats_by_group_col[tonumber(as_n)]
    if (as_val == nil)then
       print('{}')
    else
@@ -322,7 +327,7 @@ elseif (os_n ~= nil) then
    end
    stats_by_group_col = {}
 elseif (vlan_n ~= nil) then
-   vlan_val = stats_by_group_col[vlan_n]
+   vlan_val = stats_by_group_col[tonumber(vlan_n)]
    if (vlan_val == nil) then
       print('{}')
    else
@@ -330,7 +335,7 @@ elseif (vlan_n ~= nil) then
    end
    stats_by_group_col = {}
 elseif (network_n ~= nil) then
-   network_val = stats_by_group_col[network_n]
+   network_val = stats_by_group_col[tonumber(network_n)]
    if (network_val == nil) then
       print('{}')
    else
@@ -346,21 +351,21 @@ for key,value in pairs(stats_by_group_col) do
       if(sortColumn == "column_id") then
 	 vals[key] = key
       elseif(sortColumn == "column_name") then
-	 vals[v["name"]] = key
+	 vals[key] = v["name"]
       elseif(sortColumn == "column_hosts") then
-	 vals[v["num_hosts"]] = key
+	 vals[key] = v["num_hosts"]
       elseif(sortColumn == "column_since") then
-	 vals[(now-v["seen.first"])] = key
+	 vals[key] = (now-v["seen.first"])
       elseif(sortColumn == "column_alerts") then
-	 vals[(now-v["num_alerts"])] = key
+	 vals[key] = (now-v["num_alerts"])
       elseif(sortColumn == "column_last") then
-	 vals[(now-stats_by_group_key[col]["seen.last"]+1)] = key
+	 vals[key] = (now-stats_by_group_key[col]["seen.last"]+1)
       elseif(sortColumn == "column_thpt") then
-	 vals[v["throughput_"..throughput_type]] = key
+	 vals[key] = v["throughput_"..throughput_type]
       elseif(sortColumn == "column_queries") then
-	 vals[v["queries.rcvd"]] = key
+	 vals[key] = v["queries.rcvd"]
       else
-	 vals[(v["bytes.sent"] + v["bytes.rcvd"])] = key	  
+	 vals[key] = (v["bytes.sent"] + v["bytes.rcvd"])
       end
    end
 end
@@ -374,11 +379,9 @@ else
 end
 
 num = 0
-for _key, _value in pairsByKeys(vals, funct) do
-   key = vals[_key]
-
-   if((key ~= nil) and (not(key == ""))) then
-      value = stats_by_group_col[key]
+for _key, _value in pairsByValues(vals, funct) do
+   if((_key ~= nil) and (not(_key == ""))) then
+      value = stats_by_group_col[_key]
 
       if(to_skip > 0) then
          to_skip = to_skip-1

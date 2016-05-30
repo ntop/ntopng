@@ -35,12 +35,12 @@ function os_row_update(os_key) {
     cache: false,
     success: function(content) {
       var data = jQuery.parseJSON(content);
-      $("#"+os_key+'_hosts').html(data.column_hosts);
-      $("#"+os_key+'_alerts').html(data.column_alerts);
-      $("#"+os_key+'_since').html(data.column_since);
-      $("#"+os_key+'_breakdown').html(data.column_breakdown);
-      $("#"+os_key+'_throughput').html(data.column_thpt);
-      $("#"+os_key+'_traffic').html(data.column_traffic);
+      $('td[id="' + os_key + '_hosts"]').html(data.column_hosts);
+      $('td[id="' + os_key + '_alerts"]').html(data.column_alerts);
+      $('td[id="' + os_key + '_since"]').html(data.column_since);
+      $('td[id="' + os_key + '_breakdown"]').html(data.column_breakdown);
+      $('td[id="' + os_key + '_throughput"]').html(data.column_thpt);
+      $('td[id="' + os_key + '_traffic"]').html(data.column_traffic);
     },
     error: function(content) {
       console.log("error");
@@ -50,7 +50,6 @@ function os_row_update(os_key) {
 
 // Updating function
 function os_table_update () {
-
   var $dt = $("#table-os").data("datatable");
   var rows = $dt.rows;
 

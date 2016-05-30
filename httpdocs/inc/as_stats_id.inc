@@ -50,7 +50,6 @@ function as_row_update(as_key) {
 
 // Updating function
 function as_table_update () {
-
   var $dt = $("#table-as").data("datatable");
   var rows = $dt.rows;
 
