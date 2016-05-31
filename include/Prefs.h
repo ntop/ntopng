@@ -51,6 +51,7 @@ class Prefs {
   u_int non_local_host_max_idle, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
+  u_int16_t housekeeping_frequency;
   u_int32_t max_num_hosts, max_num_flows;
   u_int http_port, https_port;
   u_int8_t num_interfaces, num_interface_views;
@@ -151,10 +152,11 @@ class Prefs {
   inline char* get_pid_path()                           { return(pid_path);       };
   inline char* get_packet_filter()                      { return(packet_filter);  };
   inline u_int16_t get_host_max_idle(bool localHost)    { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
-  inline u_int16_t get_flow_max_idle()                  { return(flow_max_idle);  };
-  inline u_int32_t get_max_num_hosts()                  { return(max_num_hosts);  };
-  inline u_int32_t get_max_num_flows()                  { return(max_num_flows);  };
-  inline bool daemonize_ntopng()                        { return(daemonize);                        };
+  inline u_int16_t get_housekeeping_frequency()         { return(housekeeping_frequency); };
+  inline u_int16_t get_flow_max_idle()                  { return(flow_max_idle);          };
+  inline u_int32_t get_max_num_hosts()                  { return(max_num_hosts);          };
+  inline u_int32_t get_max_num_flows()                  { return(max_num_flows);          };
+  inline bool daemonize_ntopng()                        { return(daemonize);              };
   void add_default_interfaces();
   int loadFromCLI(int argc, char *argv[]);
   int loadFromFile(const char *path);
@@ -169,6 +171,7 @@ class Prefs {
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   bool isView(char *name);
+  int  refresh(const char *pref_name, const char *pref_value);
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
   inline const char* get_https_binding_address() { return(https_binding_address); };

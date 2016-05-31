@@ -87,6 +87,7 @@ Prefs::Prefs(Ntop *_ntop) {
   other_rrd_1min_days     = OTHER_RRD_1MIN_DAYS;
   other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
   other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
+  housekeeping_frequency  = HOUSEKEEPING_FREQUENCY;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
     es_url = strdup((char*)"http://localhost:9200/_bulk"),
@@ -330,14 +331,16 @@ void Prefs::loadIdleDefaults() {
   non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
   flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
 
-  intf_rrd_raw_days   = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS);
-  intf_rrd_1min_days  = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS);
-  intf_rrd_1h_days    = getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS);
-  intf_rrd_1d_days    = getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS);
-  other_rrd_raw_days  = getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS);
-  other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
-  other_rrd_1h_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
-  other_rrd_1d_days   = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
+  intf_rrd_raw_days      = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS);
+  intf_rrd_1min_days     = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS);
+  intf_rrd_1h_days       = getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS);
+  intf_rrd_1d_days       = getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS);
+  other_rrd_raw_days     = getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS);
+  other_rrd_1min_days    = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
+  other_rrd_1h_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
+  other_rrd_1d_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
+  housekeeping_frequency = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
+						HOUSEKEEPING_FREQUENCY);
 
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
@@ -1090,6 +1093,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
   lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+  lua_push_int_table_entry(vm, "housekeeping_frequency", housekeeping_frequency);
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
   
@@ -1106,6 +1110,65 @@ void Prefs::lua(lua_State* vm) {
 /* *************************************** */
 
 bool Prefs::isView(char *name) { return(strncmp(name, "view:", 5) == 0 ? true : false); }
+
+
+/* *************************************** */
+
+int Prefs::refresh(const char *pref_name, const char *pref_value) {
+  if (!pref_name || !pref_value)
+    return -1;
+
+  if (!strncmp(pref_name,
+	       (char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
+	       strlen((char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY)))
+    housekeeping_frequency = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_LOCAL_HOST_IDLE_PREFS,
+		    strlen((char*)CONST_LOCAL_HOST_IDLE_PREFS)))
+    local_host_max_idle = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_REMOTE_HOST_IDLE_PREFS,
+		    strlen((char*)CONST_REMOTE_HOST_IDLE_PREFS)))
+    non_local_host_max_idle = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_FLOW_MAX_IDLE_PREFS,
+		    strlen((char*)CONST_FLOW_MAX_IDLE_PREFS)))
+    flow_max_idle = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_INTF_RRD_RAW_DAYS,
+		    strlen((char*)CONST_INTF_RRD_RAW_DAYS)))
+    intf_rrd_raw_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_INTF_RRD_1MIN_DAYS,
+		    strlen((char*)CONST_INTF_RRD_1MIN_DAYS)))
+    intf_rrd_1min_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_INTF_RRD_1H_DAYS,
+		    strlen((char*)CONST_INTF_RRD_1H_DAYS)))
+    intf_rrd_1h_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_INTF_RRD_1D_DAYS,
+		    strlen((char*)CONST_INTF_RRD_1D_DAYS)))
+    intf_rrd_1d_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_OTHER_RRD_RAW_DAYS,
+		    strlen((char*)CONST_OTHER_RRD_RAW_DAYS)))
+    other_rrd_raw_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_OTHER_RRD_1MIN_DAYS,
+		    strlen((char*)CONST_OTHER_RRD_1MIN_DAYS)))
+    other_rrd_1min_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_OTHER_RRD_1H_DAYS,
+		    strlen((char*)CONST_OTHER_RRD_1H_DAYS)))
+    other_rrd_1h_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_OTHER_RRD_1D_DAYS,
+		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
+    other_rrd_1d_days = atoi(pref_value);
+
+  return 0;
+}
 
 /* *************************************** */
 

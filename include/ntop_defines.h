@@ -327,6 +327,7 @@
 
 
 #define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED          "ntopng.prefs.is_autologon_enabled"
+#define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY   "ntopng.prefs.housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION   "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */

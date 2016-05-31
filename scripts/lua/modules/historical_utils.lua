@@ -210,14 +210,29 @@ function removeAllFavourites(stats_type, favourite_type, select_id){
 end
 
 
-function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div_id)
-  if not ntop.isPro() then return end -- integrate only in the Pro version
+function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div_id, ipv4_enabled, ipv6_enabled)
+   if not ntop.isPro() then return end -- integrate only in the Pro version
+
+   -- ipv4 and ipv6 download buttons can be either disabled from lua using the parameters above.
+   -- If download buttons are not disabled explicitly from Lua, then a javascript check will disable
+   -- them at display time to make sure no button is shown when the number of flows equals to zero
+   local style_ipv4 = ""
+   local style_ipv6 = ""
+   if ipv4_enabled == false or tonumber(ipv4_enabled) == 0 then
+      style_ipv4 = "display:none;"
+   end
+   if ipv6_enabled == false or tonumber(ipv6_enabled) == 0 then
+      style_ipv6 = "display:none;"
+   end
+
 	  print [[
 
      <div class="row">
 
        <div class='col-md-3'>
-	 Download flows: <a class="btn btn-default btn-sm" href="#" role="button"id="download_flows_v4_]] print(button_id) print[[">IPv4</a>&nbsp;<a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[">IPv6</a>
+	 Download flows:
+          <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">IPv4</a>&nbsp;
+          <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">IPv6</a>
        </div>
 
        <div class='col-md-2'>
@@ -244,16 +259,23 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 
 
 print[[
+  if($('#tab-ipv4').length > 0){
+    $('#download_flows_v4_]] print(button_id) print[[').click(function (event){
+      window.location.assign("]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
+      return false;
+    });
+  } else {
+    $('#download_flows_v4_]] print(button_id) print[[').attr("style", "display:none;");
+  }
 
-  $('#download_flows_v4_]] print(button_id) print[[').click(function (event){
-    window.location.assign("]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
-    return false;
-  });
-
-  $('#download_flows_v6_]] print(button_id) print[[').click(function (event){
-    window.location.assign("]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
-    return false;
-  });
+  if($('#tab-ipv6').length > 0){
+    $('#download_flows_v6_]] print(button_id) print[[').click(function (event){
+      window.location.assign("]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
+      return false;
+    });
+  } else {
+    $('#download_flows_v6_]] print(button_id) print[[').attr("style", "display:none;");
+  }
 ]]
 
 if ntop.getCache("ntopng.prefs.nbox_integration") == "1" and haveAdminPrivileges() then

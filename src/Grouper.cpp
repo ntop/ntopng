@@ -49,7 +49,7 @@ bool Grouper::inGroup(Host *h) {
   case column_local_network_id:
     return h->get_local_network_id() == group_id_i;
   case column_mac:
-    return Utils::macaddr_int(h->get_mac()) == group_id_i;
+    return Utils::macaddr_int(h->get_mac()) == (u_int64_t)group_id_i;
   case column_country:
     return h->get_country() ?
       !strcmp(group_id_s, h->get_country()) :

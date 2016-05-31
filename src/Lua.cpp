@@ -4072,6 +4072,27 @@ static int ntop_set_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_redis_preference(lua_State* vm) {
+  char *key, *value;
+  Redis *redis = ntop->getRedis();
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((value = (char*)lua_tostring(vm, 2)) == NULL)     return(CONST_LUA_PARAM_ERROR);
+
+  if(redis->set(key, value) ||
+     ntop->getPrefs()->refresh(key, value))
+      return(CONST_LUA_ERROR);
+
+      return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_lua_http_print(lua_State* vm) {
   struct mg_connection *conn;
   char *printtype;
@@ -4367,17 +4388,21 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Redis */
   { "getCache",       ntop_get_redis },
-  { "setCache",       ntop_set_redis },
-  { "delCache",       ntop_delete_redis_key },
+  { "setCache",        ntop_set_redis },
+  { "delCache",        ntop_delete_redis_key },
   { "getMembersCache", ntop_get_set_members_redis },
-  { "getHashCache",   ntop_get_hash_redis },
-  { "setHashCache",   ntop_set_hash_redis },
-  { "delHashCache",   ntop_del_hash_redis },
-  { "getHashKeysCache", ntop_get_hash_keys_redis },
-  { "delHashCache",   ntop_delete_hash_redis_key },
-  { "setPopCache",    ntop_get_redis_set_pop },
-  { "getHostId",      ntop_redis_get_host_id },
-  { "getIdToHost",    ntop_redis_get_id_to_host },
+  { "getHashCache",    ntop_get_hash_redis },
+  { "setHashCache",    ntop_set_hash_redis },
+  { "delHashCache",    ntop_del_hash_redis },
+  { "getHashKeysCache",ntop_get_hash_keys_redis },
+  { "delHashCache",    ntop_delete_hash_redis_key },
+  { "setPopCache",     ntop_get_redis_set_pop },
+  { "getHostId",       ntop_redis_get_host_id },
+  { "getIdToHost",     ntop_redis_get_id_to_host },
+
+  /* Redis Preferences */
+  { "setPref",         ntop_set_redis_preference },
+  { "getPref",         ntop_get_redis },
 
   { "isdir",          ntop_is_dir },
   { "mkdir",          ntop_mkdir_tree },

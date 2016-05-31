@@ -1723,7 +1723,7 @@ function formatBreed(breed)
    elseif(breed == "Acceptable") then
       return("<i class='fa fa-thumbs-o-up' alt='Acceptable Protocol'></i>")
    elseif(breed == "Fun") then
-      return("<i class='fa fa-smile' alt='Fun Protocol'></i>")
+      return("<i class='fa fa-smile-o' alt='Fun Protocol'></i>")
    elseif(breed == "Unsafe") then
       return("<i class='fa fa-thumbs-o-down'></i>")
    elseif(breed == "Dangerous") then

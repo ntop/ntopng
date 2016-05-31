@@ -307,7 +307,7 @@ else
 
    if(flow["ssl.certificate"] ~= nil) then
       print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td colspan=2>")
-      print(flow["ssl.certificate"])
+      print("<A HREF=\"http://"..flow["ssl.certificate"].."\">"..flow["ssl.certificate"].."</A> <i class=\"fa fa-external-link\">")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["ssl.certificate"], flow["category"])) end
       print("</td></tr>\n")
    end
@@ -434,7 +434,7 @@ else
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
       if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.vlan) end
-      print(s)
+      print("<A HREF=http://"..s..">"..s.."</A> <i class=\"fa fa-external-link\">")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
 
       print("</td></tr>\n")
@@ -452,7 +452,7 @@ else
       print("<tr><th>Response Code</th><td>"..flow["http.last_return_code"].."</td></tr>\n")
    else
       if((flow["host_server_name"] ~= nil) and (flow["dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>Server Name</th><td colspan=2>"..flow["host_server_name"].."</td></tr>\n")
+	 print("<tr><th width=30%>Server Name</th><td colspan=2><A HREF=http://"..flow["host_server_name"]..">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")
       end
    end
 

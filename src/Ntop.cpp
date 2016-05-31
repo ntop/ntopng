@@ -302,9 +302,13 @@ void Ntop::start() {
   address->startResolveAddressLoop();
 
   while(!globals->isShutdown()) {
-    sleep(HOUSEKEEPING_FREQUENCY);
+    u_int16_t nap = ntop->getPrefs()->get_housekeeping_frequency();
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				 "Sleeping %i seconds before doing the chores.",
+				 nap);
+    sleep(nap);
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to do the chores.");
     runHousekeepingTasks();
-    // break;
   }
 }
 

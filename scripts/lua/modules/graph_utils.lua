@@ -1047,11 +1047,16 @@ if port ~= "" and port ~= nil then
    div_data = div_data..' port="'..port..'" '
 end
 
-if (not((limitv4 == nil) or (limitv4 == "") or (limitv4 == "0"))) then
+local ipv4_enabled = not(limitv4 == nil or limitv4 == "" or limitv4 == "0")
+local ipv6_enabled = not(limitv6 == nil or limitv6 == "" or limitv6 == "0")
+
+if ipv4_enabled == true then
 print [[
       <div class="tab-pane fade" id="ipv4" ]] print(div_data) print[[">
 	<div id="table-flows4"></div>
-]] historicalDownloadButtonsBar('flows_v4', 'ipv4') print[[
+]] historicalDownloadButtonsBar('flows_v4', 'ipv4',
+				ipv4_enabled,
+				ipv6_enabled) print[[
       </div>
 ]]
 else
@@ -1062,11 +1067,14 @@ print[[
 ]]
 end
 
-if(not((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0"))) then
+if ipv6_enabled == true then
 print[[
       <div class="tab-pane fade" id="ipv6" ]] print(div_data) print[[">
     <div id="table-flows6"></div>
-]] historicalDownloadButtonsBar('flows_v6', 'ipv6') print[[
+]] historicalDownloadButtonsBar('flows_v6', 'ipv6',
+				ipv4_enabled,
+				ipv6_enabled
+			       ) print[[
   </div>
 ]]
 else
