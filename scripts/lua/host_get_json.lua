@@ -26,6 +26,33 @@ if(host_info["host"] == nil) then
    return
 end
 
+function flows2protocolthpt(flows)
+   local protocol_thpt = {}
+   for _, flow in pairs(flows) do
+      local proto_ndpi = ""
+      if flow["proto.ndpi"] == nil or flow["proto.ndpi"] == "" then
+	 goto continue
+      else
+	 proto_ndpi = flow["proto.ndpi"]
+      end
+
+      if protocol_thpt[proto_ndpi] == nil then
+	 protocol_thpt[proto_ndpi] =
+	    {["cli2srv"]={["throughput_bps"]=0, ["throughput_pps"]=0},
+	       ["srv2cli"]={["throughput_bps"]=0, ["throughput_pps"]=0}}
+      end
+
+      for _, dir in pairs({"cli2srv", "srv2cli"}) do
+	 for _, dim in pairs({"bps", "pps"}) do
+	    protocol_thpt[proto_ndpi][dir]["throughput_"..dim] =
+	       protocol_thpt[proto_ndpi][dir]["throughput_"..dim] + flow[dir..".throughput_"..dim]
+	 end
+      end
+      ::continue::
+   end
+   return protocol_thpt
+end
+
 interface.select(ifname)
 host = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
@@ -69,8 +96,10 @@ else
 	    ["srv2cli.throughput_pps"] = round(fl["throughput_srv2cli_pps"], 2)
 	 }
       end
+      hj["ndpiThroughputStats"] = flows2protocolthpt(flows)
       hj["flows"] = flows
       hj["flows_count"] = total
    end
    print(json.encode(hj, nil))
 end
+
