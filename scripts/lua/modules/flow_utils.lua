@@ -1121,7 +1121,7 @@ function getSIPTableRows(info)
        string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
      end
      if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
-       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
+       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
      end
      if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
        string_table = string_table.." <i class=\"fa fa-exchange fa-lg\"></i> "
@@ -1131,7 +1131,7 @@ function getSIPTableRows(info)
        string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
      end
      if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
-       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+       string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
      end
 
      string_table = string_table.."</div></td></tr>\n"
@@ -1222,7 +1222,7 @@ function getRTPTableRows(info)
      string_table = string_table .. "</span> <span id=max_delta_time_out_trend></span></td></tr>\n"
      string_table = string_table .. "<tr><th width=30%> SIP Call Id  </th><td colspan=2><div id=rtp_sip_call_id>" .. getFlowValue(info, "RTP_SIP_CALL_ID") .. "</div></td></tr>\n"
 
-     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (Average MOS/R-Factor) </th><td colspan=2><span>"
+     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (Average MOS/R-Factor) </th><td colspan=2><span id=mos_average_signal>"
      rtp_mos = getFlowValue(info, "RTP_MOS")
      rtp_r_factor = getFlowValue(info, "RTP_R_FACTOR")
      if(((rtp_mos ~= nil) and (rtp_mos ~= "")) or ((rtp_r_factor ~= nil) and (rtp_r_factor ~= ""))) then
@@ -1233,9 +1233,11 @@ function getRTPTableRows(info)
        string_table = string_table .. rtp_mos
      end
      string_table = string_table .. "</span> <span id=mos_average_trend></span>"
+     string_table = string_table .. "<span id=mos_average_slash>"
      if((rtp_r_factor ~= nil) and (rtp_r_factor ~= "")) then
-       string_table = string_table .. "<span> / </span>"
+       string_table = string_table .. " / "
      end
+     string_table = string_table .. "</span>"
      string_table = string_table .. "<span id=r_factor_average>"
      if((rtp_r_factor ~= nil) and (rtp_r_factor ~= "")) then
        string_table = string_table .. rtp_r_factor
@@ -1243,7 +1245,7 @@ function getRTPTableRows(info)
      string_table = string_table .. " </span> <span id=r_factor_average_trend></span></td></tr>\n"
 
 
-     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (MOS/R-Factor) IN / OUT </th><td><span>"
+     string_table = string_table .. "<tr><th width=30%>Quality of VoIP Communication (MOS/R-Factor) IN / OUT </th><td><span id=mos_in_signal>"
      rtp_in_mos = getFlowValue(info, "RTP_IN_MOS")
      rtp_in_r_factor = getFlowValue(info, "RTP_IN_R_FACTOR")
      if(((rtp_in_mos ~= nil) and (rtp_in_mos ~= "")) or ((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= ""))) then
@@ -1254,14 +1256,16 @@ function getRTPTableRows(info)
        string_table = string_table .. rtp_in_mos
      end
      string_table = string_table .. "</span> <span id=mos_in_trend></span>"
+     string_table = string_table .. "<span id=mos_in_slash>"
      if((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= "")) then
-       string_table = string_table .. "<span> / </span>"
+       string_table = string_table .. " / "
      end
+     string_table = string_table .. "</span>"
      string_table = string_table .. "<span id=r_factor_in>"
      if((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= "")) then
        string_table = string_table .. rtp_in_r_factor
      end
-     string_table = string_table .. "</span> <span id=r_factor_in_trend></span></td><td><span>"
+     string_table = string_table .. "</span> <span id=r_factor_in_trend></span></td><td><span id=mos_out_signal>"
      rtp_out_mos = getFlowValue(info, "RTP_OUT_MOS")
      rtp_out_r_factor = getFlowValue(info, "RTP_OUT_R_FACTOR")
      if(((rtp_out_mos ~= nil) and (rtp_out_mos ~= "")) or ((rtp_out_r_factor ~= nil) and (rtp_out_r_factor ~= ""))) then
@@ -1272,16 +1276,18 @@ function getRTPTableRows(info)
        string_table = string_table .. rtp_out_mos
      end
      string_table = string_table .. "</span> <span id=mos_out_trend></span>"
+     string_table = string_table .. "<span id=mos_out_slash>"
      if((rtp_out_r_factor ~= nil) and (rtp_out_r_factor ~= "")) then
-       string_table = string_table .. "<span> / </span>"
+       string_table = string_table .. " / "
      end
+     string_table = string_table .. "</span>"
      string_table = string_table .. "<span id=r_factor_out>"
      if((rtp_out_r_factor ~= nil) and (rtp_out_r_factor ~= "")) then
        string_table = string_table .. rtp_out_r_factor
      end
      string_table = string_table .. " </span> <span id=r_factor_out_trend></span></td></tr>\n"
 
-     string_table = string_table .. "<tr><th width=30%>RTP Transit IN / OUT</th><td><div id=rtop_transit_in>"..getFlowValue(info, "RTP_IN_TRANSIT").."</div></td><td><div id=rtp_transit_out>"..getFlowValue(info, "RTP_OUT_TRANSIT").."</div></td></tr>\n"
+     string_table = string_table .. "<tr><th width=30%>RTP Transit IN / OUT</th><td><div id=rtp_transit_in>"..getFlowValue(info, "RTP_IN_TRANSIT").."</div></td><td><div id=rtp_transit_out>"..getFlowValue(info, "RTP_OUT_TRANSIT").."</div></td></tr>\n"
 
      string_table = string_table .. "<tr><th width=30%>Round Trip Time</th><td colspan=2><span id=rtp_rtt>"
      rtp_rtt = getFlowValue(info, "RTP_RTT")

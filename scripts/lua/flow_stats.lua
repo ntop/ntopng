@@ -36,14 +36,14 @@ else
     thpt = 8*flow["throughput_bps"]
     thpt_display = bitsToSize(thpt)
     top_thpt_display = bitsToSize(8*flow["top_throughput_bps"])
-    
+
     elseif (throughput_type == "pps") then
       thpt = flow["throughput_pps"]
       thpt_display = pktsToSize(thpt)
       top_thpt_display = pktsToSize(flow["top_throughput_pps"])
     end
-    print('{ ' .. '"seen.last": "'.. formatEpoch(flow["seen.last"]) .. ' ['.. secondsToTime(diff) .. ' ago]", ' 
-    .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"' 
+    print('{ ' .. '"seen.last": "'.. formatEpoch(flow["seen.last"]) .. ' ['.. secondsToTime(diff) .. ' ago]", '
+    .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"'
     .. ', "bytes": ' .. flow["bytes"] .. ', "goodput_bytes": ' .. flow["goodput_bytes"] .. ', "cli2srv.packets": ' .. flow["cli2srv.packets"] .. ', "srv2cli.packets": ' .. flow["srv2cli.packets"] .. ', "cli2srv.bytes": ' .. flow["cli2srv.bytes"] .. ', "srv2cli.bytes": ' .. flow["srv2cli.bytes"].. ', "throughput": "' .. thpt_display..'", "top_throughput_display": "'.. top_thpt_display ..'", "throughput_raw": ' .. thpt)
 
     if(flow["proto.l4"] == "TCP") then
@@ -58,14 +58,14 @@ else
     -- Processes information
     show_processes = false
     if ((flow.client_process ~= nil) or (flow.server_process ~= nil) )then show_processes= true end
-    
+
     if (show_processes)then print (', "processes": {') end
 
     if(flow.client_process ~= nil) then
 
       proc = flow.client_process
       print ('"'..proc.pid..'": {')
-     
+
       if(proc.actual_memory > 0) then
         -- average_cpu_load
         print('"average_cpu_load": "')
@@ -114,7 +114,7 @@ else
         print('"')
 
         print(', "memory": "'.. bytesToSize(proc.actual_memory) .. " / ".. bytesToSize(proc.peak_memory) .. " [" .. round((proc.actual_memory*100)/proc.peak_memory, 1) ..'%]"')
-        
+
         print(', "page_faults": ')
         if(proc.num_vm_page_faults > 0) then
           print('"<font color=red><b>'..proc.num_vm_page_faults..'</b></font>"')
@@ -207,7 +207,7 @@ else
           print(getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR"))
         end
         if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
-          print(':'..getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR"))
+          print(':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT"))
         end
         if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
           print(' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ')
@@ -217,7 +217,7 @@ else
           print(getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR"))
         end
         if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
-          print(':'..getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR"))
+          print(':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT"))
         end
         print('"');
 
@@ -236,8 +236,8 @@ else
       rtp_found = isThereProtocol("RTP", info)
       if(rtp_found == 1) then
         print(', "rtp.sync_source_id":"'..getFlowValue(info, "RTP_SSRC")..'"')
-        print(', "rtp.first_flow_timestamp":"<i class=\\\"fa fa-clock-o fa-lg\\\"></i>  '..getFlowValue(info, "RTP_FIRST_TS")..'"' )
-        print(', "rtp.last_flow_timestamp":"<i class=\\\"fa fa-clock-o fa-lg\\\"></i>  '..getFlowValue(info, "RTP_LAST_TS")..'"' )
+        print(', "rtp.first_flow_timestamp":"'..getFlowValue(info, "RTP_FIRST_TS")..'"' )
+        print(', "rtp.last_flow_timestamp":"'..getFlowValue(info, "RTP_LAST_TS")..'"' )
         print(', "rtp.first_flow_sequence":"'..getFlowValue(info, "RTP_FIRST_SEQ")..'"' )
         print(', "rtp.last_flow_sequence":"'..getFlowValue(info, "RTP_LAST_SEQ")..'"' )
         print(', "rtp.jitter_in":"'..getFlowValue(info, "RTP_IN_JITTER")..'"' )
