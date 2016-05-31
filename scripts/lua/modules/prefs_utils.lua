@@ -28,27 +28,27 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     v_s = _GET[key]
     v = tonumber(v_s)
 
-    v_cache = ntop.getCache(k)
+    v_cache = ntop.getPref(k)
     value = v_cache
     if ((v_cache==nil) or (v ~= v_cache)) then
 
       if(v ~= nil and (v > 0) and (v <= 86400)) then
-        ntop.setCache(k, tostring(v))
+        ntop.setPref(k, tostring(v))
         value = v
       elseif (v_s ~= nil) then
         v_s = string.gsub(v_s, "ldaps:__", "ldaps://")
         v_s = string.gsub(v_s, "ldap:__", "ldap://")
-        ntop.setCache(k, v_s)
+        ntop.setPref(k, v_s)
         value = v_s
       end
       -- least but not last we ascynchronously notify the runtime ntopng instance for changes
       notifyNtopng(key)
     end
   else
-    v_s = ntop.getCache(k)
+    v_s = ntop.getPref(k)
     value = v_s
     if((v_s==nil) or (v_s=="")) then
-      ntop.setCache(k, tostring(default_value))
+      ntop.setPref(k, tostring(default_value))
       value = default_value
       notifyNtopng(key)
     end
@@ -79,11 +79,11 @@ end
 
 function toggleTableButton(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field, redis_key, disabled)
   if(_GET[submit_field] ~= nil) then
-    ntop.setCache(redis_key, _GET[submit_field])
+    ntop.setPref(redis_key, _GET[submit_field])
     value = _GET[submit_field]
     notifyNtopng(submit_field)
   else
-    value = ntop.getCache(redis_key)
+    value = ntop.getPref(redis_key)
   end
   if (disabled == true) then
     disabled = 'disabled = ""'
@@ -117,10 +117,10 @@ end
 function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement)
 
-  value = ntop.getCache(redis_key)
+  value = ntop.getPref(redis_key)
   if(_GET[submit_field] ~= nil) then
     if ( (value == nil) or (value ~= _GET[submit_field])) then
-      ntop.setCache(redis_key, _GET[submit_field])
+      ntop.setPref(redis_key, _GET[submit_field])
       value = _GET[submit_field]
       notifyNtopng(submit_field)
     end
@@ -131,7 +131,7 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
       else
         value = off_value
       end
-      ntop.setCache(redis_key, value)
+      ntop.setPref(redis_key, value)
       notifyNtopng(submit_field)
     end
   end
@@ -214,14 +214,14 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
                                   javascriptAfterSwitch, showElement)
   if(_GET[submit_field] ~= nil) then
-    ntop.setCache(redis_key, _GET[submit_field])
+    ntop.setPref(redis_key, _GET[submit_field])
     value = _GET[submit_field]
     notifyNtopng(submit_field)
   else
-    value = ntop.getCache(redis_key)
+    value = ntop.getPref(redis_key)
     if(value == "") then
       if(default_value ~= nil) then
-        ntop.setCache(redis_key, default_value)
+        ntop.setPref(redis_key, default_value)
         value = default_value
       end
     end
