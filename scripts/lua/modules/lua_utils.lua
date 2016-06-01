@@ -296,6 +296,7 @@ end
 -- ##############################################
 
 function printASN(asn, asname)
+  asname = asname:gsub('"','')
   if(asn > 0) then
     return("<A HREF='http://as.robtex.com/as"..asn..".html' title='"..asname.."'>"..asname.."</A> <i class='fa fa-external-link fa-lg'></i>")
   else
