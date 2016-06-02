@@ -70,9 +70,9 @@ class GenericHashEntry {
    * @brief Get the last seen time.
    * @details Inline method.
    * 
-b   * @return Time of last seen.
+   * @return Time of last seen.
    */
-  inline time_t get_last_seen()      { return(last_seen); };
+  inline time_t get_last_seen()       { return(last_seen); };
   /**
    * @brief Get the next hash entry.
    * @details Inline method.

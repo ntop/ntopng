@@ -38,7 +38,7 @@ GenericHashEntry::~GenericHashEntry() {
 void GenericHashEntry::updateSeen(time_t _last_seen) {
   last_seen = _last_seen;
 
-  if(first_seen == 0)
+  if((first_seen == 0) || (first_seen > last_seen))
     first_seen = last_seen;
 }
 
