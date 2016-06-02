@@ -184,7 +184,7 @@ for k,v in pairsByKeys(ifnames, asc) do
    if(v == ifname) then
       print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..k.."\">")
    else
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/set_active_interface.lua?id="..k.."\">")
+      print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?switch_interface=1&id="..k.."\">")
    end
 
    if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
