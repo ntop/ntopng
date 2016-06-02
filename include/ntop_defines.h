@@ -129,6 +129,8 @@
 #define DOMAIN_WHITELIST_CAT    "ntopng.domain.whitelist"
 #define DNS_CACHE               "ntopng.dns.cache"
 #define DNS_TO_RESOLVE          "ntopng.dns.toresolve"
+#define NTOPNG_TRACE            "ntopng.trace"
+#define MAX_NUM_NTOPNG_TRACES   32
 #define TRAFFIC_FILTERING_CACHE            "ntopng.trafficfiltering.cache"
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
 #define DROP_HOST_TRAFFIC       "ntopng.prefs.drop_host_traffic"

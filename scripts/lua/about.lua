@@ -94,16 +94,12 @@ end
 
 print(" Edition</td></tr>\n")
 
-print("<tr><th>Platform</th><td>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
 if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
    print("<tr><th>Built on</th><td>"..info["OS"].."</td></tr>\n") 
 end
-print("<tr><th>Currently Logged User</th><td><i class='fa fa-user fa-lg'></i> ".._SESSION["user"].." [") 
-if(isAdministrator()) then print("Administrator") else print("Unprivileged User") end
-print("]</td></tr>\n")
-print("<tr><th>Uptime</th><td><i class='fa fa-clock-o fa-lg'></i> "..secondsToTime(info["uptime"]).."</td></tr>\n")
-print("<tr><th>Command Line</th><td>ntopng "..info["command_line"].."</td></tr>\n")
-print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
+
+
+--print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
 
 ndpi_ver = info["version.ndpi"]
 if (ndpi_ver ~= nil) then
