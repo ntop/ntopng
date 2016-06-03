@@ -130,7 +130,6 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
 if(ifstats.vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
    print [[
-
 	 var table = $("#table-flows").datatable({
 			url: url_update , ]]
 print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')

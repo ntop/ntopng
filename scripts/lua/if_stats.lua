@@ -18,6 +18,29 @@ page = _GET["page"]
 if_name = _GET["if_name"]
 ifid = (_GET["id"] or _GET["ifId"])
 
+msg = ""
+
+if(_GET["switch_interface"] ~= nil) then
+-- First switch interfaces so the new cookie will have effect
+ifname = interface.setActiveInterfaceId(tonumber(ifid))
+
+--print("@"..ifname.."="..id.."@")
+if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
+   key = getRedisPrefix("ntopng.prefs") .. ".ifname"
+   ntop.setCache(key, ifname)
+
+   msg = "<div class=\"alert alert-success\">The selected interface <b>" .. getHumanReadableInterfaceName(ifid)
+   msg = msg .. "</b> [id: ".. ifid .."] is now active</div>"
+
+   ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
+else
+   msg = "<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Error while switching interfaces</div>"
+if(_SESSION["session"] == nil) then
+   msg = msg .."<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Empty session</div>"
+end
+end
+end
+
 -- parse interface names and possibly fall back to the selected interface:
 -- priority goes to the interface id
 if ifid ~= nil and ifid ~= "" then
@@ -114,9 +137,11 @@ active_page = "if_stats"
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+print(msg)
+
 rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
-url= ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
+url = ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
@@ -127,7 +152,6 @@ print [[
   <div class="navbar-collapse collapse">
     <ul class="nav navbar-nav">
 ]]
-
 
 short_name = getHumanReadableInterfaceName(if_name)
 

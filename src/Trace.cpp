@@ -102,6 +102,9 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
     printf("%s\n", out_buf);
     fflush(stdout);
 
+    if(ntop->getRedis())
+      ntop->getRedis()->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES);
+
     // trace_mutex.unlock();
 
 #ifndef WIN32

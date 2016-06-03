@@ -452,7 +452,7 @@ int Redis::twoOperators(const char *operation, char *op1, char *op2) {
   reply = (redisReply*)redisCommand(redis, "%s %s %s", operation, op1, op2);
   if(!reply) reconnectRedis();
 
-  if(reply 
+  if(reply
      && (reply->type == REDIS_REPLY_ERROR)
      && strcmp(reply->str, "ERR no such key"))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
@@ -1012,11 +1012,35 @@ int Redis::lpop(const char *queue_name, char *buf, u_int buf_len) {
 }
 
 /* ******************************************* */
-int Redis::lpop(const char *queue_name, char ***elements, u_int num_elements) {
-  int rc;
 
+int Redis::lindex(const char *queue_name, int idx, char *buf, u_int buf_len) {
+  int rc;
   redisReply *reply;
 
+  l->lock(__FILE__, __LINE__);
+  reply = (redisReply*)redisCommand(redis, "LINDEX %s %d", queue_name, idx);
+
+  if(!reply) reconnectRedis();
+
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+  if(reply && reply->str)
+    snprintf(buf, buf_len, "%s", reply->str), rc = 0;
+  else
+    buf[0] = '\0', rc = -1;
+
+  if(reply) freeReplyObject(reply);
+  l->unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
+/* ******************************************* */
+
+int Redis::lpop(const char *queue_name, char ***elements, u_int num_elements) {
+  int rc;
+  redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
 

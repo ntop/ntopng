@@ -3792,6 +3792,29 @@ static int ntop_get_redis_set_pop(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_list_index_redis(lua_State* vm) {
+  char *index_name, rsp[CONST_MAX_LEN_REDIS_VALUE];
+  Redis *redis = ntop->getRedis();
+  int idx;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING))  return(CONST_LUA_ERROR);
+  if((index_name = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  idx = lua_tointeger(vm, 2);
+
+  if(redis->lindex(index_name, idx, rsp, sizeof(rsp)) != 0)
+    return(CONST_LUA_ERROR);
+
+  lua_pushfstring(vm, "%s", rsp);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_redis_get_host_id(lua_State* vm) {
   char *host_name;
   Redis *redis = ntop->getRedis();
@@ -4387,9 +4410,10 @@ static const luaL_Reg ntop_reg[] = {
   { "checkLicense",   ntop_check_license },
 
   /* Redis */
-  { "getCache",       ntop_get_redis },
+  { "getCache",        ntop_get_redis },
   { "setCache",        ntop_set_redis },
   { "delCache",        ntop_delete_redis_key },
+  { "listIndexCache",  ntop_list_index_redis },
   { "getMembersCache", ntop_get_set_members_redis },
   { "getHashCache",    ntop_get_hash_redis },
   { "setHashCache",    ntop_set_hash_redis },

@@ -57,12 +57,12 @@ class Redis {
   int hashGet(char *key, char *member, char *rsp, u_int rsp_len);
   int hashDel(char *key, char *field);
   int hashSet(char *key, char *field, char *value);
-  int delHash(char *key, char *member); 
+  int delHash(char *key, char *member);
   int set(char *key, char *value, u_int expire_secs=0);
   char* popSet(char *pop_name, char *rsp, u_int rsp_len);
   int keys(const char *pattern, char ***keys_p);
   int hashKeys(const char *pattern, char ***keys_p);
-  int del(char *key); 
+  int del(char *key);
   int zIncr(char *key, char *member);
   int zTrim(char *key, u_int trim_len);
   int zRevRange(const char *pattern, char ***keys_p);
@@ -74,7 +74,7 @@ class Redis {
 
   char* getTrafficFilteringCategory(char *numeric_ip, char *buf, u_int buf_len, bool query_httpbl_if_unknown);
   int popDomainToCategorize(char *domainname, u_int domainname_len);
-  
+
   int getAddress(char *numeric_ip, char *rsp, u_int rsp_len, bool queue_if_not_found);
   int getAddressTrafficFiltering(char *numeric_ip, NetworkInterface *iface,
 		       char *rsp, u_int rsp_len, bool queue_if_not_found);
@@ -92,6 +92,7 @@ class Redis {
   int id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len);
   int lpush(const char *queue_name, char *msg, u_int queue_trim_size);
   int rpush(const char *queue_name, char *msg, u_int queue_trim_size);
+  int lindex(const char *queue_name, int idx, char *buf, u_int buf_len);
   u_int llen(const char *queue_name);
   int lpop(const char *queue_name, char *buf, u_int buf_len);
   int lpop(const char *queue_name, char ***elements, u_int num_elements);

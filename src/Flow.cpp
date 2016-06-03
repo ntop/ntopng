@@ -90,6 +90,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
   passVerdict = true, categorization.categorized_requested = false;
+  if(_first_seen > _last_seen) _first_seen = _last_seen;
   first_seen = _first_seen, last_seen = _last_seen;
   memset(&categorization.category, 0, sizeof(categorization.category));
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
