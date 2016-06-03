@@ -1815,7 +1815,6 @@ elseif (page == "config") then
 	    ntop.enableHostAlerts(host_ip, host_vlan)
          else
 	    ntop.setHashCache("ntopng.prefs.alerts", host_ip, trigger_alerts)
-	    tprint(ntop)
 	    ntop.disableHostAlerts(host_ip, host_vlan)
          end
       end
