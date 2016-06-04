@@ -1372,7 +1372,7 @@ function hostinfo2jqueryid(host_info,host_type)
 
 
   if((host_info["vlan"] ~= nil) and (host_info["vlan"] ~= 0)) then
-    rsp = rsp..'_'..tostring(host_info["vlan"])
+    rsp = rsp..'@'..tostring(host_info["vlan"])
   end
 
   rsp = string.gsub(rsp, "%.", "__")

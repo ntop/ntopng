@@ -49,7 +49,6 @@ function hostkey2hostInfo(host_key) {
     host_key = host_key.replace(/____/g, ":");
     host_key = host_key.replace(/___/g, "/");
     host_key = host_key.replace(/__/g, ".");
-    host_key = host_key.replace(/@/g, ".");
 
     info = host_key.split("@");
     return(info);
@@ -67,10 +66,10 @@ function row_update(host_key) {
       var data = jQuery.parseJSON(content);
       // console.log(url);
       // console.log(data);
-      $("#"+host_key+'_since').html(data.column_since);
-      $("#"+host_key+'_breakdown').html(data.column_breakdown);
-      $("#"+host_key+'_throughput').html(data.column_thpt);
-      $("#"+host_key+'_traffic').html(data.column_traffic);
+      $('td[id="'+host_key+'_since"]').html(data.column_since);
+      $('td[id="'+host_key+'_breakdown"]').html(data.column_breakdown);
+      $('td[id="'+host_key+'_throughput"]').html(data.column_thpt);
+      $('td[id="'+host_key+'_traffic"]').html(data.column_traffic);
     },
     error: function(content) {
       console.log("error");
