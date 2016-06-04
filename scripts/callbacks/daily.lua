@@ -19,7 +19,9 @@ end
 harvestJSONTopTalkers(30)
 
 -- Scan "day" alerts
-scanAlerts("day")
+for _, ifname in pairs(interface.getIfNames()) do
+   scanAlerts("day", ifname)
+end
 
 local debug = false
 local delete_keys = true

@@ -479,28 +479,25 @@ end
 
 -- #################################
 
-function scanAlerts(granularity)
-    local ifnames = interface.getIfNames()
-    for _,ifname in pairs(ifnames) do
-        if(verbose) then print("[minute.lua] Processing interface " .. ifname.."<p>\n") end
+function scanAlerts(granularity, ifname)
+   if(verbose) then print("[minute.lua] Scanning ".. granularity .." alerts for interface " .. ifname.."<p>\n") end
 
-        check_interface_threshold(ifname, granularity)
-        check_networks_threshold(ifname, granularity)
-        -- host alerts checks
-        local hash_key = "ntopng.prefs.alerts_"..granularity
-        local hosts = ntop.getHashKeysCache(hash_key)
-        if(hosts ~= nil) then
-            for h in pairs(hosts) do
-                if(verbose) then print("[minute.lua] Checking host " .. h.." alerts<p>\n") end
-                check_host_threshold(ifname, h, granularity)
-            end
-        end
-        -- network alerts checks
-        if(networks ~= nil) then
-            for n in pairs(networks) do
-                if(verbose) then print("[minute.lua] Checking network " .. h.." alerts<p>\n") end
-            end
-        end
-    end -- interfaces
+   check_interface_threshold(ifname, granularity)
+   check_networks_threshold(ifname, granularity)
+   -- host alerts checks
+   local hash_key = "ntopng.prefs.alerts_"..granularity
+   local hosts = ntop.getHashKeysCache(hash_key)
+   if(hosts ~= nil) then
+      for h in pairs(hosts) do
+	 if(verbose) then print("[minute.lua] Checking host " .. h.." alerts<p>\n") end
+	 check_host_threshold(ifname, h, granularity)
+      end
+   end
+   -- network alerts checks
+   if(networks ~= nil) then
+      for n in pairs(networks) do
+	 if(verbose) then print("[minute.lua] Checking network " .. h.." alerts<p>\n") end
+      end
+   end
 end
 

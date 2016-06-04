@@ -14,4 +14,6 @@ if (ntop.isPro()) then
 end
 
 -- Scan "hour" alerts
-scanAlerts("hour")
+for _, ifname in pairs(interface.getIfNames()) do
+   scanAlerts("hour", ifname)
+end

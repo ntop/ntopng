@@ -17,8 +17,11 @@ require "top_structure"
 when = os.time()
 
 local verbose = ntop.verboseTrace()
+
 -- Scan "minute" alerts
-scanAlerts("min")
+for _, ifname in pairs(interface.getIfNames()) do
+   scanAlerts("min", ifname)
+end
 
 ifnames = interface.getIfNames()
 num_ifaces = 0
@@ -91,7 +94,7 @@ for _,_ifname in pairs(ifnames) do
 
       if(verbose or (diff < 60)) then
 	 -- Scan "5 minute" alerts
-	 scanAlerts("5mins")
+	 scanAlerts("5mins", _ifname)
 
 	 basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 	 for k in pairs(ifstats["ndpi"]) do
@@ -127,8 +130,10 @@ for _,_ifname in pairs(ifnames) do
             local networks_aggr = {}
 	    local vlans_aggr    = {}
 
-            for hosts_stats_ifname, hosts_stats in pairs(interface.getLocalHostsInfo(false)) do
-	    hosts_stats = hosts_stats["hosts"]
+	    interface.select(_ifname) -- just to make sure ;)
+	    hosts_stats = interface.getLocalHostsInfo(false)
+	    hosts_stats,_ = aggregateHostsStats(hosts_stats)
+
 	    for hostname, hoststats in pairs(hosts_stats) do
 	       host = interface.getHostInfo(hostname)
 
@@ -268,8 +273,7 @@ for _,_ifname in pairs(ifnames) do
 		  else
 		     -- print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..hostname.."\n")
 		  end
-	       end -- if
-	    end -- for
+	       end -- if host ~= nil
             end
 
 	    -- create RRD for vlans
