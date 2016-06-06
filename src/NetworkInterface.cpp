@@ -778,6 +778,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       tcp_len = min_val(4*tcph->doff, l4_packet_len);
       payload = &l4[tcp_len];
       payload_len = max_val(0, l4_packet_len-4*tcph->doff);
+      // TODO: check if payload should be set to NULL when payload_len == 0
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid TCP packet received [%u bytes long]", l4_packet_len);
@@ -909,8 +910,19 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     case NDPI_PROTOCOL_DNS:
       struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
 
-      if(payload) {
-	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)payload;
+      /*
+      DNS-over-TCP flows may carry zero-payload TCP segments
+      e.g., during three-way-handshake, or when acknowledging.
+      Make sure only non-zero-payload segments are processed.
+      */
+      if(payload_len > 0 && payload) {
+	/*
+	DNS-over-TCP has a 2-bytes field with DNS payload length
+	at the beginning. See RFC1035 section 4.2.2. TCP usage.
+	*/
+	u_int8_t dns_offset = l4_proto == IPPROTO_TCP && payload_len > 1 ? 2 : 0;
+
+	struct ndpi_dns_packet_header *header = (struct ndpi_dns_packet_header*)(payload + dns_offset);
 	u_int16_t dns_flags = ntohs(header->flags);
 	bool is_query   = ((dns_flags & 0x8000) == 0x8000) ? false : true;
 
@@ -929,7 +941,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
 	    client->incNumDNSQueriesSent(query_type), server->incNumDNSQueriesRcvd(query_type);
 	  } else {
-	    u_int8_t ret_code = is_query ? 0 : (dns_flags & 0x0F);
+	    u_int8_t ret_code = (dns_flags & 0x000F);
 
 	    client->incNumDNSResponsesSent(ret_code), server->incNumDNSResponsesRcvd(ret_code);
 	  }
