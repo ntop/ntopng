@@ -616,7 +616,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
-    lua_push_int_table_entry(vm, "num_alerts", getNumAlerts());
+    lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 
     if(ip) {
       if(ntop->getPrefs()->is_httpbl_enabled())
