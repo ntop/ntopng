@@ -913,7 +913,7 @@ else
    ]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
    print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-       <button class="btn btn-primary btn-xs" type="submit">Delete All</button>
+       <button class="btn btn-primary" type="submit">Delete All</button>
 
      </div>
    </form>

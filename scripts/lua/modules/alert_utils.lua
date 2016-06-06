@@ -338,7 +338,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
             local rc = f()
 
             if(rc) then
-                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?if_name="..ifname..
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
                 ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
                 local alert_level = 1 -- alert_level_warning
                 local alert_status = 1 -- alert_on
