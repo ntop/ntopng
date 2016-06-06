@@ -439,7 +439,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    -- if(value["category"] ~= nil) then print (", \"column_category\" : \"" .. value["category"] .. "\", ") else print (",") end
    print (", \"column_proto_l4\" : \"")
 
-   if(value["flow.status"] ~= 0) then
+   if(interface.isPacketInterface() and value["flow.status"] ~= 0) then
      print("<i class='fa fa-warning fa-lg' style='color: orange;'></i> ")
    end
 

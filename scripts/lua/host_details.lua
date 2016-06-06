@@ -588,17 +588,25 @@ end
 
    print("<tr><th>Traffic Sent / Received</th><td><span id=pkts_sent>" .. formatPackets(host["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(host["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(host["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(host["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
-   print("<tr><th rowspan=2>Active Flows / Active Low Goodput / Total </th><th>'As Client'</th><th>'As Server'</th></tr>\n")
+   local flows_th = "Recently Active Flows / Total"
+   if interface.isPacketInterface() then
+      flows_th = "Active Flows / Active Low Goodput / Total"
+   end
+
+   print("<tr><th rowspan=2>"..flows_th.."</th><th>'As Client'</th><th>'As Server'</th></tr>\n")
    print("<tr><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
-   print("/ <span id=low_goodput_as_client>" .. formatValue(host["low_goodput_flows.as_client"]) .. "</span> <span id=low_goodput_trend_as_client></span>\n")
    print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
-   print("</td>\n")
+   if interface.isPacketInterface() then
+      print("/ <span id=low_goodput_as_client>" .. formatValue(host["low_goodput_flows.as_client"]) .. "</span> <span id=low_goodput_trend_as_client></span>\n")
+   end
+   print("</td>")
 
    print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
-   print("/ <span id=low_goodput_as_server>" .. formatValue(host["low_goodput_flows.as_server"]) .. "</span> <span id=low_goodput_trend_as_server></span>\n")
    print("/ <span id=flows_as_server>"..formatValue(host["flows.as_server"]) .. "</span> <span id=trend_as_server></span> \n")
-   print("</td></tr>\n")
-
+   if interface.isPacketInterface() then
+      print("/ <span id=low_goodput_as_server>" .. formatValue(host["low_goodput_flows.as_server"]) .. "</span> <span id=low_goodput_trend_as_server></span>\n")
+   end
+   print("</td></tr>")
 
    if(host["tcp.packets.seq_problems"]) then
       print("<tr><th width=30% rowspan=3>TCP Packets Sent Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
@@ -1169,6 +1177,12 @@ if(ifstats.vlan)   then show_vlan = true else show_vlan = false end
 if(show_sprobe) then print ('flow_rows_option["sprobe"] = true;\n') end
 if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 
+
+local active_flows_msg = "Active Flows"
+if not interface.isPacketInterface() then
+   active_flows_msg = "Recently "..active_flows_msg
+end
+
 if(show_sprobe) then
 print [[
   //console.log(url_update);
@@ -1185,8 +1199,8 @@ if(preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 print ('sort: [ ["' .. getDefaultTableSort("flows") ..'","' .. getDefaultTableSortOrder("flows").. '"] ],\n')
 
-  print [[
-         title: "Active Flows",]]
+
+print('title: "'..active_flows_msg..'",')
 
   ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sflows_stats_top.inc")
   prefs = ntop.getPrefs()
@@ -1201,8 +1215,7 @@ print [[
 	       showPagination: true,
 	       ]]
 
-  print [[
-         title: "Active Flows",]]
+  print('title: "'..active_flows_msg..'",')
 
 -- Set the preference table
 preference = tablePreferences("rows_number",_GET["perPage"])

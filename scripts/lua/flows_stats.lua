@@ -137,11 +137,22 @@ print ('rowCallback: function ( row ) { return flow_table_setID(row); },\n')
 preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
-print(" title: \"Active ".. (application or vhost or "").." Flows")
+-- prepare the page title that slighly changes depending on
+-- the kind of interface
+local active_msg = "Active "
+
+if not interface.isPacketInterface() then
+   active_msg = "Recently "..active_msg
+end
+
+active_msg = active_msg..(application or vhost or "").." Flows"
 
 if(network_name ~= nil) then
-   print(" [ Network "..network_name.." ]")
+   active_msg = active_msg.." [ Network "..network_name.." ]"
 end
+
+print(" title: \""..active_msg)
+
 
 print [[",
          showFilter: true,
