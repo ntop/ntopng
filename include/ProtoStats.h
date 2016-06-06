@@ -26,7 +26,7 @@
 
 class ProtoStats {
  private:
-  u_int64_t numPkts, numBytes;
+  u_int64_t volatile numPkts, numBytes;
 
  public:
   ProtoStats();
