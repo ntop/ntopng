@@ -1585,11 +1585,14 @@ json_object* Flow::flow2json(bool partial_dump) {
 
   if(json_info && strcmp(json_info, "{}")) {
     json_object *o;
+    enum json_tokener_error jerr = json_tokener_success;
 
-    if((o = json_tokener_parse(json_info)) != NULL)
+    if((o = json_tokener_parse_verbose(json_info, &jerr)) != NULL)
       json_object_object_add(my_object, "json", o);
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error: %s", json_info);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s]: %s",
+				   json_tokener_error_desc(jerr),
+				   json_info);
   }
 
   if(vlanId > 0) json_object_object_add(my_object,

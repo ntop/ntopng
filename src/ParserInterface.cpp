@@ -421,12 +421,13 @@ int ParserInterface::getKeyId(char *sym) {
 
 u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
+  enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface * iface = (NetworkInterface*)data;
    
   // payload[payload_size] = '\0';
    
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
-  o = json_tokener_parse(payload);  
+  o = json_tokener_parse_verbose(payload, &jerr);
    
   if(o != NULL) {
     struct json_object_iterator it = json_object_iter_begin(o);
@@ -473,11 +474,15 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
     json_object_put(o);
   } else {
     // if o != NULL
-    if(!once)
+    if(!once){
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr),
+				   payload_size,
+				   payload);
+    }
     once = true;
-    // ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
     return -1;
   }
 
@@ -488,12 +493,13 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
 
 u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data) {
   json_object *o;
+  enum json_tokener_error jerr = json_tokener_success;
   ZMQ_Flow flow;
   NetworkInterface * iface = (NetworkInterface*)data;
 
   // payload[payload_size] = '\0';
 
-  o = json_tokener_parse(payload);
+  o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o != NULL) {
     struct json_object_iterator it = json_object_iter_begin(o);
@@ -707,11 +713,15 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
     json_object_put(flow.additional_fields);
   } else {
     // if o != NULL
-    if(!once)
+    if(!once){
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr),
+				   payload_size,
+				   payload);
+    }
     once = true;
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%u] %s", payload_size, payload);
     return -1;
   }
 
