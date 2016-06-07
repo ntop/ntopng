@@ -315,7 +315,7 @@ void Flow::processDetectedProtocol() {
 	if(name) {
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
 
-	  if(ndpiFlow->protos.dns.ret_code == 0) {
+	  if(ndpiFlow->protos.dns.reply_code == 0) {
 	    if(ndpiFlow->protos.dns.num_answers > 0) {
 	      protocol_processed = true;
 
