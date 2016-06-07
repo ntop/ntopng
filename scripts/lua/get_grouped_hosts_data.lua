@@ -59,26 +59,6 @@ else
    tablePreferences("rows_number",perPage)
 end
 
-interface.select(ifname)
-
-if((group_col == "mac") or (group_col == "antenna_mac")) then
-   hosts_stats,total = aggregateHostsStats(interface.getLocalHostsInfo(false))
-   --PRINT
-   -- for n in pairs(hosts_stats) do 
-   --    io.write("= "..n..'\n')
-   -- end
-else
---[[
-   hosts_stats,total = interface.getGroupedHosts(
-					      tonumber(vlan_n) or 0,
-					      tonumber(as_n) or 0,
-					      tonumber(network_n) or -1,
-					      country_n or "", os_n or "")
---]]
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo(false))
---   tprint(hosts_stats)
-end
-
 to_skip = (currentPage-1) * perPage
 
 if (all ~= nil) then
@@ -97,7 +77,9 @@ vals = {}
 
 stats_by_group_col = {}
 
+interface.select(ifname)
 stats_by_group_key=interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n)) -- false = little details)
+
 stats_by_group_col = stats_by_group_key["groups"]
 
 --[[

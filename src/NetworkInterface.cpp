@@ -2247,9 +2247,12 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
 
   hosts_hash->disablePurge();
 
-  sortHosts(&retriever, allowed_hosts, host_details, location,
-	    countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
-	    sortColumn, hosts_hash->getCurrentSize());
+  if(sortHosts(&retriever, allowed_hosts, host_details, location,
+	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
+	       sortColumn, hosts_hash->getCurrentSize()) < 0){
+    hosts_hash->enablePurge();
+    return -1;
+  }
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
@@ -2285,7 +2288,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   }
 
   // finally free the elements regardless of the sorted kind
-  free(retriever.elems);
+  if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
 }
@@ -2303,15 +2306,19 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   hosts_hash->disablePurge();
 
   // sort hosts according to the grouping criterion
-  sortHosts(&retriever, allowed_hosts, host_details, location,
-	    countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
-	    groupColumn, hosts_hash->getCurrentSize());
+  if(sortHosts(&retriever, allowed_hosts, host_details, location,
+	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
+	       groupColumn, hosts_hash->getCurrentSize()) < 0 ){
+    hosts_hash->enablePurge();
+    return -1;
+  }
 
   // build a new grouper that will help in aggregating stats
   if((gper = new(std::nothrow) Grouper(retriever.sorter)) == NULL){
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
-    return(-1);
+    hosts_hash->enablePurge();
+    return -1;
   }
 
   lua_newtable(vm);
@@ -2356,7 +2363,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   }
 
   // finally free the elements regardless of the sorted kind
-  free(retriever.elems);
+  if(retriever.elems) free(retriever.elems);
 
   return(retriever.actNumEntries);
 }

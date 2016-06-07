@@ -277,6 +277,9 @@ void Flow::processDetectedProtocol() {
       if(double_column) double_column[0] = '\0';
     }
 
+    /*
+    Host server name equals the Host: HTTP header field.
+    */
     host_server_name = strdup((char*)ndpiFlow->host_server_name);
     categorizeFlow();
   }
