@@ -359,12 +359,15 @@ for _key, _value in pairsByKeys(vals, funct) do
    if(cli_name == nil) then cli_name = "???" end
    if(srv_name == nil) then srv_name = "???" end
 
+   local cli_tooltip = cli_name
+   local srv_tooltip = srv_name
+
    if((value["tcp.nw_latency.client"] ~= nil) and (value["tcp.nw_latency.client"] > 0)) then
-      cli_tooltip = "client nw latency: "..string.format("%.3f", value["tcp.nw_latency.client"]).." ms"
+      cli_tooltip = cli_tooltip.."&#10;nw latency: "..string.format("%.3f", value["tcp.nw_latency.client"]).." ms"
    end
 
    if((value["tcp.nw_latency.server"] ~= nil) and (value["tcp.nw_latency.server"] > 0)) then
-      srv_tooltip = "server nw latency: "..string.format("%.3f", value["tcp.nw_latency.server"]).." ms"
+      srv_tooltip = srv_tooltip.."&#10;nw latency: "..string.format("%.3f", value["tcp.nw_latency.server"]).." ms"
    end
 
    if(value["cli.allowed_host"]) then
