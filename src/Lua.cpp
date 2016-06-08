@@ -1108,7 +1108,9 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
  * @param vm The lua state.
  * @return CONST_LUA_OK.
  */
-static int ntop_get_interface_flows(lua_State* vm, LocationPolicy location) {
+/*
+  // TODO: remove this method in favour of the newest one
+static int ntop_get_interface_flows_legacy(lua_State* vm, LocationPolicy location) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char buf[64];
   char *host_ip = NULL, *sortColumn = (char*)"column_client";
@@ -1153,13 +1155,53 @@ static int ntop_get_interface_flows(lua_State* vm, LocationPolicy location) {
 					    host, l7_proto, location, sortColumn, maxHits,
 					    toSkip, a2zSortOrder);
 
-    /* FIX: do something with flows number */
     if(numFlows < 0) return(CONST_LUA_ERROR);
   }
 
   return(CONST_LUA_OK);
 }
+*/
+/* ****************************************** */
 
+static int ntop_get_interface_flows(lua_State* vm, LocationPolicy location) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+  char buf[64];
+  char *host_ip = NULL;
+  u_int16_t vlan_id = 0;
+  Host *host = NULL;
+  Paginator *p = NULL;
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if((p = new(std::nothrow) Paginator()) == NULL)
+    return(CONST_LUA_ERROR);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+    host = ntop_interface->getHost(host_ip, vlan_id);
+  }
+
+  if(lua_type(vm, 2) == LUA_TTABLE){
+    p->readOptions(vm, 2);
+  }
+
+  int numFlows = -1;
+  if(ntop_interface) {
+    numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), location, host, p);
+  }
+
+  if(p) delete p;
+  return numFlows < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
+}
+
+/* TODO: remove these legacies
+static int ntop_get_interface_flows_info(lua_State* vm)        { return(ntop_get_interface_flows_legacy(vm, location_all));          }
+static int ntop_get_interface_local_flows_info(lua_State* vm)  { return(ntop_get_interface_flows_legacy(vm, location_local_only));   }
+static int ntop_get_interface_remote_flows_info(lua_State* vm) { return(ntop_get_interface_flows_legacy(vm, location_remote_only));  }
+*/
 static int ntop_get_interface_flows_info(lua_State* vm)        { return(ntop_get_interface_flows(vm, location_all));          }
 static int ntop_get_interface_local_flows_info(lua_State* vm)  { return(ntop_get_interface_flows(vm, location_local_only));   }
 static int ntop_get_interface_remote_flows_info(lua_State* vm) { return(ntop_get_interface_flows(vm, location_remote_only));  }

@@ -32,6 +32,7 @@ class FlowHash;
 class Host;
 class HostHash;
 class DB;
+class Paginator;
 
 #ifdef NTOPNG_PRO
 class L7Policer;
@@ -258,6 +259,9 @@ class NetworkInterface {
 		Host *host, int ndpi_proto, LocationPolicy location,
 		char *sortColumn, u_int32_t maxHits,
 		u_int32_t toSkip, bool a2zSortOrder);
+  int  getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
+		LocationPolicy location, Host *host,
+		Paginator *p);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts,
 			char *numIP, u_int16_t vlanId);
 

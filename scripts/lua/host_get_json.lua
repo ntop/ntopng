@@ -82,7 +82,10 @@ else
       end
       local total = 0
 
-      local flows = interface.getFlowsInfo(host_info["host"], nil, "column_bytes", host_stats_flows_num, 0, false)
+      local paginfo = {["sortColumn"]="column_bytes", ["a2zSortOrder"]=false,
+	 ["maxHits"]=host_stats_flows_num, ["toSkip"]=0, ["detailedResults"]=true}
+      --local flows = interface.getFlowsInfo(host_info["host"], nil, "column_bytes", host_stats_flows_num, 0, false)
+      local flows = interface.getFlowsInfo(host_info["host"], paginfo)
       flows,total = aggregateFlowsStats(flows)
       for i, fl in ipairs(flows) do
 	 flows[i] = {

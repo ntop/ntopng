@@ -1871,6 +1871,9 @@ struct flowHostRetriever {
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
   struct flowHostRetrieveList *elems;
+
+  /* Paginator */
+  Paginator *pag;
 };
 
 /* **************************************************** */
@@ -1878,6 +1881,8 @@ struct flowHostRetriever {
 static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   struct flowHostRetriever *retriever = (struct flowHostRetriever*)user_data;
   Flow *f = (Flow*)h;
+  int ndpi_proto;
+  u_int16_t port;
 
   if(f && (!f->idle())) {
     if(retriever->host
@@ -1885,9 +1890,17 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && (retriever->host != f->get_srv_host()))
     return(false); /* false = keep on walking */
 
-    if((retriever->ndpi_proto != -1)
-       && (f->get_detected_protocol().protocol != retriever->ndpi_proto)
-       && (f->get_detected_protocol().master_protocol != retriever->ndpi_proto))      
+    if(retriever->pag
+       && retriever->pag->l7protoFilter(&ndpi_proto)
+       && ndpi_proto != -1
+       && (f->get_detected_protocol().protocol != ndpi_proto)
+       && (f->get_detected_protocol().master_protocol != ndpi_proto))
+      return(false); /* false = keep on walking */
+
+    if(retriever->pag
+       && retriever->pag->portFilter(&port)
+       && f->get_cli_port() != port
+       && f->get_srv_port() != port)
       return(false); /* false = keep on walking */
 
     if(retriever->location == location_local_only) {
@@ -1905,14 +1918,14 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
     if(f->match(retriever->allowed_hosts)) {
       switch(retriever->sorter) {
       case column_client:
- 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
+	retriever->elems[retriever->actNumEntries++].hostValue = f->get_cli_host();
 	break;
       case column_server:
 	retriever->elems[retriever->actNumEntries++].hostValue = f->get_srv_host();
 	break;
       case column_vlan:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_vlan_id();
-	break;	
+	break;
       case column_proto_l4:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
 	break;
@@ -2063,6 +2076,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   bool highDetails = (location == location_local_only || (maxHits != CONST_MAX_NUM_HITS)) ? true : false;
 
   if(maxHits > CONST_MAX_NUM_HITS) maxHits = CONST_MAX_NUM_HITS;
+  retriever.pag = NULL;
   retriever.host = host, retriever.ndpi_proto = ndpi_proto, retriever.location = location;
   retriever.actNumEntries = 0, retriever.maxNumEntries = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
@@ -2119,6 +2133,92 @@ int NetworkInterface::getFlows(lua_State* vm,
       lua_settable(vm, -3);
 
       if(++num >= (int)maxHits) break;
+    }
+  }
+
+  lua_pushstring(vm, "flows"); // Key
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  flows_hash->enablePurge();
+  free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
+/* **************************************************** */
+
+int NetworkInterface::getFlows(lua_State* vm,
+			       patricia_tree_t *allowed_hosts,
+			       LocationPolicy location, Host *host,
+			       Paginator *p) {
+  struct flowHostRetriever retriever;
+  int (*sorter)(const void *_a, const void *_b);
+
+  if(p == NULL){
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
+    return(-1);
+  }
+  bool highDetails = p->detailedResults() ? true : (location == location_local_only || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? true : false;
+
+  retriever.pag = p;
+  retriever.host = host, retriever.location = location;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
+  retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
+
+  if(retriever.elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  char sortColumn[32];
+  snprintf(sortColumn, sizeof(sortColumn), "%s", p->sortColumn());
+  if(!strcmp(sortColumn, "column_client")) retriever.sorter = column_client, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_server")) retriever.sorter = column_server, sorter = hostSorter;
+  else if(!strcmp(sortColumn, "column_proto_l4")) retriever.sorter = column_proto_l4, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_ndpi")) retriever.sorter = column_ndpi, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_duration")) retriever.sorter = column_duration, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt")) retriever.sorter = column_thpt, sorter = numericSorter;
+  else if((!strcmp(sortColumn, "column_bytes")) || (!strcmp(sortColumn, "column_") /* default */)) retriever.sorter = column_bytes, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_info")) retriever.sorter = column_info, sorter = stringSorter;
+  else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
+
+  /* ******************************* */
+
+  flows_hash->disablePurge();
+  flows_hash->walk(flow_search_walker, (void*)&retriever);
+
+  qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
+
+  lua_newtable(vm);
+
+  if(p->a2zSortOrder()) {
+    for(int i=p->toSkip(), num=0; i<(int)retriever.actNumEntries; i++) {
+      lua_newtable(vm);
+
+      retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
+
+      lua_pushnumber(vm, num + 1);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+      if(++num >= (int)p->maxHits()) break;
+
+    }
+  } else {
+    for(int i=(retriever.actNumEntries-1-p->toSkip()), num=0; i>=0; i--) {
+      lua_newtable(vm);
+
+      retriever.elems[i].flow->lua(vm, allowed_hosts, highDetails, true);
+
+      lua_pushnumber(vm, num + 1);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+      if(++num >= (int)p->maxHits()) break;
     }
   }
 

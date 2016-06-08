@@ -67,6 +67,9 @@ class NetworkInterfaceView {
 	       Host *host, int ndpi_proto, LocationPolicy location,
 	       char *sortColumn, u_int32_t maxHits,
 	       u_int32_t toSkip, bool a2zSortOrder);
+  int getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
+	       LocationPolicy location, Host *host,
+	       Paginator *p);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool correlateHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);

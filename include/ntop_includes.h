@@ -226,6 +226,7 @@ using namespace std;
 #include "HTTPBL.h"
 #include "HTTPserver.h"
 #include "RuntimePrefs.h"
+#include "Paginator.h"
 #include "Ntop.h"
 
 

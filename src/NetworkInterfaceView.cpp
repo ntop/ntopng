@@ -211,6 +211,30 @@ int NetworkInterfaceView::getFlows(lua_State* vm,
 
   return(ret);
 }
+/* **************************************************** */
+
+int NetworkInterfaceView::getFlows(lua_State* vm,
+				   patricia_tree_t *allowed_hosts,
+				   LocationPolicy location, Host *host,
+				   Paginator *p) {
+  int ret = 0;
+
+  lua_newtable(vm);
+
+  for(int i = 0; i<numInterfaces; i++) {
+    int rc = physIntf[i]->getFlows(vm, allowed_hosts,
+				   location, host, p);
+
+    if(rc < 0) return(ret);
+    rc += ret;
+
+    lua_pushstring(vm, physIntf[i]->get_name()); // Key
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  return(ret);
+}
 
 /* **************************************************** */
 

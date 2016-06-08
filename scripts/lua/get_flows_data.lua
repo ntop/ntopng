@@ -46,20 +46,20 @@ if(network_id ~= nil) then
    network_id = tonumber(network_id)
 end
 
-if((sortColumn == nil) or (sortColumn == "column_"))then
-  sortColumn = getDefaultTableSort("flows")
-else
-   if((sortColumn ~= "column_") and (sortColumn ~= "")) then
+if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
+   sortColumn = getDefaultTableSort("flows")
+elseif sortColumn ~= "column_" and  sortColumn ~= "" then
     tablePreferences("sort_flows",sortColumn)
-  end
+else
+   sortColumn = "column_client"
 end
 
-if(sortOrder == nil) then
+if sortOrder == nil then
   sortOrder = getDefaultTableSortOrder("flows")
+elseif sortColumn ~= "column_" and sortColumn ~= "" then
+   tablePreferences("sort_order_flows",sortOrder)
 else
-  if((sortColumn ~= "column_") and (sortColumn ~= "")) then
-    tablePreferences("sort_order_flows",sortOrder)
-  end
+   sortOrder = true
 end
 
 if(currentPage == nil) then
@@ -84,11 +84,22 @@ if(all ~= nil) then
    currentPage = 0
 end
 
---io.write("->"..sortColumn.."/"..perPage.."/"..sortOrder.."\n")
+-- io.write("->"..sortColumn.."/"..perPage.."/"..sortOrder.."/"..sortColumn.."\n")
 interface.select(ifname)
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
-res = interface.getFlowsInfo(host, application, sortColumn, perPage, to_skip, sOrder)
+-- res = interface.getFlowsInfo(host, application, sortColumn, perPage, to_skip, sOrder)
 
+local paginfo = {
+   ["sortColumn"]=sortColumn, ["toSkip"]=to_skip, ["maxHits"]=perPage,
+   ["a2zSortOrder"]=sOrder,
+   ["hostFilter"]=host,
+   ["portFilter"]=port
+}
+if application ~= nil and application ~= "" then
+   paginfo["l7protoFilter"]=interface.getnDPIProtoId(application)
+end
+
+res = interface.getFlowsInfo(host, paginfo)
 flows_stats,total = aggregateFlowsStats(res)
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")

@@ -19,7 +19,7 @@ print [[
 <ul class="breadcrumb">
   <li><A HREF=]]
 print (ntop.getHttpPrefix())
-print [[/lua/flows_stats.lua>Flows</A> <span class="divider">/</span></li>
+print [[/lua/flows_stats.lua>Flows</A> </li>
 ]]
 
 
