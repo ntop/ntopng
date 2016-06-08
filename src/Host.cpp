@@ -881,7 +881,7 @@ json_object* Host::getJSONObject() {
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   json_object_object_add(my_object, "mac_address", json_object_new_string(get_mac(buf, sizeof(buf), mac_address)));
-
+  json_object_object_add(my_object, "seen.last", json_object_new_int(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
   if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));

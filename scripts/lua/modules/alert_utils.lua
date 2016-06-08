@@ -38,6 +38,7 @@ function bytes(old, new)
         return(new["bytes"]-old["bytes"])
     end
 end
+
 function packets(old, new)
     if(new["sent"] ~= nil) then
         -- Host
@@ -47,6 +48,12 @@ function packets(old, new)
         return(new["packets"]-old["packets"])
     end
 end
+
+function idle(old, new)
+      local diff = os.time()-new["seen.last"]
+      return(diff)
+end
+
 function dns(old, new)   return(proto_bytes(old, new, "DNS")) end
 function p2p(old, new)   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype")) end
 
@@ -67,7 +74,7 @@ alerts_granularity = {
     { "day", "Daily" }
 }
 
-alarmable_metrics = {'bytes', 'packets', 'dns', 'p2p', 'ingress', 'egress', 'inner'}
+alarmable_metrics = {'bytes', 'packets', 'dns', 'p2p', 'idle', 'ingress', 'egress', 'inner'}
 
 default_re_arm_minutes = {
     ["min"]  = 1    ,
@@ -81,12 +88,13 @@ alert_functions_description = {
     ["packets"] = "Packets delta (sent + received)",
     ["dns"]     = "DNS traffic delta bytes (sent + received)",
     ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
+    ["idle"]    = "Idle time since last packet sent (seconds)",
 }
 
 network_alert_functions_description = {
-    ["ingress"]   = "Ingress Bytes delta",
-    ["egress"] = "Egress Bytes delta",
-    ["inner"]     = "Inner Bytes delta",
+    ["ingress"] = "Ingress Bytes delta",
+    ["egress"]  = "Egress Bytes delta",
+    ["inner"]   = "Inner Bytes delta",
 }
 
 
