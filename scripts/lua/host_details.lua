@@ -590,7 +590,7 @@ end
 
    local flows_th = "Recently Active Flows / Total"
    if interface.isPacketInterface() then
-      flows_th = "Active Flows / Active Low Goodput / Total"
+      flows_th = "Active Flows / Total Active / Low Goodput"
    end
 
    print("<tr><th rowspan=2>"..flows_th.."</th><th>'As Client'</th><th>'As Server'</th></tr>\n")
