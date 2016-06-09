@@ -285,60 +285,58 @@ for key, value in ipairs(flows_stats) do
    end
 
    ---------------- TABLE SORTING ----------------
+   -- TODO: as flows are returned already ordered via getFlowsInfo
+   -- this table sorting shall be removed. However, there are special
+   -- sort columns that I am not aware of, e.g., column_server_process
    if(process) then
       if(debug_process) then io.write("Flow Processing\n") end
       if(debug_process) then io.write("Cli: "..flows_stats[key]["cli.ip"].."\t") end
       if(debug_process) then io.write("Srv: "..flows_stats[key]["srv.ip"].."\n") end
       -- postfix is used to create a unique key otherwise entries with the same key will disappear
       num = num + 1
-      postfix = string.format("0.%04u", num)
       if(sortColumn == "column_client") then
-   vkey = flows_stats[key]["cli.ip"]..postfix
-   elseif(sortColumn == "column_server") then
-   vkey = flows_stats[key]["srv.ip"]..postfix
-   elseif(sortColumn == "column_bytes") then
-   vkey = flows_stats[key]["bytes"]+postfix
-   elseif(sortColumn == "column_vlan") then
-   vkey = flows_stats[key]["vlan"]+postfix
-   elseif(sortColumn == "column_bytes_last") then
-   vkey = flows_stats[key]["bytes.last"]+postfix
-   elseif(sortColumn == "column_info") then
-   -- add spaces before postfix as we sort for string
-   vkey = flows_stats[key]["info"] .. "           " ..postfix
-   elseif(sortColumn == "column_ndpi") then
-   vkey = flows_stats[key]["proto.ndpi"].."           " ..postfix
-   elseif(sortColumn == "column_server_process") then
-   if(flows_stats[key]["server_process"] ~= nil) then
-      vkey = flows_stats[key]["server_process"]["name"].."           " ..postfix
-   else
-      vkey = "           " ..postfix
-   end
-   elseif(sortColumn == "column_client_process") then
-   if(flows_stats[key]["client_process"] ~= nil) then
-      vkey = flows_stats[key]["client_process"]["name"]..postfix
-   else
-      vkey = postfix
-   end
-   elseif(sortColumn == "column_duration") then
-   vkey = flows_stats[key]["duration"]+postfix
-   elseif(sortColumn == "column_thpt") then
-   vkey = flows_stats[key]["throughput_"..throughput_type]+postfix
-   elseif(sortColumn == "column_proto_l4") then
-   vkey = flows_stats[key]["proto.l4"]..postfix
-   elseif(sortColumn == "column_ID") then
-   vkey = flows_stats[key]["ID"]..postfix
+	 vkey = flows_stats[key]["cli.ip"]
+      elseif(sortColumn == "column_server") then
+	 vkey = flows_stats[key]["srv.ip"]
+      elseif(sortColumn == "column_bytes") then
+	 vkey = flows_stats[key]["bytes"]
+      elseif(sortColumn == "column_vlan") then
+	 vkey = flows_stats[key]["vlan"]
+      elseif(sortColumn == "column_info") then
+	 -- add spaces before postfix as we sort for string
+	 vkey = flows_stats[key]["info"]
+      elseif(sortColumn == "column_ndpi") then
+	 vkey = flows_stats[key]["proto.ndpi"]
+      elseif(sortColumn == "column_server_process") then
+	 if(flows_stats[key]["server_process"] ~= nil) then
+	    vkey = flows_stats[key]["server_process"]["name"]
+	 else
+	    vkey = ""
+	 end
+      elseif(sortColumn == "column_client_process") then
+	 if(flows_stats[key]["client_process"] ~= nil) then
+	    vkey = flows_stats[key]["client_process"]["name"]
+	 else
+	    vkey = ""
+	 end
+      elseif(sortColumn == "column_duration") then
+	 vkey = flows_stats[key]["duration"]
+      elseif(sortColumn == "column_thpt") then
+	 vkey = flows_stats[key]["throughput_"..throughput_type]
+      elseif(sortColumn == "column_proto_l4") then
+	 vkey = flows_stats[key]["proto.l4"]
       else
-   -- By default sort by bytes
-   vkey = flows_stats[key]["bytes"]+postfix
+	 -- By default sort by bytes
+	 vkey = flows_stats[key]["bytes"]
       end
 
-          --io.write("-->"..key.."="..vkey.."\n")
-          vals[vkey] = key
+      --io.write("-->"..key.."="..vkey.."\n")
+      -- vals[vkey] = key
+      vals[key] = vkey
    end
 end
 
 num = 0
-table.sort(vals)
 
 if(sortOrder == "asc") then
    funct = asc
@@ -351,10 +349,9 @@ for _key, _value in pairsByKeys(vals, funct) do
    key = vals[_key]
    value = flows_stats[key]
 --]]
-
-for _key, _value in pairsByKeys(vals, funct) do
-   key = vals[_key]
-   value = flows_stats[key]
+for _key, _value in pairsByValues(vals, funct) do
+   value = flows_stats[_key]
+   key = value["ntopng.key"]
 
      if(key ~= nil) then
       if((num < perPage) or (all ~= nil))then
