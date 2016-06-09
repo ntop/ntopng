@@ -1883,6 +1883,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   Flow *f = (Flow*)h;
   int ndpi_proto;
   u_int16_t port;
+  int16_t local_network_id;
 
   if(f && (!f->idle())) {
     if(retriever->host
@@ -1901,6 +1902,12 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
        && retriever->pag->portFilter(&port)
        && f->get_cli_port() != port
        && f->get_srv_port() != port)
+      return(false); /* false = keep on walking */
+
+    if(retriever->pag
+       && retriever->pag->localNetworkFilter(&local_network_id)
+       && f->get_cli_host()->get_local_network_id() != local_network_id
+       && f->get_srv_host()->get_local_network_id() != local_network_id)
       return(false); /* false = keep on walking */
 
     if(retriever->location == location_local_only) {

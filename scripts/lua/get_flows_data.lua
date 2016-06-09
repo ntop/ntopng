@@ -93,7 +93,8 @@ local paginfo = {
    ["sortColumn"]=sortColumn, ["toSkip"]=to_skip, ["maxHits"]=perPage,
    ["a2zSortOrder"]=sOrder,
    ["hostFilter"]=host,
-   ["portFilter"]=port
+   ["portFilter"]=port,
+   ["LocalNetworkFilter"]=network_id
 }
 if application ~= nil and application ~= "" then
    paginfo["l7protoFilter"]=interface.getnDPIProtoId(application)

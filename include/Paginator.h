@@ -30,7 +30,7 @@ class Paginator{
  private:
   char *max_hits, *to_skip, *sort_column, *a2z_sort_order;
   char *detailed_results;
-  char *os_filter, *vlan_filter, *asn_filter, *network_filter;
+  char *os_filter, *vlan_filter, *asn_filter, *local_network_filter;
   char *country_filter;
   char *l7proto_filter, *port_filter;
   void *pagination_options[MAX_PAGINATION_OPTIONS * 2/* option name + pointer*/];
@@ -71,6 +71,9 @@ class Paginator{
   }
   inline bool portFilter(u_int16_t *f) const {
     if(port_filter){(*f) = atoi(port_filter); return true;} return false;
+  }
+  inline bool localNetworkFilter(int16_t *f) const {
+    if(local_network_filter){(*f) = atoi(local_network_filter); return true;} return false;
   }
 };
 

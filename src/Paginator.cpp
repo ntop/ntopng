@@ -24,23 +24,23 @@
 Paginator::Paginator(){
   max_hits = to_skip = sort_column = a2z_sort_order = NULL;
   detailed_results = NULL;
-  os_filter = vlan_filter = asn_filter = network_filter = NULL;
+  os_filter = vlan_filter = asn_filter = local_network_filter = NULL;
   country_filter = NULL;
   l7proto_filter = NULL, port_filter = NULL;
   const void *options[] = {
-    "sortColumn",      &sort_column,
-    "a2zSortOrder",    &a2z_sort_order,
-    "maxHits",         &max_hits,
-    "detailedResults", &detailed_results,
-    "toSkip",          &to_skip,
-    "osFilter",        &os_filter,
-    "countryFilter",   &country_filter,
-    "vlanFilter",      &vlan_filter,
-    "asnFilter",       &asn_filter,
-    "networkFilter",   &network_filter,
-    "l7protoFilter",   &l7proto_filter,
-    "portFilter",      &port_filter,
-    NULL,              NULL
+    "sortColumn",           &sort_column,
+    "a2zSortOrder",         &a2z_sort_order,
+    "maxHits",              &max_hits,
+    "detailedResults",      &detailed_results,
+    "toSkip",               &to_skip,
+    "osFilter",             &os_filter,
+    "countryFilter",        &country_filter,
+    "vlanFilter",           &vlan_filter,
+    "asnFilter",            &asn_filter,
+    "LocalNetworkFilter",   &local_network_filter,
+    "l7protoFilter",        &l7proto_filter,
+    "portFilter",           &port_filter,
+    NULL,                   NULL
   };
   memcpy(pagination_options, options, sizeof(options));
 };
