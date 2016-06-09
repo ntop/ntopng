@@ -1109,12 +1109,10 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 /* *************************************** */
 
 void Host::incNumFlows(bool as_client) {
-  if(!localHost || !triggerAlerts()) return;
-
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
-    if(num_active_flows_as_client == max_num_active_flows) {
+    if(num_active_flows_as_client == max_num_active_flows && localHost && triggerAlerts()) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possible scanner [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
@@ -1131,7 +1129,7 @@ void Host::incNumFlows(bool as_client) {
   } else {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
-    if(num_active_flows_as_server == max_num_active_flows) {
+    if(num_active_flows_as_server == max_num_active_flows && localHost && triggerAlerts()) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is possibly under scan attack [%u active flows]";
       char ip_buf[48], *h, msg[512];
 
