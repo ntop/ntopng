@@ -449,8 +449,12 @@ font-family: Arial, Helvetica, sans-serif;
   <ul class="nav nav-tabs" role="tablist" id="historical-tabs-container">
     <li class="active"> <a href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
 ]]
-if  ntop.getPrefs().is_dump_flows_to_mysql_enabled then
-  print('<li><a href="#ipv4" role="tab" data-toggle="tab" id="tab-ipv4"> IPv4 Flows </a> </li>\n')
+
+if ntop.getPrefs().is_dump_flows_to_mysql_enabled
+   -- hide historical tabs for networks
+   and not string.starts(host, 'net:')
+then
+   print('<li><a href="#ipv4" role="tab" data-toggle="tab" id="tab-ipv4"> IPv4 Flows </a> </li>\n')
   print('<li><a href="#ipv6" role="tab" data-toggle="tab" id="tab-ipv6"> IPv6 Flows </a> </li>\n')
 end
 
@@ -600,7 +604,10 @@ print[[</div></td></tr></table>
     </div> <!-- closes div id "historical-tab-chart "-->
 ]]
 
-if ntop.getPrefs().is_dump_flows_to_mysql_enabled then
+if ntop.getPrefs().is_dump_flows_to_mysql_enabled
+   -- hide historical tabs for networks and profiles
+   and not string.starts(host, 'net:')
+then
   if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
     -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
     printTopFlows(ifid, (host or ''), start_time, end_time, rrdFile, '', '', '', 5, 5)
