@@ -107,7 +107,7 @@ char* Utils::l4proto2name(u_int8_t proto) {
   case 2:   return((char*)"IGMP");
   case 6:   return((char*)"TCP");
   case 17:  return((char*)"UDP");
-  case 41:  return((char*)"IPV6");
+  case 41:  return((char*)"IPv6");
   case 46:  return((char*)"RSVP");
   case 47:  return((char*)"GRE");
   case 50:  return((char*)"ESP");
