@@ -107,12 +107,15 @@ char* Utils::l4proto2name(u_int8_t proto) {
   case 2:   return((char*)"IGMP");
   case 6:   return((char*)"TCP");
   case 17:  return((char*)"UDP");
+  case 41:  return((char*)"IPV6");
+  case 46:  return((char*)"RSVP");
   case 47:  return((char*)"GRE");
   case 50:  return((char*)"ESP");
   case 58:  return((char*)"IPv6-ICMP");
   case 89:  return((char*)"OSPF");
   case 103: return((char*)"PIM");
   case 112: return((char*)"VRRP");
+  case 139: return((char*)"HIP");
 
   default:
     snprintf(proto_string, sizeof(proto_string), "%u", proto);
