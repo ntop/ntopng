@@ -278,19 +278,28 @@ end
 -- ##############################################
 
 function string.contains(String,Start)
-  return(string.find(String,Start,1) ~= nil)
+   if type(String) ~= 'string' or type(Start) ~= 'string' then
+      return false
+   end
+   return(string.find(String,Start,1) ~= nil)
 end
 
 -- ##############################################
 
 function string.starts(String,Start)
-  return string.sub(String,1,string.len(Start))==Start
+   if type(String) ~= 'string' or type(Start) ~= 'string' then
+      return false
+   end
+   return string.sub(String,1,string.len(Start))==Start
 end
 
 -- ##############################################
 
 function string.ends(String,End)
-  return End=='' or string.sub(String,-string.len(End))==End
+   if type(String) ~= 'string' or type(End) ~= 'string' then
+      return false
+   end
+   return End=='' or string.sub(String,-string.len(End))==End
 end
 
 -- ##############################################
