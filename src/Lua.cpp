@@ -220,10 +220,14 @@ static int ntop_get_interface_names(lua_State* vm) {
 /* ****************************************** */
 
 static patricia_tree_t* get_allowed_nets(lua_State* vm) {
+  patricia_tree_t *ptree;
+  
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   lua_getglobal(vm, CONST_ALLOWED_NETS);
-  return((patricia_tree_t*)lua_touserdata(vm, lua_gettop(vm)));
+  ptree = (patricia_tree_t*)lua_touserdata(vm, lua_gettop(vm));
+  //ntop->getTrace()->traceEvent(TRACE_WARNING, "GET %p", ptree);
+  return(ptree);
 }
 
 /* ****************************************** */
@@ -5071,6 +5075,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
     snprintf(key, sizeof(key), "ntopng.user.%s.allowed_nets", user);
 
+    //ntop->getTrace()->traceEvent(TRACE_WARNING, "-> %s", key);
+    
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
        && (val[0] != '\0')) {
       char *what, *net;
@@ -5088,6 +5094,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
       lua_pushlightuserdata(L, ptree);
       lua_setglobal(L, CONST_ALLOWED_NETS);
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
     }
   }
 
