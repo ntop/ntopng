@@ -49,7 +49,7 @@ end
 if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
    sortColumn = getDefaultTableSort("flows")
 elseif sortColumn ~= "column_" and  sortColumn ~= "" then
-    tablePreferences("sort_flows",sortColumn)
+   tablePreferences("sort_flows",sortColumn)
 else
    sortColumn = "column_client"
 end
@@ -57,9 +57,7 @@ end
 if sortOrder == nil then
   sortOrder = getDefaultTableSortOrder("flows")
 elseif sortColumn ~= "column_" and sortColumn ~= "" then
-   tablePreferences("sort_order_flows",sortOrder)
-else
-   sortOrder = true
+  tablePreferences("sort_order_flows",sortOrder)
 end
 
 if(currentPage == nil) then
@@ -86,12 +84,13 @@ end
 
 -- io.write("->"..sortColumn.."/"..perPage.."/"..sortOrder.."/"..sortColumn.."\n")
 interface.select(ifname)
-if(sortOrder == "desc") then sOrder = false else sOrder = true end
+local a2z = false
+if(sortOrder == "desc") then a2z = false else a2z = true end
 -- res = interface.getFlowsInfo(host, application, sortColumn, perPage, to_skip, sOrder)
 
 local paginfo = {
    ["sortColumn"]=sortColumn, ["toSkip"]=to_skip, ["maxHits"]=perPage,
-   ["a2zSortOrder"]=sOrder,
+   ["a2zSortOrder"]=a2z,
    ["hostFilter"]=host,
    ["portFilter"]=port,
    ["LocalNetworkFilter"]=network_id
