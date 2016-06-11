@@ -649,6 +649,13 @@ void Ntop::getUsers(lua_State* vm) {
     else
       lua_push_str_table_entry(vm, CONST_ALLOWED_NETS, (char*)"");
 
+    snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
+    if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+       && val[0] != '\0')
+      lua_push_str_table_entry(vm, CONST_ALLOWED_IFNAME, val);
+    else
+      lua_push_str_table_entry(vm, CONST_ALLOWED_IFNAME, (char*)"");
+
     lua_pushstring(vm, username);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -716,6 +723,60 @@ void Ntop::getAllowedNetworks(lua_State* vm) {
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
   lua_pushstring(vm, (ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : (char*)"");
 }
+
+/* ******************************************* */
+
+bool Ntop::getInterfaceAllowed(lua_State* vm, char *ifname) const {
+  char *allowed_ifname;
+
+  if(ifname == NULL) {
+    return false;
+  }
+
+  lua_getglobal(vm, CONST_ALLOWED_IFNAME);
+  if((allowed_ifname = (char*)lua_touserdata(vm, lua_gettop(vm))) == NULL
+     || allowed_ifname[0] == '\0') {
+    ifname = NULL;
+    return false;
+  }
+  strncpy(ifname, allowed_ifname, strlen(allowed_ifname));
+  return true;
+}
+
+/* ******************************************* */
+
+bool Ntop::isInterfaceAllowed(lua_State* vm, const char *ifname) const {
+  char *allowed_ifname;
+  bool ret;
+
+  if(vm == NULL || ifname == NULL) {
+    return true; /* always return true when no lua state is passed */
+  }
+
+  lua_getglobal(vm, CONST_ALLOWED_IFNAME);
+  if((allowed_ifname = (char*)lua_touserdata(vm, lua_gettop(vm))) == NULL
+     || allowed_ifname[0] == '\0') {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				 "No allowed interface found for %s", ifname);
+    // this is a lua script called within nopng (no HTTP UI and user interaction)
+    ret = true;
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				 "Allowed interface %s, requested %s",
+				 allowed_ifname, ifname);
+    ret = !strncmp(allowed_ifname, ifname, strlen(allowed_ifname));
+  }
+
+  lua_pop(vm, 1);
+  return ret;
+}
+
+/* ******************************************* */
+
+bool Ntop::isInterfaceAllowed(lua_State* vm, int ifid) const {
+  return isInterfaceAllowed(vm, prefs->get_if_name(ifid));
+}
+
 /* ******************************************* */
 
 // Return 1 if username/password is allowed, 0 otherwise.
@@ -846,7 +907,30 @@ bool Ntop::changeAllowedNets(char *username, char *allowed_nets) const {
 
 /* ******************************************* */
 
-bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role, char *allowed_networks) {
+bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
+  if (username == NULL || username[0] == '\0')
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Changing allowed ifname to %s for %s",
+			       allowed_ifname, username);
+
+  char key[64];
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
+
+  if(allowed_ifname != NULL and allowed_ifname[0] != '\0') {
+    return (ntop->getRedis()->set(key, allowed_ifname, 0) >= 0);
+  } else {
+    ntop->getRedis()->delKey(key);
+  }
+
+  return(true);
+}
+
+/* ******************************************* */
+
+bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
+		   char *allowed_networks, char *allowed_ifname) {
   char key[64], val[64];
   char password_hash[33];
 
@@ -866,6 +950,12 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
   ntop->getRedis()->set(key, allowed_networks, 0);
 
+  if(allowed_ifname && allowed_ifname[0] != '\0'){
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Setting allowed ifname: %s", allowed_ifname);
+    snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
+    ntop->getRedis()->set(key, allowed_ifname, 0);
+  }
+
   return(true);
 }
 
@@ -881,7 +971,15 @@ bool Ntop::deleteUser(char *username) {
   ntop->getRedis()->delKey(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  return((ntop->getRedis()->delKey(key) >= 0) ? true : false);
+  ntop->getRedis()->delKey(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
+  ntop->getRedis()->delKey(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
+  ntop->getRedis()->delKey(key);
+
+  return true;
 }
 
 /* ******************************************* */
@@ -1021,7 +1119,10 @@ void Ntop::setLocalNetworks(char *_nets) {
 
 /* ******************************************* */
 
-NetworkInterface* Ntop::getNetworkInterface(const char *name) {
+NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
+  if(name == NULL)
+    return NULL;
+
   /* This method accepts both interface names or Ids */
   int if_id = atoi(name);
   char str[8];
@@ -1032,17 +1133,15 @@ NetworkInterface* Ntop::getNetworkInterface(const char *name) {
 
     for(int i=0; i<num_defined_interfaces; i++) {
       if(iface[i]->get_id() == if_id)
-	return(iface[i]);
+	return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
     }
-
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find interface Id %d", if_id);
-
     return(NULL);
   }
 
+  /* if here, name is a string */
   for(int i=0; i<num_defined_interfaces; i++) {
-    if(strstr(name, iface[i]->get_name()))
-      return(iface[i]);
+    if(!strcmp(name, iface[i]->get_name()))
+      return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
   }
 
   /* FIX: remove this for at some point, when endpoint is passed */
@@ -1061,8 +1160,11 @@ NetworkInterface* Ntop::getNetworkInterface(const char *name) {
 
 /* ******************************************* */
 
-NetworkInterfaceView* Ntop::getNetworkInterfaceView(const char *name) {
+NetworkInterfaceView* Ntop::getNetworkInterfaceView(lua_State* vm, const char *name) {
   /* This method accepts both interface names or Ids */
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Getting interface view at name %s", name ? name : "NULL");
+  if(name == NULL)
+    return NULL;
   int if_id = atoi(name);
   char str[8];
 
@@ -1072,98 +1174,20 @@ NetworkInterfaceView* Ntop::getNetworkInterfaceView(const char *name) {
 
     for(int i=0; i<num_defined_interface_views; i++) {
       if(ifaceViews[i]->get_id() == if_id)
-	return(ifaceViews[i]);
+	return isInterfaceAllowed(vm, ifaceViews[i]->get_name()) ? ifaceViews[i] : NULL;
     }
 
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find interface view Id %d", if_id);
-
-    return(NULL);
+    return NULL;
   }
 
+  /* if here, interface view name is a string */
   for(int i=0; i<num_defined_interface_views; i++) {
-    if(strcmp(ifaceViews[i]->get_name(), name) == 0)
-      return(ifaceViews[i]);
+    if(!strcmp(ifaceViews[i]->get_name(), name))
+      return isInterfaceAllowed(vm, ifaceViews[i]->get_name()) ? ifaceViews[i] : NULL;
   }
 
-  return(ifaceViews[0]); /* FIX: remove at some point */
+  return NULL;
 };
-
-/* ******************************************* */
-
-NetworkInterface* Ntop::getInterfaceById(int id) {
-  for(int i=0; i<num_defined_interfaces; i++) {
-    if(iface[i]->get_id() == id) {
-      return(iface[i]);
-    }
-  }
-
-  return(NULL);
-}
-
-/* ******************************************* */
-
-NetworkInterfaceView* Ntop::getInterfaceViewById(int id) {
-  for(int i=0; i<num_defined_interface_views; i++) {
-    if(ifaceViews[i]->get_id() == id)
-      return(ifaceViews[i]);
-  }
-
-  return(NULL);
-}
-
-/* ******************************************* */
-
-NetworkInterface* Ntop::getInterface(char *name) {
-  /* This method accepts both interface names or Ids */
-  int if_id;
-  char str[8];
-
-  if(name == NULL) return(NULL);
-
-  if_id = atoi(name);
-
-  snprintf(str, sizeof(str), "%d", if_id);
-  if(strcmp(name, str) == 0) {
-    /* name is a number */
-
-    return(getInterfaceById(if_id));
-  }
-
-  for(int i=0; i<num_defined_interfaces; i++) {
-    if(strcmp(iface[i]->get_name(), name) == 0) {
-      return(iface[i]);
-    }
-  }
-
-  return(NULL);
-}
-
-/* ******************************************* */
-
-NetworkInterfaceView* Ntop::getInterfaceView(char *name) {
-  /* This method accepts both interface names or Ids */
-  int if_id;
-  char str[8];
-
-  if(name == NULL) return(NULL);
-
-  if_id = atoi(name);
-
-  snprintf(str, sizeof(str), "%d", if_id);
-  if(strcmp(name, str) == 0) {
-    /* name is a number */
-
-    return(getInterfaceViewById(if_id));
-  }
-
-  for(int i=0; i<num_defined_interface_views; i++) {
-    if(strcmp(ifaceViews[i]->get_name(), name) == 0) {
-      return(ifaceViews[i]);
-    }
-  }
-
-  return(NULL);
-}
 
 /* ******************************************* */
 
@@ -1176,7 +1200,7 @@ int Ntop::getInterfaceIdByName(char *name) {
   snprintf(str, sizeof(str), "%d", if_id);
   if(strcmp(name, str) == 0) {
     /* name is a number */
-    NetworkInterface *iface = getInterfaceById(if_id);
+    NetworkInterface *iface = getNetworkInterface(if_id);
 
     if(iface != NULL)
       return(iface->get_id());
@@ -1204,7 +1228,7 @@ int Ntop::getInterfaceViewIdByName(char *name) {
   snprintf(str, sizeof(str), "%d", if_id);
   if(strcmp(name, str) == 0) {
     /* name is a number */
-    NetworkInterfaceView *iface = getInterfaceViewById(if_id);
+    NetworkInterfaceView *iface = getNetworkInterfaceView(if_id);
 
     if(iface != NULL)
       return(iface->get_id());

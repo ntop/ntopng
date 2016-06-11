@@ -16,6 +16,7 @@ require "graph_utils"
 local enable_second_debug = 0
 
 ifnames = interface.getIfNames()
+
 for _,ifname in pairs(ifnames) do
    a = string.ends(ifname, ".pcap")
    if(not(a)) then

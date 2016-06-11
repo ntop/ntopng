@@ -80,6 +80,7 @@ class Lua {
 			    char *script_path);
 
   void purifyHTTPParameter(char *param);
+  void setInterface(const char *user);
 };
 
 /**
