@@ -50,9 +50,9 @@ for _k,_label in pairsByKeys(vals , desc) do
   print("</th><td colspan=\"2\" class=\"text-right\">" .. bytesToSize(host["categories"][_label]) .. "</td>")
   print("<td class=\"text-right\">" .. round((host["categories"][_label] * 100)/total, 2).. " %</td></tr>")
 end
-print("<tr><td colspan=\"4\"> <small> <b>NOTE</b>:<p>Percentages are related only to classified traffic.")
+print("<tr><td colspan=\"4\"> <small> <b>NOTE</b>:<ul><li>Percentages are related only to classified traffic.")
 if host_categories_rrd_creation ~= "1" then
-  print("<br>Historical per-category traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
+  print("<li>Historical per-category traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
   print(" When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category. ")
 end
-print("</small> </p></td></tr>")
+print("</ul></small> </p></td></tr>")

@@ -1397,15 +1397,16 @@ print [[
                });
 </script>
 <div>
-<small> <b>NOTE</b>: Percentages are related only to classified traffic.
+<small> <b>NOTE</b>:<ul><li>Percentages are related only to classified traffic.
 ]]
 if ntop.getCache("ntopng.prefs.host_categories_rrd_creation") ~= "1" then
-  print("<br>Historical per-category traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
-  print(" When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category. ")
+  print("<li>Historical per-category traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
+  print(" When enabled, RRDs with 5-minute samples will be created for each category detected and historical data will become accessible by clicking on each category.</li>")
 else
-  print("Category labels can be clicked to browse historical data.")
+  print("<li>Category labels can be clicked to browse historical data.</li>")
 end
 print [[
+</ul>
 </small>
 </div>
 

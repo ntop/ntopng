@@ -52,6 +52,11 @@ for _k in pairsByKeys(vals , desc) do
     print(k.." "..formatBreed(host["ndpi"][k]["breed"]))
   end
   t = host["ndpi"][k]["bytes.sent"]+host["ndpi"][k]["bytes.rcvd"]
+
+  if((host["ndpi"][k]["bytes.sent"] == 0) and (host["ndpi"][k]["bytes.rcvd"] > 0)) then
+     print(" <i class=\"fa fa-warning fa-lg\" style=\"color: orange;\"></i>")
+  end
+  
   print("</th><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
 
   print("<td>")
@@ -61,9 +66,10 @@ for _k in pairsByKeys(vals , desc) do
   print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
 end
 if host_ndpi_rrd_creation ~= "1" then
-print("<tr><td colspan=\"6\"> <small> <b>NOTE</b>:<p>")
-print("Historical per-protocol traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
+print("<tr><td colspan=\"6\"> <small> <b>NOTE</b>:<ul>")
+print("<li>Historical per-protocol traffic data can be enabled via ntopng <a href=\""..ntop.getHttpPrefix().."/lua/admin/prefs.lua\"<i class=\"fa fa-flask\"></i> Preferences</a>.")
 print(" When enabled, RRDs with 5-minute samples will be created for each protocol detected and historical data will become accessible by clicking on each protocol. ")
-
+print("<li>An icon like <i class=\"fa fa-warning fa-sm\" style=\"color: orange;\"></i> indicates a possible probing (or application server down) alert as the host has received traffic for a specific application protocol without sending back any data. You can use <A HREF=/lua/host_details.lua?ifname="..ifid.."&host=".._GET["host"].."&page=historical>historical reports</A> to drill-down this issue.")
+print("</ul>")
 end
 print("</small> </p></td></tr>")
