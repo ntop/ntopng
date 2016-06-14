@@ -10,7 +10,7 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-interface.select(ifname)
+interface.select(_GET["id"])
 ifstats = aggregateInterfaceStats(interface.getStats())
 bytes = ifstats["localstats"]["bytes"]
 

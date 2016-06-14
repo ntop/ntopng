@@ -2702,6 +2702,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
+  tcpFlowStats.lua(vm, "tcpFlowStats");
   ethStats.lua(vm);
   localStats.lua(vm);
   ndpiStats.lua(this, vm);

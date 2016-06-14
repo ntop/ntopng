@@ -75,10 +75,12 @@ class NetworkInterface {
     lastMinuteTraffic[60],    /* Delta bytes (per second) of the last minute */
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
   time_t lastSecUpdate;
-  
+  TcpFlowStats tcpFlowStats;
+
   struct {
     u_int64_t pktRetr, pktOOO, pktLost;
   } tcpPacketStats;
+
   u_int64_t zmq_initial_bytes, zmq_initial_pkts;
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to memorize the hosts information.*/
@@ -145,8 +147,9 @@ class NetworkInterface {
   virtual void incrDrops(u_int32_t num)        { ; }
   inline virtual bool is_packet_interface()    { return(true); }
   inline virtual const char* get_type()        { return(CONST_INTERFACE_TYPE_UNKNOWN); }
-  inline FlowHash *get_flows_hash()            { return flows_hash; }
-  inline virtual bool is_ndpi_enabled()        { return(true); }
+  inline FlowHash *get_flows_hash()            { return flows_hash;     }
+  inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
+  inline virtual bool is_ndpi_enabled()        { return(true);          }
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd); };
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };

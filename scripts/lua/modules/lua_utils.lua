@@ -54,6 +54,17 @@ function aggregateInterfaceStats(ifstats)
 	 end
       end
 
+      keys = { "tcpFlowStats" }
+      for _,key in pairs(keys) do
+	 if(tot[key] == nil) then tot[key] = { } end
+
+	 for k,v in pairs(_v[key]) do
+	    --io.write(k.."\n")
+	    if(tot[key][k] == nil) then tot[key][k] = 0 end
+	    tot[key][k] = tot[key][k] + v
+	 end
+      end
+
       keys = { "tcpPacketStats" }
       for _,key in pairs(keys) do
 	 if(tot[key] == nil) then tot[key] = { } end

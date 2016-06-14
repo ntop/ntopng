@@ -1839,20 +1839,17 @@ void Flow::addFlowStats(bool cli2srv_direction,
 
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
-
-#if 0
-  if((flags == TH_SYN)
-     && ((src2dst_tcp_flags | dst2src_tcp_flags) == TH_SYN) /* SYN was already received */
-     && (cli2srv_packets > 2 /* We tolerate two SYN at the beginning of the connection */)
-     && ((last_seen-first_seen) < 2 /* (sec) SYN flood must be quick */)
-     && cli_host)
-    cli_host->updateSynFlags(when->tv_sec, flags, this, true);
-#else
   if(flags == TH_SYN) {
     if(cli_host) cli_host->updateSynFlags(when->tv_sec, flags, this, true);
     if(srv_host) srv_host->updateSynFlags(when->tv_sec, flags, this, false);
   }
-#endif
+
+  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) 
+    iface->getTcpFlowStats()->incSyn();
+  else if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) 
+    iface->getTcpFlowStats()->incReset();
+  else if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) 
+    iface->getTcpFlowStats()->incFin();
 
   /* The update below must be after the above check */
   if(src2dst_direction)
@@ -1890,9 +1887,9 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
 	}
       }
 
-      twh_over = true;
+      twh_over = true, iface->getTcpFlowStats()->incEstablished();
     } else
-      twh_over = true;
+      twh_over = true, iface->getTcpFlowStats()->incEstablished();
   }
 }
 

@@ -355,7 +355,7 @@ print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=6><div class="pie-ch
 	       window.onload=function() {
 				   do_pie("#ifaceTrafficBreakdown", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/iface_local_stats.lua', { ifname: ]] print(ifstats.id .. " }, \"\", refresh); \n")
+print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. " }, \"\", refresh); \n")
       print ("}\n</script>\n")
 
    print("<tr><th colspan=7>Ingress Traffic</th></tr>\n")
@@ -439,7 +439,8 @@ elseif(page == "ndpi") then
 	       <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
 	       </tr>
       <tr><th class="text-left">Live Flows Count</th>
-	       <td colspan=5><div class="pie-chart" id="topFlowsCount"></div></td>
+	       <td colspan=3><div class="pie-chart" id="topFlowsCount"></div></td>
+	       <td colspan=2><div class="pie-chart" id="topTCPFlowsStats"></div></td>
 	       </tr>
   </div>
 
@@ -457,6 +458,10 @@ elseif(page == "ndpi") then
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
    print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "count", id: "]] print(ifid) print [[" }, "", refresh);
+
+       do_pie("#topTCPFlowsStats", ']]
+   print (ntop.getHttpPrefix())
+   print [[/lua/iface_tcp_stats.lua', { id: "]] print(ifid) print [[" }, "", refresh);
     }
 
       </script><p>
