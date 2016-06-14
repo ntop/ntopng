@@ -1,0 +1,12 @@
+In order to use ntopng with valgrind it is necessary to recompile LuaJIT with
+valgrind support otherwise the Lua interpreter won't start under valgrind
+and so ntopng.
+
+In order to do that you need to have valgrind installed and then you need to
+modify the file ntopng/third-party/LuaJIT-X.Y.Z/src/Makefile uncommenting the
+following line:
+
+XCFLAGS+= -DLUAJIT_USE_VALGRIND
+
+Then you can compile all the code (ntopng and the dependencies) and you would
+be able to run ntopng with valgrind
