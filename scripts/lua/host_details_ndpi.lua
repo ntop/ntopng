@@ -22,8 +22,6 @@ host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 
 local now    = os.time()
 local ago1h  = now - 3600
-local ago12h = now - 3600 * 12
-local ago1d  = now - 3600 * 24
 local protos = interface.getnDPIProtocols()
 
 if(host == nil) then
@@ -68,10 +66,8 @@ for _k in pairsByKeys(vals , desc) do
      hist_url = hist_url.."&epoch_end="..tostring(now)
      hist_url = hist_url.."&"..hostinfo2url(host)
      hist_url = hist_url.."&protocol="..protos[k]
-     print('&nbsp;<small>[<i class="fa fa-history"></i>:')
-     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the latest hour">1h</a>&nbsp;')
-     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago12h)..'" title="Flows seen in the latest 12 hours">12h</a>&nbsp;')
-     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1d)..'" title="Flows seen the the latest day">1d</a>]</small>')
+     print('&nbsp;')
+     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the latest hour"><i class="fa fa-history"></i></a>')
   end
 
   print('</td>')
