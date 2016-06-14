@@ -11,6 +11,7 @@ sendHTTPHeader('application/json')
 username = _GET["username"]
 host_role = _GET["host_role"]
 networks = _GET["networks"]
+allowed_interface = _GET["allowed_interface"]
 
 if(username == nil) then   
     print ("{ \"result\" : -1, \"message\" : \"Error in username\" }")
@@ -29,6 +30,13 @@ if(networks ~= nil) then
     print ("{ \"result\" : -1, \"message\" : \"Error in changing allowed networks\" }")
     return 
   end
+end
+
+if(allowed_interface ~= nil) then
+   if(not ntop.changeAllowedIfname(username, allowed_interface)) then
+      print ("{ \"result\" : -1, \"message\" : \"Error in changing the allowed interface\" }")
+      return 
+   end
 end
 
 print ("{ \"result\" : 0, \"message\" : \"Parameters Updated\" }")

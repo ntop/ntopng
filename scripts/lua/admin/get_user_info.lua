@@ -18,7 +18,8 @@ if(haveAdminPrivileges()) then
 	 print(' "password": "'..value["password"]..'",\n')
 	 print(' "full_name": "'..value["full_name"]..'",\n')
 	 print(' "group": "'..value["group"]..'",\n')
-	 print(' "allowed_nets": "'..value["allowed_nets"]..'"\n')
+	 print(' "allowed_nets": "'..value["allowed_nets"]..'",\n')
+	 print(' "allowed_ifname": "'..value["allowed_ifname"]..'"\n')
       end
    end
    

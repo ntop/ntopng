@@ -71,6 +71,20 @@ print [[
   </div>
 
   <div class="form-group has-feedback">
+    <label class="form-label">Allowed Interface</label>
+    <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
+    <select name="allowed_interface" id="allowed_interface" class="form-control">
+      <option value="">Any Interface</option>
+]]
+for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
+   print('<option value="'..interface_name..'"> '..interface_name..'</option>')
+end
+print[[
+    </select>
+    </div>
+  </div>
+
+  <div class="form-group has-feedback">
    <button type="submit" id="add_user_submit" class="btn btn-default btn-primary btn-block">Add New User</button>
   </div>
 

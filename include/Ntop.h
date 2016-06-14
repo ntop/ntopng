@@ -232,32 +232,61 @@ class Ntop {
    */
   inline u_int8_t get_num_interfaces()               { return(num_defined_interfaces); }
   inline u_int8_t get_num_interface_views()               { return(num_defined_interface_views); }
-  /**
-   * @brief Get the network interface identified by Id.
-   *
-   * @param i Index of network interface.
-   * @return The network interface instance if exists, NULL otherwise.
-   */
-  NetworkInterface* getInterfaceById(int i);
-  NetworkInterfaceView* getInterfaceViewById(int id);
   int getInterfaceViewIdByName(char *name);
   /**
    * @brief Get the i-th network interface.
+   * @details Retrieves the pointer the network interface
+   *  identified by id i and enforces constraints on
+   *  user allowed interfaces.
    *
    * @param i The i-th network interface.
    * @return The network interface instance if exists, NULL otherwise.
    */
-  NetworkInterface* getInterfaceAtId(int i) { if(i<num_defined_interfaces) return(iface[i]); else return(NULL); }
-  NetworkInterfaceView* getInterfaceViewAtId(int i) { if(i<num_defined_interface_views) return(ifaceViews[i]); else return(NULL); }
+  inline NetworkInterface* getInterfaceAtId(lua_State *vm, int i) const {
+    if(i<num_defined_interfaces && iface[i]) {
+      return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
+    }
+    return NULL;
+  }
   /**
-   * @brief Get the network interface identified by name or Id.
-   * @details This method accepts both interface names or Ids.
+   * @brief Get the i-th network interface.
+   * @details Retrieves the pointer the network interface
+   *  identified by id i WITHOUT ENFORCING constraints on
+   *  user allowed interfaces.
    *
-   * @param name Name of network interface.
+   * @param i The i-th network interface.
    * @return The network interface instance if exists, NULL otherwise.
    */
-  NetworkInterface* getInterface(char *name);
-  NetworkInterfaceView* getInterfaceView(char *name);
+  inline NetworkInterface* getInterfaceAtId(int i) const {
+    return getInterfaceAtId(NULL, i);
+  }
+  /**
+   * @brief Get the i-th network interface.
+   * @details Retrieves the pointer the network interface view
+   *  identified by id i and enforces constraints on
+   *  user allowed interfaces.
+   *
+   * @param i The i-th network interface.
+   * @return The network interface instance if exists, NULL otherwise.
+   */
+  inline NetworkInterfaceView* getInterfaceViewAtId(lua_State *vm, int i) const {
+    if(i<num_defined_interface_views && ifaceViews[i]) {
+      return isInterfaceAllowed(vm, ifaceViews[i]->get_name()) ? ifaceViews[i] : NULL;
+    }
+    return NULL;
+  }
+  /**
+   * @brief Get the i-th network interface.
+   * @details Retrieves the pointer the network interface view
+   *  identified by id i WITHOUT ENFORCING constraints on
+   *  user allowed interfaces.
+   *
+   * @param i The i-th network interface.
+   * @return The network interface instance if exists, NULL otherwise.
+   */
+  inline NetworkInterfaceView* getInterfaceViewAtId(int i) const {
+    return getInterfaceViewAtId(NULL, i);
+  }
   /**
    * @brief Get the Id of network interface.
    * @details This method accepts both interface names or Ids.
@@ -282,12 +311,42 @@ class Ntop {
   /**
    * @brief Get the network interface identified by name or Id.
    * @details This method accepts both interface names or Ids.
-   *
+   *  This method shall be called from Lua-mapped methods
+   *  especially where constraints on user allowed interfaces
+   *  must be enforced.
    * @param name Names or Id of network interface.
    * @return The network interface instance if exists, NULL otherwise.
    */
-  NetworkInterface* getNetworkInterface(const char *name);
-  NetworkInterfaceView* getNetworkInterfaceView(const char *name);
+  NetworkInterface* getNetworkInterface(lua_State* vm, const char *name);
+  /**
+   * @brief Get the network interface identified by name or Id.
+   * @details This method accepts both interface names or Ids.
+   *  No checks on user allowed interfaces are performed by this method.
+   *  Therefore is should not be used when forwarding UI requests
+   *  for security reasons.
+   * @param name Names or Id of network interface.
+   * @return The network interface instance if exists, NULL otherwise.
+   */
+  inline NetworkInterface* getNetworkInterface(const char *name) {
+    return getNetworkInterface(NULL, name);
+  };
+  inline NetworkInterface* getNetworkInterface(int ifid) {
+    char ifname[MAX_INTERFACE_NAME_LEN];
+    snprintf(ifname, sizeof(ifname), "%d", ifid);
+    return getNetworkInterface(NULL, ifname);
+  };
+  NetworkInterfaceView* getNetworkInterfaceView(lua_State* vm, const char *name);
+  inline NetworkInterfaceView* getNetworkInterfaceView(const char *name) {
+    return getNetworkInterfaceView(NULL, name);
+  };
+  inline NetworkInterfaceView* getNetworkInterfaceView(lua_State *vm, int ifid) {
+    char ifname[MAX_INTERFACE_NAME_LEN];
+    snprintf(ifname, sizeof(ifname), "%d", ifid);
+    return getNetworkInterfaceView(vm, ifname);
+  };
+  inline NetworkInterfaceView* getNetworkInterfaceView(int ifid) {
+    return getNetworkInterfaceView(NULL, ifid);
+  };
 
   void sanitizeInterfaceView(NetworkInterfaceView *view);
 
@@ -326,12 +385,17 @@ class Ntop {
 
   void getUsers(lua_State* vm); 
   void getUserGroup(lua_State* vm);  
-  void getAllowedNetworks(lua_State* vm);  
+  void getAllowedNetworks(lua_State* vm);
+  bool getInterfaceAllowed(lua_State* vm, char *ifname)      const;
+  bool isInterfaceAllowed(lua_State* vm, const char *ifname) const;
+  bool isInterfaceAllowed(lua_State* vm, int ifid)           const;
   bool checkUserPassword(const char *user, const char *password);
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool changeUserRole(char *username, char *user_role) const;
-  bool changeAllowedNets(char *username, char *allowed_nets) const;
-  bool addUser(char *username, char *full_name, char *password, char *host_role, char *allowed_networks);
+  bool changeAllowedNets(char *username, char *allowed_nets)     const;
+  bool changeAllowedIfname(char *username, char *allowed_ifname) const;
+  bool addUser(char *username, char *full_name, char *password, char *host_role,
+	       char *allowed_networks, char *allowed_ifname);
   bool deleteUser(char *username);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);

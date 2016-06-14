@@ -84,13 +84,27 @@ print [[
     </div>
   </div>
 
-
   <div class="form-group has-feedback">
     <label class="control-label">Allowed Networks</label>
 <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
      <input id="networks_input" type="text" name="networks" value="" class="form-control" required>
     </div>
      <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
+
+  </div>
+
+  <div class="form-group has-feedback">
+    <label class="form-label">Allowed Interface</label>
+    <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
+    <select name="allowed_interface" id="allowed_interface" class="form-control">
+      <option value="">Any Interface</option>
+]]
+for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
+   print('<option value="'..interface_name..'"> '..interface_name..'</option>')
+end
+print[[
+    </select>
+    </div>
   </div>
 
   <div class="form-group has-feedback">
@@ -192,7 +206,7 @@ print [[
 <script>
 
 function reset_pwd_dialog(user) {
-      $.getJSON('get_user_info.lua?user='+user, function(data) {
+      $.getJSON(']] print(ntop.getHttpPrefix()) print[[/lua/admin/get_user_info.lua?user='+user, function(data) {
       $('#password_dialog_title').text(data.username);
       $('#password_dialog_username').val(data.username);
       $('#pref_dialog_username').val(data.username);
@@ -201,6 +215,7 @@ function reset_pwd_dialog(user) {
       $('#confirm_password_input').val('');
       $('#host_role_select option[value = '+data.group+']').attr('selected','selected');
       $('#networks_input').val(data.allowed_nets);
+      $('#allowed_interface option[value = '+data.allowed_ifname+']').attr('selected','selected');
 
       $('#form_pref_change').show();
       $('#pref_part_separator').show();

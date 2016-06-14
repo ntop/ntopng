@@ -87,7 +87,10 @@ static int ntop_lua_check(lua_State* vm, const char* func,
 
 static NetworkInterfaceView* handle_null_interface_view(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "NULL interface view: did you restart ntopng in the meantime?");
-
+  char allowed_ifname[MAX_INTERFACE_NAME_LEN];
+  if(ntop->getInterfaceAllowed(vm, allowed_ifname)){
+      return ntop->getNetworkInterfaceView(allowed_ifname);
+  }
   return(ntop->getInterfaceViewAtId(0));
 }
 
@@ -157,9 +160,18 @@ static int ntop_dump_file(lua_State* vm) {
  * @return @ref CONST_LUA_OK.
  */
 static int ntop_get_default_interface_name(lua_State* vm) {
+  char ifname[MAX_INTERFACE_NAME_LEN];
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
-  lua_pushstring(vm, ntop->getInterfaceAtId(0)->get_name());
+  if (ntop->getInterfaceAllowed(vm, ifname)) {
+    // if there is an allowed interface for the user
+    // we return that interface
+    lua_pushstring(vm,
+		   ntop->getNetworkInterface(ifname)->get_name());
+  } else {
+    lua_pushstring(vm, ntop->getInterfaceAtId(NULL, /* no need to check as there is no constaint */
+					      0)->get_name());
+  }
   return(CONST_LUA_OK);
 }
 
@@ -180,7 +192,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   id = (u_int32_t)lua_tonumber(vm, 1);
 
-  iface = ntop->getInterfaceViewById(id);
+  iface = ntop->getNetworkInterfaceView(vm, id);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Index: %d, Name: %s", id, iface ? iface->get_name() : "<unknown>");
 
@@ -203,11 +215,11 @@ static int ntop_get_interface_names(lua_State* vm) {
   lua_newtable(vm);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Found %i interface views", ntop->get_num_interface_views());
   for(int i=0; i<ntop->get_num_interface_views(); i++) {
-    NetworkInterfaceView *iface = ntop->getInterfaceViewAtId(i);
-
-    if(iface != NULL) {
+    NetworkInterfaceView *iface;
+    if((iface = ntop->getInterfaceViewAtId(vm, i)) != NULL) {
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", iface->get_name());
       char num[8];
       snprintf(num, sizeof(num), "%d", i);
       lua_push_str_table_entry(vm, num, iface->get_name());
@@ -261,7 +273,7 @@ static int ntop_select_interface(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   ifname = (char*)lua_tostring(vm, 1);
 
-  lua_pushlightuserdata(vm, (char*)ntop->getNetworkInterfaceView(ifname));
+  lua_pushlightuserdata(vm, (char*)ntop->getNetworkInterfaceView(vm, ifname));
   lua_setglobal(vm, "ntop_interface");
 
   return(CONST_LUA_OK);
@@ -2637,6 +2649,23 @@ static int ntop_change_allowed_nets(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_change_allowed_ifname(lua_State* vm) {
+  char *username, *allowed_ifname;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((allowed_ifname = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  return ntop->changeAllowedIfname(username, allowed_ifname);
+}
+
+/* ****************************************** */
+
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
 
@@ -2661,7 +2690,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_add_user(lua_State* vm) {
-  char *username, *full_name, *password, *host_role, *allowed_networks;
+  char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
@@ -2682,7 +2711,11 @@ static int ntop_add_user(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((allowed_networks = (char*)lua_tostring(vm, 5)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  return ntop->addUser(username, full_name, password, host_role, allowed_networks);
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((allowed_interface = (char*)lua_tostring(vm, 6)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  return ntop->addUser(username, full_name, password, host_role,
+		       allowed_networks, allowed_interface);
 }
 
 /* ****************************************** */
@@ -3260,7 +3293,7 @@ static int ntop_stats_insert_minute_sampling(lua_State *vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((sampling = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3297,7 +3330,7 @@ static int ntop_stats_insert_hour_sampling(lua_State *vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((sampling = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3335,7 +3368,7 @@ static int ntop_stats_insert_day_sampling(lua_State *vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((sampling = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3373,7 +3406,7 @@ static int ntop_stats_get_minute_sampling(lua_State *vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   epoch = (time_t)lua_tointeger(vm, 2);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3413,7 +3446,7 @@ static int ntop_stats_delete_minute_older_than(lua_State *vm) {
   if(num_days < 0)
     return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3451,7 +3484,7 @@ static int ntop_stats_delete_hour_older_than(lua_State *vm) {
   if(num_days < 0)
     return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3489,7 +3522,7 @@ static int ntop_stats_delete_day_older_than(lua_State *vm) {
   if(num_days < 0)
     return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3531,7 +3564,7 @@ static int ntop_stats_get_minute_samplings_interval(lua_State *vm) {
   if(epoch_end < 0)
     return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3581,7 +3614,7 @@ static int ntop_stats_get_samplings_of_minutes_from_epoch(lua_State *vm) {
   if(num_minutes < 0)
     return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3633,7 +3666,7 @@ static int ntop_stats_get_samplings_of_hours_from_epoch(lua_State *vm) {
   if(num_hours < 0)
     return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3685,7 +3718,7 @@ static int ntop_stats_get_samplings_of_days_from_epoch(lua_State *vm) {
   if(num_days < 0)
     return(CONST_LUA_ERROR);
 
-  if(!(iface = ntop->getInterfaceById(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
      !(sm = iface->getStatsManager()))
     return (CONST_LUA_ERROR);
 
@@ -3713,7 +3746,7 @@ static int ntop_delete_dump_files(lua_State *vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   if((ifid = lua_tointeger(vm, 1)) < 0) return(CONST_LUA_ERROR);
-  if(!(iface = ntop->getInterfaceById(ifid))) return(CONST_LUA_ERROR);
+  if(!(iface = ntop->getNetworkInterface(ifid))) return(CONST_LUA_ERROR);
 
   snprintf(pcap_path, sizeof(pcap_path), "%s/%d/pcap/",
 	   ntop->get_working_dir(), ifid);
@@ -4603,6 +4636,7 @@ static const luaL_Reg ntop_reg[] = {
   { "resetUserPassword",  ntop_reset_user_password },
   { "changeUserRole",     ntop_change_user_role },
   { "changeAllowedNets",  ntop_change_allowed_nets },
+  { "changeAllowedIfname",ntop_change_allowed_ifname },
   { "addUser",            ntop_add_user },
   { "deleteUser",         ntop_delete_user },
   { "isLoginDisabled",    ntop_is_login_disabled },
@@ -4894,6 +4928,55 @@ void Lua::purifyHTTPParameter(char *param) {
 
 /* ****************************************** */
 
+void Lua::setInterface(const char *user) {
+  char key[64], ifname[MAX_INTERFACE_NAME_LEN];
+  bool enforce_allowed_interface = false;
+  if(user[0] != '\0') {
+    // check if the user is restricted to browse only a given interface
+    snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user);
+    if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
+       && !ntop->getRedis()->get(key, ifname, sizeof(ifname))) {
+      // there is only one allowed interface for the user
+      enforce_allowed_interface = true;
+      goto set_preferred_interface;
+    } else if(snprintf(key, sizeof(key), "ntopng.prefs.%s.ifname", user)
+	      && ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
+      // no allowed interface and no default set interface
+    set_default_if_name_in_session:
+      snprintf(ifname, sizeof(ifname), "%s",
+	       ntop->getInterfaceAtId(NULL /* allowed user interface check already enforced */,
+				      0)->get_name());
+      lua_push_str_table_entry(L, "ifname", ifname);
+      ntop->getRedis()->set(key, ifname, 3600 /* 1h */);
+    } else {
+      goto set_preferred_interface;
+    }
+  } else {
+    // We need to check if ntopng is running with the option --disable-login
+    snprintf(key, sizeof(key), "ntopng.prefs.ifname");
+    if(ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
+      goto set_preferred_interface;
+    }
+
+  set_preferred_interface:
+    NetworkInterfaceView *iface;
+
+    if((iface = ntop->getNetworkInterfaceView(NULL /* allowed user interface check already enforced */,
+					      ifname)) != NULL) {
+      /* The specified interface still exists */
+      lua_push_str_table_entry(L, "ifname", iface->get_name());
+    } else if (!enforce_allowed_interface) {
+      goto set_default_if_name_in_session;
+    } else {
+      // TODO: handle the case where the user has
+      // an allowed interface that is not presently available
+      // (e.g., not running?)
+    }
+  }
+}
+
+/* ****************************************** */
+
 int Lua::handle_script_request(struct mg_connection *conn,
 			       const struct mg_request_info *request_info,
 			       char *script_path) {
@@ -5037,33 +5120,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
   mg_get_cookie(conn, "session", buf, sizeof(buf));
   lua_push_str_table_entry(L, "session", buf);
 
-  if(user[0] != '\0') {
-    snprintf(key, sizeof(key), "ntopng.prefs.%s.ifname", user);
-    if(ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
-    set_default_if_name_in_session:
-      snprintf(ifname, sizeof(ifname), "%s", ntop->getInterfaceAtId(0)->get_name());
-      lua_push_str_table_entry(L, "ifname", ifname);
-      ntop->getRedis()->set(key, ifname, 3600 /* 1h */);
-    } else {
-      goto set_preferred_interface;
-    }
-  } else {
-    // We need to check if ntopng is running with the option --disable-login
-    snprintf(key, sizeof(key), "ntopng.prefs.ifname");
-    if(ntop->getRedis()->get(key, ifname, sizeof(ifname)) < 0) {
-      goto set_preferred_interface;
-    }
-
-  set_preferred_interface:
-    NetworkInterfaceView *iface;
-
-    if((iface = ntop->getInterfaceView(ifname)) != NULL) {
-      /* The specified interface still exists */
-      lua_push_str_table_entry(L, "ifname", iface->get_name());
-    } else {
-      goto set_default_if_name_in_session;
-    }
-  }
+  // now it's time to set the interface.
+  setInterface(user);
 
   lua_setglobal(L, "_SESSION"); /* Like in php */
 
@@ -5074,9 +5132,6 @@ int Lua::handle_script_request(struct mg_connection *conn,
     lua_setglobal(L, "user");
 
     snprintf(key, sizeof(key), "ntopng.user.%s.allowed_nets", user);
-
-    //ntop->getTrace()->traceEvent(TRACE_WARNING, "-> %s", key);
-    
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
        && (val[0] != '\0')) {
       char *what, *net;
@@ -5095,6 +5150,13 @@ int Lua::handle_script_request(struct mg_connection *conn,
       lua_pushlightuserdata(L, ptree);
       lua_setglobal(L, CONST_ALLOWED_NETS);
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
+    }
+
+    snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user);
+    if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
+       && !ntop->getRedis()->get(key, ifname, sizeof(ifname))) {
+      lua_pushlightuserdata(L, ifname);
+      lua_setglobal(L, CONST_ALLOWED_IFNAME);
     }
   }
 
