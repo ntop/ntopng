@@ -64,7 +64,7 @@ for _k in pairsByKeys(vals , desc) do
   end
 
   if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
-     local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?ifId="..getInterfaceId(ifname)
+     local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..getInterfaceId(ifname)
      hist_url = hist_url.."&epoch_end="..tostring(now)
      hist_url = hist_url.."&"..hostinfo2url(host)
      hist_url = hist_url.."&protocol="..protos[k]
