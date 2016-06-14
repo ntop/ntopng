@@ -56,10 +56,6 @@ if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical data explorer</a></li>')
 end
 
-print [[
-  </li>
-
-   ]]
 if(ntop.isPro()) then
 	print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Report</a></li>')
 end
