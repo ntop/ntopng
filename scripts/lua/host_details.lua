@@ -1142,15 +1142,26 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 	 print("<tr><th>4xx (Client Error)</th><td style=\"text-align: right;\"><span id=http_response_num_4xx>".. formatValue(http["receiver"]["response"]["num_4xx"]) .."</span> <span id=trend_http_response_num_4xx></span></td></tr>")
 	 print("<tr><th>5xx (Server Error)</th><td style=\"text-align: right;\"><span id=http_response_num_5xx>".. formatValue(http["receiver"]["response"]["num_5xx"]) .."</span> <span id=trend_http_response_num_5xx></span></td></tr>")
 
-	 -- TODO: add dynamic update via ajax
          vh = http["virtual_hosts"]
 	 if(vh ~= nil) then
+	    local now    = os.time()
+	    local ago1h  = now - 3600
   	    num = table.len(vh)
 	    if(num > 0) then
   	      print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
       	      for k,v in pairsByKeys(vh, asc) do
 		 local j = string.gsub(k, "%.", "___")
-		 print("<tr><th><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i></th><td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
+		 print("<tr><td><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i>")
+		 if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
+		    local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..getInterfaceId(ifname)
+		    hist_url = hist_url.."&epoch_end="..tostring(now)
+		    hist_url = hist_url.."&"..hostinfo2url(host)
+		    hist_url = hist_url.."&info="..k
+		    print('&nbsp;')
+		    print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history"></i></a>')
+		 end
+		 print("</td>")
+		 print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
 		 print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
 		 print("<td align=right><span id="..j.."_num_vhost_req_serv>"..formatValue(vh[k]["http.requests"]).."</span></td></tr>\n")
 	      end
