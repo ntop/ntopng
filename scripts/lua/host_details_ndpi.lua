@@ -20,6 +20,12 @@ host_vlan = host_info["vlan"]
 host = interface.getHostInfo(host_ip, host_vlan)
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 
+local now    = os.time()
+local ago1h  = now - 3600
+local ago12h = now - 3600 * 12
+local ago1d  = now - 3600 * 24
+local protos = interface.getnDPIProtocols()
+
 if(host == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Unable to find "..host_ip.." (data expired ?)</div>")
    return
@@ -34,7 +40,7 @@ for k in pairs(host["ndpi"]) do
 end
 table.sort(vals)
 
-print("<tr><th>Total</th><td class=\"text-right\">" .. bytesToSize(host["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["bytes.rcvd"]) .. "</td>")
+print("<tr><td>Total</td><td class=\"text-right\">" .. bytesToSize(host["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["bytes.rcvd"]) .. "</td>")
 
 print("<td>")
 breakdownBar(host["bytes.sent"], "Sent", host["bytes.rcvd"], "Rcvd", 0, 100)
@@ -44,7 +50,7 @@ print("<td colspan=2 class=\"text-right\">" ..  bytesToSize(total).. "</td></tr>
 
 for _k in pairsByKeys(vals , desc) do
   k = vals[_k]
-  print("<tr><th>")
+  print("<tr><td>")
   fname = getRRDName(ifid, hostinfo2hostkey(host_info), k..".rrd")
   if(ntop.exists(fname)) then
     print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=".. k ..".rrd\">"..k.." "..formatBreed(host["ndpi"][k]["breed"]).."</A>")
@@ -56,8 +62,20 @@ for _k in pairsByKeys(vals , desc) do
   if((host["ndpi"][k]["bytes.sent"] == 0) and (host["ndpi"][k]["bytes.rcvd"] > 0)) then
      print(" <i class=\"fa fa-warning fa-lg\" style=\"color: orange;\"></i>")
   end
-  
-  print("</th><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
+
+  if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
+     local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?ifId="..getInterfaceId(ifname)
+     hist_url = hist_url.."&epoch_end="..tostring(now)
+     hist_url = hist_url.."&"..hostinfo2url(host)
+     hist_url = hist_url.."&protocol="..protos[k]
+     print('&nbsp;<small>[<i class="fa fa-history"></i>:')
+     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the latest hour">1h</a>&nbsp;')
+     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago12h)..'" title="Flows seen in the latest 12 hours">12h</a>&nbsp;')
+     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1d)..'" title="Flows seen the the latest day">1d</a>]</small>')
+  end
+
+  print('</td>')
+  print("<td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")
 
   print("<td>")
   breakdownBar(host["ndpi"][k]["bytes.sent"], "Sent", host["ndpi"][k]["bytes.rcvd"], "Rcvd", 0, 100)
