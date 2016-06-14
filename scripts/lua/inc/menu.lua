@@ -10,7 +10,10 @@ require "lua_utils"
 prefs = ntop.getPrefs()
 names = interface.getIfNames()
 num_ifaces = 0
-for k,v in pairs(names) do num_ifaces = num_ifaces+1 end
+for k,v in pairs(names) do
+   num_ifaces = num_ifaces+1
+   -- io.write(k.."\n")
+end
 
 print [[
       <div class="masthead">

@@ -90,7 +90,6 @@ print [[
      <input id="networks_input" type="text" name="networks" value="" class="form-control" required>
     </div>
      <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
-
   </div>
 
   <div class="form-group has-feedback">
@@ -100,6 +99,7 @@ print [[
       <option value="">Any Interface</option>
 ]]
 for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
+   -- io.write(interface_name.."\n")
    print('<option value="'..interface_name..'"> '..interface_name..'</option>')
 end
 print[[
@@ -215,7 +215,7 @@ function reset_pwd_dialog(user) {
       $('#confirm_password_input').val('');
       $('#host_role_select option[value = '+data.group+']').attr('selected','selected');
       $('#networks_input').val(data.allowed_nets);
-      $('#allowed_interface option[value = '+data.allowed_ifname+']').attr('selected','selected');
+      $('#allowed_interface option[value = "'+data.allowed_ifname+'"]').attr('selected','selected');
 
       $('#form_pref_change').show();
       $('#pref_part_separator').show();

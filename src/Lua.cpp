@@ -233,7 +233,7 @@ static int ntop_get_interface_names(lua_State* vm) {
 
 static patricia_tree_t* get_allowed_nets(lua_State* vm) {
   patricia_tree_t *ptree;
-  
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
   lua_getglobal(vm, CONST_ALLOWED_NETS);
@@ -4036,7 +4036,7 @@ static int ntop_queue_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
   alert_msg = (char*)lua_tostring(vm, 4);
 
-  redis->queueAlert((AlertLevel)alert_level, (AlertStatus)alert_status, 
+  redis->queueAlert((AlertLevel)alert_level, (AlertStatus)alert_status,
 		    (AlertType)alert_type, alert_msg);
   return(CONST_LUA_OK);
 }
@@ -4931,9 +4931,10 @@ void Lua::purifyHTTPParameter(char *param) {
 void Lua::setInterface(const char *user) {
   char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool enforce_allowed_interface = false;
+
   if(user[0] != '\0') {
     // check if the user is restricted to browse only a given interface
-    snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user);
+
     if(snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, user)
        && !ntop->getRedis()->get(key, ifname, sizeof(ifname))) {
       // there is only one allowed interface for the user
@@ -5020,6 +5021,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
 	  purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
 
+	  // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
+	  
 	  if((equal = (char*)malloc(len+1)) != NULL) {
 	    char *decoded_buf;
 

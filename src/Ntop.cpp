@@ -908,8 +908,14 @@ bool Ntop::changeAllowedNets(char *username, char *allowed_nets) const {
 /* ******************************************* */
 
 bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
+  /* Add as exception :// */
+  char *column_slash = strstr(allowed_ifname, ":__");
+  
   if (username == NULL || username[0] == '\0')
     return false;
+  
+  if(column_slash)
+    column_slash[1] = column_slash[2] = '/';  
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
 			       "Changing allowed ifname to %s for %s",

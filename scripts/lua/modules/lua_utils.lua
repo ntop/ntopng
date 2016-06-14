@@ -1607,6 +1607,7 @@ end
 
 
 function getInterfaceNameAlias(interface_name)
+   -- io.write(debug.traceback().."\n")
    label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
    if((label == nil) or (label == "")) then
       return(interface_name)
