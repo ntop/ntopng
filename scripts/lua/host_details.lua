@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "alert_utils"
+require "historical_utils"
 
 debug_hosts = false
 page        = _GET["page"]
