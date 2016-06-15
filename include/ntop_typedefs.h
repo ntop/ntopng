@@ -51,8 +51,12 @@ typedef enum {
   alert_malware_detection,
   alert_host_under_attack,
   alert_host_attacker,
-  alert_app_misconfiguration
-} AlertType;
+  alert_app_misconfiguration,
+  alert_suspicious_activity
+} AlertType; /* NOTE:
+		keep it in sync with alert_type_keys
+		in ntopng/scripts/lua/modules/lua_utils.lua
+	     */
 
 typedef enum {
   alert_level_info = 0,
@@ -157,7 +161,8 @@ typedef enum {
   status_slow_data_exchange /* 3 */,
   status_low_goodput /* 4 */,
   status_suspicious_tcp_syn_probing /* 5 */,
-  status_connection_reset /* 6 */
+  status_connection_reset /* 6 */,
+  status_suspicious_tcp_probing /* 7 */,
 } FlowStatus;
 
 typedef enum {

@@ -450,8 +450,10 @@ for _key, _value in pairsByValues(vals, funct) do
    -- if(value["category"] ~= nil) then print (", \"column_category\" : \"" .. value["category"] .. "\", ") else print (",") end
    print (", \"column_proto_l4\" : \"")
 
-   if(interface.isPacketInterface() and value["flow.status"] ~= 0) then
-     print("<i class='fa fa-warning fa-lg' style='color: orange;'></i> ")
+   if(interface.isPacketInterface()) then
+      if(value["flow.status"] ~= 0) then
+	 print("<i class='fa fa-warning fa-lg' style='color: orange;'></i> ")
+      end
    end
 
    if ((((value["proto.l4"] == "TCP") or (value["proto.l4"] == "UDP")))

@@ -61,14 +61,7 @@ for _k in pairsByKeys(vals , desc) do
      print(" <i class=\"fa fa-warning fa-lg\" style=\"color: orange;\"></i>")
   end
 
-  if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
-     local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..getInterfaceId(ifname)
-     hist_url = hist_url.."&epoch_end="..tostring(now)
-     hist_url = hist_url.."&"..hostinfo2url(host)
-     hist_url = hist_url.."&protocol="..protos[k]
-     print('&nbsp;')
-     print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the latest hour"><i class="fa fa-history"></i></a>')
-  end
+  historicalProtoHostHref(getInterfaceId(ifname), host, nil, protos[k], nil)
 
   print('</td>')
   print("<td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.sent"]) .. "</td><td class=\"text-right\">" .. bytesToSize(host["ndpi"][k]["bytes.rcvd"]) .. "</td>")

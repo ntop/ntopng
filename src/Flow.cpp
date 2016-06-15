@@ -202,6 +202,29 @@ Flow::~Flow() {
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
 				 Utils::flowstatus2str(status), f);
+
+    switch(status) {
+    case status_suspicious_tcp_probing:
+    case status_suspicious_tcp_syn_probing:
+      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
+
+      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+
+      snprintf(alert_msg, sizeof(alert_msg),
+	       "Probing or server down: <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> &gt; <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+	       c, iface->get_name(), cli_host->get_name() ? cli_host->get_name() : c,
+	       s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
+	       print(fbuf, sizeof(fbuf)));
+
+      ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent,
+				   alert_suspicious_activity, alert_msg);
+      break;
+
+    default:
+      /* Nothing to do */
+      break;
+    }
   }
 
   if(good_low_flow_detected) {
@@ -2313,7 +2336,7 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
 /* ***************************************************** */
 
 FlowStatus Flow::getFlowStatus() {
-  if(strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
+  if(!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
     if(getTcpFlags() & TH_RST)     return status_connection_reset;
   } else {
     bool isIdle = isIdleFlow();
@@ -2322,6 +2345,9 @@ FlowStatus Flow::getFlowStatus() {
     if(protocol == IPPROTO_TCP) {
       u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+      if((srv2cli_packets == 0) && ((time(NULL)-last_seen) > 2 /* sec */))
+	return status_suspicious_tcp_probing;
+	
       if(!twh_over) {
 	if(isIdle)
 	  return status_suspicious_tcp_syn_probing;

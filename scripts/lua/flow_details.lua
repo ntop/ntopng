@@ -109,6 +109,8 @@ else
    flow = interface.findFlowByKey(tonumber(flow_key))
 end
 
+local ifid = interface.name2id(ifname)
+
 if(flow == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> This flow cannot be found. '.. purgedErrorString()..'</div>')
 else
@@ -173,6 +175,7 @@ else
    print(getApplicationLabel(flow["proto.ndpi"]).." ("..flow["proto.ndpi_id"]..")")
    print("</A> ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
+   historicalProtoHostHref(ifid, nil, nil, flow["proto.ndpi_id"], flow["ssl.certificate"])
    print("</td>")
 
    if(ifstats.inline) then
@@ -307,8 +310,9 @@ else
 
    if(flow["ssl.certificate"] ~= nil) then
       print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td colspan=2>")
-      print("<A HREF=\"http://"..flow["ssl.certificate"].."\">"..flow["ssl.certificate"].."</A> <i class=\"fa fa-external-link\">")
+      print("<A HREF=\"http://"..flow["ssl.certificate"].."\">"..flow["ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["ssl.certificate"], flow["category"])) end
+      historicalProtoHostHref(ifid, nil, nil, nil, flow["ssl.certificate"])
       print("</td></tr>\n")
    end
 
@@ -576,7 +580,7 @@ function update () {
 		    url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/flow_stats.lua',
-		    data: { ifname: "]] print(tostring(interface.name2id(ifname))) print [[", flow_key: "]] print(flow_key) print [[" },
+		    data: { ifname: "]] print(tostring(ifid)) print [[", flow_key: "]] print(flow_key) print [[" },
 		    success: function(content) {
 			var rsp = jQuery.parseJSON(content);
 			$('#first_seen').html(rsp["seen.first"]);

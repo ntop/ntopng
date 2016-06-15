@@ -1,5 +1,5 @@
 --
--- (C) 2014-15 - ntop.org
+-- (C) 2014-16 - ntop.org
 --
 require "lua_trace"
 
@@ -196,10 +196,10 @@ end
 
 --print("(((("..ifname.."))))")
 l4_keys = {
-  { "TCP", "tcp" },
-  { "UDP", "udp" },
-  { "ICMP", "icmp" },
-  { "Other IP", "other ip" }
+  { "TCP", "tcp", 6 },
+  { "UDP", "udp", 17 },
+  { "ICMP", "icmp", 1 },
+  { "Other IP", "other ip", -1 }
 }
 
 function __FILE__() return debug.getinfo(2,'S').source end
@@ -413,7 +413,9 @@ alert_type_keys = {
   { "<i class='fa fa-sort-asc'></i> Quota Exceeded",  5 },
   { "<i class='fa fa-ban'></i> Malware Detected",  6 },
   { "<i class='fa fa-bomb'></i> Ongoing Attacker",  7 },
-  { "<i class='fa fa-bomb'></i> Under Attack",  8 }
+  { "<i class='fa fa-bomb'></i> Under Attack",  8 },
+{ "<i class='fa fa-exclamation'></i> Misconfigured App",  9 },
+{ "<i class='fa fa-exclamation'></i> Suspicious Activity",  10 },
 }
 
 function alertSeverityLabel(v)
@@ -2037,8 +2039,9 @@ function getFlowStatus(status)
   elseif(status == 2) then return("<font color=orange>Slow Application Header</font>")
   elseif(status == 3) then return("<font color=orange>Slow Data Exchange (Slowloris?)</font>")
   elseif(status == 4) then return("<font color=orange>Low Goodput</font>")
-  elseif(status == 5) then return("<font color=orange>Suspicious TCP Probing (or server port down)</font>")
+  elseif(status == 5) then return("<font color=orange>Suspicious TCP SYN Probing (or server port down)</font>")
   elseif(status == 6) then return("<font color=orange>TCP Connection Reset</font>")
+  elseif(status == 7) then return("<font color=orange>Suspicious TCP Probing</font>")
   else return("<font color=orange>Unknown status ("..status..")</font>")   
   end
 end
@@ -2056,4 +2059,26 @@ function printTCPFlags(flags)
       if(hasbit(flags,0x08)) then print('<span class="label label-info">PUSH</span> ') end
       if(hasbit(flags,0x10)) then print('<span class="label label-info">ACK</span> ')  end
       if(hasbit(flags,0x20)) then print('<span class="label label-info">URG</span> ')  end
+end
+
+-- ##########################################
+
+function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
+   if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
+      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId
+      local now    = os.time()
+      local ago1h  = now - 3600
+      
+      hist_url = hist_url.."&epoch_end="..tostring(now)
+      if((host ~= nil) and (host ~= "")) then hist_url = hist_url.."&"..hostinfo2url(host) end
+      if((l4_proto ~= nil) and (l4_proto ~= "")) then
+	 hist_url = hist_url.."&l4proto="..l4_proto
+      end
+      if((ndpi_proto_id ~= nil) and (ndpi_proto_id ~= "")) then hist_url = hist_url.."&protocol="..ndpi_proto_id end
+      if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
+      print('&nbsp;')
+      -- print('<span class="label label-info">')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history fa-lg"></i></a>')
+      -- print('</span>')
+   end  
 end

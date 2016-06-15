@@ -1197,7 +1197,7 @@ print [[
 							  field: "INFO",
 							  sortable: true,
 							  css: {
-							     textAlign: 'right'
+							     textAlign: 'left'
 							  }
 						       },
 						       {

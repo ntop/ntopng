@@ -374,6 +374,8 @@ if((page == "overview") or (page == nil)) then
 	    end
 	    print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
 
+	    historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
+
 	    if(host["local_network_name"] ~= nil) then
 	       print(" [ <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"])..">".. host["local_network_name"].."</A> ]")
 	    end
@@ -922,13 +924,14 @@ print [[/lua/host_l4_stats.lua', { ifname: "]] print(ifId.."") print('", '..host
 
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
-	    fname = getRRDName(ifname, hostinfo2hostkey(host_info), k)
-	    if(ntop.exists(fname)) then
+	    fname = getRRDName(ifId, hostinfo2hostkey(host_info), k)
+	    if(not ntop.exists(fname)) then
 	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=".. k ..".rrd\">".. label .."</A>")
 	    else
 	       print(label)
 	    end
 	    t = sent+rcvd
+	    historicalProtoHostHref(ifId, host, l4_keys[id][3], nil, nil)
 	    print("</th><td class=\"text-right\">" .. bytesToSize(sent) .. "</td><td class=\"text-right\">" .. bytesToSize(rcvd) .. "</td><td>")
 	    breakdownBar(sent, "Sent", rcvd, "Rcvd", 0, 100)
 	    print("</td><td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
@@ -1148,23 +1151,17 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 	    local ago1h  = now - 3600
   	    num = table.len(vh)
 	    if(num > 0) then
-  	      print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
-      	      for k,v in pairsByKeys(vh, asc) do
-		 local j = string.gsub(k, "%.", "___")
-		 print("<tr><td><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i>")
-		 if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
-		    local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..getInterfaceId(ifname)
-		    hist_url = hist_url.."&epoch_end="..tostring(now)
-		    hist_url = hist_url.."&"..hostinfo2url(host)
-		    hist_url = hist_url.."&info="..k
-		    print('&nbsp;')
-		    print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history"></i></a>')
-		 end
-		 print("</td>")
-		 print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
-		 print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
-		 print("<td align=right><span id="..j.."_num_vhost_req_serv>"..formatValue(vh[k]["http.requests"]).."</span></td></tr>\n")
-	      end
+	       local ifId = getInterfaceId(ifname)
+	       print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
+	       for k,v in pairsByKeys(vh, asc) do
+		  local j = string.gsub(k, "%.", "___")
+		  print("<tr><td><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i>")
+		  historicalProtoHostHref(ifId, host, nil, k, nil)
+		  print("</td>")
+		  print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
+		  print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
+		  print("<td align=right><span id="..j.."_num_vhost_req_serv>"..formatValue(vh[k]["http.requests"]).."</span></td></tr>\n")
+	       end
 	    end
          end
 
