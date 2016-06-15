@@ -178,6 +178,8 @@ else
 	 flow["LAST_SWITCHED"] = formatEpoch(tonumber(flow["LAST_SWITCHED"]))
 
 	 flow["BYTES"] = bytesToSize(tonumber(flow["BYTES"]))
+	 flow["IN_BYTES"] = bytesToSize(tonumber(flow["IN_BYTES"]))
+	 flow["OUT_BYTES"] = bytesToSize(tonumber(flow["OUT_BYTES"]))
 	 -- flow["PACKETS"] = formatPackets(tonumber(flow["PACKETS"]))
 
 	 if(rows > 0) then print(',\n') end
