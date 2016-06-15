@@ -79,7 +79,7 @@ bool RuntimePrefs::are_alerts_syslog_enabled() {
 bool RuntimePrefs::are_probing_alerts_enabled() {
   char rsp[32];
 
-  if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
+  if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ALERT_PROBING,
 			   rsp, sizeof(rsp)) < 0) {
     return(true);
   } else
