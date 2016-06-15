@@ -1157,7 +1157,7 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 	       for k,v in pairsByKeys(vh, asc) do
 		  local j = string.gsub(k, "%.", "___")
 		  print("<tr><td><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i>")
-		  historicalProtoHostHref(ifId, host, nil, k, nil)
+		  historicalProtoHostHref(ifId, host, nil, nil, k)
 		  print("</td>")
 		  print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
 		  print("<td align=right><span id="..j.."_bytes_vhost_rcvd>"..bytesToSize(vh[k]["bytes.rcvd"]).."</span></td>")
