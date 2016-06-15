@@ -45,7 +45,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
       sql = "select IP_SRC_ADDR, IP_DST_ADDR"
    end
 
-   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,idx,L7_PROTO,INFO"
+   follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,IN_BYTES,OUT_BYTES,idx,L7_PROTO,INFO"
    if ntop.isPro() then follow = follow..",PROFILE" end
    follow = follow.." from flowsv"..version.." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
 

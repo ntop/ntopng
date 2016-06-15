@@ -1360,3 +1360,25 @@ $('a[href="#historical-pcaps"]').on('shown.bs.tab', function (e) {
 </script>
 ]]
 end
+
+-- ##########################################
+
+function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
+   if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
+      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId
+      local now    = os.time()
+      local ago1h  = now - 3600
+
+      hist_url = hist_url.."&epoch_end="..tostring(now)
+      if((host ~= nil) and (host ~= "")) then hist_url = hist_url.."&"..hostinfo2url(host) end
+      if((l4_proto ~= nil) and (l4_proto ~= "")) then
+	 hist_url = hist_url.."&l4proto="..l4_proto
+      end
+      if((ndpi_proto_id ~= nil) and (ndpi_proto_id ~= "")) then hist_url = hist_url.."&protocol="..ndpi_proto_id end
+      if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
+      print('&nbsp;')
+      -- print('<span class="label label-info">')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history fa-lg"></i></a>')
+      -- print('</span>')
+   end
+end
