@@ -277,6 +277,8 @@ for key, value in ipairs(flows_stats) do
       info = shortenString(flows_stats[key]["bittorrent_hash"])
       elseif(flows_stats[key]["host_server_name"] ~= nil) then
       info = shortenString(flows_stats[key]["host_server_name"])
+      elseif(flows_stats[key]["icmp"] ~= nil) then
+      info = getICMPTypeCode(flows_stats[key]["icmp"])
    end
    flows_stats[key]["info"] = info
 

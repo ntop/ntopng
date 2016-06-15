@@ -1145,8 +1145,8 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
   }
 
   /* if here, name is a string */
-  for(int i=0; i<num_defined_interfaces; i++) {
-    if(!strcmp(name, iface[i]->get_name()))
+  for(int i=0; i<num_defined_interfaces; i++) {    
+    if(strstr(name, iface[i]->get_name()))
       return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
   }
 

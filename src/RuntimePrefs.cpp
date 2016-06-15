@@ -30,10 +30,10 @@ RuntimePrefs::RuntimePrefs() {
   are_hosts_categories_rrd_created();
   is_nbox_integration_enabled();
 
-  if(are_alerts_syslog_enable())
+  if(are_alerts_syslog_enabled())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping alerts into syslog");
 #ifdef NTOPNG_PRO
-  if(are_alerts_nagios_enable())
+  if(are_alerts_nagios_enabled())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sending alerts to nagios");
 #endif
 }
@@ -43,28 +43,27 @@ RuntimePrefs::RuntimePrefs() {
 void RuntimePrefs::set_alerts_syslog(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 			enable ? (char*)"1" : (char*)"0", 0);
-
 }
 
 /* ******************************************* */
+
 #ifdef NTOPNG_PRO
 void RuntimePrefs::set_alerts_nagios(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_ALERT_NAGIOS,
 			enable ? (char*)"1" : (char*)"0", 0);
-
 }
 #endif
 
 /* ******************************************* */
+
 void RuntimePrefs::set_nbox_integration(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_NBOX_INTEGRATION,
 			enable ? (char*)"1" : (char*)"0", 0);
-
 }
 
 /* ******************************************* */
 
-bool RuntimePrefs::are_alerts_syslog_enable() {
+bool RuntimePrefs::are_alerts_syslog_enabled() {
   char rsp[32];
 
   if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
@@ -74,9 +73,23 @@ bool RuntimePrefs::are_alerts_syslog_enable() {
   } else
     return((strcmp(rsp, "1") == 0) ? true : false);
 }
+
 /* ******************************************* */
+
+bool RuntimePrefs::are_probing_alerts_enabled() {
+  char rsp[32];
+
+  if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
+			   rsp, sizeof(rsp)) < 0) {
+    return(true);
+  } else
+    return((strcmp(rsp, "1") == 0) ? true : false);
+}
+
+/* ******************************************* */
+
 #ifdef NTOPNG_PRO
-bool RuntimePrefs::are_alerts_nagios_enable() {
+bool RuntimePrefs::are_alerts_nagios_enabled() {
   char rsp[32];
 
   if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_ALERT_NAGIOS,
@@ -89,6 +102,7 @@ bool RuntimePrefs::are_alerts_nagios_enable() {
 #endif
 
 /* ******************************************* */
+
 bool RuntimePrefs::is_nbox_integration_enabled() {
   char rsp[32];
 
@@ -101,6 +115,7 @@ bool RuntimePrefs::is_nbox_integration_enabled() {
 }
 
 /* ******************************************* */
+
 void RuntimePrefs::set_local_hosts_rrd_creation(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_HOST_RRD_CREATION,
 			enable ? (char*)"1" : (char*)"0", 0);
@@ -139,6 +154,7 @@ bool RuntimePrefs::are_hosts_ndpi_rrd_created() {
     return((strcmp(rsp, "1") == 0) ? true : false);
 }
 
+/* ******************************************* */
 
 void RuntimePrefs::set_hosts_categories_rrd_creation(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION,

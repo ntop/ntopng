@@ -73,6 +73,7 @@ num = 0
 sort_mode = mode
 
 --
+if(hosts_stats ~= nil) then
 for key, value in pairs(hosts_stats) do
    num = num + 1
    postfix = string.format("0.%04u", num)
@@ -91,6 +92,7 @@ for key, value in pairs(hosts_stats) do
       else
       vals[hosts_stats[key]["http.act_num_requests"]+postfix] = key
    end
+end
 end
 
 table.sort(vals)

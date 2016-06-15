@@ -263,7 +263,7 @@ function findString(str, tofind)
 
   str1    = string.lower(string.gsub(str, "-", "_"))
   tofind1 = string.lower(string.gsub(tofind, "-", "_"))
-  
+
   return(string.find(str1, tofind1, 1))
 end
 
@@ -414,8 +414,8 @@ alert_type_keys = {
   { "<i class='fa fa-ban'></i> Malware Detected",  6 },
   { "<i class='fa fa-bomb'></i> Ongoing Attacker",  7 },
   { "<i class='fa fa-bomb'></i> Under Attack",  8 },
-{ "<i class='fa fa-exclamation'></i> Misconfigured App",  9 },
-{ "<i class='fa fa-exclamation'></i> Suspicious Activity",  10 },
+  { "<i class='fa fa-exclamation'></i> Misconfigured App",  9 },
+  { "<i class='fa fa-exclamation'></i> Suspicious Activity",  10 },
 }
 
 function alertSeverityLabel(v)
@@ -2033,7 +2033,7 @@ function formatWebSite(site)
 end
 
 -- Update Utils::flowstatus2str
-function getFlowStatus(status) 
+function getFlowStatus(status)
   if(status == 0) then return("<font color=green>Normal</font>")
   elseif(status == 1) then return("<font color=orange>Slow TCP Connection</font>")
   elseif(status == 2) then return("<font color=orange>Slow Application Header</font>")
@@ -2042,7 +2042,7 @@ function getFlowStatus(status)
   elseif(status == 5) then return("<font color=orange>Suspicious TCP SYN Probing (or server port down)</font>")
   elseif(status == 6) then return("<font color=orange>TCP Connection Reset</font>")
   elseif(status == 7) then return("<font color=orange>Suspicious TCP Probing</font>")
-  else return("<font color=orange>Unknown status ("..status..")</font>")   
+  else return("<font color=orange>Unknown status ("..status..")</font>")
   end
 end
 
@@ -2068,7 +2068,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId
       local now    = os.time()
       local ago1h  = now - 3600
-      
+
       hist_url = hist_url.."&epoch_end="..tostring(now)
       if((host ~= nil) and (host ~= "")) then hist_url = hist_url.."&"..hostinfo2url(host) end
       if((l4_proto ~= nil) and (l4_proto ~= "")) then
@@ -2080,5 +2080,58 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       -- print('<span class="label label-info">')
       print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fa fa-history fa-lg"></i></a>')
       -- print('</span>')
-   end  
+   end
+end
+
+-- ##########################################
+
+_icmp_types ={
+	 { 0, 0, "Echo Reply" },
+	 { 3, 0, "Network Unreachable" },
+	 { 3, 1, "Host Unreachable" },
+	 { 3, 2, "Protocol Unreachable" },
+	 { 3, 3, "Port Unreachable" },
+	 { 3, 4, "Fragmentation needed but no fragment bit set" },
+	 { 3, 5, "Source routing failed" },
+	 { 3, 6, "Destination network unknown" },
+	 { 3, 7, "Destination host unknown" },
+	 { 3, 8, "Source host isolated (obsolete)" },
+	 { 3, 9, "Destination network administratively prohibited" },
+	 { 3, 10, "Destination host administratively prohibited" },
+	 { 3, 11, "Network unreachable for TOS" },
+	 { 3, 12, "Host unreachable for TOS" },
+	 { 3, 13, "Communication administratively prohibited by filtering" },
+	 { 3, 14, "Host precedence violation" },
+	 { 3, 15, "Precedence cutoff in effect" },
+	 { 4, 0, "Source quench" },
+	 { 5, 0, "Redirect for network" },
+	 { 5, 1, "Redirect for host" },
+	 { 5, 2, "Redirect for TOS and network" },
+	 { 5, 3, "Redirect for TOS and host" },
+	 { 8, 0, "Echo request x" },
+	 { 9, 0, "Router advertisement" },
+	 { 10, 0, "Route solicitation" },
+	 { 11, 0, "TTL equals 0 during transit" },
+	 { 11, 1, "TTL equals 0 during reassembly" },
+	 { 12, 0, "IP header bad (catchall error)" },
+	 { 12, 1, "Required options missing" },
+	 { 13, 0, "Timestamp request (obsolete)" },
+	 { 14, 0, "Timestamp reply (obsolete)" },
+	 { 15, 0, "Information request (obsolete)" },
+	 { 16, 0, "Information reply (obsolete)" },
+	 { 17, 0, "Address mask request" },
+	 { 18, 0, "Address mask reply" }
+}
+
+function getICMPTypeCode(icmp)
+  local t = icmp.type
+  local c = icmp.code
+
+  for _, _e in ipairs(_icmp_types) do
+    if((_e[1] == t) and (_e[2] == c)) then
+    	return(_e[3])					
+    end
+  end
+
+ return(t.."/"..c)
 end

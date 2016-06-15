@@ -60,21 +60,27 @@ class Flow : public GenericHashEntry {
   char *json_info, *host_server_name, *ndpi_proto_name, *bt_hash;
   bool dump_flow_traffic, badFlow;
 
-  struct {
-    char *last_url, *last_method;
-    u_int16_t last_return_code;
-  } http;
+  union {
+    struct {
+      char *last_url, *last_method;
+      u_int16_t last_return_code;
+    } http;
+    
+    struct {
+      char *last_query;
+    } dns;
+    
+    struct {
+      char *certificate;
+      bool hs_started, hs_over, firstdata_seen;
+      struct timeval clienthello_time, hs_end_time, lastdata_time;
+      float hs_delta_time, delta_firstData, deltaTime_data;
+    } ssl;
 
-  struct {
-    char *last_query;
-  } dns;
-
-  struct {
-    char *certificate;
-    bool hs_started, hs_over, firstdata_seen;
-    struct timeval clienthello_time, hs_end_time, lastdata_time;
-    float hs_delta_time, delta_firstData, deltaTime_data;
-  } ssl;
+    struct {
+      u_int8_t icmp_type, icmp_code;
+    } icmp;
+  } protos;
 
   struct {
     struct site_categories category;
@@ -149,7 +155,13 @@ class Flow : public GenericHashEntry {
   void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
   FlowStatus getFlowStatus();
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
-  
+
+  inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
+  inline bool isSSL()                  { return(isProtoSSL(NDPI_PROTOCOL_SSL));  }
+  inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
+  inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
+  inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP)); }
+
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -268,11 +280,13 @@ class Flow : public GenericHashEntry {
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
-  inline char* getDNSQuery()        { return(dns.last_query);  }
-  inline void  setDNSQuery(char *v) { if(dns.last_query) free(dns.last_query);  dns.last_query = strdup(v); }
-  inline char* getHTTPURL()         { return(http.last_url);   }
-  inline void  setHTTPURL(char *v)  { if(http.last_url) free(http.last_url);  http.last_url = strdup(v); }
-  inline char* getSSLCertificate()  { return(ssl.certificate); }
+
+  inline void  setICMP(u_int8_t icmp_type, u_int8_t icmp_code) { if(isICMP()) { protos.icmp.icmp_type = icmp_type, protos.icmp.icmp_code = icmp_code; } }
+  inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
+  inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = strdup(v); } }
+  inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
+  inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = strdup(v); } }
+  inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);

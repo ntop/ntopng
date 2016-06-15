@@ -377,6 +377,11 @@ else
       print("</td></tr>\n")
    end
 
+   local icmp = flow["icmp"]
+   if(icmp ~= nil) then
+      print("<tr><th width=30%>ICMP Info</th><td colspan=2>".. getICMPTypeCode(icmp) .. "</td></tr>\n")
+   end
+
    if interface.isPacketInterface() then
       print("<tr><th width=30%>Flow Status</th><td colspan=2>"..getFlowStatus(flow["flow.status"]).."</td></tr>\n")
    end

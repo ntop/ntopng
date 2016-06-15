@@ -335,12 +335,13 @@
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION   "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_THPT_CONTENT             "ntopng.prefs.thpt_content"  /* bps / pps */
-#define CONST_RUNTIME_PREFS_ALERT_SYSLOG             "ntopng.prefs.alerts_syslog"  /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_THPT_CONTENT             "ntopng.prefs.thpt_content"     /* bps / pps */
+#define CONST_RUNTIME_PREFS_ALERT_SYSLOG             "ntopng.prefs.alerts_syslog"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_PROBING            "ntopng.prefs.probing_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_NBOX_INTEGRATION         "ntopng.prefs.nbox_integration" /* 0 / 1 */
 #ifdef NTOPNG_PRO
-#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"  /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"  /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */
 #endif
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192

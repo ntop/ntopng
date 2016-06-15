@@ -178,12 +178,16 @@ function printAlerts()
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Alerts</th></tr>')
 
+  toggleTableButtonPrefs("Enable Probing Alerts",
+                    "Enable alerts generated when probing attempts are detected.",
+                    "On", "1", "success", "Off", "0", "danger", "toggle_alert_probing", "ntopng.prefs.probing_alerts", "1")
+
   toggleTableButtonPrefs("Alerts On Syslog",
                     "Enable alerts logging on system syslog.",
                     "On", "1", "success", "Off", "0", "danger", "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "1")
 
   if (ntop.isPro()) then
-    print('<tr><th colspan=2 class="info">Nagios Alerts</th></tr>')
+    print('<tr><th colspan=2 class="info">Nagios Integration</th></tr>')
 
     local elementToSwitch = {"nagios_nsca_host","nagios_nsca_port","nagios_send_nsca_executable","nagios_send_nsca_config","nagios_host_name","nagios_service_name"}
 

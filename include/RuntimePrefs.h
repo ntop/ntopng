@@ -68,7 +68,7 @@ class RuntimePrefs {
    * the preference will be set to default value (FALSE).
    * @return The preference boolean value
    */
-  bool are_alerts_nagios_enable();
+  bool are_alerts_nagios_enabled();
 #endif
 
   /**
@@ -93,7 +93,15 @@ class RuntimePrefs {
    * the preference will be set to default value (TRUE).
    * @return The preference boolean value
    */
-  bool are_alerts_syslog_enable();
+  bool are_alerts_syslog_enabled();
+
+  /**
+   * @brief Get the probing alert preference.
+   * @details Read for Redis the preference, if it doesn't exist
+   * the preference will be set to default value (TRUE).
+   * @return The preference boolean value
+   */
+  bool are_probing_alerts_enabled();
 
   /**
    * @brief Set the local hosts rrd creation preference.

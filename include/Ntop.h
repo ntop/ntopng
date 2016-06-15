@@ -375,9 +375,8 @@ class Ntop {
   inline Redis*            getRedis()                { return(redis);               };
   inline ElasticSearch*    getElasticSearch()        { return(elastic_search);      };
   inline Prefs*            getPrefs()                { return(prefs);               };
-  inline RuntimePrefs*            getRuntimePrefs()                { return(runtimeprefs);               };
-
-  inline ExportInterface* get_export_interface()              { return(export_interface);         };
+  inline RuntimePrefs*     getRuntimePrefs()         { return(runtimeprefs);        };
+  inline ExportInterface*  get_export_interface()    { return(export_interface);    };
 
 #ifdef NTOPNG_PRO
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };

@@ -46,7 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
     dissect_next_http_packet = false,
     check_tor = false, host_server_name = NULL, diff_num_http_requests = 0,
-    ssl.certificate = NULL, bt_hash = NULL;
+    bt_hash = NULL;
 
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
     bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, top_pkts_thpt = 0;
@@ -62,11 +62,7 @@ Flow::Flow(NetworkInterface *_iface,
     last_db_dump.cli2srv_goodput_bytes = 0, last_db_dump.srv2cli_goodput_bytes = 0,
     last_db_dump.last_dump = 0;
 
-  ssl.hs_started = ssl.hs_over = false, ssl.firstdata_seen = false,
-    ssl.clienthello_time.tv_sec = ssl.clienthello_time.tv_usec = 0,
-    ssl.hs_end_time.tv_sec = ssl.hs_end_time.tv_usec = 0,
-    ssl.lastdata_time.tv_sec = ssl.lastdata_time.tv_usec = 0,
-    ssl.hs_delta_time = ssl.delta_firstData = ssl.deltaTime_data = 0;
+  memset(&protos, 0, sizeof(protos));
 
   switch(protocol) {
   case IPPROTO_ICMP:
@@ -102,7 +98,6 @@ Flow::Flow(NetworkInterface *_iface,
     synAckTime.tv_sec = synAckTime.tv_usec = 0,
     rttSec = 0, cli2srv_window= srv2cli_window = 0,
     c2sFirstGoodputTime.tv_sec = c2sFirstGoodputTime.tv_usec = 0;
-  memset(&http, 0, sizeof(http)), memset(&dns, 0, sizeof(dns));
   memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
@@ -166,7 +161,7 @@ void Flow::categorizeFlow() {
     return;
   }
 
-  what = ssl.certificate ? ssl.certificate : host_server_name;
+  what = (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : host_server_name;
 
   if((what == NULL)
      || (what[0] == '\0')
@@ -203,29 +198,32 @@ Flow::~Flow() {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
 				 Utils::flowstatus2str(status), f);
 
-    switch(status) {
-    case status_suspicious_tcp_probing:
-    case status_suspicious_tcp_syn_probing:
-      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
+    if(ntop->getRuntimePrefs()->are_probing_alerts_enabled()) {
+      switch(status) {
+      case status_suspicious_tcp_probing:
+      case status_suspicious_tcp_syn_probing:
+	char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+	c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+	s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
 
-      snprintf(alert_msg, sizeof(alert_msg),
-	       "Probing or server down: <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> &gt; <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
-	       c, iface->get_name(), cli_host->get_name() ? cli_host->get_name() : c,
-	       s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
-	       print(fbuf, sizeof(fbuf)));
+	snprintf(alert_msg, sizeof(alert_msg),
+		 "Probing or server down: <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> &gt; "
+		 "<A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+		 c, iface->get_name(), cli_host->get_name() ? cli_host->get_name() : c,
+		 s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
+		 print(fbuf, sizeof(fbuf)));
 
-      ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent,
-				   alert_suspicious_activity, alert_msg);
-      break;
+	ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent,
+				     alert_suspicious_activity, alert_msg);
+	break;
 
-    default:
-      /* Nothing to do */
-      break;
+      default:
+	/* Nothing to do */
+	break;
+      }
     }
-  }
+      }
 
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
@@ -242,10 +240,16 @@ Flow::~Flow() {
   if(client_proc)      delete(client_proc);
   if(server_proc)      delete(server_proc);
   if(host_server_name) free(host_server_name);
-  if(http.last_method) free(http.last_method);
-  if(http.last_url)    free(http.last_url);
-  if(dns.last_query)   free(dns.last_query);
-  if(ssl.certificate)  free(ssl.certificate);
+
+  if(isHTTP()) {
+    if(protos.http.last_method) free(protos.http.last_method);
+    if(protos.http.last_url)    free(protos.http.last_url);
+  } else if(isDNS()) {
+    if(protos.dns.last_query)   free(protos.dns.last_query);
+  } else if(isSSL()) {
+    if(protos.ssl.certificate)  free(protos.ssl.certificate);
+  }
+
   if(ndpi_proto_name)  free(ndpi_proto_name);
   if(bt_hash)          free(bt_hash);
 
@@ -319,8 +323,8 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
-      if(dns.last_query) free(dns.last_query);
-      dns.last_query = strdup((const char*)ndpiFlow->host_server_name);
+      if(protos.dns.last_query) free(protos.dns.last_query);
+      protos.dns.last_query = strdup((const char*)ndpiFlow->host_server_name);
     }
 
     if(ntop->getPrefs()->decode_dns_responses()) {
@@ -372,19 +376,19 @@ void Flow::processDetectedProtocol() {
 				 ndpiFlow->protos.ssl.server_certificate);
 #endif
 
-    if((ssl.certificate == NULL)
+    if((protos.ssl.certificate == NULL)
        && (ndpiFlow->protos.ssl.client_certificate[0] != '\0')) {
-      ssl.certificate = strdup(ndpiFlow->protos.ssl.client_certificate);
+      protos.ssl.certificate = strdup(ndpiFlow->protos.ssl.client_certificate);
 
-      if(ssl.certificate && (strncmp(ssl.certificate, "www.", 4) == 0)) {
+      if(protos.ssl.certificate && (strncmp(protos.ssl.certificate, "www.", 4) == 0)) {
 	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
 	  check_tor = true;
       }
-    } else if((ssl.certificate == NULL)
+    } else if((protos.ssl.certificate == NULL)
 	      && (ndpiFlow->protos.ssl.server_certificate[0] != '\0')) {
-      ssl.certificate = strdup(ndpiFlow->protos.ssl.server_certificate);
+      protos.ssl.certificate = strdup(ndpiFlow->protos.ssl.server_certificate);
 
-      if(ssl.certificate && (strncmp(ssl.certificate, "www.", 4) == 0)) {
+      if(protos.ssl.certificate && (strncmp(protos.ssl.certificate, "www.", 4) == 0)) {
 	if(ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_TOR))
 	  check_tor = true;
       }
@@ -393,20 +397,20 @@ void Flow::processDetectedProtocol() {
     if(check_tor) {
       char rsp[256];
 
-      if(ntop->getRedis()->getAddress(ssl.certificate, rsp, sizeof(rsp), false) == 0) {
+      if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
 	if(rsp[0] == '\0') /* Cached failed resolution */
 	  ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_TOR;
 
 	check_tor = false; /* This is a valid host */
       } else {
-	ntop->getRedis()->pushHostToResolve(ssl.certificate, false, true /* Fake to resolve it ASAP */);
+	ntop->getRedis()->pushHostToResolve(protos.ssl.certificate, false, true /* Fake to resolve it ASAP */);
       }
     }
 
-    if(ssl.certificate
+    if(protos.ssl.certificate
        && cli_host
        && cli_host->isLocalHost())
-      cli_host->incrVisitedWebSite(ssl.certificate);
+      cli_host->incrVisitedWebSite(protos.ssl.certificate);
 
     protocol_processed = true;
     break;
@@ -750,9 +754,9 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
 	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
-	   ssl.certificate ? "[" : "",
-	   ssl.certificate ? ssl.certificate : "",
-	   ssl.certificate ? "]" : "");
+	   (isSSL() && protos.ssl.certificate) ? "[" : "",
+	   (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : "",
+	   (isSSL() && protos.ssl.certificate) ? "]" : "");
 
   return(buf);
 }
@@ -816,10 +820,10 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   int16_t cli_network_id;
   int16_t srv_network_id;
 
-  if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_UNKNOWN)) {
+  if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
-
-    if(ntop->getRedis()->getAddress(ssl.certificate, rsp, sizeof(rsp), false) == 0) {
+    
+    if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
       if(rsp[0] == '\0') /* Cached failed resolution */
 	ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_TOR;
 
@@ -1277,6 +1281,16 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     // lua_push_float_table_entry(vm, "srv2cli.trend", s2cBytes.getTrend());
 #endif
 
+    if(isICMP()) {
+      lua_newtable(vm);
+      lua_push_int_table_entry(vm, "type", protos.icmp.icmp_type);
+      lua_push_int_table_entry(vm, "code", protos.icmp.icmp_code);
+
+      lua_pushstring(vm, "icmp");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+
     lua_push_bool_table_entry(vm, "flow_goodput.low", isLowGoodput());
 
     lua_push_bool_table_entry(vm, "verdict.pass", isPassVerdict());
@@ -1313,9 +1327,9 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_int_table_entry(vm, "srv2cli.lost", tcp_stats_d2s.pktLost);
     }
 
-    if(http.last_method && http.last_url) {
-      lua_push_str_table_entry(vm, "http.last_method", http.last_method);
-      lua_push_int_table_entry(vm, "http.last_return_code", http.last_return_code);
+    if(isHTTP() && protos.http.last_method && protos.http.last_url) {
+      lua_push_str_table_entry(vm, "protos.http.last_method", protos.http.last_method);
+      lua_push_int_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
     }
 
     /* Shapers */
@@ -1332,17 +1346,17 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_int_table_entry(vm, "shaper.srv2cli_b", b);
     }
 
-    if(http.last_method && http.last_url)
-      lua_push_str_table_entry(vm, "http.last_url", http.last_url);
+    if(isHTTP() && protos.http.last_method && protos.http.last_url)
+      lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
 
     if(host_server_name)
-      lua_push_str_table_entry(vm, "http.server_name", host_server_name);
+      lua_push_str_table_entry(vm, "protos.http.server_name", host_server_name);
 
-    if(dns.last_query)
-      lua_push_str_table_entry(vm, "dns.last_query", dns.last_query);
+    if(isDNS() && protos.dns.last_query)
+      lua_push_str_table_entry(vm, "protos.dns.last_query", protos.dns.last_query);
 
-    if(ssl.certificate)
-      lua_push_str_table_entry(vm, "ssl.certificate", ssl.certificate);
+    if(isSSL() && protos.ssl.certificate)
+      lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);
 
     lua_push_str_table_entry(vm, "moreinfo.json", get_json_info());
 
@@ -1682,21 +1696,22 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME", json_object_new_string(ntop->getPrefs()->get_instance_name()));
   if(iface && iface->get_name())
     json_object_object_add(my_object, "INTERFACE", json_object_new_string(iface->get_name()));
-  if(dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(dns.last_query));
+  
+  if(isDNS() && protos.dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
 
-  if(http.last_url && http.last_method) {
+  if(isHTTP() && protos.http.last_url && protos.http.last_method) {
     if(host_server_name && (host_server_name[0] != '\0'))
       json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
-    json_object_object_add(my_object, "HTTP_URL", json_object_new_string(http.last_url));
-    json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(http.last_method));
-    json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)http.last_return_code));
+    json_object_object_add(my_object, "HTTP_URL", json_object_new_string(protos.http.last_url));
+    json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(protos.http.last_method));
+    json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)protos.http.last_return_code));
   }
 
   if(bt_hash)
     json_object_object_add(my_object, "BITTORRENT_HASH", json_object_new_string(bt_hash));
 
-  if(ssl.certificate)
-    json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(ssl.certificate));
+  if(isSSL() && protos.ssl.certificate)
+    json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
 
   json_object_object_add(my_object, "PASS_VERDICT", json_object_new_boolean(passVerdict ? (json_bool)1 : (json_bool)0));
 
@@ -1737,9 +1752,9 @@ bool Flow::isIdleFlow() {
 	else {
 	  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
 	  case NDPI_PROTOCOL_SSL:
-	    if((ssl.hs_delta_time > CONST_SSL_MAX_DELTA)
-	       || (ssl.delta_firstData > CONST_SSL_MAX_DELTA)
-	       || (ssl.deltaTime_data > CONST_MAX_SSL_IDLE_TIME)
+	    if((protos.ssl.hs_delta_time > CONST_SSL_MAX_DELTA)
+	       || (protos.ssl.delta_firstData > CONST_SSL_MAX_DELTA)
+	       || (protos.ssl.deltaTime_data > CONST_MAX_SSL_IDLE_TIME)
 	       || (getCli2SrvCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)
 	       || ((srv2cli_packets > 0) && getSrv2CliCurrentInterArrivalTime(now) > CONST_MAX_SSL_IDLE_TIME)) {
 	      return(true);
@@ -2136,10 +2151,10 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	 ) {
 	diff_num_http_requests++; /* One new request found */
 
-	if(http.last_method) free(http.last_method);
-	if((http.last_method = (char*)malloc(l+1)) != NULL) {
-	  strncpy(http.last_method, payload, l);
-	  http.last_method[l] = '\0';
+	if(protos.http.last_method) free(protos.http.last_method);
+	if((protos.http.last_method = (char*)malloc(l+1)) != NULL) {
+	  strncpy(protos.http.last_method, payload, l);
+	  protos.http.last_method[l] = '\0';
 	}
 
 	payload = &space[1];
@@ -2154,10 +2169,10 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	    }
 	  }
 
-	  if(http.last_url) free(http.last_url);
-	  if((http.last_url = (char*)malloc(l+1)) != NULL) {
-	    strncpy(http.last_url, payload, l);
-	    http.last_url[l] = '\0';
+	  if(protos.http.last_url) free(protos.http.last_url);
+	  if((protos.http.last_url = (char*)malloc(l+1)) != NULL) {
+	    strncpy(protos.http.last_url, payload, l);
+	    protos.http.last_url[l] = '\0';
 	  }
 	}
       }
@@ -2179,7 +2194,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
 	  strncpy(tmp, payload, l);
 	  tmp[l] = 0;
-	  http.last_return_code = atoi(tmp);
+	  protos.http.last_return_code = atoi(tmp);
 	}
       }
     }
@@ -2302,32 +2317,32 @@ bool Flow::isLowGoodput() {
 /* *************************************** */
 
 void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when) {
-  if(payload && twh_over) {
-    if(!ssl.hs_over) {
+  if(isSSL() && payload && twh_over) {
+    if(!protos.ssl.hs_over) {
       if(payload[0] == 0x16) {
 	//handshake packet
 	if(payload[5] == 0x1) {
 	  //client-hello
-	  memcpy(&ssl.clienthello_time, when, sizeof(struct timeval));
-	  ssl.hs_started = true;
-	} else if((payload[5] == 0x4) && ssl.hs_started) {
+	  memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
+	  protos.ssl.hs_started = true;
+	} else if((payload[5] == 0x4) && protos.ssl.hs_started) {
 	  //new session ticket, the end of ssl handshake
-	  ssl.hs_over = true;
-	  memcpy(&ssl.hs_end_time, when, sizeof(struct timeval));
-	  ssl.hs_delta_time = ((float)(Utils::timeval2usec(&ssl.hs_end_time) - Utils::timeval2usec(&ssl.clienthello_time)))/1000;
+	  protos.ssl.hs_over = true;
+	  memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
+	  protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
 	}
       }
-    } else if(ssl.hs_over && (payload[0] == 0x17)) {
+    } else if(protos.ssl.hs_over && (payload[0] == 0x17)) {
       //application data packet
-      if(!ssl.firstdata_seen) {
+      if(!protos.ssl.firstdata_seen) {
 	//first data seen, save delta time between first data and the ssl hs
-	ssl.firstdata_seen = true;
-	memcpy(&ssl.lastdata_time, when, sizeof(struct timeval));
-	ssl.delta_firstData = ((float)(Utils::timeval2usec(&ssl.lastdata_time) - Utils::timeval2usec(&ssl.hs_end_time)))/1000;
+	protos.ssl.firstdata_seen = true;
+	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
+	protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
       } else {
 	//not first data, saves delta data time
-	ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&ssl.lastdata_time)))/1000;
-	memcpy(&ssl.lastdata_time, when, sizeof(struct timeval));
+	protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
+	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
       }
     }
   }
@@ -2358,7 +2373,7 @@ FlowStatus Flow::getFlowStatus() {
 
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-	  if(!ssl.hs_over && isIdle)
+	  if(!protos.ssl.hs_over && isIdle)
 	    return status_slow_application_header;
 	  break;
 

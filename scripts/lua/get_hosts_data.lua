@@ -113,6 +113,7 @@ hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, 
 
 hosts_stats,total = aggregateHostsStats(hosts_stats)
 
+if(total == nil) then total = 0 end 
 -- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
 
 -- io.write("->"..total.." ["..sortColumn.."]\n")
@@ -169,6 +170,7 @@ if(mode == "network") then
 end
 
 num = 0
+if(hosts_stats ~= nil) then
 for key, value in pairs(hosts_stats) do
    num = num + 1
    postfix = string.format("0.%04u", num)
@@ -254,6 +256,7 @@ for key, value in pairs(hosts_stats) do
 	 vals[(hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"])+postfix] = key
       end
    end
+end
 end
 
 if(sortOrder == "asc") then

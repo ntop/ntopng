@@ -861,11 +861,22 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   } else {
     flow->incStats(src2dst_direction, h->len, payload_len, &h->ts);
 
-    if(l4_proto == IPPROTO_TCP) {
+    switch(l4_proto) {
+    case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
       flow->updateTcpSeqNum(when, ntohl(tcph->seq), ntohl(tcph->ack_seq), ntohs(tcph->window),
 			    tcp_flags, l4_packet_len - (4 * tcph->doff),
 			    src2dst_direction);
+      break;
+
+    case IPPROTO_ICMP:
+      if(l4_packet_len > 2) {
+	u_int8_t icmp_type = l4[0];
+	u_int8_t icmp_code = l4[1];
+
+	flow->setICMP(icmp_type, icmp_code);
+      }
+      break;
     }
   }
 
