@@ -160,7 +160,7 @@ class Flow : public GenericHashEntry {
   inline bool isSSL()                  { return(isProtoSSL(NDPI_PROTOCOL_SSL));  }
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
-  inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP)); }
+  inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
 
  public:
   Flow(NetworkInterface *_iface,

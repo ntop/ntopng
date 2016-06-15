@@ -2085,7 +2085,7 @@ end
 
 -- ##########################################
 
-_icmp_types ={
+_icmp_types = {
 	 { 0, 0, "Echo Reply" },
 	 { 3, 0, "Network Unreachable" },
 	 { 3, 1, "Host Unreachable" },
@@ -2123,15 +2123,83 @@ _icmp_types ={
 	 { 18, 0, "Address mask reply" }
 }
 
+-- Code is currently ignored on IVMPv6
+_icmpv6_types = {
+        { 0, "Reserved" },
+	{ 1, "Destination Unreachable" },
+	{ 2, "Packet Too Big" },
+	{ 3, "Time Exceeded" },
+	{ 4, "Parameter Problem" },
+	{ 100, "Private experimentation" },
+	{ 101, "Private experimentation" },
+	-- { 102-126, "Unassigned" },
+	{ 127, "Reserved for expansion of ICMPv6 error messages" },
+	{ 128, "Echo Request" },
+	{ 129, "Echo Reply" },
+	{ 130, "Multicast Listener Query" },
+	{ 131, "Multicast Listener Report" },
+	{ 132, "Multicast Listener Done" },
+	{ 133, "Router Solicitation" },
+	{ 134, "Router Advertisement" },
+	{ 135, "Neighbor Solicitation" },
+	{ 136, "Neighbor Advertisement" },
+	{ 137, "Redirect Message" },
+	{ 138, "Router Renumbering" },
+	{ 139, "ICMP Node Information Query" },
+	{ 140, "ICMP Node Information Response" },
+	{ 141, "Inverse Neighbor Discovery Solicitation Message" },
+	{ 142, "Inverse Neighbor Discovery Advertisement Message" },
+	{ 143, "Version 2 Multicast Listener Report" },
+	{ 144, "Home Agent Address Discovery Request Message" },
+	{ 145, "Home Agent Address Discovery Reply Message" },
+	{ 146, "Mobile Prefix Solicitation" },
+	{ 147, "Mobile Prefix Advertisement" },
+	{ 148, "Certification Path Solicitation Message" },
+	{ 149, "Certification Path Advertisement Message" },
+	{ 150, "ICMP messages utilized by experimental mobility protocols" },
+	{ 151, "Multicast Router Advertisement" },
+	{ 152, "Multicast Router Solicitation" },
+	{ 153, "Multicast Router Termination" },
+	{ 154, "FMIPv6 Messages" },
+	{ 155, "RPL Control Message" },
+	{ 156, "ILNPv6 Locator Update Message" },
+	{ 157, "Duplicate Address Request" },
+	{ 158, "Duplicate Address Confirmation" },
+	{ 159, "MPL Control Message" },
+	-- { 160-199, "Unassigned" },
+	{ 200, "Private experimentation" },
+	{ 201, "Private experimentation" },
+	{ 255, "Reserved for expansion of ICMPv6 informational messages" }
+}
+
+-- #############################################
+
+function getICMPV6TypeCode(icmp)
+  local t = icmp.type
+  local c = icmp.code
+
+  for _, _e in ipairs(_icmpv6_types) do
+    if(_e[1] == t) then
+    	return(_e[2])
+    end
+  end
+
+ return(t.."/"..c)
+end
+
+-- #############################################
+
 function getICMPTypeCode(icmp)
   local t = icmp.type
   local c = icmp.code
 
   for _, _e in ipairs(_icmp_types) do
     if((_e[1] == t) and (_e[2] == c)) then
-    	return(_e[3])					
+    	return(_e[3])
     end
   end
 
- return(t.."/"..c)
+ return(getICMPV6TypeCode(icmp))
 end
+
+

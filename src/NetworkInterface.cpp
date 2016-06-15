@@ -870,6 +870,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       break;
 
     case IPPROTO_ICMP:
+    case IPPROTO_ICMPV6:
       if(l4_packet_len > 2) {
 	u_int8_t icmp_type = l4[0];
 	u_int8_t icmp_code = l4[1];
