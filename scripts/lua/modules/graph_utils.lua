@@ -1327,7 +1327,23 @@ print [[
 							  }
 						       },
 						       {
-							  title: "Bytes",
+							  title: "Traffic Sent",
+							  field: "IN_BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Traffic Received",
+							  field: "OUT_BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Total Traffic",
 							  field: "BYTES",
 							  sortable: true,
 							  css: {
