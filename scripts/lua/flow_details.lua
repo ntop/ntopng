@@ -176,7 +176,7 @@ else
    print(getApplicationLabel(flow["proto.ndpi"]).." ("..flow["proto.ndpi_id"]..")")
    print("</A> ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
-   historicalProtoHostHref(ifid, nil, nil, flow["proto.ndpi_id"], flow["ssl.certificate"])
+   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["ssl.certificate"])
    print("</td>")
 
    if(ifstats.inline) then
