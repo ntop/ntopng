@@ -2651,13 +2651,61 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm) {
 
 /* **************************************************** */
 
+#define NUM_TCP_STATES      4
+/*
+  0 = RST
+  1 = SYN
+  2 = Established
+  3 = FIN
+*/
+
+static bool num_flows_state_walker(GenericHashEntry *node, void *user_data) {
+  Flow *flow = (Flow*)node;
+  u_int32_t *num_flows = (u_int32_t*)user_data;
+  
+  switch(flow->getFlowState()) {
+  case flow_state_syn:
+    num_flows[1]++;
+    break;
+  case flow_state_established:
+    num_flows[2]++;
+    break;
+  case flow_state_rst:
+    num_flows[0]++;
+    break;
+  case flow_state_fin:
+    num_flows[3]++;
+    break;
+  default:
+    /* UDP... */
+    break;
+  }
+
+  return(false /* keep walking */);
+}
+
+/* *************************************** */
+
 static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
-
+  
   num_flows[flow->get_detected_protocol().protocol]++;
 
   return(false /* keep walking */);
+}
+
+/* *************************************** */
+
+void NetworkInterface::getFlowsStatus(lua_State *vm) {
+  u_int32_t num_flows[NUM_TCP_STATES] = { 0 };
+
+  flows_hash->walk(num_flows_state_walker, num_flows);
+
+  lua_push_int_table_entry(vm, "RST", num_flows[0]);
+  lua_push_int_table_entry(vm, "SYN", num_flows[1]);
+  lua_push_int_table_entry(vm, "Established", num_flows[2]);
+  lua_push_int_table_entry(vm, "FIN", num_flows[3]);
 }
 
 /* *************************************** */

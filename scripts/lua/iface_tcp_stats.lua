@@ -11,20 +11,24 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 interface.select(_GET["id"])
-ifstats = aggregateInterfaceStats(interface.getStats())
-tcpFlowStats = ifstats["tcpFlowStats"]
+-- ifstats = aggregateInterfaceStats(interface.getFlowsStatus())
+ifstats = interface.getFlowsStatus()
+--tprint(ifstats)
 
-sum = tcpFlowStats["numSynFlows"]+tcpFlowStats["numEstablishedFlows"]+tcpFlowStats["numResetFlows"]+tcpFlowStats["numFinFlows"]
+tcpFlowStats = ifstats
+
+sum = tcpFlowStats["SYN"]+tcpFlowStats["Established"]+tcpFlowStats["RST"]+tcpFlowStats["FIN"]
 
 print("[")
 
 if(sum == 0) then
    print('{ "label": "No traffic yet", "value": 0 }\n')
 else
-   print [[ { "label": "SYN", "value": ]] print(tcpFlowStats["numSynFlows"].."") print [[ }, ]]
-   print [[ { "label": "Established", "value": ]] print(tcpFlowStats["numEstablishedFlows"].."") print [[ }, ]]
-   print [[ { "label": "RST", "value": ]] print(tcpFlowStats["numResetFlows"].."") print [[ }, ]]
-   print [[ { "label": "FIN", "value": ]] print(tcpFlowStats["numFinFlows"].."") print [[ } ]]
+   n = 0
+   if(tcpFlowStats["Established"] > 0) then print [[ { "label": "Established", "value": ]] print(tcpFlowStats["Established"].."") print [[ } ]] n = 1 end
+   if(tcpFlowStats["SYN"] > 0) then if(n > 0) then n = 0 print(",") end print [[ { "label": "SYN", "value": ]] print(tcpFlowStats["SYN"].."") print [[ } ]] n = 1 end
+   if(tcpFlowStats["RST"] > 0) then if(n > 0) then n = 0 print(",") end print [[ { "label": "RST", "value": ]] print(tcpFlowStats["RST"].."") print [[ } ]] n = 1 end
+   if(tcpFlowStats["FIN"] > 0) then if(n > 0) then n = 0 print(",") end print [[ { "label": "FIN", "value": ]] print(tcpFlowStats["FIN"].."") print [[ } ]] end
 end
 
 

@@ -328,6 +328,28 @@ static int ntop_get_ndpi_interface_flows_count(lua_State* vm) {
 /* ****************************************** */
 
 /**
+ * @brief Get the flow status for flows in cache
+ * @details Get the ntop interface global variable of lua, get flow stats of interface and push it into lua stack.
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK
+ */
+static int ntop_get_ndpi_interface_flows_status(lua_State* vm) {
+  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+    lua_newtable(vm);
+    ntop_interface->getFlowsStatus(vm);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/**
  * @brief Get the ndpi protocol name of protocol id of network interface.
  * @details Get the ntop interface global variable of lua. Once do that, get the protocol id of lua stack and return into lua stack "Host-to-Host Contact" if protocol id is equal to host family id; the protocol name or null otherwise.
  *
@@ -4461,6 +4483,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
   { "getnDPIFlowsCount",      ntop_get_ndpi_interface_flows_count },
+  { "getFlowsStatus",         ntop_get_ndpi_interface_flows_status },
   { "getnDPIProtoBreed",      ntop_get_ndpi_protocol_breed },
   { "getnDPIProtocols",       ntop_get_ndpi_protocols },
   { "getHostsInfo",           ntop_get_interface_hosts_info },

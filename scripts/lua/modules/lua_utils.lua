@@ -12,7 +12,6 @@ function aggregateInterfaceStats(ifstats)
    local tot = {}
 
    for ifname,_v in pairs(ifstats["interfaces"]) do
-
       for k,v in pairs(ifstats["interfaces"][ifname]) do
 	 if(type(v) ~= "table") then
 	    if((tot[k] == nil) and (k ~= "id") and (k ~= "name")) then

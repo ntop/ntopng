@@ -349,14 +349,20 @@ if((page == "overview") or (page == nil)) then
 
    label = "Pkts"
 
-print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=6><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr>
+print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=2> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr>
 
 	<script type='text/javascript'>
 	       window.onload=function() {
 				   do_pie("#ifaceTrafficBreakdown", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. " }, \"\", refresh); \n")
-      print ("}\n</script>\n")
+print [[				   do_pie("#ifaceTrafficDistribution", ']]
+print (ntop.getHttpPrefix())
+print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. ", mode: \"distribution\" }, \"\", refresh); \n")
+print [[ }
+
+]]
+print("</script>\n")
 
    print("<tr><th colspan=7>Ingress Traffic</th></tr>\n")
    print("<tr><th>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.packets) .. " ".. label .."</span>] ")
@@ -1365,9 +1371,9 @@ print [[
 	var last_pkt_ooo =  ]] print(ifstats.tcpPacketStats.out_of_order) print [[;
 	var last_pkt_lost = ]] print(ifstats.tcpPacketStats.lost) print [[;
 
-	$('#pkt_retransmissions').html(rsp.tcpPacketStats.retransmissions+" Pkts"); $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
-	$('#pkt_ooo').html(rsp.tcpPacketStats.out_of_order+" Pkts");  $('#pkt_ooo_trend').html(get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
-	$('#pkt_lost').html(rsp.tcpPacketStats.lost+" Pkts"); $('#pkt_lost_trend').html(get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
+	$('#pkt_retransmissions').html(fint(rsp.tcpPacketStats.retransmissions)+" Pkts"); $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
+	$('#pkt_ooo').html(fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
+	$('#pkt_lost').html(fint(rsp.tcpPacketStats.lost)+" Pkts"); $('#pkt_lost_trend').html(get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
 	last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
 	last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
 	last_pkt_lost = rsp.tcpPacketStats.lost;

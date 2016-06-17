@@ -346,6 +346,7 @@ class NetworkInterface {
 		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time,
 		      u_int32_t last_pps, u_int32_t last_bps);
   void startDBLoop() { if(db) db->startDBLoop(); };
+  void getFlowsStatus(lua_State *vm);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

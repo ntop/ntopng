@@ -111,6 +111,7 @@ class NetworkInterfaceView {
 #ifdef NTOPNG_PRO
   void updateFlowProfiles(char *old_profile, char *new_profile);
 #endif
+  void getFlowsStatus(lua_State *vm);
 };
 
 #endif /* _NETWORK_INTERFACE_VIEW_H_ */
