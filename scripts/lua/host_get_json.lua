@@ -53,7 +53,25 @@ function flows2protocolthpt(flows)
    return protocol_thpt
 end
 
-interface.select(ifname)
+if_name = (_GET["if_name"] or _GET["ifname"])
+ifid = (_GET["id"] or _GET["ifId"])
+-- parse interface names and possibly fall back to the selected interface:
+-- priority goes to the interface id
+if ifid ~= nil and ifid ~= "" then
+   if_name = getInterfaceName(ifid)
+
+-- if not interface id is specified we look for the interface name
+elseif if_name ~= nil and if_name ~= "" then
+   ifid = tostring(interface.name2id(if_name))
+
+-- finally, we fall back to the default selected interface name
+else
+   -- fall-back to the default interface
+   if_name = ifname
+   ifid = interface.name2id(ifname)
+end
+
+interface.select(if_name)
 host = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
 if(host == nil) then
