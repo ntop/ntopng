@@ -198,7 +198,11 @@ Flow::~Flow() {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
 				 Utils::flowstatus2str(status), f);
 
-    if(ntop->getRuntimePrefs()->are_probing_alerts_enabled()) {
+    if(ntop->getRuntimePrefs()->are_probing_alerts_enabled()
+       && cli_host
+       && srv_host) {
+      cli_host->incNumAlerts(), srv_host->incNumAlerts();
+
       switch(status) {
       case status_suspicious_tcp_probing:
       case status_suspicious_tcp_syn_probing:
@@ -266,6 +270,7 @@ void Flow::checkBlacklistedFlow() {
 	   || srv_host->is_blacklisted())) {
       char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
 
+      cli_host->incNumAlerts(), srv_host->incNumAlerts();
       c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
       s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
 
@@ -2239,6 +2244,8 @@ void Flow::checkFlowCategory() {
 #if 0
   {
     char c_buf[64], s_buf[64], *c, *s, alert_msg[1024];
+
+    cli_host->incNumAlerts(), srv_host->incNumAlerts();
 
     /* Emit alarm */
     c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));

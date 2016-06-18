@@ -256,6 +256,17 @@ end
 
 -- ##############################################
 
+-- Simplified checker
+function isIPv6String(ip)
+  if(string.find(ip, ":") ~= nil) then
+     return true
+  end
+
+    return false
+end
+
+-- ##############################################
+
 function findString(str, tofind)
   if(str == nil) then return(nil) end
   if(tofind == nil) then return(nil) end

@@ -31,6 +31,7 @@ function makeTopJSON(ifid, ifname)
             '/lua/hosts_stats.lua?vlan='..key..'",\n"name": "'
             ..vlan_list[key]["name"]..'",\n"value": '
             ..vlan_list[key]["vlan_bytes"]..",\n"
+
     file_cnt = 0
     for k,v in pairs(files) do
        if(string.ends(k, ".lua")) then
@@ -45,6 +46,7 @@ function makeTopJSON(ifid, ifname)
 	  end
        end
     end
+
     if (file_cnt > 0) then
       -- Remove last return and comma to comply with JSON format
       rsp = string.sub(rsp, 1, -3)

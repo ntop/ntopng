@@ -47,8 +47,7 @@ other_stats_id = "Other"
 -- #################################################
 
 function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_key, use_threshold)
-   local _filtered_stats, filtered_stats, counter, total,
-         threshold, low_threshold
+   local _filtered_stats, filtered_stats, counter, total, threshold, low_threshold
 
    if (use_threshold == nil) then use_threshold = true end
 
@@ -179,7 +178,13 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
          else
 	    if(num > 0) then rsp = rsp .. " }," end
 	    rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
-	       ..(hosts_stats[id]["name"] or 'n.a.')..'", "url": "'
+	       ..(hosts_stats[id]["name"] or 'n.a.')
+
+	    if((hosts_stats[id]["name"] ~= "") and (isIPv6String(id) == true)) then
+	       rsp = rsp .. " (IPv6)"
+	       end
+
+	       rsp = rsp ..'", "url": "'
                   ..ntop.getHttpPrefix()..
 	       '/lua/host_details.lua?host='..id..'", "value": '..value..
 	       ', "local": "'..tostring(hosts_stats[id]["localhost"])..'"'
