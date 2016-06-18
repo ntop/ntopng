@@ -39,11 +39,20 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
+typedef enum {
+  flow_state_other = 0,
+  flow_state_syn,
+  flow_state_established,
+  flow_state_rst,
+  flow_state_fin,
+} FlowState;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
+  FlowState state;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
@@ -309,6 +318,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
+  inline FlowState getFlowState()                   { return(state); }
 };
 
 #endif /* _FLOW_H_ */

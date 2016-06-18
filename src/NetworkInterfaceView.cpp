@@ -510,6 +510,13 @@ void NetworkInterfaceView::getnDPIFlowsCount(lua_State *vm) {
 
 /* *************************************** */
 
+void NetworkInterfaceView::getFlowsStatus(lua_State *vm) {
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getFlowsStatus(vm);
+}
+
+/* *************************************** */
+
 void NetworkInterfaceView::updateSecondTraffic(time_t when) {
   for(int i = 0; i<numInterfaces; i++)
     physIntf[i]->updateSecondTraffic(when);
