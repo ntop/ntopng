@@ -140,9 +140,9 @@ else
         called_party = getFlowValue(info, "SIP_CALLED_PARTY")
         calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
         if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
-          print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
+          print(', "sip.calling_called_party":"'..calling_party .. ' ' .. called_party..'"')
         else
-          print(', "sip.calling_called_party":"'..getFlowValue(info, "SIP_CALLING_PARTY") .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. getFlowValue(info, "SIP_CALLED_PARTY")..'"')
+          print(', "sip.calling_called_party":"'..calling_party .. ' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ' .. called_party..'"')
         end
 
         print(', "sip.rtp_codecs":"'..getFlowValue(info, "SIP_RTP_CODECS")..'"')

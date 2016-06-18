@@ -175,7 +175,7 @@ template = {
    ['SIP_RTP_L4_SRC_PORT'] = NTOP_BASE_ID+144,
    ['SIP_RTP_IPV4_DST_ADDR'] = NTOP_BASE_ID+145,
    ['SIP_RTP_L4_DST_PORT'] = NTOP_BASE_ID+146,
-   ['SIP_FAILURE_CODE'] = NTOP_BASE_ID+147,
+   ['SIP_RESPONSE_CODE'] = NTOP_BASE_ID+147,
    ['SIP_REASON_CAUSE'] = NTOP_BASE_ID+148,
    ['SIP_C_IP'] = NTOP_BASE_ID+362,
    ['SIP_CALL_STATE'] = NTOP_BASE_ID+363,
@@ -361,7 +361,7 @@ template = {
    ['GTPV0_RAI_CELL_LAC'] = NTOP_BASE_ID+329,
    ['GTPV0_RAI_CELL_RAC'] = NTOP_BASE_ID+330,
    ['GTPV0_RESPONSE_CAUSE'] = NTOP_BASE_ID+331
-   
+
 }
 
 -- template id to name
@@ -504,18 +504,14 @@ l4_template = {
   [254] = "DIVERT"
 }
 
-function l4ProtoToName(value) 
+function l4ProtoToName(value)
    value = tonumber(value)
 
    for k,v in pairs(l4_template) do
-      if(k == value) then 
-	 return(v) 
+      if(k == value) then
+	 return(v)
       end
    end
 
    return(value)
 end
-
-
-
-

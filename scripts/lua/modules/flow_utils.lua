@@ -931,7 +931,6 @@ local flow_fields_description = {
     ['SIP_RTP_L4_SRC_PORT'] = "SIP RTP stream source port",
     ['SIP_RTP_IPV4_DST_ADDR'] = "SIP RTP stream dest IP",
     ['SIP_RTP_L4_DST_PORT'] = "SIP RTP stream dest port",
-    ['SIP_FAILURE_CODE'] = "SIP failure response code",
     ['SIP_RESPONSE_CODE'] = "SIP failure response code",
     ['SIP_REASON_CAUSE'] = "SIP Cancel/Bye/Failure reason cause",
     ['SIP_C_IP'] = "SIP C IP adresses",
@@ -1018,6 +1017,7 @@ function getFlowValue(info, field)
    end
    return_value = string.gsub(return_value, "<", "&lt;")
    return_value = string.gsub(return_value, ">", "&gt;")
+   return_value = string.gsub(return_value, "\"", "\\\"")
 
    return return_value , value_original
 end
@@ -1050,6 +1050,8 @@ function getSIPTableRows(info)
      string_table = string_table.."<tr><th width=30%> Call-ID </th><td colspan=2><div id=call_id>" .. getFlowValue(info, "SIP_CALL_ID") .. "</div></td></tr>\n"
      called_party = getFlowValue(info, "SIP_CALLED_PARTY")
      calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
+     called_party = string.gsub(called_party, "\\\"","\"")
+     calling_party = string.gsub(calling_party, "\\\"","\"")
      if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
        string_table = string_table.."<tr><th>Call Initiator <i class=\"fa fa-exchange fa-lg\"></i> Called Party</th><td colspan=2><div id=calling_called_party></div></td></tr>\n"
      else
@@ -1105,10 +1107,10 @@ function getSIPTableRows(info)
      time_1, time_epoch_1 = getFlowValue(info, "SIP_CANCEL_OK_TIME")
      string_table = string_table .. "<tr><th width=30%>Time of Cancel / Cancel Ok</th><td><div id=time_cancel>"
      if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-time_epoch) .. " ago]"
+        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
      end
      string_table = string_table .. "</div></td><td><div id=time_cancel_ok>\n"
-     if(tonumber(time_epoch_1) ~= "0") then
+     if(time_epoch_1 ~= "0") then
         string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
      end
      string_table = string_table .. "</div></td></tr>\n"
