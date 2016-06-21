@@ -443,7 +443,7 @@ else
    end
 
    if(flow["protos.http.last_url"] ~= nil) then
-      print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
+      print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["protos.http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
       if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.vlan) end
       print("<A HREF=http://"..s..">"..s.."</A> <i class=\"fa fa-external-link\">")
