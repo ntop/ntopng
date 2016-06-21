@@ -134,7 +134,7 @@ for key, value in ipairs(flows_stats) do
    if(vhost ~= nil) then
       if((flows_stats[key]["cli.host"] ~= vhost)
       and (flows_stats[key]["srv.host"] ~= vhost)
-   and (flows_stats[key]["http.server_name"] ~= vhost)
+   and (flows_stats[key]["protos.http.server_name"] ~= vhost)
    and (flows_stats[key]["protos.dns.last_query"] ~= vhost)) then
 	 process = false
       end
