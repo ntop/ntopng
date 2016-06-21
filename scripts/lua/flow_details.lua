@@ -176,7 +176,7 @@ else
    print(getApplicationLabel(flow["proto.ndpi"]).." ("..flow["proto.ndpi_id"]..")")
    print("</A> ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
-   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["ssl.certificate"])
+   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.ssl.certificate"])
    print("</td>")
 
    if(ifstats.inline) then
@@ -309,11 +309,11 @@ else
       end
    end
 
-   if(flow["ssl.certificate"] ~= nil) then
+   if(flow["protos.ssl.certificate"] ~= nil) then
       print("<tr><th width=30%><i class='fa fa-lock fa-lg'></i> SSL Certificate</th><td colspan=2>")
-      print("<A HREF=\"http://"..flow["ssl.certificate"].."\">"..flow["ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
-      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["ssl.certificate"], flow["category"])) end
-      historicalProtoHostHref(ifid, nil, nil, nil, flow["ssl.certificate"])
+      print("<A HREF=\"http://"..flow["protos.ssl.certificate"].."\">"..flow["protos.ssl.certificate"].."</A> <i class=\"fa fa-external-link\"></i>")
+      if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.ssl.certificate"], flow["category"])) end
+      historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.ssl.certificate"])
       print("</td></tr>\n")
    end
 

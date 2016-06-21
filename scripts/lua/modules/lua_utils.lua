@@ -1169,7 +1169,7 @@ function flowinfo2hostname(flow_info, host_type, vlan)
 
    if(host_type == "srv") then
       if(flow_info["host_server_name"] ~= nil) then return(flow_info["host_server_name"]) end
-      if(flow_info["ssl.certificate"] ~= nil)  then return(flow_info["ssl.certificate"]) end
+      if(flow_info["protos.ssl.certificate"] ~= nil)  then return(flow_info["protos.ssl.certificate"]) end
    end
 
    name = flow_info[host_type..".host"]

@@ -271,8 +271,8 @@ for key, value in ipairs(flows_stats) do
       info = shortenString(flows_stats[key]["dns.last_query"])
       elseif(flows_stats[key]["http.last_url"] ~= nil) then
       info = shortenString(flows_stats[key]["http.last_url"])
-      elseif(flows_stats[key]["ssl.certificate"] ~= nil) then
-      info = shortenString(flows_stats[key]["ssl.certificate"])
+      elseif(flows_stats[key]["protos.ssl.certificate"] ~= nil) then
+      info = shortenString(flows_stats[key]["protos.ssl.certificate"])
       elseif(flows_stats[key]["bittorrent_hash"] ~= nil) then
       info = shortenString(flows_stats[key]["bittorrent_hash"])
       elseif(flows_stats[key]["host_server_name"] ~= nil) then
