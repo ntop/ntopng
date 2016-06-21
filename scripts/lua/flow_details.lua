@@ -461,7 +461,7 @@ else
       end
 
       print("</td></tr>\n")
-      print("<tr><th>Response Code</th><td>"..flow["http.last_return_code"].."</td></tr>\n")
+      print("<tr><th>Response Code</th><td>"..flow["protos.http.last_return_code"].."</td></tr>\n")
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
 	 print("<tr><th width=30%>Server Name</th><td colspan=2><A HREF=http://"..flow["host_server_name"]..">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")
