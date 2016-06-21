@@ -442,7 +442,7 @@ else
       print("<tr><th>BitTorrent hash</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
    end
 
-   if(flow["http.last_url"] ~= nil) then
+   if(flow["protos.http.last_url"] ~= nil) then
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
       if(flow["host_server_name"] ~= nil) then s = flow["host_server_name"] else s = flowinfo2hostname(flow,"srv",ifstats.vlan) end
@@ -452,12 +452,12 @@ else
       print("</td></tr>\n")
       print("<tr><th>URL</th><td>")
 
-      if(flow["http.last_url"] ~= "") then
+      if(flow["protos.http.last_url"] ~= "") then
 	 print("<A HREF=\"http://"..s)
 	 if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-	 print(flow["http.last_url"].."\">"..shortenString(flow["http.last_url"]).."</A> <i class=\"fa fa-external-link\">")
+	 print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"]).."</A> <i class=\"fa fa-external-link\">")
       else
-	 print(shortenString(flow["http.last_url"]))
+	 print(shortenString(flow["protos.http.last_url"]))
       end
 
       print("</td></tr>\n")
