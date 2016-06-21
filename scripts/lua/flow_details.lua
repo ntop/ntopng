@@ -423,16 +423,16 @@ else
       end
    end
 
-   if(flow["dns.last_query"] ~= nil) then
+   if(flow["protos.dns.last_query"] ~= nil) then
       print("<tr><th width=30%>DNS Query</th><td colspan=2>")
-      if(string.ends(flow["dns.last_query"], "arpa")) then
-	 print(flow["dns.last_query"])
+      if(string.ends(flow["protos.dns.last_query"], "arpa")) then
+	 print(flow["protos.dns.last_query"])
       else
-	 print("<A HREF=http://"..flow["dns.last_query"]..">"..flow["dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
+	 print("<A HREF=http://"..flow["protos.dns.last_query"]..">"..flow["protos.dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
       end
 
       if(flow["category"] ~= nil) then
-	 print(" "..getCategoryIcon(flow["dns.last_query"], flow["category"]))
+	 print(" "..getCategoryIcon(flow["protos.dns.last_query"], flow["category"]))
       end
 
       print("</td></tr>\n")
@@ -463,7 +463,7 @@ else
       print("</td></tr>\n")
       print("<tr><th>Response Code</th><td>"..flow["http.last_return_code"].."</td></tr>\n")
    else
-      if((flow["host_server_name"] ~= nil) and (flow["dns.last_query"] == nil)) then
+      if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
 	 print("<tr><th width=30%>Server Name</th><td colspan=2><A HREF=http://"..flow["host_server_name"]..">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")
       end
    end

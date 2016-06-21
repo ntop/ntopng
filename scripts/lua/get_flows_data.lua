@@ -135,7 +135,7 @@ for key, value in ipairs(flows_stats) do
       if((flows_stats[key]["cli.host"] ~= vhost)
       and (flows_stats[key]["srv.host"] ~= vhost)
    and (flows_stats[key]["http.server_name"] ~= vhost)
-   and (flows_stats[key]["dns.last_query"] ~= vhost)) then
+   and (flows_stats[key]["protos.dns.last_query"] ~= vhost)) then
 	 process = false
       end
    end
@@ -267,8 +267,8 @@ for key, value in ipairs(flows_stats) do
    if(debug and (not process)) then io.write("Stop Host\n") end
 
    info = ""
-   if(flows_stats[key]["dns.last_query"] ~= nil) then
-      info = shortenString(flows_stats[key]["dns.last_query"])
+   if(flows_stats[key]["protos.dns.last_query"] ~= nil) then
+      info = shortenString(flows_stats[key]["protos.dns.last_query"])
       elseif(flows_stats[key]["http.last_url"] ~= nil) then
       info = shortenString(flows_stats[key]["http.last_url"])
       elseif(flows_stats[key]["protos.ssl.certificate"] ~= nil) then
