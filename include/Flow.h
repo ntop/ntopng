@@ -196,7 +196,9 @@ class Flow : public GenericHashEntry {
   void makeVerdict(bool reset);
   double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
-  inline char* getFlowServerInfo() { return(host_server_name); };
+  inline char* getFlowServerInfo() {
+    return (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : host_server_name;
+  }
   inline char* getBitTorrentHash() { return(bt_hash);          };
   inline void  setBTHash(char *h)  { if(!h) return; if(bt_hash) { free(bt_hash); bt_hash = NULL; }; bt_hash = strdup(h); }
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = strdup(v); }
