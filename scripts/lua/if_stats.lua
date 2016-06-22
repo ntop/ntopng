@@ -440,7 +440,7 @@ elseif(page == "ndpi") then
    print [[
 	    <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
       <table class="table table-bordered table-striped">
-      <tr><th class="text-left">Accumulate Protocol Stats</th>
+      <tr><th class="text-left">Cumulative Protocol Stats</th>
 	       <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></div></td>
 	       <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
 	       </tr>

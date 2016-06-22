@@ -86,17 +86,18 @@ end
 interface.select(ifname)
 local a2z = false
 if(sortOrder == "desc") then a2z = false else a2z = true end
--- res = interface.getFlowsInfo(host, application, sortColumn, perPage, to_skip, sOrder)
 
 local paginfo = {
-   ["sortColumn"]=sortColumn, ["toSkip"]=to_skip, ["maxHits"]=perPage,
-   ["a2zSortOrder"]=a2z,
-   ["hostFilter"]=host,
-   ["portFilter"]=port,
-   ["LocalNetworkFilter"]=network_id
+   ["sortColumn"] = sortColumn, ["toSkip"] = to_skip, ["maxHits"] = perPage,
+   ["a2zSortOrder"] = a2z,
+   ["hostFilter"] = host,
+   ["portFilter"] = port,
+   ["LocalNetworkFilter"] = network_id
 }
+
 if application ~= nil and application ~= "" then
-   paginfo["l7protoFilter"]=interface.getnDPIProtoId(application)
+   paginfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+   --print(paginfo["l7protoFilter"].." / "..application)
 end
 
 res = interface.getFlowsInfo(host, paginfo)
@@ -228,6 +229,7 @@ for key, value in ipairs(flows_stats) do
    ---------------- APP ----------------
    if(application ~= nil) then
       process = process and (string.ends(flows_stats[key]["proto.ndpi"], application))
+      -- print(flows_stats[key]["proto.ndpi"].." "..application.."<br>")
    end
    if(debug and (not process)) then io.write("Stop ndpi\n") end
 

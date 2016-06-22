@@ -1160,8 +1160,8 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
     u_int8_t bp_type = (u_int8_t) (packet[ip_offset]);
     u_int8_t version = (u_int8_t) (packet[ip_offset+1]);
 
-    if(version == BATADV_COMPAT_VERSION_15){
-      switch(bp_type){
+    if(version == BATADV_COMPAT_VERSION_15) {
+      switch(bp_type) {
       case BATADV15_IV_OGM:
 	ip_offset += 24;
 	break;
@@ -1203,8 +1203,8 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	exit(EXIT_FAILURE);
 	break;
       }
-    }else if(version == BATADV_COMPAT_VERSION_14){
-      switch(bp_type){
+    }else if(version == BATADV_COMPAT_VERSION_14) {
+      switch(bp_type) {
       case BATADV14_IV_OGM:
 	ip_offset += 26;
 	break;
@@ -1378,13 +1378,13 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	  u_int8_t capwap_header_len = ((*(u_int8_t*)&packet[ip_offset+1])>>3)*4;
 	  ip_offset = ip_offset+capwap_header_len+24+8;
 
-	  if(ip_offset >= h->len){
+	  if(ip_offset >= h->len) {
 	    incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	    return(pass_verdict);
 	  }
 	  eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
-	  switch(eth_type){
+	  switch(eth_type) {
 	  case ETHERTYPE_IP:
 	    iph = (struct ndpi_iphdr *) &packet[ip_offset];
 	    break;
@@ -1433,7 +1433,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	  ipv6_shift = 8 * (options[1] + 1);
 	}
 
-	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)){
+	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
 	  ip_offset += ipv6_shift;
 	  if(ip_offset >= h->len) {
 	    incStats(h->ts.tv_sec, ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1461,13 +1461,13 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	    u_int8_t capwap_header_len = ((*(u_int8_t*)&packet[ip_offset+1])>>3)*4;
 	    ip_offset = ip_offset+capwap_header_len+24+8;
 
-	    if(ip_offset >= h->len){
+	    if(ip_offset >= h->len) {
 	      incStats(h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN, h->len, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 	      return(pass_verdict);
 	    }
 	    eth_type = ntohs(*(u_int16_t*)&packet[ip_offset-2]);
 
-	    switch(eth_type){
+	    switch(eth_type) {
 	    case ETHERTYPE_IP:
 	      iph = (struct ndpi_iphdr *) &packet[ip_offset];
 	      ip6 = NULL;
@@ -2172,12 +2172,15 @@ int NetworkInterface::getFlows(lua_State* vm,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
   int (*sorter)(const void *_a, const void *_b);
-
-  if(p == NULL){
+  char sortColumn[32];
+  bool highDetails;
+  
+  if(p == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
     return(-1);
   }
-  bool highDetails = p->detailedResults() ? true : (location == location_local_only || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? true : false;
+  
+  highDetails = p->detailedResults() ? true : (location == location_local_only || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? true : false;
 
   retriever.pag = p;
   retriever.host = host, retriever.location = location;
@@ -2189,7 +2192,6 @@ int NetworkInterface::getFlows(lua_State* vm,
     return(-1);
   }
 
-  char sortColumn[32];
   snprintf(sortColumn, sizeof(sortColumn), "%s", p->sortColumn());
   if(!strcmp(sortColumn, "column_client")) retriever.sorter = column_client, sorter = hostSorter;
   else if(!strcmp(sortColumn, "column_vlan")) retriever.sorter = column_vlan, sorter = numericSorter;
@@ -2252,7 +2254,8 @@ int NetworkInterface::getFlows(lua_State* vm,
 }
 
 /* **************************************************** */
-int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts){
+
+int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts) {
   struct flowHostRetriever retriever;
   memset(&retriever, 0, sizeof(retriever));
 
@@ -2368,7 +2371,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
 
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
 	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
-	       sortColumn, hosts_hash->getCurrentSize()) < 0){
+	       sortColumn, hosts_hash->getCurrentSize()) < 0) {
     hosts_hash->enablePurge();
     return -1;
   }
@@ -2427,13 +2430,13 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   // sort hosts according to the grouping criterion
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
 	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
-	       groupColumn, hosts_hash->getCurrentSize()) < 0 ){
+	       groupColumn, hosts_hash->getCurrentSize()) < 0 ) {
     hosts_hash->enablePurge();
     return -1;
   }
 
   // build a new grouper that will help in aggregating stats
-  if((gper = new(std::nothrow) Grouper(retriever.sorter)) == NULL){
+  if((gper = new(std::nothrow) Grouper(retriever.sorter)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
     hosts_hash->enablePurge();
@@ -2448,8 +2451,8 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   for(int i=0; i<(int)retriever.actNumEntries; i++) {
     Host *h = retriever.elems[i].hostValue;
 
-    if(h){
-      if (gper->inGroup(h) == false){
+    if(h) {
+      if (gper->inGroup(h) == false) {
 	if (gper->getNumEntries() > 0)
 	  gper->lua(vm);
 	gper->newGroup(h);
@@ -3078,7 +3081,7 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
   if(user == NULL)
     user = f->get_username(false);
 
-  if(user && (strcmp(user, info->username) == 0)){
+  if(user && (strcmp(user, info->username) == 0)) {
     f->lua(info->vm, NULL, false /* Minimum details */, false);
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
@@ -3106,7 +3109,7 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
   struct proc_name_flows *info = (struct proc_name_flows*)user_data;
   char *name = f->get_proc_name(true);
 
-  if(name && (strcmp(name, info->proc_name) == 0)){
+  if(name && (strcmp(name, info->proc_name) == 0)) {
       f->lua(info->vm, NULL, false /* Minimum details */, false);
       lua_pushnumber(info->vm, f->key()); // Key
       lua_insert(info->vm, -2);
@@ -3114,7 +3117,7 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
   } else {
     name = f->get_proc_name(false);
 
-    if(name && (strcmp(name, info->proc_name) == 0)){
+    if(name && (strcmp(name, info->proc_name) == 0)) {
         f->lua(info->vm, NULL, false /* Minimum details */, false);
         lua_pushnumber(info->vm, f->key()); // Key
         lua_insert(info->vm, -2);
@@ -3143,7 +3146,7 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
   Flow *f = (Flow*)node;
   struct pid_flows *info = (struct pid_flows*)pid_data;
 
-  if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid)){
+  if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid)) {
     f->lua(info->vm, NULL, false /* Minimum details */, false);
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
@@ -3168,7 +3171,7 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
   Flow *f = (Flow*)node;
   struct pid_flows *info = (struct pid_flows*)father_pid_data;
 
-  if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid)){
+  if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid)) {
     f->lua(info->vm, NULL, false /* Minimum details */, false);
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);

@@ -21,7 +21,9 @@
 
 #include "ntop_includes.h"
 
-Paginator::Paginator(){
+/* **************************************************** */
+
+Paginator::Paginator() {
   max_hits = to_skip = sort_column = a2z_sort_order = NULL;
   detailed_results = NULL;
   os_filter = vlan_filter = asn_filter = local_network_filter = NULL;
@@ -45,13 +47,17 @@ Paginator::Paginator(){
   memcpy(pagination_options, options, sizeof(options));
 };
 
-Paginator::~Paginator(){
-  for (int i = 1; pagination_options[i] != NULL; i += 2){
+/* **************************************************** */
+
+Paginator::~Paginator() {
+  for (int i = 1; pagination_options[i] != NULL; i += 2) {
     if(*(char**)pagination_options[i]) free(*(char**)pagination_options[i]);
   }
 }
 
-void Paginator::readOptions(lua_State *L, int index){
+/* **************************************************** */
+
+void Paginator::readOptions(lua_State *L, int index) {
   /*
     See https://www.lua.org/ftp/refman-5.0.pdf for a detailed description
     of lua traversal of tables
@@ -59,19 +65,19 @@ void Paginator::readOptions(lua_State *L, int index){
   lua_pushnil(L);
 
   while(lua_next(L, index) != 0) {
-    if (lua_type(L, -1) == LUA_TTABLE){
+    if (lua_type(L, -1) == LUA_TTABLE) {
       /* removes 'value'; keeps 'key' for next iteration */
       readOptions(L, index);
     } else {
-      for (int i = 0; pagination_options[i] != NULL; i += 2){
-	if (strcmp((char*)pagination_options[i], lua_tostring(L, -2)) == 0){
-	  if(lua_type(L, -1) == LUA_TSTRING){
+      for (int i = 0; pagination_options[i] != NULL; i += 2) {
+	if (strcmp((char*)pagination_options[i], lua_tostring(L, -2)) == 0) {
+	  if(lua_type(L, -1) == LUA_TSTRING) {
 	    *((char**)pagination_options[i+1]) = strdup(lua_tostring(L, -1));
 	    ntop->getTrace()->traceEvent(TRACE_DEBUG,
 					 "string %s = %s",
 					 lua_tostring(L, -2), lua_tostring(L, -1));
 	    break;
-	  }else if(lua_type(L, -1) == LUA_TNUMBER){
+	  } else if(lua_type(L, -1) == LUA_TNUMBER) {
 	    char opt[32];
 	    snprintf(opt, sizeof(opt), "%ld", lua_tointeger(L,-1));
 	    *((char**)pagination_options[i+1]) = strdup(opt);
@@ -80,7 +86,7 @@ void Paginator::readOptions(lua_State *L, int index){
 					 lua_tostring(L, -2),
 					 lua_tointeger(L, -1));
 	    break;
-	  }else if(lua_type(L, -1) == LUA_TBOOLEAN){
+	  } else if(lua_type(L, -1) == LUA_TBOOLEAN) {
 	    *((char**)pagination_options[i+1]) = strdup(lua_toboolean(L, -1) ? "true" : "false");
 	    ntop->getTrace()->traceEvent(TRACE_DEBUG,
 					 "boolean %s = %s",

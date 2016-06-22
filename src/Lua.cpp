@@ -88,7 +88,7 @@ static int ntop_lua_check(lua_State* vm, const char* func,
 static NetworkInterfaceView* handle_null_interface_view(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "NULL interface view: did you restart ntopng in the meantime?");
   char allowed_ifname[MAX_INTERFACE_NAME_LEN];
-  if(ntop->getInterfaceAllowed(vm, allowed_ifname)){
+  if(ntop->getInterfaceAllowed(vm, allowed_ifname)) {
       return ntop->getNetworkInterfaceView(allowed_ifname);
   }
   return(ntop->getInterfaceViewAtId(0));
@@ -482,7 +482,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 }
 
 /* ****************************************** */
-static int ntop_get_interface_latest_activity_hosts_info(lua_State* vm){
+static int ntop_get_interface_latest_activity_hosts_info(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
   if(!ntop_interface ||
@@ -1139,68 +1139,6 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
 
 /* ****************************************** */
 
-/**
- * @brief Get the flow information of network interface.
- * @details Get the ntop interface global variable of lua and push the minimal information of flows into the lua stack as a new hashtable.
- *
- * @param vm The lua state.
- * @return CONST_LUA_OK.
- */
-/*
-  // TODO: remove this method in favour of the newest one
-static int ntop_get_interface_flows_legacy(lua_State* vm, LocationPolicy location) {
-  NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
-  char buf[64];
-  char *host_ip = NULL, *sortColumn = (char*)"column_client";
-  int l7_proto = -1;
-  u_int16_t vlan_id = 0;
-  Host *host = NULL;
-  bool a2zSortOrder = true;
-  u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-    host = ntop_interface->getHost(host_ip, vlan_id);
-  }
-
-  if((lua_type(vm, 2) == LUA_TSTRING) || (lua_type(vm, 2) == LUA_TNIL)) {
-    if(lua_type(vm, 2) == LUA_TSTRING) {
-      char *proto = (char*)lua_tostring(vm, 2);
-
-      l7_proto = ntop_interface->getFirst()->get_ndpi_proto_id(proto);
-    }
-
-    if(lua_type(vm, 3) == LUA_TSTRING)
-      sortColumn = (char*)lua_tostring(vm, 3);
-
-    if(lua_type(vm, 4) == LUA_TNUMBER)
-      maxHits = (u_int16_t)lua_tonumber(vm, 4);
-
-    if(lua_type(vm, 5) == LUA_TNUMBER)
-      toSkip = (u_int16_t)lua_tonumber(vm, 5);
-
-    if(lua_type(vm, 6) == LUA_TBOOLEAN)
-      a2zSortOrder = lua_toboolean(vm, 6) ? true : false;
-  }
-
-  if(ntop_interface) {
-    int numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm),
-					    host, l7_proto, location, sortColumn, maxHits,
-					    toSkip, a2zSortOrder);
-
-    if(numFlows < 0) return(CONST_LUA_ERROR);
-  }
-
-  return(CONST_LUA_OK);
-}
-*/
-/* ****************************************** */
-
 static int ntop_get_interface_flows(lua_State* vm, LocationPolicy location) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   char buf[64];
@@ -1208,6 +1146,7 @@ static int ntop_get_interface_flows(lua_State* vm, LocationPolicy location) {
   u_int16_t vlan_id = 0;
   Host *host = NULL;
   Paginator *p = NULL;
+  int numFlows = -1;
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
@@ -1222,24 +1161,16 @@ static int ntop_get_interface_flows(lua_State* vm, LocationPolicy location) {
     host = ntop_interface->getHost(host_ip, vlan_id);
   }
 
-  if(lua_type(vm, 2) == LUA_TTABLE){
+  if(lua_type(vm, 2) == LUA_TTABLE)
     p->readOptions(vm, 2);
-  }
 
-  int numFlows = -1;
-  if(ntop_interface) {
+  if(ntop_interface)
     numFlows = ntop_interface->getFlows(vm, get_allowed_nets(vm), location, host, p);
-  }
 
   if(p) delete p;
   return numFlows < 0 ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
 
-/* TODO: remove these legacies
-static int ntop_get_interface_flows_info(lua_State* vm)        { return(ntop_get_interface_flows_legacy(vm, location_all));          }
-static int ntop_get_interface_local_flows_info(lua_State* vm)  { return(ntop_get_interface_flows_legacy(vm, location_local_only));   }
-static int ntop_get_interface_remote_flows_info(lua_State* vm) { return(ntop_get_interface_flows_legacy(vm, location_remote_only));  }
-*/
 static int ntop_get_interface_flows_info(lua_State* vm)        { return(ntop_get_interface_flows(vm, location_all));          }
 static int ntop_get_interface_local_flows_info(lua_State* vm)  { return(ntop_get_interface_flows(vm, location_local_only));   }
 static int ntop_get_interface_remote_flows_info(lua_State* vm) { return(ntop_get_interface_flows(vm, location_remote_only));  }
@@ -4071,7 +4002,7 @@ static int ntop_nagios_reload_config(lua_State* vm) {
   NagiosManager *nagios = ntop->getNagios();
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
-  if(!nagios){
+  if(!nagios) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(): unable to get the nagios manager",
 				 __FUNCTION__);
     return(CONST_LUA_ERROR);
@@ -4233,7 +4164,7 @@ static int ntop_set_redis(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TNUMBER)
       expire_secs = (u_int)lua_tonumber(vm, 3);
 
-  if(redis->set(key, value, expire_secs) == 0){
+  if(redis->set(key, value, expire_secs) == 0) {
       return(CONST_LUA_OK);
   }else
       return(CONST_LUA_ERROR);
@@ -5045,7 +4976,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	  purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
 
 	  // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
-	  
+
 	  if((equal = (char*)malloc(len+1)) != NULL) {
 	    char *decoded_buf;
 
