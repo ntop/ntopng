@@ -41,21 +41,22 @@ binary-arch: build install
 	dh_installdirs
 	dh_installinit
 	dh_installman
-# install the files into debian/tmp.
-	cp -r ../etc/ ./usr/ ./debian/tmp	
-	-rm ./debian/tmp/usr/share/ntopng/httpdocs/geoip/*.dat
-	-find ./debian/tmp -name .svn -exec /bin/rm -rf {} ';'
-	\rm -rf ./debian/tmp/etc/init.d/nprobe ./debian/tmp/etc/ld.so.conf.d
-	\rm -rf ./debian/tmp/etc/systemd
-	# Don't use upstart
-	\rm -rf ./debian/tmp/etc/init
-	#\rm ./debian/tmp/etc/init/nprobe.conf
-	dh_link
 # Do not strip binary so we can leave debug symbols
 #	dh_strip
 	dh_compress
 #	dh_fixperms
 	dh_installdeb
+# install the files into debian/ntopng.
+	mkdir -p ./debian/ntopng
+	cp -r ../etc/ ./usr/ ./debian/ntopng
+	-rm ./debian/ntopng/usr/share/ntopng/httpdocs/geoip/*.dat
+	-find ./debian/ntopng -name .svn -exec /bin/rm -rf {} ';'
+	\rm -rf ./debian/ntopng/etc/init.d/nprobe ./debian/ntopng/etc/ld.so.conf.d
+	\rm -rf ./debian/ntopng/etc/systemd
+	# Don't use upstart
+	\rm -rf ./debian/ntopng/etc/init
+	#\rm ./debian/ntopng/etc/init/nprobe.conf
+	dh_link
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
