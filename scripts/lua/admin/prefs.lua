@@ -32,14 +32,12 @@ subpage_active = _GET["subpage_active"]
 
 report_active = ""
 web_gui_active = ""
-traffic_active = ""
-top_talkers_active = ""
-mysql_active = ""
+in_memory_active = ""
+on_disk_rrds_active = ""
+on_disk_dbs_active = ""
 nbox_active = ""
 alerts_active = ""
 user_auth_active = ""
-data_purge_active = ""
-stats_rrds_active = ""
 
 if (subpage_active == nil or subpage_active == "") then
   subpage_active = "report"
@@ -51,14 +49,14 @@ end
 if (subpage_active == "web_gui") then
   web_gui_active = "active"
 end
-if (subpage_active == "traffic") then
-  traffic_active = "active"
+if (subpage_active == "in_memory") then
+  in_memory_active = "active"
 end
-if (subpage_active == "top_talkers") then
-  top_talkers_active = "active"
+if (subpage_active == "on_disk_rrds") then
+  on_disk_rrds_active = "active"
 end
-if (subpage_active == "mysql") then
-  mysql_active = "active"
+if (subpage_active == "on_disk_dbs") then
+  on_disk_dbs_active = "active"
 end
 if (subpage_active == "nbox") then
   nbox_active = "active"
@@ -69,12 +67,7 @@ end
 if (subpage_active == "user_auth") then
   user_auth_active = "active"
 end
-if (subpage_active == "data_purge") then
-  data_purge_active = "active"
-end
-if (subpage_active == "stats_rrds") then
-  stats_rrds_active = "active"
-end
+
 
 -- ================================================================================
 function printReportVisualization()
@@ -111,34 +104,6 @@ function printWebGUI()
 end
 
 -- ================================================================================
-function printTraffic()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="traffic"/>\n')
-  print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Metrics Storage (RRD)</th></tr>')
-
-  toggleTableButtonPrefs("RRDs For Local Hosts",
-                "Toggle the creation of RRDs for local hosts. Turn it off to save storage space.",
-                "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation", "1")
-
-  toggleTableButtonPrefs("nDPI RRDs For Local Hosts and Networks",
-                "Toggle the creation of nDPI RRDs for local hosts and defined networks. Enable their creation allows you "..
-                "to keep application protocol statistics at the cost of using more disk space.",
-                "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
-
-  toggleTableButtonPrefs("Category RRDs For Local Hosts and Networks",
-      "Toggle the creation of Category RRDs for local hosts and defined networks. Enabling their creation allows you "..
-      "to keep persistent traffic category statistics (e.g., social networks, news) at the cost of using more disk space.<br>"..
-      "Creation is only possible if the ntopng instance has been launched with option -k flashstart:&lt;user&gt;:&lt;password&gt;.",
-     "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization", "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
-
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
-  print('</table>')
-  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
-end
-
--- ================================================================================
 function printTopTalkers()
   print('<form>')
   print('<input type=hidden name="subpage_active" value="top_talkers"/>\n')
@@ -156,14 +121,22 @@ function printTopTalkers()
 end
 
 -- ================================================================================
-function printMysql()
+function printStatsDatabases()
   print('<form>')
-  print('<input type=hidden name="subpage_active" value="mysql"/>\n')
+  print('<input type=hidden name="subpage_active" value="on_disk_dbs"/>\n')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 
   mysql_retention = 30
   prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "ntopng.prefs.", "mysql_retention", mysql_retention)
+
+  print('</table>')
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
+
+  --default value
+  minute_top_talkers_retention = 365
+  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention)
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -332,15 +305,25 @@ function printUserAuth()
 end
 
 -- ================================================================================
-function printDataPurge()
+function printInMemory()
   print('<form>')
-  print('<input type=hidden name="subpage_active" value="data_purge"/>\n')
+  print('<input type=hidden name="subpage_active" value="in_memory"/>\n')
   print('<table class="table">')
 
-  print('<tr><th colspan=2 class="info">Data Purge</th></tr>')
+  print('<tr><th colspan=2 class="info">Idle Timeout Settings</th></tr>')
   prefsInputFieldPrefs("Local Host Idle Timeout", "Inactivity time after which a local host is considered idle (sec). Default: 300.", "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle)
   prefsInputFieldPrefs("Remote Host Idle Timeout", "Inactivity time after which a remote host is considered idle (sec). Default: 60.", "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle)
   prefsInputFieldPrefs("Flow Idle Timeout", "Inactivity time after which a flow is considered idle (sec). Default: 60.", "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle)
+
+  print('<tr><th colspan=2 class="info">Hosts Statistics Update Frequency</th></tr>')
+  prefsInputFieldPrefs("Update frequency in seconds",
+		       "Some host statistics such as throughputs are updated periodically. "..
+			  "This value regulates how often ntopng will update these statistics. "..
+			  "Larger values are less computationally intensive and tend to average out minor variations. "..
+			  "Smaller values are more computationally intensive and tend to highlight minor variations. "..
+			  "Values in the order of few secods are safe. " ..
+			  "Default: 5 seconds.",
+		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency)
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -351,30 +334,38 @@ end
 -- ================================================================================
 function printStatsRrds()
   print('<form>')
-  print('<input type=hidden name="subpage_active" value="stats_rrds"/>\n')
+  print('<input type=hidden name="subpage_active" value="on_disk_rrds"/>\n')
   print('<table class="table">')
+  print('<tr><th colspan=2 class="info">Local Hosts and Networks Timeseries</th></tr>')
 
-  print('<tr><th colspan=2 class="info">Network Interface Stats RRDs</th></tr>')
+  toggleTableButtonPrefs("Traffic Timeseries",
+                "Toggle the creation of traffic timeseries for local hosts and networks. Turn it off to save storage space.",
+                "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation", "1")
+
+  toggleTableButtonPrefs("Layer-7 Application Timeseries",
+                "Toggle the creation of nDPI timeseries for local hosts and defined networks. Enable their creation allows you "..
+                "to keep application protocol statistics at the cost of using more disk space.",
+                "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
+
+  toggleTableButtonPrefs("Category Timeseries",
+      "Toggle the creation of Category timeseries for local hosts and defined networks. Enabling their creation allows you "..
+      "to keep persistent traffic category statistics (e.g., social networks, news) at the cost of using more disk space.<br>"..
+      "Creation is only possible if the ntopng instance has been launched with option -k flashstart:&lt;user&gt;:&lt;password&gt;.",
+     "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization", "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
+  print('</table>')
+
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">Network Interface Timeseries</th></tr>')
   prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days)
   prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days)
   prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "intf_rrd_1h_days", prefs.intf_rrd_1h_days)
   prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "intf_rrd_1d_days", prefs.intf_rrd_1d_days)
 
-  print('<tr><th colspan=2 class="info">Protocol/Networks Stats RRDs</th></tr>')
+  print('<tr><th colspan=2 class="info">Protocol/Networks Timeseries</th></tr>')
   prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "other_rrd_raw_days", prefs.other_rrd_raw_days)
   --prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "other_rrd_1min_days", prefs.other_rrd_1min_days)
   prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "other_rrd_1h_days", prefs.other_rrd_1h_days)
   prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "other_rrd_1d_days", prefs.other_rrd_1d_days)
-
-  print('<tr><th colspan=2 class="info">Hosts Stats Update Frequency</th></tr>')
-  prefsInputFieldPrefs("Update frequency in seconds",
-		       "Some host statistics such as throughputs are updated periodically. "..
-			  "This value regulates how often ntopng will update these statistics. "..
-			  "Larger values are less computationally intensive and tend to average out minor variations. "..
-			  "Smaller values are more computationally intensive and tend to highlight minor variations. "..
-			  "Values in the order of few secods are safe. " ..
-			  "Default: 5 seconds.",
-		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency)
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -394,16 +385,16 @@ if prefs.is_autologout_enabled == true then
              print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=web_gui" class="list-group-item ]] print(web_gui_active) print[[">Web User Interface</a>]]
 end
 
-             print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=top_talkers" class="list-group-item ]] print(top_talkers_active) print[[">Top Talkers Storage</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=mysql" class="list-group-item ]] print(mysql_active) print[[">MySQL Database</a>
+             print [[
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=in_memory" class="list-group-item ]] print(in_memory_active) print[[">In-Memory Data</a>
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_rrds" class="list-group-item ]] print(on_disk_rrds_active) print[[">On-Disk Timeseries</a>
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a> ]]
 if (ntop.isPro()) then
              print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=nbox" class="list-group-item ]] print(nbox_active) print[[">nBox Integration</a> ]]
              print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=user_auth" class="list-group-item ]] print(user_auth_active) print[[">User Authentication</a>]]
 end
-             print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=data_purge" class="list-group-item ]] print(data_purge_active) print[[">Data Purge</a>]]
-             print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=traffic" class="list-group-item ]] print(traffic_active) print[[">Metrics Storage</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=stats_rrds" class="list-group-item ]] print(stats_rrds_active) print[[">Stats and RRDs</a>
+print[[
            </div>
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
@@ -413,11 +404,14 @@ end
 if (subpage_active == "web_gui") then
   printWebGUI()
 end
-if (subpage_active == "top_talkers") then
-  printTopTalkers()
+if (subpage_active == "in_memory") then
+  printInMemory()
 end
-if (subpage_active == "mysql") then
-  printMysql()
+if (subpage_active == "on_disk_rrds") then
+  printStatsRrds()
+end
+if (subpage_active == "on_disk_dbs") then
+  printStatsDatabases()
 end
 if (subpage_active == "alerts") then
   printAlerts()
@@ -431,15 +425,6 @@ if (subpage_active == "user_auth") then
   if (ntop.isPro()) then
     printUserAuth()
   end
-end
-if (subpage_active == "data_purge") then
-  printDataPurge()
-end
-if (subpage_active == "traffic") then
-  printTraffic()
-end
-if (subpage_active == "stats_rrds") then
-  printStatsRrds()
 end
 
 print[[
