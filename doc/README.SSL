@@ -6,7 +6,11 @@ In order to use SSL with ntopng (i.e. HTTPS) you need to
 2. Create your SSL certificate
    make cert
 
-3. Copy in the directory where ntopng is running
+3. OPTIONAL
+   Depending on the disribution and packager you might need
+   this optional step. 
+
+   Copy in the directory where ntopng is running
    the shared libraries needed to enable SSL.
 
    - Linux
@@ -20,6 +24,8 @@ In order to use SSL with ntopng (i.e. HTTPS) you need to
    ln -s /usr/local/Cellar/openssl/1.0.1i/lib/libssl.dylib .
 
 4. Start ntopng
+  "make cert" will create the certificate but you can see below the
+  exact steps if you want to generate the certificate manually.
 
 == Ubuntu and Centos packages ==
 
