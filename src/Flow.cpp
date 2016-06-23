@@ -1587,13 +1587,28 @@ json_object* Flow::flow2json(bool partial_dump) {
 			   json_object_new_string(Utils::macaddr_str((char*)srv_host->get_mac(), buf)));
   }
 
-  json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
+  if(cli_host->get_ip()) {
+    if(cli_host->get_ip()->isIPv4()) {
+      json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
+    } else if(cli_host->get_ip()->isIPv6()) {
+      json_object_object_add(my_object, Utils::jsonLabel(IPV6_SRC_ADDR, "IPV6_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(cli_host->get_string_key(buf, sizeof(buf))));
+    }
+  }
+
+  if(srv_host->get_ip()) {
+    if(srv_host->get_ip()->isIPv4()) {
+      json_object_object_add(my_object, Utils::jsonLabel(IPV4_DST_ADDR, "IPV4_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(srv_host->get_string_key(buf, sizeof(buf))));
+    } else if(srv_host->get_ip()->isIPv6()) {
+      json_object_object_add(my_object, Utils::jsonLabel(IPV6_DST_ADDR, "IPV6_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(srv_host->get_string_key(buf, sizeof(buf))));
+    }
+  }
+
   json_object_object_add(my_object, Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(get_cli_port()));
-
-  json_object_object_add(my_object, Utils::jsonLabel(IPV4_DST_ADDR, "IPV4_DST_ADDR", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_string(srv_host->get_string_key(buf, sizeof(buf))));
   json_object_object_add(my_object, Utils::jsonLabel(L4_DST_PORT, "L4_DST_PORT", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(get_srv_port()));
 
