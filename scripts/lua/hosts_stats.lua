@@ -34,6 +34,26 @@ ifstats = aggregateInterfaceStats(interface.getStats())
 
 print [[
       <hr>
+<div class="container-fluid">
+  <ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#home">Hosts</a></li>
+]]
+
+if(asn ~= "0") then
+print [[
+    <li><a data-toggle="tab" href="#asinfo">AS Info</a></li>
+    <li><a data-toggle="tab" href="#aspath">AS Path</a></li>
+    <li><a data-toggle="tab" href="#geoloc">AS Geolocation</a></li>
+    <li><a data-toggle="tab" href="#prefix">AS Prefixes</a></li>
+    <li><a data-toggle="tab" href="#bgp">BGP Updates</a></li>
+]]
+end
+
+print [[
+  </ul>
+
+  <div class="tab-content">
+<div id="home" class="tab-pane fade in active">
       <div id="table-hosts"></div>
 	 <script>
 	 var url_update = "]]
@@ -121,9 +141,9 @@ print [[
 if(protocol == nil) then protocol = "" end
 
 if(_GET["asn"] ~= nil) then 
-	asn = " for AS ".._GET["asn"] 
+	asninfo = " for AS ".._GET["asn"] 
 else 
-	asn = "" 
+	asninfo = "" 
 end
 
 if(_GET["country"] ~= nil) then 
@@ -146,15 +166,15 @@ end
 
 if(mode == "all") then
 	if ( country ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..country..'",\n')
-	elseif ( asn ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asn..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "All '..os_..' Hosts'..am_str..'",\n') 
-	else print('title: "All '..protocol..' '..network_name..' Hosts'..asn..'",\n')
+	else print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	end
 elseif(mode == "local") then
 	if ( country ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
-	elseif ( asn ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asn..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..am_str..'",\n')
@@ -162,7 +182,7 @@ elseif(mode == "local") then
 	end
 elseif(mode == "remote") then
 	if ( country ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
-	elseif ( asn ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asn..'",\n')
+	elseif ( asninfo ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
 	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n') 
 	elseif ( am_str ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..am_str..'",\n')
@@ -259,5 +279,37 @@ end
 
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_bottom.inc")
+
+print [[
+</div>
+
+<script src="https://stat.ripe.net/widgets/widget_api.js"></script>
+
+<div id="asinfo" class="tab-pane fade">
+<div class="statwdgtauto"><script>ripestat.init("registry-browser",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
+</div>
+
+<div id="aspath" class="tab-pane fade">
+<div class="statwdgtauto"><script>ripestat.init("as-path-length",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
+</div>
+
+<div id="geoloc" class="tab-pane fade">
+<div class="statwdgtauto"><script>ripestat.init("geoloc",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
+</div>
+
+<div id="prefix" class="tab-pane fade">
+<div class="statwdgtauto"><script>ripestat.init("announced-prefixes",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
+</div>
+
+<div id="bgp" class="tab-pane fade">
+<div class="statwdgtauto"><script>ripestat.init("bgp-update-activity",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
+</div>
+</div>
+]]
+
+if(asn ~= "0") then
+   print ("<i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i> <A HREF=https://stat.ripe.net/AS"..asn..">More Information about AS"..asn.."</A>  <i class=\"fa fa-external-link\"></i>")
+end
+
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
