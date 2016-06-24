@@ -34,6 +34,10 @@ ifstats = aggregateInterfaceStats(interface.getStats())
 
 print [[
       <hr>
+]]
+
+if(asn ~= nil) then
+print [[
 <div class="container-fluid">
   <ul class="nav nav-tabs">
     <li class="active"><a data-toggle="tab" href="#home">Hosts</a></li>
@@ -48,12 +52,18 @@ print [[
     <li><a data-toggle="tab" href="#bgp">BGP Updates</a></li>
 ]]
 end
+end
 
+print("</ul>")
+
+if(asn ~= nil) then
 print [[
-  </ul>
-
   <div class="tab-content">
 <div id="home" class="tab-pane fade in active">
+]]
+end
+
+print [[
       <div id="table-hosts"></div>
 	 <script>
 	 var url_update = "]]
@@ -280,10 +290,11 @@ end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_bottom.inc")
 
+if(asn ~= nil) then
 print [[
 </div>
 
-<script src="https://stat.ripe.net/widgets/widget_api.js"></script>
+<script src="/js/ripe_widget_api.js"></script>
 
 <div id="asinfo" class="tab-pane fade">
 <div class="statwdgtauto"><script>ripestat.init("registry-browser",{"resource":"AS]] print(asn) print [["},null,{"disable":["controls"]})</script></div>
@@ -310,6 +321,6 @@ print [[
 if(asn ~= "0") then
    print ("<i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i> <A HREF=https://stat.ripe.net/AS"..asn..">More Information about AS"..asn.."</A>  <i class=\"fa fa-external-link\"></i>")
 end
-
+end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
