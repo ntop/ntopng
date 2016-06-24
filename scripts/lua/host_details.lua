@@ -530,7 +530,9 @@ end
    end
 
    if(host["ip"] ~= nil) then
-      if(host["name"] == nil) then host["name"] = ntop.getResolvedAddress(host["ip"]) end
+      if(host["name"] == nil) then
+	 host["name"] = ntop.getResolvedAddress(host["ip"])
+      end
       print("<tr><th>Name</th>")
 
       if(isAdministrator()) then

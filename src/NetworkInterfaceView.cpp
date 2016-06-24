@@ -164,12 +164,17 @@ int NetworkInterfaceView::getActiveHostsGroup(lua_State* vm,
   int ret = 0;
 
   lua_newtable(vm);
-  int rc = getFirst()->getActiveHostsGroup(vm, allowed_hosts, host_details, location, countryFilter,
-					   vlan_id, osFilter, asnFilter, networkFilter,
-					   groupBy);
-  if(rc < 0) return(ret);
-  rc += ret;
+  for(int i = 0; i<numInterfaces; i++) {
+    int rc = physIntf[i]->getActiveHostsGroup(vm, allowed_hosts, host_details, location, countryFilter,
+					      vlan_id, osFilter, asnFilter, networkFilter,
+					      groupBy);
+    if(rc < 0) return(ret);
+    rc += ret;
 
+    lua_pushstring(vm, physIntf[i]->get_name()); // Key
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
   return(ret);
 }
 

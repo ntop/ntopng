@@ -108,6 +108,36 @@ end
 
 -- ##########################################
 
+function aggregateGroupStats(groupStats)
+   if(groupStats == nil) then return(groupStats) end
+
+   local tot = 0
+   local res = { }
+   for ifname,_v in pairs(groupStats) do
+      for k,v in pairs(_v["groups"]) do
+	 if k == nil or v == nil or type(v) ~= 'table' then
+	    goto continue
+	 end
+	 if res[k] == nil then
+	    res[k] = {}
+	 end
+	 for prop_name, prop_value in pairs(v) do
+	    if res[k][prop_name] == nil then
+	       res[k][prop_name] = prop_value
+	    elseif type(prop_value) == 'number' then
+	       res[k][prop_name] = res[k][prop_name] + prop_value
+	    end
+	 end
+	 ::continue::
+      end
+      tot = tot + _v["numGroupedHosts"]
+   end
+
+   return res,tot
+end
+
+-- ##########################################
+
 function aggregateHostsStats(hostStats)
    if(hostStats == nil) then return(hostStats) end
 
