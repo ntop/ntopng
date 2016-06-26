@@ -131,6 +131,11 @@ else
     if (flow["moreinfo.json"] ~= nil) then
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
       sip_found = isThereProtocol("SIP", info)
+
+      if(sip_found == 1) then
+        sip_found = isThereSIPCall(info)
+      end
+
       if(sip_found == 1) then
         local called_party = ""
         local calling_party = ""
