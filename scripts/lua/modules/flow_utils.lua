@@ -1036,6 +1036,22 @@ end
 
 -- #######################
 
+function isThereSIPCall(info)
+  local retVal = 0
+  local call_state = getFlowValue(info, "SIP_CALL_STATE")
+  if((call_state ~= nil) and
+     ( (call_state == "CALL_STARTED")
+       or (call_state == "CALL_IN_PROGRESS")
+       or (call_state == "CALL_COMPLETED")
+       or (call_state == "CALL_ERROR")
+       or (call_state == "CALL_CANCELED") ) ) then
+    retVal = 1
+  end
+  return retVal
+end
+
+-- #######################
+
 function getSIPTableRows(info)
    local string_table = ""
    local called_party = ""
@@ -1045,6 +1061,9 @@ function getSIPTableRows(info)
    -- check if there is a SIP field
    sip_found = isThereProtocol("SIP", info)
 
+   if(sip_found == 1) then
+     sip_found = isThereSIPCall(info)
+   end
    if(sip_found == 1) then
      string_table = string_table.."<tr><th colspan=3 class=\"info\" >SIP Protocol Information</th></tr>\n"
      string_table = string_table.."<tr><th width=30%> Call-ID </th><td colspan=2><div id=call_id>" .. getFlowValue(info, "SIP_CALL_ID") .. "</div></td></tr>\n"

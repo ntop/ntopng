@@ -508,6 +508,9 @@ else
       isThereSIP = 0
       if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
         isThereSIP = isThereProtocol(SIP, info)
+        if(isThereSIP == 1) then
+          isThereSIP = isThereSIPCall(info)
+        end
       end
 
       -- get RTP rows
