@@ -31,13 +31,12 @@ if(haveAdminPrivileges()) then
 subpage_active = _GET["subpage_active"]
 
 report_active = ""
-web_gui_active = ""
 in_memory_active = ""
 on_disk_rrds_active = ""
 on_disk_dbs_active = ""
 nbox_active = ""
 alerts_active = ""
-user_auth_active = ""
+users_active = ""
 
 if (subpage_active == nil or subpage_active == "") then
   subpage_active = "report"
@@ -45,9 +44,6 @@ end
 
 if (subpage_active == "report") then
   report_active = "active"
-end
-if (subpage_active == "web_gui") then
-  web_gui_active = "active"
 end
 if (subpage_active == "in_memory") then
   in_memory_active = "active"
@@ -64,8 +60,8 @@ end
 if (subpage_active == "alerts") then
   alerts_active = "active"
 end
-if (subpage_active == "user_auth") then
-  user_auth_active = "active"
+if (subpage_active == "users") then
+  users_active = "active"
 end
 
 
@@ -83,24 +79,6 @@ function printReportVisualization()
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
-end
-
--- ================================================================================
-function printWebGUI()
-  if prefs.is_autologout_enabled == true then
-    print('<form>')
-    print('<input type=hidden name="subpage_active" value="web_gui"/>\n')
-    print('<table class="table">')
-    print('<tr><th colspan=2 class="info">Web User Interface</th></tr>')
-
-    toggleTableButtonPrefs("Auto Logout",
-                     "Toggle the automatic logout of web interface users with expired sessions.",
-                     "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.is_autologon_enabled", "1")
-    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
-    print('</table>')
-    print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-    </form> ]]
-  end
 end
 
 -- ================================================================================
@@ -219,69 +197,81 @@ function printNbox()
 end
 
 -- ================================================================================
-function printUserAuth()
+function printUsers()
   print('<form id="form_ldap">')
-  print('<input type=hidden name="subpage_active" value="user_auth"/>\n')
+  print('<input type=hidden name="subpage_active" value="users"/>\n')
   print('<table class="table">')
 
-  print('<tr><th colspan=2 class="info">User Authentication</th></tr>')
+  if prefs.is_autologout_enabled == true then
+     print('<tr><th colspan=2 class="info">Web User Interface</th></tr>')
 
-  local labels = {"Local","LDAP","LDAP/Local"}
-  local values = {"local","ldap","ldap_local"}
-  local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "search_path", "user_group", "admin_group"}
-  local showElementArray = {false, true, true}
-  local javascriptAfterSwitch = "";
-  javascriptAfterSwitch = javascriptAfterSwitch.."  if ($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    if ($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"none\");\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
-  javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
-  local retVal = multipleTableButtonPrefs("LDAP Authentication",
-        "Local (Local only), LDAP (LDAP server only), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication).",
-        labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,  elementToSwitch, showElementArray, javascriptAfterSwitch)
-
-  local showElements = true;
-  if ntop.getPref("ntopng.prefs.auth_type") == "local" then
-    showElements = false
+     toggleTableButtonPrefs("Auto Logout",
+			    "Toggle the automatic logout of web interface users with expired sessions.",
+			    "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.is_autologon_enabled", "1")
   end
 
-  local labels_account = {"Posix","sAMAccount"}
-  local values_account = {"posix","samaccount"}
-  multipleTableButtonPrefs("LDAP Accounts Type",
-	    "Choose your account type",
-	    labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
+  if ntop.isPro() then
 
-  prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements)
+     print('<tr><th colspan=2 class="info">Authentication</th></tr>')
+     local labels = {"Local","LDAP","LDAP/Local"}
+     local values = {"local","ldap","ldap_local"}
+     local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "search_path", "user_group", "admin_group"}
+     local showElementArray = {false, true, true}
+     local javascriptAfterSwitch = "";
+     javascriptAfterSwitch = javascriptAfterSwitch.."  if ($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."    if ($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"none\");\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"none\");\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."    }\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
+     local retVal = multipleTableButtonPrefs("Authentication Method",
+					     "Local (Local only), LDAP (LDAP server only), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication).",
+					     labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,  elementToSwitch, showElementArray, javascriptAfterSwitch)
 
-  local elementToSwitchBind = {"bind_dn","bind_pwd"}
-  toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
+     local showElements = true;
+     if ntop.getPref("ntopng.prefs.auth_type") == "local" then
+	showElements = false
+     end
 
-  local showEnabledAnonymousBind = false
-  if ntop.getPref("ntopng.prefs.ldap.anonymous_bind") == "0" then
-    showEnabledAnonymousBind = true
+     local labels_account = {"Posix","sAMAccount"}
+     local values_account = {"posix","samaccount"}
+     multipleTableButtonPrefs("LDAP Accounts Type",
+			      "Choose your account type",
+			      labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
+
+     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements)
+
+     local elementToSwitchBind = {"bind_dn","bind_pwd"}
+     toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
+
+     local showEnabledAnonymousBind = false
+     if ntop.getPref("ntopng.prefs.ldap.anonymous_bind") == "0" then
+	showEnabledAnonymousBind = true
+     end
+     local showElementsBind = showElements
+     if showElements == true then
+	showElementsBind = showEnabledAnonymousBind
+     end
+     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind)
+     prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind)
+
+     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements)
+     prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements)
+     prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements)
+
   end
-  local showElementsBind = showElements
-  if showElements == true then
-    showElementsBind = showEnabledAnonymousBind
-  end
-  prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind)
-  prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind)
-
-  prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements)
-  prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements)
-  prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements)
-
-  print('<tr><th colspan=2 style="text-align:right;"><button type="button" onclick="save_button_ldap()" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="button" onclick="save_button_users()" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
+
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form>
   <script>
-    function save_button_ldap(){
-      if ($("#id-toggle-multiple_ldap_authentication").val() != "local") {
+    function save_button_users(){
+      if (typeof $("#id-toggle-multiple_ldap_authentication").val() !== 'undefined'
+          && $("#id-toggle-multiple_ldap_authentication").val() != "local") {
         var field = $("#id_input_server").val();
 
         if ((field.substring(0, 7) != "ldap://") && (field.substring(0, 8) != "ldaps://")) {
@@ -380,29 +370,24 @@ end
          <col width="80%">
          <tr><td style="padding-right: 20px;">
            <div class="list-group ">
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[["> Report Visualization</a>]]
-if prefs.is_autologout_enabled == true then
-             print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=web_gui" class="list-group-item ]] print(web_gui_active) print[[">Web User Interface</a>]]
-end
-
-             print [[
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=users" class="list-group-item ]] print(users_active) print[[">Users</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=in_memory" class="list-group-item ]] print(in_memory_active) print[[">In-Memory Data</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_rrds" class="list-group-item ]] print(on_disk_rrds_active) print[[">On-Disk Timeseries</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a> ]]
-if (ntop.isPro()) then
-             print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=nbox" class="list-group-item ]] print(nbox_active) print[[">nBox Integration</a> ]]
-             print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=user_auth" class="list-group-item ]] print(user_auth_active) print[[">User Authentication</a>]]
-end
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a> 
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>
+]]
+
+   if (ntop.isPro()) then
+      print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=nbox" class="list-group-item ]] print(nbox_active) print[[">nBox Integration</a> ]]
+   end
+
 print[[
            </div>
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
 if (subpage_active == "report") then
   printReportVisualization()
-end
-if (subpage_active == "web_gui") then
-  printWebGUI()
 end
 if (subpage_active == "in_memory") then
   printInMemory()
@@ -421,10 +406,8 @@ if (subpage_active == "nbox") then
     printNbox()
   end
 end
-if (subpage_active == "user_auth") then
-  if (ntop.isPro()) then
-    printUserAuth()
-  end
+if (subpage_active == "users") then
+   printUsers()
 end
 
 print[[
