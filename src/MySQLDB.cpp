@@ -159,7 +159,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     // the remainder of this method has the purpose of MIGRATING old table structures to
     // the most recent one.
 
-    // FIRST: we adapt old table structures to the new schema using alter tables
+    // We adapt old table structures to the new schema using alter tables
     /* Add fields if not present */
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` ADD `INFO` varchar(255)",
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
@@ -208,7 +208,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
 
-    // SECOND: we trasfer old table contents into the new schema
+    // We trasfer old table contents into the new schema
     snprintf(sql, sizeof(sql), "INSERT IGNORE INTO `%sv4` "
 	     "SELECT * FROM `%sv4_%u`",
 	     ntop->getPrefs()->get_mysql_tablename(),
@@ -220,7 +220,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
     exec_sql_query(&mysql, sql, true, true);
 
-    // THIRD: drop old tables (their contents have been transferred)
+    // Drop old tables (their contents have been transferred)
   }
   snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
@@ -229,7 +229,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
   exec_sql_query(&mysql, sql, true, true);
 
-  // FOURTH: add extra indices to speedup queries
+  // Add extra indices to speedup queries
   snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` "
 	   "ADD INDEX `ix_%sv4_ntopng_first_src_dst` (FIRST_SWITCHED, IP_SRC_ADDR, IP_DST_ADDR)",
 	   ntop->getPrefs()->get_mysql_tablename(),
@@ -241,7 +241,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   ntop->getPrefs()->get_mysql_tablename());
   exec_sql_query(&mysql, sql, true, true);
 
-  // FIFTH: add an extra column with the interface id to speed up certain quer
+  // Add an extra column with the interface id to speed up certain quer
   snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
 	   ntop->getPrefs()->get_mysql_tablename());
   exec_sql_query(&mysql, sql, true, true);
@@ -250,7 +250,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   ntop->getPrefs()->get_mysql_tablename());
   exec_sql_query(&mysql, sql, true, true);
 
-  // SIXTH: populate the brand new column INTERFACE_ID with the ids of interfaces
+  // Populate the brand new column INTERFACE_ID with the ids of interfaces
   // and set to NULL the column INTERFACE
   snprintf(sql, sizeof(sql), "UPDATE `%sv4` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_id(), iface->get_name());
@@ -270,7 +270,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	   ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
   exec_sql_query(&mysql, sql, true, true);
 
-  // SEVENTH: check if the INTERFACE column can be dropped
+  // Check if the INTERFACE column can be dropped
   snprintf(sql, sizeof(sql), "SELECT 1 FROM `%sv4` WHERE INTERFACE IS NOT NULL LIMIT 1",
 	   ntop->getPrefs()->get_mysql_tablename());
   if(exec_sql_query(&mysql, sql, true, true) == 0) {
@@ -286,7 +286,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
     exec_sql_query(&mysql, sql, true, true);
   }
 
-  // EIGHTH: move column BYTES to BYTES_IN and add BYTES_OUT
+  // Move column BYTES to BYTES_IN and add BYTES_OUT
   // note that this operation will arbitrarily move the old BYTES contents to BYTES_IN
   const u_int16_t ipvers[2] = {4, 6};
   for (u_int16_t i = 0; i < sizeof(ipvers); i++){
@@ -303,6 +303,31 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	       "ALTER TABLE `%sv%hu` "
 	       "CHANGE BYTES IN_BYTES INT(10) DEFAULT 0, "
 	       "ADD OUT_BYTES INT(10) DEFAULT 0 AFTER IN_BYTES",
+	       ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+      exec_sql_query(&mysql, sql, true, true);
+    }
+  }
+
+  // Modify database engine to MyISAM (that is much faster in non-transactional environments)
+  for (u_int16_t i = 0; i < sizeof(ipvers); i++){
+    snprintf(sql, sizeof(sql),
+	     "SELECT 1 "
+	     "FROM information_schema.TABLES "
+	     "WHERE TABLE_SCHEMA='%s' "
+	     "AND TABLE_NAME='%sv%hu' "
+	     "AND ENGINE='InnoDB' ",
+	     ntop->getPrefs()->get_mysql_dbname(),
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     ipvers[i]);
+    if(exec_sql_query(&mysql, sql, true, true) > 0){
+      // if here, the table has enging InnoDB so we want to modify that to MyISAM
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "MySQL schema update. Altering table %sv%hu: "
+				   "changing engine from InnoDB to MyISAM.",
+				   ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+
+      snprintf(sql, sizeof(sql),
+	       "ALTER TABLE `%sv%hu` ENGINE='MyISAM'",
 	       ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
       exec_sql_query(&mysql, sql, true, true);
     }
