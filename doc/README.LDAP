@@ -1,0 +1,81 @@
+LDAP authentication can be enabled from the ntopng preferences page.
+
+By default, authentication is set to 'Local', meaning that
+local ntopng users are used instead of those found in LDAP.
+
+To enable LDAP authentication there are two options, namely LDAP and
+LDAP/Local. The latter tries LDAP authentication and, in case of
+failure, it resorts to the local ntopng authentication. The former
+simply tires LDAP authentication without resorting to the local ntopng
+authentication upon failure.
+
+LDAP/Local authentication may be useful, for example, to prevent
+possible locked-out situations determined by connectivity issues of
+the LDAP server. An administrator can configure a local ntopng
+'recovery' user that will be used automatically in case the LDAP
+server is not reachable.
+
+LDAP authentication parameters are discussed below.
+
+* LDAP Accounts Type
+Allows to choose between 'Posix' and 'sAMAccount'.
+
+* LDAP Server Address
+Specifies LDAP server host IP address and port. Both LDAP and LDAPS
+are handled. Examples are:
+    ldap://192.168.1.1:389
+    ldaps://192.168.1.1:636
+Ports 389 and 636 are the default ports for ldap and ldaps, respectively.
+
+* LDAP Anonymous Binding
+An LDAP server, during the bining phase, can request binding
+credential to the client.
+If no binding credentials are requested by the server, then the field
+"LDAP Anonymous Binding" has to be set to "on". Alternatively, if the
+binding credentials are required, then the field must be set to "off"
+and two additional fields have to be provided, namely "LDAP Bind DN"
+and "LDAP Bind Authentication Password".
+
+* LDAP Bind DN
+In case "LDAP Anonymous Binding" is disabled, then this option
+has to be specified and contains Bind Distinguished Names (DN).
+An example is:
+cn=admin,dc=example,dc=com
+
+* LDAP Bind Authentication Password
+In case "LDAP Anonymous Binding" is disabled, a binding password has
+to be provided in this field.
+
+* LDAP Search Path
+The "LDAP Srearch Path" indicates the root of the tree among which
+users and groups are searched. 
+An example is:
+dc=example,dc=com
+Assuming the field is populated with the example above, then an
+hypotetical user "foo" will be searched in the subtress having root
+dc=example,dc=com.
+
+* LDAP User Group
+This field specifies the group that contains users without
+administrative privileges. This field has to be composed of a simple
+identification string, e.g., "usersGroup". This resource will be
+searched in the subtrees rooted at "LDAP Search Path". Users that
+belong to this group will be able to use ntopng without
+administrative privileges.
+
+* LDAP Admin Group
+The same description of "LDAP User Group" applies, with the only
+difference that users belonging to this group will be able to use
+ntopng with administrative privileges.
+
+* Note to create Posix accounts on an LDAP server
+- Assign to the "uid" account parameter the identificator that has to
+be used for logging.
+- To assign the user to a specific group, an additional value has to
+be added to group parameter "memberUid". The additional value has to
+contain the "uid" of the user that needs to be associated with the group.
+
+
+
+
+
