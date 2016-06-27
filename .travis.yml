@@ -10,7 +10,7 @@ install:
   - sudo apt-get install subversion libglib2.0 libxml2-dev libpcap-dev libtool rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev git
 
 before_script:
-  - git clone -b 1.8-stable https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ..
+  - git clone -b 1.8-stable https://github.com/ntop/nDPI.git;  cd nDPI; ./autogen.sh; make; cd ..
   - ./autogen.sh
 
 script:
