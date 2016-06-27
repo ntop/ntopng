@@ -474,10 +474,29 @@ local mobile_country_code = {
 -- #######################
 
 function handleCustomFlowField(key, value)
-   if(key == 'TCP_FLAGS') then
+   if((key == 'TCP_FLAGS') or (key == '6')) then
       return(formatTcpFlags(value))
-   elseif((key == 'INPUT_SNMP') or (key == 'OUTPUT_SNMP')) then
+   elseif((key == 'INPUT_SNMP') or (key == '10')
+	     or (key == 'OUTPUT_SNMP') or (key == '14')) then
       return(formatInterfaceId(value))
+   elseif((key == 'EXPORTER_IPV4_ADDRESS') or (key == '130')) then
+      local b1, b2, b3, b4 = value:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
+      b1 = tonumber(b1)
+      b2 = tonumber(b2)
+      b3 = tonumber(b3)
+      b4 = tonumber(b4)
+      local ipaddr = string.format('%d.%d.%d.%d', b4, b3, b2, b1)
+      local res = ntop.getResolvedAddress(ipaddr)
+
+      local ret = "<A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..ipaddr..">"
+      
+      if((res == "") or (res == nil)) then
+	 ret = ret .. ipaddr
+      else
+	 ret = ret .. res
+      end
+
+      return(ret .. "</A>")      
    elseif((key == 'FLOW_USER_NAME') or (key == '57593')) then
       elems = string.split(value, ';')
 
