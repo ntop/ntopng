@@ -447,7 +447,7 @@
 #define NTOPNG_EMBEDDED_EDITION         1
 #endif
 
-#define NUM_MINUTES_PER_DAY   3600
+#define NUM_MINUTES_PER_DAY   1440 // == 60 * 24
 
 #define DUMP_MAC_SIZE	6
 #define MAC_SIZE	DUMP_MAC_SIZE
