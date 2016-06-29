@@ -96,7 +96,7 @@ start_ntopng() {
 	#echo "This package is designed to be used from within the nBox package that"
 	#echo "configures ntopng using a web GUI. Please install the nBox package"
 	#echo "from http://packages.ntop.org"
-        #MSG="Default directory is missing. Exiting"
+        #MSG="Default directory is missing. Quitting"
         #ERROR=1
         #RETVAL=1
 	echo "Creating directory /etc/ntopng"
@@ -127,7 +127,7 @@ start_ntopng() {
 
 	get_ntopng_pid
 	if [ "${PID}" -gt 0 ]; then
-	    MSG="ntopng already running. Exiting"
+	    MSG="ntopng already running. Quitting"
 	    ERROR=1
 	    RETVAL=1
 	    error_handler "quit"
@@ -161,7 +161,7 @@ start_ntopng() {
 	    [ ${DISTRO} == "centos" ] && echo_success && echo
 	fi
     else
-        MSG="Missing /etc/ntopng/ntopng.start. Exiting"
+        MSG="Missing /etc/ntopng/ntopng.start. Quitting"
         ERROR=1
         RETVAL=1
 	error_handler "quit"
@@ -193,7 +193,7 @@ stop_ntopng() {
 
     # Do we really need this check?
     #if [ ! -d "/etc/ntopng" ]; then
-    #    MSG="Default directory is missing. Exiting"
+    #    MSG="Default directory is missing. Quitting"
     #    error_handler "quit"
     # 	[ ${DISTRO} == "debian" ] && log_end_msg $ERROR
     # 	[ ${DISTRO} == "centos" ] && echo_success && echo
@@ -220,14 +220,14 @@ stop_ntopng() {
 
 status_ntopng() {
     if [ ! -d "/etc/ntopng" ]; then
-        MSG="Default directory is missing. Exiting"
+        MSG="Default directory is missing. Quitting"
         ERROR=1
         RETVAL=1
         error_handler "quit"
     fi
 
     if [ ! -f "/etc/ntopng/ntopng.conf" ]; then
-        MSG="Configuration file is missing. Exiting"
+        MSG="Configuration file is missing. Quitting"
         ERROR=1
         RETVAL=1
         error_handler "quit"
