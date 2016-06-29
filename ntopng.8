@@ -91,7 +91,8 @@ or
 .RB [ \-\-capture\-direction ]
 .RB [ \-\-online\-license\-check ]
 .RB [ \-\-print\-ndpi\-protocols ]
-.RB [ \-v ]
+.RB [ \-v 
+.IR <level> ]
 .RB [ \-V ]
 .RB [ \-h ]
 
@@ -360,8 +361,8 @@ In case the license does not match (e.g. you are running ntopng on a VM/containe
 .It  \-\-print\-ndpi\-protocols
 Print the list of nDPI protocols supported by the ntopng instance
 
-.It \-v|\-\-verbose
-Verbose tracing.
+.It \-v|\-\-verbose <level>
+Verbose tracing: level 2 is normal, level 6 is debugging.
 
 .It \-V|\-\-version
 Print
