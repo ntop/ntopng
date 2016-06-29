@@ -729,3 +729,70 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 }
 
 /* **************************************************** */
+
+u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data) {
+  json_object *o;
+  enum json_tokener_error jerr = json_tokener_success;
+  NetworkInterface * iface = (NetworkInterface*)data;
+  sFlowInterfaceStats stats;
+
+  // payload[payload_size] = '\0';
+
+  memset(&stats, 0, sizeof(stats));
+  o = json_tokener_parse_verbose(payload, &jerr);
+
+  if(o != NULL) {
+    struct json_object_iterator it = json_object_iter_begin(o);
+    struct json_object_iterator itEnd = json_object_iter_end(o);
+
+    /* Reset data */
+    memset(&stats, 0, sizeof(stats));
+
+    while(!json_object_iter_equal(&it, &itEnd)) {
+      const char *key   = json_object_iter_peek_name(&it);
+      json_object *v    = json_object_iter_peek_value(&it);
+      const char *value = json_object_get_string(v);
+
+      if((key != NULL) && (value != NULL)) {
+	if(!strcmp(key, "deviceIP")) stats.deviceIP = atol(value);
+	else if(!strcmp(key, "ifIndex")) stats.ifIndex = atol(value);
+	else if(!strcmp(key, "ifType")) stats.ifType = atol(value);
+	else if(!strcmp(key, "ifSpeed")) stats.ifSpeed = atol(value);
+	else if(!strcmp(key, "ifDirection")) stats.ifFullDuplex = (!strcmp(value, "Full")) ? true : false;
+	else if(!strcmp(key, "ifAdminStatus")) stats.ifAdminStatus = (!strcmp(value, "Up")) ? true : false;
+	else if(!strcmp(key, "ifOperStatus")) stats.ifOperStatus = (!strcmp(value, "Up")) ? true : false;
+	else if(!strcmp(key, "ifInOctets")) stats.ifInOctets = atoll(value);
+	else if(!strcmp(key, "ifInPackets")) stats.ifInPackets = atoll(value);
+	else if(!strcmp(key, "ifInErrors")) stats.ifInErrors = atoll(value);
+	else if(!strcmp(key, "ifOutOctets")) stats.ifOutOctets = atoll(value);
+	else if(!strcmp(key, "ifOutPackets")) stats.ifOutPackets = atoll(value);
+	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = atoll(value);
+	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
+      } /* if */
+      
+      /* Move to the next element */
+      json_object_iter_next(&it);
+    } // while json_object_iter_equal
+
+    /* Process Flow */
+    iface->processInterfaceStats(&stats);
+
+    json_object_put(o);
+  } else {
+    // if o != NULL
+    if(!once){
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Invalid message received: your nProbe sender is outdated, data encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr),
+				   payload_size,
+				   payload);
+    }
+    once = true;
+    return -1;
+  }
+
+  return 0;
+}
+
+/* **************************************************** */

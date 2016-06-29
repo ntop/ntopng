@@ -185,6 +185,7 @@ using namespace std;
 #include "DB.h"
 #include "MySQLDB.h"
 #include "TcpFlowStats.h"
+#include "InterfaceStatsHash.h"
 #include "NetworkInterface.h"
 #include "NetworkInterfaceView.h"
 #include "PcapInterface.h"

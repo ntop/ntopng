@@ -190,4 +190,11 @@ typedef enum {
   column_traffic
 } sortField;
 
+typedef struct {
+  u_int32_t deviceIP, ifIndex, ifType, ifSpeed;
+  bool ifFullDuplex, ifAdminStatus, ifOperStatus, ifPromiscuousMode;
+  u_int64_t ifInOctets, ifInPackets, ifInErrors,
+    ifOutOctets, ifOutPackets, ifOutErrors;  
+} sFlowInterfaceStats;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

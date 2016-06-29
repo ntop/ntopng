@@ -3362,3 +3362,13 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
     ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
   }
 }
+
+/* **************************************** */
+
+void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
+  char a[64];
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][ifIndex=%u]", 
+			       Utils::intoaV4(stats->deviceIP, a, sizeof(a)), 
+			       stats->ifIndex);
+}

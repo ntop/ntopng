@@ -278,7 +278,7 @@ void usage() {
 	 "[--check-license]                   | Check if the license is valid.\n"
 	 "[--check-maintenance]               | Check until maintenance is included in the license.\n"
 #endif
-	 "[--verbose|-v]                      | Verbose tracing\n"
+	 "[--verbose|-v] <level>              | Verbose tracing [ 0 (min) .. 2 (normal) .. 6 (debug) ]\n"
 	 "[--version|-V]                      | Print version and quit\n"
 	 "--print-ndpi-protocols              | Print the nDPI protocols recognized di ntopng\n"
 	 "[--help|-h]                         | Help\n"
@@ -384,7 +384,7 @@ static const struct option long_options[] = {
   { "redis",                             required_argument, NULL, 'r' },
   { "dont-change-user",                  no_argument,       NULL, 's' },
   { "no-promisc",                        no_argument,       NULL, 'u' },
-  { "verbose",                           no_argument,       NULL, 'v' },
+  { "verbose",                           required_argument, NULL, 'v' },
   { "max-num-hosts",                     required_argument, NULL, 'x' },
   { "http-port",                         required_argument, NULL, 'w' },
   { "packet-filter",                     required_argument, NULL, 'B' },
@@ -729,7 +729,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'v':
-    ntop->getTrace()->set_trace_level(MAX_TRACE_LEVEL);
+    ntop->getTrace()->set_trace_level(max(min(atoi(optarg), MAX_TRACE_LEVEL), 0));
     break;
 
   case 'F':
@@ -953,7 +953,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
   u_char c;
 
   while((c = getopt_long(argc, argv,
-			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uvA:B:CD:E:F:N:G:HI:O:Q:S:TU:X:W:VZ:",
+			 "k:eg:hi:w:r:sg:m:n:p:qd:t:x:1:2:3:l:uv:A:B:CD:E:F:N:G:HI:O:Q:S:TU:X:W:VZ:",
 			 long_options, NULL)) != '?') {
     if(c == 255) break;
     setOption(c, optarg);

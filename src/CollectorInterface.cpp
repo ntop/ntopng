@@ -25,7 +25,7 @@
 
 CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
   char *tmp, *e;
-  const char *topics[] = { "flow", "event", NULL };
+  const char *topics[] = { "flow", "event", "counter", NULL };
 
   num_drops = 0, num_subscribers = 0;
 
@@ -170,17 +170,26 @@ void CollectorInterface::collect_flows() {
 	  
 	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", uncompressed); */
 
-	  if(strcmp(h.url, "event") == 0)
+	  switch(h.url[0]) {
+	  case 'e': /* event */
 	    parseEvent(uncompressed, uncompressed_len, source_id, this);
-	  else
+	    break;
+	    
+	  case 'f': /* flow */
 	    parseFlow(uncompressed, uncompressed_len, source_id, this);
+	    break;
+
+	  case 'c': /* counter */
+	    parseCounter(uncompressed, uncompressed_len, source_id, this);
+	    break;
+	  }
+	  
+	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h.url, uncompressed); */
 
 #ifdef HAVE_ZLIB
 	  if(payload[0] == 0 /* only if the traffic was actually compressed */)
 	    if(uncompressed) free(uncompressed);
 #endif
-
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", uncompressed_len, uncompressed);
 	} /* size > 0 */
       }
     } /* for */

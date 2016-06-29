@@ -219,6 +219,7 @@ class NetworkInterface {
 		     bool *shaped,
 		     u_int16_t *ndpiProtocol);
   void processFlow(ZMQ_Flow *zflow);
+  void processInterfaceStats(sFlowInterfaceStats *stats);
   void dumpFlows();
   void getnDPIStats(nDPIStats *stats);
   void updateFlowsL7Policy(patricia_tree_t *ptree);

@@ -19,34 +19,23 @@
  *
  */
 
-#ifndef _PARSER_INTERFACE_H_
-#define _PARSER_INTERFACE_H_
+#ifndef _INTERFACE_STATS_HASH_H_
+#define _INTERFACE_STATS_HASH_H_
 
 #include "ntop_includes.h"
-
-struct FlowFieldMap {
-  char *key;
-  int value;
-  UT_hash_handle hh; /* makes this structure hashable */
-};
-
-class ParserInterface : public NetworkInterface {
+ 
+class InterfaceStatsHash {
  private:
-  struct FlowFieldMap *map;
-  bool once;
-
-  int getKeyId(char *sym);
-  void addMapping(const char *sym, int num);
+  Mutex m;
+  u_int max_hash_size;
+  sFlowInterfaceStats **buckets;
 
  public:
-  ParserInterface(const char *endpoint);
-  ~ParserInterface();
+  InterfaceStatsHash(u_int _max_hash_size);
+  ~InterfaceStatsHash();
 
-  u_int8_t parseFlow(char *payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseEvent(char *payload, int payload_size, u_int8_t source_id, void *data);
-  u_int8_t parseCounter(char *payload, int payload_size, u_int8_t source_id, void *data);
+  bool set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats);
+  bool get(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats);
 };
 
-#endif /* _PARSER_INTERFACE_H_ */
-
-
+#endif /* _INTERFACE_STATS_HASH_H_ */
