@@ -314,14 +314,14 @@ const char* Utils::trend2str(ValueTrend t) {
 
 /* **************************************************** */
 
-void Utils::dropPrivileges() {
+int Utils::dropPrivileges() {
 #ifndef WIN32
   struct passwd *pw = NULL;
   const char *username;
 
   if(getgid() && getuid()) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Privileges are not dropped as we're not superuser");
-    return;
+    return -1;
   }
 
   username = ntop->getPrefs()->get_user();
@@ -337,14 +337,16 @@ void Utils::dropPrivileges() {
     if((setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to drop privileges [%s]",
 				   strerror(errno));
-    } else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "User changed to %s", username);
+      return -1;
+    }
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "User changed to %s", username);
   } else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate user %s", username);
+    return -1;
   }
-
   umask(0);
 #endif
+  return 0;
 }
 
 

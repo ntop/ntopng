@@ -263,7 +263,14 @@ int main(int argc, char *argv[])
   }
 #endif
 
-  if(prefs->do_change_user())
+  /*
+    It's safe to drop privileges now if http and https ports
+    are non-privileged. Otherwise it is necessary to delay
+    the privilege drop after the web server bind()
+   */
+  if(prefs->do_change_user()
+     && (prefs->get_http_port()  >= 1024)
+     && (prefs->get_https_port() >= 1024))
     Utils::dropPrivileges();
 
   ntop->loadGeolocation(prefs->get_docs_dir());
