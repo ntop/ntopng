@@ -34,7 +34,7 @@ InterfaceStatsHash::InterfaceStatsHash(u_int _max_hash_size) {
 /* ************************************ */
 
 InterfaceStatsHash::~InterfaceStatsHash() {
-  for(int i=0; i<max_hash_size; i++)
+  for(u_int i=0; i<max_hash_size; i++)
     if(buckets[i] != NULL) free(buckets[i]);
 
   free(buckets);
