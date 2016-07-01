@@ -144,6 +144,8 @@ else
         print(', "sip.call_id":"'..getFlowValue(info, "SIP_CALL_ID")..'"')
         called_party = getFlowValue(info, "SIP_CALLED_PARTY")
         calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
+        called_party = extractSIPCaller(called_party)
+        calling_party = extractSIPCaller(calling_party)
         if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
           print(', "sip.calling_called_party":"'..calling_party .. ' ' .. called_party..'"')
         else
@@ -226,8 +228,9 @@ else
         end
         print('"');
 
-
-        print(', "sip.response_code":"'..getFlowValue(info, "SIP_RESPONSE_CODE")..'"')
+        fail_resp_code_string = getFlowValue(info, "SIP_RESPONSE_CODE")
+        fail_resp_code_string = map_failure_resp_code(fail_resp_code_string)
+        print(', "sip.response_code":"'..fail_resp_code_string..'"')
         val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
         if(val_original ~= "0") then
           print(', "sip.reason_cause":"'..val..'"')

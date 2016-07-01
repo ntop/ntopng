@@ -650,38 +650,56 @@ print [[/lua/flow_stats.lua',
 
       if(isThereSIP) then
 	print [[
+          var call_id_tr = document.getElementById('call_id_tr').style;
           if( rsp["sip.call_id"] && (rsp["sip.call_id"] != "") ){
 	    $('#call_id').html(rsp["sip.call_id"]);
+            call_id_tr.display = 'table-row';
           } else {
             $('#call_id').html("");
+            call_id_tr.display = 'none';
           }
+          var called_calling_tr = document.getElementById('called_calling_tr').style;
           if( rsp["sip.calling_called_party"] && (rsp["sip.calling_called_party"] != "") ){
 	    $('#calling_called_party').html(rsp["sip.calling_called_party"]);
+            called_calling_tr.display = 'table-row';
           } else {
             $('#calling_called_party').html("");
+            called_calling_tr.display = 'none';
           }
+          var rtp_codecs_tr = document.getElementById('rtp_codecs_tr').style;
           if( rsp["sip.rtp_codecs"] && (rsp["sip.rtp_codecs"] != "") ){
 	    $('#rtp_codecs').html(rsp["sip.rtp_codecs"]);
+            rtp_codecs_tr.display = 'table-row';
           } else {
             $('#rtp_codecs').html("");
+            rtp_codecs_tr.display = 'none';
           }
 
+          var invite_time_tr = document.getElementById('invite_time_tr').style;
           if( rsp["sip.time_invite"] && (rsp["sip.time_invite"] != "") ){
 	    $('#time_invite').html(rsp["sip.time_invite"]);
+            invite_time_tr.display = 'table-row';
           } else {
             $('#time_invite').html("");
+            invite_time_tr.display = 'none';
           }
 
+          var trying_time_tr = document.getElementById('trying_time_tr').style;
           if( rsp["sip.time_trying"] && (rsp["sip.time_trying"] != "") ){
 	    $('#time_trying').html(rsp["sip.time_trying"]);
+            trying_time_tr.display = 'table-row';
           } else {
             $('#time_trying').html("");
+            trying_time_tr.display = 'none';
           }
 
+          var ringing_time_tr = document.getElementById('ringing_time_tr').style;
           if( rsp["sip.time_ringing"] && (rsp["sip.time_ringing"] != "") ){
 	    $('#time_ringing').html(rsp["sip.time_ringing"]);
+            ringing_time_tr.display = 'table-row';
           } else {
             $('#time_ringing').html("");
+            ringing_time_tr.display = 'none';
           }
 
           if( rsp["sip.time_invite_ok"] && (rsp["sip.time_invite_ok"] != "") ){
@@ -696,6 +714,13 @@ print [[/lua/flow_stats.lua',
             $('#time_invite_failure').html("");
           }
 
+          var invite_ok_tr = document.getElementById('invite_ok_tr').style;
+          if ( (rsp["sip.time_invite_ok"] && (rsp["sip.time_invite_ok"] != "")) || (rsp["sip.time_invite_failure"] && (rsp["sip.time_invite_failure"] != "")) )
+            invite_ok_tr.display = 'table-row';
+          else
+            invite_ok_tr.display = 'none';
+
+
           if( rsp["sip.time_bye"] && (rsp["sip.time_bye"] != "") ){
 	    $('#time_bye').html(rsp["sip.time_bye"]);
           } else {
@@ -707,6 +732,12 @@ print [[/lua/flow_stats.lua',
           } else {
             $('#time_bye_ok').html("");
           }
+
+          var time_bye_tr = document.getElementById('time_bye_tr').style;
+          if ( (rsp["sip.time_bye"] && (rsp["sip.time_bye"] != "")) || (rsp["sip.time_bye_ok"] && (rsp["sip.time_bye_ok"] != "")) )
+            time_bye_tr.display = 'table-row';
+          else
+            time_bye_tr.display = 'none';
 
           if( rsp["sip.time_cancel"] && (rsp["sip.time_cancel"] != "") ){
 	    $('#time_cancel').html(rsp["sip.time_cancel"]);
@@ -720,34 +751,56 @@ print [[/lua/flow_stats.lua',
             $('#time_cancel_ok').html("");
           }
 
+          var time_failure_tr = document.getElementById('time_failure_tr').style;
+          if ( (rsp["sip.time_cancel"] && (rsp["sip.time_cancel"] != "")) || (rsp["sip.time_cancel_ok"] && (rsp["sip.time_cancel_ok"] != "")) )
+            time_failure_tr.display = 'table-row';
+          else
+            time_failure_tr.display = 'none';
+
+
+          var rtp_stream_tr = document.getElementById('rtp_stream_tr').style;
           if( rsp["sip.rtp_stream"] && (rsp["sip.rtp_stream"] != "") ){
 	    $('#rtp_stream').html(rsp["sip.rtp_stream"]);
+            rtp_stream_tr.display = 'table-row';
           } else {
             $('#rtp_stream').html("");
+            rtp_stream_tr.display = 'none';
           }
 
+          var failure_resp_code_tr = document.getElementById('failure_resp_code_tr').style;
           if( rsp["sip.response_code"] && (rsp["sip.response_code"] != "") ){
 	    $('#response_code').html(rsp["sip.response_code"]);
+            failure_resp_code_tr.display = 'table-row';
           } else {
             $('#response_code').html("");
+            failure_resp_code_tr.display = 'none';
           }
 
+          var cbf_reason_cause_tr = document.getElementById('cbf_reason_cause_tr').style;
           if( rsp["sip.reason_cause"] && (rsp["sip.reason_cause"] != "") ){
 	    $('#reason_cause').html(rsp["sip.reason_cause"]);
+            cbf_reason_cause_tr.display = 'table-row';
           } else {
             $('#reason_cause').html("");
+            cbf_reason_cause_tr.display = 'none';
           }
 
+          var sip_c_ip_tr = document.getElementById('sip_c_ip_tr').style;
           if( rsp["sip.c_ip"] && (rsp["sip.c_ip"] != "") ){
 	    $('#c_ip').html(rsp["sip.c_ip"]);
+            sip_c_ip_tr.display = 'table-row';
           } else {
             $('#c_ip').html("");
+            sip_c_ip_tr.display = 'none';
           }
 
+          var sip_call_state_tr = document.getElementById('sip_call_state_tr').style;
           if( rsp["sip.call_state"] && (rsp["sip.call_state"] != "") ){
 	    $('#call_state').html(rsp["sip.call_state"]);
+            sip_call_state_tr.display = 'table-row';
           } else {
             $('#call_state').html("");
+            sip_call_state_tr.display = 'none';
           }
       ]]
       end
