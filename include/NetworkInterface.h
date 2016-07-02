@@ -98,6 +98,7 @@ class NetworkInterface {
   PacketDumperTuntap *pkt_dumper_tap;
   u_char* antenna_mac;
   NetworkStats *networkStats;
+  InterfaceStatsHash *interfaceStats;
 
   void init();
   void deleteDataStructures();
@@ -348,6 +349,8 @@ class NetworkInterface {
 		      u_int32_t last_pps, u_int32_t last_bps);
   void startDBLoop() { if(db) db->startDBLoop(); };
   void getFlowsStatus(lua_State *vm);
+  inline void getFlowDevices(lua_State *vm) { if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm); };
+  inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

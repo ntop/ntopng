@@ -36,6 +36,9 @@ class InterfaceStatsHash {
 
   bool set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats);
   bool get(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats);
+
+  void luaDeviceList(lua_State *vm);
+  void luaDeviceInfo(lua_State *vm, u_int32_t deviceIP);
 };
 
 #endif /* _INTERFACE_STATS_HASH_H_ */

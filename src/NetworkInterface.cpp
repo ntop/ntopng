@@ -165,7 +165,7 @@ void NetworkInterface::init() {
     purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
-    inline_interface = false, running = false,
+      inline_interface = false, running = false, interfaceStats = NULL,
       tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false, 
     has_mesh_networks_traffic = false, pkt_dumper = NULL;
   pollLoopCreated = false, bridge_interface = false;
@@ -411,6 +411,7 @@ NetworkInterface::~NetworkInterface() {
   if(networkStats) delete []networkStats;
   if(pkt_dumper)   delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
+  if(interfaceStats) delete interfaceStats;
 
 #ifdef NTOPNG_PRO
   if(policer)  delete(policer);
@@ -3366,9 +3367,16 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
 /* **************************************** */
 
 void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
-  char a[64];
+  if(interfaceStats == NULL)
+    interfaceStats = new InterfaceStatsHash(NUM_IFACE_STATS_HASH);
+  
+  if(interfaceStats) {
+    char a[64];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][ifIndex=%u]", 
+				 Utils::intoaV4(stats->deviceIP, a, sizeof(a)), 
+				 stats->ifIndex);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][ifIndex=%u]", 
-			       Utils::intoaV4(stats->deviceIP, a, sizeof(a)), 
-			       stats->ifIndex);
+    interfaceStats->set(stats->deviceIP, stats->ifIndex, stats);
+  }
 }

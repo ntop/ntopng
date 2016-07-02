@@ -238,6 +238,8 @@
 //#define DEMO_WIN32                   1
 #define MAX_NUM_PACKETS             5000
 
+#define NUM_IFACE_STATS_HASH        1024
+#define MAX_NUM_FLOW_DEVICES          48
 #define MAX_NUM_VLAN                4096
 #define DEFAULT_SHAPER_ID              0
 #define NUM_TRAFFIC_SHAPERS           10

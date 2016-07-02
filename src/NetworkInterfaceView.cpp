@@ -522,6 +522,20 @@ void NetworkInterfaceView::getFlowsStatus(lua_State *vm) {
 
 /* *************************************** */
 
+void NetworkInterfaceView::getFlowDevices(lua_State *vm) {
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getFlowDevices(vm);
+}
+
+/* *************************************** */
+
+void NetworkInterfaceView::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+  for(int i = 0; i<numInterfaces; i++)
+    physIntf[i]->getFlowDeviceInfo(vm, deviceIP);
+}
+
+/* *************************************** */
+
 void NetworkInterfaceView::updateSecondTraffic(time_t when) {
   for(int i = 0; i<numInterfaces; i++)
     physIntf[i]->updateSecondTraffic(when);

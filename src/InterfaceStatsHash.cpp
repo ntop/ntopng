@@ -43,14 +43,21 @@ InterfaceStatsHash::~InterfaceStatsHash() {
 
 bool InterfaceStatsHash::set(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfaceStats *stats) {
   u_int32_t hash = (deviceIP+ifIndex) % max_hash_size, num_runs = 0;
+  bool ret = true;
 
+  m.lock(__FILE__, __LINE__);
+  
   if(buckets[hash] == NULL) {
-    return(false);
+    buckets[hash] = (sFlowInterfaceStats*)malloc(sizeof(sFlowInterfaceStats));
+    if(buckets[hash])
+      memcpy(buckets[hash], stats, sizeof(sFlowInterfaceStats));
+    else
+      ret = false;
+    m.unlock(__FILE__, __LINE__);
+    return(ret);
   } else {
     sFlowInterfaceStats *head;
-    bool ret = true;
 
-    m.lock(__FILE__, __LINE__);
     head = (sFlowInterfaceStats*)buckets[hash];
     
     while(head != NULL) {      
@@ -121,4 +128,84 @@ bool InterfaceStatsHash::get(u_int32_t deviceIP, u_int32_t ifIndex, sFlowInterfa
 
     return(false);
   }
+}
+
+/* ************************************ */
+
+void InterfaceStatsHash::luaDeviceList(lua_State *vm) {
+  u_int32_t flowDevices[MAX_NUM_FLOW_DEVICES] = { 0 };
+  u_int16_t numDevices = 0;
+
+  lua_newtable(vm);
+
+  m.lock(__FILE__, __LINE__);
+
+  for(int i=0; i<max_hash_size; i++) {
+    sFlowInterfaceStats *head = (sFlowInterfaceStats*)buckets[i];
+    
+    if(head) {
+      bool found = false;
+      
+      for(int j=0; j<numDevices; j++) {
+	if(flowDevices[j] == head->deviceIP) {
+	  found = true;
+	  break;
+	}
+      }
+      
+      if(!found) {
+	char a[64];
+	
+	flowDevices[numDevices++] = head->deviceIP;
+	
+	if(numDevices == MAX_NUM_FLOW_DEVICES) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "Internal error: too many devices %u",
+				       numDevices);
+	  break;
+	}
+
+	lua_push_int_table_entry(vm, 
+				 Utils::intoaV4(head->deviceIP, a, sizeof(a)),
+				 head->deviceIP);
+      }
+    }
+  }
+
+  m.unlock(__FILE__, __LINE__);
+}
+
+/* ************************************ */
+
+void InterfaceStatsHash::luaDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+  lua_newtable(vm);
+
+  m.lock(__FILE__, __LINE__);
+
+  for(int i=0; i<max_hash_size; i++) {
+    sFlowInterfaceStats *head = (sFlowInterfaceStats*)buckets[i];
+    
+    if(head && (head->deviceIP == deviceIP)) {
+      lua_newtable(vm);      
+      
+      lua_push_int_table_entry(vm, "ifType", head->ifType);
+      lua_push_int_table_entry(vm, "ifSpeed", head->ifSpeed);
+      lua_push_bool_table_entry(vm, "ifFullDuplex", head->ifFullDuplex);
+      lua_push_bool_table_entry(vm, "ifAdminStatus", head->ifAdminStatus);
+      lua_push_bool_table_entry(vm, "ifOperStatus", head->ifOperStatus);
+      lua_push_bool_table_entry(vm, "ifPromiscuousMode", head->ifPromiscuousMode);
+      lua_push_int_table_entry(vm, "ifInOctets", head->ifInOctets);
+      lua_push_int_table_entry(vm, "ifInPackets", head->ifInPackets);
+      lua_push_int_table_entry(vm, "ifInErrors", head->ifInErrors);
+      lua_push_int_table_entry(vm, "ifOutOctets", head->ifOutOctets);
+      lua_push_int_table_entry(vm, "ifOutPackets", head->ifOutPackets);
+      lua_push_int_table_entry(vm, "ifOutErrors", head->ifOutErrors);
+
+      lua_pushinteger(vm, head->ifIndex);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+  }
+
+  m.unlock(__FILE__, __LINE__);
 }

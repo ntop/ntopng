@@ -112,6 +112,8 @@ class NetworkInterfaceView {
   void updateFlowProfiles(char *old_profile, char *new_profile);
 #endif
   void getFlowsStatus(lua_State *vm);
+  void getFlowDevices(lua_State *vm);
+  void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
 };
 
 #endif /* _NETWORK_INTERFACE_VIEW_H_ */
