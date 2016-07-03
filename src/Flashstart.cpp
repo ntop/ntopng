@@ -434,6 +434,7 @@ void Flashstart::startLoop() {
     const char *format = "http://ddns.flashstart.it/nic/update?hostname=test.ntop.org&myip=&wildcard=NOCHG&username=%s&password=%s";
     char url[512], ret[64] = { 0 };
     bool rsp;
+    u_int numLoops = 0;
 
     /* 1 - Tell flashstart that we want to issue DNS queries */
     snprintf(url,sizeof(url), format, user, pwd);
@@ -450,6 +451,10 @@ void Flashstart::startLoop() {
 	if(recvResponses(1000) > 0)
 	  break;
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, ".");
+	if(++numLoops == 10) {
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize Flashstart");
+	  return;
+	}
       }
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flashstart ready to serve requests...");
 
