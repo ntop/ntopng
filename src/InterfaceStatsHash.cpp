@@ -140,7 +140,7 @@ void InterfaceStatsHash::luaDeviceList(lua_State *vm) {
 
   m.lock(__FILE__, __LINE__);
 
-  for(int i=0; i<max_hash_size; i++) {
+  for(u_int i=0; i<max_hash_size; i++) {
     sFlowInterfaceStats *head = (sFlowInterfaceStats*)buckets[i];
     
     if(head) {
@@ -182,7 +182,7 @@ void InterfaceStatsHash::luaDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
 
   m.lock(__FILE__, __LINE__);
 
-  for(int i=0; i<max_hash_size; i++) {
+  for(u_int i=0; i<max_hash_size; i++) {
     sFlowInterfaceStats *head = (sFlowInterfaceStats*)buckets[i];
     
     if(head && (head->deviceIP == deviceIP)) {

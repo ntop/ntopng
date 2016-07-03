@@ -85,7 +85,6 @@ or
 .RB [ \-Z
 .IR <prefix> ]
 .RB [ \-\-shutdown\-when\-done ]
-.RB [ \-\-zmq\-collector\-mode ]
 .RB [ \-\-zmq\-encrypt\-pwd
 .IR <apssword> ]
 .RB [ \-\-capture\-direction ]
@@ -173,7 +172,7 @@ given they are provided in a comma-separated list and with the "view:" prefix
 If a collector endpoint is specified,
 .B ntopng
 open a ZeroMQ connection to the specified endpoint as a subscriber whose format
-is  <ZMQ endpoint>. Example of valid collector endpoints are "tcp://127.0.0.1:5556" or ipc://flows.ipc
+is  <ZMQ endpoint>. In this case ntopng acts as a client that subscribes to the remote endopoint and fetches flows. If you want the remote probe to send flows to ntopng (as in NetFlow), (you need to add a 'c' at the collector endpoint in ntopng. Example: tcp://127.0.0.1:5556c (ntopng expects to receive flows on 127.0.0.1:5556) and tcp://127.0.0.1:5556 (ntopng connects to 127.0.0.1:5556 to receive flows).
 Note that you can specify multiple endpoint, commas separated list, in order
 to instruct
 .B ntopng
@@ -344,9 +343,6 @@ you must use ntopng with \-Z "/ntopng/"
 
 .It \-\-shutdown\-when\-done
 Terminate ntopng when the input pcap file is over (debug only).
-
-.It \-\-zmq\-collector\-mode
-When ZMQ is used, ntopng acts as a client with respect to the ZMQ producer (typically nProbe). In case nProbe is behind a firewall this paradigm needs to be changed and thus nProbe needs to be started with --zmq-probe-mode and ntiong with --zmq-collector-mode.
 
 .It \-\-zmq\-encrypt\-pwd
 This is the passowrd used by the symmetric encryption on the probe side. Note that in case you have multiple ZMQ endpoints, the same password is used for all of them.

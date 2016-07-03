@@ -44,7 +44,7 @@ class Prefs {
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, disable_host_persistency,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-    enable_auto_logout, use_promiscuous_mode, zmq_collector_mode,
+    enable_auto_logout, use_promiscuous_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
@@ -185,7 +185,6 @@ class Prefs {
   inline bool are_taps_enabled() { return(enable_taps); };
   inline void set_promiscuous_mode(bool mode)  { use_promiscuous_mode = mode; };
   inline bool use_promiscuous()         { return(use_promiscuous_mode);  };
-  inline bool is_zmq_collector_mode()   { return(zmq_collector_mode);    }
   inline char* get_mysql_host()         { return(mysql_host);            };
   inline char* get_mysql_dbname()       { return(mysql_dbname);          };
   inline char* get_mysql_tablename()    { return(mysql_tablename);       };

@@ -60,7 +60,7 @@ Prefs::Prefs(Ntop *_ntop) {
   disable_alerts = false;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
-  disable_host_persistency = zmq_collector_mode = false;
+  disable_host_persistency = false;
   num_interfaces = 0, num_interface_views = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
@@ -214,9 +214,6 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate when a pcap has been read (debug only)\n"
-	 "[--zmq-collector-mode]              | Force ZMQ sockets to operate in collector mode. If\n"
-	 "                                    | used nprobe must use --zmq-probe-mode so that it can\n"
-	 "                                    | behave as a probe.\n"
 	 "--zmq-encrypt-pwd <pwd>             | Encrypt the ZMQ data using the specified password\n"
 	 "[--disable-autologout|-q]           | Disable web interface logout for inactivity\n"
 	 "[--disable-login|-l] <mode>         | Disable user login authentication:\n"
@@ -412,7 +409,7 @@ static const struct option long_options[] = {
   { "online-license-check",              no_argument,       NULL, 211 },
   { "hw-timestamp-mode",                 required_argument, NULL, 212 },
   { "shutdown-when-done",                no_argument,       NULL, 213 },
-  { "zmq-collector-mode",                no_argument,       NULL, 214 },
+  /* 214 is available */
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
@@ -862,10 +859,6 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 213:
     shutdown_when_done = true;
-    break;
-
-  case 214:
-    zmq_collector_mode = true;
     break;
 
   case 215:

@@ -3373,10 +3373,10 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
   if(interfaceStats) {
     char a[64];
     
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][ifIndex=%u]", 
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][ifIndex=%u]", 
 				 Utils::intoaV4(stats->deviceIP, a, sizeof(a)), 
 				 stats->ifIndex);
-
+    
     interfaceStats->set(stats->deviceIP, stats->ifIndex, stats);
   }
 }
