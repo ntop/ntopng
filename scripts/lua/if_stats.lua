@@ -349,16 +349,26 @@ if((page == "overview") or (page == nil)) then
 
    label = "Pkts"
 
-print[[ <tr><th colspan=1>Traffic Breakdown</th><td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=2> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr>
+   print[[ <tr><th colspan=1>Traffic Breakdown</th> ]]
 
+   if(ifstats.type ~= "zmq") then
+      print [[ <td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=2> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr> ]]
+   else
+      print [[ <td colspan=4><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr> ]]
+   end
+
+print [[
 	<script type='text/javascript'>
 	       window.onload=function() {
 				   do_pie("#ifaceTrafficBreakdown", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. " }, \"\", refresh); \n")
+
+if(ifstats.type ~= "zmq") then
 print [[				   do_pie("#ifaceTrafficDistribution", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. ", mode: \"distribution\" }, \"\", refresh); \n")
+end
 print [[ }
 
 ]]
