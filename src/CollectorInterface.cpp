@@ -51,7 +51,7 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
     if(last_char == 'c')
       is_collector = true, e[l] = '\0';
 
-    if(!is_collector) {
+    if(is_collector) {
       if(zmq_bind(subscriber[num_subscribers].socket, e) != 0) {
 	zmq_close(subscriber[num_subscribers].socket);
 	zmq_ctx_destroy(context);
