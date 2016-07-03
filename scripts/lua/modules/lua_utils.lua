@@ -549,12 +549,13 @@ function bytesToSize(bytes)
 end
 
 -- Convert bits to human readable format
-function bitsToSize(bits)
+
+function bitsToSizeMultiplier(bits, multiplier)
   precision = 2
   kilobit = 1000;
-  megabit = kilobit * 1000;
-  gigabit = megabit * 1000;
-  terabit = gigabit * 1000;
+  megabit = kilobit * multiplier;
+  gigabit = megabit * multiplier;
+  terabit = gigabit * multiplier;
 
   if((bits >= kilobit) and (bits < megabit)) then
     return round(bits / kilobit, precision) .. ' Kbit';
@@ -567,6 +568,10 @@ function bitsToSize(bits)
   else
     return round(bits, precision) .. ' bps';
   end
+end
+
+function bitsToSize(bits)
+  return(bitsToSizeMultiplier(bits, 1000))
 end
 
 -- Convert packets to pps readable format
