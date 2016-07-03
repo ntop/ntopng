@@ -116,7 +116,8 @@ typedef struct {
 
 typedef struct zmq_flow {
   IpAddress src_ip, dst_ip;
-  u_int16_t src_port, dst_port, l7_proto;
+  u_int32_t deviceIP;
+  u_int16_t src_port, dst_port, l7_proto, inIndex, outIndex;
   u_int16_t vlan_id, pkt_sampling_rate;
   u_int8_t l4_proto, tcp_flags;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes;

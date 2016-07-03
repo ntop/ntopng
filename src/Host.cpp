@@ -147,8 +147,8 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   //if(_vlanId > 0) ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN => %d", _vlanId);
 
-  drop_all_host_traffic = false,  dump_host_traffic = false;
-
+  drop_all_host_traffic = false, dump_host_traffic = false, 
+    deviceIP = 0, deviceIfIdx = 0;
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
   max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS, good_low_flow_detected = false;
@@ -535,6 +535,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
 
     if(host_details) {
+      lua_push_int_table_entry(vm, "deviceIP", deviceIP);
+      lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
       lua_push_float_table_entry(vm, "latitude", latitude);
       lua_push_float_table_entry(vm, "longitude", longitude);
       lua_push_str_table_entry(vm, "city", city ? city : (char*)"");

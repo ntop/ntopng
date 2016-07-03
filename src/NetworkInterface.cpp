@@ -489,6 +489,7 @@ void NetworkInterface::dumpFlows() {
 
 Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 				u_int16_t vlan_id,
+				u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
   				IpAddress *src_ip, IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,
@@ -524,6 +525,8 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
     if(flows_hash->add(ret)) {
       *src2dst_direction = true;
+      if(inIndex && ret->get_cli_host()) ret->get_cli_host()->setDeviceIfIdx(deviceIP, inIndex);
+      if(outIndex && ret->get_srv_host()) ret->get_srv_host()->setDeviceIfIdx(deviceIP, outIndex);
       return(ret);
     } else {
       delete ret;
@@ -605,8 +608,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   }
 
   /* Updating Flow */
-  flow = getFlow(zflow->src_mac, zflow->dst_mac,
-		 zflow->vlan_id,
+  flow = getFlow((u_int8_t*)zflow->src_mac, (u_int8_t*)zflow->dst_mac, zflow->vlan_id,
+		 zflow->deviceIP, zflow->inIndex, zflow->outIndex,
 		 &zflow->src_ip, &zflow->dst_ip,
 		 zflow->src_port, zflow->dst_port,
 		 zflow->l4_proto, &src2dst_direction,
@@ -852,7 +855,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 #endif
 
   /* Updating Flow */
-  flow = getFlow(eth_src, eth_dst, vlan_id, &src_ip, &dst_ip, src_port, dst_port,
+  flow = getFlow(eth_src, eth_dst, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd_remote, last_pkt_rcvd_remote, &new_flow);
 
   if(flow == NULL) {

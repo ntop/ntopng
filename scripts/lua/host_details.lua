@@ -371,21 +371,26 @@ if((page == "overview") or (page == nil)) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('</form>')
 	 end
-	    print('</td></tr>')
-	    end
-	    print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
-
-	    historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
-
-	    if(host["local_network_name"] ~= nil) then
-	       print(" [ <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"])..">".. host["local_network_name"].."</A> ]")
-	    end
-	 else
-	    if(host["mac"] ~= nil) then
-	       print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
-	    end
-	 end
-
+	 print('</td></tr>')
+      end
+   
+      if(host.deviceIfIdx ~= 0) then
+	 print("<tr><th>Device IP / Port Index</th><td colspan=2>"..host.deviceIP.."@"..host.deviceIfIdx.."</td></tr>\n")
+      end
+      
+      print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
+      
+      historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
+      
+      if(host["local_network_name"] ~= nil) then
+	 print(" [ <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"])..">".. host["local_network_name"].."</A> ]")
+      end
+   else
+      if(host["mac"] ~= nil) then
+	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
+      end
+   end
+   
    if((host["city"] ~= nil) and (host["city"] ~= "")) then
       print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
    end
@@ -408,6 +413,7 @@ if((page == "overview") or (page == nil)) then
    if(host["ip"] ~= nil) then
       print [[
 </td>
+
 <td nowrap>
 <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
 	 <input type="hidden" name="host" value="]]
@@ -1155,7 +1161,7 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
   	    num = table.len(vh)
 	    if(num > 0) then
 	       local ifId = getInterfaceId(ifname)
-	       print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
+<	       print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
 	       for k,v in pairsByKeys(vh, asc) do
 		  local j = string.gsub(k, "%.", "___")
 		  print("<tr><td><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i>")

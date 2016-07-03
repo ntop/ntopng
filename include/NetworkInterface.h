@@ -103,6 +103,7 @@ class NetworkInterface {
   void init();
   void deleteDataStructures();
   Flow* getFlow(u_int8_t *src_eth, u_int8_t *dst_eth, u_int16_t vlan_id,
+		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
   		IpAddress *src_ip, IpAddress *dst_ip,
   		u_int16_t src_port, u_int16_t dst_port,
 		u_int8_t l4_proto,

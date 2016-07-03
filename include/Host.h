@@ -32,7 +32,8 @@ class Host : public GenericHost {
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
   u_int32_t host_quota_mb;
   u_int16_t num_uses;
-  int16_t local_network_id;
+  int16_t local_network_id, deviceIfIdx;
+  u_int32_t deviceIP;
   int ingress_shaper_id, egress_shaper_id;
   float latitude, longitude;
   IpAddress *ip;
@@ -170,6 +171,8 @@ class Host : public GenericHost {
   void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);
+  inline void setDeviceIfIdx(u_int32_t ip, u_int16_t v) { deviceIfIdx = v, deviceIP = ip; }
+  inline u_int16_t getDeviceIfIdx()                     { return(deviceIfIdx);            }
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };

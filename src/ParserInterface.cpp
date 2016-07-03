@@ -604,7 +604,16 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case DIRECTION:
           flow.direction = atoi(value);
           break;
-
+	case EXPORTER_IPV4_ADDRESS:
+	  flow.deviceIP = atoi(value);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", flow.deviceIP);
+	  break;
+	case INPUT_SNMP:
+	  flow.inIndex = atoi(value);
+	  break;
+	case OUTPUT_SNMP:
+	  flow.outIndex = atoi(value);
+	  break;
         case SRC_PROC_PID:
           iface->enable_sprobe(); /* We're collecting system flows */
           flow.src_process.pid = atoi(value);
