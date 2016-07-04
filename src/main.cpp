@@ -270,6 +270,20 @@ int main(int argc, char *argv[])
   ntop->registerHTTPserver(new HTTPserver(prefs->get_http_port(),
 					  prefs->get_docs_dir(),
 					  prefs->get_scripts_dir()));
+
+  /*
+    If mysql flows dump is enabled, then it is necessary to create
+    and update the database schema
+   */
+  if(prefs->do_dump_flows_on_mysql()) {
+    /* create the schema only one time, no need to call it for every interface */
+    if(!ntop->getInterfaceAtId(0)->createDBSchema()){
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Unable to create database schema, quitting.");
+      exit(EXIT_FAILURE);
+    }
+  }
+
   /*
     We have created the network interface and thus changed user. Let's not check
     if we can write on the data directory
@@ -283,7 +297,7 @@ int main(int argc, char *argv[])
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to write on %s [%s]: please specify a different directory (-d)",
 				 ntop->get_working_dir(), path);
-    exit(0);
+    exit(EXIT_FAILURE);
   } else {
     fclose(fd); /* All right */
     unlink(path);

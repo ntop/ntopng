@@ -345,8 +345,9 @@ class NetworkInterface {
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,
 		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time,
 		      u_int32_t last_pps, u_int32_t last_bps);
-  void startDBLoop() { if(db) db->startDBLoop(); };
   void getFlowsStatus(lua_State *vm);
+  void startDBLoop() { if(db) db->startDBLoop(); };
+  inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
