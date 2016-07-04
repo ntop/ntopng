@@ -605,8 +605,9 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           flow.direction = atoi(value);
           break;
 	case EXPORTER_IPV4_ADDRESS:
-	  flow.deviceIP = atoi(value);
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u", flow.deviceIP);
+	  /* a.b.c.d */
+	  flow.deviceIP = ntohl(inet_addr(value));
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
 	  break;
 	case INPUT_SNMP:
 	  flow.inIndex = atoi(value);

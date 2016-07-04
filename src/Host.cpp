@@ -535,7 +535,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
 
     if(host_details) {
-      lua_push_int_table_entry(vm, "deviceIP", deviceIP);
+      lua_push_str_table_entry(vm, "deviceIP", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
       lua_push_float_table_entry(vm, "latitude", latitude);
       lua_push_float_table_entry(vm, "longitude", longitude);

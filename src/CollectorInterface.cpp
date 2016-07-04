@@ -172,7 +172,7 @@ void CollectorInterface::collect_flows() {
 	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
 	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());
 
-	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", uncompressed); */
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", uncompressed);
 
 	  switch(h.url[0]) {
 	  case 'e': /* event */
