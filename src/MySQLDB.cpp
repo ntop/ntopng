@@ -290,7 +290,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   // note that this operation will arbitrarily move the old BYTES contents to BYTES_IN
   const u_int16_t ipvers[2] = {4, 6};
   for (u_int16_t i = 0; i < sizeof(ipvers); i++){
-    snprintf(sql, sizeof(sql), "SHOW COLUMNS FROM `%sv%hu` LIKE 'BYTES'",
+    snprintf(sql, sizeof(sql), "SHOW COLUMNS FROM `%sv%hu` = 'BYTES'",
 	     ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
     if(exec_sql_query(&mysql, sql, true, true) > 0){
       // if here, the column BYTES exists so we want to alter the table
@@ -321,6 +321,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 	     ipvers[i]);
     if(exec_sql_query(&mysql, sql, true, true) > 0){
       // if here, the table has enging InnoDB so we want to modify that to MyISAM
+      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "MySQL schema update. Altering table %sv%hu: "
 				   "changing engine from InnoDB to MyISAM.",
@@ -588,9 +589,9 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
     // than a simple 0
     if((result = mysql_store_result(&mysql)) == NULL)
       rc = 0;  // unable to retrieve the result but still the query succeded
-    else{
-      mysql_free_result(result);
+    else {
       rc = mysql_num_rows(result);
+      mysql_free_result(result);
     }
   }
 
