@@ -160,12 +160,14 @@ static int is_authorized(const struct mg_connection *conn,
 
   // Always authorize accesses to login page and to authorize URI
   if((!strcmp(request_info->uri, LOGIN_URL))
-     || (!strcmp(request_info->uri, AUTHORIZE_URL))) {
+     || (!strcmp(request_info->uri, AUTHORIZE_URL))
+     || (!strcmp(request_info->uri, PLEASE_WAIT_URL))) {
     return 1;
   }
 
-  if((!strcmp(request_info->uri, Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf))))
-     || (!strcmp(request_info->uri, Utils::getURL((char*)AUTHORIZE_URL, buf, sizeof(buf))))) {
+  if((!strcmp(request_info->uri, Utils::getURL((char*)LOGIN_URL,          buf, sizeof(buf))))
+     || (!strcmp(request_info->uri, Utils::getURL((char*)AUTHORIZE_URL,   buf, sizeof(buf))))
+     || (!strcmp(request_info->uri, Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf))))) {
     return 1;
   }
 
@@ -255,6 +257,33 @@ static void redirect_to_login(struct mg_connection *conn,
 
 /* ****************************************** */
 
+/* Redirect user to a coutersy page that is used when database schema is being updated.
+   In the cookie, store the original URL we came from, so that after the authorization
+   we could redirect back.
+*/
+static void redirect_to_please_wait(struct mg_connection *conn,
+				    const struct mg_request_info *request_info) {
+  char session_id[33], buf[128];
+
+  mg_get_cookie(conn, "session", session_id, sizeof(session_id));
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
+
+  mg_printf(conn,
+	    "HTTP/1.1 302 Found\r\n"
+	    // "HTTP/1.1 401 Unauthorized\r\n"
+	    // "WWW-Authenticate: Basic\r\n"
+	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+	    "Location: %s%s?referer=%s%s%s\r\n\r\n",
+	    session_id,
+	    ntop->getPrefs()->get_http_prefix(),
+	    Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
+	    conn->request_info.uri,
+	    conn->request_info.query_string ? "%3F" /* ? */: "",
+	    conn->request_info.query_string ? conn->request_info.query_string : "");
+}
+
+/* ****************************************** */
+
 static void get_qsvar(const struct mg_request_info *request_info,
                       const char *name, char *dst, size_t dst_len) {
   const char *qs = request_info->query_string;
@@ -334,6 +363,12 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (ntop->get_HTTPserver() == NULL))
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
 		      "Unexpected HTTP method or ntopng still starting up..."));
+
+  if(ntop->getPrefs()->do_dump_flows_on_mysql()
+     && !MySQLDB::isDbCreated()
+     && strcmp(request_info->uri, PLEASE_WAIT_URL)){
+    redirect_to_please_wait(conn, request_info);
+  }
 
   if(ntop->get_HTTPserver()->is_ssl_enabled() && (!request_info->is_ssl))
     redirect_to_ssl(conn, request_info);

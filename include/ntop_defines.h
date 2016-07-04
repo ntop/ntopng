@@ -89,6 +89,7 @@
 
 #define MSG_VERSION               0
 #define LOGIN_URL                 "/lua/login.lua"
+#define PLEASE_WAIT_URL           "/lua/please_wait.lua"
 #define AUTHORIZE_URL             "/authorize.html"
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"

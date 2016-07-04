@@ -34,7 +34,12 @@ void* MySQLDB::queryLoop() {
   MYSQL mysql_alt;
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
-  if(!connectToDB(&mysql_alt, true))
+  while(!ntop->getGlobals()->isShutdown()
+	&& !MySQLDB::isDbCreated() /* wait until the db has been created */) {
+    sleep(1);
+  }
+
+  if(ntop->getGlobals()->isShutdown() || !connectToDB(&mysql_alt, true))
     return(NULL);
 
   while(!ntop->getGlobals()->isShutdown()) {
@@ -62,24 +67,26 @@ void* MySQLDB::queryLoop() {
 }
 
 /* ******************************************* */
-
-MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
+volatile bool MySQLDB::db_created = false;
+bool MySQLDB::createDBSchema() {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
-  if(connectToDB(&mysql, false) == false)
-    return;
-
   if(iface) {
+    if(connectToDB(&mysql, false) == false){
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect: %s\n", get_last_db_error(&mysql));
+      return false;
+    }
+
     /* 1 - Create database if missing */
-    snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS %s", ntop->getPrefs()->get_mysql_dbname());
+    snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS `%s`", ntop->getPrefs()->get_mysql_dbname());
     if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return;
+      return false;
     }
 
     if(mysql_select_db(&mysql, ntop->getPrefs()->get_mysql_dbname())) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return;
+      return false;
     }
 
     /* 2.1 - Create table if missing [IPv6] */
@@ -116,7 +123,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 
     if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return;
+      return false;
     }
 
     /* 2.2 - Create table if missing [IPv4] */
@@ -153,7 +160,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 
     if(exec_sql_query(&mysql, sql, true) < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s\n", get_last_db_error(&mysql));
-      return;
+      return false;
     }
 
     // the remainder of this method has the purpose of MIGRATING old table structures to
@@ -290,8 +297,15 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   // note that this operation will arbitrarily move the old BYTES contents to BYTES_IN
   const u_int16_t ipvers[2] = {4, 6};
   for (u_int16_t i = 0; i < sizeof(ipvers); i++){
-    snprintf(sql, sizeof(sql), "SHOW COLUMNS FROM `%sv%hu` = 'BYTES'",
-	     ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
+    snprintf(sql, sizeof(sql),
+	     "SELECT 1 "
+	     "FROM information_schema.COLUMNS "
+	     "WHERE TABLE_SCHEMA='%s' "
+	     "AND TABLE_NAME='%sv%hu' "
+	     "AND COLUMN_NAME='BYTES' ",
+	     ntop->getPrefs()->get_mysql_dbname(),
+	     ntop->getPrefs()->get_mysql_tablename(),
+	     ipvers[i]);
     if(exec_sql_query(&mysql, sql, true, true) > 0){
       // if here, the column BYTES exists so we want to alter the table
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -333,6 +347,15 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
       exec_sql_query(&mysql, sql, true, true);
     }
   }
+
+  db_created = true;
+  return true;
+}
+
+/* ******************************************* */
+
+MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
+  connectToDB(&mysql, false);
 }
 
 /* ******************************************* */
@@ -376,7 +399,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   u_int32_t packets, first_seen, last_seen;
   u_int32_t bytes_cli2srv, bytes_srv2cli;
 
-  if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL))
+  if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL) || !MySQLDB::db_created)
     return(false);
 
   if(json == NULL)
@@ -554,6 +577,9 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
   int rc;
   MYSQL_RES *result;
 
+  /* Don't check db_created here. This method is private
+     so hopefully we know what we're doing.
+   */
   if(!db_operational)
     return(-2);
 
@@ -574,11 +600,11 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
 
 	return(exec_sql_query(conn, sql, false));
       } else
-	ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][%s]", get_last_db_error(conn), sql);
       break;
 
     default:
-      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][%s]", get_last_db_error(conn), sql);
       break;
     }
 
@@ -591,6 +617,9 @@ int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
       rc = 0;  // unable to retrieve the result but still the query succeded
     else {
       rc = mysql_num_rows(result);
+      ntop->getTrace()->traceEvent(TRACE_INFO,
+				   "Current result set has %lu rows",
+				   (unsigned long)rc);
       mysql_free_result(result);
     }
   }
@@ -608,17 +637,14 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
   char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
   int num_fields, rc, num = 0;
 
-  if(!db_operational)
+  if(!MySQLDB::db_created /* Make sure the db exists before doing queries */
+     || !db_operational)
     return(-2);
 
   if(m) m->lock(__FILE__, __LINE__);
 
   if((rc = mysql_query(&mysql, sql)) != 0) {
-    rc = mysql_errno(&mysql);
-
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d]",
-				 get_last_db_error(&mysql), rc);
-
+    /* retry */
     mysql_close(&mysql);
     if(m) m->unlock(__FILE__, __LINE__);
     connectToDB(&mysql, true);
@@ -631,6 +657,11 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
   }
 
   if((rc != 0) || ((result = mysql_store_result(&mysql)) == NULL)) {
+    rc = mysql_errno(&mysql);
+
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d]",
+				 get_last_db_error(&mysql), rc);
+
     lua_pushstring(vm, get_last_db_error(&mysql));
     if(m) m->unlock(__FILE__, __LINE__);
     return(rc);
