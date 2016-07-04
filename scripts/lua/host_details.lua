@@ -376,7 +376,7 @@ if((page == "overview") or (page == nil)) then
    
       if(host.deviceIfIdx ~= 0) then
 	 if(ntop.isPro()) then
-	    print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."flow_device_info.lua?ip="..host.deviceIP.."&ifIndex=".. host.deviceIfIdx..">".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
+	    print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIndex=".. host.deviceIfIdx..">".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
 	 end
       end
 
