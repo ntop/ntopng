@@ -271,7 +271,7 @@ end
 num = 0
 for _key, _value in pairsByValues(vals, funct) do
    if((_key ~= nil) and (not(_key == ""))) then
-o      value = stats_by_group_col[_key]
+      value = stats_by_group_col[_key]
 
       if(to_skip > 0) then
          to_skip = to_skip-1
