@@ -202,13 +202,21 @@ function printUsers()
   print('<input type=hidden name="subpage_active" value="users"/>\n')
   print('<table class="table">')
 
+  print('<tr><th colspan=2 class="info">Web User Interface</th></tr>')
   if prefs.is_autologout_enabled == true then
-     print('<tr><th colspan=2 class="info">Web User Interface</th></tr>')
-
      toggleTableButtonPrefs("Auto Logout",
 			    "Toggle the automatic logout of web interface users with expired sessions.",
 			    "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.is_autologon_enabled", "1")
   end
+  prefsInputFieldPrefs("Google APIs Browser Key",
+		       "Graphical hosts geomaps are based on Google Maps APIs. Google recently changed Maps API access policies "..
+		       "and now requires a browser API key to be sumbitted for every request. Detailed information on how to obtain an API key "..
+		       "<a href=\"https://googlegeodevelopers.blogspot.it/2016/06/building-for-scale-updates-to-google.html\">can be found here</a>. "..
+                       "Once obtained, the API key can be placed in this field."
+		       ,
+		       "ntopng.prefs.",
+		       "google_apis_browser_key",
+		       "")
 
   if ntop.isPro() then
 

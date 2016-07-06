@@ -22,6 +22,7 @@ for key, value in pairs(hosts_stats) do
 end
 
 
+
 if(num > 0) then
 print [[
 
@@ -32,7 +33,12 @@ print [[
 <hr>
 <h2>Hosts GeoMap</H2>
 
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+]]
+
+addGoogleMapsScript()
+
+print[[
+
     <script src="]] print(ntop.getHttpPrefix()) print [[/js/markerclusterer.js"></script>
 <div class="container-fluid">
   <div class="row-fluid">
