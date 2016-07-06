@@ -526,7 +526,10 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
     if(flows_hash->add(ret)) {
       *src2dst_direction = true;
       if(inIndex && ret->get_cli_host()) ret->get_cli_host()->setDeviceIfIdx(deviceIP, inIndex);
-      if(outIndex && ret->get_srv_host()) ret->get_srv_host()->setDeviceIfIdx(deviceIP, outIndex);
+      /*
+	We have decided to set only ingress traffic to make sure we do not mix truth with invalid data
+	if(outIndex && ret->get_srv_host()) ret->get_srv_host()->setDeviceIfIdx(deviceIP, outIndex); 
+      */
       return(ret);
     } else {
       delete ret;

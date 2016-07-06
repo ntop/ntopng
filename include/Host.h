@@ -171,7 +171,7 @@ class Host : public GenericHost {
   void setQuota(u_int32_t new_quota);
   void loadAlertPrefs(void);
   void getPeerBytes(lua_State* vm, u_int32_t peer_key);
-  inline void setDeviceIfIdx(u_int32_t ip, u_int16_t v) { deviceIfIdx = v, deviceIP = ip; }
+  void setDeviceIfIdx(u_int32_t ip, u_int16_t v);
   inline u_int16_t getDeviceIfIdx()                     { return(deviceIfIdx);            }
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };

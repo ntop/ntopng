@@ -147,7 +147,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 
   //if(_vlanId > 0) ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN => %d", _vlanId);
 
-  drop_all_host_traffic = false, dump_host_traffic = false, 
+  drop_all_host_traffic = false, dump_host_traffic = false,
     deviceIP = 0, deviceIfIdx = 0;
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
@@ -1076,7 +1076,7 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 #endif
 
     h = ip->print(ip_buf, sizeof(ip_buf));
-    
+
     if(syn_sent) {
       error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
       snprintf(msg, sizeof(msg),
@@ -1226,10 +1226,10 @@ void Host::updateStats(struct timeval *tv) {
   if(tv->tv_sec >= nextSitesUpdate) {
     if(nextSitesUpdate > 0) {
       char oldk[64];
-      
+
       snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
       ntop->getRedis()->rename(topSitesKey, oldk);
-      
+
       ntop->getRedis()->zTrim(oldk, 10);
     }
 
@@ -1392,7 +1392,7 @@ void Host::getPeerBytes(lua_State* vm, u_int32_t peer_key) {
 
 void Host::incLowGoodputFlows(bool asClient) {
   bool alert = false;
-  
+
   if(asClient) {
     if(++low_goodput_client_flows > HOST_LOW_GOODPUT_THRESHOLD) alert = true;
   } else {
@@ -1438,8 +1438,8 @@ void Host::decLowGoodputFlows(bool asClient) {
 
 void Host::incrVisitedWebSite(char *hostname) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
-  
-  if(topSitesKey 
+
+  if(topSitesKey
     && (strstr(hostname, "in-addr.arpa") == NULL)
     && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
     ) {
@@ -1455,4 +1455,21 @@ void Host::incrVisitedWebSite(char *hostname) {
     ntop->getRedis()->zIncr(topSitesKey, hostname);
 #endif
   }
+}
+
+/* *************************************** */
+
+void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
+  char dev[48], port[16], value[128], buf[128];
+
+  deviceIfIdx = _v, deviceIP = _ip;
+
+  snprintf(dev, sizeof(dev), "flow_devs.%s", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
+  snprintf(port, sizeof(port), "%u", deviceIfIdx);
+  snprintf(value, sizeof(value), "%02X:%02X:%02X:%02X:%02X:%02X/%s",
+	   mac_address[0], mac_address[1], mac_address[2],
+	   mac_address[3], mac_address[4], mac_address[5],
+	   ip ? ip->print(buf, sizeof(buf)) : "0.0.0.0");
+
+  ntop->getRedis()->hashSet(dev, port, value);
 }
