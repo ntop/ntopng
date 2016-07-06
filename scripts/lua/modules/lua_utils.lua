@@ -947,6 +947,16 @@ function isIPv6(ip)
   return true
 end
 
+function addGoogleMapsScript()
+   local g_maps_key = ntop.getCache('ntopng.prefs.google_apis_browser_key')
+   if g_maps_key ~= nil and g_maps_key~= "" then
+      g_maps_key = "&key="..g_maps_key
+   else
+   g_maps_key = ""
+   end
+   print("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"..g_maps_key.."\"></script>\n")
+end
+
 function addLogoSvg()
    print [[
 <svg width="103px" height="50px" viewBox="0 0 103 50" version="1.1" xmlns="http://www.w3.org/2000/svg">
