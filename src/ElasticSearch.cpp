@@ -53,7 +53,6 @@ int ElasticSearch::sendToES(char* msg) {
   int rc = 0;
   
   if(num_queued_elems >= ES_MAX_QUEUE_LEN) {
-
     if(!reportDrops) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[ES] Export queue too long [%d]: expect drops",
 		 num_queued_elems);
@@ -61,7 +60,7 @@ int ElasticSearch::sendToES(char* msg) {
     }
 
     elkDroppedFlowsQueueTooLong++;
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[ES] Message dropped. Total messages dropped: %lu\n",
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[ES] Message dropped. Total messages dropped: %lu\n",
 		 elkDroppedFlowsQueueTooLong);
 
     return(-1);
@@ -79,7 +78,7 @@ int ElasticSearch::sendToES(char* msg) {
       if(tail == NULL)
 	tail = e;
       num_queued_elems++;
-      //printf("Antonio: coda elem - %u\n",num_queued_elems);
+
       rc = 0;
     } else {
       /* Out of memory */
