@@ -211,9 +211,12 @@ Flow::~Flow() {
 	s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
 
 	snprintf(alert_msg, sizeof(alert_msg),
-		 "Probing or server down: <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> &gt; "
-		 "<A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+		 "Probing or server down: "
+		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> &gt; "
+		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+		 ntop->getPrefs()->get_http_prefix(),
 		 c, iface->get_name(), cli_host->get_name() ? cli_host->get_name() : c,
+		 ntop->getPrefs()->get_http_prefix(),
 		 s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
 		 print(fbuf, sizeof(fbuf)));
 
@@ -274,10 +277,13 @@ void Flow::checkBlacklistedFlow() {
       s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
 
       snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> contacted %s host <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> contacted %s host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+	       ntop->getPrefs()->get_http_prefix(),
 	       cli_host->is_blacklisted() ? "Blacklisted host" : "Host",
 	       c, iface->get_name(), cli_host->get_name() ? cli_host->get_name() : c,
 	       srv_host->is_blacklisted() ? "blacklisted" : "",
+	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
@@ -2266,10 +2272,12 @@ void Flow::checkFlowCategory() {
     s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
 
     snprintf(alert_msg, sizeof(alert_msg),
-	     "Flow <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; "
-	     "<A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
+	     "Flow <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u &lt;-&gt; "
+	     "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A>:%u"
 	     " accessed malware site <A HREF=http://google.com/safebrowsing/diagnostic?site=%s&hl=en-us>%s</A>",
+	     ntop->getPrefs()->get_http_prefix(),
 	     c, iface->get_name(), c, cli_port,
+	     ntop->getPrefs()->get_http_prefix(),
 	     s, iface->get_name(), s, srv_port,
 	     host_server_name, host_server_name);
 

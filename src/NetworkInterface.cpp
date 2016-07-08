@@ -549,7 +549,8 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
     char alert_msg[512];
   
     snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='/lua/if_stats.lua?id=%d'>%s</A> has too many flows. Please extend the --max-num-flows/-X command line option",
+	     "Interface <A HREF='%s/lua/if_stats.lua?id=%d'>%s</A> has too many flows. Please extend the --max-num-flows/-X command line option",
+	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
     
     ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
@@ -564,7 +565,8 @@ void NetworkInterface::triggerTooManyHostsAlert() {
     char alert_msg[512];
   
     snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='/lua/if_stats.lua?id=%d'>%s</A> has too many hosts. Please extend the --max-num-hosts/-x command line option",
+	     "Interface <A HREF='%s/lua/if_stats.lua?id=%d'>%s</A> has too many hosts. Please extend the --max-num-hosts/-x command line option",
+	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
     
     ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);

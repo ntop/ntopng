@@ -39,6 +39,11 @@ print [[
 <div class="page-header">
 <h2>Top Hosts (Local)</H2>
 </div>
+
+<script type="text/javascript">
+  var http_prefix = "]] print(ntop.getHttpPrefix()) print [[";
+</script>
+
 <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
 <div id="tophosts"></div>
 
