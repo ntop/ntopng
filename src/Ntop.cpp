@@ -924,7 +924,7 @@ bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
   char key[64];
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
 
-  if(allowed_ifname != NULL && allowed_ifname[0] != '\0') {
+  if((allowed_ifname != NULL) && (allowed_ifname[0] != '\0')) {
     return (ntop->getRedis()->set(key, allowed_ifname, 0) >= 0);
   } else {
     ntop->getRedis()->delKey(key);
