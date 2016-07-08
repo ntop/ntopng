@@ -1405,7 +1405,8 @@ void Host::incLowGoodputFlows(bool asClient) {
     c = get_ip()->print(c_buf, sizeof(c_buf));
 
     snprintf(alert_msg, sizeof(alert_msg),
-	     "Host <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> has %d low goodput active %s flows",
+	     "Host <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> has %d low goodput active %s flows",
+	     ntop->getPrefs()->get_http_prefix(),
 	     c, iface->get_name(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 

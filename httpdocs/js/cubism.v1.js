@@ -1,7 +1,10 @@
 (function(exports){
 var cubism = exports.cubism = {version: "1.2.0"};
 var cubism_id = 0;
-    function cubism_title(d) { return("&nbsp;<A HREF=\"/lua/host_details.lua?host="+d+"\">"+d+"</A>"); }
+    function cubism_title(d) {
+	return("&nbsp;<A HREF=\""
+	       + http_prefix /* this must be defined in the lua caller */
+	       + "/lua/host_details.lua?host="+d+"\">"+d+"</A>"); }
     function cubism_identity(d) { return(d); }
 cubism.option = function(name, defaultValue) {
   var values = cubism.options(name);

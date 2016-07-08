@@ -223,7 +223,8 @@ void HTTPBL::queryHTTPBL(char* numeric_ip) {
 
       /* We need to figure out the current list of peers speaking with this host */
       snprintf(alert_msg, sizeof(alert_msg),
-	       "Host <A HREF='/lua/host_details.lua?host=%s&ifname=%s'>%s</A> blacklisted on HTTP:BL [code=%s]",
+	       "Host <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> blacklisted on HTTP:BL [code=%s]",
+	       ntop->getPrefs()->get_http_prefix(),
 	       numeric_ip, iface, numeric_ip, query_resp);
 
       ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent, alert_dangerous_host, alert_msg);
