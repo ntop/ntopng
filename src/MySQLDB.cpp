@@ -296,7 +296,7 @@ bool MySQLDB::createDBSchema() {
   // Move column BYTES to BYTES_IN and add BYTES_OUT
   // note that this operation will arbitrarily move the old BYTES contents to BYTES_IN
   const u_int16_t ipvers[2] = {4, 6};
-  for (u_int16_t i = 0; i < sizeof(ipvers); i++){
+  for (u_int16_t i = 0; i < sizeof(ipvers) / sizeof(u_int16_t); i++){
     snprintf(sql, sizeof(sql),
 	     "SELECT 1 "
 	     "FROM information_schema.COLUMNS "
@@ -323,7 +323,7 @@ bool MySQLDB::createDBSchema() {
   }
 
   // Modify database engine to MyISAM (that is much faster in non-transactional environments)
-  for (u_int16_t i = 0; i < sizeof(ipvers); i++){
+  for (u_int16_t i = 0; i < sizeof(ipvers) / sizeof(u_int16_t); i++){
     snprintf(sql, sizeof(sql),
 	     "SELECT 1 "
 	     "FROM information_schema.TABLES "
@@ -345,6 +345,37 @@ bool MySQLDB::createDBSchema() {
 	       "ALTER TABLE `%sv%hu` ENGINE='MyISAM'",
 	       ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
       exec_sql_query(&mysql, sql, true, true);
+    }
+  }
+
+  // make counter fields as unsigned so they can store 2x values
+  const char *counter_fields[3] = {"IN_BYTES", "OUT_BYTES", "PACKETS"};
+  for (u_int16_t i = 0; i < sizeof(ipvers) / sizeof(u_int16_t); i++){
+    for (u_int16_t j = 0; j < sizeof(counter_fields) / sizeof(char*); j++){
+      snprintf(sql, sizeof(sql),
+	       "SELECT 1 "
+	       "FROM information_schema.COLUMNS "
+	       "WHERE TABLE_SCHEMA='%s' "
+	       "AND TABLE_NAME='%sv%hu' "
+	       "AND COLUMN_NAME='%s' "
+	       "AND COLUMN_TYPE NOT LIKE '%%UNSIGNED' ",
+	       ntop->getPrefs()->get_mysql_dbname(),
+	       ntop->getPrefs()->get_mysql_tablename(),
+	       ipvers[i], counter_fields[j]);
+      if(exec_sql_query(&mysql, sql, true, true) > 0){
+	// if here we have to convert the type to unsigned
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "MySQL schema update. Altering table %sv%hu: "
+				     "changing %s data type to unsigned int.",
+				     ntop->getPrefs()->get_mysql_tablename(),
+				     ipvers[i],
+				     counter_fields[j]);
+
+	snprintf(sql, sizeof(sql),
+		 "ALTER TABLE `%sv%hu` MODIFY COLUMN `%s` int(10) unsigned",
+		 ntop->getPrefs()->get_mysql_tablename(), ipvers[i], counter_fields[j]);
+	exec_sql_query(&mysql, sql, true, true);
+      }
     }
   }
 
