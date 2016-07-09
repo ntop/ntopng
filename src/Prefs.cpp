@@ -1193,6 +1193,18 @@ bool Prefs::is_pro_edition() {
 
 /* *************************************** */
 
+bool Prefs::is_enterprise_edition() {
+  return
+#ifdef NTOPNG_PRO
+    ntop->getPro()->has_valid_enterprise_license()
+#else
+  false
+#endif
+    ;
+}
+
+/* *************************************** */
+
 time_t Prefs::pro_edition_demo_ends_at() {
   return
 #ifdef NTOPNG_PRO

@@ -95,6 +95,8 @@ class Prefs {
   ~Prefs();
 
   bool is_pro_edition();
+  bool is_enterprise_edition();
+
   inline bool is_embedded_edition() {
 #ifdef NTOPNG_EMBEDDED_EDITION
     return(true);

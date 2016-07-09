@@ -2821,6 +2821,14 @@ static int ntop_is_pro(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_enterprise(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_edition());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_l7_rules(lua_State *vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
 
@@ -4578,6 +4586,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Pro */
   { "isPro",                ntop_is_pro },
+  { "isEnterprise",         ntop_is_enterprise },
 
   /* Historical database */
   { "insertMinuteSampling",        ntop_stats_insert_minute_sampling },

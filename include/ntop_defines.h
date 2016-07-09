@@ -138,7 +138,8 @@
 #define DUMP_HOST_TRAFFIC       "ntopng.prefs.dump_host_traffic"
 #define HOST_TRAFFIC_QUOTA      "ntopng.prefs.hosts_quota"
 #define TRAFFIC_FILTERING_CACHE_DURATIION  43200 /* 12 h */
-#define DNS_CACHE_DURATION      3600  /*  1 h */
+#define DNS_CACHE_DURATION                 3600  /*  1 h */
+#define LOCAL_HOSTS_CACHE_DURATION         3600  /*  1 h */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define DUMMY_IFACE_ID          (MAX_NUM_INTERFACES-2)

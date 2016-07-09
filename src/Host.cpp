@@ -75,7 +75,7 @@ Host::~Host() {
     char *k = get_string_key(host_key, sizeof(host_key));
 
     snprintf(key, sizeof(key), "%s.%d.json", k, vlan_id);
-    ntop->getRedis()->set(key, json, 3600 /* 1 hour */);
+    ntop->getRedis()->set(key, json, LOCAL_HOSTS_CACHE_DURATION);
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
     free(json);
