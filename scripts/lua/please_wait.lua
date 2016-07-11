@@ -50,11 +50,9 @@ print[[
   </div>
   <div>
 ]]
-print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
 
 print[[
-The database schema is being updated to include the most recent changes. Please wait, this is normal.
-You will be redirected as soon as the changes take effect.
+The database schema is being updated to include the most recent changes:<br>please wait, this is normal. You will be redirected as soon as the changes take effect.
   </div>
 </div> <!-- /container -->
 

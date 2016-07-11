@@ -118,6 +118,11 @@ end
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP Servers (Local)</a></li>')
 
+info = ntop.getInfo()
+if(info["version.enterprise_edition"] == true) then
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/flowdevices_stats.lua">sFlow/NetFlow Devices</a></li>')
+end
+
 print('<li class="divider"></li>')
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts (Local)</a></li>')

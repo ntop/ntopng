@@ -39,9 +39,12 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    
    if(info["version.embedded_edition"] == true) then
       print("embedded")
+   elseif(info["version.enterprise_edition"] == true) then
+      print("enterprise")
    else
       print("pro")
    end
+
    print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fa fa-external-link'></i> ]")
 
 print [[
@@ -85,7 +88,11 @@ print("<tr><th>Version</th><td>"..ntopng_git_url)
 if(info["pro.release"] == false) then
    print(" - Community")
 else
-   print(" - Pro Small Business")
+   if(info["version.enterprise_edition"] == true) then
+      print(" - Enterprise")
+   else
+      print(" - Pro Small Business")
+   end
 end
 
 if(info["version.embedded_edition"] == true) then

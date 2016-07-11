@@ -815,7 +815,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 'V':
     printf("v.%s [%s%s Edition]\n", PACKAGE_VERSION,
 #ifdef NTOPNG_PRO
-	   "Professional"
+	   "Enterprise/Professional"
 #else
 	   "Community"
 #endif

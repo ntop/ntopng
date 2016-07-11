@@ -51,8 +51,8 @@ void* MySQLDB::queryLoop() {
 				     "Tried to execute a query longer than %u. Skipping.",
 				     CONST_MAX_SQL_QUERY_LEN - 2);
 	continue;  // prevents overflown queries to generate mysql errors
-      } else if(exec_sql_query(&mysql_alt, sql, true, true, false) < 0) {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s", get_last_db_error(&mysql_alt));
+      } else if((rc = exec_sql_query(&mysql_alt, sql, true, true, false)) < 0) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s [rc=%d]", get_last_db_error(&mysql_alt), rc);
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
 	mysql_close(&mysql_alt);
 	if(!connectToDB(&mysql_alt, true))
