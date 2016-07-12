@@ -16,7 +16,7 @@ Prerequisites
 - libmysqlclient-dev
 
 On Ubuntu/Debian
-- apt-get install build-essential git bison flex libglib2.0 libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev libmysqlclient-dev libnetfilter-queue-dev libmysqlclient-dev zlib1g-dev libzmq-dev
+- apt-get install build-essential git bison flex libglib2.0 libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf automake autogen redis-server wget libsqlite3-dev libhiredis-dev libgeoip-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libpng12-dev libmysqlclient-dev libnetfilter-queue-dev libmysqlclient-dev zlib1g-dev libzmq3-dev
 
 You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
 
@@ -33,10 +33,10 @@ port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git
 On FreeBSD
 See README.FreeBSD
 
-
 On Windows you can download the redis server from
 - https://github.com/rgl/redis/downloads
 
+Note that you can use zmq 4.x in addition to 3.x (but not 2.x)
 
 Source Code Compilation
 -----------------------
