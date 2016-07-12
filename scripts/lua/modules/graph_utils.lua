@@ -1231,10 +1231,11 @@ print [[
 
 
 	    var table4 = $("#table-flows4").datatable(graph_options4);
+]]
+   end
+print[[
       });  // closes the event handler on shown.bs.tab
       ]]
-   end
-
 
       if((limitv6 == nil) or (limitv6 == "") or (limitv6 == "0")) then print("</script>") return end
 

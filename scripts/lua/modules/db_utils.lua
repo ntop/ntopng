@@ -423,7 +423,7 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, i
    else
       sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IP_DST_ADDR ELSE IP_SRC_ADDR END addr, "
       sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN OUT_BYTES ELSE IN_BYTES  END peer_bytes_sent, "
-      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IN_BYTES  ELSE OUT_BUTES END peer_bytes_rcvd, "
+      sql = sql.." CASE WHEN IP_SRC_ADDR = '"..host.."' THEN IN_BYTES  ELSE OUT_BYTES END peer_bytes_rcvd, "
    end
    sql = sql.." FIRST_SWITCHED, LAST_SWITCHED "
    sql = sql.." FROM flowsv"..version

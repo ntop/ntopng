@@ -131,7 +131,7 @@ else
 
       for _,flow in pairs(res) do
 	 local num = 0
-	 local base = "<A HREF='"..ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?ifId="..ifId.."&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
+	 local base = "<A HREF='"..ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId.."&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
 	 if(flow["L4_SRC_PORT"] ~= nil) then
 	    local base_host_url = base.."&host="
