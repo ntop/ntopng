@@ -1408,9 +1408,17 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local max_num_points = 600 -- This is to avoid having too many points and thus a fat graph
    local num_points_found = table.getn(fdata)
    local sample_rate = round(num_points_found / max_num_points)
+   local port_mode = false
 
    if(sample_rate < 1) then sample_rate = 1 end
-
+   
+   -- Pretty printing for flowdevs/a.b.c.d/e.rrd
+   local elems = split(prefixLabel, "/")
+   if((elems[#elems] ~= nil) and (#elems > 1)) then
+      prefixLabel = "Port "..elems[#elems]
+      port_mode = true
+   end
+   
    -- prepare rrd labels
    for i, n in ipairs(fnames) do
       -- handle duplicates
@@ -1424,7 +1432,15 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	     extra_info = extra_info.." ".. firstToUpper(n)
 	 end
 	 if extra_info ~= "" then
-	     names[#names+1] = prefixLabel.." ("..trimSpace(extra_info)..")"
+	    if(port_mode) then
+	       if(#names == 0) then
+		  names[#names+1] = prefixLabel.." Egress ("..trimSpace(extra_info)..") "
+	       else
+		  names[#names+1] = prefixLabel.." Ingress ("..trimSpace(extra_info)..") "
+	       end
+	    else
+	       names[#names+1] = prefixLabel.." ("..trimSpace(extra_info)..") "
+	    end
 	 else
 	     names[#names+1] = prefixLabel
 	 end
@@ -1575,6 +1591,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	       json_ret = json_ret.."\n,\n"
 	    end
 	    name = names[elemId]
+
 	    json_ret = json_ret..'{"key": "'.. name .. '",\n'
 --	    json_ret = json_ret..'"color": "'.. colors[num_entries] ..'",\n'
 	    json_ret = json_ret..'"area": true,\n'

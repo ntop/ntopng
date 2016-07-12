@@ -38,13 +38,23 @@ end
 host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
+flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
+
+if(flow_devices_rrd_creation == 1) then
+   local info = ntop.getInfo()
+
+   if(info["version.enterprise_edition"] ~= true) then
+      flow_devices_rrd_creation = 0
+   end
+end
+
 
 -- id = 0
 for _,_ifname in pairs(ifnames) do
    interface.select(_ifname)
    ifstats = aggregateInterfaceStats(interface.getStats())
 
-   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]") end
+   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]\n") end
    -- Dump topTalkers every minute
 
    if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
@@ -315,8 +325,36 @@ for _,_ifname in pairs(ifnames) do
                   createSingleRRDcounter(catrrdname, 300, verbose)
                   ntop.rrd_update(catrrdname, "N:"..tolongint(cat_bytes))
                 end
-              end
-            end
+	      end
+            end -- for
+
+	    -- Create RRDs for flow devices
+	    if(flow_devices_rrd_creation) then
+	       local flowdevs = interface.getFlowDevices()
+
+	       for flow_device_ip,_ in pairs(flowdevs) do
+		  local ports = interface.getFlowDeviceInfo(flow_device_ip)
+
+		  if(verbose) then
+		     print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n")
+		  end
+		  
+		  for port_idx,port_value in pairs(ports) do
+		     local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/flowdevs/".. flow_device_ip
+		     
+		     base = fixPath(base)
+		     if(not(ntop.exists(base))) then ntop.mkdir(base) end
+		     name = fixPath(base .. "/"..port_idx..".rrd")
+		     createRRDcounter(name, 300, verbose)
+		     str = "N:".. tolongint(port_value.ifInOctets) .. ":" .. tolongint(port_value.ifOutOctets)
+		     ntop.rrd_update(name, str)
+
+		     if(verbose) then
+			print ("["..__FILE__()..":"..__LINE__().."]  Processing flow device "..flow_device_ip.." / port "..port_idx.." ["..name.."]\n")
+		     end
+		  end
+	       end
+	    end
 	 end -- if rrd
       end -- if(diff
    end -- if(good interface type

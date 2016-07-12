@@ -337,19 +337,27 @@ function printStatsRrds()
   print('<tr><th colspan=2 class="info">Local Hosts and Networks Timeseries</th></tr>')
 
   toggleTableButtonPrefs("Traffic Timeseries",
-                "Toggle the creation of traffic timeseries for local hosts and networks. Turn it off to save storage space.",
-                "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation", "1")
-
+			 "Toggle the creation of traffic timeseries for local hosts and networks. Turn it off to save storage space.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_local", "ntopng.prefs.host_rrd_creation", "1")
+  
   toggleTableButtonPrefs("Layer-7 Application Timeseries",
-                "Toggle the creation of nDPI timeseries for local hosts and defined networks. Enable their creation allows you "..
-                "to keep application protocol statistics at the cost of using more disk space.",
-                "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
-
+			 "Toggle the creation of nDPI timeseries for local hosts and defined networks. Enable their creation allows you "..
+			    "to keep application protocol statistics at the cost of using more disk space.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
+  
+  local info = ntop.getInfo()
+  toggleTableButtonPrefs("Flow Devices Timeseries",
+			 "Toggle the creation of bytes timeseries for each port of the sFlow/NetFlow devices. For each device port" ..
+			 " will be created an RRD with ingress/egress bytes.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_devices_rrd_creation", "0",
+			    not info["version.enterprise_edition"])
+  
   toggleTableButtonPrefs("Category Timeseries",
-      "Toggle the creation of Category timeseries for local hosts and defined networks. Enabling their creation allows you "..
-      "to keep persistent traffic category statistics (e.g., social networks, news) at the cost of using more disk space.<br>"..
-      "Creation is only possible if the ntopng instance has been launched with option -k flashstart:&lt;user&gt;:&lt;password&gt;.",
-     "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization", "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
+			 "Toggle the creation of Category timeseries for local hosts and defined networks. Enabling their creation allows you "..
+			    "to keep persistent traffic category statistics (e.g., social networks, news) at the cost of using more disk space.<br>"..
+			 "Creation is only possible if the ntopng instance has been launched with option -k flashstart:&lt;user&gt;:&lt;password&gt;.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_local_categorization",
+			 "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
   print('</table>')
 
   print('<table class="table">')

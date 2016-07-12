@@ -404,7 +404,8 @@ int snmp_get_varbind_as_string(SNMPMessage *message, int num, char **oid, int *t
       *value_str = strdup("");
       break;
     case ASN1_INTEGER_TYPE:
-      snprintf(buf, sizeof(buf), "%d", value.int_value);
+      // snprintf(buf, sizeof(buf), "%d", value.int_value);
+      snprintf(buf, sizeof(buf), "%u", (unsigned int)value.int_value);
       *value_str = strdup(buf);
       break;
     case ASN1_STRING_TYPE:
