@@ -407,6 +407,12 @@ static int handle_lua_request(struct mg_connection *conn) {
     struct stat buf;
     bool found;
 
+    if(strstr(request_info->uri, "/lua/pro/enterprise/")
+       && (!ntop->getPrefs()->is_enterprise_edition())) {
+      return(send_error(conn, 403 /* Forbidden */, request_info->uri,
+			"Enterprise edition license required"));
+    }
+
     snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
 	     Utils::getURL((strlen(request_info->uri) == 1) ? (char*)"/lua/index.lua" : request_info->uri,
 			   uri, sizeof(uri)));

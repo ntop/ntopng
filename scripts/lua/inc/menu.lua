@@ -120,7 +120,7 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP 
 
 info = ntop.getInfo()
 if(info["version.enterprise_edition"] == true) then
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/flowdevices_stats.lua">sFlow/NetFlow Devices</a></li>')
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow Devices</a></li>')
 end
 
 print('<li class="divider"></li>')
