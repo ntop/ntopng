@@ -63,7 +63,7 @@ class Utils {
   static void purifyHTTPparam(char *param, bool strict);
   static char* stripHTML(const char * const str);
   static bool postHTTPJsonData(char *username, char *password, char *url, char *json);
-  static bool httpGet(lua_State* vm, char *url, char *username, 
+  static bool httpGet(lua_State* vm, char *url, char *username,
 		      char *password, int timeout, bool return_content);
   static char* urlEncode(char *url);
   static char* curlHTTPGet(char *url, long *http_code);
@@ -85,6 +85,15 @@ class Utils {
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
   static const char* flowstatus2str(FlowStatus s);
+
+  /**@brief Try to ping a host and return the delay.
+   *
+   * @params target The IP address or host name to ping.
+   * @return The ping delay computed, 0 or a negative number if ping fails.
+   *
+   * Works with IP address or host name.
+   */
+  static int ping(string target);
 };
 
 #endif /* _UTILS_H_ */

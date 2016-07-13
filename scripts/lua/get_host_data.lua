@@ -104,8 +104,15 @@ else
    
    sent2rcvd = round((host["bytes.sent"] * 100) / (host["bytes.sent"]+host["bytes.rcvd"]), 0)
    print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
-	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
+	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div> \", ")
 
-   print("\" } ")
+    stringVlan = tostring(host_info["vlan"])
+    if(stringVlan == nil or stringVlan == "nil") then
+        stringVlan = "0" 
+    end
+
+    print("\"column_actions\" : \""
+        .. "<i id='pingIcon' data-toggle='modal' data-target='#pingModal' onmouseover='' style='cursor: pointer; color: black' class='fa fa-bullhorn' data-toggle='tooltip' title='Send a ping request' onclick='ping_host(&quot;".. host["ip"] .. "&quot;," .. stringVlan .. ")' /> ")
+    print("\" } ")
 
 end

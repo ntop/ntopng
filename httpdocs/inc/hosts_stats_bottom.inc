@@ -21,7 +21,15 @@
 	 	             css: { 
 			        textAlign: 'right'
 			     }
-				 }
+				 },
+                 {
+                 title: "Actions",
+                 field: "column_actions",
+                 sortable: false,
+                     css: { 
+                    textAlign: 'center'
+                 }
+                 }
 			     ]
 	       });
 

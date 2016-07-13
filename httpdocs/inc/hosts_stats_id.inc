@@ -36,6 +36,7 @@ function host_table_setID (row) {
   row.find("td").eq(index++).attr('id', host_key+"_breakdown");
   row.find("td").eq(index++).attr('id', host_key+"_throughput");
   row.find("td").eq(index++).attr('id', host_key+"_traffic");
+  row.find("td").eq(index++).attr('id', host_key+"_actions");
   
   // console.log(row);
   return row;
@@ -70,11 +71,49 @@ function row_update(host_key) {
       $('td[id="'+host_key+'_breakdown"]').html(data.column_breakdown);
       $('td[id="'+host_key+'_throughput"]').html(data.column_thpt);
       $('td[id="'+host_key+'_traffic"]').html(data.column_traffic);
+      $('td[id="'+host_key+'_actions"]').html(data.column_actions);
     },
     error: function(content) {
       console.log("error");
     }
   });
+}
+
+function ping_host(ip, vlan) {
+  if(vlan == "0"){
+    var hostip = ip.replace(/\./g, "__");
+  }
+  else{
+    var hostip = ip.replace(/\./g, "__") + "_" + String(vlan);
+  }
+  var hostInfo = hostkey2hostInfo(ip);
+  var url = "/lua/host_ping.lua?host="+hostInfo[0]+"&vlan="+String(vlan);
+  
+  $("#hostModalTitle").html("Ping");
+  $("#hostModalBody").html("<h3>Pinging host " + hostInfo[0] + "...</h3>");
+  $("#hostModal").modal({
+    "backdrop" : "true",
+    "keyboard" : "true",
+    "show" : "true"
+  }); 
+
+  $.ajax({
+    type: 'GET',
+    url: url,
+    cache: false,
+    success: function(content, status) {
+        if(content > 0){ 
+            $("#hostModalBody").html("<div class='alert alert-success'><strong>Success!</strong></div><h3>Pinging host " + hostInfo[0] + "</h3><h4>Time = " + content / 1000 + " ms</h4>");
+        }
+        else{
+            $("#hostModalBody").html("<div class='alert alert-danger'><strong>Fail!</strong></div><h3>Host cannot be reach in less than one second.</h3>");
+        }
+    },  
+    error: function(content) {
+      console.log("ping_host: error");
+      $("#hostModalBody").html("<h3>Host cannot be reach in less than one second.</h3>");
+    }   
+  }); 
 }
 
 // Updating function

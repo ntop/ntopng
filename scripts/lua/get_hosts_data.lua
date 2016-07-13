@@ -397,7 +397,15 @@ for _key, _value in pairsByKeys(vals, funct) do
 	       print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
 	    end
 
-	    print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))
+	    print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"])..'", ')
+        
+        stringVlan = tostring(value["vlan"])
+        if(stringVlan == nil or stringVlan == "nil") then
+            stringVlan = "0" 
+        end
+
+        print("\"column_actions\" : \""
+            .. "<i id='pingIcon' data-toggle='modal' data-target='#pingModal' onmouseover='' style='cursor: pointer; color: black' class='fa fa-bullhorn' data-toggle='tooltip' title='Send a ping request' onclick='ping_host(&quot;".. value["ip"] .. "&quot;," .. stringVlan .. ")' /> ")
 
 	    print ("\", \"column_alerts\" : \"")
 	    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then

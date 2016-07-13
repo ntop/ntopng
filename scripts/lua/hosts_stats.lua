@@ -33,6 +33,27 @@ prefs = ntop.getPrefs()
 ifstats = aggregateInterfaceStats(interface.getStats())
 
 print [[
+    
+    <div class="modal fade" id="hostModal" tabindex="-1" role="dialog" aria-labelledby="hostModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title" id="hostModalTitle"></h4>
+                </div>
+                <div id="hostModalBody" class="modal-body">
+                    <h3></h3>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+]]
+
+print [[
       <hr>
 ]]
 

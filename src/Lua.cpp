@@ -4399,6 +4399,41 @@ static int ntop_network_name_by_id(lua_State* vm) {
 
 /* ****************************************** */
 
+/**@brief Try to ping the given host and returns the pong delay in lua table.
+ *
+ * @param vm A lua table containing at least the host to ping and optionaly the host VLAN ID (assuming VLAN ID is 0
+ * otherwise).
+ * @returns CONST_LUA_OK if ping succeed, CONST_LUA_ERROR otherwise.
+ */
+static int ntop_ping_host(lua_State *vm){
+	char *hostIp;
+	u_int16_t vlanId = 0;
+	char buf[64];
+
+	ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
+
+	if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)){
+		return(CONST_LUA_ERROR);
+	}
+	get_host_vlan_info((char*)lua_tostring(vm, 1), &hostIp, &vlanId, buf, sizeof(buf));
+
+	/* Optional VLAN id */
+	if(lua_type(vm, 2) == LUA_TNUMBER){
+		vlanId = (u_int16_t)lua_tonumber(vm, 2);
+	}
+
+	int pingTime = Utils::ping(string(hostIp));
+	if(pingTime > 0){
+		lua_newtable(vm);
+		lua_pushinteger(vm, (long int)pingTime);
+		return(CONST_LUA_OK);
+	}
+
+	return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 typedef struct {
   const char *class_name;
   const luaL_Reg *class_methods;
@@ -4474,6 +4509,9 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },
+
+  /* PING */
+  { "pingHost",                       ntop_ping_host },
 
   { NULL,                             NULL }
 };
