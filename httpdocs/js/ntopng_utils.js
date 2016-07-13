@@ -173,3 +173,4 @@ function drawTrend(current, last, withColor) {
     return("<i class=\"fa fa-arrow-down\"></i>");
   }   
 }
+

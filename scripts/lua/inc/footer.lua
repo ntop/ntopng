@@ -191,7 +191,7 @@ function secondsToTime(seconds) {
    var hours =  Math.floor((seconds / 3600) - (days * 24))
    var minutes = Math.floor((seconds / 60) - (days * 1440) - (hours * 60))
    var sec = seconds % 60
-   var msg = ""
+   var msg = "", msg_array = []
 
    if(days > 0) {
       years = Math.floor(days/365)
@@ -201,37 +201,34 @@ function secondsToTime(seconds) {
 
 	 msg = years + " year"
 	 if(years > 1) {
-	    msg = msg + "s"
+	    msg += "s"
 	 }
 
-	 msg = msg + ", "
+         msg_array.push(msg)
+         msg = ""
       }
-      msg = msg + days + " day"
-      if(days > 1) { msg = msg + "s" }
-      msg = msg + ", "
+      msg = days + " day"
+      if(days > 1) { msg += "s" }
+      msg_array.push(msg)
+      msg = ""
    }
 
    if(hours > 0) {
-      msg = msg + hours + " ";
-      if(hours > 1)
-	 msg = msg + "hour"
-      else
-	 msg = msg + "hour"
-
-      if(hours > 1) { msg = msg + "s" }
-      msg = msg + ", "
+      msg = hours + " hour";
+      if(hours > 1) { msg +=  "s" }
+      msg_array.push(msg)
+      msg = ""
    }
 
    if(minutes > 0) {
-      msg = msg + minutes + " min";
+      msg_array.push(minutes + " min")
    }
 
    if(sec > 0) {
-      if((msg.length > 0) && (minutes > 0)) { msg = msg + ", " }
-      msg = msg + sec + " sec";
+      msg_array.push(sec + " sec")
    }
 
-   return msg
+   return msg_array.join(", ")
 }
 
 Date.prototype.format = function(format) { //author: meizz

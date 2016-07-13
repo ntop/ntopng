@@ -40,6 +40,56 @@ function hostkey2hostid(host_key) {
     info = host_key.split("@");
     return(info);
 }
+/*
+ * Returns a map of querystring parameters
+ * 
+ * Keys of type <fieldName>[] will automatically be added to an array
+ *
+ * @param String url
+ * @return Object parameters
+ */
+function getParams(url) {
+  var regex = /([^=&?]+)=([^&#]*)/g, params = {}, parts, key, value;
+  while((parts = regex.exec(url)) != null) {
+    key = parts[1], value = parts[2];
+    var isArray = /\[\]$/.test(key);
+
+    if(isArray) { 
+      params[key] = params[key] || [];
+        params[key].push(value);
+    }
+    else {
+      params[key] = value;
+    }
+  }
+  return params;
+}
+
+/* adds a CSS style to replace the / in the breadcrumb */
+var style = $('<style>#search-criteria:before {content:"Observation period:";}</style>');
+$('html > head').append(style);
+function addObservationPeriodToBreadCrumb(params_url, breadcrumb_id){
+  var params = getParams(params_url);
+  var begin = params["epoch_start"]
+  if (typeof begin === 'undefined') {
+    if (typeof params["epoch_begin"] !== 'undefined')
+      begin = params["epoch_begin"]
+    else
+      begin = 0
+  }
+  var end = params["epoch_end"]
+  if (typeof end === undefined)
+    end = 0
+  if (end < begin)
+    end = begin
+  var durat = moment.duration(end-begin, 'seconds')
+  var d_d = durat.days(), d_h = durat.hours(), d_m = durat.minutes(), d_s = durat.seconds()
+  var str = '<li class="pull-right" id="search-criteria">'
+  str += secondsToTime(end-begin)
+  str += ' starting on ' + moment(begin*1000).format("dddd, MMMM Do YYYY, h:mm:ss a")
+  str += '</li>'
+  $(breadcrumb_id).append(str);
+}
 
 function buildRequestData(source_div_id){
   var epoch_begin = $('#' + source_div_id).attr("epoch_begin");
@@ -414,6 +464,7 @@ var refreshBreadCrumbInterface = function(){
   $("#bc-talkers").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
   $('#historical-container').removeAttr("host");
   $('#historical-container').removeAttr("peer");
+  addObservationPeriodToBreadCrumb(']] print(interface_talkers_url_params) print[[', '#bc-talkers');
 }
 
 var refreshBreadCrumbHost = function(host){
@@ -447,6 +498,8 @@ var refreshBreadCrumbHost = function(host){
   // finally we add some status variables to the historical container
   $('#historical-container').attr("host", host);
   $('#historical-container').removeAttr("peer");
+
+  addObservationPeriodToBreadCrumb(']] print(interface_talkers_url_params) print[[', '#bc-talkers');
 }
 
 var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
@@ -495,6 +548,8 @@ var refreshBreadCrumbPairs = function(peer1, peer2, l7_proto_id){
   if (typeof l7_proto_id !== "undefined"){
      $("#bc-talkers").append('<li>Application flows</li>');
   }
+
+  addObservationPeriodToBreadCrumb(']] print(interface_talkers_url_params) print[[', '#bc-talkers');
 }
 
 var populateInterfaceTopTalkersTable = function(){
@@ -885,13 +940,14 @@ var refreshHostPeersByAppBreadCrumb = function(peer1, proto_id, peer2){
   if (typeof peer2 !== "undefined"){
     $("#bc-apps").append('<li>' +$("#historical-apps-container").attr("l7_proto") + ' protocol flows between ' + peer1 + ' and ' + peer2 + '</li>');
   }
-
+  addObservationPeriodToBreadCrumb(']] print(top_apps_url_params) print[[', '#bc-apps');
 }
 
 var populateInterfaceTopAppsTable = function(){
   emptyAppsBreadCrumb();
   $('#historical-apps-container').removeAttr("host");
   $("#bc-apps").append('<li>Interface ]] print(getInterfaceName(ifid)) print [[</li>');
+  addObservationPeriodToBreadCrumb(']] print(top_apps_url_params) print[[', '#bc-apps');
 
   hideAll("app-talkers");
   hideAll("peers-by-app");
@@ -961,6 +1017,7 @@ var populateAppTopTalkersTable = function(proto_id){
   $('.bc-app-item-add, .bc-app-item-remove').on('click', function(){
     $('.bc-app-item-add, .bc-app-item-remove').toggle();
   });
+  addObservationPeriodToBreadCrumb(']] print(top_apps_url_params) print[[', '#bc-apps');
 
   // LOAD TABLE CONTENTS
   var div_id = 'app-' + proto_id;
@@ -1140,6 +1197,7 @@ var populateHostTopAppsTable = function(host){
   $('#historical-apps-container').removeAttr("l7_proto");
   $('#historical-apps-container').removeAttr("l7_proto_id");
   $("#bc-apps").append('<li>' + host +' protocols</li>');
+  addObservationPeriodToBreadCrumb(']] print(top_apps_url_params) print[[', '#bc-apps');
 
   // remove the favourite top apps dropdowns
   $('#top_applications_app').parent().closest('div').detach();
