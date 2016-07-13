@@ -37,6 +37,7 @@ on_disk_dbs_active = ""
 nbox_active = ""
 alerts_active = ""
 users_active = ""
+logging_active = ""
 
 if (subpage_active == nil or subpage_active == "") then
   subpage_active = "report"
@@ -62,6 +63,9 @@ if (subpage_active == "alerts") then
 end
 if (subpage_active == "users") then
   users_active = "active"
+end
+if (subpage_active == "logging") then
+  logging_active = "active"
 end
 
 
@@ -379,6 +383,21 @@ function printStatsRrds()
   </form> ]]
 end
 
+-- ================================================================================
+function printLogging()
+  print('<form>')
+  print('<input type=hidden name="subpage_active" value="logging"/>\n')
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">Logging</th></tr>')
+
+  loggingSelector("Logging level", "Choose the logging level.", "toggle_logging_level", "ntopng.prefs.logging_level")
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+  print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form> ]]
+end
+
 
    print[[
        <table class="table table-bordered">
@@ -392,6 +411,7 @@ end
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a> 
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=logging" class="list-group-item ]] print(logging_active) print[[">Log</a> 
 ]]
 
    if (ntop.isPro()) then
@@ -424,6 +444,9 @@ if (subpage_active == "nbox") then
 end
 if (subpage_active == "users") then
    printUsers()
+end
+if (subpage_active == "logging") then
+  printLogging()
 end
 
 print[[
