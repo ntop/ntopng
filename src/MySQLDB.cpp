@@ -690,8 +690,15 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
   if((rc != 0) || ((result = mysql_store_result(&mysql)) == NULL)) {
     rc = mysql_errno(&mysql);
 
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d]",
-				 get_last_db_error(&mysql), rc);
+    if(rc == 0) {
+      /* This query does not have results */
+      lua_pushnil(vm);
+      if(m) m->unlock(__FILE__, __LINE__);
+      return(rc);
+    }
+
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: [%s][%d][%s]",
+				 get_last_db_error(&mysql), rc, sql);
 
     lua_pushstring(vm, get_last_db_error(&mysql));
     if(m) m->unlock(__FILE__, __LINE__);
