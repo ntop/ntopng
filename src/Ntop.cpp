@@ -301,6 +301,28 @@ void Ntop::start() {
   sleep(2);
   address->startResolveAddressLoop();
 
+  char lvlStr[32];
+  if(redis->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL, lvlStr, sizeof(lvlStr)) == 0){
+      if(!strcmp(lvlStr, "trace")){
+          getTrace()->set_trace_level(TRACE_LEVEL_TRACE);
+      }
+      else if(!strcmp(lvlStr, "debug")){
+          getTrace()->set_trace_level(TRACE_LEVEL_DEBUG);
+      }
+      else if(!strcmp(lvlStr, "info")){
+          getTrace()->set_trace_level(TRACE_LEVEL_INFO);
+      }
+      else if(!strcmp(lvlStr, "normal")){
+          getTrace()->set_trace_level(TRACE_LEVEL_NORMAL);
+      }
+      else if(!strcmp(lvlStr, "warning")){
+          getTrace()->set_trace_level(TRACE_LEVEL_WARNING);
+      }
+      else if(!strcmp(lvlStr, "error")){
+          getTrace()->set_trace_level(TRACE_LEVEL_ERROR);
+      }
+  }
+
   while(!globals->isShutdown()) {
     u_int16_t nap = ntop->getPrefs()->get_housekeeping_frequency();
     ntop->getTrace()->traceEvent(TRACE_DEBUG,
@@ -910,12 +932,12 @@ bool Ntop::changeAllowedNets(char *username, char *allowed_nets) const {
 bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
   /* Add as exception :// */
   char *column_slash = strstr(allowed_ifname, ":__");
-  
+
   if (username == NULL || username[0] == '\0')
     return false;
-  
+
   if(column_slash)
-    column_slash[1] = column_slash[2] = '/';  
+    column_slash[1] = column_slash[2] = '/';
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
 			       "Changing allowed ifname to %s for %s",
@@ -1145,7 +1167,7 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
   }
 
   /* if here, name is a string */
-  for(int i=0; i<num_defined_interfaces; i++) {    
+  for(int i=0; i<num_defined_interfaces; i++) {
     if(strstr(name, iface[i]->get_name()))
       return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
   }
