@@ -71,3 +71,13 @@ pro
 scripts/lua/pro
 tools/gdbsudo
 nbproject
+.cproject
+.project
+Doxyfile
+conowatch.wiki/
+doc/doxydoc/
+logo.png
+logo.xcf
+logobase.jpg
+logobase.png
+representations.aird
