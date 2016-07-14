@@ -2135,12 +2135,24 @@ end
 
 -- print TCP flags
 function printTCPFlags(flags)
-      if(hasbit(flags,0x01)) then print('<span class="label label-info">FIN</span> ') end
-      if(hasbit(flags,0x02)) then print('<span class="label label-info">SYN</span> ')  end
-      if(hasbit(flags,0x04)) then print('<span class="label label-danger">RST</span> ') end
-      if(hasbit(flags,0x08)) then print('<span class="label label-info">PUSH</span> ') end
-      if(hasbit(flags,0x10)) then print('<span class="label label-info">ACK</span> ')  end
-      if(hasbit(flags,0x20)) then print('<span class="label label-info">URG</span> ')  end
+   if(hasbit(flags,0x01)) then print('<span class="label label-info">FIN</span> ') end
+   if(hasbit(flags,0x02)) then print('<span class="label label-info">SYN</span> ')  end
+   if(hasbit(flags,0x04)) then print('<span class="label label-danger">RST</span> ') end
+   if(hasbit(flags,0x08)) then print('<span class="label label-info">PUSH</span> ') end
+   if(hasbit(flags,0x10)) then print('<span class="label label-info">ACK</span> ')  end
+   if(hasbit(flags,0x20)) then print('<span class="label label-info">URG</span> ')  end
+end
+
+-- convert the integer carrying TCP flags in a more conventient lua table
+function TCPFlags2table(flags)
+   local res = {["FIN"] = 0, ["SYN"] = 0, ["RST"] = 0, ["PSH"] = 0, ["ACK"] = 0, ["URG"] = 0}
+   if(hasbit(flags,0x01)) then res["FIN"] = 1 end
+   if(hasbit(flags,0x02)) then res["SYN"] = 1 end
+   if(hasbit(flags,0x04)) then res["RST"] = 1 end
+   if(hasbit(flags,0x08)) then res["PSH"] = 1 end
+   if(hasbit(flags,0x10)) then res["ACK"] = 1 end
+   if(hasbit(flags,0x20)) then res["URG"] = 1 end
+   return res
 end
 
 -- ##########################################
