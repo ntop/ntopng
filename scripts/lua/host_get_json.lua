@@ -114,8 +114,13 @@ else
 	    ["cli2srv.throughput_bps"] = round(fl["throughput_cli2srv_bps"], 2),
 	    ["srv2cli.throughput_bps"] = round(fl["throughput_srv2cli_bps"], 2),
 	    ["cli2srv.throughput_pps"] = round(fl["throughput_cli2srv_pps"], 2),
-	    ["srv2cli.throughput_pps"] = round(fl["throughput_srv2cli_pps"], 2)
+	    ["srv2cli.throughput_pps"] = round(fl["throughput_srv2cli_pps"], 2),
 	 }
+	 if fl["proto.l4"] == "TCP" then
+	    flows[i]["cli2srv.tcp_flags"] = TCPFlags2table(fl["cli2srv.tcp_flags"])
+	    flows[i]["srv2cli.tcp_flags"] = TCPFlags2table(fl["srv2cli.tcp_flags"])
+	    flows[i]["tcp_established"]   = fl["tcp_established"]
+	 end
       end
       hj["ndpiThroughputStats"] = flows2protocolthpt(flows)
       hj["flows"] = flows
