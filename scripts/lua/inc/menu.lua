@@ -118,11 +118,6 @@ end
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP Servers (Local)</a></li>')
 
-info = ntop.getInfo()
-if(info["version.enterprise_edition"] == true) then
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow Devices</a></li>')
-end
-
 print('<li class="divider"></li>')
 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts (Local)</a></li>')
@@ -154,6 +149,28 @@ if(_ifstats["has_mesh_networks_traffic"]) then
 end
 
 print("</ul> </li>")
+
+-- Devices
+info = ntop.getInfo()
+if(info["version.enterprise_edition"] == true) then
+if active_page == "devices_stats" then
+  print [[ <li class="dropdown active"> ]]
+else
+  print [[ <li class="dropdown"> ]]
+end
+
+print [[
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">Devices <b class="caret"></b>
+      </a>
+      <ul class="dropdown-menu">
+]]
+
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow</a></li>')
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">SNMP</a></li>')
+
+print("</ul> </li>")
+end
+
 
 
 -- Interfaces
