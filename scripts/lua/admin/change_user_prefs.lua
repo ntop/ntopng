@@ -33,7 +33,7 @@ if(networks ~= nil) then
 end
 
 if(allowed_interface ~= nil) then
-   if(not ntop.changeAllowedIfname(username, allowed_interface)) then
+   if(not ntop.changeAllowedIfname(username, getInterfaceName(allowed_interface))) then
       print ("{ \"result\" : -1, \"message\" : \"Error in changing the allowed interface\" }")
       return 
    end

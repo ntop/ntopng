@@ -100,7 +100,7 @@ print [[
 ]]
 for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
    -- io.write(interface_name.."\n")
-   print('<option value="'..interface_name..'"> '..interface_name..'</option>')
+   print('<option value="'..getInterfaceId(interface_name)..'"> '..interface_name..'</option>')
 end
 print[[
     </select>
@@ -215,8 +215,10 @@ function reset_pwd_dialog(user) {
       $('#confirm_password_input').val('');
       $('#host_role_select option[value = '+data.group+']').attr('selected','selected');
       $('#networks_input').val(data.allowed_nets);
-      $('#allowed_interface option[value = "'+data.allowed_ifname+'"]').attr('selected','selected');
-
+      $('#allowed_interface option').filter(function () {
+        return $(this).html().trim() == data.allowed_ifname;
+      }).attr('selected','selected');
+      -- $('#allowed_interface option[value = "'+data.allowed_ifname+'"]').attr('selected','selected');
       $('#form_pref_change').show();
       $('#pref_part_separator').show();
       $('#password_alert_placeholder').html('');
