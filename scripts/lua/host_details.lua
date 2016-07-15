@@ -364,10 +364,12 @@ if((page == "overview") or (page == nil)) then
 
 	 if(isAdministrator()) then
 	 print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	 print(host_info["host"])
-	 print('"><input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='..ifname..'&page=packetdump">Dump Traffic</a> </input>')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">]]
+
+	 print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+	 print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+
+	 print('<input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?if_name='..ifname..'&page=packetdump&'..hostinfo2url(host_info)..'">Dump Traffic</a> </input>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('</form>')
 	 end
@@ -484,8 +486,10 @@ print [[
 	    drop_traffic_value = "true" -- Opposite
 	 end
 
-	 print('<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;"><input type="hidden" name="host" value="'..host_info["host"])
-	 print('"><input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
+	 print('<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">')
+	 print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+	 print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+	 print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('</form>')
       else
@@ -514,11 +518,12 @@ print [[
 
          host_quota_value = host["host_quota_mb"]
          if(_GET["host_quota"] ~= nil) then host_quota_value = _GET["host_quota"] end
-	 print [[<td>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="host" value="]]
-	       print(host_info["host"])
-	       print('"><input type="hidden" name="host_quota" value="'..host_quota_value..'">Host quota <input type="number" name="host_quota" placeholder="" min="0" step="100" max="100000" value="')print(tostring(host_quota_value))
+	 print [[<td><form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">]]
+
+	 print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+	 print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+
+	 print('<input type="hidden" name="host_quota" value="'..host_quota_value..'">Host quota <input type="number" name="host_quota" placeholder="" min="0" step="100" max="100000" value="')print(tostring(host_quota_value))
          print [[" onclick="this.form.submit();"> MB</input>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
          print('</form>')
 	 print('</td></tr>')
@@ -563,13 +568,12 @@ if(host["ip"] ~= nil) then
     if(isAdministrator()) then
        print("<td>")
 
-print [[
-<form class="form-inline" style="margin-bottom: 0px;">
-      	 <input type="hidden" name="host" value="]]
-      print(host_info["host"])
-print [[">
+       print [[<form class="form-inline" style="margin-bottom: 0px;">]]
 
-	 <input type="text" name="custom_name" placeholder="Custom Name" value="]]
+       print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+       print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+
+       print[[<input type="text" name="custom_name" placeholder="Custom Name" value="]]
       if(host["label"] ~= nil) then print(host["label"]) end
 print [["></input>
 	 &nbsp;<button style="position: relative; margin-top: 0; height: 26px" type="submit" class="btn btn-default btn-xs">Save Custom Name</button>]]
@@ -1856,21 +1860,57 @@ elseif (page == "config") then
       end
    end
 
-   local flow_rate_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold')
-   local syn_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold')
-   local flows_alert_thresh = ntop.getCache('ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold')
-   if (flow_rate_alert_thresh == nil or flow_rate_alert_thresh == "") then flow_rate_alert_thresh = 25 end
-   if (syn_alert_thresh == nil or syn_alert_thresh == "") then syn_alert_thresh = 10 end
-   if (flows_alert_thresh == nil or flows_alert_thresh == "") then flows_alert_thresh = 32768 end
+   local flow_rate_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
+   local syn_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
+   local flows_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold'
+   
+   if _GET["flow_rate_alert_threshold"] ~= nil and _GET["flow_rate_alert_threshold"] ~= "" then
+      ntop.setPref(flow_rate_alert_thresh, _GET["flow_rate_alert_threshold"])
+      flow_rate_alert_thresh = _GET["flow_rate_alert_threshold"]
+   else
+      local v = ntop.getPref(flow_rate_alert_thresh)
+      if v ~= nil and v ~= "" then
+	 flow_rate_alert_thresh = v
+      else
+	 flow_rate_alert_thresh = 25
+      end
+   end
+
+   if _GET["syn_alert_threshold"] ~= nil and _GET["syn_alert_threshold"] ~= "" then
+      ntop.setPref(syn_alert_thresh, _GET["syn_alert_threshold"])
+      syn_alert_thresh = _GET["syn_alert_threshold"]
+   else
+      local v = ntop.getPref(syn_alert_thresh)
+      if v ~= nil and v ~= "" then
+	 syn_alert_thresh = v
+      else
+	 syn_alert_thresh = 10
+      end
+   end
+   if _GET["flows_alert_threshold"] ~= nil and _GET["flows_alert_threshold"] ~= "" then
+      ntop.setPref(flows_alert_thresh, _GET["flows_alert_threshold"])
+      flows_alert_thresh = _GET["flows_alert_threshold"]
+   else
+      local v = ntop.getPref(flows_alert_thresh)
+      if v ~= nil and v ~= "" then
+	 flows_alert_thresh = v
+      else
+	 flows_alert_thresh = 32768
+      end
+   end
+
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=250>Host Flow Alert Threshold</th>\n")
    print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-        <input type="hidden" name="host" value="]] print(host_ip) print [[">]]
-	print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
-        print(tostring(flow_rate_alert_thresh))
-        print [["></input>
+   print[[<form class="form-inline" style="margin-bottom: 0px;">]]
+
+   print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+   print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
+   print(tostring(flow_rate_alert_thresh))
+   print [["></input>
 	&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
     </form>
 <small>
@@ -1882,10 +1922,11 @@ elseif (page == "config") then
 
        print("<tr><th width=250>Host SYN Alert Threshold</th>\n")
       print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host_ip)
-      print [[">]]
+      print[[<form class="form-inline" style="margin-bottom: 0px;">]]
+
+      print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+      print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
          print(tostring(syn_alert_thresh))
@@ -1901,10 +1942,11 @@ elseif (page == "config") then
 
        print("<tr><th width=250>Host Flows Threshold</th>\n")
       print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="host" value="]]
-      print(host_ip)
-      print [[">]]
+      print[[<form class="form-inline" style="margin-bottom: 0px;">]]
+
+      print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+      print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+   
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
          print(tostring(flows_alert_thresh))
@@ -1930,11 +1972,12 @@ elseif (page == "config") then
     print [[
          <tr><th>Host Alerts</th><td nowrap>
          <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="tab" value="alerts_preferences">
-         <input type="hidden" name="host" value="]]
+         <input type="hidden" name="tab" value="alerts_preferences">]]
 
-      print(host_ip)
-      print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for host '..host_ip..'</input>')
+    print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
+    print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
+
+      print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for host '..host_ip..'</input>')
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print('<input type="hidden" name="page" value="config">')
       print('</form>')
