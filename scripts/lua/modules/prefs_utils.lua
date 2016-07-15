@@ -317,6 +317,8 @@ function loggingSelector(label, comment, submit_field, redis_key)
   else color = "default"
   end
 
+  prefs = ntop.getPrefs()
+  if(prefs.has_cmdl_trace_lvl) then print('<tr><td width=100%><div class="alert alert-warning" role="alert"><strong>Warning!</strong> A trace level has been provided on the command line or configuration file, therefore, this setting will be ignored.</div></td></tr>') end
   if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
   print[[
      <input id="]] print(submit_field) print[[" name="]] print(submit_field) print[[" type="hidden">

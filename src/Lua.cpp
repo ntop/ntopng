@@ -4450,6 +4450,7 @@ static int ntop_set_logging_level(lua_State* vm) {
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "%s() called", __FUNCTION__);
 
+    if(ntop->getPrefs()->hasCmdlTraceLevel()) return(CONST_LUA_OK);
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING))  return(CONST_LUA_ERROR);
     lvlStr = (char*)lua_tostring(vm, 1);
     if(!strcmp(lvlStr, "trace")){
