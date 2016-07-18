@@ -24,6 +24,7 @@ host_name   = hostinfo2hostkey(host_info)
 host_vlan   = host_info["vlan"] or 0
 always_show_hist = _GET["always_show_hist"]
 
+ntopinfo    = ntop.getInfo()
 active_page = "hosts"
 
 if((host_name == nil) or (host_ip == nil)) then
@@ -375,6 +376,24 @@ if((page == "overview") or (page == nil)) then
 	 end
 	 print('</td></tr>')
       end
+
+      if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
+	 local ports = find_mac_snmp_ports(host["mac"])
+
+	 if(ports ~= nil) then
+	    local rsps = 1
+
+	    for host,port in pairs(ports) do
+	       rsps = rsps + 1
+	    end
+	    print("<tr><th width=35% rowspan="..rsps..">Host SNMP Location</th><th>SNMP Device</th><th>Device Port</th></tr>\n")
+	    for host,port in pairs(ports) do
+	       print("<tr><td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host="..host..">"..ntop.getResolvedAddress(host).."</A></td>")
+	       print("<td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port..">"..port.."</td></tr>\n")
+	    end
+	 end
+      end
+
    
       if host.deviceIfIdx ~= nil and host.deviceIfIdx ~= 0 and ntop.isPro() then
 	 print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIndex=".. host.deviceIfIdx..">".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
