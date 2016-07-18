@@ -382,8 +382,8 @@ class Ntop {
   inline NagiosManager*    getNagios()               { return(nagios_manager);      };
 #endif
 
-  void getUsers(lua_State* vm); 
-  void getUserGroup(lua_State* vm);  
+  void getUsers(lua_State* vm);
+  void getUserGroup(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);
   bool getInterfaceAllowed(lua_State* vm, char *ifname)      const;
   bool isInterfaceAllowed(lua_State* vm, const char *ifname) const;
@@ -406,6 +406,7 @@ class Ntop {
   inline char* getLocalNetworkName(int16_t local_network_id) { return(address->get_local_network((u_int8_t)local_network_id)); };
   void createExportInterface();
   void initRedis();
+  void setTraceLevelFromRedis();
   void initElasticSearch();
 
   inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }

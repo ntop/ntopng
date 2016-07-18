@@ -343,6 +343,7 @@
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG             "ntopng.prefs.alerts_syslog"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_ALERT_PROBING            "ntopng.prefs.probing_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_NBOX_INTEGRATION         "ntopng.prefs.nbox_integration" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_LOGGING_LEVEL            "ntopng.prefs.logging_level"
 #ifdef NTOPNG_PRO
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */
