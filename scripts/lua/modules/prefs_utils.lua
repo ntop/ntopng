@@ -300,12 +300,19 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
 end
 
 function loggingSelector(label, comment, submit_field, redis_key)
+  prefs = ntop.getPrefs()
+  if prefs.has_cmdl_trace_lvl then return end
+
   if(_GET[submit_field] ~= nil) then
     ntop.setCache(redis_key, _GET[submit_field])
     value = _GET[submit_field]
     notifyNtopng(submit_field, _GET[submit_field])
   else
     value = ntop.getCache(redis_key)
+  end
+
+  if value == "" or value == nil then
+     value = "normal"
   end
 
   if(value == "trace") then color = "default"
@@ -317,8 +324,8 @@ function loggingSelector(label, comment, submit_field, redis_key)
   else color = "default"
   end
 
-  prefs = ntop.getPrefs()
-  if(prefs.has_cmdl_trace_lvl) then print('<tr><td width=100%><div class="alert alert-warning" role="alert"><strong>Warning!</strong> A trace level has been provided on the command line or configuration file, therefore, this setting will be ignored.</div></td></tr>') end
+
+
   if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
   print[[
      <input id="]] print(submit_field) print[[" name="]] print(submit_field) print[[" type="hidden">
@@ -336,7 +343,7 @@ function loggingSelector(label, comment, submit_field, redis_key)
       </ul>
     </div>
     
-    <script>
+    <script type="text/javascript">
       $(".dropdown-menu li a").click(function(){
         $(this).parents('.btn-group').find('.dropdown-toggle').html($(this).text()+'<span class="caret"></span>');
         $(".btn:first").removeClass("btn-default");
