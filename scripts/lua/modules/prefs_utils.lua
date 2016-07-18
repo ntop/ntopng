@@ -14,6 +14,9 @@ function notifyNtopng(key)
     if string.starts(key, 'nagios') then
         if verbose then io.write('notifying ntopng upon nagios pref change\n') end
         ntop.reloadNagiosConfig()
+    elseif string.starts(key, 'toggle_logging_level') then
+        if verbose then io.write('notifying ntopng upon logging level pref change\n') end 
+        ntop.setLoggingLevel(value)
     end
 end
 
@@ -292,6 +295,95 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     print('</script>\n')
     if(label ~= "") then print('</td></tr>') end
   end
+
+  return(value)
+end
+
+function loggingSelector(label, comment, submit_field, redis_key)
+  prefs = ntop.getPrefs()
+  if prefs.has_cmdl_trace_lvl then return end
+
+  if(_GET[submit_field] ~= nil) then
+    ntop.setCache(redis_key, _GET[submit_field])
+    value = _GET[submit_field]
+    notifyNtopng(submit_field, _GET[submit_field])
+  else
+    value = ntop.getCache(redis_key)
+  end
+
+  if value == "" or value == nil then
+     value = "normal"
+  end
+
+  if(value == "trace") then color = "default"
+  elseif(value == "debug") then color = "success"
+  elseif(value == "info") then color = "info"
+  elseif(value == "normal") then color = "primary"
+  elseif(value == "warning") then color = "warning"
+  elseif(value == "error") then color = "danger"
+  else color = "default"
+  end
+
+
+
+  if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
+  print[[
+     <input id="]] print(submit_field) print[[" name="]] print(submit_field) print[[" type="hidden">
+     <div class="dropdown">
+      <button class="btn btn-]] print(color) print[[ dropdown-toggle" type="button" data-toggle="dropdown">]] print(value:gsub("^%l", string.upper))
+  print[[
+      <span class="caret"></span></button>
+      <ul class="dropdown-menu dropdown-menu-right">
+        <li onclick="$('#]] print(submit_field) print[[').val('trace');"><a href="#">Trace</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('debug');"><a href="#">Debug</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('info');"><a href="#">Info</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('normal');"><a href="#">Normal</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('warning');"><a href="#">Warning</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('error');"><a href="#">Error</a></li>
+      </ul>
+    </div>
+    
+    <script type="text/javascript">
+      $(".dropdown-menu li a").click(function(){
+        $(this).parents('.btn-group').find('.dropdown-toggle').html($(this).text()+'<span class="caret"></span>');
+        $(".btn:first").removeClass("btn-default");
+        $(".btn:first").removeClass("btn-success");
+        $(".btn:first").removeClass("btn-info");
+        $(".btn:first").removeClass("btn-primary");
+        $(".btn:first").removeClass("btn-warning");
+        $(".btn:first").removeClass("btn-danger");
+        switch($(this).text()){
+            case "Trace":
+                $(".btn:first").addClass("btn-default");
+                $(".btn:first").html("Trace "+'<span class="caret"></span>');
+                break;
+            case "Debug":
+                $(".btn:first").addClass("btn-success");
+                $(".btn:first").html("Debug "+'<span class="caret"></span>');
+                break;
+            case "Info":
+                $(".btn:first").addClass("btn-info");
+                $(".btn:first").html("Info "+'<span class="caret"></span>');
+                break;
+            case "Normal":
+                $(".btn:first").addClass("btn-primary");
+                $(".btn:first").html("Normal "+'<span class="caret"></span>');
+                break;
+            case "Warning":
+                $(".btn:first").addClass("btn-warning");
+                $(".btn:first").html("Warning "+'<span class="caret"></span>');
+                break;
+            case "Error":
+                $(".btn:first").addClass("btn-danger");
+                $(".btn:first").html("Error "+'<span class="caret"></span>');
+                break;
+            default:
+                $(".btn:first").addClass("btn-default");
+        }
+      });
+    </script>
+  ]]
+  if(label ~= "") then print('</td></tr>') end
 
   return(value)
 end

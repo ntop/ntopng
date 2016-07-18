@@ -58,7 +58,7 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
     char *syslogMsg;
 #endif
     char filebuf[MAX_PATH];
-    const char *backslash = strrchr(_file, 
+    const char *backslash = strrchr(_file,
 #ifdef WIN32
 				    '\\'
 #else
@@ -69,7 +69,7 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
     if(backslash != NULL) {
       snprintf(filebuf, sizeof(filebuf), "%s", &backslash[1]);
       file = (char*)filebuf;
-    } 
+    }
 
     va_start (va_ap, format);
 
@@ -171,7 +171,7 @@ VOID Trace::AddToMessageLog(LPTSTR lpszMsg) {
 
 	DeregisterEventSource(hEventSource);
       }
-    } 
+    }
 }
 #endif
 

@@ -37,31 +37,40 @@ on_disk_dbs_active = ""
 nbox_active = ""
 alerts_active = ""
 users_active = ""
+logging_active = ""
 
 if (subpage_active == nil or subpage_active == "") then
   subpage_active = "report"
 end
 
 if (subpage_active == "report") then
-  report_active = "active"
+   report_active = "active"
 end
 if (subpage_active == "in_memory") then
-  in_memory_active = "active"
+   in_memory_active = "active"
 end
 if (subpage_active == "on_disk_rrds") then
-  on_disk_rrds_active = "active"
+   on_disk_rrds_active = "active"
 end
 if (subpage_active == "on_disk_dbs") then
-  on_disk_dbs_active = "active"
+   on_disk_dbs_active = "active"
 end
 if (subpage_active == "nbox") then
-  nbox_active = "active"
+   nbox_active = "active"
 end
 if (subpage_active == "alerts") then
-  alerts_active = "active"
+   alerts_active = "active"
 end
 if (subpage_active == "users") then
-  users_active = "active"
+   users_active = "active"
+end
+if (subpage_active == "logging") then
+   if not prefs.has_cmdl_trace_lvl then
+      logging_active = "active"
+   else
+      -- cannot change logging level when it has been specified from the command line
+      report_active = "active" -- default
+   end
 end
 
 
@@ -379,6 +388,23 @@ function printStatsRrds()
   </form> ]]
 end
 
+-- ================================================================================
+function printLogging()
+  if prefs.has_cmdl_trace_lvl then return end
+  print('<form>')
+  print('<input type=hidden name="subpage_active" value="logging"/>\n')
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">Logging</th></tr>')
+
+  loggingSelector("Log level", "Choose the runtime logging level.", "toggle_logging_level", "ntopng.prefs.logging_level")
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form>
+  </table>]]
+end
+
 
    print[[
        <table class="table table-bordered">
@@ -391,8 +417,10 @@ end
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_rrds" class="list-group-item ]] print(on_disk_rrds_active) print[[">On-Disk Timeseries</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a> 
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>
-]]
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>]]
+   if not prefs.has_cmdl_trace_lvl then
+      print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=logging" class="list-group-item ]] print(logging_active) print[[">Log Level</a> ]]
+   end
 
    if (ntop.isPro()) then
       print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=nbox" class="list-group-item ]] print(nbox_active) print[[">nBox Integration</a> ]]
@@ -403,27 +431,34 @@ print[[
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
 if (subpage_active == "report") then
-  printReportVisualization()
+   printReportVisualization()
 end
 if (subpage_active == "in_memory") then
-  printInMemory()
+   printInMemory()
 end
 if (subpage_active == "on_disk_rrds") then
-  printStatsRrds()
+   printStatsRrds()
 end
 if (subpage_active == "on_disk_dbs") then
-  printStatsDatabases()
+   printStatsDatabases()
 end
 if (subpage_active == "alerts") then
-  printAlerts()
+   printAlerts()
 end
 if (subpage_active == "nbox") then
   if (ntop.isPro()) then
-    printNbox()
+     printNbox()
   end
 end
 if (subpage_active == "users") then
    printUsers()
+end
+if (subpage_active == "logging") then
+   if not prefs.has_cmdl_trace_lvl then
+      printLogging()
+   else
+      printReportVisualization()
+   end
 end
 
 print[[

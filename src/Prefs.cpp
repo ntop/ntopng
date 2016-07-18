@@ -95,6 +95,8 @@ Prefs::Prefs(Ntop *_ntop) {
 
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
 
+  has_cmdl_trace_lvl = false;
+
 }
 
 /* ******************************************* */
@@ -439,7 +441,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       if(optarg)
 	snprintf(p, len-1, "--%s \"%s\" ", opt, optarg);
       else
-	snprintf(p, len-1, "--%s ", opt);      
+	snprintf(p, len-1, "--%s ", opt);
     } else {
       if(optarg)
 	snprintf(p, len-1, "-%c %s ", optkey, optarg);
@@ -726,6 +728,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'v':
+	has_cmdl_trace_lvl = true;
     ntop->getTrace()->set_trace_level(max(min(atoi(optarg), MAX_TRACE_LEVEL), 0));
     break;
 
@@ -1090,7 +1093,10 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "housekeeping_frequency", housekeeping_frequency);
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
-  
+
+  /* Command line options */
+  lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
+
 #ifdef NTOPNG_PRO
   if(ntop->getNagios()) ntop->getNagios()->lua(vm);
 

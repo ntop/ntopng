@@ -81,12 +81,13 @@ class Prefs {
   FILE *logFd;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
+  bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
   int setOption(int optkey, char *optarg);
   int checkOptions();
-  
+
   void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
   void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
 
@@ -198,6 +199,7 @@ class Prefs {
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
+  inline bool hasCmdlTraceLevel(){return has_cmdl_trace_lvl;}
 };
 
 #endif /* _PREFS_H_ */
