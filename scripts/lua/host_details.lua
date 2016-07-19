@@ -273,6 +273,8 @@ else
 
 end
 
+if(false) then
+-- NOTE: code temporarely disabled
 if(not(isLoopback(ifname))) then
    if(page == "jaccard") then
       print("<li class=\"active\"><a href=\"#\">Similarity</a></li>\n")
@@ -281,6 +283,7 @@ if(not(isLoopback(ifname))) then
 	 print("<li><a href=\""..url.."&page=jaccard\">Similarity</a></li>")
       end
    end
+end
 end
 
 if(host.systemhost) then
@@ -386,10 +389,13 @@ if((page == "overview") or (page == nil)) then
 	    for host,port in pairs(ports) do
 	       rsps = rsps + 1
 	    end
-	    print("<tr><th width=35% rowspan="..rsps..">Host SNMP Location</th><th>SNMP Device</th><th>Device Port</th></tr>\n")
-	    for host,port in pairs(ports) do
-	       print("<tr><td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host="..host..">"..ntop.getResolvedAddress(host).."</A></td>")
-	       print("<td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port..">"..port.."</td></tr>\n")
+	    
+	    if(rsps > 1) then
+	    	    print("<tr><th width=35% rowspan="..rsps..">Host SNMP Location</th><th>SNMP Device</th><th>Device Port</th></tr>\n")
+	    	    for host,port in pairs(ports) do
+		    	       print("<tr><td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host="..host..">"..ntop.getResolvedAddress(host).."</A></td>")
+			       	       print("<td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port..">"..port.."</td></tr>\n")
+		    end
 	    end
 	 end
       end
@@ -1503,6 +1509,7 @@ print [[
 ]]
 
 elseif(page == "jaccard") then
+-- NOTE: code temporarely disabled
 
 print [[
 <div id="prg" class="container">
