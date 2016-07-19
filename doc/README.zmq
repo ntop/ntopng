@@ -43,7 +43,10 @@ roles of nProbe/ntopng. This can be done as follows. Suppose nprobe runs n host 
 ntopng on host IP 46.101.x.y. In this case you need to start the applications as follows
 
 # nprobe --zmq-probe-mode --zmq "tcp://46.101.x.y:5556" -i eth1 -n none
-# ntopng --zmq-collector-mode -i "tcp://*:5556"
+# ntopng -i "tcp://*:5556c"
 
-In essence you revert the roles of nProbe and ntopng. In this setup they behave as 
-NetFlow/IPFIX probes do.
+NOTES
+- A small (lowercase) 'c' letter has been added in the ntopng configuration to indicate that
+  this ZMQ socket is running in collector mode
+- In essence you revert the roles of nProbe and ntopng. In this setup they behave as 
+  NetFlow/IPFIX probes do.
