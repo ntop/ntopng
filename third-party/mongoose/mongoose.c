@@ -4514,6 +4514,7 @@ static int set_ports_option(struct mg_context *ctx) {
     close_all_listening_sockets(ctx);
   }
 #if defined _UTILS_H_ && defined _NTOP_CLASS_H_
+  else {
   /*
     Privileges drop may have been delayed until now, that is,
     after the bind(). This happens when the web server needs to be
@@ -4524,6 +4525,7 @@ static int set_ports_option(struct mg_context *ctx) {
      && ( (ntop->getPrefs()->get_http_port()   < 1024)
        || (ntop->getPrefs()->get_https_port()  < 1024)))
     Utils::dropPrivileges();
+  }
 #endif
   return success;
 }
