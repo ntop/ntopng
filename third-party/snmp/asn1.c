@@ -278,7 +278,7 @@ static void *read_oid_part(void *src, int *part)
 
 static void *read_oid(void *src, char **oid, int size)
 {
-	int parts[MAX_OID_PARTS + 1];
+  int parts[MAX_OID_PARTS + 1];
   int first_byte;
   int i;
   void *endp = (unsigned char *)src + size;
