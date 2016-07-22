@@ -406,7 +406,6 @@ class Ntop {
   inline char* getLocalNetworkName(int16_t local_network_id) { return(address->get_local_network((u_int8_t)local_network_id)); };
   void createExportInterface();
   void initRedis();
-  void setTraceLevelFromRedis();
   void initElasticSearch();
 
   inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }

@@ -82,13 +82,17 @@ class Prefs {
   char *es_type, *es_index, *es_url, *es_user, *es_pwd;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
   bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
+  bool has_cmdl_disable_alerts;	/**< Indicate whether alerts were forcefully disabled from the command line */
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
   int setOption(int optkey, char *optarg);
   int checkOptions();
 
-  void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
+  void setTraceLevelFromRedis();
+  void setAlertsEnabledFromRedis();
+
+ void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
   void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
 
  public:
@@ -144,6 +148,7 @@ class Prefs {
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline char* get_instance_name()                      { return(instance_name); };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
+  inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  is_host_persistency_enabled()            { return(disable_host_persistency ? false : true); };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);        };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
@@ -170,7 +175,7 @@ class Prefs {
   inline bool json_labels_as_strings()                        { return(json_labels_string_format);       };
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
   void lua(lua_State* vm);
-  void loadIdleDefaults();
+  void reloadPrefsFromRedis();
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
   bool isView(char *name);
@@ -199,7 +204,8 @@ class Prefs {
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
-  inline bool hasCmdlTraceLevel(){return has_cmdl_trace_lvl;}
+  inline bool hasCmdlTraceLevel()    { return has_cmdl_trace_lvl;      }
+  inline bool hasCmdlDisableAlerts() { return has_cmdl_disable_alerts; }
 };
 
 #endif /* _PREFS_H_ */

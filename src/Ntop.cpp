@@ -220,7 +220,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   memset(iface, 0, sizeof(iface));
 
   initRedis();
-  setTraceLevelFromRedis();
   initElasticSearch();
 
 #ifdef NTOPNG_PRO
@@ -243,32 +242,6 @@ void Ntop::initRedis() {
   if(redis) delete(redis);
 
   redis = new Redis(prefs->get_redis_host(), prefs->get_redis_port(), prefs->get_redis_db_id());
-}
-
-/* ******************************************* */
-
-void Ntop::setTraceLevelFromRedis(){
-	char lvlStr[32];
-	if(!prefs->hasCmdlTraceLevel() && redis->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL, lvlStr, sizeof(lvlStr)) == 0){
-		if(!strcmp(lvlStr, "trace")){
-			ntop->getTrace()->set_trace_level(TRACE_LEVEL_TRACE);
-		}
-		else if(!strcmp(lvlStr, "debug")){
-			getTrace()->set_trace_level(TRACE_LEVEL_DEBUG);
-		}
-		else if(!strcmp(lvlStr, "info")){
-			getTrace()->set_trace_level(TRACE_LEVEL_INFO);
-		}
-		else if(!strcmp(lvlStr, "normal")){
-			getTrace()->set_trace_level(TRACE_LEVEL_NORMAL);
-		}
-		else if(!strcmp(lvlStr, "warning")){
-			getTrace()->set_trace_level(TRACE_LEVEL_WARNING);
-		}
-		else if(!strcmp(lvlStr, "error")){
-			getTrace()->set_trace_level(TRACE_LEVEL_ERROR);
-		}
-	}
 }
 
 /* ******************************************* */
@@ -312,7 +285,7 @@ void Ntop::start() {
 
   runtimeprefs = new RuntimePrefs();
 
-  prefs->loadIdleDefaults();
+  prefs->reloadPrefsFromRedis();
 #ifdef NTOPNG_PRO
   pro->printLicenseInfo();
 #endif

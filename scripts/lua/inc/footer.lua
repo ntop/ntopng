@@ -417,7 +417,12 @@ $(document).ready(function(){
     });
 });
 
-
+// hide the possibly shown alerts icon in the header
+]]
+if ntop.getPrefs().are_alerts_enabled == false then
+   print("$('#alerts-li').hide();")
+end
+print[[
 </script>
 
     </div> <!-- / header main container -->

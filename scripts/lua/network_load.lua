@@ -27,7 +27,13 @@ function dumpInterfaceStats(interface_name)
       hosts_pctg = math.floor(1+((ifstats.hosts*100)/prefs.max_num_hosts))
       flows_pctg = math.floor(1+((ifstats.flows*100)/prefs.max_num_flows))
 
-      print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.packets .. ', "bytes": ' .. ifstats.bytes .. ', "drops": ' .. ifstats.drops .. ', "alerts": '.. ntop.getNumQueuedAlerts() ..', "num_flows": '.. ifstats.flows .. ', "num_hosts": ' .. ifstats.hosts .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "flows_pctg": ' .. flows_pctg .. ', "remote_pps": ' .. ifstats.remote_pps ..', "remote_bps": ' .. ifstats.remote_bps)
+      print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.packets .. ', "bytes": ' .. ifstats.bytes .. ', "drops": ' .. ifstats.drops)
+
+      if prefs.are_alerts_enabled == true then
+	 print(', "alerts": '.. ntop.getNumQueuedAlerts())
+      end
+
+      print(', "num_flows": '.. ifstats.flows .. ', "num_hosts": ' .. ifstats.hosts .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "flows_pctg": ' .. flows_pctg .. ', "remote_pps": ' .. ifstats.remote_pps ..', "remote_bps": ' .. ifstats.remote_bps)
       print(', "is_view": '..tostring(ifstats.isView))
       print(', "local2remote": '.. ifstats["localstats"]["bytes"]["local2remote"]..', "remote2local": '..ifstats["localstats"]["bytes"]["remote2local"])
 

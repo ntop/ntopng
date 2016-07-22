@@ -21,7 +21,6 @@ if(haveAdminPrivileges()) then
    active_page = "admin"
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-   ntop.loadPrefsDefaults()
    prefs = ntop.getPrefs()
 
    print [[
@@ -59,7 +58,11 @@ if (subpage_active == "nbox") then
    nbox_active = "active"
 end
 if (subpage_active == "alerts") then
-   alerts_active = "active"
+   if not prefs.has_cmdl_disable_alerts then
+      alerts_active = "active"
+   else
+      report_active = "active" -- default
+   end
 end
 if (subpage_active == "users") then
    users_active = "active"
@@ -133,18 +136,37 @@ end
 
 -- ================================================================================
 function printAlerts()
+   if prefs.has_cmdl_disable_alerts then return end
   print('<form>')
   print('<input type=hidden name="subpage_active" value="alerts"/>\n')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Alerts</th></tr>')
 
+  toggleTableButtonPrefs("Enable Alerts",
+                    "Toggle the overall generation of alerts.",
+                    "On", "0", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
+		    "Off", "1", "danger", -- Off for enabled alerts implies 1 for disable_alerts_generation
+		    "disable_alerts_generation", "ntopng.prefs.disable_alerts_generation", "0")
+
+  if ntop.getPrefs().are_alerts_enabled == true then
+     showElements = false
+  else
+     showElements = true
+  end
+
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",
-                    "On", "1", "success", "Off", "0", "danger", "toggle_alert_probing", "ntopng.prefs.probing_alerts", "1")
+                    "On", "1", "success",
+		    "Off","0", "danger",
+		    "toggle_alert_probing", "ntopng.prefs.probing_alerts", "1",
+		    showElements)
 
   toggleTableButtonPrefs("Alerts On Syslog",
                     "Enable alerts logging on system syslog.",
-                    "On", "1", "success", "Off", "0", "danger", "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "1")
+                    "On", "1", "success",
+		    "Off", "0", "danger",
+		    "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "1",
+		    showElements)
 
   if (ntop.isPro()) then
     print('<tr><th colspan=2 class="info">Nagios Integration</th></tr>')
@@ -153,7 +175,11 @@ function printAlerts()
 
     toggleTableButtonPrefs("Alerts To Nagios",
                     "Enable sending ntopng alerts to Nagios NSCA (Nagios Service Check Acceptor).",
-                    "On", "1", "success", "Off", "0", "danger", "toggle_alert_nagios", "ntopng.prefs.alerts_nagios", "0", nil, elementToSwitch)
+                    "On", "1", "success",
+		    "Off", "0", "danger",
+		    "toggle_alert_nagios", "ntopng.prefs.alerts_nagios", "0",
+		    showElements,
+		    elementToSwitch)
 
     if ntop.getPref("ntopng.prefs.alerts_nagios") == "1" then
       showElements = true
@@ -415,9 +441,11 @@ end
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=users" class="list-group-item ]] print(users_active) print[[">Users</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=in_memory" class="list-group-item ]] print(in_memory_active) print[[">In-Memory Data</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_rrds" class="list-group-item ]] print(on_disk_rrds_active) print[[">On-Disk Timeseries</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a> 
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>]]
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>]]
+   if not prefs.has_cmdl_disable_alerts then
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a>]]
+   end
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>]]
    if not prefs.has_cmdl_trace_lvl then
       print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=logging" class="list-group-item ]] print(logging_active) print[[">Log Level</a> ]]
    end
@@ -443,7 +471,11 @@ if (subpage_active == "on_disk_dbs") then
    printStatsDatabases()
 end
 if (subpage_active == "alerts") then
-   printAlerts()
+   if not prefs.has_cmdl_disable_alerts then
+      printAlerts()
+   else
+      printReportVisualization()
+   end
 end
 if (subpage_active == "nbox") then
   if (ntop.isPro()) then

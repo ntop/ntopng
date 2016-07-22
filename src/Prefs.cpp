@@ -95,7 +95,8 @@ Prefs::Prefs(Ntop *_ntop) {
 
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
 
-  has_cmdl_trace_lvl = false;
+  has_cmdl_trace_lvl      = false;
+  has_cmdl_disable_alerts = false;
 
 }
 
@@ -315,6 +316,46 @@ u_int32_t Prefs::getDefaultPrefsValue(const char *pref_key, u_int32_t default_va
 
 /* ******************************************* */
 
+void Prefs::setTraceLevelFromRedis(){
+  char lvlStr[CONST_MAX_LEN_REDIS_VALUE];
+  if(!hasCmdlTraceLevel()
+     && ntop->getRedis()->get((char *)CONST_RUNTIME_PREFS_LOGGING_LEVEL, lvlStr, sizeof(lvlStr)) == 0){
+    if(!strcmp(lvlStr, "trace")){
+      ntop->getTrace()->set_trace_level(TRACE_LEVEL_TRACE);
+    }
+    else if(!strcmp(lvlStr, "debug")){
+      ntop->getTrace()->set_trace_level(TRACE_LEVEL_DEBUG);
+    }
+    else if(!strcmp(lvlStr, "info")){
+      ntop->getTrace()->set_trace_level(TRACE_LEVEL_INFO);
+    }
+    else if(!strcmp(lvlStr, "normal")){
+      ntop->getTrace()->set_trace_level(TRACE_LEVEL_NORMAL);
+    }
+    else if(!strcmp(lvlStr, "warning")){
+      ntop->getTrace()->set_trace_level(TRACE_LEVEL_WARNING);
+    }
+    else if(!strcmp(lvlStr, "error")){
+      ntop->getTrace()->set_trace_level(TRACE_LEVEL_ERROR);
+    }
+  }
+}
+
+/* ******************************************* */
+
+void Prefs::setAlertsEnabledFromRedis(){
+  char resp[CONST_MAX_LEN_REDIS_VALUE];
+  if(!hasCmdlDisableAlerts()
+     && ntop->getRedis()->get((char *)CONST_ALERT_DISABLED_PREFS, resp, sizeof(resp)) == 0){
+    if(resp[0] == '1')
+      set_alerts_status(false /* disable */);
+    else
+      set_alerts_status(true  /* enable */);
+  }
+}
+
+/* ******************************************* */
+
 void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, const char *default_value) {
   char rsp[MAX_PATH];
 
@@ -326,7 +367,8 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 
 /* ******************************************* */
 
-void Prefs::loadIdleDefaults() {
+void Prefs::reloadPrefsFromRedis() {
+  /* attempt to load preferences set from the web ui and apply default values in not found */
   local_host_max_idle = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
   non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
   flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
@@ -344,6 +386,9 @@ void Prefs::loadIdleDefaults() {
 
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+
+  setTraceLevelFromRedis();
+  setAlertsEnabledFromRedis();
 }
 
 /* ******************************************* */
@@ -728,7 +773,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'v':
-	has_cmdl_trace_lvl = true;
+    has_cmdl_trace_lvl = true;
     ntop->getTrace()->set_trace_level(max(min(atoi(optarg), MAX_TRACE_LEVEL), 0));
     break;
 
@@ -803,6 +848,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 #endif
 
   case 'H':
+    has_cmdl_disable_alerts = true;
     disable_alerts = true;
     break;
 
@@ -1071,6 +1117,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_categorization_enabled", flashstart ? true : false);
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
+  lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
   lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
@@ -1096,6 +1143,7 @@ void Prefs::lua(lua_State* vm) {
 
   /* Command line options */
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
+  lua_push_bool_table_entry(vm, "has_cmdl_disable_alerts", has_cmdl_disable_alerts);
 
 #ifdef NTOPNG_PRO
   if(ntop->getNagios()) ntop->getNagios()->lua(vm);
@@ -1166,6 +1214,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_OTHER_RRD_1D_DAYS,
 		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
     other_rrd_1d_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_ALERT_DISABLED_PREFS,
+		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
+    disable_alerts = pref_value[0] == '1' ? true : false;
 
   return 0;
 }

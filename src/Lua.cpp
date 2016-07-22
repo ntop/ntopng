@@ -2513,16 +2513,6 @@ static int ntop_get_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_load_prefs_defaults(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  ntop->getPrefs()->loadIdleDefaults();
-  ntop->getPrefs()->lua(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_increase_drops(lua_State* vm) {
   NetworkInterfaceView *ntop_interface = getCurrentInterface(vm);
   u_int32_t num;
@@ -4661,7 +4651,6 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Prefs */
   { "getPrefs",          ntop_get_prefs },
-  { "loadPrefsDefaults", ntop_load_prefs_defaults },
 
   /* HTTP */
   { "httpRedirect",   ntop_http_redirect },
