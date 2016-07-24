@@ -98,6 +98,8 @@ ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoi
   addMapping("FLOW_START_MILLISECONDS", 152);
   addMapping("FLOW_END_MILLISECONDS", 153);
   addMapping("BIFLOW_DIRECTION", 239);
+  addMapping("DOT1Q_SRC_VLAN", 243);
+  addMapping("DOT1Q_DST_VLAN", 254);
   addMapping("OBSERVATION_POINT_TYPE", 277);
   addMapping("OBSERVATION_POINT_ID", 300);
   addMapping("SELECTOR_ID", 302);
@@ -570,6 +572,15 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case SRC_VLAN:
         case DST_VLAN:
           flow.vlan_id = atoi(value);
+          break;
+	case DOT1Q_SRC_VLAN:
+        case DOT1Q_DST_VLAN:
+	  if (flow.vlan_id == 0)
+	    /* as those fields are the outer vlans in q-in-q
+	       we set the vlan_id only if there is no inner vlan
+	       value set
+	    */
+	    flow.vlan_id = atoi(value);
           break;
         case L7_PROTO:
           flow.l7_proto = atoi(value);

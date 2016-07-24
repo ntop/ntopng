@@ -627,6 +627,8 @@ local flow_fields_description = {
     ["IN_SRC_MAC"] = "Source MAC Address",
     ["SRC_VLAN"] = "Source VLAN",
     ["DST_VLAN"] = "Destination VLAN",
+    ["DOT1Q_SRC_VLAN"] = "Source VLAN (outer VLAN in QinQ)",
+    ["DOT1Q_DST_VLAN"] = "Destination VLAN (outer VLAN in QinQ)",
     ["IP_PROTOCOL_VERSION"] = "4=IPv4]6=IPv6]",
     ["DIRECTION"] = "It indicates where a sample has been taken (always 0)",
     ["IPV6_NEXT_HOP"] = "IPv6 next hop address",
