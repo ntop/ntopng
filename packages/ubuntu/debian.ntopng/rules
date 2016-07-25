@@ -52,7 +52,7 @@ binary-arch: build install
 	-rm ./debian/ntopng/usr/share/ntopng/httpdocs/geoip/*.dat
 	-find ./debian/ntopng -name .svn -exec /bin/rm -rf {} ';'
 	\rm -rf ./debian/ntopng/etc/init.d/nprobe ./debian/ntopng/etc/ld.so.conf.d
-	\rm -rf ./debian/ntopng/etc/systemd
+	if ! test -d "/etc/systemd"; then \rm -rf ./debian/ntopng/etc/systemd; fi
 	# Don't use upstart
 	\rm -rf ./debian/ntopng/etc/init
 	#\rm ./debian/ntopng/etc/init/nprobe.conf
