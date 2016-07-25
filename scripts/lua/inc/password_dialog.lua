@@ -32,84 +32,105 @@ print [[
 <div class="control-group">
    ]]
 
-user_group = ntop.getUserGroup()
+local user_group = ntop.getUserGroup()
+local col_md_size = "6"
+
+print('<div class="row">')
+
 if(user_group ~= "administrator") then
+   col_md_size = "4"
 print [[
-<div class="form-group has-feedback">
-<label for="" class="control-label">Old User Password</label>
-<div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-  <input id="old_password_input" type="password" name="old_password" value="" class="form-control">
-</div>
-</div>
+  <div class='col-md-]] print(col_md_size) print[['>
+    <div class="form-group has-feedback">
+      <label for="" class="control-label">Old User Password</label>
+      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
+        <input id="old_password_input" type="password" name="old_password" value="" class="form-control">
+      </div>
+    </div>
+  </div>
    ]]
 end
 
 print [[
-<div class="form-group has-feedback">
-  <label for="" class="control-label">New User Password</label>
-<div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-  <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
-</div>
+  <div class='col-md-]] print(col_md_size) print[['>
+    <div class="form-group has-feedback">
+      <label for="" class="control-label">New User Password</label>
+      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
+        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+      </div>
+    </div>
+  </div>
+
+  <div class='col-md-]] print(col_md_size) print[['>
+    <div class="form-group has-feedback">
+      <label for="" class="control-label">Confirm New User Password</label>
+      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
+        <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="form-group has-feedback">
-  <label for="" class="control-label">Confirm New User Password</label>
-<div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-  <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
-</div>
-</div>
-<div><small>Allowed password characters are ISO 8895-1 (latin1) upper and lower case letters, numbers and special symbols.  </small></div>
+<div><small>Allowed characters are ISO 8895-1 (latin1) upper and lower case letters, numbers and special symbols.  </small></div>
 <div class="form-group has-feedback">
   <button id="password_reset_submit" class="btn btn-primary btn-block">Change User Password</button>
 </div>
 
-  </form>
-
+</form>
 ]]
 
 if(user_group=="administrator") then
 
 print [[
 <div id="pref_part_separator"><hr/></div>
-<form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
+  <form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
-  <div class="form-group has-feedback">
-    <label class="input-label">User Role</label>
-    <div class="controls">
-      <select id="host_role_select" name="host_role" class="form-control">
-                <option value="standard">Non Privileged User</option>
-                <option value="administrator">Administrator</option>
-      </select>
+<div class="row">
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="input-label">User Role</label>
+      <div class="controls">
+        <select id="host_role_select" name="host_role" class="form-control">
+          <option value="standard">Non Privileged User</option>
+          <option value="administrator">Administrator</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <div class="form-group has-feedback">
-    <label class="control-label">Allowed Networks</label>
-<div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-     <input id="networks_input" type="text" name="networks" value="" class="form-control" required>
-    </div>
-     <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
-  </div>
-
-  <div class="form-group has-feedback">
-    <label class="form-label">Allowed Interface</label>
-    <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-    <select name="allowed_interface" id="allowed_interface" class="form-control">
-      <option value="">Any Interface</option>
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Allowed Interface</label>
+      <select name="allowed_interface" id="allowed_interface" class="form-control">
+        <option value="">Any Interface</option>
 ]]
 for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
    -- io.write(interface_name.."\n")
    print('<option value="'..getInterfaceId(interface_name)..'"> '..interface_name..'</option>')
 end
 print[[
-    </select>
+      </select>
     </div>
   </div>
+</div>
+
+<div class="row">
+  <div class='col-md-12'>
+    <div class="form-group has-feedback">
+      <label class="control-label">Allowed Networks</label>
+      <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
+        <input id="networks_input" type="text" name="networks" value="" class="form-control" required>
+      </div>
+      <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
+    </div>
+  </div>
+</div>
 
   <div class="form-group has-feedback">
   <button id="pref_change" class="btn btn-primary btn-block">Change User Preferences</button>
   </div>
+
   </form>
 ]]
 end
