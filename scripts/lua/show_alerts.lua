@@ -24,6 +24,11 @@ end
 active_page = "alerts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+if ntop.getPrefs().are_alerts_enabled == false then
+   print("<div class=\"alert alert alert-warning\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Alerts are disabled. Please check the preferences page to enable them.</div>")
+--return
+else
+
 print [[
       <hr>
       <div id="table-alerts"></div>
@@ -119,5 +124,7 @@ print [[
 
       ]]
 end
+
+end -- closes if ntop.getPrefs().are_alerts_enabled == false then
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
