@@ -212,7 +212,7 @@ class Flow : public GenericHashEntry {
 
   void updateSeqNum(time_t when, u_int32_t sN, u_int32_t aN);
   void processDetectedProtocol();
-  void setDetectedProtocol(ndpi_protocol proto_id);
+  void setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection);
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,

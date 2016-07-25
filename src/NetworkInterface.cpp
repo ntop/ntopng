@@ -638,7 +638,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		     zflow->pkt_sampling_rate*zflow->out_bytes,
 		     zflow->last_switched);
   p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-  flow->setDetectedProtocol(p);
+  flow->setDetectedProtocol(p, true);
   flow->setJSONInfo(json_object_to_json_string(zflow->additional_fields));
   flow->updateActivities();
 
@@ -901,11 +901,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       struct ndpi_id_struct *srv = (struct ndpi_id_struct*)flow->get_srv_id();
 
       if(flow->get_packets() >= NDPI_MIN_NUM_PACKETS)
-	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow));
+	flow->setDetectedProtocol(ndpi_detection_giveup(ndpi_struct, ndpi_flow), false);
       else
 	flow->setDetectedProtocol(ndpi_detection_process_packet(ndpi_struct, ndpi_flow,
 								ip, ipsize, (u_int32_t)time,
-								cli, srv));
+								cli, srv), false);
     } else {
       // FIX - only handle unfragmented packets
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "IP fragments are not handled yet!");

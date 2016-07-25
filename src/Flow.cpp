@@ -68,13 +68,13 @@ Flow::Flow(NetworkInterface *_iface,
   case IPPROTO_ICMP:
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol);
+    setDetectedProtocol(ndpiDetectedProtocol, true);
     break;
 
   case IPPROTO_ICMPV6:
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMPV6,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol);
+    setDetectedProtocol(ndpiDetectedProtocol, true);
     break;
 
   default:
@@ -498,14 +498,14 @@ void Flow::guessProtocol() {
 
 /* *************************************** */
 
-void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
+void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   /* if((ndpiFlow != NULL) || (!iface->is_ndpi_enabled())) */ {
     if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpiDetectedProtocol = proto_id;
       processDetectedProtocol();
       detection_completed = true;
-    } else if((((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-	       && (cli_host != NULL) && (srv_host != NULL))
+    } else if(forceDetection
+	      || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS) && (cli_host != NULL) && (srv_host != NULL))
 	      || (!iface->is_ndpi_enabled())) {
       guessProtocol();
       detection_completed = true;
@@ -697,13 +697,13 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
     if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
        || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
-       || iface->is_sprobe_interface())
+       || iface->is_sprobe_interface()
+       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)))
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
     else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
     lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.protocol);
-
   }
 
   // Key
@@ -1252,7 +1252,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
        || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
-       || iface->is_sprobe_interface()) {
+       || iface->is_sprobe_interface()
+       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
     } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
