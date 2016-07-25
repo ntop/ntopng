@@ -5,8 +5,8 @@ After=network.target syslog.target redis.service
 
 [Service]
 Type=forking
-ExecStart=/etc/systemd/scripts/ntopng start
-ExecStop=/etc/systemd/scripts/ntopng stop
+ExecStart=/etc/init.d/ntopng start
+ExecStop=/etc/init.d/ntopng stop
 Restart=always
 RestartSec=5
 

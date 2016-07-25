@@ -52,12 +52,9 @@ if test -d "$HOME/ntopng/pro"; then
    find $RPM_BUILD_ROOT/usr/share/ntopng/pro -name "*.luar" | xargs rename .luar .lua
 fi
 
-
 #cp $HOME/ntopng/packages/etc/init/ntopng.conf $RPM_BUILD_ROOT/etc/init
 if test -d "/etc/systemd"; then
-   mkdir -p $RPM_BUILD_ROOT/etc/systemd/scripts/
    mkdir -p $RPM_BUILD_ROOT/etc/systemd/system/
-   cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/systemd/scripts/
    cp $HOME/ntopng/packages/etc/systemd/system/ntopng.service    $RPM_BUILD_ROOT/etc/systemd/system/
 fi
 cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
@@ -78,7 +75,6 @@ rm -fr $RPM_BUILD_ROOT
 /usr/share/man/man8/ntopng.8.gz
 #/etc/init/ntopng.conf
 %if 0%{?centos_ver} == 7
-/etc/systemd/scripts/ntopng
 /etc/systemd/system/ntopng.service
 %endif
 /etc/init.d/ntopng

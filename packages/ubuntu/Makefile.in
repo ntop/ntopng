@@ -25,6 +25,10 @@ ntopng:
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
 	fi
+	if test -d "/etc/systemd"; then \
+		mkdir -p ${NTOPNG_BUILD}/etc/systemd/system/; \
+		cp -r $(NTOPNG_HOME)/packages/etc/systemd/system/ntopng.service ${NTOPNG_BUILD}/etc/systemd/system/; \
+	fi
 	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
