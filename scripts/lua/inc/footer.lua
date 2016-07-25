@@ -421,6 +421,8 @@ $(document).ready(function(){
 ]]
 if ntop.getPrefs().are_alerts_enabled == false then
    print("$('#alerts-li').hide();")
+else
+   print("$('#alerts-li').show();")
 end
 print[[
 </script>

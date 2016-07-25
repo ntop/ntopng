@@ -24,72 +24,90 @@ print [[
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
 
-  <div class="form-group has-feedback">
-    <label class="form-label">Username</label>
-    <div class="controls">
-	 <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
+<div class="row">
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Username</label>
+      <div class="controls">
+        <input id="username_input" type="text" name="username" value="" class="form-control" pattern="^[\w]{1,}$" required>
+      </div>
     </div>
   </div>
 
-  <div class="form-group has-feedback">
-    <label class="form-label">Full Name</label>
-    <div class="controls">
-      <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Full Name</label>
+      <div class="controls">
+        <input id="full_name_input" type="text" name="full_name" value="" class="form-control">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Password</label>
+      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
+        <input id="password_input" type="password" name="password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+      </div>
     </div>
   </div>
 
-  <div class="form-group has-feedback">
-    <label class="form-label">Password</label>
-       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-<input id="password_input" type="password" name="password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Confirm Password</label>
+      <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
+        <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">User Role</label>
+      <div class="controls">
+        <select id="host_role_select" name="host_role" class="form-control">
+          <option value="standard">Non Privileged User</option>
+          <option value="administrator">Administrator</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <div class="form-group has-feedback">
-    <label class="form-label">Confirm Password</label>
-   <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-   <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
-    </div>
-  </div>
-
-  <div class="form-group has-feedback">
-    <label class="form-label">User Role</label>
-    <div class="controls">
-      <select id="host_role_select" name="host_role" class="form-control">
-        <option value="standard">Non Privileged User</option>
-        <option value="administrator">Administrator</option>
-      </select>
-   </div>
-  </div>
-
-  <div class="form-group has-feedback">
-    <label class="form-label">Allowed Networks</label>
-   <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-    <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
-    </div>
-<small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
-  </div>
-
-  <div class="form-group has-feedback">
-    <label class="form-label">Allowed Interface</label>
-    <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-    <select name="allowed_interface" id="allowed_interface" class="form-control">
-      <option value="">Any Interface</option>
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Allowed Interface</label>
+      <select name="allowed_interface" id="allowed_interface" class="form-control">
+        <option value="">Any Interface</option>
 ]]
 
 for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
    print('<option value="'..getInterfaceId(interface_name)..'"> '..interface_name..'</option>')
 end
 print[[
-    </select>
+      </select>
     </div>
   </div>
+</div>
 
-  <div class="form-group has-feedback">
-   <button type="submit" id="add_user_submit" class="btn btn-default btn-primary btn-block">Add New User</button>
+
+
+<div class="form-group has-feedback">
+  <label class="form-label">Allowed Networks</label>
+  <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
+    <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
   </div>
+  <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
+</div>
 
-  </form>
+<div class="form-group has-feedback">
+  <button type="submit" id="add_user_submit" class="btn btn-default btn-primary btn-block">Add New User</button>
+</div>
+
+</form>
 <script>
 
   var frmadduser = $('#form_add_user');
