@@ -391,10 +391,6 @@ function check_interface_threshold(ifname, mode)
         ntop.mkdir(basedir)
     end
 
-    --if(verbose) then print(basedir.."<br>\n") end
-    interface.select(ifname)
-    ifstats = aggregateInterfaceStats(interface.getStats())
-
     if (ifstats ~= nil) then
         fname = fixPath(basedir.."/iface_"..ifname_id.."_lastdump")
 
@@ -499,12 +495,6 @@ function scanAlerts(granularity, ifname)
       for h in pairs(hosts) do
 	 if(verbose) then print("[minute.lua] Checking host " .. h.." alerts<p>\n") end
 	 check_host_threshold(ifname, h, granularity)
-      end
-   end
-   -- network alerts checks
-   if(networks ~= nil) then
-      for n in pairs(networks) do
-	 if(verbose) then print("[minute.lua] Checking network " .. h.." alerts<p>\n") end
       end
    end
 end
