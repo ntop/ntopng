@@ -3046,6 +3046,7 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   SNMPMessage *message;
   int len;
   unsigned char *buf;
+  bool debug = false;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING))  return(CONST_LUA_ERROR);
   agent_host = (char*)lua_tostring(vm, 1);
@@ -3082,11 +3083,18 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
   snmp_destroy_message(message);
 
   send_udp_datagram(buf, len, sock, agent_host, agent_port);
-
   free(buf);
 
+  if(debug)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP %s %s@%s %s",
+				 (operation == SNMP_GET_REQUEST_TYPE) ? "Get" : "GetNext",
+				 agent_host, community, oid);
+  
   if(input_timeout(sock, timeout) == 0) {
     /* Timeout */
+
+    if(debug)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP Timeout %s@%s %s", agent_host, community, oid);
     rc = CONST_LUA_ERROR;
     lua_pushnil(vm);
   } else {
@@ -3102,18 +3110,22 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
     while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
       if(!added) lua_newtable(vm), added = 1;
       lua_push_str_table_entry(vm, oid_str, value_str);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP OK %s@%s %s=%s", agent_host, community, oid_str, value_str);
       i++;
     }
 
     snmp_destroy_message(message);
 
-    if(!added)
+    if(!added) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP Error %s@%s", agent_host, community);
       lua_pushnil(vm), rc = CONST_LUA_ERROR;
+    }
   }
 
   closesocket(sock);
   return(rc);
 }
+
 /* ****************************************** */
 
 static int ntop_snmpget(lua_State* vm)     { return(ntop_snmp_get_fctn(vm, SNMP_GET_REQUEST_TYPE)); }
