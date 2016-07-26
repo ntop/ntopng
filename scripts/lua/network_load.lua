@@ -27,7 +27,8 @@ function dumpInterfaceStats(interface_name)
       hosts_pctg = math.floor(1+((ifstats.hosts*100)/prefs.max_num_hosts))
       flows_pctg = math.floor(1+((ifstats.flows*100)/prefs.max_num_flows))
 
-      print('\t{ "ifname": "'.. interface_name..'", "packets": '.. ifstats.packets .. ', "bytes": ' .. ifstats.bytes .. ', "drops": ' .. ifstats.drops)
+      print('\t{ "ifname": "'.. string.gsub(interface_name, "\\", "\\\\")) -- make sure to escape slashes to preserve json validity
+      print('", "packets": '.. ifstats.packets .. ', "bytes": ' .. ifstats.bytes .. ', "drops": ' .. ifstats.drops)
 
       if prefs.are_alerts_enabled == true then
 	 print(', "alerts": '.. ntop.getNumQueuedAlerts())
