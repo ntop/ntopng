@@ -10,6 +10,49 @@ local verbose = false
 j = require("dkjson")
 require "persistence"
 
+function is_allowed_timespan(timespan)
+   for _, granularity in pairs(alerts_granularity) do
+      granularity = granularity[1]
+      if timespan == granularity then
+	 return true
+      end
+   end
+   return false
+end
+
+function is_allowed_alarmable_metric(metric)
+   for _, allowed_metric in pairs(alarmable_metrics) do
+      if metric == allowed_metric then
+	 return true
+      end
+   end
+   return false
+end
+
+function get_alerts_hash_name(timespan, ifname)
+   local ifid = getInterfaceId(ifname)
+   if not is_allowed_timespan(timespan) or tonumber(ifid) == nil then
+      return nil
+   end
+   return "ntopng.prefs.alerts_"..timespan..".ifid_"..tostring(ifid)
+end
+
+function get_re_arm_alerts_hash_name(timespan)
+   if not is_allowed_timespan(timespan) then
+      return nil
+   end
+   return "ntopng.prefs.alerts_"..timespan.."_re_arm_minutes"
+end
+
+function get_re_arm_alerts_temporary_key(timespan, ifname, alarmed_source, alarmed_metric)
+   local ifid = getInterfaceId(ifname)
+   if not is_allowed_timespan(timespan) or tonumber(ifid) == nil or not is_allowed_alarmable_metric(alarmed_metric) then
+      return nil
+   end
+   local alarm_string = alarmed_source.."_"..timespan.."_"..alarmed_metric
+   return "ntopng.alerts.ifid_"..tostring(ifid).."_re_arming_"..alarm_string
+end
+
 function ndpival_bytes(json, protoname)
     key = "ndpiStats"
 
@@ -57,14 +100,19 @@ end
 function dns(old, new)   return(proto_bytes(old, new, "DNS")) end
 function p2p(old, new)   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype")) end
 
-function are_alerts_suppressed(observed)
-    local suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", observed)
-    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-        return false  -- alerts are not suppressed
-    else
-        if(verbose) then print("Skipping alert check for("..address.."): disabled in preferences<br>\n") end
-        return true -- alerts are suppressed
-    end
+function are_alerts_suppressed(observed, ifname)
+   local suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts.ifid_"..tostring(getInterfaceId(ifname)), observed)
+   --[[
+   tprint("are_alerts_suppressed ".. suppressAlerts)
+   tprint("are_alerts_suppressed observed: ".. observed)
+   tprint("are_alerts_suppressed ifname: "..ifname)
+   --]]
+   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
+      return false  -- alerts are not suppressed
+   else
+      if(verbose) then print("Skipping alert check for("..address.."): disabled in preferences<br>\n") end
+      return true -- alerts are suppressed
+   end
 end
 
 alerts_granularity = {
@@ -98,67 +146,68 @@ network_alert_functions_description = {
 }
 
 
-function re_arm_alert(alarm_source, timespan, alarmed_metric)
-    local alarm_string = alarm_source.."_"..timespan.."_"..alarmed_metric
-    local re_arm_key = "alerts_re_arming_"..alarm_string
-    local re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..timespan.."_re_arm_minutes", alarm_source)
-    if re_arm_minutes ~= "" then
-        re_arm_minutes = tonumber(re_arm_minutes)
-    else
-        re_arm_minutes = default_re_arm_minutes[timespan]
-    end
-    if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
-    -- we don't care about key contents, we just care about its exsistance
-    ntop.setCache(re_arm_key, "dummy", re_arm_minutes * 60)
+function re_arm_alert(alarm_source, timespan, alarmed_metric, ifname)
+   local ifid = getInterfaceId(ifname)
+   local re_arm_key = get_re_arm_alerts_temporary_key(timespan, ifname, alarm_source, alarmed_metric)
+   local re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(timespan),
+					    "ifid_"..tostring(ifid).."_"..alarm_source)
+   if re_arm_minutes ~= "" then
+      re_arm_minutes = tonumber(re_arm_minutes)
+   else
+      re_arm_minutes = default_re_arm_minutes[timespan]
+   end
+   if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
+   -- we don't care about key contents, we just care about its exsistance
+   ntop.setCache(re_arm_key, "dummy", re_arm_minutes * 60)
 end
 
-function is_alert_re_arming(alarm_source, timespan, alarmed_metric)
-    local alarm_string = alarm_source.."_"..timespan.."_"..alarmed_metric
-    local re_arm_key = "alerts_re_arming_"..alarm_string
-    local is_rearming = ntop.getCache(re_arm_key)
-    if is_rearming ~= "" then
-        if verbose then io.write('re_arm_key: '..re_arm_key..' -> ' ..is_rearming..'-- \n') end
-        return true
-    end
-    return false
+function is_alert_re_arming(alarm_source, timespan, alarmed_metric, ifname)
+   local re_arm_key = get_re_arm_alerts_temporary_key(timespan, ifname, alarm_source, alarmed_metric)
+   local is_rearming = ntop.getCache(re_arm_key)
+   if is_rearming ~= "" then
+      if verbose then io.write('re_arm_key: '..re_arm_key..' -> ' ..is_rearming..'-- \n') end
+      return true
+   end
+   return false
 end
 
 -- #################################################################
-function delete_re_arming_alerts(alert_source)
-    for k1, timespan in pairs(alerts_granularity) do
+function delete_re_arming_alerts(alert_source, ifid)
+   for k1, timespan in pairs(alerts_granularity) do
         timespan = timespan[1]
         local alarm_string = alert_source.."_"..timespan
         for k2, alarmed_metric in pairs(alarmable_metrics) do
-            alarm_string = alarm_string.."_"..alarmed_metric
-            local re_arm_key = "alerts_re_arming_"..alarm_string
+            local alarm_string_2 = alarm_string.."_"..alarmed_metric
+            local re_arm_key = "ntopng.alerts.ifid_"..tostring(ifid).."_re_arming_"..alarm_string_2
             ntop.delCache(re_arm_key)
         end
     end
 end
 
 
-function delete_alert_configuration(alert_source)
-    delete_re_arming_alerts(alert_source)
-    for k1,timespan in pairs(alerts_granularity) do
-        timespan = timespan[1]
-        local key = "ntopng.prefs.alerts_"..timespan
-        local alarms = ntop.getHashCache(key, alert_source)
-        if alarms ~= "" then
-            for k1, alarmed_metric in pairs(alarmable_metrics) do
-                 if ntop.isPro() then
-                     ntop.withdrawNagiosAlert(alert_source, timespan, alarmed_metric, "OK, alarm deactivated")
-                 end
-            end
-        ntop.delHashCache(key, alert_source)
-        key = "ntopng.prefs.alerts_"..timespan.."_re_arm_minutes"
-        ntop.delHashCache(key, alert_source)
-        end
-    end
+function delete_alert_configuration(alert_source, ifname)
+   local ifid = getInterfaceId(ifname)
+   delete_re_arming_alerts(alert_source, ifid)
+   for k1,timespan in pairs(alerts_granularity) do
+      timespan = timespan[1]
+      local key = get_alerts_hash_name(timespan, ifname)
+      local alarms = ntop.getHashCache(key, alert_source)
+      if alarms ~= "" then
+	 for k1, alarmed_metric in pairs(alarmable_metrics) do
+	    if ntop.isPro() then
+	       ntop.withdrawNagiosAlert(alert_source, timespan, alarmed_metric, "OK, alarm deactivated")
+	    end
+	 end
+	 ntop.delHashCache(key, alert_source)
+      end
+      ntop.delHashCache(get_re_arm_alerts_hash_name(timespan),
+			"ifid_"..tostring(ifid).."_"..alert_source)
+   end
 end
 
 
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
-    if(verbose) then
+   if(verbose) then
         print("check_host_alert("..ifname..", "..hostname..", "..mode..", "..key..")<br>\n")
 
         print("<p>--------------------------------------------<p>\n")
@@ -172,8 +221,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
     new = j.decode(new_json, 1, nil)
 
     -- str = "bytes;>;123,packets;>;12"
-    hkey = "ntopng.prefs.alerts_"..mode
-
+    hkey = get_alerts_hash_name(mode, ifname)
     str = ntop.getHashCache(hkey, hostname)
 
     -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
@@ -198,23 +246,28 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
             local f = loadstring(what)
             local rc = f()
 
-
             if(rc) then
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key.."</A> [".. val .." ".. op .. " " .. t[3].."]"
                 local alert_level  = 1 -- alert_level_warning
                 local alert_status = 1 -- alert_on
                 local alert_type   = 2 -- alert_threshold_exceeded
 
+
                 -- only if the alert is not in its re-arming period...
-                if not is_alert_re_arming(key, mode, t[1]) then
+                if not is_alert_re_arming(key, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     -- re-arm the alert
-                    re_arm_alert(key, mode, t[1])
+                    re_arm_alert(key, mode, t[1], ifname)
                     -- and send it to ntopng
                     ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
-                        -- possibly send the alert to nagios as well
-                        ntop.sendNagiosAlert(key, mode, t[1], alert_msg)
+		       -- possibly send the alert to nagios as well
+		       ntop.sendNagiosAlert(key, mode, t[1], alert_msg)
+		       if ntop.isEnterprise() then
+			  fire_stateful_host_alert(t[1], -- condition
+						   alert_level, alert_status, alert_type, alert_msg,
+						   getInterfaceId(ifname), key)
+		       end
                     end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -222,18 +275,22 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else  -- alert has not been triggered
-                if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(key, mode, t[1]) then
-                    ntop.withdrawNagiosAlert(key, mode, t[1], "service OK")
+
+	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
+                if ntop.isPro() and not is_alert_re_arming(key, mode, t[1], ifname) then
+		   ntop.withdrawNagiosAlert(key, mode, t[1], "service OK")
+		   if ntop.isEnterprise() then
+		      withdraw_stateful_host_alert(t[1], -- condition
+						   getInterfaceId(ifname), key)
+		   end
                 end
             end
         end
     end
 end
 
-
 function check_network_alert(ifname, network_name, mode, key, old_table, new_table)
-    if(verbose) then
+   if(verbose) then
         io.write("check_newtowrk_alert("..ifname..", "..network_name..", "..mode..", "..key..")\n")
         io.write("new:\n")
         tprint(new_table)
@@ -251,7 +308,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
         end
     end
     -- str = "bytes;>;123,packets;>;12"
-    hkey = "ntopng.prefs.alerts_"..mode
+    hkey = get_alerts_hash_name(mode, ifname)
 
     local str = ntop.getHashCache(hkey, network_name)
 
@@ -277,16 +334,15 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             local f = loadstring(what)
             local rc = f()
 
-
             if(rc) then
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF="..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
                 local alert_level = 1 -- alert_level_warning
                 local alert_status = 1 -- alert_on
                 local alert_type = 2 -- alert_threshold_exceeded
 
-                if not is_alert_re_arming(network_name, mode, t[1]) then
+                if not is_alert_re_arming(network_name, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
-                    re_arm_alert(network_name, mode, t[1])
+                    re_arm_alert(network_name, mode, t[1], ifname)
                     ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
@@ -298,7 +354,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(network_name, mode, t[1]) then
+                if ntop.isPro() and not is_alert_re_arming(network_name, mode, t[1], ifname) then
                     ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
                 end
             end
@@ -319,7 +375,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
     new = new_table
 
     -- str = "bytes;>;123,packets;>;12"
-    hkey = "ntopng.prefs.alerts_"..mode
+    hkey = get_alerts_hash_name(mode, ifname)
 
     str = ntop.getHashCache(hkey, ifname_clean)
 
@@ -352,9 +408,9 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 local alert_status = 1 -- alert_on
                 local alert_type = 2 -- alert_threshold_exceeded
 
-                if not is_alert_re_arming(ifname_clean, mode, t[1]) then
+                if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
-                    re_arm_alert(ifname_clean, mode, t[1])
+                    re_arm_alert(ifname_clean, mode, t[1], ifname)
                     ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
@@ -367,7 +423,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(ifname_clean, mode, t[1]) then
+                if ntop.isPro() and not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
                     ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
                 end
             end
@@ -383,7 +439,7 @@ function check_interface_threshold(ifname, mode)
     local ifstats = aggregateInterfaceStats(interface.getStats())
     ifname_id = ifstats.id
 
-    if are_alerts_suppressed("iface_"..ifname_id) then return end
+    if are_alerts_suppressed("iface_"..ifname_id, ifname) then return end
 
     if(verbose) then print("check_interface_threshold("..ifname_id..", "..mode..")<br>\n") end
     basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
@@ -410,36 +466,38 @@ end
 
 
 function check_networks_threshold(ifname, mode)
-    interface.select(ifname)
-    local subnet_stats = interface.getNetworksStats()
-    alarmed_subnets = ntop.getHashKeysCache("ntopng.prefs.alerts_"..mode)
-    local ifname_id = interface.getStats().id
+   interface.select(ifname)
+   local subnet_stats = interface.getNetworksStats()
+   local alarmed_subnets = ntop.getHashKeysCache(get_alerts_hash_name(mode, ifname))
 
-    local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
-    if not ntop.exists(basedir) then
-        ntop.mkdir(basedir)
-    end
+   local ifname_id = interface.getStats().id
 
-    for subnet,sstats in pairs(subnet_stats) do
-        if sstats == nil or (alarmed_subnets and alarmed_subnets[subnet] == nil) or are_alerts_suppressed(subnet) then goto continue end
-        local statspath = getPathFromKey(subnet)
-        statspath = fixPath(basedir.. "/" .. statspath)
-        if not ntop.exists(statspath) then
-            ntop.mkdir(statspath)
-        end
-        statspath = fixPath(statspath .. "/alarmed_subnet_stats_lastdump")
+   local basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
+   if not ntop.exists(basedir) then
+      ntop.mkdir(basedir)
+   end
 
-        if ntop.exists(statspath) then
-            -- Read old version
-            old_dump = persistence.load(statspath)
-            if (old_dump ~= nil) then
-                -- (ifname, network_name, mode, key, old_table, new_table)
-                check_network_alert(ifname, subnet, mode, sstats['network_id'], old_dump, subnet_stats[subnet])
-            end
-        end
-        persistence.store(statspath, subnet_stats[subnet])
-        ::continue::
-    end
+   for subnet,sstats in pairs(subnet_stats) do
+      if sstats == nil or type(alarmed_subnets) ~= "table" or alarmed_subnets[subnet] == nil or are_alerts_suppressed(subnet, ifname) then goto continue end
+
+      local statspath = getPathFromKey(subnet)
+      statspath = fixPath(basedir.. "/" .. statspath)
+      if not ntop.exists(statspath) then
+	 ntop.mkdir(statspath)
+      end
+      statspath = fixPath(statspath .. "/alarmed_subnet_stats_lastdump")
+
+      if ntop.exists(statspath) then
+	 -- Read old version
+	 old_dump = persistence.load(statspath)
+	 if (old_dump ~= nil) then
+	    -- (ifname, network_name, mode, key, old_table, new_table)
+	    check_network_alert(ifname, subnet, mode, sstats['network_id'], old_dump, subnet_stats[subnet])
+	 end
+      end
+      persistence.store(statspath, subnet_stats[subnet])
+      ::continue::
+   end
 end
 
 -- #################################
@@ -448,9 +506,15 @@ function check_host_threshold(ifname, host_ip, mode)
     interface.select(ifname)
     local ifstats = aggregateInterfaceStats(interface.getStats())
     ifname_id = ifstats.id
+    local host_ip_fsname = host_ip
 
-    if are_alerts_suppressed(host_ip) then return end
+    if are_alerts_suppressed(host_ip, ifname) then return end
 
+    if string.ends(host_ip, "@0") then
+       host_ip_fsname = string.split(host_ip, "@")
+       host_ip_fsname = host_ip_fsname[1]
+    end
+    
     if(verbose) then print("check_host_threshold("..ifname_id..", "..host_ip..", "..mode..")<br>\n") end
     basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
     if(not(ntop.exists(basedir))) then
@@ -460,8 +524,7 @@ function check_host_threshold(ifname, host_ip, mode)
     json = interface.getHostInfo(host_ip)
 
     if(json ~= nil) then
-        fname = fixPath(basedir.."/".. host_ip ..".json")
-
+        fname = fixPath(basedir.."/".. host_ip_fsname ..".json")
         if(verbose) then print(fname.."<p>\n") end
         -- Read old version
         f = io.open(fname, "r")
@@ -489,7 +552,7 @@ function scanAlerts(granularity, ifname)
    check_interface_threshold(ifname, granularity)
    check_networks_threshold(ifname, granularity)
    -- host alerts checks
-   local hash_key = "ntopng.prefs.alerts_"..granularity
+   local hash_key = get_alerts_hash_name(granularity, ifname)
    local hosts = ntop.getHashKeysCache(hash_key)
    if(hosts ~= nil) then
       for h in pairs(hosts) do
@@ -498,4 +561,3 @@ function scanAlerts(granularity, ifname)
       end
    end
 end
-

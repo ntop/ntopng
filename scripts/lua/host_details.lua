@@ -1741,8 +1741,9 @@ vals = { }
 alerts = ""
 to_save = false
 
+local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
-   delete_alert_configuration(hostinfo2hostkey(host_info))
+   delete_alert_configuration(hostkey, ifname)
    alerts = nil
 else
    for k,_ in pairs(alert_functions_description) do
@@ -1766,17 +1767,20 @@ else
 
    if(to_save) then
       if(alerts == "") then
-	 ntop.delHashCache("ntopng.prefs.alerts_"..tab, host_ip)
+	 ntop.delHashCache(get_alerts_hash_name(tab, ifname), hostkey)
       else
-	 ntop.setHashCache("ntopng.prefs.alerts_"..tab, host_ip, alerts)
+	 ntop.setHashCache(get_alerts_hash_name(tab, ifname), hostkey, alerts)
       end
    else
-      alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, host_ip)
+      alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), hostkey)
    end
    if _GET["re_arm_minutes"] then
-       ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_ip, _GET["re_arm_minutes"])
+      ntop.setHashCache(get_re_arm_alerts_hash_name(tab),
+			"ifid_"..tostring(ifId).."_"..hostkey,
+			_GET["re_arm_minutes"])
    end
-       re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", host_ip)
+   re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(tab),
+				      "ifid_"..tostring(ifId).."_"..hostkey)
    if not re_arm_minutes then re_arm_minutes="" end
 end
 

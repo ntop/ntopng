@@ -239,7 +239,7 @@ elseif(page == "alerts") then
     to_save = false
 
     if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
-        delete_alert_configuration(network_name)
+        delete_alert_configuration(network_name, ifname)
         alerts = nil
     else
         for k,_ in pairs(network_alert_functions_description) do
@@ -258,18 +258,21 @@ elseif(page == "alerts") then
             end
         end
         if(to_save) then
-            if(alerts == "") then
-                ntop.delHashCache("ntopng.prefs.alerts_"..tab, network_name)
-            else
-                ntop.setHashCache("ntopng.prefs.alerts_"..tab, network_name, alerts)
-            end
+	   if(alerts == "") then
+	      ntop.delHashCache(get_alerts_hash_name(tab, ifname), network_name)
+	   else
+	      ntop.setHashCache(get_alerts_hash_name(tab, ifname), network_name, alerts)
+	   end
         else
-            alerts = ntop.getHashCache("ntopng.prefs.alerts_"..tab, network_name)
+	   alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), network_name)
         end
         if _GET["re_arm_minutes"] then
-            ntop.setHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", network_name, _GET["re_arm_minutes"])
+	   ntop.setHashCache(get_re_arm_alerts_hash_name(tab),
+			     "ifid_"..tostring(ifId).."_"..network_name,
+			     _GET["re_arm_minutes"])
         end
-        re_arm_minutes = ntop.getHashCache("ntopng.prefs.alerts_"..tab.."_re_arm_minutes", network_name)
+        re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(tab),
+					   "ifid_"..tostring(ifId).."_"..network_name)
         if not re_arm_minutes then re_arm_minutes="" end
     end
 

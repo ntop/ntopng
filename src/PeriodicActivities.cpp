@@ -61,6 +61,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     exit(0);
   }
 
+  startupActivities();
   pthread_create(&secondLoop, NULL, secondStartLoop, (void*)this);
   pthread_create(&minuteLoop, NULL, minuteStartLoop, (void*)this);
   pthread_create(&hourLoop,   NULL, hourStartLoop,   (void*)this);
@@ -93,6 +94,15 @@ void PeriodicActivities::runScript(char *path, u_int32_t when) {
     delete l;
   } else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Missing script %s", path);
+}
+
+/* ******************************************* */
+
+void PeriodicActivities::startupActivities() {
+  char script[MAX_PATH];
+
+  snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), STARTUP_SCRIPT_PATH);
+  runScript(script, 0);
 }
 
 /* ******************************************* */

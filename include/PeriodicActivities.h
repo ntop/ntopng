@@ -24,6 +24,7 @@
 
 #include "ntop_includes.h"
 
+#define STARTUP_SCRIPT_PATH  "startup.lua"
 #define SECOND_SCRIPT_PATH   "second.lua"
 #define MINUTE_SCRIPT_PATH   "minute.lua"
 #define HOURLY_SCRIPT_PATH   "hourly.lua"
@@ -35,7 +36,7 @@ class PeriodicActivities {
 
   u_int32_t roundTime(u_int32_t now, u_int32_t rounder);
   void runScript(char *path, u_int32_t when);
-
+  void startupActivities();
  public:
   PeriodicActivities();
   ~PeriodicActivities();
