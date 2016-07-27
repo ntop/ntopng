@@ -15,6 +15,19 @@ print [[
 </div>
 
 <div class="modal-body">
+
+  <div class="tabbable"> <!-- Only required for left/right tabs -->
+  <ul class="nav nav-tabs" role="tablist" id="edit-user-container">
+    <li class="active"><a href="#change-password-dialog" role="tab" data-toggle="tab"> Password </a></li>
+]]
+if(user_group=="administrator") then
+   print[[<li><a href="#change-prefs-dialog" role="tab" data-toggle="tab"> Preferences </a></li>]]
+end
+   print[[
+  </ul>
+  <div class="tab-content">
+  <div class="tab-pane active" id="change-password-dialog">
+
   <div id="password_alert_placeholder"></div>
 
 <script>
@@ -77,12 +90,15 @@ print [[
 </div>
 
 </form>
+</div> <!-- closes div "change-password-dialog" -->
 ]]
 
 if(user_group=="administrator") then
 
 print [[
-<div id="pref_part_separator"><hr/></div>
+</div>
+<div class="tab-pane" id="change-prefs-dialog">
+
   <form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
@@ -132,6 +148,7 @@ print[[
   </div>
 
   </form>
+</div> <!-- closes div "change-prefs-dialog" -->
 ]]
 end
 
@@ -222,6 +239,8 @@ print [[
    });
 </script>
 
+</div> <!-- closes "tab-content" -->
+</div> <!-- closes "tabbable" -->
 </div> <!-- modal-body -->
 
 <script>
