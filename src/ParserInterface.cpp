@@ -708,7 +708,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  break;
 
         default:
-          ntop->getTrace()->traceEvent(TRACE_INFO, "Not handled ZMQ field %u/%s", key_id, key);
+          ntop->getTrace()->traceEvent(TRACE_DEBUG, "Not handled ZMQ field %u/%s", key_id, key);
           json_object_object_add(flow.additional_fields, key, json_object_new_string(value));
           break;
         } /* switch */
