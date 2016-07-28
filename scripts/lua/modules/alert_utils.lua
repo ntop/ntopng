@@ -262,7 +262,8 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
                     ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
 		       -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(key, mode, t[1], alert_msg)
+		       ntop.sendNagiosAlert(string.sub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					    mode, t[1], alert_msg)
 		       if ntop.isEnterprise() then
 			  fire_stateful_host_alert(t[1], -- condition
 						   alert_level, alert_status, alert_type, alert_msg,
@@ -278,7 +279,8 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
 	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
                 if ntop.isPro() and not is_alert_re_arming(key, mode, t[1], ifname) then
-		   ntop.withdrawNagiosAlert(key, mode, t[1], "service OK")
+		   ntop.withdrawNagiosAlert(string.sub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					    mode, t[1], "service OK")
 		   if ntop.isEnterprise() then
 		      withdraw_stateful_host_alert(t[1], -- condition
 						   getInterfaceId(ifname), key)
