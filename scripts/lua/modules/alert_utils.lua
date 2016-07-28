@@ -158,7 +158,8 @@ function re_arm_alert(alarm_source, timespan, alarmed_metric, ifname)
    end
    if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
    -- we don't care about key contents, we just care about its exsistance
-   ntop.setCache(re_arm_key, "dummy", re_arm_minutes * 60)
+   ntop.setCache(re_arm_key, "dummy",
+		 re_arm_minutes * 60 - 5 --[[ subtract 5 seconds to make sure the limit is obeyed --]])
 end
 
 function is_alert_re_arming(alarm_source, timespan, alarmed_metric, ifname)
