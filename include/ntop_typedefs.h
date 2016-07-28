@@ -198,4 +198,9 @@ typedef struct {
     ifOutOctets, ifOutPackets, ifOutErrors;  
 } sFlowInterfaceStats;
 
+typedef struct {
+  const char *class_name;
+  const luaL_Reg *class_methods;
+} ntop_class_reg;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

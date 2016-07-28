@@ -25,6 +25,10 @@
 #include <uuid/uuid.h>
 #endif
 
+/* Lua.cpp */
+extern int ntop_lua_cli_print(lua_State* vm);
+extern int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
+
 static bool help_printed = false;
 
 /* **************************************************** */
@@ -182,6 +186,8 @@ void NetworkInterface::init() {
   tcpPacketStats.pktRetr = tcpPacketStats.pktOOO = tcpPacketStats.pktLost = 0;
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
+  
+  initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
 
   db = NULL; 
 #ifdef NTOPNG_PRO
@@ -417,6 +423,8 @@ NetworkInterface::~NetworkInterface() {
   if(policer)  delete(policer);
   if(flow_profiles) delete(flow_profiles);
 #endif
+
+  termLuaInterpreter();
 }
 
 /* **************************************************** */
@@ -3388,3 +3396,147 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
     interfaceStats->set(stats->deviceIP, stats->ifIndex, stats);
   }
 }
+
+/* **************************************** */
+
+static int lua_flow_get_ndpi_proto(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, f ? f->get_detected_protocol_name() : "");
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_get_profile_id(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, f ? f->getProfileId() : 0);
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_set_profile_id(lua_State* vm) {
+  Flow *f;
+  int id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  id = (int)lua_tonumber(vm, 1);
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  
+  if(f) f->setProfileId(id);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static const luaL_Reg flow_reg[] = {
+  { "getNdpiProto",    lua_flow_get_ndpi_proto   },
+  { "getProfileId",      lua_flow_get_profile_id },
+  { "setProfileId",      lua_flow_set_profile_id },
+  { NULL,         NULL }
+};
+
+ntop_class_reg ntop_lua_reg[] = {
+  { "flow",   flow_reg  },
+  /* { "host",   host_reg }, TODO */
+  {NULL,      NULL}
+};
+
+void NetworkInterface::initLuaInterpreter(const char *lua_file) {
+  static const luaL_Reg _meta[] = { { NULL, NULL } };  
+  int i;
+  char script_path[256];
+
+  L = luaL_newstate();
+
+  if(!L) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize lua interpreter");
+    return;
+  }
+
+  snprintf(script_path, sizeof(script_path), "%s/%s",
+	   ntop->getPrefs()->get_callbacks_dir(),
+	   lua_file);
+
+  /* ******************************************** */
+
+  luaL_openlibs(L); /* Load base libraries */
+
+  for(i=0; ntop_lua_reg[i].class_name != NULL; i++) {
+    int lib_id, meta_id;
+
+    /* newclass = {} */
+    lua_createtable(L, 0, 0);
+    lib_id = lua_gettop(L);
+
+    /* metatable = {} */
+    luaL_newmetatable(L, ntop_lua_reg[i].class_name);
+    meta_id = lua_gettop(L);
+    luaL_register(L, NULL, _meta);
+
+    /* metatable.__index = class_methods */
+    lua_newtable(L), luaL_register(L, NULL, ntop_lua_reg[i].class_methods);
+    lua_setfield(L, meta_id, "__index");
+
+    /* class.__metatable = metatable */
+    lua_setmetatable(L, lib_id);
+
+    /* _G["Foo"] = newclass */
+    lua_setglobal(L, ntop_lua_reg[i].class_name);
+  }
+
+  lua_register(L, "print", ntop_lua_cli_print);
+
+  if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s: %s",
+				 script_path, lua_tostring(L, -1));
+    lua_close(L);
+    L = NULL;
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully interpreted %s", script_path);
+    
+    lua_pushlightuserdata(L, NULL);
+    lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
+    
+    lua_pushlightuserdata(L, NULL);
+    lua_setglobal(L, CONST_HOUSEKEEPING_HOST);
+  }
+}
+
+/* **************************************** */
+
+void NetworkInterface::termLuaInterpreter() {
+  if(L) {
+    lua_close(L);
+    L = NULL;
+  }
+}
+
+/* **************************************** */
+
+int NetworkInterface::luaEvalFlow(Flow *f) {
+  int rc;
+
+  if(!L) return(-1);
+
+  lua_pushlightuserdata(L, f);
+  lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
+
+  lua_getglobal(L, "periodicFlowCheck"); /* function to be called */
+  rc = lua_pcall(L, 0, 0, 0);
+
+  return(rc);
+}
+

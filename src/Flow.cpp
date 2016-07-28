@@ -33,7 +33,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
-    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0;
+    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, flowProfileId = 0;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -831,6 +831,8 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   int16_t cli_network_id;
   int16_t srv_network_id;
 
+  iface->luaEvalFlow(this);
+
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
     
@@ -1186,10 +1188,12 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
   if((src == NULL) || (dst == NULL)) return;
 
-  src_match = src->match(ptree), dst_match = dst->match(ptree);
-  if((!src_match) && (!dst_match)) return;
-
-  if(! skipNewTable)
+  if(ptree) {
+    src_match = src->match(ptree), dst_match = dst->match(ptree);
+    if((!src_match) && (!dst_match)) return;
+  }
+  
+  if(!skipNewTable)
     lua_newtable(vm);
 
   if(!detailed_dump) {

@@ -70,8 +70,7 @@ Lua::~Lua() {
  * @param expected_type Index of expected type.
  * @return @ref CONST_LUA_ERROR if the expected type is equal to function type, @ref CONST_LUA_PARAM_ERROR otherwise.
  */
-static int ntop_lua_check(lua_State* vm, const char* func,
-			  int pos, int expected_type) {
+int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type) {
   if(lua_type(vm, pos) != expected_type) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "%s : expected %s, got %s", func,
@@ -4340,7 +4339,7 @@ static int ntop_lua_http_print(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_lua_cli_print(lua_State* vm) {
+int ntop_lua_cli_print(lua_State* vm) {
   int t;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4506,11 +4505,6 @@ static int ntop_set_logging_level(lua_State* vm) {
 }
 
 /* ****************************************** */
-
-typedef struct {
-  const char *class_name;
-  const luaL_Reg *class_methods;
-} ntop_class_reg;
 
 static const luaL_Reg ntop_interface_reg[] = {
   { "getDefaultIfName",       ntop_get_default_interface_name },

@@ -273,6 +273,7 @@
 #define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED 1
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
+#define CONST_HOUSEKEEPING_SCRIPT    "housekeeping.lua"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
@@ -283,6 +284,8 @@
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 #define CONST_HTTP_CONN              "http.conn"
+#define CONST_HOUSEKEEPING_FLOW      "housekeepingflow"
+#define CONST_HOUSEKEEPING_HOST      "housekeepinghost"
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
