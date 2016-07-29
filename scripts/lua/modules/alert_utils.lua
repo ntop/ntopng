@@ -5,6 +5,21 @@
 -- This file contains the description of all functions
 -- used to trigger host alerts
 
+--[[ place functions that you want to override in stateful_alert_utils here --]]
+
+function delete_stateful_alert_configuration(alert_source, ifname)
+   return nil -- overridden in pro/scripts/lua/modules/stateful_alert_utils.lua
+end
+
+--[[ functions that can be overridden in stateful_alert_utils go above this point --]]
+
+dirs = ntop.getDirs()
+if (ntop.isEnterprise()) then
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   -- overrides alert utils with the enterprise version of alerts
+   require "stateful_alert_utils"
+end
+
 local verbose = false
 
 j = require("dkjson")
@@ -158,6 +173,9 @@ function re_arm_alert(alarm_source, timespan, alarmed_metric, ifname)
    end
    if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
    -- we don't care about key contents, we just care about its exsistance
+   if re_arm_minutes == 0 then
+      return  -- don't want to re arm the alert
+   end
    ntop.setCache(re_arm_key, "dummy",
 		 re_arm_minutes * 60 - 5 --[[ subtract 5 seconds to make sure the limit is obeyed --]])
 end
@@ -185,7 +203,6 @@ function delete_re_arming_alerts(alert_source, ifid)
     end
 end
 
-
 function delete_alert_configuration(alert_source, ifname)
    local ifid = getInterfaceId(ifname)
    delete_re_arming_alerts(alert_source, ifid)
@@ -204,6 +221,7 @@ function delete_alert_configuration(alert_source, ifname)
       ntop.delHashCache(get_re_arm_alerts_hash_name(timespan),
 			"ifid_"..tostring(ifid).."_"..alert_source)
    end
+   delete_stateful_alert_configuration(alert_source, ifname)
 end
 
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
@@ -216,6 +234,10 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
         print("OLD<br>"..old_json.."<br>\n")
         print("<p>--------------------------------------------<p>\n")
     end
+
+   local alert_level  = 1 -- alert_level_warning
+   local alert_type   = 2 -- alert_threshold_exceeded
+   local alert_status     -- to be set later
 
     old = j.decode(old_json, 1, nil)
     new = j.decode(new_json, 1, nil)
@@ -245,45 +267,42 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
             local what = "val = "..t[1].."(old, new); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
+	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
-                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-                local alert_level  = 1 -- alert_level_warning
-                local alert_status = 1 -- alert_on
-                local alert_type   = 2 -- alert_threshold_exceeded
+	       alert_status = 1 -- alert on
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
-
-                -- only if the alert is not in its re-arming period...
-                if not is_alert_re_arming(key, mode, t[1], ifname) then
-                    if verbose then io.write("queuing alert\n") end
-                    -- re-arm the alert
-                    re_arm_alert(key, mode, t[1], ifname)
-                    -- and send it to ntopng
-                    ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
-                    if ntop.isPro() then
-		       -- possibly send the alert to nagios as well
-		       ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					    mode, t[1], alert_msg)
-		       if ntop.isEnterprise() then
-			  fire_stateful_host_alert(t[1], -- condition
-						   alert_level, alert_status, alert_type, alert_msg,
-						   getInterfaceId(ifname), key)
-		       end
-                    end
-                else
-                    if verbose then io.write("alarm silenced, re-arm in progress\n") end
-                end
-
-                if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
+	       -- only if the alert is not in its re-arming period...
+	       if not is_alert_re_arming(key, mode, t[1], ifname) then
+		  if verbose then io.write("queuing alert\n") end
+		  -- re-arm the alert
+		  re_arm_alert(key, mode, t[1], ifname)
+		  -- and send it to ntopng
+		  ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		  if ntop.isPro() then
+		     -- possibly send the alert to nagios as well
+		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					  mode, t[1], alert_msg)
+		     if ntop.isEnterprise() then
+			fire_stateful_host_alert(alert_id,
+						 alert_level, alert_type, alert_msg,
+						 getInterfaceId(ifname), key)
+		     end
+		  end
+	       else
+		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
+	       end
+	       if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else  -- alert has not been triggered
-
+	       alert_status = 2 -- alert off
 	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
                 if ntop.isPro() and not is_alert_re_arming(key, mode, t[1], ifname) then
 		   ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					    mode, t[1], "service OK")
 		   if ntop.isEnterprise() then
-		      withdraw_stateful_host_alert(t[1], -- condition
-						   getInterfaceId(ifname), key)
+		      withdraw_stateful_host_alert(alert_id,
+						   alert_type, getInterfaceId(ifname), key)
 		   end
                 end
             end

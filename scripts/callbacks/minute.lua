@@ -8,15 +8,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "alert_utils"
 if (ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
-   if (ntop.isEnterprise()) then
-      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-      -- overrides alert utils with the enterprise version of alerts
-      require "stateful_alert_utils"
-   end
 end
 
 require "lua_utils"
-
 require "graph_utils"
 require "top_structure"
 
