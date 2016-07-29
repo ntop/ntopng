@@ -1252,6 +1252,13 @@ int Ntop::getInterfaceViewIdByName(char *name) {
 
 /* ******************************************* */
 
+void Ntop::reloadInterfacesLuaInterpreter() {
+  for(int i=0; i<num_defined_interfaces; i++)
+    iface[i]->forceLuaInterpreterReload();
+}
+
+/* ******************************************* */
+
 void Ntop::registerInterface(NetworkInterface *_if) {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {

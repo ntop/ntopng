@@ -186,8 +186,8 @@ void NetworkInterface::init() {
   tcpPacketStats.pktRetr = tcpPacketStats.pktOOO = tcpPacketStats.pktLost = 0;
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
-  
-  initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+
+  reloadLuaInterpreter = true, L = NULL;
 
   db = NULL; 
 #ifdef NTOPNG_PRO
@@ -3442,7 +3442,7 @@ static int lua_flow_set_profile_id(lua_State* vm) {
 /* ****************************************** */
 
 static const luaL_Reg flow_reg[] = {
-  { "getNdpiProto",    lua_flow_get_ndpi_proto   },
+  { "getNdpiProto",      lua_flow_get_ndpi_proto },
   { "getProfileId",      lua_flow_get_profile_id },
   { "setProfileId",      lua_flow_set_profile_id },
   { NULL,         NULL }
@@ -3526,15 +3526,21 @@ void NetworkInterface::termLuaInterpreter() {
 
 /* **************************************** */
 
-int NetworkInterface::luaEvalFlow(Flow *f) {
+int NetworkInterface::luaEvalFlow(Flow *f, char *luaFunction) {
   int rc;
+  
+  if(reloadLuaInterpreter) {
+    if(L) termLuaInterpreter();
+    initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+    reloadLuaInterpreter = false;
+  }
 
   if(!L) return(-1);
 
   lua_pushlightuserdata(L, f);
   lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
 
-  lua_getglobal(L, "periodicFlowCheck"); /* function to be called */
+  lua_getglobal(L, luaFunction); /* function to be called */
   rc = lua_pcall(L, 0, 0, 0);
 
   return(rc);

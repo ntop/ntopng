@@ -1,10 +1,19 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2016 - ntop.org
 --
 
 print("Initialized script housekeeping.lua\n")
 
-function periodicFlowCheck()
-	 -- print("=>"..flow.getNdpiProto().."@"..flow.getProfileId().."\n")
-	 -- flow.setProfileId(os.time())
+function flowUpdate()
+ -- print("flowUpdate()\n")
+ -- print("=>"..flow.getNdpiProto().."@"..flow.getProfileId().."\n")
+ -- flow.setProfileId(os.time())
+end
+
+function flowCreate()
+  -- print("flowCreate()\n")
+end
+
+function flowDelete()
+  -- print("flowDelete()\n")
 end

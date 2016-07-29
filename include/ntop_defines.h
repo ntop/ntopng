@@ -256,6 +256,11 @@
 #define CONST_MAX_NUM_ZMQ_SUBSCRIBERS 32
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
+
+#define CONST_LUA_UPDATE_FLOW  "flowUpdate"
+#define CONST_LUA_CREATE_FLOW  "flowCreate"
+#define CONST_LUA_DELETE_FLOW  "flowDelete"
+
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)
 #define CONST_PATH_SEP                    '\\'

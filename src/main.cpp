@@ -27,6 +27,12 @@ extern "C" {
 
 /* ******************************** */
 
+void sighup(int sig) {
+  ntop->reloadInterfacesLuaInterpreter();
+}
+
+/* ******************************** */
+
 void sigproc(int sig) {
   static int called = 0;
 
@@ -318,9 +324,10 @@ int main(int argc, char *argv[])
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Scripts/HTML pages directory: %s",
 			       ntop->get_install_dir());
 
-  signal(SIGINT, sigproc);
+  signal(SIGHUP,  sighup);
+  signal(SIGINT,  sigproc);
   signal(SIGTERM, sigproc);
-  signal(SIGINT, sigproc);
+  signal(SIGINT,  sigproc);
 
 #if defined(WIN32) && defined(DEMO_WIN32)
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "-----------------------------------------------------------");
