@@ -360,7 +360,7 @@ class NetworkInterface {
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
   inline void getFlowDevices(lua_State *vm) { if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm); };
   inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };
-  int luaEvalFlow(Flow *f, char *luaFunction);
+  int luaEvalFlow(Flow *f, const char *luaFunction);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
 };
 

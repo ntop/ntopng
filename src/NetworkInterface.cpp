@@ -3526,7 +3526,7 @@ void NetworkInterface::termLuaInterpreter() {
 
 /* **************************************** */
 
-int NetworkInterface::luaEvalFlow(Flow *f, char *luaFunction) {
+int NetworkInterface::luaEvalFlow(Flow *f, const char *luaFunction) {
   int rc;
   
   if(reloadLuaInterpreter) {
