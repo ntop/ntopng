@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 
+local json = require ("dkjson")
+
 -- http://www.itu.int/itudoc/itu-t/ob-lists/icc/e212_685.pdf
 local mobile_country_code = {
 ["202"] = "Greece",
@@ -1124,6 +1126,35 @@ end
 
 -- #######################
 
+function getSIPInfo(infoPar)
+  local called_party = ""
+  local calling_party = ""
+  local sip_found_flow
+  local returnString = ""
+
+  local infoFlow, posFlow, errFlow = json.decode(infoPar["moreinfo.json"], 1, nil)
+
+  if (infoFlow ~= nil) then
+    sip_found_flow = isThereSIPCall(infoFlow)
+    if(sip_found_flow == 1) then
+      called_party = getFlowValue(infoFlow, "SIP_CALLED_PARTY")
+      calling_party = getFlowValue(infoFlow, "SIP_CALLING_PARTY")
+      called_party = string.gsub(called_party, "\\\"","\"")
+      calling_party = string.gsub(calling_party, "\\\"","\"")
+      called_party = extractSIPCaller(called_party)
+      calling_party = extractSIPCaller(calling_party)
+      if(((called_party == nil) or (called_party == "")) and ((calling_party == nil) or (calling_party == ""))) then
+        returnString = ""
+      else
+        returnString =  calling_party .. " <-> " .. called_party
+      end
+    end
+  end
+  return returnString
+end
+
+-- #######################
+
 function getSIPTableRows(info)
    local string_table = ""
    local call_id = ""
@@ -1408,8 +1439,17 @@ function getSIPTableRows(info)
      local show_rtp_stream = 0
      if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~="")) then
        sip_rtp_src_addr = 1
-       --string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
        string_table_1 = getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
+       if (string_table_1 ~= "0.0.0.0") then
+         local address_ip = string_table_1
+         interface.select(ifname)
+         rtp_host = interface.getHostInfo(string_table_1)
+         if(rtp_host ~= nil) then
+           string_table_1 = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..string_table_1.. "\">"
+           string_table_1 = string_table_1..address_ip
+           string_table_1 = string_table_1.."</A>"
+         end
+       end
        show_rtp_stream = 1
      end
      if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
@@ -1424,8 +1464,17 @@ function getSIPTableRows(info)
      end
      if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
        sip_rtp_dst_addr = 1
-       --string_table = string_table .. getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
        string_table_4 = getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+       if (string_table_4 ~= "0.0.0.0") then
+         local address_ip = string_table_4
+         interface.select(ifname)
+         rtp_host = interface.getHostInfo(string_table_4)
+         if(rtp_host ~= nil) then
+           string_table_4 = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..string_table_4.. "\">"
+           string_table_4 = string_table_4..address_ip
+           string_table_4 = string_table_4.."</A>"
+         end
+       end
        show_rtp_stream = 1
      end
      if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then

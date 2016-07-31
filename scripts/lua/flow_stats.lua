@@ -380,7 +380,18 @@ else
         print(', "sip.rtp_stream":"');
         if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~="")) then
           sip_rtp_src_addr = 1
-          print(getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR"))
+          local address_ip = getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
+          if (address_ip ~= "0.0.0.0") then
+            interface.select(ifname)
+            rtp_host = interface.getHostInfo(address_ip)
+            if(rtp_host ~= nil) then
+              print('<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..address_ip.. '\\\">')
+              print(address_ip)
+              print('</A>')
+            end
+          else
+            print(address_ip)
+          end
         end
         if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
           print(':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT"))
@@ -390,7 +401,18 @@ else
         end
         if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
           sip_rtp_dst_addr = 1
-          print(getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR"))
+          local address_ip = getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+          if (address_ip ~= "0.0.0.0") then
+            interface.select(ifname)
+            rtp_host = interface.getHostInfo(address_ip)
+            if(rtp_host ~= nil) then
+              print('<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..address_ip.. '\\\">')
+              print(address_ip)
+              print('</A>')
+            end
+          else
+            print(address_ip)
+          end
         end
         if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
           print(':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT"))
