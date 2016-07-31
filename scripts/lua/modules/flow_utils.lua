@@ -1132,6 +1132,8 @@ function getSIPTableRows(info)
    local rtp_codecs = ""
    local sip_rtp_src_addr = 0
    local sip_rtp_dst_addr = 0
+   local print_second = 0
+   local print_second_2 = 0
    -- check if there is a SIP field
    sip_found = isThereProtocol("SIP", info)
 
@@ -1167,72 +1169,234 @@ function getSIPTableRows(info)
      end
 
 
-     time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
-     if(time_epoch ~= "0") then
-       string_table = string_table.."<tr id=\"invite_time_tr\" style=\"display: table-row;\"><th width=30%>Time of Invite</th><td colspan=2> <div id=time_invite>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
+     time_invite, time_epoch_invite = getFlowValue(info, "SIP_INVITE_TIME")
+     time_trying, time_epoch_trying = getFlowValue(info, "SIP_TRYING_TIME")
+     time_ringing, time_epoch_ringing = getFlowValue(info, "SIP_RINGING_TIME")
+     time_invite_ok, time_epoch_invite_ok = getFlowValue(info, "SIP_INVITE_OK_TIME")
+     time_invite_failure, time_epoch_invite_failure = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
+     time_bye, time_epoch_bye = getFlowValue(info, "SIP_BYE_TIME")
+     time_bye_ok, time_epoch_bye_ok = getFlowValue(info, "SIP_BYE_OK_TIME")
+     time_cancel, time_epoch_cancel = getFlowValue(info, "SIP_CANCEL_TIME")
+     time_cancel_ok, time_epoch_cancel_ok = getFlowValue(info, "SIP_CANCEL_OK_TIME")
+
+     -- get delta invite
+     local delta_invite = ""
+     if(time_epoch_invite ~= "0") then
+       if(time_epoch_trying ~= "0") then
+         if((tonumber(time_epoch_trying) - tonumber(time_epoch_invite)) >= 0 ) then
+           delta_invite = tonumber(time_epoch_trying) - tonumber(time_epoch_invite)
+           if (delta_invite == 0) then
+             delta_invite = "< 1"
+           end
+           print_second = 1
+         end
+       else
+         delta_invite = secondsToTime(os.time()-tonumber(time_epoch_invite))
+         print_second = 0
+       end
+     end
+
+     if((time_epoch_invite ~= "0") and (delta_invite ~= "")) then
+       string_table = string_table.."<tr id=\"invite_time_tr\" style=\"display: table-row;\"><th width=30%>Time of Invite</th><td colspan=2> <div id=time_invite>" .. delta_invite
+       if (print_second == 1) then string_table = string_table.." sec" end
+       string_table = string_table.."</div></td></tr>\n"
      else
        string_table = string_table.."<tr id=\"invite_time_tr\" style=\"display: none;\"><th width=30%>Time of Invite</th><td colspan=2></td><div id=time_invite></div></tr>\n"
      end
-     time, time_epoch = getFlowValue(info, "SIP_TRYING_TIME")
-     if(time_epoch ~= "0") then
-       string_table = string_table.."<tr id=\"trying_time_tr\" style=\"display: table-row;\"><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
+
+     local delta_trying = ""
+     print_second = 0
+     if(time_epoch_trying ~= "0") then
+       if(time_epoch_ringing ~= "0") then
+         if((tonumber(time_epoch_ringing) - tonumber(time_epoch_trying)) >= 0 ) then
+           delta_trying = tonumber(time_epoch_ringing) - tonumber(time_epoch_trying)
+           if (delta_trying == 0) then
+             delta_trying = "< 1"
+           end
+           print_second = 1
+         end
+       else
+         delta_trying = secondsToTime(os.time()-tonumber(time_epoch_trying))
+         print_second = 0
+       end
+     end
+
+     if((time_epoch_trying ~= "0") and (delta_trying ~= "")) then
+       string_table = string_table.."<tr id=\"trying_time_tr\" style=\"display: table-row;\"><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying>" .. delta_trying
+       if (print_second == 1) then string_table = string_table.." sec" end
+       string_table = string_table.."</div></td></tr>\n"
      else
        string_table = string_table.."<tr id=\"trying_time_tr\" style=\"display: none;\"><th width=30%>Time of Trying</th><td colspan=2><div id=time_trying></div></td></tr>\n"
      end
-     time, time_epoch = getFlowValue(info, "SIP_RINGING_TIME")
-     if(time_epoch ~= "0") then
-       string_table = string_table.."<tr id=\"ringing_time_tr\" style=\"display: table-row;\"><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing>" .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]</div></td></tr>\n"
+
+     local delta_ringing = ""
+     print_second = 0
+     if(time_epoch_ringing ~= "0") then
+       if(time_epoch_invite_ok ~= "0") then
+         if((tonumber(time_epoch_invite_ok) - tonumber(time_epoch_ringing)) >= 0 ) then
+           delta_ringing = tonumber(time_epoch_invite_ok) - tonumber(time_epoch_ringing)
+           if (delta_ringing == 0) then
+             delta_ringing = "< 1"
+           end
+           print_second = 1
+         end
+       else
+         if(time_epoch_invite_failure ~= "0") then
+           if((tonumber(time_epoch_invite_failure) - tonumber(time_epoch_ringing)) >= 0 ) then
+             delta_ringing = tonumber(time_epoch_invite_failure) - tonumber(time_epoch_ringing)
+             if (delta_ringing == 0) then
+               delta_ringing = "< 1"
+             end
+             print_second = 1
+           end
+         else
+           if(time_epoch_cancel_ok ~= "0") then
+             if((tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_ringing)) >= 0 ) then
+               delta_ringing = tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_ringing)
+               if (delta_ringing == 0) then
+                 delta_ringing = "< 1"
+               end
+               print_second = 1
+             end
+           else
+             delta_ringing = secondsToTime(os.time()-tonumber(time_epoch_ringing))
+             print_second = 0
+           end
+         end
+       end
+     end
+
+     if((time_epoch_ringing ~= "0") and (delta_ringing ~= "")) then
+       string_table = string_table.."<tr id=\"ringing_time_tr\" style=\"display: table-row;\"><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing>" .. delta_ringing
+       if (print_second == 1) then string_table = string_table.." sec" end
+       string_table = string_table.."</div></td></tr>\n"
      else
        string_table = string_table.."<tr id=\"ringing_time_tr\" style=\"display: none;\"><th width=30%>Time of Ringing</th><td colspan=2><div id=time_ringing></div></td></tr>\n"
      end
 
-     time, time_epoch = getFlowValue(info, "SIP_INVITE_OK_TIME")
-     time_1, time_epoch_1 = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
-     if((time_epoch ~= "0") or (time_epoch_1 ~= "0")) then
+     local delta_invite_ok = ""
+     print_second = 0
+     if(time_epoch_invite_ok ~= "0") then
+       if(time_epoch_bye ~= "0") then
+         if((tonumber(time_epoch_bye) - tonumber(time_epoch_invite_ok)) >= 0 ) then
+           delta_invite_ok = tonumber(time_epoch_bye) - tonumber(time_epoch_invite_ok)
+           if (delta_invite_ok == 0) then
+             delta_invite_ok = "< 1"
+           end
+           print_second = 1
+         end
+       else
+         delta_invite_ok = secondsToTime(os.time()-tonumber(time_epoch_invite_ok))
+         print_second = 0
+       end
+     end
+
+     local delta_invite_failure = ""
+     print_second_2 = 0
+     if(time_epoch_invite_failure ~= "0") then
+       if(time_epoch_bye ~= "0") then
+         if((tonumber(time_epoch_bye) - tonumber(time_epoch_invite_failure)) >= 0 ) then
+           delta_invite_failure = tonumber(time_epoch_bye) - tonumber(time_epoch_invite_failure)
+           if (delta_invite_failure == 0) then
+             delta_invite_failure = "< 1"
+           end
+           print_second_2 = 1
+         end
+       else
+         delta_invite_ok = secondsToTime(os.time()-tonumber(time_epoch_invite_failure))
+         print_second_2 = 0
+       end
+     end
+
+     if(((time_epoch_invite_ok ~= "0") or (time_epoch_invite_failure ~= "0")) and ((delta_invite_ok ~= "") or (delta_invite_failure ~= ""))) then
        string_table = string_table .. "<tr id=\"invite_ok_tr\" style=\"display: table-row;\"><th width=30%>Time of Invite Ok / Invite Failure</th><td><div id=time_invite_ok>"
      else
        string_table = string_table .. "<tr id=\"invite_ok_tr\" style=\"display: none;\"><th width=30%>Time of Invite Ok / Invite Failure</th><td><div id=time_invite_ok>"
      end
-     if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
+     if((time_epoch_invite_ok ~= "0") and (delta_invite_ok ~= "")) then
+        string_table = string_table .. delta_invite_ok
+        if (print_second == 1) then string_table = string_table.." sec" end
      end
      string_table = string_table .. "</div></td><td><div id=time_invite_failure>\n"
-     if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
+     if((time_epoch_invite_failure ~= "0") and (delta_invite_failure ~= "")) then
+        string_table = string_table ..  delta_invite_failure
+        if (print_second_2 == 1) then string_table = string_table.." sec" end
      end
      string_table = string_table .. "</div></td></tr>\n"
 
-     time, time_epoch = getFlowValue(info, "SIP_BYE_TIME")
-     time_1, time_epoch_1 = getFlowValue(info, "SIP_BYE_OK_TIME")
-     if((time_epoch ~= "0") or (time_epoch_1 ~= "0")) then
+     local delta_bye = ""
+     print_second = 0
+     if(time_epoch_bye ~= "0") then
+       if(time_epoch_bye_ok ~= "0") then
+         if((tonumber(time_epoch_bye_ok) - tonumber(time_epoch_bye)) >= 0 ) then
+           delta_bye = tonumber(time_epoch_bye_ok) - tonumber(time_epoch_bye)
+           if (delta_bye == 0) then
+             delta_bye = "< 1"
+           end
+           print_second = 1
+         end
+       else
+         delta_bye = secondsToTime(os.time()-tonumber(time_epoch_bye_ok))
+         print_second = 0
+       end
+     end
+
+     local delta_bye_ok = ""
+     if(time_epoch_bye_ok ~= "0") then
+         delta_bye_ok = secondsToTime(os.time()-tonumber(time_epoch_bye_ok))
+     end
+
+     if((time_epoch_bye ~= "0") or (time_epoch_bye_ok ~= "0")) then
        string_table = string_table .. "<tr id=\"time_bye_tr\" style=\"display: table-row;\"><th width=30%>Time of Bye / Bye Ok</th><td><div id=time_bye>"
      else
        string_table = string_table .. "<tr id=\"time_bye_tr\" style=\"display: none;\"><th width=30%>Time of Bye / Bye Ok</th><td><div id=time_bye>"
      end
 
-     if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
+     if(time_epoch_bye ~= "0") then
+        string_table = string_table .. delta_bye
+        if (print_second == 1) then string_table = string_table.." sec" end
      end
      string_table = string_table .. "</div></td><td><div id=time_bye_ok>\n"
-     if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
+     if(time_epoch_bye_ok ~= "0") then
+        string_table = string_table .. delta_bye_ok
      end
      string_table = string_table .. "</div></td></tr>\n"
 
-     time, time_epoch = getFlowValue(info, "SIP_CANCEL_TIME")
-     time_1, time_epoch_1 = getFlowValue(info, "SIP_CANCEL_OK_TIME")
-     if((time_epoch ~= "0") or (time_epoch_1 ~= "0")) then
+     local delta_cancel = ""
+     print_second = 0
+     if(time_epoch_cancel ~= "0") then
+       if(time_epoch_cancel_ok ~= "0") then
+         if((tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_cancel)) >= 0 ) then
+           delta_cancel = tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_cancel)
+           if (delta_cancel == 0) then
+             delta_cancel = "< 1"
+           end
+           print_second = 1
+         end
+       else
+         delta_cancel = secondsToTime(os.time()-tonumber(time_epoch_cancel_ok))
+         print_second = 0
+       end
+     end
+
+     local delta_cancel_ok = ""
+     if(time_epoch_cancel_ok ~= "0") then
+         delta_cancel_ok = secondsToTime(os.time()-tonumber(time_epoch_cancel_ok))
+     end
+
+     if((time_epoch_cancel ~= "0") or (time_epoch_cancel_ok ~= "0")) then
        string_table = string_table .. "<tr id=\"time_failure_tr\" style=\"display: table-row;\"><th width=30%>Time of Cancel / Cancel Ok</th><td><div id=time_cancel>"
      else
        string_table = string_table .. "<tr id=\"time_failure_tr\" style=\"display: none;\"><th width=30%>Time of Cancel / Cancel Ok</th><td><div id=time_cancel>"
      end
 
-     if(time_epoch ~= "0") then
-        string_table = string_table .. time .." [" .. secondsToTime(os.time()-tonumber(time_epoch)) .. " ago]"
+     if(time_epoch_cancel ~= "0") then
+        string_table = string_table .. delta_cancel
+        if (print_second == 1) then string_table = string_table.." sec" end
      end
      string_table = string_table .. "</div></td><td><div id=time_cancel_ok>\n"
-     if(time_epoch_1 ~= "0") then
-        string_table = string_table ..  time_1 .." [" .. secondsToTime(os.time()-tonumber(time_epoch_1)) .. " ago]"
+     if(time_epoch_cancel_ok ~= "0") then
+        string_table = string_table ..  delta_cancel_ok
      end
      string_table = string_table .. "</div></td></tr>\n"
 

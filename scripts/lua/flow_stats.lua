@@ -141,6 +141,9 @@ else
         local calling_party = ""
         local sip_rtp_src_addr = 0
         local sip_rtp_dst_addr = 0
+        local print_second = 0
+        local print_second_2 = 0
+
         print(', "sip.call_id":"'..getFlowValue(info, "SIP_CALL_ID")..'"')
         called_party = getFlowValue(info, "SIP_CALLED_PARTY")
         calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
@@ -153,60 +156,226 @@ else
         end
 
         print(', "sip.rtp_codecs":"'..getFlowValue(info, "SIP_RTP_CODECS")..'"')
-        time, time_epoch = getFlowValue(info, "SIP_INVITE_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_invite":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_invite":""')
+
+        time_invite, time_epoch_invite = getFlowValue(info, "SIP_INVITE_TIME")
+        time_trying, time_epoch_trying = getFlowValue(info, "SIP_TRYING_TIME")
+        time_ringing, time_epoch_ringing = getFlowValue(info, "SIP_RINGING_TIME")
+        time_invite_ok, time_epoch_invite_ok = getFlowValue(info, "SIP_INVITE_OK_TIME")
+        time_invite_failure, time_epoch_invite_failure = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
+        time_bye, time_epoch_bye = getFlowValue(info, "SIP_BYE_TIME")
+        time_bye_ok, time_epoch_bye_ok = getFlowValue(info, "SIP_BYE_OK_TIME")
+        time_cancel, time_epoch_cancel = getFlowValue(info, "SIP_CANCEL_TIME")
+        time_cancel_ok, time_epoch_cancel_ok = getFlowValue(info, "SIP_CANCEL_OK_TIME")
+
+        -- get delta invite
+        local delta_invite = ""
+        if(time_epoch_invite ~= "0") then
+          if(time_epoch_trying ~= "0") then
+            if((tonumber(time_epoch_trying) - tonumber(time_epoch_invite)) >= 0 ) then
+              delta_invite = tonumber(time_epoch_trying) - tonumber(time_epoch_invite)
+              if (delta_invite == 0) then
+                delta_invite = "< 1"
+              end
+              print_second = 1
+            end
+          else
+            delta_invite = secondsToTime(os.time()-tonumber(time_epoch_invite))
+            print_second = 0
+          end
         end
-        time, time_epoch = getFlowValue(info, "SIP_TRYING_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_trying":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_trying":""')
+        print(', "sip.time_invite":"')
+        if(time_epoch_invite ~= "0") then
+          print(delta_invite.."")
+          if (print_second == 1) then print(' sec') end
         end
-        time, time_epoch = getFlowValue(info, "SIP_RINGING_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_ringing":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_ringing":""')
+        print('"')
+
+        local delta_trying = ""
+        print_second = 0
+        if(time_epoch_trying ~= "0") then
+          if(time_epoch_ringing ~= "0") then
+            if((tonumber(time_epoch_ringing) - tonumber(time_epoch_trying)) >= 0 ) then
+              delta_trying = tonumber(time_epoch_ringing) - tonumber(time_epoch_trying)
+              if (delta_trying == 0) then
+                delta_trying = "< 1"
+              end
+              print_second = 1
+            end
+          else
+            delta_trying = secondsToTime(os.time()-tonumber(time_epoch_trying))
+            print_second = 0
+          end
         end
-        time, time_epoch = getFlowValue(info, "SIP_INVITE_OK_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_invite_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_invite_ok":""')
+        print(', "sip.time_trying":"')
+        if(time_epoch_trying ~= "0") then
+          print(delta_trying.."")
+          if (print_second == 1) then print(' sec') end
         end
-        time, time_epoch = getFlowValue(info, "SIP_INVITE_FAILURE_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_invite_failure":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_invite_failure":""')
+        print('"')
+
+        local delta_ringing = ""
+        print_second = 0
+        if(time_epoch_ringing ~= "0") then
+          if(time_epoch_invite_ok ~= "0") then
+            if((tonumber(time_epoch_invite_ok) - tonumber(time_epoch_ringing)) >= 0 ) then
+              delta_ringing = tonumber(time_epoch_invite_ok) - tonumber(time_epoch_ringing)
+              if (delta_ringing == 0) then
+                delta_ringing = "< 1"
+              end
+              print_second = 1
+            end
+          else
+            if(time_epoch_invite_failure ~= "0") then
+              if((tonumber(time_epoch_invite_failure) - tonumber(time_epoch_ringing)) >= 0 ) then
+                delta_ringing = tonumber(time_epoch_invite_failure) - tonumber(time_epoch_ringing)
+                if (delta_ringing == 0) then
+                  delta_ringing = "< 1"
+                end
+                print_second = 1
+              end
+            else
+              if(time_epoch_cancel_ok ~= "0") then
+                if((tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_ringing)) >= 0 ) then
+                  delta_ringing = tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_ringing)
+                  if (delta_ringing == 0) then
+                    delta_ringing = "< 1"
+                  end
+                  print_second = 1
+                end
+              else
+                delta_ringing = secondsToTime(os.time()-tonumber(time_epoch_ringing))
+                print_second = 0
+              end
+            end
+          end
         end
-        time, time_epoch = getFlowValue(info, "SIP_BYE_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_bye":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_bye":""')
+
+        print(', "sip.time_ringing":"')
+        if(time_epoch_ringing ~= "0") then
+          print(delta_ringing.."")
+          if (print_second == 1) then print(' sec') end
         end
-        time, time_epoch = getFlowValue(info, "SIP_BYE_OK_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_bye_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_bye_ok":""')
+        print('"')
+
+        local delta_invite_ok = ""
+        print_second = 0
+        if(time_epoch_invite_ok ~= "0") then
+          if(time_epoch_bye ~= "0") then
+            if((tonumber(time_epoch_bye) - tonumber(time_epoch_invite_ok)) >= 0 ) then
+              delta_invite_ok = tonumber(time_epoch_bye) - tonumber(time_epoch_invite_ok)
+              if (delta_invite_ok == 0) then
+                delta_invite_ok = "< 1"
+              end
+              print_second = 1
+            end
+          else
+            delta_invite_ok = secondsToTime(os.time()-tonumber(time_epoch_invite_ok))
+            print_second = 0
+          end
         end
-        time, time_epoch = getFlowValue(info, "SIP_CANCEL_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_cancel":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_cancel":""')
+
+        print(', "sip.time_invite_ok":"')
+        if(time_epoch_invite_ok ~= "0") then
+          print(delta_invite_ok.."")
+          if (print_second == 1) then print(' sec') end
         end
-        time, time_epoch = getFlowValue(info, "SIP_CANCEL_OK_TIME")
-        if(time_epoch ~= "0") then
-          print(', "sip.time_cancel_ok":"'..time ..' [' .. secondsToTime(os.time()-time_epoch) .. ' ago]"')
-        else
-          print(', "sip.time_cancel_ok":""')
+        print('"')
+
+        local delta_invite_failure = ""
+        print_second_2 = 0
+        if(time_epoch_invite_failure ~= "0") then
+          if(time_epoch_bye ~= "0") then
+            if((tonumber(time_epoch_bye) - tonumber(time_epoch_invite_failure)) >= 0 ) then
+              delta_invite_failure = tonumber(time_epoch_bye) - tonumber(time_epoch_invite_failure)
+              if (delta_invite_failure == 0) then
+                delta_invite_failure = "< 1"
+              end
+              print_second_2 = 1
+            end
+          else
+            delta_invite_ok = secondsToTime(os.time()-tonumber(time_epoch_invite_failure))
+            print_second_2 = 0
+          end
         end
+
+        print(', "sip.time_invite_failure":"')
+        if(time_epoch_invite_failure ~= "0") then
+          print(delta_invite_failure.."")
+          if (print_second == 1) then print(' sec') end
+        end
+        print('"')
+
+
+        local delta_bye = ""
+        print_second = 0
+        if(time_epoch_bye ~= "0") then
+          if(time_epoch_bye_ok ~= "0") then
+            if((tonumber(time_epoch_bye_ok) - tonumber(time_epoch_bye)) >= 0 ) then
+              delta_bye = tonumber(time_epoch_bye_ok) - tonumber(time_epoch_bye)
+              if (delta_bye == 0) then
+                delta_bye = "< 1"
+              end
+              print_second = 1
+            end
+          else
+            delta_bye = secondsToTime(os.time()-tonumber(time_epoch_bye_ok))
+            print_second = 0
+          end
+        end
+
+        print(', "sip.time_bye":"')
+        if(time_epoch_bye ~= "0") then
+          print(delta_bye.."")
+          if (print_second == 1) then print(' sec') end
+        end
+        print('"')
+
+        local delta_bye_ok = ""
+        if(time_epoch_bye_ok ~= "0") then
+            delta_bye_ok = secondsToTime(os.time()-tonumber(time_epoch_bye_ok))
+        end
+
+        print(', "sip.time_bye_ok":"')
+        if(time_epoch_bye_ok ~= "0") then
+          print(delta_bye_ok.."")
+        end
+        print('"')
+
+        local delta_cancel = ""
+        print_second = 0
+        if(time_epoch_cancel ~= "0") then
+          if(time_epoch_cancel_ok ~= "0") then
+            if((tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_cancel)) >= 0 ) then
+              delta_cancel = tonumber(time_epoch_cancel_ok) - tonumber(time_epoch_cancel)
+              if (delta_cancel == 0) then
+                delta_cancel = "< 1"
+              end
+              print_second = 1
+            end
+          else
+            delta_cancel = secondsToTime(os.time()-tonumber(time_epoch_cancel_ok))
+            print_second = 0
+          end
+        end
+
+        print(', "sip.time_cancel":"')
+        if(time_epoch_cancel ~= "0") then
+          print(delta_cancel.."")
+          if (print_second == 1) then print(' sec') end
+        end
+        print('"')
+
+
+        local delta_cancel_ok = ""
+        if(time_epoch_cancel_ok ~= "0") then
+            delta_cancel_ok = secondsToTime(os.time()-tonumber(time_epoch_cancel_ok))
+        end
+
+        print(', "sip.time_cancel_ok":"')
+        if(time_epoch_cancel_ok ~= "0") then
+          print(delta_cancel_ok.."")
+        end
+        print('"')
 
         print(', "sip.rtp_stream":"');
         if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~="")) then
