@@ -3,7 +3,11 @@
 set -e
 
 if [ "$1" = "purge" ] ; then
-  update-rc.d ntopng remove >/dev/null
+    if [ -f /bin/systemctl ] ; then
+	systemctl disable ntopng.service
+    else
+	update-rc.d ntopng remove >/dev/null
+    fi
 fi
 
 exit 0
