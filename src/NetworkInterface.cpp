@@ -170,7 +170,7 @@ void NetworkInterface::init() {
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
       inline_interface = false, running = false, interfaceStats = NULL,
-      tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false, 
+      tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
     has_mesh_networks_traffic = false, pkt_dumper = NULL;
   pollLoopCreated = false, bridge_interface = false;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
@@ -189,7 +189,7 @@ void NetworkInterface::init() {
 
   reloadLuaInterpreter = true, L = NULL;
 
-  db = NULL; 
+  db = NULL;
 #ifdef NTOPNG_PRO
   policer = NULL;
 #endif
@@ -536,7 +536,7 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
       if(inIndex && ret->get_cli_host()) ret->get_cli_host()->setDeviceIfIdx(deviceIP, inIndex);
       /*
 	We have decided to set only ingress traffic to make sure we do not mix truth with invalid data
-	if(outIndex && ret->get_srv_host()) ret->get_srv_host()->setDeviceIfIdx(deviceIP, outIndex); 
+	if(outIndex && ret->get_srv_host()) ret->get_srv_host()->setDeviceIfIdx(deviceIP, outIndex);
       */
       return(ret);
     } else {
@@ -555,12 +555,12 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 void NetworkInterface::triggerTooManyFlowsAlert() {
   if(!tooManyFlowsAlertTriggered) {
     char alert_msg[512];
-  
+
     snprintf(alert_msg, sizeof(alert_msg),
 	     "Interface <A HREF='%s/lua/if_stats.lua?id=%d'>%s</A> has too many flows. Please extend the --max-num-flows/-X command line option",
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
-    
+
     ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
     tooManyFlowsAlertTriggered = true;
   }
@@ -571,12 +571,12 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 void NetworkInterface::triggerTooManyHostsAlert() {
   if(!tooManyHostsAlertTriggered) {
     char alert_msg[512];
-  
+
     snprintf(alert_msg, sizeof(alert_msg),
 	     "Interface <A HREF='%s/lua/if_stats.lua?id=%d'>%s</A> has too many hosts. Please extend the --max-num-hosts/-x command line option",
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
-    
+
     ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
     tooManyHostsAlertTriggered = true;
   }
@@ -604,7 +604,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
-				 zflow->first_switched,  zflow->last_switched,  
+				 zflow->first_switched,  zflow->last_switched,
 				 zflow->last_switched-zflow->first_switched, drift,
 				 now, last_pkt_rcvd_remote);
 #endif
@@ -615,7 +615,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       last_pkt_rcvd_remote = zflow->last_switched;
 
 #ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]", 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u]",
 				 zflow->first_switched,  zflow->last_switched,  zflow->last_switched- zflow->first_switched);
 #endif
   }
@@ -653,7 +653,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->updateInterfaceLocalStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-  
+
   incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
@@ -736,12 +736,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
   int a_shaper_id = DEFAULT_SHAPER_ID, b_shaper_id = DEFAULT_SHAPER_ID; /* Default */
-		       
+
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
     if(ipsize < 20) {
-      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN, 
+      incStats(when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
       return(pass_verdict);
     }
@@ -822,11 +822,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     memcpy(&gre, l4, sizeof(struct grev1_header));
     gre.flags_and_version = ntohs(gre.flags_and_version);
     gre.proto = ntohs(gre.proto);
-    
+
     if(gre.flags_and_version & (GRE_HEADER_CHECKSUM | GRE_HEADER_ROUTING)) offset += 4;
     if(gre.flags_and_version & GRE_HEADER_KEY)      offset += 4;
     if(gre.flags_and_version & GRE_HEADER_SEQ_NUM)  offset += 4;
-    
+
     if(gre.proto == ETHERTYPE_IP) {
       iph = (struct ndpi_iphdr*)(l4 + offset), ip6 = NULL;
       goto decode_ip;
@@ -1001,14 +1001,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     flow->processDetectedProtocol(), *shaped = false;
     pass_verdict = flow->isPassVerdict();
     flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, ndpiProtocol);
-    
+
 #ifdef NTOPNG_PRO
     if(pass_verdict) {
       pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
       if(!pass_verdict) *shaped = true;
     }
 #endif
-    
+
     if(pass_verdict)
       incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	       flow->get_detected_protocol().protocol,
@@ -1701,7 +1701,7 @@ void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
   patricia_tree_t *ptree = (patricia_tree_t*)user_data;
   Flow *f = (Flow*)node;
-  
+
   if((ptree == NULL)
      || (f->get_cli_host() && f->get_cli_host()->match(ptree))
      || (f->get_srv_host() && f->get_srv_host()->match(ptree)))
@@ -2153,7 +2153,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 
       lua_pushnumber(vm, num + 1);
       lua_insert(vm, -2);
-      lua_settable(vm, -3); 
+      lua_settable(vm, -3);
 
       if(++num >= (int)maxHits) break;
 
@@ -2191,12 +2191,12 @@ int NetworkInterface::getFlows(lua_State* vm,
   int (*sorter)(const void *_a, const void *_b);
   char sortColumn[32];
   bool highDetails;
-  
+
   if(p == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
     return(-1);
   }
-  
+
   highDetails = p->detailedResults() ? true : (location == location_local_only || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? true : false;
 
   retriever.pag = p;
@@ -2378,7 +2378,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, LocationPolicy location,
-					 char *countryFilter, 
+					 char *countryFilter,
 					 u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
@@ -2422,7 +2422,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
      retriever.sorter == column_country ||
      retriever.sorter == column_os) {
     for(u_int i=0; i<retriever.maxNumEntries; i++)
-      if(retriever.elems[i].stringValue) 
+      if(retriever.elems[i].stringValue)
 	free(retriever.elems[i].stringValue);
   }
 
@@ -2497,7 +2497,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
      retriever.sorter == column_country ||
      retriever.sorter == column_os) {
     for(u_int i=0; i<retriever.maxNumEntries; i++)
-      if(retriever.elems[i].stringValue) 
+      if(retriever.elems[i].stringValue)
 	free(retriever.elems[i].stringValue);
   }
 
@@ -2682,7 +2682,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm) {
 static bool num_flows_state_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
-  
+
   switch(flow->getFlowState()) {
   case flow_state_syn:
     num_flows[1]++;
@@ -2709,7 +2709,7 @@ static bool num_flows_state_walker(GenericHashEntry *node, void *user_data) {
 static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   u_int32_t *num_flows = (u_int32_t*)user_data;
-  
+
   num_flows[flow->get_detected_protocol().protocol]++;
 
   return(false /* keep walking */);
@@ -3373,7 +3373,7 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
   } else {
     remBytes -= zmq_initial_bytes, remPkts -= zmq_initial_pkts;
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]", 
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]",
 				 ifname, remBytes, ethStats.getNumBytes(), remBytes-ethStats.getNumBytes(),
 				 remPkts, ethStats.getNumPackets(), remPkts-ethStats.getNumPackets());
     ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
@@ -3385,14 +3385,14 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
 void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
   if(interfaceStats == NULL)
     interfaceStats = new InterfaceStatsHash(NUM_IFACE_STATS_HASH);
-  
+
   if(interfaceStats) {
     char a[64];
-    
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][ifIndex=%u]", 
-				 Utils::intoaV4(stats->deviceIP, a, sizeof(a)), 
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][ifIndex=%u]",
+				 Utils::intoaV4(stats->deviceIP, a, sizeof(a)),
 				 stats->ifIndex);
-    
+
     interfaceStats->set(stats->deviceIP, stats->ifIndex, stats);
   }
 }
@@ -3406,7 +3406,90 @@ static int lua_flow_get_ndpi_proto(lua_State* vm) {
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushstring(vm, f ? f->get_detected_protocol_name() : "");
+  lua_pushstring(vm, f->get_detected_protocol_name());
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_get_first_seen(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, f->get_first_seen());
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_get_last_seen(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, f->get_last_seen());
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_has_start(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, f->hasStart());
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_get_server_name(lua_State* vm) {
+  Flow *f;
+  char buf[64];
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  const char * srv =  f->getFlowServerInfo();
+  if (! srv && f->get_srv_host()) srv = f->get_srv_host()->get_name(buf, sizeof(buf), false);
+  if (! srv) srv = "";
+
+  lua_pushstring(vm, srv);
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_get_ssl_certificate(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, f->getSSLCertificate());
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_get_http_url(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, f->getHTTPURL());
   return(CONST_LUA_OK);
 }
 
@@ -3434,8 +3517,9 @@ static int lua_flow_set_profile_id(lua_State* vm) {
 
   lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-  
-  if(f) f->setProfileId(id);
+  if(!f) return(CONST_LUA_ERROR);
+
+  f->setProfileId(id);
   return(CONST_LUA_OK);
 }
 
@@ -3443,6 +3527,12 @@ static int lua_flow_set_profile_id(lua_State* vm) {
 
 static const luaL_Reg flow_reg[] = {
   { "getNdpiProto",      lua_flow_get_ndpi_proto },
+  { "getFirstSeen",      lua_flow_get_first_seen },
+  { "getLastSeen",       lua_flow_get_last_seen },
+  { "hasStart",          lua_flow_has_start },
+  { "getServerName",     lua_flow_get_server_name },
+  { "getSSLCertificate", lua_flow_get_ssl_certificate },
+  { "getHTTPUrl",        lua_flow_get_http_url },
   { "getProfileId",      lua_flow_get_profile_id },
   { "setProfileId",      lua_flow_set_profile_id },
   { NULL,         NULL }
@@ -3455,7 +3545,7 @@ ntop_class_reg ntop_lua_reg[] = {
 };
 
 void NetworkInterface::initLuaInterpreter(const char *lua_file) {
-  static const luaL_Reg _meta[] = { { NULL, NULL } };  
+  static const luaL_Reg _meta[] = { { NULL, NULL } };
   int i;
   char script_path[256];
 
@@ -3506,12 +3596,42 @@ void NetworkInterface::initLuaInterpreter(const char *lua_file) {
     L = NULL;
   } else {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully interpreted %s", script_path);
-    
+
     lua_pushlightuserdata(L, NULL);
     lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
-    
+
     lua_pushlightuserdata(L, NULL);
     lua_setglobal(L, CONST_HOUSEKEEPING_HOST);
+
+
+    /* Profile IDs */
+    lua_newtable(L);
+
+    lua_pushstring(L, "other");
+    lua_pushnumber(L, CONST_LUA_PROFILE_OTHER);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "web");
+    lua_pushnumber(L, CONST_LUA_PROFILE_WEB);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "video");
+    lua_pushnumber(L, CONST_LUA_PROFILE_VIDEO);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "vpn");
+    lua_pushnumber(L, CONST_LUA_PROFILE_VPN);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "mail.send");
+    lua_pushnumber(L, CONST_LUA_PROFILE_MAIL_SEND);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "mail.recv");
+    lua_pushnumber(L, CONST_LUA_PROFILE_MAIL_RECV);
+    lua_settable(L, -3);
+
+    lua_setglobal(L, CONST_HOUSEKEEPING_PROFILES);
   }
 }
 
@@ -3528,7 +3648,7 @@ void NetworkInterface::termLuaInterpreter() {
 
 int NetworkInterface::luaEvalFlow(Flow *f, const char *luaFunction) {
   int rc;
-  
+
   if(reloadLuaInterpreter) {
     if(L) termLuaInterpreter();
     initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
@@ -3542,6 +3662,11 @@ int NetworkInterface::luaEvalFlow(Flow *f, const char *luaFunction) {
 
   lua_getglobal(L, luaFunction); /* function to be called */
   rc = lua_pcall(L, 0, 0, 0);
+
+  if (rc != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+      "While invoking lua script: %s\n", lua_tostring(L, -1));
+  }
 
   return(rc);
 }

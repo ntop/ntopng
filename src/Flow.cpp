@@ -121,9 +121,11 @@ Flow::Flow(NetworkInterface *_iface,
 #ifdef NTOPNG_PRO
   trafficProfile = NULL;
 #endif
-  
+
   // refresh_process();
   iface->luaEvalFlow(this, CONST_LUA_CREATE_FLOW);
+  if (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
+    iface->luaEvalFlow(this, CONST_LUA_DETECT_FLOW);
 }
 
 /* *************************************** */
@@ -498,6 +500,7 @@ void Flow::guessProtocol() {
     }
 
     l7_protocol_guessed = true;
+    iface->luaEvalFlow(this, CONST_LUA_DETECT_FLOW);
   }
 }
 
@@ -508,6 +511,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpiDetectedProtocol = proto_id;
       processDetectedProtocol();
+      iface->luaEvalFlow(this, CONST_LUA_DETECT_FLOW);
       detection_completed = true;
     } else if(forceDetection
 	      || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS) && (cli_host != NULL) && (srv_host != NULL))
@@ -839,7 +843,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
-    
+
     if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
       if(rsp[0] == '\0') /* Cached failed resolution */
 	ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_TOR;
@@ -1079,6 +1083,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   }
 
   checkBlacklistedFlow();
+  iface->luaEvalFlow(this, CONST_LUA_UPDATE_FLOW);
 }
 
 /* *************************************** */
@@ -1196,7 +1201,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     src_match = src->match(ptree), dst_match = dst->match(ptree);
     if((!src_match) && (!dst_match)) return;
   }
-  
+
   if(!skipNewTable)
     lua_newtable(vm);
 
@@ -1731,7 +1736,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME", json_object_new_string(ntop->getPrefs()->get_instance_name()));
   if(iface && iface->get_name())
     json_object_object_add(my_object, "INTERFACE", json_object_new_string(iface->get_name()));
-  
+
   if(isDNS() && protos.dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
 
   if(isHTTP() && protos.http.last_url && protos.http.last_method) {
@@ -1923,11 +1928,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   else
     state = flow_state_established;
 
-  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) 
+  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
     iface->getTcpFlowStats()->incSyn();
-  else if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) 
+  else if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST))
     iface->getTcpFlowStats()->incReset();
-  else if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) 
+  else if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN))
     iface->getTcpFlowStats()->incFin();
 
   /* The update below must be after the above check */
@@ -2407,7 +2412,7 @@ FlowStatus Flow::getFlowStatus() {
 
       if((srv2cli_packets == 0) && ((time(NULL)-last_seen) > 2 /* sec */))
 	return status_suspicious_tcp_probing;
-	
+
       if(!twh_over) {
 	if(isIdle)
 	  return status_suspicious_tcp_syn_probing;
