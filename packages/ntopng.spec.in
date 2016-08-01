@@ -108,7 +108,11 @@ if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local
 %endif
 
 %postun
+%if 0%{?centos_ver} == 7
+  /bin/systemctl disable ntopng.service
+%else
+  /sbin/chkconfig --del ntopng
+%endif
 if [ $1 == 0 ] ; then
-    echo 'Removing /usr/local/bin/ntopng link'
     rm -f /usr/local/bin/ntopng > /dev/null 2>&1
 fi
