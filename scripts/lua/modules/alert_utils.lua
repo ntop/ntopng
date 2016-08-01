@@ -8,11 +8,11 @@
 --[[ place functions that you want to override in stateful_alert_utils here --]]
 
 function delete_stateful_alert_configuration(alert_source, ifname)
-   return nil -- overridden in pro/scripts/lua/modules/stateful_alert_utils.lua
+   return nil
 end
 
 function refresh_stateful_alert_configuration(alert_source, ifname, timespan, alerts_string)
-   return nil -- overridden in pro/scripts/lua/modules/stateful_alert_utils.lua
+   return nil
 end
 
 --[[ functions that can be overridden in stateful_alert_utils go above this point --]]
@@ -21,7 +21,8 @@ dirs = ntop.getDirs()
 if (ntop.isEnterprise()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    -- overrides alert utils with the enterprise version of alerts
-   require "stateful_alert_utils"
+   -- require "stateful_alert_utils"
+   require "stateful_host_alert_api"
 end
 
 local verbose = false
