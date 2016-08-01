@@ -11,6 +11,10 @@ function delete_stateful_alert_configuration(alert_source, ifname)
    return nil -- overridden in pro/scripts/lua/modules/stateful_alert_utils.lua
 end
 
+function refresh_stateful_alert_configuration(alert_source, ifname, timespan, alerts_string)
+   return nil -- overridden in pro/scripts/lua/modules/stateful_alert_utils.lua
+end
+
 --[[ functions that can be overridden in stateful_alert_utils go above this point --]]
 
 dirs = ntop.getDirs()
@@ -285,9 +289,9 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					  mode, t[1], alert_msg)
 		     if ntop.isEnterprise() then
-			fire_stateful_host_alert(alert_id,
-						 alert_level, alert_type, alert_msg,
-						 getInterfaceId(ifname), key)
+			fire_threshold_host_alert(getInterfaceId(ifname), key,
+						  mode, t[1],
+						  alert_level, alert_msg)
 		     end
 		  end
 	       else
@@ -301,8 +305,9 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		   ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					    mode, t[1], "service OK")
 		   if ntop.isEnterprise() then
-		      withdraw_stateful_host_alert(alert_id,
-						   alert_type, getInterfaceId(ifname), key)
+		      withdraw_threshold_host_alert(getInterfaceId(ifname), key,
+						    mode, t[1],
+						    alert_level, nil)
 		   end
                 end
             end
