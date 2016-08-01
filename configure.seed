@@ -67,6 +67,12 @@ else
    fi
 fi
 
+if test -d "/usr/include/openssl"; then :
+ AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
+ SSL_INC="`pkg-config --cflags libssl` -I/usr/include/openssl"
+ SSL_LIB="`pkg-config --libs libssl` -lssl -lcrypto"
+fi
+
 NDPI_LIB=$NDPI_HOME/src/lib/.libs/libndpi.a
 AC_MSG_CHECKING(for $NDPI_LIB)
 if test -f "$NDPI_LIB" ; then :
@@ -423,6 +429,8 @@ AC_SUBST(MAN_DIR)
 AC_SUBST(NDPI_HOME)
 AC_SUBST(HIREDIS_INC)
 AC_SUBST(HIREDIS_LIB)
+AC_SUBST(SSL_INC)
+AC_SUBST(SSL_LIB)
 AC_SUBST(PRO_OBJECTS)
 AC_SUBST(PRO_HEADERS)
 AC_SUBST(PRO_MAKEFILE_INC)
