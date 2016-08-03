@@ -72,7 +72,7 @@ class NetworkInterface {
 
   /* Lua */
   bool reloadLuaInterpreter;
-  lua_State *L;
+  lua_State *L_flow_create_delete, *L_flow_update;
 
   /* Second update */
   u_int64_t lastSecTraffic,
@@ -104,7 +104,7 @@ class NetworkInterface {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
 
-  void initLuaInterpreter(const char *lua_file);
+  lua_State* initLuaInterpreter(const char *lua_file);
   void termLuaInterpreter();
 
   void init();
@@ -360,7 +360,7 @@ class NetworkInterface {
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
   inline void getFlowDevices(lua_State *vm) { if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm); };
   inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };
-  int luaEvalFlow(Flow *f, const char *luaFunction);
+  int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
 };
 

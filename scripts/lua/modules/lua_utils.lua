@@ -2023,7 +2023,7 @@ local magic_short_macs = {
 }
 
 -- get_symbolic_mac
-function get_symbolic_mac(mac_address)
+function get_symbolic_mac(mac_address, only_symbolic)
    if(magic_macs[mac_address] ~= nil) then
       return(magic_macs[mac_address])
    else
@@ -2031,14 +2031,22 @@ function get_symbolic_mac(mac_address)
       local t = string.sub(mac_address, 10, 17)
 
       if(magic_short_macs[m] ~= nil) then
-	 return(magic_short_macs[m].."_"..t.." ("..mac_address..")")
+	 if(only_symbolic == true) then
+	    return(magic_short_macs[m].."_"..t)
+	 else
+	    return(magic_short_macs[m].."_"..t.." ("..mac_address..")")
+	 end
       else
 	 local s = get_mac_classification(m)
 
 	 if(m == s) then
 	    return(get_mac_classification(m)..":"..t)
 	 else
-	    return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+	    if(only_symbolic == true) then
+	       return(get_mac_classification(m).."_"..t)
+	    else
+	       return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+	    end
 	 end
       end
    end

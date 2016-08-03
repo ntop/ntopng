@@ -203,4 +203,10 @@ typedef struct {
   const luaL_Reg *class_methods;
 } ntop_class_reg;
 
+typedef enum {
+  callback_flow_create,
+  callback_flow_delete,
+  callback_flow_update
+} LuaCallback;
+
 #endif /* _NTOP_TYPEDEFS_H_ */
