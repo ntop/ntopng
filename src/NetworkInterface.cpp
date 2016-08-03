@@ -187,7 +187,7 @@ void NetworkInterface::init() {
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
-  reloadLuaInterpreter = true, L = NULL;
+  reloadLuaInterpreter = true, L_flow_create_delete = L_flow_update = NULL;
 
   db = NULL; 
 #ifdef NTOPNG_PRO
@@ -3454,16 +3454,17 @@ ntop_class_reg ntop_lua_reg[] = {
   {NULL,      NULL}
 };
 
-void NetworkInterface::initLuaInterpreter(const char *lua_file) {
+lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   static const luaL_Reg _meta[] = { { NULL, NULL } };  
   int i;
   char script_path[256];
-
+  lua_State *L;
+  
   L = luaL_newstate();
 
   if(!L) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize lua interpreter");
-    return;
+    return(NULL);
   }
 
   snprintf(script_path, sizeof(script_path), "%s/%s",
@@ -3513,36 +3514,56 @@ void NetworkInterface::initLuaInterpreter(const char *lua_file) {
     lua_pushlightuserdata(L, NULL);
     lua_setglobal(L, CONST_HOUSEKEEPING_HOST);
   }
+
+  return(L);
 }
 
 /* **************************************** */
 
 void NetworkInterface::termLuaInterpreter() {
-  if(L) {
-    lua_close(L);
-    L = NULL;
-  }
+  if(L_flow_create_delete) { lua_close(L_flow_create_delete); L_flow_create_delete = NULL; }
+  if(L_flow_update)        { lua_close(L_flow_update); L_flow_update = NULL;               }
 }
 
 /* **************************************** */
 
-int NetworkInterface::luaEvalFlow(Flow *f, const char *luaFunction) {
+int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   int rc;
+  lua_State *L;
+  const char *luaFunction;
   
   if(reloadLuaInterpreter) {
-    if(L) termLuaInterpreter();
-    initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+    if(L_flow_create_delete || L_flow_update) termLuaInterpreter();
+    L_flow_create_delete = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+    L_flow_update = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
     reloadLuaInterpreter = false;
   }
 
-  if(!L) return(-1);
+  switch(cb) {
+  case callback_flow_create:
+    L = L_flow_create_delete, luaFunction = CONST_LUA_CREATE_FLOW;
+    break;
+    
+  case callback_flow_delete:
+    L = L_flow_create_delete, luaFunction = CONST_LUA_DELETE_FLOW;
+    break;
+    
+  case callback_flow_update:
+    L = L_flow_update, luaFunction = CONST_LUA_UPDATE_FLOW;
+    break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid lua callback (%d)", cb);
+    return(-1);
+  }
 
   lua_pushlightuserdata(L, f);
   lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
 
   lua_getglobal(L, luaFunction); /* function to be called */
-  rc = lua_pcall(L, 0, 0, 0);
+  if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s [rc=%d][%s]", luaFunction, rc, lua_tostring(L, -1));
+  }
 
   return(rc);
 }
-

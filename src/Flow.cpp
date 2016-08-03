@@ -123,7 +123,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   // refresh_process();
-  iface->luaEvalFlow(this, CONST_LUA_CREATE_FLOW);
+  iface->luaEvalFlow(this, callback_flow_create);
 }
 
 /* *************************************** */
@@ -243,7 +243,7 @@ Flow::~Flow() {
   update_hosts_stats(&tv);
   dumpFlow(true /* Dump only the last part of the flow */);
 
-  iface->luaEvalFlow(this, CONST_LUA_DELETE_FLOW);
+  iface->luaEvalFlow(this, callback_flow_delete);
 
   if(cli_host)         { cli_host->decUses(); cli_host->decNumFlows(true);  }
   if(srv_host)         { srv_host->decUses(); srv_host->decNumFlows(false); }
@@ -835,7 +835,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   int16_t cli_network_id;
   int16_t srv_network_id;
 
-  iface->luaEvalFlow(this, CONST_LUA_UPDATE_FLOW);
+  iface->luaEvalFlow(this, callback_flow_update);
 
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
