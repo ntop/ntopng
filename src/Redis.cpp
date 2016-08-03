@@ -1086,6 +1086,36 @@ int Redis::lpop(const char *queue_name, char ***elements, u_int num_elements) {
   return(rc);
 }
 
+/* **************************************** */
+
+int Redis::lrange(const char *list_name, char ***elements, int start_offset, int end_offset) {
+  int rc = 0;
+  u_int i;
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+  reply = (redisReply*)redisCommand(redis, "LRANGE %s %i %i", list_name, start_offset, end_offset);
+
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+  if(reply && (reply->type == REDIS_REPLY_ARRAY)) {
+    (*elements) = (char**) malloc(reply->elements * sizeof(char*));
+    rc = (int)reply->elements;
+
+    for(i = 0; i < reply->elements; i++) {
+      (*elements)[i] = strdup(reply->element[i]->str);
+    }
+  }
+
+  if(reply) freeReplyObject(reply);
+  l->unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
+
 /* ******************************************* */
 
 void Redis::deleteQueuedAlert(u_int32_t idx_to_delete) {
