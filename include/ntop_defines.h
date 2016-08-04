@@ -508,4 +508,11 @@
 #define UNKNOWN_OS            ""
 #define UNKNOWN_ASN           "Private ASN"
 #define UNKNOWN_LOCAL_NETWORK "Remote Networks"
+
+/* Ping utility */
+#define PING_DEFDATALEN (64-ICMP_MINLEN)
+#define PING_MAXIPLEN 60
+#define PING_MAXICMPLEN 76
+#define PING_MAXPACKET (65536 - 60 - ICMP_MINLEN)
+
 #endif /* _NTOP_DEFINES_H_ */
