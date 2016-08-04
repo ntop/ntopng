@@ -92,6 +92,7 @@ class Utils {
    * @return The ping delay computed, 0 or a negative number if ping fails.
    *
    * Works with IP address or host name.
+   * Code from https://github.com/fgrehm/pucrs-ping (written by fgrehm).
    */
   static int ping(string target);
 };
