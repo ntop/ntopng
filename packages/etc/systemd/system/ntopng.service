@@ -7,7 +7,7 @@ After=network.target syslog.target redis.service
 Type=forking
 ExecStart=/etc/init.d/ntopng start
 ExecStop=/etc/init.d/ntopng stop
-Restart=always
+Restart=on-abnormal
 RestartSec=5
 
 [Install]
