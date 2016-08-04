@@ -4,7 +4,9 @@ set -e
 
 if [ "$1" = "purge" ] ; then
     if [ -f /bin/systemctl ] ; then
-	systemctl disable ntopng.service
+	if systemctl  list-unit-files | grep ntopng.service; then
+	    systemctl disable ntopng.service
+	fi
     else
 	update-rc.d ntopng remove >/dev/null
     fi
