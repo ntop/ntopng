@@ -121,7 +121,7 @@ Flow::Flow(NetworkInterface *_iface,
 #ifdef NTOPNG_PRO
   trafficProfile = NULL;
 #endif
-  
+
   // refresh_process();
   iface->luaEvalFlow(this, callback_flow_create);
 }
@@ -839,7 +839,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
 
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
-    
+
     if(ntop->getRedis()->getAddress(protos.ssl.certificate, rsp, sizeof(rsp), false) == 0) {
       if(rsp[0] == '\0') /* Cached failed resolution */
 	ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_TOR;
@@ -1196,7 +1196,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     src_match = src->match(ptree), dst_match = dst->match(ptree);
     if((!src_match) && (!dst_match)) return;
   }
-  
+
   if(!skipNewTable)
     lua_newtable(vm);
 
@@ -1731,7 +1731,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, "NTOPNG_INSTANCE_NAME", json_object_new_string(ntop->getPrefs()->get_instance_name()));
   if(iface && iface->get_name())
     json_object_object_add(my_object, "INTERFACE", json_object_new_string(iface->get_name()));
-  
+
   if(isDNS() && protos.dns.last_query) json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
 
   if(isHTTP() && protos.http.last_url && protos.http.last_method) {
@@ -1847,7 +1847,31 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 /* *************************************** */
 
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
-		    u_int payload_len, const struct timeval *when) {
+		    u_int8_t *payload, u_int payload_len,
+		    const struct timeval *when) {
+#if 0
+  if(isSSL()
+     && (payload_len > 0)
+     && payload
+#if 1
+     && (payload[0] == 0x17)
+     && (payload[1] == 0x03)
+     && ((payload[2] >= 0x01) /* TLS 1.0 */ && (payload[2] <= 0x03) /* TLS 1.2 */)
+#endif
+     ) {
+    /* Add SSLv2 */
+    struct timeval *last = cli2srv_direction ? &cli2srvStats.pktTime.lastTime : &srv2cliStats.pktTime.lastTime;
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p][%u.%u][%s][%u -> %u] SSL %u [diff: %.1f sec]",
+				 this, when->tv_sec, when->tv_usec,
+				 cli2srv_direction ? " C->S " : "*S->C*",
+				 cli2srv_direction ? ntohs(cli_port) : ntohs(srv_port),
+				 cli2srv_direction ? ntohs(srv_port) : ntohs(cli_port),
+				 payload_len,
+				 Utils::msTimevalDiff((struct timeval*)when, last)/1000);
+  }
+#endif
+
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
 
@@ -1870,7 +1894,8 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 				   - Utils::timeval2usec(&c2sFirstGoodputTime)))/1000;
     }
   }
-};
+
+}
 
 /* *************************************** */
 
@@ -1923,11 +1948,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
   else
     state = flow_state_established;
 
-  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) 
+  if((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
     iface->getTcpFlowStats()->incSyn();
-  else if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) 
+  else if((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST))
     iface->getTcpFlowStats()->incReset();
-  else if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) 
+  else if((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN))
     iface->getTcpFlowStats()->incFin();
 
   /* The update below must be after the above check */
@@ -2407,7 +2432,7 @@ FlowStatus Flow::getFlowStatus() {
 
       if((srv2cli_packets == 0) && ((time(NULL)-last_seen) > 2 /* sec */))
 	return status_suspicious_tcp_probing;
-	
+
       if(!twh_over) {
 	if(isIdle)
 	  return status_suspicious_tcp_syn_probing;

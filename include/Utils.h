@@ -47,6 +47,7 @@ class Utils {
   static char* trim(char *s);
   static u_int32_t hashString(char *s);
   static float timeval2ms(struct timeval *tv);
+  static float msTimevalDiff(struct timeval *end, struct timeval *begin);
   static bool file_exists(const char *path);
   static bool mkdir_tree(char *path);
   static const char* trend2str(ValueTrend t);

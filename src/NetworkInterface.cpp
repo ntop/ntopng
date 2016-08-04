@@ -876,7 +876,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, h->len, payload_len, &h->ts);
+    flow->incStats(src2dst_direction, h->len, payload, payload_len, &h->ts);
 
     switch(l4_proto) {
     case IPPROTO_TCP:

@@ -210,6 +210,18 @@ u_int32_t Utils::timeval2usec(const struct timeval *tv) {
 
 /* ****************************************************** */
 
+float Utils::msTimevalDiff(struct timeval *end, struct timeval *begin) {
+  if((end->tv_sec == 0) && (end->tv_usec == 0))
+    return(0);
+  else {
+    float f = (end->tv_sec-begin->tv_sec)*1000+((float)(end->tv_usec-begin->tv_usec))/(float)1000;
+
+    return((f < 0) ? 0 : f);
+  }
+}
+
+/* ****************************************************** */
+
 bool Utils::file_exists(const char *path) {
   std::ifstream infile(path);
 
