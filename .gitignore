@@ -81,4 +81,7 @@ logobase.jpg
 logobase.png
 representations.aird
 third-party/libcrafter/
-
+*.snap
+prime/
+stage/
+parts/
