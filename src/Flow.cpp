@@ -240,7 +240,7 @@ Flow::~Flow() {
   }
 
   checkBlacklistedFlow();
-  update_hosts_stats(&tv);
+  update_hosts_stats(&tv, true);
   dumpFlow(true /* Dump only the last part of the flow */);
 
   iface->luaEvalFlow(this, callback_flow_delete);
@@ -826,7 +826,7 @@ bool Flow::dumpFlow(bool partial_dump) {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(struct timeval *tv) {
+void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
@@ -835,8 +835,13 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   int16_t cli_network_id;
   int16_t srv_network_id;
 
-  iface->luaEvalFlow(this, callback_flow_update);
-
+  /*
+    No need to call the method below as
+    the delete callback will be called in a moment
+  */
+  if(!inDeleteMethod)
+    iface->luaEvalFlow(this, callback_flow_update);
+  
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
 

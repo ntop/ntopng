@@ -273,7 +273,7 @@ class Flow : public GenericHashEntry {
   int compare(Flow *fb);
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
-  void update_hosts_stats(struct timeval *tv);
+  void update_hosts_stats(struct timeval *tv, bool inDeleteMethod);
   void print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose);
   u_int32_t key();
   void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump, bool asListElement);

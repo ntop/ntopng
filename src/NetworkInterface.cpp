@@ -674,16 +674,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
 
-#if 0
-  if(!is_packet_interface()) {
-    struct timeval tv, *last_update;
-
-    tv.tv_sec = zflow->last_switched, tv.tv_usec = 0;
-
-    flow->update_hosts_stats(&tv);
-  }
-#endif
-
   purgeIdle(zflow->last_switched);
 }
 
@@ -1647,7 +1637,7 @@ static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
-  flow->update_hosts_stats(tv);
+  flow->update_hosts_stats(tv, false);
   return(false); /* false = keep on walking */
 }
 
