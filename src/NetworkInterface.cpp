@@ -187,7 +187,7 @@ void NetworkInterface::init() {
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
-  reloadLuaInterpreter = true, L_flow_create_delete = L_flow_update = NULL;
+  reloadLuaInterpreter = true, L_flow_create = L_flow_delete = L_flow_update = NULL;
 
   db = NULL; 
 #ifdef NTOPNG_PRO
@@ -3521,8 +3521,9 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
 /* **************************************** */
 
 void NetworkInterface::termLuaInterpreter() {
-  if(L_flow_create_delete) { lua_close(L_flow_create_delete); L_flow_create_delete = NULL; }
-  if(L_flow_update)        { lua_close(L_flow_update); L_flow_update = NULL;               }
+  if(L_flow_create) { lua_close(L_flow_create); L_flow_create = NULL; }
+  if(L_flow_delete) { lua_close(L_flow_delete); L_flow_delete = NULL; }
+  if(L_flow_update) { lua_close(L_flow_update); L_flow_update = NULL; }
 }
 
 /* **************************************** */
@@ -3533,19 +3534,20 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   const char *luaFunction;
   
   if(reloadLuaInterpreter) {
-    if(L_flow_create_delete || L_flow_update) termLuaInterpreter();
-    L_flow_create_delete = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+    if(L_flow_create || L_flow_delete || L_flow_update) termLuaInterpreter();
+    L_flow_create = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+    L_flow_delete = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
     L_flow_update = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
     reloadLuaInterpreter = false;
   }
 
   switch(cb) {
   case callback_flow_create:
-    L = L_flow_create_delete, luaFunction = CONST_LUA_CREATE_FLOW;
+    L = L_flow_create, luaFunction = CONST_LUA_CREATE_FLOW;
     break;
     
   case callback_flow_delete:
-    L = L_flow_create_delete, luaFunction = CONST_LUA_DELETE_FLOW;
+    L = L_flow_delete, luaFunction = CONST_LUA_DELETE_FLOW;
     break;
     
   case callback_flow_update:
