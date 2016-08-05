@@ -3399,6 +3399,19 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
 /* **************************************** */
 
+static int lua_flow_get_ref(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushlightuserdata(vm, f);
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
 static int lua_flow_get_ndpi_proto(lua_State* vm) {
   Flow *f;
 
@@ -3525,7 +3538,21 @@ static int lua_flow_set_profile_id(lua_State* vm) {
 
 /* ****************************************** */
 
+static int lua_flow_enter(lua_State* vm) {
+  Flow *f;
+
+  //~ if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TUSERDATA)) return(CONST_LUA_ERROR);
+  f = (Flow*)lua_touserdata(vm, 1);
+
+  lua_pushlightuserdata(vm, f);
+  lua_setglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static const luaL_Reg flow_reg[] = {
+  { "getRef",            lua_flow_get_ref },
   { "getNdpiProto",      lua_flow_get_ndpi_proto },
   { "getFirstSeen",      lua_flow_get_first_seen },
   { "getLastSeen",       lua_flow_get_last_seen },
@@ -3603,6 +3630,7 @@ void NetworkInterface::initLuaInterpreter(const char *lua_file) {
     lua_pushlightuserdata(L, NULL);
     lua_setglobal(L, CONST_HOUSEKEEPING_HOST);
 
+    lua_register(L, "EnterFlow", lua_flow_enter);
 
     /* Profile IDs */
     lua_newtable(L);

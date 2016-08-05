@@ -16,9 +16,33 @@ function split_proto(proto)
   local res = {}
 
   res["main"] = s[1]
-  res["other"] = s[2]
+  res["sub"] = s[2]
 
   return res
+end
+
+function timeToString(ts)
+  return os.date('%Y-%m-%d %H:%M:%S', ts)
+end
+
+function printFlow()
+  print(timeToString(flow.getFirstSeen()).." "..flow.getNdpiProto().."@"..flow.getProfileId().." "..flow.getServerName().."\n")
+end
+
+function setProfile(profile)
+  flow.setProfileId(profile)
+  printFlow()
+end
+
+function bufferedCallback(i, callback)
+  local rec = HTTP_FLOW_BUF[i]
+  local cur = flow.getRef()
+  local rv
+
+  EnterFlow(rec.f)
+  rv = callback()
+  EnterFlow(cur)
+  return rv
 end
 
 -- Protocols (aggregated as well)
@@ -65,20 +89,25 @@ VIDEO_HOST_URLS_P = {
   "^video%-cdg2%-1%.xx%.fbcdn%.net$"          -- Facebook video
 }
 
+HTTP_MAX_AGGR_TIME = 15                       -- assume HTTP_MAX_AGGR_TIME < time to GC a flow
+LAST_AGGR_TIME = 0
+HTTP_FLOW_BUF = {}
+LAST_CLEANUP = 0
+
 -------
 
-function _match_web_flow(proto, server, url)
-  if proto ~= "HTTPS" and proto ~= "HTTP" and proto ~= "SSL" then
+function _match_web_flow(p1, p2, server, url)
+  if p1 ~= "HTTP" and p1 ~= "SSL" then
     return false
   end
 
-  if proto == "HTTP" and not url then
+  if p1 == "HTTP" and not url then
     -- site with no url: assume web
     return true
   end
 
   for i=1, #WEB_INDICATORS_PROTOS do
-    if proto == WEB_INDICATORS_PROTOS[i] then
+    if p1 == WEB_INDICATORS_PROTOS[i] then
       return true
     end
   end
@@ -98,29 +127,62 @@ function _match_web_flow(proto, server, url)
   return false
 end
 
-function match_web_flow(proto, server, url)
-  if _match_web_flow(proto, server) then
-    flow.setProfileId(PROFILES.web)
-    -- TODO propagate on time related flows
+function match_web_flow(p1, p2, server, url)
+  local matched = false
+  local now = flow.getLastSeen()
+
+  if _match_web_flow(p1, p2, server) then
+    matched = true
+    LAST_AGGR_TIME = now
+
+    -- Aggregate
+    for i=1, #HTTP_FLOW_BUF do
+      bufferedCallback(i, function () setProfile(PROFILES.web) end)
+    end
+    HTTP_FLOW_BUF = {}
+  else
+    if now - LAST_AGGR_TIME <= HTTP_MAX_AGGR_TIME then
+      matched = true
+    end
+  end
+
+  if matched then
+    setProfile(PROFILES.web)
     return true
   end
+
+  if p1 == "HTTP" or p1 == "SSL" then
+    table.insert(HTTP_FLOW_BUF, {["f"]=flow.getRef(), ["t"]=now})
+  end
+
   return false
 end
 
-function match_vpn_flow(proto, server, cert, hasStart)
-  -- TODO better detection (see FB 31.13.86.2 SSL)
-  if proto == "OpenVpn" or (proto == "SSL" and hasStart and not cert) then
-    flow.setProfileId(PROFILES.vpn)
+function clean_web_flows(now)
+  for i=#HTTP_FLOW_BUF,1,-1  do
+    -- Rmove out of time or with already detected profiles flows
+    if now - HTTP_FLOW_BUF[i].t > HTTP_MAX_AGGR_TIME or
+      bufferedCallback(i, function () return flow.getProfileId() end) ~= PROFILES.other then
+      table.remove(HTTP_FLOW_BUF, i)
+    end
+  end
+
+  LAST_CLEANUP = now
+end
+
+function match_vpn_flow(p1, p2, server, cert, hasStart)
+  if p1 == "OpenVpn" then
+    setProfile(PROFILES.vpn)
     return true
   end
 
   return false
 end
 
-function match_video_flow(proto, server)
+function match_video_flow(p1, p2, server)
   for i=1, #VIDEO_HOST_URLS_P do
     if server:find(VIDEO_HOST_URLS_P[i]) then
-      flow.setProfileId(PROFILES.video)
+      setProfile(PROFILES.video)
       return true
     end
   end
@@ -130,17 +192,19 @@ function match_video_flow(proto, server)
   return false
 end
 
-function match_mail_flow(proto, server)
-  local master = split_proto(proto).main
-
-  if master == "IMAP" or master == "IMAPS" or master == "POP3" then
-    flow.setProfileId(PROFILES["mail.recv"])
+function match_mail_flow(p1, p2, server)
+  if p1 == "POP3" then
+    setProfile(PROFILES["mail.recv"])
     return true
   end
 
-  if master == "SMTP" or master == "SMTPS" then
-    flow.setProfileId(PROFILES["mail.send"])
+  if p1 == "SMTP" or p1 == "SMTPS" then
+    setProfile(PROFILES["mail.send"])
     return true
+  end
+
+  if p1 == "IMAP" or p1 == "IMAPS" then
+    -- TODO remove IMAP sync
   end
 
   return false
@@ -149,26 +213,33 @@ end
 -------
 
 function flowUpdate()
-  local profile = flow.getProfileId()
+  --~ clean_web_flows()
+
+  --~ local profile = flow.getProfileId()
 
   -- debug: to see unmatched flows
-  if (profile == PROFILES.other) then
-    print("\t"..flow.getNdpiProto().." "..flow.getServerName().."\n")
-  end
+  --~ if (profile == PROFILES.other) then
+    --~ print("\t"..flow.getNdpiProto().." "..flow.getServerName().."\n")
+  --~ end
 end
 
 function flowDetect()
-  local proto = flow.getNdpiProto()
+  local proto = split_proto(flow.getNdpiProto())
+  local p1 = proto["main"]
+  local p2 = proto["sub"]
   local srv = flow.getServerName()
+
+  -- exclude DNS by now
+  if p1 == "DNS" then
+    return
+  end
 
   -- rules
   local matched =
-    match_vpn_flow(proto, srv, flow.getSSLCertificate(), flow.hasStart()) or
-    match_video_flow(proto, srv) or
-    match_mail_flow(proto, srv) or
-    match_web_flow(proto, srv, flow.getHTTPUrl())
-
-  print(flow.getFirstSeen().." "..flow.getNdpiProto().."@"..flow.getProfileId().." "..flow.getServerName().."\n")
+    match_vpn_flow(p1, p2, srv, flow.getSSLCertificate(), flow.hasStart()) or
+    match_video_flow(p1, p2, srv) or
+    match_mail_flow(p1, p2, srv) or
+    match_web_flow(p1, p2, srv, flow.getHTTPUrl())
 end
 
 function flowCreate()
@@ -176,5 +247,9 @@ function flowCreate()
 end
 
 function flowDelete()
-  -- print("flowDelete()\n")
+  local proto = split_proto(flow.getNdpiProto())["main"]
+
+  if proto ~= "DNS" and flow.getProfileId() == PROFILES.other then
+    printFlow()
+  end
 end
