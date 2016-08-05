@@ -1781,7 +1781,7 @@ end
  -- ##############################################
 
 function haveAdminPrivileges()
-   if(isAdministrator) then
+   if(isAdministrator()) then
       return(true)
    else
       ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
