@@ -10,7 +10,7 @@ WEB_INDICATORS_PROTOS = {
 }
 -- Sites with patterns
 --  optional www prefix is always implicit
---  a starting '.' indicates something must appear before the dot
+--  string end must match
 --  a ending '.' indicates 2 to 3 letters should appear after the dot
 WEB_INDICATORS = {
   -- Analytics
@@ -35,15 +35,29 @@ WEB_INDICATORS = {
   ".gstatic.com",
   ".clicktale.net",
   ".muscache.com",
-  ".deploy.static.akamaitechnologies.com",
+  ".akamaitechnologies.com",
   "cdn.sstatic.net",
   "engine.adzerk.net",
   "static.adzerk.net",
   "fonts.googleapis.com",
-  "fonts.gstatic.com",
   "ajax.googleapis.com",
   "cdn.siftscience.com",
   "cdn.turn.com",
+  ".intercomcdn.com",
+  ".intercomassets.com",
+  ".intercom.io",
+  ".akamaitechnologies.com",
+  ".cloudfront.net",
+  ".amazonaws.com",
+  ".bootstrapcdn.com",
+  ".incapdns.net",
+  ".verizondigitalmedia.com",
+  ".cachefly.net",
+  ".zencdn.net",
+  ".jsDelivr.net",
+  ".mshcdn.com",
+  "scontent-mxp1-1.xx.fbcdn.net",
+  "scontent.xx.fbcdn.net",
 
   -- Search Engine and sites
   ".duckduckgo.com",
@@ -54,13 +68,15 @@ WEB_INDICATORS = {
   ".forumcommunity.",
   ".altervista.",
   "stackoverflow.com",
-  "github.com"
+  "github.com",
+  "facebook.com"
 }
 
 VIDEO_HOST_URLS = {
   ".oloadcdn.net",                        -- Openload
   ".googlevideo.com",                     -- GoogleVideo
-  "video-cdg2-1.xx.fbcdn.net"             -- Facebook video
+  "video-cdg2-1.xx.fbcdn.net",            -- Facebook video
+  ".swarmcdn.com",
 }
 
 HTTP_MAX_AGGR_TIME = 10                   -- assume HTTP_MAX_AGGR_TIME < time to GC a flow
@@ -118,25 +134,19 @@ function match_url(url, arr)
     e = arr[i]
     u = string.gsub(url, "^www[0-9]?%.", "")
 
-    -- starting characters
-    if string.byte(e, 1) == dot then
-      u, m = string.gsub(u, "^[a-z0-9-]+%.", ".")
+    if string.byte(e, #e) == dot then
+      u, m = string.gsub(u, "%.[a-z]?[a-z]?[a-z]?$", ".")
     else
       m = 1
     end
 
     if m == 1 then
-      -- ending characters
-      if string.byte(e, #e) == dot then
-        u, m = string.gsub(u, "%.[a-z]?[a-z]?[a-z]?$", ".")
-      else
-        m = 1
-      end
-
-      if m == 1 and u == e then
+      m = string.find(u, e, 1, true)
+      if m and m + string.len(e) - 1 == string.len(u) then
         return i
       end
     end
+    --~ end
   end
 
   return false
@@ -167,7 +177,7 @@ function _match_web_flow(p1, p2, server, url)
     return true
   end
 
-  if url and match_url(url, WEB_INDICATORS) then
+  if match_url(server, WEB_INDICATORS) then
     return true
   end
 
@@ -177,7 +187,7 @@ end
 function _debug(url, server, p1)
   -- Debug: mark with a * matched urls
   local m = ""
-  if url and match_url(url, WEB_INDICATORS) then
+  if match_url(server, WEB_INDICATORS) then
     m = "* "
   else
     if match_web_protos(p1) then
