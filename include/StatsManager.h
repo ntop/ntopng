@@ -29,15 +29,15 @@ struct statsManagerRetrieval {
   int num_vals;
 };
 
-class StatsManager {
+class StatsManager : protected StoreManager {
 public:
-    StatsManager(int ifid, const char *dbname);
-    ~StatsManager();
+    StatsManager(int interface_id, const char *db_filename);
+    ~StatsManager() {};
     int insertMinuteSampling(time_t epoch, const char * const sampling);
     int insertHourSampling(time_t epoch, const char * const sampling);
     int insertDaySampling(time_t epoch, const char * const sampling);
     int getMinuteSampling(time_t epoch, string * sampling);
-    int openCache(const char *cache_name);
+    int openStore(const char *cache_name);
     int retrieveMinuteStatsInterval(time_t epoch_start, time_t epoch_end,
                                     struct statsManagerRetrieval *retvals);
     int retrieveHourStatsInterval(time_t epoch_start, time_t epoch_end,
@@ -48,26 +48,19 @@ public:
     int deleteHourStatsOlderThan(unsigned num_days);
     int deleteDayStatsOlderThan(unsigned num_days);
 private:
-    static const int MAX_QUERY = 500;
-    static const int MAX_KEY = 20;
     const char *MINUTE_CACHE_NAME,
 	       *HOUR_CACHE_NAME, *DAY_CACHE_NAME; // see constructor for initialization
-    int ifid;
     /*
      * map has O(log(n)) access time, but we suppose the number
      * of caches is not huge
      */
     std::map<string, bool> caches;
-    Mutex m;
-    sqlite3 *db;
-    int exec_query(char *db_query,
-                   int (*callback)(void *, int, char **, char **),
-                   void *payload);
+
     int insertSampling(const char * const sampling, const char * const cache_name, long int key);
     int getSampling(string * sampling, const char * const cache_name, time_t key_low, time_t key_high);
     int deleteStatsOlderThan(const char * const cache_name, const time_t key);
     int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char * const cache_name,
-		const time_t key_start, const time_t key_end);
+			      const time_t key_start, const time_t key_end);
 };
 
 #endif /* _STATS_MANAGER_H_ */

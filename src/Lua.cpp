@@ -4132,6 +4132,30 @@ static int ntop_queue_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_store_alert(lua_State* vm) {
+  int ifid;
+  NetworkInterface* iface;
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TTABLE)) return(CONST_LUA_ERROR);
+  
+  ifid = lua_tointeger(vm, 1);
+  if(ifid < 0)
+    return(CONST_LUA_ERROR);
+
+  /* TODO: check if the interface must be allowed or not */
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
+     !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  return am->storeAlert(vm, 2) ? CONST_LUA_ERROR : CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 #if NTOPNG_PRO
 
 static int ntop_nagios_reload_config(lua_State* vm) {
@@ -4700,6 +4724,9 @@ static const luaL_Reg ntop_reg[] = {
   { "queueAlert",           ntop_queue_alert              },
   { "enableHostAlerts",     ntop_host_enable_alerts       },
   { "disableHostAlerts",    ntop_host_disable_alerts      },
+
+  /* New generation alerts */
+  { "storeAlert",           ntop_store_alert              },
 #ifdef NTOPNG_PRO
   { "sendNagiosAlert",      ntop_nagios_send_alert },
   { "withdrawNagiosAlert",  ntop_nagios_withdraw_alert },

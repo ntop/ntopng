@@ -92,7 +92,8 @@ class NetworkInterface {
     dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic, dump_security_packets;
   DB *db;
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
-  StatsManager *statsManager;
+  StatsManager  *statsManager;
+  AlertsManager *alertsManager;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
@@ -303,8 +304,9 @@ class NetworkInterface {
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }
   inline u_int16_t getMTU() { return(ifMTU); }
-  inline void setIdleState(bool new_state) { is_idle = new_state; }
-  inline StatsManager *getStatsManager()   { return statsManager; }
+  inline void setIdleState(bool new_state)  { is_idle = new_state;  }
+  inline StatsManager  *getStatsManager()   { return statsManager;  }
+  inline AlertsManager *getAlertsManager()  { return alertsManager; }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules(patricia_tree_t *ptree);

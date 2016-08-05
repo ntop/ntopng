@@ -155,7 +155,8 @@ NetworkInterface::NetworkInterface(const char *name) {
 
   loadDumpPrefs();
 
-  statsManager = new StatsManager(id, "top_talkers.db");
+  statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
+  alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
 }
 
 /* **************************************************** */
@@ -193,7 +194,7 @@ void NetworkInterface::init() {
 #ifdef NTOPNG_PRO
   policer = NULL;
 #endif
-  statsManager = NULL, ifSpeed = 0;
+  statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_traffic = dump_security_packets = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
@@ -414,6 +415,7 @@ NetworkInterface::~NetworkInterface() {
   if(remoteProbePublicIPaddr) free(remoteProbePublicIPaddr);
   if(db) delete db;
   if(statsManager) delete statsManager;
+  if(alertsManager) delete alertsManager;
   if(networkStats) delete []networkStats;
   if(pkt_dumper)   delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
