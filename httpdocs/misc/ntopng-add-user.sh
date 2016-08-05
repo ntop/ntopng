@@ -1,4 +1,6 @@
-#!/usr/bin/env BASH
+#!/bin/bash
+
+###!/usr/bin/env BASH
 
 REDIS_HOSTNAME="127.0.0.1"
 REDIS_PORT="6379"

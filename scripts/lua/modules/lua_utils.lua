@@ -2128,6 +2128,16 @@ end
 
 -- ###############################################
 
+-- TODO: improve this function
+function jsonencode(what)
+   what = string.gsub(what, '"', "'")
+   what = string.gsub(what, "\n", " ")
+   what = string.gsub(what, "\r", " ")
+   return(what)
+end
+
+-- ###############################################
+
 function formatWebSite(site)
    return("<A target=\"_blank\" HREF=http://"..site..">"..site.."</A> <i class=\"fa fa-external-link\"></i></th>")
 end
