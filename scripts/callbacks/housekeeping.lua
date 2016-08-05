@@ -4,6 +4,69 @@
 
 print("Initialized script housekeeping.lua\n")
 
+-- Protocols (aggregated as well)
+WEB_INDICATORS_PROTOS = {
+  "Cloudflare"
+}
+-- Sites with patterns
+--  optional www prefix is always implicit
+--  a starting '.' indicates something must appear before the dot
+--  a ending '.' indicates 2 to 3 letters should appear after the dot
+WEB_INDICATORS = {
+  -- Analytics
+  "scorecardresearch.com",
+  "google-analytics.com",
+  "d.turn.com",
+  "statse.webtrendslive.com",
+  "hm.webtrends.com",
+  "google-analytics.com",
+  "pixel.quantserve.com",
+  "edge.quantserve.com",
+
+  -- Advertising
+  ".popads.net",
+  "doubleclick.net",
+  "googleadservices.com",
+  "srv.juiceadv.com",
+
+  -- CDN
+  ".stack.imgur.com",
+  ".cloudflare.com",
+  ".gstatic.com",
+  ".clicktale.net",
+  ".muscache.com",
+  ".deploy.static.akamaitechnologies.com",
+  "cdn.sstatic.net",
+  "engine.adzerk.net",
+  "static.adzerk.net",
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "ajax.googleapis.com",
+  "cdn.siftscience.com",
+  "cdn.turn.com",
+
+  -- Search Engine and sites
+  ".duckduckgo.com",
+  ".bing.com",
+  ".search.msn.com",
+  ".yahoo.",
+  ".forumfree.",
+  ".forumcommunity.",
+  ".altervista.",
+  "stackoverflow.com",
+  "github.com"
+}
+
+VIDEO_HOST_URLS = {
+  ".oloadcdn.net",                        -- Openload
+  ".googlevideo.com",                     -- GoogleVideo
+  "video-cdg2-1.xx.fbcdn.net"             -- Facebook video
+}
+
+HTTP_MAX_AGGR_TIME = 10                   -- assume HTTP_MAX_AGGR_TIME < time to GC a flow
+LAST_AGGR_TIME = 0
+HTTP_FLOW_BUF = {}
+
 function string:split(sep)
   local sep, fields = sep or ":", {}
   local pattern = string.format("([^%s]+)", sep)
@@ -45,59 +108,53 @@ function bufferedCallback(i, callback)
   return rv
 end
 
--- Protocols (aggregated as well)
-WEB_INDICATORS_PROTOS = {
-  "Cloudflare"
-}
--- Sites
-WEB_INDICATORS_S = {
-  "www.googleadservices.com",
-  "d.turn.com",                               -- analytics
-  "statse.webtrendslive.com",                 -- analytics
-  "hm.webtrends.com",                         -- Microsoft analytics
-  "fonts.googleapis.com",                     -- Google fonts
-  "fonts.gstatic.com",                        -- Google fonts
-  "www.google-analytics.com",                 -- Google analytics
-  "ajax.googleapis.com",                      -- Google apis
-  "cdn.sstatic.net",                          -- content hosting
-  "engine.adzerk.net",                        -- content hosting
-  "static.adzerk.net",                        -- content hosting
-  "pixel.quantserve.com",                     -- analytics
-  "edge.quantserve.com",                      -- analytics
-  "srv.juiceadv.com"                          -- advertising
-}
--- Sites with patterns
-WEB_INDICATORS_P = {
-  "^.*%.imgur%.com$",                         -- CloudFlare
-  "^.*%.cloudflare.com$",                     -- CloudFlare
-  "^.*%.popads%.net$",                        -- advertising popads
-  "^.*%.scorecardresearch%.com$",             -- analytics scorecardresearch
-  "^.*%.gstatic%.com$",                       -- Google gstatic content hosting
+function match_url(url, arr)
+  local e
+  local u
+  local m
+  local dot = string.byte(".", 1)
 
-  "^.*%.duckduckgo.com$",                     -- DuckDuckGo search engine
-  "^.*%.yahoo.net$",                          -- Yahoo
-  "^.*%.forumfree%.[a-zA-Z]+$",               -- forumfree
-  "^.*%.forumcommunity%.[a-zA-Z]+$",          -- forumcommunity
-  "^.*%.altervista%.[a-zA-Z]+$",              -- altervista
-  "^.*%.stackoverflow.com$",                  -- StackOverflow
-  "^.*%.github.com$"                          -- Github
-}
+  for i=1,#arr do
+    e = arr[i]
+    u = string.gsub(url, "^www[0-9]?%.", "")
 
-VIDEO_HOST_URLS_P = {
-  "^.*%.oloadcdn%.net$",                      -- Openload
-  "^.*%.googlevideo.com$",                    -- GoogleVideo
-  "^video%-cdg2%-1%.xx%.fbcdn%.net$"          -- Facebook video
-}
+    -- starting characters
+    if string.byte(e, 1) == dot then
+      u, m = string.gsub(u, "^[a-z0-9-]+%.", ".")
+    else
+      m = 1
+    end
 
-HTTP_MAX_AGGR_TIME = 15                       -- assume HTTP_MAX_AGGR_TIME < time to GC a flow
-LAST_AGGR_TIME = 0
-HTTP_FLOW_BUF = {}
-LAST_CLEANUP = 0
+    if m == 1 then
+      -- ending characters
+      if string.byte(e, #e) == dot then
+        u, m = string.gsub(u, "%.[a-z]?[a-z]?[a-z]?$", ".")
+      else
+        m = 1
+      end
+
+      if m == 1 and u == e then
+        return i
+      end
+    end
+  end
+
+  return false
+end
 
 -------
 
+function match_web_protos(p1)
+  for i=1, #WEB_INDICATORS_PROTOS do
+    if p1 == WEB_INDICATORS_PROTOS[i] then
+      return i
+    end
+  end
+  return false
+end
+
 function _match_web_flow(p1, p2, server, url)
-  if p1 ~= "HTTP" and p1 ~= "SSL" then
+  if not is_http_proto(p1) then
     return false
   end
 
@@ -106,30 +163,46 @@ function _match_web_flow(p1, p2, server, url)
     return true
   end
 
-  for i=1, #WEB_INDICATORS_PROTOS do
-    if p1 == WEB_INDICATORS_PROTOS[i] then
-      return true
-    end
+  if match_web_protos(p1) then
+    return true
   end
 
-  for i=1, #WEB_INDICATORS_S do
-    if server == WEB_INDICATORS_S[i] then
-      return true
-    end
-  end
-
-  for i=1, #WEB_INDICATORS_P do
-    if server:find(WEB_INDICATORS_P[i]) then
-      return true
-    end
+  if url and match_url(url, WEB_INDICATORS) then
+    return true
   end
 
   return false
 end
 
+function _debug(url, server, p1)
+  -- Debug: mark with a * matched urls
+  local m = ""
+  if url and match_url(url, WEB_INDICATORS) then
+    m = "* "
+  else
+    if match_web_protos(p1) then
+      m = "@ "
+    else
+      if p1 == "HTTP" and not url then
+        m = "# "
+      end
+    end
+  end
+
+  io.write(m)
+  --
+end
+
+function is_http_proto(p1)
+  return p1 == "HTTP" or p1 == "SSL" or p1 == "Cloudflare"
+end
+
 function match_web_flow(p1, p2, server, url)
   local matched = false
   local now = flow.getLastSeen()
+  local http_proto = is_http_proto(p1)
+
+  clean_web_flows(now)
 
   if _match_web_flow(p1, p2, server) then
     matched = true
@@ -141,17 +214,18 @@ function match_web_flow(p1, p2, server, url)
     end
     HTTP_FLOW_BUF = {}
   else
-    if now - LAST_AGGR_TIME <= HTTP_MAX_AGGR_TIME then
+    if now - LAST_AGGR_TIME <= HTTP_MAX_AGGR_TIME and http_proto then
       matched = true
     end
   end
 
   if matched then
+    _debug(url, server, p1)
     setProfile(PROFILES.web)
     return true
   end
 
-  if p1 == "HTTP" or p1 == "SSL" then
+  if http_proto then
     table.insert(HTTP_FLOW_BUF, {["f"]=flow.getRef(), ["t"]=now})
   end
 
@@ -160,14 +234,12 @@ end
 
 function clean_web_flows(now)
   for i=#HTTP_FLOW_BUF,1,-1  do
-    -- Rmove out of time or with already detected profiles flows
+    -- Remove out of time or with already detected profiles flows
     if now - HTTP_FLOW_BUF[i].t > HTTP_MAX_AGGR_TIME or
       bufferedCallback(i, function () return flow.getProfileId() end) ~= PROFILES.other then
       table.remove(HTTP_FLOW_BUF, i)
     end
   end
-
-  LAST_CLEANUP = now
 end
 
 function match_vpn_flow(p1, p2, server, cert, hasStart)
@@ -180,11 +252,8 @@ function match_vpn_flow(p1, p2, server, cert, hasStart)
 end
 
 function match_video_flow(p1, p2, server)
-  for i=1, #VIDEO_HOST_URLS_P do
-    if server:find(VIDEO_HOST_URLS_P[i]) then
-      setProfile(PROFILES.video)
-      return true
-    end
+  if match_url(server, VIDEO_HOST_URLS) then
+    return true
   end
 
   -- TODO HTTP content type
@@ -212,15 +281,11 @@ end
 
 -------
 
+-- NB this is called periodically, do not works well on captures
 function flowUpdate()
-  --~ clean_web_flows()
-
-  --~ local profile = flow.getProfileId()
-
-  -- debug: to see unmatched flows
-  --~ if (profile == PROFILES.other) then
-    --~ print("\t"..flow.getNdpiProto().." "..flow.getServerName().."\n")
-  --~ end
+  if flow.getProfileId() == PROFILES.web then
+    LAST_AGGR_TIME = math.max(flow.getLastSeen(), LAST_AGGR_TIME)
+  end
 end
 
 function flowDetect()
@@ -229,12 +294,11 @@ function flowDetect()
   local p2 = proto["sub"]
   local srv = flow.getServerName()
 
-  -- exclude DNS by now
+  -- exclude DNS
   if p1 == "DNS" then
     return
   end
 
-  -- rules
   local matched =
     match_vpn_flow(p1, p2, srv, flow.getSSLCertificate(), flow.hasStart()) or
     match_video_flow(p1, p2, srv) or
@@ -249,7 +313,9 @@ end
 function flowDelete()
   local proto = split_proto(flow.getNdpiProto())["main"]
 
+  -- print unmatched protos
   if proto ~= "DNS" and flow.getProfileId() == PROFILES.other then
+    io.write("? ")
     printFlow()
   end
 end
