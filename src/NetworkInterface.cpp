@@ -3482,19 +3482,6 @@ static int lua_flow_get_server_name(lua_State* vm) {
 
 /* **************************************** */
 
-static int lua_flow_get_ssl_certificate(lua_State* vm) {
-  Flow *f;
-
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, f->getSSLCertificate());
-  return(CONST_LUA_OK);
-}
-
-/* **************************************** */
-
 static int lua_flow_get_http_url(lua_State* vm) {
   Flow *f;
 
@@ -3558,7 +3545,6 @@ static const luaL_Reg flow_reg[] = {
   { "getLastSeen",       lua_flow_get_last_seen },
   { "hasStart",          lua_flow_has_start },
   { "getServerName",     lua_flow_get_server_name },
-  { "getSSLCertificate", lua_flow_get_ssl_certificate },
   { "getHTTPUrl",        lua_flow_get_http_url },
   { "getProfileId",      lua_flow_get_profile_id },
   { "setProfileId",      lua_flow_set_profile_id },

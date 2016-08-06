@@ -4,14 +4,15 @@
 
 print("Initialized script housekeeping.lua\n")
 
--- Protocols (aggregated as well)
-WEB_INDICATORS_PROTOS = {
+-- Protocols which are 100% web indicators
+WEB_PROTOS = {
   "Cloudflare"
 }
--- Sites with patterns
---  optional www prefix is always implicit
---  string end must match
---  a ending '.' indicates 2 to 3 letters should appear after the dot
+-- Sites which are web indicators
+-- Notes:
+--  * optional www prefix is always implicit
+--  * string end must match
+--  * a ending '.' indicates 2 to 3 letters should appear after the dot
 WEB_INDICATORS = {
   -- Analytics
   "scorecardresearch.com",
@@ -82,6 +83,8 @@ VIDEO_HOST_URLS = {
 HTTP_MAX_AGGR_TIME = 10                   -- assume HTTP_MAX_AGGR_TIME < time to GC a flow
 LAST_AGGR_TIME = 0
 HTTP_FLOW_BUF = {}
+
+-------
 
 function string:split(sep)
   local sep, fields = sep or ":", {}
@@ -155,8 +158,8 @@ end
 -------
 
 function match_web_protos(p1)
-  for i=1, #WEB_INDICATORS_PROTOS do
-    if p1 == WEB_INDICATORS_PROTOS[i] then
+  for i=1, #WEB_PROTOS do
+    if p1 == WEB_PROTOS[i] then
       return i
     end
   end
@@ -244,7 +247,7 @@ end
 
 function clean_web_flows(now)
   for i=#HTTP_FLOW_BUF,1,-1  do
-    -- Remove out of time or with already detected profiles flows
+    -- Remove out of time flows or with already detected profiles
     if now - HTTP_FLOW_BUF[i].t > HTTP_MAX_AGGR_TIME or
       bufferedCallback(i, function () return flow.getProfileId() end) ~= PROFILES.other then
       table.remove(HTTP_FLOW_BUF, i)
@@ -252,7 +255,7 @@ function clean_web_flows(now)
   end
 end
 
-function match_vpn_flow(p1, p2, server, cert, hasStart)
+function match_vpn_flow(p1, p2, server)
   if p1 == "OpenVpn" then
     setProfile(PROFILES.vpn)
     return true
@@ -291,7 +294,7 @@ end
 
 -------
 
--- NB this is called periodically, do not works well on captures
+-- NB this is called periodically, so it doesn't apply to capture files
 function flowUpdate()
   if flow.getProfileId() == PROFILES.web then
     LAST_AGGR_TIME = math.max(flow.getLastSeen(), LAST_AGGR_TIME)
@@ -310,7 +313,7 @@ function flowDetect()
   end
 
   local matched =
-    match_vpn_flow(p1, p2, srv, flow.getSSLCertificate(), flow.hasStart()) or
+    match_vpn_flow(p1, p2, srv) or
     match_video_flow(p1, p2, srv) or
     match_mail_flow(p1, p2, srv) or
     match_web_flow(p1, p2, srv, flow.getHTTPUrl())
