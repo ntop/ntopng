@@ -170,9 +170,9 @@ else
         -- get delta invite
         local delta_invite = ""
         if(time_epoch_invite ~= "0") then
-          if(time_epoch_trying ~= "0") then
-            if((tonumber(time_epoch_trying) - tonumber(time_epoch_invite)) >= 0 ) then
-              delta_invite = tonumber(time_epoch_trying) - tonumber(time_epoch_invite)
+          if(time_epoch_ringing ~= "0") then
+            if((tonumber(time_epoch_ringing) - tonumber(time_epoch_invite)) >= 0 ) then
+              delta_invite = tonumber(time_epoch_ringing) - tonumber(time_epoch_invite)
               if (delta_invite == 0) then
                 delta_invite = "< 1"
               end
@@ -380,20 +380,48 @@ else
         print(', "sip.rtp_stream":"');
         if((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")~="")) then
           sip_rtp_src_addr = 1
-          print(getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR"))
+          local address_ip = getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
+          if (address_ip ~= "0.0.0.0") then
+            interface.select(ifname)
+            rtp_host = interface.getHostInfo(address_ip)
+            if(rtp_host ~= nil) then
+              print('<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..address_ip.. '\\\">')
+              print(address_ip)
+              print('</A>')
+            end
+          else
+            print(address_ip)
+          end
         end
         if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
-          print(':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT"))
+          --print(':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT"))
+          print(':<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/port_details.lua?port='..getFlowValue(info, "SIP_RTP_L4_SRC_PORT").. '\\\">')
+          print(getFlowValue(info, "SIP_RTP_L4_SRC_PORT"))
+          print('</A>')
         end
         if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
           print(' <i class=\\\"fa fa-exchange fa-lg\\\"></i> ')
         end
         if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
           sip_rtp_dst_addr = 1
-          print(getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR"))
+          local address_ip = getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
+          if (address_ip ~= "0.0.0.0") then
+            interface.select(ifname)
+            rtp_host = interface.getHostInfo(address_ip)
+            if(rtp_host ~= nil) then
+              print('<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..address_ip.. '\\\">')
+              print(address_ip)
+              print('</A>')
+            end
+          else
+            print(address_ip)
+          end
         end
         if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
-          print(':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT"))
+          --print(':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT"))
+          print(':<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/port_details.lua?port='..getFlowValue(info, "SIP_RTP_L4_DST_PORT").. '\\\">')
+          print(getFlowValue(info, "SIP_RTP_L4_DST_PORT"))
+          print('</A>')
         end
         print('"');
 
@@ -413,8 +441,8 @@ else
       rtp_found = isThereProtocol("RTP", info)
       if(rtp_found == 1) then
         print(', "rtp.sync_source_id":"'..getFlowValue(info, "RTP_SSRC")..'"')
-        print(', "rtp.first_flow_timestamp":"'..getFlowValue(info, "RTP_FIRST_TS")..'"' )
-        print(', "rtp.last_flow_timestamp":"'..getFlowValue(info, "RTP_LAST_TS")..'"' )
+        --print(', "rtp.first_flow_timestamp":"'..getFlowValue(info, "RTP_FIRST_TS")..'"' )
+        --print(', "rtp.last_flow_timestamp":"'..getFlowValue(info, "RTP_LAST_TS")..'"' )
         print(', "rtp.first_flow_sequence":"'..getFlowValue(info, "RTP_FIRST_SEQ")..'"' )
         print(', "rtp.last_flow_sequence":"'..getFlowValue(info, "RTP_LAST_SEQ")..'"' )
         print(', "rtp.jitter_in":"'..getFlowValue(info, "RTP_IN_JITTER")..'"' )

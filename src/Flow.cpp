@@ -123,9 +123,9 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   // refresh_process();
-  iface->luaEvalFlow(this, CONST_LUA_CREATE_FLOW);
+  iface->luaEvalFlow(this, callback_flow_create);
   if (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
-    iface->luaEvalFlow(this, CONST_LUA_DETECT_FLOW);
+    iface->luaEvalFlow(this, callback_flow_detect);
 }
 
 /* *************************************** */
@@ -242,10 +242,10 @@ Flow::~Flow() {
   }
 
   checkBlacklistedFlow();
-  update_hosts_stats(&tv);
+  update_hosts_stats(&tv, true);
   dumpFlow(true /* Dump only the last part of the flow */);
 
-  iface->luaEvalFlow(this, CONST_LUA_DELETE_FLOW);
+  iface->luaEvalFlow(this, callback_flow_delete);
 
   if(cli_host)         { cli_host->decUses(); cli_host->decNumFlows(true);  }
   if(srv_host)         { srv_host->decUses(); srv_host->decNumFlows(false); }
@@ -500,7 +500,7 @@ void Flow::guessProtocol() {
     }
 
     l7_protocol_guessed = true;
-    iface->luaEvalFlow(this, CONST_LUA_DETECT_FLOW);
+    iface->luaEvalFlow(this, callback_flow_detect);
   }
 }
 
@@ -511,7 +511,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpiDetectedProtocol = proto_id;
       processDetectedProtocol();
-      iface->luaEvalFlow(this, CONST_LUA_DETECT_FLOW);
+      iface->luaEvalFlow(this, callback_flow_detect);
       detection_completed = true;
     } else if(forceDetection
 	      || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS) && (cli_host != NULL) && (srv_host != NULL))
@@ -830,7 +830,7 @@ bool Flow::dumpFlow(bool partial_dump) {
 
 /* *************************************** */
 
-void Flow::update_hosts_stats(struct timeval *tv) {
+void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   u_int64_t sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets, rcvd_bytes, rcvd_goodput_bytes;
   u_int64_t diff_sent_packets, diff_sent_bytes, diff_sent_goodput_bytes,
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
@@ -839,7 +839,12 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   int16_t cli_network_id;
   int16_t srv_network_id;
 
-  iface->luaEvalFlow(this, CONST_LUA_UPDATE_FLOW);
+  /*
+    No need to call the method below as
+    the delete callback will be called in a moment
+  */
+  if(!inDeleteMethod)
+    iface->luaEvalFlow(this, callback_flow_update);
 
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
@@ -1083,7 +1088,7 @@ void Flow::update_hosts_stats(struct timeval *tv) {
   }
 
   checkBlacklistedFlow();
-  iface->luaEvalFlow(this, CONST_LUA_UPDATE_FLOW);
+  iface->luaEvalFlow(this, callback_flow_update);
 }
 
 /* *************************************** */
@@ -1852,7 +1857,31 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 /* *************************************** */
 
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
-		    u_int payload_len, const struct timeval *when) {
+		    u_int8_t *payload, u_int payload_len,
+		    const struct timeval *when) {
+#if 0
+  if(isSSL()
+     && (payload_len > 0)
+     && payload
+#if 1
+     && (payload[0] == 0x17)
+     && (payload[1] == 0x03)
+     && ((payload[2] >= 0x01) /* TLS 1.0 */ && (payload[2] <= 0x03) /* TLS 1.2 */)
+#endif
+     ) {
+    /* Add SSLv2 */
+    struct timeval *last = cli2srv_direction ? &cli2srvStats.pktTime.lastTime : &srv2cliStats.pktTime.lastTime;
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p][%u.%u][%s][%u -> %u] SSL %u [diff: %.1f sec]",
+				 this, when->tv_sec, when->tv_usec,
+				 cli2srv_direction ? " C->S " : "*S->C*",
+				 cli2srv_direction ? ntohs(cli_port) : ntohs(srv_port),
+				 cli2srv_direction ? ntohs(srv_port) : ntohs(cli_port),
+				 payload_len,
+				 Utils::msTimevalDiff((struct timeval*)when, last)/1000);
+  }
+#endif
+
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
 
@@ -1875,7 +1904,8 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 				   - Utils::timeval2usec(&c2sFirstGoodputTime)))/1000;
     }
   }
-};
+
+}
 
 /* *************************************** */
 

@@ -217,7 +217,8 @@ class Flow : public GenericHashEntry {
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
-		u_int payload_len, const struct bpf_timeval *when);
+		u_int8_t *payload, u_int payload_len,
+		const struct bpf_timeval *when);
   void updateActivities();
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, time_t last_seen);
@@ -272,7 +273,7 @@ class Flow : public GenericHashEntry {
   int compare(Flow *fb);
   inline bool is_l7_protocol_guessed() { return(l7_protocol_guessed); };
   char* print(char *buf, u_int buf_len);
-  void update_hosts_stats(struct timeval *tv);
+  void update_hosts_stats(struct timeval *tv, bool inDeleteMethod);
   void print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose);
   u_int32_t key();
   void lua(lua_State* vm, patricia_tree_t * ptree, bool detailed_dump, bool asListElement);

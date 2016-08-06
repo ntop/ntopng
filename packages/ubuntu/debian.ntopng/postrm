@@ -2,8 +2,10 @@
 
 set -e
 
-if [ "$1" = "purge" ] ; then
-  update-rc.d ntopng remove >/dev/null
-fi
+case "$1" in
+    purge|remove)
+	update-rc.d ntopng remove >/dev/null
+    ;;
+esac
 
 exit 0

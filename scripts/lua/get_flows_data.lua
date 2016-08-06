@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "flow_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 local debug = false
@@ -281,6 +282,8 @@ for key, value in ipairs(flows_stats) do
       info = shortenString(flows_stats[key]["host_server_name"])
       elseif(flows_stats[key]["icmp"] ~= nil) then
       info = getICMPTypeCode(flows_stats[key]["icmp"])
+      elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
+      info = getSIPInfo(flows_stats[key])
    end
    flows_stats[key]["info"] = info
 

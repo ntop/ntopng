@@ -92,7 +92,8 @@ class NetworkInterface {
     dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic, dump_security_packets;
   DB *db;
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
-  StatsManager *statsManager;
+  StatsManager  *statsManager;
+  AlertsManager *alertsManager;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
@@ -104,7 +105,7 @@ class NetworkInterface {
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
 
-  void initLuaInterpreter(const char *lua_file);
+  lua_State* initLuaInterpreter(const char *lua_file);
   void termLuaInterpreter();
 
   void init();
@@ -128,7 +129,7 @@ class NetworkInterface {
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
-  bool checkIdle();  
+  bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void triggerTooManyHostsAlert();
@@ -164,7 +165,7 @@ class NetworkInterface {
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
-  inline char* get_ndpi_proto_breed_name(u_int id) { 
+  inline char* get_ndpi_proto_breed_name(u_int id) {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
   inline void setRemoteIfname(char *name)      { if(!remoteIfname)      remoteIfname = strdup(name);   };
   inline void setRemoteIfIPaddr(char *ip)      { if(!remoteIfIPaddr)    remoteIfIPaddr = strdup(ip);   };
@@ -303,8 +304,9 @@ class NetworkInterface {
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }
   inline u_int16_t getMTU() { return(ifMTU); }
-  inline void setIdleState(bool new_state) { is_idle = new_state; }
-  inline StatsManager *getStatsManager()   { return statsManager; }
+  inline void setIdleState(bool new_state)  { is_idle = new_state;  }
+  inline StatsManager  *getStatsManager()   { return statsManager;  }
+  inline AlertsManager *getAlertsManager()  { return alertsManager; }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules(patricia_tree_t *ptree);
@@ -351,7 +353,7 @@ class NetworkInterface {
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
   bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
 #endif
-  void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
+  void setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,
 		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time,
 		      u_int32_t last_pps, u_int32_t last_bps);
@@ -360,7 +362,7 @@ class NetworkInterface {
   inline bool createDBSchema() {if(db) {return db->createDBSchema();} return false;};
   inline void getFlowDevices(lua_State *vm) { if(interfaceStats) interfaceStats->luaDeviceList(vm); else lua_newtable(vm); };
   inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };
-  int luaEvalFlow(Flow *f, const char *luaFunction);
+  int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
 };
 

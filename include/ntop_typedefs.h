@@ -135,7 +135,7 @@ struct vm_ptree {
 };
 
 struct active_flow_stats {
-  u_int32_t num_flows, 
+  u_int32_t num_flows,
     ndpi_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS],
     breeds_bytes[NUM_BREEDS];
 };
@@ -153,7 +153,7 @@ struct string_list {
 /*
   Remember to update
   - Utils.cpp      Utils::flowstatus2str()
-  - lua_utils.lua  getFlowStatus(status)  
+  - lua_utils.lua  getFlowStatus(status)
  */
 typedef enum {
   status_normal = 0,
@@ -195,12 +195,19 @@ typedef struct {
   u_int32_t deviceIP, ifIndex, ifType, ifSpeed;
   bool ifFullDuplex, ifAdminStatus, ifOperStatus, ifPromiscuousMode;
   u_int64_t ifInOctets, ifInPackets, ifInErrors,
-    ifOutOctets, ifOutPackets, ifOutErrors;  
+    ifOutOctets, ifOutPackets, ifOutErrors;
 } sFlowInterfaceStats;
 
 typedef struct {
   const char *class_name;
   const luaL_Reg *class_methods;
 } ntop_class_reg;
+
+typedef enum {
+  callback_flow_create,
+  callback_flow_delete,
+  callback_flow_update,
+  callback_flow_detect
+} LuaCallback;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

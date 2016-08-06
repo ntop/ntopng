@@ -346,6 +346,7 @@ static const char *http_500_error = "Internal Server Error";
 
 #if defined(NO_SSL_DL)
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 #else
 // SSL loaded dynamically from DLL.
 // I put the prototypes here to be independent from OpenSSL source installation.
@@ -4497,6 +4498,10 @@ static int set_ports_option(struct mg_context *ctx) {
 	       (rc_listen = listen(so.sock, SOMAXCONN)) != 0) {
       cry(fc(ctx), "%s: cannot bind to %.*s: %s", __func__,
 	  (int) vec.len, vec.ptr, strerror(ERRNO));
+#if defined _NTOP_CLASS_H_
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s: cannot bind to %.*s: %s", __func__,
+				   (int) vec.len, vec.ptr, strerror(ERRNO));
+#endif
       closesocket(so.sock);
       success = 0;
     } else {
@@ -4665,6 +4670,9 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 
   if ((dll_handle = dlopen(dll_name, RTLD_LAZY)) == NULL) {
     cry(fc(ctx), "%s: cannot load %s", __func__, dll_name);
+#if defined _NTOP_CLASS_H_
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s: cannot load %s", __func__, dll_name);
+#endif
     return 0;
   }
 
@@ -4679,6 +4687,9 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 #endif // _WIN32
     if (u.fp == NULL) {
       cry(fc(ctx), "%s: %s: cannot find %s", __func__, dll_name, fp->name);
+#if defined _NTOP_CLASS_H_
+      ntop->getTrace()->traceEvent(TRACE_ERROR,  "%s: %s: cannot find %s", __func__, dll_name, fp->name);
+#endif
       return 0;
     } else {
       fp->ptr = u.fp;

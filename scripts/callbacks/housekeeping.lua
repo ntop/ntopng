@@ -2,7 +2,9 @@
 -- (C) 2016 - ntop.org
 --
 
-print("Initialized script housekeeping.lua\n")
+local trace_hk = false
+
+if(trace_hk) then print("Initialized script housekeeping.lua\n") end
 
 -- Protocols which are 100% web indicators
 WEB_PROTOS = {
@@ -113,7 +115,7 @@ end
 
 function setProfile(profile)
   flow.setProfileId(profile)
-  printFlow()
+  if trace_hk then printFlow() end
 end
 
 function bufferedCallback(i, callback)
@@ -233,7 +235,9 @@ function match_web_flow(p1, p2, server, url)
   end
 
   if matched then
-    _debug(url, server, p1)
+    if trace_hk then
+      _debug(url, server, p1)
+    end
     setProfile(PROFILES.web)
     return true
   end
@@ -295,13 +299,15 @@ end
 -------
 
 -- NB this is called periodically, so it doesn't apply to capture files
-function flowUpdate()
+function flowUpdate(f)
+  --~ if(trace_hk) then print("flowUpdate()\n") end
+
   if flow.getProfileId() == PROFILES.web then
     LAST_AGGR_TIME = math.max(flow.getLastSeen(), LAST_AGGR_TIME)
   end
 end
 
-function flowDetect()
+function flowDetect(f)
   local proto = split_proto(flow.getNdpiProto())
   local p1 = proto["main"]
   local p2 = proto["sub"]
@@ -319,16 +325,20 @@ function flowDetect()
     match_web_flow(p1, p2, srv, flow.getHTTPUrl())
 end
 
-function flowCreate()
-  -- print("flowCreate()\n")
+function flowCreate(f)
+   --~ if(trace_hk) then print("flowCreate()\n") end
 end
 
-function flowDelete()
+function flowDelete(f)
   local proto = split_proto(flow.getNdpiProto())["main"]
+
+  --~ if(trace_hk) then print("flowDelete()\n") end
 
   -- print unmatched protos
   if proto ~= "DNS" and flow.getProfileId() == PROFILES.other then
-    io.write("? ")
-    printFlow()
+    if trace_hk then
+      io.write("? ")
+      printFlow()
+    end
   end
 end

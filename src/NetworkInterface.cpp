@@ -155,7 +155,8 @@ NetworkInterface::NetworkInterface(const char *name) {
 
   loadDumpPrefs();
 
-  statsManager = new StatsManager(id, "top_talkers.db");
+  statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
+  alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
 }
 
 /* **************************************************** */
@@ -193,7 +194,7 @@ void NetworkInterface::init() {
 #ifdef NTOPNG_PRO
   policer = NULL;
 #endif
-  statsManager = NULL, ifSpeed = 0;
+  statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_traffic = dump_security_packets = dump_to_tap = false;
   dump_sampling_rate = CONST_DUMP_SAMPLING_RATE;
@@ -414,6 +415,7 @@ NetworkInterface::~NetworkInterface() {
   if(remoteProbePublicIPaddr) free(remoteProbePublicIPaddr);
   if(db) delete db;
   if(statsManager) delete statsManager;
+  if(alertsManager) delete alertsManager;
   if(networkStats) delete []networkStats;
   if(pkt_dumper)   delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
@@ -674,16 +676,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
 
-#if 0
-  if(!is_packet_interface()) {
-    struct timeval tv, *last_update;
-
-    tv.tv_sec = zflow->last_switched, tv.tv_usec = 0;
-
-    flow->update_hosts_stats(&tv);
-  }
-#endif
-
   purgeIdle(zflow->last_switched);
 }
 
@@ -876,7 +868,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, h->len, payload_len, &h->ts);
+    flow->incStats(src2dst_direction, h->len, payload, payload_len, &h->ts);
 
     switch(l4_proto) {
     case IPPROTO_TCP:
@@ -1647,7 +1639,7 @@ static bool flow_update_hosts_stats(GenericHashEntry *node, void *user_data) {
   Flow *flow = (Flow*)node;
   struct timeval *tv = (struct timeval*)user_data;
 
-  flow->update_hosts_stats(tv);
+  flow->update_hosts_stats(tv, false);
   return(false); /* false = keep on walking */
 }
 
@@ -3557,16 +3549,18 @@ ntop_class_reg ntop_lua_reg[] = {
   {NULL,      NULL}
 };
 
-void NetworkInterface::initLuaInterpreter(const char *lua_file) {
+
+lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   static const luaL_Reg _meta[] = { { NULL, NULL } };
   int i;
   char script_path[256];
+  lua_State *L;
 
   L = luaL_newstate();
 
   if(!L) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize lua interpreter");
-    return;
+    return(NULL);
   }
 
   snprintf(script_path, sizeof(script_path), "%s/%s",
@@ -3647,41 +3641,57 @@ void NetworkInterface::initLuaInterpreter(const char *lua_file) {
 
     lua_setglobal(L, CONST_HOUSEKEEPING_PROFILES);
   }
+
+  return(L);
 }
 
 /* **************************************** */
 
 void NetworkInterface::termLuaInterpreter() {
-  if(L) {
-    lua_close(L);
-    L = NULL;
-  }
+  if(L) { lua_close(L); L = NULL; }
 }
 
 /* **************************************** */
 
-int NetworkInterface::luaEvalFlow(Flow *f, const char *luaFunction) {
+int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   int rc;
+  const char *luaFunction;
 
   if(reloadLuaInterpreter) {
     if(L) termLuaInterpreter();
-    initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+    L = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
     reloadLuaInterpreter = false;
   }
 
-  if(!L) return(-1);
+  switch(cb) {
+  case callback_flow_create:
+    luaFunction = CONST_LUA_CREATE_FLOW;
+    break;
+
+  case callback_flow_delete:
+    luaFunction = CONST_LUA_DELETE_FLOW;
+    break;
+
+  case callback_flow_update:
+    luaFunction = CONST_LUA_UPDATE_FLOW;
+    break;
+
+  case callback_flow_detect:
+    luaFunction = CONST_LUA_DETECT_FLOW;
+    break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid lua callback (%d)", cb);
+    return(-1);
+  }
 
   lua_pushlightuserdata(L, f);
   lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
 
   lua_getglobal(L, luaFunction); /* function to be called */
-  rc = lua_pcall(L, 0, 0, 0);
-
-  if (rc != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-      "While invoking lua script: %s\n", lua_tostring(L, -1));
+  if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s [rc=%d][%s]", luaFunction, rc, lua_tostring(L, -1));
   }
 
   return(rc);
 }
-

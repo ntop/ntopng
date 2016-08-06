@@ -22,10 +22,9 @@
 #include "ntop_includes.h"
 
 
-StatsManager::StatsManager(int ifid, const char *filename) {
+StatsManager::StatsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
   char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
 
-  this->ifid = ifid, db = NULL;
   MINUTE_CACHE_NAME = "MINUTE_STATS";
   HOUR_CACHE_NAME = "HOUR_STATS";
   DAY_CACHE_NAME = "DAY_STATS";
@@ -44,46 +43,7 @@ StatsManager::StatsManager(int ifid, const char *filename) {
     return;
   }
 
-  if(sqlite3_open(fileFullPath, &db)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s: %s",
-				 fileFullPath, sqlite3_errmsg(db));
-    db = NULL;
-  }
-}
-
-StatsManager::~StatsManager() {
-  if(db) sqlite3_close(db);
-}
-
-/**
- * @brief Executes a database query on an already opened SQLite3 DB
- * @brief This function implements handling of a direct query on
- *        a SQLite3 database, hiding DB-specific syntax and error
- *        handling.
- *
- * @param db_query A string keeping the query to be executed.
- * @param callback Callback to be executed by the DB in case the query
- *                 execution is successful.
- * @param payload A pointer to be passed to the callback in case it
- *                is actually executed.
- *
- * @return Zero in case of success, nonzero in case of failure.
- */
-int StatsManager::exec_query(char *db_query,
-                             int (*callback)(void *, int, char **, char **),
-                             void *payload) {
-  char *zErrMsg = 0;
-
-  if(!db) return(-1);
-
-  if(sqlite3_exec(db, db_query, callback, payload, &zErrMsg)) {
-    printf("SQL error: %s\n", sqlite3_errmsg(db));
-    ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: %s", zErrMsg);
-    sqlite3_free(zErrMsg);
-    return 1;
-  }
-
-  return 0;
+  init(fileFullPath);
 }
 
 /**
@@ -96,9 +56,9 @@ int StatsManager::exec_query(char *db_query,
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::openCache(const char *cache_name)
+int StatsManager::openStore(const char *cache_name)
 {
-  char table_query[MAX_QUERY];
+  char table_query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
   if(!db)
@@ -136,13 +96,13 @@ int StatsManager::openCache(const char *cache_name)
  * @return Zero in case of success, nonzero in case of error.
  */
 int StatsManager::deleteStatsOlderThan(const char * const cache_name, const time_t key) {
-  char query[MAX_QUERY];
+  char query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
   if(!db)
     return -1;
 
-  if(openCache(cache_name))
+  if(openStore(cache_name))
     return -1;
 
   snprintf(query, sizeof(query), "DELETE FROM %s WHERE "
@@ -252,13 +212,13 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
 					const char * const cache_name,
                                         const time_t key_start,
 					const time_t key_end) {
-  char query[MAX_QUERY];
+  char query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
   if(!db)
     return -1;
 
-  if(openCache(cache_name))
+  if(openStore(cache_name))
     return -1;
 
   memset(retvals, 0, sizeof(*retvals));
@@ -355,14 +315,14 @@ int StatsManager::retrieveDayStatsInterval(time_t epoch_start,
  */
 int StatsManager::insertSampling(const char * const sampling, const char * const cache_name,
                                  long int key) {
-  char query[MAX_QUERY];
+  char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
 
   if(!db)
     return -1;
 
-  if(openCache(cache_name))
+  if(openStore(cache_name))
     return -1;
 
   snprintf(query, sizeof(query), "INSERT INTO %s (TSTAMP, STATS) VALUES(?,?)", cache_name);
@@ -483,7 +443,7 @@ static int get_sampling_db_callback(void *data, int argc,
 int StatsManager::getSampling(string * sampling, const char * const cache_name,
                               time_t key_low, time_t key_high) {
 
-  char query[MAX_QUERY];
+  char query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
   *sampling = "[ ]";
@@ -491,7 +451,7 @@ int StatsManager::getSampling(string * sampling, const char * const cache_name,
   if(!db)
     return -1;
 
-  if(openCache(cache_name))
+  if(openStore(cache_name))
     return -1;
 
   snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE "

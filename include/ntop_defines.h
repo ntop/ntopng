@@ -497,6 +497,13 @@
 #define MYSQL_MAX_NUM_FIELDS  255
 #define MYSQL_MAX_NUM_ROWS    999
 
+// sqlite (StoreManager and subclasses) related fields
+#define STORE_MANAGER_MAX_QUERY       500
+#define STORE_MANAGER_MAX_KEY          20
+#define ALERTS_MANAGER_TABLE_NAME     "alerts"
+#define ALERTS_MANAGER_STORE_NAME     ALERTS_MANAGER_TABLE_NAME ".db"
+#define STATS_MANAGER_STORE_NAME      "top_talkers.db"
+
 /* GRE (Generic Route Encapsulation) */
 #ifndef IPPROTO_GRE
 #define IPPROTO_GRE 47

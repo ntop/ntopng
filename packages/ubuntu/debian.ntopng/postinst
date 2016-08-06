@@ -21,7 +21,12 @@ echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
 echo "Adding the ntopng startup script"
-update-rc.d ntopng defaults 93 >/dev/null
+
+if [ -f /bin/systemctl ] ; then
+  systemctl enable ntopng.service
+else
+  update-rc.d ntopng defaults 93 >/dev/null
+fi
 
 echo "Making the /etc/ntopng directory..."
 

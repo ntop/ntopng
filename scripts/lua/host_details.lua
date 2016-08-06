@@ -1766,6 +1766,7 @@ else
    --print(alerts)
 
    if(to_save) then
+      refresh_threshold_alert_configuration(hostkey, ifname, tab, alerts)
       if(alerts == "") then
 	 ntop.delHashCache(get_alerts_hash_name(tab, ifname), hostkey)
       else

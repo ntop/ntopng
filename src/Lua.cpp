@@ -3901,6 +3901,70 @@ static int ntop_get_hash_keys_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_keys_redis(lua_State* vm) {
+  char *pattern, **keys;
+  Redis *redis = ntop->getRedis();
+  int rc;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((pattern = (char*)lua_tostring(vm, 1)) == NULL)   return(CONST_LUA_PARAM_ERROR);
+
+  rc = redis->keys(pattern, &keys);
+
+  if(rc > 0) {
+    lua_newtable(vm);
+
+    for(int i = 0; i < rc; i++) {
+      lua_push_str_table_entry(vm, keys[i] ? keys[i] : "", (char*)"");
+      if(keys[i]) free(keys[i]);
+    }
+    free(keys);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_lrange_redis(lua_State* vm) {
+  char *l_name, **l_elements;
+  Redis *redis = ntop->getRedis();
+  int start_offset = 0, end_offset = -1;
+  int rc;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((l_name = (char*)lua_tostring(vm, 1)) == NULL)   return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 2) == LUA_TNUMBER) {
+    start_offset = lua_tointeger(vm, 2);
+  }
+  if(lua_type(vm, 3) == LUA_TNUMBER) {
+    end_offset = lua_tointeger(vm, 3);
+  }
+
+  rc = redis->lrange(l_name, &l_elements, start_offset, end_offset);
+
+  if(rc > 0) {
+    lua_newtable(vm);
+
+    for(int i = 0; i < rc; i++) {
+      lua_push_str_table_entry(vm, l_elements[i] ? l_elements[i] : "", (char*)"");
+      if(l_elements[i]) free(l_elements[i]);
+    }
+    free(l_elements);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_redis_set_pop(lua_State* vm) {
   char *set_name, rsp[CONST_MAX_LEN_REDIS_VALUE];
   Redis *redis = ntop->getRedis();
@@ -4064,6 +4128,30 @@ static int ntop_queue_alert(lua_State* vm) {
   redis->queueAlert((AlertLevel)alert_level, (AlertStatus)alert_status,
 		    (AlertType)alert_type, alert_msg);
   return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_store_alert(lua_State* vm) {
+  int ifid;
+  NetworkInterface* iface;
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TTABLE)) return(CONST_LUA_ERROR);
+  
+  ifid = lua_tointeger(vm, 1);
+  if(ifid < 0)
+    return(CONST_LUA_ERROR);
+
+  /* TODO: check if the interface must be allowed or not */
+  if(!(iface = ntop->getNetworkInterface(ifid)) ||
+     !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  return am->storeAlert(vm, 2) ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
 
 /* ****************************************** */
@@ -4599,11 +4687,13 @@ static const luaL_Reg ntop_reg[] = {
   { "delCache",        ntop_delete_redis_key },
   { "listIndexCache",  ntop_list_index_redis },
   { "lpushCache",      ntop_lpush_redis },
+  { "lrangeCache",     ntop_lrange_redis },
   { "getMembersCache", ntop_get_set_members_redis },
   { "getHashCache",    ntop_get_hash_redis },
   { "setHashCache",    ntop_set_hash_redis },
   { "delHashCache",    ntop_del_hash_redis },
   { "getHashKeysCache",ntop_get_hash_keys_redis },
+  { "getKeysCache",    ntop_get_keys_redis },
   { "delHashCache",    ntop_delete_hash_redis_key },
   { "setPopCache",     ntop_get_redis_set_pop },
   { "getHostId",       ntop_redis_get_host_id },
@@ -4634,6 +4724,9 @@ static const luaL_Reg ntop_reg[] = {
   { "queueAlert",           ntop_queue_alert              },
   { "enableHostAlerts",     ntop_host_enable_alerts       },
   { "disableHostAlerts",    ntop_host_disable_alerts      },
+
+  /* New generation alerts */
+  { "storeAlert",           ntop_store_alert              },
 #ifdef NTOPNG_PRO
   { "sendNagiosAlert",      ntop_nagios_send_alert },
   { "withdrawNagiosAlert",  ntop_nagios_withdraw_alert },

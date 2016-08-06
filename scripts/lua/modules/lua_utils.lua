@@ -441,38 +441,55 @@ function l4Label(proto)
 end
 
 -- Alerts (see ntop_typedefs.h)
-
+-- each table entry is an array as:
+-- {"alert html string", "alert C enum value", "plain string"}
 alert_level_keys = {
-  { "<span class='label label-info'>Info</span>", 0 },
-  { "<span class='label label-warning'>Warning</span>", 1 },
-  { "<span class='label label-danger'>Error</span>", 2 }
+  { "<span class='label label-info'>Info</span>",       0, "info"    },
+  { "<span class='label label-warning'>Warning</span>", 1, "warning" },
+  { "<span class='label label-danger'>Error</span>",    2, "error"   }
 }
 
 alert_type_keys = {
-  { "<i class='fa fa-tint'></i> TCP SYN Flood", 0 },
-  { "<i class='fa fa-tint'></i> Flows Flood",   1 },
-  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",  2 },
-  { "<i class='fa fa-frown-o'></i> Blacklist Host",  3 },
-  { "<i class='fa fa-clock-o'></i> Periodic Activity",  4 },
-  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",  5 },
-  { "<i class='fa fa-ban'></i> Malware Detected",  6 },
-  { "<i class='fa fa-bomb'></i> Ongoing Attacker",  7 },
-  { "<i class='fa fa-bomb'></i> Under Attack",  8 },
-  { "<i class='fa fa-exclamation'></i> Misconfigured App",  9 },
-  { "<i class='fa fa-exclamation'></i> Suspicious Activity",  10 },
+  { "<i class='fa fa-tint'></i> TCP SYN Flood",                0, "tcp_syn_flood"       },
+  { "<i class='fa fa-tint'></i> Flows Flood",                  1, "flows_flood"         },
+  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",   2, "threshold_cross"     },
+  { "<i class='fa fa-frown-o'></i> Blacklist Host",            3, "blacklist_host"      },
+  { "<i class='fa fa-clock-o'></i> Periodic Activity",         4, "periodic_activity"   },
+  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",           5, "quota_exceeded"      },
+  { "<i class='fa fa-ban'></i> Malware Detected",              6, "malware_detected"    },
+  { "<i class='fa fa-bomb'></i> Ongoing Attacker",             7, "ongoing_attacker"    },
+  { "<i class='fa fa-bomb'></i> Under Attack",                 8, "under_attack"        },
+  { "<i class='fa fa-exclamation'></i> Misconfigured App",     9, "misconfigured_app"   },
+  { "<i class='fa fa-exclamation'></i> Suspicious Activity",  10, "suspicious_activity" },
 }
 
 function alertSeverityLabel(v)
-  return(_handleArray(alert_level_keys, tonumber(v)))
+   return(_handleArray(alert_level_keys, tonumber(v)))
+end
+
+function alertSeverity(v)
+   local severity_table = {}
+   for i, t in ipairs(alert_level_keys) do
+      severity_table[#severity_table + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(severity_table, v))
 end
 
 function alertTypeLabel(v)
-  return(_handleArray(alert_type_keys, tonumber(v)))
+   return(_handleArray(alert_type_keys, tonumber(v)))
+end
+
+function alertType(v)
+   local typetable = {}
+   for i, t in ipairs(alert_type_keys) do
+      typetable[#typetable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(typetable, v))
 end
 
 function firstToUpper(str)
-  str = tostring(str)
-  return (str:gsub("^%l", string.upper))
+   str = tostring(str)
+   return (str:gsub("^%l", string.upper))
 end
 
 function pairsByKeys(t, f)
@@ -1800,7 +1817,7 @@ end
  -- ##############################################
 
 function haveAdminPrivileges()
-   if(isAdministrator) then
+   if(isAdministrator()) then
       return(true)
    else
       ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -2023,7 +2040,7 @@ local magic_short_macs = {
 }
 
 -- get_symbolic_mac
-function get_symbolic_mac(mac_address)
+function get_symbolic_mac(mac_address, only_symbolic)
    if(magic_macs[mac_address] ~= nil) then
       return(magic_macs[mac_address])
    else
@@ -2031,14 +2048,22 @@ function get_symbolic_mac(mac_address)
       local t = string.sub(mac_address, 10, 17)
 
       if(magic_short_macs[m] ~= nil) then
-	 return(magic_short_macs[m].."_"..t.." ("..mac_address..")")
+	 if(only_symbolic == true) then
+	    return(magic_short_macs[m].."_"..t)
+	 else
+	    return(magic_short_macs[m].."_"..t.." ("..mac_address..")")
+	 end
       else
 	 local s = get_mac_classification(m)
 
 	 if(m == s) then
 	    return(get_mac_classification(m)..":"..t)
 	 else
-	    return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+	    if(only_symbolic == true) then
+	       return(get_mac_classification(m).."_"..t)
+	    else
+	       return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+	    end
 	 end
       end
    end
@@ -2116,6 +2141,16 @@ end
 function trimSpace(what)
    if(what == nil) then return("") end
    return(string.gsub(what, "%s+", ""))
+end
+
+-- ###############################################
+
+-- TODO: improve this function
+function jsonencode(what)
+   what = string.gsub(what, '"', "'")
+   what = string.gsub(what, "\n", " ")
+   what = string.gsub(what, "\r", " ")
+   return(what)
 end
 
 -- ###############################################
