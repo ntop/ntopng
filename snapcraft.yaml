@@ -1,0 +1,72 @@
+name: ntopng
+version: dev
+summary: High-speed web-based traffic analysis and flow collection.
+description: ntopng is the next generation version of the original ntop, a network traffic probe that shows the network usage, similar to what the popular top Unix command does.
+confinement: strict
+
+apps:
+    ntopng:
+        daemon: simple
+        command: bin/start-ntopng.sh
+        plugs:
+           - network-bind
+           - network-control
+    redis-server:
+        daemon: simple
+        command: bin/start-redis.sh
+        plugs:
+            - network-bind
+
+parts:
+    ndpi:
+        plugin: copy
+        source: https://github.com/ntop/nDPI.git
+        files: {}
+    ntopng-init:
+        plugin: copy
+        source: https://github.com/ntop/ntopng.git
+        after:
+            - ndpi
+        files:
+            '*': .
+            '../../ndpi/build/*': nDPI/
+        stage:
+            - -*
+        snap:
+            - -*
+    ntopng:
+        plugin: autotools
+        source: parts/ntopng-init/install
+        after:
+            - ntopng-init
+        build-packages:
+            - libxml2-dev
+            - libpcap-dev
+            - libsqlite3-dev
+            - libhiredis-dev
+            - libgeoip-dev
+            - libcurl4-openssl-dev
+            - libpango1.0-dev
+            - libcairo2-dev
+            - libpng12-dev
+            - libmysqlclient-dev
+            - libnetfilter-queue-dev
+            - zlib1g-dev
+            - libzmq3-dev
+    redis:
+        plugin: make
+        source: http://download.redis.io/releases/redis-3.2.3.tar.gz
+        make-install-var: PREFIX
+    daemons:
+        plugin: copy
+        source: ./snappy/
+        files:
+            start-redis.sh: bin/start-redis.sh
+            start-ntopng.sh: bin/start-ntopng.sh
+    netcat:
+        plugin: autotools
+        source: http://sourceforge.net/projects/netcat/files/netcat/0.7.1/netcat-0.7.1.tar.gz
+        stage:
+            - bin/netcat
+        snap:
+            - bin/netcat
