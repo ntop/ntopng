@@ -259,7 +259,15 @@
 
 #define CONST_LUA_UPDATE_FLOW  "flowUpdate"
 #define CONST_LUA_CREATE_FLOW  "flowCreate"
+#define CONST_LUA_DETECT_FLOW  "flowDetect"
 #define CONST_LUA_DELETE_FLOW  "flowDelete"
+
+#define CONST_LUA_PROFILE_OTHER        0
+#define CONST_LUA_PROFILE_WEB          1
+#define CONST_LUA_PROFILE_VIDEO        2
+#define CONST_LUA_PROFILE_VPN          3
+#define CONST_LUA_PROFILE_MAIL_SEND    4
+#define CONST_LUA_PROFILE_MAIL_RECV    5
 
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)
@@ -291,6 +299,7 @@
 #define CONST_HTTP_CONN              "http.conn"
 #define CONST_HOUSEKEEPING_FLOW      "housekeepingflow"
 #define CONST_HOUSEKEEPING_HOST      "housekeepinghost"
+#define CONST_HOUSEKEEPING_PROFILES  "PROFILES"
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1

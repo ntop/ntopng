@@ -124,6 +124,8 @@ Flow::Flow(NetworkInterface *_iface,
 
   // refresh_process();
   iface->luaEvalFlow(this, callback_flow_create);
+  if (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
+    iface->luaEvalFlow(this, callback_flow_detect);
 }
 
 /* *************************************** */
@@ -498,6 +500,7 @@ void Flow::guessProtocol() {
     }
 
     l7_protocol_guessed = true;
+    iface->luaEvalFlow(this, callback_flow_detect);
   }
 }
 
@@ -508,6 +511,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
       ndpiDetectedProtocol = proto_id;
       processDetectedProtocol();
+      iface->luaEvalFlow(this, callback_flow_detect);
       detection_completed = true;
     } else if(forceDetection
 	      || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS) && (cli_host != NULL) && (srv_host != NULL))
@@ -841,7 +845,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   */
   if(!inDeleteMethod)
     iface->luaEvalFlow(this, callback_flow_update);
-  
+
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
 
@@ -1084,6 +1088,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   }
 
   checkBlacklistedFlow();
+  iface->luaEvalFlow(this, callback_flow_update);
 }
 
 /* *************************************** */

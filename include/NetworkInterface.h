@@ -72,7 +72,7 @@ class NetworkInterface {
 
   /* Lua */
   bool reloadLuaInterpreter;
-  lua_State *L_flow_create, *L_flow_delete, *L_flow_update;
+  lua_State *L;
 
   /* Second update */
   u_int64_t lastSecTraffic,
@@ -129,7 +129,7 @@ class NetworkInterface {
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
-  bool checkIdle();  
+  bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void triggerTooManyHostsAlert();
@@ -165,7 +165,7 @@ class NetworkInterface {
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
-  inline char* get_ndpi_proto_breed_name(u_int id) { 
+  inline char* get_ndpi_proto_breed_name(u_int id) {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
   inline void setRemoteIfname(char *name)      { if(!remoteIfname)      remoteIfname = strdup(name);   };
   inline void setRemoteIfIPaddr(char *ip)      { if(!remoteIfIPaddr)    remoteIfIPaddr = strdup(ip);   };
@@ -353,7 +353,7 @@ class NetworkInterface {
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
   bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
 #endif
-  void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
+  void setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,
 		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time,
 		      u_int32_t last_pps, u_int32_t last_bps);

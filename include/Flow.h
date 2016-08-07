@@ -75,11 +75,11 @@ class Flow : public GenericHashEntry {
       char *last_url, *last_method;
       u_int16_t last_return_code;
     } http;
-    
+
     struct {
       char *last_query;
     } dns;
-    
+
     struct {
       char *certificate;
       bool hs_started, hs_over, firstdata_seen;
@@ -159,7 +159,7 @@ class Flow : public GenericHashEntry {
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
-    return(1000 /* msec */ 
+    return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
   void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
@@ -323,6 +323,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
   inline FlowState getFlowState()                   { return(state);                          };
+  inline bool      hasStart()                       { return(state & 0x2);                    };
   inline bool      isEstablished()                  { return state == flow_state_established; };
   inline u_int8_t getProfileId()                    { return(flowProfileId);                  };
   inline void     setProfileId(u_int8_t v)          { flowProfileId = v;                      };
