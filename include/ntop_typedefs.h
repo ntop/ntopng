@@ -206,7 +206,8 @@ typedef struct {
 typedef enum {
   callback_flow_create,
   callback_flow_delete,
-  callback_flow_update
+  callback_flow_update,
+  callback_flow_ndpi_detect
 } LuaCallback;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

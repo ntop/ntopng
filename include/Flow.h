@@ -323,6 +323,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
   inline FlowState getFlowState()                   { return(state);                          };
+  inline bool      hasStart()                       { return(state & 0x2);                    };
   inline bool      isEstablished()                  { return state == flow_state_established; };
   inline u_int8_t getProfileId()                    { return(flowProfileId);                  };
   inline void     setProfileId(u_int8_t v)          { flowProfileId = v;                      };

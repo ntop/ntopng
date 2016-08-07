@@ -65,24 +65,6 @@ Flow::Flow(NetworkInterface *_iface,
 
   memset(&protos, 0, sizeof(protos));
 
-  switch(protocol) {
-  case IPPROTO_ICMP:
-    ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMP,
-      ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol, true);
-    break;
-
-  case IPPROTO_ICMPV6:
-    ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMPV6,
-      ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol, true);
-    break;
-
-  default:
-    ndpiDetectedProtocol.protocol = ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    break;
-  }
-
   iface->findFlowHosts(_vlanId, cli_mac, _cli_ip, &cli_host, srv_mac, _srv_ip, &srv_host);
   if(cli_host) { cli_host->incUses(); cli_host->incNumFlows(true); }
   if(srv_host) { srv_host->incUses(); srv_host->incNumFlows(false); }
@@ -102,19 +84,6 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
-  switch(protocol) {
-  case IPPROTO_TCP:
-  case IPPROTO_UDP:
-    if(iface->is_ndpi_enabled())
-      allocFlowMemory();
-    break;
-
-  default:
-    ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(),
-							  protocol, 0, 0, 0, 0);
-    break;
-  }
-
   if(!iface->is_packet_interface())
     last_update_time.tv_sec = (long)first_seen;
 
@@ -122,8 +91,33 @@ Flow::Flow(NetworkInterface *_iface,
   trafficProfile = NULL;
 #endif
 
-  // refresh_process();
   iface->luaEvalFlow(this, callback_flow_create);
+
+  switch(protocol) {
+  case IPPROTO_TCP:
+  case IPPROTO_UDP:
+    if(iface->is_ndpi_enabled())
+      allocFlowMemory();
+    break;
+
+  case IPPROTO_ICMP:
+    ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMP,
+      ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    setDetectedProtocol(ndpiDetectedProtocol, true);
+    break;
+
+  case IPPROTO_ICMPV6:
+    ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_IP_ICMPV6,
+      ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
+    setDetectedProtocol(ndpiDetectedProtocol, true);
+    break;
+
+  default:
+    ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(),
+							  protocol, 0, 0, 0, 0);
+    setDetectedProtocol(ndpiDetectedProtocol, true);
+    break;
+  }
 }
 
 /* *************************************** */
@@ -504,26 +498,28 @@ void Flow::guessProtocol() {
 /* *************************************** */
 
 void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
-  /* if((ndpiFlow != NULL) || (!iface->is_ndpi_enabled())) */ {
-    if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
-      ndpiDetectedProtocol = proto_id;
-      processDetectedProtocol();
-      detection_completed = true;
-    } else if(forceDetection
-	      || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS) && (cli_host != NULL) && (srv_host != NULL))
-	      || (!iface->is_ndpi_enabled())) {
-      guessProtocol();
-      detection_completed = true;
-    }
-
-#ifdef NTOPNG_PRO
-    // Update the profile even if the detection is not yet completed.
-    // Indeed, even if the L7 detection is not yet completed
-    // the flow already carries information on all the other fields,
-    // e.g., IP src and DST, vlan, L4 proto, etc
-    updateProfile();
-#endif
+  if(proto_id.protocol != NDPI_PROTOCOL_UNKNOWN) {
+    ndpiDetectedProtocol = proto_id;
+    processDetectedProtocol();
+    detection_completed = true;
+  } else if(forceDetection
+	    || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
+		&& (cli_host != NULL) && (srv_host != NULL))
+	    || (!iface->is_ndpi_enabled())) {
+    guessProtocol();
+    detection_completed = true;
   }
+
+  if(detection_completed)
+    iface->luaEvalFlow(this, callback_flow_ndpi_detect);
+    
+#ifdef NTOPNG_PRO
+  // Update the profile even if the detection is not yet completed.
+  // Indeed, even if the L7 detection is not yet completed
+  // the flow already carries information on all the other fields,
+  // e.g., IP src and DST, vlan, L4 proto, etc
+  updateProfile();
+#endif
 }
 
 /* *************************************** */
@@ -835,13 +831,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   int16_t cli_network_id;
   int16_t srv_network_id;
 
-  /*
-    No need to call the method below as
-    the delete callback will be called in a moment
-  */
-  if(!inDeleteMethod)
-    iface->luaEvalFlow(this, callback_flow_update);
-  
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
 
@@ -1084,6 +1073,13 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   }
 
   checkBlacklistedFlow();
+
+  /*
+    No need to call the method below as
+    the delete callback will be called in a moment
+  */
+  if(!inDeleteMethod)
+    iface->luaEvalFlow(this, callback_flow_update);
 }
 
 /* *************************************** */
