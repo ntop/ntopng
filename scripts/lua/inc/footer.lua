@@ -270,12 +270,9 @@ print [[/lua/network_load.lua',
 	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  }, */
-	  success: function(content) {
-	  var rsp;
+	  success: function(rsp) {
     
 	  try {
-	    rsp = jQuery.parseJSON(content);
-
 	    if (prev_bytes > 0) {
 	      if (rsp.packets < prev_packets) {
 	        prev_bytes   = rsp.bytes;

@@ -6,19 +6,20 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+json = require("dkjson")
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
---sendHTTPHeader('application/json')
-
+--sendHTTPHeader('text/html; charset=iso-8859-1')
+sendHTTPHeader('application/json')
 
 function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
 
-   ifstats = interface.getStats()
-   ifstats = aggregateInterfaceStats(ifstats)
+   local ifstats = interface.getStats()
+   local ifstats = aggregateInterfaceStats(ifstats)
 
-   stats = interface.getFlowsStats()
+   local stats = interface.getFlowsStats()
 
+   local res = {}
    if(ifstats ~= nil) then
       uptime = ntop.getUptime()
       prefs = ntop.getPrefs()
@@ -27,82 +28,76 @@ function dumpInterfaceStats(interface_name)
       hosts_pctg = math.floor(1+((ifstats.hosts*100)/prefs.max_num_hosts))
       flows_pctg = math.floor(1+((ifstats.flows*100)/prefs.max_num_flows))
 
-      print('\t{ "ifname": "'.. string.gsub(interface_name, "\\", "\\\\")) -- make sure to escape slashes to preserve json validity
-      print('", "packets": '.. ifstats.packets .. ', "bytes": ' .. ifstats.bytes .. ', "drops": ' .. ifstats.drops)
+      res["ifname"]  = interface_name
+      res["packets"] = ifstats.packets
+      res["bytes"]   = ifstats.bytes
+      res["drops"]   = ifstats.drops
 
       if prefs.are_alerts_enabled == true then
-	 print(', "alerts": '.. ntop.getNumQueuedAlerts())
+	 res["alerts"] = ntop.getNumQueuedAlerts()
       end
 
-      print(', "num_flows": '.. ifstats.flows .. ', "num_hosts": ' .. ifstats.hosts .. ', "epoch": ' .. os.time()..' , "uptime": " ' .. secondsToTime(uptime) .. '", "hosts_pctg": ' .. hosts_pctg .. ', "flows_pctg": ' .. flows_pctg .. ', "remote_pps": ' .. ifstats.remote_pps ..', "remote_bps": ' .. ifstats.remote_bps)
-      print(', "is_view": '..tostring(ifstats.isView))
-      print(', "local2remote": '.. ifstats["localstats"]["bytes"]["local2remote"]..', "remote2local": '..ifstats["localstats"]["bytes"]["remote2local"])
+      res["num_flows"]  = ifstats.flows
+      res["num_hosts"]  = ifstats.hosts
+      res["epoch"]      = os.time()
+      res["uptime"]     = secondsToTime(uptime)
+      res["hosts_pctg"] = hosts_pctg
+      res["flows_pctg"] = flows_pctg
+      res["remote_pps"] = ifstats.remote_pps
+      res["remote_bps"] = ifstats.remote_bps
+      res["is_view"]    = ifstats.isView
 
-      print(', "tcpPacketStats": { "retransmissions": '..tostring(ifstats.tcpPacketStats.retransmissions)..', "out_of_order": '..tostring(ifstats.tcpPacketStats.out_of_order)..', "lost":'..tostring(ifstats.tcpPacketStats.lost)..' }')
+      res["local2remote"] = ifstats["localstats"]["bytes"]["local2remote"]
+      res["remote2local"] = ifstats["localstats"]["bytes"]["remote2local"]
+
+      res["tcpPacketStats"] = {}
+      res["tcpPacketStats"]["retransmissions"] = ifstats.tcpPacketStats.retransmissions
+      res["tcpPacketStats"]["out_of_order"]    = ifstats.tcpPacketStats.out_of_order
+      res["tcpPacketStats"]["lost"]            = ifstats.tcpPacketStats.lost
+      
 
       if(ifstats["bridge.device_a"] ~= nil) then
-	 print(', "a_to_b_in_pkts": '.. ifstats["bridge.a_to_b.in_pkts"])
-	 print(', "a_to_b_in_bytes": '.. ifstats["bridge.a_to_b.in_bytes"])
-	 print(', "a_to_b_out_pkts": '.. ifstats["bridge.a_to_b.out_pkts"])
-	 print(', "a_to_b_out_bytes": '.. ifstats["bridge.a_to_b.out_bytes"])
-	 print(', "a_to_b_filtered_pkts": '.. ifstats["bridge.a_to_b.filtered_pkts"])
-	 print(', "a_to_b_shaped_pkts": '.. ifstats["bridge.a_to_b.shaped_pkts"])
-	 print(', "b_to_a_in_pkts": '.. ifstats["bridge.b_to_a.in_pkts"])
-	 print(', "b_to_a_in_bytes": '.. ifstats["bridge.b_to_a.in_bytes"])
-	 print(', "b_to_a_out_pkts": '.. ifstats["bridge.b_to_a.out_pkts"])
-	 print(', "b_to_a_out_bytes": '.. ifstats["bridge.b_to_a.out_bytes"])
-	 print(', "b_to_a_filtered_pkts": '.. ifstats["bridge.b_to_a.filtered_pkts"])
-	 print(', "b_to_a_shaped_pkts": '.. ifstats["bridge.b_to_a.shaped_pkts"])
-	 print(', "a_to_b_num_pkts_send_buffer_full": '.. ifstats["bridge.a_to_b.num_pkts_send_buffer_full"])
-	 print(', "a_to_b_num_pkts_send_error": '.. ifstats["bridge.a_to_b.num_pkts_send_error"])
-	 print(', "b_to_a_num_pkts_send_buffer_full": '.. ifstats["bridge.b_to_a.num_pkts_send_buffer_full"])
-	 print(', "b_to_a_num_pkts_send_error": '.. ifstats["bridge.b_to_a.num_pkts_send_error"])
+	 res["a_to_b_in_pkts"]       = ifstats["bridge.a_to_b.in_pkts"]
+	 res["a_to_b_in_bytes"]      = ifstats["bridge.a_to_b.in_bytes"]
+	 res["a_to_b_out_pkts"]      = ifstats["bridge.a_to_b.out_pkts"]
+	 res["a_to_b_out_bytes"]     = ifstats["bridge.a_to_b.out_bytes"]
+	 res["a_to_b_filtered_pkts"] = ifstats["bridge.a_to_b.filtered_pkts"]
+	 res["a_to_b_shaped_pkts"]   = ifstats["bridge.a_to_b.shaped_pkts"]
+
+	 res["b_to_a_in_pkts"]       = ifstats["bridge.b_to_a.in_pkts"]
+	 res["b_to_a_in_bytes"]      = ifstats["bridge.b_to_a.in_bytes"]
+	 res["b_to_a_out_pkts"]      = ifstats["bridge.b_to_a.out_pkts"]
+	 res["b_to_a_out_bytes"]     = ifstats["bridge.b_to_a.out_bytes"]
+	 res["b_to_a_filtered_pkts"] = ifstats["bridge.b_to_a.filtered_pkts"]
+	 res["b_to_a_shaped_pkts"]   = ifstats["bridge.b_to_a.shaped_pkts"]
+
+	 res["a_to_b_num_pkts_send_buffer_full"] = ifstats["bridge.a_to_b.num_pkts_send_buffer_full"]
+	 res["a_to_b_num_pkts_send_error"]       = ifstats["bridge.a_to_b.num_pkts_send_error"]
+	 res["b_to_a_num_pkts_send_buffer_full"] = ifstats["bridge.b_to_a.num_pkts_send_buffer_full"]
+	 res["b_to_a_num_pkts_send_error"]       = ifstats["bridge.b_to_a.num_pkts_send_error"] 
       end
 
       if(ifstats["profiles"] ~= nil) then
-        print(", \"profiles\": { ")
-        num = 0
-        for key, value in pairsByKeys(ifstats["profiles"], rev) do
-	 if(num > 0) then
-	    print(", ")
-	 end
-	 print(' "'..key..'": '..value)
-	 num = num + 1
-        end
-        print(' }')
+	 res["profiles"] = ifstats["profiles"]
       end
 
-      print(", \"breed\": { ")
-      num = 0
-      for key, value in pairsByKeys(stats["breeds"], rev) do
-	 if(num > 0) then
-	    print(", ")
-	 end
-	 print(' "'..key..'": '..value)
-	 num = num + 1
-      end
-      print(' }')
-      print(' }')
-   else
-      print('{ }')
+      res["breed"] = stats["breeds"]
    end
+   return res
 end
 
 -- ###############################
 
+local res = {}
 if(_GET["ifname"] == "all") then
-   names = interface.getIfNames()
-
-   print("[\n")
-   n = 0
-
-   sortedKeys = getKeysSortedByValue(names, function(a, b) return a < b end)
+   local names = interface.getIfNames()
+   local n = 1
+   local sortedKeys = getKeysSortedByValue(names, function(a, b) return a < b end)
    for k,v in ipairs(sortedKeys) do
-      if(n > 0) then print(",\n") end
-      dumpInterfaceStats(names[v])
+      res[n] = dumpInterfaceStats(names[v])
       n = n + 1
    end
-   print("\n]\n")
 else
-   dumpInterfaceStats(ifname)
+   res = dumpInterfaceStats(ifname)
 end
+print(json.encode(res, nil, 1))

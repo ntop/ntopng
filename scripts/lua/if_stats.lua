@@ -559,7 +559,7 @@ print [[
    print [[/lua/network_load.lua',
 		    data: { ifname: "]] print(if_name) print [[" },
 		    success: function(content) {
-			var profiles = jQuery.parseJSON(content);
+			var profiles = content;
 
 			if(profiles["profiles"] != null) {
 			   for (key in profiles["profiles"]) {
@@ -1372,8 +1372,7 @@ setInterval(function() {
 print (ntop.getHttpPrefix())
 print [[/lua/network_load.lua',
 	  data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
-	  success: function(content) {
-	var rsp = jQuery.parseJSON(content);
+	  success: function(rsp) {
 	var v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
 	$('#if_pkts').html(addCommas(rsp.packets)+"]]
