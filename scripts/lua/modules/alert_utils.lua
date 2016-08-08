@@ -1,5 +1,5 @@
 --
--- (C) 2014-15 - ntop.org
+-- (C) 2014-16 - ntop.org
 --
 
 -- This file contains the description of all functions
@@ -17,13 +17,8 @@ end
 
 --[[ functions that can be overridden in stateful_alert_utils go above this point --]]
 
-dirs = ntop.getDirs()
-if (ntop.isEnterprise()) then
-   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   -- overrides alert utils with the enterprise version of alerts
-   -- require "stateful_alert_utils"
-   require "stateful_host_alert_api"
-end
+-- dirs = ntop.getDirs()
+require "alert_state_api"
 
 local verbose = false
 
