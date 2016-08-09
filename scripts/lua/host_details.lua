@@ -27,6 +27,8 @@ always_show_hist = _GET["always_show_hist"]
 ntopinfo    = ntop.getInfo()
 active_page = "hosts"
 
+local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
+
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPHeader('text/html; charset=iso-8859-1')
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -1741,7 +1743,7 @@ vals = { }
 alerts = ""
 to_save = false
 
-local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
+
 if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
    delete_alert_configuration(hostkey, ifname)
    alerts = nil
@@ -1882,10 +1884,10 @@ elseif (page == "config") then
       trigger_alerts = _GET["trigger_alerts"]
       if(trigger_alerts ~= nil) then
          if(trigger_alerts == "true") then
-	    ntop.delHashCache("ntopng.prefs.alerts", host_ip)
+	    ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), hostkey)
 	    interface.enableHostAlerts(host_ip, host_vlan)
          else
-	    ntop.setHashCache("ntopng.prefs.alerts", host_ip, trigger_alerts)
+	    ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), hostkey, trigger_alerts)
 	    interface.disableHostAlerts(host_ip, host_vlan)
          end
       end
@@ -1990,8 +1992,7 @@ elseif (page == "config") then
   print[[
     </td></tr>
        ]]
-
-    local suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", host_ip)
+    local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), hostkey)
     if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
        alerts_checked = 'checked="checked"'
        alerts_value = "false" -- Opposite

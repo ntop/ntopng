@@ -115,8 +115,13 @@ end
 function dns(old, new)   return(proto_bytes(old, new, "DNS")) end
 function p2p(old, new)   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype")) end
 
+function get_alerts_suppressed_hash_name(ifname)
+   local hash_name = "ntopng.prefs.alerts.ifid_"..tostring(getInterfaceId(ifname))
+   return hash_name
+end
+
 function are_alerts_suppressed(observed, ifname)
-   local suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts.ifid_"..tostring(getInterfaceId(ifname)), observed)
+   local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), observed)
    --[[
    tprint("are_alerts_suppressed ".. suppressAlerts)
    tprint("are_alerts_suppressed observed: ".. observed)
