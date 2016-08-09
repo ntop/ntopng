@@ -28,7 +28,7 @@ function dumpInterfaceStats(interface_name)
       hosts_pctg = math.floor(1+((ifstats.hosts*100)/prefs.max_num_hosts))
       flows_pctg = math.floor(1+((ifstats.flows*100)/prefs.max_num_flows))
 
-      res["ifname"]  = interface_name
+      res["ifname"]  = string.gsub(interface_name, "\\", "\\\\")
       res["packets"] = ifstats.packets
       res["bytes"]   = ifstats.bytes
       res["drops"]   = ifstats.drops

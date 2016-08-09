@@ -3109,14 +3109,15 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
     while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
       if(!added) lua_newtable(vm), added = 1;
       lua_push_str_table_entry(vm, oid_str, value_str);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP OK %s@%s %s=%s", agent_host, community, oid_str, value_str);
+      if(debug)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP OK %s@%s %s=%s", agent_host, community, oid_str, value_str);
       i++;
     }
 
     snmp_destroy_message(message);
 
     if(!added) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP Error %s@%s", agent_host, community);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SNMP Error %s@%s", agent_host, community);
       lua_pushnil(vm), rc = CONST_LUA_ERROR;
     }
   }
