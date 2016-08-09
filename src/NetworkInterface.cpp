@@ -563,7 +563,7 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
 
-    ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
+    alertsManager->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
     tooManyFlowsAlertTriggered = true;
   }
 }
@@ -579,7 +579,7 @@ void NetworkInterface::triggerTooManyHostsAlert() {
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
 
-    ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
+    alertsManager->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
     tooManyHostsAlertTriggered = true;
   }
 }

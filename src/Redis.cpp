@@ -947,30 +947,6 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
 
 /* ******************************************* */
 
-void Redis::queueAlert(AlertLevel level, AlertStatus s, AlertType t, char *msg) {
-  char what[1024];
-
-  if(ntop->getPrefs()->are_alerts_disabled()) return;
-
-  snprintf(what, sizeof(what), "%u|%u|%u|%u|%s",
-	   (unsigned int)time(NULL), (unsigned int)level,
-	   (unsigned int)s, (unsigned int)t, msg);
-
-#ifndef WIN32
-  // Print alerts into syslog
-  if(ntop->getRuntimePrefs()->are_alerts_syslog_enabled()) {
-    if(alert_level_info == level) syslog(LOG_INFO, "%s", what);
-    else if(alert_level_warning == level) syslog(LOG_WARNING, "%s", what);
-    else if(alert_level_error == level) syslog(LOG_ALERT, "%s", what);
-  }
-#endif
-
-  lpush(CONST_ALERT_MSG_QUEUE, what, CONST_MAX_ALERT_MSG_QUEUE_LEN);
-
-}
-
-/* ******************************************* */
-
 u_int Redis::llen(const char *queue_name) {
   redisReply *reply;
   u_int num = 0;
@@ -986,6 +962,44 @@ u_int Redis::llen(const char *queue_name) {
   if(reply) freeReplyObject(reply);
 
   return(num);
+}
+
+/* ******************************************* */
+
+int Redis::lset(const char *queue_name, u_int32_t idx, const char *value) {
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+
+  reply = (redisReply*)redisCommand(redis, "LSET %s %u %s", queue_name, idx, value);
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+  l->unlock(__FILE__, __LINE__);
+
+  if(reply) freeReplyObject(reply);
+
+  return 0;
+}
+
+/* ******************************************* */
+
+int Redis::lrem(const char *queue_name, const char *value) {
+  redisReply *reply;
+
+  l->lock(__FILE__, __LINE__);
+
+  reply = (redisReply*)redisCommand(redis, "LREM %s 0 %s", queue_name, value);
+  if(!reply) reconnectRedis();
+  if(reply && (reply->type == REDIS_REPLY_ERROR))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+
+  l->unlock(__FILE__, __LINE__);
+
+  if(reply) freeReplyObject(reply);
+
+  return 0;
 }
 
 /* ******************************************* */
@@ -1114,57 +1128,3 @@ int Redis::lrange(const char *list_name, char ***elements, int start_offset, int
 
   return(rc);
 }
-
-
-/* ******************************************* */
-
-void Redis::deleteQueuedAlert(u_int32_t idx_to_delete) {
-  redisReply *reply;
-
-  l->lock(__FILE__, __LINE__);
-  reply = (redisReply*)redisCommand(redis, "LSET %s %u __deleted__", CONST_ALERT_MSG_QUEUE, idx_to_delete);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-  if(reply) freeReplyObject(reply);
-
-  reply = (redisReply*)redisCommand(redis, "LREM %s 0 __deleted__", CONST_ALERT_MSG_QUEUE, idx_to_delete);
-  if(!reply) reconnectRedis();
-  if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-  l->unlock(__FILE__, __LINE__);
-  if(reply) freeReplyObject(reply);
-}
-
-/* **************************************** */
-
-u_int Redis::getQueuedAlerts(patricia_tree_t *allowed_hosts, char **alerts, u_int start_idx, u_int num) {
-  u_int i = 0;
-  redisReply *reply = NULL;
-
-  // TODO - We need to filter events that belong to allowed_hosts only
-
-  l->lock(__FILE__, __LINE__);
-  while(i < num) {
-    reply = (redisReply*)redisCommand(redis, "LINDEX %s %u", CONST_ALERT_MSG_QUEUE, start_idx++);
-    if(!reply) reconnectRedis();
-    if(reply && (reply->type == REDIS_REPLY_ERROR)) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-      break;
-    }
-
-    if(reply && reply->str) {
-      alerts[i++] = strdup(reply->str);
-      freeReplyObject(reply);
-      reply = NULL;
-    } else
-      break;
-  }
-
-  if(reply) freeReplyObject(reply);
-  l->unlock(__FILE__, __LINE__);
-
-  return(i);
-}
-
-

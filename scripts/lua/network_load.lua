@@ -34,7 +34,7 @@ function dumpInterfaceStats(interface_name)
       res["drops"]   = ifstats.drops
 
       if prefs.are_alerts_enabled == true then
-	 res["alerts"] = ntop.getNumQueuedAlerts()
+	 res["alerts"] = interface.getNumQueuedAlerts()
       end
 
       res["num_flows"]  = ifstats.flows

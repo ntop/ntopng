@@ -50,6 +50,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
     ntop->getTrace()->traceEvent(TRACE_WARNING,
 				 "Unable to open store %s",
 				 fileFullPath);
+
+  snprintf(queue_name, sizeof(queue_name), ALERTS_MANAGER_QUEUE_NAME, ifid);
 }
 
 /* **************************************************** */
@@ -150,21 +152,23 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
   
   lua_pushnil(L);
   while(lua_next(L, index) != 0 && good_alert) {
-    if (strcmp("alert_type", lua_tostring(L, -2)) == 0) {
+    if (strcmp(ALERTS_MANAGER_TYPE_FIELD, lua_tostring(L, -2)) == 0) {
       if(lua_type(L, -1) == LUA_TNUMBER) {
 	alert_type = (AlertType)lua_tointeger(L, -1);
 	alert_type_read = true;
       } else {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "'alert_type' value is NaN.");
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "'%s' value is NaN.",
+				     ALERTS_MANAGER_TYPE_FIELD);
 	good_alert = false;
 	goto next_iter;
       }
-    } else if (strcmp("alert_severity", lua_tostring(L, -2)) == 0) {
+    } else if (strcmp(ALERTS_MANAGER_SEVERITY_FIELD, lua_tostring(L, -2)) == 0) {
       if(lua_type(L, -1) == LUA_TNUMBER) {
 	alert_severity = (AlertLevel)lua_tointeger(L, -1);
 	alert_severity_read = true;
       } else {
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "'alert_severity' value is NaN.");
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "'%s' value is NaN.",
+				     ALERTS_MANAGER_SEVERITY_FIELD);
 	good_alert = false;
 	goto next_iter;
       }
@@ -214,3 +218,84 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
 
   return retval;
 };
+
+
+/* ******************************************* */
+
+int AlertsManager::queueAlert(AlertLevel level, AlertStatus s, AlertType t, char *msg) {
+  char what[1024];
+
+  if(ntop->getPrefs()->are_alerts_disabled()) return 0;
+
+  snprintf(what, sizeof(what), "%u|%u|%u|%u|%s",
+	   (unsigned int)time(NULL), (unsigned int)level,
+	   (unsigned int)s, (unsigned int)t, msg);
+
+#ifndef WIN32
+  // Print alerts into syslog
+  if(ntop->getRuntimePrefs()->are_alerts_syslog_enabled()) {
+    if(alert_level_info == level) syslog(LOG_INFO, "%s", what);
+    else if(alert_level_warning == level) syslog(LOG_WARNING, "%s", what);
+    else if(alert_level_error == level) syslog(LOG_ALERT, "%s", what);
+  }
+#endif
+
+  if(ntop->getRedis()->lpush(queue_name, what, CONST_MAX_ALERT_MSG_QUEUE_LEN)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "An error occurred when pushing alert %s to redis list %s.",
+				 what, queue_name);
+  }
+  return 0;
+}
+
+/* ******************************************* */
+
+int AlertsManager::getQueuedAlerts(lua_State* vm, patricia_tree_t *allowed_hosts, int start_offset, int end_offset) {
+  char **l_elements;
+  Redis *redis = ntop->getRedis();
+  int rc;
+
+  // TODO: Filter events that belong to allowed_hosts only
+  
+  rc = redis->lrange(queue_name, &l_elements, start_offset, end_offset);
+
+  if(rc > 0) {
+    lua_newtable(vm);
+
+    for(int i = 0; i < rc; i++) {
+      lua_pushstring(vm, l_elements[i] ? l_elements[i] : "");
+      lua_rawseti(vm, -2, i);
+      if(l_elements[i]) free(l_elements[i]);
+    }
+    free(l_elements);
+  } else
+    lua_pushnil(vm);
+  
+  return rc;
+}
+
+/* ******************************************* */
+
+int AlertsManager::getNumQueuedAlerts() {
+  Redis *redis = ntop->getRedis();
+  return redis->llen(queue_name);
+}
+
+/* ******************************************* */
+
+int AlertsManager::deleteQueuedAlert(u_int32_t idx_to_delete) {
+  Redis *redis = ntop->getRedis();
+
+  redis->lset(queue_name, idx_to_delete, (char*)"__deleted__");
+  return redis->lrem(queue_name, (char*)"__deleted__");
+
+}
+
+/* ******************************************* */
+
+int AlertsManager::flushAllQueuedAlerts() {
+  Redis *redis = ntop->getRedis();
+
+  return redis->delKey(queue_name);
+
+}

@@ -7,16 +7,18 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+interface.select(ifname)
+
 sendHTTPHeader('text/html; charset=iso-8859-1')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 if(_GET["csrf"] ~= nil) then
    if(_GET["id_to_delete"] ~= nil) then
       if(_GET["id_to_delete"] == "__all__") then
-	 ntop.flushAllQueuedAlerts()
+	 interface.flushAllQueuedAlerts()
 	 print("")
       else
-	 ntop.deleteQueuedAlert(tonumber(_GET["id_to_delete"]))
+	 interface.deleteQueuedAlert(tonumber(_GET["id_to_delete"]))
       end
    end
 end
@@ -90,7 +92,7 @@ print [[
 	      ]]
 
 
-if(ntop.getNumQueuedAlerts() > 0) then
+if(interface.getNumQueuedAlerts() > 0) then
    print [[
 
 <a href="#myModal" role="button" class="btn btn-default" data-toggle="modal"><i type="submit" class="fa fa-trash-o"></i> Purge All Alerts</button></a>

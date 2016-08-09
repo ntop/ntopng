@@ -1883,10 +1883,10 @@ elseif (page == "config") then
       if(trigger_alerts ~= nil) then
          if(trigger_alerts == "true") then
 	    ntop.delHashCache("ntopng.prefs.alerts", host_ip)
-	    ntop.enableHostAlerts(host_ip, host_vlan)
+	    interface.enableHostAlerts(host_ip, host_vlan)
          else
 	    ntop.setHashCache("ntopng.prefs.alerts", host_ip, trigger_alerts)
-	    ntop.disableHostAlerts(host_ip, host_vlan)
+	    interface.disableHostAlerts(host_ip, host_vlan)
          end
       end
    end

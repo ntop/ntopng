@@ -279,7 +279,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		  -- re-arm the alert
 		  re_arm_alert(key, mode, t[1], ifname)
 		  -- and send it to ntopng
-		  ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		  interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
 		  if ntop.isPro() then
 		     -- possibly send the alert to nagios as well
 		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
@@ -365,7 +365,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 if not is_alert_re_arming(network_name, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, mode, t[1], ifname)
-                    ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+                    interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
                         ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
@@ -433,7 +433,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, mode, t[1], ifname)
-                    ntop.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+                    interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
                         ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)

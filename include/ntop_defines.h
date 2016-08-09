@@ -494,6 +494,9 @@
 #define STORE_MANAGER_MAX_KEY          20
 #define ALERTS_MANAGER_TABLE_NAME     "alerts"
 #define ALERTS_MANAGER_STORE_NAME     ALERTS_MANAGER_TABLE_NAME ".db"
+#define ALERTS_MANAGER_QUEUE_NAME     "ntopng.alerts.ifid_%i.queue"
+#define ALERTS_MANAGER_TYPE_FIELD     "alert_type"
+#define ALERTS_MANAGER_SEVERITY_FIELD "alert_severity"
 #define STATS_MANAGER_STORE_NAME      "top_talkers.db"
 
 /* GRE (Generic Route Encapsulation) */

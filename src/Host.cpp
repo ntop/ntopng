@@ -1103,7 +1103,7 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
-    ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_syn_flood, msg);
+    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_syn_flood, msg);
     incNumAlerts();
   }
 }
@@ -1125,7 +1125,7 @@ void Host::incNumFlows(bool as_client) {
 	       h, iface->get_name(), h, num_active_flows_as_client);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
+      iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
       incNumAlerts();
     }
   } else {
@@ -1142,7 +1142,7 @@ void Host::incNumFlows(bool as_client) {
 	       h, iface->get_name(), h, num_active_flows_as_server);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      ntop->getRedis()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
+      iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
       incNumAlerts();
     }
   }
@@ -1166,7 +1166,7 @@ void Host::decNumFlows(bool as_client) {
 		 h, iface->get_name(), h, num_active_flows_as_client);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	ntop->getRedis()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
+	iface->getAlertsManager()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
 	incNumAlerts();
       }
     } else
@@ -1186,7 +1186,7 @@ void Host::decNumFlows(bool as_client) {
 		 h, iface->get_name(), h, num_active_flows_as_server);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	ntop->getRedis()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
+	iface->getAlertsManager()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
 	incNumAlerts();
       }
     } else
@@ -1244,7 +1244,7 @@ void Host::updateStats(struct timeval *tv) {
     snprintf(msg, sizeof(msg),
              error_msg, ntop->getPrefs()->get_http_prefix(),
              h, iface->get_name(), h, host_quota_mb);
-    ntop->getRedis()->queueAlert(alert_level_warning, alert_permanent, alert_quota, msg);
+    iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent, alert_quota, msg);
   }
 }
 
@@ -1412,7 +1412,7 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     c, iface->get_name(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
-    ntop->getRedis()->queueAlert(alert_level_error, alert_on, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
+    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
 #endif
     good_low_flow_detected = true;
   }

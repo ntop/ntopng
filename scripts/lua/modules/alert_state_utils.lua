@@ -119,7 +119,7 @@ function alert_move_ongoing_to_closed(ifid, ongoing_hname, ongoing_hkey)
    -- and move it to the closed list
    alert = forge_alert(alert, nil, nil, nil, os.time())
 
-   ntop.storeAlert(ifid, alert)
+   interface.storeAlert(ifid, alert)
 
    return true
 end

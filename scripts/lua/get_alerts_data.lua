@@ -25,11 +25,14 @@ else
 end
 
 initial_idx = (currentPage-1)*perPage
-alerts = ntop.getQueuedAlerts(initial_idx, perPage)
+
+interface.select(ifname)
+alerts = interface.getQueuedAlerts(initial_idx, perPage)
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 total = 0
 
+if alerts == nil then alerts = {} end
 for _key,_value in pairs(alerts) do
    if(total > 0) then print(",\n") end
    values = split(string.gsub(_value, "\n", ""), "|")
@@ -48,4 +51,4 @@ end -- for
 print ("\n], \"perPage\" : " .. perPage .. ",\n")
 
 print ("\"sort\" : [ [ \"\", \"\" ] ],\n")
-print ("\"totalRows\" : " .. ntop.getNumQueuedAlerts() .. " \n}")
+print ("\"totalRows\" : " .. interface.getNumQueuedAlerts() .. " \n}")
