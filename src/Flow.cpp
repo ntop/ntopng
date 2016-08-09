@@ -21,6 +21,15 @@
 
 #include "ntop_includes.h"
 
+#define TLS_HANDSHAKE_PACKET 0x16
+#define TLS_PAYLOAD_PACKET 0x17
+#define TLS_CLIENT_HELLO 0x01
+#define TLS_SERVER_HELLO 0x02
+#define TLS_CLIENT_KEY_EXCHANGE 0x10
+#define TLS_SERVER_CHANGE_CIPHER_SPEC 0x14
+#define TLS_NEW_SESSION_TICKET 0x04
+#define TLS_MAX_HANDSHAKE_PCKS 15
+
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
@@ -33,7 +42,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
-    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, flowProfileId = 0;
+    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, flowProfileId = 0, can_be_ssl = true;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -1848,7 +1857,7 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 /* *************************************** */
 
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
-		    u_int8_t *payload, u_int payload_len,
+		    u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		    const struct timeval *when) {
 #if 0
   if(isSSL()
@@ -1872,6 +1881,9 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 				 Utils::msTimevalDiff((struct timeval*)when, last)/1000);
   }
 #endif
+
+  if (l4_proto == IPPROTO_TCP && ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+    dissectSSL(payload, payload_len, when);
 
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
@@ -2387,34 +2399,63 @@ bool Flow::isLowGoodput() {
 
 /* *************************************** */
 
+// This implements a *light* detection, for a specific detection see nDPI SSL dissector
 void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when) {
-  if(isSSL() && payload && twh_over) {
-    if(!protos.ssl.hs_over) {
-      if(payload[0] == 0x16) {
-	//handshake packet
-	if(payload[5] == 0x1) {
-	  //client-hello
-	  memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
-	  protos.ssl.hs_started = true;
-	} else if((payload[5] == 0x4) && protos.ssl.hs_started) {
-	  //new session ticket, the end of ssl handshake
-	  protos.ssl.hs_over = true;
-	  memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
-	  protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
-	}
+  if(can_be_ssl && !protos.ssl.firstdata_seen && twh_over && payload_len >= 6) {    
+    switch (protos.ssl.tls_stage) {
+      case tls_stage_none:
+        if (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_CLIENT_HELLO) {
+          memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
+          protos.ssl.tls_stage = tls_stage_cli_hello;
+        } else {
+          // Client hello should have appeared
+          can_be_ssl = false;
+        }
+        break;
+      case tls_stage_cli_hello:
+        if (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_SERVER_HELLO) {
+          protos.ssl.tls_stage = tls_stage_srv_hello;
+        }
+        break;
+      case tls_stage_srv_hello:
+        if (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_CLIENT_KEY_EXCHANGE) {
+          protos.ssl.tls_stage = tls_stage_cli_change_cipher;
+        }
+        break;
+      case tls_stage_cli_change_cipher:
+        if ( (payload[0] == TLS_SERVER_CHANGE_CIPHER_SPEC) ||
+             (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_NEW_SESSION_TICKET) ) {
+          protos.ssl.tls_stage = tls_stage_srv_change_cipher;
+          memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
+          protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
+        }
+        break;
+      case tls_stage_srv_change_cipher:
+        if (payload[0] == TLS_PAYLOAD_PACKET) {
+          protos.ssl.firstdata_seen = true;
+          memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
+          protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
+          
+          /* TODO just debug */
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p][%u.%u] TLS first data", this, when->tv_sec, when->tv_usec);
+        }
+        break;
+      default:
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "[%p][%u.%u] Unhandled TLS stage: %d", this, when->tv_sec, when->tv_usec, protos.ssl.tls_stage);
+    }
+    
+    if (! protos.ssl.firstdata_seen)
+      protos.ssl.hs_packets++;
+    can_be_ssl &= protos.ssl.hs_packets <= TLS_MAX_HANDSHAKE_PCKS;
+          
+    if (can_be_ssl) {
+      if (!protos.ssl.firstdata_seen) {
+        protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
+        memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
       }
-    } else if(protos.ssl.hs_over && (payload[0] == 0x17)) {
-      //application data packet
-      if(!protos.ssl.firstdata_seen) {
-	//first data seen, save delta time between first data and the ssl hs
-	protos.ssl.firstdata_seen = true;
-	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-	protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
-      } else {
-	//not first data, saves delta data time
-	protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
-	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-      }
+    } else {
+      // clean the field for other dissectors
+      memset(&protos, 0, sizeof(protos));
     }
   }
 }
@@ -2444,7 +2485,7 @@ FlowStatus Flow::getFlowStatus() {
 
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-	  if(!protos.ssl.hs_over && isIdle)
+	  if(!isTLSData() && isIdle)
 	    return status_slow_application_header;
 	  break;
 

@@ -47,6 +47,14 @@ typedef enum {
   flow_state_fin,
 } FlowState;
 
+typedef enum {
+  tls_stage_none,
+  tls_stage_cli_hello,
+  tls_stage_srv_hello,
+  tls_stage_cli_change_cipher,
+  tls_stage_srv_change_cipher
+} TlsStage;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -59,7 +67,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed,
-    good_low_flow_detected;
+    good_low_flow_detected, can_be_ssl;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -82,7 +90,9 @@ class Flow : public GenericHashEntry {
     
     struct {
       char *certificate;
-      bool hs_started, hs_over, firstdata_seen;
+      TlsStage tls_stage;
+      u_int8_t hs_packets;
+      bool firstdata_seen;
       struct timeval clienthello_time, hs_end_time, lastdata_time;
       float hs_delta_time, delta_firstData, deltaTime_data;
     } ssl;
@@ -171,6 +181,7 @@ class Flow : public GenericHashEntry {
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
+  inline bool isTLSData()              { return(can_be_ssl && protos.ssl.firstdata_seen); }
 
  public:
   Flow(NetworkInterface *_iface,
@@ -217,7 +228,7 @@ class Flow : public GenericHashEntry {
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
-		u_int8_t *payload, u_int payload_len,
+		u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		const struct bpf_timeval *when);
   void updateActivities();
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,

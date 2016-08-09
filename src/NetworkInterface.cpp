@@ -868,7 +868,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, h->len, payload, payload_len, &h->ts);
+    flow->incStats(src2dst_direction, h->len, payload, payload_len, l4_proto, &h->ts);
 
     switch(l4_proto) {
     case IPPROTO_TCP:
@@ -915,6 +915,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   if(flow->isDetectionCompleted()
      && flow->get_cli_host()
      && flow->get_srv_host()) {
+    
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_BITTORRENT:
       if((flow->getBitTorrentHash() == NULL)
