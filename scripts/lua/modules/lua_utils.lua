@@ -2147,7 +2147,6 @@ end
 
 -- TODO: improve this function
 function jsonencode(what)
-   tprint(what)
    what = string.gsub(what, '"', "'")
    -- everything but all ASCII characters from the space to the tilde
    what = string.gsub(what, "[^ -~]", " ")
