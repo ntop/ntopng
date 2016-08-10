@@ -91,7 +91,7 @@ function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_k
    end
 
    -- Compute traffic
-   total = 0
+   local total = 0
    for _value,_ in pairsByKeys(filtered_stats, rev) do
       total = total + _value
    end
@@ -247,12 +247,19 @@ end
 
 -- #####################################################
 
-function groupStatsByColumn(ifid, ifname, col)
+function groupHostsStatsByColumn(ifid, ifname, col)
+   if hosts_stats ~= nil then
+      if hosts_stats.hosts ~= nil then
+	 hosts_stats = hosts_stats.hosts
+      end
+   else
+      hosts_stats = {}
+   end
    local _group = {}
    local total = 0
    -- Group hosts info by the required column
    for _key, value in pairs(hosts_stats) do
-      key = hosts_stats[_key][col]
+      local key = hosts_stats[_key][col]
 
       if ((not key) or
           (col == "country" and key == "") or
@@ -299,7 +306,7 @@ function groupStatsByColumn(ifid, ifname, col)
            _group[key]["name"] = hosts_stats[_key]["os"]
          end
       end
-      val = hosts_stats[_key]["bytes.sent"] + hosts_stats[_key]["bytes.rcvd"]
+      local val = hosts_stats[_key]["bytes.sent"] + hosts_stats[_key]["bytes.rcvd"]
       total = total + val
       _group[key][col.."_bytes"] = old + val
       _group[key][col.."_bytes"] = old + val
@@ -308,9 +315,10 @@ function groupStatsByColumn(ifid, ifname, col)
                                         + hosts_stats[_key]["bytes.sent"]
       _group[key][col.."_bytes.rcvd"] = ternary(_group[key][col.."_bytes.rcvd"] ~= nil,
                                                 _group[key][col.."_bytes.rcvd"], 0)
-                                        + hosts_stats[_key]["bytes.rcvd"]
+	 + hosts_stats[_key]["bytes.rcvd"]
      ::continue::
    end
+
   return _group, total
 end
 
@@ -320,7 +328,8 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
    rsp = ""
 
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getLatestActivityHostsInfo())
+   hosts_stats = interface.getLatestActivityHostsInfo()
+   if hosts_stats ~= nil then hosts_stats = hosts_stats.hosts else hosts_stats = {} end
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
    if (loc ~= nil) then
      hosts_stats = filterBy(hosts_stats, "localhost", loc)
@@ -331,7 +340,7 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
       ntop.mkdir(talkers_dir)
    end
 
-   _group, total = groupStatsByColumn(ifid, ifname, col)
+   _group, total = groupHostsStatsByColumn(ifid, ifname, col)
 
    if(concat == false and mode == nil) then
       rsp = rsp.."{\n"
@@ -419,7 +428,8 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
    --if(ifname == nil) then ifname = "any" end
 
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getLatestActivityHostsInfo())
+   hosts_stats = interface.getLatestActivityHostsInfo()
+   if hosts_stats ~= nil then hosts_stats = hosts_stats.hosts else hosts_stats = {} end
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
    talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
@@ -427,7 +437,7 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
       ntop.mkdir(talkers_dir)
    end
 
-   _group, total = groupStatsByColumn(ifid, ifname, col)
+   _group, total = groupHostsStatsByColumn(ifid, ifname, col)
 
    if(concat == true) then
       rsp = rsp..'"'..key..'": '

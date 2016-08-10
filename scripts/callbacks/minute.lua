@@ -52,14 +52,13 @@ end
 -- id = 0
 for _,_ifname in pairs(ifnames) do
    interface.select(_ifname)
-   ifstats = aggregateInterfaceStats(interface.getStats())
+   ifstats = interface.getStats()
 
    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]\n") end
    -- Dump topTalkers every minute
 
    if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
       talkers = makeTopJSON(ifstats.id, _ifname)      
-
       if(verbose) then
          print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
 	 print(talkers)
@@ -101,7 +100,6 @@ for _,_ifname in pairs(ifnames) do
       diff = when % 300
 
       -- print('\n["..__FILE__()..":"..__LINE__().."] Diff: '..diff..'\n')
-
       if(verbose or (diff < 60)) then
 	 -- Scan "5 minute" alerts
 	 scanAlerts("5mins", _ifname)
@@ -142,8 +140,6 @@ for _,_ifname in pairs(ifnames) do
 
 	    interface.select(_ifname) -- just to make sure ;)
 	    hosts_stats = interface.getLocalHostsInfo(false)
-	    hosts_stats,_ = aggregateHostsStats(hosts_stats)
-
 	    for hostname, hoststats in pairs(hosts_stats) do
 	       host = interface.getHostInfo(hostname)
 

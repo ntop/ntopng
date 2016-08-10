@@ -6,11 +6,14 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "top_talkers"
+require "lua_utils"
 
 local function getVLANList(ifid, ifname)
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
-   vlans,total = groupStatsByColumn(ifid, ifname, "vlan")
+
+   hosts_stats = interface.getHostsInfo()
+   vlans,total = groupHostsStatsByColumn(ifid, ifname, "vlan")
+
    return vlans
 end
 
