@@ -111,9 +111,8 @@ end
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, 
 	                           country, os_, tonumber(vlan), tonumber(asn),
 				   tonumber(network)) -- false = little details
-hosts_stats,total = aggregateHostsStats(hosts_stats)
 
-if(total == nil) then total = 0 end 
+if(hosts_stats == nil) then total = 0 else total = #hosts_stats end 
 -- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
 
 -- io.write("->"..total.." ["..sortColumn.."]\n")

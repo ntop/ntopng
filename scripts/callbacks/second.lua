@@ -13,36 +13,45 @@ require "lua_utils"
 require "graph_utils"
 
 -- Toggle debug
-local enable_second_debug = 0
+enable_second_debug = false
+
+if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then
+   enable_second_debug = true
+end
+
+if(enable_second_debug) then
+   sendHTTPHeader('text/plain')
+end
 
 ifnames = interface.getIfNames()
 
 for _,ifname in pairs(ifnames) do
    a = string.ends(ifname, ".pcap")
    if(not(a)) then
+   if(enable_second_debug) then print("Processing "..ifname.."\n") end
       interface.select(ifname)
-      ifstats = aggregateInterfaceStats(interface.getStats())
-
+      ifstats = interface.getStats()
+      -- tprint(ifstats)
       dirs = ntop.getDirs()
       basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
 
       --io.write(basedir.."\n")
       if(not(ntop.exists(basedir))) then
-	 if(enable_second_debug == 1) then io.write('Creating base directory ', basedir, '\n') end
+	 if(enable_second_debug) then io.write('Creating base directory ', basedir, '\n') end
 	 ntop.mkdir(basedir)
       end
 
       interface.setSecondTraffic()
 
       -- Traffic stats
-      makeRRD(basedir, ifname, "bytes", 1, ifstats.bytes)
-      makeRRD(basedir, ifname, "packets", 1, ifstats.packets)
-      makeRRD(basedir, ifname, "drops", 1, ifstats.drops)
+      makeRRD(basedir, ifname, "bytes", 1, ifstats.stats.bytes)
+      makeRRD(basedir, ifname, "packets", 1, ifstats.stats.packets)
+      makeRRD(basedir, ifname, "drops", 1, ifstats.stats.drops)
 
       -- General stats
-      makeRRD(basedir, ifname, "num_hosts", 1, ifstats.hosts)
-      makeRRD(basedir, ifname, "num_flows", 1, ifstats.flows)
-      makeRRD(basedir, ifname, "num_http_hosts", 1, ifstats.http_hosts)
+      makeRRD(basedir, ifname, "num_hosts", 1, ifstats.stats.hosts)
+      makeRRD(basedir, ifname, "num_flows", 1, ifstats.stats.flows)
+      makeRRD(basedir, ifname, "num_http_hosts", 1, ifstats.stats.http_hosts)
 
       -- TCP stats
       makeRRD(basedir, ifname, "tcp_retransmissions", 1, ifstats.tcpPacketStats.retransmissions)

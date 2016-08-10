@@ -867,7 +867,7 @@ function makeRRD(basedir, ifname, rrdname, step, value)
       create_rrd(name, 1, rrdname)
    end
    ntop.rrd_update(name, "N:".. tolongint(value))
-   if(enable_second_debug == 1) then io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n') end
+   if(enable_second_debug) then io.write('Updating RRD ['.. ifname..'] '.. name .. " " .. value ..'\n') end
 end
 
 function createRRDcounter(path, step, verbose)
