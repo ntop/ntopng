@@ -58,7 +58,7 @@ for _,_ifname in pairs(ifnames) do
    -- Dump topTalkers every minute
 
    if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
-      talkers = makeTopJSON(ifstats.id, _ifname)      
+      talkers = makeTopJSON(ifstats.id, _ifname)     
       if(verbose) then
          print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
 	 print(talkers)
@@ -141,6 +141,7 @@ for _,_ifname in pairs(ifnames) do
 	    interface.select(_ifname) -- just to make sure ;)
 	    hosts_stats = interface.getLocalHostsInfo(false)
 	    for hostname, hoststats in pairs(hosts_stats) do
+
 	       host = interface.getHostInfo(hostname)
 
 	       if(host == nil) then

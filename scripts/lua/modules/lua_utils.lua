@@ -156,9 +156,14 @@ end
 -- ##########################################
 
 function aggregateHostsStats(hostStats)
-   local h = hostStats.hosts
-   local tot = #h
-   return h,tot
+   if(hostStats == nil) then
+      return nil,0
+   else   
+     local h = hostStats.hosts
+   
+     local tot = #h
+     return h,tot
+   end
 end
 
 function _aggregateHostsStats(hostStats)
@@ -1086,7 +1091,7 @@ end
 
 -- Return the first 'howmany' hosts
 function getTopInterfaceHosts(howmany, localHostsOnly)
-  hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+  hosts_stats = interface.getHostsInfo()
   ret = {}
   sortTable = {}
   n = 0

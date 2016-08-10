@@ -132,6 +132,7 @@ function filterBy(stats, col, val)
     return stats
   end
 
+-- io.write(debug.traceback())
   for id,content in pairs(stats) do
     if (content[col] == val) then
       filtered_by[id] = content
@@ -147,9 +148,10 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
    local max_num_entries = 10
    local rsp = ""
    local num = 0
+   local latest
 
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getLatestActivityHostsInfo())
+   hosts_stats = interface.getLatestActivityHostsInfo()
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
    talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")
@@ -329,7 +331,6 @@ function getCurrentTopGroupsSeparated(ifid, ifname, max_num_entries, use_thresho
 
    interface.select(ifname)
    hosts_stats = interface.getLatestActivityHostsInfo()
-   if hosts_stats ~= nil then hosts_stats = hosts_stats.hosts else hosts_stats = {} end
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
    if (loc ~= nil) then
      hosts_stats = filterBy(hosts_stats, "localhost", loc)
@@ -429,7 +430,6 @@ function getCurrentTopGroups(ifid, ifname, max_num_entries, use_threshold,
 
    interface.select(ifname)
    hosts_stats = interface.getLatestActivityHostsInfo()
-   if hosts_stats ~= nil then hosts_stats = hosts_stats.hosts else hosts_stats = {} end
    hosts_stats = filterBy(hosts_stats, filter_col, filter_val)
 
    talkers_dir = fixPath(dirs.workingdir .. "/" .. ifid .. "/top_talkers")

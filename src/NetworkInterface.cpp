@@ -2266,6 +2266,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 
 int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts) {
   struct flowHostRetriever retriever;
+
   memset(&retriever, 0, sizeof(retriever));
 
   // there's not even the need to use the retriever or to sort results here
@@ -2284,26 +2285,20 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
   hosts_hash->walk(host_search_walker, (void*)&retriever);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
 
-  lua_newtable(vm);
+  if(retriever.actNumEntries > 0) {
+    for(int i=0; i<(int)retriever.actNumEntries; i++) {
+      Host *h = retriever.elems[i].hostValue;
 
-  for(int i=0; i<(int)retriever.actNumEntries; i++) {
-    Host *h = retriever.elems[i].hostValue;
-
-    if(i < CONST_MAX_NUM_HITS)
-      h->lua(vm, NULL /* Already checked */,
-	     false /* host details */,
-	     false /* verbose */,
-	     false /* return host */,
-	     true  /* as list element*/,
-	     true  /* exclude deserialized bytes */);
-
+      if(i < CONST_MAX_NUM_HITS)
+	h->lua(vm, NULL /* Already checked */,
+	       false /* host details */,
+	       false /* verbose */,
+	       false /* return host */,
+	       true  /* as list element*/,
+	       true  /* exclude deserialized bytes */);
+    }
   }
-
-  lua_pushstring(vm, "hosts"); // Key
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 
   hosts_hash->enablePurge();
   free(retriever.elems);
@@ -2371,7 +2366,8 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, LocationPolicy location,
 					 char *countryFilter,
-					 u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
+					 u_int16_t *vlan_id, char *osFilter,
+					 u_int32_t *asnFilter, int16_t *networkFilter,
 					 char *sortColumn, u_int32_t maxHits,
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -2386,33 +2382,26 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   }
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
-
-  lua_newtable(vm);
 
   if(a2zSortOrder) {
-    for(int i=toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
+    for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Host *h = retriever.elems[i].hostValue;
       h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
     }
   } else {
-    for(int i=(retriever.actNumEntries-1-toSkip), num=0; i>=0 && num <(int)maxHits; i--, num++) {
+    for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
       Host *h = retriever.elems[i].hostValue;
       h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
     }
   }
 
-  lua_pushstring(vm, "hosts"); // Key
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
   hosts_hash->enablePurge();
 
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
-  if(retriever.sorter == column_name    ||
-     retriever.sorter == column_country ||
-     retriever.sorter == column_os) {
+  if(retriever.sorter == column_name
+     || retriever.sorter == column_country
+     || retriever.sorter == column_os) {
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].stringValue)
 	free(retriever.elems[i].stringValue);
@@ -3227,6 +3216,8 @@ static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data) {
 
 void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
   struct virtual_host_valk_info info;
+
+  lua_newtable(vm);
 
   info.vm = vm, info.key = key, info.num = 0;
   hosts_hash->walk(virtual_http_hosts_walker, &info);
