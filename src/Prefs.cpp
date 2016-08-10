@@ -61,11 +61,10 @@ Prefs::Prefs(Ntop *_ntop) {
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   disable_host_persistency = false;
-  num_interfaces = 0, num_interface_views = 0, enable_auto_logout = true;
+  num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
   memset(ifNames, 0, sizeof(ifNames));
-  memset(ifViewNames, 0, sizeof(ifViewNames));
   dump_hosts_to_db = location_none;
   json_labels_string_format = true;
 #ifdef WIN32
@@ -1084,19 +1083,6 @@ void Prefs::add_network_interface(char *name, char *description) {
 
 /* ******************************************* */
 
-void Prefs::add_network_interface_view(char *name, char *description) {
-  int id = Utils::ifname2id(name);
-
-  if(id < (MAX_NUM_INTERFACES-1)) {
-    ifViewNames[id].name = strdup(name);
-    ifViewNames[id].description = strdup(description ? description : name);
-    num_interface_views++;
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interface views: discarded %s", name);
-}
-
-/* ******************************************* */
-
 void Prefs::add_default_interfaces() {
   NetworkInterface *dummy = new NetworkInterface("dummy");
   dummy->addAllAvailableInterfaces();
@@ -1154,11 +1140,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
 }
-
-/* *************************************** */
-
-bool Prefs::isView(char *name) { return(strncmp(name, "view:", 5) == 0 ? true : false); }
-
 
 /* *************************************** */
 
@@ -1227,11 +1208,7 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 void Prefs::registerNetworkInterfaces() {
   for(int i=0; i<num_deferred_interfaces_to_register; i++) {
     if(deferred_interfaces_to_register[i] != NULL) {
-      if(isView(deferred_interfaces_to_register[i]))
-        add_network_interface_view(deferred_interfaces_to_register[i], NULL);
-      else
-        add_network_interface(deferred_interfaces_to_register[i], NULL);
-
+      add_network_interface(deferred_interfaces_to_register[i], NULL);
       free(deferred_interfaces_to_register[i]);
     }
   }

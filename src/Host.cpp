@@ -292,7 +292,7 @@ void Host::updateHostTrafficPolicy(char *key) {
 	host = ip->print(buf, sizeof(buf));
     }
 
-    if(iface->is_packet_interface()) {
+    if(iface->isPacketInterface()) {
       if((ntop->getRedis()->hashGet((char*)DROP_HOST_TRAFFIC, host, buf, sizeof(buf)) == -1)
 	 || (strcmp(buf, "true") != 0))
 	drop_all_host_traffic = false;
@@ -468,6 +468,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     return;
 
   lua_newtable(vm);
+
   if(ip) {
     char ip_buf[64];
 

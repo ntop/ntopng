@@ -7,6 +7,13 @@ require "lua_trace"
 -- ##########################################
 
 function aggregateInterfaceStats(ifstats)
+  --io.write("###########################\n")
+  --tprint(ifstats)
+  --io.write("###########################\n")
+  return(ifstats)
+end
+
+function _aggregateInterfaceStats(ifstats)
    if(ifstats == nil) then return(ifstats) end
 
    local tot = {}
@@ -113,6 +120,12 @@ end
 -- ##########################################
 
 function aggregateGroupStats(groupStats)
+   local g = groupStats.groups
+   local tot = #g
+   return g,tot
+end
+
+function _aggregateGroupStats(groupStats)
    if(groupStats == nil) then return(groupStats) end
 
    local tot = 0
@@ -143,6 +156,12 @@ end
 -- ##########################################
 
 function aggregateHostsStats(hostStats)
+   local h = hostStats.hosts
+   local tot = #h
+   return h,tot
+end
+
+function _aggregateHostsStats(hostStats)
    if(hostStats == nil) then return(hostStats) end
 
    local tot = 0
@@ -162,6 +181,12 @@ end
 -- ##########################################
 
 function aggregateFlowsStats(flowstats)
+  local f = flowstats.flows
+  local tot = #f
+  return f, tot
+end
+
+function _aggregateFlowsStats(flowstats)
    -- TODO: prevent possible flow overlap when using interface views
    if(flowstats == nil) then return(flowstats) end
 
@@ -1662,7 +1687,7 @@ function isLocalPacketdumpEnabled()
    else
       nbox_integration = true
    end
-   return isAdministrator() and not nbox_integration and not interface.isView() and interface.isPacketInterface()
+   return isAdministrator() and not nbox_integration and interface.isPacketInterface()
 end
 
 function processColor(proc)

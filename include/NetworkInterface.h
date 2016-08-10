@@ -155,7 +155,7 @@ class NetworkInterface {
   virtual char *getEndpoint(u_int8_t id)       { return NULL;   };
   virtual bool set_packet_filter(char *filter) { return(false); };
   virtual void incrDrops(u_int32_t num)        { ; }
-  inline virtual bool is_packet_interface()    { return(true); }
+  inline virtual bool isPacketInterface()      { return(true); }
   inline virtual const char* get_type()        { return(CONST_INTERFACE_TYPE_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }

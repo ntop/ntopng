@@ -48,7 +48,7 @@ class CollectorInterface : public ParserInterface {
 						 subscriber[id].endpoint : (char*)""); };
   inline void incrDrops(u_int32_t num)  { num_drops += num;   };
   inline u_int getNumDroppedPackets()   { return(num_drops);  };
-  inline bool is_packet_interface()     { return(false);      };
+  inline bool isPacketInterface()       { return(false);      };
   void collect_flows();
 
   void startPacketPolling();

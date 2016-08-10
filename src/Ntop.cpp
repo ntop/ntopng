@@ -53,7 +53,7 @@ Ntop::Ntop(char *appName) {
   prefs = NULL, redis = NULL;
   elastic_search = NULL;
   num_cpus = -1;
-  num_defined_interfaces = num_defined_interface_views = 0;
+  num_defined_interfaces = 0;
   local_interface_addresses = New_Patricia(128);
   export_interface = NULL;
   start_time = 0; /* It will be initialized by start() */
@@ -145,7 +145,6 @@ Ntop::Ntop(char *appName) {
 void Ntop::initTimezone() {
   time_t now = time(NULL);
   time_offset =(long)(mktime(localtime(&now)) - mktime(gmtime(&now)));
-  memset(ifaceViews, 0, sizeof(ifaceViews));
 }
 
 /* ******************************************* */
@@ -154,10 +153,6 @@ Ntop::~Ntop() {
   for(int i=0; i<num_defined_interfaces; i++) {
     iface[i]->shutdown();
     delete(iface[i]);
-  }
-  for(int i = 0 ; i < num_defined_interface_views ; i++) {
-    if(ifaceViews[i]) delete(ifaceViews[i]);
-    ifaceViews[i] = NULL;
   }
 
   if(udp_socket != -1) closesocket(udp_socket);
@@ -1165,38 +1160,6 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
 
 /* ******************************************* */
 
-NetworkInterfaceView* Ntop::getNetworkInterfaceView(lua_State* vm, const char *name) {
-  /* This method accepts both interface names or Ids */
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Getting interface view at name %s", name ? name : "NULL");
-  if(name == NULL)
-    return NULL;
-  int if_id = atoi(name);
-  char str[8];
-
-  snprintf(str, sizeof(str), "%d", if_id);
-  if(strcmp(name, str) == 0) {
-    /* name is a number */
-
-    for(int i=0; i<num_defined_interface_views; i++) {
-      if(ifaceViews[i]->get_id() == if_id)
-	return isInterfaceAllowed(vm, ifaceViews[i]->get_name()) ? ifaceViews[i] : NULL;
-    }
-
-    return NULL;
-  }
-
-  /* if here, interface view name is a string */
-  for(int i=0; i<num_defined_interface_views; i++) {
-    if(!strcmp(ifaceViews[i]->get_name(), name))
-      return isInterfaceAllowed(vm, ifaceViews[i]->get_name()) ? ifaceViews[i] : NULL;
-  }
-
-  return NULL;
-};
-
-/* ******************************************* */
-
-#ifdef NOTUSED
 int Ntop::getInterfaceIdByName(char *name) {
   /* This method accepts both interface names or Ids */
   int if_id = atoi(name);
@@ -1216,34 +1179,6 @@ int Ntop::getInterfaceIdByName(char *name) {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), name) == 0) {
       return(iface[i]->get_id());
-    }
-  }
-
-  return(-1);
-}
-#endif
-
-/* ******************************************* */
-
-int Ntop::getInterfaceViewIdByName(char *name) {
-  /* This method accepts both interface names or Ids */
-  int if_id = atoi(name);
-  char str[8];
-
-  snprintf(str, sizeof(str), "%d", if_id);
-  if(strcmp(name, str) == 0) {
-    /* name is a number */
-    NetworkInterfaceView *iface = getNetworkInterfaceView(if_id);
-
-    if(iface != NULL)
-      return(iface->get_id());
-    else
-      return(-1);
-  }
-
-  for(int i=0; i<num_defined_interface_views; i++) {
-    if(strcmp(ifaceViews[i]->get_name(), name) == 0) {
-      return(ifaceViews[i]->get_id());
     }
   }
 
@@ -1276,19 +1211,6 @@ void Ntop::registerInterface(NetworkInterface *_if) {
     _if->startDBLoop();
   } else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces defined");
-};
-
-/* ******************************************* */
-
-void Ntop::registerInterfaceView(NetworkInterfaceView *_view) {
-  if(num_defined_interface_views < MAX_NUM_DEFINED_INTERFACES) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Registered interface view %s [id: %d]",
-				 _view->get_name(), _view->get_id());
-    ifaceViews[num_defined_interface_views++] = _view;
-    return;
-  }
-
-  ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many network interface views defined");
 };
 
 /* ******************************************* */

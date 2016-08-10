@@ -54,7 +54,7 @@ if(page == nil) then
 end
 
 
-if((ifstats ~= nil) and (ifstats.packets > 0)) then
+if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
 -- Print tabbed header
 
    print('<nav class="navbar navbar-default" role="navigation">\n\t<div class="navbar-collapse collapse">\n\t<ul class="nav navbar-nav">\n')

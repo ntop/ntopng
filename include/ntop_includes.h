@@ -189,7 +189,6 @@ using namespace std;
 #include "TcpFlowStats.h"
 #include "InterfaceStatsHash.h"
 #include "NetworkInterface.h"
-#include "NetworkInterfaceView.h"
 #include "PcapInterface.h"
 //#include "TimeSeries.h"
 #ifdef HAVE_PF_RING

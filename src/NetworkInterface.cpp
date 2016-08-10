@@ -2581,10 +2581,11 @@ struct flow_peers_info {
 static bool flow_peers_walker(GenericHashEntry *h, void *user_data) {
   Flow *flow = (Flow*)h;
   struct flow_peers_info *info = (struct flow_peers_info*)user_data;
-
-  if((info->numIP == NULL) || flow->isFlowPeer(info->numIP, info->vlanId))
+  
+  if((info->numIP == NULL) || flow->isFlowPeer(info->numIP, info->vlanId)) {
     flow->print_peers(info->vm, info->allowed_hosts,
 		      (info->numIP == NULL) ? false : true);
+  }
 
   return(false); /* false = keep on walking */
 }
@@ -2595,6 +2596,8 @@ void NetworkInterface::getFlowPeersList(lua_State* vm,
 					patricia_tree_t *allowed_hosts,
 					char *numIP, u_int16_t vlanId) {
   struct flow_peers_info info;
+
+  lua_newtable(vm);
 
   info.vm = vm, info.numIP = numIP, info.vlanId = vlanId, info.allowed_hosts = allowed_hosts;
   flows_hash->walk(flow_peers_walker, (void*)&info);
@@ -2652,6 +2655,8 @@ u_int NetworkInterface::purgeIdleHosts() {
 
 void NetworkInterface::getnDPIProtocols(lua_State *vm) {
   int i;
+
+  lua_newtable(vm);
 
   for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
     char buf[8];

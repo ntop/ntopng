@@ -230,23 +230,6 @@ int main(int argc, char *argv[])
     exit(0);
   }
 
-  for(int i = 0 ; i < MAX_NUM_INTERFACES ; i++) {
-    char *ifName;
-    NetworkInterfaceView *iv;
-
-    if((ifName = prefs->getInterfaceViewAt(i)) != NULL) {
-      iv = new NetworkInterfaceView(ifName);
-
-      if(iv->get_numInterfaces() > 0) ntop->registerInterfaceView(iv); else delete iv;
-    }
-
-    if((ifName = prefs->getInterfaceAt(i)) != NULL) {
-      iv = new NetworkInterfaceView(ifName);
-      
-      if(iv->get_numInterfaces() > 0) ntop->registerInterfaceView(iv); else delete iv;
-    }
-  }
-
 #ifndef WIN32
   if(prefs->get_pid_path() != NULL) {
     FILE *fd;

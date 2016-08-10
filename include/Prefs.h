@@ -54,11 +54,10 @@ class Prefs {
   u_int16_t housekeeping_frequency;
   u_int32_t max_num_hosts, max_num_flows;
   u_int http_port, https_port;
-  u_int8_t num_interfaces, num_interface_views;
+  u_int8_t num_interfaces;
   bool dump_flows_on_es, dump_flows_on_mysql;
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
-  InterfaceInfo ifViewNames[MAX_NUM_INTERFACES];
   char *local_networks;
   bool local_networks_set, shutdown_when_done;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
@@ -131,7 +130,6 @@ class Prefs {
   inline bool are_vss_apcon_timestamps_enabled()        { return(enable_vss_apcon_timestamps); };
   inline char* get_user()                               { return(user);                   };
   inline u_int8_t get_num_user_specified_interfaces()   { return(num_interfaces);         };
-  inline u_int8_t get_num_user_specified_interface_views()   { return(num_interface_views);         };
   inline bool  do_dump_flows_on_es()                    { return(dump_flows_on_es);       };
   inline bool  do_dump_flows_on_mysql()                 { return(dump_flows_on_mysql);    };
   u_int32_t getDefaultPrefsValue(const char *pref_key, u_int32_t default_value);
@@ -171,14 +169,12 @@ class Prefs {
   inline void set_dump_hosts_to_db_policy(LocationPolicy p)   { dump_hosts_to_db = p;               };
   inline LocationPolicy get_dump_hosts_to_db_policy()         { return(dump_hosts_to_db);           };
   void add_network_interface(char *name, char *description);
-  void add_network_interface_view(char *name, char *description);
   inline bool json_labels_as_strings()                        { return(json_labels_string_format);       };
   inline void set_json_symbolic_labels_format(bool as_string) { json_labels_string_format = as_string;   };
   void lua(lua_State* vm);
   void reloadPrefsFromRedis();
   void loadInstanceNameDefaults();
   void registerNetworkInterfaces();
-  bool isView(char *name);
   int  refresh(const char *pref_name, const char *pref_value);
 
   inline const char* get_http_binding_address()  { return(http_binding_address);  };
@@ -200,7 +196,6 @@ class Prefs {
   inline char* get_mysql_pw()           { return(mysql_pw);              };
   inline char* get_zmq_encryption_pwd() { return(zmq_encryption_pwd);    };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
-  inline char* getInterfaceViewAt(int id) { return((id >= MAX_NUM_INTERFACES) ? NULL : ifViewNames[id].name); }
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }

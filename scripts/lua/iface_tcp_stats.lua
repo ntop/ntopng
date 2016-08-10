@@ -16,7 +16,7 @@ ifstats = interface.getFlowsStatus()
 --tprint(ifstats)
 
 tcpFlowStats = ifstats
-tprint(tcpFlowStats)
+-- tprint(tcpFlowStats)
 sum = tcpFlowStats["SYN"]+tcpFlowStats["Established"]+tcpFlowStats["RST"]+tcpFlowStats["FIN"]
 
 print("[")

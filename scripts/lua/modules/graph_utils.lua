@@ -379,7 +379,6 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 
    if ntop.isPro() then
       _ifstats = interface.getStats()
-      if(_ifstats.isView == true) then topArray = nil end
       drawProGraph(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries, selectedEpoch, selected_epoch_sanitized, topArray)
       return
    end
@@ -1686,16 +1685,7 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    if(debug_metric) then
        io.write('ifid: '..ifid..' ifname:'..getInterfaceName(ifid)..'\n')
        io.write('expand_interface_views: '..tostring(expand_interface_views)..'\n')
-       io.write('ifstats.isView: '..tostring(ifstats.isView)..'\n')
    end
-   if expand_interface_views and ifstats.isView then
-	-- expand rrds for views and read each physical interface separately
-	for iface,_ in pairs(ifstats.interfaces) do
-	    if(debug_metric) then io.write('iface: '..iface..' id: '..getInterfaceId(iface)..'\n') end
-	    rrd_if_ids[#rrd_if_ids+1] = getInterfaceId(iface)
-	end
-   end
-
 
    if(debug_metric) then io.write("RRD File: "..rrdFile.."\n") end
 
@@ -1758,9 +1748,6 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    -- if we are expanding an interface view, we want to concatenate
    -- jsons for single interfaces, and not for the view. Since view statistics
    -- are in ret[1], it suffices to aggregate jsons from index i >= 2
-   if expand_interface_views and ifstats.isView then
-       i = 2
-   end
    local json = "["
    local first = true  -- used to decide where to append commas
    while i <= num do

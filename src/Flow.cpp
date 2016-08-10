@@ -84,7 +84,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&tcp_stats_s2d, 0, sizeof(tcp_stats_s2d)), memset(&tcp_stats_d2s, 0, sizeof(tcp_stats_d2s));
   memset(&clientNwLatency, 0, sizeof(clientNwLatency)), memset(&serverNwLatency, 0, sizeof(serverNwLatency));
 
-  if(!iface->is_packet_interface())
+  if(!iface->isPacketInterface())
     last_update_time.tv_sec = (long)first_seen;
 
 #ifdef NTOPNG_PRO
@@ -708,13 +708,7 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
   }
 
   // Key
-  /* Too slow */
-#if 0
-  snprintf(buf, sizeof(buf), "%s %s",
-	   src->Host::get_name(buf1, sizeof(buf1), false),
-	   dst->Host::get_name(buf2, sizeof(buf2), false));
-#else
-  /*Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key*/
+  /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
   if((get_cli_host()->get_vlan_id() == 0) && (get_srv_host()->get_vlan_id() == 0)) {
     snprintf(buf, sizeof(buf), "%s %s",
 	     intoaV4(ntohl(get_cli_ipv4()), buf1, sizeof(buf1)),
@@ -726,7 +720,6 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
 	     intoaV4(ntohl(get_srv_ipv4()), buf2, sizeof(buf2)),
 	     get_srv_host()->get_vlan_id());
   }
-#endif
 
   lua_pushstring(vm, buf);
   lua_insert(vm, -2);
@@ -965,7 +958,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
       if(goodput_bytes_msec_cli2srv < 0) goodput_bytes_msec_cli2srv = 0;
       if(goodput_bytes_msec_srv2cli < 0) goodput_bytes_msec_srv2cli = 0;
 
-      if((bytes_msec > 0) || iface->is_packet_interface()) {
+      if((bytes_msec > 0) || iface->isPacketInterface()) {
 	// refresh trend stats for the overall throughput
 	if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
 	else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;

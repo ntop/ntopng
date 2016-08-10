@@ -37,7 +37,6 @@ typedef struct {
 } ProtoCounter;
 
 class NetworkInterface;
-class NetworkInterfaceView;
 
 /* *************************************** */
 

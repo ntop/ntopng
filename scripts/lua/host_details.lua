@@ -64,13 +64,14 @@ if(protocol_id == nil) then protocol_id = "" end
 
 interface.select(ifname)
 ifstats = aggregateInterfaceStats(interface.getStats())
+
 ifId = ifstats.id
 
 is_packetdump_enabled = isLocalPacketdumpEnabled()
 host = nil
 family = nil
 
---print(">>>") print(host_info["host"]) print("<<<")
+-- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host_info["host"] .. ", Vlan: "..host_vlan.."\n") end
 
 host = interface.getHostInfo(host_info["host"], host_vlan)
@@ -521,10 +522,7 @@ print [[
 	 print('&nbsp;')
       end
 
-      print('</td></tr>')
-
-
-      print('</tr>')
+      print('</td></tr></tr>')
    end
 
    if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
@@ -782,7 +780,7 @@ print [[/lua/iface_ports_list.lua', { mode: "server", ifname: "]] print(ifId..""
 
    elseif((page == "peers")) then
 host_info = url2hostinfo(_GET)
-flows     = interface.getFlowPeers(host_info["host"],host_info["vlan"])
+flows     = interface.getFlowPeers(host_info["host"], host_info["vlan"])
 found     = 0
 
 for key, value in pairs(flows) do
@@ -1462,7 +1460,7 @@ print [[
 elseif(page == "snmp") then
 
 if(ntop.isPro()) then
-   print_snmp_report(host_info["host"])
+   print_snmp_report(host_info["host"], true, ifId)
 end
 
 elseif(page == "talkers") then

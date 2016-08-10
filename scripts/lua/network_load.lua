@@ -25,13 +25,13 @@ function dumpInterfaceStats(interface_name)
       prefs = ntop.getPrefs()
 
       -- Round up
-      hosts_pctg = math.floor(1+((ifstats.hosts*100)/prefs.max_num_hosts))
-      flows_pctg = math.floor(1+((ifstats.flows*100)/prefs.max_num_flows))
+      hosts_pctg = math.floor(1+((ifstats.stats.hosts*100)/prefs.max_num_hosts))
+      flows_pctg = math.floor(1+((ifstats.stats.flows*100)/prefs.max_num_flows))
 
       res["ifname"]  = interface_name
-      res["packets"] = ifstats.packets
-      res["bytes"]   = ifstats.bytes
-      res["drops"]   = ifstats.drops
+      res["packets"] = ifstats.stats.packets
+      res["bytes"]   = ifstats.stats.bytes
+      res["drops"]   = ifstats.stats.drops
 
       if prefs.are_alerts_enabled == true then
 	 res["alerts"] = ntop.getNumQueuedAlerts()
@@ -45,7 +45,6 @@ function dumpInterfaceStats(interface_name)
       res["flows_pctg"] = flows_pctg
       res["remote_pps"] = ifstats.remote_pps
       res["remote_bps"] = ifstats.remote_bps
-      res["is_view"]    = ifstats.isView
 
       res["local2remote"] = ifstats["localstats"]["bytes"]["local2remote"]
       res["remote2local"] = ifstats["localstats"]["bytes"]["remote2local"]

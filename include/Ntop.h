@@ -45,9 +45,7 @@ class Ntop {
   char startup_dir[MAX_PATH]; /**< Array of startup directory.*/
   char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI.*/
   NetworkInterface *iface[MAX_NUM_DEFINED_INTERFACES];/**< Array of network interfaces.*/
-  NetworkInterfaceView *ifaceViews[MAX_NUM_DEFINED_INTERFACES];/**< Array of network interface views.*/
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces.*/
-  u_int8_t num_defined_interface_views; /**< Number of defined interface views.*/
   HTTPserver *httpd; /**< Pointer of httpd server.*/
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables.*/
   u_int num_cpus; /**< Number of physical CPU cores. */
@@ -218,21 +216,12 @@ class Ntop {
   void registerInterface(NetworkInterface *i);
 
   /**
-   * @brief Register a network interface view.
-   * @details Check for duplicated interface views and add the network interface view in to @ref iface.
-   *
-   * @param v Network interface view.
-   */
-  void registerInterfaceView(NetworkInterfaceView *v);
-
-  /**
    * @brief Get the number of defined network interfaces.
    *
    * @return Number of defined network interfaces.
    */
   inline u_int8_t get_num_interfaces()               { return(num_defined_interfaces); }
-  inline u_int8_t get_num_interface_views()               { return(num_defined_interface_views); }
-  int getInterfaceViewIdByName(char *name);
+
   /**
    * @brief Get the i-th network interface.
    * @details Retrieves the pointer the network interface
@@ -260,33 +249,7 @@ class Ntop {
   inline NetworkInterface* getInterfaceAtId(int i) const {
     return getInterfaceAtId(NULL, i);
   }
-  /**
-   * @brief Get the i-th network interface.
-   * @details Retrieves the pointer the network interface view
-   *  identified by id i and enforces constraints on
-   *  user allowed interfaces.
-   *
-   * @param i The i-th network interface.
-   * @return The network interface instance if exists, NULL otherwise.
-   */
-  inline NetworkInterfaceView* getInterfaceViewAtId(lua_State *vm, int i) const {
-    if(i<num_defined_interface_views && ifaceViews[i]) {
-      return isInterfaceAllowed(vm, ifaceViews[i]->get_name()) ? ifaceViews[i] : NULL;
-    }
-    return NULL;
-  }
-  /**
-   * @brief Get the i-th network interface.
-   * @details Retrieves the pointer the network interface view
-   *  identified by id i WITHOUT ENFORCING constraints on
-   *  user allowed interfaces.
-   *
-   * @param i The i-th network interface.
-   * @return The network interface instance if exists, NULL otherwise.
-   */
-  inline NetworkInterfaceView* getInterfaceViewAtId(int i) const {
-    return getInterfaceViewAtId(NULL, i);
-  }
+
   /**
    * @brief Get the Id of network interface.
    * @details This method accepts both interface names or Ids.
@@ -335,20 +298,6 @@ class Ntop {
     snprintf(ifname, sizeof(ifname), "%d", ifid);
     return getNetworkInterface(NULL, ifname);
   };
-  NetworkInterfaceView* getNetworkInterfaceView(lua_State* vm, const char *name);
-  inline NetworkInterfaceView* getNetworkInterfaceView(const char *name) {
-    return getNetworkInterfaceView(NULL, name);
-  };
-  inline NetworkInterfaceView* getNetworkInterfaceView(lua_State *vm, int ifid) {
-    char ifname[MAX_INTERFACE_NAME_LEN];
-    snprintf(ifname, sizeof(ifname), "%d", ifid);
-    return getNetworkInterfaceView(vm, ifname);
-  };
-  inline NetworkInterfaceView* getNetworkInterfaceView(int ifid) {
-    return getNetworkInterfaceView(NULL, ifid);
-  };
-
-  void sanitizeInterfaceView(NetworkInterfaceView *view);
 
   /**
    * @brief Get the current HTTPserver instance.

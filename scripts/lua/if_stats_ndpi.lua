@@ -33,7 +33,7 @@ else
    json_format = false
 end
 
-total = ifstats["bytes"]
+total = ifstats.stats.bytes
 
 vals = {}
 

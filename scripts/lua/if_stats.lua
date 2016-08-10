@@ -64,7 +64,6 @@ interface.select(if_name)
 -- is a view
 -- is not a packet interface (i.e., it is zmq)
 is_packetdump_enabled = isLocalPacketdumpEnabled()
-is_view = interface.isView()
 is_packet_interface = interface.isPacketInterface()
 
 max_num_shapers = 10
@@ -168,7 +167,7 @@ else
 end
 
 -- Disable Packets and Protocols tab in case of the number of packets is equal to 0
-if((ifstats ~= nil) and (ifstats.packets > 0)) then
+if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
    if(ifstats.type ~= "zmq") then
       if(page == "packets") then
 	 print("<li class=\"active\"><a href=\"#\">Packets</a></li>\n")
@@ -331,13 +330,10 @@ if((page == "overview") or (page == nil)) then
    end
 
    print("<tr><th>Family </th><td colspan=6>")
-   if(ifstats.isView == true) then print("<i class=\"fa fa-eye\"></i> ") end
 
    print(ifstats.type)
    if(ifstats.inline) then
       print(" In-Path Interface (Bump in the Wire)")
-      elseif(ifstats.isView == true) then
-      print(" (Aggregated Interface View)")
    end
    print("</td></tr>\n")
 
@@ -375,18 +371,18 @@ print [[ }
 print("</script>\n")
 
    print("<tr><th colspan=7>Ingress Traffic</th></tr>\n")
-   print("<tr><th>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.packets) .. " ".. label .."</span>] ")
+   print("<tr><th>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
    print("<span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
 
-   if(ifstats.drops > 0) then print('<span class="label label-danger">') end
-   print(formatValue(ifstats.drops).. " " .. label)
+   if(ifstats.stats.drops > 0) then print('<span class="label label-danger">') end
+   print(formatValue(ifstats.stats.drops).. " " .. label)
 
-   if((ifstats.packets+ifstats.drops) > 0) then
-      local pctg = round((ifstats.drops*100)/(ifstats.packets+ifstats.drops), 2)
+   if((ifstats.stats.packets+ifstats.stats.drops) > 0) then
+      local pctg = round((ifstats.stats.drops*100)/(ifstats.stats.packets+ifstats.stats.drops), 2)
       if(pctg > 0) then print(" [ " .. pctg .. " % ] ") end
    end
 
-   if(ifstats.drops > 0) then print('</span>') end
+   if(ifstats.stats.drops > 0) then print('</span>') end
    print("</span>  <span id=drops_trend></span></td><td colspan=3>&nbsp;</td></tr>\n")
 
    if(ifstats["bridge.device_a"] ~= nil) then
@@ -1340,8 +1336,8 @@ end
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
 print("<script>\n")
-print("var last_pkts  = " .. ifstats.packets .. ";\n")
-print("var last_drops = " .. ifstats.drops .. ";\n")
+print("var last_pkts  = " .. ifstats.stats.packets .. ";\n")
+print("var last_drops = " .. ifstats.stats.drops .. ";\n")
 
 if(ifstats["bridge.device_a"] ~= nil) then
    print("var last_epoch  = 0;\n")

@@ -108,9 +108,9 @@ elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
 end
 
-hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, country, os_, tonumber(vlan), tonumber(asn), tonumber(network)) -- false = little details
--- tprint(hosts_stats)
-
+hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, 
+	                           country, os_, tonumber(vlan), tonumber(asn),
+				   tonumber(network)) -- false = little details
 hosts_stats,total = aggregateHostsStats(hosts_stats)
 
 if(total == nil) then total = 0 end 
@@ -214,7 +214,9 @@ for key, value in pairs(hosts_stats) do
       end
    end
 
-   if ok == true then
+   if(ok == true) then
+     -- io.write("==>"..key.."\n")
+      -- tprint(hosts_stats[key])
       --io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
       if(sortColumn == "column_") then
