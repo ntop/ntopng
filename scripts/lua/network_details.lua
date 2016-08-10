@@ -129,9 +129,9 @@ elseif (page == "config") then
         trigger_alerts = _GET["trigger_alerts"]
         if(trigger_alerts ~= nil) then
             if(trigger_alerts == "true") then
-                ntop.delHashCache("ntopng.prefs.alerts", network_name)
+                ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), network_name)
             else
-                ntop.setHashCache("ntopng.prefs.alerts", network_name, trigger_alerts)
+                ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), network_name, trigger_alerts)
             end
         end
     end
@@ -198,7 +198,7 @@ elseif (page == "config") then
     </td></tr>
     ]]
 
-    local suppressAlerts = ntop.getHashCache("ntopng.prefs.alerts", network_name)
+    local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), network_name)
     if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
         alerts_checked = 'checked="checked"'
         alerts_value = "false" -- Opposite

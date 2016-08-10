@@ -2173,8 +2173,15 @@ end
 -- TODO: improve this function
 function jsonencode(what)
    what = string.gsub(what, '"', "'")
+   -- everything but all ASCII characters from the space to the tilde
+   what = string.gsub(what, "[^ -~]", " ")
+   -- cleanup line feeds and carriage returns
    what = string.gsub(what, "\n", " ")
    what = string.gsub(what, "\r", " ")
+   -- escape all the remaining backslashes
+   what = string.gsub(what, "\\", "\\\\")
+   -- max 1 sequential whitespace
+   what = string.gsub(what, " +"," ")
    return(what)
 end
 

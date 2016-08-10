@@ -165,7 +165,7 @@ static int ntop_get_default_interface_name(lua_State* vm) {
   char ifname[MAX_INTERFACE_NAME_LEN];
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (ntop->getInterfaceAllowed(vm, ifname)) {
+  if(ntop->getInterfaceAllowed(vm, ifname)) {
     // if there is an allowed interface for the user
     // we return that interface
     lua_pushstring(vm,
@@ -1352,6 +1352,7 @@ static int ntop_host_reset_periodic_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+/* FIX NOTUSED ? */
 static int ntop_host_trigger_alerts(lua_State* vm, bool trigger) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -1382,14 +1383,21 @@ static int ntop_host_trigger_alerts(lua_State* vm, bool trigger) {
 
 /* ****************************************** */
 
-static int ntop_host_enable_alerts(lua_State* vm) {
-  return ntop_host_trigger_alerts(vm, true);
+static int ntop_interface_host_trigger_alerts(lua_State* vm, bool what) {
+  /* FIX TODO */
+  return(CONST_LUA_ERROR);
 }
 
 /* ****************************************** */
 
-static int ntop_host_disable_alerts(lua_State* vm) {
-  return ntop_host_trigger_alerts(vm, false);
+static int ntop_interface_host_enable_alerts(lua_State* vm) {
+  return ntop_interface_host_trigger_alerts(vm, true);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_host_disable_alerts(lua_State* vm) {
+  return ntop_interface_host_trigger_alerts(vm, false);
 }
 
 /* ****************************************** */
@@ -1686,7 +1694,7 @@ static int ntop_list_http_hosts(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!ntop_interface) return(CONST_LUA_ERROR);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) != LUA_TSTRING) /* Optional */
     key = NULL;
@@ -3098,14 +3106,15 @@ static int ntop_snmp_get_fctn(lua_State* vm, int operation) {
     while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
       if(!added) lua_newtable(vm), added = 1;
       lua_push_str_table_entry(vm, oid_str, value_str);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP OK %s@%s %s=%s", agent_host, community, oid_str, value_str);
+      if(debug)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP OK %s@%s %s=%s", agent_host, community, oid_str, value_str);
       i++;
     }
 
     snmp_destroy_message(message);
 
     if(!added) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP Error %s@%s", agent_host, community);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SNMP Error %s@%s", agent_host, community);
       lua_pushnil(vm), rc = CONST_LUA_ERROR;
     }
   }
@@ -4057,44 +4066,47 @@ static int ntop_redis_get_id_to_host(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_num_queued_alerts(lua_State* vm) {
-  Redis *redis = ntop->getRedis();
+static int ntop_interface_get_num_queued_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  lua_pushinteger(vm, redis->getNumQueuedAlerts());
+  lua_pushinteger(vm, iface->getAlertsManager()->getNumQueuedAlerts());
 
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
-static int ntop_delete_queued_alert(lua_State* vm) {
+static int ntop_interface_delete_queued_alert(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  ntop->getRedis()->deleteQueuedAlert((u_int32_t)lua_tonumber(vm, 1));
+  iface->getAlertsManager()->deleteQueuedAlert((u_int32_t)lua_tonumber(vm, 1));
   lua_pushnil(vm); /* Always return a value to Lua */
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
-static int ntop_flush_all_queued_alerts(lua_State* vm) {
+static int ntop_interface_flush_all_queued_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+
+  if(!Utils::isUserAdministrator(vm))
+    return(CONST_LUA_ERROR); // alerts are only allowed for physical interfaces
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
-
-  ntop->getRedis()->flushAllQueuedAlerts();
+  iface->getAlertsManager()->flushAllQueuedAlerts();
   lua_pushnil(vm); /* Always return a value to Lua */
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
-static int ntop_queue_alert(lua_State* vm) {
-  Redis *redis = ntop->getRedis();
+static int ntop_interface_queue_alert(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
   int alert_level;
   int alert_status;
   int alert_type;
@@ -4114,14 +4126,15 @@ static int ntop_queue_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
   alert_msg = (char*)lua_tostring(vm, 4);
 
-  redis->queueAlert((AlertLevel)alert_level, (AlertStatus)alert_status,
-		    (AlertType)alert_type, alert_msg);
+  if(iface->getAlertsManager()->queueAlert((AlertLevel)alert_level, (AlertStatus)alert_status,
+					    (AlertType)alert_type, alert_msg))
+    return(CONST_LUA_ERROR);
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
-static int ntop_store_alert(lua_State* vm) {
+static int ntop_interface_store_alert(lua_State* vm) {
   int ifid;
   NetworkInterface* iface;
   AlertsManager *am;
@@ -4262,10 +4275,9 @@ static int ntop_reload_traffic_profiles(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_queued_alerts(lua_State* vm) {
-  Redis *redis = ntop->getRedis();
-  u_int32_t num, i = 0, start_idx = 0, n = 0;
-  char *alerts[CONST_MAX_NUM_READ_ALERTS] = { NULL };
+static int ntop_interface_get_queued_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  u_int32_t num, start_idx = 0;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4278,17 +4290,7 @@ static int ntop_get_queued_alerts(lua_State* vm) {
   if(num < 1) num = 1;
   else if(num > CONST_MAX_NUM_READ_ALERTS) num = CONST_MAX_NUM_READ_ALERTS;
 
-  redis->getQueuedAlerts(get_allowed_nets(vm), alerts, start_idx, num);
-
-  lua_newtable(vm);
-
-  while((i < CONST_MAX_NUM_READ_ALERTS) && (alerts[i] != NULL)) {
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u\t%s", start_idx+n, alerts[i]);
-    lua_pushstring(vm, alerts[i]);
-    lua_rawseti(vm, -2, n);
-    free(alerts[i]);
-    i++, n++;
-  }
+  iface->getAlertsManager()->getQueuedAlerts(vm, get_allowed_nets(vm), start_idx, start_idx + num);
 
   return(CONST_LUA_OK);
 }
@@ -4656,6 +4658,17 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getFlowDevices",  ntop_getflowdevices },
   { "getFlowDeviceInfo",  ntop_getflowdeviceinfo },
 
+  /* Alerts */
+  { "getNumQueuedAlerts",   ntop_interface_get_num_queued_alerts    },
+  { "getQueuedAlerts",      ntop_interface_get_queued_alerts        },
+  { "queueAlert",           ntop_interface_queue_alert              },
+  { "deleteQueuedAlert",    ntop_interface_delete_queued_alert      },
+  { "flushAllQueuedAlerts", ntop_interface_flush_all_queued_alerts  },
+  { "enableHostAlerts",     ntop_interface_host_enable_alerts       },
+  { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
+
+  /* New generation alerts */
+  { "storeAlert",           ntop_interface_store_alert              },
   { NULL,                             NULL }
 };
 
@@ -4703,17 +4716,6 @@ static const luaL_Reg ntop_reg[] = {
 
   { "getLocalNetworks",       ntop_get_local_networks },
 
-  /* Alerts */
-  { "getNumQueuedAlerts",   ntop_get_num_queued_alerts    },
-  { "getQueuedAlerts",      ntop_get_queued_alerts        },
-  { "deleteQueuedAlert",    ntop_delete_queued_alert      },
-  { "flushAllQueuedAlerts", ntop_flush_all_queued_alerts  },
-  { "queueAlert",           ntop_queue_alert              },
-  { "enableHostAlerts",     ntop_host_enable_alerts       },
-  { "disableHostAlerts",    ntop_host_disable_alerts      },
-
-  /* New generation alerts */
-  { "storeAlert",           ntop_store_alert              },
 #ifdef NTOPNG_PRO
   { "sendNagiosAlert",      ntop_nagios_send_alert },
   { "withdrawNagiosAlert",  ntop_nagios_withdraw_alert },
@@ -5108,7 +5110,7 @@ void Lua::setInterface(const char *user) {
 					      ifname)) != NULL) {
       /* The specified interface still exists */
       lua_push_str_table_entry(L, "ifname", iface->get_name());
-    } else if (!enforce_allowed_interface) {
+    } else if(!enforce_allowed_interface) {
       goto set_default_if_name_in_session;
     } else {
       // TODO: handle the case where the user has

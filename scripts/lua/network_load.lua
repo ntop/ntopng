@@ -34,7 +34,7 @@ function dumpInterfaceStats(interface_name)
       res["drops"]   = ifstats.stats.drops
 
       if prefs.are_alerts_enabled == true then
-	 res["alerts"] = ntop.getNumQueuedAlerts()
+	 res["alerts"] = interface.getNumQueuedAlerts()
       end
 
       res["num_flows"]  = ifstats.flows
@@ -54,7 +54,6 @@ function dumpInterfaceStats(interface_name)
       res["tcpPacketStats"]["out_of_order"]    = ifstats.tcpPacketStats.out_of_order
       res["tcpPacketStats"]["lost"]            = ifstats.tcpPacketStats.lost
       
-
       if(ifstats["bridge.device_a"] ~= nil) then
 	 res["a_to_b_in_pkts"]       = ifstats["bridge.a_to_b.in_pkts"]
 	 res["a_to_b_in_bytes"]      = ifstats["bridge.a_to_b.in_bytes"]

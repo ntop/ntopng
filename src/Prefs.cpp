@@ -772,8 +772,19 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'v':
-    has_cmdl_trace_lvl = true;
-    ntop->getTrace()->set_trace_level(max(min(atoi(optarg), MAX_TRACE_LEVEL), 0));
+    {
+      has_cmdl_trace_lvl = true;
+      errno = 0;
+      int8_t lvl = (int8_t)strtol(optarg, NULL, 10);
+      if(errno) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Invalid '%s' value specified for -v: ignored",
+				     optarg);
+      } else {
+	if (lvl < 0) lvl = 0;
+	ntop->getTrace()->set_trace_level((u_int8_t)lvl);
+      }
+    }
     break;
 
   case 'F':
