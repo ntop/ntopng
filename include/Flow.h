@@ -39,6 +39,14 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
+typedef struct {
+  struct timeval reqTime;
+  bool srvWaited;
+  u_int16_t reqBytes;
+  u_int32_t respBytes;
+  u_int32_t respCount;
+} ImapsStats;
+
 typedef enum {
   flow_state_other = 0,
   flow_state_syn,
@@ -90,6 +98,8 @@ class Flow : public GenericHashEntry {
     struct {
       u_int8_t icmp_type, icmp_code;
     } icmp;
+    
+    ImapsStats imaps;
   } protos;
 
   struct {
@@ -323,6 +333,7 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
   inline FlowState getFlowState()                   { return(state);                          };
+  inline const ImapsStats * getImapsStats()         { return(&protos.imaps);                  };
   inline bool      hasStart()                       { return(state & 0x2);                    };
   inline bool      isEstablished()                  { return state == flow_state_established; };
   inline u_int8_t getProfileId()                    { return(flowProfileId);                  };

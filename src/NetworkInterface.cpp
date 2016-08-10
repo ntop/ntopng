@@ -3627,9 +3627,10 @@ void NetworkInterface::termLuaInterpreter() {
 /* **************************************** */
 
 int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
-  int rc;
+  int rc, n;
   lua_State *L;
   const char *luaFunction;
+  const ImapsStats *imapStats;
 
   if(reloadLuaInterpreter) {
     if(L_flow_create || L_flow_delete || L_flow_update) termLuaInterpreter();
@@ -3655,6 +3656,10 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   case callback_flow_ndpi_detect:
     L = L_flow_create, luaFunction = CONST_LUA_FLOW_NDPI_DETECT;
     break;
+    
+  case callback_flow_imaps_command:
+    L = L_flow_create, luaFunction = CONST_LUA_FLOW_IMAPS_COMMAND;
+    break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid lua callback (%d)", cb);
@@ -3665,7 +3670,24 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
 
   lua_getglobal(L, luaFunction); /* function to be called */
-  if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {
+  
+  switch(cb) {
+    case callback_flow_imaps_command:
+      imapStats = f->getImapsStats();
+
+      lua_pushnumber(L, imapStats->reqTime.tv_sec); /* when command was issued */
+      lua_pushnumber(L, imapStats->reqBytes);       /* command request size */
+      lua_pushnumber(L, imapStats->respCount);      /* command responses number */
+      lua_pushnumber(L, imapStats->respBytes);      /* command responses number */
+      lua_pushboolean(L, imapStats->srvWaited);     /* true if the first server reply is only an ACK */
+
+      n = 5;
+      break;
+    default:
+      n = 0;
+  }
+  
+  if((rc = lua_pcall(L, n /* n parameters */, 0 /* no return values */, 0)) != 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s [rc=%d][%s]", luaFunction, rc, lua_tostring(L, -1));
   }
 

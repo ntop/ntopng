@@ -1873,6 +1873,55 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   }
 #endif
 
+#if 0
+  /* TODO change this after TLS handshake integration */
+  if (ntohs(srv_port) == 993) {
+    dissectSSL(payload, payload_len, when);
+
+    if (protos.ssl.firstdata_seen) {
+      bool old_cli2srv_direction = this->cli2srv_direction;
+      struct timeval *last = cli2srv_direction ? &cli2srvStats.pktTime.lastTime : &srv2cliStats.pktTime.lastTime;
+
+      if (protos.imaps.reqBytes > 0) {
+        // a client request is pending
+
+        if (cli2srv_direction && payload_len > 0) {
+          // Command end
+          if (protos.imaps.respCount > 0) {
+            //~ printf("------ chain break:%lu, REQ=%u, #=%u, bytes=%u, w=%s\n", when->tv_sec, imapReqBytes, imapRespCount, imapReqBytes, imapSrvWaited ? "Y" : "N");
+
+            iface->luaEvalFlow(this, callback_flow_imaps_command);
+          }
+
+          protos.imaps.reqBytes = 0;
+        } else if (Utils::msTimevalDiff((struct timeval*)when, last) >= CONST_IMAPS_MAX_REPLY_MILLIS) {
+          // Timeout
+          protos.imaps.reqBytes = 0;
+        } else if (!cli2srv_direction) {
+          // Server reply
+
+          if (old_cli2srv_direction && payload_len == 0) {
+            // server ACK with no data - here protos.imaps.respBytes should be 0
+            protos.imaps.srvWaited = true;
+          } else {
+            // server data
+            protos.imaps.respBytes += payload_len;
+            protos.imaps.respCount++;
+          }
+        } // else client ACK
+      }
+
+      if (!protos.imaps.reqBytes && cli2srv_direction && payload_len > 0) {
+        // New client command
+        protos.imaps.reqBytes = payload_len;
+        protos.imaps.reqTime = *when;
+        protos.imaps.respBytes = 0;
+        protos.imaps.respCount = 0;
+      }
+    }
+  }
+#endif
+
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
 
@@ -2388,7 +2437,8 @@ bool Flow::isLowGoodput() {
 /* *************************************** */
 
 void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when) {
-  if(isSSL() && payload && twh_over) {
+  /* TODO change after TLS handshake integration */
+  if(payload && twh_over) {
     if(!protos.ssl.hs_over) {
       if(payload[0] == 0x16) {
 	//handshake packet

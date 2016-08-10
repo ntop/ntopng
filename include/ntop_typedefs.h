@@ -207,7 +207,8 @@ typedef enum {
   callback_flow_create,
   callback_flow_delete,
   callback_flow_update,
-  callback_flow_ndpi_detect
+  callback_flow_ndpi_detect,
+  callback_flow_imaps_command
 } LuaCallback;
 
 #endif /* _NTOP_TYPEDEFS_H_ */
