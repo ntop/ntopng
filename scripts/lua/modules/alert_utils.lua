@@ -92,8 +92,8 @@ function bytes(old, new)
         -- Host
         return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
     else
-        -- Interface
-        return(new["bytes"]-old["bytes"])
+       -- Interface
+        return(new.stats.bytes - old.stats.bytes)
     end
 end
 
@@ -103,7 +103,7 @@ function packets(old, new)
         return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
     else
         -- Interface
-        return(new["packets"]-old["packets"])
+        return(new.stats.packets - old.stats.packets)
     end
 end
 
@@ -463,7 +463,7 @@ end
 
 function check_interface_threshold(ifname, mode)
     interface.select(ifname)
-    local ifstats = aggregateInterfaceStats(interface.getStats())
+    local ifstats = interface.getStats()
     ifname_id = ifstats.id
 
     if are_alerts_suppressed("iface_"..ifname_id, ifname) then return end
@@ -480,8 +480,8 @@ function check_interface_threshold(ifname, mode)
         if(verbose) then print(fname.."<p>\n") end
         if (ntop.exists(fname)) then
             -- Read old version
-            old_dump = persistence.load(fname)
-            if (old_dump ~= nil) then
+	   old_dump = persistence.load(fname)
+            if old_dump ~= nil and old_dump.stats ~= nil then
                 check_interface_alert(ifname, mode, old_dump, ifstats)
             end
         end
@@ -531,7 +531,7 @@ end
 
 function check_host_threshold(ifname, host_ip, mode)
     interface.select(ifname)
-    local ifstats = aggregateInterfaceStats(interface.getStats())
+    local ifstats = interface.getStats()
     ifname_id = ifstats.id
     local host_ip_fsname = host_ip
 

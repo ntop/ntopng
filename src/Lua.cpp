@@ -1352,8 +1352,7 @@ static int ntop_host_reset_periodic_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-/* FIX NOTUSED ? */
-static int ntop_host_trigger_alerts(lua_State* vm, bool trigger) {
+static int ntop_interface_host_trigger_alerts(lua_State* vm, bool trigger) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -1379,13 +1378,6 @@ static int ntop_host_trigger_alerts(lua_State* vm, bool trigger) {
     h->disableAlerts();
 
   return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_host_trigger_alerts(lua_State* vm, bool what) {
-  /* FIX TODO */
-  return(CONST_LUA_ERROR);
 }
 
 /* ****************************************** */
@@ -4148,11 +4140,10 @@ static int ntop_interface_store_alert(lua_State* vm) {
   if(ifid < 0)
     return(CONST_LUA_ERROR);
 
-  /* TODO: check if the interface must be allowed or not */
-  if(!(iface = ntop->getNetworkInterface(ifid)) ||
+  if(!(iface = ntop->getNetworkInterface(vm, ifid)) ||
      !(am = iface->getAlertsManager()))
     return (CONST_LUA_ERROR);
-
+  
   return am->storeAlert(vm, 2) ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
 

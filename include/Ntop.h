@@ -280,7 +280,7 @@ class Ntop {
    * @param name Names or Id of network interface.
    * @return The network interface instance if exists, NULL otherwise.
    */
-  NetworkInterface* getNetworkInterface(lua_State* vm, const char *name);
+  NetworkInterface* getNetworkInterface(lua_State *vm, const char *name);
   /**
    * @brief Get the network interface identified by name or Id.
    * @details This method accepts both interface names or Ids.
@@ -291,12 +291,20 @@ class Ntop {
    * @return The network interface instance if exists, NULL otherwise.
    */
   inline NetworkInterface* getNetworkInterface(const char *name) {
-    return getNetworkInterface(NULL, name);
+    return getNetworkInterface(NULL /* don't enforce the check on the allowed interface */,
+			       name);
+  };
+  inline NetworkInterface* getNetworkInterface(lua_State *vm, int ifid) {
+    char ifname[MAX_INTERFACE_NAME_LEN];
+    snprintf(ifname, sizeof(ifname), "%d", ifid);
+    return getNetworkInterface(vm /* enforce the check on the allowed interface */,
+			       ifname);
   };
   inline NetworkInterface* getNetworkInterface(int ifid) {
     char ifname[MAX_INTERFACE_NAME_LEN];
     snprintf(ifname, sizeof(ifname), "%d", ifid);
-    return getNetworkInterface(NULL, ifname);
+    return getNetworkInterface(NULL /* don't enforce the check on the allowed interface */,
+			       ifname);
   };
 
   /**
