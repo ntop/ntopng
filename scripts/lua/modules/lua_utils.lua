@@ -156,13 +156,25 @@ end
 -- ##########################################
 
 function aggregateHostsStats(hostStats)
+   -- method used to aggregate stats with interface views
+   -- hopefully now should be removed/short-circuited
    if(hostStats == nil) then
       return nil,0
-   else   
-     local h = hostStats.hosts
-   
-     local tot = #h
-     return h,tot
+   else
+      local h
+      local tot
+      if hostStats.hosts ~= nil then
+	 h = hostStats.hosts
+	 tot = hostStats.numHosts
+      else
+	 h = hostStats
+	 tot = 0
+	 for k, v in pairs(hostStats) do
+	    tot = tot + 1
+	 end
+      end
+
+      return h,tot
    end
 end
 
