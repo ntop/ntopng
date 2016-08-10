@@ -194,7 +194,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   id = (u_int32_t)lua_tonumber(vm, 1);
 
-  iface = ntop->getInterfaceAtId(vm, id);
+  iface = ntop->getNetworkInterface(vm, id);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Index: %d, Name: %s", id, iface ? iface->get_name() : "<unknown>");
 
