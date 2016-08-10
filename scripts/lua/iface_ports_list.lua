@@ -29,9 +29,9 @@ function fill_ports_array(field_key, flows_stats, host)
 end
 
 if (host == nil) then
-  flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
+  flows_stats = interface.getFlowsInfo()
 else
- flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo(host))
+ flows_stats = interface.getFlowsInfo(host)
 end
 client_ports = fill_ports_array("cli", flows_stats, host)
 server_ports = fill_ports_array("srv", flows_stats, host)

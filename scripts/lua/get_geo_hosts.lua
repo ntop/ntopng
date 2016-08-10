@@ -24,7 +24,7 @@ print [[
     num = 0
 
     if (host_info["host"] == nil) then
-       hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+       hosts_stats = interface.getHostsInfo()
 
        for key, value in pairs(hosts_stats) do
 	  if(value["ip"] ~= nil) then

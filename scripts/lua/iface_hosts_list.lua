@@ -10,7 +10,7 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 interface.select(ifname)
-hosts_stats,total = aggregateHostsStats(interface.getHostsInfo(false, "column_traffic"))
+hosts_stats = interface.getHostsInfo(false, "column_traffic")
 
 ajax_format = _GET["ajax_format"]
 

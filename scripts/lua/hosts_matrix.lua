@@ -57,8 +57,8 @@ function getTraffic(stats, host_a, host_b)
 end
 
 interface.select(ifname)
-hosts_stats,total_hosts = aggregateHostsStats(interface.getLocalHostsInfo())
-flows_stats,total_flows = aggregateFlowsStats(interface.getLocalFlowsInfo())
+hosts_stats = interface.getLocalHostsInfo()
+flows_stats = interface.getLocalFlowsInfo()
 
 localhosts = {}
 found = false

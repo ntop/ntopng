@@ -13,7 +13,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 
 sql = _GET["sql"]
 print('<p><form>SQL: <input type=text name=sql size="160" value="')

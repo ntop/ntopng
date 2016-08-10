@@ -10,7 +10,7 @@ require "lua_utils"
 sendHTTPHeader('text/json')
 
 interface.select(ifname)
-flows_stats,total = aggregateFlowsStats(flows_stats = interface.getFlowsInfo())
+flows_stats = interface.getFlowsInfo()
 
 local debug = false
 local httpdocs = dirs.installdir..'/httpdocs'

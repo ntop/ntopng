@@ -15,8 +15,6 @@ function dumpInterfaceStats(interface_name)
    interface.select(interface_name)
 
    local ifstats = interface.getStats()
-   local ifstats = aggregateInterfaceStats(ifstats)
-
    local stats = interface.getFlowsStats()
 
    local res = {}
@@ -37,14 +35,14 @@ function dumpInterfaceStats(interface_name)
 	 res["alerts"] = interface.getNumQueuedAlerts()
       end
 
-      res["num_flows"]  = ifstats.flows
-      res["num_hosts"]  = ifstats.hosts
+      res["num_flows"]  = ifstats.stats.flows
+      res["num_hosts"]  = ifstats.stats.hosts
       res["epoch"]      = os.time()
       res["uptime"]     = secondsToTime(uptime)
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg
-      res["remote_pps"] = ifstats.remote_pps
-      res["remote_bps"] = ifstats.remote_bps
+      res["remote_pps"] = ifstats.stats.remote_pps
+      res["remote_bps"] = ifstats.stats.remote_bps
 
       res["local2remote"] = ifstats["localstats"]["bytes"]["local2remote"]
       res["remote2local"] = ifstats["localstats"]["bytes"]["remote2local"]

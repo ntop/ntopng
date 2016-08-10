@@ -22,7 +22,7 @@ end
 
 interface.select(if_name)
 
-ifstats = aggregateInterfaceStats(aggregateInterfaceStats(interface.getStats()))
+ifstats = interface.getStats()
 
 format = _GET["format"]
 if(format == "json") then

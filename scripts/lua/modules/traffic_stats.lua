@@ -65,7 +65,7 @@ end
 -- host, vlan, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
 function getTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   hosts_stats = interface.getHostsInfo()
 
    hosts = { }
    for key, value in pairs(hosts_stats) do
@@ -101,7 +101,7 @@ end
 -- vlan, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
 function getVLANTraffic(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   hosts_stats = interface.getHostsInfo()
 
    hosts = { }
    for key, value in pairs(hosts_stats) do
@@ -137,7 +137,7 @@ end
 -- AS, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
 function getASTraffic(ifname, vlan, as, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   hosts_stats = interface.getHostsInfo()
 
    hosts = { }
    for key, value in pairs(hosts_stats) do

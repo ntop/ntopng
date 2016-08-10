@@ -4,223 +4,6 @@
 require "lua_trace"
 
 
--- ##########################################
-
-function aggregateInterfaceStats(ifstats)
-  --io.write("###########################\n")
-  --tprint(ifstats)
-  --io.write("###########################\n")
-  return(ifstats)
-end
-
-function _aggregateInterfaceStats(ifstats)
-   if(ifstats == nil) then return(ifstats) end
-
-   local tot = {}
-
-   for ifname,_v in pairs(ifstats["interfaces"]) do
-      for k,v in pairs(ifstats["interfaces"][ifname]) do
-	 if(type(v) ~= "table") then
-	    if((tot[k] == nil) and (k ~= "id") and (k ~= "name")) then
-	       --io.write(k.."\n")
-	       tot[k] = v
-	    end
-	 end
-      end
-
-      keys = { "stats" }
-      for _,key in pairs(keys) do
-	 for k,v in pairs(_v[key]) do
-	    --io.write(k.."\n")
-	    if(tot[k] == nil) then tot[k] = 0 end
-	    tot[k] = tot[k] + v
-	 end
-      end
-
-      keys = { "profiles" }
-      for _,key in pairs(keys) do
-	 if(_v[key] ~= nil) then
-	   tot[key] = {}
-	   for k,v in pairs(_v[key]) do
-	      --io.write(k.."\n")
-	      if(tot[key][k] == nil) then tot[key][k] = 0 end
-	      tot[key][k] = tot[key][k] + v
-	   end
-	 end
-      end
-
-      keys = { "pktSizeDistribution" }
-      for _,key in pairs(keys) do
-	 if(tot[key] == nil) then tot[key] = { } end
-
-	 for k,v in pairs(_v[key]) do
-	    --io.write(k.."\n")
-	    if(tot[key][k] == nil) then tot[key][k] = 0 end
-	    tot[key][k] = tot[key][k] + v
-	 end
-      end
-
-      keys = { "tcpFlowStats" }
-      for _,key in pairs(keys) do
-	 if(tot[key] == nil) then tot[key] = { } end
-
-	 if(_v[key] ~= nil) then 
-  	   for k,v in pairs(_v[key]) do
-	    --io.write(k.."\n")
-	    if(tot[key][k] == nil) then tot[key][k] = 0 end
-	    tot[key][k] = tot[key][k] + v
-         end
-  	 end
-      end
-
-      keys = { "tcpPacketStats" }
-      for _,key in pairs(keys) do
-	 if(tot[key] == nil) then tot[key] = { } end
-
-	 if(_v[key] ~= nil) then 
-  	   for k,v in pairs(_v[key]) do
-	    --io.write(k.."\n")
-	    if(tot[key][k] == nil) then tot[key][k] = 0 end
-	    tot[key][k] = tot[key][k] + v
-	   end
-	 end
-      end
-
-      keys = { "localstats", "ndpi" }
-      for _,key in pairs(keys) do
-	 if(tot[key] == nil) then tot[key] = { } end
-	 -- io.write(key.."\n")
-
-	 for k,v in pairs(_v[key]) do
-	    if(tot[key][k] == nil) then tot[key][k] = { } end
-	    for k1,v1 in pairs(_v[key][k]) do
-	       -- io.write(k1.."="..type(v1).."\n")
-
-	       if(type(v1) == "number") then
-		  if(tot[key][k][k1] == nil) then
-		     tot[key][k][k1] = 0
-		  end
-		  tot[key][k][k1] = tot[key][k][k1] + v1
-		  -- io.write("tot["..key.."]["..k.."]["..k1.."]="..tot[key][k][k1].."\n")
-	       else
-		  tot[key][k][k1] = v1
-	       end
-	    end
-	 end
-      end
-   end
-
-   for k,v in pairs(tot) do
-      ifstats[k] = v
-   end
-
-   return(ifstats)
-end
-
--- ##########################################
-
-function aggregateGroupStats(groupStats)
-   local g = groupStats.groups
-   local tot = #g
-   return g,tot
-end
-
-function _aggregateGroupStats(groupStats)
-   if(groupStats == nil) then return(groupStats) end
-
-   local tot = 0
-   local res = { }
-   for ifname,_v in pairs(groupStats) do
-      for k,v in pairs(_v["groups"]) do
-	 if k == nil or v == nil or type(v) ~= 'table' then
-	    goto continue
-	 end
-	 if res[k] == nil then
-	    res[k] = {}
-	 end
-	 for prop_name, prop_value in pairs(v) do
-	    if res[k][prop_name] == nil then
-	       res[k][prop_name] = prop_value
-	    elseif type(prop_value) == 'number' then
-	       res[k][prop_name] = res[k][prop_name] + prop_value
-	    end
-	 end
-	 ::continue::
-      end
-      tot = tot + _v["numGroupedHosts"]
-   end
-
-   return res,tot
-end
-
--- ##########################################
-
-function aggregateHostsStats(hostStats)
-   -- method used to aggregate stats with interface views
-   -- hopefully now should be removed/short-circuited
-   if(hostStats == nil) then
-      return nil,0
-   else
-      local h
-      local tot
-      if hostStats.hosts ~= nil then
-	 h = hostStats.hosts
-	 tot = hostStats.numHosts
-      else
-	 h = hostStats
-	 tot = 0
-	 for k, v in pairs(hostStats) do
-	    tot = tot + 1
-	 end
-      end
-
-      return h,tot
-   end
-end
-
-function _aggregateHostsStats(hostStats)
-   if(hostStats == nil) then return(hostStats) end
-
-   local tot = 0
-   local res = { }
-   for ifname,_v in pairs(hostStats) do
-      for k,v in pairs(_v["hosts"]) do
-	    --io.write(k.."\n")
-	    res[k] = v
-      end
-
-      tot = tot + _v["numHosts"]
-   end
-
-   return res,tot
-end
-
--- ##########################################
-
-function aggregateFlowsStats(flowstats)
-  local f = flowstats.flows
-  local tot = #f
-  return f, tot
-end
-
-function _aggregateFlowsStats(flowstats)
-   -- TODO: prevent possible flow overlap when using interface views
-   if(flowstats == nil) then return(flowstats) end
-
-   local tot = 0
-   local res = { }
-   for ifname,_v in pairs(flowstats) do
-      for k,v in ipairs(_v["flows"]) do
-	    --io.write(k.."\n")
-	    res[k] = v
-      end
-
-      tot = tot + _v["numFlows"]
-   end
-
-   return res,tot
-end
-
 -- ##############################################
 
 function getInterfaceName(interface_id)
@@ -231,7 +14,6 @@ function getInterfaceName(interface_id)
       --io.write(if_name.."\n")
       interface.select(if_name)
       _ifstats = interface.getStats()
-      _ifstats = aggregateInterfaceStats(_ifstats)
       if(_ifstats.id == interface_id) then
 	 return(_ifstats.name)
       end
@@ -1140,7 +922,7 @@ function getInterfaceId(interface_name)
 
   for _,if_name in pairs(ifnames) do
      interface.select(if_name)
-     _ifstats = aggregateInterfaceStats(interface.getStats())
+     _ifstats = interface.getStats()
     if(_ifstats.name == interface_name) then return(_ifstats.id) end
   end
 
@@ -1777,7 +1559,7 @@ function getHumanReadableInterfaceName(interface_name)
       return(custom_name)
    else
       interface.select(interface_name)
-      _ifstats = aggregateInterfaceStats(interface.getStats())
+      _ifstats = interface.getStats()
 
       -- print(interface_name.."=".._ifstats.name)
       return(_ifstats.name)
@@ -1835,7 +1617,7 @@ function harvestJSONTopTalkers(days)
    ifnames = interface.getIfNames()
    for _,ifname in pairs(ifnames) do
       interface.select(ifname)
-      local _ifstats = aggregateInterfaceStats(interface.getStats())
+      local _ifstats = interface.getStats()
       local dirs = ntop.getDirs()
       local basedir = fixPath(dirs.workingdir .. "/" .. _ifstats.id)
 

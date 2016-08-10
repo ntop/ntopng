@@ -62,8 +62,7 @@ if(sortOrder == nil) then
 end
 
 interface.select(ifname)
-flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
-
+flows_stats = interface.getFlowsInfo()
 
 if (mode == "table") then
   print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")

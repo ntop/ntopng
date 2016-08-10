@@ -2133,9 +2133,6 @@ int NetworkInterface::getFlows(lua_State* vm,
   qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
-
-  lua_newtable(vm);
 
   if(a2zSortOrder) {
     for(int i=toSkip, num=0; i<(int)retriever.actNumEntries; i++) {
@@ -2163,10 +2160,6 @@ int NetworkInterface::getFlows(lua_State* vm,
       if(++num >= (int)maxHits) break;
     }
   }
-
-  lua_pushstring(vm, "flows"); // Key
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 
   flows_hash->enablePurge();
   free(retriever.elems);
@@ -2221,9 +2214,6 @@ int NetworkInterface::getFlows(lua_State* vm,
   qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
-
-  lua_newtable(vm);
 
   if(p->a2zSortOrder()) {
     for(int i=p->toSkip(), num=0; i<(int)retriever.actNumEntries; i++) {
@@ -2251,10 +2241,6 @@ int NetworkInterface::getFlows(lua_State* vm,
       if(++num >= (int)p->maxHits()) break;
     }
   }
-
-  lua_pushstring(vm, "flows"); // Key
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 
   flows_hash->enablePurge();
   free(retriever.elems);
@@ -2442,9 +2428,6 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   }
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "numGroupedHosts", retriever.actNumEntries);
-
-  lua_newtable(vm);
 
   for(int i=0; i<(int)retriever.actNumEntries; i++) {
     Host *h = retriever.elems[i].hostValue;
@@ -2458,33 +2441,29 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
 
       gper->incStats(h);
     }
-
   }
 
   if(gper->getNumEntries() > 0)
     gper->lua(vm);
-  delete gper;
+ 
+ delete gper;
   gper = NULL;
-
-  lua_pushstring(vm, "groups"); // Key
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 
   hosts_hash->enablePurge();
 
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
-  if(retriever.sorter == column_name    ||
-     retriever.sorter == column_country ||
-     retriever.sorter == column_os) {
+  if((retriever.sorter == column_name)
+     || (retriever.sorter == column_country)
+     || (retriever.sorter == column_os)) {
     for(u_int i=0; i<retriever.maxNumEntries; i++)
       if(retriever.elems[i].stringValue)
 	free(retriever.elems[i].stringValue);
   }
-
+  
   // finally free the elements regardless of the sorted kind
   if(retriever.elems) free(retriever.elems);
-
+  
   return(retriever.actNumEntries);
 }
 

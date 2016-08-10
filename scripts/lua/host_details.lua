@@ -65,7 +65,7 @@ end
 if(protocol_id == nil) then protocol_id = "" end
 
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 
 ifId = ifstats.id
 

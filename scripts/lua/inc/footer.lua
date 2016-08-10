@@ -23,7 +23,7 @@ print(info["product"])
 iface_id = interface.name2id(ifname)
 
 interface.select(ifname)
-_ifstats = aggregateInterfaceStats(interface.getStats())
+_ifstats = interface.getStats()
 
 if(info["version.enterprise_edition"]) then
    print(" Enterprise")

@@ -78,8 +78,8 @@ vals = {}
 stats_by_group_col = {}
 
 interface.select(ifname)
-stats_by_group_key=interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n)) -- false = little details)
-stats_by_group_col = aggregateGroupStats(stats_by_group_key)
+stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n)) -- false = little details)
+stats_by_group_col = stats_by_group_key
 
 --[[
 Prepares a json containing table data, together with HTML.

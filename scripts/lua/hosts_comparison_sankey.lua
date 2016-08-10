@@ -11,7 +11,7 @@ sendHTTPHeader('application/json')
 -- Defaul value
 local debug = false
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 max_num_links = 32
 max_num_hosts = 8
 aggregation = "ndpi"
@@ -37,7 +37,7 @@ if (_GET["hosts"] ~= nil) then
     end
 
     -- 1.    Find all flows between compared hosts
-    flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
+    flows_stats = interface.getFlowsInfo()
 
     links = {}
     links_size = 0

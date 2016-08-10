@@ -68,7 +68,7 @@ print [[    </ul>
 
    ]]
 
-_ifstats = aggregateInterfaceStats(interface.getStats())
+_ifstats = interface.getStats()
 
 if(_ifstats.iface_sprobe) then
    url = ntop.getHttpPrefix().."/lua/sflows_stats.lua"

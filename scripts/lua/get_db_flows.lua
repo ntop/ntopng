@@ -12,7 +12,7 @@ require "template"
 
 
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 
 ifId = _GET["ifId"]
 host = _GET["host"]

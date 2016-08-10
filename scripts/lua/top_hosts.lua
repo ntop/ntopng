@@ -15,7 +15,7 @@ active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
-hosts_stats,total = aggregateHostsStats(interface.getLocalHostsInfo())
+hosts_stats = interface.getLocalHostsInfo()
 
 --io.write(ifname.."/"..total.."\n")
 max_num = 25

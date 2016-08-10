@@ -13,7 +13,7 @@ local debug = false
 local debug_process = false -- Show flow processed information
 
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 -- printGETParameters(_GET)
 
 -- Table parameters
@@ -101,8 +101,8 @@ if application ~= nil and application ~= "" then
    --print(paginfo["l7protoFilter"].." / "..application)
 end
 
-res = interface.getFlowsInfo(host, paginfo)
-flows_stats,total = aggregateFlowsStats(res)
+flows_stats = interface.getFlowsInfo(host, paginfo)
+total = #flows_stats
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 -- tprint(flows_stats)

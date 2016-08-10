@@ -15,7 +15,7 @@ user = _GET["user"]
 
 
 interface.select(ifname)
-flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
+flows_stats = interface.getFlowsInfo()
 -- flows = interface.findUserFlows(user)
 
 local debug = false

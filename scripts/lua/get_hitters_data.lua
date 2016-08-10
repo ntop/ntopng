@@ -12,7 +12,7 @@ local debug = false
 local debug_process = false -- Show flow processed information
 
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 -- printGETParameters(_GET)
 
 
@@ -38,7 +38,7 @@ pid    = tonumber(_GET["pid"])
 name   = _GET["name"]
 
 interface.select(ifname)
-flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo(host))
+flows_stats = interface.getFlowsInfo(host)
 
 vals = {}
 hitters = {}

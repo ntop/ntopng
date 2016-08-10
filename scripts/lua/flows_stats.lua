@@ -26,7 +26,7 @@ network_name=_GET["network_name"]
 
 prefs = ntop.getPrefs()
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 ndpistats = interface.getnDPIStats()
 
 if (network_id ~= nil) then

@@ -69,7 +69,7 @@ is_packet_interface = interface.isPacketInterface()
 max_num_shapers = 10
 
 shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 
 if(_GET["custom_name"] ~=nil) then
    if(_GET["csrf"] ~= nil) then

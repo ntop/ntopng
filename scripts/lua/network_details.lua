@@ -18,7 +18,7 @@ local network        = _GET["network"]
 local page           = _GET["page"]
 
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 ifId = ifstats.id
 
 local network_name = ntop.getNetworkNameById(tonumber(network))

@@ -12,7 +12,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 ifid = _GET["id"]
 interface.select(ifid)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 
 print('[')
 

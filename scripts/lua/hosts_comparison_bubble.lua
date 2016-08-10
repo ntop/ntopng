@@ -54,7 +54,7 @@ max_num_hosts = 24
 compared_hosts = {}
 compared_hosts_size = 0;
 
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 
 if(ifstats.sprobe) then
    base_url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"
@@ -79,7 +79,7 @@ else
     end
 
     -- 1.    Find all flows between compared hosts
-    flows_stats,total = aggregateFlowsStats(interface.getFlowsInfo())
+    flows_stats = interface.getFlowsInfo()
 
     ndpi = {}
     l4 = {}

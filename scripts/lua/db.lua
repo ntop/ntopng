@@ -34,7 +34,7 @@ local ifnames = {}
 
 for v,k in pairs(names) do
    interface.select(k)
-   _ifstats = aggregateInterfaceStats(interface.getStats())
+   _ifstats = interface.getStats()
 
    ifnames[_ifstats.id] = _ifstats.name
    --print(_ifstats.name.."=".._ifstats.id.." ")

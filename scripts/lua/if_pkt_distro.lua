@@ -10,7 +10,7 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 
 type = _GET["distr"]
 

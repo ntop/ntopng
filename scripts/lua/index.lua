@@ -24,7 +24,7 @@ active_page = "home"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
-ifstats = aggregateInterfaceStats(interface.getStats())
+ifstats = interface.getStats()
 is_loopback = isLoopback(ifname)
 iface_id = interface.name2id(ifname)
 

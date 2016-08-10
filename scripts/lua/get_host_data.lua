@@ -10,7 +10,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 
 function getNetworkStats(network)
-   local hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   local hosts_stats = interface.getHostsInfo()
 
    my_network = nil
 

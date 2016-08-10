@@ -32,7 +32,7 @@ if(host_ip ~= nil) then
    num = 1
 else
    interface.select(ifname)
-   hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+   hosts_stats = interface.getHostsInfo()
    num = 0
    for key, value in pairs(hosts_stats) do
       num = num + 1

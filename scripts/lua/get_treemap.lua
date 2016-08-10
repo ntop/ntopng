@@ -10,7 +10,7 @@ require "lua_utils"
 sendHTTPHeader('application/json')
 
 interface.select(ifname)
-hosts_stats,total = aggregateHostsStats(interface.getHostsInfo())
+hosts_stats = interface.getHostsInfo()
 
 print [[
 {
