@@ -31,6 +31,7 @@ class Redis {
   redisContext *redis;
   Mutex *l;
   char *redis_host;
+  char *redis_password;
   u_int16_t redis_port;
   u_int8_t redis_db_id;
   pthread_t esThreadLoop;
@@ -46,7 +47,9 @@ class Redis {
   int popHost(const char* ns_list, char *hostname, u_int hostname_len);
 
  public:
-  Redis(char *redis_host = (char*)"127.0.0.1", u_int16_t redis_port = 6379, u_int8_t _redis_db_id = 0);
+  Redis(char *redis_host = (char*)"127.0.0.1",
+	char *redis_password = NULL,
+	u_int16_t redis_port = 6379, u_int8_t _redis_db_id = 0);
   ~Redis();
 
   char* getVersion(char *str, u_int str_len);

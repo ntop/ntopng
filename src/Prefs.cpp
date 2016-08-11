@@ -53,6 +53,7 @@ Prefs::Prefs(Ntop *_ntop) {
   httpbl_key = NULL, flashstart = NULL;
   cpu_affinity = NULL;
   redis_host = strdup("127.0.0.1");
+  redis_password = NULL;
   redis_port = 6379;
   redis_db_id = 0;
   dns_mode = 0;
@@ -126,8 +127,9 @@ Prefs::~Prefs() {
   if(instance_name)    free(instance_name);
 
   free(http_prefix);
-  free(redis_host);
   free(local_networks);
+  free(redis_host);
+  if(redis_password)  free(redis_password);
   if(cli)             free(cli);
   if(mysql_host)      free(mysql_host);
   if(mysql_dbname)    free(mysql_dbname);
@@ -206,7 +208,18 @@ void usage() {
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
 	 "                                    | (eg. protos.txt)\n"
 	 "[--disable-host-persistency|-P]     | Disable host persistency in the Redis cache\n"
-	 "[--redis|-r] <host[:port][@db-id]>  | Redis host[:port][@database id]\n"
+	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is [h[:port[:pwd]]][@db-id]\n"
+	 "                                    | db-id is the identifier of the redis database (default 0).\n"
+	 "                                    | h is the host that is running the Redis server (default\n"
+	 "                                    | localhost), and is optionally followed by a ':'-separated\n"
+	 "                                    | port (default 6379). A password can be specified after\n"
+	 "                                    | the port when Redis authentication is required.\n"
+	 "                                    | By default password authentication is disabled.\n"
+	 "                                    | Examples:\n"
+	 "                                    | -r @2\n"
+	 "                                    | -r 129.168.1.3\n"
+	 "                                    | -r 129.168.1.3:6379@3\n"
+	 "                                    | -r 129.168.1.3:6379:nt0pngPwD@0\n"
 #ifdef linux
 	 "[--core-affinity|-g] <cpu core ids> | Bind the capture/processing threads to\n"
 	 "                                    | specific CPU cores (specified as a comma-\n"
@@ -702,33 +715,37 @@ int Prefs::setOption(int optkey, char *optarg) {
 	host:port@redis_instance
        */
       snprintf(buf, sizeof(buf), "%s", optarg);
-      r = strtok(buf, "@");
+      r = strrchr(buf, '@');
       if(r) {
-	char *c;
+	redis_db_id = atoi((const char*)&r[1]);
+	(*r) = '\0';
+      }
 
-	if(strchr(r, ':')) {
-	  char *w;
+      if(strchr(buf, ':')) {
+	char *w, *c;
 
-	  c = strtok_r(r, ":", &w);
+	c = strtok_r(buf, ":", &w);
 
-	  if(redis_host) free(redis_host);
-	  redis_host = strdup(c);
+	if(redis_host) free(redis_host);
+	redis_host = strdup(c);
 
-	  c = strtok_r(NULL, ":", &w);
-	  if(c) redis_port = atoi(c);
-	} else {
-	  if(redis_host) free(redis_host);
-	  redis_host = strdup(r);
-	}
+	c = strtok_r(NULL, ":", &w);
+	if(c) redis_port = atoi(c);
 
-	c = strtok(NULL, "@");
-	if(c != NULL)
-	  redis_db_id = atoi((const char*)c);
+	c = strtok_r(NULL, ":", &w);
+	if(c) redis_password = strdup(c);
+      } else if (strlen(buf) > 0) {
+	/* only the host */
+	if(redis_host) free(redis_host);
+	redis_host = strdup(buf);
       }
 
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "ntopng will use redis %s:%u@%u",
 				   redis_host, redis_port, redis_db_id);
+      if (redis_password)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "redis connection is password-protected");
     }
     break;
 

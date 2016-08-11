@@ -29,8 +29,9 @@
 
 /* **************************************** */
 
-Redis::Redis(char *_redis_host, u_int16_t _redis_port, u_int8_t _redis_db_id) {
-  redis_host = _redis_host, redis_port= _redis_port, redis_db_id = _redis_db_id;
+Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_int8_t _redis_db_id) {
+  redis_host = _redis_host, redis_password = _redis_password;
+  redis_port = _redis_port, redis_db_id = _redis_db_id;
 
   redis = NULL, operational = false;
   reconnectRedis();
@@ -63,8 +64,17 @@ void Redis::reconnectRedis() {
 
   redis = redisConnectWithTimeout(redis_host, redis_port, timeout);
 
-  while(num_attemps > 0) {
-    if(redis) reply = (redisReply*)redisCommand(redis, "PING"); else reply = NULL;
+  if(redis_password) {
+    reply = (redisReply*)redisCommand(redis, "AUTH %s", redis_password);
+    if(reply && (reply->type == REDIS_REPLY_ERROR)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Redis authentication failed: %s", reply->str ? reply->str : "???");
+      goto redis_error_handler;
+    }
+  }
+
+  while(redis && num_attemps > 0) {
+    reply = (redisReply*)redisCommand(redis, "PING");
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
       sleep(1);
@@ -82,6 +92,7 @@ void Redis::reconnectRedis() {
     exit(0);
   } else {
     freeReplyObject(reply);
+
 
     reply = (redisReply*)redisCommand(redis, "SELECT %u", redis_db_id);
     if(reply && (reply->type == REDIS_REPLY_ERROR)) {

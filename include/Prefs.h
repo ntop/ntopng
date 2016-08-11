@@ -71,6 +71,7 @@ class Prefs {
   char *packet_filter;
   char *user;
   char *redis_host;
+  char *redis_password;
   char *pid_path;
   char *cpu_affinity;
   u_int8_t redis_db_id;
@@ -153,6 +154,7 @@ class Prefs {
   inline u_int get_http_port()                          { return(http_port);      };
   inline u_int get_https_port()                         { return(https_port);     };
   inline char* get_redis_host()                         { return(redis_host);     }
+  inline char* get_redis_password()                     { return(redis_password); }
   inline u_int get_redis_port()                         { return(redis_port);     };
   inline u_int get_redis_db_id()                        { return(redis_db_id);    };
   inline char* get_pid_path()                           { return(pid_path);       };
