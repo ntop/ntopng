@@ -65,6 +65,13 @@ typedef enum {
 } AlertLevel;
 
 typedef enum {
+  alert_entity_interface = 0,
+  alert_entity_host,
+  alert_entity_network,
+  alert_entity_snmp_device
+} AlertEntity;
+
+typedef enum {
   alert_on = 1,       /* An issue has been discovered and an alert has been triggered */
   alert_off = 2,      /* A previous alert has been fixed */
   alert_permanent = 3 /* Alert that can't be fixed (e.g. a flow with an anomaly) */

@@ -2782,6 +2782,19 @@ void lua_push_float_table_entry(lua_State *L, const char *key, float value) {
 static int ntop_get_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
+  /*
+  ntop_interface->getAlertsManager()->engageAlert(alert_entity_host, "127.0.0.1",
+						  "min_bytes",
+						  alert_threshold_exceeded,
+						  alert_level_warning,
+						  "miao");
+  ntop_interface->getAlertsManager()->releaseAlert(alert_entity_host, "127.0.0.1",
+						   "min_bytes",
+						   alert_threshold_exceeded,
+						   alert_level_warning,
+						   "miao");
+  */
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface) ntop_interface->lua(vm);
@@ -4148,6 +4161,64 @@ static int ntop_interface_store_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+  Host *h;
+  int alert_severity;
+  int alert_type;
+  char *alert_json, *engaged_alert_id;
+  AlertsManager *am;
+  int ret;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  engaged_alert_id = (char*)lua_tostring(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_type = (int)lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_severity = (int)lua_tonumber(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_json = (char*)lua_tostring(vm, 5);
+
+  if((!ntop_interface)
+     || ((h = ntop_interface->findHostsByIP(get_allowed_nets(vm), host_ip, vlan_id)) == NULL)
+     || ((am = ntop_interface->getAlertsManager()) == NULL))
+    return(CONST_LUA_ERROR);
+
+  if(engage)
+    ret = am->engageHostAlert(h, engaged_alert_id,
+			      (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+  else
+    ret = am->releaseHostAlert(h, engaged_alert_id,
+			       (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+
+  return !ret ? CONST_LUA_OK : CONST_LUA_ERROR;
+}
+
+/* ****************************************** */
+
+static int ntop_interface_engage_host_alert(lua_State* vm) {
+  return ntop_interface_engage_release_host_alert(vm, true /* engage */);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_release_host_alert(lua_State* vm) {
+  return ntop_interface_engage_release_host_alert(vm, false /* release */);
+}
+
+/* ****************************************** */
+
 #if NTOPNG_PRO
 
 static int ntop_nagios_reload_config(lua_State* vm) {
@@ -4659,6 +4730,8 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* New generation alerts */
   { "storeAlert",           ntop_interface_store_alert              },
+  { "engageHostAlert",      ntop_interface_engage_host_alert        },
+  { "releaseHostAlert",     ntop_interface_release_host_alert       },
   { NULL,                             NULL }
 };
 

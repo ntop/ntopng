@@ -24,11 +24,28 @@
 
 #include "ntop_includes.h"
 
+class Host;
+
 class AlertsManager : protected StoreManager {
  private:
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
   int openStore();
+  
+  /* methods used for alerts that have a timespan */
+  bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
+  int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
+		  const char *engaged_alert_id,
+		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
+		   const char *engaged_alert_id,
+		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+
+  int engageReleaseHostAlert(Host *h,
+			     const char *engaged_alert_id,
+			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+			     bool engage);
+  /*  */
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
@@ -36,6 +53,17 @@ class AlertsManager : protected StoreManager {
 
   int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
   int storeAlert(lua_State *L, int index);
+
+  inline int engageHostAlert(Host *h,
+			     const char *engaged_alert_id,
+			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+  };
+  inline int releaseHostAlert(Host *h,
+			      const char *engaged_alert_id,
+			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+  };
 
   /* Following are the legacy methods that were formally global to the whole ntopng */
   /**

@@ -287,6 +287,13 @@ alert_type_keys = {
   { "<i class='fa fa-exclamation'></i> Suspicious Activity",  10, "suspicious_activity" },
 }
 
+alert_entity_keys = {
+  { "Interface",       0, "interface"     },
+  { "Host",            1, "host"          },
+  { "Network",         2, "network"       },
+  { "SNMP device",     3, "snmp_device"   }
+}
+
 function alertSeverityLabel(v)
    return(_handleArray(alert_level_keys, tonumber(v)))
 end
@@ -306,6 +313,18 @@ end
 function alertType(v)
    local typetable = {}
    for i, t in ipairs(alert_type_keys) do
+      typetable[#typetable + 1] = {t[2], t[3]}
+   end
+   return(_handleArray(typetable, v))
+end
+
+function alertEntityLabel(v)
+   return(_handleArray(alert_entity_keys, tonumber(v)))
+end
+
+function alertEntity(v)
+   local typetable = {}
+   for i, t in ipairs(alert_entity_keys) do
       typetable[#typetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(typetable, v))

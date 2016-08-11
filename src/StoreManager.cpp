@@ -62,8 +62,8 @@ int StoreManager::exec_query(char *db_query,
   }
 
   if(sqlite3_exec(db, db_query, callback, payload, &zErrMsg)) {
-    printf("SQL error: %s\n", sqlite3_errmsg(db));
     ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: %s", zErrMsg);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Query: %s", db_query);
     sqlite3_free(zErrMsg);
     return 1;
   }

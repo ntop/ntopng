@@ -5,20 +5,7 @@
 -- This file contains the description of all functions
 -- used to trigger host alerts
 
---[[ place functions that you want to override in stateful_alert_utils here --]]
-
-function delete_stateful_alert_configuration(alert_source, ifname)
-   return nil
-end
-
-function refresh_stateful_alert_configuration(alert_source, ifname, timespan, alerts_string)
-   return nil
-end
-
---[[ functions that can be overridden in stateful_alert_utils go above this point --]]
-
 -- dirs = ntop.getDirs()
-require "alert_state_api"
 
 local verbose = false
 
@@ -210,15 +197,23 @@ end
 
 function delete_alert_configuration(alert_source, ifname)
    local ifid = getInterfaceId(ifname)
+   local alert_level  = 1 -- alert_level_warning
+   local alert_type   = 2 -- alert_threshold_exceeded
    delete_re_arming_alerts(alert_source, ifid)
    for k1,timespan in pairs(alerts_granularity) do
       timespan = timespan[1]
       local key = get_alerts_hash_name(timespan, ifname)
       local alarms = ntop.getHashCache(key, alert_source)
       if alarms ~= "" then
-	 for k1, alarmed_metric in pairs(alarmable_metrics) do
+	 for k1, metric in pairs(alarmable_metrics) do
 	    if ntop.isPro() then
-	       ntop.withdrawNagiosAlert(alert_source, timespan, alarmed_metric, "OK, alarm deactivated")
+	       ntop.withdrawNagiosAlert(alert_source, timespan, metric, "OK, alarm deactivated")
+	       if ntop.isEnterprise() then
+		  -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
+		  if string.match(alert_source, "@") then
+		     interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+		  end
+	       end
 	    end
 	 end
 	 ntop.delHashCache(key, alert_source)
@@ -226,7 +221,52 @@ function delete_alert_configuration(alert_source, ifname)
       ntop.delHashCache(get_re_arm_alerts_hash_name(timespan),
 			"ifid_"..tostring(ifid).."_"..alert_source)
    end
-   delete_stateful_alert_configuration(alert_source, ifname)
+end
+
+function refresh_alert_configuration(alert_source, ifname, timespan, alerts_string)
+   if tostring(alerts_string) == nil then return nil end
+   if is_allowed_timespan(timespan) == false then return nil end
+   local ifid = getInterfaceId(ifname)
+   local alert_level  = 1 -- alert_level_warning
+   local alert_type   = 2 -- alert_threshold_exceeded
+   -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
+   if string.match(alert_source, "@") then
+      local new_alert_ids = {}
+
+      -- alerts_string is a string such as dns;gt;23,bytes;gt;1,p2p;gt;3
+      -- that string comes directly from the web interface and is a comma-separated
+      -- list of threshold alerts configured.
+      -- since formerly configured alerts may have been deleted, we need to check
+      -- the ongoing_alerts against alerts_string and move to the closed list
+      -- any ongoing alert that is no longer part of the alerts_string
+      local tokens = split(alerts_string, ",")
+      if tokens == nil then tokens = {} end
+      for _, s in pairs(tokens) do
+	 if tostring(s) == nil then goto continue end
+	 local metric = string.split(s, ";")--[1]
+	 if metric == nil or metric[1] == nil then goto continue end
+	 metric = metric[1]
+
+	 if is_allowed_alarmable_metric(metric) == true then
+	    new_alert_ids[timespan.."_"..metric] = true
+	 end
+	 ::continue::
+      end
+
+      -- check if there are some ongoing alerts that no longer exist in new_alerts
+      -- we want to close those alerts
+      for k1, timespan in pairs(alerts_granularity) do
+	 timespan = timespan[1]
+	 for k2, metric in pairs(alarmable_metrics) do
+	    if new_alert_ids[timespan.."_"..metric] ~= true then
+	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	    end
+	 end
+      end
+   else
+      local check = "TODO"
+      -- check if is an interface or a network
+   end
 end
 
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
@@ -290,9 +330,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					  mode, t[1], alert_msg)
 		     if ntop.isEnterprise() then
-			fire_threshold_host_alert(getInterfaceId(ifname), key,
-						  mode, t[1],
-						  alert_level, alert_msg)
+			interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
 		     end
 		  end
 	       else
@@ -306,9 +344,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		   ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					    mode, t[1], "service OK")
 		   if ntop.isEnterprise() then
-		      withdraw_threshold_host_alert(getInterfaceId(ifname), key,
-						    mode, t[1],
-						    alert_level, nil)
+		      interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
 		   end
                 end
             end
