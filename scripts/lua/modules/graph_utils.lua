@@ -650,7 +650,7 @@ function fdate(when) {
 
 function fbits(bits) {
 	var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
-	if(bits == 0) return 'n/a';
+	if(bits == 0) return '';
 	var i = parseInt(Math.floor(Math.log(bits) / Math.log(1000)));
 	return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 }
