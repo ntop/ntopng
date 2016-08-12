@@ -166,6 +166,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
+  memset(user_activities, 0, sizeof(user_activities));
   asn = 0, asname = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));

@@ -2573,38 +2573,67 @@ void NetworkInterface::getFlowPeersList(lua_State* vm,
 
 /* **************************************************** */
 
-void NetworkInterface::getLocalHostsActivity(lua_State* vm,
-          const char * host,
-          u_int32_t tstart, u_int32_t tend) {
-  lua_newtable(vm);
-  lua_push_str_table_entry(vm, "host", (char*)host);
-  lua_push_int32_table_entry(vm, "start", tstart);
-  lua_push_int32_table_entry(vm, "end", tend);
+class HostActivityRetriever {
+public:
+  IpAddress search;
+  bool found;
+  u_int32_t activity[UserActivitiesN];
   
-  // BEGIN activities table
-  lua_newtable(vm);
-  lua_pushstring(vm, "WebBrowsing_up"), lua_rawseti(vm, -2, 1); // 1 is index in result table -> TODO iterate
-  lua_pushstring(vm, "WebBrowsing_down"), lua_rawseti(vm, -2, 2);
-  lua_pushstring(vm, "activities");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-  // END
+  HostActivityRetriever(const char * ip) : search((char *)ip) { found = false; };
+};
+
+static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
+  HostActivityRetriever * r = (HostActivityRetriever *)user_data;
+  Host *h = (Host*)he;
+  int i;
   
-  // BEGIN values table
-  lua_newtable(vm);
+  if(!h || !h->equal(&r->search))
+    return (false); /* false = keep on walking */
+    
+  r->found = true;
+  for (i=0; i<UserActivitiesN; i++)
+    r->activity[i] = h->readActivityCounter((UserActivityID) i);
+  return true; /* found, stop walking */
+}
+
+void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {
+  HostActivityRetriever retriever(host);
+  int i;
   
-    // TODO FOR
-  lua_newtable(vm);
-  lua_pushnumber(vm, 1200), lua_rawseti(vm, -2, 1);
-  lua_pushnumber(vm, 300), lua_rawseti(vm, -2, 2);
-  lua_pushnumber(vm, 0);  // time
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-  
-  lua_pushstring(vm, "values");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-  // END values table
+  hosts_hash->disablePurge();
+  hosts_hash->walk(host_activity_walker, &retriever);
+  hosts_hash->enablePurge();
+    
+  if (retriever.found) {
+    lua_newtable(vm);
+    //~ lua_push_str_table_entry(vm, "host", (char*)host);
+    //~ lua_push_int32_table_entry(vm, "start", tstart);
+    //~ lua_push_int32_table_entry(vm, "end", tend);
+    
+    // BEGIN activities table
+    lua_newtable(vm);
+    for (i=0; i<UserActivitiesN; i++) {
+      lua_pushstring(vm, ntop->getUserActivityName((UserActivityID) i));
+      lua_rawseti(vm, -2, i+1);
+    }
+    lua_pushstring(vm, "activities");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+    // END activities table
+    
+    // BEGIN values table
+    lua_newtable(vm);
+    for (i=0; i<UserActivitiesN; i++) {
+      lua_pushnumber(vm, retriever.activity[i]);
+      lua_rawseti(vm, -2, i+1);
+    }
+    lua_pushstring(vm, "values");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+    // END values table
+  } else {
+    lua_pushnil(vm);
+  }
 }
 
 /* **************************************************** */

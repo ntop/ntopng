@@ -581,21 +581,13 @@ static int ntop_get_interface_local_hosts_activity(lua_State* vm) {
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
     
-  if (lua_type(vm, 1) == LUA_TSTRING) {
+  if (lua_type(vm, 1) == LUA_TSTRING)
     host = lua_tostring(vm, 1);
-    
-    if(lua_type(vm, 2) == LUA_TNUMBER) {
-      tstart = lua_tonumber(vm, 2);
-      
-      if(lua_type(vm, 3) == LUA_TNUMBER)
-      tend = lua_tonumber(vm, 3);
-    }
-  }
   
   if (ntop_interface == NULL || host == NULL)
     return CONST_LUA_ERROR;
   
-  ntop_interface->getLocalHostsActivity(vm, host, tstart, tend);
+  ntop_interface->getLocalHostActivity(vm, host);
     
   return CONST_LUA_OK;
 }

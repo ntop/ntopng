@@ -48,6 +48,7 @@ class Host : public GenericHost {
   TrafficStats icmp_sent, icmp_rcvd;
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
+  u_int32_t user_activities[UserActivitiesN];
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -155,6 +156,7 @@ class Host : public GenericHost {
   inline void disableAlerts()                            { trigger_host_alerts = false;                   };
   inline void enableAlerts()                             { trigger_host_alerts = true;                    };
   inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
+  inline u_int32_t readActivityCounter(UserActivityID id){ return((id < UserActivitiesN) ? user_activities[id] : 0); };
 
   inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
 
