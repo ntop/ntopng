@@ -1874,7 +1874,16 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		    const struct timeval *when) {
 #if 0
-  if(isSSLData()) {
+  if(isSSL()
+     && (payload_len > 0)
+     && payload
+#if 1
+     && (payload[0] == 0x17)
+     && (payload[1] == 0x03)
+     && ((payload[2] >= 0x01) /* TLS 1.0 */ && (payload[2] <= 0x03) /* TLS 1.2 */)
+#endif
+     ) {
+    /* Add SSLv2 */
     struct timeval *last = cli2srv_direction ? &cli2srvStats.pktTime.lastTime : &srv2cliStats.pktTime.lastTime;
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p][%u.%u][%s][%u -> %u] SSL %u [diff: %.1f sec]",
@@ -2434,7 +2443,7 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
           memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
           protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
           
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p][%u.%u] SSL first data", this, when->tv_sec, when->tv_usec);
+          ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%p][%u.%u] SSL first data: %u", this, when->tv_sec, when->tv_usec, payload_len);
         }
         break;
       default:

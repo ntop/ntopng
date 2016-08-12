@@ -180,9 +180,6 @@ class Flow : public GenericHashEntry {
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
-  
-  inline bool isSSLData()              { return(isSSLProto() && dissecting_ssl && protos.ssl.firstdata_seen); }
-  inline bool isSSLHandshake()         { return(isSSLProto() && dissecting_ssl && !protos.ssl.firstdata_seen); }
 
  public:
   Flow(NetworkInterface *_iface,
@@ -314,6 +311,8 @@ class Flow : public GenericHashEntry {
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = strdup(v); } }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
+  inline bool isSSLData()              { return(isSSLProto() && dissecting_ssl && protos.ssl.firstdata_seen); }
+  inline bool isSSLHandshake()         { return(isSSLProto() && dissecting_ssl && !protos.ssl.firstdata_seen); }
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);

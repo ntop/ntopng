@@ -995,6 +995,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       if (flow->isSSLProto())
         flow->dissectSSL(payload, payload_len, when);
     }
+    
+#if 0
+    if (flow->isSSLData())
+      ; // TODO use SSL data
+#endif
 
     flow->processDetectedProtocol(), *shaped = false;
     pass_verdict = flow->isPassVerdict();
