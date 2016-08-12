@@ -47,6 +47,14 @@ typedef enum {
   flow_state_fin,
 } FlowState;
 
+typedef enum {
+  SSL_STAGE_UNKNOWN = 0,
+  SSL_STAGE_CLI_HELLO,
+  SSL_STAGE_SRV_HELLO,
+  SSL_STAGE_CLI_CCS,
+  SSL_STAGE_SRV_CCS
+} FlowSSLStage;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -59,7 +67,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed,
-    good_low_flow_detected;
+    good_low_flow_detected, dissecting_ssl;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -82,7 +90,9 @@ class Flow : public GenericHashEntry {
     
     struct {
       char *certificate;
-      bool hs_started, hs_over, firstdata_seen;
+      FlowSSLStage tls_stage;
+      u_int8_t hs_packets;
+      bool firstdata_seen;
       struct timeval clienthello_time, hs_end_time, lastdata_time;
       float hs_delta_time, delta_firstData, deltaTime_data;
     } ssl;
@@ -162,7 +172,6 @@ class Flow : public GenericHashEntry {
     return(1000 /* msec */ 
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
-  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
   FlowStatus getFlowStatus();
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
 
@@ -217,7 +226,7 @@ class Flow : public GenericHashEntry {
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
-		u_int8_t *payload, u_int payload_len,
+		u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		const struct bpf_timeval *when);
   void updateActivities();
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
@@ -290,6 +299,7 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
   inline bool isSuspiciousFlowThpt();
+  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
@@ -300,6 +310,9 @@ class Flow : public GenericHashEntry {
   inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = strdup(v); } }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
+  bool isSSLProto();
+  inline bool isSSLData()              { return(isSSLProto() && dissecting_ssl && protos.ssl.firstdata_seen); }
+  inline bool isSSLHandshake()         { return(isSSLProto() && dissecting_ssl && !protos.ssl.firstdata_seen); }
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
