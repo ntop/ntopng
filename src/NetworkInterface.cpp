@@ -915,6 +915,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   if(flow->isDetectionCompleted()
      && flow->get_cli_host()
      && flow->get_srv_host()) {
+    struct ndpi_flow_struct *ndpi_flow;
            
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_BITTORRENT:
@@ -928,17 +929,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       if(payload_len > 0)
 	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
       break;
-      
-    /* Dissect SSL protocols */
-    case NDPI_PROTOCOL_SSL:
-    case NDPI_PROTOCOL_MAIL_IMAPS:
-    case NDPI_PROTOCOL_MAIL_SMTPS:
-    case NDPI_PROTOCOL_MAIL_POPS:
-      flow->dissectSSL(payload, payload_len, when);
-      break;
 
     case NDPI_PROTOCOL_DNS:
-      struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
+      ndpi_flow = flow->get_ndpi_flow();
 
       /*
       DNS-over-TCP flows may carry zero-payload TCP segments
@@ -997,6 +990,10 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	ndpi_flow->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
       }
       break;
+      
+    default:
+      if (flow->isSSLProto())
+        flow->dissectSSL(payload, payload_len, when);
     }
 
     flow->processDetectedProtocol(), *shaped = false;

@@ -48,12 +48,12 @@ typedef enum {
 } FlowState;
 
 typedef enum {
-  tls_stage_none = 0,
-  tls_stage_cli_hello,
-  tls_stage_srv_hello,
-  tls_stage_cli_change_cipher,
-  tls_stage_srv_change_cipher
-} TlsStage;
+  SSL_STAGE_UNKNOWN = 0,
+  SSL_STAGE_CLI_HELLO,
+  SSL_STAGE_SRV_HELLO,
+  SSL_STAGE_CLI_CCS,
+  SSL_STAGE_SRV_CCS
+} FlowSSLStage;
 
 class Flow : public GenericHashEntry {
  private:
@@ -90,7 +90,7 @@ class Flow : public GenericHashEntry {
     
     struct {
       char *certificate;
-      TlsStage tls_stage;
+      FlowSSLStage tls_stage;
       u_int8_t hs_packets;
       bool firstdata_seen;
       struct timeval clienthello_time, hs_end_time, lastdata_time;
@@ -180,7 +180,9 @@ class Flow : public GenericHashEntry {
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
-  inline bool isTLSData()              { return(dissecting_ssl && protos.ssl.firstdata_seen); }
+  
+  inline bool isSSLData()              { return(isSSLProto() && dissecting_ssl && protos.ssl.firstdata_seen); }
+  inline bool isSSLHandshake()         { return(isSSLProto() && dissecting_ssl && !protos.ssl.firstdata_seen); }
 
  public:
   Flow(NetworkInterface *_iface,
@@ -311,6 +313,7 @@ class Flow : public GenericHashEntry {
   inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = strdup(v); } }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
+  bool isSSLProto();
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
