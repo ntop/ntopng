@@ -12,9 +12,9 @@ function vlan_table_setID (row) {
   row.find("td").eq(index++).attr('id', vlan_key+"_key");
   row.find("td").eq(index++).attr('id', vlan_key+"_number");
   // vlan_stats_top
+  row.find("td").eq(index++).attr('id', vlan_key+"_chart");
   row.find("td").eq(index++).attr('id', vlan_key+"_hosts");
   row.find("td").eq(index++).attr('id', vlan_key+"_alerts");
-  row.find("td").eq(index++).attr('id', vlan_key+"_name");
   row.find("td").eq(index++).attr('id', vlan_key+"_since");
 
   // vlan_stats_bottom
@@ -36,6 +36,7 @@ function vlan_row_update(vlan_key) {
     success: function(content) {
       var data = jQuery.parseJSON(content);
       $("#"+vlan_key+'_hosts').html(data.column_hosts);
+      $("#"+vlan_key+'_chart').html(data.column_chart);
       $("#"+vlan_key+'_alerts').html(data.column_alerts);
       $("#"+vlan_key+'_since').html(data.column_since);
       $("#"+vlan_key+'_breakdown').html(data.column_breakdown);
