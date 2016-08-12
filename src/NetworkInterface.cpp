@@ -2573,6 +2573,42 @@ void NetworkInterface::getFlowPeersList(lua_State* vm,
 
 /* **************************************************** */
 
+void NetworkInterface::getLocalHostsActivity(lua_State* vm,
+          const char * host,
+          u_int32_t tstart, u_int32_t tend) {
+  lua_newtable(vm);
+  lua_push_str_table_entry(vm, "host", (char*)host);
+  lua_push_int32_table_entry(vm, "start", tstart);
+  lua_push_int32_table_entry(vm, "end", tend);
+  
+  // BEGIN activities table
+  lua_newtable(vm);
+  lua_pushstring(vm, "WebBrowsing_up"), lua_rawseti(vm, -2, 1); // 1 is index in result table -> TODO iterate
+  lua_pushstring(vm, "WebBrowsing_down"), lua_rawseti(vm, -2, 2);
+  lua_pushstring(vm, "activities");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  // END
+  
+  // BEGIN values table
+  lua_newtable(vm);
+  
+    // TODO FOR
+  lua_newtable(vm);
+  lua_pushnumber(vm, 1200), lua_rawseti(vm, -2, 1);
+  lua_pushnumber(vm, 300), lua_rawseti(vm, -2, 2);
+  lua_pushnumber(vm, 0);  // time
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  
+  lua_pushstring(vm, "values");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  // END values table
+}
+
+/* **************************************************** */
+
 u_int NetworkInterface::purgeIdleFlows() {
   if(!purge_idle_flows_hosts) return(0);
 
@@ -3419,19 +3455,6 @@ static int lua_flow_get_last_seen(lua_State* vm) {
 
 /* **************************************** */
 
-static int lua_flow_has_start(lua_State* vm) {
-  Flow *f;
-
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->hasStart());
-  return(CONST_LUA_OK);
-}
-
-/* **************************************** */
-
 static int lua_flow_get_server_name(lua_State* vm) {
   Flow *f;
   char buf[64];
@@ -3476,32 +3499,21 @@ static int lua_flow_dump(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-/* **************************************** */
+/* ****************************************** */
 
-static int lua_flow_get_profile_id(lua_State* vm) {
-  Flow *f;
-
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushnumber(vm, f ? f->getProfileId() : 0);
-  return(CONST_LUA_OK);
-}
-
-/* **************************************** */
-
-static int lua_flow_set_profile_id(lua_State* vm) {
-  Flow *f;
-  int id;
-
+static int lua_flow_set_activity_level(lua_State* vm) {
+  u_int8_t actid;
+  u_int32_t actlv;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  id = (int)lua_tonumber(vm, 1);
+  actid = (int)lua_tonumber(vm, 1);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  actlv = (int)lua_tonumber(vm, 2);
+  
+  // TODO check concurrency
+  // TODO implement rrd per host
+  printf("ACTIVITY(%u) = %u\n", actid, actlv);
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-
-  if(f) f->setProfileId(id);
   return(CONST_LUA_OK);
 }
 
@@ -3512,12 +3524,10 @@ static const luaL_Reg flow_reg[] = {
   { "getNdpiProtoId",    lua_flow_get_ndpi_proto_id },
   { "getFirstSeen",      lua_flow_get_first_seen },
   { "getLastSeen",       lua_flow_get_last_seen },
-  { "hasStart",          lua_flow_has_start },
   { "getServerName",     lua_flow_get_server_name },
   { "getHTTPUrl",        lua_flow_get_http_url },
   { "dump",              lua_flow_dump },
-  { "getProfileId",      lua_flow_get_profile_id },
-  { "setProfileId",      lua_flow_set_profile_id },
+  { "setActivity",       lua_flow_set_activity_level },
   { NULL,         NULL }
 };
 

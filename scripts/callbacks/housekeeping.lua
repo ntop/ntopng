@@ -33,4 +33,7 @@ function flowProtocolDetected()
       f = flow.dump() 
       print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].."\n")
     end
+   
+   -- TODO just test
+   --~ flow.setActivity(1, 1500)
 end
