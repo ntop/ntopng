@@ -574,9 +574,8 @@ static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
  * @param vm The lua state.
  * @return CONST_LUA_ERROR if ntop_interface is null or host is null, CONST_LUA_OK otherwise.
  */
-static int ntop_get_interface_local_hosts_activity(lua_State* vm) {
+static int ntop_get_interface_host_activity(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int32_t tstart = 0, tend = 0;
   const char * host = NULL;
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4686,7 +4685,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getRemoteHostsInfo",     ntop_get_interface_remote_hosts_info },
-  { "getLocalHostsActivity",  ntop_get_interface_local_hosts_activity },
+  { "getHostActivity",        ntop_get_interface_host_activity },
   { "getHostInfo",            ntop_get_interface_host_info },
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
   { "getNetworksStats",       ntop_get_interface_networks_stats },

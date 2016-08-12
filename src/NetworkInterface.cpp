@@ -2592,7 +2592,7 @@ static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
     
   r->found = true;
   for (i=0; i<UserActivitiesN; i++)
-    r->activity[i] = h->readActivityCounter((UserActivityID) i);
+    r->activity[i] = h->getActivityBytes((UserActivityID) i);
   return true; /* found, stop walking */
 }
 
@@ -2606,31 +2606,11 @@ void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {
     
   if (retriever.found) {
     lua_newtable(vm);
-    //~ lua_push_str_table_entry(vm, "host", (char*)host);
-    //~ lua_push_int32_table_entry(vm, "start", tstart);
-    //~ lua_push_int32_table_entry(vm, "end", tend);
-    
-    // BEGIN activities table
-    lua_newtable(vm);
     for (i=0; i<UserActivitiesN; i++) {
       lua_pushstring(vm, ntop->getUserActivityName((UserActivityID) i));
-      lua_rawseti(vm, -2, i+1);
-    }
-    lua_pushstring(vm, "activities");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-    // END activities table
-    
-    // BEGIN values table
-    lua_newtable(vm);
-    for (i=0; i<UserActivitiesN; i++) {
       lua_pushnumber(vm, retriever.activity[i]);
-      lua_rawseti(vm, -2, i+1);
+      lua_settable(vm, -3);
     }
-    lua_pushstring(vm, "values");
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-    // END values table
   } else {
     lua_pushnil(vm);
   }
@@ -3530,18 +3510,31 @@ static int lua_flow_dump(lua_State* vm) {
 
 /* ****************************************** */
 
-static int lua_flow_set_activity_level(lua_State* vm) {
-  u_int8_t actid;
-  u_int32_t actlv;
+static int lua_flow_set_activity(lua_State* vm) {
+  int16_t naddr;
+  UserActivityID actid;
+  u_int64_t bytes;
+  Host *cli, *srv;
+  Flow *f;
+  
+  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
   
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  actid = (int)lua_tonumber(vm, 1);
+  actid = (UserActivityID)lua_tonumber(vm, 1);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  actlv = (int)lua_tonumber(vm, 2);
+  bytes = (u_int64_t)lua_tonumber(vm, 2);
   
-  // TODO check concurrency
-  // TODO implement rrd per host
-  printf("ACTIVITY(%u) = %u\n", actid, actlv);
+  if (actid >= UserActivitiesN) return(CONST_LUA_ERROR);
+  
+  cli = f->get_cli_host();
+  if (cli->get_ip() && cli->get_ip()->isLocalHost(&naddr))
+    cli->incActivityBytes(actid, bytes);
+  
+  srv = f->get_srv_host();
+  if (srv->get_ip() && srv->get_ip()->isLocalHost(&naddr))
+    srv->incActivityBytes(actid, bytes);
 
   return(CONST_LUA_OK);
 }
@@ -3556,7 +3549,7 @@ static const luaL_Reg flow_reg[] = {
   { "getServerName",     lua_flow_get_server_name },
   { "getHTTPUrl",        lua_flow_get_http_url },
   { "dump",              lua_flow_dump },
-  { "setActivity",       lua_flow_set_activity_level },
+  { "setActivity",       lua_flow_set_activity },
   { NULL,         NULL }
 };
 

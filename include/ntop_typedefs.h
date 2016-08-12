@@ -217,4 +217,15 @@ typedef enum {
   callback_flow_ndpi_detect
 } LuaCallback;
 
+typedef enum {
+  user_activity_other,
+  user_activity_web,
+  user_activity_video,
+  user_activity_vpn,
+  user_activity_mail_sync,
+  user_activity_mail_send,
+  
+  UserActivitiesN
+} UserActivityID;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

@@ -203,6 +203,19 @@ for _,_ifname in pairs(ifnames) do
 		     if(verbose) then
 			print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
 		     end
+         
+         -- Host activity stats
+         local astats = interface.getHostActivity(hostname)
+         if astats then
+            for act, val in pairs(astats) do
+               name = fixPath(basedir .. "/activity_" .. act .. ".rrd")
+               createSingleRRDcounter(name, 60, verbose)
+               ntop.rrd_update(name, "N:"..tolongint(val))
+               if(verbose) then
+                  print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
+               end
+            end
+         end
 
 		     -- L4 Protocols
 		     for id, _ in ipairs(l4_keys) do
