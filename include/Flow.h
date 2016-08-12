@@ -48,7 +48,7 @@ typedef enum {
 } FlowState;
 
 typedef enum {
-  tls_stage_none,
+  tls_stage_none = 0,
   tls_stage_cli_hello,
   tls_stage_srv_hello,
   tls_stage_cli_change_cipher,
@@ -67,7 +67,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed,
-    good_low_flow_detected, can_be_ssl;
+    good_low_flow_detected, dissecting_ssl;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -172,7 +172,6 @@ class Flow : public GenericHashEntry {
     return(1000 /* msec */ 
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
-  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
   FlowStatus getFlowStatus();
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
 
@@ -181,7 +180,7 @@ class Flow : public GenericHashEntry {
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
-  inline bool isTLSData()              { return(can_be_ssl && protos.ssl.firstdata_seen); }
+  inline bool isTLSData()              { return(dissecting_ssl && protos.ssl.firstdata_seen); }
 
  public:
   Flow(NetworkInterface *_iface,
@@ -301,6 +300,7 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
   inline bool isSuspiciousFlowThpt();
+  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);

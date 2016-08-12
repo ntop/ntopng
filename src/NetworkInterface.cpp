@@ -915,7 +915,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   if(flow->isDetectionCompleted()
      && flow->get_cli_host()
      && flow->get_srv_host()) {
-    
+           
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_BITTORRENT:
       if((flow->getBitTorrentHash() == NULL)
@@ -927,6 +927,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     case NDPI_PROTOCOL_HTTP:
       if(payload_len > 0)
 	flow->dissectHTTP(src2dst_direction, (char*)payload, payload_len);
+      break;
+      
+    /* Dissect SSL protocols */
+    case NDPI_PROTOCOL_SSL:
+    case NDPI_PROTOCOL_MAIL_IMAPS:
+    case NDPI_PROTOCOL_MAIL_SMTPS:
+    case NDPI_PROTOCOL_MAIL_POPS:
+      flow->dissectSSL(payload, payload_len, when);
       break;
 
     case NDPI_PROTOCOL_DNS:
