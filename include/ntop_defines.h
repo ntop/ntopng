@@ -257,10 +257,11 @@
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 
-#define CONST_LUA_FLOW_CREATE       "flowCreate"
-#define CONST_LUA_FLOW_DELETE       "flowDelete"
-#define CONST_LUA_FLOW_UPDATE       "flowUpdate"
-#define CONST_LUA_FLOW_NDPI_DETECT  "flowProtocolDetected"
+#define CONST_LUA_FLOW_CREATE         "flowCreate"
+#define CONST_LUA_FLOW_DELETE         "flowDelete"
+#define CONST_LUA_FLOW_UPDATE         "flowUpdate"
+#define CONST_LUA_FLOW_NDPI_DETECT    "flowProtocolDetected"
+#define CONST_LUA_FLOW_IMAPS_COMMAND  "flowImapsCommand"
 
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)
@@ -390,6 +391,7 @@
 #define CONST_MAX_SSL_IDLE_TIME        46000 /* 46 sec */
 #define CONST_EPP_MAX_CMD_NUM          34
 #define CONST_DEFAULT_MTU              1514
+#define CONST_IMAPS_MAX_REPLY_MILLIS   5000.f
 
 #define HTTPBL_DOMAIN                  "dnsbl.httpbl.org"
 #define NULL_BL                        "''"
