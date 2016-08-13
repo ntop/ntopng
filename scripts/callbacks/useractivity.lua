@@ -40,9 +40,6 @@ function flowDelete()
 end
 
 function flowProtocolDetected()
-   -- ogni profilo ha: up, down, background
-   -- se il filtro torna false, allora background
-   -- si aggiornano i contatori dell'host : 3 valori
    local proto = flow.getNdpiProto()
    local master, sub = splitProto(proto)
    

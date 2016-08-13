@@ -3520,8 +3520,8 @@ static int lua_flow_dump(lua_State* vm) {
  * None filter params:
  * 
  * RollingMean filter params:
- *    samples      - number of samples to keep
  *    edge         - rolling mean edge to trigger activity
+ *    samples      - number of samples to keep
  *    minsamples   - minimum number of samples for activity detection
  * 
  * CommandSequence filter params:
@@ -3531,11 +3531,12 @@ static int lua_flow_dump(lua_State* vm) {
  * Web filter params:
  */
 static int lua_flow_set_activity_filter(lua_State* vm) {
-  int16_t naddr;
   UserActivityID activityID;
   ActivityFilterID filterID;
-  Host *cli, *srv;
   Flow *f;
+  activity_filter_t *fun;
+  activity_filter_config config = {};
+  u_int8_t params = 2;
   
   lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
@@ -3548,18 +3549,54 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   if (activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
   
   // filter specific parameters
-  //~ switch() {
-  //~ }
+  switch(filterID) {
+    case activity_filter_none:
+      fun = &activity_filter_fun_none;
+      break;
+    case activity_filter_web:
+      fun = &activity_filter_fun_web;
+      break;
+    case activity_filter_rolling_mean:
+      if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) {
+        config.rolling_mean.edge = lua_tonumber(vm, ++params);
+        
+        if (ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) {
+          config.rolling_mean.samples = lua_tonumber(vm, ++params);
+          
+          if (ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER))
+            config.rolling_mean.minsamples = lua_tonumber(vm, ++params);
+        }
+      }
+      
+      // defaults
+      switch (params) {
+        case 2+0: config.rolling_mean.edge = 0; break;
+        case 2+1: config.rolling_mean.samples = 10; break;
+        case 2+2: config.rolling_mean.minsamples = config.rolling_mean.samples; break;
+      }
+      fun = &activity_filter_fun_rolling_mean;
+      break;
+    case activity_filter_command_sequence:
+      if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) {
+        config.command_sequence.minbytes = lua_tonumber(vm, ++params);
+        
+        if (ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER))
+          config.command_sequence.mininter = lua_tonumber(vm, ++params);
+      }
+      
+      switch (params) {
+        case 2+0: config.command_sequence.minbytes = 0; break;
+        case 2+1: config.command_sequence.mininter = 1; break;
+      }
+      fun = &activity_filter_fun_command_sequence;
+      break;
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid activity filter (%d)", filterID);
+      return (CONST_LUA_ERROR);
+  }
   
-  printf("Record: %p - filter=%d, activity=%d\n", f, filterID, activityID);
-  
-  /*cli = f->get_cli_host();
-  if (cli->get_ip() && cli->get_ip()->isLocalHost(&naddr))
-    cli->incActivityBytes(actid, bytes);
-  
-  srv = f->get_srv_host();
-  if (srv->get_ip() && srv->get_ip()->isLocalHost(&naddr))
-    srv->incActivityBytes(actid, bytes);*/
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Flow %p setActivityFilter: filter=%d activity=%d", f, filterID, activityID);
+  f->setActivityFilter(fun, &config);
 
   return(CONST_LUA_OK);
 }
