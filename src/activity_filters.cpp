@@ -22,36 +22,29 @@
 #include "activity_filters.h"
 #include "ntop_includes.h"
 
-bool activity_filter_fun_none(
-    const activity_filter_config *, activity_filter_status *,
-    Flow *,
-    uint8_t *, uint16_t
-) { return false; }
+bool activity_filter_fun_none(const activity_filter_config *,
+      activity_filter_status *,
+      Flow *, uint8_t *, uint16_t) {
+  return false;
+}
 
-bool activity_filter_fun_rolling_mean(
-    const activity_filter_config *, activity_filter_status *,
-    Flow *,
-    uint8_t *, uint16_t
-) {
+bool activity_filter_fun_rolling_mean(const activity_filter_config *,
+      activity_filter_status *,
+      Flow *, uint8_t *, uint16_t) {
   /* TODO implement */
   return false;
 }
 
-bool activity_filter_fun_command_sequence(
-    const activity_filter_config *, activity_filter_status *,
-    Flow *,
-    uint8_t *, uint16_t
-) {
+bool activity_filter_fun_command_sequence(const activity_filter_config *,
+      activity_filter_status *,
+      Flow *, uint8_t *, uint16_t) {
   /* TODO implement */
   return false;
 }
 
-bool activity_filter_fun_web(
-    const activity_filter_config *, activity_filter_status *,
-    Flow *,
-    uint8_t *, uint16_t
-) {
+bool activity_filter_fun_web(const activity_filter_config *,
+      activity_filter_status *,
+      Flow *, uint8_t *, uint16_t) {
   /* TODO implement */
-  puts("WEB TEST");
   return false;
 }

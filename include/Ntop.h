@@ -70,15 +70,6 @@ class Ntop {
 
   void loadLocalInterfaceAddress();
   
-  const char * activity_names [UserActivitiesN] = {
-    "other",
-    "web",
-    "video",
-    "vpn",
-    "mail.sync",
-    "mail.send",
-  };
-
  public:
   /**
    * @brief A Constructor
@@ -385,7 +376,6 @@ class Ntop {
   inline void getLocalNetworks(lua_State* vm) { address->getLocalNetworks(vm);          };
   inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void reloadInterfacesLuaInterpreter();
-  inline const char * getUserActivityName(UserActivityID id) { return ((id < UserActivitiesN) ? activity_names[id] : NULL); };
 };
 
 extern Ntop *ntop;

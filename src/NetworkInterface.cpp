@@ -39,6 +39,20 @@ NetworkInterface::NetworkInterface() { init(); }
 
 /* **************************************************** */
 
+static const char * activity_names [] = {
+  "None",
+  "Other",
+  "Web",
+  "Media",
+  "VPN",
+  "MailSync",
+  "MailSend",
+  "FileSharing"
+};
+COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
+
+/* **************************************************** */
+
 NetworkInterface::NetworkInterface(const char *name) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64];
@@ -1028,11 +1042,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   UserActivityID activity = flow->getActivityId();
   u_int64_t up=0, down=0, idle=0, bytes=payload_len;
   if (activity != user_activity_none) {
-    int16_t naddr;
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
-    bool cli_local = cli->get_ip()->isLocalHost(&naddr);
-    bool srv_local = cli->get_ip()->isLocalHost(&naddr);
     
     if (flow->invokeActivityFilter(payload, payload_len)) {
       if (src2dst_direction)
@@ -1043,9 +1054,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       idle = bytes;
     }
     
-    if (cli_local)
+    if (cli->isLocalHost())
       cli->incActivityBytes(activity, up, down, idle);
-    if (srv_local)
+    if (srv->isLocalHost())
       srv->incActivityBytes(activity, down, up, idle);
   }
 
@@ -2603,7 +2614,7 @@ class HostActivityRetriever {
 public:
   IpAddress search;
   bool found;
-  u_int32_t activity[UserActivitiesN];
+  UserActivityCounter counters[UserActivitiesN];
   
   HostActivityRetriever(const char * ip) : search((char *)ip) { found = false; };
 };
@@ -2617,13 +2628,12 @@ static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
     return (false); /* false = keep on walking */
     
   r->found = true;
-  // TODO
-  //~ for (i=0; i<UserActivitiesN; i++)
-    //~ r->activity[i] = h->getActivityBytes((UserActivityID) i);
+  for (i=0; i<UserActivitiesN; i++)
+    r->counters[i] = *h->getActivityBytes((UserActivityID) i);
   return true; /* found, stop walking */
 }
 
-void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {
+void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {    
   HostActivityRetriever retriever(host);
   int i;
   
@@ -2633,9 +2643,16 @@ void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {
     
   if (retriever.found) {
     lua_newtable(vm);
-    for (i=0; i<UserActivitiesN; i++) {
-      lua_pushstring(vm, ntop->getUserActivityName((UserActivityID) i));
-      lua_pushnumber(vm, retriever.activity[i]);
+    // 0:user_activity_none -> skip
+    for (i=1; i<UserActivitiesN; i++) {
+      lua_newtable(vm);
+      
+      lua_pushnumber(vm, retriever.counters[i].up);    lua_rawseti(vm, -2, 1);
+      lua_pushnumber(vm, retriever.counters[i].down);  lua_rawseti(vm, -2, 2);
+      lua_pushnumber(vm, retriever.counters[i].idle);  lua_rawseti(vm, -2, 3);
+      
+      lua_pushstring(vm, activity_names[i]);
+      lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
   } else {
@@ -3707,14 +3724,14 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   
   // Activity profiles - see ntop_typedefs.h
   lua_newtable(L);
-  lua_push_int_table_entry(L, "None", user_activity_none);
-  lua_push_int_table_entry(L, "Other", user_activity_other);
-  lua_push_int_table_entry(L, "Web", user_activity_web);
-  lua_push_int_table_entry(L, "Media", user_activity_media);
-  lua_push_int_table_entry(L, "VPN", user_activity_vpn);
-  lua_push_int_table_entry(L, "MailSync", user_activity_mail_sync);
-  lua_push_int_table_entry(L, "MailSend", user_activity_mail_send);
-  lua_push_int_table_entry(L, "FileSharing", user_activity_file_sharing);
+  lua_push_int_table_entry(L, activity_names[user_activity_none], user_activity_none);
+  lua_push_int_table_entry(L, activity_names[user_activity_other], user_activity_other);
+  lua_push_int_table_entry(L, activity_names[user_activity_web], user_activity_web);
+  lua_push_int_table_entry(L, activity_names[user_activity_media], user_activity_media);
+  lua_push_int_table_entry(L, activity_names[user_activity_vpn], user_activity_vpn);
+  lua_push_int_table_entry(L, activity_names[user_activity_mail_sync], user_activity_mail_sync);
+  lua_push_int_table_entry(L, activity_names[user_activity_mail_send], user_activity_mail_send);
+  lua_push_int_table_entry(L, activity_names[user_activity_file_sharing], user_activity_file_sharing);
   lua_setglobal(L, CONST_USERACTIVITY_PROFILES);
   
   // Activity filters
