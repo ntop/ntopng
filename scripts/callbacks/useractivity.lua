@@ -12,6 +12,17 @@ function getFlowKey(f)
    return(f["cli.ip"]..":"..f["cli.port"].." <-> " ..f["srv.ip"]..":"..f["srv.port"])
 end
 
+function string:split(sep)
+   local sep, fields = sep or ":", {}
+   local pattern = string.format("([^%s]+)", sep)
+   self:gsub(pattern, function(c) fields[#fields+1] = c end)
+   return fields
+end
+
+function splitProto(proto)
+   return proto:split(".")
+end
+
 -- ########################################################
 
 function flowUpdate()
@@ -31,20 +42,21 @@ end
 function flowProtocolDetected()
    -- ogni profilo ha: up, down, background
    -- se il filtro torna false, allora background
-   -- altrimenti, si aggiornano i contatori dell'host
-   local proto = flow
+   -- si aggiornano i contatori dell'host : 3 valori
+   local proto = flow.getNdpiProto()
+   local master, sub = splitProto(proto)
    
-   if(proto == "Torrent") then
-      flow.setActivityFilter(filter.RollingMean, profile.FileSharing, 100, 20)
-   elseif (proto == "OpenVpn") then
-      flow.setActivityFilter(filter.RollingMean, profile.VPN, 100, 20)
-   elseif (proto == "IMAPS" or proto == "IMAP") then
-      flow.setActivityFilter(filter.CommandSequence, profile.MailSync, 400)
-   elseif (proto == "POP3") then
+   if(master == "BitTorrent") then
+      flow.setActivityFilter(filter.RollingMean, profile.FileSharing)
+   elseif (master == "OpenVPN") then
+      flow.setActivityFilter(filter.RollingMean, profile.VPN)
+   elseif (master == "IMAPS" or master == "IMAP") then
+      flow.setActivityFilter(filter.CommandSequence, profile.MailSync)
+   elseif (master == "POP3") then
       flow.setActivityFilter(filter.None, profile.MailSync)
-   elseif (proto == "SMPT" or proto == "SMPTS") then
+   elseif (master == "SMPT" or master == "SMPTS") then
       flow.setActivityFilter(filter.None, profile.MailSend)
-   elseif (proto == "HTTP" or proto == "HTTPS") then
+   elseif (master == "HTTP" or master == "HTTPS") then
       flow.setActivityFilter(filter.Web, profile.Web)
    else
       flow.setActivityFilter(filter.None, profile.Other)

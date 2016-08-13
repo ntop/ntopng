@@ -42,6 +42,7 @@ Flow::Flow(NetworkInterface *_iface,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
+  memset(&activityDetection, 0, sizeof(activityDetection));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
@@ -2456,4 +2457,24 @@ FlowStatus Flow::getFlowStatus() {
   }
 
   return status_normal;
+}
+
+/* ***************************************************** */
+
+void Flow::setActivityFilter(activity_filter_t * filter, const activity_filter_config * config) {  
+  if (filter && config) {
+    activityDetection.filter = filter;
+    activityDetection.config = *config;
+    memset(&activityDetection.status, 0, sizeof(activityDetection.status));
+  } else {
+    activityDetection.filter = NULL;
+  }
+}
+
+/* ***************************************************** */
+
+bool Flow::invokeActivityFilter(u_int8_t *payload, u_int16_t payload_len) {
+  if (activityDetection.filter)
+    return (*activityDetection.filter)(&activityDetection.config, &activityDetection.status, this, payload, payload_len);
+  return false;
 }

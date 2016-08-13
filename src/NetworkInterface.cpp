@@ -20,6 +20,7 @@
  */
 
 #include "ntop_includes.h"
+#include "activity_filters.h"
 
 #ifdef __APPLE__
 #include <uuid/uuid.h>
@@ -3510,10 +3511,29 @@ static int lua_flow_dump(lua_State* vm) {
 
 /* ****************************************** */
 
+/*
+ * lua params:
+ *    filterID    - ID of the filter to apply to the flow for activity recording
+ *    activityID  - ID of the activity to apply for filtered bytes
+ *    *parametes  - parameters to pass to the filter - See below
+ * 
+ * None filter params:
+ * 
+ * RollingMean filter params:
+ *    samples      - number of samples to keep
+ *    edge         - rolling mean edge to trigger activity
+ *    minsamples   - minimum number of samples for activity detection
+ * 
+ * CommandSequence filter params:
+ *    minbytes     - minimum number of bytes to trigger activity
+ *    mininter     - minimum number of server interactions to trigger activity
+ * 
+ * Web filter params:
+ */
 static int lua_flow_set_activity_filter(lua_State* vm) {
   int16_t naddr;
-  UserActivityID actid;
-  u_int64_t bytes;
+  UserActivityID activityID;
+  ActivityFilterID filterID;
   Host *cli, *srv;
   Flow *f;
   
@@ -3522,19 +3542,24 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   if(!f) return(CONST_LUA_ERROR);
   
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  actid = (UserActivityID)lua_tonumber(vm, 1);
+  filterID = (ActivityFilterID)lua_tonumber(vm, 1);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  bytes = (u_int64_t)lua_tonumber(vm, 2);
+  activityID = (UserActivityID)lua_tonumber(vm, 2);
+  if (activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
   
-  if (actid >= UserActivitiesN) return(CONST_LUA_ERROR);
+  // filter specific parameters
+  //~ switch() {
+  //~ }
   
-  cli = f->get_cli_host();
+  printf("Record: %p - filter=%d, activity=%d\n", f, filterID, activityID);
+  
+  /*cli = f->get_cli_host();
   if (cli->get_ip() && cli->get_ip()->isLocalHost(&naddr))
     cli->incActivityBytes(actid, bytes);
   
   srv = f->get_srv_host();
   if (srv->get_ip() && srv->get_ip()->isLocalHost(&naddr))
-    srv->incActivityBytes(actid, bytes);
+    srv->incActivityBytes(actid, bytes);*/
 
   return(CONST_LUA_OK);
 }

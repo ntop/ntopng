@@ -23,6 +23,7 @@
 #define _FLOW_H_
 
 #include "ntop_includes.h"
+#include "activity_filters.h"
 
 typedef struct {
   u_int32_t pktRetr, pktOOO, pktLost;
@@ -38,6 +39,12 @@ typedef struct {
 typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
+
+typedef struct {
+  activity_filter_t * filter;
+  activity_filter_config config;
+  activity_filter_status status;
+} FlowActivityDetection;
 
 typedef enum {
   flow_state_other = 0,
@@ -121,6 +128,7 @@ class Flow : public GenericHashEntry {
   float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
+  FlowActivityDetection activityDetection;
 
   /* Counter values at last host update */
   struct {
@@ -323,6 +331,9 @@ class Flow : public GenericHashEntry {
   bool isIdleFlow();
   inline FlowState getFlowState()                   { return(state);                          };
   inline bool      isEstablished()                  { return state == flow_state_established; };
+  
+  void setActivityFilter(activity_filter_t * filter, const activity_filter_config * config);
+  bool invokeActivityFilter(u_int8_t *payload, u_int16_t payload_len);
 };
 
 #endif /* _FLOW_H_ */
