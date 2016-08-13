@@ -218,14 +218,23 @@ typedef enum {
 } LuaCallback;
 
 typedef enum {
+  user_activity_none,
   user_activity_other,
   user_activity_web,
-  user_activity_video,
+  user_activity_media,
   user_activity_vpn,
   user_activity_mail_sync,
   user_activity_mail_send,
+  user_activity_file_sharing,
   
   UserActivitiesN
 } UserActivityID;
+
+typedef enum {
+  activity_filter_none,
+  activity_filter_rolling_mean,
+  activity_filter_command_sequence,
+  activity_filter_web
+} ActivityFilterID;
 
 #endif /* _NTOP_TYPEDEFS_H_ */
