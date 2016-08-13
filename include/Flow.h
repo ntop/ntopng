@@ -44,6 +44,7 @@ typedef struct {
   activity_filter_t * filter;
   activity_filter_config config;
   activity_filter_status status;
+  UserActivityID activityId;
 } FlowActivityDetection;
 
 typedef enum {
@@ -334,6 +335,8 @@ class Flow : public GenericHashEntry {
   
   void setActivityFilter(activity_filter_t * filter, const activity_filter_config * config);
   bool invokeActivityFilter(u_int8_t *payload, u_int16_t payload_len);
+  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; };
+  inline UserActivityID getActivityId()             { return(activityDetection.activityId); };
 };
 
 #endif /* _FLOW_H_ */

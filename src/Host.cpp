@@ -1476,3 +1476,13 @@ void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
 
   ntop->getRedis()->hashSet(dev, port, value);
 }
+
+/* *************************************** */
+
+void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t idlebytes) {
+  if (id < UserActivitiesN) {
+    user_activities[id].up += upbytes;
+    user_activities[id].down += downbytes;
+    user_activities[id].idle += idlebytes;
+  }
+}

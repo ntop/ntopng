@@ -24,6 +24,12 @@
 
 #include "ntop_includes.h"
 
+typedef struct {
+  u_int64_t up;
+  u_int64_t down;
+  u_int64_t idle;
+} UserActivityCounter;
+
 class Host : public GenericHost {
  private:
   u_int8_t mac_address[6], antenna_mac_address[6];
@@ -48,7 +54,8 @@ class Host : public GenericHost {
   TrafficStats icmp_sent, icmp_rcvd;
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
-  u_int64_t user_activities[UserActivitiesN];
+  
+  UserActivityCounter user_activities[UserActivitiesN];
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -156,8 +163,7 @@ class Host : public GenericHost {
   inline void disableAlerts()                            { trigger_host_alerts = false;                   };
   inline void enableAlerts()                             { trigger_host_alerts = true;                    };
   inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
-  inline u_int64_t getActivityBytes(UserActivityID id)   { return((id < UserActivitiesN) ? user_activities[id] : 0); };
-  inline void incActivityBytes(UserActivityID id, u_int64_t bytes) { if (id < UserActivitiesN) user_activities[id] += bytes; };
+  inline const UserActivityCounter * getActivityBytes(UserActivityID id)   { return((id < UserActivitiesN) ? &user_activities[id] : NULL); };
 
   inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
 
@@ -180,6 +186,7 @@ class Host : public GenericHost {
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
   void incrVisitedWebSite(char *hostname);
+  void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t idlebytes);
 };
 
 #endif /* _HOST_H_ */

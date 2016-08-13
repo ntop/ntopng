@@ -1023,6 +1023,31 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+       
+  // Detect user activities
+  UserActivityID activity = flow->getActivityId();
+  u_int64_t up=0, down=0, idle=0, bytes=payload_len;
+  if (activity != user_activity_none) {
+    int16_t naddr;
+    Host *cli = flow->get_cli_host();
+    Host *srv = flow->get_srv_host();
+    bool cli_local = cli->get_ip()->isLocalHost(&naddr);
+    bool srv_local = cli->get_ip()->isLocalHost(&naddr);
+    
+    if (flow->invokeActivityFilter(payload, payload_len)) {
+      if (src2dst_direction)
+        up = bytes;
+      else
+        down = bytes;
+    } else {
+      idle = bytes;
+    }
+    
+    if (cli_local)
+      cli->incActivityBytes(activity, up, down, idle);
+    if (srv_local)
+      srv->incActivityBytes(activity, down, up, idle);
+  }
 
   return(pass_verdict);
 }
@@ -2592,8 +2617,9 @@ static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
     return (false); /* false = keep on walking */
     
   r->found = true;
-  for (i=0; i<UserActivitiesN; i++)
-    r->activity[i] = h->getActivityBytes((UserActivityID) i);
+  // TODO
+  //~ for (i=0; i<UserActivitiesN; i++)
+    //~ r->activity[i] = h->getActivityBytes((UserActivityID) i);
   return true; /* found, stop walking */
 }
 
@@ -3597,6 +3623,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Flow %p setActivityFilter: filter=%d activity=%d", f, filterID, activityID);
   f->setActivityFilter(fun, &config);
+  f->setActivityId(activityID);
 
   return(CONST_LUA_OK);
 }

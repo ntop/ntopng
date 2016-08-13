@@ -52,5 +52,6 @@ bool activity_filter_fun_web(
     uint8_t *, uint16_t
 ) {
   /* TODO implement */
+  puts("WEB TEST");
   return false;
 }

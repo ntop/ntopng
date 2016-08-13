@@ -20,7 +20,7 @@ function string:split(sep)
 end
 
 function splitProto(proto)
-   return proto:split(".")
+   return unpack(proto:split("."))
 end
 
 -- ########################################################
@@ -53,8 +53,10 @@ function flowProtocolDetected()
       flow.setActivityFilter(filter.None, profile.MailSync)
    elseif (master == "SMPT" or master == "SMPTS") then
       flow.setActivityFilter(filter.None, profile.MailSend)
-   elseif (master == "HTTP" or master == "HTTPS") then
+   elseif (master == "HTTP" or master == "HTTPS" or "SSL") then
       flow.setActivityFilter(filter.Web, profile.Web)
+   elseif (master == "DNS") then
+      flow.setActivityFilter(filter.None, profile.None)
    else
       flow.setActivityFilter(filter.None, profile.Other)
    end
@@ -63,7 +65,4 @@ function flowProtocolDetected()
       f = flow.dump() 
       print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].."\n")
     end
-   
-   -- TODO just test
-   --~ flow.setActivity(1, 1500)
 end
