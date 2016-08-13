@@ -1045,7 +1045,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
     
-    if (flow->invokeActivityFilter(payload, payload_len)) {
+    if (flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
       if (src2dst_direction)
         up = bytes;
       else
@@ -3556,8 +3556,8 @@ static int lua_flow_dump(lua_State* vm) {
 
 /*
  * lua params:
- *    filterID    - ID of the filter to apply to the flow for activity recording
  *    activityID  - ID of the activity to apply for filtered bytes
+ *    filterID    - ID of the filter to apply to the flow for activity recording
  *    *parametes  - parameters to pass to the filter - See below
  * 
  * None filter params:
@@ -3568,8 +3568,10 @@ static int lua_flow_dump(lua_State* vm) {
  *    minsamples   - minimum number of samples for activity detection
  * 
  * CommandSequence filter params:
+ *    mustwait     - if true, activity trigger requires server to wait after command request
  *    minbytes     - minimum number of bytes to trigger activity
- *    mininter     - minimum number of server interactions to trigger activity
+ *    maxinterval  - maximum milliseconds difference between interactions
+ *    minflips     - minimum number of server interactions to trigger activity
  * 
  * Web filter params:
  */
@@ -3579,17 +3581,24 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   Flow *f;
   activity_filter_t *fun;
   activity_filter_config config = {};
-  u_int8_t params = 2;
+  u_int8_t params = 0;
+  bool hasparams;
   
   lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
   
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  filterID = (ActivityFilterID)lua_tonumber(vm, 1);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  activityID = (UserActivityID)lua_tonumber(vm, 2);
+  if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  activityID = (UserActivityID)lua_tonumber(vm, ++params);
   if (activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
+  
+  if(lua_type(vm, params+1) == LUA_TNUMBER) {
+    filterID = (ActivityFilterID)lua_tonumber(vm, ++params);
+    hasparams = true;
+  } else {
+    filterID = activity_filter_none;
+    hasparams = false;
+  }
   
   // filter specific parameters
   switch(filterID) {
@@ -3600,36 +3609,46 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       fun = &activity_filter_fun_web;
       break;
     case activity_filter_rolling_mean:
-      if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) {
+      if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
         config.rolling_mean.edge = lua_tonumber(vm, ++params);
         
-        if (ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) {
+        if (lua_type(vm, params+1) == LUA_TNUMBER) {
           config.rolling_mean.samples = lua_tonumber(vm, ++params);
           
-          if (ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER))
+          if (lua_type(vm, params+1) == LUA_TNUMBER)
             config.rolling_mean.minsamples = lua_tonumber(vm, ++params);
         }
       }
       
       // defaults
       switch (params) {
-        case 2+0: config.rolling_mean.edge = 0; break;
-        case 2+1: config.rolling_mean.samples = 10; break;
-        case 2+2: config.rolling_mean.minsamples = config.rolling_mean.samples; break;
+        case 2+0: config.rolling_mean.edge = 0;
+        case 2+1: config.rolling_mean.samples = 10;
+        case 2+2: config.rolling_mean.minsamples = config.rolling_mean.samples;
       }
       fun = &activity_filter_fun_rolling_mean;
       break;
     case activity_filter_command_sequence:
-      if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) {
-        config.command_sequence.minbytes = lua_tonumber(vm, ++params);
+      if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
+        config.command_sequence.mustwait = lua_toboolean(vm, ++params);
         
-        if (ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER))
-          config.command_sequence.mininter = lua_tonumber(vm, ++params);
+        if(lua_type(vm, params+1) == LUA_TNUMBER) {
+          config.command_sequence.minbytes = lua_tonumber(vm, ++params);
+          
+          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+            config.command_sequence.maxinterval = lua_tonumber(vm, ++params);
+            
+            if (lua_type(vm, params+1) == LUA_TNUMBER)
+              config.command_sequence.minflips = lua_tonumber(vm, ++params);
+          }
+        }
       }
       
       switch (params) {
-        case 2+0: config.command_sequence.minbytes = 0; break;
-        case 2+1: config.command_sequence.mininter = 1; break;
+        case 2+0: config.command_sequence.mustwait = false;
+        case 2+1: config.command_sequence.minbytes = 0;
+        case 2+2: config.command_sequence.maxinterval = 3000;
+        case 2+3: config.command_sequence.minflips = 1;
       }
       fun = &activity_filter_fun_command_sequence;
       break;

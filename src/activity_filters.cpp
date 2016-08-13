@@ -22,29 +22,78 @@
 #include "activity_filters.h"
 #include "ntop_includes.h"
 
-bool activity_filter_fun_none(const activity_filter_config *,
-      activity_filter_status *,
-      Flow *, uint8_t *, uint16_t) {
+bool activity_filter_fun_none(const activity_filter_config * config,
+      activity_filter_status * status, Flow * flow,
+      const struct timeval *when,
+      bool cli2srv, uint16_t payload_len) {
   return false;
 }
 
-bool activity_filter_fun_rolling_mean(const activity_filter_config *,
-      activity_filter_status *,
-      Flow *, uint8_t *, uint16_t) {
+bool activity_filter_fun_rolling_mean(const activity_filter_config * config,
+      activity_filter_status * status, Flow * flow,
+      const struct timeval *when,
+      bool cli2srv, uint16_t payload_len) {
   /* TODO implement */
   return false;
 }
 
-bool activity_filter_fun_command_sequence(const activity_filter_config *,
-      activity_filter_status *,
-      Flow *, uint8_t *, uint16_t) {
-  /* TODO implement */
+/*
+ * Detects sequences of (client) command -> (server) reply.
+ * 
+ * Assumes client sends an ACK with no data when receiving multiple command replies.
+ */
+bool activity_filter_fun_command_sequence(const activity_filter_config * config,
+      activity_filter_status * status, Flow * flow,
+      const struct timeval *when,
+      bool cli2srv, uint16_t payload_len) {
+        
+  struct timeval last = status->command_sequence.lastPacket;
+  bool was_cli2srv = status->command_sequence.cli2srv;
+  
+  status->command_sequence.lastPacket = *when;
+  status->command_sequence.cli2srv = cli2srv;
+
+  if (status->command_sequence.reqSeen) {
+    if (cli2srv && payload_len > 0) {
+      // Command end
+      status->command_sequence.reqSeen = false;
+    } else if (Utils::msTimevalDiff((struct timeval*)when, &last) >= config->command_sequence.maxinterval) {
+      // Timeout
+      status->command_sequence.reqSeen = false;
+    } else if (!cli2srv) {
+      // Server reply
+
+      if (was_cli2srv && payload_len == 0 && status->command_sequence.respBytes == 0) {
+        status->command_sequence.srvWaited = true;
+      } else {
+        // server data
+        status->command_sequence.respBytes += payload_len;
+        status->command_sequence.respCount++;
+      }
+    } // else client ACK
+  }
+
+  if (!status->command_sequence.reqSeen && cli2srv && payload_len > 0) {
+    // New client command
+    status->command_sequence.reqSeen = true;
+    status->command_sequence.srvWaited = false;
+    status->command_sequence.respBytes = 0;
+    status->command_sequence.respCount = 0;
+  }
+  
+  if ( (status->command_sequence.srvWaited || !config->command_sequence.mustwait) &&
+       (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
+       (status->command_sequence.respCount >= config->command_sequence.minflips)) {
+    //~ printf("%d] B=%lu C=%lu\n", status->command_sequence.srvWaited, status->command_sequence.respBytes, status->command_sequence.respCount);
+    return true;
+  }
   return false;
 }
 
-bool activity_filter_fun_web(const activity_filter_config *,
-      activity_filter_status *,
-      Flow *, uint8_t *, uint16_t) {
+bool activity_filter_fun_web(const activity_filter_config * config,
+      activity_filter_status * status, Flow * flow,
+      const struct timeval *when,
+      bool cli2srv, uint16_t payload_len) {
   /* TODO implement */
   return false;
 }

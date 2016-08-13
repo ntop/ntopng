@@ -2473,8 +2473,8 @@ void Flow::setActivityFilter(activity_filter_t * filter, const activity_filter_c
 
 /* ***************************************************** */
 
-bool Flow::invokeActivityFilter(u_int8_t *payload, u_int16_t payload_len) {
+bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len) {
   if (activityDetection.filter)
-    return (*activityDetection.filter)(&activityDetection.config, &activityDetection.status, this, payload, payload_len);
+    return (*activityDetection.filter)(&activityDetection.config, &activityDetection.status, this, when, cli2srv, payload_len);
   return false;
 }

@@ -334,7 +334,7 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()                  { return state == flow_state_established; };
   
   void setActivityFilter(activity_filter_t * filter, const activity_filter_config * config);
-  bool invokeActivityFilter(u_int8_t *payload, u_int16_t payload_len);
+  bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
   inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; };
   inline UserActivityID getActivityId()             { return(activityDetection.activityId); };
 };

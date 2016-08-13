@@ -44,21 +44,21 @@ function flowProtocolDetected()
    local master, sub = splitProto(proto)
    
    if(master == "BitTorrent") then
-      flow.setActivityFilter(filter.RollingMean, profile.FileSharing)
+      flow.setActivityFilter(profile.FileSharing, filter.RollingMean)
    elseif (master == "OpenVPN") then
-      flow.setActivityFilter(filter.RollingMean, profile.VPN)
+      flow.setActivityFilter(profile.VPN, filter.RollingMean)
    elseif (master == "IMAPS" or master == "IMAP") then
-      flow.setActivityFilter(filter.CommandSequence, profile.MailSync)
+      flow.setActivityFilter(profile.MailSync, filter.CommandSequence, false, 200, 3000, 1)
    elseif (master == "POP3") then
-      flow.setActivityFilter(filter.None, profile.MailSync)
+      flow.setActivityFilter(profile.MailSync)
    elseif (master == "SMPT" or master == "SMPTS") then
-      flow.setActivityFilter(filter.None, profile.MailSend)
+      flow.setActivityFilter(profile.MailSend)
    elseif (master == "HTTP" or master == "HTTPS" or "SSL") then
-      flow.setActivityFilter(filter.Web, profile.Web)
+      flow.setActivityFilter(profile.Web, filter.Web)
    elseif (master == "DNS") then
-      flow.setActivityFilter(filter.None, profile.None)
+      flow.setActivityFilter(profile.None)
    else
-      flow.setActivityFilter(filter.None, profile.Other)
+      flow.setActivityFilter(profile.Other)
    end
 
    if(trace_hk) then

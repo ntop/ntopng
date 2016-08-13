@@ -23,6 +23,7 @@
 #define _ACTIVITY_FILTERS_H_
 
 #include <stdint.h>
+#include <time.h>
 typedef unsigned int uint;
 class Flow;
 
@@ -35,12 +36,21 @@ typedef union {
   
   struct {
     uint minbytes;
-    uint mininter;
+    uint maxinterval;
+    uint minflips;
+    bool mustwait;
   } command_sequence;
 } activity_filter_config;
 
 typedef union {
-  /* TODO extend */
+  struct {
+    uint64_t respBytes;
+    uint64_t respCount;
+    struct timeval lastPacket;
+    bool reqSeen;
+    bool srvWaited;
+    bool cli2srv;
+  } command_sequence;
 } activity_filter_status;
 
 /*
@@ -50,15 +60,16 @@ typedef union {
  * @params activity_filter_config* filter specific configuration
  * @params activity_filter_status* filter specific status data
  * @params Flow* current flow
- * @params u_int8_t* current packet data
- * @params u_int16_t* current packet size
+ * @params const struct timeval current packet time
+ * @params bool cli2srv direction
+ * @params u_int16_t current packet size
  * 
  * @return TRUE if activity has been detected, FALSE otherwise
  */
 typedef bool (activity_filter_t) (
     const activity_filter_config *, activity_filter_status *,
-    Flow *,
-    uint8_t *, uint16_t
+    Flow *, const struct timeval *,
+    bool, uint16_t
 );
 
 activity_filter_t activity_filter_fun_none;
