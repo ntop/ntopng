@@ -81,10 +81,13 @@ bool activity_filter_fun_command_sequence(const activity_filter_config * config,
     status->command_sequence.respCount = 0;
   }
   
-  if ( (status->command_sequence.srvWaited || !config->command_sequence.mustwait) &&
-       (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
-       (status->command_sequence.respCount >= config->command_sequence.minflips)) {
-    //~ printf("%d] B=%lu C=%lu\n", status->command_sequence.srvWaited, status->command_sequence.respBytes, status->command_sequence.respCount);
+  if ((status->command_sequence.srvWaited || !config->command_sequence.mustwait) &&
+      (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
+      (status->command_sequence.respCount >= config->command_sequence.minflips)) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "CommandDetect filter: wait=%c bytes=%lu flips=%lu\n",
+        status->command_sequence.srvWaited ? 'Y' : 'N',
+        status->command_sequence.respBytes,
+        status->command_sequence.respCount);
     return true;
   }
   return false;

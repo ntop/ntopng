@@ -1056,7 +1056,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
     
-    if (flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
+    if (!flow->isSSLHandshake() && flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
       if (src2dst_direction)
         up = bytes;
       else
