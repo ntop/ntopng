@@ -883,7 +883,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, h->len, payload, payload_len, &h->ts);
+    flow->incStats(src2dst_direction, h->len, payload, payload_len, l4_proto, &h->ts);
 
     switch(l4_proto) {
     case IPPROTO_TCP:
@@ -930,6 +930,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   if(flow->isDetectionCompleted()
      && flow->get_cli_host()
      && flow->get_srv_host()) {
+    struct ndpi_flow_struct *ndpi_flow;
+           
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
     case NDPI_PROTOCOL_BITTORRENT:
       if((flow->getBitTorrentHash() == NULL)
@@ -944,7 +946,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       break;
 
     case NDPI_PROTOCOL_DNS:
-      struct ndpi_flow_struct *ndpi_flow = flow->get_ndpi_flow();
+      ndpi_flow = flow->get_ndpi_flow();
 
       /*
       DNS-over-TCP flows may carry zero-payload TCP segments
@@ -1003,7 +1005,16 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	ndpi_flow->detected_protocol_stack[0] = NDPI_PROTOCOL_UNKNOWN;
       }
       break;
+      
+    default:
+      if (flow->isSSLProto())
+        flow->dissectSSL(payload, payload_len, when);
     }
+    
+#if 0
+    if (flow->isSSLData())
+      ; // TODO use SSL data
+#endif
 
     flow->processDetectedProtocol(), *shaped = false;
     pass_verdict = flow->isPassVerdict();
