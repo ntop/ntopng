@@ -23,6 +23,7 @@
 #define _FLOW_H_
 
 #include "ntop_includes.h"
+#include "activity_filters.h"
 
 typedef struct {
   u_int32_t pktRetr, pktOOO, pktLost;
@@ -38,6 +39,13 @@ typedef struct {
 typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
+
+typedef struct {
+  activity_filter_t * filter;
+  activity_filter_config config;
+  activity_filter_status status;
+  UserActivityID activityId;
+} FlowActivityDetection;
 
 typedef enum {
   flow_state_other = 0,
@@ -60,7 +68,6 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
-  u_int8_t flowProfileId;
   FlowState state;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
@@ -132,6 +139,7 @@ class Flow : public GenericHashEntry {
   float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
+  FlowActivityDetection activityDetection;
 
   /* Counter values at last host update */
   struct {
@@ -336,10 +344,12 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
   inline FlowState getFlowState()                   { return(state);                          };
-  inline bool      hasStart()                       { return(state & 0x2);                    };
   inline bool      isEstablished()                  { return state == flow_state_established; };
-  inline u_int8_t getProfileId()                    { return(flowProfileId);                  };
-  inline void     setProfileId(u_int8_t v)          { flowProfileId = v;                      };
+  
+  void setActivityFilter(activity_filter_t * filter, const activity_filter_config * config);
+  bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
+  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; };
+  inline UserActivityID getActivityId()             { return(activityDetection.activityId); };
 };
 
 #endif /* _FLOW_H_ */

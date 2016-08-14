@@ -278,6 +278,7 @@ class NetworkInterface {
 		Paginator *p);
   void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts,
 			char *numIP, u_int16_t vlanId);
+  void getLocalHostActivity(lua_State* vm, const char * host);
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();

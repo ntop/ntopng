@@ -279,7 +279,7 @@
 #define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED 1
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
-#define CONST_HOUSEKEEPING_SCRIPT    "housekeeping.lua"
+#define CONST_USERACTIVITY_SCRIPT    "useractivity.lua"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_WRITABLE_DIR   "/var/tmp"
@@ -290,8 +290,9 @@
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 #define CONST_HTTP_CONN              "http.conn"
-#define CONST_HOUSEKEEPING_FLOW      "housekeepingflow"
-#define CONST_HOUSEKEEPING_HOST      "housekeepinghost"
+#define CONST_USERACTIVITY_FLOW      "useractivityflow"
+#define CONST_USERACTIVITY_PROFILES  "profile"
+#define CONST_USERACTIVITY_FILTERS   "filter"
 #define CONST_LUA_OK                  1
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
@@ -535,4 +536,13 @@
 #define UNKNOWN_OS            ""
 #define UNKNOWN_ASN           "Private ASN"
 #define UNKNOWN_LOCAL_NETWORK "Remote Networks"
+
+/* Macroes */
+#define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
+#define _STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(!!(COND))*2-1]
+#define _COMPILE_TIME_ASSERT3(X,L) _STATIC_ASSERT(X,static_assertion_at_line_##L)
+#define _COMPILE_TIME_ASSERT2(X,L) _COMPILE_TIME_ASSERT3(X,L)
+#define COMPILE_TIME_ASSERT(X)    _COMPILE_TIME_ASSERT2(X,__LINE__)
+
 #endif /* _NTOP_DEFINES_H_ */

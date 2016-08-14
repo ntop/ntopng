@@ -43,7 +43,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
-    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, flowProfileId = 0, dissecting_ssl = true;
+    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, dissecting_ssl = true;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false, ndpi_proto_name = NULL,
@@ -52,6 +52,7 @@ Flow::Flow(NetworkInterface *_iface,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
+  memset(&activityDetection, 0, sizeof(activityDetection));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
@@ -2500,4 +2501,24 @@ FlowStatus Flow::getFlowStatus() {
   }
 
   return status_normal;
+}
+
+/* ***************************************************** */
+
+void Flow::setActivityFilter(activity_filter_t * filter, const activity_filter_config * config) {  
+  if (filter && config) {
+    activityDetection.filter = filter;
+    activityDetection.config = *config;
+    memset(&activityDetection.status, 0, sizeof(activityDetection.status));
+  } else {
+    activityDetection.filter = NULL;
+  }
+}
+
+/* ***************************************************** */
+
+bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len) {
+  if (activityDetection.filter)
+    return (*activityDetection.filter)(&activityDetection.config, &activityDetection.status, this, when, cli2srv, payload_len);
+  return false;
 }

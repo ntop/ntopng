@@ -20,6 +20,7 @@
  */
 
 #include "ntop_includes.h"
+#include "activity_filters.h"
 
 #ifdef __APPLE__
 #include <uuid/uuid.h>
@@ -35,6 +36,20 @@ static bool help_printed = false;
 
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() { init(); }
+
+/* **************************************************** */
+
+static const char * activity_names [] = {
+  "None",
+  "Other",
+  "Web",
+  "Media",
+  "VPN",
+  "MailSync",
+  "MailSend",
+  "FileSharing"
+};
+COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
 
 /* **************************************************** */
 
@@ -1033,6 +1048,28 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     flow->get_detected_protocol().protocol,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+       
+  // Detect user activities
+  UserActivityID activity = flow->getActivityId();
+  u_int64_t up=0, down=0, idle=0, bytes=payload_len;
+  if (activity != user_activity_none) {
+    Host *cli = flow->get_cli_host();
+    Host *srv = flow->get_srv_host();
+    
+    if (!flow->isSSLHandshake() && flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
+      if (src2dst_direction)
+        up = bytes;
+      else
+        down = bytes;
+    } else {
+      idle = bytes;
+    }
+    
+    if (cli->isLocalHost())
+      cli->incActivityBytes(activity, up, down, idle);
+    if (srv->isLocalHost())
+      srv->incActivityBytes(activity, down, up, idle);
+  }
 
   return(pass_verdict);
 }
@@ -2584,6 +2621,58 @@ void NetworkInterface::getFlowPeersList(lua_State* vm,
 
 /* **************************************************** */
 
+class HostActivityRetriever {
+public:
+  IpAddress search;
+  bool found;
+  UserActivityCounter counters[UserActivitiesN];
+  
+  HostActivityRetriever(const char * ip) : search((char *)ip) { found = false; };
+};
+
+static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
+  HostActivityRetriever * r = (HostActivityRetriever *)user_data;
+  Host *h = (Host*)he;
+  int i;
+  
+  if(!h || !h->equal(&r->search))
+    return (false); /* false = keep on walking */
+    
+  r->found = true;
+  for (i=0; i<UserActivitiesN; i++)
+    r->counters[i] = *h->getActivityBytes((UserActivityID) i);
+  return true; /* found, stop walking */
+}
+
+void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {    
+  HostActivityRetriever retriever(host);
+  int i;
+  
+  hosts_hash->disablePurge();
+  hosts_hash->walk(host_activity_walker, &retriever);
+  hosts_hash->enablePurge();
+    
+  if (retriever.found) {
+    lua_newtable(vm);
+    // 0:user_activity_none -> skip
+    for (i=1; i<UserActivitiesN; i++) {
+      lua_newtable(vm);
+      
+      lua_pushnumber(vm, retriever.counters[i].up);    lua_rawseti(vm, -2, 1);
+      lua_pushnumber(vm, retriever.counters[i].down);  lua_rawseti(vm, -2, 2);
+      lua_pushnumber(vm, retriever.counters[i].idle);  lua_rawseti(vm, -2, 3);
+      
+      lua_pushstring(vm, activity_names[i]);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+  } else {
+    lua_pushnil(vm);
+  }
+}
+
+/* **************************************************** */
+
 u_int NetworkInterface::purgeIdleFlows() {
   if(!purge_idle_flows_hosts) return(0);
 
@@ -3380,7 +3469,7 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 static int lua_flow_get_ndpi_proto(lua_State* vm) {
   Flow *f;
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
@@ -3394,7 +3483,7 @@ static int lua_flow_get_ndpi_proto_id(lua_State* vm) {
   Flow *f;
   ndpi_protocol p;
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR); else p = f->get_detected_protocol();
 
@@ -3407,7 +3496,7 @@ static int lua_flow_get_ndpi_proto_id(lua_State* vm) {
 static int lua_flow_get_first_seen(lua_State* vm) {
   Flow *f;
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
@@ -3420,24 +3509,11 @@ static int lua_flow_get_first_seen(lua_State* vm) {
 static int lua_flow_get_last_seen(lua_State* vm) {
   Flow *f;
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
   lua_pushnumber(vm, f->get_last_seen());
-  return(CONST_LUA_OK);
-}
-
-/* **************************************** */
-
-static int lua_flow_has_start(lua_State* vm) {
-  Flow *f;
-
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->hasStart());
   return(CONST_LUA_OK);
 }
 
@@ -3448,7 +3524,7 @@ static int lua_flow_get_server_name(lua_State* vm) {
   char buf[64];
   const char *srv;
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
@@ -3466,7 +3542,7 @@ static int lua_flow_get_server_name(lua_State* vm) {
 static int lua_flow_get_http_url(lua_State* vm) {
   Flow *f;
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
@@ -3479,7 +3555,7 @@ static int lua_flow_get_http_url(lua_State* vm) {
 static int lua_flow_dump(lua_State* vm) {
   Flow *f;
 
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
@@ -3487,32 +3563,115 @@ static int lua_flow_dump(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-/* **************************************** */
+/* ****************************************** */
 
-static int lua_flow_get_profile_id(lua_State* vm) {
+/*
+ * lua params:
+ *    activityID  - ID of the activity to apply for filtered bytes
+ *    filterID    - ID of the filter to apply to the flow for activity recording
+ *    *parametes  - parameters to pass to the filter - See below
+ * 
+ * None filter params:
+ * 
+ * RollingMean filter params:
+ *    edge         - rolling mean edge to trigger activity
+ *    samples      - number of samples to keep
+ *    minsamples   - minimum number of samples for activity detection
+ * 
+ * CommandSequence filter params:
+ *    mustwait     - if true, activity trigger requires server to wait after command request
+ *    minbytes     - minimum number of bytes to trigger activity
+ *    maxinterval  - maximum milliseconds difference between interactions
+ *    minflips     - minimum number of server interactions to trigger activity
+ * 
+ * Web filter params:
+ */
+static int lua_flow_set_activity_filter(lua_State* vm) {
+  UserActivityID activityID;
+  ActivityFilterID filterID;
   Flow *f;
-
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
+  activity_filter_t *fun;
+  activity_filter_config config = {};
+  u_int8_t params = 0;
+  bool hasparams;
+  
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
+  
+  if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  activityID = (UserActivityID)lua_tonumber(vm, ++params);
+  if (activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
+  
+  if(lua_type(vm, params+1) == LUA_TNUMBER) {
+    filterID = (ActivityFilterID)lua_tonumber(vm, ++params);
+    hasparams = true;
+  } else {
+    filterID = activity_filter_none;
+    hasparams = false;
+  }
+  
+  // filter specific parameters
+  switch(filterID) {
+    case activity_filter_none:
+      fun = &activity_filter_fun_none;
+      break;
+    case activity_filter_web:
+      fun = &activity_filter_fun_web;
+      break;
+    case activity_filter_rolling_mean:
+      if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
+        config.rolling_mean.edge = lua_tonumber(vm, ++params);
+        
+        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          config.rolling_mean.samples = lua_tonumber(vm, ++params);
+          
+          if (lua_type(vm, params+1) == LUA_TNUMBER)
+            config.rolling_mean.minsamples = lua_tonumber(vm, ++params);
+        }
+      }
+      
+      // defaults
+      switch (params) {
+        case 2+0: config.rolling_mean.edge = 0;
+        case 2+1: config.rolling_mean.samples = 10;
+        case 2+2: config.rolling_mean.minsamples = config.rolling_mean.samples;
+      }
+      fun = &activity_filter_fun_rolling_mean;
+      break;
+    case activity_filter_command_sequence:
+      if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
+        config.command_sequence.mustwait = lua_toboolean(vm, ++params);
+        
+        if(lua_type(vm, params+1) == LUA_TNUMBER) {
+          config.command_sequence.minbytes = lua_tonumber(vm, ++params);
+          
+          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+            config.command_sequence.maxinterval = lua_tonumber(vm, ++params);
+            
+            if (lua_type(vm, params+1) == LUA_TNUMBER)
+              config.command_sequence.minflips = lua_tonumber(vm, ++params);
+          }
+        }
+      }
+      
+      switch (params) {
+        case 2+0: config.command_sequence.mustwait = false;
+        case 2+1: config.command_sequence.minbytes = 0;
+        case 2+2: config.command_sequence.maxinterval = 3000;
+        case 2+3: config.command_sequence.minflips = 1;
+      }
+      fun = &activity_filter_fun_command_sequence;
+      break;
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid activity filter (%d)", filterID);
+      return (CONST_LUA_ERROR);
+  }
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Flow %p setActivityFilter: filter=%d activity=%d", f, filterID, activityID);
+  f->setActivityFilter(fun, &config);
+  f->setActivityId(activityID);
 
-  lua_pushnumber(vm, f ? f->getProfileId() : 0);
-  return(CONST_LUA_OK);
-}
-
-/* **************************************** */
-
-static int lua_flow_set_profile_id(lua_State* vm) {
-  Flow *f;
-  int id;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  id = (int)lua_tonumber(vm, 1);
-
-  lua_getglobal(vm, CONST_HOUSEKEEPING_FLOW);
-  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
-
-  if(f) f->setProfileId(id);
   return(CONST_LUA_OK);
 }
 
@@ -3523,18 +3682,15 @@ static const luaL_Reg flow_reg[] = {
   { "getNdpiProtoId",    lua_flow_get_ndpi_proto_id },
   { "getFirstSeen",      lua_flow_get_first_seen },
   { "getLastSeen",       lua_flow_get_last_seen },
-  { "hasStart",          lua_flow_has_start },
   { "getServerName",     lua_flow_get_server_name },
   { "getHTTPUrl",        lua_flow_get_http_url },
   { "dump",              lua_flow_dump },
-  { "getProfileId",      lua_flow_get_profile_id },
-  { "setProfileId",      lua_flow_set_profile_id },
+  { "setActivityFilter", lua_flow_set_activity_filter },
   { NULL,         NULL }
 };
 
 ntop_class_reg ntop_lua_reg[] = {
   { "flow",   flow_reg  },
-  /* { "host",   host_reg }, TODO */
   {NULL,      NULL}
 };
 
@@ -3593,11 +3749,28 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully interpreted %s", script_path);
 
     lua_pushlightuserdata(L, NULL);
-    lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
-
-    lua_pushlightuserdata(L, NULL);
-    lua_setglobal(L, CONST_HOUSEKEEPING_HOST);
+    lua_setglobal(L, CONST_USERACTIVITY_FLOW);
   }
+  
+  // Activity profiles - see ntop_typedefs.h
+  lua_newtable(L);
+  lua_push_int_table_entry(L, activity_names[user_activity_none], user_activity_none);
+  lua_push_int_table_entry(L, activity_names[user_activity_other], user_activity_other);
+  lua_push_int_table_entry(L, activity_names[user_activity_web], user_activity_web);
+  lua_push_int_table_entry(L, activity_names[user_activity_media], user_activity_media);
+  lua_push_int_table_entry(L, activity_names[user_activity_vpn], user_activity_vpn);
+  lua_push_int_table_entry(L, activity_names[user_activity_mail_sync], user_activity_mail_sync);
+  lua_push_int_table_entry(L, activity_names[user_activity_mail_send], user_activity_mail_send);
+  lua_push_int_table_entry(L, activity_names[user_activity_file_sharing], user_activity_file_sharing);
+  lua_setglobal(L, CONST_USERACTIVITY_PROFILES);
+  
+  // Activity filters
+  lua_newtable(L);
+  lua_push_int_table_entry(L, "None", activity_filter_none);
+  lua_push_int_table_entry(L, "RollingMean", activity_filter_rolling_mean);
+  lua_push_int_table_entry(L, "CommandSequence", activity_filter_command_sequence);
+  lua_push_int_table_entry(L, "Web", activity_filter_web);
+  lua_setglobal(L, CONST_USERACTIVITY_FILTERS);
 
   return(L);
 }
@@ -3619,9 +3792,9 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
   if(reloadLuaInterpreter) {
     if(L_flow_create || L_flow_delete || L_flow_update) termLuaInterpreter();
-    L_flow_create = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
-    L_flow_delete = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
-    L_flow_update = initLuaInterpreter(CONST_HOUSEKEEPING_SCRIPT);
+    L_flow_create = initLuaInterpreter(CONST_USERACTIVITY_SCRIPT);
+    L_flow_delete = initLuaInterpreter(CONST_USERACTIVITY_SCRIPT);
+    L_flow_update = initLuaInterpreter(CONST_USERACTIVITY_SCRIPT);
     reloadLuaInterpreter = false;
   }
 
@@ -3648,7 +3821,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   }
 
   lua_pushlightuserdata(L, f);
-  lua_setglobal(L, CONST_HOUSEKEEPING_FLOW);
+  lua_setglobal(L, CONST_USERACTIVITY_FLOW);
 
   lua_getglobal(L, luaFunction); /* function to be called */
   if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {

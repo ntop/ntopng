@@ -203,6 +203,27 @@ for _,_ifname in pairs(ifnames) do
 		     if(verbose) then
 			print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
 		     end
+         
+         -- Host activity stats
+         local astats = interface.getHostActivity(hostname)
+         if astats then
+            local hostsbase = fixPath(basedir .. "/activity")
+            if(not(ntop.exists(hostsbase))) then
+               if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating host activity directory ", hostsbase, '\n') end
+               ntop.mkdir(hostsbase)
+            end
+         
+            for act, val in pairs(astats) do
+               name = fixPath(hostsbase .. "/" .. act .. ".rrd")
+               
+               -- up, down, idle bytes
+               createTripleRRDcounter(name, 60, verbose)
+               ntop.rrd_update(name, "N:"..tolongint(val[1]) .. ":" .. tolongint(val[2]) .. ":" .. val[3])
+               if(verbose) then
+                  print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
+               end
+            end
+         end
 
 		     -- L4 Protocols
 		     for id, _ in ipairs(l4_keys) do

@@ -69,7 +69,7 @@ class Ntop {
 #endif
 
   void loadLocalInterfaceAddress();
-
+  
  public:
   /**
    * @brief A Constructor
