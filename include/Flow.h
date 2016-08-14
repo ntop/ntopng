@@ -23,7 +23,6 @@
 #define _FLOW_H_
 
 #include "ntop_includes.h"
-#include "activity_filters.h"
 
 typedef struct {
   u_int32_t pktRetr, pktOOO, pktLost;

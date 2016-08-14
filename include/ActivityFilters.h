@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2016 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 #include <time.h>
+
 typedef unsigned int uint;
 class Flow;
 
@@ -66,12 +67,11 @@ typedef union {
  * 
  * @return TRUE if activity has been detected, FALSE otherwise
  */
-typedef bool (activity_filter_t) (
-    const activity_filter_config *, activity_filter_status *,
-    Flow *, const struct timeval *,
-    bool, uint16_t
-);
-
+typedef bool (activity_filter_t)(const activity_filter_config *,
+				 activity_filter_status *,
+				 Flow *, const struct timeval *,
+				 bool, uint16_t);
+				
 activity_filter_t activity_filter_fun_none;
 activity_filter_t activity_filter_fun_rolling_mean;
 activity_filter_t activity_filter_fun_command_sequence;

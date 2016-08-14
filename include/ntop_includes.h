@@ -219,6 +219,7 @@ using namespace std;
 #include "GenericHost.h"
 #include "CategoryStats.h"
 #include "Host.h"
+#include "ActivityFilters.h"
 #include "Flow.h"
 #include "FlowHash.h"
 #include "HostHash.h"

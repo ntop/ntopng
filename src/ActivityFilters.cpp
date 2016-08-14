@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,23 +19,28 @@
  *
  */
 
-#include "activity_filters.h"
 #include "ntop_includes.h"
 
+/* ********************************************************************** */
+
 bool activity_filter_fun_none(const activity_filter_config * config,
-      activity_filter_status * status, Flow * flow,
-      const struct timeval *when,
-      bool cli2srv, uint16_t payload_len) {
+			      activity_filter_status * status, Flow * flow,
+			      const struct timeval *when,
+			      bool cli2srv, uint16_t payload_len) {
   return false;
 }
 
+/* ********************************************************************** */
+
 bool activity_filter_fun_rolling_mean(const activity_filter_config * config,
-      activity_filter_status * status, Flow * flow,
-      const struct timeval *when,
-      bool cli2srv, uint16_t payload_len) {
+				      activity_filter_status * status, Flow * flow,
+				      const struct timeval *when,
+				      bool cli2srv, uint16_t payload_len) {
   /* TODO implement */
   return false;
 }
+
+/* ********************************************************************** */
 
 /*
  * Detects sequences of (client) command -> (server) reply.
@@ -43,9 +48,9 @@ bool activity_filter_fun_rolling_mean(const activity_filter_config * config,
  * Assumes client sends an ACK with no data when receiving multiple command replies.
  */
 bool activity_filter_fun_command_sequence(const activity_filter_config * config,
-      activity_filter_status * status, Flow * flow,
-      const struct timeval *when,
-      bool cli2srv, uint16_t payload_len) {
+					  activity_filter_status * status, Flow * flow,
+					  const struct timeval *when,
+					  bool cli2srv, uint16_t payload_len) {
         
   struct timeval last = status->command_sequence.lastPacket;
   bool was_cli2srv = status->command_sequence.cli2srv;
@@ -85,18 +90,20 @@ bool activity_filter_fun_command_sequence(const activity_filter_config * config,
       (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
       (status->command_sequence.respCount >= config->command_sequence.minflips)) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "CommandDetect filter: wait=%c bytes=%lu flips=%lu\n",
-        status->command_sequence.srvWaited ? 'Y' : 'N',
-        status->command_sequence.respBytes,
-        status->command_sequence.respCount);
+				 status->command_sequence.srvWaited ? 'Y' : 'N',
+				 status->command_sequence.respBytes,
+				 status->command_sequence.respCount);
     return true;
   }
   return false;
 }
 
+/* ********************************************************************** */
+
 bool activity_filter_fun_web(const activity_filter_config * config,
-      activity_filter_status * status, Flow * flow,
-      const struct timeval *when,
-      bool cli2srv, uint16_t payload_len) {
+			     activity_filter_status * status, Flow * flow,
+			     const struct timeval *when,
+			     bool cli2srv, uint16_t payload_len) {
   /* TODO implement */
   return false;
 }
