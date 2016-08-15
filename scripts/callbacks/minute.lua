@@ -218,9 +218,10 @@ for _,_ifname in pairs(ifnames) do
 			   
 			   -- up, down, idle bytes
 			   createTripleRRDcounter(name, 60, verbose)
-			   ntop.rrd_update(name, "N:"..tolongint(val[1]) .. ":" .. tolongint(val[2]) .. ":" .. val[3])
+			   ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. val.idle)
+
 			   if(verbose) then
-			      print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
+			      print("["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..' ['..val.up.."/"..val.down.."/"..val.idle..']\n')
 			   end
 			end
 		     end

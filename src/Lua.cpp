@@ -534,6 +534,8 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Get the hosts information of network interface.
  * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the host information.
@@ -544,6 +546,8 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
 static int ntop_get_interface_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_all));
 }
+
+/* ****************************************** */
 
 /**
  * @brief Get local hosts information of network interface.
@@ -556,6 +560,8 @@ static int ntop_get_interface_local_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_local_only));
 }
 
+/* ****************************************** */
+
 /**
  * @brief Get remote hosts information of network interface.
  * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the remote host information.
@@ -566,6 +572,8 @@ static int ntop_get_interface_local_hosts_info(lua_State* vm) {
 static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_remote_only));
 }
+
+/* ****************************************** */
 
 /**
  * @brief Get local hosts activity information.

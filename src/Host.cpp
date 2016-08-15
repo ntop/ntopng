@@ -210,7 +210,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
 	  ntop->getTrace()->traceEvent(TRACE_ERROR,
 				       "Unable to allocate memory to deserialize %s", redis_key);
-	else if (!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
+	else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
 	  /* Found saved copy of the host so let's start from the previous state */
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
@@ -1480,9 +1480,8 @@ void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
 /* *************************************** */
 
 void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t idlebytes) {
-  if (id < UserActivitiesN) {
-    user_activities[id].up += upbytes;
-    user_activities[id].down += downbytes;
-    user_activities[id].idle += idlebytes;
-  }
+  if(id < UserActivitiesN)
+    user_activities[id].up += upbytes, 
+      user_activities[id].down += downbytes, 
+      user_activities[id].idle += idlebytes;
 }

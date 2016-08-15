@@ -1396,7 +1396,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       -- do not scale number, packets, and drops
       scaling_factor = 1
    end
-
+   
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
 
    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)

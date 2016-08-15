@@ -2665,9 +2665,9 @@ void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {
     for (i=1; i<UserActivitiesN; i++) {
       lua_newtable(vm);
 
-      lua_pushnumber(vm, retriever.counters[i].up);    lua_rawseti(vm, -2, 1);
-      lua_pushnumber(vm, retriever.counters[i].down);  lua_rawseti(vm, -2, 2);
-      lua_pushnumber(vm, retriever.counters[i].idle);  lua_rawseti(vm, -2, 3);
+      lua_push_int_table_entry(vm, "up", retriever.counters[i].up);
+      lua_push_int_table_entry(vm, "down", retriever.counters[i].down);
+      lua_push_int_table_entry(vm, "idle", retriever.counters[i].idle);
 
       lua_pushstring(vm, activity_names[i]);
       lua_insert(vm, -2);
