@@ -27,7 +27,7 @@
 typedef struct {
   u_int64_t up;
   u_int64_t down;
-  u_int64_t idle;
+  u_int64_t background;
 } UserActivityCounter;
 
 class Host : public GenericHost {
@@ -186,7 +186,7 @@ class Host : public GenericHost {
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
   void incrVisitedWebSite(char *hostname);
-  void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t idlebytes);
+  void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
 };
 
 #endif /* _HOST_H_ */

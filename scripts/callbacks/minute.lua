@@ -14,6 +14,75 @@ require "lua_utils"
 require "graph_utils"
 require "top_structure"
 
+-- ########################################################
+
+function foreachHost(ifname, callback)
+   local hostbase
+   
+   interface.select(ifname)
+   -- ifstats = interface.getStats()
+   
+   hosts_stats = interface.getLocalHostsInfo(false)
+   for hostname, hoststats in pairs(hosts_stats) do
+      local host = interface.getHostInfo(hostname)
+
+      if(host == nil) then
+         if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] NULL host "..hostname.." !!!!\n") end
+      else
+         if(verbose) then
+            print ("["..__FILE__()..":"..__LINE__().."] [" .. hostname .. "][local: ")
+            print(tostring(host["localhost"]))
+            print("]" .. (hoststats["bytes.sent"]+hoststats["bytes.rcvd"]) .. "]\n")
+         end
+      
+         if(host.localhost) then
+            -- host is local
+            local keypath = getPathFromKey(hostname)
+            hostbase = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
+
+            if(not(ntop.exists(basedir))) then
+               if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", basedir, '\n') end
+               ntop.mkdir(basedir)
+            end
+         else
+            -- host is not local
+            hostbase = nil
+         end
+         
+         callback(hostname, host, hoststats, hostbase)
+      end
+   end
+end
+
+-- ########################################################
+
+function saveLocalHostsActivity(hostname, host, hoststats, hostbase)
+   if host.localhost then
+      local actStats = interface.getHostActivity(hostname)
+      if actStats then
+         local hostsbase = fixPath(hostbase .. "/activity")
+         if(not(ntop.exists(hostsbase))) then
+            if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating host activity directory ", hostsbase, '\n') end
+            ntop.mkdir(hostsbase)
+         end
+
+         for act, val in pairs(actStats) do
+            name = fixPath(hostsbase .. "/" .. act .. ".rrd")
+
+            -- up, down, background bytes
+            createTripleRRDcounterFull(name, 'COUNTER', 60, 120, verbose)
+            ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. val.background)
+
+            if(verbose) then
+               print("["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..' ['..val.up.."/"..val.down.."/"..val.background..']\n')
+            end
+         end
+      end
+   end
+end
+
+-- ########################################################
+
 when = os.time()
 
 local verbose = ntop.verboseTrace()
@@ -58,7 +127,7 @@ for _,_ifname in pairs(ifnames) do
    -- Dump topTalkers every minute
 
    if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
-      talkers = makeTopJSON(ifstats.id, _ifname)     
+      talkers = makeTopJSON(ifstats.id, _ifname)
       if(verbose) then
          print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
 	 print(talkers)
@@ -95,6 +164,10 @@ for _,_ifname in pairs(ifnames) do
               ntop.rrd_update(rrdpath, "N:"..tolongint(ptraffic))
           end
       end
+
+      -- Save host activity stats every minute
+      foreachHost(_ifname, saveLocalHostsActivity)
+
       -- Run RRD update every 5 minutes
       -- Use 30 just to avoid rounding issues
       diff = when % 300
@@ -138,21 +211,7 @@ for _,_ifname in pairs(ifnames) do
             local networks_aggr = {}
 	    local vlans_aggr    = {}
 
-	    interface.select(_ifname) -- just to make sure ;)
-	    hosts_stats = interface.getLocalHostsInfo(false)
-	    for hostname, hoststats in pairs(hosts_stats) do
-
-	       host = interface.getHostInfo(hostname)
-
-	       if(host == nil) then
-		  if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] NULL host "..hostname.." !!!!\n") end
-	       else
-		  if(verbose) then
-		     print ("["..__FILE__()..":"..__LINE__().."] [" .. hostname .. "][local: ")
-		     print(tostring(host["localhost"]))
-		     print("]" .. (hoststats["bytes.sent"]+hoststats["bytes.rcvd"]) .. "]\n")
-		  end
-
+       foreachHost(_ifname, function (hostname, host, hoststats, hostbase)
 		  -- Aggregate VLAN stats
 		  local host_vlan = hoststats["vlan"]
 		  if host_vlan ~= nil and host_vlan ~= 0 then
@@ -168,17 +227,8 @@ for _,_ifname in pairs(ifnames) do
 		  end
 
 		  if(host.localhost) then
-                     local keypath = getPathFromKey(hostname)
-		     local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
-
-		     if(not(ntop.exists(basedir))) then
-			if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", basedir, '\n') end
-			ntop.mkdir(basedir)
-
-		     end
- 
-                    if host_categories_rrd_creation ~= "0" and not ntop.exists(fixPath(basedir.."/categories")) then
-                       ntop.mkdir(fixPath(basedir.."/categories"))
+                    if host_categories_rrd_creation ~= "0" and not ntop.exists(fixPath(hostbase.."/categories")) then
+                       ntop.mkdir(fixPath(hostbase.."/categories"))
                     end
 
                      -- Aggregate network stats
@@ -197,42 +247,20 @@ for _,_ifname in pairs(ifnames) do
                      end
 
 		     -- Traffic stats
-		     name = fixPath(basedir .. "/bytes.rrd")
+		     name = fixPath(hostbase .. "/bytes.rrd")
 		     createRRDcounter(name, 300, verbose)
 		     ntop.rrd_update(name, "N:"..tolongint(hoststats["bytes.sent"]) .. ":" .. tolongint(hoststats["bytes.rcvd"]))
 		     if(verbose) then
 			print("\n["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..'\n')
 		     end
-         
-		     -- Host activity stats
-		     local actStats = interface.getHostActivity(hostname)
-		     if actStats then
-			local hostsbase = fixPath(basedir .. "/activity")
-			if(not(ntop.exists(hostsbase))) then
-			   if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating host activity directory ", hostsbase, '\n') end
-			   ntop.mkdir(hostsbase)
-			end
-			
-			for act, val in pairs(actStats) do
-			   name = fixPath(hostsbase .. "/" .. act .. ".rrd")
-			   
-			   -- up, down, idle bytes
-			   createTripleRRDcounter(name, 60, verbose)
-			   ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. val.idle)
 
-			   if(verbose) then
-			      print("["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..' ['..val.up.."/"..val.down.."/"..val.idle..']\n')
-			   end
-			end
-		     end
-		     
 		     -- L4 Protocols
 		     for id, _ in ipairs(l4_keys) do
 			k = l4_keys[id][2]
 			if((host[k..".bytes.sent"] ~= nil) and (host[k..".bytes.rcvd"] ~= nil)) then
 			   if(verbose) then print("["..__FILE__()..":"..__LINE__().."]\t"..k.."\n") end
 
-			   name = fixPath(basedir .. "/".. k .. ".rrd")
+			   name = fixPath(hostbase .. "/".. k .. ".rrd")
 			   createRRDcounter(name, 300, verbose)
 			   -- io.write(name.."="..host[k..".bytes.sent"].."|".. host[k..".bytes.rcvd"] .. "\n")
 			   ntop.rrd_update(name, "N:".. tolongint(host[k..".bytes.sent"]) .. ":" .. tolongint(host[k..".bytes.rcvd"]))
@@ -246,7 +274,7 @@ for _,_ifname in pairs(ifnames) do
 		     if(host_ndpi_rrd_creation ~= "0") then
 			-- nDPI Protocols
 			for k in pairs(host["ndpi"]) do
-			   name = fixPath(basedir .. "/".. k .. ".rrd")
+			   name = fixPath(hostbase .. "/".. k .. ".rrd")
 			   createRRDcounter(name, 300, verbose)
 			   ntop.rrd_update(name, "N:".. tolongint(host["ndpi"][k]["bytes.sent"]) .. ":" .. tolongint(host["ndpi"][k]["bytes.rcvd"]))
 
@@ -282,7 +310,7 @@ for _,_ifname in pairs(ifnames) do
                               for _cat_name, cat_bytes in pairs(host["categories"]) do
 			           cat_name = getCategoryLabel(_cat_name)
                                    -- io.write('cat_name: '..cat_name..' cat_bytes:'..tostring(cat_bytes)..'\n')
-                                   name = fixPath(basedir.."/categories/"..cat_name..".rrd")
+                                   name = fixPath(hostbase.."/categories/"..cat_name..".rrd")
                                    createSingleRRDcounter(name, 300, verbose)
                                    ntop.rrd_update(name, "N:".. tolongint(cat_bytes))
 
@@ -296,14 +324,13 @@ for _,_ifname in pairs(ifnames) do
                            end
                         end
 
-			if(host["epp"]) then dumpSingleTreeCounters(basedir, "epp", host, verbose) end
-			if(host["dns"]) then dumpSingleTreeCounters(basedir, "dns", host, verbose) end
+			if(host["epp"]) then dumpSingleTreeCounters(hostbase, "epp", host, verbose) end
+			if(host["dns"]) then dumpSingleTreeCounters(hostbase, "dns", host, verbose) end
 		     end
 		  else
 		     -- print("ERROR: ["..__FILE__()..":"..__LINE__().."] Skipping non local host "..hostname.."\n")
 		  end
-	       end -- if host ~= nil
-            end
+       end) -- end foreachHost
 
 	    -- create RRD for vlans
 	    local basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/vlanstats')
@@ -357,10 +384,10 @@ for _,_ifname in pairs(ifnames) do
 		  if(verbose) then
 		     print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n")
 		  end
-		  
+
 		  for port_idx,port_value in pairs(ports) do
 		     local base = dirs.workingdir .. "/" .. ifstats.id .. "/rrd/flowdevs/".. flow_device_ip
-		     
+
 		     base = fixPath(base)
 		     if(not(ntop.exists(base))) then ntop.mkdir(base) end
 		     name = fixPath(base .. "/"..port_idx..".rrd")

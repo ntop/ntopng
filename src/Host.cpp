@@ -1479,9 +1479,9 @@ void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
 
 /* *************************************** */
 
-void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t idlebytes) {
+void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes) {
   if(id < UserActivitiesN)
     user_activities[id].up += upbytes, 
       user_activities[id].down += downbytes, 
-      user_activities[id].idle += idlebytes;
+      user_activities[id].background += bgbytes;
 }

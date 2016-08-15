@@ -1054,7 +1054,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   // Detect user activities
   UserActivityID activity = flow->getActivityId();
-  u_int64_t up=0, down=0, idle=0, bytes=payload_len;
+  u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
   if (activity != user_activity_none) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
@@ -1065,13 +1065,13 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       else
         down = bytes;
     } else {
-      idle = bytes;
+      backgr = bytes;
     }
 
     if (cli->isLocalHost())
-      cli->incActivityBytes(activity, up, down, idle);
+      cli->incActivityBytes(activity, up, down, backgr);
     if (srv->isLocalHost())
-      srv->incActivityBytes(activity, down, up, idle);
+      srv->incActivityBytes(activity, down, up, backgr);
   }
 
   return(pass_verdict);
@@ -2667,7 +2667,7 @@ void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {
 
       lua_push_int_table_entry(vm, "up", retriever.counters[i].up);
       lua_push_int_table_entry(vm, "down", retriever.counters[i].down);
-      lua_push_int_table_entry(vm, "idle", retriever.counters[i].idle);
+      lua_push_int_table_entry(vm, "background", retriever.counters[i].background);
 
       lua_pushstring(vm, activity_names[i]);
       lua_insert(vm, -2);

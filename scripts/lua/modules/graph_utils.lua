@@ -907,23 +907,30 @@ function createSingleRRDcounter(path, step, verbose)
 end
 
 -- ########################################################
--- this method will be very likely used when saving subnet rrd traffic statistics
-function createTripleRRDcounter(path, step, verbose)
+
+function createTripleRRDcounterFull(path, dst, step, heartbeat, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then io.write('Creating RRD '..path..'\n') end
       local prefs = ntop.getPrefs()
+      local hb = tostring(heartbeat)
       ntop.rrd_create(
 	 path,
 	 step, -- step
-	 'DS:ingress:DERIVE:600:U:U',
-	 'DS:egress:DERIVE:600:U:U',
-	 'DS:inner:DERIVE:600:U:U',
+	 'DS:ingress:'..dst..':'..hb..':U:U',
+	 'DS:egress:'..dst..':'..hb..':U:U',
+	 'DS:inner:'..dst..':'..hb..':U:U',
 	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
 	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days) -- 1d resolution (288 points)  365 days
 	 --'RRA:HWPREDICT:1440:0.1:0.0035:20'
       )
    end
+end
+
+-- ########################################################
+-- this method will be very likely used when saving subnet rrd traffic statistics
+function createTripleRRDcounter(path, step, verbose)
+   createTripleRRDcounterFull(path, 'DERIVE', step, 600, verbose)
 end
 
 -- ########################################################
