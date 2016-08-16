@@ -1,7 +1,11 @@
 (function(exports){
-var cubism = exports.cubism = {version: "1.6.0"};
+var cubism = exports.cubism = {version: "1.2.0"};
 var cubism_id = 0;
-function cubism_identity(d) { return d; }
+    function cubism_title(d) {
+	return("&nbsp;<A HREF=\""
+	       + http_prefix /* this must be defined in the lua caller */
+	       + "/lua/host_details.lua?host="+d+"\">"+d+"</A>"); }
+    function cubism_identity(d) { return(d); }
 cubism.option = function(name, defaultValue) {
   var values = cubism.options(name);
   return values.length ? values[0] : defaultValue;
@@ -185,191 +189,6 @@ cubism_contextPrototype.cube = function(host) {
 };
 
 var cubism_cubeFormatDate = d3.time.format.iso;
-/* librato (http://dev.librato.com/v1/post/metrics) source
- * If you want to see an example of how to use this source, check: https://gist.github.com/drio/5792680
- */
-cubism_contextPrototype.librato = function(user, token) {
-  var source      = {},
-      context     = this;
-      auth_string = "Basic " + btoa(user + ":" + token);
-      avail_rsts  = [ 1, 60, 900, 3600 ];
-
-  /* Given a step, find the best librato resolution to use.
-   *
-   * Example:
-   *
-   * (s) : cubism step
-   *
-   * avail_rsts   1 --------------- 60 --------------- 900 ---------------- 3600
-   *                                |    (s)            |
-   *                                |                   |
-   *                              [low_res             top_res]
-   *
-   * return: low_res (60)
-   */
-  function find_ideal_librato_resolution(step) {
-    var highest_res = avail_rsts[0],
-        lowest_res  = avail_rsts[avail_rsts.length]; // high and lowest available resolution from librato
-
-    /* If step is outside the highest or lowest librato resolution, pick them and we are done */
-    if (step >= lowest_res)
-      return lowest_res;
-
-    if (step <= highest_res)
-      return highest_res;
-
-    /* If not, find in what resolution interval the step lands. */
-    var iof, top_res, i;
-    for (i=step; i<=lowest_res; i++) {
-      iof = avail_rsts.indexOf(i);
-      if (iof > -1) {
-        top_res = avail_rsts[iof];
-        break;
-      }
-    }
-
-    var low_res;
-    for (i=step; i>=highest_res; i--) {
-      iof = avail_rsts.indexOf(i);
-      if (iof > -1) {
-        low_res = avail_rsts[iof];
-        break;
-      }
-    }
-
-    /* What's the closest librato resolution given the step ? */
-    return ((top_res-step) < (step-low_res)) ? top_res : low_res;
-  }
-
-  function find_librato_resolution(sdate, edate, step) {
-    var i_size      = edate - sdate,                 // interval size
-        month       = 2419200,
-        week        = 604800,
-        two_days    = 172800,
-        ideal_res;
-
-    if (i_size > month)
-      return 3600;
-
-    ideal_res = find_ideal_librato_resolution(step);
-
-    /*
-     * Now we have the ideal resolution, but due to the retention policies at librato, maybe we have
-     * to use a higher resolution.
-     * http://support.metrics.librato.com/knowledgebase/articles/66838-understanding-metrics-roll-ups-retention-and-grap
-     */
-    if (i_size > week && ideal_res < 900)
-      return 900;
-    else if (i_size > two_days && ideal_res < 60)
-      return 60;
-    else
-      return ideal_res;
-  }
-
-  /* All the logic to query the librato API is here */
-  var librato_request = function(composite) {
-    var url_prefix  = "https://metrics-api.librato.com/v1/metrics";
-
-    function make_url(sdate, edate, step) {
-      var params    = "compose="     + composite +
-                      "&start_time=" + sdate     +
-                      "&end_time="   + edate     +
-                      "&resolution=" + find_librato_resolution(sdate, edate, step);
-      return url_prefix + "?" + params;
-    }
-
-    /*
-     * We are most likely not going to get the same number of measurements
-     * cubism expects for a particular context: We have to perform down/up
-     * sampling
-     */
-    function down_up_sampling(isdate, iedate, step, librato_mm) {
-      var av = [];
-
-      for (i=isdate; i<=iedate; i+=step) {
-        var int_mes = [];
-        while (librato_mm.length && librato_mm[0].measure_time <= i) {
-          int_mes.push(librato_mm.shift().value);
-        }
-
-        var v;
-        if (int_mes.length) { /* Compute the average */
-          v = int_mes.reduce(function(a, b) { return a + b }) / int_mes.length;
-        } else { /* No librato values on interval */
-          v = (av.length) ? av[av.length-1] : 0;
-        }
-        av.push(v);
-      }
-
-      return av;
-    }
-
-    request = {};
-
-    request.fire = function(isdate, iedate, step, callback_done) {
-      var a_values = []; /* Store partial values from librato */
-
-      /*
-       * Librato has a limit in the number of measurements we get back in a request (100).
-       * We recursively perform requests to the API to ensure we have all the data points
-       * for the interval we are working on.
-       */
-      function actual_request(full_url) {
-        d3.json(full_url)
-          .header("X-Requested-With", "XMLHttpRequest")
-          .header("Authorization", auth_string)
-          .header("Librato-User-Agent", 'cubism/' + cubism.version)
-          .get(function (error, data) { /* Callback; data available */
-            if (!error) {
-              if (data.measurements.length === 0) {
-                return
-              }
-              data.measurements[0].series.forEach(function(o) { a_values.push(o); });
-
-              var still_more_values = 'query' in data && 'next_time' in data.query;
-              if (still_more_values) {
-                actual_request(make_url(data.query.next_time, iedate, step));
-              } else {
-                var a_adjusted = down_up_sampling(isdate, iedate, step, a_values);
-                callback_done(a_adjusted);
-              }
-            }
-          });
-      }
-
-      actual_request(make_url(isdate, iedate, step));
-    };
-
-    return request;
-  };
-
-  /*
-   * The user will use this method to create a cubism source (librato in this case)
-   * and call .metric() as necessary to create metrics.
-   */
-  source.metric = function(m_composite) {
-    return context.metric(function(start, stop, step, callback) {
-      /* All the librato logic is here; .fire() retrieves the metrics' data */
-      librato_request(m_composite)
-        .fire(cubism_libratoFormatDate(start),
-              cubism_libratoFormatDate(stop),
-              cubism_libratoFormatDate(step),
-              function(a_values) { callback(null, a_values); });
-
-      }, m_composite += "");
-    };
-
-  /* This is not used when the source is librato */
-  source.toString = function() {
-    return "librato";
-  };
-
-  return source;
-};
-
-var cubism_libratoFormatDate = function(time) {
-  return Math.floor(time / 1000);
-};
 cubism_contextPrototype.graphite = function(host) {
   if (!arguments.length) host = "";
   var source = {},
@@ -383,7 +202,7 @@ cubism_contextPrototype.graphite = function(host) {
 
       // Apply the summarize, if necessary.
       if (step !== 1e4) target = "summarize(" + target + ",'"
-          + (!(step % 36e5) ? step / 36e5 + "hour" : !(step % 6e4) ? step / 6e4 + "min" : step / 1e3 + "sec")
+          + (!(step % 36e5) ? step / 36e5 + "hour" : !(step % 6e4) ? step / 6e4 + "min" : step + "sec")
           + "','" + sum + "')";
 
       d3.text(host + "/render?format=raw"
@@ -439,99 +258,6 @@ function cubism_graphiteParse(text) {
       .slice(1) // the first value is always None?
       .map(function(d) { return +d; });
 }
-cubism_contextPrototype.gangliaWeb = function(config) {
-  var host = '',
-      uriPathPrefix = '/ganglia2/';
- 
-  if (arguments.length) {
-    if (config.host) {
-      host = config.host;
-    }
-
-    if (config.uriPathPrefix) {
-      uriPathPrefix = config.uriPathPrefix;
-
-      /* Add leading and trailing slashes, as appropriate. */
-      if( uriPathPrefix[0] != '/' ) {
-        uriPathPrefix = '/' + uriPathPrefix;
-      }
-
-      if( uriPathPrefix[uriPathPrefix.length - 1] != '/' ) {
-        uriPathPrefix += '/';
-      }
-    }
-  }
-
-  var source = {},
-      context = this;
-
-  source.metric = function(metricInfo) {
-
-    /* Store the members from metricInfo into local variables. */
-    var clusterName = metricInfo.clusterName, 
-        metricName = metricInfo.metricName, 
-        hostName = metricInfo.hostName,
-        isReport = metricInfo.isReport || false,
-        titleGenerator = metricInfo.titleGenerator ||
-          /* Reasonable (not necessarily pretty) default for titleGenerator. */
-          function(unusedMetricInfo) {
-            /* unusedMetricInfo is, well, unused in this default case. */
-            return ('clusterName:' + clusterName + 
-                    ' metricName:' + metricName +
-                    (hostName ? ' hostName:' + hostName : ''));
-          },
-        onChangeCallback = metricInfo.onChangeCallback;
-    
-    /* Default to plain, simple metrics. */
-    var metricKeyName = isReport ? 'g' : 'm';
-
-    var gangliaWebMetric = context.metric(function(start, stop, step, callback) {
-
-      function constructGangliaWebRequestQueryParams() {
-        return ('c=' + clusterName +
-                '&' + metricKeyName + '=' + metricName + 
-                (hostName ? '&h=' + hostName : '') + 
-                '&cs=' + start/1000 + '&ce=' + stop/1000 + '&step=' + step/1000 + '&graphlot=1');
-      }
-
-      d3.json(host + uriPathPrefix + 'graph.php?' + constructGangliaWebRequestQueryParams(),
-        function(result) {
-          if( !result ) {
-            return callback(new Error("Unable to fetch GangliaWeb data"));
-          }
-
-          callback(null, result[0].data);
-        });
-
-    }, titleGenerator(metricInfo));
-
-    gangliaWebMetric.toString = function() {
-      return titleGenerator(metricInfo);
-    };
-
-    /* Allow users to run their custom code each time a gangliaWebMetric changes.
-     *
-     * TODO Consider abstracting away the naked Cubism call, and instead exposing 
-     * a callback that takes in the values array (maybe alongwith the original
-     * start and stop 'naked' parameters), since it's handy to have the entire
-     * dataset at your disposal (and users will likely implement onChangeCallback
-     * primarily to get at this dataset).
-     */
-    if (onChangeCallback) {
-      gangliaWebMetric.on('change', onChangeCallback);
-    }
-
-    return gangliaWebMetric;
-  };
-
-  // Returns the gangliaWeb host + uriPathPrefix.
-  source.toString = function() {
-    return host + uriPathPrefix;
-  };
-
-  return source;
-};
-
 function cubism_metric(context) {
   if (!(context instanceof cubism_context)) throw new Error("invalid context");
   this.context = context;
@@ -598,7 +324,7 @@ cubism_contextPrototype.metric = function(request, name) {
     var start0 = new Date(stop - steps * step);
     request(start0, stop, step, function(error, data) {
       fetching = false;
-      if (error) return console.warn(error);
+	if (error) return console.warn(error);
       var i = isFinite(start) ? Math.round((start0 - start) / step) : 0;
       for (var j = 0, m = data.length; j < m; ++j) values[j + i] = data[j];
       event.change.call(metric, start, stop);
@@ -741,14 +467,14 @@ cubism_contextPrototype.horizon = function() {
       scale = d3.scale.linear().interpolate(d3.interpolateRound),
       metric = cubism_identity,
       extent = null,
-      title = cubism_identity,
+      title = cubism_title,
       format = d3.format(".2s"),
       colors = ["#08519c","#3182bd","#6baed6","#bdd7e7","#bae4b3","#74c476","#31a354","#006d2c"];
 
   function horizon(selection) {
 
     selection
-        .on("mousemove.horizon", function() { context.focus(Math.round(d3.mouse(this)[0])); })
+        .on("mousemove.horizon", function() { context.focus(d3.mouse(this)[0]); })
         .on("mouseout.horizon", function() { context.focus(null); });
 
     selection.append("canvas")
@@ -757,10 +483,10 @@ cubism_contextPrototype.horizon = function() {
 
     selection.append("span")
         .attr("class", "title")
-        .text(title);
+        .html(title);
 
-    selection.append("span")
-        .attr("class", "value");
+    // Hide value
+    // selection.append("span") .attr("class", "value");
 
     selection.each(function(d, i) {
       var that = this,
@@ -825,7 +551,6 @@ cubism_contextPrototype.horizon = function() {
           for (var i = i0, n = width, y1; i < n; ++i) {
             y1 = metric_.valueAt(i);
             if (y1 <= 0) { negative = true; continue; }
-            if (y1 === undefined) continue;
             canvas.fillRect(i, y1 = scale(y1), 1, y0 - y1);
           }
         }
@@ -965,7 +690,7 @@ cubism_contextPrototype.comparison = function() {
   function comparison(selection) {
 
     selection
-        .on("mousemove.comparison", function() { context.focus(Math.round(d3.mouse(this)[0])); })
+        .on("mousemove.comparison", function() { context.focus(d3.mouse(this)[0]); })
         .on("mouseout.comparison", function() { context.focus(null); });
 
     selection.append("canvas")
@@ -1183,10 +908,9 @@ cubism_contextPrototype.axis = function() {
       scale = context.scale,
       axis_ = d3.svg.axis().scale(scale);
 
-  var formatDefault = context.step() < 6e4 ? cubism_axisFormatSeconds
+  var format = context.step() < 6e4 ? cubism_axisFormatSeconds
       : context.step() < 864e5 ? cubism_axisFormatMinutes
       : cubism_axisFormatDays;
-  var format = formatDefault;
 
   function axis(selection) {
     var id = ++cubism_id,
@@ -1231,12 +955,6 @@ cubism_contextPrototype.axis = function() {
       context.on("change.axis-" + d.id, null);
       context.on("focus.axis-" + d.id, null);
     }
-  };
-
-  axis.focusFormat = function(_) {
-    if (!arguments.length) return format == formatDefault ? null : _;
-    format = _ == null ? formatDefault : _;
-    return axis;
   };
 
   return d3.rebind(axis, axis_,
@@ -1292,7 +1010,7 @@ cubism_contextPrototype.rule = function() {
     context.on("focus.rule-" + id, function(i) {
       line.datum(i)
           .style("display", i == null ? "none" : null)
-          .style("left", i == null ? null : cubism_ruleLeft);
+          .style("left", cubism_ruleLeft);
     });
   }
 

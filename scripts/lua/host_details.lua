@@ -712,10 +712,98 @@ end
 	    </td></tr>
       ]]
 
+-- Host activity stats
+if false then
+   print [[ <tr><th>User Activity</th><td colspan=2>
+      <div style='margin-top:0.5em; margin-bottom:2em;'>
+         <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> UpDown
+         <input type="radio" name="showmode" value="bg" onclick="setShowMode(this.value)"> Background
+      </div>
 
-   print("</table>\n")
+      <div id="userctivity"></div>
+
+      <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
+      <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.rrd-server.js"></script>
+      <style type = "text/css">
+         ]] ntop.dumpFile(dirs.installdir .. "/httpdocs/css/cubism.css") print[[
+      </style>
+      
+         <script type="text/javascript">
+         var HorizonGraphWidth = 800
+         var context = cubism.context().size(HorizonGraphWidth).step(60*1000);//.stop();
+         var horizon = context.horizon();
+
+         $('#userctivity')
+            .css("position", "relative")
+            .css("width", HorizonGraphWidth)
+
+         // to set labels place on mousemove
+         context.on("focus", function(i) {
+            d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+         });
+
+         function formatBytes(bytes, precision) {
+            var sizes = [1, 1024, 1024*1024, 1024*1024*1024, 1024*1024*1024*1024];
+            var labels = [" B", " KB", " MB", " GB", " TB"];
+            var value = Math.abs(bytes);
+            var i=0;
+
+            if (value >= 1) {
+               for(; i<sizes.length && value >= sizes[i]; i++) ;
+               i--;
+
+               value = bytes / sizes[i];
+            }
+            return value.toFixed(precision) + labels[i];
+         }
+
+         function setShowMode(mode) {            
+            $.ajax({
+               type: 'GET',
+               url: activitiesurl,
+               success: function(content) {
+                  d3.selectAll(".horizon").remove();
+                  $('#userctivity').empty();
+                  
+                  var metrics = [];
+                  JSON.parse(content).map(function(activity) {
+                     metrics.push(rrdserver.metric(activitiesurl+"&activity="+activity, activity, mode === "bg"));
+                  });
+
+                  // data
+                  d3.select("#userctivity")
+                     .selectAll(".horizon")
+                     .data(metrics)
+                     .enter().append("div", ".bottom")
+                     .attr("class", "horizon")
+                     .call(horizon.format(function(x) { return formatBytes(x,2); }));
+
+                  // bottom axis
+                  d3.select("#userctivity")
+                     .append("div")
+                     .attr("class", "axis")
+                     .call(context.axis().orient("bottom"));
+
+                  // vertical line on mousemove
+                  d3.select("#userctivity")
+                     .append("div")
+                     .attr("class", "rule")
+                     .call(context.rule());
+               }
+            });
+         }
+
+         var rrdserver = cubism.rrdserver(context);
+         var activitiesurl = "]] print(ntop.getHttpPrefix().."/lua/get_host_activity.lua?ifid="..ifId.."&host="..host_ip) print[[";
+
+         setShowMode("updown");
+      </script>
+   </td></tr> ]]
 
    -- showHostActivityStats(hostbase, "", "1h")
+end
+
+   print("</table>\n")
 
    elseif((page == "packets")) then
       print [[

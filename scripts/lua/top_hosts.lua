@@ -44,7 +44,7 @@ print [[
   var http_prefix = "]] print(ntop.getHttpPrefix()) print [[";
 </script>
 
-<script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
+<script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism_ntop.v1.js"></script>
 <div id="tophosts"></div>
 
 <script>
