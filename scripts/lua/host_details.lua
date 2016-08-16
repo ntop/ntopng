@@ -146,7 +146,8 @@ else
 
    host["label"] = getHostAltName(hostinfo2hostkey(host_info))
 
-   rrdname = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info)) .. "/bytes.rrd"
+   hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
+   rrdname = hostbase .. "/bytes.rrd"
    -- print(rrdname)
 print [[
 <div class="bs-docs-example">
@@ -713,6 +714,8 @@ end
 
 
    print("</table>\n")
+
+   -- showHostActivityStats(hostbase, "", "1h")
 
    elseif((page == "packets")) then
       print [[

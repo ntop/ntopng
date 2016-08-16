@@ -907,18 +907,17 @@ function createSingleRRDcounter(path, step, verbose)
 end
 
 -- ########################################################
-
-function createTripleRRDcounterFull(path, dst, step, heartbeat, verbose)
+-- this method will be very likely used when saving subnet rrd traffic statistics
+function createTripleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then io.write('Creating RRD '..path..'\n') end
       local prefs = ntop.getPrefs()
-      local hb = tostring(heartbeat)
       ntop.rrd_create(
 	 path,
 	 step, -- step
-	 'DS:ingress:'..dst..':'..hb..':U:U',
-	 'DS:egress:'..dst..':'..hb..':U:U',
-	 'DS:inner:'..dst..':'..hb..':U:U',
+	 'DS:ingress:DERIVE:600:U:U',
+	 'DS:egress:DERIVE:600:U:U',
+	 'DS:inner:DERIVE:600:U:U',
 	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
 	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days) -- 1d resolution (288 points)  365 days
@@ -928,9 +927,24 @@ function createTripleRRDcounterFull(path, dst, step, heartbeat, verbose)
 end
 
 -- ########################################################
--- this method will be very likely used when saving subnet rrd traffic statistics
-function createTripleRRDcounter(path, step, verbose)
-   createTripleRRDcounterFull(path, 'DERIVE', step, 600, verbose)
+
+function createActivityRRDCounter(path, step, verbose)
+   if(not(ntop.exists(path))) then
+      if(verbose) then io.write('Creating RRD '..path..'\n') end
+      local prefs = ntop.getPrefs()
+      local hb = step * 2
+      ntop.rrd_create(
+	 path,
+	 step,
+	 'DS:in:COUNTER:'..hb..':U:U',
+	 'DS:out:COUNTER:'..hb..':U:U',
+	 'DS:bg:COUNTER:'..hb..':U:U',
+    -- TODO create separate ntop prefs and decide
+    'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),
+	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24),
+	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days)
+      )
+   end
 end
 
 -- ########################################################
@@ -1773,4 +1787,61 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    ret[1].json = json
    -- io.write(json.."\n")
    return(ret[1])
+end
+
+-- #################################################
+
+function showHostActivityStats(hostbase, selectedEpoch, zoomLevel)
+   local activbase = hostbase .. "/activity"
+   local nextZoomLevel = zoomLevel;
+   local start_time, end_time
+   
+   if ntop.isdir(activbase) then
+      local epoch = tonumber(selectedEpoch)
+
+      -- TODO separate function and join drawPeity
+      for k,v in ipairs(zoom_vals) do
+         if(zoom_vals[k][1] == zoomLevel) then
+            if(k > 1) then
+               nextZoomLevel = zoom_vals[k-1][1]
+            end
+            if(epoch) then
+               start_time = epoch - zoom_vals[k][3]/2
+               end_time = epoch + zoom_vals[k][3]/2
+            else
+               start_time = zoom_vals[k][2]
+               end_time = "now"
+            end
+         end
+      end
+   
+      for key,value in pairs(ntop.readdir(activbase)) do
+         local activrrd = activbase .. "/" .. key;
+
+         if(ntop.notEmptyFile(activrrd)) then
+            local fstart, fstep, fnames, fdata = ntop.rrd_fetch(activrrd, 'AVERAGE', start_time, end_time)
+            local num_points = table.getn(fdata)
+
+            print(value.."["..num_points.." points] start="..formatEpoch(start)..", step="..fstep.."s<br><b>")
+
+            for i, v in ipairs(fdata) do
+               for _, w in ipairs(v) do
+                  if(w ~= w) then
+                     -- This is a NaN
+                     v = 0
+                  else
+                     --io.write(w.."\n")
+                     v = tonumber(w)
+                     if(v < 0) then
+                        v = 0
+                     end
+                  end
+               end
+               print(round(v, 2).." ")
+            end
+            
+            print("</b><br>")
+         end
+      end
+   end
 end

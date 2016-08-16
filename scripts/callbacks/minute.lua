@@ -36,16 +36,14 @@ function foreachHost(ifname, callback)
          end
       
          if(host.localhost) then
-            -- host is local
             local keypath = getPathFromKey(hostname)
             hostbase = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/" .. keypath)
 
-            if(not(ntop.exists(basedir))) then
-               if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", basedir, '\n') end
-               ntop.mkdir(basedir)
+            if(not(ntop.exists(hostbase))) then
+               if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."] Creating base directory ", hostbase, '\n') end
+               ntop.mkdir(hostbase)
             end
          else
-            -- host is not local
             hostbase = nil
          end
          
@@ -70,7 +68,7 @@ function saveLocalHostsActivity(hostname, host, hoststats, hostbase)
             name = fixPath(hostsbase .. "/" .. act .. ".rrd")
 
             -- up, down, background bytes
-            createTripleRRDcounterFull(name, 'COUNTER', 60, 120, verbose)
+            createActivityRRDCounter(name, 60, verbose)
             ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. val.background)
 
             if(verbose) then
