@@ -337,17 +337,13 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
 
    if(host["ip"] ~= nil) then
-      if((host["antenna_mac"] ~= nil) and (host["antenna_mac"] ~= "00:00:00:00:00:00")) then
-	 print("<tr><th width=35%>Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
-      else
-	 if(host["mac"]  ~= "00:00:00:00:00:00") then
+      if(host["mac"]  ~= "00:00:00:00:00:00") then
 	    print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
 	 else
 	    if(host["localhost"] == true and is_packetdump_enabled) then
 	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
 	    end
-	 end
-      end
+       end
 
       if(host["localhost"] == true and is_packetdump_enabled) then
 	 dump_status = host["dump_host_traffic"]
@@ -713,7 +709,7 @@ end
       ]]
 
 -- Host activity stats
-if false then
+if true then
    print [[ <tr><th>User Activity</th><td colspan=2>
       <div style='margin-top:0.5em; margin-bottom:2em;'>
          <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> UpDown

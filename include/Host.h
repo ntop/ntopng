@@ -26,7 +26,7 @@
 
 class Host : public GenericHost {
  private:
-  u_int8_t mac_address[6], antenna_mac_address[6];
+  u_int8_t mac_address[6];
   u_int32_t asn;
   char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *topSitesKey;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
@@ -106,7 +106,6 @@ class Host : public GenericHost {
   void set_mac(char *m);
   inline bool is_blacklisted()                 { return(blacklisted_host); }
   inline u_int8_t*  get_mac()                  { return(mac_address);      }
-  inline u_int8_t*  get_antenna_mac()          { return(antenna_mac_address); }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_country()                   { return(country);          }

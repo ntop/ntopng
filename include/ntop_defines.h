@@ -52,10 +52,6 @@
 #define ETHERTYPE_PPOE          0x8864
 #endif
 
-#ifndef ETHERTYPE_BATMAN
-#define ETHERTYPE_BATMAN        0x4305
-#endif
-
 #ifndef IPPROTO_ICMPV6
 #define IPPROTO_ICMPV6          58 /* ICMPv6 */
 #endif

@@ -131,17 +131,11 @@ void Host::computeHostSerial() {
 
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
-  u_char* ant_mac =  iface->getAntennaMac();
   char buf[64], host[96];
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
 #endif
-
-  if(ant_mac)
-    memcpy(antenna_mac_address, ant_mac, 6);
-  else
-    memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
 
   if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
 
@@ -478,14 +472,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_nil_table_entry(vm, "ip");
     lua_push_nil_table_entry(vm, "ipkey");
   }
-
-  if((antenna_mac_address[0] != 0)
-     && (antenna_mac_address[1] != 0)
-     && (antenna_mac_address[2] != 0)
-     && (antenna_mac_address[3] != 0)
-     && (antenna_mac_address[4] != 0)
-     && (antenna_mac_address[5] != 0))
-    lua_push_str_table_entry(vm, "antenna_mac", get_mac(buf, sizeof(buf), antenna_mac_address));
 
   lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf), mac_address));
   lua_push_int_table_entry(vm, "vlan", vlan_id);

@@ -51,7 +51,7 @@ class NetworkInterface {
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   string ip_addresses;
   int id;
-  bool bridge_interface, has_mesh_networks_traffic;
+  bool bridge_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
   FlowProfiles  *flow_profiles;
@@ -101,7 +101,6 @@ class NetworkInterface {
   bool running, is_idle;
   PacketDumper *pkt_dumper;
   PacketDumperTuntap *pkt_dumper_tap;
-  u_char* antenna_mac;
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
 
@@ -340,7 +339,6 @@ class NetworkInterface {
 
   inline HostHash* get_hosts_hash()  { return(hosts_hash);       }
   inline bool is_bridge_interface()  { return(bridge_interface); }
-  u_char* getAntennaMac()	     { return (antenna_mac);     }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);
   inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows) { return(db ? db->exec_sql_query(vm, sql, limit_rows) : -1); };

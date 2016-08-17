@@ -140,7 +140,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false, bridge_interface = false;
-    next_idle_flow_purge = next_idle_host_purge = 0, antenna_mac = NULL;
+    next_idle_flow_purge = next_idle_host_purge = 0;
     cpu_affinity = -1 /* no affinity */, has_vlan_packets = false, pkt_dumper = NULL;
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
@@ -181,24 +181,23 @@ void NetworkInterface::init() {
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
     sprobe_interface = inline_interface = false,has_vlan_packets = false,
       last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0,
-      running = false, has_mesh_networks_traffic = false,
+      running = false, 
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
     purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
     sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
       inline_interface = false, running = false, interfaceStats = NULL,
       tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
-    has_mesh_networks_traffic = false, pkt_dumper = NULL;
+      pkt_dumper = NULL;
   pollLoopCreated = false, bridge_interface = false;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
     pkt_dumper_tap = NULL;
 
-  has_mesh_networks_traffic = false,
     ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
-    pkt_dumper = NULL, antenna_mac = NULL;
+      pkt_dumper = NULL;
 
   tcpPacketStats.pktRetr = tcpPacketStats.pktOOO = tcpPacketStats.pktLost = 0;
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
@@ -1212,127 +1211,6 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
   }
 
  decode_packet_eth:
-  if(eth_type == ETHERTYPE_BATMAN) {
-    /* ethernet now contains the L2 layer of the antennas */
-
-    u_char orig_dest[6], orig_src[6];
-
-    u_int8_t bp_type = (u_int8_t) (packet[ip_offset]);
-    u_int8_t version = (u_int8_t) (packet[ip_offset+1]);
-
-    if(version == BATADV_COMPAT_VERSION_15) {
-      switch(bp_type) {
-      case BATADV15_IV_OGM:
-	ip_offset += 24;
-	break;
-      case BATADV15_BCAST:
-	orig_src[0] = packet[ip_offset+8];
-	orig_src[1] = packet[ip_offset+9];
-	orig_src[2] = packet[ip_offset+10];
-	orig_src[3] = packet[ip_offset+11];
-	orig_src[4] = packet[ip_offset+12];
-	orig_src[5] = packet[ip_offset+13];
-	ip_offset += 14;
-	break;
-      case BATADV15_CODED:
-	ip_offset += 46;
-	break;
-      case BATADV15_UNICAST:
-	orig_dest[0] = packet[ip_offset+4];
-	orig_dest[1] = packet[ip_offset+5];
-	orig_dest[2] = packet[ip_offset+6];
-	orig_dest[3] = packet[ip_offset+7];
-	orig_dest[4] = packet[ip_offset+8];
-	orig_dest[5] = packet[ip_offset+9];
-	ip_offset += 10;
-	break;
-      case BATADV15_UNICAST_FRAG:
-	ip_offset += 20;
-	break;
-      case BATADV15_UNICAST_4ADDR:
-	ip_offset += 18;
-	break;
-      case BATADV15_ICMP:
-	ip_offset += 20;
-	break;
-      case BATADV15_UNICAST_TVLV:
-	ip_offset += 20;
-	break;
-      default:
-	fprintf(stderr,"Unknown packet type for batman-adv 2014");
-	exit(EXIT_FAILURE);
-	break;
-      }
-    }else if(version == BATADV_COMPAT_VERSION_14) {
-      switch(bp_type) {
-      case BATADV14_IV_OGM:
-	ip_offset += 26;
-	break;
-      case BATADV14_ICMP:
-	ip_offset += 20;
-	break;
-      case BATADV14_UNICAST:
-	orig_dest[0] = packet[ip_offset+4];
-	orig_dest[1] = packet[ip_offset+5];
-	orig_dest[2] = packet[ip_offset+6];
-	orig_dest[3] = packet[ip_offset+7];
-	orig_dest[4] = packet[ip_offset+8];
-	orig_dest[5] = packet[ip_offset+9];
-	ip_offset += 10;
-	break;
-      case BATADV14_BCAST:
-	orig_src[0] = packet[ip_offset+8];
-	orig_src[1] = packet[ip_offset+9];
-	orig_src[2] = packet[ip_offset+10];
-	orig_src[3] = packet[ip_offset+11];
-	orig_src[4] = packet[ip_offset+12];
-	orig_src[5] = packet[ip_offset+13];
-	ip_offset += 14;
-	break;
-      case BATADV14_VIS:
-	ip_offset += 28;
-	break;
-      case BATADV14_UNICAST_FRAG:
-	ip_offset += 20;
-	break;
-      case BATADV14_TT_QUERY:
-	ip_offset += 19;
-	break;
-      case BATADV14_ROAM_ADV:
-	ip_offset += 22;
-	break;
-      case BATADV14_UNICAST_4ADDR:
-	ip_offset += 18;
-	break;
-      case BATADV14_CODED:
-	ip_offset += 46;
-	break;
-      default:
-	fprintf(stderr,"Unknown packet type for batman-adv 2013");
-	exit(EXIT_FAILURE);
-	break;
-      }
-    } else {
-      fprintf(stderr,"ntopng supports only batman-adv version 2013 and 2014");
-      exit(EXIT_FAILURE);
-    }
-
-    ethernet = (struct ndpi_ethhdr *) &packet[ip_offset];
-    eth_type = (packet[ip_offset + 12] << 8) + packet[ip_offset + 13];
-    ip_offset += sizeof(struct ndpi_ethhdr);
-
-    if(((bp_type == BATADV14_BCAST) || (bp_type == BATADV15_BCAST))
-       && memcmp(orig_src,ethernet->h_source,6) != 0)
-      antenna_mac = orig_src;
-
-    if(((bp_type == BATADV14_UNICAST) || (bp_type == BATADV15_UNICAST))
-       &&  memcmp(orig_dest,ethernet->h_dest,6) != 0)
-      antenna_mac = orig_dest;
-
-    has_mesh_networks_traffic = true;
-  } else
-    antenna_mac = NULL;
-
   switch(eth_type) {
   case ETHERTYPE_PPOE:
     eth_type = ETHERTYPE_IP;
@@ -2850,7 +2728,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_int_table_entry(vm, "mtu", ifMTU);
-  lua_push_bool_table_entry(vm, "has_mesh_networks_traffic", has_mesh_networks_traffic);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
   tcpFlowStats.lua(vm, "tcpFlowStats");
