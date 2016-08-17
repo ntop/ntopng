@@ -160,6 +160,7 @@ using namespace std;
 #include "Mutex.h"
 #include "Utils.h"
 #include "ActivityStats.h"
+#include "UserActivityStats.h"
 #include "nDPIStats.h"
 #include "DnsStats.h"
 #include "TrafficStats.h"

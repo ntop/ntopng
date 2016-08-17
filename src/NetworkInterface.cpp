@@ -3840,3 +3840,20 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
   return(rc);
 }
+
+/* ******************************************* */
+
+const char * getActivityName(UserActivityID id) {
+  return ((id < UserActivitiesN) ? activity_names[id] : NULL);
+};
+
+/* ******************************************* */
+
+UserActivityID getActivityId(const char * name) {
+  if (name) {
+    for (int i=0; i<UserActivitiesN; i++)
+      if (strcmp(activity_names[i], name) == 0)
+        return ((UserActivityID) i);
+  }
+  return user_activity_none;
+}

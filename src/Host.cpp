@@ -166,7 +166,6 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
-  memset(user_activities, 0, sizeof(user_activities));
   asn = 0, asname = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
@@ -914,6 +913,7 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
   json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+  json_object_object_add(my_object, "userActivities", user_activities.getJSONObject());
 
   /* Generic Host */
   json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumAlerts()));
@@ -1000,6 +1000,7 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "other_ip_rcvd", &obj))  other_ip_rcvd.deserialize(obj);
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities.deserialize(obj);
 
   if(json_object_object_get_ex(o, "num_alerts", &obj)) num_alerts_detected = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
@@ -1480,8 +1481,11 @@ void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
 /* *************************************** */
 
 void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes) {
-  if(id < UserActivitiesN)
-    user_activities[id].up += upbytes, 
-      user_activities[id].down += downbytes, 
-      user_activities[id].background += bgbytes;
+  user_activities.incBytes(id, upbytes, downbytes, bgbytes);
 }
+
+/* *************************************** */
+
+const UserActivityCounter * Host::getActivityBytes(UserActivityID id) {
+  return user_activities.getBytes(id);
+};

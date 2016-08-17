@@ -24,16 +24,23 @@ cubism.rrdserver = function(context) {
 
       var k = Math.ceil(step / datastep);
       var res = [];
-      var val = 0;
+      var upval = 0;
+      var downval = 0;
       var i;
 
-      // aggregate data
+      // aggregate data: TODO test with step != 60*1000
       for (i=0; i<datasize; i++) {
-        val = val + showbg ? bg[i] : up[i] - down[i];
+        if (showbg) {
+          upval += bg[i];
+        } else {
+          upval += up[i];
+          downval += down[i];
+        }
 
         if (i % k == k-1) {
-          res.push(val);
-          val = 0;
+          // majority vote
+          res.push(upval >= downval ? upval : -downval);
+          upval = downval = 0;
         }
       }
       
