@@ -27,7 +27,7 @@ bool activity_filter_fun_none(const activity_filter_config * config,
 			      activity_filter_status * status, Flow * flow,
 			      const struct timeval *when,
 			      bool cli2srv, uint16_t payload_len) {
-  return false;
+  return true;
 }
 
 /* ********************************************************************** */

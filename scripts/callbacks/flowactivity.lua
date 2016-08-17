@@ -55,8 +55,8 @@ function flowProtocolDetected()
       flow.setActivityFilter(profile.FileSharing, filter.RollingMean)
    elseif(master == "OpenVPN") then
       flow.setActivityFilter(profile.VPN, filter.RollingMean)
-   elseif(master == "IMAPS" or master == "IMAP") then
-      -- print("$$$ Mail $$$\n")
+   elseif(master == "IMAPS" or master == "IMAP" or sub == "GMail") then
+      -- print("$$$ Mail $$$")
       flow.setActivityFilter(profile.MailSync, filter.CommandSequence, false, 200, 3000, 1)
    elseif(master == "POP3") then
       flow.setActivityFilter(profile.MailSync)

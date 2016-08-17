@@ -367,4 +367,7 @@ class NetworkInterface {
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
 };
 
+const char * getActivityName(UserActivityID id);
+UserActivityID getActivityId(const char * name);
+
 #endif /* _NETWORK_INTERFACE_H_ */
