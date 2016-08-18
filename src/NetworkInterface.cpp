@@ -179,27 +179,27 @@ void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
-    sprobe_interface = inline_interface = false,has_vlan_packets = false,
-      last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0,
-      running = false, 
+  sprobe_interface = inline_interface = false,has_vlan_packets = false,
+    last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0,
+    running = false, numSubInterfaces = 0,
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
-    purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
-    sprobe_interface = false, has_vlan_packets = false,
+  purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
+  sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
-      inline_interface = false, running = false, interfaceStats = NULL,
-      tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
-      pkt_dumper = NULL;
+    inline_interface = false, running = false, interfaceStats = NULL,
+    tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
+    pkt_dumper = NULL;
   pollLoopCreated = false, bridge_interface = false;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
     pkt_dumper_tap = NULL;
 
-    ip_addresses = "", networkStats = NULL,
+  memset(subInterfaces, 0, sizeof(subInterfaces));
+  ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1,
-      pkt_dumper = NULL;
+    pkt_dumper = NULL;
 
-  tcpPacketStats.pktRetr = tcpPacketStats.pktOOO = tcpPacketStats.pktLost = 0;
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
@@ -396,9 +396,8 @@ bool NetworkInterface::checkIdle() {
 /* **************************************************** */
 
 void NetworkInterface::deleteDataStructures() {
-
-  if(flows_hash)   { delete(flows_hash); flows_hash = NULL;     }
-  if(hosts_hash)   { delete(hosts_hash); hosts_hash = NULL;     }
+  if(flows_hash) { delete(flows_hash); flows_hash = NULL; }
+  if(hosts_hash) { delete(hosts_hash); hosts_hash = NULL; }
 
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
@@ -410,7 +409,6 @@ void NetworkInterface::deleteDataStructures() {
     free(ifname);
     ifname = NULL;
   }
-
 }
 
 /* **************************************************** */
@@ -429,16 +427,16 @@ NetworkInterface::~NetworkInterface() {
   if(remoteIfIPaddr)    free(remoteIfIPaddr);
   if(remoteProbeIPaddr) free(remoteProbeIPaddr);
   if(remoteProbePublicIPaddr) free(remoteProbePublicIPaddr);
-  if(db) delete db;
-  if(statsManager) delete statsManager;
-  if(alertsManager) delete alertsManager;
-  if(networkStats) delete []networkStats;
-  if(pkt_dumper)   delete pkt_dumper;
+  if(db)             delete db;
+  if(statsManager)   delete statsManager;
+  if(alertsManager)  delete alertsManager;
+  if(networkStats)   delete []networkStats;
+  if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
   if(interfaceStats) delete interfaceStats;
 
 #ifdef NTOPNG_PRO
-  if(policer)  delete(policer);
+  if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
 #endif
 
@@ -510,6 +508,62 @@ void NetworkInterface::dumpFlows() {
   flows_hash->walk(node_proto_guess_walker, NULL);
 }
 #endif
+
+/* **************************************************** */
+
+u_int32_t NetworkInterface::getHostsHashSize() {
+  if(!isView())
+    return(hosts_hash->getNumEntries());
+  else {
+    u_int32_t tot = 0;
+
+    for(u_int8_t s = 0; s<numSubInterfaces; s++)
+      tot += subInterfaces[s]->get_hosts_hash()->getNumEntries();
+    
+    return(tot);
+  }  
+}
+
+/* **************************************************** */
+
+u_int32_t NetworkInterface::getFlowsHashSize() {
+  if(!isView())
+    return(flows_hash->getNumEntries());
+  else {
+    u_int32_t tot = 0;
+
+    for(u_int8_t s = 0; s<numSubInterfaces; s++)
+      tot += subInterfaces[s]->get_flows_hash()->getNumEntries();
+    
+    return(tot);
+  }  
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::walker(bool walk_hosts,
+			      bool (*walker)(GenericHashEntry *h, void *user_data), 
+			      void *user_data) {
+  bool ret = false;
+
+  if(walk_hosts) {
+    if(!isView())
+      ret = hosts_hash->walk(walker, user_data);
+    else {
+      for(u_int8_t s = 0; s<numSubInterfaces; s++)
+	ret |= subInterfaces[s]->get_hosts_hash()->walk(walker, user_data);
+    }
+  } else {
+    if(!isView())
+      ret = flows_hash->walk(walker, user_data);
+    else {
+      for(u_int8_t s = 0; s<numSubInterfaces; s++)
+	ret |= subInterfaces[s]->get_flows_hash()->walk(walker, user_data);
+    }
+  }
+
+  return(ret);
+}
 
 /* **************************************************** */
 
@@ -1504,8 +1558,15 @@ void NetworkInterface::cleanup() {
 void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 				     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
 				     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst) {
-
-  (*src) = hosts_hash->get(vlanId, _src_ip);
+  
+  if(!isView())
+    (*src) = hosts_hash->get(vlanId, _src_ip);
+  else {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+      if(((*src) = subInterfaces[s]->get_hosts_hash()->get(vlanId, _src_ip)) != NULL)
+	break;
+    }
+  }
 
   if((*src) == NULL) {
     if(!hosts_hash->hasEmptyRoom()) {
@@ -1559,7 +1620,7 @@ static bool flow_sum_protos(GenericHashEntry *f, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::getnDPIStats(nDPIStats *stats) {
-  flows_hash->walk(flow_sum_protos, (void*)stats);
+  walker(false, flow_sum_protos, (void*)stats);
 }
 
 /* **************************************************** */
@@ -1593,6 +1654,8 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 void NetworkInterface::updateHostStats() {
   struct timeval tv;
 
+  if(isView()) return;
+
   gettimeofday(&tv, NULL);
 
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
@@ -1614,6 +1677,8 @@ static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
+  if(isView()) return;
+
   hosts_hash->walk(update_host_l7_policy, ptree);
 }
 
@@ -1634,6 +1699,8 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree) {
+  if(isView()) return;
+
   flows_hash->walk(update_flow_l7_policy, ptree);
 }
 
@@ -1708,14 +1775,22 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
     memset(&info, 0, sizeof(info));
     info.host_to_find = host_ip, info.vlan_id = vlan_id;
-    hosts_hash->walk(find_host_by_name, (void*)&info);
+    walker(true, find_host_by_name, (void*)&info);
 
     h = info.h;
   } else {
     IpAddress *ip = new IpAddress(host_ip);
 
     if(ip) {
-      h = hosts_hash->get(vlan_id, ip);
+      if(!isView())
+	h = hosts_hash->get(vlan_id, ip);
+      else {
+	for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+	  h = subInterfaces[s]->get_hosts_hash()->get(vlan_id, ip);
+	  if(h) break;
+	}
+      }
+      
       delete ip;
     }
   }
@@ -1737,6 +1812,8 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::updateFlowProfiles(char *old_profile, char *new_profile) {
+  if(isView()) return;
+
   if(ntop->getPro()->has_valid_license()) {
     FlowProfiles *oldP = flow_profiles, *newP = new FlowProfiles();
 
@@ -1943,45 +2020,51 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   case column_ip:
     r->elems[r->actNumEntries++].hostValue = h; /* hostValue was already set */
     break;
+
   case column_alerts:
     r->elems[r->actNumEntries++].numericValue = h->getNumAlerts();
     break;
+
   case column_name:
-    {
-      r->elems[r->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
-    }
+    r->elems[r->actNumEntries++].stringValue = strdup(h->get_name(buf, sizeof(buf), false));
     break;
+
   case column_country:
-    {
-      r->elems[r->actNumEntries++].stringValue = strdup(h->get_country() ? h->get_country() : (char*)"");
-    }
+    r->elems[r->actNumEntries++].stringValue = strdup(h->get_country() ? h->get_country() : (char*)"");
     break;
+
   case column_os:
-    {
-      r->elems[r->actNumEntries++].stringValue = strdup(h->get_os() ? h->get_os() : (char*)"");
-    }
+    r->elems[r->actNumEntries++].stringValue = strdup(h->get_os() ? h->get_os() : (char*)"");
     break;
+
   case column_vlan:
     r->elems[r->actNumEntries++].numericValue = h->get_vlan_id();
     break;
+
   case column_since:
     r->elems[r->actNumEntries++].numericValue = h->get_first_seen();
     break;
+
   case column_asn:
     r->elems[r->actNumEntries++].numericValue = h->get_asn();
     break;
+
   case column_thpt:
     r->elems[r->actNumEntries++].numericValue = h->getBytesThpt();
     break;
+
   case column_traffic:
     r->elems[r->actNumEntries++].numericValue = h->getNumBytes();
     break;
+
   case column_local_network_id:
     r->elems[r->actNumEntries++].numericValue = h->get_local_network_id();
     break;
+
   case column_mac:
     r->elems[r->actNumEntries++].numericValue = Utils::macaddr_int(h->get_mac());
     break;
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
@@ -2020,6 +2103,42 @@ int stringSorter(const void *_a, const void *_b) {
 
 /* **************************************************** */
 
+void NetworkInterface::disablePurge(bool on_flows) {
+  if(!isView()) {
+    if(on_flows)
+      flows_hash->disablePurge();
+    else
+      hosts_hash->disablePurge();
+  } else {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+      if(on_flows)
+	subInterfaces[s]->get_flows_hash()->disablePurge();
+      else
+	subInterfaces[s]->get_hosts_hash()->disablePurge();
+    }
+  }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::enablePurge(bool on_flows) {
+  if(!isView()) {
+    if(on_flows)
+      flows_hash->enablePurge();
+    else
+      hosts_hash->enablePurge();
+  } else {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+      if(on_flows)
+	subInterfaces[s]->get_flows_hash()->enablePurge();
+      else
+	subInterfaces[s]->get_hosts_hash()->enablePurge();
+    }
+  }
+}
+
+/* **************************************************** */
+
 int NetworkInterface::getFlows(lua_State* vm,
 			       patricia_tree_t *allowed_hosts,
 			       Host *host, int ndpi_proto,
@@ -2032,10 +2151,10 @@ int NetworkInterface::getFlows(lua_State* vm,
   int (*sorter)(const void *_a, const void *_b);
   bool highDetails = (location == location_local_only || (maxHits != CONST_MAX_NUM_HITS)) ? true : false;
 
-  if(maxHits > CONST_MAX_NUM_HITS) maxHits = CONST_MAX_NUM_HITS;
+  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0)) maxHits = CONST_MAX_NUM_HITS;
   retriever.pag = NULL;
   retriever.host = host, retriever.ndpi_proto = ndpi_proto, retriever.location = location;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize(), retriever.allowed_hosts = allowed_hosts;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
   if(retriever.elems == NULL) {
@@ -2056,8 +2175,8 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   /* ******************************* */
 
-  flows_hash->disablePurge();
-  flows_hash->walk(flow_search_walker, (void*)&retriever);
+  disablePurge(true);
+  walker(false, flow_search_walker, (void*)&retriever);
 
   qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -2090,11 +2209,12 @@ int NetworkInterface::getFlows(lua_State* vm,
     }
   }
 
-  flows_hash->enablePurge();
+  enablePurge(true);
   free(retriever.elems);
 
   return(retriever.actNumEntries);
 }
+
 /* **************************************************** */
 
 int NetworkInterface::getFlows(lua_State* vm,
@@ -2115,7 +2235,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   retriever.pag = p;
   retriever.host = host, retriever.location = location;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = flows_hash->getNumEntries(), retriever.allowed_hosts = allowed_hosts;
+  retriever.actNumEntries = 0, retriever.maxNumEntries = getFlowsHashSize(), retriever.allowed_hosts = allowed_hosts;
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
   if(retriever.elems == NULL) {
@@ -2137,8 +2257,8 @@ int NetworkInterface::getFlows(lua_State* vm,
 
   /* ******************************* */
 
-  flows_hash->disablePurge();
-  flows_hash->walk(flow_search_walker, (void*)&retriever);
+  disablePurge(true);
+  walker(false, flow_search_walker, (void*)&retriever);
 
   qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
@@ -2171,7 +2291,7 @@ int NetworkInterface::getFlows(lua_State* vm,
     }
   }
 
-  flows_hash->enablePurge();
+  enablePurge(true);
   free(retriever.elems);
 
   return(retriever.actNumEntries);
@@ -2187,7 +2307,7 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
   // there's not even the need to use the retriever or to sort results here
   // we use the retriever just to leverage on the exising code.
   retriever.allowed_hosts = allowed_hosts, retriever.location = location_all;
-  retriever.actNumEntries = 0, retriever.maxNumEntries = hosts_hash->getNumEntries();
+  retriever.actNumEntries = 0, retriever.maxNumEntries = getHostsHashSize();
   retriever.sorter = column_vlan; // just a placeholder, we don't care as we won't sort
   retriever.elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever.maxNumEntries);
 
@@ -2196,8 +2316,8 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
     return(-1);
   }
 
-  hosts_hash->disablePurge();
-  hosts_hash->walk(host_search_walker, (void*)&retriever);
+  disablePurge(false);
+  walker(true, host_search_walker, (void*)&retriever);
 
   lua_newtable(vm);
 
@@ -2215,7 +2335,7 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
     }
   }
 
-  hosts_hash->enablePurge();
+  enablePurge(false);
   free(retriever.elems);
 
   return(retriever.actNumEntries);
@@ -2230,13 +2350,15 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 				char *countryFilter,
 				u_int16_t *vlan_id, char *osFilter,
 				u_int32_t *asnFilter, int16_t *networkFilter,
-				char *sortColumn, u_int32_t maxHits) {
+				char *sortColumn) {
+  u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
     return -1;
-
-  if(maxHits > CONST_MAX_NUM_HITS)
+  
+  maxHits = getHostsHashSize();
+  if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
 
   retriever->allowed_hosts = allowed_hosts;
@@ -2270,12 +2392,13 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
-  hosts_hash->walk(host_search_walker, (void*)retriever);
+  walker(true, host_search_walker, (void*)retriever);
 
   qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   return(retriever->actNumEntries);
 }
+
 /* **************************************************** */
 
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
@@ -2287,12 +2410,12 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
 					 u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
 
-  hosts_hash->disablePurge();
+  disablePurge(false);
 
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
 	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
-	       sortColumn, hosts_hash->getCurrentSize()) < 0) {
-    hosts_hash->enablePurge();
+	       sortColumn) < 0) {
+    enablePurge(false);
     return -1;
   }
 
@@ -2310,7 +2433,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
     }
   }
 
-  hosts_hash->enablePurge();
+  enablePurge(false);
 
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
@@ -2338,13 +2461,13 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   struct flowHostRetriever retriever;
   Grouper *gper;
 
-  hosts_hash->disablePurge();
+  disablePurge(false);
 
   // sort hosts according to the grouping criterion
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
 	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
-	       groupColumn, hosts_hash->getCurrentSize()) < 0 ) {
-    hosts_hash->enablePurge();
+	       groupColumn) < 0 ) {
+    enablePurge(false);
     return -1;
   }
 
@@ -2352,7 +2475,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
   if((gper = new(std::nothrow) Grouper(retriever.sorter)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
-    hosts_hash->enablePurge();
+    enablePurge(false);
     return -1;
   }
 
@@ -2378,7 +2501,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
  delete gper;
   gper = NULL;
 
-  hosts_hash->enablePurge();
+  enablePurge(false);
 
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
@@ -2415,7 +2538,7 @@ void NetworkInterface::getFlowsStats(lua_State* vm) {
   struct active_flow_stats stats;
 
   memset(&stats, 0, sizeof(stats));
-  flows_hash->walk(flow_stats_walker, (void*)&stats);
+  walker(false, flow_stats_walker, (void*)&stats);
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "num_flows", stats.num_flows);
@@ -2497,7 +2620,7 @@ void NetworkInterface::getFlowPeersList(lua_State* vm,
   lua_newtable(vm);
 
   info.vm = vm, info.numIP = numIP, info.vlanId = vlanId, info.allowed_hosts = allowed_hosts;
-  flows_hash->walk(flow_peers_walker, (void*)&info);
+  walker(false, flow_peers_walker, (void*)&info);
 }
 
 /* **************************************************** */
@@ -2529,15 +2652,15 @@ static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::getLocalHostActivity(lua_State* vm, const char * host) {
+void NetworkInterface::getLocalHostActivity(lua_State* vm, const char *host) {
   HostActivityRetriever retriever(host);
   int i;
 
-  hosts_hash->disablePurge();
-  hosts_hash->walk(host_activity_walker, &retriever);
-  hosts_hash->enablePurge();
+  disablePurge(false);
+  walker(true, host_activity_walker, &retriever);
+  enablePurge(false);
 
-  if (retriever.found) {
+  if(retriever.found) {
     lua_newtable(vm);
     // 0:user_activity_none -> skip
     for (i=1; i<UserActivitiesN; i++) {
@@ -2578,9 +2701,51 @@ u_int NetworkInterface::purgeIdleFlows() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumFlows()        { return(flows_hash ? flows_hash->getNumEntries() : 0);   };
-u_int NetworkInterface::getNumHosts()        { return(hosts_hash ? hosts_hash->getNumEntries() : 0);   };
-u_int NetworkInterface::getNumHTTPHosts()    { return(hosts_hash ? hosts_hash->getNumHTTPEntries() : 0);   };
+u_int64_t NetworkInterface::getNumPackets() {
+  u_int64_t tot = ethStats.getNumPackets();
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumPackets();
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getNumBytes() {
+  u_int64_t tot = ethStats.getNumBytes();
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumBytes();
+  return(tot);
+}
+
+/* **************************************************** */
+
+u_int NetworkInterface::getNumPacketDrops() {
+  u_int tot = getNumDroppedPackets();
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumDroppedPackets();
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int NetworkInterface::getNumFlows()        {
+  u_int tot = flows_hash ? flows_hash->getNumEntries() : 0;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumFlows();
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int NetworkInterface::getNumHosts()        {
+  u_int tot = hosts_hash ? hosts_hash->getNumEntries() : 0;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumHosts();
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int NetworkInterface::getNumHTTPHosts()    {
+  u_int tot = hosts_hash ? hosts_hash->getNumHTTPEntries() : 0;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumHTTPHosts();
+  return(tot);
+};
 
 /* **************************************************** */
 
@@ -2669,7 +2834,7 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data) {
 void NetworkInterface::getFlowsStatus(lua_State *vm) {
   u_int32_t num_flows[NUM_TCP_STATES] = { 0 };
 
-  flows_hash->walk(num_flows_state_walker, num_flows);
+  walker(false, num_flows_state_walker, num_flows);
 
   lua_push_int_table_entry(vm, "RST", num_flows[0]);
   lua_push_int_table_entry(vm, "SYN", num_flows[1]);
@@ -2685,7 +2850,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
   num_flows = (u_int32_t*)calloc(ndpi_struct->ndpi_num_supported_protocols, sizeof(u_int32_t));
 
   if(num_flows) {
-    flows_hash->walk(num_flows_walker, num_flows);
+    walker(false, num_flows_walker, num_flows);
 
     for(int i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
       if(num_flows[i] > 0)
@@ -2698,18 +2863,39 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 
 /* *************************************** */
 
+void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
+				EthStats *_ethStats,
+				LocalTrafficStats *_localStats,
+				nDPIStats *_ndpiStats,
+				PacketStats *_pktStats,
+				TcpPacketStats *_tcpPacketStats) {
+  tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
+    ndpiStats.sum(_ndpiStats), pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats);
+}
+
+/* *************************************** */
+
 void NetworkInterface::lua(lua_State *vm) {
+  TcpFlowStats _tcpFlowStats;
+  EthStats _ethStats;
+  LocalTrafficStats _localStats;
+  nDPIStats _ndpiStats;
+  PacketStats _pktStats;
+  TcpPacketStats _tcpPacketStats;
+
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", ifname);
-  if(remoteIfname) lua_push_str_table_entry(vm, "remote.name",   remoteIfname);
-  if(remoteIfIPaddr) lua_push_str_table_entry(vm, "remote.if_addr",   remoteIfIPaddr);
-  if(remoteProbeIPaddr) lua_push_str_table_entry(vm, "probe.ip", remoteProbeIPaddr);
-  if(remoteProbePublicIPaddr) lua_push_str_table_entry(vm, "probe.public_ip", remoteProbePublicIPaddr);
   lua_push_int_table_entry(vm,  "id", id);
+  lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
-  lua_push_bool_table_entry(vm, "vlan", get_has_vlan_packets());
+  lua_push_bool_table_entry(vm, "vlan",   get_has_vlan_packets());
+
+  if(remoteIfname)      lua_push_str_table_entry(vm, "remote.name",    remoteIfname);
+  if(remoteIfIPaddr)    lua_push_str_table_entry(vm, "remote.if_addr", remoteIfIPaddr);
+  if(remoteProbeIPaddr) lua_push_str_table_entry(vm, "probe.ip", remoteProbeIPaddr);
+  if(remoteProbePublicIPaddr) lua_push_str_table_entry(vm, "probe.public_ip", remoteProbePublicIPaddr);
 
   lua_newtable(vm);
   lua_push_int_table_entry(vm, "packets", getNumPackets());
@@ -2717,7 +2903,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "flows",   getNumFlows());
   lua_push_int_table_entry(vm, "hosts",   getNumHosts());
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
-  lua_push_int_table_entry(vm, "drops",   getNumDroppedPackets());
+  lua_push_int_table_entry(vm, "drops",   getNumPacketDrops());
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2730,24 +2916,26 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "mtu", ifMTU);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
-  tcpFlowStats.lua(vm, "tcpFlowStats");
-  ethStats.lua(vm);
-  localStats.lua(vm);
-  ndpiStats.lua(this, vm);
-  pktStats.lua(vm, "pktSizeDistribution");
+  sumStats(&_tcpFlowStats, &_ethStats, &_localStats, 
+	   &_ndpiStats, &_pktStats, &_tcpPacketStats);
+  
+  for(u_int8_t s = 0; s<numSubInterfaces; s++)
+    subInterfaces[s]->sumStats(&_tcpFlowStats, &_ethStats, 
+			       &_localStats, &_ndpiStats, &_pktStats, &_tcpPacketStats);
 
-  lua_newtable(vm);
-  lua_push_int_table_entry(vm, "retransmissions", tcpPacketStats.pktRetr);
-  lua_push_int_table_entry(vm, "out_of_order", tcpPacketStats.pktOOO);
-  lua_push_int_table_entry(vm, "lost", tcpPacketStats.pktLost);
-  lua_pushstring(vm, "tcpPacketStats");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  _tcpFlowStats.lua(vm, "tcpFlowStats");
+  _ethStats.lua(vm);
+  _localStats.lua(vm);
+  _ndpiStats.lua(this, vm);
+  _pktStats.lua(vm, "pktSizeDistribution");
+  _tcpPacketStats.lua(vm, "tcpPacketStats");
 
-  if(pkt_dumper) pkt_dumper->lua(vm);
+  if(!isView()) {
+    if(pkt_dumper)    pkt_dumper->lua(vm);
 #ifdef NTOPNG_PRO
-  if(flow_profiles)   flow_profiles->lua(vm);
+    if(flow_profiles) flow_profiles->lua(vm);
 #endif
+  }
 }
 
 /* **************************************************** */
@@ -2761,6 +2949,7 @@ void NetworkInterface::runHousekeepingTasks() {
      Example HTTPStats::updateHTTPHostRequest() is called
      by both this function and the main thread
   */
+
   updateHostStats();
 }
 
@@ -2768,7 +2957,16 @@ void NetworkInterface::runHousekeepingTasks() {
 
 Host* NetworkInterface::findHostByMac(u_int8_t mac[6], u_int16_t vlanId,
 				      bool createIfNotPresent) {
-  Host *ret = hosts_hash->get(vlanId, mac);
+  Host *ret;
+
+  if(!isView())
+    ret = hosts_hash->get(vlanId, mac);
+  else {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+      if((ret = subInterfaces[s]->get_hosts_hash()->get(vlanId, mac)) != NULL)
+	break;
+    }
+  }
 
   if((ret == NULL) && createIfNotPresent) {
     try {
@@ -2794,7 +2992,16 @@ Host* NetworkInterface::findHostByMac(u_int8_t mac[6], u_int16_t vlanId,
 
 Flow* NetworkInterface::findFlowByKey(u_int32_t key,
 				      patricia_tree_t *allowed_hosts) {
-  Flow *f = (Flow*)(flows_hash->findByKey(key));
+  Flow *f;
+
+  if(!isView())
+    f = (Flow*)(flows_hash->findByKey(key));
+  else {
+    for(u_int8_t s = 0; s<numSubInterfaces; s++) {
+      f = (Flow*)subInterfaces[s]->get_flows_hash()->findByKey(key);
+      if(f) break;
+    }
+  }
 
   if(f && (!f->match(allowed_hosts))) f = NULL;
   return(f);
@@ -2824,14 +3031,16 @@ static bool hosts_search_walker(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::findHostsByName(lua_State* vm,
+bool NetworkInterface::findHostsByName(lua_State* vm,
 				       patricia_tree_t *allowed_hosts,
 				       char *key) {
   struct search_host_info info;
 
   info.vm = vm, info.host_name_or_ip = key, info.num_matches = 0, info.allowed_hosts = allowed_hosts;
 
-  hosts_hash->walk(hosts_search_walker, (void*)&info);
+  lua_newtable(vm);
+  walker(true, hosts_search_walker, (void*)&info);
+  return(info.num_matches > 0);
 }
 
 /* **************************************************** */
@@ -3005,7 +3214,7 @@ bool NetworkInterface::correlateHostActivity(lua_State* vm,
 
     info.vm = vm, info.h = h;
     h->getActivityStats()->extractPoints(&info.x);
-    hosts_hash->walk(correlator_walker, &info);
+    walker(true, correlator_walker, &info);
     return(true);
   } else
     return(false);
@@ -3025,7 +3234,7 @@ bool NetworkInterface::similarHostActivity(lua_State* vm,
 
     info.vm = vm, info.h = h;
     h->getActivityStats()->extractPoints(&info.x);
-    hosts_hash->walk(similarity_walker, &info);
+    walker(true, similarity_walker, &info);
     return(true);
   } else
     return(false);
@@ -3055,11 +3264,13 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
   return(false); /* false = keep on walking */
 }
 
+/* **************************************************** */
+
 void NetworkInterface::findUserFlows(lua_State *vm, char *username) {
   struct user_flows u;
 
   u.vm = vm, u.username = username;
-  flows_hash->walk(userfinder_walker, &u);
+  walker(false, userfinder_walker, &u);
 }
 
 /* **************************************************** */
@@ -3097,7 +3308,7 @@ void NetworkInterface::findProcNameFlows(lua_State *vm, char *proc_name) {
   struct proc_name_flows u;
 
   u.vm = vm, u.proc_name = proc_name;
-  flows_hash->walk(proc_name_finder_walker, &u);
+  walker(false, proc_name_finder_walker, &u);
 }
 
 /* **************************************************** */
@@ -3127,7 +3338,7 @@ void NetworkInterface::findPidFlows(lua_State *vm, u_int32_t pid) {
   struct pid_flows u;
 
   u.vm = vm, u.pid = pid;
-  flows_hash->walk(pidfinder_walker, &u);
+  walker(false, pidfinder_walker, &u);
 }
 
 /* **************************************** */
@@ -3152,7 +3363,7 @@ void NetworkInterface::findFatherPidFlows(lua_State *vm, u_int32_t father_pid) {
   struct pid_flows u;
 
   u.vm = vm, u.pid = father_pid;
-  flows_hash->walk(father_pidfinder_walker, &u);
+  walker(false, father_pidfinder_walker, &u);
 }
 
 /* **************************************** */
@@ -3182,7 +3393,7 @@ void NetworkInterface::listHTTPHosts(lua_State *vm, char *key) {
   lua_newtable(vm);
 
   info.vm = vm, info.key = key, info.num = 0;
-  hosts_hash->walk(virtual_http_hosts_walker, &info);
+  walker(true, virtual_http_hosts_walker, &info);
 }
 
 /* **************************************** */
@@ -3351,12 +3562,13 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
 static int lua_flow_get_ndpi_proto(lua_State* vm) {
   Flow *f;
+  char buf[32];
 
   lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushstring(vm, f->get_detected_protocol_name());
+  lua_pushstring(vm, f->get_detected_protocol_name(buf, sizeof(buf)));
   return(CONST_LUA_OK);
 }
 

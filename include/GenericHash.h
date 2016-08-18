@@ -96,7 +96,7 @@ class GenericHash {
    * @param walker A pointer to the comparison function.
    * @param user_data Value to be compared with the values of hash.
    */
-  void walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  bool walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
 
   /**
    * @brief Purge idle hash entries.

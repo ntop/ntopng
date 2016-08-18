@@ -142,7 +142,7 @@
 #define STDIN_IFACE_ID          (MAX_NUM_INTERFACES-3)
 #define MAX_CSRF_DURATION       300 /* 5 mins */
 #define NTOP_NOLOGIN_USER	"nologin"
-
+#define MAX_OPTIONS             24
 #define CONST_ADMINISTRATOR_USER      "administrator"
 #define CONST_UNPRIVILEGED_USER       "unprivileged"
 #define CONST_STR_NTOPNG_LICENSE      "ntopng.license"
@@ -158,7 +158,7 @@
 #define CONST_INTERFACE_TYPE_PCAP      "pcap"
 #define CONST_INTERFACE_TYPE_PCAP_DUMP "pcap dump"
 #define CONST_INTERFACE_TYPE_ZMQ       "zmq"
-#define CONST_INTERFACE_TYPE_SQLITE    "sqlite"
+#define CONST_INTERFACE_TYPE_VIEW      "view"
 #define CONST_INTERFACE_TYPE_PF_RING   "PF_RING"
 #define CONST_INTERFACE_TYPE_NETFILTER "netfilter"
 #define CONST_INTERFACE_TYPE_DIVERT    "divert"

@@ -24,64 +24,40 @@
 
 #include "ntop_includes.h"
 
-#define MAX_PAGINATION_OPTIONS 32
-
 class Paginator {
  private:
-  char *max_hits, *to_skip, *sort_column, *a2z_sort_order;
-  char *detailed_results;
-  char *os_filter, *vlan_filter, *asn_filter, *local_network_filter;
-  char *country_filter;
-  char *l7proto_filter, *port_filter;
-  void *pagination_options[MAX_PAGINATION_OPTIONS * 2/* option name + pointer*/];
+  u_int16_t max_hits, to_skip;
+  bool a2z_sort_order, detailed_results;
+  char *sort_column, *country_filter;
+  int l7proto_filter;
+  u_int16_t port_filter;
+  int16_t local_network_filter;
 
  public:
   Paginator();
   ~Paginator();
   void readOptions(lua_State *L, int index);
 
-  inline u_int16_t maxHits() const {
-    return max_hits ? min(atoi(max_hits), CONST_MAX_NUM_HITS) : CONST_MAX_NUM_HITS;
-  }
-
-  inline u_int16_t toSkip() const {
-    return to_skip ? atoi(to_skip) : 0;
-  }
-
-  inline bool a2zSortOrder() const {
-    if(a2z_sort_order) {
-      return a2z_sort_order[0] == 't' ? true : false;
-    } else {
-      return true;
-    }
-  }
-
-  inline char *sortColumn() const {
-    if(sort_column)
-      return sort_column;
-    return (char*)"column_thpt";
-  }
-
-  inline bool detailedResults() const {
-    if(detailed_results)
-      return detailed_results;
-    return false;
-  }
+  inline u_int16_t maxHits() const    { return(min_val(max_hits, CONST_MAX_NUM_HITS));  }
+  inline u_int16_t toSkip() const     { return(to_skip);  }
+  inline bool a2zSortOrder() const    { return(a2z_sort_order); }
+  inline char *sortColumn() const     { return(sort_column); }
+  inline bool detailedResults() const { return(detailed_results); }
 
   inline bool countryFilter(char **f) const {
     if(country_filter) { (*f) = country_filter; return true; } return false;
   }
 
   inline bool l7protoFilter(int *f) const {
-    if(l7proto_filter) { (*f) = atoi(l7proto_filter); return true; } return false;
+    if(l7proto_filter) { (*f) = l7proto_filter; return true; } return false;
   }
 
   inline bool portFilter(u_int16_t *f) const {
-    if(port_filter) { (*f) = atoi(port_filter); return true; } return false;
+    if(port_filter) { (*f) = port_filter; return true; } return false;
   }
 
   inline bool localNetworkFilter(int16_t *f) const {
-    if(local_network_filter) { (*f) = atoi(local_network_filter); return true; } return false;
+    if(local_network_filter) { (*f) = local_network_filter; return true; } return false;
   }
 };
 

@@ -19,31 +19,30 @@
  *
  */
 
-#ifndef _TCP_FLOW_STATS_H_
-#define _TCP_FLOW_STATS_H_
+#ifndef _TCP_PACKET_STATS_H_
+#define _TCP_PACKET_STATS_H_
 
 #include "ntop_includes.h"
 
-class TcpFlowStats {
+class TcpPacketStats {
  private:
-  u_int32_t numSynFlows, numEstablishedFlows, numResetFlows, numFinFlows;
+  u_int64_t pktRetr, pktOOO, pktLost;
 
  public:
-  TcpFlowStats();
+  TcpPacketStats();
   
-  inline void incSyn()         { numSynFlows++;    }
-  inline void incEstablished() { numEstablishedFlows++; }
-  inline void incReset()       { numResetFlows++;       }
-  inline void incFin()         { numFinFlows++;         }
+  inline void incRetr(u_int32_t num) { pktRetr += num; }
+  inline void incOOO(u_int32_t num)  { pktOOO += num;  }
+  inline void incLost(u_int32_t num) { pktLost += num; }
 
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();
   void lua(lua_State* vm, const char *label);
-  inline void sum(TcpFlowStats *s) {
-    s->numSynFlows += numSynFlows, s->numEstablishedFlows += numEstablishedFlows,
-      s->numResetFlows += numResetFlows, s->numFinFlows += numFinFlows;
-  };
+
+  inline void sum(TcpPacketStats *s) {
+    s->pktRetr += pktRetr, s->pktOOO += pktOOO, s-> pktLost += pktLost;
+  }
 };
 
-#endif /* _TCP_FLOW_STATS_H_ */
+#endif /* _TCP_PACKET_STATS_H_ */

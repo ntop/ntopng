@@ -40,18 +40,18 @@ class NtopPro;
 class Ntop {
  private:
   patricia_tree_t *local_interface_addresses;
-  char working_dir[MAX_PATH]; /**< Array of working directory.*/
-  char install_dir[MAX_PATH]; /**< Array of install directory.*/
-  char startup_dir[MAX_PATH]; /**< Array of startup directory.*/
-  char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI.*/
-  NetworkInterface *iface[MAX_NUM_DEFINED_INTERFACES];/**< Array of network interfaces.*/
-  u_int8_t num_defined_interfaces; /**< Number of defined interfaces.*/
-  HTTPserver *httpd; /**< Pointer of httpd server.*/
-  NtopGlobals *globals; /**< Pointer of Ntop globals info and variables.*/
+  char working_dir[MAX_PATH]; /**< Array of working directory. */
+  char install_dir[MAX_PATH]; /**< Array of install directory. */
+  char startup_dir[MAX_PATH]; /**< Array of startup directory. */
+  char *custom_ndpi_protos; /**< Pointer of a custom protocol for nDPI. */
+  NetworkInterface *iface[MAX_NUM_DEFINED_INTERFACES];/**< Array of network interfaces. */
+  u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
+  HTTPserver *httpd; /**< Pointer of httpd server. */
+  NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus; /**< Number of physical CPU cores. */
-  Redis *redis; /**< Pointer of Radius server.*/
-  ElasticSearch *elastic_search; /**< Pointer of Elastic Search.*/
-  PeriodicActivities *pa; /**< Instance of periodical activities.*/
+  Redis *redis; /**< Pointer of Redis server. */
+  ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
+  PeriodicActivities *pa; /**< Instance of periodical activities. */
   AddressResolution *address;
   Prefs *prefs;
   RuntimePrefs *runtimeprefs;
@@ -186,8 +186,8 @@ class Ntop {
    * @param id Index of ifName.
    * @return ....
    */
-  inline char* get_if_name(int id)              { return(prefs->get_if_name(id));     };
-  inline char* get_if_descr(int id)             { return(prefs->get_if_descr(id));    };
+  inline char* get_if_name(int id)                   { return(prefs->get_if_name(id));     };
+  inline char* get_if_descr(int id)                  { return(prefs->get_if_descr(id));    };
   inline char* get_data_dir()                        { return(prefs->get_data_dir());      };
   inline char* get_callbacks_dir()                   { return(prefs->get_callbacks_dir()); };
   /**

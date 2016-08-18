@@ -222,8 +222,9 @@ static int ntop_get_interface_names(lua_State* vm) {
     NetworkInterface *iface;
 
     if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", iface->get_name());
       char num[8];
+
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", iface->get_name());
       snprintf(num, sizeof(num), "%d", i);
       lua_push_str_table_entry(vm, num, iface->get_name());
     }
@@ -1741,8 +1742,8 @@ static int ntop_get_interface_find_host(lua_State* vm) {
   key = (char*)lua_tostring(vm, 1);
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
-
   ntop_interface->findHostsByName(vm, get_allowed_nets(vm), key);
+
   return(CONST_LUA_OK);
 }
 
@@ -3223,7 +3224,6 @@ static int ntop_generate_csrf_value(lua_State* vm) {
 #endif
 
   mg_get_cookie(conn, "user", user, sizeof(user));
-
   mg_md5(csrf, random_a, random_b, NULL);
 
   redis->set(csrf, (char*)user, MAX_CSRF_DURATION);

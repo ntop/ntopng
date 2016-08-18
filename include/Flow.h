@@ -81,7 +81,7 @@ class Flow : public GenericHashEntry {
 #endif
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
-  char *json_info, *host_server_name, *ndpi_proto_name, *bt_hash;
+  char *json_info, *host_server_name, *bt_hash;
   bool dump_flow_traffic, badFlow;
 
   union {
@@ -273,7 +273,10 @@ class Flow : public GenericHashEntry {
   inline char* get_protocol_breed_name()            { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(),
 										       ndpi_get_proto_breed(iface->get_ndpi_struct(),
 													    ndpiDetectedProtocol.protocol))); };
-  char* get_detected_protocol_name();
+  char* get_detected_protocol_name(char *buf, u_int buf_len) {
+    return(ndpi_protocol2name(iface->get_ndpi_struct(), ndpiDetectedProtocol, buf, buf_len));
+  }
+
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
   u_int32_t get_packetsOOO();

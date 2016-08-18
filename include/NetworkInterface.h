@@ -47,7 +47,7 @@ class L7Policer;
  */
 class NetworkInterface {
  protected:
-  char *ifname; /**< Network interface name.*/
+  char *ifname; /**< Network interface name. */
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   string ip_addresses;
   int id;
@@ -58,17 +58,20 @@ class NetworkInterface {
 #endif
   EthStats ethStats;
   LocalTrafficStats localStats;
-  int pcap_datalink_type; /**< Datalink type of pcap.*/
+  int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
-  bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered;
+  bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
   u_int32_t ifSpeed;
   u_int16_t ifMTU;
-  bool mtuWarningShown;
-  int cpu_affinity; /**< Index of physical core where the network interface works.*/
+  int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats ndpiStats;
   PacketStats pktStats;
-  FlowHash *flows_hash; /**< Hash used to memorize the flows information.*/
+  FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
+
+  /* Sub-interface views */
+  u_int8_t numSubInterfaces;
+  NetworkInterface *subInterfaces[MAX_NUM_VIEW_INTERFACES];
 
   /* Lua */
   bool reloadLuaInterpreter;
@@ -80,14 +83,11 @@ class NetworkInterface {
     currentMinuteTraffic[60]; /* Delta bytes (per second) of the current minute */
   time_t lastSecUpdate;
   TcpFlowStats tcpFlowStats;
-
-  struct {
-    u_int64_t pktRetr, pktOOO, pktLost;
-  } tcpPacketStats;
+  TcpPacketStats tcpPacketStats;
 
   u_int64_t zmq_initial_bytes, zmq_initial_pkts;
   /* Hosts */
-  HostHash *hosts_hash; /**< Hash used to memorize the hosts information.*/
+  HostHash *hosts_hash; /**< Hash used to memorize the hosts information. */
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
     dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic, dump_security_packets;
   DB *db;
@@ -106,7 +106,6 @@ class NetworkInterface {
 
   lua_State* initLuaInterpreter(const char *lua_file);
   void termLuaInterpreter();
-
   void init();
   void deleteDataStructures();
   Flow* getFlow(u_int8_t *src_eth, u_int8_t *dst_eth, u_int16_t vlan_id,
@@ -124,15 +123,27 @@ class NetworkInterface {
 		char *countryFilter,
 		u_int16_t *vlan_id, char *osFilter,
 		u_int32_t *asnFilter, int16_t *networkFilter,
-		char *sortColumn, u_int32_t maxHits);
+		char *sortColumn);
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
-  bool checkIdle();  
+  bool checkIdle();
   void dumpPacketDisk(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void triggerTooManyHostsAlert();
   void triggerTooManyFlowsAlert();
+  virtual u_int getNumDroppedPackets() { return 0;};
+  bool walker(bool walk_hosts,
+	      bool (*walker)(GenericHashEntry *h, void *user_data),
+	      void *user_data);
+
+  void disablePurge(bool on_flows);
+  void enablePurge(bool on_flows);
+  u_int32_t getHostsHashSize();
+  u_int32_t getFlowsHashSize();
+  void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
+		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
+		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
 
  public:
   /**
@@ -149,7 +160,6 @@ class NetworkInterface {
   virtual void startPacketPolling();
   virtual void shutdown();
   virtual void cleanup();
-  virtual u_int getNumDroppedPackets()         { return 0;      };
   virtual char *getScriptName()                { return NULL;   }
   virtual char *getEndpoint(u_int8_t id)       { return NULL;   };
   virtual bool set_packet_filter(char *filter) { return(false); };
@@ -164,7 +174,7 @@ class NetworkInterface {
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
-  inline char* get_ndpi_proto_breed_name(u_int id) { 
+  inline char* get_ndpi_proto_breed_name(u_int id) {
     return(ndpi_get_proto_breed_name(ndpi_struct, ndpi_get_proto_breed(ndpi_struct, id))); };
   inline void setRemoteIfname(char *name)      { if(!remoteIfname)      remoteIfname = strdup(name);   };
   inline void setRemoteIfIPaddr(char *ip)      { if(!remoteIfIPaddr)    remoteIfIPaddr = strdup(ip);   };
@@ -186,9 +196,9 @@ class NetworkInterface {
   int dumpFlow(time_t when, bool partial_dump, Flow *f);
   int dumpDBFlow(time_t when, bool partial_dump, Flow *f);
   int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
-  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.pktRetr += num; };
-  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.pktOOO  += num; };
-  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.pktLost += num; };
+  inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
+  inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
+  inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
   void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
   void updateSecondTraffic(time_t when);
 
@@ -214,7 +224,7 @@ class NetworkInterface {
 		     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
-  void findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
+  bool findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
   bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, bool *shaped, u_int16_t *ndpiProtocol);
   bool processPacket(const struct bpf_timeval *when,
 		     const u_int64_t time,
@@ -283,8 +293,9 @@ class NetworkInterface {
   u_int purgeIdleFlows();
   u_int purgeIdleHosts();
 
-  inline u_int64_t getNumPackets()  { return(ethStats.getNumPackets());      };
-  inline u_int64_t getNumBytes()    { return(ethStats.getNumBytes());        };
+  u_int64_t getNumPackets();
+  u_int64_t getNumBytes();
+  u_int getNumPacketDrops();
   u_int getNumFlows();
   u_int getNumHosts();
   u_int getNumHTTPHosts();
@@ -352,7 +363,7 @@ class NetworkInterface {
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
   bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
 #endif
-  void setRemoteStats(char *name, char *address, u_int32_t speedMbit, 
+  void setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,
 		      u_int64_t remBytes, u_int64_t remPkts, u_int32_t remote_time,
 		      u_int32_t last_pps, u_int32_t last_bps);
@@ -363,6 +374,7 @@ class NetworkInterface {
   inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) { if(interfaceStats) interfaceStats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm); };
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
+  inline virtual bool isView() { return(false); };
 };
 
 const char * getActivityName(UserActivityID id);

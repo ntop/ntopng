@@ -25,12 +25,14 @@
 #include "ntop_includes.h"
 
 class DummyInterface : public ParserInterface {
+ private:
+  inline u_int getNumDroppedPackets()   { return(0);      };
+
  public:
   DummyInterface();
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_DUMMY);      };
   inline bool is_ndpi_enabled()         { return(false);  };
-  inline u_int getNumDroppedPackets()   { return(0);      };
   inline bool isPacketInterface()       { return(false);  };
 
   void forgeFlow(u_int iteration);

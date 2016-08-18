@@ -168,6 +168,7 @@ using namespace std;
 #include "Grouper.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
+#include "TcpPacketStats.h"
 #include "EthStats.h"
 #include "LocalTrafficStats.h"
 #include "PacketDumperGeneric.h"
@@ -191,7 +192,7 @@ using namespace std;
 #include "InterfaceStatsHash.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"
-//#include "TimeSeries.h"
+#include "ViewInterface.h"
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
 #endif

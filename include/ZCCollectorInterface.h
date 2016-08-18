@@ -30,10 +30,11 @@ class ZCCollectorInterface : public ParserInterface {
  private:
   u_int32_t cluster_id, queue_id;
   u_int32_t num_drops;
-
   pfring_zc_queue *zq;
   pfring_zc_buffer_pool *zp;
   pfring_zc_pkt_buff *buffer;
+
+  inline u_int getNumDroppedPackets()   { return(num_drops);  };
 
  public:
   ZCCollectorInterface(const char *name);
@@ -42,7 +43,6 @@ class ZCCollectorInterface : public ParserInterface {
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
   inline bool is_ndpi_enabled()         { return(false);      };
   inline void incrDrops(u_int32_t num)  { num_drops += num;   };
-  inline u_int getNumDroppedPackets()   { return(num_drops);  };
   inline bool isPacketInterface()       { return(false);      };
   void collect_flows();
 

@@ -12,8 +12,9 @@ names = interface.getIfNames()
 num_ifaces = 0
 for k,v in pairs(names) do
    num_ifaces = num_ifaces+1
-   -- io.write(k.."\n")
 end
+
+-- tprint(names)
 
 print [[
       <div class="masthead">
@@ -194,13 +195,12 @@ for v,k in pairs(interface.getIfNames()) do
    interface.select(k)
    _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
-   --io.write(ifnames[_ifstats.id].."=".._ifstats.id.."\n")
+   --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
 end
 
 for k,v in pairsByKeys(ifnames, asc) do
    print("      <li>")
-   --io.write(k.."="..v.."\n")
 
    if(v == ifname) then
       print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..k.."\">")

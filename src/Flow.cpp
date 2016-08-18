@@ -46,7 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, dissecting_ssl = true;
 
   l7_protocol_guessed = detection_completed = false;
-  dump_flow_traffic = false, ndpi_proto_name = NULL,
+  dump_flow_traffic = false,
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_UNKNOWN,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
@@ -266,7 +266,6 @@ Flow::~Flow() {
     if(protos.ssl.certificate)  free(protos.ssl.certificate);
   }
 
-  if(ndpi_proto_name)  free(ndpi_proto_name);
   if(bt_hash)          free(bt_hash);
 
   deleteFlowMemory();
@@ -711,7 +710,7 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()
        || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)))
-      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
+      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
@@ -754,7 +753,7 @@ char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Flow::print(char *buf, u_int buf_len) {
-  char buf1[32], buf2[32], buf3[32];
+  char buf1[32], buf2[32], buf3[32], pbuf[32];
 
   buf[0] = '\0';
 
@@ -765,7 +764,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
-	   ndpiDetectedProtocol.protocol, get_detected_protocol_name(),
+	   ndpiDetectedProtocol.protocol, get_detected_protocol_name(pbuf, sizeof(pbuf)),
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
 	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
@@ -1207,8 +1206,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
   if(!detailed_dump) {
     if(src) {
-      lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "cli.key", get_cli_host()->key());
+      lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
+      lua_push_int_table_entry(vm, "cli.key", src->key());
     } else {
       lua_push_nil_table_entry(vm, "cli.ip");
       lua_push_nil_table_entry(vm, "cli.key");
@@ -1216,8 +1215,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
     if (dst) {
-      lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "srv.key", get_srv_host()->key());
+      lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
+      lua_push_int_table_entry(vm, "srv.key", dst->key());
     } else {
       lua_push_nil_table_entry(vm, "srv.ip");
       lua_push_nil_table_entry(vm, "srv.key");
@@ -1228,15 +1227,15 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
   } else {
     if(src) {
-      lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
-      lua_push_int_table_entry(vm, "cli.source_id", get_cli_host()->getSourceId());
-      lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
+      lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
+      lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
       lua_push_str_table_entry(vm, "cli.mac", Utils::macaddr_str((char*)src->get_mac(), buf));
-      lua_push_int_table_entry(vm, "cli.key", get_cli_host()->key());
+      lua_push_int_table_entry(vm, "cli.key", src->key());
 
-      lua_push_bool_table_entry(vm, "cli.systemhost", get_cli_host()->isSystemHost());
+      lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
       lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
-      lua_push_int32_table_entry(vm, "cli.network_id", get_cli_host()->get_local_network_id());
+      lua_push_int32_table_entry(vm, "cli.network_id", src->get_local_network_id());
     } else {
       lua_push_nil_table_entry(vm, "cli.host");
       lua_push_nil_table_entry(vm, "cli.ip");
@@ -1246,14 +1245,14 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
     if(dst) {
-      lua_push_str_table_entry(vm, "srv.host", get_srv_host()->get_name(buf, sizeof(buf), false));
-      lua_push_int_table_entry(vm, "srv.source_id", get_cli_host()->getSourceId());
-      lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "srv.host", dst->get_name(buf, sizeof(buf), false));
+      lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
+      lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
       lua_push_str_table_entry(vm, "srv.mac", Utils::macaddr_str((char*)dst->get_mac(), buf));
-      lua_push_int_table_entry(vm, "srv.key", get_srv_host()->key());
-      lua_push_bool_table_entry(vm, "srv.systemhost", get_srv_host()->isSystemHost());
+      lua_push_int_table_entry(vm, "srv.key", dst->key());
+      lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
-      lua_push_int32_table_entry(vm, "srv.network_id", get_srv_host()->get_local_network_id());
+      lua_push_int32_table_entry(vm, "srv.network_id", dst->get_local_network_id());
     } else {
       lua_push_nil_table_entry(vm, "srv.host");
       lua_push_nil_table_entry(vm, "srv.ip");
@@ -1268,7 +1267,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()
        || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))) {
-      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
+      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
@@ -1641,7 +1640,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(ndpiDetectedProtocol.protocol));
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(get_detected_protocol_name()));
+			   json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
   }
 
   if(protocol == IPPROTO_TCP)
@@ -2338,24 +2337,6 @@ void Flow::checkFlowCategory() {
     badFlow = true, setDropVerdict();
   }
 #endif
-}
-
-/* *************************************** */
-
-char* Flow::get_detected_protocol_name() {
-  if((ndpi_proto_name == NULL)
-     || ((ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
-	 && strcmp(ndpi_proto_name, "Unknown"))) {
-    char buf[64], *old = ndpi_proto_name;
-
-    ndpi_proto_name = strdup(ndpi_protocol2name(iface->get_ndpi_struct(),
-						ndpiDetectedProtocol,
-						buf, sizeof(buf)));
-
-    if(old) free(old);
-  }
-
-  return(ndpi_proto_name);
 }
 
 /* *************************************** */

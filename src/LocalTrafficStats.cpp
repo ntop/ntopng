@@ -33,17 +33,15 @@ LocalTrafficStats::LocalTrafficStats() {
 void LocalTrafficStats::incStats(u_int num_pkts, u_int pkt_len, 
 				 bool localsender, bool localreceiver) { 
   if(localsender) {
-    if(localreceiver) {
+    if(localreceiver)
       packets.local2local += num_pkts, bytes.local2local += pkt_len;
-    } else {
-      packets.local2remote += num_pkts, bytes.local2remote += pkt_len;
-    }
+    else
+      packets.local2remote += num_pkts, bytes.local2remote += pkt_len;    
   } else {
-    if(localreceiver) {
+    if(localreceiver)
       packets.remote2local += num_pkts, bytes.remote2local += pkt_len;
-    } else {
+    else
       packets.remote2remote += num_pkts, bytes.remote2remote += pkt_len;
-    }    
   }
 };  
 
