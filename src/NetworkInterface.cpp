@@ -1108,11 +1108,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   // Detect user activities
   UserActivityID activity = flow->getActivityId();
   u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
-  if (activity != user_activity_none) {
+  if (activity != user_activity_none && !flow->isSSLHandshake()) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
 
-    if (!flow->isSSLHandshake() && flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
+    if (flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
       if (src2dst_direction)
         up = bytes;
       else
