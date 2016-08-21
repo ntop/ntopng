@@ -31,7 +31,7 @@ cubism.rrdserver = function(context) {
       // aggregate data: TODO test with step != 60*1000
       for (i=0; i<datasize; i++) {
         if (showbg) {
-          upval += bg[i];
+          downval += bg[i];
         } else {
           upval += up[i];
           downval += down[i];
@@ -39,7 +39,7 @@ cubism.rrdserver = function(context) {
 
         if (i % k == k-1) {
           // majority vote
-          res.push(upval >= downval ? upval : -downval);
+          res.push(upval >= downval ? -upval : downval);
           upval = downval = 0;
         }
       }

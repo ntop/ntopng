@@ -56,11 +56,16 @@ typedef enum {
 
 typedef enum {
   SSL_STAGE_UNKNOWN = 0,
-  SSL_STAGE_CLI_HELLO,
-  SSL_STAGE_SRV_HELLO,
-  SSL_STAGE_CLI_CCS,
-  SSL_STAGE_SRV_CCS
+  SSL_STAGE_HELLO,
+  SSL_STAGE_CCS
 } FlowSSLStage;
+
+typedef enum {
+  SSL_ENCRYPTION_PLAIN = 0x0,
+  SSL_ENCRYPTION_SERVER = 0x1,
+  SSL_ENCRYPTION_CLIENT = 0x2,
+  SSL_ENCRYPTION_BOTH = 0x3,
+} FlowSSLEncryptionStatus;
 
 class Flow : public GenericHashEntry {
  private:
@@ -73,7 +78,7 @@ class Flow : public GenericHashEntry {
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed,
-    good_low_flow_detected, dissecting_ssl;
+    good_low_flow_detected, good_ssl_hs;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -96,8 +101,10 @@ class Flow : public GenericHashEntry {
     
     struct {
       char *certificate;
-      FlowSSLStage tls_stage;
+      FlowSSLStage cli_stage, srv_stage;
       u_int8_t hs_packets;
+      bool is_data;
+      /* firstdata refers to the time where encryption is active on both ends */
       bool firstdata_seen;
       struct timeval clienthello_time, hs_end_time, lastdata_time;
       float hs_delta_time, delta_firstData, deltaTime_data;
@@ -309,7 +316,7 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
   inline bool isSuspiciousFlowThpt();
-  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
+  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
@@ -321,8 +328,10 @@ class Flow : public GenericHashEntry {
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = strdup(v); } }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
-  inline bool isSSLData()              { return(isSSLProto() && dissecting_ssl && protos.ssl.firstdata_seen); }
-  inline bool isSSLHandshake()         { return(isSSLProto() && dissecting_ssl && !protos.ssl.firstdata_seen); }
+  inline bool isSSLData()              { return(isSSLProto() && good_ssl_hs && protos.ssl.is_data); }
+  inline bool isSSLHandshake()         { return(isSSLProto() && good_ssl_hs && !protos.ssl.is_data); }
+  inline bool hasSSLHandshakeEnded()   { return(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH); }
+  FlowSSLEncryptionStatus getSSLEncryptionStatus();
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
@@ -345,13 +354,13 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
-  inline FlowState getFlowState()                   { return(state);                          };
-  inline bool      isEstablished()                  { return state == flow_state_established; };
+  inline FlowState getFlowState()                   { return(state);                          }
+  inline bool      isEstablished()                  { return state == flow_state_established; }
   
   void setActivityFilter(activity_filter_t * filter, const activity_filter_config * config);
   bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
-  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; };
-  inline UserActivityID getActivityId()             { return(activityDetection.activityId); };
+  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; }
+  inline UserActivityID getActivityId()             { return(activityDetection.activityId); }
 };
 
 #endif /* _FLOW_H_ */

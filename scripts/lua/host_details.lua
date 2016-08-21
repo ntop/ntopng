@@ -709,7 +709,7 @@ end
       ]]
 
 -- Host activity stats
-if true then
+if host["localhost"] == true then
    print [[ <tr><th>User Activity</th><td colspan=2>
       <div style='margin-top:0.5em; margin-bottom:2em;'>
          <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> UpDown
