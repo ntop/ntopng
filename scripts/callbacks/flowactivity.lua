@@ -51,27 +51,27 @@ function flowProtocolDetected()
    local proto = flow.getNdpiProto()
    local master, sub = splitProto(proto)
    local srv = flow.getServerName()
-   
-   if(master == "BitTorrent") then
-      flow.setActivityFilter(profile.FileSharing, filter.RollingMean)
-   elseif(master == "OpenVPN") then
-      flow.setActivityFilter(profile.VPN, filter.RollingMean)
-   elseif(master == "IMAPS" or master == "IMAP" or (sub == "GMail" and srv == "imap.gmail.com")) then
-      flow.setActivityFilter(profile.MailSync, filter.CommandSequence, false, 200, 3000, 1)
-   elseif(master == "POP3") then
-      flow.setActivityFilter(profile.MailSync)
-   elseif(master == "SMPT" or master == "SMPTS" or (sub == "GMail" and srv == "smtp.gmail.com")) then
-      flow.setActivityFilter(profile.MailSend)
-   elseif(master == "HTTP" or master == "HTTPS" or "SSL") then
-      flow.setActivityFilter(profile.Web, filter.Web)
-   elseif(master == "DNS") then
-      flow.setActivityFilter(profile.None)
-   else
-      flow.setActivityFilter(profile.Other)
-   end
 
-   if(trace_hk) then
-      f = flow.dump() 
-      print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].."\n")
-    end
+   if master ~= "DNS" then
+      if(master == "BitTorrent") then
+         flow.setActivityFilter(profile.FileSharing, filter.RollingMean)
+      elseif(master == "OpenVPN") then
+         flow.setActivityFilter(profile.VPN, filter.RollingMean)
+      elseif(master == "IMAPS" or master == "IMAP" or (sub == "GMail" and srv == "imap.gmail.com")) then
+         flow.setActivityFilter(profile.MailSync, filter.CommandSequence, false, 200, 3000, 1)
+      elseif(master == "POP3") then
+         flow.setActivityFilter(profile.MailSync)
+      elseif(master == "SMPT" or master == "SMPTS" or (sub == "GMail" and srv == "smtp.gmail.com")) then
+         flow.setActivityFilter(profile.MailSend)
+      elseif(master == "HTTP" or master == "HTTPS" or master == "SSL") then
+         flow.setActivityFilter(profile.Web, filter.Web)
+      else
+         flow.setActivityFilter(profile.Other)
+      end
+
+      if(trace_hk) then
+         f = flow.dump() 
+         print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].."\n")
+      end
+   end
 end

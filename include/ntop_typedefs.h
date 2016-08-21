@@ -232,11 +232,4 @@ typedef enum {
 		  */
 } UserActivityID;
 
-typedef enum {
-  activity_filter_none = 0,
-  activity_filter_rolling_mean,
-  activity_filter_command_sequence,
-  activity_filter_web
-} ActivityFilterID;
-
 #endif /* _NTOP_TYPEDEFS_H_ */

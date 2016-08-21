@@ -1103,7 +1103,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   // Detect user activities
   UserActivityID activity = flow->getActivityId();
   u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
-  if (activity != user_activity_none && flow->isSSLData()) {
+  if (activity != user_activity_none && (!flow->isSSLProto() || flow->isSSLData())) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
 
@@ -3706,11 +3706,33 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
     case activity_filter_none:
       fun = &activity_filter_fun_none;
       break;
-
     case activity_filter_web:
+      if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
+        config.web.numsamples = lua_tonumber(vm, ++params);
+
+        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          config.web.minbytes = lua_tonumber(vm, ++params);
+
+          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+            config.web.maxinterval = lua_tonumber(vm, ++params);
+
+            if (lua_type(vm, params+1) == LUA_TBOOLEAN)
+              config.web.serverdominant = lua_toboolean(vm, ++params);
+          }
+        }
+      }
+      // defaults
+      switch (params) {
+        case 2+0: config.web.numsamples = 4;
+        case 2+1: config.web.minbytes = 0;
+        case 2+2: config.web.maxinterval = 2000;
+        case 2+3: config.web.serverdominant = true;
+      }
       fun = &activity_filter_fun_web;
       break;
-
+    case activity_filter_metrics_test:
+      fun = &activity_filter_fun_metrics_test;
+      break;
     case activity_filter_rolling_mean:
       if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
         config.rolling_mean.edge = lua_tonumber(vm, ++params);
@@ -3722,7 +3744,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
             config.rolling_mean.minsamples = lua_tonumber(vm, ++params);
         }
       }
-
       // defaults
       switch (params) {
         case 2+0: config.rolling_mean.edge = 0;
@@ -3731,7 +3752,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       }
       fun = &activity_filter_fun_rolling_mean;
       break;
-
     case activity_filter_command_sequence:
       if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
         config.command_sequence.mustwait = lua_toboolean(vm, ++params);
@@ -3747,7 +3767,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
           }
         }
       }
-
       switch (params) {
         case 2+0: config.command_sequence.mustwait = false;
         case 2+1: config.command_sequence.minbytes = 0;
@@ -3756,7 +3775,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       }
       fun = &activity_filter_fun_command_sequence;
       break;
-
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid activity filter (%d)", filterID);
       return (CONST_LUA_ERROR);
@@ -3864,6 +3882,7 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   lua_push_int_table_entry(L, "RollingMean", activity_filter_rolling_mean);
   lua_push_int_table_entry(L, "CommandSequence", activity_filter_command_sequence);
   lua_push_int_table_entry(L, "Web", activity_filter_web);
+  lua_push_int_table_entry(L, "Metrics", activity_filter_metrics_test);
   lua_setglobal(L, CONST_USERACTIVITY_FILTERS);
 
   return(L);

@@ -25,8 +25,19 @@
 #include <stdint.h>
 #include <time.h>
 
+#define ACTIVITY_FILTER_METRICS_SAMPLES 4
+#define ACTIVITY_FILTER_METRICS_MAX_INTERVAL 2000
+
 typedef unsigned int uint;
 class Flow;
+
+typedef enum {
+  activity_filter_none = 0,
+  activity_filter_rolling_mean,
+  activity_filter_command_sequence,
+  activity_filter_web,
+  activity_filter_metrics_test,
+} ActivityFilterID;
 
 typedef union {
   struct {
@@ -41,6 +52,13 @@ typedef union {
     uint minflips;
     bool mustwait;
   } command_sequence;
+
+  struct {
+    uint numsamples;
+    uint minbytes;
+    uint maxinterval;
+    bool serverdominant;
+  } web;
 } activity_filter_config;
 
 typedef union {
@@ -52,6 +70,21 @@ typedef union {
     bool srvWaited;
     bool cli2srv;
   } command_sequence;
+
+  struct {
+    uint64_t cliBytes;
+    uint64_t srvBytes;
+    struct timeval lastPacket;
+    uint8_t samples;
+    bool detected;
+  } web;
+
+  struct {    
+    uint16_t sizes[ACTIVITY_FILTER_METRICS_SAMPLES];
+    struct timeval times[ACTIVITY_FILTER_METRICS_SAMPLES];
+    uint8_t samples;
+    bool directions[ACTIVITY_FILTER_METRICS_SAMPLES];
+  } metrics;
 } activity_filter_status;
 
 /*
@@ -76,5 +109,6 @@ activity_filter_t activity_filter_fun_none;
 activity_filter_t activity_filter_fun_rolling_mean;
 activity_filter_t activity_filter_fun_command_sequence;
 activity_filter_t activity_filter_fun_web;
+activity_filter_t activity_filter_fun_metrics_test;
 
 #endif
