@@ -1064,13 +1064,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
     default:
       if (flow->isSSLProto())
-        flow->dissectSSL(payload, payload_len, when);
+        flow->dissectSSL(payload, payload_len, when, src2dst_direction);
     }
-
-#if 0
-    if (flow->isSSLData())
-      ; // TODO use SSL data
-#endif
 
     flow->processDetectedProtocol(), *shaped = false;
     pass_verdict = flow->isPassVerdict();
@@ -1108,7 +1103,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   // Detect user activities
   UserActivityID activity = flow->getActivityId();
   u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
-  if (activity != user_activity_none && !flow->isSSLHandshake()) {
+  if (activity != user_activity_none && flow->isSSLData()) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
 

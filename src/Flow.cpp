@@ -21,15 +21,15 @@
 
 #include "ntop_includes.h"
 
-#define TLS_HANDSHAKE_PACKET 0x16
-#define TLS_PAYLOAD_PACKET 0x17
-#define TLS_CLIENT_HELLO 0x01
-#define TLS_SERVER_HELLO 0x02
-#define TLS_CLIENT_KEY_EXCHANGE 0x10
-#define TLS_SERVER_CHANGE_CIPHER_SPEC 0x14
-#define TLS_NEW_SESSION_TICKET 0x04
-#define TLS_MAX_HANDSHAKE_PCKS 15
-#define TLS_MIN_PACKET_SIZE 6
+#define SSL_HANDSHAKE_PACKET 0x16
+#define SSL_PAYLOAD_PACKET 0x17
+#define SSL_CLIENT_HELLO 0x01
+#define SSL_SERVER_HELLO 0x02
+#define SSL_CLIENT_KEY_EXCHANGE 0x10
+#define SSL_SERVER_CHANGE_CIPHER_SPEC 0x14
+#define SSL_NEW_SESSION_TICKET 0x04
+#define SSL_MAX_HANDSHAKE_PCKS 15
+#define SSL_MIN_PACKET_SIZE 10
 
 /* *************************************** */
 
@@ -43,7 +43,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
-    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, dissecting_ssl = true;
+    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true;
 
   l7_protocol_guessed = detection_completed = false;
   dump_flow_traffic = false,
@@ -2385,57 +2385,80 @@ bool Flow::isLowGoodput() {
 
 /* *************************************** */
 
-void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when) {
-  if(dissecting_ssl && !protos.ssl.firstdata_seen && twh_over && payload_len >= TLS_MIN_PACKET_SIZE) {    
-    switch (protos.ssl.tls_stage) {
-      case SSL_STAGE_UNKNOWN:
-        // Assume client hello detection is performed by the ssl dissector
-        //if (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_CLIENT_HELLO) {
-        memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
-        protos.ssl.tls_stage = SSL_STAGE_CLI_HELLO;
-        break;
-      case SSL_STAGE_CLI_HELLO:
-        if (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_SERVER_HELLO) {
-          protos.ssl.tls_stage = SSL_STAGE_SRV_HELLO;
-        }
-        break;
-      case SSL_STAGE_SRV_HELLO:
-        if (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_CLIENT_KEY_EXCHANGE) {
-          protos.ssl.tls_stage = SSL_STAGE_CLI_CCS;
-        }
-        break;
-      case SSL_STAGE_CLI_CCS:
-        if ( (payload[0] == TLS_SERVER_CHANGE_CIPHER_SPEC) ||
-             (payload[0] == TLS_HANDSHAKE_PACKET && payload[5] == TLS_NEW_SESSION_TICKET) ) {
-          protos.ssl.tls_stage = SSL_STAGE_SRV_CCS;
-          memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
-          protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
-        }
-        break;
-      case SSL_STAGE_SRV_CCS:
-        if (payload[0] == TLS_PAYLOAD_PACKET) {
-          protos.ssl.firstdata_seen = true;
-          memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-          protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
-          
-          ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%p][%u.%u] SSL first data: %u", this, when->tv_sec, when->tv_usec, payload_len);
-        }
-        break;
-      default:
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "[%p][%u.%u] Unhandled SSL stage: %d", this, when->tv_sec, when->tv_usec, protos.ssl.tls_stage);
-    }
+void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv) {
+  uint16_t skiphello;
+  bool hs_now_end = false;
+  
+  if(good_ssl_hs && twh_over && payload_len >= SSL_MIN_PACKET_SIZE) {
+    protos.ssl.is_data = false;
     
-    if (! protos.ssl.firstdata_seen)
-      protos.ssl.hs_packets++;
-    dissecting_ssl &= protos.ssl.hs_packets <= TLS_MAX_HANDSHAKE_PCKS;
-          
-    if (dissecting_ssl) {
-      if (!protos.ssl.firstdata_seen) {
-        protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
+    if (payload[0] == SSL_HANDSHAKE_PACKET) {
+      if (payload[5] == SSL_CLIENT_HELLO) {
+        if (protos.ssl.cli_stage == SSL_STAGE_UNKNOWN) {
+          memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
+          protos.ssl.cli_stage = SSL_STAGE_HELLO;
+        }
+      } else if (payload[5] == SSL_SERVER_HELLO && protos.ssl.srv_stage == SSL_STAGE_UNKNOWN && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
+        skiphello = 5 + 4 + ntohs(get_u_int16_t(payload, 7));
+        if (payload_len > skiphello && payload[skiphello] == SSL_SERVER_CHANGE_CIPHER_SPEC) {
+            protos.ssl.srv_stage = SSL_STAGE_CCS;
+            // here client encryption is still plain
+          } else {
+            protos.ssl.srv_stage = SSL_STAGE_HELLO;
+          }
+      } else if (payload[5] == SSL_CLIENT_KEY_EXCHANGE && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
+        protos.ssl.cli_stage = SSL_STAGE_CCS;
+        if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+          hs_now_end = true;
+      } else if (payload[5] == SSL_NEW_SESSION_TICKET && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
+        protos.ssl.srv_stage = SSL_STAGE_CCS;
+        if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+          hs_now_end = true;
+      }
+    } else if (payload[0] == SSL_SERVER_CHANGE_CIPHER_SPEC && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
+      protos.ssl.srv_stage = SSL_STAGE_CCS;
+      if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+          hs_now_end = true;
+    } else if (payload[0] == SSL_PAYLOAD_PACKET) {
+      if ( (cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
+           (!cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_SERVER)) ) {
+        protos.ssl.is_data = true;
+      }
+
+      if (!protos.ssl.firstdata_seen && getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH) {
+        protos.ssl.firstdata_seen = true;
         memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
+        protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
+        ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%p][%u.%u] SSL first (full) data: %u", this, when->tv_sec, when->tv_usec, payload_len);
       }
     }
+
+    if (hs_now_end) {
+      // both client and server CCS appeared here
+      memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
+      protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
+    }
+
+    if (payload[0] != SSL_PAYLOAD_PACKET) {
+      protos.ssl.hs_packets++;
+      good_ssl_hs &= protos.ssl.hs_packets <= SSL_MAX_HANDSHAKE_PCKS;
+    } else {
+      protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
+      memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
+    }
   }
+}
+
+/* ***************************************************** */
+
+FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
+  if (isSSLProto()) {
+    return (FlowSSLEncryptionStatus) (
+        ((protos.ssl.srv_stage == SSL_STAGE_CCS) << 0) |
+        ((protos.ssl.cli_stage == SSL_STAGE_CCS) << 1)
+    );
+  }
+  return SSL_ENCRYPTION_PLAIN;
 }
 
 /* ***************************************************** */
@@ -2463,7 +2486,7 @@ FlowStatus Flow::getFlowStatus() {
 
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-	  if(!isSSLData() && isIdle)
+	  if(!protos.ssl.firstdata_seen && isIdle)
 	    return status_slow_application_header;
 	  break;
 
