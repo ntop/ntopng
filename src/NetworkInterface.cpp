@@ -3661,12 +3661,15 @@ static int lua_flow_dump(lua_State* vm) {
  *    filterID    - ID of the filter to apply to the flow for activity recording
  *    *parametes  - parameters to pass to the filter - See below
  *
- * None filter params:
- *
- * RollingMean filter params:
- *    edge         - rolling mean edge to trigger activity
- *    samples      - number of samples to keep
+ * SMA/WMA filter params:
+ *    edge         - moving average edge to trigger activity
  *    minsamples   - minimum number of samples for activity detection
+ * WMA filter params:
+ *    timescale    - division scale for each second difference from previous packet. 0 to disable
+ *    aggrsecs     - max packet seconds difference to aggregate. 0 to disable
+ * SMA filter params:
+ *    timebound    - expected time tick in milliseconds between activity packets. 0 to disable
+ *    sustain      - time, in milliseconds, between packets to be considered activity. 0 to disable
  *
  * CommandSequence filter params:
  *    mustwait     - if true, activity trigger requires server to wait after command request
@@ -3675,6 +3678,11 @@ static int lua_flow_dump(lua_State* vm) {
  *    minflips     - minimum number of server interactions to trigger activity
  *
  * Web filter params:
+ *    numsamples   - number of packets to process for detection
+ *    minbytes     - minimum number of bytes to trigger activity
+ *    maxinterval  - maximum milliseconds difference between packets
+ *    serverdominant - if true, server bytes must be more then client bytes
+ *
  */
 static int lua_flow_set_activity_filter(lua_State* vm) {
   UserActivityID activityID;
@@ -3733,24 +3741,53 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
     case activity_filter_metrics_test:
       fun = &activity_filter_fun_metrics_test;
       break;
-    case activity_filter_rolling_mean:
+    case activity_filter_sma:
       if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.rolling_mean.edge = lua_tonumber(vm, ++params);
+        config.sma.edge = lua_tonumber(vm, ++params);
 
         if (lua_type(vm, params+1) == LUA_TNUMBER) {
-          config.rolling_mean.samples = lua_tonumber(vm, ++params);
+          config.sma.minsamples = lua_tonumber(vm, ++params);
+          
+          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+            config.sma.timebound = lua_tonumber(vm, ++params);
 
-          if (lua_type(vm, params+1) == LUA_TNUMBER)
-            config.rolling_mean.minsamples = lua_tonumber(vm, ++params);
+            if (lua_type(vm, params+1) == LUA_TNUMBER)
+              config.sma.sustain = lua_tonumber(vm, ++params);
+          }
         }
       }
       // defaults
       switch (params) {
-        case 2+0: config.rolling_mean.edge = 0;
-        case 2+1: config.rolling_mean.samples = 10;
-        case 2+2: config.rolling_mean.minsamples = config.rolling_mean.samples;
+        case 2+0: config.sma.edge = 0;
+        case 2+1: config.sma.minsamples = ACTIVITY_FILTER_WMA_SAMPLES;
+        case 2+2: config.sma.timebound = 2000;
+        case 2+3: config.sma.sustain = 1000;
       }
-      fun = &activity_filter_fun_rolling_mean;
+      fun = &activity_filter_fun_sma;
+      break;
+    case activity_filter_wma:
+      if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
+        config.wma.edge = lua_tonumber(vm, ++params);
+
+        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          config.wma.minsamples = lua_tonumber(vm, ++params);
+          
+          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+            config.wma.timescale = lua_tonumber(vm, ++params);
+            
+            if (lua_type(vm, params+1) == LUA_TNUMBER)
+              config.wma.aggrsecs = lua_tonumber(vm, ++params);
+          }
+        }
+      }
+      // defaults
+      switch (params) {
+        case 2+0: config.wma.edge = 0;
+        case 2+1: config.wma.minsamples = ACTIVITY_FILTER_WMA_SAMPLES;
+        case 2+2: config.wma.timescale = 1.f;
+        case 2+3: config.wma.aggrsecs = 0;
+      }
+      fun = &activity_filter_fun_wma;
       break;
     case activity_filter_command_sequence:
       if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
@@ -3879,7 +3916,8 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   // Activity filters
   lua_newtable(L);
   lua_push_int_table_entry(L, "None", activity_filter_none);
-  lua_push_int_table_entry(L, "RollingMean", activity_filter_rolling_mean);
+  lua_push_int_table_entry(L, "SMA", activity_filter_sma);
+  lua_push_int_table_entry(L, "WMA", activity_filter_wma);
   lua_push_int_table_entry(L, "CommandSequence", activity_filter_command_sequence);
   lua_push_int_table_entry(L, "Web", activity_filter_web);
   lua_push_int_table_entry(L, "Metrics", activity_filter_metrics_test);

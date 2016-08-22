@@ -54,14 +54,15 @@ function flowProtocolDetected()
 
    if master ~= "DNS" then
       if(master == "BitTorrent") then
-         flow.setActivityFilter(profile.FileSharing, filter.RollingMean)
+         flow.setActivityFilter(profile.FileSharing)
       elseif(master == "OpenVPN") then
-         flow.setActivityFilter(profile.VPN, filter.RollingMean)
-      elseif(master == "IMAPS" or master == "IMAP" or (sub == "GMail" and srv == "imap.gmail.com")) then
+         --~ flow.setActivityFilter(profile.VPN, filter.WMA, 140, 3, 1000.0, 1)
+         flow.setActivityFilter(profile.VPN, filter.SMA, 150, 3, 3000, 2000)
+      elseif(master == "IMAPS" or master == "IMAP") then
          flow.setActivityFilter(profile.MailSync, filter.CommandSequence, false, 200, 3000, 1)
       elseif(master == "POP3") then
          flow.setActivityFilter(profile.MailSync)
-      elseif(master == "SMPT" or master == "SMPTS" or (sub == "GMail" and srv == "smtp.gmail.com")) then
+      elseif(master == "SMPT" or master == "SMPTS") then
          flow.setActivityFilter(profile.MailSend)
       elseif(master == "HTTP" or master == "HTTPS" or master == "SSL") then
          flow.setActivityFilter(profile.Web, filter.Web)
