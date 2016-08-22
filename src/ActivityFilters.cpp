@@ -23,11 +23,11 @@
 
 /* ********************************************************************** */
 
-bool activity_filter_fun_none(const activity_filter_config * config,
+bool activity_filter_fun_all(const activity_filter_config * config,
 			      activity_filter_status * status, Flow * flow,
 			      const struct timeval *when,
 			      bool cli2srv, uint16_t payload_len) {
-  return true;
+  return config->all.pass;
 }
 
 /* ********************************************************************** */
@@ -78,7 +78,7 @@ bool activity_filter_fun_sma(const activity_filter_config * config,
 
   char buf[32];
   char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "%c %s [%s] <%p %s%s> SMA[%u] = %.2f %u\n",
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> SMA[%u] = %.2f %u\n",
             rv ? '*' : ' ', t,
             flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
             flow->getHTTPURL(), flow->getSSLCertificate(),
@@ -131,7 +131,7 @@ bool activity_filter_fun_wma(const activity_filter_config * config,
 
   char buf[32];
   char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "%c %s [%s] <%p %s%s> WMA[%u] = %.2f (%.2f) %u\n",
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> WMA[%u] = %.2f (%.2f) %u\n",
             rv ? '*' : ' ', t,
             flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
             flow->getHTTPURL(), flow->getSSLCertificate(),

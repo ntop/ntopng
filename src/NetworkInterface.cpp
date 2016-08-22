@@ -46,7 +46,12 @@ static const char * activity_names [] = {
   "VPN",
   "MailSync",
   "MailSend",
-  "FileSharing"
+  "FileSharing",
+  "FileTransfer",
+  "App",
+  "Chat",
+  "Game",
+  "RemoteControl"
 };
 COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
 
@@ -3705,14 +3710,20 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
     filterID = (ActivityFilterID)lua_tonumber(vm, ++params);
     hasparams = true;
   } else {
-    filterID = activity_filter_none;
+    filterID = activity_filter_all;
     hasparams = false;
   }
 
   // filter specific parameters
   switch(filterID) {
-    case activity_filter_none:
-      fun = &activity_filter_fun_none;
+    case activity_filter_all:
+      fun = &activity_filter_fun_all;
+      if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
+        config.all.pass = lua_toboolean(vm, ++params);
+      }
+      switch (params) {
+        case 2+0: config.all.pass = true;
+      }
       break;
     case activity_filter_web:
       if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
@@ -3911,11 +3922,16 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   lua_push_int_table_entry(L, activity_names[user_activity_mail_sync], user_activity_mail_sync);
   lua_push_int_table_entry(L, activity_names[user_activity_mail_send], user_activity_mail_send);
   lua_push_int_table_entry(L, activity_names[user_activity_file_sharing], user_activity_file_sharing);
+  lua_push_int_table_entry(L, activity_names[user_activity_file_transfer], user_activity_file_transfer);
+  lua_push_int_table_entry(L, activity_names[user_activity_application], user_activity_application);
+  lua_push_int_table_entry(L, activity_names[user_activity_chat], user_activity_chat);
+  lua_push_int_table_entry(L, activity_names[user_activity_game], user_activity_game);
+  lua_push_int_table_entry(L, activity_names[user_activity_remote_control], user_activity_remote_control);
   lua_setglobal(L, CONST_USERACTIVITY_PROFILES);
 
   // Activity filters
   lua_newtable(L);
-  lua_push_int_table_entry(L, "None", activity_filter_none);
+  lua_push_int_table_entry(L, "All", activity_filter_all);
   lua_push_int_table_entry(L, "SMA", activity_filter_sma);
   lua_push_int_table_entry(L, "WMA", activity_filter_wma);
   lua_push_int_table_entry(L, "CommandSequence", activity_filter_command_sequence);
