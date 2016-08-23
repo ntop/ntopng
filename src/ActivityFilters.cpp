@@ -38,7 +38,7 @@ bool activity_filter_fun_sma(const activity_filter_config * config,
 				      const struct timeval *when,
 				      bool cli2srv, uint16_t payload_len) {
   float msdiff = Utils::msTimevalDiff((struct timeval*)when, &status->sma.lastPacket);
-  uint out;
+  uint out = 0;
   
   if ( (config->sma.timebound > 0 && status->sma.samples > 0) &&
        (msdiff >= config->sma.timebound) )
