@@ -23,21 +23,120 @@
 
 /* ********************************************************************** */
 
-bool activity_filter_fun_none(const activity_filter_config * config,
+bool activity_filter_fun_all(const activity_filter_config * config,
 			      activity_filter_status * status, Flow * flow,
 			      const struct timeval *when,
 			      bool cli2srv, uint16_t payload_len) {
-  return true;
+  return config->all.pass;
 }
 
 /* ********************************************************************** */
 
-bool activity_filter_fun_rolling_mean(const activity_filter_config * config,
+/* Simple Moving Average with optional time bounds */
+bool activity_filter_fun_sma(const activity_filter_config * config,
 				      activity_filter_status * status, Flow * flow,
 				      const struct timeval *when,
 				      bool cli2srv, uint16_t payload_len) {
-  /* TODO implement */
-  return false;
+  float msdiff = Utils::msTimevalDiff((struct timeval*)when, &status->sma.lastPacket);
+  uint out;
+  
+  if ( (config->sma.timebound > 0 && status->sma.samples > 0) &&
+       (msdiff >= config->sma.timebound) )
+    // add empty packets to fill the gap
+    for (float x=0; x < msdiff && out < status->sma.samples; x += config->sma.timebound, out++);
+  else if (status->sma.samples == ACTIVITY_FILTER_SMA_SAMPLES)
+    out = 1;
+  else
+    out = 0;
+  
+  for (uint i=0; i<out; i++)
+    status->sma.value -= status->sma.sbuf[i];
+  status->sma.value = max(status->sma.value, 0.f);
+
+  uint stillin = status->sma.samples - out;
+  memmove(status->sma.sbuf, status->sma.sbuf+out, stillin * sizeof(status->sma.sbuf[0]));
+  memset(status->sma.sbuf+stillin, 0, out * sizeof(status->sma.sbuf[0]));
+
+  status->sma.samples = min(status->sma.samples+1, (uint)ACTIVITY_FILTER_SMA_SAMPLES);
+  status->sma.sbuf[status->sma.samples-1] = payload_len;
+  status->sma.value += payload_len;
+  status->sma.lastPacket = *when;
+
+  float sma = status->sma.value / status->sma.samples;
+  bool rv;
+
+  if ( (status->sma.samples >= config->sma.minsamples) &&
+       (sma >= config->sma.edge) ) {
+    rv = true;
+    status->sma.lastActivity = *when;
+  } else if ( (config->sma.sustain > 0) &&
+              (Utils::msTimevalDiff((struct timeval*)when, &status->sma.lastActivity) <= config->sma.sustain) ) {
+    rv = true;
+  } else {
+    rv = false;
+  }
+
+  char buf[32];
+  char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> SMA[%u] = %.2f %u\n",
+            rv ? '*' : ' ', t,
+            flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
+            flow->getHTTPURL(), flow->getSSLCertificate(),
+            status->sma.samples, sma, payload_len);
+  return rv;
+}
+
+/* ********************************************************************** */
+
+/* Weighted Moving Average scaling with inter-packed-delay seconds and optional aggregation */
+bool activity_filter_fun_wma(const activity_filter_config * config,
+				      activity_filter_status * status, Flow * flow,
+				      const struct timeval *when,
+				      bool cli2srv, uint16_t payload_len) {
+  // scale value on seconds difference
+  float coeff = 1.f;
+  float secdiff = -1;
+  if (config->wma.timescale > 0 && status->wma.samples > 0) {
+    secdiff = Utils::msTimevalDiff((struct timeval*)when, &status->wma.lastPacket) / 1000.f;
+    coeff = 1.f / max(config->wma.timescale * secdiff, 1.f);
+  }
+
+  if (config->wma.aggrsecs && secdiff >= 0 && secdiff <= config->wma.aggrsecs && status->wma.samples == ACTIVITY_FILTER_WMA_SAMPLES) {
+    // aggregation
+    status->wma.sbuf[status->wma.samples-1] += payload_len;
+    status->wma.weights[status->wma.samples-1] += coeff;
+  } else {  
+    if (status->wma.samples == ACTIVITY_FILTER_WMA_SAMPLES) {
+      status->wma.value = max(status->wma.value - status->wma.sbuf[0] * status->wma.weights[0], 0.f);
+      status->wma.wsum = max(status->wma.wsum - status->wma.weights[0], 1.f);
+      memmove(status->wma.sbuf, status->wma.sbuf+1, (ACTIVITY_FILTER_WMA_SAMPLES-1) * sizeof(status->wma.sbuf[0]));
+      memmove(status->wma.weights, status->wma.weights+1, (ACTIVITY_FILTER_WMA_SAMPLES-1) * sizeof(status->wma.weights[0]));
+    }
+    
+    status->wma.samples = min(status->wma.samples+1, (uint)ACTIVITY_FILTER_WMA_SAMPLES);
+    status->wma.sbuf[status->wma.samples-1] = payload_len;
+    status->wma.weights[status->wma.samples-1] = coeff;
+  }
+
+  status->wma.value += payload_len * coeff;
+  status->wma.wsum += coeff;
+  
+  status->wma.lastPacket = *when;
+  float wma = status->wma.value / status->wma.wsum;
+  bool rv = false;
+
+  if ( (status->wma.samples >= config->wma.minsamples) &&
+       (wma >= config->wma.edge)
+  ) rv = true;
+
+  char buf[32];
+  char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> WMA[%u] = %.2f (%.2f) %u\n",
+            rv ? '*' : ' ', t,
+            flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
+            flow->getHTTPURL(), flow->getSSLCertificate(),
+            status->wma.samples, wma, status->wma.wsum, payload_len);
+  return rv;
 }
 
 /* ********************************************************************** */

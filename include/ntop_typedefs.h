@@ -226,6 +226,12 @@ typedef enum {
   user_activity_mail_sync,
   user_activity_mail_send,
   user_activity_file_sharing,
+  user_activity_file_transfer,
+  user_activity_application,
+  user_activity_chat,
+  user_activity_game,
+  user_activity_remote_control,
+
   UserActivitiesN /* Unused as value but useful to
 		     getting the number of elements
 		     in this datastructure

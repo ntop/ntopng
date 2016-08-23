@@ -712,7 +712,7 @@ end
 if host["localhost"] == true then
    print [[ <tr><th>User Activity</th><td colspan=2>
       <div style='margin-top:0.5em; margin-bottom:2em;'>
-         <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> UpDown
+         <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> Active
          <input type="radio" name="showmode" value="bg" onclick="setShowMode(this.value)"> Background
       </div>
 

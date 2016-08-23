@@ -69,7 +69,7 @@ function saveLocalHostsActivity(hostname, host, hoststats, hostbase)
 
             -- up, down, background bytes
             createActivityRRDCounter(name, 60, verbose)
-            ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. val.background)
+            ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. tolongint(val.background))
 
             if(verbose) then
                print("["..__FILE__()..":"..__LINE__().."] Updating RRD [".. ifstats.name .."] "..name..' ['..val.up.."/"..val.down.."/"..val.background..']\n')
