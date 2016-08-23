@@ -49,25 +49,26 @@ end
 -- ########################################################
 
 function initProfileMatch()
-   profile_activity_match[profile.Web] = {
-      ["defaults"] = {filter.Web},
+   -- These are matched top-down, so order is important
+
+   -- Media profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.Media,
+      ["defaults"] = {filter.All, false},
       ["protos"] = {
-         "HTTP",
-         "HTTPS",
-         "SSL",
-         "SSL_No_Cert"
+         "MGCP",
+         "RTCP",
+         "RTSP",
+         "SIP",
+         "H323",
+         "Megaco",
+         "CiscoSkinny"
       }
-   }
-   profile_activity_match[profile.Media] = {
+   })
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.Media,
       ["defaults"] = {filter.SMA},
       ["protos"] = {
-         ["MGCP"] = {filter.All, false},
-         ["RTCP"] = {filter.All, false},
-         ["RTSP"] = {filter.All, false},
-         ["SIP"] = {filter.All, false},
-         ["H323"] = {filter.All, false},
-         ["Megaco"] = {filter.All, false},
-         ["CiscoSkinny"] = {filter.All, false},
          "RTMP",
          "RTP",
          "PPLive",
@@ -105,8 +106,11 @@ function initProfileMatch()
          "WindowsMedia",
          "WebM"
       }
-   }
-   profile_activity_match[profile.VPN] = {
+   })
+
+   -- VPN profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.VPN,
       --~ ["defaults"] = {profile.VPN, filter.WMA, 140, 3, 1000.0, 1}
       ["defaults"] = {filter.SMA},
       ["protos"] = {
@@ -115,24 +119,39 @@ function initProfileMatch()
          "PPTP",
          "HotspotShield"
       }
-   }
-   profile_activity_match[profile.MailSync] = {
+   })
+
+   -- MailSync profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.MailSync,
+      ["defaults"] = {filter.CommandSequence, false, 200, 3000, 1},
+      ["protos"] = {
+         "IMAP",
+         "IMAPS"
+      }
+   })
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.MailSync,
       ["defaults"] = {},
       ["protos"] = {
-         ["IMAP"] = {filter.CommandSequence, false, 200, 3000, 1},
-         ["IMAPS"] = {filter.CommandSequence, false, 200, 3000, 1},
          "POP3",
          "POPS"
       }
-   }
-   profile_activity_match[profile.MailSend] = {
+   })
+
+   -- MailSend profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.MailSend,
       ["defaults"] = {},
       ["protos"] = {
          "SMTP",
          "SMTPS"
       }
-   }
-   profile_activity_match[profile.FileTransfer] = {
+   })
+
+   -- FileTransfer profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.FileTransfer,
       ["defaults"] = {filter.SMA},
       ["protos"] = {
          ["FTP_CONTROL"] = {filter.All, false},
@@ -148,8 +167,11 @@ function initProfileMatch()
          "RSYNC",
          "TFTP"                              -- TODO control or data?
       }
-   }
-   profile_activity_match[profile.FileSharing] = {
+   })
+
+   -- FileSharing profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.FileSharing,
       ["defaults"] = {filter.SMA, 300, 2, 4000, 3000},
       ["protos"] = {
          "BitTorrent",
@@ -166,8 +188,11 @@ function initProfileMatch()
          "Stealthnet",
          "Thunder"
       }
-   }
-   profile_activity_match[profile.App] = {
+   })
+
+   -- App profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.App,
       ["defaults"] = {},
       ["protos"] = {
          "Crossfire",
@@ -184,8 +209,11 @@ function initProfileMatch()
          "Waze",
          "Snapchat"
       }
-   }
-   profile_activity_match[profile.Chat] = {
+   })
+
+   -- Chat profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.Chat,
       ["defaults"] = {},
       ["protos"] = {
          "GoogleHangout",
@@ -204,8 +232,11 @@ function initProfileMatch()
          "Slack",
          "Weibo"
       }
-   }
-   profile_activity_match[profile.Game] = {
+   })
+
+   -- Game profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.Game,
       ["defaults"] = {},
       ["protos"] = {
          "Dofus",
@@ -223,9 +254,12 @@ function initProfileMatch()
          "WorldOfWarcraft",
          "Xbox"
       }
-   }
-   profile_activity_match[profile.RemoteControl] = {
-      ["detaults"] = {filter.SMA},            -- TODO refine
+   })
+
+   -- RemoteControl profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.RemoteControl,
+      ["defaults"] = {filter.SMA},            -- TODO refine
       ["protos"] = {
          "PcAnywhere",
          "RDP",
@@ -235,7 +269,20 @@ function initProfileMatch()
          "VNC",
          "XDMCP"
       }
-   }
+   })
+
+   -- Web profile
+   table.insert(profile_activity_match, {
+      ["profile"] = profile.Web,
+      ["defaults"] = {filter.Web},
+      ["protos"] = {
+         "Facebook",
+         "HTTP",
+         "HTTPS",
+         "SSL",
+         "SSL_No_Cert"
+      }
+   })
 end
 
 -- ########################################################
@@ -249,8 +296,10 @@ function flowProtocolDetected()
    if #profile_activity_match == 0 then initProfileMatch() end
 
    if master ~= "DNS" then
-      for profile, data in pairs(profile_activity_match) do
-         local protos = data["protos"]
+      for i=1, #profile_activity_match do
+         local pamatch = profile_activity_match[i]
+         local profile = pamatch["profile"]
+         local protos = pamatch["protos"]
 
          for k,v in pairs(protos) do
             local matchproto
@@ -264,7 +313,7 @@ function flowProtocolDetected()
             end
 
             if matchproto == master or matchproto == sub then
-               matched = {["profile"]=profile, ["proto"]=matchproto, ["config"]=config, ["defaults"]=data["defaults"]}
+               matched = {["profile"]=profile, ["proto"]=matchproto, ["config"]=config, ["defaults"]=pamatch["defaults"]}
                break
             end
          end
