@@ -31,6 +31,10 @@
 #define SSL_MAX_HANDSHAKE_PCKS 15
 #define SSL_MIN_PACKET_SIZE 10
 
+#define HTTP_MAX_CONTENT_TYPE_LENGTH 63
+#define HTTP_MAX_HEADER_LINES 20
+#define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
+
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
@@ -260,6 +264,7 @@ Flow::~Flow() {
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
     if(protos.http.last_url)    free(protos.http.last_url);
+    if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
     if(protos.dns.last_query)   free(protos.dns.last_query);
   } else if(isSSL()) {
@@ -2279,6 +2284,37 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  tmp[l] = 0;
 	  protos.http.last_return_code = atoi(tmp);
 	}
+      }
+
+      // Detect content type in response header
+      char buf[sizeof(HTTP_CONTENT_TYPE_HEADER) + HTTP_MAX_CONTENT_TYPE_LENGTH];
+      const char * s = payload;
+      size_t len = payload_len;
+      
+      for (int i=0; i<HTTP_MAX_HEADER_LINES && len > 2; i++) {
+        const char * newline = (const char *) memchr(s, '\n', len);
+
+        if ((!newline) || (newline - s < 2) || (*(newline - 1) != '\r')) break;
+
+        size_t linesize = newline - s + 1;
+        const char * terminator = (const char *) memchr(s, ';', linesize);
+        size_t effsize = terminator ? (terminator - s) : (linesize - 2);
+
+        if (effsize < sizeof(buf)) {
+          strncpy(buf, s, effsize);
+          buf[effsize] = '\0';
+
+          if (strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
+            const char * ct = buf + sizeof(HTTP_CONTENT_TYPE_HEADER) - 1;
+            
+            if (protos.http.last_content_type) free(protos.http.last_content_type);
+            protos.http.last_content_type = strdup(ct);
+            break;
+          }
+        }
+
+        len -= linesize;
+        s = newline + 1;
       }
     }
   }
