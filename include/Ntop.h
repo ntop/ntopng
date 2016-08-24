@@ -258,6 +258,15 @@ class Ntop {
    * @return The network interface Id if exists, -1 otherwise.
    */
   int getInterfaceIdByName(char *name);
+
+  /**
+   * @brief Get the network interface with the specified Id
+   *
+   * @param if_id Id of network interface.
+   * @return Pointer to the network interface, NULL otherwise.
+   */
+  NetworkInterface* getInterfaceById(int if_id);
+
   /**
    * @brief Register the HTTP server.
    *
