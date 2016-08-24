@@ -3647,6 +3647,19 @@ static int lua_flow_get_http_url(lua_State* vm) {
 
 /* **************************************** */
 
+static int lua_flow_get_http_content_type(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, f->getHTTPContentType());
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
 static int lua_flow_dump(lua_State* vm) {
   Flow *f;
 
@@ -3655,6 +3668,19 @@ static int lua_flow_dump(lua_State* vm) {
   if(!f) return(CONST_LUA_ERROR);
 
   f->lua(vm, NULL, true, false);
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
+static int lua_flow_get_profile_id(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, f->getActivityId());
   return(CONST_LUA_OK);
 }
 
@@ -3844,8 +3870,10 @@ static const luaL_Reg flow_reg[] = {
   { "getLastSeen",       lua_flow_get_last_seen },
   { "getServerName",     lua_flow_get_server_name },
   { "getHTTPUrl",        lua_flow_get_http_url },
+  { "getHTTPContentType",lua_flow_get_http_content_type },
   { "dump",              lua_flow_dump },
   { "setActivityFilter", lua_flow_set_activity_filter },
+  { "getProfileId",      lua_flow_get_profile_id },
   { NULL,         NULL }
 };
 
@@ -3900,18 +3928,6 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
 
   lua_register(L, "print", ntop_lua_cli_print);
 
-  if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s: %s",
-				 script_path, lua_tostring(L, -1));
-    lua_close(L);
-    L = NULL;
-  } else {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully interpreted %s", script_path);
-
-    lua_pushlightuserdata(L, NULL);
-    lua_setglobal(L, CONST_USERACTIVITY_FLOW);
-  }
-
   // Activity profiles - see ntop_typedefs.h
   lua_newtable(L);
   lua_push_int_table_entry(L, activity_names[user_activity_none], user_activity_none);
@@ -3938,6 +3954,18 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   lua_push_int_table_entry(L, "Web", activity_filter_web);
   lua_push_int_table_entry(L, "Metrics", activity_filter_metrics_test);
   lua_setglobal(L, CONST_USERACTIVITY_FILTERS);
+
+  if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s: %s",
+				 script_path, lua_tostring(L, -1));
+    lua_close(L);
+    L = NULL;
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully interpreted %s", script_path);
+
+    lua_pushlightuserdata(L, NULL);
+    lua_setglobal(L, CONST_USERACTIVITY_FLOW);
+  }
 
   return(L);
 }

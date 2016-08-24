@@ -92,6 +92,7 @@ class Flow : public GenericHashEntry {
   union {
     struct {
       char *last_url, *last_method;
+      char *last_content_type;
       u_int16_t last_return_code;
     } http;
     
@@ -326,6 +327,7 @@ class Flow : public GenericHashEntry {
   inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = strdup(v); } }
   inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = strdup(v); } }
+  inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
   inline bool isSSLData()              { return(isSSLProto() && good_ssl_hs && protos.ssl.is_data); }

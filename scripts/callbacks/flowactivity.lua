@@ -3,7 +3,8 @@
 --
 
 local trace_hk = false
-local profile_activity_match = {}
+local profile_activity_match
+local media_activity_defaults = {filter.SMA}
 
 if(trace_hk) then print("Initialized script useractivity.lua\n") end
 
@@ -20,6 +21,10 @@ function string:split(sep)
    return fields
 end
 
+function string.starts(String,Start)
+   return string.sub(String,1,string.len(Start))==Start
+end
+
 -- ########################################################
 
 function splitProto(proto)
@@ -32,6 +37,16 @@ function flowUpdate()
    if(trace_hk) then print("flowUpdate()\n") end
    -- print("=>"..flow.getNdpiProto().."@"..flow.getProfileId().."\n")
  -- flow.setProfileId(os.time())
+
+   local proto = flow.getNdpiProto()
+   local master, sub = splitProto(proto)
+
+   if master == "HTTP" and flow.getProfileId() ~= profile.Media then
+      local contentType = flow.getHTTPContentType()
+      if contentType and (contentType:starts("audio/") or contentType:starts("video/")) then
+         flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
+      end
+   end
 end
 
 -- ########################################################
@@ -48,11 +63,10 @@ end
 
 -- ########################################################
 
-function initProfileMatch()
-   -- These are matched top-down, so order is important
-
+-- These are matched top-down, so order is important
+local profile_activity_match = {
    -- Media profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.Media,
       ["defaults"] = {filter.All, false},
       ["protos"] = {
@@ -64,10 +78,9 @@ function initProfileMatch()
          "Megaco",
          "CiscoSkinny"
       }
-   })
-   table.insert(profile_activity_match, {
+   },{
       ["profile"] = profile.Media,
-      ["defaults"] = {filter.SMA},
+      ["defaults"] = media_activity_defaults,
       ["protos"] = {
          "RTMP",
          "RTP",
@@ -106,10 +119,10 @@ function initProfileMatch()
          "WindowsMedia",
          "WebM"
       }
-   })
+   },
 
    -- VPN profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.VPN,
       --~ ["defaults"] = {profile.VPN, filter.WMA, 140, 3, 1000.0, 1}
       ["defaults"] = {filter.SMA},
@@ -119,38 +132,37 @@ function initProfileMatch()
          "PPTP",
          "HotspotShield"
       }
-   })
+   },
 
    -- MailSync profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.MailSync,
       ["defaults"] = {filter.CommandSequence, false, 200, 3000, 1},
       ["protos"] = {
          "IMAP",
          "IMAPS"
       }
-   })
-   table.insert(profile_activity_match, {
+   },{
       ["profile"] = profile.MailSync,
       ["defaults"] = {},
       ["protos"] = {
          "POP3",
          "POPS"
       }
-   })
+   },
 
    -- MailSend profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.MailSend,
       ["defaults"] = {},
       ["protos"] = {
          "SMTP",
          "SMTPS"
       }
-   })
+   },
 
    -- FileTransfer profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.FileTransfer,
       ["defaults"] = {filter.SMA},
       ["protos"] = {
@@ -167,10 +179,10 @@ function initProfileMatch()
          "RSYNC",
          "TFTP"                              -- TODO control or data?
       }
-   })
+   },
 
    -- FileSharing profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.FileSharing,
       ["defaults"] = {filter.SMA, 300, 2, 4000, 3000},
       ["protos"] = {
@@ -188,10 +200,10 @@ function initProfileMatch()
          "Stealthnet",
          "Thunder"
       }
-   })
+   },
 
    -- App profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.App,
       ["defaults"] = {},
       ["protos"] = {
@@ -209,10 +221,10 @@ function initProfileMatch()
          "Waze",
          "Snapchat"
       }
-   })
+   },
 
    -- Chat profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.Chat,
       ["defaults"] = {},
       ["protos"] = {
@@ -232,10 +244,10 @@ function initProfileMatch()
          "Slack",
          "Weibo"
       }
-   })
+   },
 
    -- Game profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.Game,
       ["defaults"] = {},
       ["protos"] = {
@@ -254,10 +266,10 @@ function initProfileMatch()
          "WorldOfWarcraft",
          "Xbox"
       }
-   })
+   },
 
    -- RemoteControl profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.RemoteControl,
       ["defaults"] = {filter.SMA},            -- TODO refine
       ["protos"] = {
@@ -269,10 +281,10 @@ function initProfileMatch()
          "VNC",
          "XDMCP"
       }
-   })
+   },
 
    -- Web profile
-   table.insert(profile_activity_match, {
+   {
       ["profile"] = profile.Web,
       ["defaults"] = {filter.Web},
       ["protos"] = {
@@ -282,8 +294,8 @@ function initProfileMatch()
          "SSL",
          "SSL_No_Cert"
       }
-   })
-end
+   }
+}
 
 -- ########################################################
 
@@ -292,8 +304,6 @@ function flowProtocolDetected()
    local master, sub = splitProto(proto)
    local srv = flow.getServerName()
    local matched = nil
-
-   if #profile_activity_match == 0 then initProfileMatch() end
 
    if master ~= "DNS" then
       for i=1, #profile_activity_match do
