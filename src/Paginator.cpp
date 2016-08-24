@@ -27,6 +27,7 @@ Paginator::Paginator() {
   /* char* */
   sort_column = strdup("column_thpt");
   country_filter = NULL;
+  host_filter = NULL;
 
   /* bool */
   a2z_sort_order = true;
@@ -51,8 +52,9 @@ Paginator::Paginator() {
 /* **************************************************** */
 
 Paginator::~Paginator() {
-  if(sort_column) free(sort_column);
+  if(sort_column)    free(sort_column);
   if(country_filter) free(country_filter);
+  if(host_filter)    free(host_filter);
 }
 
 /* **************************************************** */
@@ -80,6 +82,9 @@ void Paginator::readOptions(lua_State *L, int index) {
 	} else if(!strcmp(key, "countryFilter")) {
 	  if(country_filter) free(country_filter);
 	  country_filter = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "hostFilter")) {
+	  if(host_filter) free(host_filter);
+	  host_filter = strdup(lua_tostring(L, -1));
 	} else
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;

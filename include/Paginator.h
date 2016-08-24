@@ -28,7 +28,7 @@ class Paginator {
  private:
   u_int16_t max_hits, to_skip;
   bool a2z_sort_order, detailed_results;
-  char *sort_column, *country_filter;
+  char *sort_column, *country_filter, *host_filter;
   int l7proto_filter;
   u_int16_t port_filter;
   int16_t local_network_filter;
@@ -46,6 +46,10 @@ class Paginator {
 
   inline bool countryFilter(char **f) const {
     if(country_filter) { (*f) = country_filter; return true; } return false;
+  }
+
+  inline bool hostFilter(char **f) const {
+    if(host_filter) { (*f) = host_filter; return true; } return false;
   }
 
   inline bool l7protoFilter(int *f) const {
