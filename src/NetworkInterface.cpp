@@ -3985,6 +3985,8 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   lua_State *L;
   const char *luaFunction;
 
+  return(0); /* FIX */
+
   if(reloadLuaInterpreter) {
     if(L_flow_create || L_flow_delete || L_flow_update) termLuaInterpreter();
     L_flow_create = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
