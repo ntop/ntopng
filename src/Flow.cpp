@@ -2290,7 +2290,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       char buf[sizeof(HTTP_CONTENT_TYPE_HEADER) + HTTP_MAX_CONTENT_TYPE_LENGTH];
       const char * s = payload;
       size_t len = payload_len;
-      
+
       for (int i=0; i<HTTP_MAX_HEADER_LINES && len > 2; i++) {
         const char * newline = (const char *) memchr(s, '\n', len);
 
@@ -2306,9 +2306,10 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
           if (strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
             const char * ct = buf + sizeof(HTTP_CONTENT_TYPE_HEADER) - 1;
-            
+
             if (protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
+            iface->luaEvalFlow(this, callback_flow_update);
             break;
           }
         }
