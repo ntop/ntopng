@@ -1121,6 +1121,17 @@ void Ntop::setLocalNetworks(char *_nets) {
 
 /* ******************************************* */
 
+NetworkInterface* Ntop::getInterfaceById(int if_id) {
+  for(int i=0; i<num_defined_interfaces; i++) {
+    if(iface[i]->get_id() == if_id)
+      return(iface[i]);
+  }
+
+  return(NULL);
+}
+
+/* ******************************************* */
+
 NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
   if(name == NULL)
     return NULL;
@@ -1132,12 +1143,7 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
   snprintf(str, sizeof(str), "%d", if_id);
   if(strcmp(name, str) == 0) {
     /* name is a number */
-
-    for(int i=0; i<num_defined_interfaces; i++) {
-      if(iface[i]->get_id() == if_id)
-	return isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
-    }
-    return(NULL);
+    return(getInterfaceById(if_id));
   }
 
   /* if here, name is a string */

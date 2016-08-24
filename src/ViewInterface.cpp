@@ -41,8 +41,14 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 	if(strstr(ifName, iface)) {
 	  found = true;
 	  
-	  if(numSubInterfaces < MAX_NUM_VIEW_INTERFACES)
-	    subInterfaces[numSubInterfaces++] = ntop->getInterfaceAtId(i);	  
+	  if(numSubInterfaces < MAX_NUM_VIEW_INTERFACES) {
+	    NetworkInterface *what = ntop->getInterfaceById(i);
+
+	    if(what)
+	      subInterfaces[numSubInterfaces++] = what;
+	    else
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal Error: NULL interface [%s][%d]", ifName, i);
+	  }
 	  break;
 	}
       }
