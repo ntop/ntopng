@@ -45,9 +45,9 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil) then
             function getValue(w) if w ~= w then return 0 else return math.max(tonumber(w), 0) end end
 
             for i, v in ipairs(fdata) do
-               table.insert(res.up, getValue(v[1]))
-               table.insert(res.down, getValue(v[2]))
-               table.insert(res.bg, getValue(v[3]))
+               table.insert(res.up, getValue(v[1])*fstep)
+               table.insert(res.down, getValue(v[2])*fstep)
+               table.insert(res.bg, getValue(v[3])*fstep)
             end
          end
       end
