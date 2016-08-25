@@ -48,8 +48,6 @@ class nDPIStats {
   nDPIStats();
   ~nDPIStats();
 
-  void sumStats(nDPIStats *stats);
-
   void incStats(u_int16_t proto_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
@@ -73,6 +71,7 @@ class nDPIStats {
   char* serialize(NetworkInterface *iface);
   json_object* getJSONObject(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);
+  void sum(nDPIStats *s);
 };
 
 #endif /* _NDPI_STATS_H_ */

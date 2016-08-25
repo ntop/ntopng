@@ -21,6 +21,20 @@
 
 #include "ntop_includes.h"
 
+#define SSL_HANDSHAKE_PACKET 0x16
+#define SSL_PAYLOAD_PACKET 0x17
+#define SSL_CLIENT_HELLO 0x01
+#define SSL_SERVER_HELLO 0x02
+#define SSL_CLIENT_KEY_EXCHANGE 0x10
+#define SSL_SERVER_CHANGE_CIPHER_SPEC 0x14
+#define SSL_NEW_SESSION_TICKET 0x04
+#define SSL_MAX_HANDSHAKE_PCKS 15
+#define SSL_MIN_PACKET_SIZE 10
+
+#define HTTP_MAX_CONTENT_TYPE_LENGTH 63
+#define HTTP_MAX_HEADER_LINES 20
+#define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
+
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
@@ -33,15 +47,16 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_packets = 0, srv2cli_bytes = 0, srv2cli_goodput_bytes = 0,
     cli2srv_last_packets = 0, cli2srv_last_bytes = 0, srv2cli_last_packets = 0, srv2cli_last_bytes = 0,
     cli_host = srv_host = NULL, badFlow = false, good_low_flow_detected = false, state = flow_state_other,
-    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, flowProfileId = 0;
+    srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true;
 
   l7_protocol_guessed = detection_completed = false;
-  dump_flow_traffic = false, ndpi_proto_name = NULL,
+  dump_flow_traffic = false,
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_UNKNOWN,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
+  memset(&activityDetection, 0, sizeof(activityDetection));
 
   ndpiFlow = NULL, cli_id = srv_id = NULL, client_proc = server_proc = NULL;
   json_info = strdup("{}"), cli2srv_direction = true, twh_over = false,
@@ -249,13 +264,13 @@ Flow::~Flow() {
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
     if(protos.http.last_url)    free(protos.http.last_url);
+    if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
     if(protos.dns.last_query)   free(protos.dns.last_query);
   } else if(isSSL()) {
     if(protos.ssl.certificate)  free(protos.ssl.certificate);
   }
 
-  if(ndpi_proto_name)  free(ndpi_proto_name);
   if(bt_hash)          free(bt_hash);
 
   deleteFlowMemory();
@@ -700,7 +715,7 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()
        || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)))
-      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
+      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
@@ -743,7 +758,7 @@ char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Flow::print(char *buf, u_int buf_len) {
-  char buf1[32], buf2[32], buf3[32];
+  char buf1[32], buf2[32], buf3[32], pbuf[32];
 
   buf[0] = '\0';
 
@@ -754,7 +769,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
-	   ndpiDetectedProtocol.protocol, get_detected_protocol_name(),
+	   ndpiDetectedProtocol.protocol, get_detected_protocol_name(pbuf, sizeof(pbuf)),
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
 	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
@@ -1196,8 +1211,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
   if(!detailed_dump) {
     if(src) {
-      lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "cli.key", get_cli_host()->key());
+      lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
+      lua_push_int_table_entry(vm, "cli.key", src->key());
     } else {
       lua_push_nil_table_entry(vm, "cli.ip");
       lua_push_nil_table_entry(vm, "cli.key");
@@ -1205,8 +1220,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
     if (dst) {
-      lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "srv.key", get_srv_host()->key());
+      lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
+      lua_push_int_table_entry(vm, "srv.key", dst->key());
     } else {
       lua_push_nil_table_entry(vm, "srv.ip");
       lua_push_nil_table_entry(vm, "srv.key");
@@ -1217,15 +1232,15 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
   } else {
     if(src) {
-      lua_push_str_table_entry(vm, "cli.host", get_cli_host()->get_name(buf, sizeof(buf), false));
-      lua_push_int_table_entry(vm, "cli.source_id", get_cli_host()->getSourceId());
-      lua_push_str_table_entry(vm, "cli.ip", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
+      lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
+      lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
       lua_push_str_table_entry(vm, "cli.mac", Utils::macaddr_str((char*)src->get_mac(), buf));
-      lua_push_int_table_entry(vm, "cli.key", get_cli_host()->key());
+      lua_push_int_table_entry(vm, "cli.key", src->key());
 
-      lua_push_bool_table_entry(vm, "cli.systemhost", get_cli_host()->isSystemHost());
+      lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
       lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
-      lua_push_int32_table_entry(vm, "cli.network_id", get_cli_host()->get_local_network_id());
+      lua_push_int32_table_entry(vm, "cli.network_id", src->get_local_network_id());
     } else {
       lua_push_nil_table_entry(vm, "cli.host");
       lua_push_nil_table_entry(vm, "cli.ip");
@@ -1235,14 +1250,14 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
     if(dst) {
-      lua_push_str_table_entry(vm, "srv.host", get_srv_host()->get_name(buf, sizeof(buf), false));
-      lua_push_int_table_entry(vm, "srv.source_id", get_cli_host()->getSourceId());
-      lua_push_str_table_entry(vm, "srv.ip", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
+      lua_push_str_table_entry(vm, "srv.host", dst->get_name(buf, sizeof(buf), false));
+      lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
+      lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
       lua_push_str_table_entry(vm, "srv.mac", Utils::macaddr_str((char*)dst->get_mac(), buf));
-      lua_push_int_table_entry(vm, "srv.key", get_srv_host()->key());
-      lua_push_bool_table_entry(vm, "srv.systemhost", get_srv_host()->isSystemHost());
+      lua_push_int_table_entry(vm, "srv.key", dst->key());
+      lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
-      lua_push_int32_table_entry(vm, "srv.network_id", get_srv_host()->get_local_network_id());
+      lua_push_int32_table_entry(vm, "srv.network_id", dst->get_local_network_id());
     } else {
       lua_push_nil_table_entry(vm, "srv.host");
       lua_push_nil_table_entry(vm, "srv.ip");
@@ -1257,7 +1272,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()
        || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))) {
-      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name());
+      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
 
@@ -1630,7 +1645,7 @@ json_object* Flow::flow2json(bool partial_dump) {
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(ndpiDetectedProtocol.protocol));
     json_object_object_add(my_object, Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(get_detected_protocol_name()));
+			   json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
   }
 
   if(protocol == IPPROTO_TCP)
@@ -1840,8 +1855,21 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 
 /* *************************************** */
 
+bool Flow::isSSLProto() {
+  u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
+  
+  return (
+    (lower == NDPI_PROTOCOL_SSL) ||
+    (lower == NDPI_PROTOCOL_MAIL_IMAPS) ||
+    (lower == NDPI_PROTOCOL_MAIL_SMTPS) ||
+    (lower == NDPI_PROTOCOL_MAIL_POPS)
+  );
+}
+
+/* *************************************** */
+
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
-		    u_int8_t *payload, u_int payload_len,
+		    u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		    const struct timeval *when) {
 #if 0
   if(isSSL()
@@ -2257,6 +2285,38 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  protos.http.last_return_code = atoi(tmp);
 	}
       }
+
+      // Detect content type in response header
+      char buf[sizeof(HTTP_CONTENT_TYPE_HEADER) + HTTP_MAX_CONTENT_TYPE_LENGTH];
+      const char * s = payload;
+      size_t len = payload_len;
+
+      for (int i=0; i<HTTP_MAX_HEADER_LINES && len > 2; i++) {
+        const char * newline = (const char *) memchr(s, '\n', len);
+
+        if ((!newline) || (newline - s < 2) || (*(newline - 1) != '\r')) break;
+
+        size_t linesize = newline - s + 1;
+        const char * terminator = (const char *) memchr(s, ';', linesize);
+        size_t effsize = terminator ? (terminator - s) : (linesize - 2);
+
+        if (effsize < sizeof(buf)) {
+          strncpy(buf, s, effsize);
+          buf[effsize] = '\0';
+
+          if (strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
+            const char * ct = buf + sizeof(HTTP_CONTENT_TYPE_HEADER) - 1;
+
+            if (protos.http.last_content_type) free(protos.http.last_content_type);
+            protos.http.last_content_type = strdup(ct);
+            iface->luaEvalFlow(this, callback_flow_update);
+            break;
+          }
+        }
+
+        len -= linesize;
+        s = newline + 1;
+      }
     }
   }
 }
@@ -2318,24 +2378,6 @@ void Flow::checkFlowCategory() {
 
 /* *************************************** */
 
-char* Flow::get_detected_protocol_name() {
-  if((ndpi_proto_name == NULL)
-     || ((ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
-	 && strcmp(ndpi_proto_name, "Unknown"))) {
-    char buf[64], *old = ndpi_proto_name;
-
-    ndpi_proto_name = strdup(ndpi_protocol2name(iface->get_ndpi_struct(),
-						ndpiDetectedProtocol,
-						buf, sizeof(buf)));
-
-    if(old) free(old);
-  }
-
-  return(ndpi_proto_name);
-}
-
-/* *************************************** */
-
 void Flow::getFlowShapers(bool src2dst_direction,
 			  int *a_shaper_id, int *b_shaper_id,
 			  u_int16_t *ndpiProtocol) {
@@ -2380,36 +2422,80 @@ bool Flow::isLowGoodput() {
 
 /* *************************************** */
 
-void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when) {
-  if(isSSL() && payload && twh_over) {
-    if(!protos.ssl.hs_over) {
-      if(payload[0] == 0x16) {
-	//handshake packet
-	if(payload[5] == 0x1) {
-	  //client-hello
-	  memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
-	  protos.ssl.hs_started = true;
-	} else if((payload[5] == 0x4) && protos.ssl.hs_started) {
-	  //new session ticket, the end of ssl handshake
-	  protos.ssl.hs_over = true;
-	  memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
-	  protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
-	}
+void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv) {
+  uint16_t skiphello;
+  bool hs_now_end = false;
+  
+  if(good_ssl_hs && twh_over && payload_len >= SSL_MIN_PACKET_SIZE) {
+    protos.ssl.is_data = false;
+    
+    if (payload[0] == SSL_HANDSHAKE_PACKET) {
+      if (payload[5] == SSL_CLIENT_HELLO) {
+        if (protos.ssl.cli_stage == SSL_STAGE_UNKNOWN) {
+          memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
+          protos.ssl.cli_stage = SSL_STAGE_HELLO;
+        }
+      } else if (payload[5] == SSL_SERVER_HELLO && protos.ssl.srv_stage == SSL_STAGE_UNKNOWN && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
+        skiphello = 5 + 4 + ntohs(get_u_int16_t(payload, 7));
+        if (payload_len > skiphello && payload[skiphello] == SSL_SERVER_CHANGE_CIPHER_SPEC) {
+            protos.ssl.srv_stage = SSL_STAGE_CCS;
+            // here client encryption is still plain
+          } else {
+            protos.ssl.srv_stage = SSL_STAGE_HELLO;
+          }
+      } else if (payload[5] == SSL_CLIENT_KEY_EXCHANGE && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
+        protos.ssl.cli_stage = SSL_STAGE_CCS;
+        if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+          hs_now_end = true;
+      } else if (payload[5] == SSL_NEW_SESSION_TICKET && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
+        protos.ssl.srv_stage = SSL_STAGE_CCS;
+        if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+          hs_now_end = true;
       }
-    } else if(protos.ssl.hs_over && (payload[0] == 0x17)) {
-      //application data packet
-      if(!protos.ssl.firstdata_seen) {
-	//first data seen, save delta time between first data and the ssl hs
-	protos.ssl.firstdata_seen = true;
-	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
-	protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
-      } else {
-	//not first data, saves delta data time
-	protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
-	memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
+    } else if (payload[0] == SSL_SERVER_CHANGE_CIPHER_SPEC && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
+      protos.ssl.srv_stage = SSL_STAGE_CCS;
+      if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+          hs_now_end = true;
+    } else if (payload[0] == SSL_PAYLOAD_PACKET) {
+      if ( (cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
+           (!cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_SERVER)) ) {
+        protos.ssl.is_data = true;
+      }
+
+      if (!protos.ssl.firstdata_seen && getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH) {
+        protos.ssl.firstdata_seen = true;
+        memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
+        protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
+        ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%p][%u.%u] SSL first (full) data: %u", this, when->tv_sec, when->tv_usec, payload_len);
       }
     }
+
+    if (hs_now_end) {
+      // both client and server CCS appeared here
+      memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
+      protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
+    }
+
+    if (payload[0] != SSL_PAYLOAD_PACKET) {
+      protos.ssl.hs_packets++;
+      good_ssl_hs &= protos.ssl.hs_packets <= SSL_MAX_HANDSHAKE_PCKS;
+    } else {
+      protos.ssl.deltaTime_data = ((float)(Utils::timeval2usec((struct timeval*)when) - Utils::timeval2usec(&protos.ssl.lastdata_time)))/1000;
+      memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
+    }
   }
+}
+
+/* ***************************************************** */
+
+FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
+  if (isSSLProto()) {
+    return (FlowSSLEncryptionStatus) (
+        ((protos.ssl.srv_stage == SSL_STAGE_CCS) << 0) |
+        ((protos.ssl.cli_stage == SSL_STAGE_CCS) << 1)
+    );
+  }
+  return SSL_ENCRYPTION_PLAIN;
 }
 
 /* ***************************************************** */
@@ -2437,7 +2523,7 @@ FlowStatus Flow::getFlowStatus() {
 
 	switch(l7proto) {
 	case NDPI_PROTOCOL_SSL:
-	  if(!protos.ssl.hs_over && isIdle)
+	  if(!protos.ssl.firstdata_seen && isIdle)
 	    return status_slow_application_header;
 	  break;
 
@@ -2456,4 +2542,24 @@ FlowStatus Flow::getFlowStatus() {
   }
 
   return status_normal;
+}
+
+/* ***************************************************** */
+
+void Flow::setActivityFilter(activity_filter_t * filter, const activity_filter_config * config) {  
+  if (filter && config) {
+    activityDetection.filter = filter;
+    activityDetection.config = *config;
+    memset(&activityDetection.status, 0, sizeof(activityDetection.status));
+  } else {
+    activityDetection.filter = NULL;
+  }
+}
+
+/* ***************************************************** */
+
+bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len) {
+  if (activityDetection.filter)
+    return (*activityDetection.filter)(&activityDetection.config, &activityDetection.status, this, when, cli2srv, payload_len);
+  return false;
 }

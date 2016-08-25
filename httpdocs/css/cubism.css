@@ -1,25 +1,3 @@
-#body {
-  position: relative;
-}
-
-#body > p, li > p {
-  line-height: 1.5em;
-}
-
-#body > p {
-  width: 720px;
-}
-
-#body > blockquote {
-  width: 640px;
-}
-
-#body > pre {
-  border-left: solid 2px #ccc;
-  padding-left: 18px;
-  margin: 2em 0 2em -20px;
-}
-
 svg {
   font: 10px sans-serif;
 }

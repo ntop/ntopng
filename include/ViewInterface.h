@@ -19,31 +19,23 @@
  *
  */
 
-#ifndef _TCP_FLOW_STATS_H_
-#define _TCP_FLOW_STATS_H_
+#ifndef _VIEW_INTERFACE_H_
+#define _VIEW_INTERFACE_H_
 
 #include "ntop_includes.h"
 
-class TcpFlowStats {
- private:
-  u_int32_t numSynFlows, numEstablishedFlows, numResetFlows, numFinFlows;
-
+class ViewInterface : public NetworkInterface {
  public:
-  TcpFlowStats();
-  
-  inline void incSyn()         { numSynFlows++;    }
-  inline void incEstablished() { numEstablishedFlows++; }
-  inline void incReset()       { numResetFlows++;       }
-  inline void incFin()         { numFinFlows++;         }
+  ViewInterface(const char *_endpoint);
 
-  char* serialize();
-  void deserialize(json_object *o);
-  json_object* getJSONObject();
-  void lua(lua_State* vm, const char *label);
-  inline void sum(TcpFlowStats *s) {
-    s->numSynFlows += numSynFlows, s->numEstablishedFlows += numEstablishedFlows,
-      s->numResetFlows += numResetFlows, s->numFinFlows += numFinFlows;
-  };
+  inline const char* get_type()         { return(CONST_INTERFACE_TYPE_VIEW);     };
+  inline bool is_ndpi_enabled()         { return(false);                         };
+  inline bool isView()                  { return(true);                          };
+  inline bool isPacketInterface()       { return(false);                         };
+  inline void startPacketPolling()      { ; };
+  inline void shutdown()                { ; };
+  bool set_packet_filter(char *filter)  { return(false); };
 };
 
-#endif /* _TCP_FLOW_STATS_H_ */
+#endif /* _VIEW_INTERFACE_H_ */
+

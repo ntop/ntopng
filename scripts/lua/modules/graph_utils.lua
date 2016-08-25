@@ -928,6 +928,27 @@ end
 
 -- ########################################################
 
+function createActivityRRDCounter(path, step, verbose)
+   if(not(ntop.exists(path))) then
+      if(verbose) then io.write('Creating RRD '..path..'\n') end
+      local prefs = ntop.getPrefs()
+      local hb = step * 2
+      ntop.rrd_create(
+	 path,
+	 step,
+	 'DS:in:COUNTER:'..hb..':U:U',
+	 'DS:out:COUNTER:'..hb..':U:U',
+	 'DS:bg:COUNTER:'..hb..':U:U',
+    -- TODO create separate ntop prefs and decide
+    'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),
+	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24),
+	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days)
+      )
+   end
+end
+
+-- ########################################################
+
 function dumpSingleTreeCounters(basedir, label, host, verbose)
    what = host[label]
 
@@ -1396,7 +1417,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
       -- do not scale number, packets, and drops
       scaling_factor = 1
    end
-
+   
    if(not ntop.notEmptyFile(rrdname)) then return '{}' end
 
    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
@@ -1766,4 +1787,61 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
    ret[1].json = json
    -- io.write(json.."\n")
    return(ret[1])
+end
+
+-- #################################################
+
+function showHostActivityStats(hostbase, selectedEpoch, zoomLevel)
+   local activbase = hostbase .. "/activity"
+   local nextZoomLevel = zoomLevel;
+   local start_time, end_time
+   
+   if ntop.isdir(activbase) then
+      local epoch = tonumber(selectedEpoch)
+
+      -- TODO separate function and join drawPeity
+      for k,v in ipairs(zoom_vals) do
+         if(zoom_vals[k][1] == zoomLevel) then
+            if(k > 1) then
+               nextZoomLevel = zoom_vals[k-1][1]
+            end
+            if(epoch) then
+               start_time = epoch - zoom_vals[k][3]/2
+               end_time = epoch + zoom_vals[k][3]/2
+            else
+               start_time = zoom_vals[k][2]
+               end_time = "now"
+            end
+         end
+      end
+   
+      for key,value in pairs(ntop.readdir(activbase)) do
+         local activrrd = activbase .. "/" .. key;
+
+         if(ntop.notEmptyFile(activrrd)) then
+            local fstart, fstep, fnames, fdata = ntop.rrd_fetch(activrrd, 'AVERAGE', start_time, end_time)
+            local num_points = table.getn(fdata)
+
+            print(value.."["..num_points.." points] start="..formatEpoch(start)..", step="..fstep.."s<br><b>")
+
+            for i, v in ipairs(fdata) do
+               for _, w in ipairs(v) do
+                  if(w ~= w) then
+                     -- This is a NaN
+                     v = 0
+                  else
+                     --io.write(w.."\n")
+                     v = tonumber(w)
+                     if(v < 0) then
+                        v = 0
+                     end
+                  end
+               end
+               print(round(v, 2).." ")
+            end
+            
+            print("</b><br>")
+         end
+      end
+   end
 end

@@ -148,6 +148,8 @@ int main(int argc, char *argv[])
       /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
       if(!strcmp(ifName, "dummy")) {
 	iface = new DummyInterface();
+      } else if(!strncmp(ifName, "view:", 5)) {
+	iface = new ViewInterface(ifName);
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
 	char *at = strchr(ifName, '@');
 	char *endpoint;

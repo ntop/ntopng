@@ -131,17 +131,11 @@ void Host::computeHostSerial() {
 
 void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
-  u_char* ant_mac =  iface->getAntennaMac();
   char buf[64], host[96];
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
 #endif
-
-  if(ant_mac)
-    memcpy(antenna_mac_address, ant_mac, 6);
-  else
-    memset(antenna_mac_address, 0, sizeof(antenna_mac_address));
 
   if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
 
@@ -209,7 +203,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 	if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
 	  ntop->getTrace()->traceEvent(TRACE_ERROR,
 				       "Unable to allocate memory to deserialize %s", redis_key);
-	else if (!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
+	else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
 	  /* Found saved copy of the host so let's start from the previous state */
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
@@ -478,14 +472,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_nil_table_entry(vm, "ip");
     lua_push_nil_table_entry(vm, "ipkey");
   }
-
-  if((antenna_mac_address[0] != 0)
-     && (antenna_mac_address[1] != 0)
-     && (antenna_mac_address[2] != 0)
-     && (antenna_mac_address[3] != 0)
-     && (antenna_mac_address[4] != 0)
-     && (antenna_mac_address[5] != 0))
-    lua_push_str_table_entry(vm, "antenna_mac", get_mac(buf, sizeof(buf), antenna_mac_address));
 
   lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf), mac_address));
   lua_push_int_table_entry(vm, "vlan", vlan_id);
@@ -913,6 +899,7 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
   json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
+  json_object_object_add(my_object, "userActivities", user_activities.getJSONObject());
 
   /* Generic Host */
   json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumAlerts()));
@@ -999,6 +986,7 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "other_ip_rcvd", &obj))  other_ip_rcvd.deserialize(obj);
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities.deserialize(obj);
 
   if(json_object_object_get_ex(o, "num_alerts", &obj)) num_alerts_detected = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
@@ -1475,3 +1463,15 @@ void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
 
   ntop->getRedis()->hashSet(dev, port, value);
 }
+
+/* *************************************** */
+
+void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes) {
+  user_activities.incBytes(id, upbytes, downbytes, bgbytes);
+}
+
+/* *************************************** */
+
+const UserActivityCounter * Host::getActivityBytes(UserActivityID id) {
+  return user_activities.getBytes(id);
+};

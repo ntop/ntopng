@@ -43,6 +43,10 @@ class EthStats {
   inline void  setNumBytes(u_int64_t v)   { return(raw.setBytes(v)); };
   inline u_int64_t getNumPackets() { return(raw.getPkts());  };
   inline u_int64_t getNumBytes()   { return(raw.getBytes()); };
+  inline void sum(EthStats *e) {
+    raw.sum(&e->raw), eth_IPv4.sum(&e->eth_IPv4), eth_IPv6.sum(&e->eth_IPv6),
+      eth_ARP.sum(&e->eth_ARP), eth_MPLS.sum(&e->eth_MPLS), eth_other.sum(&e->eth_other);
+  };
 
   /**
    * @brief Cleanup the proto stats.

@@ -26,7 +26,7 @@
 
 class Host : public GenericHost {
  private:
-  u_int8_t mac_address[6], antenna_mac_address[6];
+  u_int8_t mac_address[6];
   u_int32_t asn;
   char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *topSitesKey;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
@@ -48,6 +48,8 @@ class Host : public GenericHost {
   TrafficStats icmp_sent, icmp_rcvd;
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
+  
+  UserActivityStats user_activities;
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -104,7 +106,6 @@ class Host : public GenericHost {
   void set_mac(char *m);
   inline bool is_blacklisted()                 { return(blacklisted_host); }
   inline u_int8_t*  get_mac()                  { return(mac_address);      }
-  inline u_int8_t*  get_antenna_mac()          { return(antenna_mac_address); }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_country()                   { return(country);          }
@@ -177,6 +178,8 @@ class Host : public GenericHost {
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
   void incrVisitedWebSite(char *hostname);
+  const UserActivityCounter * getActivityBytes(UserActivityID id);
+  void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
 };
 
 #endif /* _HOST_H_ */

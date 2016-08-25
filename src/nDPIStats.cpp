@@ -39,7 +39,7 @@ nDPIStats::~nDPIStats() {
 
 /* *************************************** */
 
-void nDPIStats::sumStats(nDPIStats *stats) {
+void nDPIStats::sum(nDPIStats *stats) {
   for(int i=0; i<MAX_NDPI_PROTOS; i++) {
     if(counters[i] != NULL) {
       if(stats->counters[i] == NULL) {

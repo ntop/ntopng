@@ -142,7 +142,7 @@ struct vm_ptree {
 };
 
 struct active_flow_stats {
-  u_int32_t num_flows, 
+  u_int32_t num_flows,
     ndpi_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS],
     breeds_bytes[NUM_BREEDS];
 };
@@ -160,7 +160,7 @@ struct string_list {
 /*
   Remember to update
   - Utils.cpp      Utils::flowstatus2str()
-  - lua_utils.lua  getFlowStatus(status)  
+  - lua_utils.lua  getFlowStatus(status)
  */
 typedef enum {
   status_normal = 0,
@@ -202,7 +202,7 @@ typedef struct {
   u_int32_t deviceIP, ifIndex, ifType, ifSpeed;
   bool ifFullDuplex, ifAdminStatus, ifOperStatus, ifPromiscuousMode;
   u_int64_t ifInOctets, ifInPackets, ifInErrors,
-    ifOutOctets, ifOutPackets, ifOutErrors;  
+    ifOutOctets, ifOutPackets, ifOutErrors;
 } sFlowInterfaceStats;
 
 typedef struct {
@@ -216,5 +216,26 @@ typedef enum {
   callback_flow_update,
   callback_flow_ndpi_detect
 } LuaCallback;
+
+typedef enum {
+  user_activity_none = 0,
+  user_activity_other,
+  user_activity_web,
+  user_activity_media,
+  user_activity_vpn,
+  user_activity_mail_sync,
+  user_activity_mail_send,
+  user_activity_file_sharing,
+  user_activity_file_transfer,
+  user_activity_application,
+  user_activity_chat,
+  user_activity_game,
+  user_activity_remote_control,
+
+  UserActivitiesN /* Unused as value but useful to
+		     getting the number of elements
+		     in this datastructure
+		  */
+} UserActivityID;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

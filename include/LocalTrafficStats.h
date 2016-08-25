@@ -32,6 +32,11 @@ class LocalTrafficStats {
  private:
   LocalStats packets, bytes;
 
+  inline void _sum(LocalStats *s, LocalStats *l) {
+    s->local2remote += l->local2remote, s->remote2local += l->remote2local,
+      s->local2local += l->local2local, s->remote2remote += l->remote2remote;
+  }
+
  public:
   LocalTrafficStats();
   
@@ -39,7 +44,8 @@ class LocalTrafficStats {
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();
-  void lua(lua_State* vm);
+  void lua(lua_State* vm);  
+  inline void sum(LocalTrafficStats *l) { _sum(&l->packets, &packets), _sum(&l->bytes, &bytes); };
 };
 
 #endif /* _LOCAL_TRAFFIC_STATS_H_ */

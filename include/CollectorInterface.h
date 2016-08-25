@@ -38,16 +38,17 @@ class CollectorInterface : public ParserInterface {
   u_int8_t num_subscribers;
   zmq_subscriber subscriber[CONST_MAX_NUM_ZMQ_SUBSCRIBERS];
 
+  inline u_int getNumDroppedPackets()   { return(num_drops);  };
+
  public:
   CollectorInterface(const char *_endpoint);
   ~CollectorInterface();
 
-  inline const char* get_type()         { return(CONST_INTERFACE_TYPE_ZMQ);      };
+  inline const char* get_type()         { return(CONST_INTERFACE_TYPE_VIEW);      };
   inline bool is_ndpi_enabled()         { return(false);      };
   inline char* getEndpoint(u_int8_t id) { return((id < num_subscribers) ?
 						 subscriber[id].endpoint : (char*)""); };
   inline void incrDrops(u_int32_t num)  { num_drops += num;   };
-  inline u_int getNumDroppedPackets()   { return(num_drops);  };
   inline bool isPacketInterface()       { return(false);      };
   void collect_flows();
 

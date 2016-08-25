@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2016 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,31 +19,29 @@
  *
  */
 
-#ifndef _TCP_FLOW_STATS_H_
-#define _TCP_FLOW_STATS_H_
+#ifndef _USER_ACTIVITY_STATS_H_
+#define _USER_ACTIVITY_STATS_H_
 
 #include "ntop_includes.h"
 
-class TcpFlowStats {
+typedef struct {
+    u_int64_t up;
+    u_int64_t down;
+    u_int64_t background;
+  } UserActivityCounter;
+
+class UserActivityStats {
  private:
-  u_int32_t numSynFlows, numEstablishedFlows, numResetFlows, numFinFlows;
+  UserActivityCounter counters[UserActivitiesN];
 
  public:
-  TcpFlowStats();
-  
-  inline void incSyn()         { numSynFlows++;    }
-  inline void incEstablished() { numEstablishedFlows++; }
-  inline void incReset()       { numResetFlows++;       }
-  inline void incFin()         { numFinFlows++;         }
+  UserActivityStats();
 
-  char* serialize();
-  void deserialize(json_object *o);
+  void reset();
+  void incBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
+  const UserActivityCounter * getBytes(UserActivityID id);
   json_object* getJSONObject();
-  void lua(lua_State* vm, const char *label);
-  inline void sum(TcpFlowStats *s) {
-    s->numSynFlows += numSynFlows, s->numEstablishedFlows += numEstablishedFlows,
-      s->numResetFlows += numResetFlows, s->numFinFlows += numFinFlows;
-  };
+  void deserialize(json_object *o);
 };
 
-#endif /* _TCP_FLOW_STATS_H_ */
+#endif

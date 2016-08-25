@@ -146,7 +146,8 @@ else
 
    host["label"] = getHostAltName(hostinfo2hostkey(host_info))
 
-   rrdname = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info)) .. "/bytes.rrd"
+   hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
+   rrdname = hostbase .. "/bytes.rrd"
    -- print(rrdname)
 print [[
 <div class="bs-docs-example">
@@ -208,6 +209,14 @@ if(page == "ndpi") then
 else
    if(host["ip"] ~= nil) then
       print("<li><a href=\""..url.."&page=ndpi\">Protocols</a></li>")
+   end
+end
+
+if(page == "activities") then
+  print("<li class=\"active\"><a href=\"#\">Activities</a></li>\n")
+else
+   if(host["ip"] ~= nil) then
+      print("<li><a href=\""..url.."&page=activities\">Activities</a></li>")
    end
 end
 
@@ -336,17 +345,13 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
 
    if(host["ip"] ~= nil) then
-      if((host["antenna_mac"] ~= nil) and (host["antenna_mac"] ~= "00:00:00:00:00:00")) then
-	 print("<tr><th width=35%>Antenna MAC Address</th><td colspan=2>" ..get_symbolic_mac(host["antenna_mac"]).. "</td></tr>")
-      else
-	 if(host["mac"]  ~= "00:00:00:00:00:00") then
+      if(host["mac"]  ~= "00:00:00:00:00:00") then
 	    print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
 	 else
 	    if(host["localhost"] == true and is_packetdump_enabled) then
 	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
 	    end
-	 end
-      end
+       end
 
       if(host["localhost"] == true and is_packetdump_enabled) then
 	 dump_status = host["dump_host_traffic"]
@@ -656,60 +661,6 @@ end
 
    if(host["json"] ~= nil) then print("<tr><th><A HREF=http://en.wikipedia.org/wiki/JSON>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF="..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifId="..ifId.."&"..hostinfo2url(host_info)..">Download<A></td></tr>\n") end
 
-   print [[
-	    <tr><th>Activity Map</th><td colspan=2>
-	    <span id="sentHeatmap"></span>
-	    <button id="sent-heatmap-prev-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-left fa-lg""></i></button>
-	    <button id="heatmap-refresh" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-refresh fa-lg"></i></button>
-	    <button id="sent-heatmap-next-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-right fa-lg"></i></button>
-	    <p><span id="heatmapInfo"></span>
-
-	    <script type="text/javascript">
-
-	 var sent_calendar = new CalHeatMap();
-        sent_calendar.init({
-		       itemSelector: "#sentHeatmap",
-		       data: "]]
-     print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifname="..ifId.."&"..hostinfo2url(host_info)..'",\n')
-
-     timezone = get_timezone()
-
-     now = ((os.time()-5*3600)*1000)
-     today = os.time()
-     today = today - (today % 86400) - 2*3600
-     today = today * 1000
-
-     print("/* "..timezone.." */\n")
-     print("\t\tstart:   new Date("..now.."),\n") -- now-3h
-     print("\t\tminDate: new Date("..today.."),\n")
-     print("\t\tmaxDate: new Date("..(os.time()*1000).."),\n")
-		     print [[
-   		       domain : "hour",
-		       range : 6,
-		       nextSelector: "#sent-heatmap-next-selector",
-		       previousSelector: "#sent-heatmap-prev-selector",
-
-			   onClick: function(date, nb) {
-					  if(nb === null) { ("#heatmapInfo").html(""); }
-				       else {
-					     $("#heatmapInfo").html(date + ": detected traffic for <b>" + nb + "</b> seconds ("+ Math.round((nb*100)/60)+" % of time).");
-				       }
-				    }
-
-		    });
-
-	    $(document).ready(function(){
-			    $('#heatmap-refresh').click(function(){
-							      sent_calendar.update(]]
-									     print("\""..ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifname="..ifId.."&"..hostinfo2url(host_info)..'\");\n')
-									     print [[
-						    });
-				      });
-
-   </script>
-
-	    </td></tr>
-      ]]
 
 
    print("</table>\n")
@@ -1059,6 +1010,159 @@ print [[
 
    end
 
+   elseif(page == "activities") then
+	 print("<table class=\"table table-bordered table-striped\">\n")
+
+   print [[
+	    <tr><th>Host Activity</th><td colspan=2>
+	    <span id="sentHeatmap"></span>
+	    <button id="sent-heatmap-prev-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-left fa-lg""></i></button>
+	    <button id="heatmap-refresh" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-refresh fa-lg"></i></button>
+	    <button id="sent-heatmap-next-selector" style="margin-bottom: 10px;" class="btn btn-default btn-sm"><i class="fa fa-angle-right fa-lg"></i></button>
+	    <p><span id="heatmapInfo"></span>
+
+	    <script type="text/javascript">
+
+	 var sent_calendar = new CalHeatMap();
+        sent_calendar.init({
+		       itemSelector: "#sentHeatmap",
+		       data: "]]
+     print(ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifname="..ifId.."&"..hostinfo2url(host_info)..'",\n')
+
+     timezone = get_timezone()
+
+     now = ((os.time()-5*3600)*1000)
+     today = os.time()
+     today = today - (today % 86400) - 2*3600
+     today = today * 1000
+
+     print("/* "..timezone.." */\n")
+     print("\t\tstart:   new Date("..now.."),\n") -- now-3h
+     print("\t\tminDate: new Date("..today.."),\n")
+     print("\t\tmaxDate: new Date("..(os.time()*1000).."),\n")
+		     print [[
+   		       domain : "hour",
+		       range : 6,
+		       nextSelector: "#sent-heatmap-next-selector",
+		       previousSelector: "#sent-heatmap-prev-selector",
+
+			   onClick: function(date, nb) {
+					  if(nb === null) { ("#heatmapInfo").html(""); }
+				       else {
+					     $("#heatmapInfo").html(date + ": detected traffic for <b>" + nb + "</b> seconds ("+ Math.round((nb*100)/60)+" % of time).");
+				       }
+				    }
+
+		    });
+
+	    $(document).ready(function(){
+			    $('#heatmap-refresh').click(function(){
+							      sent_calendar.update(]]
+									     print("\""..ntop.getHttpPrefix().."/lua/get_host_activitymap.lua?ifname="..ifId.."&"..hostinfo2url(host_info)..'\");\n')
+									     print [[
+						    });
+				      });
+
+   </script>
+
+	    </td></tr>
+      ]]
+
+-- Host activity stats
+if host["localhost"] == true then
+   print [[ <tr><th>Protocol Activity</th><td colspan=2>
+      <div style='margin-top:0.5em; margin-bottom:2em;'>
+         <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> User Traffic<br>
+         <input type="radio" name="showmode" value="bg" onclick="setShowMode(this.value)"> Background Traffic
+      </div>
+
+      <div id="userctivity"></div>
+
+      <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
+      <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.rrd-server.js"></script>
+      <style type = "text/css">
+         ]] ntop.dumpFile(dirs.installdir .. "/httpdocs/css/cubism.css") print[[
+      </style>
+      
+         <script type="text/javascript">
+         var HorizonGraphWidth = 800
+         var context = cubism.context().size(HorizonGraphWidth).step(60*1000);//.stop();
+         var horizon = context.horizon();
+
+         $('#userctivity')
+            .css("position", "relative")
+            .css("width", HorizonGraphWidth)
+
+         // to set labels place on mousemove
+         context.on("focus", function(i) {
+            d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+         });
+
+         function formatBytes(bytes, precision) {
+            var sizes = [1, 1024, 1024*1024, 1024*1024*1024, 1024*1024*1024*1024];
+            var labels = [" B", " KB", " MB", " GB", " TB"];
+            var value = Math.abs(bytes);
+            var i=0;
+
+            if (value >= 1) {
+               for(; i<sizes.length && value >= sizes[i]; i++) ;
+               i--;
+
+               value = bytes / sizes[i];
+            }
+            return value.toFixed(precision) + labels[i];
+         }
+
+         function setShowMode(mode) {            
+            $.ajax({
+               type: 'GET',
+               url: activitiesurl,
+               success: function(content) {
+                  d3.selectAll(".horizon").remove();
+                  $('#userctivity').empty();
+                  
+                  var metrics = [];
+                  JSON.parse(content).map(function(activity) {
+                     metrics.push(rrdserver.metric(activitiesurl+"&activity="+activity, activity, mode === "bg"));
+                  });
+
+                  // data
+                  d3.select("#userctivity")
+                     .selectAll(".horizon")
+                     .data(metrics)
+                     .enter().append("div", ".bottom")
+                     .attr("class", "horizon")
+                     .call(horizon.format(function(x) { return formatBytes(x,2); }));
+
+                  // bottom axis
+                  d3.select("#userctivity")
+                     .append("div")
+                     .attr("class", "axis")
+                     .call(context.axis().orient("bottom"));
+
+                  // vertical line on mousemove
+                  d3.select("#userctivity")
+                     .append("div")
+                     .attr("class", "rule")
+                     .call(context.rule());
+               }
+            });
+         }
+
+         var rrdserver = cubism.rrdserver(context);
+         var activitiesurl = "]] print(ntop.getHttpPrefix().."/lua/get_host_activity.lua?ifid="..ifId.."&host="..host_ip) print[[";
+
+         setShowMode("updown");
+      </script>
+      <p>
+      <b>NOTE:</b> The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
+<br>and background traffic (e.g. your email client periodically checks for email presence). Note that this work is still in progress.
+   </td></tr> ]]
+
+   -- showHostActivityStats(hostbase, "", "1h")
+end
+
+	 print("</table>\n")
    elseif(page == "dns") then
       if(host["dns"] ~= nil) then
 	 print("<table class=\"table table-bordered table-striped\">\n")

@@ -24,35 +24,37 @@
 /* **************************************************** */
 
 Paginator::Paginator() {
-  max_hits = to_skip = sort_column = a2z_sort_order = NULL;
-  detailed_results = NULL;
-  os_filter = vlan_filter = asn_filter = local_network_filter = NULL;
+  /* char* */
+  sort_column = strdup("column_thpt");
   country_filter = NULL;
-  l7proto_filter = NULL, port_filter = NULL;
-  const void *options[] = {
-    "sortColumn",           &sort_column,
-    "a2zSortOrder",         &a2z_sort_order,
-    "maxHits",              &max_hits,
-    "detailedResults",      &detailed_results,
-    "toSkip",               &to_skip,
-    "osFilter",             &os_filter,
-    "countryFilter",        &country_filter,
-    "vlanFilter",           &vlan_filter,
-    "asnFilter",            &asn_filter,
-    "LocalNetworkFilter",   &local_network_filter,
-    "l7protoFilter",        &l7proto_filter,
-    "portFilter",           &port_filter,
-    NULL,                   NULL
-  };
-  memcpy(pagination_options, options, sizeof(options));
+  host_filter = NULL;
+
+  /* bool */
+  a2z_sort_order = true;
+  detailed_results = false;
+
+  /* int */
+  max_hits = CONST_MAX_NUM_HITS;
+  to_skip = 0;
+  l7proto_filter = NDPI_PROTOCOL_UNKNOWN;
+  port_filter = 0;
+  local_network_filter = 0;
+
+  /*
+    TODO MISSING
+
+    osFilter
+    vlanFilter
+    asnFilter
+  */
 };
 
 /* **************************************************** */
 
 Paginator::~Paginator() {
-  for (int i = 1; pagination_options[i] != NULL; i += 2) {
-    if(*(char**)pagination_options[i]) free(*(char**)pagination_options[i]);
-  }
+  if(sort_column)    free(sort_column);
+  if(country_filter) free(country_filter);
+  if(host_filter)    free(host_filter);
 }
 
 /* **************************************************** */
@@ -65,39 +67,58 @@ void Paginator::readOptions(lua_State *L, int index) {
   lua_pushnil(L);
 
   while(lua_next(L, index) != 0) {
-    if (lua_type(L, -1) == LUA_TTABLE) {
+    if(lua_type(L, -1) == LUA_TTABLE) {
       /* removes 'value'; keeps 'key' for next iteration */
       readOptions(L, index);
     } else {
-      for (int i = 0; pagination_options[i] != NULL; i += 2) {
-	if (strcmp((char*)pagination_options[i], lua_tostring(L, -2)) == 0) {
-	  if(lua_type(L, -1) == LUA_TSTRING) {
-	    *((char**)pagination_options[i+1]) = strdup(lua_tostring(L, -1));
-	    ntop->getTrace()->traceEvent(TRACE_DEBUG,
-					 "string %s = %s",
-					 lua_tostring(L, -2), lua_tostring(L, -1));
-	    break;
-	  } else if(lua_type(L, -1) == LUA_TNUMBER) {
-	    char opt[32];
-	    snprintf(opt, sizeof(opt), "%ld", lua_tointeger(L,-1));
-	    *((char**)pagination_options[i+1]) = strdup(opt);
-	    ntop->getTrace()->traceEvent(TRACE_DEBUG,
-					 "number %s = %li",
-					 lua_tostring(L, -2),
-					 lua_tointeger(L, -1));
-	    break;
-	  } else if(lua_type(L, -1) == LUA_TBOOLEAN) {
-	    *((char**)pagination_options[i+1]) = strdup(lua_toboolean(L, -1) ? "true" : "false");
-	    ntop->getTrace()->traceEvent(TRACE_DEBUG,
-					 "boolean %s = %s",
-					 lua_tostring(L, -2),
-					 lua_toboolean(L, -1) ? "true" : "false");
-	    break;
-	  }
-	}
+      const char *key = lua_tostring(L, -2);
+      int t = lua_type(L, -1);
+
+      switch(t) {
+      case LUA_TSTRING:
+	if(!strcmp(key, "sortColumn")) {
+	  if(sort_column) free(sort_column);
+	  sort_column = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "countryFilter")) {
+	  if(country_filter) free(country_filter);
+	  country_filter = strdup(lua_tostring(L, -1));
+	} else if(!strcmp(key, "hostFilter")) {
+	  if(host_filter) free(host_filter);
+	  host_filter = strdup(lua_tostring(L, -1));
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
+	break;
+
+      case LUA_TNUMBER:
+	if(!strcmp(key, "maxHits"))
+	  max_hits = lua_tointeger(L, -1);
+	else if(!strcmp(key, "toSkip"))
+	  to_skip = lua_tointeger(L, -1);
+	else if(!strcmp(key, "l7protoFilter"))
+	  l7proto_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "portFilter"))
+	  port_filter = lua_tointeger(L, -1);
+	else if(!strcmp(key, "LocalNetworkFilter"))
+	  local_network_filter = lua_tointeger(L, -1);
+	else
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
+	break;
+
+      case LUA_TBOOLEAN:
+	if(!strcmp(key, "a2zSortOrder"))
+	  a2z_sort_order = lua_toboolean(L, -1) ? true : false;
+	else if(!strcmp(key, "detailedResults"))
+	  detailed_results = lua_toboolean(L, -1) ? true : false;
+	else
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid bool type for option %s", key);
+	break;
+
+      default:
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: type %d not handled", t);
+	break;
       }
     }
 
     lua_pop(L, 1);
   }
-};
+}

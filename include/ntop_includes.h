@@ -160,6 +160,7 @@ using namespace std;
 #include "Mutex.h"
 #include "Utils.h"
 #include "ActivityStats.h"
+#include "UserActivityStats.h"
 #include "nDPIStats.h"
 #include "DnsStats.h"
 #include "TrafficStats.h"
@@ -167,6 +168,7 @@ using namespace std;
 #include "Grouper.h"
 #include "PacketStats.h"
 #include "ProtoStats.h"
+#include "TcpPacketStats.h"
 #include "EthStats.h"
 #include "LocalTrafficStats.h"
 #include "PacketDumperGeneric.h"
@@ -190,7 +192,7 @@ using namespace std;
 #include "InterfaceStatsHash.h"
 #include "NetworkInterface.h"
 #include "PcapInterface.h"
-//#include "TimeSeries.h"
+#include "ViewInterface.h"
 #ifdef HAVE_PF_RING
 #include "PF_RINGInterface.h"
 #endif
@@ -219,6 +221,7 @@ using namespace std;
 #include "GenericHost.h"
 #include "CategoryStats.h"
 #include "Host.h"
+#include "ActivityFilters.h"
 #include "Flow.h"
 #include "FlowHash.h"
 #include "HostHash.h"

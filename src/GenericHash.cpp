@@ -133,11 +133,11 @@ bool GenericHash::remove(GenericHashEntry *h) {
 
 /* ************************************ */
 
-void GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
+bool GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   bool found = false;
 
   if(ntop->getGlobals()->isShutdown())     
-    return;
+    return(found);
 
   for(u_int hash_id = 0; hash_id < num_hashes; hash_id++) {
     if(table[hash_id] != NULL) {
@@ -164,6 +164,8 @@ void GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), voi
 	break;
     }
   }
+
+  return(found);
 }
 
 /* ************************************ */

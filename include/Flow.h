@@ -39,6 +39,13 @@ typedef struct {
   InterarrivalStats pktTime;
 } FlowPacketStats;
 
+typedef struct {
+  activity_filter_t * filter;
+  activity_filter_config config;
+  activity_filter_status status;
+  UserActivityID activityId;
+} FlowActivityDetection;
+
 typedef enum {
   flow_state_other = 0,
   flow_state_syn,
@@ -47,19 +54,31 @@ typedef enum {
   flow_state_fin,
 } FlowState;
 
+typedef enum {
+  SSL_STAGE_UNKNOWN = 0,
+  SSL_STAGE_HELLO,
+  SSL_STAGE_CCS
+} FlowSSLStage;
+
+typedef enum {
+  SSL_ENCRYPTION_PLAIN = 0x0,
+  SSL_ENCRYPTION_SERVER = 0x1,
+  SSL_ENCRYPTION_CLIENT = 0x2,
+  SSL_ENCRYPTION_BOTH = 0x3,
+} FlowSSLEncryptionStatus;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
-  u_int8_t flowProfileId;
   FlowState state;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
     check_tor, l7_protocol_guessed,
-    good_low_flow_detected;
+    good_low_flow_detected, good_ssl_hs;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
   FlowProfile *trafficProfile;
@@ -67,12 +86,13 @@ class Flow : public GenericHashEntry {
 #endif
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
-  char *json_info, *host_server_name, *ndpi_proto_name, *bt_hash;
+  char *json_info, *host_server_name, *bt_hash;
   bool dump_flow_traffic, badFlow;
 
   union {
     struct {
       char *last_url, *last_method;
+      char *last_content_type;
       u_int16_t last_return_code;
     } http;
     
@@ -82,7 +102,11 @@ class Flow : public GenericHashEntry {
     
     struct {
       char *certificate;
-      bool hs_started, hs_over, firstdata_seen;
+      FlowSSLStage cli_stage, srv_stage;
+      u_int8_t hs_packets;
+      bool is_data;
+      /* firstdata refers to the time where encryption is active on both ends */
+      bool firstdata_seen;
       struct timeval clienthello_time, hs_end_time, lastdata_time;
       float hs_delta_time, delta_firstData, deltaTime_data;
     } ssl;
@@ -122,6 +146,7 @@ class Flow : public GenericHashEntry {
   float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
+  FlowActivityDetection activityDetection;
 
   /* Counter values at last host update */
   struct {
@@ -162,7 +187,6 @@ class Flow : public GenericHashEntry {
     return(1000 /* msec */ 
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
-  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when);
   FlowStatus getFlowStatus();
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
 
@@ -217,7 +241,7 @@ class Flow : public GenericHashEntry {
   void setJSONInfo(const char *json);
   bool isFlowPeer(char *numIP, u_int16_t vlanId);
   void incStats(bool cli2srv_direction, u_int pkt_len,
-		u_int8_t *payload, u_int payload_len,
+		u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		const struct bpf_timeval *when);
   void updateActivities();
   void addFlowStats(bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
@@ -257,7 +281,10 @@ class Flow : public GenericHashEntry {
   inline char* get_protocol_breed_name()            { return(ndpi_get_proto_breed_name(iface->get_ndpi_struct(),
 										       ndpi_get_proto_breed(iface->get_ndpi_struct(),
 													    ndpiDetectedProtocol.protocol))); };
-  char* get_detected_protocol_name();
+  char* get_detected_protocol_name(char *buf, u_int buf_len) {
+    return(ndpi_protocol2name(iface->get_ndpi_struct(), ndpiDetectedProtocol, buf, buf_len));
+  }
+
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
   u_int32_t get_packetsOOO();
@@ -290,6 +317,7 @@ class Flow : public GenericHashEntry {
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }
   inline bool isSuspiciousFlowThpt();
+  void dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void updateInterfaceLocalStats(bool src2dst_direction, u_int num_pkts, u_int pkt_len);
@@ -299,7 +327,13 @@ class Flow : public GenericHashEntry {
   inline void  setDNSQuery(char *v) { if(isDNS()) { if(protos.dns.last_query) free(protos.dns.last_query);  protos.dns.last_query = strdup(v); } }
   inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = strdup(v); } }
+  inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
+  bool isSSLProto();
+  inline bool isSSLData()              { return(isSSLProto() && good_ssl_hs && protos.ssl.is_data); }
+  inline bool isSSLHandshake()         { return(isSSLProto() && good_ssl_hs && !protos.ssl.is_data); }
+  inline bool hasSSLHandshakeEnded()   { return(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH); }
+  FlowSSLEncryptionStatus getSSLEncryptionStatus();
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
   void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
@@ -322,11 +356,13 @@ class Flow : public GenericHashEntry {
   inline u_int32_t getSrv2CliMaxInterArrivalTime()  { return(srv2cliStats.pktTime.max_ms); }
   inline u_int32_t getSrv2CliAvgInterArrivalTime()  { return((srv2cli_packets < 2) ? 0 : srv2cliStats.pktTime.total_delta_ms / (srv2cli_packets-1)); }
   bool isIdleFlow();
-  inline FlowState getFlowState()                   { return(state);                          };
-  inline bool      hasStart()                       { return(state & 0x2);                    };
-  inline bool      isEstablished()                  { return state == flow_state_established; };
-  inline u_int8_t getProfileId()                    { return(flowProfileId);                  };
-  inline void     setProfileId(u_int8_t v)          { flowProfileId = v;                      };
+  inline FlowState getFlowState()                   { return(state);                          }
+  inline bool      isEstablished()                  { return state == flow_state_established; }
+  
+  void setActivityFilter(activity_filter_t * filter, const activity_filter_config * config);
+  bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
+  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; }
+  inline UserActivityID getActivityId()             { return(activityDetection.activityId); }
 };
 
 #endif /* _FLOW_H_ */

@@ -30,13 +30,14 @@ class PF_RINGInterface : public NetworkInterface {
  private:
   pfring *pfring_handle;
 
+  u_int getNumDroppedPackets();
+
  public:
   PF_RINGInterface(const char *name);
   ~PF_RINGInterface();
 
   inline const char* get_type()      { return(CONST_INTERFACE_TYPE_PF_RING);     };
   inline pfring* get_pfring_handle() { return(pfring_handle); };
-  u_int getNumDroppedPackets();
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);

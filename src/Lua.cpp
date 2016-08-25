@@ -222,8 +222,9 @@ static int ntop_get_interface_names(lua_State* vm) {
     NetworkInterface *iface;
 
     if((iface = ntop->getInterfaceAtId(vm, i)) != NULL) {
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", iface->get_name());
       char num[8];
+
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Returning name %s", iface->get_name());
       snprintf(num, sizeof(num), "%d", i);
       lua_push_str_table_entry(vm, num, iface->get_name());
     }
@@ -534,6 +535,8 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 /**
  * @brief Get the hosts information of network interface.
  * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the host information.
@@ -544,6 +547,8 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
 static int ntop_get_interface_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_all));
 }
+
+/* ****************************************** */
 
 /**
  * @brief Get local hosts information of network interface.
@@ -556,6 +561,8 @@ static int ntop_get_interface_local_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_local_only));
 }
 
+/* ****************************************** */
+
 /**
  * @brief Get remote hosts information of network interface.
  * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the remote host information.
@@ -565,6 +572,32 @@ static int ntop_get_interface_local_hosts_info(lua_State* vm) {
  */
 static int ntop_get_interface_remote_hosts_info(lua_State* vm) {
   return(ntop_get_interface_hosts(vm, location_remote_only));
+}
+
+/* ****************************************** */
+
+/**
+ * @brief Get local hosts activity information.
+ * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host activities.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_ERROR if ntop_interface is null or host is null, CONST_LUA_OK otherwise.
+ */
+static int ntop_get_interface_host_activity(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  const char * host = NULL;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+    
+  if (lua_type(vm, 1) == LUA_TSTRING)
+    host = lua_tostring(vm, 1);
+  
+  if (ntop_interface == NULL || host == NULL)
+    return CONST_LUA_ERROR;
+  
+  ntop_interface->getLocalHostActivity(vm, host);
+    
+  return CONST_LUA_OK;
 }
 
 /* ****************************************** */
@@ -1709,8 +1742,8 @@ static int ntop_get_interface_find_host(lua_State* vm) {
   key = (char*)lua_tostring(vm, 1);
 
   if(!ntop_interface) return(CONST_LUA_ERROR);
-
   ntop_interface->findHostsByName(vm, get_allowed_nets(vm), key);
+
   return(CONST_LUA_OK);
 }
 
@@ -3191,7 +3224,6 @@ static int ntop_generate_csrf_value(lua_State* vm) {
 #endif
 
   mg_get_cookie(conn, "user", user, sizeof(user));
-
   mg_md5(csrf, random_a, random_b, NULL);
 
   redis->set(csrf, (char*)user, MAX_CSRF_DURATION);
@@ -4661,6 +4693,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostsInfo",           ntop_get_interface_hosts_info },
   { "getLocalHostsInfo",      ntop_get_interface_local_hosts_info },
   { "getRemoteHostsInfo",     ntop_get_interface_remote_hosts_info },
+  { "getHostActivity",        ntop_get_interface_host_activity },
   { "getHostInfo",            ntop_get_interface_host_info },
   { "getGroupedHosts",        ntop_get_grouped_interface_hosts },
   { "getNetworksStats",       ntop_get_interface_networks_stats },

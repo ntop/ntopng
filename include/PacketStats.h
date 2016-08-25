@@ -39,6 +39,14 @@ class PacketStats {
   void deserialize(json_object *o);
   json_object* getJSONObject();
   void lua(lua_State* vm, const char *label);
+  inline void sum(PacketStats *s) {
+    s->upTo64 += upTo64, s->upTo128 += upTo128,
+      s->upTo128 += upTo128, s->upTo256 += upTo256,
+      s->upTo512 += upTo512, s->upTo1024 += upTo1024,
+      s->upTo1518 += upTo1518, s->upTo2500 += upTo2500,
+      s->upTo6500 += upTo6500, s->upTo9000 += upTo9000,
+      s->above9000 += above9000;
+  };
 };
 
 #endif /* _PACKETS_STATS_H_ */
