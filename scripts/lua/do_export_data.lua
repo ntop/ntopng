@@ -29,6 +29,7 @@ else
    -- All hosts
    
    hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
    num = 0
    print("[\n")
 

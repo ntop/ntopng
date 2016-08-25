@@ -36,6 +36,7 @@ if((mode == nil) or (mode == "")) then mode = "contacted_peers" end
 
 interface.select(ifname)
 hosts_stats = interface.getHostsInfo()
+hosts_stats = hosts_stats["hosts"]
 host_info = interface.getHostInfo(host)
 if(protocol_id == "") then protocol_id = nil end
 if(protocol_id ~= nil) then protocol_id = tonumber(protocol_id) end

@@ -11,6 +11,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 function getNetworkStats(network)
    local hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
 
    my_network = nil
 

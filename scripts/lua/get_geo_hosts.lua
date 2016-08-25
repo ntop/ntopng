@@ -25,6 +25,7 @@ print [[
 
     if (host_info["host"] == nil) then
        hosts_stats = interface.getHostsInfo()
+       hosts_stats = hosts_stats["hosts"]
 
        for key, value in pairs(hosts_stats) do
 	  if(value["ip"] ~= nil) then

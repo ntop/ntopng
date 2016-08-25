@@ -11,6 +11,7 @@ sendHTTPHeader('application/json')
 
 interface.select(ifname)
 hosts_stats = interface.getHostsInfo()
+hosts_stats = hosts_stats["hosts"]
 
 print [[
 {

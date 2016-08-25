@@ -11,6 +11,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 interface.select(ifname)
 hosts_stats = interface.getHostsInfo(false, "column_traffic")
+hosts_stats = hosts_stats["hosts"]
 
 ajax_format = _GET["ajax_format"]
 

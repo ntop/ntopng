@@ -905,6 +905,7 @@ end
 -- Return the first 'howmany' hosts
 function getTopInterfaceHosts(howmany, localHostsOnly)
   hosts_stats = interface.getHostsInfo()
+  hosts_stats = hosts_stats["hosts"]
   ret = {}
   sortTable = {}
   n = 0

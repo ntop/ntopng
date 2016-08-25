@@ -110,6 +110,7 @@ if ((num == 0) and (tracked_host == nil)) then
    --     Then we take the host with most traffic and print flows belonging to it
 
    hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
    for key, value in pairs(hosts_stats) do
       value = hosts_stats[key]["traffic"]
       if((value ~= nil) and (value > top_value)) then

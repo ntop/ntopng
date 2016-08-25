@@ -33,10 +33,8 @@ if(host_ip ~= nil) then
 else
    interface.select(ifname)
    hosts_stats = interface.getHostsInfo()
-   num = 0
-   for key, value in pairs(hosts_stats) do
-      num = num + 1
-   end
+   num = hosts_stats["numHosts"]
+   hosts_stats = hosts_stats["hosts"]
 end
 
 if(num > 0) then

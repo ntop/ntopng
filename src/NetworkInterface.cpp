@@ -2327,7 +2327,7 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
   walker(true, host_search_walker, (void*)&retriever);
 
   lua_newtable(vm);
-
+  
   if(retriever.actNumEntries > 0) {
     for(int i=0; i<(int)retriever.actNumEntries; i++) {
       Host *h = retriever.elems[i].hostValue;
@@ -2427,6 +2427,9 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   }
 
   lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numHosts", retriever.actNumEntries);
+
+  lua_newtable(vm);
 
   if(a2zSortOrder) {
     for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
@@ -2439,6 +2442,10 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
       h->lua(vm, NULL /* Already checked */, host_details, false, false, true, false);
     }
   }
+
+  lua_pushstring(vm, "hosts");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   enablePurge(false);
 

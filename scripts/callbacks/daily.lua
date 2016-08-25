@@ -70,6 +70,7 @@ for _,_ifname in pairs(ifnames) do
    harverstExpiredMySQLFlows(_ifname, mysql_retention)
 
    hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
 
    for key, value in pairs(hosts_stats) do
       interface.resetPeriodicStats(key, value["vlan"])

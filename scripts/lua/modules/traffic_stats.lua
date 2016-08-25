@@ -66,6 +66,7 @@ end
 function getTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
    hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
 
    hosts = { }
    for key, value in pairs(hosts_stats) do
@@ -102,6 +103,7 @@ end
 function getVLANTraffic(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
    hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
 
    hosts = { }
    for key, value in pairs(hosts_stats) do
@@ -138,6 +140,7 @@ end
 function getASTraffic(ifname, vlan, as, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
    hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
 
    hosts = { }
    for key, value in pairs(hosts_stats) do

@@ -12,6 +12,7 @@ local function getVLANList(ifid, ifname)
    interface.select(ifname)
 
    hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
    vlans,total = groupHostsStatsByColumn(ifid, ifname, "vlan")
 
    return vlans
