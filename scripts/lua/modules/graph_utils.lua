@@ -1120,10 +1120,12 @@ print [[
       $('a[href="#ipv4"]').on('shown.bs.tab', function (e) {
         if ($('a[href="#ipv4"]').attr("loaded") == 1){
           // do nothing if the tab has already been computed and populated
+          enableAllDropdownsAndTabs();
           return;
         }
 
         // if here, then we actually have to load the datatable
+        disableAllDropdownsAndTabs();
         $('a[href="#ipv4"]').attr("loaded", 1);
 
    ]]
@@ -1141,6 +1143,7 @@ print [[
 print [[
 						    showFilter: true,
 						    showPagination: true,
+                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
@@ -1265,10 +1268,12 @@ print [[
       $('a[href="#ipv6"]').on('shown.bs.tab', function (e) {
         if ($('a[href="#ipv6"]').attr("loaded") == 1){
           // do nothing if the tab has already been computed and populated
+          enableAllDropdownsAndTabs();
           return;
         }
 
         // if here, then we actually have to load the datatable
+        disableAllDropdownsAndTabs();
         $('a[href="#ipv6"]').attr("loaded", 1);
 
 
@@ -1284,6 +1289,7 @@ print [[
 
 						    showFilter: true,
 						    showPagination: true,
+                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {

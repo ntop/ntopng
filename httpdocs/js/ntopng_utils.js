@@ -174,3 +174,16 @@ function drawTrend(current, last, withColor) {
   }   
 }
 
+function disableAllDropdownsAndTabs(){
+  $("select").each(function() {
+    $(this).prop("disabled", true);
+  });
+  $("#historical-tabs-container").find("li").addClass("disabled").find("a").removeAttr("data-toggle");
+}
+
+function enableAllDropdownsAndTabs(){
+  $("select").each(function() {
+    $(this).prop("disabled", false);
+  });
+  $("#historical-tabs-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
+}
