@@ -69,7 +69,7 @@ print [[
     <div class="form-group has-feedback">
       <label for="" class="control-label">New User Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
       </div>
     </div>
   </div>
@@ -78,7 +78,7 @@ print [[
     <div class="form-group has-feedback">
       <label for="" class="control-label">Confirm New User Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)\=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
       </div>
     </div>
   </div>
@@ -154,7 +154,7 @@ end
 
 print [[<script>
   function isValid(str) { /* return /^[\w%]+$/.test(str); */ return true; }
-  function isValidPassword(str) { return /^[\w\$\\!\/\(\)\=\?\^\*@_\-^\u0000-\u00ff]{1,}$/.test(str); }
+  function isValidPassword(str) { return /^[\w\$\\!\/\(\)=\?\^\*@_\-^\u0000-\u00ff]{1,}$/.test(str); }
 
   var frmpassreset = $('#form_password_reset');
   frmpassreset.submit(function () {
