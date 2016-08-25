@@ -38,6 +38,7 @@ if (_GET["hosts"] ~= nil) then
 
     -- 1.    Find all flows between compared hosts
     flows_stats = interface.getFlowsInfo()
+    flows_stats = flows_stats["flows"]
 
     links = {}
     links_size = 0
@@ -52,7 +53,7 @@ if (_GET["hosts"] ~= nil) then
     ports_size = compared_hosts_size
 
 
-    for key, value in pairs(flows_stats) do
+    for key, value in ipairs(flows_stats) do
 
       cli_key = hostinfo2hostkey(flows_stats[key],"cli",ifstats.iface_vlan)
       srv_key = hostinfo2hostkey(flows_stats[key],"srv",ifstats.iface_vlan)

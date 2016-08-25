@@ -80,6 +80,7 @@ else
 
     -- 1.    Find all flows between compared hosts
     flows_stats = interface.getFlowsInfo()
+    flows_stats = flows_stats["flows"]
 
     ndpi = {}
     l4 = {}
@@ -88,7 +89,7 @@ else
     aggregation_value = {}
     aggregation_value_size = 1
     num = 0
-    for key, value in pairs(flows_stats) do
+    for key, value in ipairs(flows_stats) do
       flow = flows_stats[key]
 
       cli_key = hostinfo2hostkey(flow,"cli",ifstats.vlan)

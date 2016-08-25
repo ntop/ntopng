@@ -39,13 +39,12 @@ name   = _GET["name"]
 
 interface.select(ifname)
 flows_stats = interface.getFlowsInfo(host)
+flows_stats = flows_stats["flows"]
 
 vals = {}
 hitters = {}
 
-num = 0
-
-for key, value in pairs(flows_stats) do
+for key, value in ipairs(flows_stats) do
    if(flows_stats[key]["cli.ip"] == host) then
       peer = flows_stats[key]["srv.ip"]
       if(hitters[peer] == nil) then
@@ -78,9 +77,8 @@ for k,v in pairs(hitters) do
 end
 
 print(' "top_destinations": [ ')
-num = 0
 
-
+local num = 0
 for _value,_key in pairsByKeys(sent_to_hitters, rev) do   
    peer_name = ntop.getResolvedAddress(_key)
    h="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=" .. _key.. "'>".. abbreviateString(peer_name, 20).."</A>"

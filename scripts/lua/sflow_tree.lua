@@ -122,6 +122,7 @@ if(host == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> This flow cannot be found (expired ?)</div>")
 else
   flows_stats = interface.getFlowsInfo()
+  flows_stats = flows_stats["flows"] 
 
   -- Default values
   aggregated_flows = {}
@@ -142,7 +143,7 @@ else
   setFilter(filter)
 
   -- Scan flows
-  for key, value in pairs(flows_stats) do
+  for key, value in ipairs(flows_stats) do
     flow = flows_stats[key]
     process = 1
 

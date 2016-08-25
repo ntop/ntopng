@@ -171,29 +171,30 @@ end
 -- host, vlan, unit (bytes/packets), mode (rcvd/sent/both), max_num_entries (10), sort(desc/asc)
 function getFlowTalkers(ifname, vlan, unit, mode, max_num_entries, sort_direction)
    interface.select(ifname)
-   hosts_stats = interface.getFlowsInfo()
+   flows_stats = interface.getFlowsInfo()
+   flows_stats = flows_stats["flows"]
 
    hosts = { }
-   for key, value in pairs(hosts_stats) do
+   for key, value in ipairs(flows_stats) do
       skip = false
 
       if(vlan ~= 0) then
-         if(hosts_stats[key]["vlan"] ~= vlan) then
+         if(flows_stats[key]["vlan"] ~= vlan) then
 	   skip = true
          end
       end
 
       if(skip == false) then
       if(mode == "recv") then
-      	updateKey(hosts, hosts_stats[key]["cli.ip"], hosts_stats[key]["srv2cli."..unit])
-      	updateKey(hosts, hosts_stats[key]["srv.ip"], hosts_stats[key]["cli2srv."..unit])
+      	updateKey(hosts, flows_stats[key]["cli.ip"], flows_stats[key]["srv2cli."..unit])
+      	updateKey(hosts, flows_stats[key]["srv.ip"], flows_stats[key]["cli2srv."..unit])
       elseif(mode == "sent") then
-      	updateKey(hosts, hosts_stats[key]["cli.ip"], hosts_stats[key]["cli2srv."..unit])
-      	updateKey(hosts, hosts_stats[key]["srv.ip"], hosts_stats[key]["srv2cli."..unit])
+      	updateKey(hosts, flows_stats[key]["cli.ip"], flows_stats[key]["cli2srv."..unit])
+      	updateKey(hosts, flows_stats[key]["srv.ip"], flows_stats[key]["srv2cli."..unit])
       else
-        v = hosts_stats[key]["cli2srv."..unit] + hosts_stats[key]["srv2cli."..unit]
-      	updateKey(hosts, hosts_stats[key]["cli.ip"], v)
-      	updateKey(hosts, hosts_stats[key]["srv.ip"], v)
+        v = flows_stats[key]["cli2srv."..unit] + flows_stats[key]["srv2cli."..unit]
+      	updateKey(hosts, flows_stats[key]["cli.ip"], v)
+      	updateKey(hosts, flows_stats[key]["srv.ip"], v)
       end
       end
    end

@@ -123,6 +123,7 @@ if(host == nil) then
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> This flow cannot be found (expired ?)</div>")
 else
   flows_stats = interface.getFlowsInfo()
+  flows_stats = flows_stats["flows"] 
   
   -- Default values
   filter_client = 0

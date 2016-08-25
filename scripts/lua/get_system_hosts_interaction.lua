@@ -10,14 +10,14 @@ require "lua_utils"
 sendHTTPHeader('text/json')
 
 interface.select(ifname)
-flows_stats = interface.getFlowsInfo()
+local flows_stats = interface.getFlowsInfo()
+flows_stats = flows_stats["flows"]
 
 local debug = false
 local httpdocs = dirs.installdir..'/httpdocs'
 local icon_root = ntop.getHttpPrefix() .. '/img/interaction-graph-icons/'
 local icon_extension = '.png'
 links = {}
-num = 0
 
 function file_exists(path)
    local f=io.open(path,"r")
@@ -31,7 +31,7 @@ end
 
 is_loopback = isLoopback(ifname)
 
-for key, value in pairs(flows_stats) do
+for key, value in ipairs(flows_stats) do
    -- Find client and server name
    srv_name = flows_stats[key]["srv.host"]
    if((srv_name == "") or (srv_name == nil)) then
@@ -108,7 +108,7 @@ print('[\n')
 
 -- Create link (flows)
 
-num = 0
+local num = 0
 for key, value in pairs(links) do
    link = links[key]
    process = 1

@@ -11,6 +11,7 @@ sendHTTPHeader('application/json')
 
 interface.select(ifname)
 flows_stats = interface.getFlowsInfo()
+flows_stats = flows_stats["flows"]
 
 links = {}
 processes = {}

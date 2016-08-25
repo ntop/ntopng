@@ -62,7 +62,9 @@ if(sortOrder == nil) then
 end
 
 interface.select(ifname)
-flows_stats = interface.getFlowsInfo()
+local flows_stats = interface.getFlowsInfo()
+local total = flows_stats["numFlows"]
+flows_stats = flows_stats["flows"]
 
 if (mode == "table") then
   print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
@@ -70,12 +72,11 @@ if (mode == "table") then
 end
 
 
-total = 0
 processes = {}
 vals = {}
 num = 0
 
-for _key, value in pairs(flows_stats) do
+for _key, value in ipairs(flows_stats) do
   p = flows_stats[_key]
   process = 1 
   client_process = 1
@@ -283,7 +284,6 @@ if (mode == "table") then
         end
      end
 
-     total = total + 1
   end -- for
 
 

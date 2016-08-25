@@ -101,8 +101,9 @@ if application ~= nil and application ~= "" then
    --print(paginfo["l7protoFilter"].." / "..application)
 end
 
-flows_stats = interface.getFlowsInfo(host, paginfo)
-total = #flows_stats
+local flows_stats = interface.getFlowsInfo(host, paginfo)
+local total = flows_stats["numFlows"]
+flows_stats = flows_stats["flows"]
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 -- tprint(flows_stats)

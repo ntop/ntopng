@@ -14,7 +14,7 @@ host_id = _GET["host_id"]
 
 interface.select(ifname)
 flows_stats = interface.getFlowsInfo(host_ip)
-
+flows_stats = flows_stats["flows"]
 
 print("[")
 n = 0

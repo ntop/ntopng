@@ -2263,6 +2263,9 @@ int NetworkInterface::getFlows(lua_State* vm,
   qsort(retriever.elems, retriever.actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
 
   lua_newtable(vm);
+  lua_push_int_table_entry(vm, "numFlows", retriever.actNumEntries);
+
+  lua_newtable(vm);
 
   if(p->a2zSortOrder()) {
     for(int i=p->toSkip(), num=0; i<(int)retriever.actNumEntries; i++) {
@@ -2290,6 +2293,10 @@ int NetworkInterface::getFlows(lua_State* vm,
       if(++num >= (int)p->maxHits()) break;
     }
   }
+
+  lua_pushstring(vm, "flows");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 
   enablePurge(true);
   free(retriever.elems);

@@ -104,6 +104,7 @@ else
 	 ["maxHits"]=host_stats_flows_num, ["toSkip"]=0, ["detailedResults"]=true}
       --local flows = interface.getFlowsInfo(host_info["host"], nil, "column_bytes", host_stats_flows_num, 0, false)
       local flows = interface.getFlowsInfo(host_info["host"], paginfo)
+      flows = flows["flows"]
       for i, fl in ipairs(flows) do
 	 flows[i] = {
 	    ["srv.ip"] = fl["srv.ip"], ["cli.ip"] = fl["cli.ip"],
