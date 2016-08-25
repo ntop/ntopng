@@ -23,6 +23,7 @@ function foreachHost(ifname, callback)
    -- ifstats = interface.getStats()
    
    hosts_stats = interface.getLocalHostsInfo(false)
+   hosts_stats = hosts_stats["hosts"]
    for hostname, hoststats in pairs(hosts_stats) do
       local host = interface.getHostInfo(hostname)
 

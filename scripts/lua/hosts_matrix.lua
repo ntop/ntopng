@@ -59,6 +59,8 @@ end
 interface.select(ifname)
 hosts_stats = interface.getLocalHostsInfo()
 flows_stats = interface.getLocalFlowsInfo()
+hosts_stats = hosts_stats["hosts"]
+flows_stats = flows_stats["flows"]
 
 localhosts = {}
 found = false

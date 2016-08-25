@@ -16,6 +16,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 interface.select(ifname)
 hosts_stats = interface.getLocalHostsInfo()
+hosts_stats = hosts_stats["hosts"]
 
 --io.write(ifname.."/"..total.."\n")
 max_num = 25
