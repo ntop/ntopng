@@ -77,7 +77,10 @@ print [[
     </div>
   </form>
 
-<script>$('#form_add_user').validator()</script>
+<script>
+  $("input:text:visible:first").focus();
+  $('#form_add_user').validator()
+</script>
 
 </div> <!-- /container -->
 
