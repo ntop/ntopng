@@ -13,6 +13,35 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 -- mandatory parameters: host(as ip), ifid
 local res = {}
 
+local name_map = {
+      { "RemoteControl", "Remote Access" },
+      { "MailSend", "Email Send" },
+      { "MailSync", "Email Synchronization" },
+      { "FileTransfer", "File Transfer" }
+}
+
+function mapRRDname(name) 	 
+  for id,_ in ipairs(name_map) do
+    local m = name_map[id]
+    if(name == m[1]) then
+      return(m[2])
+     end
+  end
+
+  return(name)
+end
+
+function mapnametoRRD(name) 	 
+  for id,_ in ipairs(name_map) do
+    local m = name_map[id]
+    if(name == m[2]) then
+      return(m[1])
+     end
+  end
+
+  return(name)
+end
+
 if (_GET["host"] ~= nil and _GET["ifid"] ~= nil) then
    local host_info = url2hostinfo(_GET)
    local ifId = _GET["ifid"]
@@ -24,7 +53,7 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil) then
          -- mode=list         
          for key,value in pairs(ntop.readdir(activbase)) do
             if string.ends(key, ".rrd") then
-               table.insert(res, string.sub(key, 1, -5))
+               table.insert(res, mapRRDname(string.sub(key, 1, -5)))
             end
          end
       else
@@ -33,7 +62,7 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil) then
          local end_time = tonumber(_GET["stop"])
          local cf = _GET["cf"] or "AVERAGE"
 
-         local rrd = activbase.."/".._GET["activity"]..".rrd"
+         local rrd = activbase.."/"..mapnametoRRD(_GET["activity"])..".rrd"
          
          if(ntop.notEmptyFile(rrd)) then
             local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrd, cf, start_time, end_time)

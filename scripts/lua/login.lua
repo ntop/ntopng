@@ -60,7 +60,27 @@ print [[
       <input type="text" class="form-control" name="user" placeholder="Username" pattern="^[\w\.%]{1,}$" required>
       <input type="password" class="form-control" name="password" placeholder="Password" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}$" required>
 </div>
-	 <input type="hidden" class="form-control" name="referer" value="]] print(_GET["referer"]) print [[">
+	 <input type="hidden" class="form-control" name="referer" value="]] 
+
+local r = _GET["referer"]
+
+local additional_keys = {
+      "host",
+      "ifname",
+      "ifid",
+      "page"
+}
+
+for _,id in ipairs(additional_keys) do
+  if(_GET[id] ~= nil) then
+    r = r .. "&" .. id .. "=" .._GET[id]
+  end
+end
+
+print(r)
+
+
+print [[">
     <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
   	<div class="row">
       <div >&nbsp;</div>
