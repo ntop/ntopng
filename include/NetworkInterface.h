@@ -242,7 +242,7 @@ class NetworkInterface {
   void dumpFlows();
   void getnDPIStats(nDPIStats *stats);
   void updateFlowsL7Policy(patricia_tree_t *ptree);
-  void updateHostStats();
+  void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
 

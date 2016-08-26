@@ -1651,7 +1651,7 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateHostStats() {
+void NetworkInterface::periodicStatsUpdate() {
   struct timeval tv;
 
   if(isView()) return;
@@ -2918,6 +2918,15 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "hosts",   getNumHosts());
   lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",   getNumPacketDrops());
+
+  /* even if the counter is global, we put it here on every interface
+     as we may decide to make an elasticsearch thread per interface.
+   */
+  if (ntop->getPrefs()->do_dump_flows_on_es())
+    lua_push_int_table_entry(vm, "flow_export_drops", ntop->getElasticSearch()->numDroppedFlows());
+  else if (ntop->getPrefs()->do_dump_flows_on_mysql())
+    lua_push_int_table_entry(vm, "flow_export_drops", static_cast<MySQLDB*>(db)->numDroppedFlows());   
+
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2964,7 +2973,7 @@ void NetworkInterface::runHousekeepingTasks() {
      by both this function and the main thread
   */
 
-  updateHostStats();
+  periodicStatsUpdate();
 }
 
 /* **************************************************** */

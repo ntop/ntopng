@@ -939,7 +939,7 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
     freeReplyObject(reply);
 
     if(queue_trim_size > 0) {
-      reply = (redisReply*)redisCommand(redis, "LTRIM %s 0 %u", queue_name, queue_trim_size);
+      reply = (redisReply*)redisCommand(redis, "LTRIM %s 0 %u", queue_name, queue_trim_size - 1);
       if(!reply) reconnectRedis();
       if(reply) {
 	if(reply->type == REDIS_REPLY_ERROR)

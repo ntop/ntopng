@@ -57,6 +57,8 @@ void* MySQLDB::queryLoop() {
 	mysql_close(&mysql_alt);
 	if(!connectToDB(&mysql_alt, true))
 	  return(NULL);
+      } else {
+	mysqlExportedFlows++;
       }
     } else
       sleep(1);    
@@ -386,6 +388,8 @@ bool MySQLDB::createDBSchema() {
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
+  mysqlDroppedFlowsQueueTooLong = 0;
+  mysqlExportedFlows = 0;
   connectToDB(&mysql, false);
 }
 
@@ -533,7 +537,18 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }
   free(json_buf);
 
-  ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
+  if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
+    /* We know that we should have locked before evaluating the condition
+       above as another thread, via the lpush below, can invalidate the condition.
+       However, we prefer to avoid an additional lock as the lpush guarantees
+       that no more than CONST_MAX_MYSQL_QUEUE_LEN will ever be in the queue.
+       The drawback is that the counter mysqlDroppedFlowsQueueTooLong
+       is not guaranteed to be 100% accurate but we can tolerate this.
+    */
+    ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
+  } else {
+    mysqlDroppedFlowsQueueTooLong++;
+  }
 
   return(true);
 }

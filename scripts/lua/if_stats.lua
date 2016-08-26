@@ -385,6 +385,27 @@ print("</script>\n")
    if(ifstats.stats.drops > 0) then print('</span>') end
    print("</span>  <span id=drops_trend></span></td><td colspan=3>&nbsp;</td></tr>\n")
 
+   if(prefs.is_dump_flows_enabled) and false --[[ temporarily disabled --]] then
+      local dump_to = "MySQL"
+      if prefs.is_dump_flows_to_es_enabled == true then
+	 dump_to = "ElasticSearch"
+      end
+      print("<tr><th colspan=7 nowrap>"..dump_to.." Flows Export Statistics</th></tr>\n")
+
+      print("<tr>")
+      print("<th nowrap>Exported Flows</th>")
+      print("<td><span id=exported_flows>"..formatValue(2048).."</span> ["..formatValue(1024).." Flows/s]</td>")
+      print("<th>Dropped Flows</th>")
+      local span_danger = ""
+      if(ifstats.stats.flow_export_drops > 0) then
+	 span_danger = ' class="label label-danger"'
+      end
+      print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(ifstats.stats.flow_export_drops).."</span></td>")
+      print("<td colspan=3>&nbsp;</td>")
+      print("</tr>")
+
+   end
+   
    if(ifstats["bridge.device_a"] ~= nil) then
       print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
       print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped Packets</th><th nowrap>Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
@@ -1403,6 +1424,12 @@ print [[";
 	if(pctg > 0)      { drops = drops + " [ "+pctg+" % ]"; }
 	if(rsp.drops > 0) { drops = drops + '</span>';         }
 	$('#if_drops').html(drops);
+
+        if(rsp.flow_export_drops > 0) {
+          $('#exported_flows_drops')
+            .addClass("label label-danger")
+            .html(rsp.flow_export_drops);
+        }
 ]]
 
 if(ifstats["bridge.device_a"] ~= nil) then

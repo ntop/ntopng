@@ -30,10 +30,16 @@ function dumpInterfaceStats(interface_name)
       res["packets"] = ifstats.stats.packets
       res["bytes"]   = ifstats.stats.bytes
       res["drops"]   = ifstats.stats.drops
+      
+      if prefs.is_dump_flows_to_es_enabled == true
+       or prefs.is_dump_flows_to_mysql_enabled == true then
+	 res["flow_export_drops"] = ifstats.stats.flow_export_drops
+      end
 
       if prefs.are_alerts_enabled == true then
 	 res["alerts"] = interface.getNumQueuedAlerts()
       end
+
 
       res["num_flows"]  = ifstats.stats.flows
       res["num_hosts"]  = ifstats.stats.hosts

@@ -374,6 +374,16 @@ print [[/lua/flows_stats.lua>";
 
 		msg += addCommas(rsp.num_flows)+" Flows </span> </a>";
 
+		if(rsp.flow_export_drops > 0) {
+		   msg += "&nbsp;<a href=]]
+print (ntop.getHttpPrefix())
+print [[/lua/if_stats.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
+		   if(rsp.flow_export_drops > 1) msg += "s";
+
+		   msg += "</span></A> ";
+		}
+
+
 		$('#network-load').html(msg);
 		gauge.set(Math.min(bps, gauge.maxValue));
 

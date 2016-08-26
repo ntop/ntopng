@@ -28,6 +28,8 @@ class MySQLDB : public DB {
  private:
   MYSQL mysql;
   bool db_operational;
+  u_int32_t mysqlDroppedFlowsQueueTooLong;
+  u_int64_t mysqlExportedFlows;
   static volatile bool db_created;
   pthread_t queryThreadLoop;
 
@@ -44,6 +46,7 @@ class MySQLDB : public DB {
   void* queryLoop();
   bool createDBSchema();
   static volatile bool isDbCreated() {return db_created;};
+  inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlowsQueueTooLong; };
   bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows);
   void startDBLoop();

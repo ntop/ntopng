@@ -35,6 +35,7 @@ class ElasticSearch {
  public:
   ElasticSearch();
   ~ElasticSearch();
+  inline u_int32_t numDroppedFlows() const { return elkDroppedFlowsQueueTooLong; };
   int sendToES(char* msg);
   void pushEStemplate();
   void indexESdata();
