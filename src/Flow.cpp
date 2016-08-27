@@ -2546,20 +2546,21 @@ FlowStatus Flow::getFlowStatus() {
 
 /* ***************************************************** */
 
-void Flow::setActivityFilter(activity_filter_t * filter, const activity_filter_config * config) {  
-  if (filter && config) {
-    activityDetection.filter = filter;
+void Flow::setActivityFilter(ActivityFilterID fid, const activity_filter_config * config) {
+  if (fid < ActivityFiltersN && config) {
+    activityDetection.filterId = fid;
+    activityDetection.filterSet = true;
     activityDetection.config = *config;
     memset(&activityDetection.status, 0, sizeof(activityDetection.status));
   } else {
-    activityDetection.filter = NULL;
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Invalid activity filter ID: %u", this, fid);
   }
 }
 
 /* ***************************************************** */
 
 bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len) {
-  if (activityDetection.filter)
-    return (*activityDetection.filter)(&activityDetection.config, &activityDetection.status, this, when, cli2srv, payload_len);
+  if (activityDetection.filterSet)
+    return (activity_filter_funcs[activityDetection.filterId])(&activityDetection.config, &activityDetection.status, this, when, cli2srv, payload_len);
   return false;
 }

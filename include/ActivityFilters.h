@@ -34,12 +34,18 @@ typedef unsigned int uint;
 class Flow;
 
 typedef enum {
-  activity_filter_all,
+  activity_filter_all = 0,
   activity_filter_sma,
   activity_filter_wma,
   activity_filter_command_sequence,
   activity_filter_web,
+  activity_filter_ratio,
   activity_filter_metrics_test,
+  
+  ActivityFiltersN /* Unused as value but useful to
+       getting the number of elements
+       in this datastructure
+    */
 } ActivityFilterID;
 
 typedef union {
@@ -73,7 +79,14 @@ typedef union {
     uint minbytes;
     uint maxinterval;
     bool serverdominant;
+    bool forceWebProfile;
   } web;
+
+  struct {
+    uint numsamples;
+    uint minbytes;
+    float clisrv_ratio;
+  } ratio;
 } activity_filter_config;
 
 typedef union {
@@ -111,6 +124,13 @@ typedef union {
     bool detected;
   } web;
 
+  struct {
+    uint64_t cliBytes;
+    uint64_t srvBytes;
+    uint samples;
+    bool detected;
+  } ratio;
+
   struct {    
     uint16_t sizes[ACTIVITY_FILTER_METRICS_SAMPLES];
     struct timeval times[ACTIVITY_FILTER_METRICS_SAMPLES];
@@ -136,12 +156,7 @@ typedef bool (activity_filter_t)(const activity_filter_config *,
 				 activity_filter_status *,
 				 Flow *, const struct timeval *,
 				 bool, uint16_t);
-				
-activity_filter_t activity_filter_fun_all;
-activity_filter_t activity_filter_fun_sma;
-activity_filter_t activity_filter_fun_wma;
-activity_filter_t activity_filter_fun_command_sequence;
-activity_filter_t activity_filter_fun_web;
-activity_filter_t activity_filter_fun_metrics_test;
+
+extern activity_filter_t* activity_filter_funcs[];
 
 #endif

@@ -67,8 +67,8 @@ void UserActivityStats::deserialize(json_object *o) {
   while (!json_object_iter_equal(&it, &itEnd)) {
     char *key  = (char*)json_object_iter_peek_name(&it);
 
-    UserActivityID actid = getActivityId(key);
-    if (actid != user_activity_none) {
+    UserActivityID actid;
+    if (getActivityId(key, &actid)) {
       struct json_object* jobj = json_object_iter_peek_value(&it);
       struct json_object* value;
 
