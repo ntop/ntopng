@@ -23,7 +23,7 @@
 
 /* ********************************************************************** */
 
-bool activity_filter_fun_all(const activity_filter_config * config,
+static bool activity_filter_fun_all(const activity_filter_config * config,
 			      activity_filter_status * status, Flow * flow,
 			      const struct timeval *when,
 			      bool cli2srv, uint16_t payload_len) {
@@ -33,7 +33,7 @@ bool activity_filter_fun_all(const activity_filter_config * config,
 /* ********************************************************************** */
 
 /* Simple Moving Average with optional time bounds */
-bool activity_filter_fun_sma(const activity_filter_config * config,
+static bool activity_filter_fun_sma(const activity_filter_config * config,
 				      activity_filter_status * status, Flow * flow,
 				      const struct timeval *when,
 				      bool cli2srv, uint16_t payload_len) {
@@ -89,7 +89,7 @@ bool activity_filter_fun_sma(const activity_filter_config * config,
 /* ********************************************************************** */
 
 /* Weighted Moving Average scaling with inter-packed-delay seconds and optional aggregation */
-bool activity_filter_fun_wma(const activity_filter_config * config,
+static bool activity_filter_fun_wma(const activity_filter_config * config,
 				      activity_filter_status * status, Flow * flow,
 				      const struct timeval *when,
 				      bool cli2srv, uint16_t payload_len) {
@@ -146,7 +146,7 @@ bool activity_filter_fun_wma(const activity_filter_config * config,
  * 
  * Assumes client sends an ACK with no data when receiving multiple command replies.
  */
-bool activity_filter_fun_command_sequence(const activity_filter_config * config,
+static bool activity_filter_fun_command_sequence(const activity_filter_config * config,
 					  activity_filter_status * status, Flow * flow,
 					  const struct timeval *when,
 					  bool cli2srv, uint16_t payload_len) {
@@ -199,7 +199,7 @@ bool activity_filter_fun_command_sequence(const activity_filter_config * config,
 
 /* ********************************************************************** */
 
-bool activity_filter_fun_web(const activity_filter_config * config,
+static bool activity_filter_fun_web(const activity_filter_config * config,
 			     activity_filter_status * status, Flow * flow,
 			     const struct timeval *when,
 			     bool cli2srv, uint16_t payload_len) {
@@ -248,7 +248,7 @@ bool activity_filter_fun_web(const activity_filter_config * config,
 /* ********************************************************************** */
 
 /* This fitler is just for testing purposes. */
-bool activity_filter_fun_metrics_test(const activity_filter_config * config,
+static bool activity_filter_fun_metrics_test(const activity_filter_config * config,
 			     activity_filter_status * status, Flow * flow,
 			     const struct timeval *when,
 			     bool cli2srv, uint16_t payload_len) {
@@ -315,3 +315,16 @@ bool activity_filter_fun_metrics_test(const activity_filter_config * config,
   
   return rv;
 }
+
+/* ********************************************************************** */
+
+activity_filter_t* activity_filter_funcs[] = {
+  activity_filter_fun_all,
+  activity_filter_fun_sma,
+  activity_filter_fun_wma,
+  activity_filter_fun_command_sequence,
+  activity_filter_fun_web,
+  activity_filter_fun_metrics_test,
+};
+
+COMPILE_TIME_ASSERT (COUNT_OF(activity_filter_funcs) == ActivityFiltersN);

@@ -39,7 +39,6 @@ NetworkInterface::NetworkInterface() { init(); }
 /* **************************************************** */
 
 static const char * activity_names [] = {
-  "None",
   "Other",
   "Web",
   "Media",
@@ -48,10 +47,9 @@ static const char * activity_names [] = {
   "MailSend",
   "FileSharing",
   "FileTransfer",
-  "App",
   "Chat",
   "Game",
-  "RemoteControl"
+  "RemoteControl",
 };
 COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
 
@@ -1106,9 +1104,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   // Detect user activities
-  UserActivityID activity = flow->getActivityId();
+  UserActivityID activity;
   u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
-  if (activity != user_activity_none && (!flow->isSSLProto() || flow->isSSLData())) {
+  if (flow->getActivityId(&activity) && (!flow->isSSLProto() || flow->isSSLData())) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
 
@@ -2676,8 +2674,7 @@ void NetworkInterface::getLocalHostActivity(lua_State* vm, const char *host) {
 
   if(retriever.found) {
     lua_newtable(vm);
-    // 0:user_activity_none -> skip
-    for (i=1; i<UserActivitiesN; i++) {
+    for (i=0; i<UserActivitiesN; i++) {
       lua_newtable(vm);
 
       lua_push_int_table_entry(vm, "up", retriever.counters[i].up);
@@ -3696,6 +3693,7 @@ static int lua_flow_dump(lua_State* vm) {
 
 /* **************************************** */
 
+/* -1 on error */
 static int lua_flow_get_profile_id(lua_State* vm) {
   Flow *f;
 
@@ -3703,7 +3701,23 @@ static int lua_flow_get_profile_id(lua_State* vm) {
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushnumber(vm, f->getActivityId());
+  UserActivityID uaid;
+  lua_pushnumber(vm, f->getActivityId(&uaid) ? uaid : -1);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+/* -1 on error */
+static int lua_flow_get_activity_filter_id(lua_State* vm) {
+  Flow * f;
+
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  ActivityFilterID fid;
+  lua_pushnumber(vm, f->getActivityFilterId(&fid) ? fid : -1);
   return(CONST_LUA_OK);
 }
 
@@ -3742,7 +3756,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   UserActivityID activityID;
   ActivityFilterID filterID;
   Flow *f;
-  activity_filter_t *fun;
   activity_filter_config config = {};
   u_int8_t params = 0;
   bool hasparams;
@@ -3766,7 +3779,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   // filter specific parameters
   switch(filterID) {
     case activity_filter_all:
-      fun = &activity_filter_fun_all;
       if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
         config.all.pass = lua_toboolean(vm, ++params);
       }
@@ -3796,10 +3808,8 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+2: config.web.maxinterval = 2000;
         case 2+3: config.web.serverdominant = true;
       }
-      fun = &activity_filter_fun_web;
       break;
     case activity_filter_metrics_test:
-      fun = &activity_filter_fun_metrics_test;
       break;
     case activity_filter_sma:
       if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
@@ -3823,7 +3833,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+2: config.sma.timebound = 2000;
         case 2+3: config.sma.sustain = 1000;
       }
-      fun = &activity_filter_fun_sma;
       break;
     case activity_filter_wma:
       if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
@@ -3847,7 +3856,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+2: config.wma.timescale = 1.f;
         case 2+3: config.wma.aggrsecs = 0;
       }
-      fun = &activity_filter_fun_wma;
       break;
     case activity_filter_command_sequence:
       if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
@@ -3870,7 +3878,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+2: config.command_sequence.maxinterval = 3000;
         case 2+3: config.command_sequence.minflips = 1;
       }
-      fun = &activity_filter_fun_command_sequence;
       break;
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid activity filter (%d)", filterID);
@@ -3878,7 +3885,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Flow %p setActivityFilter: filter=%d activity=%d", f, filterID, activityID);
-  f->setActivityFilter(fun, &config);
+  f->setActivityFilter(filterID, &config);
   f->setActivityId(activityID);
 
   return(CONST_LUA_OK);
@@ -3897,6 +3904,7 @@ static const luaL_Reg flow_reg[] = {
   { "dump",              lua_flow_dump },
   { "setActivityFilter", lua_flow_set_activity_filter },
   { "getProfileId",      lua_flow_get_profile_id },
+  { "getActivityFilterId", lua_flow_get_activity_filter_id },
   { NULL,         NULL }
 };
 
@@ -3953,19 +3961,8 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
 
   // Activity profiles - see ntop_typedefs.h
   lua_newtable(L);
-  lua_push_int_table_entry(L, activity_names[user_activity_none], user_activity_none);
-  lua_push_int_table_entry(L, activity_names[user_activity_other], user_activity_other);
-  lua_push_int_table_entry(L, activity_names[user_activity_web], user_activity_web);
-  lua_push_int_table_entry(L, activity_names[user_activity_media], user_activity_media);
-  lua_push_int_table_entry(L, activity_names[user_activity_vpn], user_activity_vpn);
-  lua_push_int_table_entry(L, activity_names[user_activity_mail_sync], user_activity_mail_sync);
-  lua_push_int_table_entry(L, activity_names[user_activity_mail_send], user_activity_mail_send);
-  lua_push_int_table_entry(L, activity_names[user_activity_file_sharing], user_activity_file_sharing);
-  lua_push_int_table_entry(L, activity_names[user_activity_file_transfer], user_activity_file_transfer);
-  lua_push_int_table_entry(L, activity_names[user_activity_application], user_activity_application);
-  lua_push_int_table_entry(L, activity_names[user_activity_chat], user_activity_chat);
-  lua_push_int_table_entry(L, activity_names[user_activity_game], user_activity_game);
-  lua_push_int_table_entry(L, activity_names[user_activity_remote_control], user_activity_remote_control);
+  for (int i=0; i<UserActivitiesN; i++)
+    lua_push_int_table_entry(L, activity_names[i], i);
   lua_setglobal(L, CONST_USERACTIVITY_PROFILES);
 
   // Activity filters
@@ -4008,7 +4005,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   lua_State *L;
   const char *luaFunction;
 
-  return(0); /* FIX */
+  //~ return(0); /* FIX */
 
   if(reloadLuaInterpreter) {
     if(L_flow_create || L_flow_delete || L_flow_update) termLuaInterpreter();
@@ -4059,11 +4056,13 @@ const char * getActivityName(UserActivityID id) {
 
 /* ******************************************* */
 
-UserActivityID getActivityId(const char * name) {
+bool getActivityId(const char * name, UserActivityID * out) {
   if (name) {
     for (int i=0; i<UserActivitiesN; i++)
-      if (strcmp(activity_names[i], name) == 0)
-        return ((UserActivityID) i);
+      if (strcmp(activity_names[i], name) == 0) {
+        *out = ((UserActivityID) i);
+        return true;
+      }
   }
-  return user_activity_none;
+  return false;
 }

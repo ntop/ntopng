@@ -40,10 +40,12 @@ typedef struct {
 } FlowPacketStats;
 
 typedef struct {
-  activity_filter_t * filter;
+  ActivityFilterID filterId;
   activity_filter_config config;
   activity_filter_status status;
   UserActivityID activityId;
+  bool filterSet;
+  bool activitySet;
 } FlowActivityDetection;
 
 typedef enum {
@@ -359,10 +361,11 @@ class Flow : public GenericHashEntry {
   inline FlowState getFlowState()                   { return(state);                          }
   inline bool      isEstablished()                  { return state == flow_state_established; }
   
-  void setActivityFilter(activity_filter_t * filter, const activity_filter_config * config);
+  void setActivityFilter(ActivityFilterID fid, const activity_filter_config * config);
+  inline bool getActivityFilterId(ActivityFilterID *out) { if(activityDetection.filterSet) {*out = activityDetection.filterId; return true;} else return false; }
   bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
-  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; }
-  inline UserActivityID getActivityId()             { return(activityDetection.activityId); }
+  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; activityDetection.activitySet = true; }
+  inline bool getActivityId(UserActivityID *out)   { if(activityDetection.activitySet) {*out = activityDetection.activityId; return true;} else return false; }
 };
 
 #endif /* _FLOW_H_ */

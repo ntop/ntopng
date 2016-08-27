@@ -378,6 +378,6 @@ class NetworkInterface {
 };
 
 const char * getActivityName(UserActivityID id);
-UserActivityID getActivityId(const char * name);
+bool getActivityId(const char * name, UserActivityID * out);
 
 #endif /* _NETWORK_INTERFACE_H_ */
