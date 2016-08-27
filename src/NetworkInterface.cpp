@@ -50,6 +50,7 @@ static const char * activity_names [] = {
   "Chat",
   "Game",
   "RemoteControl",
+  "Facebook",
 };
 COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
 
@@ -3750,6 +3751,7 @@ static int lua_flow_get_activity_filter_id(lua_State* vm) {
  *    minbytes     - minimum number of bytes to trigger activity
  *    maxinterval  - maximum milliseconds difference between packets
  *    serverdominant - if true, server bytes must be more then client bytes
+ *    forceWebProfile - if true, force 'web' profile for unknown and 'other' flow profiles
  *
  */
 static int lua_flow_set_activity_filter(lua_State* vm) {
@@ -3796,8 +3798,12 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
           if (lua_type(vm, params+1) == LUA_TNUMBER) {
             config.web.maxinterval = lua_tonumber(vm, ++params);
 
-            if (lua_type(vm, params+1) == LUA_TBOOLEAN)
-              config.web.serverdominant = lua_toboolean(vm, ++params);
+            if (lua_type(vm, params+1) == LUA_TBOOLEAN) {
+              config.web.forceWebProfile = lua_toboolean(vm, ++params);
+
+              if (lua_type(vm, params+1) == LUA_TBOOLEAN)
+                config.web.serverdominant = lua_toboolean(vm, ++params);
+            }
           }
         }
       }
@@ -3806,7 +3812,8 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+0: config.web.numsamples = 4;
         case 2+1: config.web.minbytes = 0;
         case 2+2: config.web.maxinterval = 2000;
-        case 2+3: config.web.serverdominant = true;
+        case 2+3: config.web.forceWebProfile = true;
+        case 2+4: config.web.serverdominant = true;
       }
       break;
     case activity_filter_metrics_test:
@@ -4005,7 +4012,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   lua_State *L;
   const char *luaFunction;
 
-  //~ return(0); /* FIX */
+  return(0); /* FIX */
 
   if(reloadLuaInterpreter) {
     if(L_flow_create || L_flow_delete || L_flow_update) termLuaInterpreter();

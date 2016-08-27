@@ -78,6 +78,7 @@ typedef union {
     uint minbytes;
     uint maxinterval;
     bool serverdominant;
+    bool forceWebProfile;
   } web;
 } activity_filter_config;
 

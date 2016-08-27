@@ -1071,12 +1071,12 @@ print [[
 -- Host activity stats
 if host["localhost"] == true then
    print [[ <tr><th>Protocol Activity</th><td colspan=2>
-      <div style='margin-top:0.5em; margin-bottom:2em;'>
+      <div style='margin-top:0.5em;'>
          <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> User Traffic<br>
          <input type="radio" name="showmode" value="bg" onclick="setShowMode(this.value)"> Background Traffic
       </div>
 
-      <div id="userctivity"></div>
+      <div id="userctivity" style='margin:2em 0 2em 0;'></div>
 
       <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
       <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.rrd-server.js"></script>
@@ -1122,7 +1122,7 @@ if host["localhost"] == true then
                   $('#userctivity').empty();
                   
                   var metrics = [];
-                  JSON.parse(content).map(function(activity) {
+                  JSON.parse(content).sort().map(function(activity) {
                      metrics.push(rrdserver.metric(activitiesurl+"&activity="+activity, activity, mode === "bg"));
                   });
 

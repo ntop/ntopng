@@ -4,9 +4,25 @@
 
 local trace_hk = false
 local profile_activity_match
-local media_activity_defaults = {filter.SMA}
+local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]3, --[[bound time]]500, --[[sustain time]]4000}
+local web_activity_defaults = {filter.Web}
 
 if(trace_hk) then print("Initialized script useractivity.lua\n") end
+
+-- ########################################################
+
+local media_activity_mime_types = {
+   "audio/",
+   "video/",
+   "application/x-shockwave-flash"
+}
+
+local web_activity_mime_types = {
+   "text/",
+   "application/javascript",
+   "application/x-javascript",
+   "application/ecmascript"
+}
 
 -- ########################################################
 
@@ -25,6 +41,15 @@ function string.starts(String,Start)
    return string.sub(String,1,string.len(Start))==Start
 end
 
+function string.ends(String,End)
+   return End=='' or string.sub(String,-string.len(End))==End
+end
+
+
+function string.search(String,Search,Start)
+   return string.find(String, Search, Start or 1, false)
+end
+
 -- ########################################################
 
 function splitProto(proto)
@@ -41,10 +66,32 @@ function flowUpdate()
    local proto = flow.getNdpiProto()
    local master, sub = splitProto(proto)
 
-   if master == "HTTP" and flow.getProfileId() ~= profile.Media then
+   if master == "HTTP" then
       local contentType = flow.getHTTPContentType()
-      if contentType and (contentType:starts("audio/") or contentType:starts("video/")) then
-         flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
+      if contentType then
+         if flow.getProfileId() ~= profile.Media then
+            local mDetected = false
+            
+            -- Try to detect a media type
+            for i=1, #media_activity_mime_types do
+               if contentType:starts(media_activity_mime_types[i]) then
+                  flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
+                  mDetected = true
+                  break
+               end
+            end
+
+            -- Try to detect a web type
+            if not mDetected and flow.getActivityFilterId() ~= filter.All then
+               for i=1, #web_activity_mime_types do
+                  if contentType:starts(web_activity_mime_types[i]) then
+                     -- Be always active
+                     flow.setActivityFilter(profile.Web, filter.All, true)
+                     break
+                  end
+               end
+            end
+         end
       end
    end
 end
@@ -124,7 +171,6 @@ local profile_activity_match = {
    -- VPN profile
    {
       ["profile"] = profile.VPN,
-      --~ ["defaults"] = {profile.VPN, filter.WMA, 140, 3, 1000.0, 1}
       ["defaults"] = {filter.SMA},
       ["protos"] = {
          ["OpenVPN"] = {filter.SMA, 150, 3, 3000, 2000},
@@ -172,12 +218,12 @@ local profile_activity_match = {
          "Direct_Download_Link",
          "AFP",
          "Dropbox",                          -- TODO implement proper background detection
-         "NFS",                              -- TODO implement proper background detection
-         "SMB",                              -- TODO implement proper background detection
+         "NFS",
+         "SMB",
          "UbuntuONE",
          "MS_OneDrive",
          "RSYNC",
-         "TFTP"                              -- TODO control or data?
+         "TFTP"
       }
    },
 
@@ -202,27 +248,6 @@ local profile_activity_match = {
       }
    },
 
-   -- App profile
-   {
-      ["profile"] = profile.App,
-      ["defaults"] = {},
-      ["protos"] = {
-         "Crossfire",
-         "Corba",
-         "DCE_RPC",
-         "DRDA",
-         "Git",
-         "Kerberos",
-         "Syslog",
-         "Collectd",
-         "RemoteScan",
-         "Office365",
-         "Instagram",
-         "Waze",
-         "Snapchat"
-      }
-   },
-
    -- Chat profile
    {
       ["profile"] = profile.Chat,
@@ -235,12 +260,11 @@ local profile_activity_match = {
          "MSN",
          "Oscar",
          "QQ",
-         "Skype",                            -- TODO chat or media?
-         "TeamSpeak",                        -- TODO chat or media?
+         "Skype",
+         "TeamSpeak",
          "Telegram",
          "TWITTER",
          "VIBER",
-         "YAHOO",                            -- TODO chat or media?
          "Slack",
          "Weibo"
       }
@@ -260,7 +284,6 @@ local profile_activity_match = {
          "MapleStory",
          "Quake",
          "Starcraft",
-         "Steam",                             -- TODO chat, download ??
          "Warcraft3",
          "WorldOfKungFu",
          "WorldOfWarcraft",
@@ -271,11 +294,11 @@ local profile_activity_match = {
    -- RemoteControl profile
    {
       ["profile"] = profile.RemoteControl,
-      ["defaults"] = {filter.SMA},            -- TODO refine
+      ["defaults"] = {filter.SMA, 20},
       ["protos"] = {
          "PcAnywhere",
          "RDP",
-         "SSH",                               -- TODO detect file transfers over SSH
+         "SSH",
          "TeamViewer",
          "Telnet",
          "VNC",
@@ -286,11 +309,19 @@ local profile_activity_match = {
    -- Web profile
    {
       ["profile"] = profile.Web,
+      ["defaults"] = web_activity_defaults,
+      ["protos"] = {
+         "HTTP",
+         "HTTPS"
+      }
+   },
+
+   -- Other profile
+   {
+      ["profile"] = profile.Other,
+      -- Note: filter.Web will possibly update the flow to Web profile
       ["defaults"] = {filter.Web},
       ["protos"] = {
-         "Facebook",
-         "HTTP",
-         "HTTPS",
          "SSL",
          "SSL_No_Cert"
       }
@@ -306,33 +337,53 @@ function flowProtocolDetected()
    local matched = nil
 
    if master ~= "DNS" then
-      for i=1, #profile_activity_match do
-         local pamatch = profile_activity_match[i]
-         local profile = pamatch["profile"]
-         local protos = pamatch["protos"]
-
-         for k,v in pairs(protos) do
-            local matchproto
-            local config = nil
-
-            if type(v) == "table" then
-               matchproto = k
-               config = v
-            else
-               matchproto = v
-            end
-
-            if matchproto == master or matchproto == sub then
-               matched = {["profile"]=profile, ["proto"]=matchproto, ["config"]=config, ["defaults"]=pamatch["defaults"]}
-               break
-            end
+   
+-- BEGIN Particular protocols
+      if sub == "Facebook" then
+         local config
+         if master == "HTTP" then
+            -- mark as background traffic
+            config = {filter.All, false}
+         elseif master == "SSL" and srv:starts("video-") then
+            -- mark as active traffic
+            config = {filter.All, true}
+         else
+            config = {filter.SMA, --[[min bytes]] 150, --[[min samples]]4, --[[bound time]]2000, --[[sustain time]]1000}
          end
+         matched = {["profile"]=profile.Facebook, ["config"]=config}
+      elseif sub == "YouTube" and not srv:ends("googlevideo.com") then
+         -- just normal web traffic
+         matched = {["profile"]=profile.Web, ["config"]=web_activity_defaults}
+-- END Particular protocols      
+      else
+         for i=1, #profile_activity_match do
+            local pamatch = profile_activity_match[i]
+            local profile = pamatch["profile"]
+            local protos = pamatch["protos"]
 
-         if matched then break end
+            for k,v in pairs(protos) do
+               local matchproto
+               local config = nil
+
+               if type(v) == "table" then
+                  matchproto = k
+                  config = v
+               else
+                  matchproto = v
+               end
+
+               if matchproto == master or matchproto == sub then
+                  matched = {["profile"]=profile, ["proto"]=matchproto, ["config"]=config, ["defaults"]=pamatch["defaults"]}
+                  break
+               end
+            end
+
+            if matched then break end
+         end
       end
 
       if matched then
-         local params = matched.config or matched.defaults
+         local params = matched.config or matched.defaults or {}
          flow.setActivityFilter(matched.profile, unpack(params))
       else
          flow.setActivityFilter(profile.Other)

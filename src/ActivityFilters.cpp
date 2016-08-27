@@ -229,6 +229,9 @@ static bool activity_filter_fun_web(const activity_filter_config * config,
              (!config->web.serverdominant || status->web.srvBytes > status->web.cliBytes)
         ) {
             status->web.detected = true;
+            UserActivityID uaid;
+            if (config->web.forceWebProfile && (!flow->getActivityId(&uaid) || uaid == user_activity_other))
+              flow->setActivityId(user_activity_web);
         }
 
         if (status->web.samples >= config->web.numsamples) {
