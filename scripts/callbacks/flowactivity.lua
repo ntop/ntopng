@@ -6,6 +6,7 @@ local trace_hk = false
 local profile_activity_match
 local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]3, --[[bound time]]500, --[[sustain time]]4000}
 local web_activity_defaults = {filter.Web}
+local default_activity_parameters = {filter.All, true}
 
 if(trace_hk) then print("Initialized script useractivity.lua\n") end
 
@@ -190,7 +191,7 @@ local profile_activity_match = {
       }
    },{
       ["profile"] = profile.MailSync,
-      ["defaults"] = {},
+      ["defaults"] = default_activity_parameters,
       ["protos"] = {
          "POP3",
          "POPS"
@@ -200,7 +201,7 @@ local profile_activity_match = {
    -- MailSend profile
    {
       ["profile"] = profile.MailSend,
-      ["defaults"] = {},
+      ["defaults"] = default_activity_parameters,
       ["protos"] = {
          "SMTP",
          "SMTPS"
@@ -251,7 +252,7 @@ local profile_activity_match = {
    -- Chat profile
    {
       ["profile"] = profile.Chat,
-      ["defaults"] = {},
+      ["defaults"] = default_activity_parameters,
       ["protos"] = {
          "GoogleHangout",
          "IRC",
@@ -273,7 +274,7 @@ local profile_activity_match = {
    -- Game profile
    {
       ["profile"] = profile.Game,
-      ["defaults"] = {},
+      ["defaults"] = default_activity_parameters,
       ["protos"] = {
          "Dofus",
          "BattleField",
@@ -341,12 +342,15 @@ function flowProtocolDetected()
 -- BEGIN Particular protocols
       if sub == "Facebook" then
          local config
-         if master == "HTTP" then
+         if master == "HTTP" or (master == "SSL" and srv:starts("developer.")) then
             -- mark as background traffic
             config = {filter.All, false}
          elseif master == "SSL" and srv:starts("video-") then
             -- mark as active traffic
             config = {filter.All, true}
+         elseif master == "SSL" and srv:starts("scontent.") then
+            -- try to exclude facebook integration in other sites
+            config = {filter.Ratio, --[[samples]] 4, --[[min bytes]]300, --[[min srv/cli]] -0.333}
          else
             config = {filter.SMA, --[[min bytes]] 150, --[[min samples]]4, --[[bound time]]2000, --[[sustain time]]1000}
          end
@@ -383,10 +387,10 @@ function flowProtocolDetected()
       end
 
       if matched then
-         local params = matched.config or matched.defaults or {}
+         local params = matched.config or matched.defaults
          flow.setActivityFilter(matched.profile, unpack(params))
       else
-         flow.setActivityFilter(profile.Other)
+         flow.setActivityFilter(profile.Other, unpack(default_activity_parameters))
       end
 
       if(trace_hk) then

@@ -3753,6 +3753,10 @@ static int lua_flow_get_activity_filter_id(lua_State* vm) {
  *    serverdominant - if true, server bytes must be more then client bytes
  *    forceWebProfile - if true, force 'web' profile for unknown and 'other' flow profiles
  *
+ * Ratio filter params:
+ *    numsamples   - number of packets to process for detection
+ *    minbytes     - minimum number of bytes to trigger activity
+ *    clisrv_ratio - minimum (positive ? client/server : server/client) bytes to trigger activity
  */
 static int lua_flow_set_activity_filter(lua_State* vm) {
   UserActivityID activityID;
@@ -3760,7 +3764,6 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   Flow *f;
   activity_filter_config config = {};
   u_int8_t params = 0;
-  bool hasparams;
 
   lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
@@ -3770,18 +3773,15 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
   activityID = (UserActivityID)lua_tonumber(vm, ++params);
   if (activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, params+1) == LUA_TNUMBER) {
+  if(lua_type(vm, params+1) == LUA_TNUMBER)
     filterID = (ActivityFilterID)lua_tonumber(vm, ++params);
-    hasparams = true;
-  } else {
-    filterID = activity_filter_all;
-    hasparams = false;
-  }
+  else
+    return(CONST_LUA_ERROR);
 
   // filter specific parameters
   switch(filterID) {
     case activity_filter_all:
-      if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
+      if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
         config.all.pass = lua_toboolean(vm, ++params);
       }
       switch (params) {
@@ -3789,7 +3789,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       }
       break;
     case activity_filter_web:
-      if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
+      if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.web.numsamples = lua_tonumber(vm, ++params);
 
         if (lua_type(vm, params+1) == LUA_TNUMBER) {
@@ -3816,10 +3816,28 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+4: config.web.serverdominant = true;
       }
       break;
+    case activity_filter_ratio:
+      if(lua_type(vm, params+1) == LUA_TNUMBER) {
+        config.ratio.numsamples = lua_tonumber(vm, ++params);
+
+        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          config.ratio.minbytes = lua_tonumber(vm, ++params);
+          
+          if (lua_type(vm, params+1) == LUA_TNUMBER)
+            config.ratio.clisrv_ratio = lua_tonumber(vm, ++params);
+        }
+      }
+      // defaults
+      switch (params) {
+        case 2+0: config.ratio.numsamples = 4;
+        case 2+1: config.ratio.minbytes = 0;
+        case 2+2: config.ratio.clisrv_ratio = -1.f;
+      }
+      break;
     case activity_filter_metrics_test:
       break;
     case activity_filter_sma:
-      if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
+      if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.sma.edge = lua_tonumber(vm, ++params);
 
         if (lua_type(vm, params+1) == LUA_TNUMBER) {
@@ -3842,7 +3860,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       }
       break;
     case activity_filter_wma:
-      if(hasparams && lua_type(vm, params+1) == LUA_TNUMBER) {
+      if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.wma.edge = lua_tonumber(vm, ++params);
 
         if (lua_type(vm, params+1) == LUA_TNUMBER) {
@@ -3865,7 +3883,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       }
       break;
     case activity_filter_command_sequence:
-      if(hasparams && lua_type(vm, params+1) == LUA_TBOOLEAN) {
+      if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
         config.command_sequence.mustwait = lua_toboolean(vm, ++params);
 
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
@@ -3979,6 +3997,7 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   lua_push_int_table_entry(L, "WMA", activity_filter_wma);
   lua_push_int_table_entry(L, "CommandSequence", activity_filter_command_sequence);
   lua_push_int_table_entry(L, "Web", activity_filter_web);
+  lua_push_int_table_entry(L, "Ratio", activity_filter_ratio);
   lua_push_int_table_entry(L, "Metrics", activity_filter_metrics_test);
   lua_setglobal(L, CONST_USERACTIVITY_FILTERS);
 

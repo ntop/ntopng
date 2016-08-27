@@ -39,6 +39,7 @@ typedef enum {
   activity_filter_wma,
   activity_filter_command_sequence,
   activity_filter_web,
+  activity_filter_ratio,
   activity_filter_metrics_test,
   
   ActivityFiltersN /* Unused as value but useful to
@@ -80,6 +81,12 @@ typedef union {
     bool serverdominant;
     bool forceWebProfile;
   } web;
+
+  struct {
+    uint numsamples;
+    uint minbytes;
+    float clisrv_ratio;
+  } ratio;
 } activity_filter_config;
 
 typedef union {
@@ -116,6 +123,13 @@ typedef union {
     uint8_t samples;
     bool detected;
   } web;
+
+  struct {
+    uint64_t cliBytes;
+    uint64_t srvBytes;
+    uint samples;
+    bool detected;
+  } ratio;
 
   struct {    
     uint16_t sizes[ACTIVITY_FILTER_METRICS_SAMPLES];

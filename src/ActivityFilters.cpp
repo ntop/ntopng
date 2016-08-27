@@ -250,6 +250,50 @@ static bool activity_filter_fun_web(const activity_filter_config * config,
 
 /* ********************************************************************** */
 
+static bool activity_filter_fun_ratio(const activity_filter_config * config,
+			     activity_filter_status * status, Flow * flow,
+			     const struct timeval *when,
+			     bool cli2srv, uint16_t payload_len) {
+  if (status->ratio.samples < config->ratio.numsamples) {
+    if (payload_len > 0) {
+      if (cli2srv)
+        status->ratio.cliBytes += payload_len;
+      else
+        status->ratio.srvBytes += payload_len;
+        
+      status->ratio.samples++;
+
+      if (status->ratio.samples == config->ratio.numsamples) {
+        float n,d,r;
+        
+        if (config->ratio.clisrv_ratio > 0) {
+          n = status->ratio.cliBytes;
+          d = status->ratio.srvBytes;
+        } else {
+          n = status->ratio.srvBytes;
+          d = status->ratio.cliBytes;
+        }
+        r = n / d;
+
+        if (! d)
+          status->ratio.detected = true;
+        else
+          status->ratio.detected = n + d >= config->ratio.minbytes && r >= abs(config->ratio.clisrv_ratio);
+
+        char buf[32];
+        ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Ratio filter[%s] url/cert='%s%s' cli=%lu srv=%lu : %.3f\n",
+                status->ratio.detected ? '*' : ' ',
+                flow->get_detected_protocol_name(buf, sizeof(buf)),
+                flow->getHTTPURL(), flow->getSSLCertificate(),
+                status->ratio.cliBytes, status->ratio.srvBytes, r);
+      }
+    }
+  }
+  return status->ratio.detected;
+}
+
+/* ********************************************************************** */
+
 /* This fitler is just for testing purposes. */
 static bool activity_filter_fun_metrics_test(const activity_filter_config * config,
 			     activity_filter_status * status, Flow * flow,
@@ -327,6 +371,7 @@ activity_filter_t* activity_filter_funcs[] = {
   activity_filter_fun_wma,
   activity_filter_fun_command_sequence,
   activity_filter_fun_web,
+  activity_filter_fun_ratio,
   activity_filter_fun_metrics_test,
 };
 
