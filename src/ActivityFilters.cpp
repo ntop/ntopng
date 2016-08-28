@@ -278,7 +278,7 @@ static bool activity_filter_fun_ratio(const activity_filter_config * config,
         if (! d)
           status->ratio.detected = true;
         else
-          status->ratio.detected = n + d >= config->ratio.minbytes && r >= abs(config->ratio.clisrv_ratio);
+          status->ratio.detected = n + d >= config->ratio.minbytes && r >= fabsf(config->ratio.clisrv_ratio);
 
         char buf[32];
         ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Ratio filter[%s] url/cert='%s%s' cli=%lu srv=%lu : %.3f\n",
