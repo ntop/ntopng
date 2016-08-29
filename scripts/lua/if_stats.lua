@@ -385,7 +385,7 @@ print("</script>\n")
    if(ifstats.stats.drops > 0) then print('</span>') end
    print("</span>  <span id=drops_trend></span></td><td colspan=3>&nbsp;</td></tr>\n")
 
-   if(prefs.is_dump_flows_enabled) and true --[[ temporarily disabled --]] then
+   if(prefs.is_dump_flows_enabled) then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
