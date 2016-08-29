@@ -294,6 +294,41 @@ static bool activity_filter_fun_ratio(const activity_filter_config * config,
 
 /* ********************************************************************** */
 
+static bool activity_filter_fun_interflow(const activity_filter_config * config,
+			     activity_filter_status * status, Flow * flow,
+			     const struct timeval *when,
+			     bool cli2srv, uint16_t payload_len) {
+  // Assert local client host begins connetion 
+  Host * host = flow->get_cli_host();
+  int f_count;
+  u_int32_t f_pkts;
+  time_t max_duration;
+  bool rv = false;
+
+  switch(flow->get_detected_protocol().protocol) {
+    case NDPI_SERVICE_FACEBOOK:
+      host->incFacebookPackets(flow, when->tv_sec);
+      host->getFacebookStats(when->tv_sec, &f_count, &f_pkts, &max_duration);
+      if (f_pkts >= config->interflow.minpkts &&
+          ((config->interflow.minduration >= 0 && max_duration >= config->interflow.minduration) ||
+           (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
+        rv = true;
+      break;
+  }
+
+  char buf[32];
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Interflow filter[%s] url/cert='%s%s' concurrent pkts=%u/%d - flows=%d/%d, dur=%lu/%ds\n",
+          rv ? '*' : ' ',
+          flow->get_detected_protocol_name(buf, sizeof(buf)),
+          flow->getHTTPURL(), flow->getSSLCertificate(),
+          f_pkts, config->interflow.minpkts,
+          f_count, config->interflow.minflows >= 0 ? config->interflow.minflows : 0,
+          max_duration, config->interflow.minduration >= 0 ? config->interflow.minduration : 0);
+  return rv;
+}
+
+/* ********************************************************************** */
+
 /* This fitler is just for testing purposes. */
 static bool activity_filter_fun_metrics_test(const activity_filter_config * config,
 			     activity_filter_status * status, Flow * flow,
@@ -372,6 +407,7 @@ activity_filter_t* activity_filter_funcs[] = {
   activity_filter_fun_command_sequence,
   activity_filter_fun_web,
   activity_filter_fun_ratio,
+  activity_filter_fun_interflow,
   activity_filter_fun_metrics_test,
 };
 
