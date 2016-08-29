@@ -25,10 +25,10 @@
 #include <stdint.h>
 #include <time.h>
 
-#define ACTIVITY_FILTER_SMA_SAMPLES 6
-#define ACTIVITY_FILTER_WMA_SAMPLES 6
+#define ACTIVITY_FILTER_SMA_SAMPLES 10
+#define ACTIVITY_FILTER_WMA_SAMPLES 10
 #define ACTIVITY_FILTER_METRICS_SAMPLES 4
-#define ACTIVITY_FILTER_METRICS_MAX_INTERVAL 2000
+#define ACTIVITY_FILTER_METRICS_MAX_INTERVAL 5000
 
 typedef unsigned int uint;
 class Flow;
@@ -40,6 +40,7 @@ typedef enum {
   activity_filter_command_sequence,
   activity_filter_web,
   activity_filter_ratio,
+  activity_filter_interflow,
   activity_filter_metrics_test,
   
   ActivityFiltersN /* Unused as value but useful to
@@ -87,6 +88,12 @@ typedef union {
     uint minbytes;
     float clisrv_ratio;
   } ratio;
+
+  struct {
+    u_int32_t minpkts;
+    int minflows;
+    int minduration;
+  } interflow;
 } activity_filter_config;
 
 typedef union {

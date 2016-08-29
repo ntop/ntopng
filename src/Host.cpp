@@ -160,6 +160,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
+  memset(&facebook_stats, 0, sizeof(facebook_stats));
   asn = 0, asname = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
@@ -1474,4 +1475,72 @@ void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t down
 
 const UserActivityCounter * Host::getActivityBytes(UserActivityID id) {
   return user_activities.getBytes(id);
-};
+}
+
+/* *************************************** */
+
+void Host::incFacebookPackets(const Flow * flow, time_t when) {
+  bool toadd = true;
+  int k = -1;
+  float mostbad = 0.f;
+  int i;
+
+  for (i=0; i<USER_ACTIVITY_DETECTION_SLOTS && facebook_stats[i].flow != flow; i++) {
+    float bad;
+    
+    if (facebook_stats[i].flow == NULL)
+      // empty slot
+      bad = 1.f;
+    else
+      // old value: estimate goodness
+      bad = (when - facebook_stats[i].last) * 1.f / USER_ACTIVITY_DETECTION_MAX_FLOW_INTERVAL - facebook_stats[i].pkts / 100.f;
+
+    if (bad > mostbad) {
+      k = i;
+      mostbad = bad;
+    }
+  }
+
+  if (i<USER_ACTIVITY_DETECTION_SLOTS) {
+    if ((when - facebook_stats[i].last) <= USER_ACTIVITY_DETECTION_MAX_FLOW_INTERVAL) {
+      // update slot
+      facebook_stats[i].pkts += 1;
+      facebook_stats[i].last = when;
+      toadd = false;
+    } else {
+      // reset slot counters
+      k = i;
+    }
+  }
+
+  if (toadd) {
+    // allocate or reset slot
+    facebook_stats[k].flow = flow;
+    facebook_stats[k].pkts = 1;
+    facebook_stats[k].first = when;
+    facebook_stats[k].last = when;
+  }
+}
+
+/* *************************************** */
+
+void Host::getFacebookStats(time_t when, int * count, u_int32_t * packets, time_t * max_diff) {
+  *count = 0;
+  *max_diff = 0;
+  *packets = 0;
+  
+  for (int i=0; i<USER_ACTIVITY_DETECTION_SLOTS; i++) {
+    bool timeok = (when - facebook_stats[i].last) <= USER_ACTIVITY_DETECTION_MAX_FLOW_INTERVAL;
+    bool continuity = (when - facebook_stats[i].last) <= USER_ACTIVITY_DETECTION_MAX_CONTINUITY_INTERVAL;
+    
+    if (continuity || timeok) {
+      if (timeok) {
+        *count += 1;
+        *max_diff = max(facebook_stats[i].last - facebook_stats[i].first, *max_diff);
+      }
+
+      // this is affected by activity continuity
+      *packets += facebook_stats[i].pkts;
+    }
+  }
+}

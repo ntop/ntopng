@@ -3762,6 +3762,12 @@ static int lua_flow_get_activity_filter_id(lua_State* vm) {
  *    numsamples   - number of packets to process for detection
  *    minbytes     - minimum number of bytes to trigger activity
  *    clisrv_ratio - minimum (positive ? client/server : server/client) bytes to trigger activity
+ * 
+ * Interflow filter params:
+ *    minflows     - minimum number of concurrent flows. -1 to disable [1]
+ *    minpkts      - minimum number of cumulative packets in concurrent flows to trigger activity
+ *    minduration  - minimum (max duration of cumulative packets) in concurrent flows. -1 to disable [1]
+ *   NOTE: At least one of [1] must be satisfied to trigger activity
  */
 static int lua_flow_set_activity_filter(lua_State* vm) {
   UserActivityID activityID;
@@ -3837,6 +3843,24 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+0: config.ratio.numsamples = 4;
         case 2+1: config.ratio.minbytes = 0;
         case 2+2: config.ratio.clisrv_ratio = -1.f;
+      }
+      break;
+    case activity_filter_interflow:
+      if(lua_type(vm, params+1) == LUA_TNUMBER) {
+        config.interflow.minflows = min((int)lua_tonumber(vm, ++params), USER_ACTIVITY_DETECTION_SLOTS);
+
+        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          config.interflow.minpkts = lua_tonumber(vm, ++params);
+          
+          if (lua_type(vm, params+1) == LUA_TNUMBER)
+            config.interflow.minduration = lua_tonumber(vm, ++params);
+        }
+      }
+      // defaults
+      switch (params) {
+        case 2+0: config.interflow.minflows = USER_ACTIVITY_DETECTION_SLOTS;
+        case 2+1: config.interflow.minpkts = 200;
+        case 2+2: config.interflow.minduration = -1;
       }
       break;
     case activity_filter_metrics_test:
@@ -4003,6 +4027,7 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
   lua_push_int_table_entry(L, "CommandSequence", activity_filter_command_sequence);
   lua_push_int_table_entry(L, "Web", activity_filter_web);
   lua_push_int_table_entry(L, "Ratio", activity_filter_ratio);
+  lua_push_int_table_entry(L, "Interflow", activity_filter_interflow);
   lua_push_int_table_entry(L, "Metrics", activity_filter_metrics_test);
   lua_setglobal(L, CONST_USERACTIVITY_FILTERS);
 

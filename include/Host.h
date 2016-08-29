@@ -24,6 +24,10 @@
 
 #include "ntop_includes.h"
 
+#define USER_ACTIVITY_DETECTION_SLOTS 5
+#define USER_ACTIVITY_DETECTION_MAX_FLOW_INTERVAL 5
+#define USER_ACTIVITY_DETECTION_MAX_CONTINUITY_INTERVAL 20
+
 class Host : public GenericHost {
  private:
   u_int8_t mac_address[6];
@@ -50,6 +54,12 @@ class Host : public GenericHost {
   TrafficStats ingress_drops, egress_drops;
   
   UserActivityStats user_activities;
+  struct {
+    const Flow * flow;
+    time_t first;
+    time_t last;
+    u_int16_t pkts;
+  } facebook_stats[USER_ACTIVITY_DETECTION_SLOTS];
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -180,6 +190,9 @@ class Host : public GenericHost {
   void incrVisitedWebSite(char *hostname);
   const UserActivityCounter * getActivityBytes(UserActivityID id);
   void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
+  void incFacebookPackets(const Flow * flow, time_t when);
+  bool hasFacebookActivity();
+  void getFacebookStats(time_t when, int * count, u_int32_t * packets, time_t * max_diff);
 };
 
 #endif /* _HOST_H_ */

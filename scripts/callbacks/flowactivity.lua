@@ -4,7 +4,7 @@
 
 local trace_hk = false
 local profile_activity_match
-local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]3, --[[bound time]]500, --[[sustain time]]4000}
+local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]1, --[[bound time]]500, --[[sustain time]]4000}
 local web_activity_defaults = {filter.Web}
 local default_activity_parameters = {filter.All, true}
 
@@ -231,7 +231,7 @@ local profile_activity_match = {
    -- FileSharing profile
    {
       ["profile"] = profile.FileSharing,
-      ["defaults"] = {filter.SMA, 300, 2, 4000, 3000},
+      ["defaults"] = {filter.SMA, 300, 3, 4000, 3000},
       ["protos"] = {
          "BitTorrent",
          "Gnutella",
@@ -264,8 +264,8 @@ local profile_activity_match = {
          "Skype",
          "TeamSpeak",
          "Telegram",
-         "TWITTER",
-         "VIBER",
+         "Twitter",
+         "Viber",
          "Slack",
          "Weibo"
       }
@@ -342,17 +342,11 @@ function flowProtocolDetected()
 -- BEGIN Particular protocols
       if sub == "Facebook" then
          local config
-         if master == "HTTP" or (master == "SSL" and srv:starts("developer.")) then
+         if master == "HTTP" then
             -- mark as background traffic
             config = {filter.All, false}
-         elseif master == "SSL" and srv:starts("video-") then
-            -- mark as active traffic
-            config = {filter.All, true}
-         elseif master == "SSL" and srv:starts("scontent.") then
-            -- try to exclude facebook integration in other sites
-            config = {filter.Ratio, --[[samples]] 4, --[[min bytes]]300, --[[min srv/cli]] -0.333}
          else
-            config = {filter.SMA, --[[min bytes]] 150, --[[min samples]]4, --[[bound time]]2000, --[[sustain time]]1000}
+            config = {filter.Interflow, 2, 400, 3}
          end
          matched = {["profile"]=profile.Facebook, ["config"]=config}
       elseif sub == "YouTube" and not srv:ends("googlevideo.com") then
