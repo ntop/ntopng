@@ -254,6 +254,7 @@ local profile_activity_match = {
       ["profile"] = profile.Chat,
       ["defaults"] = default_activity_parameters,
       ["protos"] = {
+         ["Twitter"] = {filter.Interflow, 3, 200},
          "GoogleHangout",
          "IRC",
          "Unencryped_Jabber",
@@ -264,7 +265,6 @@ local profile_activity_match = {
          "Skype",
          "TeamSpeak",
          "Telegram",
-         "Twitter",
          "Viber",
          "Slack",
          "Weibo"

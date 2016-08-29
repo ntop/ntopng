@@ -3842,7 +3842,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       break;
     case activity_filter_interflow:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.interflow.minflows = min((int)lua_tonumber(vm, ++params), USER_ACTIVITY_DETECTION_SLOTS);
+        config.interflow.minflows = min((int)lua_tonumber(vm, ++params), INTER_FLOW_ACTIVITY_SLOTS);
 
         if (lua_type(vm, params+1) == LUA_TNUMBER) {
           config.interflow.minpkts = lua_tonumber(vm, ++params);
@@ -3853,7 +3853,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       }
       // defaults
       switch (params) {
-        case 2+0: config.interflow.minflows = USER_ACTIVITY_DETECTION_SLOTS;
+        case 2+0: config.interflow.minflows = INTER_FLOW_ACTIVITY_SLOTS;
         case 2+1: config.interflow.minpkts = 200;
         case 2+2: config.interflow.minduration = -1;
       }

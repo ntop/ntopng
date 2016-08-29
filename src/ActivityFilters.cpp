@@ -303,18 +303,29 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
   int f_count = 0;
   u_int32_t f_pkts = 0;
   time_t max_duration = 0;
+  ifa_stats_protos proto;
   bool rv = false;
 
   switch(flow->get_detected_protocol().protocol) {
     case NDPI_SERVICE_FACEBOOK:
-      host->incFacebookPackets(flow, when->tv_sec);
-      host->getFacebookStats(when->tv_sec, &f_count, &f_pkts, &max_duration);
-      if (f_pkts >= config->interflow.minpkts &&
-          ((config->interflow.minduration >= 0 && max_duration >= config->interflow.minduration) ||
-           (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
-        rv = true;
+      proto = ifa_facebook_stats;
       break;
+    case NDPI_SERVICE_TWITTER:
+      proto = ifa_twitter_stats;
+      break;
+    default:
+      char buf[32];
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Interflow filter undefined for protocol %s\n", flow->get_detected_protocol_name(buf, sizeof(buf)));
+      return false;
   }
+
+  host->incIfaPackets(proto, flow, when->tv_sec);
+  host->getIfaStats(proto, when->tv_sec, &f_count, &f_pkts, &max_duration);
+
+  if (f_pkts >= config->interflow.minpkts &&
+      ((config->interflow.minduration >= 0 && max_duration >= config->interflow.minduration) ||
+      (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
+    rv = true;
 
   char buf[32];
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Interflow filter[%s] url/cert='%s%s' concurrent pkts=%u/%d - flows=%d/%d, dur=%lu/%ds\n",
