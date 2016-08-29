@@ -31,8 +31,10 @@ class ElasticSearch {
   struct string_list *head, *tail;
   pthread_rwlock_t listMutex;
   bool reportDrops;
+  struct timeval lastUpdateTime;
   u_int32_t elkDroppedFlowsQueueTooLong;
   u_int64_t elkExportedFlows, elkLastExportedFlows;
+  float elkExportRate;
  public:
   ElasticSearch();
   ~ElasticSearch();

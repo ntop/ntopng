@@ -2925,7 +2925,7 @@ void NetworkInterface::lua(lua_State *vm) {
      as we may decide to make an elasticsearch thread per interface.
    */
   if (ntop->getPrefs()->do_dump_flows_on_es()) {
-    //TODO: lua_push_int_table_entry(vm, "flow_export_drops", ntop->getElasticSearch()->numDroppedFlows());
+    ntop->getElasticSearch()->lua(vm);
   } else if (ntop->getPrefs()->do_dump_flows_on_mysql()) {
     db->lua(vm);
   }

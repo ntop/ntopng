@@ -1228,6 +1228,13 @@ void Ntop::runHousekeepingTasks() {
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->runHousekeepingTasks();
+
+  /* ES stats are updated once as the present implementation is not per-interface  */
+  if (ntop->getPrefs()->do_dump_flows_on_es()) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ntop->getElasticSearch()->updateStats(&tv);
+  }
 }
 
 /* ******************************************* */
