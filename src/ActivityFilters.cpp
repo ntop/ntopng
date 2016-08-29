@@ -300,9 +300,9 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
 			     bool cli2srv, uint16_t payload_len) {
   // Assert local client host begins connetion 
   Host * host = flow->get_cli_host();
-  int f_count;
-  u_int32_t f_pkts;
-  time_t max_duration;
+  int f_count = 0;
+  u_int32_t f_pkts = 0;
+  time_t max_duration = 0;
   bool rv = false;
 
   switch(flow->get_detected_protocol().protocol) {
