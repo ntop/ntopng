@@ -28,8 +28,11 @@ class MySQLDB : public DB {
  private:
   MYSQL mysql;
   bool db_operational;
+  struct timeval lastUpdateTime;
+
   u_int32_t mysqlDroppedFlowsQueueTooLong;
-  u_int64_t mysqlExportedFlows;
+  u_int64_t mysqlExportedFlows, mysqlLastExportedFlows;
+  float mysqlExportRate;
   static volatile bool db_created;
   pthread_t queryThreadLoop;
 
@@ -47,9 +50,12 @@ class MySQLDB : public DB {
   bool createDBSchema();
   static volatile bool isDbCreated() {return db_created;};
   inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlowsQueueTooLong; };
+  inline float exportRate() const { return mysqlExportRate; };
   bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows);
   void startDBLoop();
+  void updateStats(const struct timeval *tv);
+  void lua(lua_State* vm) const;
 };
 
 #endif /* _MYSQL_DB_CLASS_H_ */

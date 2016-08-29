@@ -389,7 +389,9 @@ bool MySQLDB::createDBSchema() {
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   mysqlDroppedFlowsQueueTooLong = 0;
-  mysqlExportedFlows = 0;
+  mysqlExportedFlows = 0, mysqlLastExportedFlows = 0;
+  mysqlExportRate = 0;
+  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
   connectToDB(&mysql, false);
 }
 
@@ -403,6 +405,34 @@ MySQLDB::~MySQLDB() {
 
 void MySQLDB::startDBLoop() {
   pthread_create(&queryThreadLoop, NULL, ::queryLoop, (void*)this);
+}
+
+
+/* ******************************************* */
+
+void MySQLDB::updateStats(const struct timeval *tv) {
+  if(tv == NULL) return;
+
+  if(lastUpdateTime.tv_sec > 0) {
+    float tdiffMsec = ((float)(tv->tv_sec-lastUpdateTime.tv_sec)*1000)+((tv->tv_usec-lastUpdateTime.tv_usec)/(float)1000);
+    if(tdiffMsec >= 1000) { /* al least one second */
+      u_int64_t diffFlows = mysqlExportedFlows - mysqlLastExportedFlows;
+      mysqlLastExportedFlows = mysqlExportedFlows;
+
+      mysqlExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
+      if (mysqlExportRate < 0) mysqlExportRate = 0;
+    }
+  }
+
+  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
+}
+
+/* ******************************************* */
+
+void MySQLDB::lua(lua_State *vm) const {
+  lua_push_int_table_entry(vm,   "flow_export_count", mysqlExportedFlows);
+  lua_push_int32_table_entry(vm, "flow_export_drops", mysqlDroppedFlowsQueueTooLong);
+  lua_push_float_table_entry(vm, "flow_export_rate",  mysqlExportRate);
 }
 
 /* ******************************************* */

@@ -32,6 +32,7 @@ class ElasticSearch {
   pthread_rwlock_t listMutex;
   bool reportDrops;
   u_int32_t elkDroppedFlowsQueueTooLong;
+  u_int64_t elkExportedFlows, elkLastExportedFlows;
  public:
   ElasticSearch();
   ~ElasticSearch();
@@ -40,6 +41,9 @@ class ElasticSearch {
   void pushEStemplate();
   void indexESdata();
   void startFlowDump();
+
+  void updateStats(const struct timeval *tv);
+  void lua(lua_State* vm) const;
 };
 
 

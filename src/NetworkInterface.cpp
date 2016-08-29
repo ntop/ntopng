@@ -1659,6 +1659,10 @@ void NetworkInterface::periodicStatsUpdate() {
 
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
+
+  if(ntop->getPrefs()->do_dump_flows_on_mysql()){
+    static_cast<MySQLDB*>(db)->updateStats(&tv);
+  }
 }
 
 /* **************************************************** */
@@ -2920,10 +2924,11 @@ void NetworkInterface::lua(lua_State *vm) {
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
    */
-  if (ntop->getPrefs()->do_dump_flows_on_es())
-    lua_push_int_table_entry(vm, "flow_export_drops", ntop->getElasticSearch()->numDroppedFlows());
-  else if (ntop->getPrefs()->do_dump_flows_on_mysql())
-    lua_push_int_table_entry(vm, "flow_export_drops", static_cast<MySQLDB*>(db)->numDroppedFlows());   
+  if (ntop->getPrefs()->do_dump_flows_on_es()) {
+    //TODO: lua_push_int_table_entry(vm, "flow_export_drops", ntop->getElasticSearch()->numDroppedFlows());
+  } else if (ntop->getPrefs()->do_dump_flows_on_mysql()) {
+    db->lua(vm);
+  }
 
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
