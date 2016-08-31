@@ -16,9 +16,26 @@ if(_GET["csrf"] ~= nil) then
    if(_GET["id_to_delete"] ~= nil) then
       if(_GET["id_to_delete"] == "__all__") then
 	 interface.flushAllQueuedAlerts()
+	 if _GET["alerts_impl"] == "new" then
+	    if _GET["engaged"] == "true" then
+	       interface.deleteAlerts(true)
+	    else
+	       interface.deleteAlerts(false)
+	    end
+	 end
 	 print("")
       else
-	 interface.deleteQueuedAlert(tonumber(_GET["id_to_delete"]))
+	 local id_to_delete = tonumber(_GET["id_to_delete"])
+	 if id_to_delete ~= nil then
+	    interface.deleteQueuedAlert(id_to_delete)
+	    if _GET["alerts_impl"] == "new" then
+	       if _GET["engaged"] == "true" then
+		  interface.deleteAlerts(true, id_to_delete)
+	       else
+		  interface.deleteAlerts(false, id_to_delete)
+	       end
+	    end
+	 end
       end
    end
 end
@@ -89,8 +106,81 @@ print [[
       ]
    });
    </script>
+]]
+
+local alert_items = {}
+
+if interface.getNumAlerts(true --[[ engaged --]]) > 0 then
+   alert_items[#alert_items + 1] = {["label"] = "Currently Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged", ["date"] = "First Seen"}
+end
+
+if interface.getNumAlerts(false --[[ NOT engaged --]]) > 0 then
+   alert_items[#alert_items +1] = {["label"] = "Alerts History", ["div-id"] = "table-alerts-history",  ["status"] = "historical", ["date"] = "Time"}
+end
+
+alert_items = {} --[[ TEMPORARILY DISABLED --]]
+
+for k, t in ipairs(alert_items) do
+   print [[
+      <div id="]] print(t["div-id"]) print[["></div>
+	 <script>
+	 $("#]] print(t["div-id"]) print[[").datatable({
+			url: "]]
+print (ntop.getHttpPrefix())
+print [[/lua/get_alerts_data.lua?alerts_impl=new&alert_status=]] print(t["status"]) print[[",
+	       showPagination: true,
+]]
+
+if(_GET["currentPage"] ~= nil) then print("currentPage: ".._GET["currentPage"]..",\n") end
+if(_GET["perPage"] ~= nil)     then print("perPage: ".._GET["perPage"]..",\n") end
+
+print [[
+	        title: "]] print(t["label"]) print[[",
+      columns: [
+	 {
+	    title: "Action",
+	    field: "column_key",
+	    css: { 
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
+	    title: "]] print(t["date"]) print[[",
+	    field: "column_date",
+	    css: { 
+	       textAlign: 'center'
+	    }
+	 },
+	 {
+	    title: "Severity",
+	    field: "column_severity",
+	    css: { 
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
+	    title: "Type",
+	    field: "column_type",
+	    css: { 
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
+	    title: "Description",
+	    field: "column_msg",
+	    css: { 
+	       textAlign: 'left'
+	    }
+	 }
+      ]
+   });
+   </script>
 	      ]]
 
+end
 
 if(interface.getNumQueuedAlerts() > 0) then
    print [[

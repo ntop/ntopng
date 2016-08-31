@@ -489,7 +489,7 @@
 // sqlite (StoreManager and subclasses) related fields
 #define STORE_MANAGER_MAX_QUERY             1024
 #define STORE_MANAGER_MAX_KEY               20
-#define ALERTS_MANAGER_EXPERIMENTS          "exp_"
+#define ALERTS_MANAGER_EXPERIMENTS          "exp2_"
 #define ALERTS_MANAGER_TABLE_NAME           "closed_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME   "engaged_alerts"
 #define ALERTS_MANAGER_STORE_NAME           ALERTS_MANAGER_EXPERIMENTS "alerts.db"

@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class Host;
+//class Host;
 
 class AlertsManager : protected StoreManager {
  private:
@@ -40,6 +40,8 @@ class AlertsManager : protected StoreManager {
   int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
+		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   int engageReleaseHostAlert(Host *h,
 			     const char *engaged_alert_id,
@@ -54,6 +56,9 @@ class AlertsManager : protected StoreManager {
   int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
   int storeAlert(lua_State *L, int index);
 
+  /*
+    ========== HOST alerts API ==========
+   */
   inline int engageHostAlert(Host *h,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
@@ -64,7 +69,14 @@ class AlertsManager : protected StoreManager {
 			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
   };
+  int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
+  int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+		u_int32_t start_offset, u_int32_t end_offset,
+		bool engaged);
+  int getNumAlerts(bool engaged);
+  int deleteAlerts(bool engaged, const int *rowid);
+  
   /* Following are the legacy methods that were formally global to the whole ntopng */
   /**
    * @brief Queue an alert in redis

@@ -4170,6 +4170,34 @@ static int ntop_interface_queue_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_get_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  u_int32_t num, start_idx = 0;
+  bool engaged = false;
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  start_idx = (u_int32_t)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  num = (u_int32_t)lua_tonumber(vm, 2);
+
+  if(lua_type(vm, 3) == LUA_TBOOLEAN)
+    engaged = lua_toboolean(vm, 3);
+
+  if(num < 1) num = 1;
+  else if(num > CONST_MAX_NUM_READ_ALERTS) num = CONST_MAX_NUM_READ_ALERTS;
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+  
+  return am->getAlerts(vm, get_allowed_nets(vm), start_idx, start_idx + num - 1, engaged) ? CONST_LUA_ERROR : CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_interface_store_alert(lua_State* vm) {
   int ifid;
   NetworkInterface* iface;
@@ -4247,6 +4275,44 @@ static int ntop_interface_engage_host_alert(lua_State* vm) {
 
 static int ntop_interface_release_host_alert(lua_State* vm) {
   return ntop_interface_engage_release_host_alert(vm, false /* release */);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_num_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  bool engaged = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    engaged = lua_toboolean(vm, 1);
+
+  lua_pushinteger(vm, iface->getAlertsManager()->getNumAlerts(engaged));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_delete_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  bool engaged = false;
+  int rowid, *rowid_ptr = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    engaged = lua_toboolean(vm, 1);
+
+  if(lua_type(vm, 2) == LUA_TNUMBER){
+    rowid = lua_tonumber(vm, 2);
+    rowid_ptr = &rowid;
+  }
+
+  lua_pushinteger(vm, iface->getAlertsManager()->deleteAlerts(engaged, rowid_ptr));
+
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -4762,6 +4828,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
 
   /* New generation alerts */
+  { "getAlerts" ,           ntop_interface_get_alerts               },
+  { "getNumAlerts",         ntop_interface_get_num_alerts           },
+  { "deleteAlerts",         ntop_interface_delete_alerts            },
   { "storeAlert",           ntop_interface_store_alert              },
   { "engageHostAlert",      ntop_interface_engage_host_alert        },
   { "releaseHostAlert",     ntop_interface_release_host_alert       },
