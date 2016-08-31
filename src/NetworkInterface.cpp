@@ -1749,8 +1749,8 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
-bool NetworkInterface::restoreHost(char *host_ip) {
-  Host *h = new Host(this, host_ip);
+bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
+  Host *h = new Host(this, host_ip, vlan_id);
 
   if(!h) return(false);
 

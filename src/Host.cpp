@@ -30,9 +30,10 @@ Host::Host(NetworkInterface *_iface) : GenericHost(_iface) {
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress) : GenericHost(_iface) {
+Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHost(_iface) {
   ip = new IpAddress(ipAddress);
-  initialize(NULL, 0, false);
+  if (ip && ip->isEmpty()) free(ip), ip = NULL;
+  initialize(NULL, _vlanId, true);
 }
 
 /* *************************************** */
@@ -40,6 +41,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress) : GenericHost(_iface) {
 Host::Host(NetworkInterface *_iface, u_int8_t mac[6],
 	   u_int16_t _vlanId, IpAddress *_ip) : GenericHost(_iface) {
   ip = new IpAddress(_ip);
+  if (ip && ip->isEmpty()) free(ip), ip = NULL;
   initialize(mac, _vlanId, true);
 }
 
@@ -69,12 +71,13 @@ Host::~Host() {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
   if((localHost || systemHost)
-     && ntop->getPrefs()->is_host_persistency_enabled()) {
+     && ntop->getPrefs()->is_host_persistency_enabled()
+     && ip && !ip->isEmpty()) {
     char *json = serialize();
     char host_key[128], key[128];
     char *k = get_string_key(host_key, sizeof(host_key));
 
-    snprintf(key, sizeof(key), "%s.%d.json", k, vlan_id);
+    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
     ntop->getRedis()->set(key, json, LOCAL_HOSTS_CACHE_DURATION);
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
@@ -164,7 +167,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   asn = 0, asname = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
-  snprintf(redis_key, sizeof(redis_key), "%s.%d.json", k, vlan_id);
+  snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL;
 
 #ifdef NTOPNG_PRO
@@ -261,10 +264,10 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 #endif
       readStats();
     }
-
-    readAlertPrefs();
   }
 
+  loadAlertPrefs();
+  readAlertPrefs();
   if(!host_serial) computeHostSerial();
   updateHostL7Policy();
 }
@@ -871,19 +874,24 @@ json_object* Host::getJSONObject() {
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   json_object_object_add(my_object, "mac_address", json_object_new_string(get_mac(buf, sizeof(buf), mac_address)));
-  json_object_object_add(my_object, "seen.last", json_object_new_int(last_seen));
+  json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
+  json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
   if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));
   if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname));
+  if(strlen(os))          json_object_object_add(my_object, "os",        json_object_new_string(os));
   if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
   if(longitude)           json_object_object_add(my_object, "longitude", json_object_new_double(longitude));
   if(ip)                  json_object_object_add(my_object, "ip", ip->getJSONObject());
+  if(deviceIfIdx)         json_object_object_add(my_object, "device_if_idx", json_object_new_int(deviceIfIdx));
+  if(deviceIP)            json_object_object_add(my_object, "device_ip",     json_object_new_int(deviceIP));
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
+  json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
   json_object_object_add(my_object, "tcp_sent", tcp_sent.getJSONObject());
   json_object_object_add(my_object, "tcp_rcvd", tcp_rcvd.getJSONObject());
   json_object_object_add(my_object, "udp_sent", udp_sent.getJSONObject());
@@ -962,6 +970,9 @@ bool Host::deserialize(char *json_str, char *key) {
     return(false);
   }
 
+  if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
+
   if(json_object_object_get_ex(o, "mac_address", &obj)) set_mac((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "asn", &obj)) asn = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "source_id", &obj)) source_id = json_object_get_int(obj);
@@ -970,8 +981,11 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "country", &obj))        { if(country) free(country); country = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "asname", &obj))         { if(asname) free(asname); asname = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "trafficCategory", &obj))         { snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "vlan_id", &obj))   vlan_id = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "vlan_id", &obj))       vlan_id     = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "device_if_idx", &obj)) deviceIfIdx = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "device_ip", &obj))     deviceIP    = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { if(ip == NULL) ip = new IpAddress(); if(ip) ip->deserialize(obj); }
@@ -989,7 +1003,9 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities.deserialize(obj);
 
-  if(json_object_object_get_ex(o, "num_alerts", &obj)) num_alerts_detected = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "is_blacklisted", &obj)) blacklisted_host     = json_object_get_boolean(obj);
+  if(json_object_object_get_ex(o, "num_alerts", &obj))     num_alerts_detected  = json_object_get_boolean(obj);
+
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
   if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
 

@@ -574,9 +574,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'S':
     if(!strcmp(optarg, "all")) sticky_hosts = location_all;
-    else if(!strcmp(optarg, "local")) sticky_hosts = location_local_only;
+    else if(!strcmp(optarg, "local"))  sticky_hosts = location_local_only;
     else if(!strcmp(optarg, "remote")) sticky_hosts = location_remote_only;
-    else if(!strcmp(optarg, "none")) sticky_hosts = location_none;
+    else if(!strcmp(optarg, "none"))   sticky_hosts = location_none;
     else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -S", optarg);
     break;
 
@@ -1156,6 +1156,15 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
+  /* Sticky hosts preferences */
+  if (sticky_hosts != location_none) {
+    char *location_string = NULL;
+    if(sticky_hosts == location_all) location_string = (char*)"all";
+    else if(sticky_hosts == location_local_only) location_string = (char*)"local";
+    else if(sticky_hosts == location_remote_only) location_string = (char*)"remote";
+    if(location_string) lua_push_str_table_entry(vm, "sticky_hosts", location_string);
+  }
+  
   /* Command line options */
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
   lua_push_bool_table_entry(vm, "has_cmdl_disable_alerts", has_cmdl_disable_alerts);
