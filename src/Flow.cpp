@@ -499,10 +499,11 @@ void Flow::guessProtocol() {
   if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
     if(cli_host && srv_host) {
       /* We can guess the protocol */
+      IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
       ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), protocol,
-							    ntohl(cli_host->get_ip()->get_ipv4()),
+							    ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
 							    ntohs(cli_port),
-							    ntohl(srv_host->get_ip()->get_ipv4()),
+							    ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
 							    ntohs(srv_port));
     }
 
