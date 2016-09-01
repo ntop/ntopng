@@ -47,6 +47,7 @@ print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 total = 0
 
 if alerts == nil then alerts = {} end
+
 for _key,_value in ipairs(alerts) do
    if(total > 0) then print(",\n") end
 

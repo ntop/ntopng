@@ -683,7 +683,7 @@ int AlertsManager::getQueuedAlerts(lua_State* vm, patricia_tree_t *allowed_hosts
 
     for(int i = 0; i < rc; i++) {
       lua_pushstring(vm, l_elements[i] ? l_elements[i] : "");
-      lua_rawseti(vm, -2, i);
+      lua_rawseti(vm, -2, i+1);
       if(l_elements[i]) free(l_elements[i]);
     }
     free(l_elements);

@@ -27,6 +27,15 @@ always_show_hist = _GET["always_show_hist"]
 ntopinfo    = ntop.getInfo()
 active_page = "hosts"
 
+interface.select(ifname)
+ifstats = interface.getStats()
+
+ifId = ifstats.id
+
+is_packetdump_enabled = isLocalPacketdumpEnabled()
+host = nil
+family = nil
+
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 
 if((host_name == nil) or (host_ip == nil)) then
@@ -64,14 +73,7 @@ end
 
 if(protocol_id == nil) then protocol_id = "" end
 
-interface.select(ifname)
-ifstats = interface.getStats()
 
-ifId = ifstats.id
-
-is_packetdump_enabled = isLocalPacketdumpEnabled()
-host = nil
-family = nil
 
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host_info["host"] .. ", Vlan: "..host_vlan.."\n") end

@@ -16,24 +16,20 @@ if(_GET["csrf"] ~= nil) then
    if(_GET["id_to_delete"] ~= nil) then
       if(_GET["id_to_delete"] == "__all__") then
 	 interface.flushAllQueuedAlerts()
-	 if _GET["alerts_impl"] == "new" then
-	    if _GET["engaged"] == "true" then
-	       interface.deleteAlerts(true)
-	    else
-	       interface.deleteAlerts(false)
-	    end
-	 end
+	 interface.deleteAlerts(true --[[ engaged --]])
+	 interface.deleteAlerts(false --[[ and not engaged --]])
 	 print("")
       else
 	 local id_to_delete = tonumber(_GET["id_to_delete"])
 	 if id_to_delete ~= nil then
-	    interface.deleteQueuedAlert(id_to_delete)
 	    if _GET["alerts_impl"] == "new" then
 	       if _GET["engaged"] == "true" then
 		  interface.deleteAlerts(true, id_to_delete)
 	       else
 		  interface.deleteAlerts(false, id_to_delete)
 	       end
+	    else
+	       interface.deleteQueuedAlert(id_to_delete)
 	    end
 	 end
       end
