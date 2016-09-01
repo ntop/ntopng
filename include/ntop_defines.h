@@ -325,7 +325,6 @@
 #define CONST_NBOX_USER               "ntopng.prefs.nbox_user"
 #define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
-#define CONST_LOCAL_HOST_IDLE_PREFS   "ntopng.prefs.local_host_max_idle"
 #define CONST_REMOTE_HOST_IDLE_PREFS  "ntopng.prefs.non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS     "ntopng.prefs.flow_max_idle"
 #define CONST_MAX_NEW_FLOWS_PREFS     "ntopng.prefs.host_max_new_flows_sec_threshold"
@@ -341,6 +340,8 @@
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
+#define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
+#define CONST_LOCAL_HOST_IDLE_PREFS            "ntopng.prefs.local_host_max_idle"
 
 #define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED          "ntopng.prefs.is_autologon_enabled"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY   "ntopng.prefs.housekeeping_frequency"

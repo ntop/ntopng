@@ -75,9 +75,10 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
 
   /* Defaults */
-  non_local_host_max_idle = MAX_REMOTE_HOST_IDLE /* sec */;
-  local_host_max_idle     = MAX_LOCAL_HOST_IDLE /* sec */;
-  flow_max_idle           = MAX_FLOW_IDLE /* sec */;
+  local_host_cache_duration = LOCAL_HOSTS_CACHE_DURATION /* sec */;
+  non_local_host_max_idle   = MAX_REMOTE_HOST_IDLE /* sec */;
+  local_host_max_idle       = MAX_LOCAL_HOST_IDLE /* sec */;
+  flow_max_idle             = MAX_FLOW_IDLE /* sec */;
 
   intf_rrd_raw_days       = INTF_RRD_RAW_DAYS;
   intf_rrd_1min_days      = INTF_RRD_1MIN_DAYS;
@@ -381,9 +382,10 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 
 void Prefs::reloadPrefsFromRedis() {
   /* attempt to load preferences set from the web ui and apply default values in not found */
-  local_host_max_idle = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
-  non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
-  flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
+  local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION);
+  local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
+  non_local_host_max_idle   = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
+  flow_max_idle             = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
 
   intf_rrd_raw_days      = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS);
   intf_rrd_1min_days     = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS);
@@ -1134,6 +1136,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
+  lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
   lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
   lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
@@ -1189,6 +1192,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 	       (char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 	       strlen((char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY)))
     housekeeping_frequency = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS,
+		    strlen((char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS)))
+    local_host_cache_duration = atoi(pref_value);
   else if (!strncmp(pref_name,
 		    (char*)CONST_LOCAL_HOST_IDLE_PREFS,
 		    strlen((char*)CONST_LOCAL_HOST_IDLE_PREFS)))

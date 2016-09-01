@@ -345,6 +345,7 @@ function printInMemory()
 
   print('<tr><th colspan=2 class="info">Idle Timeout Settings</th></tr>')
   prefsInputFieldPrefs("Local Host Idle Timeout", "Inactivity time after which a local host is considered idle (sec). Default: 300.", "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle)
+  prefsInputFieldPrefs("Local Host Cache Duration", "Time after which an idle local host is deleted from the cache (sec). Default: 3600.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration)
   prefsInputFieldPrefs("Remote Host Idle Timeout", "Inactivity time after which a remote host is considered idle (sec). Default: 60.", "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle)
   prefsInputFieldPrefs("Flow Idle Timeout", "Inactivity time after which a flow is considered idle (sec). Default: 60.", "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle)
 
