@@ -273,7 +273,8 @@
 #define NTOPNG_NDPI_OS_PROTO_ID      (NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS-2)
 #define CONST_DEFAULT_HOME_NET       "192.168.1.0/24"
 #define CONST_DEFAULT_DATA_DIR       "/var/tmp/ntopng"
-#define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED 1
+#define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED             1
+#define CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED 1
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_FLOWACTIVITY_SCRIPT    "flowactivity.lua"
@@ -344,6 +345,7 @@
 #define CONST_LOCAL_HOST_IDLE_PREFS            "ntopng.prefs.local_host_max_idle"
 
 #define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED          "ntopng.prefs.is_autologon_enabled"
+#define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED "ntopng.prefs.is_local_host_cache_enabled"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY   "ntopng.prefs.housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */

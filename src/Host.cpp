@@ -70,14 +70,14 @@ Host::~Host() {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
   if((localHost || systemHost)
-     && ntop->getPrefs()->is_host_persistency_enabled()
+     && ntop->getPrefs()->is_idle_local_host_cache_enabled()
      && ip && !ip->isEmpty()) {
     char *json = serialize();
     char host_key[128], key[128];
     char *k = get_string_key(host_key, sizeof(host_key));
 
     snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
-    ntop->getRedis()->set(key, json, LOCAL_HOSTS_CACHE_DURATION);
+    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
     free(json);
@@ -202,7 +202,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
       }
 
       if((localHost || systemHost)
-	 && ntop->getPrefs()->is_host_persistency_enabled()){
+	 && ntop->getPrefs()->is_idle_local_host_cache_enabled()){
 	char *json;
 	if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
 	  ntop->getTrace()->traceEvent(TRACE_ERROR,

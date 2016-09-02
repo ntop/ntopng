@@ -39,7 +39,7 @@ users_active = ""
 logging_active = ""
 
 if (subpage_active == nil or subpage_active == "") then
-  subpage_active = "report"
+  subpage_active = "users"
 end
 
 if (subpage_active == "report") then
@@ -344,11 +344,24 @@ function printInMemory()
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">Idle Timeout Settings</th></tr>')
-  prefsInputFieldPrefs("Local Host Idle Timeout", "Inactivity time after which a local host is considered idle (sec). Default: 300.", "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle)
-  prefsInputFieldPrefs("Local Host Cache Duration", "Time after which an idle local host is deleted from the cache (sec). Default: 3600.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration)
+  prefsInputFieldPrefs("Local Host Idle Timeout", "Inactivity time after which a local host is considered idle (sec). "..
+		          "Idle local hosts are dumped to a cache so their counters can be restored in case they become active again. "..
+			  "Counters include, but are not limited to, packets and bytes total and per Layer-7 application. "..
+			  "Default: 300.", "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle)
   prefsInputFieldPrefs("Remote Host Idle Timeout", "Inactivity time after which a remote host is considered idle (sec). Default: 60.", "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle)
   prefsInputFieldPrefs("Flow Idle Timeout", "Inactivity time after which a flow is considered idle (sec). Default: 60.", "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle)
 
+  print('<tr><th colspan=2 class="info">Idle Local Hosts Cache Settings</th></tr>')
+  toggleTableButtonPrefs("Local Host Cache",
+			 "Toggle the creation of cache entries for idle local hosts. "..
+			 "Cached local hosts counters are restored automatically to their previous values "..
+			    " upon detection of additional host traffic.",
+			 "On", "1", "success", "Off", "0", "danger",
+			 "toggle_local_host_cache_enabled",
+			 "ntopng.prefs.is_local_host_cache_enabled", "1")
+  prefsInputFieldPrefs("Local Host Cache Duration", "Time after which an idle local host is deleted from the cache (sec). "..
+		       "Default: 3600.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration)
+  
   print('<tr><th colspan=2 class="info">Hosts Statistics Update Frequency</th></tr>')
   prefsInputFieldPrefs("Update frequency in seconds",
 		       "Some host statistics such as throughputs are updated periodically. "..

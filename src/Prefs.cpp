@@ -61,7 +61,7 @@ Prefs::Prefs(Ntop *_ntop) {
   disable_alerts = false;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
-  disable_host_persistency = false;
+  enable_idle_local_hosts_cache = true;
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
@@ -208,7 +208,6 @@ void usage() {
 	 "                                    | (e.g. -m \"192.168.0.0/24,172.16.0.0/16\")\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
 	 "                                    | (eg. protos.txt)\n"
-	 "[--disable-host-persistency|-P]     | Disable host persistency in the Redis cache\n"
 	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is [h[:port[:pwd]]][@db-id]\n"
 	 "                                    | db-id is the identifier of the redis database (default 0).\n"
 	 "                                    | h is the host that is running the Redis server (default\n"
@@ -399,7 +398,10 @@ void Prefs::reloadPrefsFromRedis() {
 						HOUSEKEEPING_FREQUENCY);
 
   // sets to the default value in redis if no key is found
-  getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+  getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
+		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+  enable_idle_local_hosts_cache = getDefaultPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
+						       CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
@@ -453,7 +455,6 @@ static const struct option long_options[] = {
 #endif
   { "disable-alerts",                    no_argument,       NULL, 'H' },
   { "export-flows",                      required_argument, NULL, 'I' },
-  { "disable-host-persistency",          no_argument,       NULL, 'P' },
   { "capture-direction",                 required_argument, NULL, 'Q' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
   { "enable-taps",                       no_argument,       NULL, 'T' },
@@ -627,10 +628,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     case 2:  setCaptureDirection(PCAP_D_OUT);   break;
     default: setCaptureDirection(PCAP_D_INOUT); break;
     }
-    break;
-
-  case 'P':
-    disable_host_persistency = true;
     break;
 
   case 'T':
@@ -1244,6 +1241,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
     disable_alerts = pref_value[0] == '1' ? true : false;
+  else if (!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
+		    strlen((char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED)))
+    enable_idle_local_hosts_cache = pref_value[0] == '1' ? true : false;
 
   return 0;
 }
