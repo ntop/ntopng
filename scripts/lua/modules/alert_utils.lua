@@ -232,46 +232,42 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    local alert_level  = 1 -- alert_level_warning
    local alert_type   = 2 -- alert_threshold_exceeded
    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
-   if string.match(alert_source, "@") then
-      local new_alert_ids = {}
 
-      -- alerts_string is a string such as dns;gt;23,bytes;gt;1,p2p;gt;3
-      -- that string comes directly from the web interface and is a comma-separated
-      -- list of threshold alerts configured.
-      -- since formerly configured alerts may have been deleted, we need to check
-      -- the ongoing_alerts against alerts_string and move to the closed list
-      -- any ongoing alert that is no longer part of the alerts_string
-      local tokens = split(alerts_string, ",")
-      if tokens == nil then tokens = {} end
-      for _, s in pairs(tokens) do
-	 if tostring(s) == nil then goto continue end
-	 local metric = string.split(s, ";")--[1]
-	 if metric == nil or metric[1] == nil then goto continue end
-	 metric = metric[1]
+   local new_alert_ids = {}
 
-	 if is_allowed_alarmable_metric(metric) == true then
-	    new_alert_ids[timespan.."_"..metric] = true
-	 end
-	 ::continue::
+   -- alerts_string is a string such as dns;gt;23,bytes;gt;1,p2p;gt;3
+   -- that string comes directly from the web interface and is a comma-separated
+   -- list of threshold alerts configured.
+   -- since formerly configured alerts may have been deleted, we need to check
+   -- the ongoing_alerts against alerts_string and move to the closed list
+   -- any ongoing alert that is no longer part of the alerts_string
+   local tokens = split(alerts_string, ",")
+   if tokens == nil then tokens = {} end
+   for _, s in pairs(tokens) do
+      if tostring(s) == nil then goto continue end
+      local metric = string.split(s, ";")--[1]
+      if metric == nil or metric[1] == nil then goto continue end
+      metric = metric[1]
+
+      if is_allowed_alarmable_metric(metric) == true then
+	 new_alert_ids[timespan.."_"..metric] = true
       end
+      ::continue::
+   end
 
-      -- check if there are some ongoing alerts that no longer exist in new_alerts
-      -- we want to close those alerts
-      for k1, timespan in pairs(alerts_granularity) do
-	 timespan = timespan[1]
-	 for k2, metric in pairs(alarmable_metrics) do
-	    if new_alert_ids[timespan.."_"..metric] ~= true then
-	       if string.match(alert_source, "@") then
-		  interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	       elseif string.match(alert_source, "/") then
-		  interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	       end
+   -- check if there are some ongoing alerts that no longer exist in new_alerts
+   -- we want to close those alerts
+   for k1, timespan in pairs(alerts_granularity) do
+      timespan = timespan[1]
+      for k2, metric in pairs(alarmable_metrics) do
+	 if new_alert_ids[timespan.."_"..metric] ~= true then
+	    if string.match(alert_source, "@") then
+	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	    elseif string.match(alert_source, "/") then
+	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
 	    end
 	 end
       end
-   else
-      local check = "TODO"
-      -- check if is an interface or a network
    end
 end
 
