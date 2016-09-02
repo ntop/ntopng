@@ -4093,6 +4093,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
     return(-1);
   }
 
+  lua_settop(L, 0); /* Reset stack */
   lua_pushlightuserdata(L, f);
   lua_setglobal(L, CONST_USERACTIVITY_FLOW);
 
