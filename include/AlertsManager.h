@@ -47,7 +47,10 @@ class AlertsManager : protected StoreManager {
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 			     bool engage);
-  /*  */
+  int engageReleaseNetworkAlert(const char *cidr,
+				const char *engaged_alert_id,
+				AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+				bool engage);
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
@@ -71,6 +74,31 @@ class AlertsManager : protected StoreManager {
   };
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
+  /*
+    ========== FLOW alerts API ==========
+   */
+  inline int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeAlert(alert_entity_flow, ""/* TODO: possibly add an unique id for flows */,
+		 alert_type, alert_severity, alert_json);
+  };
+
+  /*
+    ========== NETWORK alerts API ==========
+   */
+  inline int engageNetworkAlert(const char *cidr,
+			     const char *engaged_alert_id,
+			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseNetworkAlert(cidr, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+  };
+  inline int releaseNetworkAlert(const char *cidr,
+			      const char *engaged_alert_id,
+			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseNetworkAlert(cidr, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+  };
+  int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+
+
+  
   int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 		u_int32_t start_offset, u_int32_t end_offset,
 		bool engaged);

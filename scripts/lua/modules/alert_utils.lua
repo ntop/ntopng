@@ -212,6 +212,8 @@ function delete_alert_configuration(alert_source, ifname)
 		  -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
 		  if string.match(alert_source, "@") then
 		     interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+		  elseif string.match(alert_source, "/") then
+		     interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 		  end
 	       end
 	    end
@@ -259,7 +261,11 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
 	 timespan = timespan[1]
 	 for k2, metric in pairs(alarmable_metrics) do
 	    if new_alert_ids[timespan.."_"..metric] ~= true then
-	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       if string.match(alert_source, "@") then
+		  interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       elseif string.match(alert_source, "/") then
+		  interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       end
 	    end
 	 end
       end
@@ -361,6 +367,10 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
         tprint(old_table)
     end
 
+   local alert_level = 1 -- alert_level_warning
+   local alert_status = 1 -- alert_on
+   local alert_type = 2 -- alert_threshold_exceeded
+
     deltas = {}
     local delta_names = {'ingress', 'egress', 'inner'}
     for i = 1, 3 do
@@ -397,11 +407,9 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             local f = loadstring(what)
             local rc = f()
 
+	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
             if(rc) then
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF="..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-                local alert_level = 1 -- alert_level_warning
-                local alert_status = 1 -- alert_on
-                local alert_type = 2 -- alert_threshold_exceeded
 
                 if not is_alert_re_arming(network_name, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
@@ -409,7 +417,10 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                     interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
-                        ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
+		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
+		       if ntop.isEnterprise() then
+			  interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
+		       end
                     end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -418,7 +429,10 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
                 if ntop.isPro() and not is_alert_re_arming(network_name, mode, t[1], ifname) then
-                    ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
+		   ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
+		   if ntop.isEnterprise() then
+		      interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
+		   end
                 end
             end
         end

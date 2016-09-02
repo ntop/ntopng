@@ -492,6 +492,36 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 
 /* ******************************************* */
 
+int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
+					     const char *engaged_alert_id,
+					     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+					     bool engage) {
+  struct in_addr addr4;
+  struct in6_addr addr6;
+  char ip_buf[256];
+  char *slash;
+
+  if(!cidr) return -1;
+
+  strncpy(ip_buf, cidr, sizeof(ip_buf));
+  if ((slash = strchr(ip_buf, '/')) == NULL) return -2;
+  slash[0] = '\0';
+
+  if(inet_pton(AF_INET, ip_buf, &addr4) != 1 && inet_pton(AF_INET6, ip_buf, &addr6) != 1) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing network %s\n", cidr);
+    return -2; /* not a valid network */
+  }
+
+  if (engage)
+    return engageAlert(alert_entity_network, cidr,
+		       engaged_alert_id, alert_type, alert_severity, alert_json);
+  else
+    return releaseAlert(alert_entity_network, cidr,
+			engaged_alert_id, alert_type, alert_severity, alert_json);
+};
+
+/* ******************************************* */
+
 int AlertsManager::storeHostAlert(Host *h,
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
   if (!h) return -1;
