@@ -544,8 +544,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 
       lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 				(tcpPacketStats.pktRetr
-				 | tcpPacketStats.pktOOO
-				 | tcpPacketStats.pktLost) ? true : false);
+				 || tcpPacketStats.pktOOO
+				 || tcpPacketStats.pktLost) ? true : false);
       lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
       lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
       lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
@@ -902,8 +902,23 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "icmp_rcvd", icmp_rcvd.getJSONObject());
   json_object_object_add(my_object, "other_ip_sent", other_ip_sent.getJSONObject());
   json_object_object_add(my_object, "other_ip_rcvd", other_ip_rcvd.getJSONObject());
+
+  /* packet stats */
   json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
   json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
+
+  /* TCP packet stats (serialize only anomalies) */
+  if(tcpPacketStats.pktRetr) json_object_object_add(my_object,
+						    "tcpPacketStats.pktRetr",
+						    json_object_new_int(tcpPacketStats.pktRetr));
+  if(tcpPacketStats.pktOOO)  json_object_object_add(my_object,
+						    "tcpPacketStats.pktOOO",
+						    json_object_new_int(tcpPacketStats.pktOOO));
+  if(tcpPacketStats.pktLost) json_object_object_add(my_object,
+						    "tcpPacketStats.pktLost",
+						    json_object_new_int(tcpPacketStats.pktLost));
+
+  /* throughput stats */
   json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
   json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));
   json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
@@ -1001,6 +1016,16 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "icmp_rcvd", &obj))  icmp_rcvd.deserialize(obj);
   if(json_object_object_get_ex(o, "other_ip_sent", &obj))  other_ip_sent.deserialize(obj);
   if(json_object_object_get_ex(o, "other_ip_rcvd", &obj))  other_ip_rcvd.deserialize(obj);
+
+  /* packet stats */
+  if(json_object_object_get_ex(o, "pktStats.sent", &obj))  sent_stats.deserialize(obj);
+  if(json_object_object_get_ex(o, "pktStats.recv", &obj))  recv_stats.deserialize(obj);
+
+  /* TCP packet stats */
+  if(json_object_object_get_ex(o, "tcpPacketStats.pktRetr", &obj)) tcpPacketStats.pktRetr = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.pktOOO",  &obj)) tcpPacketStats.pktOOO  = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.pktLost", &obj)) tcpPacketStats.pktLost = json_object_get_int(obj);
+  
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities.deserialize(obj);

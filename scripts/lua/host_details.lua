@@ -655,7 +655,7 @@ end
    end
    print("</td></tr>")
 
-   if(host["tcp.packets.seq_problems"]) then
+   if host["tcp.packets.seq_problems"] == true then
       print("<tr><th width=30% rowspan=3>TCP Packets Sent Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
       print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(host["tcp.packets.out_of_order"]) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
