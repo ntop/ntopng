@@ -53,7 +53,7 @@ for _key,_value in ipairs(alerts) do
 
    if alertsImpl ~= "new" then
       values = split(string.gsub(_value, "\n", ""), "|")
-      alert_id        = (initial_idx+tonumber(_key))
+      alert_id        = (initial_idx+tonumber(_key)-1)
       column_date     = os.date("%c", values[1])
       column_severity = alertSeverityLabel(tonumber(values[2]))
       column_type     = alertTypeLabel(tonumber(values[4]))
