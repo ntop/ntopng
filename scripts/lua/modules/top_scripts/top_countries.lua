@@ -6,7 +6,6 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "top_talkers"
-require "json"
 
 local top_countries_intf = {}
 
@@ -203,7 +202,7 @@ end
 
 local function getTopCountriesFromJSON(content, add_vlan)
   if(content == nil) then return("[ ]\n") end
-  local table = parseJSON(content)
+  local table = json.decode(content, 1)
   local rsp = printTopCountriesFromTable(table, add_vlan)
   if (rsp == nil or rsp == "") then return "[ ]\n" end
   return rsp

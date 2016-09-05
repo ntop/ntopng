@@ -6,7 +6,6 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "top_talkers"
-require "json"
 
 local top_os_local_intf = {}
 
@@ -193,7 +192,7 @@ end
 
 local function getTopOSFromJSON(content, add_vlan)
   if(content == nil) then return("[ ]\n") end
-  local table = parseJSON(content)
+  local table = json.decode(content, 1)
   local rsp = printTopOSLocalFromTable(table, add_vlan)
   if (rsp == nil or rsp == "") then return "[ ]\n" end
   return rsp

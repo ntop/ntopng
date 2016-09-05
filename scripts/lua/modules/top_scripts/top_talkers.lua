@@ -6,7 +6,6 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "top_talkers"
-require "json"
 
 local top_talkers_intf = {}
 
@@ -187,7 +186,7 @@ end
 
 local function getTopTalkersFromJSON(content, add_vlan)
    if(content == nil) then return("[ ]\n") end
-   local table = parseJSON(content)
+   local table = json.decode(content, 1)
    local rsp = printTopTalkersFromTable(table, add_vlan)
    if(rsp == nil or rsp == "") then return "[ ]\n" end
    return rsp
@@ -227,7 +226,7 @@ local function getHistoricalTopTalkersInInterval(ifid, ifname, epoch_start, epoc
    --]]
    local res = {["senders"] = {}, ["receivers"] = {}}
    for record,_ in pairs(query) do
-      record = parseJSON(record)
+      record = json.decode(record, 1)
       if not record or not next(record) or not record["vlan"] then goto next_record end
       -- tprint(record)
       for _, vlan in pairs(record["vlan"]) do
