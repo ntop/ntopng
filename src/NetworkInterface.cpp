@@ -3563,7 +3563,14 @@ void NetworkInterface::setRemoteStats(char *name, char *address, u_int32_t speed
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][bytes=%u/%u (%d)][pkts=%u/%u (%d)]",
 				 ifname, remBytes, ethStats.getNumBytes(), remBytes-ethStats.getNumBytes(),
 				 remPkts, ethStats.getNumPackets(), remPkts-ethStats.getNumPackets());
+    /*
+     * Don't override ethStats here, these stats are properly updated
+     * inside NetworkInterface::processFlow for ZMQ interfaces.
+     * Overriding values here may cause glitches and non-strictly-increasing counters
+     * yielding negative rates.
     ethStats.setNumBytes(remBytes), ethStats.setNumPackets(remPkts);
+     *
+    */
   }
 }
 
