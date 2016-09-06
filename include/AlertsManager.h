@@ -60,8 +60,10 @@ class AlertsManager : protected StoreManager {
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager() {};
 
+#ifdef NOTUSED
   int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
   int storeAlert(lua_State *L, int index);
+#endif
 
   /*
     ========== HOST alerts API =========
@@ -124,6 +126,7 @@ class AlertsManager : protected StoreManager {
   int deleteAlerts(bool engaged, const int *rowid);
   
   /* Following are the legacy methods that were formally global to the whole ntopng */
+#ifdef NOTUSED
   /**
    * @brief Queue an alert in redis
    *
@@ -160,6 +163,7 @@ class AlertsManager : protected StoreManager {
    *
    */
   int flushAllQueuedAlerts();
+#endif
 };
 
 #endif /* _ALERTS_MANAGER_H_ */

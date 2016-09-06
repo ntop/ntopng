@@ -39,7 +39,8 @@ function dumpInterfaceStats(interface_name)
       end
 
       if prefs.are_alerts_enabled == true then
-	 res["alerts"] = interface.getNumQueuedAlerts()
+	 res["alerts"]         = interface.getNumAlerts(false--[[ not engaged --]])
+	 res["engaged_alerts"] = interface.getNumAlerts(true --[[     engaged --]])
       end
 
 

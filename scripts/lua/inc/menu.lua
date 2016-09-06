@@ -287,7 +287,7 @@ print [[/lua/logout.lua"><i class="fa fa-power-off"></i> Logout ]]    print(_COO
    ]]
 end
 
-if(interface.getNumQueuedAlerts() > 0 and ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1") then
+if((interface.getNumAlerts(true) > 0 or interface.getNumAlerts(false) > 0) and ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1") then
 print [[
 <li id="alerts-li">
 <a  href="]]

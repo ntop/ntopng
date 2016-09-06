@@ -232,8 +232,6 @@ Flow::~Flow() {
 		 s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
 		 print(fbuf, sizeof(fbuf)));
 
-	iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent,
-					      alert_suspicious_activity, alert_msg); // TODO: REMOVE
 	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
 						  alert_level_warning, alert_msg);
 	break;
@@ -303,7 +301,6 @@ void Flow::checkBlacklistedFlow() {
 	       s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
-      iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent, alert_dangerous_host, alert_msg); // TODO: remove
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
 						alert_level_warning, alert_msg);
     }
@@ -2375,7 +2372,6 @@ void Flow::checkFlowCategory() {
 	     s, iface->get_name(), s, srv_port,
 	     host_server_name, host_server_name);
 
-    iface->getAlertsManager()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg); // TODO: remove
     iface->getAlertsManager()->storeFlowAlert(this, alert_malware_detection,
 					      alert_level_warning, alert_msg);
     badFlow = true, setDropVerdict();

@@ -330,14 +330,11 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		  -- re-arm the alert
 		  re_arm_alert(key, mode, t[1], ifname)
 		  -- and send it to ntopng
-		  interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		  interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
 		  if ntop.isPro() then
 		     -- possibly send the alert to nagios as well
 		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					  mode, t[1], alert_msg)
-		     if ntop.isEnterprise() then
-			interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
-		     end
 		  end
 	       else
 		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -346,12 +343,12 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
             else  -- alert has not been triggered
 	       alert_status = 2 -- alert off
 	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(key, mode, t[1], ifname) then
-		   ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					    mode, t[1], "service OK")
-		   if ntop.isEnterprise() then
-		      interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
-		   end
+	       if not is_alert_re_arming(key, mode, t[1], ifname) then
+		  interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
+		  if ntop.isPro() then
+		     ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					      mode, t[1], "service OK")
+		  end
                 end
             end
         end
@@ -414,13 +411,10 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 if not is_alert_re_arming(network_name, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, mode, t[1], ifname)
-                    interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		    interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
 		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
-		       if ntop.isEnterprise() then
-			  interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
-		       end
                     end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -428,10 +422,10 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(network_name, mode, t[1], ifname) then
-		   ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
-		   if ntop.isEnterprise() then
-		      interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
+                if not is_alert_re_arming(network_name, mode, t[1], ifname) then
+		   interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
+		   if ntop.isPro() then
+		      ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
 		   end
                 end
             end
@@ -490,13 +484,10 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, mode, t[1], ifname)
-                    interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		    interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
 		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
-		       if ntop.isEnterprise() then
-			  interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
-		       end
                     end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -505,10 +496,10 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
-		   ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
-		   if ntop.isEnterprise() then
-		      interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
+                if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
+		   interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
+		   if ntop.isPro() then
+		      ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
 		   end
                 end
             end

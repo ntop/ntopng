@@ -108,7 +108,7 @@ int AlertsManager::openStore() {
 }
 
 /* **************************************************** */
-
+#ifdef NOTUSED
 int AlertsManager::storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
@@ -244,7 +244,7 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
 
   return retval;
 };
-
+#endif
 /* **************************************************** */
 
 bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id) {
@@ -689,7 +689,7 @@ int AlertsManager::deleteAlerts(bool engaged, const int *rowid) {
 }
 
 /* ******************************************* */
-
+#ifdef NOTUSED
 int AlertsManager::queueAlert(AlertLevel level, AlertStatus s, AlertType t, char *msg) {
   char what[1024];
 
@@ -767,3 +767,4 @@ int AlertsManager::flushAllQueuedAlerts() {
   return redis->delKey(queue_name);
 
 }
+#endif

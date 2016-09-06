@@ -316,14 +316,25 @@ print [[/lua/logout.lua");  }, */
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
 		var msg = "<i class=\"fa fa-time fa-lg\"></i>Uptime: "+rsp.uptime+"<br>";
 
-		if(rsp.alerts > 0) {
+		if(rsp.alerts > 0 || rsp.engaged_alerts > 0) {
 		   msg += "&nbsp;<a href=]]
 print (ntop.getHttpPrefix())
-print [[/lua/show_alerts.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(rsp.alerts)+" Alert";
-		   if(rsp.alerts > 1) msg += "s";
+print [[/lua/show_alerts.lua><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i>"
 
-		   msg += "</span></A> ";
+		   if(rsp.engaged_alerts > 0) {
+		      msg += "&nbsp;<span class=\"label label-danger\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
+		      if(rsp.engaged_alerts > 1) msg += "s";
+                      msg += "</span>";
+		   }
+
+                   if(rsp.alerts > 0) {
+		     msg += "&nbsp;<span class=\"label label-danger\">"+addCommas(rsp.alerts)+" Alert";
+		     if(rsp.alerts > 1) msg += "s";
+		     msg += "</span>";
 		}
+
+                   msg += "</A>&nbsp;"
+                }
 
 		var alarm_threshold_low = 60;  /* 60% */
 		var alarm_threshold_high = 90; /* 90% */

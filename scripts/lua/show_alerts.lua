@@ -15,21 +15,16 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 if(_GET["csrf"] ~= nil) then
    if(_GET["id_to_delete"] ~= nil) then
       if(_GET["id_to_delete"] == "__all__") then
-	 interface.flushAllQueuedAlerts()
 	 interface.deleteAlerts(true --[[ engaged --]])
 	 interface.deleteAlerts(false --[[ and not engaged --]])
 	 print("")
       else
 	 local id_to_delete = tonumber(_GET["id_to_delete"])
 	 if id_to_delete ~= nil then
-	    if _GET["alerts_impl"] == "new" then
-	       if _GET["engaged"] == "true" then
-		  interface.deleteAlerts(true, id_to_delete)
-	       else
-		  interface.deleteAlerts(false, id_to_delete)
-	       end
+	    if _GET["engaged"] == "true" then
+	       interface.deleteAlerts(true, id_to_delete)
 	    else
-	       interface.deleteQueuedAlert(id_to_delete)
+	       interface.deleteAlerts(false, id_to_delete)
 	    end
 	 end
       end
@@ -39,82 +34,24 @@ end
 active_page = "alerts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local num_alerts         = interface.getNumAlerts(false --[[ NOT engaged --]])
+local num_engaged_alerts = interface.getNumAlerts(true --[[ engaged --]])
 if ntop.getPrefs().are_alerts_enabled == false then
    print("<div class=\"alert alert alert-warning\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Alerts are disabled. Please check the preferences page to enable them.</div>")
 --return
+elseif num_alerts == 0 and num_engaged_alerts == 0 then
+   print("<div class=\"alert alert alert-info\"><img src=".. ntop.getHttpPrefix() .. "/img/info_icon.png> No recorded alerts so far for interface "..ifname.."</div>")
 else
-
-print [[
-      <hr>
-      <div id="table-alerts"></div>
-	 <script>
-	 $("#table-alerts").datatable({
-			url: "]]
-print (ntop.getHttpPrefix())
-print [[/lua/get_alerts_data.lua",
-	       showPagination: true,
-]]
-
-if(_GET["currentPage"] ~= nil) then print("currentPage: ".._GET["currentPage"]..",\n") end
-if(_GET["perPage"] ~= nil)     then print("perPage: ".._GET["perPage"]..",\n") end
-
-print [[
-	        title: "Queued Alerts",
-      columns: [
-	 {
-	    title: "Action",
-	    field: "column_key",
-	    css: { 
-	       textAlign: 'center'
-	    }
-	 },
-	 
-	 {
-	    title: "Date",
-	    field: "column_date",
-	    css: { 
-	       textAlign: 'center'
-	    }
-	 },
-	 {
-	    title: "Severity",
-	    field: "column_severity",
-	    css: { 
-	       textAlign: 'center'
-	    }
-	 },
-	 
-	 {
-	    title: "Type",
-	    field: "column_type",
-	    css: { 
-	       textAlign: 'center'
-	    }
-	 },
-
-	 {
-	    title: "Description",
-	    field: "column_msg",
-	    css: { 
-	       textAlign: 'left'
-	    }
-	 }
-      ]
-   });
-   </script>
-]]
 
 local alert_items = {}
 
-if interface.getNumAlerts(true --[[ engaged --]]) > 0 then
+if num_engaged_alerts > 0 then
    alert_items[#alert_items + 1] = {["label"] = "Currently Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged", ["date"] = "First Seen"}
 end
 
-if interface.getNumAlerts(false --[[ NOT engaged --]]) > 0 then
+if num_alerts > 0 then
    alert_items[#alert_items +1] = {["label"] = "Alerts History", ["div-id"] = "table-alerts-history",  ["status"] = "historical", ["date"] = "Time"}
 end
-
-alert_items = {} --[[ TEMPORARILY DISABLED --]]
 
 for k, t in ipairs(alert_items) do
    print [[
@@ -178,7 +115,7 @@ print [[
 
 end
 
-if(interface.getNumQueuedAlerts() > 0) then
+if num_alerts > 0 or num_engaged_alerts > 0 then
    print [[
 
 <a href="#myModal" role="button" class="btn btn-default" data-toggle="modal"><i type="submit" class="fa fa-trash-o"></i> Purge All Alerts</button></a>
