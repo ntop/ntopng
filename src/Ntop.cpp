@@ -989,7 +989,14 @@ bool Ntop::deleteUser(char *username) {
 void Ntop::fixPath(char *str, bool replaceDots) {
   for(int i=0; str[i] != '\0'; i++) {
 #ifdef WIN32
-    if(str[i] == '/') str[i] = '\\';
+    /*
+      Allowed windows path and file characters:
+      https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#win32_file_namespaces
+    */
+    if(str[i] == '/')
+      str[i] = '\\';
+    else if(str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
+      str[i] = '_';
 #endif
 
     if(replaceDots) {
