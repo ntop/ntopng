@@ -1138,7 +1138,8 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
-    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_syn_flood, msg);
+    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_syn_flood, msg); // TODO: remove
+    iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg);
     incNumAlerts();
   }
 }
@@ -1233,7 +1234,7 @@ void Host::decNumFlows(bool as_client) {
 		 h, iface->get_name(), h, max_num_active_flows);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
-	iface->getAlertsManager()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
+	iface->getAlertsManager()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg); // TODO: remove
 	iface->getAlertsManager()->releaseHostAlert(this,
 						    (char*)"scan_victim",
 						    alert_flow_flood, alert_level_error, msg);
@@ -1295,7 +1296,8 @@ void Host::updateStats(struct timeval *tv) {
     snprintf(msg, sizeof(msg),
              error_msg, ntop->getPrefs()->get_http_prefix(),
              h, iface->get_name(), h, host_quota_mb);
-    iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent, alert_quota, msg);
+    iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent, alert_quota, msg); // TODO: remove
+    iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
   }
 }
 
@@ -1463,7 +1465,11 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     c, iface->get_name(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
-    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
+    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg); // TODO: remove
+    iface->getAlertsManager()->engageHostAlert(this,
+					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
+					       asClient ? alert_host_under_attack : alert_host_attacker,
+					       alert_level_error, msg);
 #endif
     good_low_flow_detected = true;
   }
@@ -1481,7 +1487,12 @@ void Host::decLowGoodputFlows(bool asClient) {
   }
 
   if(alert && good_low_flow_detected) {
-    /* TODO: send end of alert */
+    /* TODO: send end of alert
+       iface->getAlertsManager()->releaseHostAlert(this,
+					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
+					       asClient ? alert_host_under_attack : alert_host_attacker,
+					       alert_level_error, msg);
+     */
     good_low_flow_detected = false;
   }
 }
