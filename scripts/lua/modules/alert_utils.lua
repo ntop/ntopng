@@ -214,6 +214,8 @@ function delete_alert_configuration(alert_source, ifname)
 		     interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 		  elseif string.match(alert_source, "/") then
 		     interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+		  else
+		     interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 		  end
 	       end
 	    end
@@ -265,6 +267,8 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
 	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
 	    elseif string.match(alert_source, "/") then
 	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	    else
+	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	    end
 	 end
       end
@@ -443,6 +447,10 @@ function check_interface_alert(ifname, mode, old_table, new_table)
         print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
 
+    local alert_level = 1 -- alert_level_warning
+    local alert_status = 1 -- alert_on
+    local alert_type = 2 -- alert_threshold_exceeded
+
     -- Needed because Lua. loadstring() won't work otherwise.
     old = old_table
     new = new_table
@@ -473,13 +481,11 @@ function check_interface_alert(ifname, mode, old_table, new_table)
             local what = "val = "..t[1].."(old, new); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
+	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
 	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
                 ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-                local alert_level = 1 -- alert_level_warning
-                local alert_status = 1 -- alert_on
-                local alert_type = 2 -- alert_threshold_exceeded
 
                 if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
@@ -487,7 +493,10 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                     interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
-                        ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
+		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
+		       if ntop.isEnterprise() then
+			  interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
+		       end
                     end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -497,7 +506,10 @@ function check_interface_alert(ifname, mode, old_table, new_table)
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
                 if ntop.isPro() and not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
-                    ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
+		   ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
+		   if ntop.isEnterprise() then
+		      interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
+		   end
                 end
             end
         end

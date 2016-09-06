@@ -522,6 +522,25 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
 
 /* ******************************************* */
 
+int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
+					       const char *engaged_alert_id,
+					       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+					       bool engage) {
+  char id_buf[8];
+  if(!n) return -1;
+
+  snprintf(id_buf, sizeof(id_buf), "%u", n -> get_id());
+
+  if (engage)
+    return engageAlert(alert_entity_interface, id_buf,
+		       engaged_alert_id, alert_type, alert_severity, alert_json);
+  else
+    return releaseAlert(alert_entity_interface, id_buf,
+			engaged_alert_id, alert_type, alert_severity, alert_json);
+};
+
+/* ******************************************* */
+
 int AlertsManager::storeHostAlert(Host *h,
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
   if (!h) return -1;

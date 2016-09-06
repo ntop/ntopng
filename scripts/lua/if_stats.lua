@@ -849,6 +849,7 @@ else
    --print(alerts)
 
    if(to_save) then
+      refresh_alert_configuration(ifname_clean, ifname, tab, alerts)
       if(alerts == "") then
 	 ntop.delHashCache(get_alerts_hash_name(tab, ifname), ifname_clean)
       else

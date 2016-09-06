@@ -637,7 +637,10 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
 
-    alertsManager->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
+    alertsManager->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg); // TODO: remove
+    alertsManager->engageInterfaceAlert(this,
+					(char*)"app_misconfiguration",
+					alert_app_misconfiguration, alert_level_error, alert_msg);
     tooManyFlowsAlertTriggered = true;
   }
 }
@@ -653,7 +656,10 @@ void NetworkInterface::triggerTooManyHostsAlert() {
 	     ntop->getPrefs()->get_http_prefix(),
 	     id, get_name());
 
-    alertsManager->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg);
+    alertsManager->queueAlert(alert_level_error, alert_on, alert_app_misconfiguration, alert_msg); // TODO: remove
+    alertsManager->releaseInterfaceAlert(this,
+					 (char*)"app_misconfiguration",
+					 alert_app_misconfiguration, alert_level_error, alert_msg);
     tooManyHostsAlertTriggered = true;
   }
 }

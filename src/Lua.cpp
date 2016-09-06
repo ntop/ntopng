@@ -4315,6 +4315,44 @@ static int ntop_interface_engage_release_network_alert(lua_State* vm, bool engag
 
 /* ****************************************** */
 
+static int ntop_interface_engage_release_interface_alert(lua_State* vm, bool engage) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  int alert_severity;
+  int alert_type;
+  char *alert_json, *engaged_alert_id;
+  AlertsManager *am;
+  int ret;
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  engaged_alert_id = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_type = (int)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_severity = (int)lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_json = (char*)lua_tostring(vm, 4);
+
+  if((!ntop_interface)
+     || ((am = ntop_interface->getAlertsManager()) == NULL))
+    return(CONST_LUA_ERROR);
+
+  if(engage)
+    ret = am->engageInterfaceAlert(ntop_interface, engaged_alert_id,
+				   (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+  else
+    ret = am->releaseInterfaceAlert(ntop_interface, engaged_alert_id,
+				    (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
+
+  return !ret ? CONST_LUA_OK : CONST_LUA_ERROR;
+}
+
+/* ****************************************** */
+
 static int ntop_interface_engage_host_alert(lua_State* vm) {
   return ntop_interface_engage_release_host_alert(vm, true /* engage */);
 }
@@ -4335,6 +4373,18 @@ static int ntop_interface_engage_network_alert(lua_State* vm) {
 
 static int ntop_interface_release_network_alert(lua_State* vm) {
   return ntop_interface_engage_release_network_alert(vm, false /* release */);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_engage_interface_alert(lua_State* vm) {
+  return ntop_interface_engage_release_interface_alert(vm, true /* engage */);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_release_interface_alert(lua_State* vm) {
+  return ntop_interface_engage_release_interface_alert(vm, false /* release */);
 }
 
 /* ****************************************** */
@@ -4896,6 +4946,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseHostAlert",     ntop_interface_release_host_alert       },
   { "engageNetworkAlert",   ntop_interface_engage_network_alert     },
   { "releaseNetworkAlert",  ntop_interface_release_network_alert    },
+  { "engageInterfaceAlert", ntop_interface_engage_interface_alert   },
+  { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
   { NULL,                             NULL }
 };
 

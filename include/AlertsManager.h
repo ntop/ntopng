@@ -51,6 +51,10 @@ class AlertsManager : protected StoreManager {
 				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 				bool engage);
+  int engageReleaseInterfaceAlert(NetworkInterface *n,
+				  const char *engaged_alert_id,
+				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+				  bool engage);
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
@@ -60,7 +64,7 @@ class AlertsManager : protected StoreManager {
   int storeAlert(lua_State *L, int index);
 
   /*
-    ========== HOST alerts API ==========
+    ========== HOST alerts API =========
    */
   inline int engageHostAlert(Host *h,
 			     const char *engaged_alert_id,
@@ -75,7 +79,7 @@ class AlertsManager : protected StoreManager {
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   /*
-    ========== FLOW alerts API ==========
+    ========== FLOW alerts API =========
    */
   inline int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return storeAlert(alert_entity_flow, ""/* TODO: possibly add an unique id for flows */,
@@ -83,7 +87,7 @@ class AlertsManager : protected StoreManager {
   };
 
   /*
-    ========== NETWORK alerts API ==========
+    ========== NETWORK alerts API ======
    */
   inline int engageNetworkAlert(const char *cidr,
 			     const char *engaged_alert_id,
@@ -97,6 +101,20 @@ class AlertsManager : protected StoreManager {
   };
   int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
+  /*
+    ========== INTERFACE alerts API ======
+   */
+  inline int engageInterfaceAlert(NetworkInterface *n,
+				  const char *engaged_alert_id,
+				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseInterfaceAlert(n, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+  };
+  inline int releaseInterfaceAlert(NetworkInterface *n,
+				   const char *engaged_alert_id,
+				   AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseInterfaceAlert(n, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+  };
+  int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   
   int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
