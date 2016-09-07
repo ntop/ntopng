@@ -183,15 +183,19 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
     status->command_sequence.srvWaited = false;
     status->command_sequence.respBytes = 0;
     status->command_sequence.respCount = 0;
+    status->command_sequence.numCommands += 1;
   }
   
   if ((status->command_sequence.srvWaited || !config->command_sequence.mustwait) &&
       (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
+      (status->command_sequence.numCommands >= config->command_sequence.mincommands) &&
       (status->command_sequence.respCount >= config->command_sequence.minflips)) {
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "CommandDetect filter: wait=%c bytes=%lu flips=%lu\n",
-				 status->command_sequence.srvWaited ? 'Y' : 'N',
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "* CommandDetect filter: %d wait=%c bytes=%lu flips=%lu dt=%f\n",
+				 status->command_sequence.numCommands,
+         status->command_sequence.srvWaited ? 'Y' : 'N',
 				 status->command_sequence.respBytes,
-				 status->command_sequence.respCount);
+				 status->command_sequence.respCount,
+         Utils::msTimevalDiff((struct timeval*)when, &last));
     return true;
   }
   return false;
@@ -318,6 +322,9 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Interflow filter undefined for protocol %s\n", flow->get_detected_protocol_name(buf, sizeof(buf)));
       return false;
   }
+
+  if (config->interflow.sslonly && !flow->isSSLProto())
+    return false;
 
   host->incIfaPackets(proto, flow, when->tv_sec);
   host->getIfaStats(proto, when->tv_sec, &f_count, &f_pkts, &max_duration);

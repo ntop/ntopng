@@ -4,9 +4,9 @@
 
 local trace_hk = false
 local profile_activity_match
+local default_activity_parameters = {filter.SMA}
 local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]1, --[[bound time]]500, --[[sustain time]]4000}
 local web_activity_defaults = {filter.Web}
-local default_activity_parameters = {filter.All, true}
 
 if(trace_hk) then print("Initialized script useractivity.lua\n") end
 
@@ -152,20 +152,8 @@ local profile_activity_match = {
          "Pandora",
          "Deezer",
          "Twitch",
-         "YouTube",
          "NetFlix",
-         "LastFM",
-
-         -- Media types
-         "AVI",
-         "Flash",
-         "OggVorbis",
-         "MPEG",
-         "MPEG_TS",
-         "QuickTime",
-         "RealMedia",
-         "WindowsMedia",
-         "WebM"
+         "LastFM"
       }
    },
 
@@ -184,14 +172,15 @@ local profile_activity_match = {
    -- MailSync profile
    {
       ["profile"] = profile.MailSync,
-      ["defaults"] = {filter.CommandSequence, false, 200, 3000, 1},
+      ["defaults"] = {filter.CommandSequence, false, 200, 3000},
       ["protos"] = {
+         ["Hotmail"] = {filter.CommandSequence, true, 15000, 3000, 7},
          "IMAP",
          "IMAPS"
       }
    },{
       ["profile"] = profile.MailSync,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
          "POP3",
          "POPS"
@@ -201,7 +190,7 @@ local profile_activity_match = {
    -- MailSend profile
    {
       ["profile"] = profile.MailSend,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
          "SMTP",
          "SMTPS"
@@ -252,9 +241,8 @@ local profile_activity_match = {
    -- Chat profile
    {
       ["profile"] = profile.Chat,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
-         ["Twitter"] = {filter.Interflow, 3, 200},
          "GoogleHangout",
          "IRC",
          "Unencryped_Jabber",
@@ -274,7 +262,7 @@ local profile_activity_match = {
    -- Game profile
    {
       ["profile"] = profile.Game,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
          "Dofus",
          "BattleField",
@@ -307,13 +295,24 @@ local profile_activity_match = {
       }
    },
 
+   -- SocialNetwork profile
+   {
+      ["profile"] = profile.SocialNetwork,
+      ["defaults"] = {filter.Interflow},
+      ["protos"] = {
+         ["Twitter"] = {filter.Interflow, 3, 200},
+         ["Facebook"] = {filter.Interflow, 3, 600, -1, true}
+      }
+   },
+
    -- Web profile
    {
       ["profile"] = profile.Web,
       ["defaults"] = web_activity_defaults,
       ["protos"] = {
          "HTTP",
-         "HTTPS"
+         "HTTPS",
+         "YouTube"
       }
    },
 
@@ -340,19 +339,9 @@ function flowProtocolDetected()
    if master ~= "DNS" then
    
 -- BEGIN Particular protocols
-      if sub == "Facebook" then
-         local config
-         if master == "HTTP" then
-            -- mark as background traffic
-            config = {filter.All, false}
-         else
-            config = {filter.Interflow, 2, 400, 3}
-         end
-         matched = {["profile"]=profile.Facebook, ["config"]=config}
-      elseif sub == "YouTube" and not srv:ends("googlevideo.com") then
-         -- just normal web traffic
-         matched = {["profile"]=profile.Web, ["config"]=web_activity_defaults}
--- END Particular protocols      
+      if sub == "YouTube" and srv:ends("googlevideo.com") then
+         matched = {["profile"]=profile.Media, ["config"]={filter.All, true}}
+-- END Particular protocols
       else
          for i=1, #profile_activity_match do
             local pamatch = profile_activity_match[i]
@@ -372,7 +361,10 @@ function flowProtocolDetected()
 
                if matchproto == master or matchproto == sub then
                   matched = {["profile"]=profile, ["proto"]=matchproto, ["config"]=config, ["defaults"]=pamatch["defaults"]}
-                  break
+                  -- prefer subprotocols match within the same profile
+                  if matchproto == sub then
+                     break
+                  end
                end
             end
 

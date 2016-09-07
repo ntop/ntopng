@@ -17,7 +17,8 @@ local name_map = {
       { "RemoteControl", "Remote Access" },
       { "MailSend", "Email Send" },
       { "MailSync", "Email Synchronization" },
-      { "FileTransfer", "File Transfer" }
+      { "FileTransfer", "File Transfer" },
+      { "SocialNetwork", "Social Network" },
 }
 
 function mapRRDname(name) 	 

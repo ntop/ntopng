@@ -72,6 +72,7 @@ typedef union {
     uint minbytes;
     uint maxinterval;
     uint minflips;
+    uint mincommands;
     bool mustwait;
   } command_sequence;
 
@@ -93,6 +94,7 @@ typedef union {
     u_int32_t minpkts;
     int minflows;
     int minduration;
+    bool sslonly;
   } interflow;
 } activity_filter_config;
 
@@ -118,6 +120,7 @@ typedef union {
     uint64_t respBytes;
     uint64_t respCount;
     struct timeval lastPacket;
+    uint numCommands;
     bool reqSeen;
     bool srvWaited;
     bool cli2srv;
