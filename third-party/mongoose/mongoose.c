@@ -385,11 +385,10 @@ struct ssl_func {
 #define SSL_CTX_set_verify (* (void (*)(SSL_CTX *, int, int)) ssl_sw[19].ptr)
 
 /* ntop */
-#define SSL_CTX_set_cipher_list (* (int (*)(SSL_CTX *ctx, const char *str) ssl_sw[20].ptr)
+#define SSL_CTX_set_cipher_list (* (int (*)(SSL_CTX *ctx, const char *str)) ssl_sw[20].ptr)
 #define SSL_CTX_set_options (* (long (*)(SSL_CTX *ctx, long options))  ssl_sw[21].ptr)
 #define SSL_CTX_get_options (* (long (*)(SSL_CTX *ctx))  ssl_sw[22].ptr)
 #define SSL_CTX_set_min_proto_version (* (void (*)(SSL_CTX *ctx, int version))  ssl_sw[23].ptr)
-#define SSL_CTX_set_cipher_list
 #define CRYPTO_num_locks (* (int (*)(void)) crypto_sw[0].ptr)
 #define CRYPTO_set_locking_callback					\
   (* (void (*)(void (*)(int, int, const char *, int))) crypto_sw[1].ptr)
