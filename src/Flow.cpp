@@ -2311,7 +2311,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
             if (protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
-            iface->luaEvalFlow(this, callback_flow_update);
+            // iface->luaEvalFlow(this, callback_flow_update);
             break;
           }
         }
