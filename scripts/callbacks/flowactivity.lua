@@ -2,7 +2,9 @@
 -- (C) 2016 - ntop.org
 --
 
+-- Enable tracings here
 local trace_hk = false
+
 local profile_activity_match
 local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]1, --[[bound time]]500, --[[sustain time]]4000}
 local web_activity_defaults = {filter.Web}
@@ -59,52 +61,29 @@ end
 
 -- ########################################################
 
+--
+-- This callback is called periodically for all active flows
+-- Add here housekeeping of periodic activities you want to
+-- perform in a flow
+--
 function flowUpdate()
    if(trace_hk) then print("flowUpdate()\n") end
-   -- print("=>"..flow.getNdpiProto().."@"..flow.getProfileId().."\n")
- -- flow.setProfileId(os.time())
-
-   local proto = flow.getNdpiProto()
-   local master, sub = splitProto(proto)
-
-   if master == "HTTP" then
-      local contentType = flow.getHTTPContentType()
-      if contentType then
-         if flow.getProfileId() ~= profile.Media then
-            local mDetected = false
-            
-            -- Try to detect a media type
-            for i=1, #media_activity_mime_types do
-               if contentType:starts(media_activity_mime_types[i]) then
-                  flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
-                  mDetected = true
-                  break
-               end
-            end
-
-            -- Try to detect a web type
-            if not mDetected and flow.getActivityFilterId() ~= filter.All then
-               for i=1, #web_activity_mime_types do
-                  if contentType:starts(web_activity_mime_types[i]) then
-                     -- Be always active
-                     flow.setActivityFilter(profile.Web, filter.All, true)
-                     break
-                  end
-               end
-            end
-         end
-      end
-   end
 end
 
 -- ########################################################
 
+--
+-- This callback is called once, when a new flow is created
+--
 function flowCreate()
    if(trace_hk) then print("flowCreate()\n") end
 end
 
 -- ########################################################
 
+--
+-- This callback is called once, when a new flow is deleted
+--
 function flowDelete()
    if(trace_hk) then print("flowDelete()\n") end
 end
@@ -331,6 +310,10 @@ local profile_activity_match = {
 
 -- ########################################################
 
+--
+-- This callback is called once as soon as the flow application
+--  protocol has been identified by the ntopng core
+--
 function flowProtocolDetected()
    local proto = flow.getNdpiProto()
    local master, sub = splitProto(proto)
@@ -338,8 +321,36 @@ function flowProtocolDetected()
    local matched = nil
 
    if master ~= "DNS" then
-   
--- BEGIN Particular protocols
+   if master == "HTTP" then
+      local contentType = flow.getHTTPContentType()
+      if contentType then
+         if flow.getProfileId() ~= profile.Media then
+            local mDetected = false
+
+            -- Try to detect a media type
+            for i=1, #media_activity_mime_types do
+               if contentType:starts(media_activity_mime_types[i]) then
+                  flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
+                  mDetected = true
+                  break
+               end
+            end
+
+            -- Try to detect a web type
+            if not mDetected and flow.getActivityFilterId() ~= filter.All then
+               for i=1, #web_activity_mime_types do
+                  if contentType:starts(web_activity_mime_types[i]) then
+                     -- Be always active
+                     flow.setActivityFilter(profile.Web, filter.All, true)
+                     break
+                  end
+               end
+            end
+         end
+      end
+   end
+
+-- BEGIN specific protocols
       if sub == "Facebook" then
          local config
          if master == "HTTP" then
@@ -352,7 +363,7 @@ function flowProtocolDetected()
       elseif sub == "YouTube" and not srv:ends("googlevideo.com") then
          -- just normal web traffic
          matched = {["profile"]=profile.Web, ["config"]=web_activity_defaults}
--- END Particular protocols      
+-- END specific protocols
       else
          for i=1, #profile_activity_match do
             local pamatch = profile_activity_match[i]
@@ -388,7 +399,7 @@ function flowProtocolDetected()
       end
 
       if(trace_hk) then
-         f = flow.dump() 
+         f = flow.dump()
          print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].."\n")
       end
    end
