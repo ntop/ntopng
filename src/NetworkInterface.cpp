@@ -1017,7 +1017,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       e.g., during three-way-handshake, or when acknowledging.
       Make sure only non-zero-payload segments are processed.
       */
-      if(payload_len > 0 && payload) {
+      if((payload_len > 0) && payload) {
 	/*
 	DNS-over-TCP has a 2-bytes field with DNS payload length
 	at the beginning. See RFC1035 section 4.2.2. TCP usage.
@@ -1071,7 +1071,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       break;
 
     default:
-      if (flow->isSSLProto())
+      if(flow->isSSLProto())
         flow->dissectSSL(payload, payload_len, when, src2dst_direction);
     }
 
@@ -1111,12 +1111,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   // Detect user activities
   UserActivityID activity;
   u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
-  if (flow->getActivityId(&activity) && (!flow->isSSLProto() || flow->isSSLData())) {
+  if(flow->getActivityId(&activity) && (!flow->isSSLProto() || flow->isSSLData())) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
 
-    if (flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
-      if (src2dst_direction)
+    if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
+      if(src2dst_direction)
         up = bytes;
       else
         down = bytes;
@@ -1124,9 +1124,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       backgr = bytes;
     }
 
-    if (cli->isLocalHost())
+    if(cli->isLocalHost())
       cli->incActivityBytes(activity, up, down, backgr);
-    if (srv->isLocalHost())
+    if(srv->isLocalHost())
       srv->incActivityBytes(activity, down, up, backgr);
   }
 
@@ -2596,7 +2596,7 @@ void NetworkInterface::getNetworksStats(lua_State* vm) {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
   lua_newtable(vm);
-  for (u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
     network_stats = getNetworkStats(network_id);
     // do not add stats of networks that have not generated any traffic
     if(!network_stats || !network_stats->trafficSeen())
@@ -2666,7 +2666,7 @@ static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
     return (false); /* false = keep on walking */
 
   r->found = true;
-  for (i=0; i<UserActivitiesN; i++)
+  for(i=0; i<UserActivitiesN; i++)
     r->counters[i] = *h->getActivityBytes((UserActivityID) i);
   return true; /* found, stop walking */
 }
@@ -2683,7 +2683,7 @@ void NetworkInterface::getLocalHostActivity(lua_State* vm, const char *host) {
 
   if(retriever.found) {
     lua_newtable(vm);
-    for (i=0; i<UserActivitiesN; i++) {
+    for(i=0; i<UserActivitiesN; i++) {
       lua_newtable(vm);
 
       lua_push_int_table_entry(vm, "up", retriever.counters[i].up);
@@ -2928,9 +2928,9 @@ void NetworkInterface::lua(lua_State *vm) {
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
    */
-  if (ntop->getPrefs()->do_dump_flows_on_es()) {
+  if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm);
-  } else if (ntop->getPrefs()->do_dump_flows_on_mysql()) {
+  } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     db->lua(vm);
   }
 
@@ -3793,7 +3793,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, params+1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   activityID = (UserActivityID)lua_tonumber(vm, ++params);
-  if (activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
+  if(activityID >= UserActivitiesN) return(CONST_LUA_ERROR);
 
   if(lua_type(vm, params+1) == LUA_TNUMBER)
     filterID = (ActivityFilterID)lua_tonumber(vm, ++params);
@@ -3814,16 +3814,16 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.web.numsamples = lua_tonumber(vm, ++params);
 
-        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+        if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.web.minbytes = lua_tonumber(vm, ++params);
 
-          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.web.maxinterval = lua_tonumber(vm, ++params);
 
-            if (lua_type(vm, params+1) == LUA_TBOOLEAN) {
+            if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
               config.web.forceWebProfile = lua_toboolean(vm, ++params);
 
-              if (lua_type(vm, params+1) == LUA_TBOOLEAN)
+              if(lua_type(vm, params+1) == LUA_TBOOLEAN)
                 config.web.serverdominant = lua_toboolean(vm, ++params);
             }
           }
@@ -3842,10 +3842,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.ratio.numsamples = lua_tonumber(vm, ++params);
 
-        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+        if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.ratio.minbytes = lua_tonumber(vm, ++params);
           
-          if (lua_type(vm, params+1) == LUA_TNUMBER)
+          if(lua_type(vm, params+1) == LUA_TNUMBER)
             config.ratio.clisrv_ratio = lua_tonumber(vm, ++params);
         }
       }
@@ -3860,10 +3860,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.interflow.minflows = min((int)lua_tonumber(vm, ++params), USER_ACTIVITY_DETECTION_SLOTS);
 
-        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+        if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.interflow.minpkts = lua_tonumber(vm, ++params);
           
-          if (lua_type(vm, params+1) == LUA_TNUMBER)
+          if(lua_type(vm, params+1) == LUA_TNUMBER)
             config.interflow.minduration = lua_tonumber(vm, ++params);
         }
       }
@@ -3880,13 +3880,13 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.sma.edge = lua_tonumber(vm, ++params);
 
-        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+        if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.sma.minsamples = lua_tonumber(vm, ++params);
           
-          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.sma.timebound = lua_tonumber(vm, ++params);
 
-            if (lua_type(vm, params+1) == LUA_TNUMBER)
+            if(lua_type(vm, params+1) == LUA_TNUMBER)
               config.sma.sustain = lua_tonumber(vm, ++params);
           }
         }
@@ -3903,13 +3903,13 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.wma.edge = lua_tonumber(vm, ++params);
 
-        if (lua_type(vm, params+1) == LUA_TNUMBER) {
+        if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.wma.minsamples = lua_tonumber(vm, ++params);
           
-          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.wma.timescale = lua_tonumber(vm, ++params);
             
-            if (lua_type(vm, params+1) == LUA_TNUMBER)
+            if(lua_type(vm, params+1) == LUA_TNUMBER)
               config.wma.aggrsecs = lua_tonumber(vm, ++params);
           }
         }
@@ -3929,10 +3929,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.command_sequence.minbytes = lua_tonumber(vm, ++params);
 
-          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.command_sequence.maxinterval = lua_tonumber(vm, ++params);
 
-            if (lua_type(vm, params+1) == LUA_TNUMBER)
+            if(lua_type(vm, params+1) == LUA_TNUMBER)
               config.command_sequence.minflips = lua_tonumber(vm, ++params);
           }
         }
@@ -4026,7 +4026,7 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
 
   // Activity profiles - see ntop_typedefs.h
   lua_newtable(L);
-  for (int i=0; i<UserActivitiesN; i++)
+  for(int i=0; i<UserActivitiesN; i++)
     lua_push_int_table_entry(L, activity_names[i], i);
   lua_setglobal(L, CONST_USERACTIVITY_PROFILES);
 
@@ -4125,9 +4125,9 @@ const char * getActivityName(UserActivityID id) {
 /* ******************************************* */
 
 bool getActivityId(const char * name, UserActivityID * out) {
-  if (name) {
-    for (int i=0; i<UserActivitiesN; i++)
-      if (strcmp(activity_names[i], name) == 0) {
+  if(name) {
+    for(int i=0; i<UserActivitiesN; i++)
+      if(strcmp(activity_names[i], name) == 0) {
         *out = ((UserActivityID) i);
         return true;
       }

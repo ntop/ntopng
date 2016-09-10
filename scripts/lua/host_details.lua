@@ -1157,8 +1157,9 @@ if host["localhost"] == true then
          setShowMode("updown");
       </script>
       <p>
-      <b>NOTE:</b> The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
-<br>and background traffic (e.g. your email client periodically checks for email presence). Note that this work is still in progress.
+      <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
+<br>and background traffic (e.g. your email client periodically checks for email presence). Host traffic sent (upload)<br>
+is marked as positive value in <font color=blue>blue</font>, traffic received (download) is marked as negative in <font color=green>green</font>.
    </td></tr> ]]
 
    -- showHostActivityStats(hostbase, "", "1h")

@@ -14,10 +14,15 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 local res = {}
 
 local name_map = {
+      { "Chat", "Chat and Realtime Communications" },
       { "RemoteControl", "Remote Access" },
       { "MailSend", "Email Send" },
+      { "Media", "Media and Streaming" },
       { "MailSync", "Email Synchronization" },
-      { "FileTransfer", "File Transfer" }
+      { "FileTransfer", "File Transfer" },
+      { "Web", "Web Browsing" },
+      { "Game", "Online Gaming" },
+      { "Other", "Other Traffic" }
 }
 
 function mapRRDname(name) 	 
