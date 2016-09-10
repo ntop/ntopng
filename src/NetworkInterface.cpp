@@ -207,7 +207,7 @@ void NetworkInterface::init() {
   memset(lastMinuteTraffic, 0, sizeof(lastMinuteTraffic));
   resetSecondTraffic();
 
-  reloadLuaInterpreter = true, L_flow_create = L_flow_delete = L_flow_update = NULL;
+  reloadLuaInterpreter = true, L_flow_activity = NULL;
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -4060,43 +4060,38 @@ lua_State* NetworkInterface::initLuaInterpreter(const char *lua_file) {
 /* **************************************** */
 
 void NetworkInterface::termLuaInterpreter() {
-  if(L_flow_create) { lua_close(L_flow_create); L_flow_create = NULL; }
-  if(L_flow_delete) { lua_close(L_flow_delete); L_flow_delete = NULL; }
-  if(L_flow_update) { lua_close(L_flow_update); L_flow_update = NULL; }
+  if(L_flow_activity) { lua_close(L_flow_activity); L_flow_activity = NULL; }
 }
 
 /* **************************************** */
 
 int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   int rc;
-  lua_State *L;
   const char *luaFunction;
 
   // return(0); /* FIX */
 
   if(reloadLuaInterpreter) {
-    if(L_flow_create || L_flow_delete || L_flow_update) termLuaInterpreter();
-    L_flow_create = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
-    L_flow_delete = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
-    L_flow_update = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
+    if(L_flow_activity) termLuaInterpreter();
+    L_flow_activity = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
     reloadLuaInterpreter = false;
   }
 
   switch(cb) {
   case callback_flow_create:
-    L = L_flow_create, luaFunction = CONST_LUA_FLOW_CREATE;
+    luaFunction = CONST_LUA_FLOW_CREATE;
     break;
 
   case callback_flow_delete:
-    L = L_flow_delete, luaFunction = CONST_LUA_FLOW_DELETE;
+    luaFunction = CONST_LUA_FLOW_DELETE;
     break;
 
   case callback_flow_update:
-    L = L_flow_update, luaFunction = CONST_LUA_FLOW_UPDATE;
+    luaFunction = CONST_LUA_FLOW_UPDATE;
     break;
 
   case callback_flow_ndpi_detect:
-    L = L_flow_create, luaFunction = CONST_LUA_FLOW_NDPI_DETECT;
+    luaFunction = CONST_LUA_FLOW_NDPI_DETECT;
     break;
 
   default:
@@ -4104,13 +4099,13 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
     return(-1);
   }
 
-  lua_settop(L, 0); /* Reset stack */
-  lua_pushlightuserdata(L, f);
-  lua_setglobal(L, CONST_USERACTIVITY_FLOW);
+  lua_settop(L_flow_activity, 0); /* Reset stack */
+  lua_pushlightuserdata(L_flow_activity, f);
+  lua_setglobal(L_flow_activity, CONST_USERACTIVITY_FLOW);
 
-  lua_getglobal(L, luaFunction); /* function to be called */
-  if((rc = lua_pcall(L, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s [rc=%d][%s]", luaFunction, rc, lua_tostring(L, -1));
+  lua_getglobal(L_flow_activity, luaFunction); /* function to be called */
+  if((rc = lua_pcall(L_flow_activity, 0 /* 0 parameters */, 0 /* no return values */, 0)) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s [rc=%d][%s]", luaFunction, rc, lua_tostring(L_flow_activity, -1));
   }
 
   return(rc);

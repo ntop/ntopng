@@ -62,12 +62,43 @@ end
 -- ########################################################
 
 --
--- This callback is called periodically for all active flows
--- Add here housekeeping of periodic activities you want to
--- perform in a flow
+-- This callback is called when some flow state, that can affect activity
+-- detection, changes
 --
 function flowUpdate()
+   local proto = flow.getNdpiProto()
+   local master, sub = splitProto(proto)
+   
    if(trace_hk) then print("flowUpdate()\n") end
+
+   if master == "HTTP" then
+      local contentType = flow.getHTTPContentType()
+      if contentType then
+         if flow.getProfileId() ~= profile.Media then
+            local mDetected = false
+
+            -- Try to detect a media type
+            for i=1, #media_activity_mime_types do
+               if contentType:starts(media_activity_mime_types[i]) then
+                  flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
+                  mDetected = true
+                  break
+               end
+            end
+
+            -- Try to detect a web type
+            if not mDetected and flow.getActivityFilterId() ~= filter.All then
+               for i=1, #web_activity_mime_types do
+                  if contentType:starts(web_activity_mime_types[i]) then
+                     -- Be always active
+                     flow.setActivityFilter(profile.Web, filter.All, true)
+                     break
+                  end
+               end
+            end
+         end
+      end
+   end
 end
 
 -- ########################################################
@@ -321,35 +352,6 @@ function flowProtocolDetected()
    local matched = nil
 
    if master ~= "DNS" then
-   if master == "HTTP" then
-      local contentType = flow.getHTTPContentType()
-      if contentType then
-         if flow.getProfileId() ~= profile.Media then
-            local mDetected = false
-
-            -- Try to detect a media type
-            for i=1, #media_activity_mime_types do
-               if contentType:starts(media_activity_mime_types[i]) then
-                  flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
-                  mDetected = true
-                  break
-               end
-            end
-
-            -- Try to detect a web type
-            if not mDetected and flow.getActivityFilterId() ~= filter.All then
-               for i=1, #web_activity_mime_types do
-                  if contentType:starts(web_activity_mime_types[i]) then
-                     -- Be always active
-                     flow.setActivityFilter(profile.Web, filter.All, true)
-                     break
-                  end
-               end
-            end
-         end
-      end
-   end
-
 -- BEGIN specific protocols
       if sub == "Facebook" then
          local config
