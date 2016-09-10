@@ -384,6 +384,11 @@ struct ssl_func {
 #define SSL_pending (* (int (*)(SSL *)) ssl_sw[18].ptr)
 #define SSL_CTX_set_verify (* (void (*)(SSL_CTX *, int, int)) ssl_sw[19].ptr)
 
+/* ntop */
+#define SSL_CTX_set_cipher_list (* (int (*)(SSL_CTX *ctx, const char *str)) ssl_sw[20].ptr)
+#define SSL_CTX_set_options (* (long (*)(SSL_CTX *ctx, long options))  ssl_sw[21].ptr)
+#define SSL_CTX_get_options (* (long (*)(SSL_CTX *ctx))  ssl_sw[22].ptr)
+#define SSL_CTX_set_min_proto_version (* (void (*)(SSL_CTX *ctx, int version))  ssl_sw[23].ptr)
 #define CRYPTO_num_locks (* (int (*)(void)) crypto_sw[0].ptr)
 #define CRYPTO_set_locking_callback					\
   (* (void (*)(void (*)(int, int, const char *, int))) crypto_sw[1].ptr)
@@ -417,6 +422,14 @@ static struct ssl_func ssl_sw[] = {
   {"SSLv23_client_method", NULL},
   {"SSL_pending", NULL},
   {"SSL_CTX_set_verify", NULL},
+  {"SSL_CTX_set_cipher_list", NULL},
+#ifndef __APPLE__
+  {"SSL_CTX_set_options", NULL},
+  {"SSL_CTX_get_options", NULL},
+#ifdef MODERN_OPENSSL
+  {"SSL_CTX_set_min_proto_version", NULL }, /* ntop */
+#endif
+#endif
   {NULL,    NULL}
 };
 
@@ -4721,10 +4734,35 @@ static int set_ssl_option(struct mg_context *ctx) {
   SSL_library_init();
   SSL_load_error_strings();
 
+  
   if ((ctx->ssl_ctx = SSL_CTX_new(SSLv23_server_method())) == NULL) {
     cry(fc(ctx), "SSL_CTX_new (server) error: %s", ssl_error());
     return 0;
   }
+
+  /* ntop */
+  SSL_CTX_set_cipher_list(ctx->ssl_ctx, "HIGH:!aNULL:!MD5:!RC4");
+
+#ifndef __APPLE__ /* Brew comes with an old OpenSSL version */
+#ifdef MODERN_OPENSSL
+#ifndef TLS1_1_VERSION
+#define TLS1_1_VERSION          0x0302
+#endif
+  SSL_CTX_set_min_proto_version(ctx->ssl_ctx, TLS1_1_VERSION);
+#else
+  {
+#ifndef SSL_OP_NO_TLSv1
+#define SSL_OP_NO_TLSv1 0x04000000L
+#endif
+ 
+    long opts = SSL_CTX_get_options(ctx->ssl_ctx);
+    
+    opts |= SSL_OP_NO_TLSv1;
+    SSL_CTX_set_options(ctx->ssl_ctx, opts);
+  }
+#endif
+#endif
+  /* end ntop */
 
   // If user callback returned non-NULL, that means that user callback has
   // set up certificate itself. In this case, skip sertificate setting.

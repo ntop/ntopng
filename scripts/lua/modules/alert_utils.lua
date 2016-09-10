@@ -212,6 +212,10 @@ function delete_alert_configuration(alert_source, ifname)
 		  -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
 		  if string.match(alert_source, "@") then
 		     interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+		  elseif string.match(alert_source, "/") then
+		     interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+		  else
+		     interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 		  end
 	       end
 	    end
@@ -230,42 +234,44 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    local alert_level  = 1 -- alert_level_warning
    local alert_type   = 2 -- alert_threshold_exceeded
    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
-   if string.match(alert_source, "@") then
-      local new_alert_ids = {}
 
-      -- alerts_string is a string such as dns;gt;23,bytes;gt;1,p2p;gt;3
-      -- that string comes directly from the web interface and is a comma-separated
-      -- list of threshold alerts configured.
-      -- since formerly configured alerts may have been deleted, we need to check
-      -- the ongoing_alerts against alerts_string and move to the closed list
-      -- any ongoing alert that is no longer part of the alerts_string
-      local tokens = split(alerts_string, ",")
-      if tokens == nil then tokens = {} end
-      for _, s in pairs(tokens) do
-	 if tostring(s) == nil then goto continue end
-	 local metric = string.split(s, ";")--[1]
-	 if metric == nil or metric[1] == nil then goto continue end
-	 metric = metric[1]
+   local new_alert_ids = {}
 
-	 if is_allowed_alarmable_metric(metric) == true then
-	    new_alert_ids[timespan.."_"..metric] = true
-	 end
-	 ::continue::
+   -- alerts_string is a string such as dns;gt;23,bytes;gt;1,p2p;gt;3
+   -- that string comes directly from the web interface and is a comma-separated
+   -- list of threshold alerts configured.
+   -- since formerly configured alerts may have been deleted, we need to check
+   -- the ongoing_alerts against alerts_string and move to the closed list
+   -- any ongoing alert that is no longer part of the alerts_string
+   local tokens = split(alerts_string, ",")
+   if tokens == nil then tokens = {} end
+   for _, s in pairs(tokens) do
+      if tostring(s) == nil then goto continue end
+      local metric = string.split(s, ";")--[1]
+      if metric == nil or metric[1] == nil then goto continue end
+      metric = metric[1]
+
+      if is_allowed_alarmable_metric(metric) == true then
+	 new_alert_ids[timespan.."_"..metric] = true
       end
+      ::continue::
+   end
 
-      -- check if there are some ongoing alerts that no longer exist in new_alerts
-      -- we want to close those alerts
-      for k1, timespan in pairs(alerts_granularity) do
-	 timespan = timespan[1]
-	 for k2, metric in pairs(alarmable_metrics) do
-	    if new_alert_ids[timespan.."_"..metric] ~= true then
+   -- check if there are some ongoing alerts that no longer exist in new_alerts
+   -- we want to close those alerts
+   for k1, timespan in pairs(alerts_granularity) do
+      timespan = timespan[1]
+      for k2, metric in pairs(alarmable_metrics) do
+	 if new_alert_ids[timespan.."_"..metric] ~= true then
+	    if string.match(alert_source, "@") then
 	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	    elseif string.match(alert_source, "/") then
+	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	    else
+	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	    end
 	 end
       end
-   else
-      local check = "TODO"
-      -- check if is an interface or a network
    end
 end
 
@@ -324,14 +330,11 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		  -- re-arm the alert
 		  re_arm_alert(key, mode, t[1], ifname)
 		  -- and send it to ntopng
-		  interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		  interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
 		  if ntop.isPro() then
 		     -- possibly send the alert to nagios as well
 		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					  mode, t[1], alert_msg)
-		     if ntop.isEnterprise() then
-			interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
-		     end
 		  end
 	       else
 		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -340,12 +343,12 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
             else  -- alert has not been triggered
 	       alert_status = 2 -- alert off
 	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(key, mode, t[1], ifname) then
-		   ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					    mode, t[1], "service OK")
-		   if ntop.isEnterprise() then
-		      interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
-		   end
+	       if not is_alert_re_arming(key, mode, t[1], ifname) then
+		  interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
+		  if ntop.isPro() then
+		     ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
+					      mode, t[1], "service OK")
+		  end
                 end
             end
         end
@@ -360,6 +363,10 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
         io.write("old:\n")
         tprint(old_table)
     end
+
+   local alert_level = 1 -- alert_level_warning
+   local alert_status = 1 -- alert_on
+   local alert_type = 2 -- alert_threshold_exceeded
 
     deltas = {}
     local delta_names = {'ingress', 'egress', 'inner'}
@@ -397,19 +404,17 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             local f = loadstring(what)
             local rc = f()
 
+	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
             if(rc) then
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF="..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-                local alert_level = 1 -- alert_level_warning
-                local alert_status = 1 -- alert_on
-                local alert_type = 2 -- alert_threshold_exceeded
 
                 if not is_alert_re_arming(network_name, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, mode, t[1], ifname)
-                    interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		    interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
-                        ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
+		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
                     end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -417,8 +422,11 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(network_name, mode, t[1], ifname) then
-                    ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
+                if not is_alert_re_arming(network_name, mode, t[1], ifname) then
+		   interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
+		   if ntop.isPro() then
+		      ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
+		   end
                 end
             end
         end
@@ -432,6 +440,10 @@ function check_interface_alert(ifname, mode, old_table, new_table)
     if(verbose) then
         print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
+
+    local alert_level = 1 -- alert_level_warning
+    local alert_status = 1 -- alert_on
+    local alert_type = 2 -- alert_threshold_exceeded
 
     -- Needed because Lua. loadstring() won't work otherwise.
     old = old_table
@@ -463,21 +475,19 @@ function check_interface_alert(ifname, mode, old_table, new_table)
             local what = "val = "..t[1].."(old, new); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
+	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
 	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
                 ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-                local alert_level = 1 -- alert_level_warning
-                local alert_status = 1 -- alert_on
-                local alert_type = 2 -- alert_threshold_exceeded
 
                 if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, mode, t[1], ifname)
-                    interface.queueAlert(alert_level, alert_status, alert_type, alert_msg)
+		    interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
-                        ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
+		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
                     end
                 else
                     if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -486,8 +496,11 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if ntop.isPro() and not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
-                    ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
+                if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
+		   interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
+		   if ntop.isPro() then
+		      ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
+		   end
                 end
             end
         end

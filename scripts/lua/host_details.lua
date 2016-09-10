@@ -27,6 +27,15 @@ always_show_hist = _GET["always_show_hist"]
 ntopinfo    = ntop.getInfo()
 active_page = "hosts"
 
+interface.select(ifname)
+ifstats = interface.getStats()
+
+ifId = ifstats.id
+
+is_packetdump_enabled = isLocalPacketdumpEnabled()
+host = nil
+family = nil
+
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 
 if((host_name == nil) or (host_ip == nil)) then
@@ -64,14 +73,7 @@ end
 
 if(protocol_id == nil) then protocol_id = "" end
 
-interface.select(ifname)
-ifstats = interface.getStats()
 
-ifId = ifstats.id
-
-is_packetdump_enabled = isLocalPacketdumpEnabled()
-host = nil
-family = nil
 
 -- print(">>>") print(host_info["host"]) print("<<<")
 if(debug_hosts) then traceError(TRACE_DEBUG,TRACE_CONSOLE, "Host:" .. host_info["host"] .. ", Vlan: "..host_vlan.."\n") end
@@ -653,7 +655,7 @@ end
    end
    print("</td></tr>")
 
-   if(host["tcp.packets.seq_problems"]) then
+   if host["tcp.packets.seq_problems"] == true then
       print("<tr><th width=30% rowspan=3>TCP Packets Sent Analysis</th><th>Retransmissions</th><td align=right><span id=pkt_retransmissions>".. formatPackets(host["tcp.packets.retransmissions"]) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
       print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(host["tcp.packets.out_of_order"]) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
@@ -1158,8 +1160,9 @@ if host["localhost"] == true then
          setShowMode("updown");
       </script>
       <p>
-      <b>NOTE:</b> The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
-<br>and background traffic (e.g. your email client periodically checks for email presence). Note that this work is still in progress.
+      <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
+<br>and background traffic (e.g. your email client periodically checks for email presence). Host traffic sent (upload)<br>
+is marked as positive value in <font color=blue>blue</font>, traffic received (download) is marked as negative in <font color=green>green</font>.
    </td></tr> ]]
 
    -- showHostActivityStats(hostbase, "", "1h")
@@ -1567,7 +1570,6 @@ print [[
 </table>
 ]]  
 elseif(page == "snmp") then
-
 if(ntop.isPro()) then
    print_snmp_report(host_info["host"], true, ifId)
 end

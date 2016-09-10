@@ -339,7 +339,9 @@ lines in your proxy's configuration:
     ProxyPass /ntopng/ http://192.168.0.3:3000/ntopng/
     ProxyPassReverse /ntopng/ http://192.168.0.3:3000/ntopng/
 .br
-you must use ntopng with \-Z "/ntopng/"
+You must use ntopng with \-Z "/ntopng"
+.br
+Do not use trailing shashes in the HTTP prefix.
 
 .It \-\-shutdown\-when\-done
 Terminate ntopng when the input pcap file is over (debug only).

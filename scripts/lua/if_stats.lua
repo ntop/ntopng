@@ -385,7 +385,7 @@ print("</script>\n")
    if(ifstats.stats.drops > 0) then print('</span>') end
    print("</span>  <span id=drops_trend></span></td><td colspan=3>&nbsp;</td></tr>\n")
 
-   if(prefs.is_dump_flows_enabled) and false --[[ temporarily disabled --]] then
+   if(prefs.is_dump_flows_enabled) then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
@@ -394,7 +394,8 @@ print("</script>\n")
 
       print("<tr>")
       print("<th nowrap>Exported Flows</th>")
-      print("<td><span id=exported_flows>"..formatValue(2048).."</span> ["..formatValue(1024).." Flows/s]</td>")
+      print("<td><span id=exported_flows>"..formatValue(ifstats.stats.flow_export_count).."</span>")
+      print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(ifstats.stats.flow_export_rate, 2)).."</span> Flows/s]</td>")
       print("<th>Dropped Flows</th>")
       local span_danger = ""
       if(ifstats.stats.flow_export_drops > 0) then
@@ -848,6 +849,7 @@ else
    --print(alerts)
 
    if(to_save) then
+      refresh_alert_configuration(ifname_clean, ifname, tab, alerts)
       if(alerts == "") then
 	 ntop.delHashCache(get_alerts_hash_name(tab, ifname), ifname_clean)
       else
@@ -1425,6 +1427,8 @@ print [[";
 	if(rsp.drops > 0) { drops = drops + '</span>';         }
 	$('#if_drops').html(drops);
 
+        $('#exported_flows').html(fint(rsp.flow_export_count));
+        $('#exported_flows_rate').html(Math.round(rsp.flow_export_rate * 100) / 100);
         if(rsp.flow_export_drops > 0) {
           $('#exported_flows_drops')
             .addClass("label label-danger")

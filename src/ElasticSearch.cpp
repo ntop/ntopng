@@ -38,12 +38,42 @@ ElasticSearch::ElasticSearch() {
   tail = NULL;
   reportDrops = false;
   elkDroppedFlowsQueueTooLong = 0;
+  elkExportedFlows = 0, elkLastExportedFlows = 0;
+  elkExportRate = 0;
+  lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
 }
 
 /* **************************************** */
 
 ElasticSearch::~ElasticSearch() {
   
+}
+
+/* ******************************************* */
+
+void ElasticSearch::updateStats(const struct timeval *tv) {
+  if(tv == NULL) return;
+
+  if(lastUpdateTime.tv_sec > 0) {
+    float tdiffMsec = ((float)(tv->tv_sec-lastUpdateTime.tv_sec)*1000)+((tv->tv_usec-lastUpdateTime.tv_usec)/(float)1000);
+    if(tdiffMsec >= 1000) { /* al least one second */
+      u_int64_t diffFlows = elkExportedFlows - elkLastExportedFlows;
+      elkLastExportedFlows = elkExportedFlows;
+
+      elkExportRate = ((float)(diffFlows * 1000)) / tdiffMsec;
+      if (elkExportRate < 0) elkExportRate = 0;
+    }
+  }
+
+  memcpy(&lastUpdateTime, tv, sizeof(struct timeval));
+}
+
+/* ******************************************* */
+
+void ElasticSearch::lua(lua_State *vm) const {
+  lua_push_int_table_entry(vm,   "flow_export_count", elkExportedFlows);
+  lua_push_int32_table_entry(vm, "flow_export_drops", elkDroppedFlowsQueueTooLong);
+  lua_push_float_table_entry(vm, "flow_export_rate",  elkExportRate);
 }
 
 /* **************************************** */
@@ -150,8 +180,10 @@ void ElasticSearch::indexESdata() {
 				  postbuf)) {
 	/* Post failure */
 	sleep(1);
-      } else
+      } else {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Sent %u flow(s) to ES", num_flows);
+	elkExportedFlows += num_flows;
+      }
     } else
       sleep(1);
   } /* while */

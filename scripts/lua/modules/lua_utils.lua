@@ -291,7 +291,8 @@ alert_entity_keys = {
   { "Interface",       0, "interface"     },
   { "Host",            1, "host"          },
   { "Network",         2, "network"       },
-  { "SNMP device",     3, "snmp_device"   }
+  { "SNMP device",     3, "snmp_device"   },
+  { "Flow",            4, "flow"          }
 }
 
 function alertSeverityLabel(v)

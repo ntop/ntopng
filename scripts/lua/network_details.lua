@@ -258,6 +258,7 @@ elseif(page == "alerts") then
             end
         end
         if(to_save) then
+	   refresh_alert_configuration(network_name, ifname, tab, alerts)
 	   if(alerts == "") then
 	      ntop.delHashCache(get_alerts_hash_name(tab, ifname), network_name)
 	   else

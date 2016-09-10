@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "top_talkers"
 require "top_structure"
-require "json"
 
 local top_vlan_intf = {}
 
@@ -43,7 +42,7 @@ end
 
 local function getTopVLANFromJSON(content, add_vlan)
   if(content == nil) then return("[ ]\n") end
-  local table = parseJSON(content)
+  local table = json.decode(content, 1)
   if (table == nil or table[top_vlan_intf.JSONkey] == nil) then return "[ ]\n" end
   local nr_elements = 0
 

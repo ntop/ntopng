@@ -876,12 +876,13 @@ function createRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
+      local hb = step * 2 -- Default hb = 2 minutes
       ntop.rrd_create(
 	 path,
 	 step, -- step
-	 'DS:sent:DERIVE:600:U:U',
-	 'DS:rcvd:DERIVE:600:U:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
+	 'DS:sent:DERIVE:'..hb..':U:U',
+	 'DS:rcvd:DERIVE:'..hb..':U:U',
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*(3600/step)),  -- raw: 1 day = 1 * 24 = 24 * 12 = 288
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
 	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days) -- 1d resolution (288 points)  365 days
 	 --'RRA:HWPREDICT:1440:0.1:0.0035:20'
@@ -895,14 +896,16 @@ function createSingleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then print('Creating RRD ', path, '\n') end
       local prefs = ntop.getPrefs()
+      local hb = step * 2 -- Default hb = 2 minutes
       ntop.rrd_create(
 	 path,
 	 step, -- step
-	 'DS:num:DERIVE:600:U:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
+	 'DS:num:DERIVE:'..hb..':U:U',
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*(3600/step)),  -- raw: 1 day = 1 * 24 = 24 * 12 = 288
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
-	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days), -- 1d resolution (288 points)  365 days
-	 'RRA:HWPREDICT:1440:0.1:0.0035:20')
+	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days) -- 1d resolution (288 points)  365 days
+	 -- 'RRA:HWPREDICT:1440:0.1:0.0035:20'
+	 )
    end
 end
 
@@ -912,13 +915,14 @@ function createTripleRRDcounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then io.write('Creating RRD '..path..'\n') end
       local prefs = ntop.getPrefs()
+      local hb = step * 2 -- Default hb = 2 minutes
       ntop.rrd_create(
 	 path,
 	 step, -- step
-	 'DS:ingress:DERIVE:600:U:U',
-	 'DS:egress:DERIVE:600:U:U',
-	 'DS:inner:DERIVE:600:U:U',
-	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),  -- raw: 1 day = 1 * 24 = 24 * 300 sec = 7200
+	 'DS:ingress:DERIVE:'..hb..':U:U',
+	 'DS:egress:DERIVE:'..hb..':U:U',
+	 'DS:inner:DERIVE:'..hb..':U:U',
+	 'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*(3600/step)),  -- raw: 1 day = 1 * 24 = 24 * 12 = 288
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24), -- 1h resolution (12 points)   2400 hours = 100 days
 	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days) -- 1d resolution (288 points)  365 days
 	 --'RRA:HWPREDICT:1440:0.1:0.0035:20'
@@ -932,15 +936,14 @@ function createActivityRRDCounter(path, step, verbose)
    if(not(ntop.exists(path))) then
       if(verbose) then io.write('Creating RRD '..path..'\n') end
       local prefs = ntop.getPrefs()
-      local hb = step * 2
+      local hb = step * 2 -- Default hb = 2 minutes
       ntop.rrd_create(
 	 path,
 	 step,
-	 'DS:in:COUNTER:'..hb..':U:U',
-	 'DS:out:COUNTER:'..hb..':U:U',
-	 'DS:bg:COUNTER:'..hb..':U:U',
-    -- TODO create separate ntop prefs and decide
-    'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*300),
+	 'DS:in:DERIVE:'..hb..':U:U',
+	 'DS:out:DERIVE:'..hb..':U:U',
+	 'DS:bg:DERIVE:'..hb..':U:U',
+         'RRA:AVERAGE:0.5:1:'..tostring(prefs.other_rrd_raw_days*24*(3600/step)),
 	 'RRA:AVERAGE:0.5:12:'..tostring(prefs.other_rrd_1h_days*24),
 	 'RRA:AVERAGE:0.5:288:'..tostring(prefs.other_rrd_1d_days)
       )

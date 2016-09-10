@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class Host;
+//class Host;
 
 class AlertsManager : protected StoreManager {
  private:
@@ -40,20 +40,34 @@ class AlertsManager : protected StoreManager {
   int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
+		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   int engageReleaseHostAlert(Host *h,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 			     bool engage);
-  /*  */
+  int engageReleaseNetworkAlert(const char *cidr,
+				const char *engaged_alert_id,
+				AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+				bool engage);
+  int engageReleaseInterfaceAlert(NetworkInterface *n,
+				  const char *engaged_alert_id,
+				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+				  bool engage);
 
  public:
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager() {};
 
+#ifdef NOTUSED
   int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
   int storeAlert(lua_State *L, int index);
+#endif
 
+  /*
+    ========== HOST alerts API =========
+   */
   inline int engageHostAlert(Host *h,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
@@ -64,8 +78,55 @@ class AlertsManager : protected StoreManager {
 			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
     return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
   };
+  int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
+  /*
+    ========== FLOW alerts API =========
+   */
+  inline int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeAlert(alert_entity_flow, ""/* TODO: possibly add an unique id for flows */,
+		 alert_type, alert_severity, alert_json);
+  };
+
+  /*
+    ========== NETWORK alerts API ======
+   */
+  inline int engageNetworkAlert(const char *cidr,
+			     const char *engaged_alert_id,
+			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseNetworkAlert(cidr, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+  };
+  inline int releaseNetworkAlert(const char *cidr,
+			      const char *engaged_alert_id,
+			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseNetworkAlert(cidr, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+  };
+  int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+
+  /*
+    ========== INTERFACE alerts API ======
+   */
+  inline int engageInterfaceAlert(NetworkInterface *n,
+				  const char *engaged_alert_id,
+				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseInterfaceAlert(n, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+  };
+  inline int releaseInterfaceAlert(NetworkInterface *n,
+				   const char *engaged_alert_id,
+				   AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return engageReleaseInterfaceAlert(n, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+  };
+  int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+
+  
+  int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+		u_int32_t start_offset, u_int32_t end_offset,
+		bool engaged);
+  int getNumAlerts(bool engaged);
+  int deleteAlerts(bool engaged, const int *rowid);
+  
   /* Following are the legacy methods that were formally global to the whole ntopng */
+#ifdef NOTUSED
   /**
    * @brief Queue an alert in redis
    *
@@ -102,6 +163,7 @@ class AlertsManager : protected StoreManager {
    *
    */
   int flushAllQueuedAlerts();
+#endif
 };
 
 #endif /* _ALERTS_MANAGER_H_ */

@@ -305,23 +305,36 @@ print [[/lua/logout.lua");  }, */
 		var bps = Math.round((bytes_diff*8) / epoch_diff );
 		var bps_local2remote = Math.round((local_diff*8) / epoch_diff);
 		var bps_remote2local = Math.round((remote_diff*8) / epoch_diff);
-		
+
+		/* don't use the remote_{b,p}ps values to update the gauge
                 if(rsp.remote_pps != 0)  { pps = Math.max(rsp.remote_pps, 0); }
                 if(rsp.remote_bps != 0)  { bps = Math.max(rsp.remote_bps, 0); }
+		*/
 
 		$('#gauge_text_allTraffic').html(bitsToSize(bps, 1000) + " [" + addCommas(pps) + " pps]");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
 		var msg = "<i class=\"fa fa-time fa-lg\"></i>Uptime: "+rsp.uptime+"<br>";
 
-		if(rsp.alerts > 0) {
+		if(rsp.alerts > 0 || rsp.engaged_alerts > 0) {
 		   msg += "&nbsp;<a href=]]
 print (ntop.getHttpPrefix())
-print [[/lua/show_alerts.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(rsp.alerts)+" Alert";
-		   if(rsp.alerts > 1) msg += "s";
+print [[/lua/show_alerts.lua><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i>"
 
-		   msg += "</span></A> ";
+		   if(rsp.engaged_alerts > 0) {
+		      msg += "&nbsp;<span class=\"label label-danger\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
+		      if(rsp.engaged_alerts > 1) msg += "s";
+                      msg += "</span>";
+		   }
+
+                   if(rsp.alerts > 0) {
+		     msg += "&nbsp;<span class=\"label label-danger\">"+addCommas(rsp.alerts)+" Alert";
+		     if(rsp.alerts > 1) msg += "s";
+		     msg += "</span>";
 		}
+
+                   msg += "</A>&nbsp;"
+                }
 
 		var alarm_threshold_low = 60;  /* 60% */
 		var alarm_threshold_high = 90; /* 90% */

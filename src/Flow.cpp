@@ -232,8 +232,8 @@ Flow::~Flow() {
 		 s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
 		 print(fbuf, sizeof(fbuf)));
 
-	iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent,
-					      alert_suspicious_activity, alert_msg);
+	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
+						  alert_level_warning, alert_msg);
 	break;
 
       default:
@@ -301,7 +301,8 @@ void Flow::checkBlacklistedFlow() {
 	       s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
-      iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent, alert_dangerous_host, alert_msg);
+      iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
+						alert_level_warning, alert_msg);
     }
 
     blacklist_alarm_emitted = true;
@@ -499,10 +500,11 @@ void Flow::guessProtocol() {
   if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
     if(cli_host && srv_host) {
       /* We can guess the protocol */
+      IpAddress *cli_ip = cli_host->get_ip(), *srv_ip = srv_host->get_ip();
       ndpiDetectedProtocol = ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), protocol,
-							    ntohl(cli_host->get_ip()->get_ipv4()),
+							    ntohl(cli_ip ? cli_ip->get_ipv4() : 0),
 							    ntohs(cli_port),
-							    ntohl(srv_host->get_ip()->get_ipv4()),
+							    ntohl(srv_ip ? srv_ip->get_ipv4() : 0),
 							    ntohs(srv_port));
     }
 
@@ -2309,7 +2311,6 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
             if (protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
-            iface->luaEvalFlow(this, callback_flow_update);
             break;
           }
         }
@@ -2370,7 +2371,8 @@ void Flow::checkFlowCategory() {
 	     s, iface->get_name(), s, srv_port,
 	     host_server_name, host_server_name);
 
-    iface->getAlertsManager()->queueAlert(alert_level_warning, alert_malware_detection, alert_msg);
+    iface->getAlertsManager()->storeFlowAlert(this, alert_malware_detection,
+					      alert_level_warning, alert_msg);
     badFlow = true, setDropVerdict();
   }
 #endif

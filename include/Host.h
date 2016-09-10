@@ -54,6 +54,7 @@ class Host : public GenericHost {
   CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
 #endif
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
+  bool flow_flood_attacker_alert, flow_flood_victim_alert;
   TrafficStats tcp_sent, tcp_rcvd;
   TrafficStats udp_sent, udp_rcvd;
   TrafficStats icmp_sent, icmp_rcvd;
@@ -96,7 +97,7 @@ class Host : public GenericHost {
 
  public:
   Host(NetworkInterface *_iface);
-  Host(NetworkInterface *_iface, char *ipAddress);
+  Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   Host(NetworkInterface *_iface, u_int8_t mac[6], u_int16_t _vlanId);
   Host(NetworkInterface *_iface, u_int8_t mac[6], u_int16_t _vlanId, IpAddress *_ip);
   ~Host();

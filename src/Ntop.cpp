@@ -989,7 +989,14 @@ bool Ntop::deleteUser(char *username) {
 void Ntop::fixPath(char *str, bool replaceDots) {
   for(int i=0; str[i] != '\0'; i++) {
 #ifdef WIN32
-    if(str[i] == '/') str[i] = '\\';
+    /*
+      Allowed windows path and file characters:
+      https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#win32_file_namespaces
+    */
+    if(str[i] == '/')
+      str[i] = '\\';
+    else if(str[i] == ':' || str[i] == '"' || str[i] == '|' || str[i] == '?' || str[i] == '*')
+      str[i] = '_';
 #endif
 
     if(replaceDots) {
@@ -1228,6 +1235,13 @@ void Ntop::runHousekeepingTasks() {
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->runHousekeepingTasks();
+
+  /* ES stats are updated once as the present implementation is not per-interface  */
+  if (ntop->getPrefs()->do_dump_flows_on_es()) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    ntop->getElasticSearch()->updateStats(&tv);
+  }
 }
 
 /* ******************************************* */

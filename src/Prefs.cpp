@@ -61,7 +61,7 @@ Prefs::Prefs(Ntop *_ntop) {
   disable_alerts = false;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
-  disable_host_persistency = false;
+  enable_idle_local_hosts_cache = true;
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
@@ -75,9 +75,10 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
 
   /* Defaults */
-  non_local_host_max_idle = MAX_REMOTE_HOST_IDLE /* sec */;
-  local_host_max_idle     = MAX_LOCAL_HOST_IDLE /* sec */;
-  flow_max_idle           = MAX_FLOW_IDLE /* sec */;
+  local_host_cache_duration = LOCAL_HOSTS_CACHE_DURATION /* sec */;
+  non_local_host_max_idle   = MAX_REMOTE_HOST_IDLE /* sec */;
+  local_host_max_idle       = MAX_LOCAL_HOST_IDLE /* sec */;
+  flow_max_idle             = MAX_FLOW_IDLE /* sec */;
 
   intf_rrd_raw_days       = INTF_RRD_RAW_DAYS;
   intf_rrd_1min_days      = INTF_RRD_1MIN_DAYS;
@@ -207,7 +208,6 @@ void usage() {
 	 "                                    | (e.g. -m \"192.168.0.0/24,172.16.0.0/16\")\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
 	 "                                    | (eg. protos.txt)\n"
-	 "[--disable-host-persistency|-P]     | Disable host persistency in the Redis cache\n"
 	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is [h[:port[:pwd]]][@db-id]\n"
 	 "                                    | db-id is the identifier of the redis database (default 0).\n"
 	 "                                    | h is the host that is running the Redis server (default\n"
@@ -381,9 +381,10 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 
 void Prefs::reloadPrefsFromRedis() {
   /* attempt to load preferences set from the web ui and apply default values in not found */
-  local_host_max_idle = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
-  non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
-  flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
+  local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION);
+  local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
+  non_local_host_max_idle   = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
+  flow_max_idle             = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE);
 
   intf_rrd_raw_days      = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS);
   intf_rrd_1min_days     = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS);
@@ -397,7 +398,10 @@ void Prefs::reloadPrefsFromRedis() {
 						HOUSEKEEPING_FREQUENCY);
 
   // sets to the default value in redis if no key is found
-  getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED, CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+  getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
+		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+  enable_idle_local_hosts_cache = getDefaultPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
+						       CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
@@ -451,7 +455,6 @@ static const struct option long_options[] = {
 #endif
   { "disable-alerts",                    no_argument,       NULL, 'H' },
   { "export-flows",                      required_argument, NULL, 'I' },
-  { "disable-host-persistency",          no_argument,       NULL, 'P' },
   { "capture-direction",                 required_argument, NULL, 'Q' },
   { "sticky-hosts",                      required_argument, NULL, 'S' },
   { "enable-taps",                       no_argument,       NULL, 'T' },
@@ -574,9 +577,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'S':
     if(!strcmp(optarg, "all")) sticky_hosts = location_all;
-    else if(!strcmp(optarg, "local")) sticky_hosts = location_local_only;
+    else if(!strcmp(optarg, "local"))  sticky_hosts = location_local_only;
     else if(!strcmp(optarg, "remote")) sticky_hosts = location_remote_only;
-    else if(!strcmp(optarg, "none")) sticky_hosts = location_none;
+    else if(!strcmp(optarg, "none"))   sticky_hosts = location_none;
     else ntop->getTrace()->traceEvent(TRACE_ERROR, "Unknown value %s for -S", optarg);
     break;
 
@@ -625,10 +628,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     case 2:  setCaptureDirection(PCAP_D_OUT);   break;
     default: setCaptureDirection(PCAP_D_INOUT); break;
     }
-    break;
-
-  case 'P':
-    disable_host_persistency = true;
     break;
 
   case 'T':
@@ -1134,6 +1133,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
+  lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
   lua_push_int_table_entry(vm, "non_local_host_max_idle", non_local_host_max_idle);
   lua_push_int_table_entry(vm, "flow_max_idle", flow_max_idle);
   lua_push_int_table_entry(vm, "max_num_hosts", max_num_hosts);
@@ -1156,6 +1156,15 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
+  /* Sticky hosts preferences */
+  if (sticky_hosts != location_none) {
+    char *location_string = NULL;
+    if(sticky_hosts == location_all) location_string = (char*)"all";
+    else if(sticky_hosts == location_local_only) location_string = (char*)"local";
+    else if(sticky_hosts == location_remote_only) location_string = (char*)"remote";
+    if(location_string) lua_push_str_table_entry(vm, "sticky_hosts", location_string);
+  }
+  
   /* Command line options */
   lua_push_bool_table_entry(vm, "has_cmdl_trace_lvl", has_cmdl_trace_lvl);
   lua_push_bool_table_entry(vm, "has_cmdl_disable_alerts", has_cmdl_disable_alerts);
@@ -1180,6 +1189,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 	       (char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 	       strlen((char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY)))
     housekeeping_frequency = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS,
+		    strlen((char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS)))
+    local_host_cache_duration = atoi(pref_value);
   else if (!strncmp(pref_name,
 		    (char*)CONST_LOCAL_HOST_IDLE_PREFS,
 		    strlen((char*)CONST_LOCAL_HOST_IDLE_PREFS)))
@@ -1228,6 +1241,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
     disable_alerts = pref_value[0] == '1' ? true : false;
+  else if (!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
+		    strlen((char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED)))
+    enable_idle_local_hosts_cache = pref_value[0] == '1' ? true : false;
 
   return 0;
 }

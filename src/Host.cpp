@@ -30,9 +30,10 @@ Host::Host(NetworkInterface *_iface) : GenericHost(_iface) {
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress) : GenericHost(_iface) {
+Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHost(_iface) {
   ip = new IpAddress(ipAddress);
-  initialize(NULL, 0, false);
+  if (ip && ip->isEmpty()) free(ip), ip = NULL;
+  initialize(NULL, _vlanId, true);
 }
 
 /* *************************************** */
@@ -69,13 +70,14 @@ Host::~Host() {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
   if((localHost || systemHost)
-     && ntop->getPrefs()->is_host_persistency_enabled()) {
+     && ntop->getPrefs()->is_idle_local_host_cache_enabled()
+     && ip && !ip->isEmpty()) {
     char *json = serialize();
     char host_key[128], key[128];
     char *k = get_string_key(host_key, sizeof(host_key));
 
-    snprintf(key, sizeof(key), "%s.%d.json", k, vlan_id);
-    ntop->getRedis()->set(key, json, LOCAL_HOSTS_CACHE_DURATION);
+    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
+    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
     ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
     free(json);
@@ -149,6 +151,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
+  flow_flood_attacker_alert = flow_flood_victim_alert = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId,
     ingress_shaper_id = egress_shaper_id = DEFAULT_SHAPER_ID,
@@ -164,7 +167,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   asn = 0, asname = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
-  snprintf(redis_key, sizeof(redis_key), "%s.%d.json", k, vlan_id);
+  snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
   dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL;
 
 #ifdef NTOPNG_PRO
@@ -199,7 +202,7 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
       }
 
       if((localHost || systemHost)
-	 && ntop->getPrefs()->is_host_persistency_enabled()){
+	 && ntop->getPrefs()->is_idle_local_host_cache_enabled()){
 	char *json;
 	if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
 	  ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -261,10 +264,10 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
 #endif
       readStats();
     }
-
-    readAlertPrefs();
   }
 
+  loadAlertPrefs();
+  readAlertPrefs();
   if(!host_serial) computeHostSerial();
   updateHostL7Policy();
 }
@@ -541,8 +544,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 
       lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
 				(tcpPacketStats.pktRetr
-				 | tcpPacketStats.pktOOO
-				 | tcpPacketStats.pktLost) ? true : false);
+				 || tcpPacketStats.pktOOO
+				 || tcpPacketStats.pktLost) ? true : false);
       lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
       lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
       lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
@@ -871,19 +874,26 @@ json_object* Host::getJSONObject() {
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
   json_object_object_add(my_object, "mac_address", json_object_new_string(get_mac(buf, sizeof(buf), mac_address)));
-  json_object_object_add(my_object, "seen.last", json_object_new_int(last_seen));
+  json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
+  json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
   if(symbolic_name)       json_object_object_add(my_object, "symbolic_name", json_object_new_string(symbolic_name));
   if(country)             json_object_object_add(my_object, "country",   json_object_new_string(country));
   if(city)                json_object_object_add(my_object, "city",      json_object_new_string(city));
   if(asname)              json_object_object_add(my_object, "asname",    json_object_new_string(asname));
+  if(strlen(os))          json_object_object_add(my_object, "os",        json_object_new_string(os));
   if(trafficCategory[0] != '\0')   json_object_object_add(my_object, "trafficCategory",    json_object_new_string(trafficCategory));
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
   if(longitude)           json_object_object_add(my_object, "longitude", json_object_new_double(longitude));
   if(ip)                  json_object_object_add(my_object, "ip", ip->getJSONObject());
+  if(deviceIfIdx)         json_object_object_add(my_object, "device_if_idx", json_object_new_int(deviceIfIdx));
+  if(deviceIP)            json_object_object_add(my_object, "device_ip",     json_object_new_int(deviceIP));
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
   json_object_object_add(my_object, "systemHost", json_object_new_boolean(systemHost));
+  json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(blacklisted_host));
+  json_object_object_add(my_object, "flow_flood_attacker_alert", json_object_new_boolean(flow_flood_attacker_alert));
+  json_object_object_add(my_object, "flow_flood_victim_alert",   json_object_new_boolean(flow_flood_victim_alert));
   json_object_object_add(my_object, "tcp_sent", tcp_sent.getJSONObject());
   json_object_object_add(my_object, "tcp_rcvd", tcp_rcvd.getJSONObject());
   json_object_object_add(my_object, "udp_sent", udp_sent.getJSONObject());
@@ -892,8 +902,23 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "icmp_rcvd", icmp_rcvd.getJSONObject());
   json_object_object_add(my_object, "other_ip_sent", other_ip_sent.getJSONObject());
   json_object_object_add(my_object, "other_ip_rcvd", other_ip_rcvd.getJSONObject());
+
+  /* packet stats */
   json_object_object_add(my_object, "pktStats.sent", sent_stats.getJSONObject());
   json_object_object_add(my_object, "pktStats.recv", recv_stats.getJSONObject());
+
+  /* TCP packet stats (serialize only anomalies) */
+  if(tcpPacketStats.pktRetr) json_object_object_add(my_object,
+						    "tcpPacketStats.pktRetr",
+						    json_object_new_int(tcpPacketStats.pktRetr));
+  if(tcpPacketStats.pktOOO)  json_object_object_add(my_object,
+						    "tcpPacketStats.pktOOO",
+						    json_object_new_int(tcpPacketStats.pktOOO));
+  if(tcpPacketStats.pktLost) json_object_object_add(my_object,
+						    "tcpPacketStats.pktLost",
+						    json_object_new_int(tcpPacketStats.pktLost));
+
+  /* throughput stats */
   json_object_object_add(my_object, "throughput_bps", json_object_new_double(bytes_thpt));
   json_object_object_add(my_object, "throughput_trend_bps", json_object_new_string(Utils::trend2str(bytes_thpt_trend)));
   json_object_object_add(my_object, "throughput_pps", json_object_new_double(pkts_thpt));
@@ -962,6 +987,9 @@ bool Host::deserialize(char *json_str, char *key) {
     return(false);
   }
 
+  if(json_object_object_get_ex(o, "seen.first", &obj)) first_seen = json_object_get_int64(obj);
+  if(json_object_object_get_ex(o, "seen.last", &obj))  last_seen  = json_object_get_int64(obj);
+
   if(json_object_object_get_ex(o, "mac_address", &obj)) set_mac((char*)json_object_get_string(obj));
   if(json_object_object_get_ex(o, "asn", &obj)) asn = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "source_id", &obj)) source_id = json_object_get_int(obj);
@@ -970,8 +998,11 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "country", &obj))        { if(country) free(country); country = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "city", &obj))           { if(city) free(city); city = strdup(json_object_get_string(obj)); }
   if(json_object_object_get_ex(o, "asname", &obj))         { if(asname) free(asname); asname = strdup(json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "trafficCategory", &obj))         { snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
-  if(json_object_object_get_ex(o, "vlan_id", &obj))   vlan_id = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "os", &obj))             { snprintf(os, sizeof(os), "%s", json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "trafficCategory", &obj)){ snprintf(trafficCategory, sizeof(trafficCategory), "%s", json_object_get_string(obj)); }
+  if(json_object_object_get_ex(o, "vlan_id", &obj))       vlan_id     = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "device_if_idx", &obj)) deviceIfIdx = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "device_ip", &obj))     deviceIP    = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "ip", &obj))  { if(ip == NULL) ip = new IpAddress(); if(ip) ip->deserialize(obj); }
@@ -985,11 +1016,25 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "icmp_rcvd", &obj))  icmp_rcvd.deserialize(obj);
   if(json_object_object_get_ex(o, "other_ip_sent", &obj))  other_ip_sent.deserialize(obj);
   if(json_object_object_get_ex(o, "other_ip_rcvd", &obj))  other_ip_rcvd.deserialize(obj);
+
+  /* packet stats */
+  if(json_object_object_get_ex(o, "pktStats.sent", &obj))  sent_stats.deserialize(obj);
+  if(json_object_object_get_ex(o, "pktStats.recv", &obj))  recv_stats.deserialize(obj);
+
+  /* TCP packet stats */
+  if(json_object_object_get_ex(o, "tcpPacketStats.pktRetr", &obj)) tcpPacketStats.pktRetr = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.pktOOO",  &obj)) tcpPacketStats.pktOOO  = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "tcpPacketStats.pktLost", &obj)) tcpPacketStats.pktLost = json_object_get_int(obj);
+  
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities.deserialize(obj);
 
-  if(json_object_object_get_ex(o, "num_alerts", &obj)) num_alerts_detected = json_object_get_int(obj);
+  if(json_object_object_get_ex(o, "flow_flood_attacker_alert", &obj)) flow_flood_attacker_alert = json_object_get_boolean(obj);
+  if(json_object_object_get_ex(o, "flow_flood_victim_alert", &obj))   flow_flood_victim_alert   = json_object_get_boolean(obj);
+  if(json_object_object_get_ex(o, "is_blacklisted", &obj)) blacklisted_host     = json_object_get_boolean(obj);
+  if(json_object_object_get_ex(o, "num_alerts", &obj))     num_alerts_detected  = json_object_get_boolean(obj);
+
   if(json_object_object_get_ex(o, "sent", &obj))  sent.deserialize(obj);
   if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
 
@@ -1093,7 +1138,7 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
-    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_syn_flood, msg);
+    iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg);
     incNumAlerts();
   }
 }
@@ -1104,36 +1149,42 @@ void Host::incNumFlows(bool as_client) {
   if(as_client) {
     total_num_flows_as_client++, num_active_flows_as_client++;
 
-    if(num_active_flows_as_client == max_num_active_flows && localHost && triggerAlerts()) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possible scanner [%u active flows]";
+    if(num_active_flows_as_client >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_attacker_alert) {
+      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possible scanner [%u active flows exceeded]";
       char ip_buf[48], *h, msg[512];
 
       h = ip->print(ip_buf, sizeof(ip_buf));
 
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_name(), h, num_active_flows_as_client);
+	       h, iface->get_name(), h, max_num_active_flows);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
+      iface->getAlertsManager()->engageHostAlert(this,
+						 (char*)"scan_attacker",
+						 alert_flow_flood, alert_level_error, msg);
       incNumAlerts();
+      flow_flood_attacker_alert = true;
     }
   } else {
     total_num_flows_as_server++, num_active_flows_as_server++;
 
-    if(num_active_flows_as_server == max_num_active_flows && localHost && triggerAlerts()) {
-      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is possibly under scan attack [%u active flows]";
+    if(num_active_flows_as_server >= max_num_active_flows && localHost && triggerAlerts() && !flow_flood_victim_alert) {
+      const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is possibly under scan attack [%u active flows exceeded]";
       char ip_buf[48], *h, msg[512];
 
       h = ip->print(ip_buf, sizeof(ip_buf));
 
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
-	       h, iface->get_name(), h, num_active_flows_as_server);
+	       h, iface->get_name(), h, max_num_active_flows);
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
-      iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, alert_flow_flood, msg);
+      iface->getAlertsManager()->engageHostAlert(this,
+						 (char*)"scan_victim",
+						 alert_flow_flood, alert_level_error, msg);
       incNumAlerts();
+      flow_flood_victim_alert = true;
     }
   }
 }
@@ -1145,19 +1196,22 @@ void Host::decNumFlows(bool as_client) {
     if(num_active_flows_as_client) {
       num_active_flows_as_client--;
 
-      if(num_active_flows_as_client == max_num_active_flows && localHost && triggerAlerts()) {
-	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer a possible scanner [%u active flows]";
+      if(num_active_flows_as_client <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_attacker_alert) {
+	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer a possible scanner [less than %u active flows]";
 	char ip_buf[48], *h, msg[512];
 
 	h = ip->print(ip_buf, sizeof(ip_buf));
 
 	snprintf(msg, sizeof(msg),
 		 error_msg, ntop->getPrefs()->get_http_prefix(),
-		 h, iface->get_name(), h, num_active_flows_as_client);
+		 h, iface->get_name(), h, max_num_active_flows);
 
 	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	iface->getAlertsManager()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
+	iface->getAlertsManager()->releaseHostAlert(this,
+						    (char*)"scan_attacker",
+						    alert_flow_flood, alert_level_error, msg);
 	incNumAlerts();
+	flow_flood_attacker_alert = false;
       }
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
@@ -1165,19 +1219,22 @@ void Host::decNumFlows(bool as_client) {
     if(num_active_flows_as_server) {
       num_active_flows_as_server--;
 
-      if(num_active_flows_as_server == max_num_active_flows && localHost && triggerAlerts()) {
-	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer under scan attack [%u active flows]";
+      if(num_active_flows_as_server <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_victim_alert) {
+	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer under scan attack [less than %u active flows]";
 	char ip_buf[48], *h, msg[512];
 
 	h = ip->print(ip_buf, sizeof(ip_buf));
 
 	snprintf(msg, sizeof(msg),
 		 error_msg, ntop->getPrefs()->get_http_prefix(),
-		 h, iface->get_name(), h, num_active_flows_as_server);
+		 h, iface->get_name(), h, max_num_active_flows);
 
-	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
-	iface->getAlertsManager()->queueAlert(alert_level_info, alert_off, alert_flow_flood, msg);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
+	iface->getAlertsManager()->releaseHostAlert(this,
+						    (char*)"scan_victim",
+						    alert_flow_flood, alert_level_error, msg);
 	incNumAlerts();
+	flow_flood_victim_alert = false;
       }
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
@@ -1234,7 +1291,7 @@ void Host::updateStats(struct timeval *tv) {
     snprintf(msg, sizeof(msg),
              error_msg, ntop->getPrefs()->get_http_prefix(),
              h, iface->get_name(), h, host_quota_mb);
-    iface->getAlertsManager()->queueAlert(alert_level_warning, alert_permanent, alert_quota, msg);
+    iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
   }
 }
 
@@ -1279,7 +1336,7 @@ void Host::loadSynAlertPrefs() {
 }
 
 void Host::loadFlowsAlertPrefs() {
-  int retval = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
+  u_int32_t retval = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
 
   if(ip != NULL) {
     char rkey[128], rsp[16];
@@ -1288,7 +1345,7 @@ void Host::loadFlowsAlertPrefs() {
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flows_alert_threshold",
              ip->print(ip_buf, sizeof(ip_buf)), vlan_id);
     if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = atoi(rsp);
+      retval = (u_int32_t)strtoul(rsp, NULL, 10);
   }
 
   max_num_active_flows = retval;
@@ -1402,7 +1459,10 @@ void Host::incLowGoodputFlows(bool asClient) {
 	     c, iface->get_name(), get_name() ? get_name() : c,
 	     HOST_LOW_GOODPUT_THRESHOLD, asClient ? "client" : "server");
 
-    iface->getAlertsManager()->queueAlert(alert_level_error, alert_on, asClient ? alert_host_under_attack : alert_host_attacker, alert_msg);
+    iface->getAlertsManager()->engageHostAlert(this,
+					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
+					       asClient ? alert_host_under_attack : alert_host_attacker,
+					       alert_level_error, msg);
 #endif
     good_low_flow_detected = true;
   }
@@ -1420,7 +1480,12 @@ void Host::decLowGoodputFlows(bool asClient) {
   }
 
   if(alert && good_low_flow_detected) {
-    /* TODO: send end of alert */
+    /* TODO: send end of alert
+       iface->getAlertsManager()->releaseHostAlert(this,
+					       asClient ? (char*)"low_goodput_victim", (char*)"low_goodput_attacker",
+					       asClient ? alert_host_under_attack : alert_host_attacker,
+					       alert_level_error, msg);
+     */
     good_low_flow_detected = false;
   }
 }

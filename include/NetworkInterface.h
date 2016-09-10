@@ -218,7 +218,7 @@ class NetworkInterface {
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
   inline int isRunning()	   { return running;             };
-  bool restoreHost(char *host_ip);
+  bool restoreHost(char *host_ip, u_int16_t vlan_id);
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname, u_int ifname_len);
   void findFlowHosts(u_int16_t vlan_id,
 		     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,

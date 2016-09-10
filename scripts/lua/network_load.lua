@@ -33,11 +33,14 @@ function dumpInterfaceStats(interface_name)
       
       if prefs.is_dump_flows_to_es_enabled == true
        or prefs.is_dump_flows_to_mysql_enabled == true then
-	 res["flow_export_drops"] = ifstats.stats.flow_export_drops
+	  res["flow_export_drops"] = ifstats.stats.flow_export_drops
+	  res["flow_export_rate"]  = ifstats.stats.flow_export_rate
+	  res["flow_export_count"]  = ifstats.stats.flow_export_count
       end
 
       if prefs.are_alerts_enabled == true then
-	 res["alerts"] = interface.getNumQueuedAlerts()
+	 res["alerts"]         = interface.getNumAlerts(false--[[ not engaged --]])
+	 res["engaged_alerts"] = interface.getNumAlerts(true --[[     engaged --]])
       end
 
 

@@ -137,6 +137,7 @@
 #define DNS_CACHE_DURATION                 3600  /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION         3600  /*  1 h */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
+#define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define DUMMY_IFACE_ID          (MAX_NUM_INTERFACES-2)
 #define STDIN_IFACE_ID          (MAX_NUM_INTERFACES-3)
@@ -272,7 +273,8 @@
 #define NTOPNG_NDPI_OS_PROTO_ID      (NDPI_LAST_IMPLEMENTED_PROTOCOL+NDPI_MAX_NUM_CUSTOM_PROTOCOLS-2)
 #define CONST_DEFAULT_HOME_NET       "192.168.1.0/24"
 #define CONST_DEFAULT_DATA_DIR       "/var/tmp/ntopng"
-#define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED 1
+#define CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED             1
+#define CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED 1
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_FLOWACTIVITY_SCRIPT    "flowactivity.lua"
@@ -293,7 +295,7 @@
 #define CONST_LUA_ERROR               0
 #define CONST_LUA_PARAM_ERROR         -1
 #define CONST_MAX_NUM_SYN_PER_SECOND  8192
-#define CONST_MAX_NUM_HOST_ACTIVE_FLOWS 65536
+#define CONST_MAX_NUM_HOST_ACTIVE_FLOWS 32768
 #define CONST_MAX_NEW_FLOWS_SECOND    25
 #define CONST_ALERT_GRACE_PERIOD      60 /* No more than 1 alert/min */
 #define CONST_CONTACTED_BY            "contacted_by"
@@ -324,7 +326,6 @@
 #define CONST_NBOX_USER               "ntopng.prefs.nbox_user"
 #define CONST_NBOX_PASSWORD           "ntopng.prefs.nbox_password"
 #define CONST_IFACE_ID_PREFS          "ntopng.prefs.iface_id"
-#define CONST_LOCAL_HOST_IDLE_PREFS   "ntopng.prefs.local_host_max_idle"
 #define CONST_REMOTE_HOST_IDLE_PREFS  "ntopng.prefs.non_local_host_max_idle"
 #define CONST_FLOW_MAX_IDLE_PREFS     "ntopng.prefs.flow_max_idle"
 #define CONST_MAX_NEW_FLOWS_PREFS     "ntopng.prefs.host_max_new_flows_sec_threshold"
@@ -340,8 +341,11 @@
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
+#define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
+#define CONST_LOCAL_HOST_IDLE_PREFS            "ntopng.prefs.local_host_max_idle"
 
 #define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED          "ntopng.prefs.is_autologon_enabled"
+#define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED "ntopng.prefs.is_local_host_cache_enabled"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY   "ntopng.prefs.housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION        "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION   "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
@@ -489,10 +493,9 @@
 // sqlite (StoreManager and subclasses) related fields
 #define STORE_MANAGER_MAX_QUERY             1024
 #define STORE_MANAGER_MAX_KEY               20
-#define ALERTS_MANAGER_EXPERIMENTS          "exp_"
 #define ALERTS_MANAGER_TABLE_NAME           "closed_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME   "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME           ALERTS_MANAGER_EXPERIMENTS "alerts.db"
+#define ALERTS_MANAGER_STORE_NAME           "alerts.db"
 #define ALERTS_MANAGER_QUEUE_NAME           "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_TYPE_FIELD           "alert_type"
 #define ALERTS_MANAGER_SEVERITY_FIELD       "alert_severity"
