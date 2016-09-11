@@ -50,7 +50,7 @@ static const char * activity_names [] = {
   "Chat",
   "Game",
   "RemoteControl",
-  "Facebook",
+  "SocialNetwork",
 };
 COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
 
@@ -3760,6 +3760,7 @@ static int lua_flow_get_activity_filter_id(lua_State* vm) {
  *    mustwait     - if true, activity trigger requires server to wait after command request
  *    minbytes     - minimum number of bytes to trigger activity
  *    maxinterval  - maximum milliseconds difference between interactions
+ *    mincommands  - minimum number of commands seen in the flow to trigger activity
  *    minflips     - minimum number of server interactions to trigger activity
  *
  * Web filter params:
@@ -3778,6 +3779,7 @@ static int lua_flow_get_activity_filter_id(lua_State* vm) {
  *    minflows     - minimum number of concurrent flows. -1 to disable [1]
  *    minpkts      - minimum number of cumulative packets in concurrent flows to trigger activity
  *    minduration  - minimum (max duration of cumulative packets) in concurrent flows. -1 to disable [1]
+ *    sslonly      - if true, only SSL traffic can trigger activity
  *   NOTE: At least one of [1] must be satisfied to trigger activity
  */
 static int lua_flow_set_activity_filter(lua_State* vm) {
@@ -3858,20 +3860,25 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
       break;
     case activity_filter_interflow:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
-        config.interflow.minflows = min((int)lua_tonumber(vm, ++params), USER_ACTIVITY_DETECTION_SLOTS);
+        config.interflow.minflows = min((int)lua_tonumber(vm, ++params), INTER_FLOW_ACTIVITY_SLOTS);
 
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.interflow.minpkts = lua_tonumber(vm, ++params);
           
-          if(lua_type(vm, params+1) == LUA_TNUMBER)
+          if (lua_type(vm, params+1) == LUA_TNUMBER) {
             config.interflow.minduration = lua_tonumber(vm, ++params);
+            
+            if(lua_type(vm, params+1) == LUA_TBOOLEAN)
+              config.interflow.sslonly = lua_toboolean(vm, ++params);
+          }
         }
       }
       // defaults
       switch (params) {
-        case 2+0: config.interflow.minflows = USER_ACTIVITY_DETECTION_SLOTS;
+        case 2+0: config.interflow.minflows = INTER_FLOW_ACTIVITY_SLOTS;
         case 2+1: config.interflow.minpkts = 200;
         case 2+2: config.interflow.minduration = -1;
+        case 2+3: config.interflow.sslonly = false;
       }
       break;
     case activity_filter_metrics_test:
@@ -3932,8 +3939,12 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
           if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.command_sequence.maxinterval = lua_tonumber(vm, ++params);
 
-            if(lua_type(vm, params+1) == LUA_TNUMBER)
-              config.command_sequence.minflips = lua_tonumber(vm, ++params);
+            if (lua_type(vm, params+1) == LUA_TNUMBER) {
+              config.command_sequence.mincommands = lua_tonumber(vm, ++params);
+              
+              if (lua_type(vm, params+1) == LUA_TNUMBER)
+                config.command_sequence.minflips = lua_tonumber(vm, ++params);
+            }
           }
         }
       }
@@ -3941,7 +3952,8 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+0: config.command_sequence.mustwait = false;
         case 2+1: config.command_sequence.minbytes = 0;
         case 2+2: config.command_sequence.maxinterval = 3000;
-        case 2+3: config.command_sequence.minflips = 1;
+        case 2+3: config.command_sequence.mincommands = 1;
+        case 2+4: config.command_sequence.minflips = 1;
       }
       break;
     default:

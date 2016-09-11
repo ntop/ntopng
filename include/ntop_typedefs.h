@@ -230,7 +230,7 @@ typedef enum {
   user_activity_chat,
   user_activity_game,
   user_activity_remote_control,
-  user_activity_facebook,
+  user_activity_social_network,
 
   UserActivitiesN /* Unused as value but useful to
 		     getting the number of elements

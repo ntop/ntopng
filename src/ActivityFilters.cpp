@@ -164,6 +164,7 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
     } else if (Utils::msTimevalDiff((struct timeval*)when, &last) >= config->command_sequence.maxinterval) {
       // Timeout
       status->command_sequence.reqSeen = false;
+      status->command_sequence.numCommands = 0;
     } else if (!cli2srv) {
       // Server reply
 
@@ -179,6 +180,8 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
 
   if (!status->command_sequence.reqSeen && cli2srv && payload_len > 0) {
     // New client command
+    if (status->command_sequence.respCount > 0)
+      status->command_sequence.numCommands += 1;
     status->command_sequence.reqSeen = true;
     status->command_sequence.srvWaited = false;
     status->command_sequence.respBytes = 0;
@@ -187,11 +190,16 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
   
   if ((status->command_sequence.srvWaited || !config->command_sequence.mustwait) &&
       (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
+      (status->command_sequence.numCommands >= config->command_sequence.mincommands) &&
       (status->command_sequence.respCount >= config->command_sequence.minflips)) {
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "CommandDetect filter: wait=%c bytes=%lu flips=%lu\n",
-				 status->command_sequence.srvWaited ? 'Y' : 'N',
-				 status->command_sequence.respBytes,
-				 status->command_sequence.respCount);
+    char buf[32];
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "* CommandDetect filter[%s]: %d wait=%c bytes=%lu flips=%lu dt=%f\n",
+          flow->get_detected_protocol_name(buf, sizeof(buf)),
+          status->command_sequence.numCommands,
+          status->command_sequence.srvWaited ? 'Y' : 'N',
+          status->command_sequence.respBytes,
+          status->command_sequence.respCount,
+          Utils::msTimevalDiff((struct timeval*)when, &last));
     return true;
   }
   return false;
@@ -303,18 +311,32 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
   int f_count = 0;
   u_int32_t f_pkts = 0;
   time_t max_duration = 0;
+  ifa_stats_protos proto;
   bool rv = false;
 
   switch(flow->get_detected_protocol().protocol) {
     case NDPI_SERVICE_FACEBOOK:
-      host->incFacebookPackets(flow, when->tv_sec);
-      host->getFacebookStats(when->tv_sec, &f_count, &f_pkts, &max_duration);
-      if (f_pkts >= config->interflow.minpkts &&
-          ((config->interflow.minduration >= 0 && max_duration >= config->interflow.minduration) ||
-           (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
-        rv = true;
+      proto = ifa_facebook_stats;
       break;
+    case NDPI_SERVICE_TWITTER:
+      proto = ifa_twitter_stats;
+      break;
+    default:
+      char buf[32];
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Interflow filter undefined for protocol %s\n", flow->get_detected_protocol_name(buf, sizeof(buf)));
+      return false;
   }
+
+  if (config->interflow.sslonly && !flow->isSSLProto())
+    return false;
+
+  host->incIfaPackets(proto, flow, when->tv_sec);
+  host->getIfaStats(proto, when->tv_sec, &f_count, &f_pkts, &max_duration);
+
+  if (f_pkts >= config->interflow.minpkts &&
+      ((config->interflow.minduration >= 0 && max_duration >= config->interflow.minduration) ||
+      (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
+    rv = true;
 
   char buf[32];
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Interflow filter[%s] url/cert='%s%s' concurrent pkts=%u/%d - flows=%d/%d, dur=%lu/%ds\n",

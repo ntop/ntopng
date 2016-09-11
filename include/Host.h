@@ -24,9 +24,16 @@
 
 #include "ntop_includes.h"
 
-#define USER_ACTIVITY_DETECTION_SLOTS 5
-#define USER_ACTIVITY_DETECTION_MAX_FLOW_INTERVAL 5
-#define USER_ACTIVITY_DETECTION_MAX_CONTINUITY_INTERVAL 20
+#define INTER_FLOW_ACTIVITY_SLOTS 5
+#define INTER_FLOW_ACTIVITY_MAX_INTERVAL 5
+#define INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL 20
+
+typedef enum {
+  ifa_facebook_stats = 0,
+  ifa_twitter_stats,
+
+  IFA_STATS_PROTOS_N
+} ifa_stats_protos;
 
 class Host : public GenericHost {
  private:
@@ -60,7 +67,7 @@ class Host : public GenericHost {
     time_t first;
     time_t last;
     u_int16_t pkts;
-  } facebook_stats[USER_ACTIVITY_DETECTION_SLOTS];
+  } ifa_stats[IFA_STATS_PROTOS_N][INTER_FLOW_ACTIVITY_SLOTS];
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -191,9 +198,8 @@ class Host : public GenericHost {
   void incrVisitedWebSite(char *hostname);
   const UserActivityCounter * getActivityBytes(UserActivityID id);
   void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
-  void incFacebookPackets(const Flow * flow, time_t when);
-  bool hasFacebookActivity();
-  void getFacebookStats(time_t when, int * count, u_int32_t * packets, time_t * max_diff);
+  void incIfaPackets(ifa_stats_protos proto, const Flow * flow, time_t when);
+  void getIfaStats(ifa_stats_protos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff);
 };
 
 #endif /* _HOST_H_ */

@@ -6,9 +6,9 @@
 local trace_hk = false
 
 local profile_activity_match
+local default_activity_parameters = {filter.SMA}
 local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]1, --[[bound time]]500, --[[sustain time]]4000}
 local web_activity_defaults = {filter.Web}
-local default_activity_parameters = {filter.All, true}
 
 if(trace_hk) then print("Initialized script useractivity.lua\n") end
 
@@ -131,20 +131,8 @@ local profile_activity_match = {
          "Pandora",
          "Deezer",
          "Twitch",
-         "YouTube",
          "NetFlix",
-         "LastFM",
-
-         -- Media types
-         "AVI",
-         "Flash",
-         "OggVorbis",
-         "MPEG",
-         "MPEG_TS",
-         "QuickTime",
-         "RealMedia",
-         "WindowsMedia",
-         "WebM"
+         "LastFM"
       }
    },
 
@@ -163,14 +151,15 @@ local profile_activity_match = {
    -- MailSync profile
    {
       ["profile"] = profile.MailSync,
-      ["defaults"] = {filter.CommandSequence, false, 200, 3000, 1},
+      ["defaults"] = {filter.CommandSequence, false, 200, 3000},
       ["protos"] = {
+         ["Hotmail"] = {filter.CommandSequence, true, 15000, 3000, 7},
          "IMAP",
          "IMAPS"
       }
    },{
       ["profile"] = profile.MailSync,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
          "POP3",
          "POPS"
@@ -180,7 +169,7 @@ local profile_activity_match = {
    -- MailSend profile
    {
       ["profile"] = profile.MailSend,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
          "SMTP",
          "SMTPS"
@@ -231,7 +220,7 @@ local profile_activity_match = {
    -- Chat profile
    {
       ["profile"] = profile.Chat,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
          "GoogleHangout",
          "IRC",
@@ -243,7 +232,6 @@ local profile_activity_match = {
          "Skype",
          "TeamSpeak",
          "Telegram",
-         "Twitter",
          "Viber",
          "Slack",
          "Weibo"
@@ -253,7 +241,7 @@ local profile_activity_match = {
    -- Game profile
    {
       ["profile"] = profile.Game,
-      ["defaults"] = default_activity_parameters,
+      ["defaults"] = {filter.All, true},
       ["protos"] = {
          "Dofus",
          "BattleField",
@@ -286,13 +274,24 @@ local profile_activity_match = {
       }
    },
 
+   -- SocialNetwork profile
+   {
+      ["profile"] = profile.SocialNetwork,
+      ["defaults"] = {filter.Interflow},
+      ["protos"] = {
+         ["Twitter"] = {filter.Interflow, 3, 200},
+         ["Facebook"] = {filter.Interflow, 3, 600, -1, true}
+      }
+   },
+
    -- Web profile
    {
       ["profile"] = profile.Web,
       ["defaults"] = web_activity_defaults,
       ["protos"] = {
          "HTTP",
-         "HTTPS"
+         "HTTPS",
+         "YouTube"
       }
    },
 
@@ -321,49 +320,39 @@ function flowProtocolDetected()
    local matched = nil
 
    if master ~= "DNS" then
-   if master == "HTTP" then
-      local contentType = flow.getHTTPContentType()
-      if contentType then
-         if flow.getProfileId() ~= profile.Media then
-            local mDetected = false
+      if master == "HTTP" then
+         local contentType = flow.getHTTPContentType()
+         if contentType then
+            if flow.getProfileId() ~= profile.Media then
+               local mDetected = false
 
-            -- Try to detect a media type
-            for i=1, #media_activity_mime_types do
-               if contentType:starts(media_activity_mime_types[i]) then
-                  flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
-                  mDetected = true
-                  break
-               end
-            end
-
-            -- Try to detect a web type
-            if not mDetected and flow.getActivityFilterId() ~= filter.All then
-               for i=1, #web_activity_mime_types do
-                  if contentType:starts(web_activity_mime_types[i]) then
-                     -- Be always active
-                     flow.setActivityFilter(profile.Web, filter.All, true)
+               -- Try to detect a media type
+               for i=1, #media_activity_mime_types do
+                  if contentType:starts(media_activity_mime_types[i]) then
+                     flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
+                     mDetected = true
                      break
+                  end
+               end
+
+               -- Try to detect a web type
+               if not mDetected and flow.getActivityFilterId() ~= filter.All then
+                  for i=1, #web_activity_mime_types do
+                     if contentType:starts(web_activity_mime_types[i]) then
+                        -- Be always active
+                        flow.setActivityFilter(profile.Web, filter.All, true)
+                        break
+                     end
                   end
                end
             end
          end
       end
-   end
 
--- BEGIN specific protocols
-      if sub == "Facebook" then
-         local config
-         if master == "HTTP" then
-            -- mark as background traffic
-            config = {filter.All, false}
-         else
-            config = {filter.Interflow, 2, 400, 3}
-         end
-         matched = {["profile"]=profile.Facebook, ["config"]=config}
-      elseif sub == "YouTube" and not srv:ends("googlevideo.com") then
-         -- just normal web traffic
-         matched = {["profile"]=profile.Web, ["config"]=web_activity_defaults}
--- END specific protocols
+-- BEGIN Particular protocols
+      if sub == "YouTube" and srv:ends("googlevideo.com") then
+         matched = {["profile"]=profile.Media, ["config"]={filter.All, true}}
+-- END Particular protocols
       else
          for i=1, #profile_activity_match do
             local pamatch = profile_activity_match[i]
@@ -383,7 +372,10 @@ function flowProtocolDetected()
 
                if matchproto == master or matchproto == sub then
                   matched = {["profile"]=profile, ["proto"]=matchproto, ["config"]=config, ["defaults"]=pamatch["defaults"]}
-                  break
+                  -- prefer subprotocols match within the same profile
+                  if matchproto == sub then
+                     break
+                  end
                end
             end
 

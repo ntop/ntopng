@@ -1115,7 +1115,7 @@ if host["localhost"] == true then
             return value.toFixed(precision) + labels[i];
          }
 
-         function setShowMode(mode) {            
+         function setShowMode(mode) {
             $.ajax({
                type: 'GET',
                url: activitiesurl,
@@ -1127,26 +1127,29 @@ if host["localhost"] == true then
                   JSON.parse(content).sort().map(function(activity) {
                      metrics.push(rrdserver.metric(activitiesurl+"&activity="+activity, activity, mode === "bg"));
                   });
+		  if (metrics.length > 0) {
+		     // data
+		     d3.select("#userctivity")
+			.selectAll(".horizon")
+			.data(metrics)
+			.enter().append("div", ".bottom")
+			.attr("class", "horizon")
+			.call(horizon.format(function(x) { return formatBytes(x,2); }));
 
-                  // data
-                  d3.select("#userctivity")
-                     .selectAll(".horizon")
-                     .data(metrics)
-                     .enter().append("div", ".bottom")
-                     .attr("class", "horizon")
-                     .call(horizon.format(function(x) { return formatBytes(x,2); }));
+		     // bottom axis
+		     d3.select("#userctivity")
+			.append("div")
+			.attr("class", "axis")
+			.call(context.axis().orient("bottom"));
 
-                  // bottom axis
-                  d3.select("#userctivity")
-                     .append("div")
-                     .attr("class", "axis")
-                     .call(context.axis().orient("bottom"));
-
-                  // vertical line on mousemove
-                  d3.select("#userctivity")
-                     .append("div")
-                     .attr("class", "rule")
-                     .call(context.rule());
+		     // vertical line on mousemove
+		     d3.select("#userctivity")
+			.append("div")
+			.attr("class", "rule")
+			.call(context.rule());
+		  } else {
+		     $('#userctivity').text("No data so far");
+		  }
                }
             });
          }

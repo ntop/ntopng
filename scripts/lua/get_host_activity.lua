@@ -20,6 +20,8 @@ local name_map = {
       { "Media", "Media and Streaming" },
       { "MailSync", "Email Synchronization" },
       { "FileTransfer", "File Transfer" },
+      { "FileSharing", "File Sharing" },
+      { "SocialNetwork", "Social Networks" },
       { "Web", "Web Browsing" },
       { "Game", "Online Gaming" },
       { "Other", "Other Traffic" }
@@ -55,7 +57,7 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil) then
 
    if ntop.isdir(activbase) then
       if not _GET["activity"] then
-         -- mode=list         
+         -- mode=list
          for key,value in pairs(ntop.readdir(activbase)) do
             if string.ends(key, ".rrd") then
                table.insert(res, mapRRDname(string.sub(key, 1, -5)))
