@@ -1083,13 +1083,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   }
 
   checkBlacklistedFlow();
-
-  /*
-    No need to call the method below as
-    the delete callback will be called in a moment
-  */
-  if(!inDeleteMethod)
-    iface->luaEvalFlow(this, callback_flow_update);
 }
 
 /* *************************************** */
@@ -2311,6 +2304,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 
             if (protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
+	    iface->luaEvalFlow(this, callback_flow_update);
             break;
           }
         }
