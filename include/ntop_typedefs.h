@@ -215,7 +215,7 @@ typedef enum {
   callback_flow_create,
   callback_flow_delete,
   callback_flow_update,
-  callback_flow_ndpi_detect
+  callback_flow_proto_callback
 } LuaCallback;
 
 typedef enum {

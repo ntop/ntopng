@@ -50,7 +50,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true;
 
   l7_protocol_guessed = detection_completed = false;
-  dump_flow_traffic = false,
+  dump_flow_traffic = false, http_dissected = false,
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_UNKNOWN,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
@@ -379,6 +379,8 @@ void Flow::processDetectedProtocol() {
 						       &categorization.category,
 						       true);
 	      }
+
+	      iface->luaEvalFlow(this, callback_flow_proto_callback);
 	    }
 	  }
 	}
@@ -526,9 +528,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     guessProtocol();
     detection_completed = true;
   }
-
-  if(detection_completed)
-    iface->luaEvalFlow(this, callback_flow_ndpi_detect);
     
 #ifdef NTOPNG_PRO
   // Update the profile even if the detection is not yet completed.
@@ -1221,7 +1220,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     }
     lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
-    if (dst) {
+    if(dst) {
       lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "srv.key", dst->key());
     } else {
@@ -1596,7 +1595,7 @@ json_object* Flow::flow2json(bool partial_dump) {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  if (ntop->getPrefs()->do_dump_flows_on_es()) {
+  if(ntop->getPrefs()->do_dump_flows_on_es()) {
     struct tm* tm_info;
 
     t = last_seen;
@@ -2214,7 +2213,10 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
   if(payload_len > 47) {
     char *bt_proto = ndpi_strnstr((const char *)&payload[20], "BitTorrent protocol", payload_len-20);
 
-    if(bt_proto) setBittorrentHash(&bt_proto[27]);
+    if(bt_proto) {
+      setBittorrentHash(&bt_proto[27]);
+      iface->luaEvalFlow(this, callback_flow_proto_callback);
+    }
   }
 }
 
@@ -2222,6 +2224,8 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 
 void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   HTTPstats *h;
+
+  if(http_dissected) return;
 
   if(src2dst_direction) {
     char *space;
@@ -2296,21 +2300,23 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       for (int i=0; i<HTTP_MAX_HEADER_LINES && len > 2; i++) {
         const char * newline = (const char *) memchr(s, '\n', len);
 
-        if ((!newline) || (newline - s < 2) || (*(newline - 1) != '\r')) break;
+        if((!newline) || (newline - s < 2) || (*(newline - 1) != '\r')) break;
 
         size_t linesize = newline - s + 1;
         const char * terminator = (const char *) memchr(s, ';', linesize);
         size_t effsize = terminator ? (terminator - s) : (linesize - 2);
 
-        if (effsize < sizeof(buf)) {
+        if(effsize < sizeof(buf)) {
           strncpy(buf, s, effsize);
           buf[effsize] = '\0';
 
-          if (strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
+          if(strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
             const char * ct = buf + sizeof(HTTP_CONTENT_TYPE_HEADER) - 1;
 
-            if (protos.http.last_content_type) free(protos.http.last_content_type);
+            if(protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
+	    iface->luaEvalFlow(this, callback_flow_proto_callback);
+	    http_dissected = true;
             break;
           }
         }
@@ -2429,12 +2435,12 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
   bool hs_now_end = false;
   
   if(good_ssl_hs && twh_over && payload_len >= SSL_MIN_PACKET_SIZE) {
-    if ( (cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
+    if( (cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
        (!cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_SERVER)) ) {
       protos.ssl.is_data = true;
 
-      if (!protos.ssl.firstdata_seen) {
-	if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH) {
+      if(!protos.ssl.firstdata_seen) {
+	if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH) {
 	  memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
 	  protos.ssl.delta_firstData = ((float)(Utils::timeval2usec(&protos.ssl.lastdata_time) - Utils::timeval2usec(&protos.ssl.hs_end_time)))/1000;
 	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%p][%u.%u] SSL first (full) data: %u", this, when->tv_sec, when->tv_usec, payload_len);
@@ -2447,39 +2453,40 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
     } else {
       protos.ssl.is_data = false;
       
-      if (payload[0] == SSL_HANDSHAKE_PACKET) {
-	if (payload[5] == SSL_CLIENT_HELLO) {
-	  if (protos.ssl.cli_stage == SSL_STAGE_UNKNOWN) {
+      if(payload[0] == SSL_HANDSHAKE_PACKET) {
+	if(payload[5] == SSL_CLIENT_HELLO) {
+	  if(protos.ssl.cli_stage == SSL_STAGE_UNKNOWN) {
 	    memcpy(&protos.ssl.clienthello_time, when, sizeof(struct timeval));
 	    protos.ssl.cli_stage = SSL_STAGE_HELLO;
 	  }
-	} else if (payload[5] == SSL_SERVER_HELLO && protos.ssl.srv_stage == SSL_STAGE_UNKNOWN && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
+	} else if(payload[5] == SSL_SERVER_HELLO && protos.ssl.srv_stage == SSL_STAGE_UNKNOWN && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
 	  skiphello = 5 + 4 + ntohs(get_u_int16_t(payload, 7));
-	  if (payload_len > skiphello && payload[skiphello] == SSL_SERVER_CHANGE_CIPHER_SPEC) {
+	  if(payload_len > skiphello && payload[skiphello] == SSL_SERVER_CHANGE_CIPHER_SPEC) {
 	      protos.ssl.srv_stage = SSL_STAGE_CCS;
 	      // here client encryption is still plain
 	    } else {
 	      protos.ssl.srv_stage = SSL_STAGE_HELLO;
 	    }
-	} else if (payload[5] == SSL_CLIENT_KEY_EXCHANGE && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
+	} else if(payload[5] == SSL_CLIENT_KEY_EXCHANGE && protos.ssl.cli_stage == SSL_STAGE_HELLO) {
 	  protos.ssl.cli_stage = SSL_STAGE_CCS;
-	  if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+	  if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
 	    hs_now_end = true;
-	} else if (payload[5] == SSL_NEW_SESSION_TICKET && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
+	} else if(payload[5] == SSL_NEW_SESSION_TICKET && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
 	  protos.ssl.srv_stage = SSL_STAGE_CCS;
-	  if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+	  if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
 	    hs_now_end = true;
 	}
-      } else if (payload[0] == SSL_SERVER_CHANGE_CIPHER_SPEC && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
+      } else if(payload[0] == SSL_SERVER_CHANGE_CIPHER_SPEC && protos.ssl.srv_stage == SSL_STAGE_HELLO) {
 	protos.ssl.srv_stage = SSL_STAGE_CCS;
-	if (getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
+	if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH)
 	    hs_now_end = true;
       }
 
-      if (hs_now_end) {
+      if(hs_now_end) {
 	// both client and server CCS appeared here
 	memcpy(&protos.ssl.hs_end_time, when, sizeof(struct timeval));
 	protos.ssl.hs_delta_time = ((float)(Utils::timeval2usec(&protos.ssl.hs_end_time) - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
+	// iface->luaEvalFlow(this, callback_flow_proto_callback);
       }
 
       protos.ssl.hs_packets++;
@@ -2491,7 +2498,7 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
 /* ***************************************************** */
 
 FlowSSLEncryptionStatus Flow::getSSLEncryptionStatus() {
-  if (isSSLProto()) {
+  if(isSSLProto()) {
     return (FlowSSLEncryptionStatus) (
         ((protos.ssl.srv_stage == SSL_STAGE_CCS) << 0) |
         ((protos.ssl.cli_stage == SSL_STAGE_CCS) << 1)
@@ -2549,7 +2556,7 @@ FlowStatus Flow::getFlowStatus() {
 /* ***************************************************** */
 
 void Flow::setActivityFilter(ActivityFilterID fid, const activity_filter_config * config) {
-  if (fid < ActivityFiltersN && config) {
+  if(fid < ActivityFiltersN && config) {
     activityDetection.filterId = fid;
     activityDetection.filterSet = true;
     activityDetection.config = *config;
@@ -2562,7 +2569,9 @@ void Flow::setActivityFilter(ActivityFilterID fid, const activity_filter_config 
 /* ***************************************************** */
 
 bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len) {
-  if (activityDetection.filterSet)
-    return (activity_filter_funcs[activityDetection.filterId])(&activityDetection.config, &activityDetection.status, this, when, cli2srv, payload_len);
+  if(activityDetection.filterSet)
+    return (activity_filter_funcs[activityDetection.filterId])(&activityDetection.config, 
+							       &activityDetection.status, this, when, cli2srv, payload_len);
+
   return false;
 }

@@ -75,7 +75,7 @@ class NetworkInterface {
 
   /* Lua */
   bool reloadLuaInterpreter;
-  lua_State *L_flow_create, *L_flow_delete, *L_flow_update;
+  lua_State *L_flow_create_delete_ndpi, *L_flow_update;
 
   /* Second update */
   u_int64_t lastSecTraffic,
