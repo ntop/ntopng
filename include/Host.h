@@ -158,7 +158,8 @@ class Host : public GenericHost {
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   void updateHostTrafficPolicy(char *key);
   char* serialize();
-  bool deserialize(char *json_str, char *key);
+  void  serialize2redis();
+  bool  deserialize(char *json_str, char *key);
   bool addIfMatching(lua_State* vm, patricia_tree_t * ptree, char *key);
   void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
 

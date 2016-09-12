@@ -351,16 +351,25 @@ function printInMemory()
   prefsInputFieldPrefs("Remote Host Idle Timeout", "Inactivity time after which a remote host is considered idle (sec). Default: 60.", "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle)
   prefsInputFieldPrefs("Flow Idle Timeout", "Inactivity time after which a flow is considered idle (sec). Default: 60.", "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle)
 
-  print('<tr><th colspan=2 class="info">Idle Local Hosts Cache Settings</th></tr>')
-  toggleTableButtonPrefs("Local Host Cache",
+  print('<tr><th colspan=2 class="info">Local Hosts Cache Settings</th></tr>')
+  toggleTableButtonPrefs("Idle Local Hosts Cache",
 			 "Toggle the creation of cache entries for idle local hosts. "..
 			 "Cached local hosts counters are restored automatically to their previous values "..
 			    " upon detection of additional host traffic.",
 			 "On", "1", "success", "Off", "0", "danger",
 			 "toggle_local_host_cache_enabled",
 			 "ntopng.prefs.is_local_host_cache_enabled", "1")
-  prefsInputFieldPrefs("Local Host Cache Duration", "Time after which an idle local host is deleted from the cache (sec). "..
-		       "Default: 3600.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration)
+
+  toggleTableButtonPrefs("Active Local Hosts Cache",
+			 "Toggle the hourly creation of cache entries for active local hosts. "..
+			 "Caching active local hosts on an hourly basis can be useful to protect host counters against "..
+			 "failures (e.g., power losses). This is particularly important for local hosts that seldomly go idle "..
+			 "as it guarantees that their counters will be cached at least once per hour.  ",
+			 "On", "1", "success", "Off", "0", "danger",
+			 "toggle_active_local_host_cache_enabled",
+			 "ntopng.prefs.is_active_local_host_cache_enabled", "0")
+  prefsInputFieldPrefs("Local Hosts Cache Duration", "Time after which a cached local host is deleted from the cache (sec). "..
+			 "Default: 3600.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration)
   
   print('<tr><th colspan=2 class="info">Hosts Statistics Update Frequency</th></tr>')
   prefsInputFieldPrefs("Update frequency in seconds",

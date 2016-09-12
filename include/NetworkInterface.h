@@ -196,6 +196,7 @@ class NetworkInterface {
   int dumpFlow(time_t when, bool partial_dump, Flow *f);
   int dumpDBFlow(time_t when, bool partial_dump, Flow *f);
   int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
+  int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };

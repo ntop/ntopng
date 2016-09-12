@@ -61,7 +61,8 @@ Prefs::Prefs(Ntop *_ntop) {
   disable_alerts = false;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
-  enable_idle_local_hosts_cache = true;
+  enable_idle_local_hosts_cache   = true;
+  enable_active_local_hosts_cache = false; /* only cache active hosts on exit */
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
@@ -400,8 +401,10 @@ void Prefs::reloadPrefsFromRedis() {
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
-  enable_idle_local_hosts_cache = getDefaultPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
-						       CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED);
+  enable_idle_local_hosts_cache   = getDefaultPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
+							 CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED);
+  enable_active_local_hosts_cache = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
+							 CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
@@ -1245,6 +1248,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
 		    strlen((char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED)))
     enable_idle_local_hosts_cache = pref_value[0] == '1' ? true : false;
+  else if (!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
+		    strlen((char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED)))
+    enable_active_local_hosts_cache = pref_value[0] == '1' ? true : false;
 
   return 0;
 }

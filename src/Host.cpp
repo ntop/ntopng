@@ -69,20 +69,8 @@ Host::~Host() {
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
-  if((localHost || systemHost)
-     && ntop->getPrefs()->is_idle_local_host_cache_enabled()
-     && ip && !ip->isEmpty()) {
-    char *json = serialize();
-    char host_key[128], key[128];
-    char *k = get_string_key(host_key, sizeof(host_key));
-
-    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
-    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
-    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
-    free(json);
-  }
-
+  serialize2redis(); /* possibly dumps counters and data to redis */
+  
 #ifdef NTOPNG_PRO
   if(sent_to_sketch)   delete sent_to_sketch;
   if(rcvd_from_sketch) delete rcvd_from_sketch;
@@ -863,6 +851,24 @@ char* Host::serialize() {
   json_object_put(my_object);
 
   return(rsp);
+}
+
+/* *************************************** */
+void Host::serialize2redis() {
+  if((localHost || systemHost)
+     && (ntop->getPrefs()->is_idle_local_host_cache_enabled()
+	 || ntop->getPrefs()->is_active_local_host_cache_enabled())
+     && ip && !ip->isEmpty()) {
+    char *json = serialize();
+    char host_key[128], key[128];
+    char *k = get_string_key(host_key, sizeof(host_key));
+
+    snprintf(key, sizeof(key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
+    ntop->getRedis()->set(key, json, ntop->getPrefs()->get_local_host_cache_duration());
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Dumping serialization %s", k);
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", k, json);
+    free(json);
+  }
 }
 
 /* *************************************** */

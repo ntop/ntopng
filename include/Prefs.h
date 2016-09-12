@@ -42,11 +42,12 @@ class Prefs {
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
   char *http_binding_address, *https_binding_address;
   Ntop *ntop;
-  bool enable_dns_resolution, sniff_dns_responses, enable_idle_local_hosts_cache,
+  bool enable_dns_resolution, sniff_dns_responses,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, use_promiscuous_mode,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check;
+  bool enable_idle_local_hosts_cache,  enable_active_local_hosts_cache;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
@@ -148,8 +149,9 @@ class Prefs {
   inline char* get_instance_name()                      { return(instance_name); };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
-  inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);  };
-  inline bool  do_auto_logout()                         { return(enable_auto_logout);             };
+  inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
+  inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
+  inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
   inline u_int get_http_port()                          { return(http_port);      };
   inline u_int get_https_port()                         { return(https_port);     };

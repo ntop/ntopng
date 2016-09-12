@@ -493,25 +493,27 @@ int NetworkInterface::dumpDBFlow(time_t when, bool partial_dump, Flow *f) {
 
 /* **************************************************** */
 
-#ifdef NOTUSED
-static bool node_proto_guess_walker(GenericHashEntry *node, void *user_data) {
-  Flow *flow = (Flow*)node;
-  char buf[512];
+static bool local_hosts_2_redis_walker(GenericHashEntry *h, void *user_data) {
+  Host *host = (Host*)h;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", flow->print(buf, sizeof(buf)));
+  if(host && (host->isLocalHost() || host->isSystemHost()))
+    host->serialize2redis();
 
   return(false); /* false = keep on walking */
 }
-#endif
 
 /* **************************************************** */
 
-#ifdef NOTUSED
-void NetworkInterface::dumpFlows() {
-  /* NOTUSED */
-  flows_hash->walk(node_proto_guess_walker, NULL);
+int NetworkInterface::dumpLocalHosts2redis(bool disable_purge) {
+  int rc;
+
+  if(disable_purge) disablePurge(false /* on hosts */);
+  rc = walker(true, local_hosts_2_redis_walker, NULL) ? 0 : -1;
+  if(disable_purge) enablePurge(false /* on hosts */);
+
+  return rc;
 }
-#endif
+
 
 /* **************************************************** */
 

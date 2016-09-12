@@ -1642,6 +1642,21 @@ static int ntop_dump_flow_traffic(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_dump_local_hosts_2_redis(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->dumpLocalHosts2redis(true /* must disable purge as we are called from lua */);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_find_user_flows(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *key;
@@ -4796,6 +4811,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "findFlowByKey",          ntop_get_interface_find_flow_by_key },
   { "dropFlowTraffic",        ntop_drop_flow_traffic },
   { "dumpFlowTraffic",        ntop_dump_flow_traffic },
+  { "dumpLocalHosts2redis",   ntop_dump_local_hosts_2_redis },
   { "findUserFlows",          ntop_get_interface_find_user_flows },
   { "findPidFlows",           ntop_get_interface_find_pid_flows },
   { "findFatherPidFlows",     ntop_get_interface_find_father_pid_flows },
