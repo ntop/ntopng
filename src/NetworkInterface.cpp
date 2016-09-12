@@ -1919,6 +1919,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
   u_int16_t port;
   int16_t local_network_id;
 
+  if(retriever->actNumEntries >= retriever->maxNumEntries)
+    return(true); /* Limit reached */
+
   if(f && (!f->idle())) {
     if(retriever->host
        && (retriever->host != f->get_cli_host())
@@ -1991,15 +1994,10 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);
 	break;
+      }
     }
   }
-
-  if(retriever->actNumEntries >= retriever->maxNumEntries)
-    return(true); /* Limit reached */
-  else
-    return(false); /* false = keep on walking */
-  } else
-    return(false); /* false = keep on walking */
+  return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
@@ -2008,6 +2006,9 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   char buf[64];
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Host *h = (Host*)he;
+
+  if(r->actNumEntries >= r->maxNumEntries)
+    return(true); /* Limit reached */
 
   if(!h || h->idle() || !h->match(r->allowed_hosts))
     return(false);
@@ -2077,10 +2078,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
     break;
   }
 
-  if(r->actNumEntries >= r->maxNumEntries)
-    return(true); /* Limit reached */
-  else
-    return(false); /* false = keep on walking */
+  return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
