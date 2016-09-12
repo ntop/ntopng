@@ -1994,7 +1994,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data) {
     }
   }
 
-  if(retriever->actNumEntries == retriever->maxNumEntries)
+  if(retriever->actNumEntries >= retriever->maxNumEntries)
     return(true); /* Limit reached */
   else
     return(false); /* false = keep on walking */
@@ -2077,7 +2077,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
     break;
   }
 
-  if(r->actNumEntries == r->maxNumEntries)
+  if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
   else
     return(false); /* false = keep on walking */
