@@ -379,8 +379,6 @@ void Flow::processDetectedProtocol() {
 						       &categorization.category,
 						       true);
 	      }
-
-	      iface->luaEvalFlow(this, callback_flow_proto_callback);
 	    }
 	  }
 	}
@@ -528,6 +526,9 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     guessProtocol();
     detection_completed = true;
   }
+
+  if (detection_completed)
+    iface->luaEvalFlow(this, callback_flow_proto_callback);
     
 #ifdef NTOPNG_PRO
   // Update the profile even if the detection is not yet completed.

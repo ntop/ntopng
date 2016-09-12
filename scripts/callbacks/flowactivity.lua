@@ -317,30 +317,31 @@ function flowProtocolDetected()
    local proto = flow.getNdpiProto()
    local master, sub = splitProto(proto)
    local srv = flow.getServerName()
-   local matched = nil
 
    if master ~= "DNS" then
-      if master == "HTTP" then
+      local matched = nil
+
+      -- Particular protocols detection
+      if sub == "YouTube" and srv:ends("googlevideo.com") then
+         matched = {["profile"]=profile.Media, ["config"]={filter.All, true}}
+      elseif master == "HTTP" then
          local contentType = flow.getHTTPContentType()
          if contentType then
             if flow.getProfileId() ~= profile.Media then
-               local mDetected = false
-
                -- Try to detect a media type
                for i=1, #media_activity_mime_types do
                   if contentType:starts(media_activity_mime_types[i]) then
-                     flow.setActivityFilter(profile.Media, unpack(media_activity_defaults))
-                     mDetected = true
+                     matched = {["profile"]=profile.Media, ["config"]=media_activity_defaults}
                      break
                   end
                end
 
                -- Try to detect a web type
-               if not mDetected and flow.getActivityFilterId() ~= filter.All then
+               if not matched and flow.getActivityFilterId() ~= filter.All then
                   for i=1, #web_activity_mime_types do
                      if contentType:starts(web_activity_mime_types[i]) then
                         -- Be always active
-                        flow.setActivityFilter(profile.Web, filter.All, true)
+                        matched = {["profile"]=profile.Web, ["config"]={filter.All, true}}
                         break
                      end
                   end
@@ -349,11 +350,8 @@ function flowProtocolDetected()
          end
       end
 
--- BEGIN Particular protocols
-      if sub == "YouTube" and srv:ends("googlevideo.com") then
-         matched = {["profile"]=profile.Media, ["config"]={filter.All, true}}
--- END Particular protocols
-      else
+      -- Plain detection
+      if not matched then
          for i=1, #profile_activity_match do
             local pamatch = profile_activity_match[i]
             local profile = pamatch["profile"]
@@ -383,6 +381,7 @@ function flowProtocolDetected()
          end
       end
 
+      -- Update Flow status
       if matched then
          local params = matched.config or matched.defaults
          flow.setActivityFilter(matched.profile, unpack(params))
