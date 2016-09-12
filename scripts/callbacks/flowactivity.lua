@@ -53,39 +53,8 @@ function string.search(String,Search,Start)
    return string.find(String, Search, Start or 1, false)
 end
 
--- ########################################################
-
 function splitProto(proto)
    return unpack(proto:split("."))
-end
-
--- ########################################################
-
---
--- This callback is called periodically for all active flows
--- Add here housekeeping of periodic activities you want to
--- perform in a flow
---
-function flowUpdate()
-   if(trace_hk) then print("flowUpdate()\n") end
-end
-
--- ########################################################
-
---
--- This callback is called once, when a new flow is created
---
-function flowCreate()
-   if(trace_hk) then print("flowCreate()\n") end
-end
-
--- ########################################################
-
---
--- This callback is called once, when a new flow is deleted
---
-function flowDelete()
-   if(trace_hk) then print("flowDelete()\n") end
 end
 
 -- ########################################################
@@ -308,10 +277,32 @@ local profile_activity_match = {
 }
 
 -- ########################################################
+--
+--    < Lua Virtual Machine - main >
+--
+-- The callbacks listed below are executed in the main ntopng thread, so
+-- you can call most of the Flow functions without any synchronization troubles.
+--
+-- ########################################################
 
 --
--- This callback is called once as soon as the flow application
---  protocol has been identified by the ntopng core
+-- This callback is called once, when a new flow is created
+--
+function flowCreate()
+   if(trace_hk) then print("flowCreate()\n") end
+end
+
+--
+-- This callback is called once, when a new flow is deleted
+--
+function flowDelete()
+   if(trace_hk) then print("flowDelete()\n") end
+end
+
+--
+-- This callback is called any time some flow status, affecting activity
+-- detection logic, changes. This happens, for example, when flow protocol
+-- is detected.
 --
 function flowProtocolDetected()
    local proto = flow.getNdpiProto()
@@ -394,4 +385,24 @@ function flowProtocolDetected()
          print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].."\n")
       end
    end
+end
+
+-- ########################################################
+--
+--    < Lua Virtual Machine - periodic >
+--
+-- The callbacks listed below are executed periodically, NOT in the main
+-- thread. This means that particular care must be taken before accessing
+-- Flow state or other main thread related structure.
+-- This is the right place to perform more intensive tasks.
+--
+-- ########################################################
+
+--
+-- This callback is called periodically for all active flows
+-- Add here housekeeping of periodic activities you want to
+-- perform in a flow
+--
+function flowUpdate()
+   if(trace_hk) then print("flowUpdate()\n") end
 end
