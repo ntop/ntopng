@@ -697,6 +697,8 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
 				   get_last_db_error(&mysql), rc);
 
       lua_pushstring(vm, get_last_db_error(&mysql));
+    } else {
+      lua_pushnil(vm);
     }
 
     if(m) m->unlock(__FILE__, __LINE__);
