@@ -371,7 +371,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 	   protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
 	 }
 	 if(typeof talkers_loaded == 'undefined' && typeof protocols_loaded == 'undefined'){
-	   // window.location.reload(); /* do not reload, it'a annoying */
+	   window.location.reload(); /* do not reload, it'a annoying */
 	 }
        }, 60*1000);
        </script>]]
