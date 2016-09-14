@@ -208,16 +208,16 @@ function delete_alert_configuration(alert_source, ifname)
 	 for k1, metric in pairs(alarmable_metrics) do
 	    if ntop.isPro() then
 	       ntop.withdrawNagiosAlert(alert_source, timespan, metric, "OK, alarm deactivated")
-	       if ntop.isEnterprise() then
-		  -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
-		  if string.match(alert_source, "@") then
-		     interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-		  elseif string.match(alert_source, "/") then
-		     interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-		  else
-		     interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-		  end
-	       end
+	    end
+	    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
+	    if string.match(alert_source, "@") then
+	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	    -- check if this is a subnet
+	    elseif string.match(alert_source, "/") then
+	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	    -- finally assume it's an interface alert
+	    else
+	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
 	    end
 	 end
 	 ntop.delHashCache(key, alert_source)
