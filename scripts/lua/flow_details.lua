@@ -272,7 +272,7 @@ else
 
    print("<tr><th width=30%")
    if(flow["flow.idle"] == true) then print(" rowspan=2") end
-   print(">Packet Inter-Arrival Time [ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
+   print(">Packet Inter-Arrival Time<br>[ Min / Avg / Max ]</th><td nowrap>Client <i class=\"fa fa-arrow-right\"></i> Server: ")
    print(msToTime(flow["interarrival.cli2srv"]["min"]).." / "..msToTime(flow["interarrival.cli2srv"]["avg"]).." / "..msToTime(flow["interarrival.cli2srv"]["max"]))
    print("</td>\n")
    if(flow["srv2cli.packets"] < 2) then
