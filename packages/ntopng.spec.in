@@ -107,7 +107,7 @@ if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local
 /sbin/chkconfig --add ntopng
 %endif
 
-%postun
+%preun
 %if 0%{?centos_ver} == 7
   /bin/systemctl disable ntopng.service
 %else
