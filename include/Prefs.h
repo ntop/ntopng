@@ -60,7 +60,7 @@ class Prefs {
   bool enable_taps;
   InterfaceInfo ifNames[MAX_NUM_INTERFACES];
   char *local_networks;
-  bool local_networks_set, shutdown_when_done;
+  bool local_networks_set, shutdown_when_done, simulate_vlans;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir, *callbacks_dir, *export_endpoint;
   char *categorization_key;
   char *httpbl_key;
@@ -152,6 +152,7 @@ class Prefs {
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
+  inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
   inline u_int get_http_port()                          { return(http_port);      };
   inline u_int get_https_port()                         { return(https_port);     };

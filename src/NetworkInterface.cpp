@@ -1396,6 +1396,9 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	}
       }
 
+      if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
+	vlan_id = ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr & 0xFF;
+
       try {
 	pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id, iph,
 				     ip6, h->caplen - ip_offset, h->len,
@@ -1478,6 +1481,10 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	    }
 	  }
 	}
+
+	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
+	  vlan_id = ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr & 0xFF;	
+
 	try {
 	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,
 				       iph, ip6, h->len - ip_offset, h->len,
