@@ -34,13 +34,14 @@ local function getTopCountries(ifid, ifname)
 end
 
 local function getTopCountriesBy(ifid, ifname, filter_col, filter_val)
-  return getCurrentTopGroupsSeparated(ifid, ifname,
-                                      10, true, false,
-                                      filter_col, filter_val,
-                                      top_countries_intf.key,
-                                      top_countries_intf.JSONkey,
-                                      nil, true, nil,
-                                      top_countries_intf.uniqueKey)
+   local lastdump_key = getLastDumpKey(top_countries_intf.uniqueKey, filter_col, filter_val)
+   return getCurrentTopGroupsSeparated(ifid, ifname,
+				       10, true, false,
+				       filter_col, filter_val,
+				       top_countries_intf.key,
+				       top_countries_intf.JSONkey,
+				       nil, true, nil,
+				       lastdump_key)
 end
 
 local function getTopCountriesClean(ifid, ifname, param)

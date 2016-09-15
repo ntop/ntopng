@@ -27,10 +27,11 @@ local function getTopOSLocal(ifid, ifname)
 end
 
 local function getTopOSLocalBy(ifid, ifname, filter_col, filter_val)
-  return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
-                                      filter_col, filter_val, top_os_local_intf.key,
-                                      top_os_local_intf.JSONkey, true, true, nil,
-                                      top_os_local_intf.uniqueKey)
+   local lastdump_key = getLastDumpKey(top_os_local_intf.uniqueKey, filter_col, filter_val)
+   return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
+				       filter_col, filter_val, top_os_local_intf.key,
+				       top_os_local_intf.JSONkey, true, true, nil,
+				       lastdump_key)
 end
 
 local function getTopOSLocalClean(ifid, ifname, param)

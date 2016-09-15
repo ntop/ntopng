@@ -811,10 +811,10 @@ end
 
 
 function isIPv6(ip)
-   if string.find(ip, "%.") then
-     return false
+   if string.find(ip, ":") then
+     return true
   end
-  return true
+  return false
 end
 
 function addGoogleMapsScript()

@@ -75,25 +75,14 @@ function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_k
 
    persistence.store(lastdump, _filtered_stats);
 
+   local total = 0
    for key, value in pairs(_filtered_stats) do
       if(last[key] ~= nil) then
          v = _filtered_stats[key]-last[key]
          if(v < 0) then v = 0 end
          _filtered_stats[key] = v
+	 total = total + v
       end
-   end
-
-   -- order the filtered stats by using the value (bytes sent/received during
-   -- the last time interval) as key
-   filtered_stats = {}
-   for key, value in pairs(_filtered_stats) do
-      filtered_stats[value] = key
-   end
-
-   -- Compute traffic
-   local total = 0
-   for _value,_ in pairsByKeys(filtered_stats, rev) do
-      total = total + _value
    end
 
    threshold = total / 10 -- 10 %
@@ -103,7 +92,7 @@ function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_k
    top_stats = {}
    other_stats = 0
    counter = 0
-   for _value,_id in pairsByKeys(filtered_stats, rev) do
+   for _id, _value in pairsByValues(_filtered_stats, rev) do
       if (counter < max_num_entries) then
          if ((_value == 0) or (use_threshold == true and ((_value < low_threshold or
              _value < threshold) and (counter > max_num_entries / 2)))) then
@@ -124,6 +113,20 @@ function getTop(stats, sort_field_key, max_num_entries, lastdump_dir, lastdump_k
 
    return top_stats
 end
+
+function getLastDumpKey(unique_key, filter_col, filter_val)
+   -- lastdump_key will be used to uniquely identify on disk the most recent dump of the statistics.
+   local lastdump_key = ""
+   if unique_key ~= nil then lastdump_key = unique_key end
+   if filter_col ~= nil and filter_val ~= nil then
+      -- using only the unique_key may not be enough as one can filter using different criteria
+      -- (e.g., vlan 1 / vlan 2 / etc..) even for the same uniqueKey.
+      lastdump_key = lastdump_key.."_"..tostring(filter_col).."_"..tostring(filter_val)
+   end
+   return lastdump_key
+end
+
+-- #################################################
 
 function filterBy(stats, col, val)
   local filtered_by = {}

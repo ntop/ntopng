@@ -26,9 +26,10 @@ local function getTopAS(ifid, ifname)
 end
 
 local function getTopASBy(ifid, ifname, filter_col, filter_val)
-  return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
-                                      filter_col, filter_val, top_asn_intf.key,
-                                      top_asn_intf.JSONkey, nil, true, nil, top_asn_intf.uniqueKey)
+   local lastdump_key = getLastDumpKey(top_asn_intf.uniqueKey, filter_col, filter_val)
+   return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
+				       filter_col, filter_val, top_asn_intf.key,
+				       top_asn_intf.JSONkey, nil, true, nil, lastdump_key)
 end
 
 local function getTopASClean(ifid, ifname, param)

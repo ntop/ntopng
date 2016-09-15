@@ -27,10 +27,11 @@ local function getTopNetworks(ifid, ifname)
 end
 
 local function getTopNetworksBy(ifid, ifname, filter_col, filter_val)
-  return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
-                                      filter_col, filter_val, top_networks_intf.key,
-                                      top_networks_intf.JSONkey, nil, true, nil,
-                                      top_networks_intf.uniqueKey)
+   local lastdump_key = getLastDumpKey(top_networks_intf.uniqueKey, filter_col, filter_val)
+   return getCurrentTopGroupsSeparated(ifid, ifname, 10, true, false,
+				       filter_col, filter_val, top_networks_intf.key,
+				       top_networks_intf.JSONkey, nil, true, nil,
+				       lastdump_key)
 end
 
 local function getTopNetworksClean(ifid, ifname, param)

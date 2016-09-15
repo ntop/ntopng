@@ -25,8 +25,9 @@ local function getTopTalkers(ifid, ifname)
 end
 
 local function getTopTalkersBy(ifid, ifname, filter_col, filter_val)
+   local lastdump_key = getLastDumpKey(top_talkers_intf.uniqueKey, filter_col, filter_val)
    return getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, true, nil, nil,
-			       top_talkers_intf.uniqueKey)
+			       lastdump_key)
 end
 
 local function getTopTalkersClean(ifid, ifname, param)
@@ -90,7 +91,6 @@ local function topTalkersSectionInTableOP(tblarray, arithOp)
    local ret = {}
    local outer_cnt = 1
    local num_glob = 1
-
    for _,tbl in pairs(tblarray) do
       for _,outer in pairs(tbl) do
 	 if(ret[outer_cnt] == nil) then ret[outer_cnt] = {} end
@@ -120,42 +120,49 @@ local function getTopTalkersFromJSONDirection(table, wantedDir, add_vlan)
    local elements = ""
 
    -- For each VLAN, get hosts and concatenate them
+   local host_container = {}
+   local sort_helper    = {}
    for i,vlan in pairs(table["vlan"]) do
       local vlanid = vlan["label"]
       local vlanname = vlan["name"]
       -- XXX hosts is an array of (senders, receivers) pairs?
       for i2,hostpair in pairs(vlan[top_talkers_intf.JSONkey]) do
 	 -- hostpair is { "senders": [...], "receivers": [...] }
-	 for k2,direction in pairs(hostpair) do
-	    -- direction is "senders": [...] or "receivers": [...]
-	    if(k2 ~= wantedDir) then goto continue end
-	    -- scan hosts
-	    for i2,host in pairs(direction) do
-	       -- host is { "label": ..., "value": ..., "url": ... }
-	       elements = elements.."{ "
-	       local n_el = 0
-	       for k3,v3 in pairs(host) do
-		  elements = elements..'"'..k3..'": '
-		  if(k3 == "value") then
-		     elements = elements..tostring(v3)
-		  else
-		     elements = elements..'"'..v3..'"'
-		  end
-		  elements = elements..", "
-		  n_el = n_el + 1
-	       end
-	       if(add_vlan ~= nil) then
-		  elements = elements..'"vlanm": "'..vlanname..'", '
-		  elements = elements..'"vlan": "'..vlanid..'", '
-	       end
-	       if(n_el ~= 0) then
-		  elements = string.sub(elements, 1, -3)
-	       end
-	       elements = elements.." },\n"
+	 
+	 local direction = hostpair[wantedDir]
+	 if direction == nil then direction = {} end
+	 for _, host in pairs(direction) do
+	    local addr = host["address"]
+	    local val = tonumber(host["value"])
+	    if addr == nil or val == nil then goto continue end
+	    sort_helper[addr] = val
+	    if(add_vlan ~= nil) then
+	       host["vlanm"] = vlanname
+	       host["vlan"] = vlanid
 	    end
+	    host_container[addr] = host
 	    ::continue::
 	 end
       end
+   end
+
+   for addr, val in pairsByValues(sort_helper, rev) do
+      elements = elements.."{ "
+      local n_el = 0
+      for k3,v3 in pairs(host_container[addr]) do
+	 elements = elements..'"'..k3..'": '
+	 if(k3 == "value") then
+	    elements = elements..tostring(v3)
+	 else
+	    elements = elements..'"'..v3..'"'
+	 end
+	 elements = elements..", "
+	 n_el = n_el + 1
+      end
+      if(n_el ~= 0) then
+	 elements = string.sub(elements, 1, -3)
+      end
+      elements = elements.." },\n"
    end
 
    return elements
