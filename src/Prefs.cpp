@@ -89,6 +89,9 @@ Prefs::Prefs(Ntop *_ntop) {
   other_rrd_1min_days     = OTHER_RRD_1MIN_DAYS;
   other_rrd_1h_days       = OTHER_RRD_1H_DAYS;
   other_rrd_1d_days       = OTHER_RRD_1D_DAYS;
+  host_activity_rrd_raw_hours = HOST_ACTIVITY_RRD_RAW_HOURS;
+  host_activity_rrd_1h_days   = HOST_ACTIVITY_RRD_1H_DAYS;
+  host_activity_rrd_1d_days   = HOST_ACTIVITY_RRD_1D_DAYS;
   housekeeping_frequency  = HOUSEKEEPING_FREQUENCY;
 
   es_type = strdup((char*)"flows"), es_index = strdup((char*)"ntopng-%Y.%m.%d"),
@@ -396,6 +399,10 @@ void Prefs::reloadPrefsFromRedis() {
   other_rrd_1min_days    = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS);
   other_rrd_1h_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS);
   other_rrd_1d_days      = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS);
+  host_activity_rrd_raw_hours = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_RAW_HOURS, HOST_ACTIVITY_RRD_RAW_HOURS);
+  host_activity_rrd_1h_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1H_DAYS, HOST_ACTIVITY_RRD_1H_DAYS);
+  host_activity_rrd_1d_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1D_DAYS, HOST_ACTIVITY_RRD_1D_DAYS);
+  host_activity_rrd_creation  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION, HOST_ACTIVITY_RRD_CREATION);
   housekeeping_frequency = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 						HOUSEKEEPING_FREQUENCY);
 
@@ -1160,6 +1167,10 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "other_rrd_1min_days", other_rrd_1min_days);
   lua_push_int_table_entry(vm, "other_rrd_1h_days", other_rrd_1h_days);
   lua_push_int_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
+  lua_push_int_table_entry(vm, "host_activity_rrd_raw_hours", host_activity_rrd_raw_hours);
+  lua_push_int_table_entry(vm, "host_activity_rrd_1h_days", host_activity_rrd_1h_days);
+  lua_push_int_table_entry(vm, "host_activity_rrd_1d_days", host_activity_rrd_1d_days);
+  lua_push_int_table_entry(vm, "host_activity_rrd_creation", host_activity_rrd_creation);
   lua_push_int_table_entry(vm, "housekeeping_frequency", housekeeping_frequency);
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
@@ -1245,6 +1256,22 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_OTHER_RRD_1D_DAYS,
 		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
     other_rrd_1d_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS,
+		    strlen((char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS)))
+    host_activity_rrd_raw_hours = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS,
+		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS)))
+    host_activity_rrd_1h_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS,
+		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS)))
+    host_activity_rrd_1d_days = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION,
+		    strlen((char*)CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION)))
+    host_activity_rrd_creation = atoi(pref_value);
   else if (!strncmp(pref_name,
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))

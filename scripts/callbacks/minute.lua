@@ -69,7 +69,7 @@ function saveLocalHostsActivity(hostname, host, hoststats, hostbase)
             name = fixPath(hostsbase .. "/" .. act .. ".rrd")
 
             -- up, down, background bytes
-            createActivityRRDCounter(name, 60, verbose)
+            createActivityRRDCounter(name, verbose)
             ntop.rrd_update(name, "N:"..tolongint(val.up) .. ":" .. tolongint(val.down) .. ":" .. tolongint(val.background))
 
             if(verbose) then
@@ -107,6 +107,7 @@ host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
+host_activity_rrd_creation = ntop.getCache("ntopng.prefs.host_activity_rrd_creation")
 
 if(flow_devices_rrd_creation == 1) then
    local info = ntop.getInfo()
@@ -163,9 +164,6 @@ for _,_ifname in pairs(ifnames) do
               ntop.rrd_update(rrdpath, "N:"..tolongint(ptraffic))
           end
       end
-
-      -- Save host activity stats every minute
-      foreachHost(_ifname, saveLocalHostsActivity)
 
       -- Run RRD update every 5 minutes
       -- Use 30 just to avoid rounding issues
@@ -400,6 +398,9 @@ for _,_ifname in pairs(ifnames) do
 		  end
 	       end
 	    end
+
+	    -- Save host activity stats
+	    if host_activity_rrd_creation == "1" then foreachHost(_ifname, saveLocalHostsActivity) end
 	 end -- if rrd
       end -- if(diff
    end -- if(good interface type

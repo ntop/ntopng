@@ -52,6 +52,8 @@ class Prefs {
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
+  u_int16_t host_activity_rrd_raw_hours, host_activity_rrd_1h_days, host_activity_rrd_1d_days;
+  bool host_activity_rrd_creation;
   u_int16_t housekeeping_frequency;
   u_int32_t max_num_hosts, max_num_flows;
   u_int http_port, https_port;
