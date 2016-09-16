@@ -1571,7 +1571,7 @@ print [[
 ]]  
 elseif(page == "snmp") then
 if(ntop.isPro()) then
-   print_snmp_report(host_info["host"], true, ifId)
+   print_snmp_report(host_info, true, ifId)
 end
 
 elseif(page == "talkers") then
