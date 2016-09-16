@@ -263,6 +263,11 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
       style_ipv6 = "display:none;"
    end
 
+   local displacement = "7"
+   if not interface.isPacketInterface() then
+      displacement = "9"
+   end
+
 	  print [[
 
      <div class="row">
@@ -271,13 +276,15 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 	 Download flows:
           <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v4_]] print(button_id) print[[" style="]] print(style_ipv4) print[[">IPv4</a>&nbsp;
           <a class="btn btn-default btn-sm" href="#" role="button" id="download_flows_v6_]] print(button_id) print[[" style="]] print(style_ipv6) print[[">IPv6</a>
-       </div>
+       </div>]]
 
-       <div class='col-md-2'>
-	 Extract pcap: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
-       </div>
+	  if interface.isPacketInterface() then
+       print[[ <div class='col-md-2'>
+	       Extract pcap: <a class="btn btn-default btn-sm" href="#" role="button" id="extract_pcap_]] print(button_id) print[["><i class="fa fa-download fa-lg"></i></a><br><span id="pcap_download_msg_]] print(button_id) print[["></span>
+	       </div>]]
+	  end
 
-       <div class='col-md-7'>
+	  print[[<div class='col-md-]] print(displacement) print[['>
        </div>
      </div>
 
