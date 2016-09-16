@@ -116,6 +116,10 @@
 #define OTHER_RRD_1MIN_DAYS      30
 #define OTHER_RRD_1H_DAYS        100
 #define OTHER_RRD_1D_DAYS        365
+#define HOST_ACTIVITY_RRD_RAW_HOURS  24
+#define HOST_ACTIVITY_RRD_1H_DAYS    7
+#define HOST_ACTIVITY_RRD_1D_DAYS    90
+#define HOST_ACTIVITY_RRD_CREATION   false
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
@@ -340,6 +344,9 @@
 #define CONST_OTHER_RRD_1MIN_DAYS     "ntopng.prefs.other_rrd_1min_days"
 #define CONST_OTHER_RRD_1H_DAYS       "ntopng.prefs.other_rrd_1h_days"
 #define CONST_OTHER_RRD_1D_DAYS       "ntopng.prefs.other_rrd_1d_days"
+#define CONST_HOST_ACTIVITY_RRD_RAW_HOURS  "ntopng.prefs.host_activity_rrd_raw_hours"
+#define CONST_HOST_ACTIVITY_RRD_1H_DAYS    "ntopng.prefs.host_activity_rrd_1h_days"
+#define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
 #define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
@@ -351,6 +358,7 @@
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     "ntopng.prefs.housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION          "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION     "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
+#define CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION "ntopng.prefs.host_activity_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION     "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               "ntopng.prefs.thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG               "ntopng.prefs.alerts_syslog"    /* 0 / 1 */

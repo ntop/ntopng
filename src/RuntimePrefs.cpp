@@ -156,6 +156,26 @@ bool RuntimePrefs::are_hosts_ndpi_rrd_created() {
 
 /* ******************************************* */
 
+void RuntimePrefs::set_hosts_activity_rrd_creation(bool enable) {
+  ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION,
+			enable ? (char*)"1" : (char*)"0", 0);
+}
+
+/* ******************************************* */
+
+bool RuntimePrefs::are_hosts_activity_rrd_created() {
+  char rsp[32];
+
+  if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION,
+			   rsp, sizeof(rsp)) < 0) {
+    set_hosts_ndpi_rrd_creation(false);
+    return(false);
+  } else
+    return((strcmp(rsp, "1") == 0) ? true : false);
+}
+
+/* ******************************************* */
+
 void RuntimePrefs::set_hosts_categories_rrd_creation(bool enable) {
   ntop->getRedis()->set((char*)CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION,
 			enable ? (char*)"1" : (char*)"0", 0);

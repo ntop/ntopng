@@ -402,6 +402,16 @@ function printStatsRrds()
 			 "Toggle the creation of nDPI timeseries for local hosts and defined networks. Enable their creation allows you "..
 			    "to keep application protocol statistics at the cost of using more disk space.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
+
+  local toggle_local_activity = "toggle_local_activity"
+  local activityPrefsToSwitch = {"local_activity_prefs",
+    "host_activity_rrd_raw_hours", "id_input_host_activity_rrd_raw_hours",
+    "host_activity_rrd_1h_days", "id_input_host_activity_rrd_1h_days",
+    "host_activity_rrd_1d_days", "id_input_host_activity_rrd_1d_days"}
+  toggleTableButtonPrefs("Activities Timeseries",
+			 "Toggle the creation of activities timeseries for local hosts and networks. Turn it off to save storage space.",
+			 "On", "1", "success", "Off", "0", "danger", toggle_local_activity, "ntopng.prefs.host_activity_rrd_creation", "0",
+       false, activityPrefsToSwitch)
   
   local info = ntop.getInfo()
   toggleTableButtonPrefs("Flow Devices Timeseries",
@@ -430,6 +440,13 @@ function printStatsRrds()
   --prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "other_rrd_1min_days", prefs.other_rrd_1min_days)
   prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "other_rrd_1h_days", prefs.other_rrd_1h_days)
   prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "other_rrd_1d_days", prefs.other_rrd_1d_days)
+
+  -- Only shown when toggle_local_activity switch is on
+  print('<tr id="local_activity_prefs"><th colspan=2 class="info">Local Activity Timeseries</th></tr>')
+  prefsInputFieldPrefs("Hours for raw stats", "Number of hours for which raw stats are kept. Default: 24.", "ntopng.prefs.", "host_activity_rrd_raw_hours", prefs.host_activity_rrd_raw_hours)
+  prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 7.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days)
+  prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 90.", "ntopng.prefs.", "host_activity_rrd_1d_days", prefs.host_activity_rrd_1d_days)
+  if _GET[toggle_local_activity] == "0" or (_GET[toggle_local_activity] == nil and prefs.host_activity_rrd_creation == 0) then print("<script>"..toggle_local_activity.."_functionOff();</script>") end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')

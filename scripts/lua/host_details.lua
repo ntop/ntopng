@@ -1088,7 +1088,7 @@ if host["localhost"] == true then
       
          <script type="text/javascript">
          var HorizonGraphWidth = 800
-         var context = cubism.context().size(HorizonGraphWidth).step(60*1000);//.stop();
+         var context = cubism.context().size(HorizonGraphWidth).step(300*1000);//.stop();
          var horizon = context.horizon();
 
          $('#userctivity')
