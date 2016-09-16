@@ -1087,7 +1087,7 @@ if host["localhost"] == true then
       </style>
       
          <script type="text/javascript">
-         var HorizonGraphWidth = 800
+         var HorizonGraphWidth = 576
          var context = cubism.context().size(HorizonGraphWidth).step(300*1000);//.stop();
          var horizon = context.horizon();
 
@@ -1162,7 +1162,7 @@ if host["localhost"] == true then
       <p>
       <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
 <br>and background traffic (e.g. your email client periodically checks for email presence). Host traffic sent (upload)<br>
-is marked as positive value in <font color=blue>blue</font>, traffic received (download) is marked as negative in <font color=green>green</font>.
+is marked as negative value in <font color=blue>blue</font>, traffic received (download) is marked as positive in <font color=green>green</font>.
    </td></tr> ]]
 
    -- showHostActivityStats(hostbase, "", "1h")

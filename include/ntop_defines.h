@@ -116,8 +116,8 @@
 #define OTHER_RRD_1MIN_DAYS      30
 #define OTHER_RRD_1H_DAYS        100
 #define OTHER_RRD_1D_DAYS        365
-#define HOST_ACTIVITY_RRD_RAW_HOURS  24
-#define HOST_ACTIVITY_RRD_1H_DAYS    7
+#define HOST_ACTIVITY_RRD_RAW_HOURS  48
+#define HOST_ACTIVITY_RRD_1H_DAYS    15
 #define HOST_ACTIVITY_RRD_1D_DAYS    90
 #define HOST_ACTIVITY_RRD_CREATION   false
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
