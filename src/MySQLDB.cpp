@@ -749,33 +749,37 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
     return(rc);
   }
 
-  num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
-  lua_newtable(vm);
-
-  num = 0;
-  while((row = mysql_fetch_row(result))) {
+  if((result == NULL) || (mysql_field_count(&mysql) == 0)) {
+    lua_pushnil(vm);
+  } else {
+    num_fields = min_val(mysql_num_fields(result), MYSQL_MAX_NUM_FIELDS);
     lua_newtable(vm);
 
-    if(num == 0) {
-      for(int i = 0; i < num_fields; i++) {
-	MYSQL_FIELD *field = mysql_fetch_field(result);
+    num = 0;
+    while((row = mysql_fetch_row(result))) {
+      lua_newtable(vm);
 
-	fields[i] = field->name;
+      if(num == 0) {
+	for(int i = 0; i < num_fields; i++) {
+	  MYSQL_FIELD *field = mysql_fetch_field(result);
+
+	  fields[i] = field->name;
+	}
       }
+
+      for(int i = 0; i < num_fields; i++)
+	lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
+
+      lua_pushnumber(vm, ++num);
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+      if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
     }
 
-    for(int i = 0; i < num_fields; i++)
-      lua_push_str_table_entry(vm, (const char*)fields[i], row[i] ? row[i] : (char*)"");
-
-    lua_pushnumber(vm, ++num);
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-
-    if(limitRows && num >= MYSQL_MAX_NUM_ROWS) break;
+    mysql_free_result(result);
   }
-
-  mysql_free_result(result);
-
+  
   if(m) m->unlock(__FILE__, __LINE__);
 
   return(0);
