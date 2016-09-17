@@ -1074,11 +1074,22 @@ print [[
 if host["localhost"] == true then
    print [[ <tr><th>Protocol Activity</th><td colspan=2>
       <div style='margin-top:0.5em;'>
-         <input type="radio" name="showmode" value="updown" onclick="setShowMode(this.value)" checked> User Traffic<br>
-         <input type="radio" name="showmode" value="bg" onclick="setShowMode(this.value)"> Background Traffic
+         <input type="radio" name="showmode" value="updown" onclick="if(this.value != curmode) setShowMode(this.value);" checked> User Traffic<br>
+         <input type="radio" name="showmode" value="bg" onclick="if(this.value != curmode) setShowMode(this.value);"> Background Traffic
       </div>
 
-      <div id="userctivity" style='margin:2em 0 2em 0;'></div>
+      <div id="userctivityContainer"></div>
+
+      <div style='margin-bottom:1em;'>
+	 Resolution:&nbsp;
+	 <select onchange="onChangeStep(this);">
+	   <option value="300" selected="selected">5 min</option>
+	   <option value="60">1 min (realtime)</option>
+	   <option value="10">10 sec (realtime)</option>
+	   <option value="5">5 sec (realtime)</option>
+	   <option value="1">1 sec (realtime)</option>
+	 </select>
+      </div>
 
       <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
       <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.rrd-server.js"></script>
@@ -1087,18 +1098,13 @@ if host["localhost"] == true then
       </style>
       
          <script type="text/javascript">
-         var HorizonGraphWidth = 576
-         var context = cubism.context().size(HorizonGraphWidth).step(300*1000);//.stop();
-         var horizon = context.horizon();
-
-         $('#userctivity')
-            .css("position", "relative")
-            .css("width", HorizonGraphWidth)
-
-         // to set labels place on mousemove
-         context.on("focus", function(i) {
-            d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
-         });
+	 var activitiesurl = "]] print(ntop.getHttpPrefix().."/lua/get_host_activity.lua?ifid="..ifId.."&host="..host_ip) print[[";
+         var HorizonGraphWidth = 576;
+	 var curmode = "updown";
+	 var curstep = 0;
+         var context = null;
+         var horizon = null;
+	 var rrdserver = null;
 
          function formatBytes(bytes, precision) {
             var sizes = [1, 1024, 1024*1024, 1024*1024*1024, 1024*1024*1024*1024];
@@ -1115,13 +1121,60 @@ if host["localhost"] == true then
             return value.toFixed(precision) + labels[i];
          }
 
-         function setShowMode(mode) {
+	 function onChangeStep(control) {
+	    var newvalue = control.value;
+	    
+	    if (curstep != newvalue) {
+	       $(control).blur();
+	       setShowMode(curmode, newvalue);
+	    }
+	 }
+
+	 function resetContext(newstep) {	 
+	    if (newstep != curstep) {
+	       // hard reset
+	       curstep = newstep;
+	       $('#userctivity').remove();
+
+	       if (context) {
+		  context.stop();
+		  delete rrdserver;
+		  delete horizon;
+		  delete context;
+	       }
+
+	       var div = $('<div id="userctivity"></div>')
+		  .css("margin", "2em 0 1em 0")
+		  .css("position", "relative")
+		  .css("width", HorizonGraphWidth);
+	       $('#userctivityContainer').append(div);
+
+	       context = cubism.context().size(HorizonGraphWidth).step(curstep*1000);
+	       horizon = context.horizon();
+	       rrdserver = cubism.rrdserver(context, HorizonGraphWidth);
+
+	       // to set labels place on mousemove
+	       context.on("focus", function(i) {
+		  d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
+	       });
+	    } else {
+	       // soft reset
+	       d3.selectAll(".horizon").remove();
+	       $('#userctivity').empty();
+	    }
+	 }
+
+         function setShowMode(mode, newstep) {
+	    curmode = mode;
+	    newstep = newstep ? newstep : curstep;
+	    if (context)
+	       context.stop();
+	    
             $.ajax({
                type: 'GET',
-               url: activitiesurl,
+               url: activitiesurl + '&step=' + newstep,
                success: function(content) {
-                  d3.selectAll(".horizon").remove();
-                  $('#userctivity').empty();
+		  resetContext(newstep);
                   
                   var metrics = [];
                   JSON.parse(content).sort().map(function(activity) {
@@ -1147,17 +1200,16 @@ if host["localhost"] == true then
 			.append("div")
 			.attr("class", "rule")
 			.call(context.rule());
+
+		     context.start();
 		  } else {
 		     $('#userctivity').text("No data so far");
 		  }
                }
             });
          }
-
-         var rrdserver = cubism.rrdserver(context);
-         var activitiesurl = "]] print(ntop.getHttpPrefix().."/lua/get_host_activity.lua?ifid="..ifId.."&host="..host_ip) print[[";
-
-         setShowMode("updown");
+	 
+         setShowMode("updown", 300);
       </script>
       <p>
       <b>NOTE:</b><br>The above map filters host application traffic by splitting it in real user reaffic (e.g. web page access)
