@@ -13,6 +13,8 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 -- mandatory parameters: host(as ip), ifid
 local res = {}
 
+local MIN_STEP = 300
+
 local name_map = {
       { "Chat", "Chat and Realtime Communications" },
       { "RemoteControl", "Remote Access" },
@@ -49,42 +51,81 @@ function mapnametoRRD(name)
   return(name)
 end
 
-if (_GET["host"] ~= nil and _GET["ifid"] ~= nil) then
+if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
    local host_info = url2hostinfo(_GET)
    local ifId = _GET["ifid"]
-   local hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
+   local host = hostinfo2hostkey(host_info)
+   local hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host)
    local activbase = hostbase .. "/activity"
+   local actname = mapnametoRRD(_GET["activity"])
 
-   if ntop.isdir(activbase) then
+   local islive = _GET["step"] and tonumber(_GET["step"]) < MIN_STEP
+   local fetchData = false
+   local rrd
+
+   if islive then
       if not _GET["activity"] then
          -- mode=list
-         for key,value in pairs(ntop.readdir(activbase)) do
-            if string.ends(key, ".rrd") then
-               table.insert(res, mapRRDname(string.sub(key, 1, -5)))
+         interface.select(ifId)
+         local activities = interface.getHostActivity(host)
+         if activities then
+            for key,value in pairs(activities) do
+               table.insert(res, mapRRDname(key))
             end
          end
       else
          -- mode=get
+         fetchData = true
+      end
+   else
+      if ntop.isdir(activbase) then
+         if not _GET["activity"] then
+            -- mode=list
+            for key,value in pairs(ntop.readdir(activbase)) do
+               if string.ends(key, ".rrd") then
+                  table.insert(res, mapRRDname(string.sub(key, 1, -5)))
+               end
+            end
+         else
+            -- mode=get
+            rrd = activbase.."/"..actname..".rrd"
+            
+            if(ntop.notEmptyFile(rrd)) then
+               fetchData = true
+            end
+         end
+      end
+   end
+
+   if fetchData then
+      res.live = islive
+      res.step = _GET["step"]
+      res.up = {}
+      res.down = {}
+      res.bg = {}
+
+      if islive then
+         interface.select(ifId)
+         local activity = interface.getHostActivity(host)
+         if activity and activity[actname] then
+            local data = activity[actname]
+            table.insert(res.up, data.up)
+            table.insert(res.down, data.down)
+            table.insert(res.bg, data.background)
+         end
+      else
          local start_time = tonumber(_GET["start"])
          local end_time = tonumber(_GET["stop"])
          local cf = _GET["cf"] or "AVERAGE"
-
-         local rrd = activbase.."/"..mapnametoRRD(_GET["activity"])..".rrd"
+         local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrd, cf, start_time, end_time)
+         res.step = fstep
          
-         if(ntop.notEmptyFile(rrd)) then
-            local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrd, cf, start_time, end_time)
-            res.step = fstep
-            res.up = {}
-            res.down = {}
-            res.bg = {}
+         function getValue(w) if w ~= w then return 0 else return math.max(tonumber(w), 0) end end
 
-            function getValue(w) if w ~= w then return 0 else return math.max(tonumber(w), 0) end end
-
-            for i, v in ipairs(fdata) do
-               table.insert(res.up, getValue(v[1])*fstep)
-               table.insert(res.down, getValue(v[2])*fstep)
-               table.insert(res.bg, getValue(v[3])*fstep)
-            end
+         for i, v in ipairs(fdata) do
+            table.insert(res.up, getValue(v[1])*fstep)
+            table.insert(res.down, getValue(v[2])*fstep)
+            table.insert(res.bg, getValue(v[3])*fstep)
          end
       end
    end

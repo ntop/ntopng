@@ -443,8 +443,8 @@ function printStatsRrds()
 
   -- Only shown when toggle_local_activity switch is on
   print('<tr id="local_activity_prefs"><th colspan=2 class="info">Local Activity Timeseries</th></tr>')
-  prefsInputFieldPrefs("Hours for raw stats", "Number of hours for which raw stats are kept. Default: 24.", "ntopng.prefs.", "host_activity_rrd_raw_hours", prefs.host_activity_rrd_raw_hours)
-  prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 7.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days)
+  prefsInputFieldPrefs("Hours for raw stats", "Number of hours for which raw stats are kept. Default: 48.", "ntopng.prefs.", "host_activity_rrd_raw_hours", prefs.host_activity_rrd_raw_hours)
+  prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 15.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days)
   prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 90.", "ntopng.prefs.", "host_activity_rrd_1d_days", prefs.host_activity_rrd_1d_days)
   if _GET[toggle_local_activity] == "0" or (_GET[toggle_local_activity] == nil and prefs.host_activity_rrd_creation == 0) then print("<script>"..toggle_local_activity.."_functionOff();</script>") end
 
