@@ -10,6 +10,9 @@ CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 
+MACHINE=`uname -m`
+SYSTEM=`uname -s`
+
 #
 # On CentOS 6 `git rev-list HEAD --count` does not work
 #
@@ -83,10 +86,24 @@ else
 fi
 
 AC_MSG_CHECKING(for ntopng professional edition)
+PRO_MAKEFILE_INC=
+PRO_INC=
+PRO_LIBS=
+ADDITIONAL_PRO_OBJECTS=
+PRO_OBJECTS=
+PRO_HEADERS=
+PRO_LIBS=
+
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
-dnl> $(patsubst pro/bpf/%.c, pro/bpf/%.o, $(wildcard pro/bpf/*.c))
+
+if test $SYSTEM = "Darwin"; then
+   cd ../PF_RING/userland/fast_bpf; make; cd -
+   CFLAGS="${CFLAGS} -I../PF_RING/userland/fast_bpf"
+   LDFLAGS="${LDFLAGS} -L../PF_RING/userland/fast_bpf -lfastbpf"
+fi
+
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
@@ -104,12 +121,6 @@ if test -r "../license/systemId.c"; then :
 fi
 else
 AC_MSG_RESULT(not found)
-PRO_MAKEFILE_INC=
-PRO_INC=
-PRO_LIBS=
-PRO_OBJECTS=
-PRO_HEADERS=
-PRO_LIBS=
 fi
 
 AC_DEFINE_UNQUOTED(NTOPNG_GIT_RELEASE, "${GIT_BRANCH}:${GIT_RELEASE}", [GIT Release])
@@ -122,9 +133,6 @@ fi
 if test -f ".git/index"; then
    GIT_INDEX=".git/index"
 fi
-
-MACHINE=`uname -m`
-SYSTEM=`uname -s`
 
 if test $SYSTEM = "Linux"; then
    if test -f /etc/debian_version; then
