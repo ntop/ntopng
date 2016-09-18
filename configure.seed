@@ -100,10 +100,10 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
 if test $SYSTEM = "Darwin"; then
    cd ../PF_RING/userland/fast_bpf; make; cd -
-   CFLAGS="${CFLAGS} -I../PF_RING/userland/fast_bpf"
    LDFLAGS="${LDFLAGS} -L../PF_RING/userland/fast_bpf -lfastbpf"
 fi
 
+CFLAGS="${CFLAGS} -I../PF_RING/userland/fast_bpf"
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
