@@ -1083,16 +1083,35 @@ if host["localhost"] == true then
       <div style='margin-bottom:1em;'>
 	 Resolution:&nbsp;
 	 <select onchange="onChangeStep(this);">
+]]
+
+if(ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == "1") then
+print [[
+
+
+<option disabled>Historical</option>
 	   <option value="86400">1 day</option>
 	   <option value="3600">1 hour</option>
 	   <option value="300" selected="selected">5 min</option>
-	   <option value="60">1 min (realtime)</option>
-	   <option value="10">10 sec (realtime)</option>
-	   <option value="5">5 sec (realtime)</option>
-	   <option value="1">1 sec (realtime)</option>
+<option disabled></option>
+]]
+end
+
+print [[
+<option disabled>Realtime</option>
+	   <option value="60">1 min</option>
+	   <option value="10">10 sec</option>
+	   <option value="5">5 sec</option>
+	   <option value="1">1 sec</option>
 	 </select>
       </div>
+]]
 
+if(ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == "0") then
+  print('Please enable <A HREF="/lua/admin/prefs.lua?subpage_active=on_disk_rrds">Activities Timeseries</A> preferences to save historical host activities.<p>')
+end
+
+print [[
       <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.v1.js"></script>
       <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism.rrd-server.js"></script>
       <style type = "text/css">
