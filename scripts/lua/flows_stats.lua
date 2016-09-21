@@ -143,6 +143,8 @@ local active_msg = "Active "
 
 if not interface.isPacketInterface() then
    active_msg = "Recently "..active_msg
+elseif interface.isPcapDumpInterface() then
+   active_msg = ""
 end
 
 active_msg = active_msg..(application or vhost or "").." Flows"

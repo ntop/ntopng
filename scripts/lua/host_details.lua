@@ -217,7 +217,7 @@ end
 if(page == "activities") then
   print("<li class=\"active\"><a href=\"#\">Activities</a></li>\n")
 else
-   if(host["ip"] ~= nil) then
+   if interface.isPcapDumpInterface() == false and host["ip"] ~= nil then
       print("<li><a href=\""..url.."&page=activities\">Activities</a></li>")
    end
 end
@@ -264,7 +264,7 @@ end
 if(ntop.isPro()) then
    if(page == "snmp") then
       print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
-   else
+   elseif interface.isPcapDumpInterface() == false then
       print("<li><a href=\""..url.."&page=snmp\">SNMP</a></li>")
    end
 end
@@ -313,15 +313,14 @@ end
 if ((host["ip"] ~= nil) and host['localhost']) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
-   else
+   elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
    end
 
    if(host["ip"] ~= nil) then
       if(page == "config") then
 	 print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-
-      else
+      elseif interface.isPcapDumpInterface() == false then
 	 print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
       end
    end
@@ -637,7 +636,11 @@ end
 
    local flows_th = "Recently Active Flows / Total"
    if interface.isPacketInterface() then
-      flows_th = "Active Flows / Total Active / Low Goodput"
+      if interface.isPcapDumpInterface() == false then
+	 flows_th = "Active Flows / Total Active / Low Goodput"
+      else
+	 flows_th = "Flows / Total Active / Low Goodput"
+      end
    end
 
    print("<tr><th rowspan=2>"..flows_th.."</th><th>'As Client'</th><th>'As Server'</th></tr>\n")
@@ -1410,6 +1413,8 @@ if(show_vlan) then print ('flow_rows_option["vlan"] = true;\n') end
 local active_flows_msg = "Active Flows"
 if not interface.isPacketInterface() then
    active_flows_msg = "Recently "..active_flows_msg
+elseif interface.isPcapDumpInterface() then
+   active_flows_msg = "Flows"
 end
 
 if(show_sprobe) then

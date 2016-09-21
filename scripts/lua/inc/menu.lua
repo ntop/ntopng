@@ -43,12 +43,16 @@ print [[/lua/about.lua"><i class="fa fa-question-circle"></i> About ntopng</a></
 print(ntop.getHttpPrefix())
 print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> Runtime Status</a></li>
       <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-rss"></i> ntop Blog <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>
-      <li class="divider"></li>
-      <li><a href="]]
+      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>]]
+
+if interface.isPcapDumpInterface() == false then
+
+   print [[
+<li class="divider"></li>
+<li><a href="]]
 
 print(ntop.getHttpPrefix())
-if(ntop.isPro()) then
+if ntop.isPro() then
    print("/lua/pro/dashboard.lua")
 else
    print("/lua/index.lua")
@@ -64,10 +68,12 @@ if(ntop.isPro()) then
 	print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Report</a></li>')
 end
 
+end
+
 print [[    </ul>
   </li>
-
    ]]
+
 
 _ifstats = interface.getStats()
 

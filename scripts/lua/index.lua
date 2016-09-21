@@ -2,17 +2,24 @@
 -- (C) 2013-16 - ntop.org
 --
 
-if(ntop.isPro()) then
-   print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/pro/dashboard.lua"))
-   return
-end
-
-
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
 
+
+interface.select(ifname)
+
+if(ntop.isPro()) then
+   if interface.isPcapDumpInterface() == false then
+      print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/pro/dashboard.lua"))
+      return
+   else
+      -- it doesn't make sense to show the dashboard for pcap files...
+      print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/if_stats.lua?id="..getInterfaceId(ifname)))
+      return
+   end
+end
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
@@ -23,7 +30,7 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "home"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-interface.select(ifname)
+
 ifstats = interface.getStats()
 is_loopback = isLoopback(ifname)
 iface_id = interface.name2id(ifname)

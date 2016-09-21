@@ -117,7 +117,7 @@ function print_single_group(value)
    if (group_col == "local_network_id" or network_n ~= nil) then
       print(value["name"]..'</A> ')
       print('", "column_chart": "')
-      if(tonumber(value["id"]) ~= -1) then
+      if tonumber(value["id"]) ~= -1 and interface.isPcapDumpInterface() == false then
 	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
 	 print("-")

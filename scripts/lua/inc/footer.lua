@@ -85,6 +85,8 @@ print [[</font>
 	 <div class="text-center col-xs-6 col-sm-6">
 ]]
 
+if interface.isPcapDumpInterface() == false then
+   
 key = 'ntopng.prefs.'..ifname..'.speed'
 maxSpeed = ntop.getCache(key)
 -- io.write(maxSpeed)
@@ -111,6 +113,8 @@ print [[  <a href="]]
 	    </a>
 ]]
 
+end -- closes interface.isPcapDumpInterface() == false 
+
 print [[
       </div>
     </div>
@@ -121,10 +125,10 @@ print [[
     <div id="network-load">
   </div> <!-- End column 3 -->
 </div>
-</div>
+</div>]]
 
 
-<script>
+print[[<script>
 // Updating charts.
 ]]
 
@@ -280,7 +284,8 @@ print [[/lua/logout.lua");  }, */
 	        prev_local   = rsp.local2remote;
 	        prev_remote  = rsp.remote2local;
 	      }
-	      var values = updatingChart_local2remote.text().split(",")
+
+              var values = updatingChart_local2remote.text().split(",")
 	      var values1 = updatingChart_remote2local.text().split(",")
 	      var bytes_diff   = Math.max(rsp.bytes-prev_bytes, 0);
 	      var packets_diff = Math.max(rsp.packets-prev_packets, 0);
@@ -309,11 +314,20 @@ print [[/lua/logout.lua");  }, */
 		/* don't use the remote_{b,p}ps values to update the gauge
                 if(rsp.remote_pps != 0)  { pps = Math.max(rsp.remote_pps, 0); }
                 if(rsp.remote_bps != 0)  { bps = Math.max(rsp.remote_bps, 0); }
-		*/
+		*/]]
+
+   if interface.isPcapDumpInterface() == false then
+      print[[
 
 		$('#gauge_text_allTraffic').html(bitsToSize(bps, 1000) + " [" + addCommas(pps) + " pps]");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
+		gauge.set(Math.min(bps, gauge.maxValue));
+]]
+
+   end
+
+print[[
 		var msg = "<i class=\"fa fa-time fa-lg\"></i>Uptime: "+rsp.uptime+"<br>";
 
 		if(rsp.alerts > 0 || rsp.engaged_alerts > 0) {
@@ -357,23 +371,6 @@ print [[/lua/hosts_stats.lua>";
 
     msg += "<a href=]]
 print (ntop.getHttpPrefix())
-print [[/lua/aggregated_hosts_stats.lua>";
-		if(rsp.num_aggregations > 0) {
-		   if(rsp.aggregations_pctg < alarm_threshold_low) {
-		      msg += "<span class=\"label label-default\">";
-		   } else if(rsp.aggregations_pctg < alarm_threshold_high) {
-		      alert = 1;
-		      msg += "<span class=\"label label-warning\">";
-		   } else {
-		      alert = 1;
-		      msg += "<span class=\"label label-danger\">";
-		   }
-
-		   msg += addCommas(rsp.num_aggregations)+" Aggregations</span></a>";
-		}
-
-    msg += "&nbsp;<a href=]]
-print (ntop.getHttpPrefix())
 print [[/lua/flows_stats.lua>";
 		if(rsp.flows_pctg < alarm_threshold_low) {
 		  msg += "<span class=\"label label-default\">";
@@ -396,9 +393,8 @@ print [[/lua/if_stats.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B94A4
 		   msg += "</span></A> ";
 		}
 
-
 		$('#network-load').html(msg);
-		gauge.set(Math.min(bps, gauge.maxValue));
+
 
 		if(alert) {
 		   $('#toomany').html("<div class='alert alert-warning'><h4>Warning</h4>You have too many hosts/flows for your ntopng configuration and this will lead to packet drops and high CPU load. Please restart ntopng increasing -x and -X.</div>");

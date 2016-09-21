@@ -211,7 +211,7 @@ end
 if(isAdministrator()) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
-   else
+   elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
    end
 end
@@ -219,7 +219,7 @@ end
 if(isAdministrator()) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-   else
+   elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
 end
@@ -249,17 +249,20 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%>Id</th><td colspan=6>" .. ifstats.id .. " ")
    print("</td></tr>\n")
-   print("<tr><th width=250>State</th><td colspan=6>")
-   state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
 
-   if(state == "0") then
-      on_state = true
-   else
-      on_state = false
+   if interface.isPcapDumpInterface() == false then
+      print("<tr><th width=250>State</th><td colspan=6>")
+      state = toggleTableButton("", "", "Active", "1","primary", "Paused", "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
+
+      if(state == "0") then
+	 on_state = true
+      else
+	 on_state = false
+      end
+
+      interface.setInterfaceIdleState(on_state)
+      print("</td></tr>\n")
    end
-
-   interface.setInterfaceIdleState(on_state)
-   print("</td></tr>\n")
 
    if(ifstats["remote.name"] ~= nil) then
       print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>") 
@@ -299,7 +302,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if(ifstats["remote.name"] == nil) then
+   if ifstats["remote.name"] == nil and interface.isPcapDumpInterface() == false then
       local speed_key = 'ntopng.prefs.'..ifname..'.speed'
       local speed = ntop.getCache(speed_key)
       if speed == nil or speed == "" or tonumber(speed) == nil then
