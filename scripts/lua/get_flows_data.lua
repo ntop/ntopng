@@ -460,13 +460,30 @@ for _key, _value in pairsByValues(vals, funct) do
 
    if(interface.isPacketInterface()) then
       if(value["flow.status"] ~= 0) then
-	 print("<i class='fa fa-warning fa-lg' style='color: orange;'></i> ")
+	 print("<i class='fa fa-warning fa-lg' style='color: orange;'"
+		  .." title='"..string.gsub(getFlowStatus(value["flow.status"]), "<[^>]*>([^<]+)<.*", "%1")
+		  .."'></i> ")
       end
    end
 
-   if ((((value["proto.l4"] == "TCP") or (value["proto.l4"] == "UDP")))
-      and ((value["tcp.seq_problems"] == true) or (value["flow_goodput.low"] == true))) then
-      print("<font color=#B94A48>"..value["proto.l4"].."</font>")
+   if value["proto.l4"] == "TCP" or value["proto.l4"] == "UDP" then
+      if value["tcp.seq_problems"] == true then
+	 local tcp_issues = ""
+	 if value["cli2srv.out_of_order"] > 0 or value["srv2cli.out_of_order"] > 0 then
+	    tcp_issues = tcp_issues.." Out-of-order"
+	 end
+	 if value["cli2srv.retransmissions"] > 0 or value["srv2cli.retransmissions"] > 0 then
+	    tcp_issues = tcp_issues.." Retransmissions"
+	 end
+	 if value["cli2srv.lost"] > 0 or value["srv2cli.lost"] > 0 then
+	    tcp_issues = tcp_issues.." Loss"
+	 end
+	 print('<span title=\'Issues detected:'..tcp_issues..'\'><font color=#B94A48>'..value["proto.l4"].."</font></span>")
+      elseif value["flow_goodput.low"] == true then
+	 print("<font color=#B94A48><span title='Low Goodput'>"..value["proto.l4"].."</span></font>")
+      else
+	 print(value["proto.l4"])
+      end
    else
       print(value["proto.l4"])
    end
