@@ -90,10 +90,14 @@ void IpAddress::set_from_string(char *sym_addr) {
 
 bool IpAddress::isEmpty() {
   if((addr.ipVersion == 0)
-     || ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0)))
-    return(true);
-  else
-    return(false);
+     || ((addr.ipVersion == 4) && (addr.ipType.ipv4 == 0))) {
+    return true;
+  }else if(addr.ipVersion == 6) {
+    struct ndpi_in6_addr empty_ipv6;
+    memset(&empty_ipv6, 0, sizeof(empty_ipv6));
+    return memcmp((void*)&empty_ipv6, (void*)&addr.ipType.ipv6, sizeof(empty_ipv6)) == 0 ? true : false;
+  }
+  return false;
 }
 
 /* ******************************************* */

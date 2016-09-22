@@ -557,11 +557,33 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           break;
         case IPV4_SRC_ADDR:
         case IPV6_SRC_ADDR:
-          flow.src_ip.set_from_string((char*)value);
+	  /*
+	     The following check prevents an empty ip address (e.g., ::) to
+	     to overwrite another valid ip address already set.
+	     This can happen for example when nProbe is configured (-T) to export
+	     both %IPV4_SRC_ADDR and the %IPV6_SRC_ADDR. In that cases nProbe can
+	     export a valid ipv4 and an empty ipv6. Without the check, the empty
+	     v6 address may overwrite the non empty v4.
+	   */
+	  if(flow.src_ip.isEmpty())
+	    flow.src_ip.set_from_string((char*)value);
+	  else
+	    /*
+	      ipv4 and ipv4 are both non empty or any one of them as been found
+	      more than one time.
+	     */
+	    ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Attempt to set source ip multiple times. "
+					 "Check exported fields in %s", payload);
           break;
         case IPV4_DST_ADDR:
         case IPV6_DST_ADDR:
-          flow.dst_ip.set_from_string((char*)value);
+	  if(flow.dst_ip.isEmpty())
+	    flow.dst_ip.set_from_string((char*)value);
+	  else
+	    ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Attempt to set destination ip multiple times. "
+					 "Check exported fields in %s", payload);
           break;
         case L4_SRC_PORT:
           flow.src_port = htons(atoi(value));
