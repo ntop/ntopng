@@ -497,6 +497,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   ZMQ_Flow flow;
+  IpAddress ip_aux; /* used to check empty IPs */
   NetworkInterface * iface = (NetworkInterface*)data;
 
   // payload[payload_size] = '\0';
@@ -565,25 +566,28 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	     export a valid ipv4 and an empty ipv6. Without the check, the empty
 	     v6 address may overwrite the non empty v4.
 	   */
-	  if(flow.src_ip.isEmpty())
+	  if(flow.src_ip.isEmpty()) {
 	    flow.src_ip.set_from_string((char*)value);
-	  else
-	    /*
-	      ipv4 and ipv4 are both non empty or any one of them as been found
-	      more than one time.
-	     */
-	    ntop->getTrace()->traceEvent(TRACE_WARNING,
-					 "Attempt to set source ip multiple times. "
-					 "Check exported fields in %s", payload);
+	  } else {
+	    ip_aux.set_from_string((char*)value);
+	    if(!ip_aux.isEmpty())
+	      /* tried to overwrite a non-empty IP with another non-empty IP */
+	      ntop->getTrace()->traceEvent(TRACE_WARNING,
+					   "Attempt to set source ip multiple times. "
+					   "Check exported fields in %s", payload);
+	  }
           break;
         case IPV4_DST_ADDR:
         case IPV6_DST_ADDR:
-	  if(flow.dst_ip.isEmpty())
+	  if(flow.dst_ip.isEmpty()) {
 	    flow.dst_ip.set_from_string((char*)value);
-	  else
-	    ntop->getTrace()->traceEvent(TRACE_WARNING,
-					 "Attempt to set destination ip multiple times. "
-					 "Check exported fields in %s", payload);
+	  } else {
+	    ip_aux.set_from_string((char*)value);
+	    if(!ip_aux.isEmpty())
+	      ntop->getTrace()->traceEvent(TRACE_WARNING,
+					   "Attempt to set destination ip multiple times. "
+					   "Check exported fields in %s", payload);
+	  }
           break;
         case L4_SRC_PORT:
           flow.src_port = htons(atoi(value));
