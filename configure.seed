@@ -98,7 +98,7 @@ if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
-if test $SYSTEM = "Darwin"; then
+if test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
    cd ../PF_RING/userland/fast_bpf; make; cd -
    LDFLAGS="${LDFLAGS} -L../PF_RING/userland/fast_bpf -lfastbpf"
 fi
