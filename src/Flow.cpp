@@ -716,7 +716,8 @@ void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
        || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()
-       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)))
+       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))
+       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZC_FLOW)))
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
@@ -1273,7 +1274,8 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
        || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
        || iface->is_sprobe_interface()
-       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))) {
+       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))
+       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZC_FLOW))) {
       lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
     } else
       lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
