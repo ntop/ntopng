@@ -50,7 +50,7 @@ Flow::Flow(NetworkInterface *_iface,
     srv2cli_last_goodput_bytes = cli2srv_last_goodput_bytes = 0, good_ssl_hs = true;
 
   l7_protocol_guessed = detection_completed = false;
-  dump_flow_traffic = false, http_dissected = false,
+  dump_flow_traffic = false,
     ndpiDetectedProtocol.protocol = NDPI_PROTOCOL_UNKNOWN,
     ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
@@ -2228,8 +2228,6 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   HTTPstats *h;
 
-  if(http_dissected) return;
-
   if(src2dst_direction) {
     char *space;
 
@@ -2319,7 +2317,6 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
             if(protos.http.last_content_type) free(protos.http.last_content_type);
             protos.http.last_content_type = strdup(ct);
 	    iface->luaEvalFlow(this, callback_flow_proto_callback);
-	    http_dissected = true;
             break;
           }
         }

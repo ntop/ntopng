@@ -89,7 +89,7 @@ class Flow : public GenericHashEntry {
   ndpi_protocol ndpiDetectedProtocol;
   void *cli_id, *srv_id;
   char *json_info, *host_server_name, *bt_hash;
-  bool dump_flow_traffic, badFlow, http_dissected;
+  bool dump_flow_traffic, badFlow;
 
   union {
     struct {
