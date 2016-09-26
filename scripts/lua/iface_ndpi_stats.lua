@@ -59,7 +59,8 @@ if(stats ~= nil) then
       if(tot > 0) then
 	 if(num > 0) then print(", ") end
 	 print("\t { \"label\": \"Other\", \"value\": ".. tot .." }")
-	 
+      else
+	 print("\t { \"label\": \"No Flows\", \"value\": 0 }")
       end
 
       print "]\n"
@@ -86,20 +87,37 @@ if(stats ~= nil) then
 	 _ifstats[value] = key
 	 tot = tot + value
       end
-
    else
+      -- Add ARP to stats
+      if(stats["eth"] ~= nil) then
+         arpBytes = stats["eth"]["ARP_bytes"]
+      else
+         arpBytes = 0
+      end   
+
+      if(arpBytes > 0) then
+      	_ifstats[arpBytes] = "ARP"
+        tot = arpBytes
+      end
+
       for key, value in pairs(stats["ndpi"]) do
-	 --    print("->"..key.."\n")
+	 --print("->"..key.."\n")
+
 	 traffic = stats["ndpi"][key]["bytes.sent"] + stats["ndpi"][key]["bytes.rcvd"]
-	 
-	 if(show_breed) then
-	    _ifstats[traffic] = stats["ndpi"][key]["breed"]
-	 else
-	    _ifstats[traffic] = key
+	 if(key == "Unknown") then
+	   traffic = traffic - arpBytes
 	 end
 	 
-	 --print(key.."="..traffic)
-	 tot = tot + traffic
+	 if(traffic > 0) then
+  	   if(show_breed) then
+	      _ifstats[traffic] = stats["ndpi"][key]["breed"]
+	   else
+	      _ifstats[traffic] = key
+	   end
+	 
+	   --print(key.."="..traffic)
+	   tot = tot + traffic
+	 end
       end
    end
 
@@ -112,6 +130,7 @@ if(stats ~= nil) then
    num = 0
    accumulate = 0
    for key, value in pairsByKeys(_ifstats, rev) do
+      -- print("["..key.."/"..value.."]\n")
       if(key < threshold) then
 	 break
       end
@@ -125,6 +144,7 @@ if(stats ~= nil) then
       else
          print("\t { \"label\": \"" .. value .."\", \"value\": ".. key .." }")
       end
+
       accumulate = accumulate + key
       num = num + 1
 

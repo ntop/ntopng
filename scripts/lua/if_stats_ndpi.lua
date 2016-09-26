@@ -33,12 +33,33 @@ else
    json_format = false
 end
 
+-- Add ARP to stats
+if(ifstats.stats ~= nil) then
+  local arp = { }
+
+  arp["bytes.sent"] = 0
+  arp["bytes.rcvd"] = ifstats.eth["ARP_bytes"]
+  arp["packets.sent"] = 0
+  arp["packets.rcvd"] = ifstats.eth["ARP_packets"]
+  arp.breed = "Unrated"
+
+  ifstats["ndpi"]["ARP"] = arp
+
+  if(ifstats["ndpi"]["Unknown"] ~= nil) then
+    ifstats["ndpi"]["Unknown"]["bytes.rcvd"] = ifstats["ndpi"]["Unknown"]["bytes.rcvd"] - ifstats.eth["ARP_bytes"]
+    ifstats["ndpi"]["Unknown"]["packets.rcvd"] = ifstats["ndpi"]["Unknown"]["packets.rcvd"] - ifstats.eth["ARP_packets"]
+  end
+end   
+
 total = ifstats.stats.bytes
 
 vals = {}
 
 for k in pairs(ifstats["ndpi"]) do
- vals[k] = k
+   -- io.write("->"..k.."\n")
+   if((ifstats["ndpi"][k]["bytes.rcvd"] > 0) or (ifstats["ndpi"][k]["bytes.sent"] > 0)) then
+    vals[k] = k
+   end
 end
 
 table.sort(vals)
@@ -76,8 +97,8 @@ for _k in pairsByKeys(vals, rev) do
   t = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
 
   if(not(json_format)) then
-     print(" <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."><i class=\"fa fa-search-plus\"></i></A></th>")
-     print("<td class=\"text-right\" style=\"width: 20%;\">" .. bytesToSize(t).. "</td>")
+     if(k ~= "ARP") then print(" <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."><i class=\"fa fa-search-plus\"></i></A>") end
+     print("</th><td class=\"text-right\" style=\"width: 20%;\">" .. bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      percentageBar(total, t, "") -- k
      -- print("</td>\n")
