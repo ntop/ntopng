@@ -119,7 +119,7 @@
 #define HOST_ACTIVITY_RRD_RAW_HOURS  48
 #define HOST_ACTIVITY_RRD_1H_DAYS    15
 #define HOST_ACTIVITY_RRD_1D_DAYS    90
-#define HOST_ACTIVITY_RRD_CREATION   false
+#define CONST_DEFAULT_IS_FLOW_ACTIVITY_ENABLED   false /* disabled by default */
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
@@ -358,7 +358,6 @@
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     "ntopng.prefs.housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION          "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION     "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION "ntopng.prefs.host_activity_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_CATE_RRD_CREATION     "ntopng.prefs.host_categories_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               "ntopng.prefs.thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_ALERT_SYSLOG               "ntopng.prefs.alerts_syslog"    /* 0 / 1 */

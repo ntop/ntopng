@@ -1111,25 +1111,27 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   // Detect user activities
-  UserActivityID activity;
-  u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
-  if(flow->getActivityId(&activity) && (!flow->isSSLProto() || flow->isSSLData())) {
-    Host *cli = flow->get_cli_host();
-    Host *srv = flow->get_srv_host();
+  if(ntop->getPrefs()->is_flow_activity_enabled()) {
+    UserActivityID activity;
+    u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
+    if(flow->getActivityId(&activity) && (!flow->isSSLProto() || flow->isSSLData())) {
+      Host *cli = flow->get_cli_host();
+      Host *srv = flow->get_srv_host();
 
-    if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
-      if(src2dst_direction)
-        up = bytes;
-      else
-        down = bytes;
-    } else {
-      backgr = bytes;
+      if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
+	if(src2dst_direction)
+	  up = bytes;
+	else
+	  down = bytes;
+      } else {
+	backgr = bytes;
+      }
+
+      if(cli->isLocalHost())
+	cli->incActivityBytes(activity, up, down, backgr);
+      if(srv->isLocalHost())
+	srv->incActivityBytes(activity, down, up, backgr);
     }
-
-    if(cli->isLocalHost())
-      cli->incActivityBytes(activity, up, down, backgr);
-    if(srv->isLocalHost())
-      srv->incActivityBytes(activity, down, up, backgr);
   }
 
   return(pass_verdict);
@@ -4086,11 +4088,12 @@ void NetworkInterface::termLuaInterpreter() {
 /* **************************************** */
 
 int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
+  if(!ntop->getPrefs()->is_flow_activity_enabled())
+    return 0 /* nothing to do */;
+
   int rc;
   lua_State *L;
   const char *luaFunction;
-
-  // return(0); /* FIX */
 
   if(reloadLuaInterpreter) {
     if(L_flow_create_delete_ndpi || L_flow_update) termLuaInterpreter();
@@ -4136,13 +4139,14 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 /* ******************************************* */
 
 const char * getActivityName(UserActivityID id) {
-  return ((id < UserActivitiesN) ? activity_names[id] : NULL);
+  return ((ntop->getPrefs()->is_flow_activity_enabled()
+          && id < UserActivitiesN) ? activity_names[id] : NULL);
 };
 
 /* ******************************************* */
 
 bool getActivityId(const char * name, UserActivityID * out) {
-  if(name) {
+  if(ntop->getPrefs()->is_flow_activity_enabled() && name) {
     for(int i=0; i<UserActivitiesN; i++)
       if(strcmp(activity_names[i], name) == 0) {
         *out = ((UserActivityID) i);

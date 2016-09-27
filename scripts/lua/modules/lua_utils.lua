@@ -194,7 +194,7 @@ end
 
 -- ##############################################
 
-function shortenString(name)
+function shorteString(name)
    max_len = 24
     if(string.len(name) < max_len) then
       return(name)

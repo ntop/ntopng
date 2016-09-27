@@ -14,6 +14,7 @@ require "lua_utils"
 require "graph_utils"
 require "top_structure"
 
+prefs = ntop.getPrefs()
 -- ########################################################
 
 function foreachHost(ifname, callback)
@@ -107,7 +108,6 @@ host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
-host_activity_rrd_creation = ntop.getCache("ntopng.prefs.host_activity_rrd_creation")
 
 if(flow_devices_rrd_creation == 1) then
    local info = ntop.getInfo()
@@ -399,8 +399,8 @@ for _,_ifname in pairs(ifnames) do
 	       end
 	    end
 
-	    -- Save host activity stats
-	    if host_activity_rrd_creation == "1" then
+	    -- Save host activity stats only if flow activities are actually enabled
+	    if prefs.is_flow_activity_enabled == true then
 	       foreachHost(_ifname, saveLocalHostsActivity)
 	    end
 	 end -- if rrd

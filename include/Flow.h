@@ -148,7 +148,7 @@ class Flow : public GenericHashEntry {
   float rttSec, applLatencyMsec;
 
   FlowPacketStats cli2srvStats, srv2cliStats;
-  FlowActivityDetection activityDetection;
+  FlowActivityDetection *activityDetection;
 
   /* Counter values at last host update */
   struct {
@@ -362,10 +362,24 @@ class Flow : public GenericHashEntry {
   inline bool      isEstablished()                  { return state == flow_state_established; }
   
   void setActivityFilter(ActivityFilterID fid, const activity_filter_config * config);
-  inline bool getActivityFilterId(ActivityFilterID *out) { if(activityDetection.filterSet) {*out = activityDetection.filterId; return true;} else return false; }
+  inline bool getActivityFilterId(ActivityFilterID *out) {
+    if(activityDetection && activityDetection->filterSet) {
+        *out = activityDetection->filterId; return true;
+    }
+    return false;
+  }
   bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
-  inline void setActivityId(UserActivityID id)      { activityDetection.activityId = id; activityDetection.activitySet = true; }
-  inline bool getActivityId(UserActivityID *out)   { if(activityDetection.activitySet) {*out = activityDetection.activityId; return true;} else return false; }
+  inline void setActivityId(UserActivityID id) {
+    if(activityDetection == NULL) return;
+    activityDetection->activityId = id; activityDetection->activitySet = true;
+  }
+  inline bool getActivityId(UserActivityID *out) {
+    if(activityDetection == NULL) return false;
+    if(activityDetection->activitySet) {
+      *out = activityDetection->activityId; return true;
+    }
+    return false;
+  }
 };
 
 #endif /* _FLOW_H_ */

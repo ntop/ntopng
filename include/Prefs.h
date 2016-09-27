@@ -53,7 +53,7 @@ class Prefs {
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int16_t host_activity_rrd_raw_hours, host_activity_rrd_1h_days, host_activity_rrd_1d_days;
-  bool host_activity_rrd_creation;
+  bool enable_flow_activity;
   u_int16_t housekeeping_frequency;
   u_int32_t max_num_hosts, max_num_flows;
   u_int http_port, https_port;
@@ -153,6 +153,7 @@ class Prefs {
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
+  inline bool  is_flow_activity_enabled()               { return(enable_flow_activity);             };
   inline bool  do_auto_logout()                         { return(enable_auto_logout);               };
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };

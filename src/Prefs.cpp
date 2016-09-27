@@ -74,6 +74,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
+  enable_flow_activity   = CONST_DEFAULT_IS_FLOW_ACTIVITY_ENABLED;
 
   /* Defaults */
   local_host_cache_duration = LOCAL_HOSTS_CACHE_DURATION /* sec */;
@@ -402,7 +403,6 @@ void Prefs::reloadPrefsFromRedis() {
   host_activity_rrd_raw_hours = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_RAW_HOURS, HOST_ACTIVITY_RRD_RAW_HOURS);
   host_activity_rrd_1h_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1H_DAYS, HOST_ACTIVITY_RRD_1H_DAYS);
   host_activity_rrd_1d_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1D_DAYS, HOST_ACTIVITY_RRD_1D_DAYS);
-  host_activity_rrd_creation  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION, HOST_ACTIVITY_RRD_CREATION);
   housekeeping_frequency = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 						HOUSEKEEPING_FREQUENCY);
 
@@ -484,6 +484,7 @@ static const struct option long_options[] = {
   { "shutdown-when-done",                no_argument,       NULL, 213 },
   { "simulate-vlans",                    no_argument,       NULL, 214 },
   { "zmq-encrypt-pwd",                   required_argument, NULL, 215 },
+  { "enable-flow-activity",              no_argument,       NULL, 216 },
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -954,6 +955,11 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 215:
     zmq_encryption_pwd = strdup(optarg);
     break;
+    
+  case 216:
+      enable_flow_activity = true;
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow activity detection enabled");
+    break;
 
 #ifdef NTOPNG_PRO
   case 252:
@@ -1156,6 +1162,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
+  lua_push_bool_table_entry(vm, "is_flow_activity_enabled", enable_flow_activity);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
   /* RRD prefs */
@@ -1170,7 +1177,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "host_activity_rrd_raw_hours", host_activity_rrd_raw_hours);
   lua_push_int_table_entry(vm, "host_activity_rrd_1h_days", host_activity_rrd_1h_days);
   lua_push_int_table_entry(vm, "host_activity_rrd_1d_days", host_activity_rrd_1d_days);
-  lua_push_int_table_entry(vm, "host_activity_rrd_creation", host_activity_rrd_creation);
   lua_push_int_table_entry(vm, "housekeeping_frequency", housekeeping_frequency);
 
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
@@ -1268,10 +1274,6 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS,
 		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS)))
     host_activity_rrd_1d_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
-		    (char*)CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION,
-		    strlen((char*)CONST_RUNTIME_PREFS_HOST_ACTIVITY_RRD_CREATION)))
-    host_activity_rrd_creation = atoi(pref_value);
   else if (!strncmp(pref_name,
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
