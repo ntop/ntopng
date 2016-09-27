@@ -24,9 +24,9 @@
 /* ********************************************************************** */
 
 static bool activity_filter_fun_all(const activity_filter_config * config,
-			      activity_filter_status * status, Flow * flow,
-			      const struct timeval *when,
-			      bool cli2srv, uint16_t payload_len) {
+				    activity_filter_status * status, Flow * flow,
+				    const struct timeval *when,
+				    bool cli2srv, uint16_t payload_len) {
   return config->all.pass;
 }
 
@@ -34,22 +34,22 @@ static bool activity_filter_fun_all(const activity_filter_config * config,
 
 /* Simple Moving Average with optional time bounds */
 static bool activity_filter_fun_sma(const activity_filter_config * config,
-				      activity_filter_status * status, Flow * flow,
-				      const struct timeval *when,
-				      bool cli2srv, uint16_t payload_len) {
+				    activity_filter_status * status, Flow * flow,
+				    const struct timeval *when,
+				    bool cli2srv, uint16_t payload_len) {
   float msdiff = Utils::msTimevalDiff((struct timeval*)when, &status->sma.lastPacket);
   uint out = 0;
   
-  if ( (config->sma.timebound > 0 && status->sma.samples > 0) &&
+  if( (config->sma.timebound > 0 && status->sma.samples > 0) &&
        (msdiff >= config->sma.timebound) )
     // add empty packets to fill the gap
-    for (float x=0; x < msdiff && out < status->sma.samples; x += config->sma.timebound, out++);
-  else if (status->sma.samples == ACTIVITY_FILTER_SMA_SAMPLES)
+    for(float x=0; x < msdiff && out < status->sma.samples; x += config->sma.timebound, out++);
+  else if(status->sma.samples == ACTIVITY_FILTER_SMA_SAMPLES)
     out = 1;
   else
     out = 0;
   
-  for (uint i=0; i<out; i++)
+  for(uint i=0; i<out; i++)
     status->sma.value -= status->sma.sbuf[i];
   status->sma.value = max(status->sma.value, 0.f);
 
@@ -65,11 +65,11 @@ static bool activity_filter_fun_sma(const activity_filter_config * config,
   float sma = status->sma.value / status->sma.samples;
   bool rv;
 
-  if ( (status->sma.samples >= config->sma.minsamples) &&
+  if( (status->sma.samples >= config->sma.minsamples) &&
        (sma >= config->sma.edge) ) {
     rv = true;
     status->sma.lastActivity = *when;
-  } else if ( (config->sma.sustain > 0) &&
+  } else if( (config->sma.sustain > 0) &&
               (Utils::msTimevalDiff((struct timeval*)when, &status->sma.lastActivity) <= config->sma.sustain) ) {
     rv = true;
   } else {
@@ -79,10 +79,10 @@ static bool activity_filter_fun_sma(const activity_filter_config * config,
   char buf[32];
   char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> SMA[%u] = %.2f %u\n",
-            rv ? '*' : ' ', t,
-            flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
-            flow->getHTTPURL(), flow->getSSLCertificate(),
-            status->sma.samples, sma, payload_len);
+			       rv ? '*' : ' ', t,
+			       flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
+			       flow->getHTTPURL(), flow->getSSLCertificate(),
+			       status->sma.samples, sma, payload_len);
   return rv;
 }
 
@@ -90,23 +90,24 @@ static bool activity_filter_fun_sma(const activity_filter_config * config,
 
 /* Weighted Moving Average scaling with inter-packed-delay seconds and optional aggregation */
 static bool activity_filter_fun_wma(const activity_filter_config * config,
-				      activity_filter_status * status, Flow * flow,
-				      const struct timeval *when,
-				      bool cli2srv, uint16_t payload_len) {
+				    activity_filter_status * status, Flow * flow,
+				    const struct timeval *when,
+				    bool cli2srv, uint16_t payload_len) {
   // scale value on seconds difference
   float coeff = 1.f;
   float secdiff = -1;
-  if (config->wma.timescale > 0 && status->wma.samples > 0) {
+
+  if(config->wma.timescale > 0 && status->wma.samples > 0) {
     secdiff = Utils::msTimevalDiff((struct timeval*)when, &status->wma.lastPacket) / 1000.f;
     coeff = 1.f / max(config->wma.timescale * secdiff, 1.f);
   }
 
-  if (config->wma.aggrsecs && secdiff >= 0 && secdiff <= config->wma.aggrsecs && status->wma.samples == ACTIVITY_FILTER_WMA_SAMPLES) {
+  if(config->wma.aggrsecs && secdiff >= 0 && secdiff <= config->wma.aggrsecs && status->wma.samples == ACTIVITY_FILTER_WMA_SAMPLES) {
     // aggregation
     status->wma.sbuf[status->wma.samples-1] += payload_len;
     status->wma.weights[status->wma.samples-1] += coeff;
   } else {  
-    if (status->wma.samples == ACTIVITY_FILTER_WMA_SAMPLES) {
+    if(status->wma.samples == ACTIVITY_FILTER_WMA_SAMPLES) {
       status->wma.value = max(status->wma.value - status->wma.sbuf[0] * status->wma.weights[0], 0.f);
       status->wma.wsum = max(status->wma.wsum - status->wma.weights[0], 1.f);
       memmove(status->wma.sbuf, status->wma.sbuf+1, (ACTIVITY_FILTER_WMA_SAMPLES-1) * sizeof(status->wma.sbuf[0]));
@@ -125,17 +126,20 @@ static bool activity_filter_fun_wma(const activity_filter_config * config,
   float wma = status->wma.value / status->wma.wsum;
   bool rv = false;
 
-  if ( (status->wma.samples >= config->wma.minsamples) &&
+  if( (status->wma.samples >= config->wma.minsamples) &&
        (wma >= config->wma.edge)
-  ) rv = true;
+       ) rv = true;
 
+#if 0
   char buf[32];
   char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> WMA[%u] = %.2f (%.2f) %u\n",
-            rv ? '*' : ' ', t,
-            flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
-            flow->getHTTPURL(), flow->getSSLCertificate(),
-            status->wma.samples, wma, status->wma.wsum, payload_len);
+			       rv ? '*' : ' ', t,
+			       flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
+			       flow->getHTTPURL(), flow->getSSLCertificate(),
+			       status->wma.samples, wma, status->wma.wsum, payload_len);
+#endif
+  
   return rv;
 }
 
@@ -147,9 +151,9 @@ static bool activity_filter_fun_wma(const activity_filter_config * config,
  * Assumes client sends an ACK with no data when receiving multiple command replies.
  */
 static bool activity_filter_fun_command_sequence(const activity_filter_config * config,
-					  activity_filter_status * status, Flow * flow,
-					  const struct timeval *when,
-					  bool cli2srv, uint16_t payload_len) {
+						 activity_filter_status * status, Flow * flow,
+						 const struct timeval *when,
+						 bool cli2srv, uint16_t payload_len) {
         
   struct timeval last = status->command_sequence.lastPacket;
   bool was_cli2srv = status->command_sequence.cli2srv;
@@ -157,18 +161,18 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
   status->command_sequence.lastPacket = *when;
   status->command_sequence.cli2srv = cli2srv;
 
-  if (status->command_sequence.reqSeen) {
-    if (cli2srv && payload_len > 0) {
+  if(status->command_sequence.reqSeen) {
+    if(cli2srv && payload_len > 0) {
       // Command end
       status->command_sequence.reqSeen = false;
-    } else if (Utils::msTimevalDiff((struct timeval*)when, &last) >= config->command_sequence.maxinterval) {
+    } else if(Utils::msTimevalDiff((struct timeval*)when, &last) >= config->command_sequence.maxinterval) {
       // Timeout
       status->command_sequence.reqSeen = false;
       status->command_sequence.numCommands = 0;
-    } else if (!cli2srv) {
+    } else if(!cli2srv) {
       // Server reply
 
-      if (was_cli2srv && payload_len == 0 && status->command_sequence.respBytes == 0) {
+      if(was_cli2srv && payload_len == 0 && status->command_sequence.respBytes == 0) {
         status->command_sequence.srvWaited = true;
       } else {
         // server data
@@ -178,9 +182,9 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
     } // else client ACK
   }
 
-  if (!status->command_sequence.reqSeen && cli2srv && payload_len > 0) {
+  if(!status->command_sequence.reqSeen && cli2srv && payload_len > 0) {
     // New client command
-    if (status->command_sequence.respCount > 0)
+    if(status->command_sequence.respCount > 0)
       status->command_sequence.numCommands += 1;
     status->command_sequence.reqSeen = true;
     status->command_sequence.srvWaited = false;
@@ -188,18 +192,18 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
     status->command_sequence.respCount = 0;
   }
   
-  if ((status->command_sequence.srvWaited || !config->command_sequence.mustwait) &&
+  if((status->command_sequence.srvWaited || !config->command_sequence.mustwait) &&
       (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
       (status->command_sequence.numCommands >= config->command_sequence.mincommands) &&
       (status->command_sequence.respCount >= config->command_sequence.minflips)) {
     char buf[32];
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "* CommandDetect filter[%s]: %d wait=%c bytes=%lu flips=%lu dt=%f\n",
-          flow->get_detected_protocol_name(buf, sizeof(buf)),
-          status->command_sequence.numCommands,
-          status->command_sequence.srvWaited ? 'Y' : 'N',
-          status->command_sequence.respBytes,
-          status->command_sequence.respCount,
-          Utils::msTimevalDiff((struct timeval*)when, &last));
+				 flow->get_detected_protocol_name(buf, sizeof(buf)),
+				 status->command_sequence.numCommands,
+				 status->command_sequence.srvWaited ? 'Y' : 'N',
+				 status->command_sequence.respBytes,
+				 status->command_sequence.respCount,
+				 Utils::msTimevalDiff((struct timeval*)when, &last));
     return true;
   }
   return false;
@@ -208,47 +212,47 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
 /* ********************************************************************** */
 
 static bool activity_filter_fun_web(const activity_filter_config * config,
-			     activity_filter_status * status, Flow * flow,
-			     const struct timeval *when,
-			     bool cli2srv, uint16_t payload_len) {
-  if (status->web.samples < config->web.numsamples) {
-    if (status->web.samples > 0 && Utils::msTimevalDiff((struct timeval *)when, &status->web.lastPacket) > config->web.maxinterval) {
+				    activity_filter_status * status, Flow * flow,
+				    const struct timeval *when,
+				    bool cli2srv, uint16_t payload_len) {
+  if(status->web.samples < config->web.numsamples) {
+    if(status->web.samples > 0 && Utils::msTimevalDiff((struct timeval *)when, &status->web.lastPacket) > config->web.maxinterval) {
       // force skip next time
       status->web.samples = config->web.numsamples + 1;
     } else {
       status->web.lastPacket = *when;
       
-      if (payload_len > 0) {
-        if (cli2srv)
+      if(payload_len > 0) {
+        if(cli2srv)
           status->web.cliBytes += payload_len;
         else
           status->web.srvBytes += payload_len;
 
-        if ( (status->web.samples == 0 && !cli2srv) ||
+        if( (status->web.samples == 0 && !cli2srv) ||
              (status->web.samples == 1 &&  cli2srv)
-           ) {
+	     ) {
           // violates  [client req] -> [server resp] -> ... rule, skip
           status->web.samples = config->web.numsamples + 1;
         }
 
         status->web.samples++;
-        if ( (status->web.samples == config->web.numsamples) &&
+        if( (status->web.samples == config->web.numsamples) &&
              (status->web.srvBytes + status->web.cliBytes >= config->web.minbytes) &&
              (!config->web.serverdominant || status->web.srvBytes > status->web.cliBytes)
-        ) {
-            status->web.detected = true;
-            UserActivityID uaid;
-            if (config->web.forceWebProfile && (!flow->getActivityId(&uaid) || uaid == user_activity_other))
-              flow->setActivityId(user_activity_web);
+	     ) {
+	  status->web.detected = true;
+	  UserActivityID uaid;
+	  if(config->web.forceWebProfile && (!flow->getActivityId(&uaid) || uaid == user_activity_other))
+	    flow->setActivityId(user_activity_web);
         }
 
-        if (status->web.samples >= config->web.numsamples) {
+        if(status->web.samples >= config->web.numsamples) {
           char buf[32];
           ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Web filter[%s] url/cert='%s%s' cli=%lu srv=%lu\n",
-                status->web.detected ? '*' : ' ',
-                flow->get_detected_protocol_name(buf, sizeof(buf)),
-                flow->getHTTPURL(), flow->getSSLCertificate(),
-                status->web.cliBytes, status->web.srvBytes);
+				       status->web.detected ? '*' : ' ',
+				       flow->get_detected_protocol_name(buf, sizeof(buf)),
+				       flow->getHTTPURL(), flow->getSSLCertificate(),
+				       status->web.cliBytes, status->web.srvBytes);
         }
       }
     }
@@ -259,22 +263,22 @@ static bool activity_filter_fun_web(const activity_filter_config * config,
 /* ********************************************************************** */
 
 static bool activity_filter_fun_ratio(const activity_filter_config * config,
-			     activity_filter_status * status, Flow * flow,
-			     const struct timeval *when,
-			     bool cli2srv, uint16_t payload_len) {
-  if (status->ratio.samples < config->ratio.numsamples) {
-    if (payload_len > 0) {
-      if (cli2srv)
+				      activity_filter_status * status, Flow * flow,
+				      const struct timeval *when,
+				      bool cli2srv, uint16_t payload_len) {
+  if(status->ratio.samples < config->ratio.numsamples) {
+    if(payload_len > 0) {
+      if(cli2srv)
         status->ratio.cliBytes += payload_len;
       else
         status->ratio.srvBytes += payload_len;
         
       status->ratio.samples++;
 
-      if (status->ratio.samples == config->ratio.numsamples) {
+      if(status->ratio.samples == config->ratio.numsamples) {
         float n,d,r;
         
-        if (config->ratio.clisrv_ratio > 0) {
+        if(config->ratio.clisrv_ratio > 0) {
           n = status->ratio.cliBytes;
           d = status->ratio.srvBytes;
         } else {
@@ -283,17 +287,17 @@ static bool activity_filter_fun_ratio(const activity_filter_config * config,
         }
         r = n / d;
 
-        if (! d)
+        if(! d)
           status->ratio.detected = true;
         else
           status->ratio.detected = n + d >= config->ratio.minbytes && r >= fabsf(config->ratio.clisrv_ratio);
 
         char buf[32];
         ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Ratio filter[%s] url/cert='%s%s' cli=%lu srv=%lu : %.3f\n",
-                status->ratio.detected ? '*' : ' ',
-                flow->get_detected_protocol_name(buf, sizeof(buf)),
-                flow->getHTTPURL(), flow->getSSLCertificate(),
-                status->ratio.cliBytes, status->ratio.srvBytes, r);
+				     status->ratio.detected ? '*' : ' ',
+				     flow->get_detected_protocol_name(buf, sizeof(buf)),
+				     flow->getHTTPURL(), flow->getSSLCertificate(),
+				     status->ratio.cliBytes, status->ratio.srvBytes, r);
       }
     }
   }
@@ -303,9 +307,9 @@ static bool activity_filter_fun_ratio(const activity_filter_config * config,
 /* ********************************************************************** */
 
 static bool activity_filter_fun_interflow(const activity_filter_config * config,
-			     activity_filter_status * status, Flow * flow,
-			     const struct timeval *when,
-			     bool cli2srv, uint16_t payload_len) {
+					  activity_filter_status * status, Flow * flow,
+					  const struct timeval *when,
+					  bool cli2srv, uint16_t payload_len) {
   // Assert local client host begins connetion 
   Host * host = flow->get_cli_host();
   int f_count = 0;
@@ -315,37 +319,37 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
   bool rv = false;
 
   switch(flow->get_detected_protocol().protocol) {
-    case NDPI_SERVICE_FACEBOOK:
-      proto = ifa_facebook_stats;
-      break;
-    case NDPI_SERVICE_TWITTER:
-      proto = ifa_twitter_stats;
-      break;
-    default:
-      char buf[32];
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Interflow filter undefined for protocol %s\n", flow->get_detected_protocol_name(buf, sizeof(buf)));
-      return false;
+  case NDPI_SERVICE_FACEBOOK:
+    proto = ifa_facebook_stats;
+    break;
+  case NDPI_SERVICE_TWITTER:
+    proto = ifa_twitter_stats;
+    break;
+  default:
+    char buf[32];
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Interflow filter undefined for protocol %s\n", flow->get_detected_protocol_name(buf, sizeof(buf)));
+    return false;
   }
 
-  if (config->interflow.sslonly && !flow->isSSLProto())
+  if(config->interflow.sslonly && !flow->isSSLProto())
     return false;
 
   host->incIfaPackets(proto, flow, when->tv_sec);
   host->getIfaStats(proto, when->tv_sec, &f_count, &f_pkts, &max_duration);
 
-  if (f_pkts >= config->interflow.minpkts &&
+  if(f_pkts >= config->interflow.minpkts &&
       ((config->interflow.minduration >= 0 && max_duration >= config->interflow.minduration) ||
-      (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
+       (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
     rv = true;
 
   char buf[32];
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Interflow filter[%s] url/cert='%s%s' concurrent pkts=%u/%d - flows=%d/%d, dur=%lu/%ds\n",
-          rv ? '*' : ' ',
-          flow->get_detected_protocol_name(buf, sizeof(buf)),
-          flow->getHTTPURL(), flow->getSSLCertificate(),
-          f_pkts, config->interflow.minpkts,
-          f_count, config->interflow.minflows >= 0 ? config->interflow.minflows : 0,
-          max_duration, config->interflow.minduration >= 0 ? config->interflow.minduration : 0);
+			       rv ? '*' : ' ',
+			       flow->get_detected_protocol_name(buf, sizeof(buf)),
+			       flow->getHTTPURL(), flow->getSSLCertificate(),
+			       f_pkts, config->interflow.minpkts,
+			       f_count, config->interflow.minflows >= 0 ? config->interflow.minflows : 0,
+			       max_duration, config->interflow.minduration >= 0 ? config->interflow.minduration : 0);
   return rv;
 }
 
@@ -353,22 +357,22 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
 
 /* This fitler is just for testing purposes. */
 static bool activity_filter_fun_metrics_test(const activity_filter_config * config,
-			     activity_filter_status * status, Flow * flow,
-			     const struct timeval *when,
-			     bool cli2srv, uint16_t payload_len) {
+					     activity_filter_status * status, Flow * flow,
+					     const struct timeval *when,
+					     bool cli2srv, uint16_t payload_len) {
   u_int32_t srv_bytes, cli_bytes;
   bool rv = false;
   
-  if (!payload_len)
+  if(!payload_len)
     return false;
 
-  if (status->metrics.samples < ACTIVITY_FILTER_METRICS_SAMPLES) {
+  if(status->metrics.samples < ACTIVITY_FILTER_METRICS_SAMPLES) {
     status->metrics.sizes[status->metrics.samples] = payload_len;
     status->metrics.times[status->metrics.samples] = *when;
     status->metrics.directions[status->metrics.samples] = cli2srv;
     status->metrics.samples++;
     
-    if (status->metrics.samples == ACTIVITY_FILTER_METRICS_SAMPLES) {
+    if(status->metrics.samples == ACTIVITY_FILTER_METRICS_SAMPLES) {
       float sizes[ACTIVITY_FILTER_METRICS_SAMPLES];
       float intervals[ACTIVITY_FILTER_METRICS_SAMPLES-1];
       float maxSize = 1;
@@ -376,33 +380,33 @@ static bool activity_filter_fun_metrics_test(const activity_filter_config * conf
 
       // Gather data
       srv_bytes = cli_bytes = 0;
-      for (int i=0; i<ACTIVITY_FILTER_METRICS_SAMPLES; i++) {
+      for(int i=0; i<ACTIVITY_FILTER_METRICS_SAMPLES; i++) {
         sizes[i] = status->metrics.sizes[i];
-        if (sizes[i] > maxSize)
+        if(sizes[i] > maxSize)
           maxSize = sizes[i];
 
-        if (status->metrics.directions[i])
+        if(status->metrics.directions[i])
           cli_bytes += status->metrics.sizes[i];
         else
           srv_bytes += status->metrics.sizes[i];
 
-        if (i > 0) {
+        if(i > 0) {
           intervals[i-1] = Utils::msTimevalDiff(&status->metrics.times[i], &status->metrics.times[i-1]);
-          if (intervals[i-1] > maxInterval)
+          if(intervals[i-1] > maxInterval)
             maxInterval = intervals[i-1];
         }
       }
 
       // Normalize data
-      for (int i=0; i<ACTIVITY_FILTER_METRICS_SAMPLES; i++) {
+      for(int i=0; i<ACTIVITY_FILTER_METRICS_SAMPLES; i++) {
         sizes[i] /= maxSize;
-        if (i>0)
+        if(i>0)
           intervals[i-1] /= maxInterval;
       }
 
       // Print data
       char buf[32];
-      if (status->metrics.directions[0] == 1 && status->metrics.directions[1] == 0 && srv_bytes >= cli_bytes) {
+      if(status->metrics.directions[0] == 1 && status->metrics.directions[1] == 0 && srv_bytes >= cli_bytes) {
         printf("+ ");
         rv = true;
       } else {
@@ -410,8 +414,10 @@ static bool activity_filter_fun_metrics_test(const activity_filter_config * conf
       }
       
       printf("FINGERPRINT <%p:%s>[%s%s]::", flow, flow->get_detected_protocol_name(buf, sizeof(buf)), flow->getHTTPURL(), flow->getSSLCertificate());
-      for (int i=0; i<ACTIVITY_FILTER_METRICS_SAMPLES; i++) {
-        printf(" %c +%u(%.3f) [%.3f]", status->metrics.directions[i] ? 'C' : 'S', status->metrics.sizes[i], sizes[i], i < (ACTIVITY_FILTER_METRICS_SAMPLES - 1) ? intervals[i] : 0);
+
+      for(int i=0; i<ACTIVITY_FILTER_METRICS_SAMPLES; i++) {
+        printf(" %c +%u(%.3f) [%.3f]", status->metrics.directions[i] ? 'C' : 'S',
+	       status->metrics.sizes[i], sizes[i], i < (ACTIVITY_FILTER_METRICS_SAMPLES - 1) ? intervals[i] : 0);
       }
       printf("\n");
     }

@@ -59,7 +59,7 @@ Flow::Flow(NetworkInterface *_iface,
   
   if(ntop->getPrefs()->is_flow_activity_enabled()){
     if((activityDetection = (FlowActivityDetection*)calloc(1, sizeof(FlowActivityDetection))) == NULL)
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow activity detection");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow activity detection");
   } else {
     activityDetection = NULL;
   }
@@ -2578,9 +2578,10 @@ void Flow::setActivityFilter(ActivityFilterID fid, const activity_filter_config 
 
 bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len) {
   if(activityDetection == NULL) return false /* detection disabled */;
+
   if(activityDetection->filterSet)
     return (activity_filter_funcs[activityDetection->filterId])(&activityDetection->config, 
-							       &activityDetection->status, this, when, cli2srv, payload_len);
+								&activityDetection->status, this, when, cli2srv, payload_len);
 
   return false;
 }

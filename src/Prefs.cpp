@@ -287,6 +287,7 @@ void usage() {
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 "--online-license-check              | Check license online\n"
 	 "[--enable-taps|-T]                  | Enable tap interfaces used to dump traffic\n"
+	 "[--enable-flow-activity]            | Enable local hosts flow activities\n"
 	 "[--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs. This is\n"
 	 "                                    | useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N] <name>         | Assign an identifier to the ntopng instance.\n"

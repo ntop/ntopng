@@ -1111,10 +1111,13 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   // Detect user activities
-  if(ntop->getPrefs()->is_flow_activity_enabled()) {
+  if(ntop->getPrefs()->is_flow_activity_enabled()
+     && (!flow->isSSLProto() || flow->isSSLData())
+     ) {
     UserActivityID activity;
-    u_int64_t up=0, down=0, backgr=0, bytes=payload_len;
-    if(flow->getActivityId(&activity) && (!flow->isSSLProto() || flow->isSSLData())) {
+    u_int64_t up = 0, down = 0, backgr = 0, bytes = payload_len;
+    
+    if(flow->getActivityId(&activity)) {
       Host *cli = flow->get_cli_host();
       Host *srv = flow->get_srv_host();
 
@@ -1129,6 +1132,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
       if(cli->isLocalHost())
 	cli->incActivityBytes(activity, up, down, backgr);
+      
       if(srv->isLocalHost())
 	srv->incActivityBytes(activity, down, up, backgr);
     }
