@@ -931,7 +931,8 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
   json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
-  json_object_object_add(my_object, "userActivities", user_activities.getJSONObject());
+  if (ntop->getPrefs()->is_flow_activity_enabled())
+    json_object_object_add(my_object, "userActivities", user_activities.getJSONObject());
 
   /* Generic Host */
   json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumAlerts()));
