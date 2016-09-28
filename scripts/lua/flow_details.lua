@@ -109,7 +109,7 @@ if(flow_key == nil) then
 else
    flow = interface.findFlowByKey(tonumber(flow_key))
 end
-tprint(flow)
+
 local ifid = interface.name2id(ifname)
 
 if(flow == nil) then
