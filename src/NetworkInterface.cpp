@@ -1111,30 +1111,32 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
 
   // Detect user activities
-  if(ntop->getPrefs()->is_flow_activity_enabled()
-     && (!flow->isSSLProto() || flow->isSSLData())
-     ) {
-    UserActivityID activity;
-    u_int64_t up = 0, down = 0, backgr = 0, bytes = payload_len;
+  if(ntop->getPrefs()->is_flow_activity_enabled()) {
+    Host *cli = flow->get_cli_host();
+    Host *srv = flow->get_srv_host();
     
-    if(flow->getActivityId(&activity)) {
-      Host *cli = flow->get_cli_host();
-      Host *srv = flow->get_srv_host();
-
-      if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
-	if(src2dst_direction)
-	  up = bytes;
-	else
-	  down = bytes;
-      } else {
-	backgr = bytes;
-      }
-
-      if(cli->isLocalHost())
-	cli->incActivityBytes(activity, up, down, backgr);
+    if((cli->isLocalHost() || srv->isLocalHost())
+      && (!flow->isSSLProto() || flow->isSSLData())
+     ) {
+      UserActivityID activity;
+      u_int64_t up = 0, down = 0, backgr = 0, bytes = payload_len;
       
-      if(srv->isLocalHost())
-	srv->incActivityBytes(activity, down, up, backgr);
+      if(flow->getActivityId(&activity)) {
+        if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
+          if(src2dst_direction)
+            up = bytes;
+          else
+            down = bytes;
+        } else {
+          backgr = bytes;
+        }
+
+        if(cli->isLocalHost())
+          cli->incActivityBytes(activity, up, down, backgr);
+
+        if(srv->isLocalHost())
+          srv->incActivityBytes(activity, down, up, backgr);
+      }
     }
   }
 

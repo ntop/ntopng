@@ -20,6 +20,7 @@
  */
 
 #include "ntop_includes.h"
+// #define DEBUG_FILTERS
 
 /* ********************************************************************** */
 
@@ -76,6 +77,7 @@ static bool activity_filter_fun_sma(const activity_filter_config * config,
     rv = false;
   }
 
+#ifdef DEBUG_FILTERS
   char buf[32];
   char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> SMA[%u] = %.2f %u\n",
@@ -83,6 +85,7 @@ static bool activity_filter_fun_sma(const activity_filter_config * config,
 			       flow->get_detected_protocol_name(buf, sizeof(buf)), flow,
 			       flow->getHTTPURL(), flow->getSSLCertificate(),
 			       status->sma.samples, sma, payload_len);
+#endif
   return rv;
 }
 
@@ -130,7 +133,7 @@ static bool activity_filter_fun_wma(const activity_filter_config * config,
        (wma >= config->wma.edge)
        ) rv = true;
 
-#if 0
+#ifdef DEBUG_FILTERS
   char buf[32];
   char * t = ctime((time_t*)&when->tv_sec); t[strlen(t)-1] = '\0';
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c %s [%s] <%p %s%s> WMA[%u] = %.2f (%.2f) %u\n",
@@ -139,7 +142,6 @@ static bool activity_filter_fun_wma(const activity_filter_config * config,
 			       flow->getHTTPURL(), flow->getSSLCertificate(),
 			       status->wma.samples, wma, status->wma.wsum, payload_len);
 #endif
-  
   return rv;
 }
 
@@ -196,6 +198,7 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
       (status->command_sequence.respBytes >= config->command_sequence.minbytes) &&
       (status->command_sequence.numCommands >= config->command_sequence.mincommands) &&
       (status->command_sequence.respCount >= config->command_sequence.minflips)) {
+#ifdef DEBUG_FILTERS
     char buf[32];
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "* CommandDetect filter[%s]: %d wait=%c bytes=%lu flips=%lu dt=%f\n",
 				 flow->get_detected_protocol_name(buf, sizeof(buf)),
@@ -204,6 +207,7 @@ static bool activity_filter_fun_command_sequence(const activity_filter_config * 
 				 status->command_sequence.respBytes,
 				 status->command_sequence.respCount,
 				 Utils::msTimevalDiff((struct timeval*)when, &last));
+#endif
     return true;
   }
   return false;
@@ -245,7 +249,7 @@ static bool activity_filter_fun_web(const activity_filter_config * config,
 	  if(config->web.forceWebProfile && (!flow->getActivityId(&uaid) || uaid == user_activity_other))
 	    flow->setActivityId(user_activity_web);
         }
-
+#ifdef DEBUG_FILTERS
         if(status->web.samples >= config->web.numsamples) {
           char buf[32];
           ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Web filter[%s] url/cert='%s%s' cli=%lu srv=%lu\n",
@@ -254,6 +258,7 @@ static bool activity_filter_fun_web(const activity_filter_config * config,
 				       flow->getHTTPURL(), flow->getSSLCertificate(),
 				       status->web.cliBytes, status->web.srvBytes);
         }
+#endif
       }
     }
   }
@@ -291,13 +296,14 @@ static bool activity_filter_fun_ratio(const activity_filter_config * config,
           status->ratio.detected = true;
         else
           status->ratio.detected = n + d >= config->ratio.minbytes && r >= fabsf(config->ratio.clisrv_ratio);
-
+#ifdef DEBUG_FILTERS
         char buf[32];
         ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Ratio filter[%s] url/cert='%s%s' cli=%lu srv=%lu : %.3f\n",
 				     status->ratio.detected ? '*' : ' ',
 				     flow->get_detected_protocol_name(buf, sizeof(buf)),
 				     flow->getHTTPURL(), flow->getSSLCertificate(),
 				     status->ratio.cliBytes, status->ratio.srvBytes, r);
+#endif
       }
     }
   }
@@ -341,7 +347,7 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
       ((config->interflow.minduration >= 0 && max_duration >= config->interflow.minduration) ||
        (config->interflow.minflows >= 0 && f_count >= config->interflow.minflows)))
     rv = true;
-
+#ifdef DEBUG_FILTERS
   char buf[32];
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%c Interflow filter[%s] url/cert='%s%s' concurrent pkts=%u/%d - flows=%d/%d, dur=%lu/%ds\n",
 			       rv ? '*' : ' ',
@@ -350,6 +356,7 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
 			       f_pkts, config->interflow.minpkts,
 			       f_count, config->interflow.minflows >= 0 ? config->interflow.minflows : 0,
 			       max_duration, config->interflow.minduration >= 0 ? config->interflow.minduration : 0);
+#endif
   return rv;
 }
 
