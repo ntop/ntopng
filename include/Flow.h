@@ -44,8 +44,10 @@ typedef struct {
   activity_filter_config config;
   activity_filter_status status;
   UserActivityID activityId;
+  u_int64_t lastTime;
   bool filterSet;
   bool activitySet;
+  bool lastResult;
 } FlowActivityDetection;
 
 typedef enum {

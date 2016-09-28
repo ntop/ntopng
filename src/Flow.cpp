@@ -35,6 +35,8 @@
 #define HTTP_MAX_HEADER_LINES 20
 #define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
 
+#define ACTIVTY_FILTER_MIN_INTERVAL_MILLIS 10
+
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
@@ -2578,10 +2580,13 @@ void Flow::setActivityFilter(ActivityFilterID fid, const activity_filter_config 
 
 bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len) {
   if(activityDetection == NULL) return false /* detection disabled */;
+  uint64_t millitime = ((uint64_t) when->tv_sec) * 1000 + when->tv_usec / 1000;
 
-  if(activityDetection->filterSet)
-    return (activity_filter_funcs[activityDetection->filterId])(&activityDetection->config, 
+  if(activityDetection->filterSet && ((! activityDetection->lastTime) || (millitime - activityDetection->lastTime >= ACTIVTY_FILTER_MIN_INTERVAL_MILLIS))) {
+    activityDetection->lastResult = (activity_filter_funcs[activityDetection->filterId])(&activityDetection->config, 
 								&activityDetection->status, this, when, cli2srv, payload_len);
-
-  return false;
+    activityDetection->lastTime = millitime;
+  }
+  
+  return activityDetection->lastResult;
 }
