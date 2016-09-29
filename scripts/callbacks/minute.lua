@@ -109,11 +109,11 @@ host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
 
-if(flow_devices_rrd_creation == 1) then
+if(tostring(flow_devices_rrd_creation) == "1") then
    local info = ntop.getInfo()
 
    if(info["version.enterprise_edition"] ~= true) then
-      flow_devices_rrd_creation = 0
+      flow_devices_rrd_creation = "0"
    end
 end
 
@@ -372,7 +372,7 @@ for _,_ifname in pairs(ifnames) do
             end -- for
 
 	    -- Create RRDs for flow devices
-	    if(flow_devices_rrd_creation) then
+	    if(tostring(flow_devices_rrd_creation) == "1") then
 	       local flowdevs = interface.getFlowDevices()
 
 	       for flow_device_ip,_ in pairs(flowdevs) do
@@ -407,3 +407,4 @@ for _,_ifname in pairs(ifnames) do
       end -- if(diff
    end -- if(good interface type
 end -- for ifname,_ in pairs(ifnames) do
+
