@@ -393,18 +393,29 @@ print("</script>\n")
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
       end
+
+      local export_count     = ifstats.stats.flow_export_count
+      local export_rate      = ifstats.stats.flow_export_rate
+      local export_drops     = ifstats.stats.flow_export_drops
+      local export_drops_pct = 0
+      if export_drops > 0 and export_count > 0 then
+	 export_drops_pct = export_drops / export_count * 100
+      end
+
       print("<tr><th colspan=7 nowrap>"..dump_to.." Flows Export Statistics</th></tr>\n")
 
       print("<tr>")
       print("<th nowrap>Exported Flows</th>")
-      print("<td><span id=exported_flows>"..formatValue(ifstats.stats.flow_export_count).."</span>")
-      print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(ifstats.stats.flow_export_rate, 2)).."</span> Flows/s]</td>")
+      print("<td><span id=exported_flows>"..formatValue(export_count).."</span>")
+      print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
       print("<th>Dropped Flows</th>")
       local span_danger = ""
-      if(ifstats.stats.flow_export_drops > 0) then
+      if(export_drops > 0) then
 	 span_danger = ' class="label label-danger"'
       end
-      print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(ifstats.stats.flow_export_drops).."</span></td>")
+      print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(export_drops).."</span>&nbsp;")
+      print("<span id=exported_flows_drops_pct "..span_danger..">["
+	       ..formatValue(round(export_drops_pct, 2)).."%]</span></td>")
       print("<td colspan=3>&nbsp;</td>")
       print("</tr>")
 
@@ -1436,6 +1447,11 @@ print [[";
           $('#exported_flows_drops')
             .addClass("label label-danger")
             .html(rsp.flow_export_drops);
+          if(rsp.flow_export_count > 0) {
+            $('#exported_flows_drops_pct')
+              .addClass("label label-danger")
+              .html("[" + Math.round(rsp.flow_export_drops / rsp.flow_export_count * 100 * 1000) / 1000 + "%]");
+          }
         }
 ]]
 
