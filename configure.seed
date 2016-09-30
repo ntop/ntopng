@@ -99,11 +99,11 @@ AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
 if test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
-   cd ../PF_RING/userland/fast_bpf; make; cd -
-   LDFLAGS="${LDFLAGS} -L../PF_RING/userland/fast_bpf -lfastbpf"
+   cd ../PF_RING/userland/nbpf; make; cd -
+   LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
 fi
 
-CFLAGS="${CFLAGS} -I../PF_RING/userland/fast_bpf"
+CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
 PWD=`pwd`
