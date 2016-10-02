@@ -1381,7 +1381,7 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC %s",
 			       ifname,
-			       formatMac((char *)mac_addr, mac_addr_buf, sizeof(mac_addr_buf)));
+			       formatMac((u_int8_t *)mac_addr, mac_addr_buf, sizeof(mac_addr_buf)));
   close(_sock);
 }
 #else
