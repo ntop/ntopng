@@ -1,4 +1,4 @@
-/*
+ /*
  *
  * (C) 2013-16 - ntop.org
  *
@@ -31,6 +31,8 @@ class Flow;
 class FlowHash;
 class Host;
 class HostHash;
+class Mac;
+class MacHash;
 class DB;
 class Paginator;
 
@@ -86,8 +88,12 @@ class NetworkInterface {
   TcpPacketStats tcpPacketStats;
 
   u_int64_t zmq_initial_bytes, zmq_initial_pkts;
+
+  /* Mac */
+  MacHash *macs_hash; /**< Hash used to store MAC information. */
+
   /* Hosts */
-  HostHash *hosts_hash; /**< Hash used to memorize the hosts information. */
+  HostHash *hosts_hash; /**< Hash used to store hosts information. */
   bool purge_idle_flows_hosts, sprobe_interface, inline_interface,
     dump_all_traffic, dump_to_tap, dump_to_disk, dump_unknown_traffic, dump_security_packets;
   DB *db;
@@ -292,18 +298,18 @@ class NetworkInterface {
 
   void purgeIdle(time_t when);
   u_int purgeIdleFlows();
-  u_int purgeIdleHosts();
+  u_int purgeIdleHostsMacs();
 
   u_int64_t getNumPackets();
   u_int64_t getNumBytes();
   u_int getNumPacketDrops();
   u_int getNumFlows();
   u_int getNumHosts();
+  u_int getNumMacs();
   u_int getNumHTTPHosts();
 
   void runHousekeepingTasks();
-  Host* findHostByMac(u_int8_t mac[6], u_int16_t vlanId,
-		      bool createIfNotPresent);
+  Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
   Host* getHost(char *host_ip, u_int16_t vlan_id);
   bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
@@ -350,6 +356,7 @@ class NetworkInterface {
 		      char *host_ip, u_int16_t vlan_id);
 
   inline HostHash* get_hosts_hash()  { return(hosts_hash);       }
+  inline MacHash*  get_macs_hash()   { return(macs_hash);        }
   inline bool is_bridge_interface()  { return(bridge_interface); }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);

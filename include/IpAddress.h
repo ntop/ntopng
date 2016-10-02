@@ -48,31 +48,27 @@ class IpAddress {
   
  public:
   IpAddress();
-  IpAddress(char *string);
-  IpAddress(IpAddress *ip);
-  IpAddress(u_int32_t _ipv4);
-  IpAddress(struct ndpi_in6_addr *_ipv6);
 
   bool isEmpty();
   inline void reset()                                 { memset(&addr, 0, sizeof(addr));               }
   inline bool isIPv4()                                { return((addr.ipVersion == 4) ? true : false); }
-  inline bool isIPv6()                                { return((addr.ipVersion == 6) ? true : false); }
-  inline void set_ipv4(u_int32_t _ipv4)               { addr.ipVersion = 4, addr.ipType.ipv4 = _ipv4; compute_key(); }
-  inline void set_ipv6(struct ndpi_in6_addr *_ipv6)   { addr.ipVersion = 6, memcpy(&addr.ipType.ipv6, _ipv6, sizeof(struct ndpi_in6_addr)); compute_key(); }
+  inline bool isIPv6()                                { return((addr.ipVersion == 6) ? true : false); }  
   inline u_int32_t get_ipv4()                         { return((addr.ipVersion == 4) ? addr.ipType.ipv4 : 0);     }
   inline struct ndpi_in6_addr* get_ipv6()             { return((addr.ipVersion == 6) ? &addr.ipType.ipv6 : NULL); }
   inline struct ipAddress* getIP()                    { return(&addr); };
   inline bool equal(u_int32_t ipv4_addr)              { if((addr.ipVersion == 4) && (addr.ipType.ipv4 == ipv4_addr)) return(true); else return(false); };
   inline bool equal(struct ndpi_in6_addr *ip6_addr)   { if((addr.ipVersion == 6) && (memcmp(&addr.ipType.ipv6, ip6_addr, sizeof(struct ndpi_in6_addr)) == 0)) return(true); else return(false); };
   inline bool equal(IpAddress *_ip)                   { return(this->compare(_ip) == 0); };
-
-  void set_from_string(char *string);
   int compare(IpAddress *ip);
-  inline u_int32_t key()                               { return(ip_key);         };
-  void set(IpAddress *ip);
-  inline bool isPrivateAddress()                       { return(addr.privateIP); };
-  inline bool isMulticastAddress()                     { return(addr.multicastIP); };
-  inline bool isBroadcastAddress()                     { return(addr.broadcastIP); };
+  inline u_int32_t key()                              { return(ip_key);         };
+  inline void set(u_int32_t _ipv4)                    { addr.ipVersion = 4, addr.ipType.ipv4 = _ipv4; compute_key(); }
+  inline void set(struct ndpi_in6_addr *_ipv6)        { addr.ipVersion = 6, memcpy(&addr.ipType.ipv6, _ipv6, sizeof(struct ndpi_in6_addr)); 
+                                                        addr.privateIP = false; compute_key(); }
+  inline void set(IpAddress *ip)                      { memcpy(&addr, &ip->addr, sizeof(struct ipAddress)); ip_key = ip->ip_key; };
+  void set(char *ip);  
+  inline bool isPrivateAddress()                      { return(addr.privateIP); };
+  inline bool isMulticastAddress()                    { return(addr.multicastIP); };
+  inline bool isBroadcastAddress()                    { return(addr.broadcastIP); };
   char* print(char *str, u_int str_len, u_int8_t bitmask = 0);
   bool isLocalHost(int16_t *network_id);
   bool isLocalInterfaceAddress();

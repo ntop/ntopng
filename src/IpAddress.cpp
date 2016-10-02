@@ -31,47 +31,7 @@ IpAddress::IpAddress() {
 
 /* ******************************************* */
 
-IpAddress::IpAddress(char *string) {
-  ip_key = 0;
-  set_from_string(string);
-  compute_key();
-}
-
-/* ******************************************* */
-
-IpAddress::IpAddress(IpAddress *ip) {
-  ip_key = 0;
-  set(ip);
-}
-
-/* ******************************************* */
-
-IpAddress::IpAddress(u_int32_t _ipv4) {
-  ip_key = 0;
-  set_ipv4(_ipv4);
-  compute_key();
-}
-
-/* ******************************************* */
-
-IpAddress::IpAddress(struct ndpi_in6_addr *_ipv6) {
-  ip_key = 0;
-  set_ipv6(_ipv6);
-  addr.privateIP = false;
-  compute_key();
-}
-
-/* ******************************************* */
-
-void IpAddress::set(IpAddress *ip) {
-  memcpy(&addr, &ip->addr, sizeof(struct ipAddress));
-  ip_key = ip->ip_key;
-  compute_key();
-}
-
-/* ******************************************* */
-
-void IpAddress::set_from_string(char *sym_addr) {
+void IpAddress::set(char *sym_addr) {
   if(strchr(sym_addr, '.')) {
     addr.ipVersion = 4, addr.localHost = 0, addr.ipType.ipv4 = inet_addr(sym_addr);
   } else {
@@ -258,7 +218,7 @@ void IpAddress::deserialize(json_object *o) {
     addr.localHost = json_object_get_boolean(obj);
 
   if(json_object_object_get_ex(o, "ip", &obj))
-    set_from_string((char*)json_object_get_string(obj));
+    set((char*)json_object_get_string(obj));
 }
 
 /* ******************************************* */

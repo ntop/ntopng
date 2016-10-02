@@ -122,6 +122,8 @@ NetworkInterface::NetworkInterface(const char *name) {
     num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_hosts()/4);
     hosts_hash = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 
+    macs_hash = new MacHash(this, 4, ntop->getPrefs()->get_max_num_hosts());
+
     // init global detection structure
     ndpi_struct = ndpi_init_detection_module();
     if(ndpi_struct == NULL) {
@@ -402,6 +404,7 @@ bool NetworkInterface::checkIdle() {
 void NetworkInterface::deleteDataStructures() {
   if(flows_hash) { delete(flows_hash); flows_hash = NULL; }
   if(hosts_hash) { delete(hosts_hash); hosts_hash = NULL; }
+  if(macs_hash)  { delete(macs_hash);  macs_hash = NULL;  }
 
   if(ndpi_struct) {
     ndpi_exit_detection_module(ndpi_struct);
@@ -913,13 +916,10 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     /* non TCP/UDP protocols */
   }
 
-  if(iph != NULL) {
-    src_ip.set_ipv4(iph->saddr);
-    dst_ip.set_ipv4(iph->daddr);
-  } else {
-    src_ip.set_ipv6(&ip6->ip6_src);
-    dst_ip.set_ipv6(&ip6->ip6_dst);
-  }
+  if(iph != NULL)
+    src_ip.set(iph->saddr), dst_ip.set(iph->daddr);
+  else
+    src_ip.set(&ip6->ip6_src), dst_ip.set(&ip6->ip6_dst);  
 
 #if defined(WIN32) && defined(DEMO_WIN32)
   if(this->ethStats.getNumPackets() > MAX_NUM_PACKETS) {
@@ -1155,9 +1155,9 @@ void NetworkInterface::purgeIdle(time_t when) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle flows on %s",
 				   n, getNumFlows(), ifname);
 
-    if((n = purgeIdleHosts()) > 0)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle hosts on %s",
-				   n, getNumHosts(), ifname);
+    if((n = purgeIdleHostsMacs()) > 0)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Purged %u/%u idle hosts/macs on %s",
+				   n, getNumHosts()+getNumMacs(), ifname);
   }
 
   if(pkt_dumper) pkt_dumper->idle(when);
@@ -1510,18 +1510,11 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
     break;
 
   default: /* No IPv4 nor IPv6 */
-    Host *srcHost = findHostByMac(ethernet->h_source, vlan_id, true);
-    Host *dstHost = findHostByMac(ethernet->h_dest, vlan_id, true);
+    Mac *srcMac = getMac(ethernet->h_source, vlan_id, true);
+    Mac *dstMac = getMac(ethernet->h_dest, vlan_id, true);
 
-    if(srcHost) {
-      srcHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 1, h->len, h->len-ip_offset, 0, 0, 0);
-      srcHost->updateActivities();
-    }
-
-    if(dstHost) {
-      dstHost->incStats(0, NO_NDPI_PROTOCOL, NULL, 0, 0, 0, 1, h->len, h->len-ip_offset);
-      dstHost->updateActivities();
-    }
+    if(srcMac) srcMac->incSentStats(h->len);
+    if(dstMac) dstMac->incRcvdStats(h->len);
 
     incStats(h->ts.tv_sec, eth_type, NDPI_PROTOCOL_UNKNOWN, h->len,
 	     1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
@@ -1803,9 +1796,11 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 
     h = info.h;
   } else {
-    IpAddress *ip = new IpAddress(host_ip);
+    IpAddress *ip = new IpAddress();
 
     if(ip) {
+      ip->set(host_ip);
+
       if(!isView())
 	h = hosts_hash->get(vlan_id, ip);
       else {
@@ -1896,7 +1891,6 @@ Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
 }
 
 /* **************************************************** */
-
 
 struct flowHostRetrieveList {
   Flow *flow;
@@ -2661,28 +2655,20 @@ void NetworkInterface::getFlowPeersList(lua_State* vm,
 
 /* **************************************************** */
 
-class HostActivityRetriever {
-public:
-  IpAddress search;
-  bool found;
-  UserActivityCounter counters[UserActivitiesN];
-
-  HostActivityRetriever(const char * ip) : search((char *)ip) { found = false; };
-};
-
-/* **************************************************** */
-
 static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
   HostActivityRetriever * r = (HostActivityRetriever *)user_data;
   Host *h = (Host*)he;
   int i;
 
-  if(!h || !h->equal(&r->search))
-    return (false); /* false = keep on walking */
+  if(!h 
+     || !h->equal(&r->search) 
+     || (!h->get_user_activities()))
+    return(false); /* false = keep on walking */
 
   r->found = true;
   for(i=0; i<UserActivitiesN; i++)
-    r->counters[i] = *h->getActivityBytes((UserActivityID) i);
+    r->counters[i] = *h->getActivityBytes((UserActivityID)i);
+
   return true; /* found, stop walking */
 }
 
@@ -2784,7 +2770,15 @@ u_int NetworkInterface::getNumHTTPHosts()    {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleHosts() {
+u_int NetworkInterface::getNumMacs()        {
+  u_int tot = macs_hash ? macs_hash->getNumEntries() : 0;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumMacs();
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int NetworkInterface::purgeIdleHostsMacs() {
   if(!purge_idle_flows_hosts) return(0);
 
   if(next_idle_host_purge == 0) {
@@ -2797,7 +2791,7 @@ u_int NetworkInterface::purgeIdleHosts() {
     u_int n;
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
-    n = hosts_hash->purgeIdle();
+    n = hosts_hash->purgeIdle() + macs_hash->purgeIdle();
     next_idle_host_purge = last_pkt_rcvd + HOST_PURGE_FREQUENCY;
     return(n);
   }
@@ -3000,23 +2994,23 @@ void NetworkInterface::runHousekeepingTasks() {
 
 /* **************************************************** */
 
-Host* NetworkInterface::findHostByMac(u_int8_t mac[6], u_int16_t vlanId,
-				      bool createIfNotPresent) {
-  Host *ret;
-
+Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId,
+			      bool createIfNotPresent) {
+  Mac *ret;
+  
   if(!isView())
-    ret = hosts_hash->get(vlanId, mac);
+    ret = macs_hash->get(vlanId, _mac);
   else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
-      if((ret = subInterfaces[s]->get_hosts_hash()->get(vlanId, mac)) != NULL)
+      if((ret = subInterfaces[s]->get_macs_hash()->get(vlanId, _mac)) != NULL)
 	break;
     }
   }
 
   if((ret == NULL) && createIfNotPresent) {
     try {
-      if((ret = new Host(this, mac, vlanId)) != NULL)
-	hosts_hash->add(ret);
+      if((ret = new Mac(this, _mac, vlanId)) != NULL)
+	macs_hash->add(ret);
     } catch(std::bad_alloc& ba) {
       static bool oom_warning_sent = false;
 
@@ -3027,8 +3021,7 @@ Host* NetworkInterface::findHostByMac(u_int8_t mac[6], u_int16_t vlanId,
 
       return(NULL);
     }
-  } else
-    ret->updateLocal();
+  }
 
   return(ret);
 }
@@ -3244,7 +3237,6 @@ static bool similarity_walker(GenericHashEntry *node, void *user_data) {
   return(false); /* false = keep on walking */
 }
 
-
 /* **************************************************** */
 
 bool NetworkInterface::correlateHostActivity(lua_State* vm,
@@ -3260,6 +3252,7 @@ bool NetworkInterface::correlateHostActivity(lua_State* vm,
     info.vm = vm, info.h = h;
     h->getActivityStats()->extractPoints(&info.x);
     walker(true, correlator_walker, &info);
+
     return(true);
   } else
     return(false);
@@ -3280,6 +3273,7 @@ bool NetworkInterface::similarHostActivity(lua_State* vm,
     info.vm = vm, info.h = h;
     h->getActivityStats()->extractPoints(&info.x);
     walker(true, similarity_walker, &info);
+
     return(true);
   } else
     return(false);

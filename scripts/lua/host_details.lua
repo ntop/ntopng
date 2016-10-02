@@ -36,6 +36,8 @@ is_packetdump_enabled = isLocalPacketdumpEnabled()
 host = nil
 family = nil
 
+prefs = ntop.getPrefs()
+
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 
 if((host_name == nil) or (host_ip == nil)) then
@@ -214,12 +216,14 @@ else
    end
 end
 
-if(page == "activities") then
-  print("<li class=\"active\"><a href=\"#\">Activities</a></li>\n")
-else
-   if interface.isPcapDumpInterface() == false and host["ip"] ~= nil then
+if(prefs.is_flow_activity_enabled) then
+  if(page == "activities") then
+    print("<li class=\"active\"><a href=\"#\">Activities</a></li>\n")
+  else
+    if interface.isPcapDumpInterface() == false and host["ip"] ~= nil then
       print("<li><a href=\""..url.."&page=activities\">Activities</a></li>")
-   end
+    end
+  end
 end
 
 if(page == "dns") then

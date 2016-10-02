@@ -19,26 +19,18 @@
  *
  */
 
-#ifndef _HOST_HASH_H_
-#define _HOST_HASH_H_
+#ifndef _HOST_ACTIVITY_RETRIEVER_H_
+#define _HOST_ACTIVITY_RETRIEVER_H_
 
 #include "ntop_includes.h"
- 
-class HostHash : public GenericHash {
- private:
-  u_int32_t num_http_hosts;
-  Mutex m;
 
- public:
-  HostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+class HostActivityRetriever {
+public:
+  IpAddress search;
+  bool found;
+  UserActivityCounter counters[UserActivitiesN];
 
-  // Host* get(u_int16_t vlanId, const u_int8_t mac[6]);
-  Host* get(u_int16_t vlanId, IpAddress *key);
-
-  void incNumHTTPEntries();  
-  void decNumHTTPEntries();
-  
-  inline u_int32_t getNumHTTPEntries() { return(num_http_hosts); }
+  HostActivityRetriever(const char * ip) { search.set((char *)ip), found = false; };
 };
 
-#endif /* _HOST_HASH_H_ */
+#endif /* _HOST_ACTIVITY_RETRIEVER_H_ */

@@ -958,8 +958,8 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
     
   case 216:
-      enable_flow_activity = true;
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow activity detection enabled");
+    enable_flow_activity = true;
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow activity detection enabled");
     break;
 
 #ifdef NTOPNG_PRO

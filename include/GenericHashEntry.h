@@ -36,6 +36,7 @@ class GenericHashEntry {
   GenericHashEntry *hash_next; /**< Pointer of next hash entry.*/
 
  protected:
+  u_int16_t num_uses;
   bool will_be_purged; /**< Mark this host as candidate for purging.*/
   time_t first_seen;   /**< Time of first seen.*/
   time_t last_seen;    /**< Time of last seen.*/
@@ -97,6 +98,8 @@ class GenericHashEntry {
   inline bool is_ready_to_be_purged() { return(will_be_purged); };
   virtual u_int32_t key()             { return(0);         };  
   virtual char* get_string_key(char *buf, u_int buf_len) { buf[0] = '\0'; return(buf); };
+  void incUses() { num_uses++; }
+  void decUses() { num_uses--; }
 };
 
 #endif /* _GENERIC_HASH_ENTRY_H_ */

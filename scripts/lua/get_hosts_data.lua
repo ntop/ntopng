@@ -28,7 +28,6 @@ vlan         = _GET["vlan"]
 network      = _GET["network"]
 country      = _GET["country"]
 os_    	     = _GET["os"]
-antenna_mac  = _GET["antenna_mac"]
 mac          = _GET["mac"]
 
 -- table_id = _GET["table"]
@@ -98,8 +97,6 @@ interface.select(ifname)
 to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
--- if((mac ~= nil) or (antenna_mac ~= nil) or (mode == "local")) then
-
 
 hosts_retrv_function = interface.getHostsInfo
 if mode == "local" then
@@ -275,7 +272,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 ((asn == nil) or (asn == tostring(hosts_stats[key]["asn"]))) and
 ((os_ == nil) or (os_ == tostring(hosts_stats[key]["os"]))) and
 ((country == nil) or (country == tostring(hosts_stats[key]["country"]))) and
-((antenna_mac == nil) or (antenna_mac == tostring(hosts_stats[key]["antenna_mac"]))) and
 ((mac == nil) or (mac == tostring(hosts_stats[key]["mac"]))) and
 ((vlan == nil) or (vlan == tostring(hosts_stats[key]["vlan"]))) and
 ((network == nil) or (network == tostring(hosts_stats[key]["local_network_id"])))) then

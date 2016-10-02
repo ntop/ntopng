@@ -567,9 +567,9 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	     v6 address may overwrite the non empty v4.
 	   */
 	  if(flow.src_ip.isEmpty()) {
-	    flow.src_ip.set_from_string((char*)value);
+	    flow.src_ip.set((char*)value);
 	  } else {
-	    ip_aux.set_from_string((char*)value);
+	    ip_aux.set((char*)value);
 	    if(!ip_aux.isEmpty())
 	      /* tried to overwrite a non-empty IP with another non-empty IP */
 	      ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -580,9 +580,9 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case IPV4_DST_ADDR:
         case IPV6_DST_ADDR:
 	  if(flow.dst_ip.isEmpty()) {
-	    flow.dst_ip.set_from_string((char*)value);
+	    flow.dst_ip.set((char*)value);
 	  } else {
-	    ip_aux.set_from_string((char*)value);
+	    ip_aux.set((char*)value);
 	    if(!ip_aux.isEmpty())
 	      ntop->getTrace()->traceEvent(TRACE_WARNING,
 					   "Attempt to set destination ip multiple times. "

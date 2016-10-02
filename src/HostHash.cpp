@@ -57,6 +57,7 @@ Host* HostHash::get(u_int16_t vlanId, IpAddress *key) {
 
 /* ************************************ */
 
+#if 0
 Host* HostHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
   u_int32_t hash = 0;
 
@@ -87,6 +88,7 @@ Host* HostHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
     return(head);
   }
 }
+#endif
 
 /* ************************************ */
 

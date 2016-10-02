@@ -403,6 +403,19 @@ function printStatsRrds()
 			    "to keep application protocol statistics at the cost of using more disk space.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_local_ndpi", "ntopng.prefs.host_ndpi_rrd_creation", "0")
 
+ local toggle_local_activity = "toggle_local_activity"
+  local activityPrefsToSwitch = {"local_activity_prefs",
+    "host_activity_rrd_raw_hours", "id_input_host_activity_rrd_raw_hours",
+    "host_activity_rrd_1h_days", "id_input_host_activity_rrd_1h_days",
+    "host_activity_rrd_1d_days", "id_input_host_activity_rrd_1d_days"}
+
+  if prefs.is_flow_activity_enabled then
+    toggleTableButtonPrefs("Activities Timeseries",
+			 "Toggle the creation of activities timeseries for local hosts and networks. Turn it off to save storage space.",
+  	 	         "On", "1", "success", "Off", "0", "danger", toggle_local_activity, "ntopng.prefs.host_activity_rrd_creation", "0",
+                         false, activityPrefsToSwitch)
+  end
+
   local info = ntop.getInfo()
   toggleTableButtonPrefs("Flow Devices Timeseries",
 			 "Toggle the creation of bytes timeseries for each port of the sFlow/NetFlow devices. For each device port" ..

@@ -24,32 +24,22 @@
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface) : GenericHost(_iface) {
-  ip = new IpAddress();
   initialize(NULL, 0, false);
 }
 
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHost(_iface) {
-  ip = new IpAddress(ipAddress);
-  if (ip && ip->isEmpty()) free(ip), ip = NULL;
+  ip.set(ipAddress);
   initialize(NULL, _vlanId, true);
 }
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, u_int8_t mac[6],
+Host::Host(NetworkInterface *_iface, u_int8_t _mac[6],
 	   u_int16_t _vlanId, IpAddress *_ip) : GenericHost(_iface) {
-  ip = new IpAddress(_ip);
-  initialize(mac, _vlanId, true);
-}
-
-/* *************************************** */
-
-Host::Host(NetworkInterface *_iface, u_int8_t mac[6],
-	   u_int16_t _vlanId) : GenericHost(_iface) {
-  ip = NULL;
-  initialize(mac, _vlanId, true);
+  ip.set(_ip);
+  initialize(_mac, _vlanId, true);
 }
 
 /* *************************************** */
@@ -65,12 +55,13 @@ Host::~Host() {
     ntop->getRedis()->rename(topSitesKey, oldk);
   }
 
-  if(ip && (!ip->isEmpty())) dumpStats(false);
+  if(!ip.isEmpty()) dumpStats(false);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
   serialize2redis(); /* possibly dumps counters and data to redis */
   
+  if(mac) mac->decUses();
 #ifdef NTOPNG_PRO
   if(sent_to_sketch)   delete sent_to_sketch;
   if(rcvd_from_sketch) delete rcvd_from_sketch;
@@ -78,15 +69,15 @@ Host::~Host() {
 
   if(dns)  delete dns;
   if(http) delete http;
-
-  if(symbolic_name)  free(symbolic_name);
-  if(country)        free(country);
-  if(city)           free(city);
-  if(asname)         free(asname);
-  if(categoryStats)  delete categoryStats;
+  if(user_activities) delete user_activities;
+  if(ifa_stats)       delete ifa_stats;
+  if(symbolic_name)   free(symbolic_name);
+  if(country)         free(country);
+  if(city)            free(city);
+  if(asname)          free(asname);
+  if(categoryStats)   delete categoryStats;
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
-  if(ip) delete ip;
   if(m) delete m;
   if(topSitesKey) free(topSitesKey);
 }
@@ -95,7 +86,7 @@ Host::~Host() {
 
 void Host::set_host_label(char *label_name) {
   if(label_name) {
-    char buf[64], *host = ip->print(buf, sizeof(buf));
+    char buf[64], *host = ip.print(buf, sizeof(buf));
 
     ntop->getRedis()->hashSet((char*)HOST_LABEL_NAMES, host, label_name);
   }
@@ -104,22 +95,20 @@ void Host::set_host_label(char *label_name) {
 /* *************************************** */
 
 void Host::computeHostSerial() {
-  if(ip
-     && iface
-     && Utils::dumpHostToDB(ip, ntop->getPrefs()->get_dump_hosts_to_db_policy())) {
+  if(iface && Utils::dumpHostToDB(&ip, ntop->getPrefs()->get_dump_hosts_to_db_policy())) {
     if(host_serial) {
       char buf[64];
 
       /* We need to reconfirm the id (e.g. after a day wrap) */
-      ntop->getRedis()->setHostId(iface, NULL, ip->print(buf, sizeof(buf)), host_serial);
+      ntop->getRedis()->setHostId(iface, NULL, ip.print(buf, sizeof(buf)), host_serial);
     } else
-      host_serial = ntop->getRedis()->addHostToDBDump(iface, ip, NULL);
+      host_serial = ntop->getRedis()->addHostToDBDump(iface, &ip, NULL);
   }
 }
 
 /* *************************************** */
 
-void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
+void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
   char buf[64], host[96];
 
@@ -127,9 +116,8 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
   sent_to_sketch = rcvd_from_sketch = NULL;
 #endif
 
-  if(mac) memcpy(mac_address, mac, 6); else memset(mac_address, 0, 6);
-
-  //if(_vlanId > 0) ntop->getTrace()->traceEvent(TRACE_NORMAL, "VLAN => %d", _vlanId);
+  if((mac = iface->getMac(_mac, _vlanId, true)) != NULL)
+    mac->incUses();
 
   drop_all_host_traffic = false, dump_host_traffic = false,
     deviceIP = 0, deviceIfIdx = 0;
@@ -151,106 +139,103 @@ void Host::initialize(u_int8_t mac[6], u_int16_t _vlanId, bool init_all) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mutex. Are you running out of memory?");
 
   memset(&tcpPacketStats, 0, sizeof(tcpPacketStats));
-  memset(&ifa_stats, 0, sizeof(ifa_stats));
   asn = 0, asname = NULL, country = NULL, city = NULL;
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
-  dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL;
+  dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL,
+    user_activities = NULL, ifa_stats = NULL;
 
 #ifdef NTOPNG_PRO
   l7Policy = NULL;
 #endif
 
   if(init_all) {
-    if(ip) {
-      char sitesBuf[64], *strIP = ip->print(buf, sizeof(buf));
+    char sitesBuf[64], *strIP = ip.print(buf, sizeof(buf));
 
-      snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
+    snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
 
-      updateLocal();
-      updateHostTrafficPolicy(host);
-      systemHost = ip->isLocalInterfaceAddress();
+    updateLocal();
+    updateHostTrafficPolicy(host);
+    systemHost = ip.isLocalInterfaceAddress();
 
-      if(localHost) {
-	char oldk[64];
+    if(localHost) {
+      char oldk[64];
 
-	snprintf(sitesBuf, sizeof(sitesBuf), "sites.%s", strIP);
-	topSitesKey = strdup(sitesBuf);
+      snprintf(sitesBuf, sizeof(sitesBuf), "sites.%s", strIP);
+      topSitesKey = strdup(sitesBuf);
 
-	snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-	ntop->getRedis()->rename(topSitesKey, oldk);
-      }
-
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s (%s)", k, localHost ? "local": "remote");
-
-      if(localHost || systemHost) {
-	dns = new DnsStats();
-	http = new HTTPstats(iface->get_hosts_hash());
-      }
-
-      if((localHost || systemHost)
-	 && ntop->getPrefs()->is_idle_local_host_cache_enabled()){
-	char *json;
-	if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
-	  ntop->getTrace()->traceEvent(TRACE_ERROR,
-				       "Unable to allocate memory to deserialize %s", redis_key);
-	else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
-	  /* Found saved copy of the host so let's start from the previous state */
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
-	  deserialize(json, redis_key);
-	}
-	if(json) free(json);
-      }
-
-      if(localHost || systemHost
-	 || ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
-	char rsp[256];
-
-	if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0)
-	  setName(rsp);
-	// else ntop->getRedis()->pushHostToResolve(host, false, localHost);
-      }
-
-      if((!localHost || systemHost)
-	 && ntop->getPrefs()->is_httpbl_enabled()
-	 && ip->isIPv4()) {
-	// http:bl only works for IPv4 addresses
-	if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
-							sizeof(trafficCategory), true) == 0) {
-          if(strcmp(trafficCategory, NULL_BL)) {
-	    blacklisted_host = true;
-	    ntop->getTrace()->traceEvent(TRACE_INFO,
-					 "Blacklisted host found %s [%s]",
-					 host, trafficCategory);
-	  }
-	}
-      }
-
-      if(asname) { free(asname); asname = NULL; }
-      ntop->getGeolocation()->getAS(ip, &asn, &asname);
-
-      if(country) { free(country); country = NULL; }
-      if(city)    { free(city); city = NULL;       }
-      ntop->getGeolocation()->getInfo(ip, &country, &city, &latitude, &longitude);
-    } else {
-      char buf[32];
-
-      snprintf(buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X",
-	       mac_address[0], mac_address[1], mac_address[2],
-	       mac_address[3], mac_address[4], mac_address[5]);
-
-      setName(buf);
-      localHost = true;
+      snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+      ntop->getRedis()->rename(topSitesKey, oldk);
     }
 
-    if((localHost || systemHost) && ip) {
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s (%s)", k, localHost ? "local": "remote");
+
+    if(localHost || systemHost) {
+      dns = new DnsStats();
+      http = new HTTPstats(iface->get_hosts_hash());
+    }
+
+    if((localHost || systemHost)
+       && ntop->getPrefs()->is_idle_local_host_cache_enabled()){
+      char *json;
+      if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to allocate memory to deserialize %s", redis_key);
+      else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
+	/* Found saved copy of the host so let's start from the previous state */
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
+	deserialize(json, redis_key);
+      }
+      if(json) free(json);
+    }
+
+    if(localHost || systemHost
+       || ntop->getPrefs()->is_dns_resolution_enabled_for_all_hosts()) {
+      char rsp[256];
+
+      if(ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true) == 0)
+	setName(rsp);
+      // else ntop->getRedis()->pushHostToResolve(host, false, localHost);
+    }
+
+    if((!localHost || systemHost)
+       && ntop->getPrefs()->is_httpbl_enabled()
+       && ip.isIPv4()) {
+      // http:bl only works for IPv4 addresses
+      if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
+						      sizeof(trafficCategory), true) == 0) {
+	if(strcmp(trafficCategory, NULL_BL)) {
+	  blacklisted_host = true;
+	  ntop->getTrace()->traceEvent(TRACE_INFO,
+				       "Blacklisted host found %s [%s]",
+				       host, trafficCategory);
+	}
+      }
+    }
+
+    if(asname) { free(asname); asname = NULL; }
+    ntop->getGeolocation()->getAS(&ip, &asn, &asname);
+
+    if(country) { free(country); country = NULL; }
+    if(city)    { free(city); city = NULL;       }
+    ntop->getGeolocation()->getInfo(&ip, &country, &city, &latitude, &longitude);
+    
+    if(localHost || systemHost) {
 #ifdef NTOPNG_PRO
       sent_to_sketch   = new CountMinSketch();
       rcvd_from_sketch = new CountMinSketch();
 #endif
       readStats();
+
+      if(ntop->getPrefs()->is_flow_activity_enabled()) {
+	ifa_stats = new InterFlowActivityStats[IFA_STATS_PROTOS_N*INTER_FLOW_ACTIVITY_SLOTS];
+	user_activities = new UserActivityStats;
+	
+	if(ifa_stats) memset(ifa_stats, 0, sizeof(InterFlowActivityStats)*IFA_STATS_PROTOS_N*INTER_FLOW_ACTIVITY_SLOTS);
+	if(user_activities) memset(user_activities, 0, sizeof(UserActivityStats));
+      }
     }
   }
 
@@ -266,16 +251,14 @@ void Host::updateHostTrafficPolicy(char *key) {
   if(localHost || systemHost) {
     char buf[64], *host, host_buf[96];
 
-    if(!ip) return;
-
     if(key)
       host = key;
     else {
       if(vlan_id > 0) {
-	snprintf(host_buf, sizeof(host_buf), "%s@%u", ip->print(buf, sizeof(buf)), vlan_id);
+	snprintf(host_buf, sizeof(host_buf), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
 	host = host_buf;
       } else
-	host = ip->print(buf, sizeof(buf));
+	host = ip.print(buf, sizeof(buf));
     }
 
     if(iface->isPacketInterface()) {
@@ -305,14 +288,14 @@ void Host::updateHostL7Policy() {
   if(!iface->is_bridge_interface()) return;
 
   if(ntop->getPro()->has_valid_license()) {
-    if((localHost || systemHost) && ip) {
+    if(localHost || systemHost) {
       char host_key[64], hash_name[64], rsp[32];
       char buf[64], *host;
       u_int8_t bitmask;
 
-      l7Policy = getInterface()->getL7Policer()->getIpPolicy(ip, vlan_id, &bitmask);
+      l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id, &bitmask);
 
-      host = ip->print(buf, sizeof(buf), bitmask);
+      host = ip.print(buf, sizeof(buf), bitmask);
       snprintf(host_key, sizeof(host_key), "%s/%u@%u", host,
 	       bitmask, vlan_id);
 
@@ -371,8 +354,7 @@ bool Host::doDropProtocol(ndpi_protocol l7_proto) {
 /* *************************************** */
 
 void Host::updateLocal() {
-  if(ip)
-    localHost = ip->isLocalHost(&local_network_id);
+  localHost = ip.isLocalHost(&local_network_id);
 
   if(local_network_id >= 0)
     networkStats = getNetworkStats(local_network_id);
@@ -381,35 +363,30 @@ void Host::updateLocal() {
     char buf[64];
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s",
-				 ip->print(buf, sizeof(buf)), localHost ? "local" : "remote");
+				 ip.print(buf, sizeof(buf)), 
+				 localHost ? "local" : "remote");
   }
 }
 
 /* *************************************** */
 
-char* Host::get_mac(char *buf, u_int buf_len, u_int8_t *mac) {
-  snprintf(buf, buf_len,
-	   "%02X:%02X:%02X:%02X:%02X:%02X",
-	   mac[0] & 0xFF, mac[1] & 0xFF,
-	   mac[2] & 0xFF, mac[3] & 0xFF,
-	   mac[4] & 0xFF, mac[5] & 0xFF);
-
-  return(buf);
-}
-
-/* *************************************** */
-
 void Host::set_mac(char *m) {
-  u_int32_t mac[6] = { 0 };
+  u_int8_t mac_address[6];
+  u_int32_t _mac[6] = { 0 };
 
   if(!strcmp(m, "00:00:00:00:00:00")) return;
 
   sscanf(m, "%02X:%02X:%02X:%02X:%02X:%02X",
-	 &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
+	 &_mac[0], &_mac[1], &_mac[2], &_mac[3], &_mac[4], &_mac[5]);
 
-  mac_address[0] = mac[0], mac_address[1] = mac[1],
-    mac_address[2] = mac[2], mac_address[3] = mac[3],
-    mac_address[4] = mac[4], mac_address[5] = mac[5];
+  mac_address[0] = _mac[0], mac_address[1] = _mac[1],
+    mac_address[2] = _mac[2], mac_address[3] = _mac[3],
+    mac_address[4] = _mac[4], mac_address[5] = _mac[5];
+
+  if(mac) mac->decUses();
+
+  if((mac = iface->getMac(mac_address, vlan_id, true)) != NULL)
+    mac->incUses();
 }
 
 /* *************************************** */
@@ -448,24 +425,18 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
 	       bool exclude_deserialized_bytes) {
   char buf[64];
   char buf_id[64];
+  char ip_buf[64];
   char *ipaddr = NULL;
+  char *local_net;
 
   if(ptree && (!match(ptree)))
     return;
 
   lua_newtable(vm);
+  lua_push_str_table_entry(vm, "ip", (ipaddr = ip.print(ip_buf, sizeof(ip_buf))));
+  lua_push_int_table_entry(vm, "ipkey", ip.key());
 
-  if(ip) {
-    char ip_buf[64];
-
-    lua_push_str_table_entry(vm, "ip", (ipaddr = ip->print(ip_buf, sizeof(ip_buf))));
-    lua_push_int_table_entry(vm, "ipkey", ip->key());
-  } else {
-    lua_push_nil_table_entry(vm, "ip");
-    lua_push_nil_table_entry(vm, "ipkey");
-  }
-
-  lua_push_str_table_entry(vm, "mac", get_mac(buf, sizeof(buf), mac_address));
+  lua_push_str_table_entry(vm, "mac", Utils::formatMac(mac ? mac->get_mac() : NULL, buf, sizeof(buf)));
   lua_push_int_table_entry(vm, "vlan", vlan_id);
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
@@ -474,190 +445,177 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   lua_push_int_table_entry(vm, "bytes.rcvd",
 			   rcvd.getNumBytes() - (exclude_deserialized_bytes ? rcvd.getNumDeserializedBytes() : 0));
 
-  if(ip) {
-    char *local_net;
+  lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
 
-    lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
+  if(host_details) {
+    /*
+      This has been disabled as in case of an attack, most hosts do not have a name and we will waste
+      a lot of time doing activities that are not necessary
+    */
+    if((symbolic_name == NULL) || (strcmp(symbolic_name, ipaddr) == 0)) {
+      /* We resolve immediately the IP address by queueing on the top of address queue */
 
-    if(host_details) {
-      /*
-	This has been disabled as in case of an attack, most hosts do not have a name and we will waste
-	a lot of time doing activities that are not necessary
-      */
-      if((symbolic_name == NULL) || (strcmp(symbolic_name, ipaddr) == 0)) {
-	/* We resolve immediately the IP address by queueing on the top of address queue */
-
-	ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
-      }
-    }
-
-    lua_push_str_table_entry(vm, "name",
-			     get_name(buf, sizeof(buf), false));
-    lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
-
-    local_net = ntop->getLocalNetworkName(local_network_id);
-    if(local_net == NULL)
-      lua_push_nil_table_entry(vm, "local_network_name");
-    else
-      lua_push_str_table_entry(vm, "local_network_name", local_net);
-
-    lua_push_bool_table_entry(vm, "systemhost", systemHost);
-    lua_push_int_table_entry(vm, "source_id", source_id);
-    lua_push_int_table_entry(vm, "asn", ip ? asn : 0);
-
-    lua_push_str_table_entry(vm, "asname", ip ? asname : (char*)"");
-    lua_push_str_table_entry(vm, "os", os);
-
-    lua_push_str_table_entry(vm, "country", country ? country : (char*)"");
-    lua_push_int_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
-    lua_push_int_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
-    lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
-
-    if(host_details) {
-      lua_push_str_table_entry(vm, "deviceIP", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
-      lua_push_float_table_entry(vm, "latitude", latitude);
-      lua_push_float_table_entry(vm, "longitude", longitude);
-      lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
-      lua_push_int_table_entry(vm, "packets.sent", sent.getNumPkts());
-      lua_push_int_table_entry(vm, "packets.rcvd", rcvd.getNumPkts());
-      lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
-      lua_push_int_table_entry(vm, "flows.as_server", total_num_flows_as_server);
-      lua_push_int_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
-      lua_push_int_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
-      lua_push_int_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
-      lua_push_int_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
-
-      lua_push_int_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
-
-      lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
-				(tcpPacketStats.pktRetr
-				 || tcpPacketStats.pktOOO
-				 || tcpPacketStats.pktLost) ? true : false);
-      lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
-      lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
-      lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
-
-      lua_push_int_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
-      lua_push_int_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
-      lua_push_int_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
-
-      lua_push_int_table_entry(vm, "icmp.packets.sent",  icmp_sent.getNumPkts());
-      lua_push_int_table_entry(vm, "icmp.bytes.sent", icmp_sent.getNumBytes());
-      lua_push_int_table_entry(vm, "icmp.packets.rcvd",  icmp_rcvd.getNumPkts());
-      lua_push_int_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
-
-      lua_push_int_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
-      lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-      lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
-      lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
-
-      lua_push_bool_table_entry(vm, "drop_all_host_traffic", drop_all_host_traffic);
-
-      /* Host ingress/egress drops */
-      lua_push_int_table_entry(vm, "bridge.ingress_drops.bytes", ingress_drops.getNumBytes());
-      lua_push_int_table_entry(vm, "bridge.ingress_drops.packets",  ingress_drops.getNumPkts());
-      lua_push_int_table_entry(vm, "bridge.egress_drops.bytes", egress_drops.getNumBytes());
-      lua_push_int_table_entry(vm, "bridge.egress_drops.packets",  egress_drops.getNumPkts());
-
-      lua_push_int_table_entry(vm, "host_quota_mb", host_quota_mb);
-
-      if(localHost || systemHost) {
-	lua_push_int_table_entry(vm, "bridge.ingress_shaper_id", ingress_shaper_id);
-	lua_push_int_table_entry(vm, "bridge.egress_shaper_id", egress_shaper_id);
-	lua_push_int_table_entry(vm, "bridge.host_quota_mb", host_quota_mb);
-      }
-
-      lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
-      lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
-
-
-      if(topSitesKey) {
-	char oldk[64];
-
-	snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-
-	getSites(vm, topSitesKey, "sites");
-	getSites(vm, oldk, "sites.old");
-      }
-    }
-
-    lua_push_int_table_entry(vm, "seen.first", first_seen);
-    lua_push_int_table_entry(vm, "seen.last", last_seen);
-    lua_push_int_table_entry(vm, "duration", get_duration());
-
-    lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
-    lua_push_float_table_entry(vm, "last_throughput_bps", last_bytes_thpt);
-    lua_push_int_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
-    lua_push_float_table_entry(vm, "throughput_trend_bps_diff", bytes_thpt_diff);
-
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
-    lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt);
-    lua_push_float_table_entry(vm, "last_throughput_pps", last_pkts_thpt);
-    lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
-
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
-    lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
-
-    if(ip) {
-      if(ntop->getPrefs()->is_httpbl_enabled())
-	lua_push_str_table_entry(vm, "httpbl", get_httpbl());
-    }
-
-    lua_push_bool_table_entry(vm, "dump_host_traffic", dump_host_traffic);
-
-    if(verbose) {
-      char *rsp = serialize();
-
-      if(categoryStats) categoryStats->lua(vm);
-      if(ndpiStats) ndpiStats->lua(iface, vm);
-      lua_push_str_table_entry(vm, "json", rsp);
-      free(rsp);
-
-      sent_stats.lua(vm, "pktStats.sent");
-      recv_stats.lua(vm, "pktStats.recv");
-
-      if(dns)  dns->lua(vm);
-      if(http) http->lua(vm);
-
-#ifdef NTOPNG_PRO
-      if(ntop->getPro()->has_valid_license()) {
-	if(l7Policy != NULL) {
-	  lua_newtable(vm);
-
-	  for(int i=1; i<NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS; i++) {
-	    if(NDPI_ISSET(l7Policy, i)) {
-	      char *proto = ndpi_get_proto_by_id(iface->get_ndpi_struct(), i);
-
-	      if(proto)
-		lua_push_int_table_entry(vm, proto, i);
-	    }
-	  }
-
-	  lua_pushstring(vm, "l7_traffic_policy");
-	  lua_insert(vm, -2);
-	  lua_settable(vm, -3);
-	}
-      }
-#endif
-    }
-
-    if(!returnHost) {
-      /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
-      if(vlan_id == 0) {
-        sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address));
-      } else {
-        sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address), vlan_id );
-      }
-    }
-  } else {
-    /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
-    if(vlan_id == 0) {
-      sprintf(buf_id, "%s",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address));
-    } else {
-      sprintf(buf_id, "%s@%d",(ip != NULL) ? ip->print(buf, sizeof(buf)) : get_mac(buf, sizeof(buf), mac_address),vlan_id );
+      ntop->getRedis()->pushHostToResolve(ipaddr, false, true /* Fake to resolve it ASAP */);
     }
   }
+
+  lua_push_str_table_entry(vm, "name",
+			   get_name(buf, sizeof(buf), false));
+  lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
+
+  local_net = ntop->getLocalNetworkName(local_network_id);
+  if(local_net == NULL)
+    lua_push_nil_table_entry(vm, "local_network_name");
+  else
+    lua_push_str_table_entry(vm, "local_network_name", local_net);
+
+  lua_push_bool_table_entry(vm, "systemhost", systemHost);
+  lua_push_int_table_entry(vm, "source_id", source_id);
+  lua_push_int_table_entry(vm, "asn", asn);
+
+  lua_push_str_table_entry(vm, "asname", asname);
+  lua_push_str_table_entry(vm, "os", os);
+
+  lua_push_str_table_entry(vm, "country", country ? country : (char*)"");
+  lua_push_int_table_entry(vm, "active_flows.as_client", num_active_flows_as_client);
+  lua_push_int_table_entry(vm, "active_flows.as_server", num_active_flows_as_server);
+  lua_push_int_table_entry(vm, "active_http_hosts", http ? http->get_num_virtual_hosts() : 0);
+
+  if(host_details) {
+    lua_push_str_table_entry(vm, "deviceIP", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
+    lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
+    lua_push_float_table_entry(vm, "latitude", latitude);
+    lua_push_float_table_entry(vm, "longitude", longitude);
+    lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
+    lua_push_int_table_entry(vm, "packets.sent", sent.getNumPkts());
+    lua_push_int_table_entry(vm, "packets.rcvd", rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
+    lua_push_int_table_entry(vm, "flows.as_server", total_num_flows_as_server);
+    lua_push_int_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
+    lua_push_int_table_entry(vm, "udp.bytes.sent", udp_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "udp.packets.rcvd",  udp_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "udp.bytes.rcvd", udp_rcvd.getNumBytes());
+
+    lua_push_int_table_entry(vm, "tcp.packets.sent",  tcp_sent.getNumPkts());
+
+    lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
+			      (tcpPacketStats.pktRetr
+			       || tcpPacketStats.pktOOO
+			       || tcpPacketStats.pktLost) ? true : false);
+    lua_push_int_table_entry(vm, "tcp.packets.retransmissions", tcpPacketStats.pktRetr);
+    lua_push_int_table_entry(vm, "tcp.packets.out_of_order", tcpPacketStats.pktOOO);
+    lua_push_int_table_entry(vm, "tcp.packets.lost", tcpPacketStats.pktLost);
+
+    lua_push_int_table_entry(vm, "tcp.bytes.sent", tcp_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "tcp.packets.rcvd",  tcp_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "tcp.bytes.rcvd", tcp_rcvd.getNumBytes());
+
+    lua_push_int_table_entry(vm, "icmp.packets.sent",  icmp_sent.getNumPkts());
+    lua_push_int_table_entry(vm, "icmp.bytes.sent", icmp_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "icmp.packets.rcvd",  icmp_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
+
+    lua_push_int_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
+    lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
+    lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
+
+    lua_push_bool_table_entry(vm, "drop_all_host_traffic", drop_all_host_traffic);
+
+    /* Host ingress/egress drops */
+    lua_push_int_table_entry(vm, "bridge.ingress_drops.bytes", ingress_drops.getNumBytes());
+    lua_push_int_table_entry(vm, "bridge.ingress_drops.packets",  ingress_drops.getNumPkts());
+    lua_push_int_table_entry(vm, "bridge.egress_drops.bytes", egress_drops.getNumBytes());
+    lua_push_int_table_entry(vm, "bridge.egress_drops.packets",  egress_drops.getNumPkts());
+
+    lua_push_int_table_entry(vm, "host_quota_mb", host_quota_mb);
+
+    if(localHost || systemHost) {
+      lua_push_int_table_entry(vm, "bridge.ingress_shaper_id", ingress_shaper_id);
+      lua_push_int_table_entry(vm, "bridge.egress_shaper_id", egress_shaper_id);
+      lua_push_int_table_entry(vm, "bridge.host_quota_mb", host_quota_mb);
+    }
+
+    lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
+    lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
+
+
+    if(topSitesKey) {
+      char oldk[64];
+
+      snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+
+      getSites(vm, topSitesKey, "sites");
+      getSites(vm, oldk, "sites.old");
+    }
+  }
+
+  lua_push_int_table_entry(vm, "seen.first", first_seen);
+  lua_push_int_table_entry(vm, "seen.last", last_seen);
+  lua_push_int_table_entry(vm, "duration", get_duration());
+
+  lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
+  lua_push_float_table_entry(vm, "last_throughput_bps", last_bytes_thpt);
+  lua_push_int_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
+  lua_push_float_table_entry(vm, "throughput_trend_bps_diff", bytes_thpt_diff);
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
+  lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt);
+  lua_push_float_table_entry(vm, "last_throughput_pps", last_pkts_thpt);
+  lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
+  lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
+
+  if(ntop->getPrefs()->is_httpbl_enabled())
+    lua_push_str_table_entry(vm, "httpbl", get_httpbl());
+
+  lua_push_bool_table_entry(vm, "dump_host_traffic", dump_host_traffic);
+
+  if(verbose) {
+    char *rsp = serialize();
+
+    if(categoryStats) categoryStats->lua(vm);
+    if(ndpiStats) ndpiStats->lua(iface, vm);
+    lua_push_str_table_entry(vm, "json", rsp);
+    free(rsp);
+
+    sent_stats.lua(vm, "pktStats.sent");
+    recv_stats.lua(vm, "pktStats.recv");
+
+    if(dns)  dns->lua(vm);
+    if(http) http->lua(vm);
+
+#ifdef NTOPNG_PRO
+    if(ntop->getPro()->has_valid_license()) {
+      if(l7Policy != NULL) {
+	lua_newtable(vm);
+
+	for(int i=1; i<NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS; i++) {
+	  if(NDPI_ISSET(l7Policy, i)) {
+	    char *proto = ndpi_get_proto_by_id(iface->get_ndpi_struct(), i);
+
+	    if(proto)
+	      lua_push_int_table_entry(vm, proto, i);
+	  }
+	}
+
+	lua_pushstring(vm, "l7_traffic_policy");
+	lua_insert(vm, -2);
+	lua_settable(vm, -3);
+      }
+    }
+#endif
+  }
+
+  if(!returnHost) {
+    /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
+    if(vlan_id == 0) {
+      sprintf(buf_id, "%s", ip.print(buf, sizeof(buf)));
+    } else {
+      sprintf(buf_id, "%s@%d", ip.print(buf, sizeof(buf)), vlan_id);
+    }
+  }  
 
   if(asListElement) {
     lua_pushstring(vm, buf_id);
@@ -685,13 +643,12 @@ void Host::setName(char *name) {
 /* ***************************************** */
 
 void Host::refreshHTTPBL() {
-  if(ip
-     && ip->isIPv4()
+  if(ip.isIPv4()
      && (!localHost)
      && (trafficCategory[0] == '\0')
      && ntop->get_httpbl()) {
     char buf[128] =  { 0 };
-    char* ip_addr = ip->print(buf, sizeof(buf));
+    char* ip_addr = ip.print(buf, sizeof(buf));
 
     ntop->get_httpbl()->findCategory(ip_addr, trafficCategory, sizeof(trafficCategory), false);
   }
@@ -700,51 +657,37 @@ void Host::refreshHTTPBL() {
 /* ***************************************** */
 
 char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found) {
-  if(ip == NULL) {
-    return(get_mac(buf, buf_len, mac_address));
-  } else {
-    char *addr, redis_buf[64];
-    int rc;
-    time_t now = time(NULL);
+  char *addr, redis_buf[64];
+  int rc;
+  time_t now = time(NULL);
 
-    if(nextResolveAttempt
-       && ((nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
-      return(symbolic_name);
-    } else
-      nextResolveAttempt = ntop->getPrefs()->is_dns_resolution_enabled() ? now + MIN_HOST_RESOLUTION_FREQUENCY : (time_t)-1;
-
-    addr = ip->print(buf, buf_len);
-
-    if((symbolic_name != NULL) && strcmp(symbolic_name, addr))
-      return(symbolic_name);
-
-    rc = ntop->getRedis()->getAddress(addr, redis_buf, sizeof(redis_buf),
-				      force_resolution_if_not_found);
-
-    if(rc == 0)
-      setName(redis_buf);
-    else
-      setName(addr);
-
+  if(nextResolveAttempt
+     && ((nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
     return(symbolic_name);
-  }
-}
+  } else
+    nextResolveAttempt = ntop->getPrefs()->is_dns_resolution_enabled() ? now + MIN_HOST_RESOLUTION_FREQUENCY : (time_t)-1;
 
-/* *************************************** */
+  addr = ip.print(buf, buf_len);
 
-int Host::compare(Host *h) {
-  if(ip)
-    return(ip->compare(h->ip));
+  if((symbolic_name != NULL) && strcmp(symbolic_name, addr))
+    return(symbolic_name);
+
+  rc = ntop->getRedis()->getAddress(addr, redis_buf, sizeof(redis_buf),
+				    force_resolution_if_not_found);
+
+  if(rc == 0)
+    setName(redis_buf);
   else
-    return(memcmp(mac_address, h->mac_address, 6));
+    setName(addr);
+
+  return(symbolic_name);  
 }
 
 /* ***************************************** */
 
 bool Host::idle() {
-  if(num_uses > 0) return(false);
-
-  if(!iface->is_purge_idle_interface()) return(false);
+  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
+    return(false);
 
   switch(ntop->getPrefs()->get_host_stickness()) {
   case location_none:
@@ -765,20 +708,6 @@ bool Host::idle() {
 
   return(isIdle(ntop->getPrefs()->get_host_max_idle(localHost)));
 };
-
-/* ***************************************** */
-
-u_int32_t Host::key() {
-  if(ip)
-    return(ip->key());
-  else {
-    u_int32_t hash = 0;
-
-    for(int i=0; i<6; i++) hash += mac_address[i] << (i+1);
-
-    return(hash);
-  }
-}
 
 /* *************************************** */
 
@@ -834,15 +763,6 @@ void Host::incStats(u_int8_t l4_proto, u_int ndpi_proto,
 
 /* *************************************** */
 
-char* Host::get_string_key(char *buf, u_int buf_len) {
-  if(ip != NULL)
-    return(ip->print(buf, buf_len));
-  else
-    return(get_mac(buf, buf_len, mac_address));
-}
-
-/* *************************************** */
-
 char* Host::serialize() {
   json_object *my_object = getJSONObject();
   char *rsp = strdup(json_object_to_json_string(my_object));
@@ -858,7 +778,7 @@ void Host::serialize2redis() {
   if((localHost || systemHost)
      && (ntop->getPrefs()->is_idle_local_host_cache_enabled()
 	 || ntop->getPrefs()->is_active_local_host_cache_enabled())
-     && ip && !ip->isEmpty()) {
+     && (!ip.isEmpty())) {
     char *json = serialize();
     char host_key[128], key[128];
     char *k = get_string_key(host_key, sizeof(host_key));
@@ -879,7 +799,7 @@ json_object* Host::getJSONObject() {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  json_object_object_add(my_object, "mac_address", json_object_new_string(get_mac(buf, sizeof(buf), mac_address)));
+  json_object_object_add(my_object, "mac_address", json_object_new_string(Utils::formatMac(mac ? mac->get_mac() : NULL, buf, sizeof(buf))));
   json_object_object_add(my_object, "seen.first", json_object_new_int64(first_seen));
   json_object_object_add(my_object, "seen.last",  json_object_new_int64(last_seen));
   json_object_object_add(my_object, "asn", json_object_new_int(asn));
@@ -892,7 +812,7 @@ json_object* Host::getJSONObject() {
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
   if(latitude)            json_object_object_add(my_object, "latitude",  json_object_new_double(latitude));
   if(longitude)           json_object_object_add(my_object, "longitude", json_object_new_double(longitude));
-  if(ip)                  json_object_object_add(my_object, "ip", ip->getJSONObject());
+  json_object_object_add(my_object, "ip", ip.getJSONObject());
   if(deviceIfIdx)         json_object_object_add(my_object, "device_if_idx", json_object_new_int(deviceIfIdx));
   if(deviceIP)            json_object_object_add(my_object, "device_ip",     json_object_new_int(deviceIP));
   json_object_object_add(my_object, "localHost", json_object_new_boolean(localHost));
@@ -931,8 +851,8 @@ json_object* Host::getJSONObject() {
   json_object_object_add(my_object, "throughput_trend_pps", json_object_new_string(Utils::trend2str(pkts_thpt_trend)));
   json_object_object_add(my_object, "flows.as_client", json_object_new_int(total_num_flows_as_client));
   json_object_object_add(my_object, "flows.as_server", json_object_new_int(total_num_flows_as_server));
-  if (ntop->getPrefs()->is_flow_activity_enabled())
-    json_object_object_add(my_object, "userActivities", user_activities.getJSONObject());
+  if(user_activities)
+    json_object_object_add(my_object, "userActivities", user_activities->getJSONObject());
 
   /* Generic Host */
   json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumAlerts()));
@@ -957,12 +877,12 @@ bool Host::addIfMatching(lua_State* vm, patricia_tree_t *ptree, char *key) {
 
   if(!match(ptree)) return(false);
 
-  // if(symbolic_name) ntop->getTrace()->traceEvent(TRACE_WARNING, "%s/%s", symbolic_name, ip->print(keybuf, sizeof(keybuf)));
+  // if(symbolic_name) ntop->getTrace()->traceEvent(TRACE_WARNING, "%s/%s", symbolic_name, ip.print(keybuf, sizeof(keybuf)));
 
-  if(strcasestr((r = get_mac(keybuf, sizeof(keybuf), mac_address)), key)) {
+  if(strcasestr((r = Utils::formatMac(mac ? mac->get_mac() : NULL, keybuf, sizeof(keybuf))), key)) {
     lua_push_str_table_entry(vm, get_string_key(keybuf, sizeof(keybuf)), r);
     return(true);
-  } else if(ip && strcasestr((r = ip->print(keybuf, sizeof(keybuf))), key)) {
+  } else if(strcasestr((r = ip.print(keybuf, sizeof(keybuf))), key)) {
     if(vlan_id != 0) {
       char valuebuf[96];
 
@@ -1012,7 +932,7 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "device_ip", &obj))     deviceIP    = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "latitude", &obj))  latitude  = (float)json_object_get_double(obj);
   if(json_object_object_get_ex(o, "longitude", &obj)) longitude = (float)json_object_get_double(obj);
-  if(json_object_object_get_ex(o, "ip", &obj))  { if(ip == NULL) ip = new IpAddress(); if(ip) ip->deserialize(obj); }
+  if(json_object_object_get_ex(o, "ip", &obj))  { ip.deserialize(obj); }
   if(json_object_object_get_ex(o, "localHost", &obj)) localHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "systemHost", &obj)) systemHost = (json_object_get_boolean(obj) ? true : false);
   if(json_object_object_get_ex(o, "tcp_sent", &obj))  tcp_sent.deserialize(obj);
@@ -1035,7 +955,7 @@ bool Host::deserialize(char *json_str, char *key) {
   
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
-  if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities.deserialize(obj);
+  if(user_activities) if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities->deserialize(obj);
 
   if(json_object_object_get_ex(o, "flow_flood_attacker_alert", &obj)) flow_flood_attacker_alert = json_object_get_boolean(obj);
   if(json_object_object_get_ex(o, "flow_flood_victim_alert", &obj))   flow_flood_victim_alert   = json_object_get_boolean(obj);
@@ -1117,7 +1037,7 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     if(ntop->getUptime() < 10 /* sec */) return;
 #endif
 
-    h = ip->print(ip_buf, sizeof(ip_buf));
+    h = ip.print(ip_buf, sizeof(ip_buf));
 
     if(syn_sent) {
       error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a SYN flooder [%u SYNs sent in the last %u sec] %s";
@@ -1160,7 +1080,7 @@ void Host::incNumFlows(bool as_client) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is a possible scanner [%u active flows exceeded]";
       char ip_buf[48], *h, msg[512];
 
-      h = ip->print(ip_buf, sizeof(ip_buf));
+      h = ip.print(ip_buf, sizeof(ip_buf));
 
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
@@ -1180,7 +1100,7 @@ void Host::incNumFlows(bool as_client) {
       const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is possibly under scan attack [%u active flows exceeded]";
       char ip_buf[48], *h, msg[512];
 
-      h = ip->print(ip_buf, sizeof(ip_buf));
+      h = ip.print(ip_buf, sizeof(ip_buf));
 
       snprintf(msg, sizeof(msg),
 	       error_msg, ntop->getPrefs()->get_http_prefix(),
@@ -1207,7 +1127,7 @@ void Host::decNumFlows(bool as_client) {
 	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer a possible scanner [less than %u active flows]";
 	char ip_buf[48], *h, msg[512];
 
-	h = ip->print(ip_buf, sizeof(ip_buf));
+	h = ip.print(ip_buf, sizeof(ip_buf));
 
 	snprintf(msg, sizeof(msg),
 		 error_msg, ntop->getPrefs()->get_http_prefix(),
@@ -1230,7 +1150,7 @@ void Host::decNumFlows(bool as_client) {
 	const char* error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is no longer under scan attack [less than %u active flows]";
 	char ip_buf[48], *h, msg[512];
 
-	h = ip->print(ip_buf, sizeof(ip_buf));
+	h = ip.print(ip_buf, sizeof(ip_buf));
 
 	snprintf(msg, sizeof(msg),
 		 error_msg, ntop->getPrefs()->get_http_prefix(),
@@ -1253,7 +1173,7 @@ void Host::decNumFlows(bool as_client) {
 void Host::setQuota(u_int32_t new_quota) {
   char buf[64], host[96];
 
-  snprintf(host, sizeof(host), "%s@%u", ip->print(buf, sizeof(buf)), vlan_id);
+  snprintf(host, sizeof(host), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
   snprintf(buf, sizeof(buf), "%u", new_quota);
   if(ntop->getRedis()->hashSet((char*)HOST_TRAFFIC_QUOTA, host, (char *)buf) == -1) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Error updating host quota");
@@ -1293,7 +1213,7 @@ void Host::updateStats(struct timeval *tv) {
   if(isAboveQuota()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
     char ip_buf[48], *h, msg[512];
-    h = ip->print(ip_buf, sizeof(ip_buf));
+    h = ip.print(ip_buf, sizeof(ip_buf));
 
     snprintf(msg, sizeof(msg),
              error_msg, ntop->getPrefs()->get_http_prefix(),
@@ -1310,50 +1230,47 @@ void Host::loadAlertPrefs() {
   loadFlowsAlertPrefs();
 }
 
+/* *************************************** */
+
 void Host::loadFlowRateAlertPrefs() {
   int retval = CONST_MAX_NEW_FLOWS_SECOND;
-
-  if(ip != NULL) {
-    char rkey[128], rsp[16];
-    char ip_buf[48];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flow_rate_alert_threshold",
-             ip->print(ip_buf, sizeof(ip_buf)), vlan_id);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = atoi(rsp);
-  }
+  char rkey[128], rsp[16];
+  char ip_buf[48];
+  
+  snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flow_rate_alert_threshold",
+	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
+  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    retval = atoi(rsp);
 
   max_new_flows_sec_threshold = retval;
 }
 
+/* *************************************** */
+
 void Host::loadSynAlertPrefs() {
   int retval = CONST_MAX_NUM_SYN_PER_SECOND;
-
-  if(ip != NULL) {
-    char rkey[128], rsp[16];
-    char ip_buf[48];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.syn_alert_threshold",
-             ip->print(ip_buf, sizeof(ip_buf)), vlan_id);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = atoi(rsp);
-  }
+  char rkey[128], rsp[16];
+  char ip_buf[48];
+  
+  snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.syn_alert_threshold",
+	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
+  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    retval = atoi(rsp);
 
   max_num_syn_sec_threshold = retval;
 }
 
+/* *************************************** */
+
 void Host::loadFlowsAlertPrefs() {
   u_int32_t retval = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
-
-  if(ip != NULL) {
-    char rkey[128], rsp[16];
-    char ip_buf[48];
-
-    snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flows_alert_threshold",
-             ip->print(ip_buf, sizeof(ip_buf)), vlan_id);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
-      retval = (u_int32_t)strtoul(rsp, NULL, 10);
-  }
+  char rkey[128], rsp[16];
+  char ip_buf[48];
+  
+  snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flows_alert_threshold",
+	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
+  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    retval = (u_int32_t)strtoul(rsp, NULL, 10);
 
   max_num_active_flows = retval;
 }
@@ -1382,7 +1299,7 @@ void Host::setDumpTrafficPolicy(bool new_policy) {
   else
     dump_host_traffic = new_policy;
 
-  snprintf(host, sizeof(host), "%s@%u", ip->print(buf, sizeof(buf)), vlan_id);
+  snprintf(host, sizeof(host), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
 
   ntop->getRedis()->hashSet((char*)DUMP_HOST_TRAFFIC, host,
 			    (char*)(dump_host_traffic ? "true" : "false"));
@@ -1396,7 +1313,7 @@ void Host::readAlertPrefs() {
 
   if(!localHost) return;
 
-  if(ip && (!ip->isEmpty())) {
+  if(!ip.isEmpty()) {
     if(!ntop->getPrefs()->are_alerts_disabled()) {
       char *key, ip_buf[48];
 
@@ -1523,16 +1440,16 @@ void Host::incrVisitedWebSite(char *hostname) {
 /* *************************************** */
 
 void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
-  char dev[48], port[16], value[128], buf[128];
+  char dev[48], port[16], value[128], buf[128], buf1[32];
 
   deviceIfIdx = _v, deviceIP = _ip;
 
   snprintf(dev, sizeof(dev), "flow_devs.%s", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
   snprintf(port, sizeof(port), "%u", deviceIfIdx);
-  snprintf(value, sizeof(value), "%02X:%02X:%02X:%02X:%02X:%02X/%s",
-	   mac_address[0], mac_address[1], mac_address[2],
-	   mac_address[3], mac_address[4], mac_address[5],
-	   ip ? ip->print(buf, sizeof(buf)) : "0.0.0.0");
+
+  snprintf(value, sizeof(value), "%s/%s",
+	   Utils::formatMac(mac ? mac->get_mac() : NULL, buf1, sizeof(buf1)),
+	   ip.print(buf, sizeof(buf)));
 
   ntop->getRedis()->hashSet(dev, port, value);
 }
@@ -1540,79 +1457,83 @@ void Host::setDeviceIfIdx(u_int32_t _ip, u_int16_t _v) {
 /* *************************************** */
 
 void Host::incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes) {
-  user_activities.incBytes(id, upbytes, downbytes, bgbytes);
+  if(user_activities) user_activities->incBytes(id, upbytes, downbytes, bgbytes);
 }
 
 /* *************************************** */
 
-const UserActivityCounter * Host::getActivityBytes(UserActivityID id) {
-  return user_activities.getBytes(id);
+const UserActivityCounter* Host::getActivityBytes(UserActivityID id) {
+  return(user_activities ? user_activities->getBytes(id) : NULL);
 }
 
 /* *************************************** */
 
-void Host::incIfaPackets(ifa_stats_protos proto, const Flow * flow, time_t when) {
-  bool toadd = true;
-  int k = -1;
-  float mostbad = 0.f;
-  int i;
+void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_t when) {
+  if(!ifa_stats)
+    return;
+  else {
+    bool toadd = true;
+    int k = -1;
+    float mostbad = 0.f;
+    int i;
 
-  for (i=0; i<INTER_FLOW_ACTIVITY_SLOTS && ifa_stats[proto][i].flow != flow; i++) {
-    float bad;
+    for (i=0; i<INTER_FLOW_ACTIVITY_SLOTS && ifa_stats[proto*i].flow != flow; i++) {
+      float bad;
     
-    if (ifa_stats[proto][i].flow == NULL)
-      // empty slot
-      bad = 1.f;
-    else
-      // old value: estimate goodness
-      bad = (when - ifa_stats[proto][i].last) * 1.f / INTER_FLOW_ACTIVITY_MAX_INTERVAL - ifa_stats[proto][i].pkts / 100.f;
+      if(ifa_stats[proto*i].flow == NULL)
+	// empty slot
+	bad = 1.f;
+      else
+	// old value: estimate goodness
+	bad = (when - ifa_stats[proto*i].last) * 1.f / INTER_FLOW_ACTIVITY_MAX_INTERVAL - ifa_stats[proto*i].pkts / 100.f;
 
-    if (bad > mostbad) {
-      k = i;
-      mostbad = bad;
-    }
-  }
-
-  if (i<INTER_FLOW_ACTIVITY_SLOTS) {
-    if ((when - ifa_stats[proto][i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL) {
-      // update slot
-      ifa_stats[proto][i].pkts += 1;
-      ifa_stats[proto][i].last = when;
-      toadd = false;
-    } else {
-      // reset slot counters
-      k = i;
-    }
-  }
-
-  if (toadd) {
-    // allocate or reset slot
-    ifa_stats[proto][k].flow = flow;
-    ifa_stats[proto][k].pkts = 1;
-    ifa_stats[proto][k].first = when;
-    ifa_stats[proto][k].last = when;
-  }
-}
-
-/* *************************************** */
-
-void Host::getIfaStats(ifa_stats_protos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff) {
-  *count = 0;
-  *max_diff = 0;
-  *packets = 0;
-  
-  for (int i=0; i<INTER_FLOW_ACTIVITY_SLOTS; i++) {
-    bool timeok = (when - ifa_stats[proto][i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL;
-    bool continuity = (when - ifa_stats[proto][i].last) <= INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL;
-    
-    if (continuity || timeok) {
-      if (timeok) {
-        *count += 1;
-        *max_diff = max(ifa_stats[proto][i].last - ifa_stats[proto][i].first, *max_diff);
+      if(bad > mostbad) {
+	k = i;
+	mostbad = bad;
       }
+    }
 
-      // this is affected by activity continuity
-      *packets += ifa_stats[proto][i].pkts;
+    if(i<INTER_FLOW_ACTIVITY_SLOTS) {
+      if((when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL) {
+	// update slot
+	ifa_stats[proto*i].pkts += 1;
+	ifa_stats[proto*i].last = when;
+	toadd = false;
+      } else {
+	// reset slot counters
+	k = i;
+      }
+    }
+
+    if(toadd) {
+      u_int idx = proto*k;
+      // allocate or reset slot
+      ifa_stats[idx].flow = flow, ifa_stats[idx].pkts = 1,
+	ifa_stats[idx].first = when, ifa_stats[idx].last = when;
+    }
+  }
+}
+
+/* *************************************** */
+
+void Host::getIfaStats(InterFlowActivityProtos proto, time_t when, 
+		       int * count, u_int32_t * packets, time_t * max_diff) {
+  *count = 0, *max_diff = 0, *packets = 0;
+  
+  if(ifa_stats) {
+    for(int i=0; i<INTER_FLOW_ACTIVITY_SLOTS; i++) {
+      bool timeok = (when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL;
+      bool continuity = (when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL;
+      
+      if(continuity || timeok) {
+	if(timeok) {
+	  *count += 1;
+	  *max_diff = max(ifa_stats[proto*i].last - ifa_stats[proto*i].first, *max_diff);
+	}
+	
+	// this is affected by activity continuity
+	*packets += ifa_stats[proto*i].pkts;
+      }
     }
   }
 }

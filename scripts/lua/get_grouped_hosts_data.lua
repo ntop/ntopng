@@ -104,12 +104,8 @@ function print_single_group(value)
       end      
    elseif (group_col == "local_network_id" or network_n ~= nil) then
       print("hosts_stats.lua?network="..tostring(value["id"]).."'>")
-   elseif (group_col == "antenna_mac") then
-      print("hosts_stats.lua?antenna_mac="..value["id"].."'>")
    elseif (group_col == "mac") then
       print("hosts_stats.lua?mac="..value["name"].."'>")
-      --PRINT
-      -- io.write("ID = "..value["id"]..'\n')
    else
       print("hosts_stats.lua'>")
    end
@@ -132,7 +128,7 @@ function print_single_group(value)
       end
       print('", ')
 
-   elseif((group_col == "mac") or (group_col == "antenna_mac")) then
+   elseif(group_col == "mac") then
       print(get_symbolic_mac(value["name"])..'</A>", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then
       print('</A>'..value["id"]..'", ')

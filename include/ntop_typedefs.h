@@ -238,4 +238,10 @@ typedef enum {
 		  */
 } UserActivityID;
 
+typedef enum {
+  ifa_facebook_stats = 0,
+  ifa_twitter_stats,
+  IFA_STATS_PROTOS_N
+} InterFlowActivityProtos;
+
 #endif /* _NTOP_TYPEDEFS_H_ */

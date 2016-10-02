@@ -19,26 +19,38 @@
  *
  */
 
-#ifndef _HOST_HASH_H_
-#define _HOST_HASH_H_
-
 #include "ntop_includes.h"
- 
-class HostHash : public GenericHash {
- private:
-  u_int32_t num_http_hosts;
-  Mutex m;
 
- public:
-  HostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+/* *************************************** */
 
-  // Host* get(u_int16_t vlanId, const u_int8_t mac[6]);
-  Host* get(u_int16_t vlanId, IpAddress *key);
+Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface) {
+  memcpy(mac, _mac, 6), vlan_id = _vlanId;
+}
 
-  void incNumHTTPEntries();  
-  void decNumHTTPEntries();
+/* *************************************** */
+
+Mac::~Mac() {
+  ;
+}
+
+/* *************************************** */
+
+bool Mac::isIdle(u_int max_idleness) {
+  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
+    return(false);
   
-  inline u_int32_t getNumHTTPEntries() { return(num_http_hosts); }
-};
+  if(num_uses > 0) return(false);
+  
+  return(false);
+}
 
-#endif /* _HOST_HASH_H_ */
+/* *************************************** */
+
+bool Mac::idle() {
+  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
+    return(false);
+  
+  return(isIdle(MAX_LOCAL_HOST_IDLE));
+}
+
+

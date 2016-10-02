@@ -19,26 +19,32 @@
  *
  */
 
-#ifndef _HOST_HASH_H_
-#define _HOST_HASH_H_
+#ifndef _MAC_H_
+#define _MAC_H_
 
 #include "ntop_includes.h"
- 
-class HostHash : public GenericHash {
+
+class Mac : public GenericHashEntry {
  private:
-  u_int32_t num_http_hosts;
-  Mutex m;
-
- public:
-  HostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
-
-  // Host* get(u_int16_t vlanId, const u_int8_t mac[6]);
-  Host* get(u_int16_t vlanId, IpAddress *key);
-
-  void incNumHTTPEntries();  
-  void decNumHTTPEntries();
+  u_int8_t mac[6];
+  u_int16_t vlan_id;
+  TrafficStats sent, rcvd;
   
-  inline u_int32_t getNumHTTPEntries() { return(num_http_hosts); }
+ public:
+  Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
+  ~Mac();
+
+  inline u_int8_t* get_mac()     { return(mac);     }
+  inline u_int16_t get_vlan_id() { return(vlan_id); }
+
+  inline void incSentStats(u_int pkt_len)  { sent.incStats(pkt_len); }
+  inline void incRcvdStats(u_int pkt_len)  { rcvd.incStats(pkt_len); }
+
+  bool idle();
+  bool isIdle(u_int max_idleness);
+
+  inline u_int32_t key()  { return(mac[0]+mac[1]+mac[2]+mac[3]+mac[4]+mac[5]); };
+  inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
 };
 
-#endif /* _HOST_HASH_H_ */
+#endif /* _MAC_H_ */

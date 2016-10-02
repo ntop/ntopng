@@ -1245,7 +1245,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
-      lua_push_str_table_entry(vm, "cli.mac", Utils::macaddr_str((char*)src->get_mac(), buf));
+      lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "cli.key", src->key());
 
       lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
@@ -1263,7 +1263,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_str_table_entry(vm, "srv.host", dst->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
-      lua_push_str_table_entry(vm, "srv.mac", Utils::macaddr_str((char*)dst->get_mac(), buf));
+      lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
       lua_push_int_table_entry(vm, "srv.key", dst->key());
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
@@ -1618,9 +1618,9 @@ json_object* Flow::flow2json(bool partial_dump) {
 
     // MAC addresses are set only when dumping to ES to optimize space consumption
     json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(Utils::macaddr_str((char*)cli_host->get_mac(), buf)));
+			   json_object_new_string(Utils::formatMac(cli_host->get_mac(), buf, sizeof(buf))));
     json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(Utils::macaddr_str((char*)srv_host->get_mac(), buf)));
+			   json_object_new_string(Utils::formatMac(srv_host->get_mac(), buf, sizeof(buf))));
   }
 
   if(cli_host->get_ip()) {
@@ -1912,9 +1912,11 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 
   if(cli2srv_direction) {
     cli2srv_packets++, cli2srv_bytes += pkt_len, cli2srv_goodput_bytes += payload_len;
-    cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
+    cli_host->incMacStats(true, pkt_len), srv_host->incMacStats(false, pkt_len),
+      cli_host->get_sent_stats()->incStats(pkt_len), srv_host->get_recv_stats()->incStats(pkt_len);
   } else {
     srv2cli_packets++, srv2cli_bytes += pkt_len, srv2cli_goodput_bytes += payload_len;
+    cli_host->incMacStats(false, pkt_len), srv_host->incMacStats(true, pkt_len),
     cli_host->get_recv_stats()->incStats(pkt_len), srv_host->get_sent_stats()->incStats(pkt_len);
   }
 

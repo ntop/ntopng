@@ -321,7 +321,7 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
   int f_count = 0;
   u_int32_t f_pkts = 0;
   time_t max_duration = 0;
-  ifa_stats_protos proto;
+  InterFlowActivityProtos proto;
   bool rv = false;
 
   switch(flow->get_detected_protocol().protocol) {

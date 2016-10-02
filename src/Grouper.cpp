@@ -117,7 +117,7 @@ int8_t Grouper::newGroup(Host *h) {
 
   case column_mac:
     group_id_i = Utils::macaddr_int(h->get_mac());
-    group_label = strdup(Utils::macaddr_str((char*)h->get_mac(), buf));
+    group_label = strdup(Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
     break;
 
   case column_country:

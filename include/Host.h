@@ -24,31 +24,26 @@
 
 #include "ntop_includes.h"
 
-#define INTER_FLOW_ACTIVITY_SLOTS 5
-#define INTER_FLOW_ACTIVITY_MAX_INTERVAL 5
-#define INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL 20
-
-typedef enum {
-  ifa_facebook_stats = 0,
-  ifa_twitter_stats,
-
-  IFA_STATS_PROTOS_N
-} ifa_stats_protos;
+typedef struct {
+  const Flow *flow;
+  time_t first;
+  time_t last;
+  u_int16_t pkts;
+} InterFlowActivityStats;
 
 class Host : public GenericHost {
  private:
-  u_int8_t mac_address[6];
   u_int32_t asn;
   char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *topSitesKey;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
   u_int32_t host_quota_mb;
-  u_int16_t num_uses;
   int16_t local_network_id, deviceIfIdx;
   u_int32_t deviceIP;
   int ingress_shaper_id, egress_shaper_id;
   float latitude, longitude;
-  IpAddress *ip;
+  IpAddress ip;
   Mutex *m;
+  Mac *mac;
   time_t nextResolveAttempt, nextSitesUpdate;
 #ifdef NTOPNG_PRO
   CountMinSketch *sent_to_sketch, *rcvd_from_sketch;
@@ -61,13 +56,8 @@ class Host : public GenericHost {
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
   
-  UserActivityStats user_activities;
-  struct {
-    const Flow * flow;
-    time_t first;
-    time_t last;
-    u_int16_t pkts;
-  } ifa_stats[IFA_STATS_PROTOS_N][INTER_FLOW_ACTIVITY_SLOTS];
+  UserActivityStats *user_activities;
+  InterFlowActivityStats *ifa_stats;
   PacketStats sent_stats, recv_stats;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_active_flows_as_client, num_active_flows_as_server;
@@ -86,7 +76,7 @@ class Host : public GenericHost {
     u_int32_t pktRetr, pktOOO, pktLost;
   } tcpPacketStats; /* Sent packets */
 
-  void initialize(u_int8_t mac[6], u_int16_t _vlan_id, bool init_all);
+  void initialize(u_int8_t _mac[6], u_int16_t _vlan_id, bool init_all);
   void refreshHTTPBL();
   void computeHostSerial();
   json_object* getJSONObject();
@@ -98,8 +88,7 @@ class Host : public GenericHost {
  public:
   Host(NetworkInterface *_iface);
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
-  Host(NetworkInterface *_iface, u_int8_t mac[6], u_int16_t _vlanId);
-  Host(NetworkInterface *_iface, u_int8_t mac[6], u_int16_t _vlanId, IpAddress *_ip);
+  Host(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId, IpAddress *_ip);
   ~Host();
 
   void updateLocal();
@@ -113,17 +102,17 @@ class Host : public GenericHost {
   inline int16_t get_local_network_id()             { return(local_network_id);      };
   inline PacketStats* get_sent_stats()              { return(&sent_stats);           };
   inline PacketStats* get_recv_stats()              { return(&recv_stats);           };
-  inline HTTPstats* getHTTPstats()                  { return(http);     };
+  inline HTTPstats* getHTTPstats()                  { return(http);                  };
   inline HTTPstats* getHTTP()                       { return(http);                  };
-  inline void set_ipv4(u_int32_t _ipv4)             { ip->set_ipv4(_ipv4);           };
-  inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip->set_ipv6(_ipv6);           };
-  u_int32_t key();
+  inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
+  inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
+  inline u_int32_t key()                            { return(ip.key());              };
   char* getJSON();
   inline void setOS(char *_os)                 { if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os); }
-  inline IpAddress* get_ip()                   { return(ip);               }
+  inline IpAddress* get_ip()                   { return(&ip);              }
   void set_mac(char *m);
   inline bool is_blacklisted()                 { return(blacklisted_host); }
-  inline u_int8_t*  get_mac()                  { return(mac_address);      }
+  inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_country()                   { return(country);          }
@@ -133,15 +122,12 @@ class Host : public GenericHost {
   inline int get_egress_shaper_id()            { return(egress_shaper_id);  }
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
-  inline bool isPrivateHost()                  { return((ip && ip->isPrivateAddress()) ? true : false); }
+  inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
   inline float get_latitude()                  { return(latitude);         }
   inline float get_longitude()                 { return(longitude);        }
-  bool isLocalInterfaceAddress();
-  char* get_mac(char *buf, u_int buf_len, u_int8_t *mac);
+  bool isLocalInterfaceAddress();  
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
-  char* get_string_key(char *buf, u_int buf_len);
-  void incUses() { num_uses++; }
-  void decUses() { num_uses--; }
+  inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   bool idle();
   void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement,
@@ -149,14 +135,15 @@ class Host : public GenericHost {
   void resolveHostName();
   void setName(char *name);
   void set_host_label(char *label_name);
-  int compare(Host *h);
-  inline bool equal(IpAddress *_ip)  { return(ip && _ip && ip->equal(_ip)); };
+  inline int compare(Host *h) { return(ip.compare(&h->ip)); };
+  inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
   void incStats(u_int8_t l4_proto, u_int ndpi_proto,
 		struct site_categories *category,
 		u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   void incHitter(Host *peer, u_int64_t sent_bytes, u_int64_t rcvd_bytes);
   void updateHostTrafficPolicy(char *key);
+  inline void incMacStats(bool sentBytes, u_int pkt_len) { if(mac) { if(sentBytes) mac->incSentStats(pkt_len); else mac->incRcvdStats(pkt_len); } };
   char* serialize();
   void  serialize2redis();
   bool  deserialize(char *json_str, char *key);
@@ -199,8 +186,9 @@ class Host : public GenericHost {
   void incrVisitedWebSite(char *hostname);
   const UserActivityCounter * getActivityBytes(UserActivityID id);
   void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
-  void incIfaPackets(ifa_stats_protos proto, const Flow * flow, time_t when);
-  void getIfaStats(ifa_stats_protos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff);
+  void incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_t when);
+  void getIfaStats(InterFlowActivityProtos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff);
+  inline UserActivityStats* get_user_activities() { return(user_activities); }
 };
 
 #endif /* _HOST_H_ */

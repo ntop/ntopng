@@ -72,7 +72,6 @@ class Utils {
   static ticks getticks();
   static char* getURL(char *url, char *buf, u_int buf_len);
   static bool discardOldFilesExceeding(const char *path, const unsigned long max_size);
-  static char* macaddr_str (const char *mac, char *buf);
   static u_int64_t macaddr_int(const u_int8_t *mac);
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static u_int32_t getMaxIfSpeed(const char *ifname);
@@ -86,6 +85,7 @@ class Utils {
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
   static const char* flowstatus2str(FlowStatus s);
+  static char* formatMac(u_int8_t *mac, char *buf, u_int buf_len);
 };
 
 #endif /* _UTILS_H_ */

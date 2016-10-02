@@ -1320,23 +1320,31 @@ bool Utils::discardOldFilesExceeding(const char *path, const unsigned long max_s
 
 /* **************************************** */
 
-
-char* Utils::macaddr_str (const char *mac, char *buf) {
-  sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X",
-          mac[0] & 0xFF, mac[1] & 0xFF, mac[2] & 0xFF,
-          mac[3] & 0xFF, mac[4] & 0xFF, mac[5] & 0xFF);
+char* Utils::formatMac(u_int8_t *mac, char *buf, u_int buf_len) {
+  if(mac == NULL)
+    snprintf(buf, buf_len, "00:00:00:00:00:00");
+  else
+    snprintf(buf, buf_len, "%02X:%02X:%02X:%02X:%02X:%02X",
+	   mac[0] & 0xFF, mac[1] & 0xFF,
+	   mac[2] & 0xFF, mac[3] & 0xFF,
+	   mac[4] & 0xFF, mac[5] & 0xFF);    
   return(buf);
 }
 
 /* **************************************** */
 
+u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
+  if(mac == NULL)
+    return(0);
+  else {
+    u_int64_t mac_int = 0;
 
-u_int64_t Utils::macaddr_int (const u_int8_t *mac) {
-  u_int64_t mac_int = 0;
-  for(u_int8_t i=0; i<6; i++){
-    mac_int |= (mac[i] & 0xFF) << (5-i)*8;
+    for(u_int8_t i=0; i<6; i++){
+      mac_int |= (mac[i] & 0xFF) << (5-i)*8;
+    }
+    
+    return mac_int;
   }
-  return mac_int;
 }
 
 /* **************************************** */
@@ -1373,7 +1381,7 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC %s",
 			       ifname,
-			       macaddr_str((char *)mac_addr, mac_addr_buf));
+			       formatMac((char *)mac_addr, mac_addr_buf, sizeof(mac_addr_buf)));
   close(_sock);
 }
 #else

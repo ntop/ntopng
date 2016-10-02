@@ -151,10 +151,6 @@ print(ntop.getHttpPrefix())
 print [[/lua/hosts_matrix.lua"><i class="fa fa-th-large"></i> Local Flow Matrix</a></li>
    ]]
 
-if(_ifstats["has_mesh_networks_traffic"]) then
-   print [[ <li><a href="]] print(ntop.getHttpPrefix()) print [[/lua/mesh_antenna_stats.lua"><i class="fa fa-wifi"></i> Mesh Antenna Stats</a></li> ]]
-end
-
 print("</ul> </li>")
 
 -- Devices

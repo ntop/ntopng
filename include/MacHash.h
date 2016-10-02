@@ -19,26 +19,19 @@
  *
  */
 
-#ifndef _HOST_HASH_H_
-#define _HOST_HASH_H_
+#ifndef _MAC_HASH_H_
+#define _MAC_HASH_H_
 
 #include "ntop_includes.h"
  
-class HostHash : public GenericHash {
+class MacHash : public GenericHash {
  private:
-  u_int32_t num_http_hosts;
   Mutex m;
 
  public:
-  HostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
+  MacHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
-  // Host* get(u_int16_t vlanId, const u_int8_t mac[6]);
-  Host* get(u_int16_t vlanId, IpAddress *key);
-
-  void incNumHTTPEntries();  
-  void decNumHTTPEntries();
-  
-  inline u_int32_t getNumHTTPEntries() { return(num_http_hosts); }
+  Mac* get(u_int16_t vlanId, const u_int8_t mac[6]);
 };
 
-#endif /* _HOST_HASH_H_ */
+#endif /* _MAC_HASH_H_ */
