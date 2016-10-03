@@ -33,7 +33,45 @@ void UserActivityStats::reset() {
   memset(counters, 0, sizeof(counters));
 }
 
+/* **************************************************** */
+
+const char * activity_names [] = {
+  "Other",
+  "Web",
+  "Media",
+  "VPN",
+  "MailSync",
+  "MailSend",
+  "FileSharing",
+  "FileTransfer",
+  "Chat",
+  "Game",
+  "RemoteControl",
+  "SocialNetwork",
+};
+COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
+
 /* *************************************** */
+
+static const char* getActivityName(UserActivityID id) {
+  return ((ntop->getPrefs()->is_flow_activity_enabled()
+          && id < UserActivitiesN) ? activity_names[id] : NULL);
+};
+
+/* ******************************************* */
+
+static bool getActivityId(const char * name, UserActivityID * out) {
+  if(ntop->getPrefs()->is_flow_activity_enabled() && name) {
+    for(int i=0; i<UserActivitiesN; i++)
+      if(strcmp(activity_names[i], name) == 0) {
+        *out = ((UserActivityID) i);
+        return true;
+      }
+  }
+  return false;
+}
+
+/* ******************************************* */
 
 json_object* UserActivityStats::getJSONObject() {
   json_object *my_object = json_object_new_object();

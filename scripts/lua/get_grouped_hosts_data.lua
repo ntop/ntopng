@@ -129,12 +129,29 @@ function print_single_group(value)
       print('", ')
 
    elseif(group_col == "mac") then
-      print(get_symbolic_mac(value["name"])..'</A>", ')
+      local alt = getHostAltName(value["name"])
+      
+      if(alt == value["name"]) then alt = get_symbolic_mac(value["name"], true) end
+      print(alt..'</A>", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then
       print('</A>'..value["id"]..'", ')
    else
       print(value["id"]..'</A>", ')
    end
+
+   print('"column_link": "<A HREF='..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'>'.. value["id"]..'</A>')
+
+   if(not(isSpecialMac(value["id"]))) then
+        local icon = getHostIcon(value["id"])
+
+	if(icon == "") then
+	   print " <i class='fa fa-desktop fa-lg' aria-hidden='true'></i>"
+        else
+	   print(icon)
+        end
+   end
+
+   print('",')
 
    print('"column_hosts" : "' .. formatValue(value["num_hosts"]) ..'",')
 

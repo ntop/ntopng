@@ -437,7 +437,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   lua_push_int_table_entry(vm, "ipkey", ip.key());
 
   lua_push_str_table_entry(vm, "mac", Utils::formatMac(mac ? mac->get_mac() : NULL, buf, sizeof(buf)));
-  lua_push_int_table_entry(vm, "vlan", vlan_id);
   lua_push_bool_table_entry(vm, "localhost", localHost);
 
   lua_push_int_table_entry(vm, "bytes.sent",
@@ -487,8 +486,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
-    lua_push_int_table_entry(vm, "packets.sent", sent.getNumPkts());
-    lua_push_int_table_entry(vm, "packets.rcvd", rcvd.getNumPkts());
     lua_push_int_table_entry(vm, "flows.as_client", total_num_flows_as_client);
     lua_push_int_table_entry(vm, "flows.as_server", total_num_flows_as_server);
     lua_push_int_table_entry(vm, "udp.packets.sent",  udp_sent.getNumPkts());
@@ -539,7 +536,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
 
-
     if(topSitesKey) {
       char oldk[64];
 
@@ -553,16 +549,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   lua_push_int_table_entry(vm, "seen.first", first_seen);
   lua_push_int_table_entry(vm, "seen.last", last_seen);
   lua_push_int_table_entry(vm, "duration", get_duration());
-
-  lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
-  lua_push_float_table_entry(vm, "last_throughput_bps", last_bytes_thpt);
-  lua_push_int_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
-  lua_push_float_table_entry(vm, "throughput_trend_bps_diff", bytes_thpt_diff);
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
-  lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt);
-  lua_push_float_table_entry(vm, "last_throughput_pps", last_pkts_thpt);
-  lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
   lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
@@ -616,6 +602,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
       sprintf(buf_id, "%s@%d", ip.print(buf, sizeof(buf)), vlan_id);
     }
   }  
+
+  ((GenericTrafficElement*)this)->lua(vm, host_details);
 
   if(asListElement) {
     lua_pushstring(vm, buf_id);

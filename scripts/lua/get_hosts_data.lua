@@ -306,6 +306,8 @@ for _key, _value in pairsByKeys(vals, funct) do
             print("&nbsp;")
 	    print(getOSIcon(value["os"]))
 
+	    print(getHostIcon(hosts_stats[key]["ip"].."@"..hosts_stats[key]["vlan"]))
+
 	    if(value["dump_host_traffic"] == true) then print("&nbsp;<i class='fa fa-hdd-o fa-lg'></i>") end
 
 	    print("\", ")

@@ -554,7 +554,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *sortColumn = (char*)"column_mac";
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
-  u_int16_t vlan_filter = 0;
+  u_int16_t vlan_id = 0;
   bool a2zSortOrder = true, skipSpecialMacs = false;
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
@@ -570,7 +570,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 	  a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
 
 	  if(lua_type(vm, 5) == LUA_TNUMBER) {
-	    vlan_filter = (u_int16_t)lua_tonumber(vm, 5);
+	    vlan_id = (u_int16_t)lua_tonumber(vm, 5);
 
 	    if(lua_type(vm, 6) == LUA_TBOOLEAN) {
 	      skipSpecialMacs = lua_toboolean(vm, 6) ? true : false;
@@ -582,7 +582,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   }
 	  
   if(!ntop_interface ||
-     ntop_interface->getActiveMacList(vm, vlan_filter, skipSpecialMacs,
+     ntop_interface->getActiveMacList(vm, vlan_id, skipSpecialMacs,
 				      sortColumn, maxHits,
 				      toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -595,13 +595,19 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 static int ntop_get_interface_mac_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *mac = NULL;
+  u_int16_t vlan_id = 0;
   
-  if(lua_type(vm, 1) == LUA_TSTRING)
+  if(lua_type(vm, 1) == LUA_TSTRING) {
     mac = (char*)lua_tostring(vm, 1);  
-  
+    
+    if(lua_type(vm, 2) == LUA_TNUMBER) {
+      vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+    }
+  }
+
   if((!ntop_interface) 
      || (!mac)
-     || (!ntop_interface->getMacInfo(vm, mac)))
+     || (!ntop_interface->getMacInfo(vm, mac, vlan_id)))
     return(CONST_LUA_ERROR);
 
   return(CONST_LUA_OK);  

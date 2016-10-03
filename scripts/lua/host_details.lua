@@ -567,6 +567,12 @@ print [[
    end
 end
 
+local labelKey = host_info["host"].."@"..host_info["vlan"]
+
+if(_GET["custom_icon"] ~=nil) then
+ setHostIcon(labelKey, _GET["custom_icon"])
+end
+
    if((host["asn"] ~= nil) and (host["asn"] > 0)) then
       print("<tr><th>ASN</th><td>")
 
@@ -595,11 +601,13 @@ end
       if(host["localhost"] == true) then print('<span class="label label-success">Local</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">System <i class=\"fa fa-flag\"></i></span>') end
+
+      print(getHostIcon(labelKey))
       print("</td>\n")
    end
 
-if(host["ip"] ~= nil) then
 
+if(host["ip"] ~= nil) then
     if(isAdministrator()) then
        print("<td>")
 
@@ -610,9 +618,14 @@ if(host["ip"] ~= nil) then
 
        print[[<input type="text" name="custom_name" placeholder="Custom Name" value="]]
       if(host["label"] ~= nil) then print(host["label"]) end
-print [["></input>
-	 &nbsp;<button style="position: relative; margin-top: 0; height: 26px" type="submit" class="btn btn-default btn-xs">Save Custom Name</button>]]
+print("\"></input>")
+
+pickIcon(labelKey)
+
+print [[
+	 &nbsp;<button type="submit" class="btn btn-default">Save</button>]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
 print [[</form>
 </td></tr>
    ]]

@@ -25,6 +25,9 @@
 #include <uuid/uuid.h>
 #endif
 
+/* UserActivityStats.cpp */
+extern const char* activity_names[];
+
 /* Lua.cpp */
 extern int ntop_lua_cli_print(lua_State* vm);
 extern int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
@@ -35,24 +38,6 @@ static bool help_printed = false;
 
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() { init(); }
-
-/* **************************************************** */
-
-static const char * activity_names [] = {
-  "Other",
-  "Web",
-  "Media",
-  "VPN",
-  "MailSync",
-  "MailSend",
-  "FileSharing",
-  "FileTransfer",
-  "Chat",
-  "Game",
-  "RemoteControl",
-  "SocialNetwork",
-};
-COMPILE_TIME_ASSERT (COUNT_OF(activity_names) == UserActivitiesN);
 
 /* **************************************************** */
 
@@ -1771,6 +1756,14 @@ struct host_find_info {
 
 /* **************************************************** */
 
+struct mac_find_info {
+  u_int8_t mac[6];
+  u_int16_t vlan_id;
+  Mac *m;
+};
+
+/* **************************************************** */
+
 static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
   struct host_find_info *info = (struct host_find_info*)user_data;
   Host *host                  = (Host*)h;
@@ -1797,6 +1790,23 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data) {
       return(true); /* found */
     }
   }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool find_mac_by_name(GenericHashEntry *h, void *user_data) {
+  struct mac_find_info *info = (struct mac_find_info*)user_data;
+  Mac *m = (Mac*)h;
+
+  if((info->m == NULL) 
+     && (m->get_vlan_id() == info->vlan_id)
+     && (!memcmp(info->mac, m->get_mac(), 6))
+     ) {
+    info->m = m;
+    return(true); /* found */
+  }  
 
   return(false); /* false = keep on walking */
 }
@@ -4265,26 +4275,6 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   return(rc);
 }
 
-/* ******************************************* */
-
-const char* getActivityName(UserActivityID id) {
-  return ((ntop->getPrefs()->is_flow_activity_enabled()
-          && id < UserActivitiesN) ? activity_names[id] : NULL);
-};
-
-/* ******************************************* */
-
-bool getActivityId(const char * name, UserActivityID * out) {
-  if(ntop->getPrefs()->is_flow_activity_enabled() && name) {
-    for(int i=0; i<UserActivitiesN; i++)
-      if(strcmp(activity_names[i], name) == 0) {
-        *out = ((UserActivityID) i);
-        return true;
-      }
-  }
-  return false;
-}
-
 /* **************************************** */
 
 int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
@@ -4334,7 +4324,18 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 
 /* **************************************** */
 
-bool NetworkInterface::getMacInfo(lua_State* vm, char *mac) {
+bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
+  struct mac_find_info info;
+  
+  memset(&info, 0, sizeof(info));
+  Utils::parseMac(info.mac, mac), info.vlan_id = vlan_id;
 
-  return(false);
+  walker(walker_macs, find_mac_by_name, (void*)&info);
+
+  if(info.m) {
+    info.m->lua(vm, true, false);
+
+    return(true);
+  } else
+    return(false);
 }

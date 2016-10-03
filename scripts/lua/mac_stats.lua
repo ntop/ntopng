@@ -49,7 +49,6 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 -- Automatic default sorted. NB: the column must exist.
 print ('sort: [ ["' .. getDefaultTableSort("mac") ..'","' .. getDefaultTableSortOrder("mac").. '"] ],')
 
-
 print [[
 	       showPagination: true,
 	        columns: [
@@ -62,7 +61,15 @@ print [[
                                 }
            },
                          {
-			     title: "MAC Addresses",
+			     title: "MAC Address",
+				 field: "column_link",
+				 sortable: false,
+                             css: {
+			        textAlign: 'left'
+			     }
+				 },
+                         {
+			     title: "Hosts MAC Drill-Down",
 				 field: "column_id",
 				 sortable: true,
                              css: {

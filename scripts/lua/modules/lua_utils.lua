@@ -573,11 +573,11 @@ function secondsToTime(seconds)
     return("< 1 sec")
   end
 
-  days = math.floor(seconds / 86400)
-  hours =  math.floor((seconds / 3600) - (days * 24))
-  minutes = math.floor((seconds / 60) - (days * 1440) - (hours * 60))
-  sec = seconds % 60
-  msg = ""
+  local days = math.floor(seconds / 86400)
+  local hours =  math.floor((seconds / 3600) - (days * 24))
+  local minutes = math.floor((seconds / 60) - (days * 1440) - (hours * 60))
+  local sec = seconds % 60
+  local msg = ""
 
   if(days > 0) then
     years = math.floor(days/365)
@@ -645,7 +645,7 @@ end
 
 -- NOTE keep in sync with Flashstart::initMapping()
 
-host_categories =	 {
+host_categories = {
       ["freetime"] = "FreeTime",
       ["chat"] = "Chat",
       ["onlineauctions"] = "Auctions",
@@ -1070,6 +1070,27 @@ end
 
 function setHostAltName(host_ip, alt_name)
   ntop.setHashCache("ntopng.host_labels", host_ip, alt_name)
+end
+
+-- Mac Addresses --
+
+local specialMACs = {
+  "01:00:0C",
+  "01:80:C2",
+  "01:00:5E",
+  "01:0C:CD",
+  "01:1B:19",
+  "FF:FF",
+  "33:33"
+}
+function isSpecialMac(mac)
+  for _,key in pairs(specialMACs) do
+     if(string.contains(mac, key)) then
+        return true
+     end
+  end
+
+  return false
 end
 
 -- Flow Utils --
@@ -2197,4 +2218,55 @@ function getICMPTypeCode(icmp)
  return(getICMPV6TypeCode(icmp))
 end
 
+-- #############################################
 
+local icon_keys = {
+  [ ""] = "",
+  [ "Computer"] = "fa-desktop",
+  [ "Laptop"]   = "fa-laptop",
+  [ "Phone"]    = "fa-mobile",
+  [ "Tablet"]   = "fa-tablet",
+  [ "TV"]       = "fa-television",
+  [ "Printer"]  = "fa-print",
+  [ "Camera"]  = "fa-video-camera",
+  [ "Router"]  = "fa-arrows"
+}
+
+function getHostIcon(key)
+  local icon = ntop.getHashCache("ntopng.host_icons", key)
+  if((icon == nil) or (icon == "")) then
+     return("")
+  else
+     return(" <i class='fa "..icon.." fa-lg'></i>")
+  end
+end
+
+function setHostIcon(key, icon)
+  ntop.setHashCache("ntopng.host_icons", key, icon)
+end
+
+function pickIcon(key)
+  local icon = ntop.getHashCache("ntopng.host_icons", key)
+  if((icon == nil) or (icon == "")) then
+     icon = ""
+   end
+
+print [[
+ <div class="form-group">
+
+   <select name="custom_icon" class="form-control">
+]]
+
+  for k,v in pairsByKeys(icon_keys, asc) do
+      print("<option value=\"".. v.."\"")
+      if(v == icon) then print(" selected") end
+      print(">".. k .."</option>\n")
+  end
+
+print [[
+   </select>
+
+</div>
+]]
+
+end

@@ -130,9 +130,7 @@ function SqliteClass.getFlows(self)
        if (info == nil) then
         traceError(TRACE_ERROR,TRACE_CONSOLE,"Impossible read json form sqlite: ".. err)
       else
-
         for key,val in pairs(info) do
-
           label_key = nil
 
           -- Check if the option --jsonlabes is active

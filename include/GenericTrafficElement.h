@@ -43,6 +43,7 @@ class GenericTrafficElement {
   inline u_int16_t get_vlan_id()           { return(vlan_id);        };
   bool idle();
   void updateStats(struct timeval *tv);
+  void lua(lua_State* vm, bool host_details);
 
   inline u_int64_t getNumBytes()      { return(sent.getNumBytes()+rcvd.getNumBytes()); };
   inline u_int64_t getNumBytesSent()  { return(sent.getNumBytes());                    };

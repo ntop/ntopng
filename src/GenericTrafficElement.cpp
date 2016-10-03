@@ -61,3 +61,24 @@ void GenericTrafficElement::updateStats(struct timeval *tv) {
 
   memcpy(&last_update_time, tv, sizeof(struct timeval));
 }
+
+/* *************************************** */
+
+void GenericTrafficElement::lua(lua_State* vm, bool host_details) {
+  lua_push_int_table_entry(vm, "vlan", vlan_id);
+
+  lua_push_float_table_entry(vm, "throughput_bps", bytes_thpt);
+  lua_push_float_table_entry(vm, "last_throughput_bps", last_bytes_thpt);
+  lua_push_int_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
+  lua_push_float_table_entry(vm, "throughput_trend_bps_diff", bytes_thpt_diff);
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
+  lua_push_float_table_entry(vm, "throughput_pps", pkts_thpt);
+  lua_push_float_table_entry(vm, "last_throughput_pps", last_pkts_thpt);
+  lua_push_int_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
+
+  if(host_details) {
+    lua_push_int_table_entry(vm, "packets.sent", sent.getNumPkts());
+    lua_push_int_table_entry(vm, "packets.rcvd", rcvd.getNumPkts());
+  }
+}

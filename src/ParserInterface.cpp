@@ -547,14 +547,10 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           break;
         case IN_SRC_MAC:
           /* Format 00:00:00:00:00:00 */
-          sscanf(value, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
-		 &flow.src_mac[0], &flow.src_mac[1], &flow.src_mac[2],
-		 &flow.src_mac[3], &flow.src_mac[4], &flow.src_mac[5]);
+	  Utils::parseMac(flow.src_mac, value);
           break;
         case OUT_DST_MAC:
-          sscanf(value, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
-		 &flow.dst_mac[0], &flow.dst_mac[1], &flow.dst_mac[2],
-		 &flow.dst_mac[3], &flow.dst_mac[4], &flow.dst_mac[5]);
+	  Utils::parseMac(flow.dst_mac, value);
           break;
         case IPV4_SRC_ADDR:
         case IPV6_SRC_ADDR:

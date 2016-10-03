@@ -392,10 +392,7 @@ class NetworkInterface {
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
   inline virtual bool isView() { return(false); };
-  bool getMacInfo(lua_State* vm, char *mac);
+  bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
 };
-
-const char * getActivityName(UserActivityID id);
-bool getActivityId(const char * name, UserActivityID * out);
 
 #endif /* _NETWORK_INTERFACE_H_ */
