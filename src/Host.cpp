@@ -1484,6 +1484,8 @@ void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_
     }
 
     if(i < INTER_FLOW_ACTIVITY_SLOTS) {
+      idx = tbase+i;
+
       if((when - ifa_stats[idx].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL) {
         // update slot
         ifa_stats[idx].pkts += 1;
