@@ -25,23 +25,19 @@
 
 Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
+
+#ifdef DEBUG
+  char buf[32];
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s/%u", 
+			       Utils::formatMac(mac, buf, sizeof(buf)), vlan_id);
+#endif
 }
 
 /* *************************************** */
 
 Mac::~Mac() {
   ;
-}
-
-/* *************************************** */
-
-bool Mac::isIdle(u_int max_idleness) {
-  if((num_uses > 0) || (!iface->is_purge_idle_interface()))
-    return(false);
-  
-  if(num_uses > 0) return(false);
-  
-  return(false);
 }
 
 /* *************************************** */
@@ -53,4 +49,35 @@ bool Mac::idle() {
   return(isIdle(MAX_LOCAL_HOST_IDLE));
 }
 
+/* *************************************** */
 
+void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
+  char buf[32], *m;
+
+  lua_newtable(vm);
+
+  lua_push_str_table_entry(vm, "mac", m = Utils::formatMac(mac, buf, sizeof(buf)));
+  lua_push_int_table_entry(vm, "vlan", vlan_id);
+
+  lua_push_int_table_entry(vm, "bytes.sent", sent.getNumBytes());
+  lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
+
+  if(show_details) {
+    // TODO
+  }
+
+  if(asListElement) {
+    lua_pushstring(vm, m);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+}
+ 
+/* *************************************** */
+
+bool Mac::equal(u_int16_t _vlanId, const u_int8_t _mac[6]) {
+  if((vlan_id == _vlanId) && (memcmp(mac, _mac, 6) == 0))
+    return(true);
+  else
+    return(false);
+}

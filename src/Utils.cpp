@@ -1589,3 +1589,14 @@ void Utils::xor_encdec(u_char *data, int data_len, u_char *key) {
     if(key[y] == 0) y = 0;
   }
 }
+
+/* ****************************************************** */
+
+u_int32_t Utils::macHash(u_int8_t *mac) {
+  u_int32_t hash = 0; 
+  
+  for(int i=0; i<6; i++)
+    hash += mac[i] << (i+1);
+  
+  return(hash);
+}

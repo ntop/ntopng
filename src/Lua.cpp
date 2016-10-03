@@ -550,6 +550,60 @@ static int ntop_get_interface_hosts_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_macs_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *sortColumn = (char*)"column_mac";
+  u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
+  u_int16_t vlan_filter = 0;
+  bool a2zSortOrder = true;
+
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    sortColumn = (char*)lua_tostring(vm, 1);
+    
+    if(lua_type(vm, 2) == LUA_TNUMBER) {
+      maxHits = (u_int16_t)lua_tonumber(vm, 2);
+      
+      if(lua_type(vm, 3) == LUA_TNUMBER) {
+	toSkip = (u_int16_t)lua_tonumber(vm, 3);
+	
+	if(lua_type(vm, 4) == LUA_TBOOLEAN) {
+	  a2zSortOrder = lua_toboolean(vm, 4) ? true : false;
+
+	  if(lua_type(vm, 5) == LUA_TNUMBER) {
+	    vlan_filter = (u_int16_t)lua_tonumber(vm, 5);
+	  }
+	}
+      }
+    }
+  }
+	  
+  if(!ntop_interface ||
+     ntop_interface->getActiveMacList(vm, vlan_filter, sortColumn, maxHits,
+				     toSkip, a2zSortOrder) < 0)
+    return(CONST_LUA_ERROR);
+  
+  return(CONST_LUA_OK);  
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_mac_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *mac = NULL;
+  
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    mac = (char*)lua_tostring(vm, 1);  
+  
+  if((!ntop_interface) 
+     || (!mac)
+     || (!ntop_interface->getMacInfo(vm, mac)))
+    return(CONST_LUA_ERROR);
+
+  return(CONST_LUA_OK);  
+}
+
+/* ****************************************** */
+
 /**
  * @brief Get local hosts information of network interface.
  * @details Get the ntop interface global variable of lua and return into lua stack a new hash table of hash tables containing the local host information.
@@ -4860,6 +4914,10 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "loadDumpPrefs",                  ntop_load_dump_prefs },
   { "loadHostAlertPrefs",             ntop_interface_load_host_alert_prefs },
 
+  /* Mac */
+  { "getMacsInfo",                    ntop_get_interface_macs_info },
+  { "getMacInfo",                     ntop_get_interface_mac_info },
+
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
   { "reloadShapers",                  ntop_reload_shapers },
@@ -5276,7 +5334,6 @@ void Lua::purifyHTTPParameter(char *param) {
 	  return;
 	}
       }
-
 
       purifyHTTPParameter(&ampercent[3]);
     } else

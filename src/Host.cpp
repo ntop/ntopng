@@ -1477,7 +1477,9 @@ void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_
     float mostbad = 0.f;
     int i;
 
-    for (i=0; i<INTER_FLOW_ACTIVITY_SLOTS && ifa_stats[proto*i].flow != flow; i++) {
+    for (i=0; (i < INTER_FLOW_ACTIVITY_SLOTS)
+	   && (ifa_stats[proto*i].flow != flow);
+	 i++) {
       float bad;
     
       if(ifa_stats[proto*i].flow == NULL)
@@ -1493,7 +1495,7 @@ void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_
       }
     }
 
-    if(i<INTER_FLOW_ACTIVITY_SLOTS) {
+    if(i < INTER_FLOW_ACTIVITY_SLOTS) {
       if((when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL) {
 	// update slot
 	ifa_stats[proto*i].pkts += 1;
@@ -1505,7 +1507,7 @@ void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_
       }
     }
 
-    if(toadd) {
+    if(toadd && (k != -1)) {
       u_int idx = proto*k;
       // allocate or reset slot
       ifa_stats[idx].flow = flow, ifa_stats[idx].pkts = 1,
@@ -1521,7 +1523,7 @@ void Host::getIfaStats(InterFlowActivityProtos proto, time_t when,
   *count = 0, *max_diff = 0, *packets = 0;
   
   if(ifa_stats) {
-    for(int i=0; i<INTER_FLOW_ACTIVITY_SLOTS; i++) {
+    for(int i=0; i < INTER_FLOW_ACTIVITY_SLOTS; i++) {
       bool timeok = (when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL;
       bool continuity = (when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL;
       

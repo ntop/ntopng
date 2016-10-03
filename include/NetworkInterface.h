@@ -130,6 +130,9 @@ class NetworkInterface {
 		u_int16_t *vlan_id, char *osFilter,
 		u_int32_t *asnFilter, int16_t *networkFilter,
 		char *sortColumn);
+  int sortMacs(struct flowHostRetriever *retriever,
+	       u_int16_t vlan_id, char *sortColumn);
+
   bool isNumber(const char *str);
   bool validInterface(char *name);
   bool isInterfaceUp(char *name);
@@ -139,7 +142,7 @@ class NetworkInterface {
   void triggerTooManyHostsAlert();
   void triggerTooManyFlowsAlert();
   virtual u_int getNumDroppedPackets() { return 0;};
-  bool walker(bool walk_hosts,
+  bool walker(WalkerType wtype,
 	      bool (*walker)(GenericHashEntry *h, void *user_data),
 	      void *user_data);
 
@@ -147,6 +150,7 @@ class NetworkInterface {
   void enablePurge(bool on_flows);
   u_int32_t getHostsHashSize();
   u_int32_t getFlowsHashSize();
+  u_int32_t getMacsHashSize();
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
@@ -283,6 +287,9 @@ class NetworkInterface {
 			  u_int16_t *vlan_id, char *osFilter,
 			  u_int32_t *asnFilter, int16_t *networkFilter,
 			  char *groupColumn);
+  int getActiveMacList(lua_State* vm, u_int16_t vlan_id,
+		       char *sortColumn, u_int32_t maxHits,
+		       u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
   int  getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
@@ -383,6 +390,7 @@ class NetworkInterface {
   int luaEvalFlow(Flow *f, const LuaCallback cb);
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
   inline virtual bool isView() { return(false); };
+  bool getMacInfo(lua_State* vm, char *mac);
 };
 
 const char * getActivityName(UserActivityID id);

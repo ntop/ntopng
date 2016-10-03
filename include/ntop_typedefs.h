@@ -244,4 +244,11 @@ typedef enum {
   IFA_STATS_PROTOS_N
 } InterFlowActivityProtos;
 
+typedef enum {
+  walker_hosts = 0,
+  walker_flows,
+  walker_macs
+} WalkerType;
+
+
 #endif /* _NTOP_TYPEDEFS_H_ */
