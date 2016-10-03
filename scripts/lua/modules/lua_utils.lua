@@ -1909,6 +1909,10 @@ local magic_short_macs = {
    ["33:33:"] = "IPv6mcast"
 }
 
+function macInfo(mac)
+  return(' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?mac='.. mac ..'">'..mac..'</A> ')
+end
+
 -- get_symbolic_mac
 function get_symbolic_mac(mac_address, only_symbolic)
    if(magic_macs[mac_address] ~= nil) then
@@ -1921,7 +1925,7 @@ function get_symbolic_mac(mac_address, only_symbolic)
 	 if(only_symbolic == true) then
 	    return(magic_short_macs[m].."_"..t)
 	 else
-	    return(magic_short_macs[m].."_"..t.." ("..mac_address..")")
+	    return(magic_short_macs[m].."_"..t.." ("..macInfo(mac_address)..")")
 	 end
       else
 	 local s = get_mac_classification(m)
@@ -1932,7 +1936,7 @@ function get_symbolic_mac(mac_address, only_symbolic)
 	    if(only_symbolic == true) then
 	       return(get_mac_classification(m).."_"..t)
 	    else
-	       return(get_mac_classification(m).."_"..t.." ("..mac_address..")")
+	       return(get_mac_classification(m).."_"..t.." ("..macInfo(mac_address)..")")
 	    end
 	 end
       end

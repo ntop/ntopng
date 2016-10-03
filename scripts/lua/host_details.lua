@@ -351,7 +351,7 @@ if((page == "overview") or (page == nil)) then
 
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
-	    print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. "</td><td>")
+	    print("<tr><th width=35%>(Router) MAC Address</th><td>" ..get_symbolic_mac(host["mac"]).. " "..getHostIcon(host["mac"]).."</td><td>")
 	 else
 	    if(host["localhost"] == true and is_packetdump_enabled) then
 	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
