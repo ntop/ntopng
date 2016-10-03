@@ -24,27 +24,27 @@
 
 #include "ntop_includes.h"
 
-class Mac : public GenericHashEntry {
+class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int8_t mac[6];
   u_int16_t vlan_id;
   TrafficStats sent, rcvd;
-  
+  bool special_mac;
+
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
 
+  inline bool isSpecialMac()     { return(special_mac);         }
   inline u_int32_t key()         { return(Utils::macHash(mac)); }
-  inline u_int8_t* get_mac()     { return(mac);     }
-  inline u_int16_t get_vlan_id() { return(vlan_id); }
+  inline u_int8_t* get_mac()     { return(mac);                 }
+  inline u_int16_t get_vlan_id() { return(vlan_id);             }
   bool equal(u_int16_t _vlanId, const u_int8_t _mac[6]);
   inline void incSentStats(u_int pkt_len)  { sent.incStats(pkt_len); }
   inline void incRcvdStats(u_int pkt_len)  { rcvd.incStats(pkt_len); }
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
-  inline float getBytesThpt()         { return(0);                }; // TODO
-  inline u_int64_t getNumBytes()      { return(sent.getNumBytes()+rcvd.getNumBytes()); };
 };
 
 #endif /* _MAC_H_ */

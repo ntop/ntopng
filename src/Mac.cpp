@@ -25,6 +25,7 @@
 
 Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
+  special_mac = Utils::isSpecialMac(mac);
 
 #ifdef DEBUG
   char buf[32];
@@ -63,7 +64,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   if(show_details) {
-    // TODO
+    lua_push_bool_table_entry(vm, "special_mac", special_mac);    
   }
 
   if(asListElement) {

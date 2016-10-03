@@ -555,7 +555,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   char *sortColumn = (char*)"column_mac";
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int16_t vlan_filter = 0;
-  bool a2zSortOrder = true;
+  bool a2zSortOrder = true, skipSpecialMacs = false;
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     sortColumn = (char*)lua_tostring(vm, 1);
@@ -571,6 +571,10 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 
 	  if(lua_type(vm, 5) == LUA_TNUMBER) {
 	    vlan_filter = (u_int16_t)lua_tonumber(vm, 5);
+
+	    if(lua_type(vm, 6) == LUA_TBOOLEAN) {
+	      skipSpecialMacs = lua_toboolean(vm, 6) ? true : false;
+	    }
 	  }
 	}
       }
@@ -578,8 +582,9 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   }
 	  
   if(!ntop_interface ||
-     ntop_interface->getActiveMacList(vm, vlan_filter, sortColumn, maxHits,
-				     toSkip, a2zSortOrder) < 0)
+     ntop_interface->getActiveMacList(vm, vlan_filter, skipSpecialMacs,
+				      sortColumn, maxHits,
+				      toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
   
   return(CONST_LUA_OK);  

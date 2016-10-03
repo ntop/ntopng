@@ -26,26 +26,19 @@
 
 class Flow;
 
-class GenericHost : public GenericHashEntry {
+class GenericHost : public GenericHashEntry, public GenericTrafficElement {
  protected:
   bool localHost, systemHost;
-  u_int32_t host_serial;
-  u_int16_t vlan_id;
+  u_int32_t host_serial, num_alerts_detected;
   nDPIStats *ndpiStats;
-  TrafficStats sent, rcvd;
   ActivityStats activityStats;
-  u_int32_t num_alerts_detected, low_goodput_client_flows, low_goodput_server_flows;
+  u_int32_t low_goodput_client_flows, low_goodput_server_flows;
   u_int8_t source_id;
+  time_t last_activity_update;
 
   /* Throughput */
-  float bytes_thpt, goodput_bytes_thpt, pkts_thpt;
-  float last_bytes_thpt, last_goodput_bytes_thpt, last_pkts_thpt;
-  ValueTrend bytes_thpt_trend, bytes_goodput_thpt_trend, pkts_thpt_trend;
-  float bytes_thpt_diff, bytes_goodput_thpt_diff;
-  u_int64_t last_bytes, last_packets;
-  u_int64_t last_bytes_periodic;
-  struct timeval last_update_time;
-  time_t last_activity_update;
+  float goodput_bytes_thpt, last_goodput_bytes_thpt, bytes_goodput_thpt_diff;
+  ValueTrend bytes_goodput_thpt_trend;
 
   void dumpStats(bool forceDump);
   void readStats();
@@ -61,25 +54,17 @@ class GenericHost : public GenericHashEntry {
   inline bool isSystemHost()               { return(systemHost); };
   inline void setSystemHost()              { systemHost = true;  };
   inline nDPIStats* get_ndpi_stats()       { return(ndpiStats); };
-  inline ActivityStats* getActivityStats() { return(&activityStats); };
-  inline u_int16_t get_vlan_id()           { return(vlan_id);        };
+  inline ActivityStats* getActivityStats() { return(&activityStats); };  
   void incStats(u_int8_t l4_proto, u_int ndpi_proto, u_int64_t sent_packets, 
 		u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   inline u_int32_t get_host_serial()  { return(host_serial);               };
   inline void incNumAlerts()          { num_alerts_detected++;             };
   inline u_int32_t getNumAlerts()     { return(num_alerts_detected);       };
-  void updateStats(struct timeval *tv);
+
   inline u_int64_t getPeriodicStats(void)    { return (last_bytes_periodic);	   };
-  inline u_int64_t getNumBytes()      { return(sent.getNumBytes()+rcvd.getNumBytes()); };
-  inline u_int64_t getNumBytesSent()  { return(sent.getNumBytes());                    };
-  inline u_int64_t getNumBytesRcvd()  { return(rcvd.getNumBytes());                    };
   void resetPeriodicStats(void);
   void updateActivities();
-  inline ValueTrend getThptTrend()    { return(bytes_thpt_trend);          };
-  inline float getThptTrendDiff()     { return(bytes_thpt_diff);           };
-  inline float getBytesThpt()         { return(bytes_thpt);                };
-  inline float getPacketsThpt()       { return(pkts_thpt);                 };
   inline char* getJsonActivityMap()   { return(activityStats.serialize()); };
   inline u_int8_t getSourceId()       { return(source_id);                 };
   virtual char* get_string_key(char *buf, u_int buf_len) { return(NULL);   };

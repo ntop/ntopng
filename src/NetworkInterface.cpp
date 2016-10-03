@@ -1692,6 +1692,17 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
+static bool update_macs_stats(GenericHashEntry *node, void *user_data) {
+  Mac *mac = (Mac*)node;
+  struct timeval *tv = (struct timeval*)user_data;
+
+  mac->updateStats(tv);
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 void NetworkInterface::periodicStatsUpdate() {
   struct timeval tv;
 
@@ -1701,6 +1712,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
+  macs_hash->walk(update_macs_stats, (void*)&tv);
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()){
     static_cast<MySQLDB*>(db)->updateStats(&tv);
@@ -1934,6 +1946,7 @@ struct flowHostRetriever {
   patricia_tree_t *allowed_hosts;
   Host *host;
   Mac *mac;
+  bool skipSpecialMacs;
   char *country;
   int ndpi_proto;
   sortField sorter;
@@ -2131,10 +2144,11 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
 
-  if(!m || m->idle())
-    return(false);
-
-  if((r->vlan_id && (*(r->vlan_id) != m->get_vlan_id())))
+  if(!m 
+     || m->idle()
+     || ((r->vlan_id && (*(r->vlan_id) != m->get_vlan_id())))
+     || (r->skipSpecialMacs && m->isSpecialMac())
+     )
     return(false); /* false = keep on walking */
 
   r->elems[r->actNumEntries].macValue = m;
@@ -2501,7 +2515,8 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 /* **************************************************** */
 
 int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
-			       u_int16_t vlan_id, char *sortColumn) {
+			       u_int16_t vlan_id, bool skipSpecialMacs,
+			       char *sortColumn) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
 
@@ -2512,10 +2527,9 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
 
-  retriever->vlan_id = &vlan_id;
-  retriever->actNumEntries = 0;
-  retriever->maxNumEntries = maxHits;
-  retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
+  retriever->vlan_id = &vlan_id, retriever->skipSpecialMacs = skipSpecialMacs,
+    retriever->actNumEntries = 0, retriever->maxNumEntries = maxHits,
+    retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
@@ -2523,9 +2537,9 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   }
 
   if((!strcmp(sortColumn, "column_mac")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_mac, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_vlan")) retriever->sorter = column_vlan, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_since")) retriever->sorter = column_since, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_vlan"))    retriever->sorter = column_vlan, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_since"))   retriever->sorter = column_since, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt"))    retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
@@ -4274,6 +4288,7 @@ bool getActivityId(const char * name, UserActivityID * out) {
 /* **************************************** */
 
 int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
+				       bool skipSpecialMacs,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4281,7 +4296,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, vlan_id, sortColumn) < 0) {
+  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, sortColumn) < 0) {
     enablePurge(false);
     return -1;
   }
