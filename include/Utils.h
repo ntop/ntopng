@@ -86,6 +86,7 @@ class Utils {
   static bool isPrintableChar(u_char c);
   static const char* flowstatus2str(FlowStatus s);
   static char* formatMac(u_int8_t *mac, char *buf, u_int buf_len);
+  static u_int32_t macHash(u_int8_t *mac);
 };
 
 #endif /* _UTILS_H_ */

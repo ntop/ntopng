@@ -30,9 +30,8 @@ MacHash::MacHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_si
 /* ************************************ */
 
 Mac* MacHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
-  u_int32_t hash = 0;
+  u_int32_t hash = Utils::macHash((u_int8_t*)mac);
 
-  for(int i=0; i<6; i++) hash += mac[i] << (i+1);
   hash %= num_hashes;
 
   if(table[hash] == NULL) {
@@ -44,9 +43,7 @@ Mac* MacHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
     head = (Mac*)table[hash];
 
     while(head != NULL) {
-      if((!head->idle())
-         && (head->get_vlan_id() == vlanId)
-         && (memcmp(mac, head->get_mac(), 6) == 0))
+      if((!head->idle()) && head->equal(vlanId, mac))
 	break;
       else
         head = (Mac*)head->next();

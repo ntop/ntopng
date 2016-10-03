@@ -34,17 +34,17 @@ class Mac : public GenericHashEntry {
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
 
+  inline u_int32_t key()         { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()     { return(mac);     }
   inline u_int16_t get_vlan_id() { return(vlan_id); }
-
+  bool equal(u_int16_t _vlanId, const u_int8_t _mac[6]);
   inline void incSentStats(u_int pkt_len)  { sent.incStats(pkt_len); }
   inline void incRcvdStats(u_int pkt_len)  { rcvd.incStats(pkt_len); }
-
   bool idle();
-  bool isIdle(u_int max_idleness);
-
-  inline u_int32_t key()  { return(mac[0]+mac[1]+mac[2]+mac[3]+mac[4]+mac[5]); };
+  void lua(lua_State* vm, bool show_details, bool asListElement);
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
+  inline float getBytesThpt()         { return(0);                }; // TODO
+  inline u_int64_t getNumBytes()      { return(sent.getNumBytes()+rcvd.getNumBytes()); };
 };
 
 #endif /* _MAC_H_ */
