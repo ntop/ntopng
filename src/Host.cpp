@@ -1472,46 +1472,46 @@ void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_
   if(!ifa_stats)
     return;
   else {
-    bool toadd = true;
     int k = -1;
     float mostbad = 0.f;
     int i;
+    uint tbase = proto*INTER_FLOW_ACTIVITY_SLOTS;
 
     for (i=0; (i < INTER_FLOW_ACTIVITY_SLOTS)
-	   && (ifa_stats[proto*i].flow != flow);
-	 i++) {
+          && (ifa_stats[tbase+i].flow != flow);
+        i++) {
       float bad;
     
-      if(ifa_stats[proto*i].flow == NULL)
-	// empty slot
-	bad = 1.f;
+      if(ifa_stats[tbase+i].flow == NULL)
+        // empty slot
+        bad = 1.f;
       else
-	// old value: estimate goodness
-	bad = (when - ifa_stats[proto*i].last) * 1.f / INTER_FLOW_ACTIVITY_MAX_INTERVAL - ifa_stats[proto*i].pkts / 100.f;
+        // old value: estimate goodness
+        bad = (when - ifa_stats[tbase+i].last) * 1.f / INTER_FLOW_ACTIVITY_MAX_INTERVAL - ifa_stats[tbase+i].pkts / 100.f;
 
       if(bad > mostbad) {
-	k = i;
-	mostbad = bad;
+        k = i;
+        mostbad = bad;
       }
     }
 
     if(i < INTER_FLOW_ACTIVITY_SLOTS) {
-      if((when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL) {
-	// update slot
-	ifa_stats[proto*i].pkts += 1;
-	ifa_stats[proto*i].last = when;
-	toadd = false;
+      if((when - ifa_stats[tbase+i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL) {
+        // update slot
+        ifa_stats[tbase+i].pkts += 1;
+        ifa_stats[tbase+i].last = when;
+        k = -1;
       } else {
-	// reset slot counters
-	k = i;
+        // reset slot counters
+        k = i;
       }
     }
 
-    if(toadd && (k != -1)) {
-      u_int idx = proto*k;
+    if(k != -1) {
+      u_int idx = tbase+k;
       // allocate or reset slot
       ifa_stats[idx].flow = flow, ifa_stats[idx].pkts = 1,
-	ifa_stats[idx].first = when, ifa_stats[idx].last = when;
+      ifa_stats[idx].first = when, ifa_stats[idx].last = when;
     }
   }
 }
@@ -1523,18 +1523,20 @@ void Host::getIfaStats(InterFlowActivityProtos proto, time_t when,
   *count = 0, *max_diff = 0, *packets = 0;
   
   if(ifa_stats) {
+    uint tbase = proto*INTER_FLOW_ACTIVITY_SLOTS;
+
     for(int i=0; i < INTER_FLOW_ACTIVITY_SLOTS; i++) {
-      bool timeok = (when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL;
-      bool continuity = (when - ifa_stats[proto*i].last) <= INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL;
-      
+      bool timeok = (when - ifa_stats[tbase+i].last) <= INTER_FLOW_ACTIVITY_MAX_INTERVAL;
+      bool continuity = (when - ifa_stats[tbase+i].last) <= INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL;
+
       if(continuity || timeok) {
-	if(timeok) {
-	  *count += 1;
-	  *max_diff = max(ifa_stats[proto*i].last - ifa_stats[proto*i].first, *max_diff);
-	}
+        if(timeok) {
+          *count += 1;
+          *max_diff = max(ifa_stats[tbase+i].last - ifa_stats[tbase+i].first, *max_diff);
+        }
 	
-	// this is affected by activity continuity
-	*packets += ifa_stats[proto*i].pkts;
+        // this is affected by activity continuity
+        *packets += ifa_stats[tbase+i].pkts;
       }
     }
   }
