@@ -374,7 +374,8 @@ void Host::set_mac(char *m) {
   u_int8_t mac_address[6];
   u_int32_t _mac[6] = { 0 };
 
-  if(!strcmp(m, "00:00:00:00:00:00")) return;
+  if((m == NULL) || (!strcmp(m, "00:00:00:00:00:00")))
+    return;
 
   sscanf(m, "%02X:%02X:%02X:%02X:%02X:%02X",
 	 &_mac[0], &_mac[1], &_mac[2], &_mac[3], &_mac[4], &_mac[5]);

@@ -30,28 +30,31 @@ MacHash::MacHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_si
 /* ************************************ */
 
 Mac* MacHash::get(u_int16_t vlanId, const u_int8_t mac[6]) {
-  u_int32_t hash = Utils::macHash((u_int8_t*)mac);
-
-  hash %= num_hashes;
-
-  if(table[hash] == NULL) {
+  if(mac == NULL)
     return(NULL);
-  } else {
-    Mac *head;
+  else {
+    u_int32_t hash = Utils::macHash((u_int8_t*)mac);
 
-    locks[hash]->lock(__FILE__, __LINE__);
-    head = (Mac*)table[hash];
+    hash %= num_hashes;
 
-    while(head != NULL) {
-      if((!head->idle()) && head->equal(vlanId, mac))
-	break;
-      else
-        head = (Mac*)head->next();
+    if(table[hash] == NULL) {
+      return(NULL);
+    } else {
+      Mac *head;
+
+      locks[hash]->lock(__FILE__, __LINE__);
+      head = (Mac*)table[hash];
+
+      while(head != NULL) {
+	if((!head->idle()) && head->equal(vlanId, mac))
+	  break;
+	else
+	  head = (Mac*)head->next();
+      }
+    
+      locks[hash]->unlock(__FILE__, __LINE__);
+    
+      return(head);
     }
-    
-    locks[hash]->unlock(__FILE__, __LINE__);
-    
-    return(head);
   }
 }
-
