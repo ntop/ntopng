@@ -358,23 +358,25 @@ else
 	 flow_reset = true
 
 	 if(hasbit(flow["cli2srv.tcp_flags"],0x04)) then resetter = "client" else resetter = "server" end
-     end
+      end
 
-      if(flow_reset) then
-	 print(" <small>This flow has been reset by "..resetter..".</small>")
+      local flow_msg=""
+      if flow_reset == true then
+	 flow_msg = flow_msg.." <small>This flow has been reset"
+	 if resetter ~= nil and resetter ~= "" then
+	    flow_msg = flow_msg.." by "..resetter
+	 end
+	 flow_msg = flow_msg..".</small>"
+      elseif flow_completed == true then
+	 flow_msg = flow_msg.." <small>This flow is completed and will expire soon.</small>"
       else
-	 if(flow_completed) then
-	    print(" <small>This flow is completed and will expire soon.</small>")
-	 else
-  	    print(" <small>We have not seen flow begin: peer roles (client/server) might be inaccurate.</small>")
-	    if(not(flows_syn_seen)) then
-	      print("")
-	    else
-	      print(" <small>This flow is active.</small>")
-	    end
+	 flow_msg = flow_msg.." <small>This flow is active.</small>"
+	 if flows_syn_seen == false then
+	    flow_msg = flow_msg.." <small>However, flow begin has not been seen: peer roles (client/server) might be inaccurate.</small>"
 	 end
       end
 
+      print(flow_msg)
       print("</td></tr>\n")
    end
 
