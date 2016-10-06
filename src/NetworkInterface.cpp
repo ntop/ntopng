@@ -3137,6 +3137,8 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId,
 			      bool createIfNotPresent) {
   Mac *ret = NULL;
   
+  if(_mac == NULL) return(NULL);
+
   if(!isView())
     ret = macs_hash->get(vlanId, _mac);
   else {

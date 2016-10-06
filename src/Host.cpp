@@ -116,7 +116,9 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   sent_to_sketch = rcvd_from_sketch = NULL;
 #endif
 
-  if((mac = iface->getMac(_mac, _vlanId, true)) != NULL)
+  if(_mac == NULL)
+    mac = NULL;
+  else if((mac = iface->getMac(_mac, _vlanId, true)) != NULL)
     mac->incUses();
 
   drop_all_host_traffic = false, dump_host_traffic = false,
@@ -188,6 +190,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
 	deserialize(json, redis_key);
       }
+
       if(json) free(json);
     }
 
