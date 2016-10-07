@@ -30,6 +30,14 @@ if(_GET["mac"] ~= nil) then
    print("&mac=".._GET["mac"])
 end
 
+if(_GET["mode"] ~= nil) then
+  mode = _GET["mode"]
+else
+  mode = "hostsonly"  
+end
+
+print("&mode="..mode)
+
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
 
@@ -39,7 +47,12 @@ print [[
 			url: url_update , 
 ]]
 
-print('title: "Local Hosts MAC Addresses",\n')
+if(_GET["mode"] ~= "hostsonly") then
+ print('title: "Network Devices",\n')
+else
+ print('title: "All Network Devices",\n')
+end
+
 print ('rowCallback: function ( row ) { return mac_table_setID(row); },')
 
 -- Set the preference table
@@ -48,6 +61,14 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 -- Automatic default sorted. NB: the column must exist.
 print ('sort: [ ["' .. getDefaultTableSort("mac") ..'","' .. getDefaultTableSortOrder("mac").. '"] ],')
+
+print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print(ntop.getHttpPrefix())
+   print('/lua/mac_stats.lua?mode=hostsonly">Hosts Only</a></li><li><a href="')
+   print(ntop.getHttpPrefix())
+   print('/lua/mac_stats.lua?mode=all">All Devicess</a></li><li><a href="')
+   print(ntop.getHttpPrefix())
+   print("</div>' ],")
 
 print [[
 	       showPagination: true,

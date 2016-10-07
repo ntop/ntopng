@@ -113,6 +113,7 @@ class Host : public GenericHost {
   void set_mac(char *m);
   inline bool is_blacklisted()                 { return(blacklisted_host); }
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
+  inline Mac* getMac()                         { return(mac);              }
   inline char* get_os()                        { return(os);               }
   inline char* get_name()                      { return(symbolic_name);    }
   inline char* get_country()                   { return(country);          }

@@ -129,7 +129,7 @@ class NetworkInterface {
 		char *countryFilter,
 		u_int16_t *vlan_id, char *osFilter,
 		u_int32_t *asnFilter, int16_t *networkFilter,
-		char *sortColumn);
+		bool hostMacsOnly, char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
 	       char *sortColumn);
@@ -287,7 +287,7 @@ class NetworkInterface {
 			  char *countryFilter,
 			  u_int16_t *vlan_id, char *osFilter,
 			  u_int32_t *asnFilter, int16_t *networkFilter,
-			  char *groupColumn);
+			  bool hostsOnly, char *groupColumn);
   int getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 		       bool skipSpecialMacs,
 		       char *sortColumn, u_int32_t maxHits,

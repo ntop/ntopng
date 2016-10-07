@@ -506,7 +506,7 @@ static int ntop_get_interface_latest_activity_hosts_info(lua_State* vm) {
  */
 static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool show_details = true;
+  bool show_details = true, hostsOnly = true;
   char *country = NULL, *os_filter = NULL;
   char *groupBy = (char*)"column_ip";
   u_int16_t vlan_filter,  *vlan_filter_ptr    = NULL;
@@ -522,16 +522,17 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   if(lua_type(vm, 5) == LUA_TNUMBER)  vlan_filter    = (u_int16_t)lua_tonumber(vm, 5), vlan_filter_ptr = &vlan_filter;
   if(lua_type(vm, 6) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 6), asn_filter_ptr = &asn_filter;
   if(lua_type(vm, 7) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 7),  network_filter_ptr = &network_filter;
+  if(lua_type(vm, 8) == LUA_TBOOLEAN) hostsOnly      = lua_toboolean(vm, 8) ? true : false;
 
-  if(!ntop_interface ||
-    ntop_interface->getActiveHostsGroup(vm, get_allowed_nets(vm),
-					show_details, location_all,
-					country,
-					vlan_filter_ptr, os_filter,
-					asn_filter_ptr, network_filter_ptr,
-					groupBy) < 0)
+  if((!ntop_interface)
+     || ntop_interface->getActiveHostsGroup(vm, get_allowed_nets(vm),
+					    show_details, location_all,
+					    country,
+					    vlan_filter_ptr, os_filter,
+					    asn_filter_ptr, network_filter_ptr,
+					    hostsOnly, groupBy) < 0)
     return(CONST_LUA_ERROR);
-
+  
   return(CONST_LUA_OK);
 }
 

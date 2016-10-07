@@ -22,6 +22,12 @@ network_n   = _GET["network"]
 country_n   = _GET["country"]
 os_n   	    = _GET["os"]
 
+if(_GET["mode"] == "hostsonly") then
+  mac_n = true
+else
+  mac_n = false
+end
+
 if (group_col == nil) then
    group_col = "asn"
 end
@@ -78,7 +84,7 @@ vals = {}
 stats_by_group_col = {}
 
 interface.select(ifname)
-stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n)) -- false = little details)
+stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), mac_n) -- false = little details)
 stats_by_group_col = stats_by_group_key
 
 --[[
