@@ -107,7 +107,9 @@ end
 
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, 
 	                           country, os_, tonumber(vlan), tonumber(asn),
-				   tonumber(network)) -- false = little details
+				   tonumber(network), mac) -- false = little details
+
+-- tprint(hosts_stats)
 
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]

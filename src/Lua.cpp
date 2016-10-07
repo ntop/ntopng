@@ -437,7 +437,7 @@ static int ntop_get_ndpi_protocol_breed(lua_State* vm) {
 static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
-  char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL;
+  char *sortColumn = (char*)"column_ip", *country = NULL, *os_filter = NULL, *mac_filter = NULL;
   bool a2zSortOrder = true;
   u_int16_t vlan_filter,  *vlan_filter_ptr    = NULL;
   u_int32_t asn_filter,   *asn_filter_ptr     = NULL;
@@ -461,8 +461,12 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
 	  if(lua_type(vm, 5) == LUA_TBOOLEAN) {
 	    a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
 
-	    if(lua_type(vm, 6) == LUA_TSTRING)
+	    if(lua_type(vm, 6) == LUA_TSTRING) {
 	      country = (char*)lua_tostring(vm, 6);
+
+	      if(lua_type(vm, 7) == LUA_TSTRING)
+		mac_filter = (char*)lua_tostring(vm, 7);
+	    }
 	  }
 	}
       }
@@ -476,7 +480,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   if(!ntop_interface ||
     ntop_interface->getActiveHostsList(vm, get_allowed_nets(vm),
                                        show_details, location,
-                                       country,
+                                       country, mac_filter,
 				       vlan_filter_ptr, os_filter, asn_filter_ptr, network_filter_ptr,
 				       sortColumn, maxHits,
 				       toSkip, a2zSortOrder) < 0)

@@ -2084,6 +2084,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
      (r->networkFilter && *(r->networkFilter) != h->get_local_network_id()) ||
      (r->networkFilter && *(r->networkFilter) != h->get_local_network_id()) ||
      (r->hostMacsOnly  && h->getMac() && h->getMac()->isSpecialMac())       ||
+     (r->mac           && (h->getMac() != r->mac))                          ||
      (r->country  && strlen(r->country)  && (!h->get_country() || strcmp(h->get_country(), r->country))) ||
      (r->osFilter && strlen(r->osFilter) && (!h->get_os()      || strcmp(h->get_os(), r->osFilter))))
     return(false); /* false = keep on walking */
@@ -2472,7 +2473,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 				patricia_tree_t *allowed_hosts,
 				bool host_details,
 				LocationPolicy location,
-				char *countryFilter,
+				char *countryFilter, char *mac_filter,
 				u_int16_t *vlan_id, char *osFilter,
 				u_int32_t *asnFilter, int16_t *networkFilter,
 				bool hostMacsOnly, char *sortColumn) {
@@ -2485,6 +2486,16 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   maxHits = getHostsHashSize();
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
+
+  memset(retriever, 0, sizeof(struct flowHostRetriever));
+
+  if(mac_filter) {
+    u_int8_t macAddr[6];
+
+    Utils::parseMac(macAddr, mac_filter);
+
+    retriever->mac = macs_hash->get(vlan_id ? *vlan_id : 0, (const u_int8_t*)macAddr);
+  }
 
   retriever->allowed_hosts = allowed_hosts, retriever->location = location,
   retriever->country = countryFilter, retriever->vlan_id = vlan_id,
@@ -2563,7 +2574,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 
 int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
 					 bool host_details, LocationPolicy location,
-					 char *countryFilter,
+					 char *countryFilter, char *mac_filter,
 					 u_int16_t *vlan_id, char *osFilter,
 					 u_int32_t *asnFilter, int16_t *networkFilter,
 					 char *sortColumn, u_int32_t maxHits,
@@ -2573,8 +2584,8 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
   disablePurge(false);
 
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
-	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
-	       true, sortColumn) < 0) {
+	       countryFilter, osFilter, vlan_id, osFilter,
+	       asnFilter, networkFilter, true, sortColumn) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -2632,7 +2643,8 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
 
   // sort hosts according to the grouping criterion
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
-	       countryFilter, vlan_id, osFilter, asnFilter, networkFilter,
+	       countryFilter, NULL /* Mac */, vlan_id, 
+	       osFilter, asnFilter, networkFilter,
 	       local_macs, groupColumn) < 0 ) {
     enablePurge(false);
     return -1;
@@ -4339,3 +4351,5 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
   } else
     return(false);
 }
+
+/* **************************************** */

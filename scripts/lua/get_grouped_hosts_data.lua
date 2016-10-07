@@ -135,17 +135,19 @@ function print_single_group(value)
       print('", ')
 
    elseif(group_col == "mac") then
-      local alt = getHostAltName(value["name"])
-      
-      if(alt == value["name"]) then alt = get_symbolic_mac(value["name"], true) end
-      print(alt..'</A>", ')
+      manufacturer = get_manufacturer_mac(value["name"])
+      if(manufacturer == nil) then manufacturer = "" end
+      print(manufacturer..'</A>", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then
       print('</A>'..value["id"]..'", ')
    else
       print(value["id"]..'</A>", ')
    end
 
-   print('"column_link": "<A HREF='..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'>'.. value["id"]..'</A>')
+   local alt = getHostAltName(value["id"])
+   
+   if((alt ~= nil) and (alt ~= value["id"])) then alt = " ("..alt..")" else alt = "" end
+   print('"column_link": "<A HREF='..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'>'.. value["id"]..alt..'</A>')
 
    if(not(isSpecialMac(value["id"]))) then
         local icon = getHostIcon(value["id"])
@@ -158,6 +160,10 @@ function print_single_group(value)
    end
 
    print('",')
+
+   if(group_col == "mac") then
+     print('"column_manufacturer": "'..manufacturer..'",')
+   end
 
    print('"column_hosts" : "' .. formatValue(value["num_hosts"]) ..'",')
 
@@ -273,6 +279,10 @@ for key,value in pairs(stats_by_group_col) do
 	 vals[key] = v["throughput_"..throughput_type]
       elseif(sortColumn == "column_queries") then
 	 vals[key] = v["queries.rcvd"]
+      elseif(sortColumn == "column_manufacturer") then
+         local m = get_manufacturer_mac(key)
+	 if(m == nil) then m = "" end
+	 vals[key] = m
       else
 	 vals[key] = (v["bytes.sent"] + v["bytes.rcvd"])
       end

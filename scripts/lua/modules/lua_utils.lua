@@ -1943,6 +1943,18 @@ function get_symbolic_mac(mac_address, only_symbolic)
    end
 end
 
+function get_manufacturer_mac(mac_address)
+  local m = string.sub(mac_address, 1, 8)
+  local ret = mac_cache[m]
+
+  if(ret == nil) then 
+  	 ret = get_mac_classification(m) 
+	 if(ret == m) then ret = "" end
+  end
+
+  return(ret)
+end
+
 -- rrd_exists
 function rrd_exists(host_ip, rrdname)
 if(host_ip == nil) then return false end

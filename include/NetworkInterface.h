@@ -126,7 +126,7 @@ class NetworkInterface {
 		patricia_tree_t *allowed_hosts,
 		bool host_details,
 		LocationPolicy location,
-		char *countryFilter,
+		char *countryFilter, char *mac_filter,
 		u_int16_t *vlan_id, char *osFilter,
 		u_int32_t *asnFilter, int16_t *networkFilter,
 		bool hostMacsOnly, char *sortColumn);
@@ -277,7 +277,7 @@ class NetworkInterface {
   int getActiveHostsList(lua_State* vm,
 			 patricia_tree_t *allowed_hosts,
 			 bool host_details, LocationPolicy location,
-			 char *countryFilter,
+			 char *countryFilter, char *mac_filter,
 			 u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);

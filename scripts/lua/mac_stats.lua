@@ -90,8 +90,8 @@ print [[
 			     }
 				 },
                          {
-			     title: "Hosts MAC Drill-Down",
-				 field: "column_id",
+			     title: "Manufacturer",
+				 field: "column_manufacturer",
 				 sortable: true,
                              css: {
 			        textAlign: 'left'
