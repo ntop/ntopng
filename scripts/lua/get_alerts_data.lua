@@ -35,8 +35,19 @@ initial_idx = (currentPage-1)*perPage
 
 interface.select(ifname)
 
-alerts = interface.getAlerts(initial_idx, perPage, engaged)
-num_alerts = interface.getNumAlerts(engaged)
+local alerts
+local num_alerts
+
+if _GET["entity"] == "host" then
+   alerts = interface.getAlerts(initial_idx, perPage, engaged, "host", _GET["entity_val"])
+   num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
+else
+   alerts = interface.getAlerts(initial_idx, perPage, engaged)
+   num_alerts = interface.getNumAlerts(engaged)
+end
+
+-- tprint(interface.getAlerts(initial_idx, perPage, engaged, "host", "192.168.1.29@0"))
+-- tprint(interface.getNumAlerts(engaged, "host", "192.168.1.29@0"))
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 total = 0
@@ -67,3 +78,4 @@ print ("\n], \"perPage\" : " .. perPage .. ",\n")
 
 print ("\"sort\" : [ [ \"\", \"\" ] ],\n")
 print ("\"totalRows\" : " ..num_alerts .. " \n}")
+

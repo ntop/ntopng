@@ -56,6 +56,18 @@ class AlertsManager : protected StoreManager {
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 				  bool engage);
 
+  /* methods used to retrieve alerts and counters with possible sql clause to filter */
+  int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+		u_int32_t start_offset, u_int32_t end_offset,
+		bool engaged, const char *sql_where_clause);
+  int getNumAlerts(bool engaged, const char *sql_where_clause);
+
+  /* private methods to check the goodness of submitted inputs and possible return the input database string */
+  bool isValidHost(Host *h, char *host_string, size_t host_string_len);
+  bool isValidFlow(Flow *f);
+  bool isValidNetwork(const char *cidr);
+  bool isValidInterface(NetworkInterface *n);
+
  public:
   AlertsManager(int interface_id, const char *db_filename);
   ~AlertsManager() {};
@@ -79,6 +91,18 @@ class AlertsManager : protected StoreManager {
     return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
   };
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+
+  int getHostAlerts(Host *h,
+		    lua_State* vm, patricia_tree_t *allowed_hosts,
+		    u_int32_t start_offset, u_int32_t end_offset,
+		    bool engaged);
+  
+  int getHostAlerts(const char *host_ip, u_int16_t vlan_id,
+		    lua_State* vm, patricia_tree_t *allowed_hosts,
+		    u_int32_t start_offset, u_int32_t end_offset,
+		    bool engaged);
+
+  int getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged);
 
   /*
     ========== FLOW alerts API =========
@@ -119,10 +143,15 @@ class AlertsManager : protected StoreManager {
   int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   
-  int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
-		u_int32_t start_offset, u_int32_t end_offset,
-		bool engaged);
-  int getNumAlerts(bool engaged);
+  inline int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+		       u_int32_t start_offset, u_int32_t end_offset,
+		       bool engaged){
+    return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, NULL /* all alerts by default */);
+  }
+
+  inline int getNumAlerts(bool engaged) {
+    return getNumAlerts(engaged, NULL /* no where clause, all the existing alerts */);
+  }
   int deleteAlerts(bool engaged, const int *rowid);
   
   /* Following are the legacy methods that were formally global to the whole ntopng */

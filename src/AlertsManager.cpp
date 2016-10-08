@@ -473,15 +473,30 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
 /* ******************************************* */
 
+bool AlertsManager::isValidHost(Host *h, char *host_string, size_t host_string_len) {
+  char ipbuf[256];
+
+  if (!h) return false;
+
+  IpAddress *ip = h->get_ip();
+  if(!ip) return false;
+
+  snprintf(host_string, host_string_len, "%s@%i", ip->print(ipbuf, sizeof(ipbuf)), h->get_vlan_id());
+
+  return true;
+}
+
+/* ******************************************* */
+
 int AlertsManager::engageReleaseHostAlert(Host *h,
 					  const char *engaged_alert_id,
 					  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 					  bool engage) {
-  if (!h) return -1;
-  char ipbuf[256], ipbuf_id[256];
-  IpAddress *ip = h->get_ip();
-  if(!ip) return -2;
-  snprintf(ipbuf_id, sizeof(ipbuf_id), "%s@%i", ip->print(ipbuf, sizeof(ipbuf)), h->get_vlan_id());
+  char ipbuf_id[256];
+
+  if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
+      return -1;
+
   if (engage)
     return engageAlert(alert_entity_host, ipbuf_id,
 		       engaged_alert_id, alert_type, alert_severity, alert_json);
@@ -543,15 +558,62 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 
 int AlertsManager::storeHostAlert(Host *h,
 				  AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-  if (!h) return -1;
-  char ipbuf[256], ipbuf_id[256];
-  IpAddress *ip = h->get_ip();
-  if(!ip) return -2;
-  snprintf(ipbuf_id, sizeof(ipbuf_id), "%s@%i", ip->print(ipbuf, sizeof(ipbuf)), h->get_vlan_id());
+  char ipbuf_id[256];
+
+  if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
+    return -1;
+
   return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json);
 };
 
 /* ******************************************* */
+
+int AlertsManager::getHostAlerts(Host *h, lua_State* vm, patricia_tree_t *allowed_hosts,
+				 u_int32_t start_offset, u_int32_t end_offset,
+				 bool engaged) {
+  char ipbuf_id[256], wherebuf[256];
+  if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id))) {
+    lua_newtable(vm);
+    return -1;
+  }
+  snprintf(wherebuf, sizeof(wherebuf),
+	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\"",
+	   static_cast<int>(alert_entity_host), ipbuf_id);
+  return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, wherebuf);
+}
+
+/* ******************************************* */
+
+int AlertsManager::getHostAlerts(const char *host_ip, u_int16_t vlan_id,
+				 lua_State* vm, patricia_tree_t *allowed_hosts,
+				 u_int32_t start_offset, u_int32_t end_offset,
+				 bool engaged) {
+  char wherebuf[256];
+  if(!host_ip) {
+    lua_newtable(vm);
+    return -1;
+  }
+  snprintf(wherebuf, sizeof(wherebuf),
+	   "alert_entity=\"%i\" AND alert_entity_val=\"%s@%i\"",
+	   static_cast<int>(alert_entity_host), host_ip, vlan_id);
+  return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, wherebuf);
+}
+
+/* ******************************************* */
+
+int AlertsManager::getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged) {
+  char wherebuf[256];
+  if(!host_ip) {
+    return -1;
+  }
+  snprintf(wherebuf, sizeof(wherebuf),
+	   "alert_entity=\"%i\" AND alert_entity_val=\"%s@%i\"",
+	   static_cast<int>(alert_entity_host), host_ip, vlan_id);
+  return getNumAlerts(engaged, wherebuf);
+}
+
+/* ******************************************* */
+
 struct alertsRetriever {
   lua_State *vm;
   u_int32_t current_offset;
@@ -578,7 +640,7 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
 
 int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 			     u_int32_t start_offset, u_int32_t end_offset,
-			     bool engaged) {
+			     bool engaged, const char *sql_where_clause) {
   alertsRetriever ar;
   char query[STORE_MANAGER_MAX_QUERY];
   char *zErrMsg = 0;
@@ -589,9 +651,13 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 
   snprintf(query, sizeof(query),
 	   "SELECT rowid, alert_tstamp, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json %s "
-	   "FROM %s ORDER BY alert_tstamp DESC LIMIT %u,%u",
+	   "FROM %s "
+	   "%s %s " /* optional where clause */
+	   "ORDER BY alert_tstamp DESC LIMIT %u,%u",
 	   engaged ? "" : ", alert_tstamp_end ",
-	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME,
+	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME /* from */,
+	   sql_where_clause ? (char*)"WHERE"  : "",
+	   sql_where_clause ? sql_where_clause : "",
 	   start_offset, end_offset - start_offset + 1);
 
   m.lock(__FILE__, __LINE__);
@@ -617,15 +683,19 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 
 /* **************************************************** */
 
-int AlertsManager::getNumAlerts(bool engaged) {
+int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc;
   int num = -1;
 
   snprintf(query, sizeof(query),
-	   "SELECT count(*) FROM %s ",
-	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
+	   "SELECT count(*) "
+	   "FROM %s "
+	   "%s %s",
+	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME,
+	   sql_where_clause ? "WHERE"  : "",
+	   sql_where_clause ? sql_where_clause : "");
 
   m.lock(__FILE__, __LINE__);
   if(sqlite3_prepare(db, query, -1, &stmt, 0)) {

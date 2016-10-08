@@ -1928,9 +1928,28 @@ elseif(page == "alerts") then
 local tab = _GET["tab"]
 local re_arm_minutes = nil
 
-if(tab == nil) then tab = alerts_granularity[1][1] end
-
 print('<ul class="nav nav-tabs">')
+
+-- possibly add a tab if there are alerts configured for the host
+local num_alerts         = interface.getNumAlerts(--[[ NOT engaged --]]false, "host", hostkey)
+local num_engaged_alerts = interface.getNumAlerts(--[[ engaged --]]     true, "host", hostkey)
+
+if num_alerts > 0 or num_engaged_alerts > 0 then
+   if(tab == nil) then
+      -- if no tab is selected and there are alert, we show them by default
+      tab = "alert_list"
+   end
+   if(tab == "alert_list") then
+      print("\t<li class=active>")
+   else
+      print("\t<li>")
+   end
+   print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab=alert_list\">Detected Alerts</a></li>\n")
+else
+   -- if there are no alerts, we show the first alert granularity configuration page
+   if(tab == nil) then tab = alerts_granularity[1][1] end
+end
+
 for _,e in pairs(alerts_granularity) do
    k = e[1]
    l = e[2]
@@ -1949,7 +1968,7 @@ to_save = false
 if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
    delete_alert_configuration(hostkey, ifname)
    alerts = nil
-else
+elseif tab ~= "alert_list" then
    for k,_ in pairs(alert_functions_description) do
       value    = _GET["value_"..k]
       operator = _GET["operator_"..k]
@@ -2004,6 +2023,9 @@ if(alerts ~= nil) then
    end
 end
 
+if tab == "alert_list" then
+   drawAlertTables(num_alerts, num_engaged_alerts, {["entity"] = "host", ["entity_val"] = hostkey})
+else
    print [[
     <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
     <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
@@ -2081,6 +2103,8 @@ end
    </tbody> </table>
    ]]
 
+end -- closes tab ~= "alert_list"
+      
 elseif (page == "config") then
    if(isAdministrator()) then
       trigger_alerts = _GET["trigger_alerts"]

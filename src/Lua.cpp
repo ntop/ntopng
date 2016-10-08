@@ -4213,6 +4213,7 @@ static int ntop_interface_get_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   u_int32_t num, start_idx = 0;
   bool engaged = false;
+  char *entity_type = NULL, *entity_value = NULL;
   AlertsManager *am;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4223,16 +4224,42 @@ static int ntop_interface_get_alerts(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
   num = (u_int32_t)lua_tonumber(vm, 2);
 
-  if(lua_type(vm, 3) == LUA_TBOOLEAN)
-    engaged = lua_toboolean(vm, 3);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);
+  engaged = lua_toboolean(vm, 3);
 
   if(num < 1) num = 1;
   else if(num > CONST_MAX_NUM_READ_ALERTS) num = CONST_MAX_NUM_READ_ALERTS;
 
   if(!iface || !(am = iface->getAlertsManager()))
     return (CONST_LUA_ERROR);
-  
-  return am->getAlerts(vm, get_allowed_nets(vm), start_idx, start_idx + num - 1, engaged) ? CONST_LUA_ERROR : CONST_LUA_OK;
+
+  if(lua_type(vm, 4) == LUA_TSTRING) {
+    if((entity_type = (char*)lua_tostring(vm, 4)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+    if(lua_type(vm, 5) == LUA_TSTRING) {
+      if((entity_value = (char*)lua_tostring(vm, 5)) == NULL)
+	return(CONST_LUA_PARAM_ERROR);
+    }
+
+    if(!strncmp("host", entity_type, 4)){
+      char buf[256];
+      char *host_ip; u_int16_t vlan_id = 0;
+      get_host_vlan_info(entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
+
+      if(am->getHostAlerts(host_ip, vlan_id, vm, get_allowed_nets(vm), start_idx, start_idx + num - 1, engaged))
+	return CONST_LUA_ERROR;
+
+    } else {
+      return(CONST_LUA_PARAM_ERROR);
+    }
+
+    return CONST_LUA_OK;
+  }
+
+
+  /* all the existing alerts */
+  return am->getAlerts(vm, get_allowed_nets(vm), start_idx, start_idx + num - 1, engaged)
+    ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
 
 /* ****************************************** */
@@ -4424,14 +4451,37 @@ static int ntop_interface_release_interface_alert(lua_State* vm) {
 
 static int ntop_interface_get_num_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
+  AlertsManager *am;
   bool engaged = false;
+  char *entity_type = NULL, *entity_value = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN)
     engaged = lua_toboolean(vm, 1);
 
-  lua_pushinteger(vm, iface->getAlertsManager()->getNumAlerts(engaged));
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  if(lua_type(vm, 2) == LUA_TSTRING) {
+    if((entity_type = (char*)lua_tostring(vm, 2)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+    if(lua_type(vm, 3) == LUA_TSTRING) {
+      if((entity_value = (char*)lua_tostring(vm, 3)) == NULL)
+	return(CONST_LUA_PARAM_ERROR);
+    }
+
+    if(!strncmp("host", entity_type, 4)){
+      char buf[256];
+      char *host_ip; u_int16_t vlan_id = 0;
+      get_host_vlan_info(entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
+      lua_pushinteger(vm, am->getNumHostAlerts(host_ip, vlan_id, engaged));
+    } else {
+      lua_pushnil(vm);
+    }
+  } else {
+    lua_pushinteger(vm, am->getNumAlerts(engaged));
+  }
 
   return(CONST_LUA_OK);
 }
