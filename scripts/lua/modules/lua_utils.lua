@@ -1856,37 +1856,49 @@ function makeTopStatsScriptsArray()
    return(topArray)
 end
 
-local mac_cache = { }
+local mac_cache = nil
 -- get_mac_classification
-function get_mac_classification(m)
+function get_mac_classification(m, extended_name)
    local path = fixPath(dirs.installdir.."/httpdocs/other/EtherOUI.txt")
    local file_mac
 
    if(string.len(m) > 8) then m = string.sub(m, 1, 8) end
 
+   if mac_cache == nil then
+      -- lazy initialization
+      local file_mac = io.open(path)
+      if (file_mac == nil) then return m end
+
+      mac_cache = {}
+
+      while true do
+	 local mac_line = file_mac:read("*l")
+	 if mac_line == nil then break
+	 elseif mac_line == "" or string.starts(mac_line, "#") then goto continue end
+
+	 local mac_manuf_id  = string.upper(string.sub(mac_line, 1, 8))
+	 if not string.match(mac_manuf_id, "^%x%x:%x%x:%x%x$") then goto continue end
+	 local t             = split(mac_line, "\t")
+
+	 local mac_manuf_txt     = split(t[2], " ")[1] -- Apple
+	 local mac_manuf_txt_ext = split(t[2], "#")[2] -- Apple, Inc.
+
+	 mac_cache[mac_manuf_id] = {mac_manuf_txt, mac_manuf_txt_ext}
+
+	 ::continue::
+      end
+
+      file_mac.close()
+   end
+
    if(mac_cache[m] ~= nil) then
       -- io.write("Cached "..m.."\n")
-      return(mac_cache[m])
-   end
-
-   file_mac = io.open(path)
-   if (file_mac == nil) then return m end
-
-   local mac_line = file_mac:read("*l")
-   while (mac_line ~= nil) do
-      if (not startswith(mac_line, "#") and mac_line ~= "") then
-	 b = string.sub(mac_line, 1, 8)
-	 if (m == b) then
-	   t = split(mac_line, "\t")
-	   file_mac.close()
-	   rsp = split(t[2], " ")[1]
-	   mac_cache[m] = rsp
-	   return rsp
-	end
+      if extended_name then
+	 return mac_cache[m][2] or mac_cache[m][1] or m
+      else
+	 return mac_cache[m][1] or m
       end
-      mac_line = file_mac:read("*l")
    end
-   file_mac.close()
 
    return m
 end
@@ -1945,14 +1957,11 @@ end
 
 function get_manufacturer_mac(mac_address)
   local m = string.sub(mac_address, 1, 8)
-  local ret = mac_cache[m]
+  local ret = get_mac_classification(m, true --[[ extended name --]])
 
-  if(ret == nil) then 
-  	 ret = get_mac_classification(m) 
-	 if(ret == m) then ret = "" end
-  end
+  if(ret == m) then ret = "n/a" end
 
-  return(ret)
+  return ret
 end
 
 -- rrd_exists

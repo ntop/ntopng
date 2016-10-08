@@ -281,7 +281,6 @@ for key,value in pairs(stats_by_group_col) do
 	 vals[key] = v["queries.rcvd"]
       elseif(sortColumn == "column_manufacturer") then
          local m = get_manufacturer_mac(key)
-	 if(m == nil) then m = "" end
 	 vals[key] = m
       else
 	 vals[key] = (v["bytes.sent"] + v["bytes.rcvd"])
