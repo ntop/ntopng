@@ -15,7 +15,7 @@ end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-active_page = "hosts"
+active_page = "devices_stats"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print [[

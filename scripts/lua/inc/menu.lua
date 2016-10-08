@@ -107,8 +107,6 @@ print [[/lua/hosts_stats.lua">Hosts</a></li>
 
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">Networks</a></li>')
 
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">Devices</a></li>')
-
   if(ntop.hasGeoIP()) then
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">Autonomous Systems</a></li>')
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/country_stats.lua">Countries</a></li>')
@@ -155,7 +153,6 @@ print("</ul> </li>")
 
 -- Devices
 info = ntop.getInfo()
-if(info["version.enterprise_edition"] == true) then
 if active_page == "devices_stats" then
   print [[ <li class="dropdown active"> ]]
 else
@@ -168,11 +165,14 @@ print [[
       <ul class="dropdown-menu">
 ]]
 
+if(info["version.enterprise_edition"] == true) then
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">Network Devices</a></li>')
+end
+
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow</a></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">SNMP</a></li>')
 
 print("</ul> </li>")
-end
 
 
 

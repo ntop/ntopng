@@ -3080,8 +3080,9 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "bytes",   getNumBytes());
   lua_push_int_table_entry(vm, "flows",   getNumFlows());
   lua_push_int_table_entry(vm, "hosts",   getNumHosts());
-  lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
+  lua_push_int_table_entry(vm, "http_hosts", getNumHTTPHosts());
   lua_push_int_table_entry(vm, "drops",   getNumPacketDrops());
+  lua_push_int_table_entry(vm, "devices", numL2Devices);
 
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.

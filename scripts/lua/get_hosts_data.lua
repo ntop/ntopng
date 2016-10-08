@@ -307,8 +307,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 
             print("&nbsp;")
 	    print(getOSIcon(value["os"]))
-
-	    icon = getHostIcon(hosts_stats[key]["mac"])
+	    icon = ""
+	    if(mac ~= nil) then icon = getHostIcon(hosts_stats[key]["mac"]) end
 	    if(icon == "") then icon = getHostIcon(hosts_stats[key]["ip"].."@"..hosts_stats[key]["vlan"]) end
 	    print(icon)
 

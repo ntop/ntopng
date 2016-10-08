@@ -369,6 +369,12 @@ print [[/lua/hosts_stats.lua>";
 
 		msg += addCommas(rsp.num_hosts)+" Hosts</span></a> ";
 
+            msg += "<a href=]]
+print (ntop.getHttpPrefix())
+print [[/lua/mac_stats.lua>";
+		  msg += "<span class=\"label label-default\">";
+		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
+
     msg += "<a href=]]
 print (ntop.getHttpPrefix())
 print [[/lua/flows_stats.lua>";

@@ -46,6 +46,7 @@ function dumpInterfaceStats(interface_name)
 
       res["num_flows"]  = ifstats.stats.flows
       res["num_hosts"]  = ifstats.stats.hosts
+      res["num_devices"]  = ifstats.stats.devices
       res["epoch"]      = os.time()
       res["uptime"]     = secondsToTime(uptime)
       res["hosts_pctg"] = hosts_pctg
