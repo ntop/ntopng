@@ -63,7 +63,7 @@ class NetworkInterface {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
-  u_int32_t ifSpeed;
+  u_int32_t ifSpeed, numL2Devices;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats ndpiStats;
@@ -393,6 +393,8 @@ class NetworkInterface {
   inline void forceLuaInterpreterReload() { reloadLuaInterpreter = true; };
   inline virtual bool isView() { return(false); };
   bool getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id);
+  inline void incNumL2Devices() { numL2Devices++; }
+  inline void decNumL2Devices() { numL2Devices--; }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

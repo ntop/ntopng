@@ -34,12 +34,14 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s/%u", 
 			       Utils::formatMac(mac, buf, sizeof(buf)), vlan_id);
 #endif
+
+  if(!special_mac) iface->incNumL2Devices();
 }
 
 /* *************************************** */
 
 Mac::~Mac() {
-  ;
+  if(!special_mac) iface->decNumL2Devices();
 }
 
 /* *************************************** */

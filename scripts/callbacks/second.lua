@@ -50,6 +50,7 @@ for _,ifname in pairs(ifnames) do
 
       -- General stats
       makeRRD(basedir, ifname, "num_hosts", 1, ifstats.stats.hosts)
+      makeRRD(basedir, ifname, "num_devices", 1, ifstats.stats.devices)
       makeRRD(basedir, ifname, "num_flows", 1, ifstats.stats.flows)
       makeRRD(basedir, ifname, "num_http_hosts", 1, ifstats.stats.http_hosts)
 

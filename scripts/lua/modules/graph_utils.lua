@@ -11,6 +11,7 @@ top_rrds = {
    ["drops.rrd"] = "Packet Drops",
    ["num_flows.rrd"] = "Active Flows",
    ["num_hosts.rrd"] = "Active Hosts",
+   ["num_devices.rrd"] = "Active Devices",
    ["num_http_hosts.rrd"] = "Active HTTP Servers",
    ["tcp_lost.rrd"] = "TCP Packets Lost",
    ["tcp_ooo.rrd"] = "TCP Packets Out-Of-Order",
