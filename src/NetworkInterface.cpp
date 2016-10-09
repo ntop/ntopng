@@ -179,7 +179,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
-    pkt_dumper = NULL;
+    pkt_dumper = NULL, numL2Devices = 0;
   pollLoopCreated = false, bridge_interface = false;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
