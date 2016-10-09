@@ -15,9 +15,7 @@ info = ntop.getInfo(true)
 print [[
 	<div class="container-fluid">
 	<div class="row">
-	<div class="col-xs-6 col-sm-4">&copy; 1998-]]
-print(os.date("%Y"))
-print [[ - <A HREF="http://www.ntop.org">ntop.org</A> <br><font color=gray>]]
+	<div class="col-xs-6 col-sm-4">]]
 print(info["product"])
 
 iface_id = interface.name2id(ifname)
@@ -40,7 +38,7 @@ end
 print(" v."..info["version"])
 
 print("</br>User ")
-print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua">'.._SESSION["user"].. '</a>, Interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua">')
+print('<a href="'..ntop.getHttpPrefix()..'/lua/admin/users.lua"><span class="label label-primary">'.._SESSION["user"].. '</span></a> Interface <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua"><span class="label label-primary">')
 
 alias = getInterfaceNameAlias(ifname)
 
@@ -50,7 +48,7 @@ else
    print(_ifstats.name)
 end
 
-print('</a>')
+print('</span></a>')
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    local do_show = false
@@ -80,9 +78,9 @@ end
 print [[</font>
 
 </div> <!-- End column 1 -->
-	<div class="col-xs-6 col-sm-4">
+	<div class="col-xs-4 v col-sm-3">
 	<div class="row">
-	 <div class="text-center col-xs-6 col-sm-6">
+	 <div class="col-xs-6 col-sm-6">
 ]]
 
 if interface.isPcapDumpInterface() == false then
@@ -95,7 +93,7 @@ if((maxSpeed == "") or (maxSpeed == nil)) then
 else
    maxSpeed = tonumber(maxSpeed)*1000000
 end
-addGauge('gauge', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', maxSpeed, 100, 50)
+addGauge('networkload', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', 100, 100, 50)
 print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
 
 print [[
@@ -314,7 +312,8 @@ print [[/lua/logout.lua");  }, */
 		/* don't use the remote_{b,p}ps values to update the gauge
                 if(rsp.remote_pps != 0)  { pps = Math.max(rsp.remote_pps, 0); }
                 if(rsp.remote_bps != 0)  { bps = Math.max(rsp.remote_bps, 0); }
-		*/]]
+		*/
+]]
 
    if interface.isPcapDumpInterface() == false then
       print[[
@@ -322,7 +321,9 @@ print [[/lua/logout.lua");  }, */
 		$('#gauge_text_allTraffic').html(bitsToSize(bps, 1000) + " [" + addCommas(pps) + " pps]");
 		$('#chart-local2remote-text').html("&nbsp;"+bitsToSize(bps_local2remote, 1000));
 		$('#chart-remote2local-text').html("&nbsp;"+bitsToSize(bps_remote2local, 1000));
-		gauge.set(Math.min(bps, gauge.maxValue));
+		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
+		$('#networkload').css("width", v+"%")
+		$('#networkload').html(v+"%");
 ]]
 
    end

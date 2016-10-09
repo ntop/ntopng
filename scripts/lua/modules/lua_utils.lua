@@ -853,37 +853,13 @@ end
 
 function addGauge(name, url, maxValue, width, height)
   if(url ~= nil) then print('<A HREF="'..url..'">') end
-  print('<canvas id="'..name..'" height="'..height..'" width="'..width..'"></canvas>\n')
-  --   print('<div id="'..name..'-text" style="font-size: 12px;"></div>\n')
-  if(url ~= nil) then print('</A>') end
-
   print [[
-	    <script type="text/javascript">
+  <div class="progress">
+       <div id="]] print(name) print [[" class="progress-bar progress-bar-warning"></div>
+  </div>
+  ]]
+  if(url ~= nil) then print('</A>\n') end
 
-	    var opts = {
-	    fontSize: 40,
-	    lines: 12, // The number of lines to draw
-	    angle: 0.15, // The length of each line
-	    lineWidth: 0.44, // The line thickness
-	    pointer: {
-	       length: 0.85, // The radius of the inner circle
-	       strokeWidth: 0.051, // The rotation offset
-	       color: '#000000' // Fill color
-	    },
-	    limitMax: 'false',   // If true, the pointer will not go past the end of the gauge
-
-	 colorStart: '#6FADCF',   // Colors
-	 colorStop: '#8FC0DA',    // just experiment with them
-	 strokeColor: '#E0E0E0',   // to see which ones work best for you
-	 generateGradient: true
-      };
-   ]]
-
-  print('var target = document.getElementById("'..name..'"); // your canvas element\n')
-  print('var '..name..' = new Gauge(target).setOptions(opts);\n')
-  --print(name..'.setTextField(document.getElementById("'..name..'-text"));\n')
-  print(name..'.maxValue = '..maxValue..'; // set max gauge value\n')
-  print("</script>\n")
 end
 
 -- Compute the difference in seconds between local time and UTC.

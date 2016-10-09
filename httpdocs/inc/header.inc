@@ -51,7 +51,6 @@
     <link href="@HTTP_PREFIX@/css/nv.d3.css" rel="stylesheet">
     <script src="@HTTP_PREFIX@/js/jquery.bootstrap-duallistbox.js"></script>
     <link href="@HTTP_PREFIX@/css/bootstrap-duallistbox.css" rel="stylesheet">
-
     <link href="@HTTP_PREFIX@/css/bootstrap-slider.css" rel="stylesheet">
     <script type="text/javascript" src="@HTTP_PREFIX@/js/bootstrap-slider.js"></script>
 
