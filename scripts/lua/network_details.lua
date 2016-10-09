@@ -230,6 +230,8 @@ elseif(page == "alerts") then
     for _,e in pairs(alerts_granularity) do
         local tab_id = e[1]
         local tab_label = e[2]
+	tab_label = '<i class="fa fa-wrench" aria-hidden="true"></i>&nbsp;'..tab_label
+
         if(tab_id == tab) then print("\t<li class=active>") else print("\t<li>") end
         print("<a href=\""..ntop.getHttpPrefix().."/lua/network_details.lua?network="..network.."&vlan="..network_vlan.."&page=alerts&tab="..tab_id.."\">"..tab_label.."</a></li>\n")
     end

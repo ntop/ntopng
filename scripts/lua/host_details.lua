@@ -1951,8 +1951,10 @@ else
 end
 
 for _,e in pairs(alerts_granularity) do
-   k = e[1]
-   l = e[2]
+   local k = e[1]
+   local l = e[2]
+   l = '<i class="fa fa-wrench" aria-hidden="true"></i>&nbsp;'..l
+   
 
    if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
    print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
