@@ -240,6 +240,8 @@ Flow::~Flow() {
 
 	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
 						  alert_level_warning, alert_msg);
+	
+	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", print(alert_msg, sizeof(alert_msg)));
 	break;
 
       default:

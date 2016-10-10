@@ -78,7 +78,7 @@ end
 print [[</font>
 
 </div> <!-- End column 1 -->
-	<div class="col-xs-4 v col-sm-3">
+	<div class="col-xs-4 v col-sm-4">
 	<div class="row">
 	 <div class="col-xs-6 col-sm-6">
 ]]
