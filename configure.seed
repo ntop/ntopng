@@ -22,6 +22,9 @@ REVISION=`git log --pretty=oneline | wc -l`
 if test -d "/usr/local/include"; then
 CFLAGS="${CFLAGS} -I/usr/local/include"
 CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
+fi
+
+if test -d "/usr/local/lib"; then
 LDFLAGS="${LDFLAGS} -L/usr/local/lib"
 fi
 
