@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
+require "voip_utils"
 
 local json = require ("dkjson")
 
@@ -449,10 +450,10 @@ else
         print(', "rtp.jitter_out":"'..getFlowValue(info, "RTP_OUT_JITTER")..'"' )
         print(', "rtp.packet_lost_in":"'..getFlowValue(info, "RTP_IN_PKT_LOST")..'"' )
         print(', "rtp.packet_lost_out":"'..getFlowValue(info, "RTP_OUT_PKT_LOST")..'"' )
-        print(', "rtp.packet_discarded_in":"'..getFlowValue(info, "RTP_IN_PKT_DROP")..'"' )
-        print(', "rtp.packet_discarded_out":"'..getFlowValue(info, "RTP_OUT_PKT_DROP")..'"' )
-        print(', "rtp.payload_type_in":"'..getFlowValue(info, "RTP_IN_PAYLOAD_TYPE")..'"' )
-        print(', "rtp.payload_type_out":"'..getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE")..'"' )
+        print(', "rtp.packet_drop_in":"'..getFlowValue(info, "RTP_IN_PKT_DROP")..'"' )
+        print(', "rtp.packet_drop_out":"'..getFlowValue(info, "RTP_OUT_PKT_DROP")..'"' )
+        print(', "rtp.payload_type_in":"'..formatRtpPayloadType(getFlowValue(info, "RTP_IN_PAYLOAD_TYPE"))..'"' )
+        print(', "rtp.payload_type_out":"'..formatRtpPayloadType(getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE"))..'"' )
         print(', "rtp.max_delta_time_in":"'..getFlowValue(info, "RTP_IN_MAX_DELTA")..'"' )
         print(', "rtp.max_delta_time_out":"'..getFlowValue(info, "RTP_OUT_MAX_DELTA")..'"' )
         print(', "rtp.rtp_sip_call_id":"'..getFlowValue(info, "RTP_SIP_CALL_ID")..'"' )

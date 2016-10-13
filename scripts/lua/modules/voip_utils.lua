@@ -3,7 +3,7 @@
 --
 
 -- ########################################################
-require "flow_utils"
+-- require "flow_utils"
 
 
 local payload_type = 0
@@ -16,7 +16,7 @@ function isVoip(key,value)
 
   if (key_label =='Rtp Voice Quality') then
    print("<tr><th width=30%>" .. key_label .. '</th><td colspan=2>')
-   MosPercentageBar(value)
+   print(MosPercentageBar(value))
    print("</td></tr>\n")
    return 1
 
@@ -60,7 +60,7 @@ function spiltSipID( id )
 end
 
 -- RTP
-local rtp_payload_type = {
+rtp_payload_type = {
 [0] = 'PCMU',
 [1] = 'reserved',
 [2] = 'reserved',
@@ -103,42 +103,53 @@ local rtp_payload_type = {
 -- ########################################################
 
 function formatRtpPayloadType(flags)
- flags = tonumber(flags)
+   flags = tonumber(flags)
 
- if(rtp_payload_type[flags] ~= nil) then
+   if(rtp_payload_type[flags] ~= nil) then
 
-  return(rtp_payload_type[flags])
+      return(rtp_payload_type[flags])
 
-end
+   end
 
-return flags;
+   return flags;
 end
 
 -- ########################################################
 
 function MosPercentageBar(value)
- total = 5
- bar_class =  "bar-info"
- value = value /100
- value_type = ""
+   local ret_bar = ""
+   value = tonumber(value)
 
- pctg = round((value * 100) / total, 0)
+   if (value >= 4.0)  then
+      ret_bar = '<span class="label label-success">'..value..' Desirable</span>'
+   elseif ((value >= 3.6) and (value < 4.0)) then
+      ret_bar = '<span class="label label-info">'..value..' Acceptable</span>'
+   elseif ((value >= 2.6) and (value < 3.6)) then
+      ret_bar = '<span class="label label-warning">'..value..' Reach Connection</span>'
+   elseif ((value > 0) and (value < 2.6)) then
+      ret_bar = '<span class="label label-danger">'..value..' Not Recommended</span>'
+   end
 
- if ((value >= 4.0) and (value <= 5.0)) then
-  print('<span class="label label-success">'..value..' MOS - Desirable</span>')
-  end
-if ((value >= 3.6) and (value < 4.0)) then
-  print('<span class="label label-info">'..value..' MOS - Acceptable</span>')
+   return ret_bar
 end
 
-if ((value >= 2.6) and (value < 3.6)) then
-  print('<span class="label label-warning">'..value..' MOS - Reach Connection</span>')
-end
+-- ########################################################
 
-if ((value > 0) and (value < 2.6)) then
-  print('<span class="label label-danger">'..value..' MOS - Not Recommended</span>')
-end
+function RFactorPercentageBar(value)
+   local ret_bar = ""
+   value = tonumber(value)
 
+   if (value >= 80.0)  then
+      ret_bar = '<span class="label label-success">'..value..' Desirable</span>'
+   elseif ((value >= 70.0) and (value < 80.0)) then
+      ret_bar = '<span class="label label-info">'..value..' Acceptable</span>'
+   elseif ((value >= 50.0) and (value < 70.0)) then
+      ret_bar = '<span class="label label-warning">'..value..' Reach Connection</span>'
+   elseif ((value >= 0) and (value < 50.0)) then
+      ret_bar = '<span class="label label-danger">'..value..' Not Recommended</span>'
+   end
+
+   return ret_bar
 end
 
 -- ########################################################
@@ -718,7 +729,6 @@ end
 
 -- ######################################
 function updatePrintRtp ()
-  printSyncSourceFields()
   printFirstLastFlowSequenceFields()
   printJitterFields()
   printPacketLostFields()
@@ -726,8 +736,6 @@ function updatePrintRtp ()
   printPayloadTypeInOutFields()
   printDeltaTimeInOutFields()
   printSipCallIdFields()
-  printQualityAverageFields()
-  printQualityMosFields()
   printTransitIFields()
   printRrtFields()
   printDtmfFields()

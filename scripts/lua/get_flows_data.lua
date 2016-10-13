@@ -273,18 +273,20 @@ for key, value in ipairs(flows_stats) do
    info = ""
    if(flows_stats[key]["protos.dns.last_query"] ~= nil) then
       info = shortenString(flows_stats[key]["protos.dns.last_query"])
-      elseif(flows_stats[key]["protos.http.last_url"] ~= nil) then
+   elseif(flows_stats[key]["protos.http.last_url"] ~= nil) then
       info = shortenString(flows_stats[key]["protos.http.last_url"])
-      elseif(flows_stats[key]["protos.ssl.certificate"] ~= nil) then
+   elseif(flows_stats[key]["protos.ssl.certificate"] ~= nil) then
       info = shortenString(flows_stats[key]["protos.ssl.certificate"])
-      elseif(flows_stats[key]["bittorrent_hash"] ~= nil) then
+   elseif(flows_stats[key]["bittorrent_hash"] ~= nil) then
       info = shortenString(flows_stats[key]["bittorrent_hash"])
-      elseif(flows_stats[key]["host_server_name"] ~= nil) then
+   elseif(flows_stats[key]["host_server_name"] ~= nil) then
       info = shortenString(flows_stats[key]["host_server_name"])
-      elseif(flows_stats[key]["icmp"] ~= nil) then
+   elseif(flows_stats[key]["icmp"] ~= nil) then
       info = getICMPTypeCode(flows_stats[key]["icmp"])
-      elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
+   elseif(flows_stats[key]["proto.ndpi"] == "SIP") then
       info = getSIPInfo(flows_stats[key])
+   elseif(flows_stats[key]["proto.ndpi"] == "RTP") then
+      info = getRTPInfo(flows_stats[key])
    end
    flows_stats[key]["info"] = info
 
