@@ -275,6 +275,7 @@ print [[/lua/logout.lua");  }, */
 	  success: function(rsp) {
     
 	  try {
+
 	    if (prev_bytes > 0) {
 	      if (rsp.packets < prev_packets) {
 	        prev_bytes   = rsp.bytes;
@@ -324,6 +325,11 @@ print [[/lua/logout.lua");  }, */
 		var v = Math.round(Math.min((bps*100)/]] print(maxSpeed) print[[, 100));
 		$('#networkload').css("width", v+"%")
 		$('#networkload').html(v+"%");
+
+	    } else {
+	      /* $('#network-load').html("[No traffic (yet)]"); */
+	    }
+
 ]]
 
    end
@@ -407,9 +413,6 @@ print [[/lua/if_stats.lua><i class=\"fa fa-warning fa-lg\" style=\"color: #B94A4
 		   $('#toomany').html("<div class='alert alert-warning'><h4>Warning</h4>You have too many hosts/flows for your ntopng configuration and this will lead to packet drops and high CPU load. Please restart ntopng increasing -x and -X.</div>");
 		}
 	      }
-	    } else {
-	      /* $('#network-load').html("[No traffic (yet)]"); */
-	    }
 
 	    prev_bytes   = rsp.bytes;
 	    prev_packets = rsp.packets;
