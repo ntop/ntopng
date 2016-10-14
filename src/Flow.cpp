@@ -1462,6 +1462,20 @@ u_int32_t Flow::key() {
 
 /* *************************************** */
 
+u_int32_t Flow::key(Host *_cli, u_int16_t _cli_port,
+		    Host *_srv, u_int16_t _srv_port,
+		    u_int16_t _vlan_id,
+		    u_int16_t _protocol) {
+  u_int32_t k = _cli_port + _srv_port + _vlan_id + _protocol;
+
+  if(_cli) k += _cli -> key();
+  if(_srv) k += _srv -> key();
+
+  return(k);
+}
+
+/* *************************************** */
+
 bool Flow::idle() {
   u_int8_t tcp_flags;
 

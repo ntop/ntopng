@@ -1243,25 +1243,26 @@ function getSIPTableRows(info)
        sip_rtp_src_addr = 1
        string_table_1 = getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
        if (string_table_1 ~= "0.0.0.0") then
-         local address_ip = string_table_1
+         sip_rtp_src_address_ip = string_table_1
          interface.select(ifname)
          rtp_host = interface.getHostInfo(string_table_1)
          if(rtp_host ~= nil) then
            string_table_1 = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..string_table_1.. "\">"
-           string_table_1 = string_table_1..address_ip
+           string_table_1 = string_table_1..sip_rtp_src_address_ip
            string_table_1 = string_table_1.."</A>"
          end
        end
        show_rtp_stream = 1
      end
-     
+
      if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
        --string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
-       --string_table_2 = ":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
-       string_table_2 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..getFlowValue(info, "SIP_RTP_L4_SRC_PORT").. "\">"
-       string_table_2 = string_table_2..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
-       string_table_2 = string_table_2.."</A>"
-       show_rtp_stream = 1
+	--string_table_2 = ":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
+	sip_rtp_src_port = getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
+	string_table_2 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..sip_rtp_src_port.. "\">"
+	string_table_2 = string_table_2..sip_rtp_src_port
+	string_table_2 = string_table_2.."</A>"
+	show_rtp_stream = 1
      end
      if((sip_rtp_src_addr == 1) or ((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=""))) then
        --string_table = string_table.." <i class=\"fa fa-exchange fa-lg\"></i> "
@@ -1272,24 +1273,25 @@ function getSIPTableRows(info)
        sip_rtp_dst_addr = 1
        string_table_4 = getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
        if (string_table_4 ~= "0.0.0.0") then
-         local address_ip = string_table_4
+         sip_rtp_dst_address_ip = string_table_4
          interface.select(ifname)
          rtp_host = interface.getHostInfo(string_table_4)
          if(rtp_host ~= nil) then
            string_table_4 = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..string_table_4.. "\">"
-           string_table_4 = string_table_4..address_ip
+           string_table_4 = string_table_4..sip_rtp_dst_address_ip
            string_table_4 = string_table_4.."</A>"
          end
        end
        show_rtp_stream = 1
      end
      if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
-       --string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
-       --string_table_5 = ":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
-       string_table_5 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..getFlowValue(info, "SIP_RTP_L4_DST_PORT").. "\">"
-       string_table_5 = string_table_5..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
-       string_table_5 = string_table_5.."</A>"
-       show_rtp_stream = 1
+	--string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
+	--string_table_5 = ":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
+	sip_rtp_dst_port = getFlowValue(info, "SIP_RTP_L4_DST_PORT")
+	string_table_5 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..sip_rtp_dst_port.. "\">"
+	string_table_5 = string_table_5..sip_rtp_dst_port
+	string_table_5 = string_table_5.."</A>"
+	show_rtp_stream = 1
      end
 
      if (show_rtp_stream == 1) then
@@ -1298,6 +1300,18 @@ function getSIPTableRows(info)
        string_table = string_table.."<tr id=\"rtp_stream_tr\" style=\"display: none;\"><th width=33%>RTP Stream Peers (src <i class=\"fa fa-exchange fa-lg\"></i> dst)</th><td colspan=2><div id=rtp_stream>"
      end
      string_table = string_table..string_table_1..string_table_2..string_table_3..string_table_4..string_table_5
+
+     local rtp_flow_key  = interface.getFlowKey(sip_rtp_src_address_ip or "", tonumber(sip_rtp_src_port) or 0,
+						sip_rtp_dst_address_ip or "", tonumber(sip_rtp_dst_port) or 0,
+						17 --[[ UDP --]])
+     if tonumber(rtp_flow_key) ~= nil and interface.findFlowByKey(tonumber(rtp_flow_key)) ~= nil then
+	string_table = string_table..'&nbsp;'
+	string_table = string_table.."<A HREF=\""..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..rtp_flow_key
+	string_table = string_table.."&label="..sip_rtp_src_address_ip..":"..sip_rtp_src_port
+	string_table = string_table.." <-> "
+	string_table = string_table..sip_rtp_dst_address_ip..":"..sip_rtp_dst_port.."\">"
+	string_table = string_table..'<span class="label label-info">RTP Flow</span></a>'
+     end
      string_table = string_table.."</div></td></tr>\n"
 
      val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
