@@ -627,8 +627,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->addFlowStats(src2dst_direction,
 		     zflow->pkt_sampling_rate*zflow->in_pkts,
 		     zflow->pkt_sampling_rate*zflow->in_bytes, 0,
-		     zflow->pkt_sampling_rate*zflow->out_pkts, 0,
-		     zflow->pkt_sampling_rate*zflow->out_bytes,
+		     zflow->pkt_sampling_rate*zflow->out_pkts,
+		     zflow->pkt_sampling_rate*zflow->out_bytes, 0,
 		     zflow->last_switched);
   p.protocol = zflow->l7_proto, p.master_protocol = NDPI_PROTOCOL_UNKNOWN;
   flow->setDetectedProtocol(p);
