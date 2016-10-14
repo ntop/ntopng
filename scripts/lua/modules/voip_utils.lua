@@ -212,18 +212,17 @@ print [[
   if( (rsp["rtp.first_flow_sequence"] && (rsp["rtp.first_flow_sequence"] != "")) ||
       (rsp["rtp.last_flow_sequence"] && (rsp["rtp.last_flow_sequence"] != ""))){
     first_last_flow_sequence_id_tr.display = 'table-row';
-  } else {
-    first_last_flow_sequence_id_tr.display = 'none';
   }
+
   if( rsp["rtp.first_flow_sequence"] && (rsp["rtp.first_flow_sequence"] != "") ){
     $('#first_flow_sequence').html(rsp["rtp.first_flow_sequence"]);
   } else {
-    $('#first_flow_sequence').html("");
+    $('#first_flow_sequence').html("-");
   }
   if( rsp["rtp.last_flow_sequence"] && (rsp["rtp.last_flow_sequence"] != "") ){
     $('#last_flow_sequence').html(rsp["rtp.last_flow_sequence"]);
   } else {
-    $('#last_flow_sequence').html("");
+    $('#last_flow_sequence').html("-");
   }
 ]]
 end
@@ -235,9 +234,8 @@ print [[
   if( (rsp["rtp.jitter_in"] && (rsp["rtp.jitter_in"] != "")) ||
       (rsp["rtp.jitter_out"] && (rsp["rtp.jitter_out"] != ""))){
     jitter_id_tr.display = 'table-row';
-  } else {
-    jitter_id_tr.display = 'none';
   }
+
   if( rsp["rtp.jitter_in"] && (rsp["rtp.jitter_in"] != "") ){
     $('#jitter_in').html(rsp["rtp.jitter_in"]+" ms");
     if(jitter_in_trend){
@@ -253,7 +251,7 @@ print [[
     }
     jitter_in_trend = rsp["rtp.jitter_in"];
   } else {
-    $('#jitter_in').html("");
+    $('#jitter_in').html("-");
     $('#jitter_in_trend').html("");
   }
 
@@ -271,7 +269,7 @@ print [[
       $('#jitter_out_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#jitter_out').html("");
+    $('#jitter_out').html("-");
     $('#jitter_out_trend').html("");
   }
   jitter_out_trend = rsp["rtp.jitter_out"];
@@ -285,9 +283,8 @@ print [[
   if( (rsp["rtp.packet_lost_in"] && (rsp["rtp.packet_lost_in"] != "")) ||
       (rsp["rtp.packet_lost_out"] && (rsp["rtp.packet_lost_out"] != ""))){
     rtp_packet_loss_id_tr.display = 'table-row';
-  } else {
-    rtp_packet_loss_id_tr.display = 'none';
   }
+
   if( rsp["rtp.packet_lost_in"] && (rsp["rtp.packet_lost_in"] != "") ){
     $('#packet_lost_in').html(formatPackets(rsp["rtp.packet_lost_in"]));
     if(packet_lost_in_trend){
@@ -300,7 +297,7 @@ print [[
       $('#packet_lost_in_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#packet_lost_in').html("");
+    $('#packet_lost_in').html("-");
     $('#packet_lost_in_trend').html("");
   }
   packet_lost_in_trend = rsp["rtp.packet_lost_in"];
@@ -317,7 +314,7 @@ print [[
       $('#packet_lost_out_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#packet_lost_out').html("");
+    $('#packet_lost_out').html("-");
     $('#packet_lost_out_trend').html("");
   }
   packet_lost_out_trend = rsp["rtp.packet_lost_out"];
@@ -331,9 +328,8 @@ print [[
   if( (rsp["rtp.packet_drop_in"] && (rsp["rtp.packet_drop_in"] != "")) ||
       (rsp["rtp.packet_drop_out"] && (rsp["rtp.packet_drop_out"] != ""))){
     packet_drop_id_tr.display = 'table-row';
-  } else {
-    packet_drop_id_tr.display = 'none';
   }
+
   if( rsp["rtp.packet_drop_in"] && (rsp["rtp.packet_drop_in"] != "") ){
     $('#packet_drop_in').html(formatPackets(rsp["rtp.packet_drop_in"]));
     if(packet_drop_in_trend){
@@ -346,7 +342,7 @@ print [[
       $('#packet_drop_in_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#packet_drop_in').html("");
+    $('#packet_drop_in').html("-");
     $('#packet_drop_in_trend').html("");
   }
   packet_drop_in_trend = rsp["rtp.packet_drop_in"];
@@ -363,7 +359,7 @@ print [[
       $('#packet_drop_out_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#packet_drop_out').html("");
+    $('#packet_drop_out').html("-");
     $('#packet_drop_out_trend').html("");
   }
   packet_drop_out_trend = rsp["rtp.packet_drop_out"];
@@ -378,18 +374,17 @@ function printPayloadTypeInOutFields ()
   if( (rsp["rtp.payload_type_in"] && (rsp["rtp.payload_type_in"] != "")) ||
       (rsp["rtp.payload_type_out"] && (rsp["rtp.payload_type_out"] != ""))){
     payload_id_tr.display = 'table-row';
-  } else {
-    payload_id_tr.display = 'none';
   }
+
   if( rsp["rtp.payload_type_in"] && (rsp["rtp.payload_type_in"] != "") ){
     $('#payload_type_in').html(rsp["rtp.payload_type_in"]);
   } else {
-    $('#payload_type_in').html("");
+    $('#payload_type_in').html("-");
   }
   if( rsp["rtp.payload_type_out"] && (rsp["rtp.payload_type_out"] != "") ){
     $('#payload_type_out').html(rsp["rtp.payload_type_in"]);
   } else {
-    $('#payload_type_out').html("");
+    $('#payload_type_out').html("-");
   }
   ]]
 end
@@ -401,9 +396,8 @@ print [[
   if( (rsp["rtp.max_delta_time_in"] && (rsp["rtp.max_delta_time_in"] != "")) ||
       (rsp["rtp.max_delta_time_out"] && (rsp["rtp.max_delta_time_out"] != ""))){
     delta_time_id_tr.display = 'table-row';
-  } else {
-    delta_time_id_tr.display = 'none';
   }
+
   if( rsp["rtp.max_delta_time_in"] && (rsp["rtp.max_delta_time_in"] != "") ){
     $('#max_delta_time_in').html(rsp["rtp.max_delta_time_in"]+" ms");
     if(max_delta_time_in_trend){
@@ -418,7 +412,7 @@ print [[
       $('#max_delta_time_in_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#max_delta_time_in').html("");
+    $('#max_delta_time_in').html("-");
     $('#max_delta_time_in_trend').html("");
   }
   max_delta_time_in_trend = rsp["rtp.max_delta_time_in"];
@@ -437,7 +431,7 @@ print [[
       $('#max_delta_time_out_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#max_delta_time_out').html("");
+    $('#max_delta_time_out').html("-");
     $('#max_delta_time_out_trend').html("");
   }
   max_delta_time_out_trend = rsp["rtp.max_delta_time_out"];
@@ -450,10 +444,10 @@ print [[
   var sip_call_id_tr = document.getElementById('sip_call_id_tr').style;
   if( rsp["rtp.rtp_sip_call_id"] && (rsp["rtp.rtp_sip_call_id"] != "")){
     sip_call_id_tr.display = 'table-row';
+    $('#rtp_sip_call_id').html(rsp["rtp.rtp_sip_call_id"]);
   } else {
-    sip_call_id_tr.display = 'none';
+    $('#rtp_sip_call_id').html("-");
   }
-  $('#rtp_sip_call_id').html(rsp["rtp.rtp_sip_call_id"]);
 ]]
 end
 
@@ -464,9 +458,8 @@ function printQualityAverageFields ()
   if( (rsp["rtp.mos_average"] && (rsp["rtp.mos_average"] != "")) ||
       (rsp["rtp.r_factor_average"] && (rsp["rtp.r_factor_average"] != "")) ){
     quality_average_id_tr.display = 'table-row';
-  } else {
-    quality_average_id_tr.display = 'none';
   }
+
   if( (rsp["rtp.mos_average"] && (rsp["rtp.mos_average"] != ""))  || (rsp["rtp.r_factor_average"] && (rsp["rtp.r_factor_average"] != ""))){
     if( rsp["rtp.mos_average"] && (rsp["rtp.mos_average"] != "")) {
       if( rsp["rtp.mos_average"] < 2) {
@@ -498,7 +491,7 @@ function printQualityAverageFields ()
       $('#mos_average_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#mos_average').html("");
+    $('#mos_average').html("-");
     $('#mos_average_trend').html("");
   }
   mos_average_trend = rsp["rtp.mos_average"];
@@ -536,9 +529,8 @@ print [[
       (rsp["rtp.mos_out"] && (rsp["rtp.mos_out"] != "")) ||
       (rsp["rtp.r_factor_out"] && (rsp["rtp.r_factor_out"] != "")) ){
     quality_mos_id_tr.display = 'table-row';
-  } else {
-    quality_mos_id_tr.display = 'none';
   }
+
   if( (rsp["rtp.mos_in"] && (rsp["rtp.mos_in"] != ""))  || (rsp["rtp.r_factor_in"] && (rsp["rtp.r_factor_in"] != ""))){
     if( rsp["rtp.mos_in"] && (rsp["rtp.mos_in"] != "")) {
       if( rsp["rtp.mos_in"] < 2) {
@@ -554,7 +546,7 @@ print [[
       $('#mos_in_signal').html("<i class='fa fa-signal'></i> ");
     }
   } else {
-    $('#mos_in_signal').html("");
+    $('#mos_in_signal').html("-");
   }
   if( rsp["rtp.mos_in"] && (rsp["rtp.mos_in"] != "") ){
     $('#mos_in').html(rsp["rtp.mos_in"]);
@@ -570,7 +562,7 @@ print [[
       $('#mos_in_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#mos_in').html("");
+    $('#mos_in').html("-");
     $('#mos_in_trend').html("");
   }
   mos_in_trend = rsp["rtp.mos_in"];
@@ -611,7 +603,7 @@ print [[
       $('#mos_out_signal').html("<i class='fa fa-signal'></i> ");
     }
   } else {
-    $('#mos_out_signal').html("");
+    $('#mos_out_signal').html("-");
   }
   if( rsp["rtp.mos_out"] && (rsp["rtp.mos_out"] != "") ){
     $('#mos_out').html(rsp["rtp.mos_out"]);
@@ -627,7 +619,7 @@ print [[
       $('#mos_out_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#mos_out').html("");
+    $('#mos_out').html("-");
     $('#mos_out_trend').html("");
   }
   mos_out_trend = rsp["rtp.mos_out"];
@@ -663,18 +655,17 @@ print [[
   if( (rsp["rtp.rtp_transit_in"] && (rsp["rtp.rtp_transit_in"] != "")) ||
       (rsp["rtp.rtp_transit_out"] && (rsp["rtp.rtp_transit_out"] != "")) ){
     rtp_transit_id_tr.display = 'table-row';
-  } else {
-    rtp_transit_id_tr.display = 'none';
   }
+
   if( rsp["rtp.rtp_transit_in"] && (rsp["rtp.rtp_transit_in"] != "") ){
     $('#rtp_transit_in').html(rsp["rtp.rtp_transit_in"]);
   } else {
-    $('#rtp_transit_in').html("");
+    $('#rtp_transit_in').html("-");
   }
   if( rsp["rtp.rtp_transit_out"] && (rsp["rtp.rtp_transit_out"] != "") ){
     $('#rtp_transit_out').html(rsp["rtp.rtp_transit_out"]);
   } else {
-    $('#rtp_transit_out').html("");
+    $('#rtp_transit_out').html("-");
   }
 ]]
 end
@@ -685,9 +676,8 @@ function printRrtFields ()
   var rtt_id_tr = document.getElementById('rtt_id_tr').style;
   if( rsp["rtp.rtp_rtt"] && (rsp["rtp.rtp_rtt"] != "")){
     rtt_id_tr.display = 'table-row';
-  } else {
-    rtt_id_tr.display = 'none';
   }
+
   if( rsp["rtp.rtp_rtt"] && (rsp["rtp.rtp_rtt"] != "") ){
     $('#rtp_rtt').html(rsp["rtp.rtp_rtt"]+ " ms");
     if(rtp_rtt_trend){
@@ -702,7 +692,7 @@ function printRrtFields ()
       $('#rtp_rtt_trend').html("<i class=\"fa fa-minus\"></i>");
     }
   } else {
-    $('#rtp_rtt').html("");
+    $('#rtp_rtt').html("-");
     $('#rtp_rtt_trend').html("");
   }
   rtp_rtt_trend = rsp["rtp.rtp_rtt"];
@@ -716,13 +706,12 @@ function printDtmfFields ()
   if( (rsp["rtp.rtp_transit_in"] && (rsp["rtp.rtp_transit_in"] != "")) ||
       (rsp["rtp.rtp_transit_out"] && (rsp["rtp.rtp_transit_out"] != "")) ){
     dtmf_id_tr.display = 'table-row';
-  } else {
-    dtmf_id_tr.display = 'none';
   }
+
   if( rsp["rtp.dtmf_tones"] && (rsp["rtp.dtmf_tones"] != "") ){
     $('#dtmf_tones').html(rsp["rtp.dtmf_tones"]);
   } else {
-    $('#dtmf_tones').html("");
+    $('#dtmf_tones').html("-");
   }
   ]]
 end
@@ -756,8 +745,7 @@ function printCallIdFields ()
     $('#call_id').html(rsp["sip.call_id"]);
     call_id_tr.display = 'table-row';
   } else {
-    $('#call_id').html("");
-    call_id_tr.display = 'none';
+    $('#call_id').html("-");
   }
   ]]
 end
