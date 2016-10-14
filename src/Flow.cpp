@@ -2020,26 +2020,21 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
       cli2srv_direction = !src2dst_direction;
       if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
 	memcpy(&synAckTime, when, sizeof(struct timeval));
-	if(synTime.tv_sec > 0) {
-	  timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
-
-	  /* Sanity check */
-	  if(serverNwLatency.tv_sec > 5) memset(&serverNwLatency, 0, sizeof(serverNwLatency));
-	}
+	timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
+	
+	/* Sanity check */
+	if(serverNwLatency.tv_sec > 5) memset(&serverNwLatency, 0, sizeof(serverNwLatency));
       }
     } else if(flags == TH_ACK) {
       if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
 	memcpy(&ackTime, when, sizeof(struct timeval));
-	if(synAckTime.tv_sec > 0) {
-	  timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
-
-	  /* Sanity check */
-	  if(clientNwLatency.tv_sec > 5) memset(&clientNwLatency, 0, sizeof(clientNwLatency));
-
-	  rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
-	    +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
-
-	}
+	timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
+	
+	/* Sanity check */
+	if(clientNwLatency.tv_sec > 5) memset(&clientNwLatency, 0, sizeof(clientNwLatency));
+	
+	rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
+	  +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;	
       }
 
       twh_over = true, iface->getTcpFlowStats()->incEstablished();
