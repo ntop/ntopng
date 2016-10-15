@@ -152,9 +152,7 @@ function print_single_group(value)
    if(not(isSpecialMac(value["id"]))) then
         local icon = getHostIcon(value["id"])
 
-	if(icon == "") then
-	   print " <i class='fa fa-desktop fa-lg' aria-hidden='true'></i>"
-        else
+	if(icon ~= "") then
 	   print(icon)
         end
    end

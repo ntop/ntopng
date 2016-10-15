@@ -1857,7 +1857,7 @@ function get_mac_classification(m, extended_name)
 	 local t             = split(mac_line, "\t")
 
 	 local mac_manuf_txt     = split(t[2], " ")[1] -- Apple
-	 local mac_manuf_txt_ext = split(t[2], "#")[2] -- Apple, Inc.
+	 local mac_manuf_txt_ext = split(t[2], "# ")[2] -- Apple, Inc.
 
 	 mac_cache[mac_manuf_id] = {mac_manuf_txt, mac_manuf_txt_ext}
 
@@ -2221,6 +2221,28 @@ end
 
 -- #############################################
 
+-- Add here the icons you guess based on the Mac address
+local guess_icon_keys = {
+  ["dell inc."] = "fa-desktop",
+  ["apple, inc."] = "fa-apple",
+  ["cisco systems, Inc"] = "fa-arrows",
+  ["juniper networks"] = "fa-arrows",
+  ["xerox corporation"] = "fa-print"
+}
+
+function guessHostIcon(key)
+   local m = get_manufacturer_mac(key)
+   local icon = guess_icon_keys[string.lower(m)]
+
+   if((icon ~= nil) and (icon ~= "")) then
+      return(" <i class='fa "..icon.." fa-lg'></i>")
+   else
+      return ""
+   end
+end
+
+-- #############################################
+
 local icon_keys = {
   [ ""] = "",
   [ "Computer"] = "fa-desktop",
@@ -2236,7 +2258,7 @@ local icon_keys = {
 function getHostIcon(key)
   local icon = ntop.getHashCache("ntopng.host_icons", key)
   if((icon == nil) or (icon == "")) then
-     return("")
+     return(guessHostIcon(key))
   else
      return(" <i class='fa "..icon.." fa-lg'></i>")
   end
