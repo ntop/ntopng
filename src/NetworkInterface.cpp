@@ -1698,7 +1698,6 @@ void NetworkInterface::periodicStatsUpdate() {
 
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "macs_hash size: %u", macs_hash->getNumEntries());
   macs_hash->walk(update_macs_stats, (void*)&tv);
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()){
