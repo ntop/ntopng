@@ -1575,6 +1575,7 @@ void NetworkInterface::cleanup() {
 
   flows_hash->cleanup();
   hosts_hash->cleanup();
+  macs_hash->cleanup();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_name());
 }
@@ -1697,6 +1698,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
   flows_hash->walk(flow_update_hosts_stats, (void*)&tv);
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "macs_hash size: %u", macs_hash->getNumEntries());
   macs_hash->walk(update_macs_stats, (void*)&tv);
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()){
@@ -2226,14 +2228,18 @@ void NetworkInterface::disablePurge(bool on_flows) {
   if(!isView()) {
     if(on_flows)
       flows_hash->disablePurge();
-    else
+    else {
       hosts_hash->disablePurge();
+      macs_hash->disablePurge();
+    }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
       if(on_flows)
 	subInterfaces[s]->get_flows_hash()->disablePurge();
-      else
+      else {
 	subInterfaces[s]->get_hosts_hash()->disablePurge();
+	subInterfaces[s]->get_macs_hash()->disablePurge();
+      }
     }
   }
 }
@@ -2244,14 +2250,18 @@ void NetworkInterface::enablePurge(bool on_flows) {
   if(!isView()) {
     if(on_flows)
       flows_hash->enablePurge();
-    else
+    else {
       hosts_hash->enablePurge();
+      macs_hash->enablePurge();
+    }
   } else {
     for(u_int8_t s = 0; s<numSubInterfaces; s++) {
       if(on_flows)
 	subInterfaces[s]->get_flows_hash()->enablePurge();
-      else
+      else {
 	subInterfaces[s]->get_hosts_hash()->enablePurge();
+	subInterfaces[s]->get_macs_hash()->enablePurge();
+      }
     }
   }
 }

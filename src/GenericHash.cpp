@@ -177,7 +177,7 @@ bool GenericHash::walk(bool (*walker)(GenericHashEntry *h, void *user_data), voi
  */
 
 u_int GenericHash::purgeIdle() {
-  u_int i, num_purged = 0;
+  u_int i, num_purged = 0, step = max_val(num_hashes / PURGE_FRACTION, 1);
 
   if(ntop->getGlobals()->isShutdown()
      || purgeLock.is_locked())
@@ -185,7 +185,7 @@ u_int GenericHash::purgeIdle() {
 
   disablePurge();
 
-  for(u_int j = 0; j < num_hashes / PURGE_FRACTION; j++) {
+  for(u_int j = 0; j < step; j++) {
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
 

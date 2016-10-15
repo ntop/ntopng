@@ -31,8 +31,10 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 #ifdef DEBUG
   char buf[32];
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s/%u", 
-			       Utils::formatMac(mac, buf, sizeof(buf)), vlan_id);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created %s/%u [total %u][%s]",
+			       Utils::formatMac(mac, buf, sizeof(buf)),
+			       vlan_id, iface->getNumL2Devices(),
+			       special_mac ? "Special" : "Host");
 #endif
 
   if(!special_mac) iface->incNumL2Devices();
@@ -42,15 +44,41 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 
 Mac::~Mac() {
   if(!special_mac) iface->decNumL2Devices();
+
+#ifdef DEBUG
+  char buf[32];
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s/%u [total %u][%s]",
+			       Utils::formatMac(mac, buf, sizeof(buf)),
+			       vlan_id, iface->getNumL2Devices(),
+			       special_mac ? "Special" : "Host");
+#endif
+
 }
 
 /* *************************************** */
 
 bool Mac::idle() {
+  bool rc;
+  
   if((num_uses > 0) || (!iface->is_purge_idle_interface()))
     return(false);
+
+  rc = isIdle(MAX_LOCAL_HOST_IDLE);
+
+#ifdef DEBUG
+  if(true) {
+    char buf[32];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Is idle %s/%u [uses %u][%s][last: %u][diff: %d]",
+				 Utils::formatMac(mac, buf, sizeof(buf)),
+				 vlan_id, num_uses,
+				 rc ? "Idle" : "Not Idle",
+				 last_seen, iface->getTimeLastPktRcvd() - (last_seen+MAX_LOCAL_HOST_IDLE));
+  }
+#endif
   
-  return(isIdle(MAX_LOCAL_HOST_IDLE));
+  return(rc);
 }
 
 /* *************************************** */
@@ -67,7 +95,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   if(show_details) {
-    lua_push_bool_table_entry(vm, "special_mac", special_mac);    
+    lua_push_bool_table_entry(vm, "special_mac", special_mac);
     ((GenericTrafficElement*)this)->lua(vm, show_details);
   }
 
@@ -81,7 +109,7 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
     lua_settable(vm, -3);
   }
 }
- 
+
 /* *************************************** */
 
 bool Mac::equal(u_int16_t _vlanId, const u_int8_t _mac[6]) {
