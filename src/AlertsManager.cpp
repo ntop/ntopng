@@ -245,6 +245,7 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
   return retval;
 };
 #endif
+
 /* **************************************************** */
 
 bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id) {
@@ -290,6 +291,41 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
 
 /* **************************************************** */
 
+bool AlertsManager::isMaximumReached(AlertEntity alert_entity, const char *alert_entity_value, bool engaged) {
+  int num = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
+
+  if(num < 0)
+    return false; /* unlimited allowance */
+
+  num = getNumAlerts(engaged, alert_entity, alert_entity_value);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Checking maximum %salerts for %s [got: %i]",
+			       engaged ? (char*)"engaged " : (char*)"",
+			       alert_entity_value ? alert_entity_value : (char*)"",
+			       num);
+
+  if(num >= ALERTS_MANAGER_MAX_ENTITY_ALERTS) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Maximum number of %salerts exceeded for %s",
+				 engaged ? (char*)"engaged " : (char*)"",
+				 alert_entity_value ? alert_entity_value : (char*)"");
+    if(getNumAlerts(false /* too many alerts always go to not engaged table */,
+		    alert_entity, alert_entity_value,
+		    alert_too_many_alerts) == 0) {
+      /* too many alerts has not yet been raised for this entity */
+      storeAlert(alert_entity, alert_entity_value,
+		 alert_too_many_alerts, alert_level_error,
+		 "Too many alerts for this alarmed entity. New alerts will be lost "
+		 "unless you delete some old alerts or "
+		 "increase their maximum number.",
+		 false /* force store alert, do not check maximum here */);
+    }
+    return true;
+  }
+  return false;
+}
+
+/* **************************************************** */
+
 int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
 			       const char *engaged_alert_id,
 			       AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
@@ -302,6 +338,8 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
 
   if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
     // TODO: update the values
+  } else if(isMaximumReached(alert_entity, alert_entity_value, true /* engaged */)) {
+    // TODO: handle maximum
   } else {
     /* This alert is being engaged */
     snprintf(query, sizeof(query),
@@ -357,36 +395,40 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
     return 0;  // cannot release an alert that has not been engaged
   }
 
-  /* move the alert from engaged to closed */
-  snprintf(query, sizeof(query),
-	   "INSERT INTO %s "
-	   "(alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json) "
-	   "SELECT "
-	   "alert_tstamp, strftime('%%s','now'), alert_type, alert_severity, alert_entity, alert_entity_val, alert_json "
-	   "FROM %s "
-	   "WHERE alert_entity = ? AND alert_entity_val = ? AND alert_id = ? "
-	   "LIMIT 1;" /* limit not even needed as the where clause yields unique tuples */,
-	   ALERTS_MANAGER_TABLE_NAME,
-           ALERTS_MANAGER_ENGAGED_TABLE_NAME);
+  if(!isMaximumReached(alert_entity, alert_entity_value, false /* not engaged */)) {
+    /* move the alert from engaged to closed */
+    snprintf(query, sizeof(query),
+	     "INSERT INTO %s "
+	     "(alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json) "
+	     "SELECT "
+	     "alert_tstamp, strftime('%%s','now'), alert_type, alert_severity, alert_entity, alert_entity_val, alert_json "
+	     "FROM %s "
+	     "WHERE alert_entity = ? AND alert_entity_val = ? AND alert_id = ? "
+	     "LIMIT 1;" /* limit not even needed as the where clause yields unique tuples */,
+	     ALERTS_MANAGER_TABLE_NAME,
+	     ALERTS_MANAGER_ENGAGED_TABLE_NAME);
 
-  m.lock(__FILE__, __LINE__);
-  if(sqlite3_prepare(db, query, -1, &stmt, 0)
-	    || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_entity))
-	    || sqlite3_bind_text(stmt,  2, alert_entity_value, strlen(alert_entity_value), SQLITE_TRANSIENT)
-	    || sqlite3_bind_text(stmt,  3, engaged_alert_id, strlen(engaged_alert_id), SQLITE_TRANSIENT)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind values to prepared statement for query %s.", query);
-    rc = -1;
-    goto out;
-  }
-
-  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if(rc == SQLITE_ERROR) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-      rc = -2;
+    m.lock(__FILE__, __LINE__);
+    if(sqlite3_prepare(db, query, -1, &stmt, 0)
+       || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_entity))
+       || sqlite3_bind_text(stmt,  2, alert_entity_value, strlen(alert_entity_value), SQLITE_TRANSIENT)
+       || sqlite3_bind_text(stmt,  3, engaged_alert_id, strlen(engaged_alert_id), SQLITE_TRANSIENT)) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind values to prepared statement for query %s.", query);
+      rc = -1;
       goto out;
     }
+
+    while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+      if(rc == SQLITE_ERROR) {
+	ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+	rc = -2;
+	goto out;
+      }
+    }
+    m.unlock(__FILE__, __LINE__);
+  }  else { /* maximum number of alerts reached */
+    // TODO: handle
   }
-  m.unlock(__FILE__, __LINE__);
   
   /* remove the alert from those engaged */
   if (stmt) sqlite3_finalize(stmt);
@@ -426,14 +468,15 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
 /* **************************************************** */
 
 int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
-			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json, bool check_maximum) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
 
   if(!store_initialized || !store_opened)
     return -1;
-
+  else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
+    return 0;
 
   /* This alert is being engaged */
   snprintf(query, sizeof(query),
@@ -563,7 +606,7 @@ int AlertsManager::storeHostAlert(Host *h,
   if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
-  return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json);
+  return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json, true);
 };
 
 /* ******************************************* */
@@ -722,6 +765,31 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
 
 /* **************************************************** */
 
+int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value) {
+  char wherebuf[STORE_MANAGER_MAX_QUERY];
+  
+  snprintf(wherebuf, sizeof(wherebuf),
+	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\"",
+	   static_cast<int>(alert_entity),
+	   alert_entity_value ? alert_entity_value : (char*)"");
+  return getNumAlerts(engaged, wherebuf);
+}
+
+/* **************************************************** */
+
+int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type) {
+  char wherebuf[STORE_MANAGER_MAX_QUERY];
+
+  snprintf(wherebuf, sizeof(wherebuf),
+	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\" AND alert_type=\"%i\"",
+	   static_cast<int>(alert_entity),
+	   alert_entity_value ? alert_entity_value : (char*)"",
+	   static_cast<int>(alert_type));
+  return getNumAlerts(engaged, wherebuf);
+}
+
+/* **************************************************** */
+
 int AlertsManager::deleteAlerts(bool engaged, const int *rowid) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
@@ -746,6 +814,42 @@ int AlertsManager::deleteAlerts(bool engaged, const int *rowid) {
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
     if(rc == SQLITE_ERROR) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+      goto out;
+    }
+  }
+
+  rc = 0;
+ out:
+  if (stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return rc;
+}
+
+/* **************************************************** */
+
+int AlertsManager::deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value) {
+  char query[STORE_MANAGER_MAX_QUERY];
+  sqlite3_stmt *stmt = NULL;
+  int rc;
+
+  snprintf(query, sizeof(query),
+	   "DELETE FROM %s WHERE alert_entity = ? AND alert_entity_val = ? ",
+	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
+
+  m.lock(__FILE__, __LINE__);
+  if(sqlite3_prepare(db, query, -1, &stmt, 0)
+     || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_entity))
+     || sqlite3_bind_text(stmt,  2, alert_entity_value, strlen(alert_entity_value), SQLITE_TRANSIENT)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare statement for query %s.", query);
+    rc = -1;
+    goto out;
+  }
+
+  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(rc == SQLITE_ERROR) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+      rc = -2;
       goto out;
     }
   }

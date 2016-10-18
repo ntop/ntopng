@@ -34,6 +34,7 @@ class AlertsManager : protected StoreManager {
   
   /* methods used for alerts that have a timespan */
   bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
+  bool isMaximumReached(AlertEntity alert_entity, const char *alert_entity_value, bool engaged);
   int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
@@ -41,7 +42,8 @@ class AlertsManager : protected StoreManager {
 		   const char *engaged_alert_id,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
   int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
-		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+		 bool check_maximum);
 
   int engageReleaseHostAlert(Host *h,
 			     const char *engaged_alert_id,
@@ -108,8 +110,9 @@ class AlertsManager : protected StoreManager {
     ========== FLOW alerts API =========
    */
   inline int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeAlert(alert_entity_flow, ""/* TODO: possibly add an unique id for flows */,
-		 alert_type, alert_severity, alert_json);
+    return storeAlert(alert_entity_flow, (char*)"flow"/* TODO: possibly add an unique id for flows */,
+		      alert_type, alert_severity, alert_json,
+		      true /* perform check on maximum */);
   };
 
   /*
@@ -149,11 +152,23 @@ class AlertsManager : protected StoreManager {
     return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, NULL /* all alerts by default */);
   }
 
+  /*
+    ========== counters API ======
+  */
+
   inline int getNumAlerts(bool engaged) {
     return getNumAlerts(engaged, NULL /* no where clause, all the existing alerts */);
   }
+  int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
+  int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);
+
+
+  /*
+    ========== delete API ======
+   */
   int deleteAlerts(bool engaged, const int *rowid);
-  
+  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
+
   /* Following are the legacy methods that were formally global to the whole ntopng */
 #ifdef NOTUSED
   /**

@@ -285,6 +285,7 @@ alert_type_keys = {
   { "<i class='fa fa-bomb'></i> Under Attack",                 8, "under_attack"        },
   { "<i class='fa fa-exclamation'></i> Misconfigured App",     9, "misconfigured_app"   },
   { "<i class='fa fa-exclamation'></i> Suspicious Activity",  10, "suspicious_activity" },
+  { "<i class='fa fa-exclamation'></i> Too Many Alerts",      11, "too_many_alerts"     },
 }
 
 alert_entity_keys = {

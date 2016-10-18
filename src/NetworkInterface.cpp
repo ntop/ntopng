@@ -3075,6 +3075,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "name", ifname);
   lua_push_int_table_entry(vm,  "id", id);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
+  lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "sprobe", get_sprobe_interface());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",   get_has_vlan_packets());
