@@ -718,7 +718,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 				 zflow->last_switched- zflow->first_switched);
 #endif
   }
-
+  
   /* Updating Flow */
   flow = getFlow((u_int8_t*)zflow->src_mac, (u_int8_t*)zflow->dst_mac, zflow->vlan_id,
 		 zflow->deviceIP, zflow->inIndex, zflow->outIndex,
@@ -728,8 +728,15 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->first_switched,
 		 zflow->last_switched, &new_flow);
 
-  if(flow == NULL) return;
-
+  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+	   flow ? flow->get_detected_protocol().protocol : NDPI_PROTOCOL_UNKNOWN,
+	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
+	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
+	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
+  
+  if(flow == NULL)
+    return;  
+  
   if(zflow->l4_proto == IPPROTO_TCP) {
     struct timeval when;
 
@@ -752,12 +759,6 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->updateInterfaceLocalStats(src2dst_direction,
 			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-
-  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	   flow->get_detected_protocol().protocol,
-	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
-	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
-	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
 
   if(zflow->src_process.pid || zflow->dst_process.pid) {
     if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
