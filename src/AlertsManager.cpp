@@ -292,20 +292,21 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
 /* **************************************************** */
 
 bool AlertsManager::isMaximumReached(AlertEntity alert_entity, const char *alert_entity_value, bool engaged) {
-  int num = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
-
-  if(num < 0)
+  int max_num = ntop->getPrefs()->get_max_num_alerts_per_entity(), num;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum configured number of alerts per entity: %i", max_num);
+  
+  if(max_num < 0)
     return false; /* unlimited allowance */
 
   num = getNumAlerts(engaged, alert_entity, alert_entity_value);
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Checking maximum %salerts for %s [got: %i]",
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Checking maximum %salerts for %s [got: %i]",
 			       engaged ? (char*)"engaged " : (char*)"",
 			       alert_entity_value ? alert_entity_value : (char*)"",
 			       num);
 
-  if(num >= ALERTS_MANAGER_MAX_ENTITY_ALERTS) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Maximum number of %salerts exceeded for %s",
+  if(num >= max_num) {
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum number of %salerts exceeded for %s",
 				 engaged ? (char*)"engaged " : (char*)"",
 				 alert_entity_value ? alert_entity_value : (char*)"");
     if(getNumAlerts(false /* too many alerts always go to not engaged table */,

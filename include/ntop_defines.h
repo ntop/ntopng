@@ -347,6 +347,7 @@
 #define CONST_HOST_ACTIVITY_RRD_RAW_HOURS  "ntopng.prefs.host_activity_rrd_raw_hours"
 #define CONST_HOST_ACTIVITY_RRD_1H_DAYS    "ntopng.prefs.host_activity_rrd_1h_days"
 #define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
+#define CONST_MAX_NUM_ALERTS_PER_ENTITY    "ntopng.prefs.max_num_alerts_per_entity"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
 #define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
