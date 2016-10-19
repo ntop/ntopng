@@ -52,7 +52,8 @@ typedef enum {
   alert_host_under_attack,
   alert_host_attacker,
   alert_app_misconfiguration,
-  alert_suspicious_activity
+  alert_suspicious_activity,
+  alert_too_many_alerts
 } AlertType; /* NOTE:
 		keep it in sync with alert_type_keys
 		in ntopng/scripts/lua/modules/lua_utils.lua

@@ -347,6 +347,7 @@
 #define CONST_HOST_ACTIVITY_RRD_RAW_HOURS  "ntopng.prefs.host_activity_rrd_raw_hours"
 #define CONST_HOST_ACTIVITY_RRD_1H_DAYS    "ntopng.prefs.host_activity_rrd_1h_days"
 #define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
+#define CONST_MAX_NUM_ALERTS_PER_ENTITY    "ntopng.prefs.max_num_alerts_per_entity"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 
 #define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
@@ -500,15 +501,16 @@
 #define MYSQL_MAX_NUM_ROWS    999
 
 // sqlite (StoreManager and subclasses) related fields
-#define STORE_MANAGER_MAX_QUERY             1024
-#define STORE_MANAGER_MAX_KEY               20
-#define ALERTS_MANAGER_TABLE_NAME           "closed_alerts"
-#define ALERTS_MANAGER_ENGAGED_TABLE_NAME   "engaged_alerts"
-#define ALERTS_MANAGER_STORE_NAME           "alerts.db"
-#define ALERTS_MANAGER_QUEUE_NAME           "ntopng.alerts.ifid_%i.queue"
-#define ALERTS_MANAGER_TYPE_FIELD           "alert_type"
-#define ALERTS_MANAGER_SEVERITY_FIELD       "alert_severity"
-#define STATS_MANAGER_STORE_NAME            "top_talkers.db"
+#define STORE_MANAGER_MAX_QUERY              1024
+#define STORE_MANAGER_MAX_KEY                20
+#define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
+#define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
+#define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
+#define ALERTS_MANAGER_STORE_NAME            "alerts.db"
+#define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
+#define ALERTS_MANAGER_TYPE_FIELD            "alert_type"
+#define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
+#define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
 /* GRE (Generic Route Encapsulation) */
 #ifndef IPPROTO_GRE

@@ -59,6 +59,7 @@ Prefs::Prefs(Ntop *_ntop) {
   dns_mode = 0;
   logFd = NULL;
   disable_alerts = false;
+  max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   enable_idle_local_hosts_cache   = true;
@@ -414,6 +415,8 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED);
   enable_active_local_hosts_cache = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
 							 CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED);
+  max_num_alerts_per_entity       = getDefaultPrefsValue(CONST_MAX_NUM_ALERTS_PER_ENTITY,
+							 ALERTS_MANAGER_MAX_ENTITY_ALERTS);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
@@ -1178,8 +1181,9 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "host_activity_rrd_raw_hours", host_activity_rrd_raw_hours);
   lua_push_int_table_entry(vm, "host_activity_rrd_1h_days", host_activity_rrd_1h_days);
   lua_push_int_table_entry(vm, "host_activity_rrd_1d_days", host_activity_rrd_1d_days);
-  lua_push_int_table_entry(vm, "housekeeping_frequency", housekeeping_frequency);
-
+  lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
+  lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
+  
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
   /* Sticky hosts preferences */
@@ -1287,6 +1291,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
 		    strlen((char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED)))
     enable_active_local_hosts_cache = pref_value[0] == '1' ? true : false;
+    else if (!strncmp(pref_name,
+		    (char*)CONST_MAX_NUM_ALERTS_PER_ENTITY,
+		    strlen((char*)CONST_MAX_NUM_ALERTS_PER_ENTITY)))
+      max_num_alerts_per_entity = atoi(pref_value);
 
   return 0;
 }

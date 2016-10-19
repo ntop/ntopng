@@ -149,24 +149,29 @@ function printAlerts()
 		    "disable_alerts_generation", "ntopng.prefs.disable_alerts_generation", "0")
 
   if ntop.getPrefs().are_alerts_enabled == true then
-     showElements = false
-  else
      showElements = true
+  else
+     showElements = false
   end
 
+  prefsInputFieldPrefs("Maximum Number of Alerts per Entity",
+		       "The maximum number of alerts per alarmable entity. Alarmable entities are hosts, networks, interfaces and flows. "..
+		       "Once the maximum number of entity alerts is reached, new alerts raised by the same entities will be discarded. "..
+			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements)
+  
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",
                     "On", "1", "success",
 		    "Off","0", "danger",
 		    "toggle_alert_probing", "ntopng.prefs.probing_alerts", "1",
-		    showElements)
+		    showElements == false)
 
   toggleTableButtonPrefs("Alerts On Syslog",
                     "Enable alerts logging on system syslog.",
                     "On", "1", "success",
 		    "Off", "0", "danger",
 		    "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "1",
-		    showElements)
+		    showElements == false)
 
   if (ntop.isPro()) then
     print('<tr><th colspan=2 class="info">Nagios Integration</th></tr>')

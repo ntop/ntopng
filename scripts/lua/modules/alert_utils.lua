@@ -640,7 +640,38 @@ end
 
 -- #################################
 
-function drawAlertTables(num_alerts, num_engaged_alerts, get_alerts_data_url_params)
+function checkDeleteStoredAlerts()
+   if(_GET["csrf"] ~= nil) then
+      if(_GET["id_to_delete"] ~= nil) then
+	 if(_GET["id_to_delete"] == "__all__") then
+	    if _GET["entity"] ~= nil and _GET["entity"] ~= "" then
+	       -- delete all alerts of a given entity (e.g., a given host)
+	       interface.deleteAlerts(true --[[ engaged --]],
+				      _GET["entity"], _GET["entity_val"])
+	       interface.deleteAlerts(false --[[ and not engaged --]],
+				      _GET["entity"], _GET["entity_val"])
+	    else
+	       -- delete all existing alerts
+	       interface.deleteAlerts(true --[[ engaged --]])
+	       interface.deleteAlerts(false --[[ and not engaged --]])
+	    end
+	 else
+	    local id_to_delete = tonumber(_GET["id_to_delete"])
+	    if id_to_delete ~= nil then
+	       if _GET["engaged"] == "true" then
+		  interface.deleteAlerts(true, id_to_delete)
+	       else
+		  interface.deleteAlerts(false, id_to_delete)
+	       end
+	    end
+	 end
+      end
+   end
+end
+
+-- #################################
+
+function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
    local alert_items = {}
 
    if num_engaged_alerts > 0 then
@@ -652,9 +683,11 @@ function drawAlertTables(num_alerts, num_engaged_alerts, get_alerts_data_url_par
    end
 
    local url_extra_params = ""
-   if type(get_alerts_data_url_params) == "table" then
-      for k, v in pairs(get_alerts_data_url_params) do
-	 url_extra_params = url_extra_params.."&"..k.."="..v
+   if type(url_params) == "table" then
+      for k, v in pairs(url_params) do
+	 if k ~= "csrf" then
+	    url_extra_params = url_extra_params.."&"..k.."="..v
+	 end
       end
    end
 
@@ -699,8 +732,24 @@ function drawAlertTables(num_alerts, num_engaged_alerts, get_alerts_data_url_par
 	 },
 
 	 {
-	    title: "Type",
+	    title: "Alert Type",
 	    field: "column_type",
+	    css: { 
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
+	    title: "Entity Type",
+	    field: "column_entity",
+	    css: { 
+	       textAlign: 'center'
+	    }
+	 },
+
+	 {
+	    title: "Entity Value",
+	    field: "column_entity_val",
 	    css: { 
 	       textAlign: 'center'
 	    }
@@ -743,6 +792,17 @@ function drawAlertTables(num_alerts, num_engaged_alerts, get_alerts_data_url_par
 
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
+      if type(url_params) == "table" then
+	 for k, v in pairs(url_params) do
+	    if k ~= "csrf" then
+	       print('<input name="'..k..'" type="hidden" value="'..v..'"/>\n')
+	    end
+	 end
+      end
+      if _GET["entity"] ~= nil and _GET["entity"] ~= "" then
+	 print('<input name="entity" type="hidden" value="'.._GET["entity"]..'"/>\n')
+      end
+      
       print [[
     <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
     <button class="btn btn-primary" type="submit">Purge All</button>

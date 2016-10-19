@@ -4536,20 +4536,40 @@ static int ntop_interface_get_num_alerts(lua_State* vm) {
 
 static int ntop_interface_delete_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
+  AlertsManager *am;
   bool engaged = false;
-  int rowid, *rowid_ptr = NULL;
+  char *entity_type = NULL, *entity_value = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN)
     engaged = lua_toboolean(vm, 1);
 
   if(lua_type(vm, 2) == LUA_TNUMBER){
+    int rowid, *rowid_ptr = NULL;
     rowid = lua_tonumber(vm, 2);
     rowid_ptr = &rowid;
-  }
+    lua_pushinteger(vm, am->deleteAlerts(engaged, rowid_ptr));
 
-  lua_pushinteger(vm, iface->getAlertsManager()->deleteAlerts(engaged, rowid_ptr));
+  } else if(lua_type(vm, 2) == LUA_TSTRING /* entity type */
+	    && lua_type(vm, 3) == LUA_TSTRING /* entity_value */) {
+
+    if((entity_type = (char*)lua_tostring(vm, 2)) == NULL
+       ||(entity_value = (char*)lua_tostring(vm, 3)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+
+    if(!strncmp("host", entity_type, 4)){
+      lua_pushinteger(vm, am->deleteAlerts(engaged, alert_entity_host, entity_value));
+    } else {
+      lua_pushnil(vm);
+    }
+  } else {
+    /* delete everything */
+    lua_pushinteger(vm, am->deleteAlerts(engaged, NULL));
+  }
 
   return(CONST_LUA_OK);
 }

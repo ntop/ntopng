@@ -1925,6 +1925,8 @@ end
 
 elseif(page == "alerts") then
 
+checkDeleteStoredAlerts()
+   
 local tab = _GET["tab"]
 local re_arm_minutes = nil
 
@@ -2026,7 +2028,12 @@ if(alerts ~= nil) then
 end
 
 if tab == "alert_list" then
-   drawAlertTables(num_alerts, num_engaged_alerts, {["entity"] = "host", ["entity_val"] = hostkey})
+   _GET["entity"] = "host"
+   _GET["entity_val"] = hostkey
+   _GET["host"] = host_ip
+   _GET["vlan"] = host_vlan
+   _GET["ifname"] = ifId
+   drawAlertTables(num_alerts, num_engaged_alerts, _GET)
 else
    print [[
     <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
