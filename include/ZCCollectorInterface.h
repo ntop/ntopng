@@ -34,7 +34,7 @@ class ZCCollectorInterface : public ParserInterface {
   pfring_zc_buffer_pool *zp;
   pfring_zc_pkt_buff *buffer;
 
-  inline u_int getNumDroppedPackets()   { return(num_drops);  };
+  u_int getNumDroppedPackets();
 
  public:
   ZCCollectorInterface(const char *name);

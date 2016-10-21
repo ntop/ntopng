@@ -701,7 +701,8 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
 
 #ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "[first=%u][last=%u][duration: %u][drift: %d][now: %u][remote: %u]",
 				 zflow->first_switched,  zflow->last_switched,
 				 zflow->last_switched-zflow->first_switched, drift,
 				 now, last_pkt_rcvd_remote);
@@ -757,13 +758,13 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->updateActivities();
 
   flow->updateInterfaceLocalStats(src2dst_direction,
-			     zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
-			     zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-
+				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
+				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
+  
   if(zflow->src_process.pid || zflow->dst_process.pid) {
     if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
     if(zflow->dst_process.pid) flow->handle_process(&zflow->dst_process, src2dst_direction ? false : true);
-
+    
     if(zflow->l7_proto == NDPI_PROTOCOL_UNKNOWN)
       flow->guessProtocol();
   }
@@ -774,7 +775,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
 
-  purgeIdle(zflow->last_switched);
+  // purgeIdle(zflow->last_switched);
 }
 
 /* **************************************************** */

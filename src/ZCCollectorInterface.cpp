@@ -42,8 +42,6 @@ ZCCollectorInterface::ZCCollectorInterface(const char *name) : ParserInterface(n
 
   cluster_id = atoi(ifname);
 
-  num_drops = 0;
-
   zq = pfring_zc_ipc_attach_queue(cluster_id, queue_id, rx_only);
 
   if(zq == NULL)
@@ -87,12 +85,20 @@ void ZCCollectorInterface::collect_flows() {
 
     if(rc > 0) {
       u_char *json = pfring_zc_pkt_buff_data(buffer, zq);
-
+      const char *master = "{ \"if.name\"";
+      
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", json);
-      parseFlow((char*)json, buffer->len, 0, (void*)this);
+      // fprintf(stdout, "+"); fflush(stdout);
+
+      if(strncmp((char*)json, master, strlen(master)) == 0) {
+	parseEvent((char*)json, buffer->len, 0, (void*)this);
+      } else
+	parseFlow((char*)json, buffer->len, 0, (void*)this);
+      // fprintf(stdout, "."); fflush(stdout);
     } else if(rc == 0) {
       usleep(1);
       purgeIdle(time(NULL));
+      // fprintf(stdout, "*"); fflush(stdout);
     } else {
       /* rc < 0 */
       break;
@@ -142,6 +148,24 @@ bool ZCCollectorInterface::set_packet_filter(char *filter) {
   ntop->getTrace()->traceEvent(TRACE_ERROR,
 			       "No filter can be set on a collector interface. Ignored %s", filter);
   return(false);
+}
+
+/* **************************************************** */
+
+u_int ZCCollectorInterface::getNumDroppedPackets() {
+  pfring_zc_stat stats;
+
+  if(pfring_zc_stats(zq, &stats) >= 0) {
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][Sent: %llu]"
+				 "[Rcvd: %llu][Drops: %llu][QueueLen: %d]",
+				 ifname, stats.sent, stats.recv, stats.drop,
+				 stats.sent-stats.recv);
+#endif
+    return(stats.drop);
+  }
+
+  return(0);
 }
 
 /* **************************************************** */

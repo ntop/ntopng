@@ -375,7 +375,15 @@ print("</script>\n")
 
    print("<tr><th colspan=7 nowrap>Ingress Traffic</th></tr>\n")
    print("<tr><th nowrap>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
-   print("<span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
+   print("<span id=pkts_trend></span></td><th width=20%>Dropped ")
+
+   if((ifstats.type ~= "zmq") and (ifstats.type ~= "ZC-flow")) then
+      print "Packets"
+   else
+      print "Flows"
+    end
+
+  print("</th><td width=20%><span id=if_drops>")
 
    if(ifstats.stats.drops > 0) then print('<span class="label label-danger">') end
    print(formatValue(ifstats.stats.drops).. " " .. label)

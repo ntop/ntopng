@@ -428,7 +428,7 @@ print [[/lua/logout.lua");  */
 	  }
 	}
       });
-  }, 1000)
+  }, 3000)
   //Enable tooltip without a fixer placement
   $(document).ready(function () { $("[rel='tooltip']").tooltip(); });
   $(document).ready(function () { $("a").tooltip({ 'selector': ''});});

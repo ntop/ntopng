@@ -142,7 +142,7 @@ class NetworkInterface {
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void triggerTooManyHostsAlert();
   void triggerTooManyFlowsAlert();
-  virtual u_int getNumDroppedPackets() { return 0;};
+  virtual u_int getNumDroppedPackets() { return 0; };
   bool walker(WalkerType wtype,
 	      bool (*walker)(GenericHashEntry *h, void *user_data),
 	      void *user_data);
