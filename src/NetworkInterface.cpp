@@ -124,7 +124,7 @@ NetworkInterface::NetworkInterface(const char *name) {
     memset(d_port, 0, sizeof(d_port));
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			    no_master, no_master,
-			    (char*)"Operating System", d_port, d_port);
+			    (char*)"Operating System", NDPI_PROTOCOL_CATEGORY_SYSTEM, d_port, d_port);
 
     // enable all protocols
     NDPI_BITMASK_SET_ALL(all);
@@ -3770,6 +3770,19 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
 /* **************************************** */
 
+static int lua_flow_get_ndpi_category(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, ndpi_category_str(f->get_detected_protocol_category()));
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
 static int lua_flow_get_ndpi_proto(lua_State* vm) {
   Flow *f;
   char buf[32];
@@ -4144,6 +4157,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 /* ****************************************** */
 
 static const luaL_Reg flow_reg[] = {
+  { "getNdpiCategory",   lua_flow_get_ndpi_category },
   { "getNdpiProto",      lua_flow_get_ndpi_proto },
   { "getNdpiProtoId",    lua_flow_get_ndpi_proto_id },
   { "getFirstSeen",      lua_flow_get_first_seen },
