@@ -5,7 +5,6 @@
 -- Enable tracings here
 local trace_hk = false
 
-local profile_activity_match
 local default_activity_parameters = {filter.SMA}
 local media_activity_defaults = {filter.SMA, --[[min bytes]] 500, --[[min samples]]1, --[[bound time]]500, --[[sustain time]]4000}
 local web_activity_defaults = {filter.Web}
@@ -14,6 +13,7 @@ if(trace_hk) then print("Initialized script useractivity.lua\n") end
 
 -- ########################################################
 
+-- TODO expose and use nDPI types
 local media_activity_mime_types = {
    "audio/",
    "video/",
@@ -26,6 +26,99 @@ local web_activity_mime_types = {
    "application/x-javascript",
    "application/ecmascript"
 }
+
+-- ########################################################
+
+function getFilterConfiguration(flow, master, sub)
+   local category = flow.getNdpiCategory()
+   local srv = flow.getServerName()
+   local matched = nil
+
+   -- Particular protocols detection - phase 1
+   if sub == "YouTube" then
+      if srv:ends("googlevideo.com") then
+         matched = {["profile"]='Media', ["config"]={filter.All, true}}
+      else
+         matched = {["profile"]='Media', ["config"]=web_activity_defaults}
+      end
+   elseif master == "HTTP" then
+      local contentType = flow.getHTTPContentType()
+      if contentType then
+         if flow.getProfileId() ~= profile.Media then
+            -- Try to detect a media type
+            for i=1, #media_activity_mime_types do
+               if contentType:starts(media_activity_mime_types[i]) then
+                  matched = {["profile"]='Media', ["config"]=media_activity_defaults}
+                  break
+               end
+            end
+
+            -- Try to detect a web type
+            if not matched and flow.getActivityFilterId() ~= filter.All then
+               for i=1, #web_activity_mime_types do
+                  if contentType:starts(web_activity_mime_types[i]) then
+                     -- Be always active
+                     matched = {["profile"]='Web', ["config"]={filter.All, true}}
+                     break
+                  end
+               end
+            end
+         end
+      end
+   elseif sub == "Twitter" then
+      matched = {["profile"]='SocialNetwork', ["config"]={filter.Interflow, 3, 200}}
+   elseif sub == "Facebook" then
+      matched = {["profile"]='SocialNetwork', ["config"]={filter.Interflow, 3, 600, -1, true}}
+   elseif sub == "OpenVPN" then
+      matched = {["profile"]='VPN', ["config"]={filter.SMA, 150, 3, 3000, 2000}}
+   elseif sub == "Hotmail" and category == "EmailSync" then
+      matched = {["profile"]='MailSync', ["config"]={filter.CommandSequence, true, 15000, 3000, 7}}
+   end
+
+   -- Category match
+   if not matched then
+      if category == "SocialNetwork" or category == "Web" then
+         matched = {["profile"]='Web', ["config"]=web_activity_defaults}
+      elseif category == "Collaborative" then
+         matched = {["profile"]='Web', ["config"]={filter.All, false}}
+      elseif category == "VoIP" then
+         matched = {["profile"]='Media', ["config"]={filter.All, false}}
+      elseif category == "Media" then
+         matched = {["profile"]='Media', ["config"]=media_activity_defaults}
+      elseif category == "VPN" then
+         matched = {["profile"]='VPN', ["config"]={filter.SMA}}
+      elseif category == "EmailSync" then
+         matched = {["profile"]='MailSync', ["config"]={filter.CommandSequence, false, 200, 3000}}
+      elseif category == "MailSend" then
+         matched = {["profile"]='MailSend', ["config"]={filter.All, true}}
+      elseif category == "FileTransfer" then
+         matched = {["profile"]='FileTransfer', ["config"]={filter.SMA}}
+      elseif category == "P2P" then
+         matched = {["profile"]='FileSharing', ["config"]={filter.SMA, 300, 3, 4000, 3000}}
+      elseif category == "Chat" then
+         matched = {["profile"]='Chat', ["config"]={filter.All, true}}
+      elseif category == "Game" then
+         matched = {["profile"]='Game', ["config"]={filter.All, true}}
+      elseif category == "RemoteAccess" then
+         matched = {["profile"]='RemoteControl', ["config"]={filter.SMA, 20}}
+      end
+   end
+
+   -- Particular protocols detection - phase 2
+   if not matched then
+      if master == "SSL" or master == "SSL_No_Cert" then
+         -- Note: web filter will possibly update the flow to the Web profile
+         matched = {["profile"]='Other', ["config"]={filter.Web}}
+      end
+   end
+
+   -- Fallback
+   if not matched then
+      matched = {["profile"]='Other', ["config"]=default_activity_parameters}
+   end
+
+   return matched
+end
 
 -- ########################################################
 
@@ -58,225 +151,6 @@ function splitProto(proto)
 end
 
 -- ########################################################
-
--- These are matched top-down, so order is important
-local profile_activity_match = {
-   -- Media profile
-   {
-      ["profile"] = profile.Media,
-      ["defaults"] = {filter.All, false},
-      ["protos"] = {
-         "MGCP",
-         "RTCP",
-         "RTSP",
-         "SIP",
-         "H323",
-         "Megaco",
-         "CiscoSkinny"
-      }
-   },{
-      ["profile"] = profile.Media,
-      ["defaults"] = media_activity_defaults,
-      ["protos"] = {
-         "RTMP",
-         "RTP",
-         "PPLive",
-         "PPStream",
-         "Tvants",
-         "TVUplayer",
-         "Zattoo",
-         "IceCast",
-         "ShoutCast",
-         "Sopcast",
-         "QQLive",
-         "QuickPlay",
-         "Vevo",
-         "IAX",
-         "Webex",
-         "WhatsAppVoice",
-         "KakaoTalk_Voice",
-         "TruPhone",
-         "SPOTIFY",
-         "Pandora",
-         "Deezer",
-         "Twitch",
-         "NetFlix",
-         "LastFM"
-      }
-   },
-
-   -- VPN profile
-   {
-      ["profile"] = profile.VPN,
-      ["defaults"] = {filter.SMA},
-      ["protos"] = {
-         ["OpenVPN"] = {filter.SMA, 150, 3, 3000, 2000},
-         "CiscoVPN",
-         "PPTP",
-         "HotspotShield"
-      }
-   },
-
-   -- MailSync profile
-   {
-      ["profile"] = profile.MailSync,
-      ["defaults"] = {filter.CommandSequence, false, 200, 3000},
-      ["protos"] = {
-         ["Hotmail"] = {filter.CommandSequence, true, 15000, 3000, 7},
-         "IMAP",
-         "IMAPS"
-      }
-   },{
-      ["profile"] = profile.MailSync,
-      ["defaults"] = {filter.All, true},
-      ["protos"] = {
-         "POP3",
-         "POPS"
-      }
-   },
-
-   -- MailSend profile
-   {
-      ["profile"] = profile.MailSend,
-      ["defaults"] = {filter.All, true},
-      ["protos"] = {
-         "SMTP",
-         "SMTPS"
-      }
-   },
-
-   -- FileTransfer profile
-   {
-      ["profile"] = profile.FileTransfer,
-      ["defaults"] = {filter.SMA},
-      ["protos"] = {
-         ["FTP_CONTROL"] = {filter.All, false},
-         ["HTTP_Application_ActiveSync"] = {filter.All, false},
-         "FTP_DATA",
-         "Direct_Download_Link",
-         "AFP",
-         "Dropbox",                          -- TODO implement proper background detection
-         "NFS",
-         "SMB",
-         "UbuntuONE",
-         "MS_OneDrive",
-         "RSYNC",
-         "TFTP"
-      }
-   },
-
-   -- FileSharing profile
-   {
-      ["profile"] = profile.FileSharing,
-      ["defaults"] = {filter.SMA, 300, 3, 4000, 3000},
-      ["protos"] = {
-         "BitTorrent",
-         "Gnutella",
-         "AppleJuice",
-         "DirectConnect",
-         "eDonkey",
-         "FastTrack",
-         "Filetopia",
-         "iMESH",
-         "OpenFT",
-         "Pando_Media_Booster",
-         "Soulseek",
-         "Stealthnet",
-         "Thunder"
-      }
-   },
-
-   -- Chat profile
-   {
-      ["profile"] = profile.Chat,
-      ["defaults"] = {filter.All, true},
-      ["protos"] = {
-         "GoogleHangout",
-         "IRC",
-         "Unencryped_Jabber",
-         "Meebo",
-         "MSN",
-         "Oscar",
-         "QQ",
-         "Skype",
-         "TeamSpeak",
-         "Telegram",
-         "Viber",
-         "Slack",
-         "Weibo"
-      }
-   },
-
-   -- Game profile
-   {
-      ["profile"] = profile.Game,
-      ["defaults"] = {filter.All, true},
-      ["protos"] = {
-         "Dofus",
-         "BattleField",
-         "Armagetron",
-         "Florensia",
-         "Guildwars",
-         "HalfLife2",
-         "MapleStory",
-         "Quake",
-         "Starcraft",
-         "Warcraft3",
-         "WorldOfKungFu",
-         "WorldOfWarcraft",
-         "Xbox"
-      }
-   },
-
-   -- RemoteControl profile
-   {
-      ["profile"] = profile.RemoteControl,
-      ["defaults"] = {filter.SMA, 20},
-      ["protos"] = {
-         "PcAnywhere",
-         "RDP",
-         "SSH",
-         "TeamViewer",
-         "Telnet",
-         "VNC",
-         "XDMCP"
-      }
-   },
-
-   -- SocialNetwork profile
-   {
-      ["profile"] = profile.SocialNetwork,
-      ["defaults"] = {filter.Interflow},
-      ["protos"] = {
-         ["Twitter"] = {filter.Interflow, 3, 200},
-         ["Facebook"] = {filter.Interflow, 3, 600, -1, true}
-      }
-   },
-
-   -- Web profile
-   {
-      ["profile"] = profile.Web,
-      ["defaults"] = web_activity_defaults,
-      ["protos"] = {
-         "HTTP",
-         "HTTPS",
-         "YouTube"
-      }
-   },
-
-   -- Other profile
-   {
-      ["profile"] = profile.Other,
-      -- Note: filter.Web will possibly update the flow to Web profile
-      ["defaults"] = {filter.Web},
-      ["protos"] = {
-         "SSL",
-         "SSL_No_Cert"
-      }
-   }
-}
-
--- ########################################################
 --
 --    < Lua Virtual Machine - main >
 --
@@ -307,82 +181,15 @@ end
 function flowProtocolDetected()
    local proto = flow.getNdpiProto()
    local master, sub = splitProto(proto)
-   local srv = flow.getServerName()
 
    if master ~= "DNS" then
-      local matched = nil
+      local matched = getFilterConfiguration(flow, master, sub)
 
-      -- Particular protocols detection
-      if sub == "YouTube" and srv:ends("googlevideo.com") then
-         matched = {["profile"]=profile.Media, ["config"]={filter.All, true}}
-      elseif master == "HTTP" then
-         local contentType = flow.getHTTPContentType()
-         if contentType then
-            if flow.getProfileId() ~= profile.Media then
-               -- Try to detect a media type
-               for i=1, #media_activity_mime_types do
-                  if contentType:starts(media_activity_mime_types[i]) then
-                     matched = {["profile"]=profile.Media, ["config"]=media_activity_defaults}
-                     break
-                  end
-               end
-
-               -- Try to detect a web type
-               if not matched and flow.getActivityFilterId() ~= filter.All then
-                  for i=1, #web_activity_mime_types do
-                     if contentType:starts(web_activity_mime_types[i]) then
-                        -- Be always active
-                        matched = {["profile"]=profile.Web, ["config"]={filter.All, true}}
-                        break
-                     end
-                  end
-               end
-            end
-         end
-      end
-
-      -- Plain detection
-      if not matched then
-         for i=1, #profile_activity_match do
-            local pamatch = profile_activity_match[i]
-            local profile = pamatch["profile"]
-            local protos = pamatch["protos"]
-
-            for k,v in pairs(protos) do
-               local matchproto
-               local config = nil
-
-               if type(v) == "table" then
-                  matchproto = k
-                  config = v
-               else
-                  matchproto = v
-               end
-
-               if matchproto == master or matchproto == sub then
-                  matched = {["profile"]=profile, ["proto"]=matchproto, ["config"]=config, ["defaults"]=pamatch["defaults"]}
-                  -- prefer subprotocols match within the same profile
-                  if matchproto == sub then
-                     break
-                  end
-               end
-            end
-
-            if matched then break end
-         end
-      end
-
-      -- Update Flow status
-      if matched then
-         local params = matched.config or matched.defaults
-         flow.setActivityFilter(matched.profile, unpack(params))
-      else
-         flow.setActivityFilter(profile.Other, unpack(default_activity_parameters))
-      end
+      flow.setActivityFilter(profile[matched.profile], unpack(matched.config))
 
       if(trace_hk) then
          f = flow.dump()
-         print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].."\n")
+         print("flowProtocolDetected(".. getFlowKey(f)..") = "..f["proto.ndpi"].." ["..(matched.profile).."]\n")
       end
    end
 end

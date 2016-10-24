@@ -125,8 +125,8 @@ NetworkInterface::NetworkInterface(const char *name) {
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			    no_master, no_master,
 			    (char*)"Operating System",
-			    NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-			    d_port, d_port);
+          NDPI_PROTOCOL_CATEGORY_SYSTEM,
+          d_port, d_port);
 
     // enable all protocols
     NDPI_BITMASK_SET_ALL(all);
@@ -514,9 +514,9 @@ u_int32_t NetworkInterface::getHostsHashSize() {
 
     for(u_int8_t s = 0; s<numSubInterfaces; s++)
       tot += subInterfaces[s]->get_hosts_hash()->getNumEntries();
-    
+
     return(tot);
-  }  
+  }
 }
 
 /* **************************************************** */
@@ -529,9 +529,9 @@ u_int32_t NetworkInterface::getFlowsHashSize() {
 
     for(u_int8_t s = 0; s<numSubInterfaces; s++)
       tot += subInterfaces[s]->get_flows_hash()->getNumEntries();
-    
+
     return(tot);
-  }  
+  }
 }
 
 /* **************************************************** */
@@ -544,15 +544,15 @@ u_int32_t NetworkInterface::getMacsHashSize() {
 
     for(u_int8_t s = 0; s<numSubInterfaces; s++)
       tot += subInterfaces[s]->get_macs_hash()->getNumEntries();
-    
+
     return(tot);
-  }  
+  }
 }
 
 /* **************************************************** */
 
 bool NetworkInterface::walker(WalkerType wtype,
-			      bool (*walker)(GenericHashEntry *h, void *user_data), 
+			      bool (*walker)(GenericHashEntry *h, void *user_data),
 			      void *user_data) {
   bool ret = false;
 
@@ -721,7 +721,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 				 zflow->last_switched- zflow->first_switched);
 #endif
   }
-  
+
   /* Updating Flow */
   flow = getFlow((u_int8_t*)zflow->src_mac, (u_int8_t*)zflow->dst_mac, zflow->vlan_id,
 		 zflow->deviceIP, zflow->inIndex, zflow->outIndex,
@@ -736,10 +736,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
 	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
-  
+
   if(flow == NULL)
-    return;  
-  
+    return;
+
   if(zflow->l4_proto == IPPROTO_TCP) {
     struct timeval when;
 
@@ -762,11 +762,11 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   flow->updateInterfaceLocalStats(src2dst_direction,
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
-  
+
   if(zflow->src_process.pid || zflow->dst_process.pid) {
     if(zflow->src_process.pid) flow->handle_process(&zflow->src_process, src2dst_direction ? true : false);
     if(zflow->dst_process.pid) flow->handle_process(&zflow->dst_process, src2dst_direction ? false : true);
-    
+
     if(zflow->l7_proto == NDPI_PROTOCOL_UNKNOWN)
       flow->guessProtocol();
   }
@@ -936,7 +936,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   if(iph != NULL)
     src_ip.set(iph->saddr), dst_ip.set(iph->daddr);
   else
-    src_ip.set(&ip6->ip6_src), dst_ip.set(&ip6->ip6_dst);  
+    src_ip.set(&ip6->ip6_src), dst_ip.set(&ip6->ip6_dst);
 
 #if defined(WIN32) && defined(DEMO_WIN32)
   if(this->ethStats.getNumPackets() > MAX_NUM_PACKETS) {
@@ -1131,13 +1131,13 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   if(ntop->getPrefs()->is_flow_activity_enabled()) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
-    
+
     if((cli->isLocalHost() || srv->isLocalHost())
       && (!flow->isSSLProto() || flow->isSSLData())
      ) {
       UserActivityID activity;
       u_int64_t up = 0, down = 0, backgr = 0, bytes = payload_len;
-      
+
       if(flow->getActivityId(&activity)) {
         if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
           if(src2dst_direction)
@@ -1508,7 +1508,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	}
 
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-	  vlan_id = ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr & 0xFF;	
+	  vlan_id = ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr & 0xFF;
 
 	try {
 	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,
@@ -1589,7 +1589,7 @@ void NetworkInterface::cleanup() {
 void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 				     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
 				     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst) {
-  
+
   if(!isView())
     (*src) = hosts_hash->get(vlanId, _src_ip);
   else {
@@ -1805,13 +1805,13 @@ static bool find_mac_by_name(GenericHashEntry *h, void *user_data) {
   struct mac_find_info *info = (struct mac_find_info*)user_data;
   Mac *m = (Mac*)h;
 
-  if((info->m == NULL) 
+  if((info->m == NULL)
      && (m->get_vlan_id() == info->vlan_id)
      && (!memcmp(info->mac, m->get_mac(), 6))
      ) {
     info->m = m;
     return(true); /* found */
-  }  
+  }
 
   return(false); /* false = keep on walking */
 }
@@ -1864,7 +1864,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
 	  if(h) break;
 	}
       }
-      
+
       delete ip;
     }
   }
@@ -2162,7 +2162,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
 
-  if(!m 
+  if(!m
      || m->idle()
      || ((r->vlan_id && (*(r->vlan_id) != m->get_vlan_id())))
      || (r->skipSpecialMacs && m->isSpecialMac())
@@ -2459,7 +2459,7 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
   walker(walker_hosts, host_search_walker, (void*)&retriever);
 
   lua_newtable(vm);
-  
+
   if(retriever.actNumEntries > 0) {
     for(int i=0; i<(int)retriever.actNumEntries; i++) {
       Host *h = retriever.elems[i].hostValue;
@@ -2495,7 +2495,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
   if(retriever == NULL)
     return -1;
-  
+
   maxHits = getHostsHashSize();
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
@@ -2554,7 +2554,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 
   if(retriever == NULL)
     return -1;
-  
+
   maxHits = getMacsHashSize();
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0))
     maxHits = CONST_MAX_NUM_HITS;
@@ -2656,7 +2656,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowe
 
   // sort hosts according to the grouping criterion
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
-	       countryFilter, NULL /* Mac */, vlan_id, 
+	       countryFilter, NULL /* Mac */, vlan_id,
 	       osFilter, asnFilter, networkFilter,
 	       local_macs, groupColumn) < 0 ) {
     enablePurge(false);
@@ -2822,8 +2822,8 @@ static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
   Host *h = (Host*)he;
   int i;
 
-  if(!h 
-     || !h->equal(&r->search) 
+  if(!h
+     || !h->equal(&r->search)
      || (!h->get_user_activities()))
     return(false); /* false = keep on walking */
 
@@ -3119,11 +3119,11 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "mtu", ifMTU);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
-  sumStats(&_tcpFlowStats, &_ethStats, &_localStats, 
+  sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
 	   &_ndpiStats, &_pktStats, &_tcpPacketStats);
-  
+
   for(u_int8_t s = 0; s<numSubInterfaces; s++)
-    subInterfaces[s]->sumStats(&_tcpFlowStats, &_ethStats, 
+    subInterfaces[s]->sumStats(&_tcpFlowStats, &_ethStats,
 			       &_localStats, &_ndpiStats, &_pktStats, &_tcpPacketStats);
 
   _tcpFlowStats.lua(vm, "tcpFlowStats");
@@ -3161,7 +3161,7 @@ void NetworkInterface::runHousekeepingTasks() {
 Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId,
 			      bool createIfNotPresent) {
   Mac *ret = NULL;
-  
+
   if(_mac == NULL) return(NULL);
 
   if(!isView())
@@ -3772,6 +3772,19 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
 /* **************************************** */
 
+static int lua_flow_get_ndpi_category(lua_State* vm) {
+  Flow *f;
+
+  lua_getglobal(vm, CONST_USERACTIVITY_FLOW);
+  f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushstring(vm, ndpi_category_str(f->get_detected_protocol_category()));
+  return(CONST_LUA_OK);
+}
+
+/* **************************************** */
+
 static int lua_flow_get_ndpi_proto(lua_State* vm) {
   Flow *f;
   char buf[32];
@@ -3949,7 +3962,7 @@ static int lua_flow_get_activity_filter_id(lua_State* vm) {
  *    numsamples   - number of packets to process for detection
  *    minbytes     - minimum number of bytes to trigger activity
  *    clisrv_ratio - minimum (positive ? client/server : server/client) bytes to trigger activity
- * 
+ *
  * Interflow filter params:
  *    minflows     - minimum number of concurrent flows. -1 to disable [1]
  *    minpkts      - minimum number of cumulative packets in concurrent flows to trigger activity
@@ -4021,7 +4034,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.ratio.minbytes = lua_tonumber(vm, ++params);
-          
+
           if(lua_type(vm, params+1) == LUA_TNUMBER)
             config.ratio.clisrv_ratio = lua_tonumber(vm, ++params);
         }
@@ -4039,10 +4052,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.interflow.minpkts = lua_tonumber(vm, ++params);
-          
+
           if (lua_type(vm, params+1) == LUA_TNUMBER) {
             config.interflow.minduration = lua_tonumber(vm, ++params);
-            
+
             if(lua_type(vm, params+1) == LUA_TBOOLEAN)
               config.interflow.sslonly = lua_toboolean(vm, ++params);
           }
@@ -4064,7 +4077,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.sma.minsamples = lua_tonumber(vm, ++params);
-          
+
           if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.sma.timebound = lua_tonumber(vm, ++params);
 
@@ -4087,10 +4100,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.wma.minsamples = lua_tonumber(vm, ++params);
-          
+
           if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.wma.timescale = lua_tonumber(vm, ++params);
-            
+
             if(lua_type(vm, params+1) == LUA_TNUMBER)
               config.wma.aggrsecs = lua_tonumber(vm, ++params);
           }
@@ -4116,7 +4129,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 
             if (lua_type(vm, params+1) == LUA_TNUMBER) {
               config.command_sequence.mincommands = lua_tonumber(vm, ++params);
-              
+
               if (lua_type(vm, params+1) == LUA_TNUMBER)
                 config.command_sequence.minflips = lua_tonumber(vm, ++params);
             }
@@ -4146,6 +4159,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
 /* ****************************************** */
 
 static const luaL_Reg flow_reg[] = {
+  { "getNdpiCategory",   lua_flow_get_ndpi_category },
   { "getNdpiProto",      lua_flow_get_ndpi_proto },
   { "getNdpiProtoId",    lua_flow_get_ndpi_proto_id },
   { "getFirstSeen",      lua_flow_get_first_seen },
@@ -4353,7 +4367,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 
 bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
   struct mac_find_info info;
-  
+
   memset(&info, 0, sizeof(info));
   Utils::parseMac(info.mac, mac), info.vlan_id = vlan_id;
 
