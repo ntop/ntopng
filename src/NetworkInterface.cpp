@@ -3610,6 +3610,9 @@ bool NetworkInterface::isInterfaceUp(char *name) {
   struct ifreq ifr;
   int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
+  if (strlen(name) >= sizeof(ifr.ifr_name))
+    return(false);
+
   memset(&ifr, 0, sizeof(ifr));
   strcpy(ifr.ifr_name, name);
   if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
