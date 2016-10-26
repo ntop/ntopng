@@ -2084,27 +2084,27 @@ void Flow::incTcpBadStats(bool src2dst_direction,
 				u_int32_t retr_pkts,
 				u_int32_t lost_pkts) {
   TCPPacketStats * stats;
-  Host * host;
+  /*Host * host;*/
 
   if (src2dst_direction) {
     stats = &tcp_stats_s2d;
-    host = cli_host;
+    /*host = cli_host;*/
   } else {
     stats = &tcp_stats_d2s;
-    host = srv_host;
+    /*host = srv_host;*/
   }
 
   stats->pktRetr += retr_pkts;
   stats->pktOOO += ooo_pkts;
   stats->pktLost += lost_pkts;
 
-  host->incRetransmittedPkts(retr_pkts);
+  /*host->incRetransmittedPkts(retr_pkts);
   host->incOOOPkts(ooo_pkts);
   host->incLostPkts(lost_pkts);
 
   iface->incRetransmittedPkts(retr_pkts);
   iface->incOOOPkts(ooo_pkts);
-  iface->incLostPkts(lost_pkts);
+  iface->incLostPkts(lost_pkts);*/
 }
 
 /* *************************************** */
