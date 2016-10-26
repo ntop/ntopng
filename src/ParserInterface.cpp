@@ -24,7 +24,7 @@
 /* **************************************************** */
 
 /* IMPORTANT: keep it in sync with flow_fields_description part of flow_utils.lua */
-ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoint) { 
+ParserInterface::ParserInterface(const char *endpoint) : NetworkInterface(endpoint) {
   map = NULL, once = false;
 
   addMapping("IN_BYTES", 1);
@@ -413,9 +413,9 @@ int ParserInterface::getKeyId(char *sym) {
   struct FlowFieldMap *s;
 
   if(isdigit(sym[0])) return(atoi(sym));
-  
+
   HASH_FIND_STR(map, sym, s);  /* s: output pointer */
-  
+
   return(s ? s->value : -1);
 }
 
@@ -425,12 +425,12 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
   json_object *o;
   enum json_tokener_error jerr = json_tokener_success;
   NetworkInterface * iface = (NetworkInterface*)data;
-   
+
   // payload[payload_size] = '\0';
-   
+
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
   o = json_tokener_parse_verbose(payload, &jerr);
-   
+
   if(o != NULL) {
     struct json_object_iterator it = json_object_iter_begin(o);
     struct json_object_iterator itEnd = json_object_iter_end(o);
@@ -445,10 +445,10 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
       const char *value = json_object_get_string(v);
 
       if((key != NULL) && (value != NULL)) {
-	/* 
+	/*
 	   Example
 	   { "if.name": "en0", "if.speed": 1000, "if.ip": "fe80::c62c:3ff:fe06:49fe%en0", "probe.ip": "192.168.1.5", "time" : 1456595814, "bytes": 18505, "packets": 85 }
-	*/	
+	*/
 	if(!strcmp(key, "if.name"))      snprintf(remote_ifname, sizeof(remote_ifname), "%s", value);
 	else if(!strcmp(key, "if.ip"))   snprintf(remote_ifaddress, sizeof(remote_ifaddress), "%s", value);
 	else if(!strcmp(key, "if.speed")) remote_ifspeed = atol(value);
@@ -459,19 +459,19 @@ u_int8_t ParserInterface::parseEvent(char *payload, int payload_size, u_int8_t s
 	else if(!strcmp(key, "time"))     remote_time = atol(value); /* Format 1461424017.299 <sec>.<msec> */
 	else if(!strcmp(key, "avg.bps"))  avg_bps = atol(value);
 	else if(!strcmp(key, "avg.pps"))  avg_pps = atol(value);
-	
+
 	/* Move to the next element */
 	json_object_iter_next(&it);
       }
     } // while json_object_iter_equal
-    
+
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%u/%u", avg_bps, avg_pps); */
 
     /* Process Flow */
-    iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed, 
+    iface->setRemoteStats(remote_ifname, remote_ifaddress, remote_ifspeed,
 			  remote_probe_address, remote_probe_public_address,
 			  remote_bytes, remote_pkts, remote_time, avg_pps, avg_bps);
-    
+
     /* Dispose memory */
     json_object_put(o);
   } else {
@@ -625,6 +625,19 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
         case OUT_BYTES:
           flow.out_bytes = atol(value);
           break;
+	case OOORDER_IN_PKTS:
+	  flow.tcp.ooo_in_pkts = atol(value);
+	  break;
+	case OOORDER_OUT_PKTS:
+	  flow.tcp.ooo_out_pkts = atol(value);
+	  break;
+	case RETRANSMITTED_IN_PKTS:
+	  flow.tcp.retr_in_pkts = atol(value);
+	  break;
+	case RETRANSMITTED_OUT_PKTS:
+	  flow.tcp.retr_out_pkts = atol(value);
+	  break;
+	/* TODO add lost in/out to nProbe and here */
         case FIRST_SWITCHED:
           flow.first_switched = atol(value);
           break;
@@ -812,7 +825,7 @@ u_int8_t ParserInterface::parseCounter(char *payload, int payload_size, u_int8_t
 	else if(!strcmp(key, "ifOutErrors")) stats.ifOutErrors = atoll(value);
 	else if(!strcmp(key, "ifPromiscuousMode")) stats.ifPromiscuousMode = (!strcmp(value, "1")) ? true : false;
       } /* if */
-      
+
       /* Move to the next element */
       json_object_iter_next(&it);
     } // while json_object_iter_equal

@@ -746,6 +746,10 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     when.tv_sec = (long)now, when.tv_usec = 0;
     flow->updateTcpFlags((const struct bpf_timeval*)&when,
 			 zflow->tcp_flags, src2dst_direction);
+    flow->incTcpBadStats(true,
+       zflow->tcp.ooo_in_pkts, zflow->tcp.retr_in_pkts, zflow->tcp.lost_in_pkts);
+    flow->incTcpBadStats(false,
+       zflow->tcp.ooo_out_pkts, zflow->tcp.retr_out_pkts, zflow->tcp.lost_out_pkts);
   }
 
   flow->addFlowStats(src2dst_direction,

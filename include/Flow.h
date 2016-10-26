@@ -97,11 +97,11 @@ class Flow : public GenericHashEntry {
       char *last_content_type;
       u_int16_t last_return_code;
     } http;
-    
+
     struct {
       char *last_query;
     } dns;
-    
+
     struct {
       char *certificate;
       FlowSSLStage cli_stage, srv_stage;
@@ -186,7 +186,7 @@ class Flow : public GenericHashEntry {
   void updatePacketStats(InterarrivalStats *stats, const struct timeval *when);
   void dumpPacketStats(lua_State* vm, bool cli2srv_direction);
   inline u_int32_t getCurrentInterArrivalTime(time_t now, bool cli2srv_direction) {
-    return(1000 /* msec */ 
+    return(1000 /* msec */
 	   * (now - (cli2srv_direction ? cli2srvStats.pktTime.lastTime.tv_sec : srv2cliStats.pktTime.lastTime.tv_sec)));
   }
   FlowStatus getFlowStatus();
@@ -231,6 +231,8 @@ class Flow : public GenericHashEntry {
   inline void  setServerName(char *v)  { if(host_server_name) free(host_server_name);  host_server_name = strdup(v); }
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
+  void incTcpBadStats(bool src2dst_direction,
+          u_int32_t ooo_pkts, u_int32_t retr_pkts, u_int32_t lost_pkts);
 
   void updateTcpSeqNum(const struct bpf_timeval *when,
 		       u_int32_t seq_num, u_int32_t ack_seq_num,
@@ -365,7 +367,7 @@ class Flow : public GenericHashEntry {
   bool isIdleFlow();
   inline FlowState getFlowState()                   { return(state);                          }
   inline bool      isEstablished()                  { return state == flow_state_established; }
-  
+
   void setActivityFilter(ActivityFilterID fid, const activity_filter_config * config);
   inline bool getActivityFilterId(ActivityFilterID *out) {
     if(activityDetection && activityDetection->filterSet) {

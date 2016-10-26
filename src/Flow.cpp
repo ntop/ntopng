@@ -56,7 +56,7 @@ Flow::Flow(NetworkInterface *_iface,
     doNotExpireBefore = iface->getTimeLastPktRcvd() + 30 /* sec */;
 
   memset(&cli2srvStats, 0, sizeof(cli2srvStats)), memset(&srv2cliStats, 0, sizeof(srv2cliStats));
-  
+
   if(ntop->getPrefs()->is_flow_activity_enabled()){
     if((activityDetection = (FlowActivityDetection*)calloc(1, sizeof(FlowActivityDetection))) == NULL)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow activity detection");
@@ -240,7 +240,7 @@ Flow::~Flow() {
 
 	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
 						  alert_level_warning, alert_msg);
-	
+
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", print(alert_msg, sizeof(alert_msg)));
 	break;
 
@@ -538,7 +538,7 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
 
   if (detection_completed)
     iface->luaEvalFlow(this, callback_flow_proto_callback);
-    
+
 #ifdef NTOPNG_PRO
   // Update the profile even if the detection is not yet completed.
   // Indeed, even if the L7 detection is not yet completed
@@ -1884,7 +1884,7 @@ void Flow::dumpPacketStats(lua_State* vm, bool cli2srv_direction) {
 
 bool Flow::isSSLProto() {
   u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
-  
+
   return (
     (lower == NDPI_PROTOCOL_SSL) ||
     (lower == NDPI_PROTOCOL_MAIL_IMAPS) ||
@@ -2021,7 +2021,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
       if((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
 	memcpy(&synAckTime, when, sizeof(struct timeval));
 	timeval_diff(&synTime, (struct timeval*)when, &serverNwLatency, 1);
-	
+
 	/* Sanity check */
 	if(serverNwLatency.tv_sec > 5) memset(&serverNwLatency, 0, sizeof(serverNwLatency));
       }
@@ -2029,12 +2029,12 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when,
       if((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
 	memcpy(&ackTime, when, sizeof(struct timeval));
 	timeval_diff(&synAckTime, (struct timeval*)when, &clientNwLatency, 1);
-	
+
 	/* Sanity check */
 	if(clientNwLatency.tv_sec > 5) memset(&clientNwLatency, 0, sizeof(clientNwLatency));
-	
+
 	rttSec = ((float)(serverNwLatency.tv_sec+clientNwLatency.tv_sec))
-	  +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;	
+	  +((float)(serverNwLatency.tv_usec+clientNwLatency.tv_usec))/(float)1000000;
       }
 
       twh_over = true, iface->getTcpFlowStats()->incEstablished();
@@ -2075,6 +2075,36 @@ u_int32_t Flow::getNextTcpSeq ( u_int8_t tcpFlags,
 				u_int32_t tcpSeqNum,
 				u_int32_t payloadLen) {
   return(tcpSeqNum + ((tcpFlags & TH_SYN) ? 1 : 0) + payloadLen);
+}
+
+/* *************************************** */
+
+void Flow::incTcpBadStats(bool src2dst_direction,
+				u_int32_t ooo_pkts,
+				u_int32_t retr_pkts,
+				u_int32_t lost_pkts) {
+  TCPPacketStats * stats;
+  Host * host;
+
+  if (src2dst_direction) {
+    stats = &tcp_stats_s2d;
+    host = cli_host;
+  } else {
+    stats = &tcp_stats_d2s;
+    host = srv_host;
+  }
+
+  stats->pktRetr += retr_pkts;
+  stats->pktOOO += ooo_pkts;
+  stats->pktLost += lost_pkts;
+
+  host->incRetransmittedPkts(retr_pkts);
+  host->incOOOPkts(ooo_pkts);
+  host->incLostPkts(lost_pkts);
+
+  iface->incRetransmittedPkts(retr_pkts);
+  iface->incOOOPkts(ooo_pkts);
+  iface->incLostPkts(lost_pkts);
 }
 
 /* *************************************** */
@@ -2453,7 +2483,7 @@ bool Flow::isLowGoodput() {
 void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf_timeval *when, bool cli2srv) {
   uint16_t skiphello;
   bool hs_now_end = false;
-  
+
   if(good_ssl_hs && twh_over && payload_len >= SSL_MIN_PACKET_SIZE) {
     if( (cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
        (!cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_SERVER)) ) {
@@ -2472,7 +2502,7 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
       }
     } else {
       protos.ssl.is_data = false;
-      
+
       if(payload[0] == SSL_HANDSHAKE_PACKET) {
 	if(payload[5] == SSL_CLIENT_HELLO) {
 	  if(protos.ssl.cli_stage == SSL_STAGE_UNKNOWN) {
@@ -2593,7 +2623,7 @@ bool Flow::invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int1
   if(activityDetection == NULL) return false /* detection disabled */;
 
   if(activityDetection->filterSet)
-    return (activity_filter_funcs[activityDetection->filterId])(&activityDetection->config, 
+    return (activity_filter_funcs[activityDetection->filterId])(&activityDetection->config,
 								&activityDetection->status, this, when, cli2srv, payload_len);
 
   return false;
