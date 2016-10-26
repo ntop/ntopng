@@ -160,6 +160,7 @@ NetworkInterface::NetworkInterface(const char *name) {
   if(flow_profiles) flow_profiles->loadProfiles();
 #endif
 
+  loadSamplingRate();
   loadDumpPrefs();
 
   statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
@@ -211,6 +212,7 @@ void NetworkInterface::init() {
   dump_max_duration = CONST_MAX_DUMP_DURATION;
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
+  source_sampling_rate = 1;
 #ifdef NTOPNG_PRO
   flow_profiles = NULL;
 #endif
@@ -228,6 +230,16 @@ void NetworkInterface::loadDumpPrefs() {
     updateDumpTrafficMaxSecPerFile();
     updateDumpTrafficMaxFiles();
   }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::loadSamplingRate() {
+  char rkey[128], rsp[16];
+
+  snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s.sampling_rate", ifname);
+  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    source_sampling_rate = atol(rsp);
 }
 
 /* **************************************************** */
@@ -731,11 +743,12 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 		 zflow->first_switched,
 		 zflow->last_switched, &new_flow);
 
-  incStats(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+  incStatsSampleScaled(now, zflow->src_ip.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow ? flow->get_detected_protocol().protocol : NDPI_PROTOCOL_UNKNOWN,
-	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
-	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts),
-	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */);
+	   zflow->in_bytes + zflow->out_bytes,
+	   zflow->in_pkts + zflow->out_pkts,
+	   24 /* 8 Preamble + 4 CRC + 12 IFG */ + 14 /* Ethernet header */,
+	   zflow->pkt_sampling_rate);
 
   if(flow == NULL)
     return;
@@ -970,7 +983,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, h->len, payload, payload_len, l4_proto, &h->ts);
+    flow->incStats(src2dst_direction, h->len, payload, payload_len, l4_proto,
+       source_sampling_rate, &h->ts);
 
     switch(l4_proto) {
     case IPPROTO_TCP:
@@ -3081,6 +3095,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", ifname);
+  lua_push_int_table_entry(vm, "sampling_rate", source_sampling_rate);
   lua_push_int_table_entry(vm,  "id", id);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());

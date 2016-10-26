@@ -1897,6 +1897,7 @@ bool Flow::isSSLProto() {
 
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
+		    u_int sample_rate,
 		    const struct timeval *when) {
 #if 0
   if(isSSL()
@@ -1920,6 +1921,10 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 				 Utils::msTimevalDiff((struct timeval*)when, last)/1000);
   }
 #endif
+
+  /* Scale metrics by sample rate to simulate more traffic */
+  pkt_len *= sample_rate;
+  payload_len *= sample_rate;
 
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
