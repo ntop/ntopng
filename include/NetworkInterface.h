@@ -109,6 +109,7 @@ class NetworkInterface {
   PacketDumperTuntap *pkt_dumper_tap;
   NetworkStats *networkStats;
   InterfaceStatsHash *interfaceStats;
+  u_int source_sampling_rate;
 
   lua_State* initLuaInterpreter(const char *lua_file);
   void termLuaInterpreter();
@@ -214,13 +215,17 @@ class NetworkInterface {
   void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
   void updateSecondTraffic(time_t when);
 
-  inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
-		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
-    ethStats.incStats(eth_proto, num_pkts, pkt_len, pkt_overhead);
-    ndpiStats.incStats(ndpi_proto, 0, 0, 1, pkt_len);
-    pktStats.incStats(pkt_len);
+  inline void incStatsSampleScaled(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead, u_int sampling_rate) {
+    ethStats.incStats(eth_proto, sampling_rate*num_pkts, sampling_rate*pkt_len, pkt_overhead);
+    ndpiStats.incStats(ndpi_proto, 0, 0, 1, sampling_rate*pkt_len);
+    pktStats.incStats(sampling_rate*pkt_len);
     if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
   };
+  inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
+		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {
+    incStatsSampleScaled(when, eth_proto, ndpi_proto, pkt_len, num_pkts, pkt_overhead, source_sampling_rate);
+  }
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
 
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
@@ -359,6 +364,7 @@ class NetworkInterface {
   inline u_int getDumpTrafficMaxFiles()       { return(dump_max_files);     }
   inline char* getDumpTrafficTapName()        { return(pkt_dumper_tap ? pkt_dumper_tap->getName() : (char*)""); }
   void loadDumpPrefs();
+  void loadSamplingRate();
   void getnDPIFlowsCount(lua_State *vm);
 
   Host* findHostsByIP(patricia_tree_t *allowed_hosts,
