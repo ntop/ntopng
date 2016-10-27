@@ -63,7 +63,7 @@ class NetworkInterface {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
-  u_int32_t ifSpeed, numL2Devices;
+  u_int32_t ifSpeed, numL2Devices, scalingFactor;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats ndpiStats;
@@ -244,7 +244,7 @@ class NetworkInterface {
 		     u_int16_t vlan_id,
 		     struct ndpi_iphdr *iph,
 		     struct ndpi_ipv6hdr *ip6,
-		     u_int16_t ipsize, u_int16_t rawsize,
+		     u_int16_t ipsize, u_int32_t rawsize,
 		     const struct pcap_pkthdr *h,
 		     const u_char *packet,
 		     bool *shaped,
@@ -396,6 +396,9 @@ class NetworkInterface {
   inline void incNumL2Devices()      { numL2Devices++; }
   inline void decNumL2Devices()      { numL2Devices--; }
   inline u_int32_t getNumL2Devices() { return(numL2Devices); }
+  inline u_int32_t getScalingFactor()       { return(scalingFactor); }
+  inline void setScalingFactor(u_int32_t f) { scalingFactor = f;     }
+  inline bool isSampledTraffic()            { return((scalingFactor == 1) ? false : true); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

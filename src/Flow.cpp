@@ -117,8 +117,8 @@ Flow::Flow(NetworkInterface *_iface,
   switch(protocol) {
   case IPPROTO_TCP:
   case IPPROTO_UDP:
-    if(iface->is_ndpi_enabled())
-      allocFlowMemory();
+    if(iface->is_ndpi_enabled() && iface->isSampledTraffic())
+      allocDPIMemory();
     break;
 
   case IPPROTO_ICMP:
@@ -143,7 +143,7 @@ Flow::Flow(NetworkInterface *_iface,
 
 /* *************************************** */
 
-void Flow::allocFlowMemory() {
+void Flow::allocDPIMemory() {
   if((ndpiFlow = (ndpi_flow_struct*)calloc(1, iface->get_flow_size())) == NULL)
     throw "Not enough memory";
 
@@ -156,7 +156,7 @@ void Flow::allocFlowMemory() {
 
 /* *************************************** */
 
-void Flow::deleteFlowMemory() {
+void Flow::freeDPIMemory() {
   if(ndpiFlow)  { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL; }
   if(cli_id)    { free(cli_id);    cli_id = NULL;    }
   if(srv_id)    { free(srv_id);    srv_id = NULL;    }
@@ -282,7 +282,7 @@ Flow::~Flow() {
 
   if(bt_hash)          free(bt_hash);
 
-  deleteFlowMemory();
+  freeDPIMemory();
 }
 
 /* *************************************** */
@@ -478,7 +478,7 @@ void Flow::processDetectedProtocol() {
   if(protocol_processed
      /* For DNS we delay the memory free so that we can let nDPI analyze all the packets of the flow */
      && (l7proto != NDPI_PROTOCOL_DNS))
-    deleteFlowMemory();
+    freeDPIMemory();
 
   makeVerdict(false);
 }
@@ -531,7 +531,9 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   } else if(forceDetection
 	    || (((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
 		&& (cli_host != NULL) && (srv_host != NULL))
-	    || (!iface->is_ndpi_enabled())) {
+	    || (!iface->is_ndpi_enabled())
+	    || iface->isSampledTraffic()
+	    ) {
     guessProtocol();
     detection_completed = true;
   }
@@ -1282,6 +1284,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
        || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
        || iface->is_ndpi_enabled()
+       || iface->isSampledTraffic()
        || iface->is_sprobe_interface()
        || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))
        || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZC_FLOW))) {
@@ -1898,29 +1901,8 @@ bool Flow::isSSLProto() {
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		    const struct timeval *when) {
-#if 0
-  if(isSSL()
-     && (payload_len > 0)
-     && payload
-#if 1
-     && (payload[0] == 0x17)
-     && (payload[1] == 0x03)
-     && ((payload[2] >= 0x01) /* TLS 1.0 */ && (payload[2] <= 0x03) /* TLS 1.2 */)
-#endif
-     ) {
-    /* Add SSLv2 */
-    struct timeval *last = cli2srv_direction ? &cli2srvStats.pktTime.lastTime : &srv2cliStats.pktTime.lastTime;
-
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%p][%u.%u][%s][%u -> %u] SSL %u [diff: %.1f sec]",
-				 this, when->tv_sec, when->tv_usec,
-				 cli2srv_direction ? " C->S " : "*S->C*",
-				 cli2srv_direction ? ntohs(cli_port) : ntohs(srv_port),
-				 cli2srv_direction ? ntohs(srv_port) : ntohs(cli_port),
-				 payload_len,
-				 Utils::msTimevalDiff((struct timeval*)when, last)/1000);
-  }
-#endif
-
+  payload_len *= iface->getScalingFactor();
+  
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
 

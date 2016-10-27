@@ -178,7 +178,7 @@ class Flow : public GenericHashEntry {
   void processLua(lua_State* vm, ProcessInfo *proc, bool client);
   void processJson(bool is_src, json_object *my_object, ProcessInfo *proc);
   void checkBlacklistedFlow();
-  void allocFlowMemory();
+  void allocDPIMemory();
   bool checkTor(char *hostname);
   void checkFlowCategory();
   void setBittorrentHash(char *hash);
@@ -208,7 +208,7 @@ class Flow : public GenericHashEntry {
 
   struct site_categories* getFlowCategory(bool force_categorization);
   void categorizeFlow();
-  void deleteFlowMemory();
+  void freeDPIMemory();
   char* serialize(bool partial_dump = false, bool es_json = false);
   json_object* flow2json(bool partial_dump);
   json_object* flow2es(json_object *flow_object);
