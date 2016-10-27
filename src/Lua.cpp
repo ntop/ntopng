@@ -2316,6 +2316,17 @@ static int ntop_load_dump_prefs(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_load_scaling_factor_prefs(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  ntop_interface->loadScalingFactorPrefs();
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 /*
   Code partially taken from third-party/rrdtool-1.4.7/bindings/lua/rrdlua.c
   and made reentrant
@@ -5045,6 +5056,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setInterfaceIdleState",          ntop_interface_set_idle },
   { "name2id",                        ntop_interface_name2id },
   { "loadDumpPrefs",                  ntop_load_dump_prefs },
+  { "loadScalingFactorPrefs",         ntop_load_scaling_factor_prefs },
   { "loadHostAlertPrefs",             ntop_interface_load_host_alert_prefs },
 
   /* Mac */

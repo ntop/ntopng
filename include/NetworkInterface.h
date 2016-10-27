@@ -359,6 +359,7 @@ class NetworkInterface {
   inline u_int getDumpTrafficMaxFiles()       { return(dump_max_files);     }
   inline char* getDumpTrafficTapName()        { return(pkt_dumper_tap ? pkt_dumper_tap->getName() : (char*)""); }
   void loadDumpPrefs();
+  void loadScalingFactorPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
   Host* findHostsByIP(patricia_tree_t *allowed_hosts,

@@ -123,6 +123,17 @@ min-width: 100px;
   /*background-color: #f5f5f5;*/
 }
 
+/*Hide numeric input box spinners for 'no-spinner' class */
+input.no-spinner[type=number]::-webkit-inner-spin-button,
+input.no-spinner[type=number]::-webkit-outer-spin-button {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+input.no-spinner[type=number] {
+  -moz-appearance:textfield;
+}
 
 /* sprobe ****************************** */
 

@@ -161,6 +161,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 #endif
 
   loadDumpPrefs();
+  loadScalingFactorPrefs();
 
   statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
   alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
@@ -227,6 +228,19 @@ void NetworkInterface::loadDumpPrefs() {
     updateDumpTrafficMaxPktsPerFile();
     updateDumpTrafficMaxSecPerFile();
     updateDumpTrafficMaxFiles();
+  }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::loadScalingFactorPrefs() {
+  if(ntop->getRedis() != NULL) {
+    char rkey[128], rsp[16];
+
+    snprintf(rkey, sizeof(rkey), CONST_IFACE_SCALING_FACTOR_PREFS, id);
+
+    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+      scalingFactor = atol(rsp);
   }
 }
 
@@ -995,7 +1009,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   /* Protocol Detection */
   flow->updateActivities();
   flow->updateInterfaceLocalStats(src2dst_direction, 1, rawsize);
-  
+
   if(!flow->isDetectionCompleted()) {
     if(isSampledTraffic())
       flow->guessProtocol();
@@ -1202,7 +1216,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t rawsize = h->len * scalingFactor;
-  
+
   if(h->len > ifMTU) {
     if(!mtuWarningShown) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][MTU: %u].", h->len, ifMTU);
@@ -3081,6 +3095,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", ifname);
+  lua_push_int_table_entry(vm, "scalingFactor", scalingFactor);
   lua_push_int_table_entry(vm,  "id", id);
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_int_table_entry(vm,  "seen.last", getTimeLastPktRcvd());

@@ -20,6 +20,25 @@ ifid = (_GET["id"] or _GET["ifId"])
 
 msg = ""
 
+function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_clss)
+   print [[
+    <form class="form-inline" style="margin-bottom: 0px;">
+       <input type="hidden" name="id" value="]]
+   print(tostring(ifstats.id))
+   print('">')
+
+   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
+   if(can_edit) then
+      print('<input title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
+      if(value ~= nil) then print(value) end
+      print[["></input>&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>\n]]
+   else
+      if(value ~= nil) then print(value) end
+   end
+   print("</form>\n")
+end
+
 if(_GET["switch_interface"] ~= nil) then
 -- First switch interfaces so the new cookie will have effect
 ifname = interface.setActiveInterfaceId(tonumber(ifid))
@@ -71,62 +90,74 @@ max_num_shapers = 10
 shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
 ifstats = interface.getStats()
 
-if(_GET["custom_name"] ~=nil) then
-   if(_GET["csrf"] ~= nil) then
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_GET["custom_name"])
-   end
-end
-
-if is_packetdump_enabled then
-   if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
-      page = "packetdump"
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
-   end
-   if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
-      page = "packetdump"
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
-   end
-   if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-      page = "packetdump"
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
-   end
-   if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-      page = "packetdump"
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
-   end
-   if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
-      page = "packetdump"
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
+if (isAdministrator()) then
+   if(_GET["custom_name"] ~=nil) then
+      if(_GET["csrf"] ~= nil) then
+	 -- TODO move keys to new schema: replace ifstats.name with ifid
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_GET["custom_name"])
+      end
    end
 
-   if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
-      if(tonumber(_GET["sampling_rate"]) ~= nil) then
-	 page = "packetdump"
-	 val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
+   if(_GET["scaling_factor"] ~= nil) then
+      if(_GET["csrf"] ~= nil) then
+	 local sf = tonumber(_GET["scaling_factor"])
+	 if((sf == nil) or (sf < 1)) then sf = 1 end
+	 ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
+	 interface.loadScalingFactorPrefs()
       end
    end
-   if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
-      if(tonumber(_GET["max_pkts_file"]) ~= nil) then
+
+   if is_packetdump_enabled then
+      if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
       end
-   end
-   if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
-      if(tonumber(_GET["max_sec_file"]) ~= nil) then
+      if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
       end
-   end
-   if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
-      if(tonumber(_GET["max_files"]) ~= nil) then
+      if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
 	 page = "packetdump"
-	 local max_files_size = tonumber(_GET["max_files"])
-	 max_files_size = max_files_size * 1000000
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
       end
+      if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+	 page = "packetdump"
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
+      end
+      if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+	 page = "packetdump"
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
+      end
+
+      if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
+	 if(tonumber(_GET["sampling_rate"]) ~= nil) then
+	    page = "packetdump"
+	    val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
+	 end
+      end
+      if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
+	 if(tonumber(_GET["max_pkts_file"]) ~= nil) then
+	    page = "packetdump"
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
+	 end
+      end
+      if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
+	 if(tonumber(_GET["max_sec_file"]) ~= nil) then
+	    page = "packetdump"
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
+	 end
+      end
+      if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
+	 if(tonumber(_GET["max_files"]) ~= nil) then
+	    page = "packetdump"
+	    local max_files_size = tonumber(_GET["max_files"])
+	    max_files_size = max_files_size * 1000000
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
+	 end
+      end
+      interface.loadDumpPrefs()
    end
-   interface.loadDumpPrefs()
 end
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -265,50 +296,42 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["remote.name"] ~= nil) then
-      print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>") 
+      print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
       if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
-      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td>") end      
+      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td>") end
       if(ifstats["probe.public_ip"] ~= "") then print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td></tr>\n") end
    end
 
-   print("<tr><th width=250>Name</th><td colspan=2>" .. ifstats.name.."</td>\n")
+   print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
 
    if(ifstats.name ~= nil) then
+      print('<th>Custom Name</th><td colspan="3">')
       label = getInterfaceNameAlias(ifstats.name)
-      if(not isAdministrator()) then
-	 print("<td>")
-      else
-	 print("<td colspan=6>")
-      end
-
-      print [[
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="id" value="]]
-      print(ifstats.id)
-      print [[">]]
-
-      if(isAdministrator()) then
-	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print [[
-       <input type="text" class=form-control name="custom_name" placeholder="Custom Name" value="]]
-	 if(label ~= nil) then print(label) end
-	 print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save Custom Name</button>
-    </form>
-    </td></tr>
-       ]]
-      else
-	 print("</td></tr>")
-      end
+      inline_input_form("custom_name", "Custom Name",
+	  "Specify an alias for the interface",
+	  label, isAdministrator())
+      print("</td></tr>\n")
    end
+   local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
 
-   if ifstats["remote.name"] == nil and interface.isPcapDumpInterface() == false then
+   if is_physical_iface then
       local speed_key = 'ntopng.prefs.'..ifname..'.speed'
       local speed = ntop.getCache(speed_key)
       if speed == nil or speed == "" or tonumber(speed) == nil then
 	 speed = ifstats.speed
       end
-      print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td><th>MTU</th><td colspan=3  nowrap>"..ifstats.mtu.." bytes</td></tr>\n")
+      print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
+
+      if interface.isPacketInterface() then
+	 print("</td><th>Scaling Factor</th><td colspan=3>")
+	 local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
+	 if((label == nil) or (label == "")) then label = "1" end
+	 inline_input_form("scaling_factor", "Scaling Factor",
+	    "This should match your capture interface sampling rate",
+	    label, isAdministrator(), 'type="number"', 'no-spinner')
+      end
+
+      print("</td></tr>\n")
    end
 
    if(ifstats.ip_addresses ~= "") then
@@ -332,13 +355,16 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   print("<tr><th>Family </th><td colspan=6>")
+   print("<tr><th>Family </th><td colspan=2>")
 
    print(ifstats.type)
    if(ifstats.inline) then
       print(" In-Path Interface (Bump in the Wire)")
    end
-   print("</td></tr>\n")
+
+   if is_physical_iface then
+      print("<th>MTU</th><td colspan=3  nowrap>"..ifstats.mtu.." bytes</td></tr>\n")
+   end
 
    if(ifstats["pkt_dumper"] ~= nil) then
       print("<tr><th rowspan=2>Packet Dumper</th><th colspan=4>Dumped Packets</th><th>Dumped Files</th></tr>\n")
@@ -428,7 +454,7 @@ print("</script>\n")
       print("</tr>")
 
    end
-   
+
    if(ifstats["bridge.device_a"] ~= nil) then
       print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
       print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped Packets</th><th nowrap>Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
@@ -464,7 +490,7 @@ elseif((page == "packets")) then
       print("<tr></th><th>Out of Order</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(ifstats.tcpPacketStats.lost) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
 
-    print [[ 
+    print [[
 	<tr><th class="text-left">Size Distribution</th><td colspan=5><div class="pie-chart" id="sizeDistro"></div></td></tr>
       </table>
 
@@ -884,7 +910,7 @@ else
    if _GET["re_arm_minutes"] then
       ntop.setHashCache(get_re_arm_alerts_hash_name(tab),
 			"ifid_"..tostring(ifId).."_"..ifname_clean,
-			_GET["re_arm_minutes"]) 
+			_GET["re_arm_minutes"])
    end
    re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(tab),
 				      "ifid_"..tostring(ifId).."_"..ifname_clean)
@@ -1110,7 +1136,7 @@ elseif(page == "filtering") then
 	 ntop.setHashCache(policy_key, net, "")
       end
    end
-  
+
    any_net = "0.0.0.0/0@0"
    --io.write('key: '..key..'\n')
    nets = ntop.getHashKeysCache(key, any_net)

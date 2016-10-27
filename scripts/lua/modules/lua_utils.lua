@@ -1477,6 +1477,10 @@ function getPathFromKey(key)
   return fixPath(path)
 end
 
+function getRedisIfacePrefix(ifid)
+   return "ntopng.prefs.iface_"..tostring(ifid)
+end
+
 -----  End of Redis Utils  ------
 
 
