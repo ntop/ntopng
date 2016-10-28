@@ -98,6 +98,14 @@ Using ntopng behind a Proxy
 If you have many ntopng instances that you want to mask behind a proxy the
 -Z is what you look for. See the man page for more information.
 
+Traffic with sampling rate
+--------------------------
+If you apply a sampling rate to capture traffic on an interface, say x100, the
+traffic volume you see on ntopng will be 100 times smaller.
+In order to simulate more traffic to match real traffic volume, you can apply a
+scaling factor to the size of each received packet. The scaling factor can
+be specified through the UI, into the interface settings.
+
 Debugging ntopng
 ----------------
 handle SIGPIPE nostop noprint pass
