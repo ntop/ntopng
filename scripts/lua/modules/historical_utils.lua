@@ -1,5 +1,7 @@
 require "lua_utils"
 
+local json = require ("dkjson")
+		      
 local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=status"
 local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=schedule"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
@@ -304,7 +306,8 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
 
 
 print[[
-  if($('#tab-ipv4').length > 0){
+
+  if($('#tab-ipv4').length > 0 || true /* TODO: disable if no flows are available */){
     $('#download_flows_v4_]] print(button_id) print[[').click(function (event){
       window.location.assign("]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
       return false;
@@ -313,7 +316,7 @@ print[[
     $('#download_flows_v4_]] print(button_id) print[[').attr("style", "display:none;");
   }
 
-  if($('#tab-ipv6').length > 0){
+  if($('#tab-ipv6').length > 0 || true /* TODO: disable if no flows are available */){
     $('#download_flows_v6_]] print(button_id) print[[').click(function (event){
       window.location.assign("]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
       return false;
@@ -1412,6 +1415,512 @@ $('a[href="#historical-pcaps"]').on('shown.bs.tab', function (e) {
 
 </script>
 ]]
+end
+
+-- ##########################################
+
+function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
+   -- prepare some attributes that will be attached to divs
+   local div_data = ""
+
+   if ifId ~= "" and ifId ~= nil then
+      _GET["ifId"] = ifId
+      div_data = div_data..' ifId="'..tostring(ifId)..'" '
+   end
+   if epoch_begin ~= "" and epoch_begin ~= nil then
+      _GET["epoch_begin"] = epoch_begin
+      div_data = div_data..' epoch_begin="'..tostring(epoch_begin)..'" '
+   end
+   if epoch_end ~= "" and epoch_end ~= nil then
+      _GET["epoch_end"] = epoch_end
+      div_data = div_data..' epoch_end="'..tostring(epoch_end)..'" '
+   end
+   if host ~= "" and host ~= nil then
+      _GET["host"] = host
+      div_data = div_data..' host="'..tostring(host)..'" '
+   end
+   if l7proto ~= "" and l7proto ~= nil then
+      _GET["protocol"] = l7proto
+      div_data = div_data..' l7_proto_id="'..l7proto..'" '
+   end
+   if l4proto ~= "" and l4proto ~= nil then
+      _GET["l4proto"] = l4proto
+      div_data = div_data..' l4_proto_id="'..l4proto..'" '
+   end
+   if port ~= "" and port ~= nil then
+      _GET["port"] = port
+      div_data = div_data..' port="'..port..'" '
+   end
+
+   print[[
+
+<br>
+<div class="container-fluid" id="historical-flows-container">
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> Summary </a> </li>
+    <li class="disabled"> <a href="#tab-ipv4" role="tab"> IPv4 </a> </li>
+    <li class="disabled"> <a href="#tab-ipv6" role="tab"> IPv6 </a> </li>
+  </ul>
+
+  <div class="tab-content">
+
+    <div class="tab-pane fade in active" id="historical-flows-summary">
+      <br>
+      <div class="panel panel-default" id="historical-flows-summary-div">
+        <div class="panel-heading"> <h3 class="panel-title"> Search Results </h3> </div>
+        <div class="panel-body" id="historical-flows-summary-body" style="display:true;">
+          <div id="flows-summary-too-slow" style="display:none;" class="alert alert-warning"></div>
+          <div id="flows-summary-wait" style="display:true;">
+            <img src="]] print(ntop.getHttpPrefix()) print[[/img/loading.gif"\>&nbsp;
+            Database query in progress, waiting to receive results...
+            <button class="btn btn-danger btn-xs" type="button" onclick="abortQuery();">Abort</button>
+          </div>
+        </div>
+        <table border=0 class="table table-bordered table-striped" id="flows-summary-table" style="display:none;">
+           <tr>
+             <th>&nbsp;</th><th>Total Flows</th><th>Traffic Volume</th>
+             <th>Total Packets</th><th>Traffic Rate</th><th>Packet Rate</th>
+           </tr>
+        </table>
+      </div>
+    </div>
+
+
+    <div class="tab-pane fade" id="tab-ipv4" num_flows=0 ]] print(div_data) print[[>
+      <div id="table-flows4"></div>
+]] historicalDownloadButtonsBar('flows_v4', 'tab-ipv4',
+				true,
+				true) print[[
+    </div>
+
+    <div class="tab-pane fade" id="tab-ipv6" num_flows=0 ]] print(div_data) print[[>
+      <div id="table-flows6"></div>
+]] historicalDownloadButtonsBar('flows_v6', 'tab-ipv6',
+				true,
+				true
+			       ) print[[
+    </div>
+
+  </div>
+</div>
+
+<script type="text/javascript">
+
+var xhr;
+
+var abortQuery = function(){
+  if(xhr && xhr.readyState != 4){
+    xhr.abort();
+  }
+  // error message is populated in the ajax error callback
+}
+  
+$('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
+  if ($('a[href="#historical-flows"]').attr("loaded") == 1){
+    enableAllDropdownsAndTabs();
+    // do nothing if the tabs have already been computed and populated
+    return;
+  }
+
+  var target = $(e.target).attr("href"); // activated tab
+  $('a[href="#historical-flows"]').attr("loaded", 1);
+
+  // disable all tabs
+  $("#historical-flows-container").find("li").addClass("disabled").find("a").removeAttr("data-toggle");
+
+  xhr = $.ajax({
+    type: 'GET',]]
+print("url: '"..ntop.getHttpPrefix().."/lua/get_db_data.lua?ifname="..tostring(_GET["ifId"]).."', ")
+print("data: "..json.encode(_GET, nil)..",")
+print[[
+    complete: function() {
+      $("#flows-summary-wait").hide()
+    },
+    error: function() {
+      var err_msg = "."
+  
+      if(xhr.responseText && xhr.responseText !== "")
+        err_msg = ": " + xhr.responseText + err_msg
+  
+      if(xhr.statusText === "error")
+        err_msg = "An error occurred. Check database connections status" + err_msg
+      else if(xhr.statusText === "abort")
+        err_msg = "Query aborted" + err_msg
+      else
+        err_msg = "Query failed with an unknown status " + xhr.statusText + err_msg
+  
+      $("#historical-flows-summary-body").html(err_msg).show()
+    },
+    success: function(msg){
+      if(msg.status !== "ok") {
+        $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i> ' + msg.statusText  + '</H5>').show()
+        return;
+      } else if(msg.count.IPv4.tot_flows <= 0 && msg.count.IPv6.tot_flows <= 0) {
+        $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i> No results found. Please modify your search criteria.</H5>').show()
+        return;
+      }
+  
+      // re-enable all tabs
+      $("#historical-flows-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
+  
+      // populate the number of flows
+      $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
+      $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows)
+
+      var tr=""
+      $.each(msg.count, function(ipvers, item){
+        tr += "<tr><th>" + ipvers + "</th>"
+        tr += "<td align='right'>" + item.tot_flows + " Flows</td>"
+        tr += "<td align='right'>" + bytesToVolume(item.tot_bytes) + "</td>"
+        tr += "<td align='right'>" + formatPackets(item.tot_packets) + "</td>"
+        tr += "<td align='right'>" + fbits(item.tot_bytes * 8 / msg.timespan) + "</td>"
+        tr += "<td align='right'>" + fpackets(item.tot_packets / msg.timespan) + "</td>"
+        tr += "</tr>"
+      });
+      $("#flows-summary-table").append(tr)
+      $("#historical-flows-summary-body").remove()
+      $("#flows-summary-table").show();
+    }
+  });
+  
+
+  setInterval(function() {
+    var too_slow = "The database is taking too long to produce results. Consider narrowing down the scope of the query"
+    too_slow += " or tune the database for performance."
+    $("#flows-summary-too-slow").html(too_slow).show()
+  }, 15000)
+  
+});
+
+</script>
+]]
+historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
+
+end
+
+-- ##########################################
+
+function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
+   local url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
+
+   if(l7proto ~= "") then
+      if(not(isnumber(l7proto))) then
+	 local id
+
+	 -- io.write(l7proto.."\n")
+	 l7proto = string.gsub(l7proto, "%.rrd", "")
+
+	 if(string.ends(l7proto, ".rrd")) then l7proto = string.sub(l7proto, 1, -5) end
+
+	 id = interface.getnDPIProtoId(l7proto)
+
+	 if(id ~= -1) then
+	    l7proto = id
+	    title = "Top "..l7proto.." Flows"
+	 else
+	    l7proto = ""
+	 end
+      end
+
+      if(l7proto ~= "") then
+	 url_update = url_update.."&l7proto="..l7proto
+      end
+   end
+
+
+   if((host == "") and (l4proto == "") and (port == "")) then
+      title = "Top Flows ["..formatEpoch(epoch_begin).." - "..formatEpoch(epoch_end).."]"
+   else
+      title = ""
+   end
+
+
+if(host ~= nil) then
+  local chunks = {host:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")}
+  if(#chunks == 4) then
+     limitv6="0"
+  end
+end
+
+print [[
+
+      <script type="text/javascript">
+      $('a[href="#tab-ipv4"]').on('shown.bs.tab', function (e) {
+        if ($('a[href="#tab-ipv4"]').attr("loaded") == 1){
+          // do nothing if the tab has already been computed and populated
+          enableAllDropdownsAndTabs();
+          return;
+        }
+
+        // if here, then we actually have to load the datatable
+        disableAllDropdownsAndTabs();
+        $('a[href="#tab-ipv4"]').attr("loaded", 1);
+
+   ]]
+
+print [[
+  var url_update4 = "]] print(url_update) print [[&version=4&limit=" + $("#tab-ipv4").attr("num_flows") ;
+  var graph_options4 = {
+  url: url_update4,
+	       perPage: 5, ]]
+
+			      if(title ~= "") then print('title: "IPv4 '..title..'",\n') else print("title: '',\n") end
+
+print [[
+						    showFilter: true,
+						    showPagination: true,
+                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
+						    sort: [ [ "BYTES","desc"] ],
+						    columns: [
+						       {
+							  title: "Key",
+							  field: "idx",
+							  hidden: true,
+						       },
+						 ]]
+
+						 if(ntop.isPro()) then
+						    print [[
+						       {
+							  title: "",
+							  field: "FLOW_URL",
+							  sortable: false,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						 ]]
+					      end
+
+print [[
+						       {
+							  title: "Application",
+							  field: "L7_PROTO",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "L4 Proto",
+							  field: "PROTOCOL",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Client",
+							  field: "CLIENT",
+							  sortable: false,
+						       },
+						       {
+							  title: "Server",
+							  field: "SERVER",
+							  sortable: false,
+						       },
+						       {
+							  title: "Begin",
+							  field: "FIRST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "End",
+							  field: "LAST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Traffic Sent",
+							  field: "IN_BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Traffic Received",
+							  field: "OUT_BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Total Traffic",
+							  field: "BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Info",
+							  field: "INFO",
+							  sortable: true,
+							  css: {
+							     textAlign: 'left'
+							  }
+						       },
+						       {
+							  title: "Avg Thpt",
+							  field: "AVG_THROUGHPUT",
+							  sortable: false,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       }
+						    ]
+
+						 };
+
+
+
+	    var table4 = $("#table-flows4").datatable(graph_options4);
+]]
+
+print[[
+      });  // closes the event handler on shown.bs.tab
+      ]]
+
+print [[
+      $('a[href="#tab-ipv6"]').on('shown.bs.tab', function (e) {
+        if ($('a[href="#tab-ipv6"]').attr("loaded") == 1){
+          // do nothing if the tab has already been computed and populated
+          enableAllDropdownsAndTabs();
+          return;
+        }
+
+        // if here, then we actually have to load the datatable
+        disableAllDropdownsAndTabs();
+        $('a[href="#tab-ipv6"]').attr("loaded", 1);
+
+
+	    var url_update6 = "]] print(url_update) print [[&version=6&limit=" + $("#tab-ipv6").attr("num_flows") ;
+
+	    var graph_options6 = {
+						    url: url_update6,
+						    perPage: 5, ]]
+
+					      if(title ~= "") then print('title: "IPv6 '..title..'",\n') else print("title: '',\n") end
+
+print [[
+
+						    showFilter: true,
+						    showPagination: true,
+                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
+						    sort: [ [ "BYTES","desc"] ],
+						    columns: [
+						       {
+							  title: "Key",
+							  field: "idx",
+							  hidden: true,
+						       },
+						 ]]
+
+						 if(ntop.isPro()) then
+						    print [[
+						       {
+							  title: "",
+							  field: "FLOW_URL",
+							  sortable: false,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						 ]]
+					      end
+
+print [[
+						       {
+							  title: "Application",
+							  field: "L7_PROTO",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "L4 Proto",
+							  field: "PROTOCOL",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Client",
+							  field: "CLIENT",
+							  sortable: false,
+						       },
+						       {
+							  title: "Server",
+							  field: "SERVER",
+							  sortable: false,
+						       },
+						       {
+							  title: "Begin",
+							  field: "FIRST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "End",
+							  field: "LAST_SWITCHED",
+							  sortable: true,
+							  css: {
+							     textAlign: 'center'
+							  }
+						       },
+						       {
+							  title: "Traffic Sent",
+							  field: "IN_BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Traffic Received",
+							  field: "OUT_BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Total Traffic",
+							  field: "BYTES",
+							  sortable: true,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       },
+						       {
+							  title: "Avg Thpt",
+							  field: "AVG_THROUGHPUT",
+							  sortable: false,
+							  css: {
+							     textAlign: 'right'
+							  }
+						       }
+						    ]
+
+						 };
+
+
+	 var table6 = $("#table-flows6").datatable(graph_options6);
+      }); // closes the event handler on shown.bs.tab
+	 </script>
+]]
+
 end
 
 -- ##########################################

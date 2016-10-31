@@ -174,16 +174,23 @@ function drawTrend(current, last, withColor) {
   }   
 }
 
+function toggleAllTabs(enabled){
+    if(enabled === true)
+	$("#historical-tabs-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
+    else
+	$("#historical-tabs-container").find("li").addClass("disabled").find("a").removeAttr("data-toggle");
+}
+
 function disableAllDropdownsAndTabs(){
-  $("select").each(function() {
-    $(this).prop("disabled", true);
-  });
-  $("#historical-tabs-container").find("li").addClass("disabled").find("a").removeAttr("data-toggle");
+    $("select").each(function() {
+      $(this).prop("disabled", true);
+    });
+    toggleAllTabs(false)
 }
 
 function enableAllDropdownsAndTabs(){
-  $("select").each(function() {
-    $(this).prop("disabled", false);
-  });
-  $("#historical-tabs-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
+    $("select").each(function() {
+	$(this).prop("disabled", false);
+    });
+    toggleAllTabs(true)
 }
