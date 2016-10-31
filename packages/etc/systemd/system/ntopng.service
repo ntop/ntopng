@@ -1,10 +1,11 @@
 [Unit]
 Description=Start/stop ntopng program
-After=network.target syslog.target redis.service
+After=network.target syslog.target redis.service pf_ring.service
 
 
 [Service]
 Type=forking
+RemainAfterExit=yes
 ExecStart=/etc/init.d/ntopng start
 ExecStop=/etc/init.d/ntopng stop
 Restart=on-abnormal
