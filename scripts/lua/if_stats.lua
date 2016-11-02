@@ -101,7 +101,7 @@ if (isAdministrator()) then
    if(_GET["scaling_factor"] ~= nil) then
       if(_GET["csrf"] ~= nil) then
 	 local sf = tonumber(_GET["scaling_factor"])
-	 if((sf == nil) or (sf < 1)) then sf = 1 end
+	 if(sf == nil) then sf = 1 end
 	 ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
 	 interface.loadScalingFactorPrefs()
       end
@@ -309,7 +309,7 @@ if((page == "overview") or (page == nil)) then
       label = getInterfaceNameAlias(ifstats.name)
       inline_input_form("custom_name", "Custom Name",
 	  "Specify an alias for the interface",
-	  label, isAdministrator())
+	  label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9]*$"')
       print("</td></tr>\n")
    end
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
@@ -328,7 +328,7 @@ if((page == "overview") or (page == nil)) then
 	 if((label == nil) or (label == "")) then label = "1" end
 	 inline_input_form("scaling_factor", "Scaling Factor",
 	    "This should match your capture interface sampling rate",
-	    label, isAdministrator(), 'type="number"', 'no-spinner')
+	    label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
       end
 
       print("</td></tr>\n")
