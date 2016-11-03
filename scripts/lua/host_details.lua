@@ -209,6 +209,7 @@ if(not(isLoopback(ifname))) then
 end
 
 if(page == "ndpi") then
+  direction = _GET["direction"]
   print("<li class=\"active\"><a href=\"#\">Protocols</a></li>\n")
 else
    if(host["ip"] ~= nil) then
@@ -991,6 +992,20 @@ print [[/lua/iface_ndpi_stats.lua', { breed: "true", ifname: "]] print(ifId.."")
 
       print("</table>\n")
 
+  local direction_filter = ""
+  local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=ndpi";
+
+  if(direction ~= nil) then
+    direction_filter = '<span class="glyphicon glyphicon-filter"></span>'
+  end
+
+  print('<div class="dt-toolbar btn-toolbar pull-right">')
+  print('<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" id="direction_dropdown">')
+  print('<li><a href="'..base_url..'">All</a></li>')
+  print('<li><a href="'..base_url..'&direction=sent">Sent only</a></li>')
+  print('<li><a href="'..base_url..'&direction=recv">Received only</a></li>')
+  print('</ul></div></div>')
+
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">
      ]]
@@ -1009,7 +1024,9 @@ function update_ndpi_table() {
     url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_details_ndpi.lua',
-    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ },
+    data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
+    if direction ~= nil then print(", filter:\"") print(direction..'"') end
+    print [[ },
     //data: { ifid: ]] print('"') print(tostring(ifId)) print('"') print(", hostip: ") print('"'..host["ip"]..'"') print [[ },
     success: function(content) {
       $('#host_details_ndpi_tbody').html(content);
