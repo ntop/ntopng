@@ -23,17 +23,20 @@
 
 /* **************************************************** */
 
-Profiles::Profiles() {
+Profiles::Profiles(int interface_id) {
   numProfiles = 0;
   //profiles = NULL;
   memset(profiles, 0, sizeof(profiles));
+  ifid = interface_id;
   //loadProfiles();
 }
 
 /* **************************************************** */
 
 Profiles::~Profiles() {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Destroying Profiles\n");    
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Destroying Profiles\n");
+  dumpCounters();
+
   for(int i=0; i<numProfiles; i++)
     delete profiles[i];
 }
@@ -42,12 +45,14 @@ Profiles::~Profiles() {
 
 void Profiles::loadProfiles() {
   char **vals;
+  char ctr_key[128];
   Redis *redis = ntop->getRedis();
   int rc;
 
   rc = (redis ? redis->hashKeys(CONST_PROFILES_PREFS, &vals) : -1);
   if(rc > 0) {
     rc = min_val(rc, MAX_NUM_PROFILES);
+    snprintf(ctr_key, sizeof(ctr_key), CONST_PROFILES_COUNTERS, ifid);
 
     for(int i = 0; i < rc; i++) {
       if(vals[i] != NULL) {
@@ -55,7 +60,13 @@ void Profiles::loadProfiles() {
 
 	if(redis->hashGet((char*)CONST_PROFILES_PREFS, vals[i], contents, sizeof(contents)) != -1) {
 	  Profile *c = addProfile(vals[i], contents);
-	  if(c) profiles[numProfiles++] = c;
+	  if(c) {
+	    profiles[numProfiles++] = c;
+
+	    /* Reload profile counter from redis */
+	    if(redis->hashGet(ctr_key, c->getName(), contents, sizeof(contents)) != -1)
+	      c->incBytes(atol(contents));
+	  }
 	}
 
 	free(vals[i]);
@@ -76,4 +87,22 @@ void Profiles::lua(lua_State* vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+}
+
+/* **************************************************** */
+
+void Profiles::dumpCounters() {
+   char key[128];
+   char value[128];
+   Redis *redis = ntop->getRedis();
+
+   snprintf(key, sizeof(key), CONST_PROFILES_COUNTERS, ifid);
+
+   for (int i=0; i<numProfiles; i++) {
+     /* only dump if a corresponding profile exists */
+     if (redis->hashGet((char*)CONST_PROFILES_PREFS, profiles[i]->getName(), value, sizeof(value)) != -1) {
+       snprintf(value, sizeof(value), "%lu", profiles[i]->getNumBytes());
+       redis->hashSet(key, profiles[i]->getName(), value);
+     }
+   }
 }

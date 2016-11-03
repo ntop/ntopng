@@ -156,7 +156,7 @@ NetworkInterface::NetworkInterface(const char *name) {
 
 #ifdef NTOPNG_PRO
   policer  = new L7Policer(this);
-  flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles() : NULL;
+  flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
 #endif
 
@@ -1907,7 +1907,8 @@ void NetworkInterface::updateFlowProfiles(char *old_profile, char *new_profile) 
   if(isView()) return;
 
   if(ntop->getPro()->has_valid_license()) {
-    FlowProfiles *oldP = flow_profiles, *newP = new FlowProfiles();
+    flow_profiles->dumpCounters();
+    FlowProfiles *oldP = flow_profiles, *newP = new FlowProfiles(id);
 
     flow_profiles = newP; /* Overwrite the current profiles */
     flow_profiles->loadProfiles();/* and reload */
@@ -2452,6 +2453,16 @@ int NetworkInterface::getFlows(lua_State* vm,
   free(retriever.elems);
 
   return(retriever.actNumEntries);
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::checkFilterSyntax(const char *filter) {
+  nbpf_tree_t *tree = nbpf_parse(filter, NULL);
+  bool rc = tree ? true : false;
+
+  if(tree) nbpf_free(tree);
+  return(rc);
 }
 
 /* **************************************************** */

@@ -32,14 +32,16 @@ class Profiles {
   Profile *profiles[MAX_NUM_PROFILES];
   //Profile **profiles;
   int numProfiles;
+  int ifid;
   
  public:
-  Profiles();
+  Profiles(int interface_id);
   virtual ~Profiles();
 
   void loadProfiles();
   virtual Profile *addProfile(const char* name, char* contents) = 0; // pure
   void lua(lua_State* vm);
+  void dumpCounters();
 };
 
 #endif /* _PROFILES_H_ */
