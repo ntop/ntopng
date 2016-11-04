@@ -367,7 +367,7 @@ if((page == "overview") or (page == nil)) then
    end
 
    if(ifstats["pkt_dumper"] ~= nil) then
-      print("<tr><th rowspan=2>Packet Dumper</th><th colspan=4>Dumped Packets</th><th>Dumped Files</th></tr>\n")
+      print("<tr><th rowspan=2>Packet Dumper</th><th colspan=2>Dumped Packets</th><th colspan=2>Dumped Files</th></tr>\n")
       print("<tr><td colspan=2><div id=dumped_pkts>".. formatValue(ifstats["pkt_dumper"]["num_dumped_pkts"]) .."</div></td>")
       print("<td colspan=2><div id=dumped_files>".. formatValue(ifstats["pkt_dumper"]["num_dumped_files"]) .."</div></td></tr>\n")
    end
