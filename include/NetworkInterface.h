@@ -378,7 +378,7 @@ class NetworkInterface {
 #ifdef NTOPNG_PRO
   void updateFlowProfiles(char *old_profile, char *new_profile);
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
-  bool checkFilterSyntax(const char * filter);
+  inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
   bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit,

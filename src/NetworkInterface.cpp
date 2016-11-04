@@ -2457,16 +2457,6 @@ int NetworkInterface::getFlows(lua_State* vm,
 
 /* **************************************************** */
 
-bool NetworkInterface::checkFilterSyntax(const char *filter) {
-  nbpf_tree_t *tree = nbpf_parse(filter, NULL);
-  bool rc = tree ? true : false;
-
-  if(tree) nbpf_free(tree);
-  return(rc);
-}
-
-/* **************************************************** */
-
 int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts) {
   struct flowHostRetriever retriever;
 
