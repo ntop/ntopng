@@ -176,7 +176,8 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
     classOff.removeAttribute("class");
     classOn.setAttribute("class", "btn btn-sm btn-]]print(on_color) print[[ active");
     classOff.setAttribute("class", "btn btn-sm btn-default");
-    $("#]] print(submit_field) print [[_input").val("]] print(on_value) print[[");]]
+
+    $("#]] print(submit_field) print [[_input").val("]] print(on_value) print[[").trigger('change');]]
     if elementToSwitch ~= nil then
       for element = 1, #elementToSwitch do
         if ((hideOn == nil) or (hideOn == false)) then
@@ -197,7 +198,7 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
     classOff.removeAttribute("class");
     classOn.setAttribute("class", "btn btn-sm btn-default");
     classOff.setAttribute("class", "btn btn-sm btn-]]print(off_color) print[[ active");
-    $("#]] print(submit_field) print [[_input").val("]]print(off_value) print[[");]]
+    $("#]] print(submit_field) print [[_input").val("]]print(off_value) print[[").trigger('change');]]
     if elementToSwitch ~= nil then
       for element = 1, #elementToSwitch do
         if ((hideOn == nil) or (hideOn == false)) then
@@ -258,7 +259,9 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     print('<script>\n')
     for nameCount = 1, #array_labels do
       print('$("#id_'..array_values[nameCount]..'").click(function() {\n')
-      print('  $(\'#id-toggle-'..submit_field..'\').val("'..array_values[nameCount]..'");\n')
+      print(' var field = $(\'#id-toggle-'..submit_field..'\');\n')
+      print(' var oldval = field.val(); ')
+      print(' field.val("'..array_values[nameCount]..'").trigger("change");\n')
 
       for indexLabel = 1, #array_labels do
         print[[ var class_]] print(array_values[indexLabel]) print[[ = document.getElementById("id_]] print(array_values[indexLabel]) print [[");
@@ -328,18 +331,18 @@ function loggingSelector(label, comment, submit_field, redis_key)
 
   if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
   print[[
-     <input id="]] print(submit_field) print[[" name="]] print(submit_field) print[[" type="hidden">
+     <input id="]] print(submit_field) print[[" name="]] print(submit_field) print[[" value="]] print(value) print[[" type="hidden">
      <div class="dropdown">
       <button class="btn btn-]] print(color) print[[ dropdown-toggle" type="button" data-toggle="dropdown">]] print(value:gsub("^%l", string.upper))
   print[[
       <span class="caret"></span></button>
       <ul class="dropdown-menu dropdown-menu-right">
-        <li onclick="$('#]] print(submit_field) print[[').val('trace');"><a href="#">Trace</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('debug');"><a href="#">Debug</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('info');"><a href="#">Info</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('normal');"><a href="#">Normal</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('warning');"><a href="#">Warning</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('error');"><a href="#">Error</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('trace').trigger('change');"><a href="#">Trace</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('debug').trigger('change');"><a href="#">Debug</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('info').trigger('change');"><a href="#">Info</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('normal').trigger('change');"><a href="#">Normal</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('warning').trigger('change');"><a href="#">Warning</a></li>
+        <li onclick="$('#]] print(submit_field) print[[').val('error').trigger('change');"><a href="#">Error</a></li>
       </ul>
     </div>
     

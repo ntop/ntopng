@@ -238,7 +238,7 @@ end
 
 -- ================================================================================
 function printUsers()
-  print('<form id="form_ldap">')
+  print('<form>')
   print('<input type=hidden name="subpage_active" value="users"/>\n')
   print('<table class="table">')
 
@@ -311,7 +311,7 @@ function printUsers()
      prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements)
 
   end
-  print('<tr><th colspan=2 style="text-align:right;"><button type="button" onclick="save_button_users()" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
 
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -324,7 +324,7 @@ function printUsers()
 
         if ((field.substring(0, 7) != "ldap://") && (field.substring(0, 8) != "ldaps://")) {
           alert("Invalid LDAP Server Address Value: missing \"ldap://\" or \"ldaps://\" at beginning.");
-          return;
+          return false;
         }
 
         var new_field = field.replace('ldaps://', '');
@@ -332,11 +332,12 @@ function printUsers()
         var res = new_field.split(":");
         if(res.length != 2){
           alert("Invalid LDAP Server Address Value: missing ldap server address or port number.");
-          return;
+          return false;
         }
       }
 
-      $("#form_ldap").submit();
+      /* do submit */
+      return true;
     }
   </script>
   ]]
@@ -547,9 +548,27 @@ print[[
       </table>
 ]]
 
-
-
-
-
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+
+   print([[<script>
+/* jQuery AreYouSure plugin activation */
+$(function() {
+  // Enable on all forms
+  $('form').areYouSure();
+
+  // Disable save buttons by default
+  $('form').find('button[type="submit"]').attr('disabled', 'disabled');
+
+  $('form').on('dirty.areYouSure', function() {
+    // Enable save button only as the form is dirty.
+    $(this).find('button[type="submit"]').removeAttr('disabled');
+  });
+
+  $('form').on('clean.areYouSure', function() {
+    // Form is clean so nothing to save - disable the save button.
+    $(this).find('button[type="submit"]').attr('disabled', 'disabled');
+  });
+});
+</script>]])
+
 end

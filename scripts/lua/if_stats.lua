@@ -32,7 +32,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    if(can_edit) then
       print('<input title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value) end
-      print[["></input>&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>\n]]
+      print[["></input>&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>]]
    else
       if(value ~= nil) then print(value) end
    end
