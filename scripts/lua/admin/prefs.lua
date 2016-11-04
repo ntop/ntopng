@@ -303,8 +303,8 @@ function printUsers()
      if showElements == true then
 	showElementsBind = showEnabledAnonymousBind
      end
-     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind)
-     prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind)
+     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true)
+     prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true)
 
      prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements)
      prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements)
@@ -552,12 +552,12 @@ print[[
 
    print([[<script>
 /* jQuery AreYouSure plugin activation */
+// Disable save buttons by default
+$('form').find('button[type="submit"]').attr('disabled', 'disabled');
+
 $(function() {
   // Enable on all forms
   $('form').areYouSure();
-
-  // Disable save buttons by default
-  $('form').find('button[type="submit"]').attr('disabled', 'disabled');
 
   $('form').on('dirty.areYouSure', function() {
     // Enable save button only as the form is dirty.

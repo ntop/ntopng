@@ -23,7 +23,7 @@ end
 -- ############################################
 -- Runtime preference
 
-function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled)
+function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete)
 
   k = prekey..key
 
@@ -72,7 +72,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 print [[
     <div class="input-group" >
       <div >
-        <input id="id_input_]] print(key) print[["type="]] print(input_type) print [[" class="form-control" name="]] print(key) print [[" style="text-align:right;" value="]] print(value.."") print [[">
+        <input id="id_input_]] print(key) print[["type="]] print(input_type) print [[" class="form-control" name="]] print(key) print [[" style="text-align:right;" value="]] print(value.."")
+          if disableAutocomplete then print("autocomplete=\"off\"")
+        print [[">
       </div>
     </div><!-- /input-group -->
   </td></tr>
