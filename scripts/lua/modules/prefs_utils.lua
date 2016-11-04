@@ -73,8 +73,8 @@ print [[
     <div class="input-group" >
       <div >
         <input id="id_input_]] print(key) print[["type="]] print(input_type) print [[" class="form-control" name="]] print(key) print [[" style="text-align:right;" value="]] print(value..'"')
-          if disableAutocomplete then print("autocomplete=\"off\"") end
-        print [[">
+          if disableAutocomplete then print(" autocomplete=\"off\"") end
+        print [[>
       </div>
     </div><!-- /input-group -->
   </td></tr>
