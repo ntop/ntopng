@@ -157,9 +157,9 @@ void Flow::allocDPIMemory() {
 /* *************************************** */
 
 void Flow::freeDPIMemory() {
-  if(ndpiFlow)  { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL; }
-  if(cli_id)    { free(cli_id);    cli_id = NULL;    }
-  if(srv_id)    { free(srv_id);    srv_id = NULL;    }
+  if(ndpiFlow)  { ndpi_free_flow(ndpiFlow); ndpiFlow = NULL;  }
+  if(cli_id)    { free(cli_id);             cli_id = NULL;    }
+  if(srv_id)    { free(srv_id);             srv_id = NULL;    }
 }
 
 /* *************************************** */

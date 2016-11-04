@@ -218,7 +218,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   initElasticSearch();
 
 #ifdef NTOPNG_PRO
-  pro->check_license(true, false);
+  pro->init_license();
 #endif
 }
 
