@@ -30,7 +30,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    if(can_edit) then
-      print('<input title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
+      print('<input style="width:10em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value) end
       print[["></input>&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>]]
    else
@@ -377,7 +377,7 @@ if((page == "overview") or (page == nil)) then
    print[[ <tr><th colspan=1 nowrap>Traffic Breakdown</th> ]]
 
    if(ifstats.type ~= "zmq") then
-      print [[ <td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=2> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr> ]]
+      print [[ <td colspan=2><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td><td colspan=3> <div class="pie-chart" id="ifaceTrafficDistribution"></div></td></tr> ]]
    else
       print [[ <td colspan=4><div class="pie-chart" id="ifaceTrafficBreakdown"></div></td></tr> ]]
    end
