@@ -1,0 +1,20 @@
+<h1>{{report.title}}</h1>
+<h2>{{report.subtitle}}</h2>
+<br><br>
+<div class="center-block" style="width:70em;">
+  <table class="table table-bordered table-condensed table-striped">
+  <thead>
+  {% for _, name in ipairs(report.series) do %}
+    <th>{{name}}</th>
+  {% end %}
+  </thead>
+  <tbody>
+  {% for i in range(report.rows) do %}
+    <tr>
+      {% for j in range(#report.values) do %}
+        <td>{{report.values[j][i]}}</td>
+      {% end %}
+    </tr>
+  {% end %}
+  </tbody>
+</div>
