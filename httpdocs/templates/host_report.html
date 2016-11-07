@@ -1,18 +1,25 @@
 <h1>{{report.title}}</h1>
 <h2>{{report.subtitle}}</h2>
 <br><br>
-<div class="center-block" style="width:70em;">
+<div class="center-block" style="width:100em;">
   <table class="table table-bordered table-condensed table-striped">
   <thead>
-  {% for _, name in ipairs(report.series) do %}
-    <th>{{name}}</th>
+    <th>{{report.series[1]}}</th>
+  {% for j in range(2, #report.series) do %}
+    <th class='text-right'>{{report.series[j]}}</th>
   {% end %}
   </thead>
   <tbody>
   {% for i in range(report.rows) do %}
     <tr>
-      {% for j in range(#report.values) do %}
-        <td>{{report.values[j][i]}}</td>
+      {% if i == report.rows then %}
+        <th class='text-right col-sm-1'>{{report.values[1][i]}}</th>
+      {% else %}
+        <td class='col-sm-1'>{{report.values[1][i]}}</td>
+      {% end %}
+      
+      {% for j in range(2, #report.values) do %}
+        <td class='text-right col-sm-1'>{{report.values[j][i]}}</td>
       {% end %}
     </tr>
   {% end %}
