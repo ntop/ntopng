@@ -39,7 +39,7 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
     char last_char = e[l];
     bool is_collector = false;
 
-    if(num_subscribers == CONST_MAX_NUM_ZMQ_SUBSCRIBERS) {
+    if(num_subscribers == MAX_ZMQ_SUBSCRIBERS) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Too many endpoints defined %u: skipping those in excess",
 				   num_subscribers);
@@ -105,7 +105,8 @@ void CollectorInterface::collect_flows() {
   struct zmq_msg_hdr h;
   char payload[8192];
   u_int payload_len = sizeof(payload)-1;
-  zmq_pollitem_t items[CONST_MAX_NUM_ZMQ_SUBSCRIBERS];
+  zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
+  u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
   int rc, size;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows on %s", ifname);
@@ -122,8 +123,14 @@ void CollectorInterface::collect_flows() {
 
     do {
       rc = zmq_poll(items, num_subscribers, 1000 /* 1 sec */);
+      zmq_max_num_polls_before_purge--;
+
       if((rc < 0) || (!isRunning())) return;
-      if(rc == 0) purgeIdle(time(NULL));
+
+      if(rc == 0 || zmq_max_num_polls_before_purge == 0) {
+	purgeIdle(time(NULL));
+	zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
+      }
     } while(rc == 0);
 
     for(int source_id=0; source_id<num_subscribers; source_id++) {

@@ -795,6 +795,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   if(zflow->ssl_server_name) flow->setServerName(zflow->ssl_server_name);
   if(zflow->bittorrent_hash) flow->setBTHash(zflow->bittorrent_hash);
 
+  /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
 }
 

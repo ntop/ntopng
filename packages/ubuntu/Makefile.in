@@ -14,7 +14,7 @@ ntopng:
 	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/bin/
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/share/man/man8
 	cp -r $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/share/ntopng
-	cp -r $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/share/ntopng
+	cp -Lr $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/share/ntopng  # L to dereference symlinks
 	mv ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 	if test -d "$(NTOPNG_HOME)/pro"; then \
 		mkdir ${NTOPNG_BUILD}/usr/share/ntopng/pro; \

@@ -101,7 +101,7 @@ void Profiles::dumpCounters() {
    for (int i=0; i<numProfiles; i++) {
      /* only dump if a corresponding profile exists */
      if (redis->hashGet((char*)CONST_PROFILES_PREFS, profiles[i]->getName(), value, sizeof(value)) != -1) {
-       snprintf(value, sizeof(value), "%lu", profiles[i]->getNumBytes());
+       snprintf(value, sizeof(value), "%llu", profiles[i]->getNumBytes());
        redis->hashSet(key, profiles[i]->getName(), value);
      }
    }
