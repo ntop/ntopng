@@ -254,7 +254,8 @@
 #define CONST_MAX_NUM_NETWORKS       255
 #define CONST_NUM_OPEN_DB_CACHE        8
 #define CONST_NUM_CONTACT_DBS          8
-#define CONST_MAX_NUM_ZMQ_SUBSCRIBERS 32
+#define MAX_ZMQ_SUBSCRIBERS           32
+#define MAX_ZMQ_POLLS_BEFORE_PURGE  3000
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 

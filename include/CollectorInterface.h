@@ -36,7 +36,7 @@ class CollectorInterface : public ParserInterface {
   void *context;
   u_int32_t num_drops;
   u_int8_t num_subscribers;
-  zmq_subscriber subscriber[CONST_MAX_NUM_ZMQ_SUBSCRIBERS];
+  zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
 
   inline u_int getNumDroppedPackets()   { return(num_drops);  };
 
