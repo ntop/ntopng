@@ -19,8 +19,12 @@
         {% end %}
       {% end %}
       
-      {% for j in range(2, #report.values) do %}
-        <td class='text-right col-sm-1'>{{report.values[j][i]}}</td>
+	  {% for j in range(2, #report.values) do %}
+	  {% if i == report.rows then %}
+      <th class='text-right col-sm-1'>{{report.values[j][i]}}</th>  <!-- Total-->
+      {% else %}
+      <td class='text-right col-sm-1'>{{report.values[j][i]}}</td>
+      {% end %}
       {% end %}
     </tr>
   {% end %}
