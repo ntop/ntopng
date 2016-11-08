@@ -262,7 +262,7 @@ function epoch2Seen(epoch) {
   return(d.format("dd/MM/yyyy hh:mm:ss")+" ["+secondsToTime(tdiff)+" ago]");
 }
 
-setInterval(function() {
+var footerRefresh = function() {
     $.ajax({
       type: 'GET',
 	  url: ']]
@@ -335,6 +335,7 @@ print [[/lua/logout.lua");  }, */
    end
 
 print[[
+	      } /* closes if (prev_bytes > 0) */
 		var msg = "<i class=\"fa fa-time fa-lg\"></i>Uptime: "+rsp.uptime+"<br>";
 
 		if(rsp.alerts > 0 || rsp.engaged_alerts > 0) {
@@ -412,7 +413,6 @@ print [[/lua/if_stats.lua><i class=\"fa fa-warning\" style=\"color: #B94A48;\"><
 		if(alert) {
 		   $('#toomany').html("<div class='alert alert-warning'><h4>Warning</h4>You have too many hosts/flows for your ntopng configuration and this will lead to packet drops and high CPU load. Please restart ntopng increasing -x and -X.</div>");
 		}
-	      }
 
 	    prev_bytes   = rsp.bytes;
 	    prev_packets = rsp.packets;
@@ -428,11 +428,15 @@ print [[/lua/logout.lua");  */
 	  }
 	}
       });
-  }, 3000)
-  //Enable tooltip without a fixer placement
-  $(document).ready(function () { $("[rel='tooltip']").tooltip(); });
-  $(document).ready(function () { $("a").tooltip({ 'selector': ''});});
-  $(document).ready(function () { $("i").tooltip({ 'selector': ''});});
+}
+
+footerRefresh()  /* call immediately to give the UI a more responsive look */
+setInterval(footerRefresh, 3000)  /* re-schedule every three seconds */
+
+//Enable tooltip without a fixer placement
+$(document).ready(function () { $("[rel='tooltip']").tooltip(); });
+$(document).ready(function () { $("a").tooltip({ 'selector': ''});});
+$(document).ready(function () { $("i").tooltip({ 'selector': ''});});
 
 //Automatically open dropdown-menu
 $(document).ready(function(){
