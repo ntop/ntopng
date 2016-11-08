@@ -52,6 +52,11 @@ body {
   padding: 6px;
 }
 
+/* Smaller and smaller table row padding */
+.table-smaller tbody tr td {
+  padding: 2px;
+}
+
 /* Custom container */
 .progress {
   margin-bottom: 0px;
