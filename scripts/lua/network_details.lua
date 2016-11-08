@@ -94,6 +94,14 @@ else
     print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
 end
 
+if ntop.isEnterprise() then
+    if(page == "report") then
+        print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-file-text fa-lg\"></i></a></li>\n")
+    else
+        print("\n<li><a href=\""..nav_url.."&page=report\"><i class=\"fa fa-file-text fa-lg\"></i></a></li>")
+    end
+end
+
 if(network ~= nil) then
     if(page == "config") then
         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
@@ -368,6 +376,8 @@ elseif(page == "alerts") then
 
    </tbody> </table>
     ]]
+elseif page == "report" then
+    dofile(dirs.installdir .. "/pro/scripts/lua/traffic_report.lua")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

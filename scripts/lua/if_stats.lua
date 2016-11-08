@@ -247,6 +247,14 @@ if(isAdministrator()) then
    end
 end
 
+if ntop.isEnterprise() then
+    if(page == "report") then
+        print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-file-text fa-lg\"></i></a></li>\n")
+    else
+        print("\n<li><a href=\""..url.."&page=report\"><i class=\"fa fa-file-text fa-lg\"></i></a></li>")
+    end
+end
+
 if(isAdministrator()) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
@@ -1402,7 +1410,8 @@ end
     });
   </script>
 ]]
-
+elseif page == "report" then
+   dofile(dirs.installdir .. "/pro/scripts/lua/traffic_report.lua")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

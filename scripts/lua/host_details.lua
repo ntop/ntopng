@@ -321,7 +321,25 @@ if ((host["ip"] ~= nil) and host['localhost']) then
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
    end
+end
 
+if(ntop.exists(rrdname)) then
+   if(page == "historical") then
+     print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
+   else
+     print("\n<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
+   end
+end
+
+if ntop.isEnterprise() and host["localhost"] == true then
+   if(page == "report") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text fa-lg'></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=report\"><i class='fa fa-file-text fa-lg'></i></a></li>")
+   end
+end
+
+if ((host["ip"] ~= nil) and host['localhost']) then
    if(host["ip"] ~= nil) then
       if(page == "config") then
 	 print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
@@ -329,14 +347,6 @@ if ((host["ip"] ~= nil) and host['localhost']) then
 	 print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
       end
    end
-end
-
-if(ntop.exists(rrdname)) then
-if(page == "historical") then
-  print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i></a></li>\n")
-else
-  print("\n<li><a href=\""..url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
-end
 end
 
 print [[
@@ -2284,7 +2294,8 @@ if(host_vlan and (host_vlan > 0)) then
    host_key = host_key.."@"..host_vlan
 end
 drawRRD(ifId, host_key, rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
-
+elseif(page == "report") then
+   dofile(dirs.installdir .. "/pro/scripts/lua/traffic_report.lua")
 elseif(page == "sprobe") then
 
 
