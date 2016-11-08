@@ -430,8 +430,8 @@ print [[/lua/logout.lua");  */
       });
 }
 
-footerRefresh()  /* call immediately to give the UI a more responsive look */
-setInterval(footerRefresh, 3000)  /* re-schedule every three seconds */
+footerRefresh();  /* call immediately to give the UI a more responsive look */
+setInterval(footerRefresh, 3000);  /* re-schedule every three seconds */
 
 //Enable tooltip without a fixer placement
 $(document).ready(function () { $("[rel='tooltip']").tooltip(); });
