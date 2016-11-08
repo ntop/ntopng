@@ -1,5 +1,5 @@
 <div class="center-block" style="width:60em;">
-  <table class="table table-bordered table-condensed table-striped table-smaller">
+  <table class="table table-bordered table-condensed table-striped">
   <thead>
     <th>{{report.series[1]}}</th>
   {% for j in range(2, #report.series) do %}
@@ -10,7 +10,7 @@
   {% for i in range(report.rows) do %}
     <tr>
       {% if i == report.rows then %}
-        <th class='text-right col-sm-1'>{{report.values[1][i]}}</th>
+        <th class='col-sm-1'>{{report.values[1][i]}}</th> <!-- Total -->
       {% else %}
         {% if report.values[1][i].highlited then %}
           <td class='col-sm-1' ><span style="color: #FF5454;">{{report.values[1][i].time}}</span></td>

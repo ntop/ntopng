@@ -30,7 +30,9 @@ local  en = {
    },
    report = {
       period = "Interval",
-      date = "%{month}-%{day}-%{year}"}
+      date = "%{month}-%{day}-%{year}"
+   },
+   noTraffic = "No traffic has been reported for the specified date/time selection"
 }
 
 return {en = en}
