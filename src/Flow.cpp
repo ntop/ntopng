@@ -117,7 +117,7 @@ Flow::Flow(NetworkInterface *_iface,
   switch(protocol) {
   case IPPROTO_TCP:
   case IPPROTO_UDP:
-    if(iface->is_ndpi_enabled() && iface->isSampledTraffic())
+    if(iface->is_ndpi_enabled() && (!iface->isSampledTraffic()))
       allocDPIMemory();
     break;
 
