@@ -410,7 +410,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     if(strstr(request_info->uri, "/lua/pro/enterprise/")
        && (!ntop->getPrefs()->is_enterprise_edition())) {
       return(send_error(conn, 403 /* Forbidden */, request_info->uri,
-			"Enterprise edition license required"));
+			"Enterprise edition license required: this features in still under development and it will be released in the near future"));
     }
 
     snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
