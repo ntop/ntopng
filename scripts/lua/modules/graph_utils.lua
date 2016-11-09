@@ -1006,7 +1006,7 @@ end
 
 -- reads one or more RRDs and returns a json suitable to feed rickshaw
 
-function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, append_ifname_to_labels)
+function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, append_ifname_to_labels, transform_columns_function)
    local rrdname = getRRDName(ifid, host, rrdFile)
    local names =  {}
    local names_cache = {}
@@ -1031,6 +1031,12 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
    if(fstart == nil) then return '{}' end
+
+   if transform_columns_function ~= nil then
+      --~ tprint(rrdname)
+      fstart, fstep, fnames, fdata = transform_columns_function(fstart, fstep, fnames, fdata)
+      prefixLabel = ""
+   end
 
    --[[
    io.write('start time: '..start_time..'  end_time: '..end_time..'\n')
@@ -1070,8 +1076,10 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	       else
 		  names[#names+1] = prefixLabel.." Ingress ("..trimSpace(extra_info)..") "
 	       end
-	    else
+	    elseif prefixLabel ~= "" then
 	       names[#names+1] = prefixLabel.." ("..trimSpace(extra_info)..") "
+	    else
+	       names[#names+1] = trimSpace(extra_info)
 	    end
 	 else
 	     names[#names+1] = prefixLabel
@@ -1303,6 +1311,29 @@ end
 
 -- #################################################
 
+function rrd2json_merge(ret, num)
+   local i = 1
+   -- if we are expanding an interface view, we want to concatenate
+   -- jsons for single interfaces, and not for the view. Since view statistics
+   -- are in ret[1], it suffices to aggregate jsons from index i >= 2
+   local json = "["
+   local first = true  -- used to decide where to append commas
+   while i <= num do
+      if(debug_metric) then io.write("->"..i.."\n") end
+      if not first then json = json.."," end
+      json = json..ret[i].json
+      i = i + 1
+      first = false
+   end
+   json = json.."]"
+   -- the (possibly aggregated) json always goes into ret[1]
+   -- ret[1] possibly contains aggregated view statistics such as
+   -- maxval and maxval_time or minval and minval_time
+   ret[1].json = json
+   -- io.write(json.."\n")
+   return(ret[1])
+end
+
 function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expand_interface_views)
    local ret = {}
    local num = 0
@@ -1376,26 +1407,8 @@ function rrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json, expa
       ret.json = "[]"
       return(ret)
    end
-   local i = 1
-   -- if we are expanding an interface view, we want to concatenate
-   -- jsons for single interfaces, and not for the view. Since view statistics
-   -- are in ret[1], it suffices to aggregate jsons from index i >= 2
-   local json = "["
-   local first = true  -- used to decide where to append commas
-   while i <= num do
-      if(debug_metric) then io.write("->"..i.."\n") end
-      if not first then json = json.."," end
-      json = json..ret[i].json
-      i = i + 1
-      first = false
-   end
-   json = json.."]"
-   -- the (possibly aggregated) json always goes into ret[1]
-   -- ret[1] possibly contains aggregated view statistics such as
-   -- maxval and maxval_time or minval and minval_time
-   ret[1].json = json
-   -- io.write(json.."\n")
-   return(ret[1])
+
+   return rrd2json_merge(ret, num)
 end
 
 -- #################################################

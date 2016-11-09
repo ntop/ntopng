@@ -6,6 +6,13 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 
+if ntop.isPro() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+   package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
+   require "common"
+   local json = require "dkjson"
+end
+
 require "lua_utils"
 require "prefs_utils"
 require "graph_utils"
