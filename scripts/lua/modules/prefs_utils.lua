@@ -21,11 +21,15 @@ function notifyNtopng(key)
 end
 
 -- ############################################
+
 -- Runtime preference
 
 function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete)
-
-  k = prekey..key
+  if(string.ends(prekey, ".")) then
+    k = prekey..key
+  else
+    k = prekey.."."..key
+  end
 
   if(_GET[key] ~= nil) then
     v_s = _GET[key]
@@ -328,8 +332,6 @@ function loggingSelector(label, comment, submit_field, redis_key)
   elseif(value == "error") then color = "danger"
   else color = "default"
   end
-
-
 
   if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
   print[[
