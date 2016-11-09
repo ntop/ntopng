@@ -102,7 +102,7 @@ function rrd_fix_resolution(epoch_start, epoch_end, resolution, traffic, columns
 
   -- check resolution consinstency
   if traffic.step > resolution then
-    return {error=i18n('traffic_report.error_rrd_resolution', {prefs=ntop.getHttpPrefix().."/lua/admin/prefs.lua?subpage_active=on_disk_rrds"})}
+    return {error=i18n('error_rrd_low_resolution', {prefs=ntop.getHttpPrefix().."/lua/admin/prefs.lua?subpage_active=on_disk_rrds"})}
   end
 
   -- functions to handle the n-dimensions counters
