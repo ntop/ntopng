@@ -58,6 +58,13 @@ function dumpInterfaceStats(interface_name)
       res["local2remote"] = ifstats["localstats"]["bytes"]["local2remote"]
       res["remote2local"] = ifstats["localstats"]["bytes"]["remote2local"]
 
+      if(ifstats.zmqRecvStats ~= nil) then
+	 res["zmqRecvStats"] = {}
+	 res["zmqRecvStats"]["flows"] = ifstats.zmqRecvStats.flows
+	 res["zmqRecvStats"]["events"] = ifstats.zmqRecvStats.events
+	 res["zmqRecvStats"]["counters"] = ifstats.zmqRecvStats.counters
+      end
+      
       res["tcpPacketStats"] = {}
       res["tcpPacketStats"]["retransmissions"] = ifstats.tcpPacketStats.retransmissions
       res["tcpPacketStats"]["out_of_order"]    = ifstats.tcpPacketStats.out_of_order

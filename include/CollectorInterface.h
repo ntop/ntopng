@@ -34,11 +34,11 @@ typedef struct {
 class CollectorInterface : public ParserInterface {
  private:
   void *context;
-  u_int32_t num_drops;
+  struct {
+    u_int32_t num_flows, num_events, num_counters;
+  } recvStats;
   u_int8_t num_subscribers;
   zmq_subscriber subscriber[MAX_ZMQ_SUBSCRIBERS];
-
-  inline u_int getNumDroppedPackets()   { return(num_drops);  };
 
  public:
   CollectorInterface(const char *_endpoint);
@@ -48,13 +48,13 @@ class CollectorInterface : public ParserInterface {
   inline bool is_ndpi_enabled()         { return(false);      };
   inline char* getEndpoint(u_int8_t id) { return((id < num_subscribers) ?
 						 subscriber[id].endpoint : (char*)""); };
-  inline void incrDrops(u_int32_t num)  { num_drops += num;   };
   inline bool isPacketInterface()       { return(false);      };
   void collect_flows();
 
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);
+  void lua(lua_State* vm);
 };
 
 #endif /* _COLLECTOR_INTERFACE_H_ */

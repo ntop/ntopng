@@ -314,7 +314,12 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
       if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
       if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td><td></td>") end
-      if(ifstats["probe.public_ip"] ~= "") then print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td></tr>\n") end
+      if(ifstats["probe.public_ip"] ~= "") then
+	 print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
+      else
+	 print("<td>&nbsp;</td>\n")
+      end
+      print("</tr>\n")
    end
 
    print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
@@ -419,17 +424,16 @@ print [[ }
 ]]
 print("</script>\n")
 
+   if(ifstats.zmqRecvStats ~= nil) then
+   print("<tr><th colspan=7 nowrap>ZMQ RX Statistics</th></tr>\n")
+   print("<tr><th nowrap>Collected Flows</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span>")
+   print("<th nowrap>Interface RX Updates</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span>")
+   print("<th nowrap>sFlow Counter Updates</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
+   end
+
    print("<tr><th colspan=7 nowrap>Ingress Traffic</th></tr>\n")
    print("<tr><th nowrap>Received Traffic</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
-   print("<span id=pkts_trend></span></td><th width=20%>Dropped ")
-
-   if((ifstats.type ~= "zmq") and (ifstats.type ~= "ZC-flow")) then
-      print "Packets"
-   else
-      print "Flows"
-    end
-
-  print("</th><td width=20%><span id=if_drops>")
+   print("<span id=pkts_trend></span></td><th width=20%>Dropped Packets</th><td width=20%><span id=if_drops>")
 
    if(ifstats.stats.drops > 0) then print('<span class="label label-danger">') end
    print(formatValue(ifstats.stats.drops).. " " .. label)
@@ -1453,6 +1457,13 @@ if(ifstats["bridge.device_a"] ~= nil) then
    print("var b_to_a_last_num_pkts_send_error  = " .. ifstats["bridge.b_to_a.num_pkts_send_error"] .. ";\n")
 end
 
+if(ifstats.zmqRecvStats ~= nil) then
+   print("var last_zmq_time = 0;\n")
+   print("var last_zmq_flows = ".. ifstats.zmqRecvStats.flows .. ";\n")
+   print("var last_zmq_events = ".. ifstats.zmqRecvStats.events .. ";\n")
+   print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
+end
+   
 print [[
 setInterval(function() {
       $.ajax({
@@ -1464,6 +1475,34 @@ print [[/lua/network_load.lua',
 	  success: function(rsp) {
 	var v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
+
+        if (typeof rsp.zmqRecvStats !== 'undefined') {
+           var diff, time_diff, label;
+           var now = (new Date()).getTime();
+
+           if(last_zmq_time > 0) {
+              time_diff = now - last_zmq_time;
+              diff = rsp.zmqRecvStats.flows - last_zmq_flows;
+
+              if(diff > 0) {
+                 rate = ((diff * 1000)/time_diff).toFixed(1);
+                 label = " ["+rate+" Flows/sec] "+get_trend(1,0);
+              } else {
+                 label = " "+get_trend(0,0);
+              }
+           } else {
+              label = " "+get_trend(0,0);
+           }
+           $('#if_zmq_flows').html(addCommas(rsp.zmqRecvStats.flows)+label); 
+           $('#if_zmq_events').html(addCommas(rsp.zmqRecvStats.events)+" "+get_trend(rsp.zmqRecvStats.events, last_zmq_events)); 
+           $('#if_zmq_counters').html(addCommas(rsp.zmqRecvStats.counters)+" "+get_trend(rsp.zmqRecvStats.counters, last_zmq_counters)); 
+
+           last_zmq_flows = rsp.zmqRecvStats.flows;
+           last_zmq_events = rsp.zmqRecvStats.events;
+           last_zmq_counters = rsp.zmqRecvStats.counters;
+           last_zmq_time = now;
+        }
+
 	$('#if_pkts').html(addCommas(rsp.packets)+"]]
 
 print(" Pkts\");")

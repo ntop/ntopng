@@ -143,12 +143,6 @@ function findHost(key)
 function getEndpoint()
 
 --! @memberof interface
---! @brief Increase interface drops.
---! @details For more information please read the @ref ntop_increase_drops documentation.
---! @tparam drops Number of interface drops to be incremented to interface stats.
-function incrDrops(drops)
-
---! @memberof interface
 --! @brief Check if the network interface is running.
 --! @details For more information please read the @ref ntop_interface_is_running documentation.
 --! @return True if the network interface is defined and running, false otherwise.

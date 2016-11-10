@@ -27,7 +27,8 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
   char *tmp, *e;
   const char *topics[] = { "flow", "event", "counter", NULL };
 
-  num_drops = 0, num_subscribers = 0;
+  memset(&recvStats, 0, sizeof(recvStats));
+  num_subscribers = 0;
 
   context = zmq_ctx_new();
 
@@ -183,14 +184,17 @@ void CollectorInterface::collect_flows() {
 
 	  switch(h.url[0]) {
 	  case 'e': /* event */
+	    recvStats.num_events++;
 	    parseEvent(uncompressed, uncompressed_len, source_id, this);
 	    break;
 
 	  case 'f': /* flow */
+	    recvStats.num_flows++;
 	    parseFlow(uncompressed, uncompressed_len, source_id, this);
 	    break;
 
 	  case 'c': /* counter */
+	    recvStats.num_counters++;
 	    parseCounter(uncompressed, uncompressed_len, source_id, this);
 	    break;
 	  }
@@ -249,3 +253,15 @@ bool CollectorInterface::set_packet_filter(char *filter) {
 }
 
 /* **************************************************** */
+
+void CollectorInterface::lua(lua_State* vm) {
+  NetworkInterface::lua(vm);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "flows", recvStats.num_flows);
+  lua_push_int_table_entry(vm, "events", recvStats.num_events);
+  lua_push_int_table_entry(vm, "counters", recvStats.num_counters);
+  lua_pushstring(vm, "zmqRecvStats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
