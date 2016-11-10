@@ -313,23 +313,24 @@ if((page == "overview") or (page == nil)) then
    if(ifstats["remote.name"] ~= nil) then
       print("<tr><th>Remote Probe</th><td nowrap><b>Interface Name</b>: "..ifstats["remote.name"].." [ ".. maxRateToString(ifstats.speed*1000) .." ]</td>")
       if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
-      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td>") end
+      if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td><td></td>") end
       if(ifstats["probe.public_ip"] ~= "") then print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td></tr>\n") end
    end
 
    print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
-
-   if(ifstats.name ~= nil) then
-      print('<th>Custom Name</th><td colspan="3">')
-      label = getInterfaceNameAlias(ifstats.name)
-      inline_input_form("custom_name", "Custom Name",
-	  "Specify an alias for the interface",
-	  label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9]*$"')
-      print("</td></tr>\n")
-   end
+   
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
 
    if is_physical_iface then
+      if(ifstats.name ~= nil) then
+	 print('<th>Custom Name</th><td colspan="3">')
+	 label = getInterfaceNameAlias(ifstats.name)
+	 inline_input_form("custom_name", "Custom Name",
+	     "Specify an alias for the interface",
+	     label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9]*$"')
+	 print("</td></tr>\n")
+      end
+   
       local speed_key = 'ntopng.prefs.'..ifname..'.speed'
       local speed = ntop.getCache(speed_key)
       if speed == nil or speed == "" or tonumber(speed) == nil then
@@ -347,6 +348,8 @@ if((page == "overview") or (page == nil)) then
       end
 
       print("</td></tr>\n")
+   else
+      print("<td colspan=4></td>")
    end
 
    if(ifstats.ip_addresses ~= "") then
@@ -379,6 +382,8 @@ if((page == "overview") or (page == nil)) then
 
    if is_physical_iface then
       print("<th>MTU</th><td colspan=3  nowrap>"..ifstats.mtu.." bytes</td></tr>\n")
+   else
+      print("<td colspan=4></td>")
    end
 
    if(ifstats["pkt_dumper"] ~= nil) then
