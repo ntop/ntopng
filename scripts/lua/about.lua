@@ -14,7 +14,7 @@ active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(_GET["ntopng_license"] ~= nil) then
-   ntop.setCache('ntopng.license', _GET["ntopng_license"])
+   ntop.setCache('ntopng.license', trimSpace(_GET["ntopng_license"]))
    ntop.checkLicense()
 end
 

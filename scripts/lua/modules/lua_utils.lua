@@ -2016,7 +2016,7 @@ end
 
 function trimSpace(what)
    if(what == nil) then return("") end
-   return(string.gsub(what, "%s+", ""))
+   return(string.gsub(string.gsub(what, "%s+", ""), "+%s", ""))
 end
 
 -- ###############################################
