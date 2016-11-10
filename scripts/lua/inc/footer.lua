@@ -84,24 +84,30 @@ print [[</font>
 ]]
 
 if interface.isPcapDumpInterface() == false then
-   
-key = 'ntopng.prefs.'..ifname..'.speed'
-maxSpeed = ntop.getCache(key)
--- io.write(maxSpeed)
-if((maxSpeed == "") or (maxSpeed == nil)) then
-   maxSpeed = 1000000000 -- 1 Gbit
-else
-   maxSpeed = tonumber(maxSpeed)*1000000
-end
-addGauge('networkload', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', 100, 100, 50)
-print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
+   key = 'ntopng.prefs.'..ifname..'.speed'
+   maxSpeed = ntop.getCache(key)
+   -- io.write(maxSpeed)
+   if((maxSpeed == "") or (maxSpeed == nil)) then
+      -- if the speed in not custom we try to read the speed from the interface
+      -- and, as a final resort, we use 1Gbps
+      if tonumber(_ifstats.speed) ~= nil then
+	 maxSpeed = tonumber(_ifstats.speed) * 1e6
+      else
+	 maxSpeed = 1000000000 -- 1 Gbit
+      end
+   else
+      -- use the user-specified custom value for the speed
+      maxSpeed = tonumber(maxSpeed)*1000000
+   end
+   addGauge('networkload', ntop.getHttpPrefix()..'/lua/set_if_prefs.lua', 100, 100, 50)
+   print [[ <div class="text-center" title="All traffic detected by NTOP: Local2Local, Remote2Local, Local2Remote" id="gauge_text_allTraffic"></div> ]]
 
-print [[
+   print [[
 	</div>
 	<div>]]
-print [[  <a href="]]
-      print (ntop.getHttpPrefix())
-      print [[/lua/if_stats.lua">
+   print [[  <a href="]]
+   print (ntop.getHttpPrefix())
+   print [[/lua/if_stats.lua">
 	    <table style="border-collapse:collapse; !important">
 	    <tr><td title="Local to Remote Traffic"><i class="fa fa-cloud-upload"></i>&nbsp;</td><td class="network-load-chart-local2remote">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-local2remote-text"></td></tr>
 	    <tr><td title="Remote to Local Traffic"><i class="fa fa-cloud-download"></i>&nbsp;</td><td class="network-load-chart-remote2local">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</td><td class="text-right" id="chart-remote2local-text"></td></tr>
