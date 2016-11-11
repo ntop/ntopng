@@ -6,6 +6,39 @@ local RRD_RESULT_ERROR_MALFORMED = "Malformed RRD"
 SECONDS_IN_A_HOUR = 3600
 SECONDS_IN_A_DAY = SECONDS_IN_A_HOUR*24
 
+function timestamp_to_date(ts)
+  return os.date("*t", ts)
+end
+
+function date_to_timestamp(dt)
+  return os.time(dt)
+end
+
+function date_month_tostring(m)
+  return os.date("%B", date_to_timestamp(m))  
+end
+
+function date_day_tostring(d)
+  local res = os.date("%d", date_to_timestamp(d))
+  if d.day < 10 then
+    res = string.sub(res, 2)
+  end
+  return res
+end
+
+function date_wday_tostring(d)
+  return os.date("%A", date_to_timestamp(d))
+end
+
+-- returns the days in the given year
+function date_get_year_days(y)
+  return timestamp_to_date(os.time{year=y+1, day=1, month=1, hour=0} - 1).yday
+end
+
+function date_tostring(dt)
+  return os.date("%x %X", dt)
+end
+
 --
 -- Fetches data from RRD derivate counters
 --
@@ -22,6 +55,7 @@ SECONDS_IN_A_DAY = SECONDS_IN_A_HOUR*24
 --      result.count = number of values in each data series
 --      result.start = timestamp for first value
 --      result.step = timestamp step between values
+--      result.names = rrd column names
 --
 function rrd_fetch_derivate(rrdname, epoch_start, epoch_end)
   local result = {}
@@ -51,6 +85,7 @@ function rrd_fetch_derivate(rrdname, epoch_start, epoch_end)
       end
 
       result.count = #fdata
+      result.names = fnames
     end
   end
   
@@ -64,8 +99,8 @@ end
 --  epoch_start - wanted epoch start
 --  epoch_end - wanted end epoch
 --  resolution - wanted resolution
---  traffic - input traffic with the format below
---  columns - a list of RRD column names. First column must be time column.
+--  traffic - input traffic with the format below, plus the "time" column
+--  columns - a list of RRD column names
 --  
 --  traffic format (compatible with rrd_fetch_derivate return value):
 --    .start start RRD date
@@ -83,7 +118,7 @@ end
 --
 function rrd_fix_resolution(epoch_start, epoch_end, resolution, traffic, columns)
   -- BEGIN parameters check
-  if (columns == nil or #columns <= 1) then
+  if (columns == nil or #columns < 1) then
     error("No data columns")
   end
   epoch_start = tonumber(epoch_start)
@@ -108,7 +143,7 @@ function rrd_fix_resolution(epoch_start, epoch_end, resolution, traffic, columns
   -- functions to handle the n-dimensions counters
   local function create_counters()
     local counters = {}
-    for i=2,#columns do
+    for i=1,#columns do
       counters[columns[i]] = 0
     end
     return counters
@@ -116,7 +151,7 @@ function rrd_fix_resolution(epoch_start, epoch_end, resolution, traffic, columns
   -- iterates the n-dimensions counters and calls the 1-dimension callback, passing current counter value and column
   -- callback should return the new counter value
   local function for_each_counter_do_update(counters, callback)
-    for i=2,#columns do
+    for i=1,#columns do
       local col = columns[i]
       counters[col] = callback(counters[col], col)
     end
@@ -125,11 +160,11 @@ function rrd_fix_resolution(epoch_start, epoch_end, resolution, traffic, columns
   -- initialize
   local integr_ctrs = create_counters()
   local idx = 1
-  local time_col = columns[1]
+  local time_col = "time"
   local oldtime = epoch_start
   local time_sum = epoch_start
   local result = {[time_col]={}, hwstep=rrd_step}
-  for i=2,#columns do
+  for i=1,#columns do
     result[columns[i]] = {}
   end
   
