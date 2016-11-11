@@ -32,7 +32,7 @@ function getProtoVolume(ifName, start_time, end_time)
    ifId = getInterfaceId(ifName)
    path = fixPath(dirs.workingdir .. "/" .. ifId .. "/rrd/")
    rrds = ntop.readdir(path)
-
+   
    ret = { }
    for rrdFile,v in pairs(rrds) do
       if((string.ends(rrdFile, ".rrd")) and (top_rrds[rrdFile] == nil)) then
@@ -1017,6 +1017,18 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    -- by default we set this to a value of 8, in order to convert bytes
    -- rrds into bits.
    local scaling_factor = 8
+
+   -- Make sure we do not fetch data from RRDs that have been update too much long ago
+   -- as this creates issues with the consolidation functions when we want to compare
+   -- results coming from different RRDs
+   local now  = os.time()
+   local last = ntop.rrd_lastupdate(rrdname)
+
+   if((last ~= nil) and ((now-last) > 3600)) then
+      local tdiff = now - 1800 -- This avoids to set the uodate continuously
+      ntop.rrd_update(rrdname, tdiff..":0")
+      io.write("Updating "..rrdname.."\n")
+    end
 
    --io.write(prefixLabel.."\n")
    if(prefixLabel == "Bytes" or string.starts(rrdFile, 'categories/')) then

@@ -2435,6 +2435,35 @@ static int ntop_rrd_update(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_rrd_lastupdate(lua_State* vm) {
+  const char *filename;
+  time_t    last_update;
+  char    **ds_names;
+  char    **last_ds;
+  unsigned long ds_count, i;
+  int status;
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  status = rrd_lastupdate_r(filename, &last_update, &ds_count, &ds_names, &last_ds);
+  
+  if(status != 0) {
+    return(CONST_LUA_ERROR);
+  } else {
+    for(i = 0; i < ds_count; i++)
+      free(last_ds[i]), free(ds_names[i]);
+        
+    free(last_ds), free(ds_names);
+
+    lua_pushnumber(vm, last_update);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_rrd_fetch(lua_State* vm) {
   unsigned long i, j, step = 0, ds_cnt = 0;
   rrd_value_t *data, *p;
@@ -2531,83 +2560,6 @@ static int ntop_rrd_fetch(lua_State* vm) {
 
   return(5);
 }
-
-/* ****************************************** */
-
-#ifdef ENABLE_NTOPNG_RRD_GRAPH
-static char** read_string_array(lua_State *vm, int narg, int *len_out) {
-  int len;
-  char **buff;
-
-  if(ntop_lua_check(vm, __FUNCTION__, narg, LUA_TTABLE)) {
-    *len_out = 0;
-    return(NULL);
-  }
-
-  len = lua_objlen(vm, narg);
-  *len_out = len;
-  buff = (char**)malloc(len*sizeof(char*));
-
-  if(!buff) {
-    *len_out = 0;
-    return(NULL);
-  }
-
-  for(int i = 0; i < len; i++) {
-    lua_pushinteger(vm, i+1);
-    lua_gettable(vm, -2);
-    if(lua_isstring(vm, -1))
-      buff[i] = (char*)lua_tostring(vm, -1);
-    else
-      buff[i] = (char*)"";
-
-    lua_pop(vm, 1);
-  }
-
-  return(buff);
-}
-
-/* ****************************************** */
-
-static int ntop_rrd_graph(lua_State* vm) {
-  char **calcpr;
-  int i, xsize, ysize;
-  double ymin, ymax;
-  int status;
-  int argc;
-  char **argv = read_string_array(vm, 1, &argc);
-
-  reset_rrd_state();
-  status = rrd_graph(argc, argv, &calcpr, &xsize, &ysize, NULL, &ymin, &ymax);
-
-  if(status != 0) {
-    /* No data, must return OK even if there was an error to avoid issues */
-    char *err = rrd_get_error();
-
-    if(err != NULL && strlen(err) > 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): %s", __FUNCTION__, err);
-    }
-
-    free(argv);
-    return(CONST_LUA_OK);
-  }
-
-  lua_pushnumber(vm, (lua_Number) xsize);
-  lua_pushnumber(vm, (lua_Number) ysize);
-
-  lua_newtable(vm);
-  for(i = 0; calcpr && calcpr[i]; i++) {
-    lua_pushstring(vm, calcpr[i]);
-    lua_rawseti(vm, -2, i+1);
-    rrd_freemem(calcpr[i]);
-  }
-
-  rrd_freemem(calcpr);
-  free(argv);
-
-  return(CONST_LUA_OK);
-}
-#endif
 
 /* ****************************************** */
 
@@ -5158,9 +5110,7 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_create",     ntop_rrd_create },
   { "rrd_update",     ntop_rrd_update },
   { "rrd_fetch",      ntop_rrd_fetch  },
-#if ENABLE_NTOPNG_RRD_GRAPH
-  { "rrd_graph",      ntop_rrd_graph  },
-#endif
+  { "rrd_lastupdate", ntop_rrd_lastupdate  },
 
   /* Prefs */
   { "getPrefs",          ntop_get_prefs },
