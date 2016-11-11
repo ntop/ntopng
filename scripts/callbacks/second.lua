@@ -58,5 +58,12 @@ for _,ifname in pairs(ifnames) do
       makeRRD(basedir, ifname, "tcp_retransmissions", 1, ifstats.tcpPacketStats.retransmissions)
       makeRRD(basedir, ifname, "tcp_ooo", 1, ifstats.tcpPacketStats.out_of_order)
       makeRRD(basedir, ifname, "tcp_lost", 1, ifstats.tcpPacketStats.lost)
+
+      -- ZMQ stats
+      if ifstats.zmqRecvStats ~= nil then
+            local name = fixPath(basedir .. "/num_zmq_received_flows.rrd")
+            create_rrd(name, 1, "num_flows")
+            ntop.rrd_update(name, "N:".. tolongint(ifstats.zmqRecvStats.flows))
+      end
    end
 end -- for _,ifname in pairs(ifnames) do
