@@ -57,6 +57,13 @@ body {
   padding: 2px;
 }
 
+/* useful in dropdowns */
+.scrollable-menu {
+  height: auto;
+  max-height: 30em;
+  overflow-x: hidden;
+}
+
 /* Custom container */
 .progress {
   margin-bottom: 0px;

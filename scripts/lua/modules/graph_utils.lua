@@ -1098,7 +1098,7 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 	    elseif prefixLabel ~= "" then
 	       names[#names+1] = prefixLabel.." ("..trimSpace(extra_info)..") "
 	    else
-	       names[#names+1] = trimSpace(extra_info)
+	       names[#names+1] = extra_info
 	    end
 	 else
 	     names[#names+1] = prefixLabel
