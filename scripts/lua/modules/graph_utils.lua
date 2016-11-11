@@ -1022,12 +1022,18 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    -- as this creates issues with the consolidation functions when we want to compare
    -- results coming from different RRDs
    local now  = os.time()
+
    local last = ntop.rrd_lastupdate(rrdname)
 
    if((last ~= nil) and ((now-last) > 3600)) then
       local tdiff = now - 1800 -- This avoids to set the uodate continuously
-      ntop.rrd_update(rrdname, tdiff..":0")
-      io.write("Updating "..rrdname.."\n")
+      if(enable_second_debug == 1) then io.write("Updating "..rrdname.."\n") end
+      
+      if rrdFile == "bytes.rrd" then
+	 ntop.rrd_update(rrdname, tdiff..":0:0")
+      else
+	 ntop.rrd_update(rrdname, tdiff..":0")
+      end
     end
 
    --io.write(prefixLabel.."\n")
