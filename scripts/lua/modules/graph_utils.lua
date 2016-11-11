@@ -1025,9 +1025,8 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    local last = ntop.rrd_lastupdate(rrdname)
 
    if((last ~= nil) and ((now-last) > 3600)) then
-      local tdiff = now - 1800 -- This avoids to set the uodate continuously
+      local tdiff = now - 1800 -- This avoids to set the update continuously
       ntop.rrd_update(rrdname, tdiff..":0")
-      io.write("Updating "..rrdname.."\n")
     end
 
    --io.write(prefixLabel.."\n")
