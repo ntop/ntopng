@@ -1,8 +1,8 @@
 Introduction
 -------------
 Netfilter support in ntopng is part of the packaged version available at http://packages.ntop.org.
-If you have a pro license you can drop/shape traffic from within ntopng, otherwise ntopng will
-just mark the traffic using the protocol identifier of the flow. The full list of protocol identifiers
+If you have a pro license, you can drop/shape traffic from within ntopng or ntopng will
+mark the traffic using the protocol identifier of the flow. The full list of protocol identifiers
 can be obtained by running ntopng with the help flag -h. For example, Skype flows will be
 marked with protocol identifier 125.
 
@@ -52,11 +52,15 @@ The use case can be graphically illustrated as:
 					  |
 					  | eth0 (monitoring interface)
 
+For example:
 
 The configuration needed is:
 
-# 1 - Enable forwarding:
+# 1 - Enable forwarding and NAT (for example private network: 192.168.1.0/24):
 	# echo 1 > /proc/sys/net/ipv4/ip_forward
+        # iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -j MASQUERADE
+  
+      Attention: before going ahead, make sure you are able to go out to Internet
 
 # 2 - Set netfilter queue rules:
 	# iptables -A FORWARD -i eth1 -j NFQUEUE --queue-num 0
@@ -65,7 +69,18 @@ The configuration needed is:
 # 3 - Run ntopng:
 	# ntopng -i nf:0
 
-The configuration above works and was tested on ubuntu 14.04. Commands may slightly change on
+Now you have two possibilities:
+
+1) Go in ntopng and filter/shaping the traffic
+
+2) Permit all the traffic in ntopng (ntopng will marks the traffic) and control it via iptables rules.
+   For example:
+   - to drop skype (id 125) add:
+     iptables -t mangle -A POSTROUTING -m mark --mark 125 -j DROP
+   - to drop facebook (id 119) add:
+     iptables -t mangle -A POSTROUTING -m mark --mark 119 -j DROP
+ 
+The configuration above works and was tested on ubuntu 14.04 and 16.04. Commands may slightly change on
 other distributions.
 
 
