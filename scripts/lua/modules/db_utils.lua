@@ -162,9 +162,9 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
 
    if((host ~= nil) and (host ~= "")) then
       if(version == 4) then
-	 sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
-      else
-	 sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
+	rsp = expandIpV4Network(host)
+	sql = sql .." AND ((IP_SRC_ADDR>='"..rsp[1].."' AND IP_SRC_ADDR<='"..rsp[2].."')"
+	sql = sql .." OR (IP_DST_ADDR>='"..rsp[1].."' AND IP_DST_ADDR<='"..rsp[2].."'))"
       end
    end
 
