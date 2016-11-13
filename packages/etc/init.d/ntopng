@@ -14,14 +14,6 @@
 ### END INIT INFO
 
 DISTRO="unknown"
-if [ -f /lib/lsb/init-functions ]; then
-   DISTRO="debian"
-   . /lib/lsb/init-functions
-fi
-if [ -f /etc/init.d/functions ]; then
-   DISTRO="centos"
-   . /etc/init.d/functions
-fi
 
 ERROR=0
 NTOPNG_BINARY=/usr/bin/ntopng
@@ -31,6 +23,19 @@ NTOPNG_BINARY=/usr/bin/ntopng
 # (Example when ntopng has been cloned from git)
 #
 cd /
+
+#Don't remove init_script function. 
+#It is needed for systemd in ubuntu 16
+init_script() {
+  if [ -f /lib/lsb/init-functions ]; then
+     DISTRO="debian"
+     . /lib/lsb/init-functions
+  fi
+  if [ -f /etc/init.d/functions ]; then
+     DISTRO="centos"
+     . /etc/init.d/functions
+  fi
+}
 
 error_handler() {
     EXIT_ON_END=$0
@@ -248,6 +253,8 @@ status_ntopng() {
 ########
 
 logger "ntopng $1"
+
+init_script
 
 case "$1" in
   start)
