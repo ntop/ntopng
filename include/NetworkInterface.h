@@ -63,6 +63,7 @@ class NetworkInterface {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
+  bool refreshAlertCounters;
   u_int32_t ifSpeed, numL2Devices, scalingFactor;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
@@ -331,9 +332,11 @@ class NetworkInterface {
   void addAllAvailableInterfaces();
   inline bool idle() { return(is_idle); }
   inline u_int16_t getMTU() { return(ifMTU); }
-  inline void setIdleState(bool new_state)  { is_idle = new_state;  }
-  inline StatsManager  *getStatsManager()   { return statsManager;  }
-  inline AlertsManager *getAlertsManager()  { return alertsManager; }
+  inline void setIdleState(bool new_state)         { is_idle = new_state;           }
+  inline StatsManager  *getStatsManager()          { return statsManager;           }
+  inline AlertsManager *getAlertsManager()         { return alertsManager;          }
+  inline void setRefreshAlertCounters(bool status) { refreshAlertCounters = status; }
+  inline bool getRefreshAlertCounters()            { return refreshAlertCounters;   }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules(patricia_tree_t *ptree);

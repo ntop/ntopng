@@ -4517,6 +4517,7 @@ static int ntop_interface_delete_alerts(lua_State* vm) {
     lua_pushinteger(vm, am->deleteAlerts(engaged, NULL));
   }
 
+  iface->setRefreshAlertCounters(true);
   return(CONST_LUA_OK);
 }
 

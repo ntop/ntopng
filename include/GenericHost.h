@@ -60,7 +60,6 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
 		u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes);
   inline u_int32_t get_host_serial()  { return(host_serial);               };
   inline void incNumAlerts()          { num_alerts_detected++;             };
-  inline u_int32_t getNumAlerts()     { return(num_alerts_detected);       };
 
   inline u_int64_t getPeriodicStats(void)    { return (last_bytes_periodic);	   };
   void resetPeriodicStats(void);
