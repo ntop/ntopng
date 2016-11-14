@@ -45,8 +45,4 @@ class AddressTree {
   inline char *getAddressString(u_int8_t id) { return((id < numAddresses) ? addressString[id] : NULL); };
 };
 
-extern patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
-extern patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
-extern void free_ptree_data(void *data);
-
 #endif /* _ADDRESS_TREE_H_ */

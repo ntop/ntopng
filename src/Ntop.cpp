@@ -58,7 +58,7 @@ Ntop::Ntop(char *appName) {
   export_interface = NULL;
   start_time = 0; /* It will be initialized by start() */
   memset(iface, 0, sizeof(iface));
-  httpd = NULL, runtimeprefs = NULL, geo = NULL;
+  httpd = NULL, runtimeprefs = NULL, geo = NULL, hostBlacklist = hostBlacklist = NULL;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL,
@@ -163,6 +163,9 @@ Ntop::~Ntop() {
   if(custom_ndpi_protos) delete(custom_ndpi_protos);
   if(elastic_search) delete(elastic_search);
 
+  if(hostBlacklist)       Destroy_Patricia(hostBlacklist, NULL);
+  if(hostBlacklistShadow) Destroy_Patricia(hostBlacklistShadow, NULL);
+  
   Destroy_Patricia(local_interface_addresses, NULL);
   delete address;
   delete pa;
@@ -318,8 +321,8 @@ bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id) {
 /* ******************************************* */
 
 bool Ntop::isLocalInterfaceAddress(int family, void *addr) {
-  return((ptree_match(local_interface_addresses, family, addr,
-		      (family == AF_INET) ? 32 : 128) != NULL) ? true /* found */ : false /* not found */);
+  return((Utils::ptree_match(local_interface_addresses, family, addr,
+			     (family == AF_INET) ? 32 : 128) != NULL) ? true /* found */ : false /* not found */);
 }
 
 /* ******************************************* */
@@ -555,7 +558,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network for %s", buf_orig, iface[ifId]->get_name());
-	ptree_add_rule(local_interface_addresses, buf_orig);
+	Utils::ptree_add_rule(local_interface_addresses, buf_orig);
       }
     }
   }
@@ -1255,4 +1258,37 @@ void Ntop::shutdown() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s [running: %d]",
 				 iface[i]->get_name(), iface[i]->isRunning());
   }
+}
+
+/* ******************************************* */
+
+void Ntop::allocHostBlacklist() {
+  if(hostBlacklistShadow != NULL) {
+    Destroy_Patricia(hostBlacklistShadow, NULL);
+    hostBlacklistShadow = NULL;
+  }
+
+  hostBlacklistShadow = New_Patricia(128);
+}
+
+/* ******************************************* */
+
+void Ntop::swapHostBlacklist() {
+  patricia_tree_t *cp = hostBlacklist;
+
+  hostBlacklist = hostBlacklistShadow;
+  hostBlacklistShadow = cp;
+}
+
+/* ******************************************* */
+
+void Ntop::addToHostBlacklist(char *net) {
+  if(hostBlacklistShadow)
+    Utils::ptree_add_rule(hostBlacklistShadow, net);  
+}
+
+/* ******************************************* */
+
+bool Ntop::isBlacklistedIP(IpAddress *ip) {
+  return((hostBlacklist && ip->findAddress(hostBlacklist)) ? true : false);
 }

@@ -67,7 +67,8 @@ class Ntop {
   NagiosManager *nagios_manager;
   FlowChecker *flow_checker;
 #endif
-
+  patricia_tree_t *hostBlacklist, *hostBlacklistShadow;
+  
   void loadLocalInterfaceAddress();
   
  public:
@@ -385,6 +386,11 @@ class Ntop {
   inline void getLocalNetworks(lua_State* vm) { address->getLocalNetworks(vm);          };
   inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void reloadInterfacesLuaInterpreter();
+
+  void allocHostBlacklist();
+  void swapHostBlacklist();
+  void addToHostBlacklist(char *net);
+  bool isBlacklistedIP(IpAddress *ip);
 };
 
 extern Ntop *ntop;

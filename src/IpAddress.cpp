@@ -181,9 +181,9 @@ void* IpAddress::findAddress(patricia_tree_t *ptree) {
     void *ret;
 
     if(addr.ipVersion == 4)
-      ret = ptree_match(ptree, AF_INET, &addr.ipType.ipv4, 32);
+      ret = Utils::ptree_match(ptree, AF_INET, &addr.ipType.ipv4, 32);
     else
-      ret = ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
+      ret = Utils::ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
 
     return(ret);
   }
@@ -250,9 +250,9 @@ bool IpAddress::match(patricia_tree_t *ptree) {
   if(ptree == NULL) return(true);
 
   if(addr.ipVersion == 4)
-    node = ptree_match(ptree, AF_INET, (void*)&addr.ipType.ipv4, 32);
+    node = Utils::ptree_match(ptree, AF_INET, (void*)&addr.ipType.ipv4, 32);
   else
-    node = ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
+    node = Utils::ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
 
   return((node == NULL) ? false : true);
 }
