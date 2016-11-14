@@ -377,7 +377,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     m.unlock(__FILE__, __LINE__);
   }
 
-  return rc;  
+  return rc;
 }
 
 /* **************************************************** */
@@ -539,12 +539,16 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
   char ipbuf_id[256];
 
   if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
-      return -1;
+    return -1;
 
-  if (engage)
+  if(!h->triggerAlerts() || !h->isLocalHost())
+    return 0;
+
+  if (engage) {
+    h->incNumAlerts();
     return engageAlert(alert_entity_host, ipbuf_id,
 		       engaged_alert_id, alert_type, alert_severity, alert_json);
-  else
+  } else
     return releaseAlert(alert_entity_host, ipbuf_id,
 			engaged_alert_id, alert_type, alert_severity, alert_json);
 };
@@ -607,6 +611,11 @@ int AlertsManager::storeHostAlert(Host *h,
   if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
+  if(!h->triggerAlerts() || !h->isLocalHost())
+    return 0;
+
+  h->incNumAlerts();
+  
   return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json, true);
 };
 
@@ -654,6 +663,38 @@ int AlertsManager::getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool
 	   "alert_entity=\"%i\" AND alert_entity_val=\"%s@%i\"",
 	   static_cast<int>(alert_entity_host), host_ip, vlan_id);
   return getNumAlerts(engaged, wherebuf);
+}
+
+/* ******************************************* */
+
+int AlertsManager::getNumHostAlerts(Host *h, bool engaged) {
+  char wherebuf[256];
+  char ipbuf_id[256];
+
+  if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
+    return -1;
+
+  snprintf(wherebuf, sizeof(wherebuf),
+	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\"",
+	   static_cast<int>(alert_entity_host), ipbuf_id);
+  return getNumAlerts(engaged, wherebuf);
+}
+
+/* ******************************************* */
+
+int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+  int ret = 0;
+  ret = storeAlert(alert_entity_flow, (char*)"flow"/* TODO: possibly add an unique id for flows */,
+		   alert_type, alert_severity, alert_json,
+		   true /* perform check on maximum */);
+
+  if(f->get_cli_host() && f->get_cli_host()->isLocalHost())
+    ret |= storeHostAlert(f->get_cli_host(), alert_type, alert_severity, alert_json);
+
+  if(f->get_srv_host() && f->get_srv_host()->isLocalHost())
+    ret |= storeHostAlert(f->get_srv_host(), alert_type, alert_severity, alert_json);
+
+  return ret;
 }
 
 /* ******************************************* */

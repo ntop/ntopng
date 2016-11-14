@@ -222,20 +222,28 @@ Flow::~Flow() {
       switch(status) {
       case status_suspicious_tcp_probing:
       case status_suspicious_tcp_syn_probing:
-	char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
+	char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
 
-	cli_host->incNumAlerts(), srv_host->incNumAlerts();
 	c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+	if(c && cli_host->get_vlan_id())
+	  sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+
 	s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+	if(s && srv_host->get_vlan_id())
+	  sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
 	snprintf(alert_msg, sizeof(alert_msg),
 		 "Probing or server down: "
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> &gt; "
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> &gt; "
+		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> [%s]",
 		 ntop->getPrefs()->get_http_prefix(),
-		 c, iface->get_name(), cli_host->get_name() ? cli_host->get_name() : c,
+		 c, iface->get_name(),
+		 cli_host->isLocalHost() ? "&page=alerts" : "",
+		 cli_host->get_name() ? cli_host->get_name() : c,
 		 ntop->getPrefs()->get_http_prefix(),
-		 s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
+		 s, iface->get_name(),
+		 srv_host->isLocalHost() ? "&page=alerts" : "",
+		 srv_host->get_name() ? srv_host->get_name() : s,
 		 print(fbuf, sizeof(fbuf)));
 
 	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
@@ -295,7 +303,6 @@ void Flow::checkBlacklistedFlow() {
 	   || srv_host->is_blacklisted())) {
       char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
 
-      cli_host->incNumAlerts(), srv_host->incNumAlerts();
       c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
       s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
 
@@ -2392,8 +2399,6 @@ void Flow::checkFlowCategory() {
 #if 0
   {
     char c_buf[64], s_buf[64], *c, *s, alert_msg[1024];
-
-    cli_host->incNumAlerts(), srv_host->incNumAlerts();
 
     /* Emit alarm */
     c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));

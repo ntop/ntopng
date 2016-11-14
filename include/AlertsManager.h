@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-//class Host;
+class Flow;
 
 class AlertsManager : protected StoreManager {
  private:
@@ -105,15 +105,12 @@ class AlertsManager : protected StoreManager {
 		    bool engaged);
 
   int getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged);
+  int getNumHostAlerts(Host *h, bool engaged);
 
   /*
     ========== FLOW alerts API =========
    */
-  inline int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeAlert(alert_entity_flow, (char*)"flow"/* TODO: possibly add an unique id for flows */,
-		      alert_type, alert_severity, alert_json,
-		      true /* perform check on maximum */);
-  };
+  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
   /*
     ========== NETWORK alerts API ======

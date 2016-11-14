@@ -184,6 +184,7 @@ void NetworkInterface::init() {
     tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
     pkt_dumper = NULL, numL2Devices = 0;
   pollLoopCreated = false, bridge_interface = false;
+  refreshAlertCounters = false;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -1690,6 +1691,10 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
   struct timeval *tv = (struct timeval*)user_data;
 
   host->updateStats(tv);
+
+  if(host->getInterface()->getRefreshAlertCounters())
+    host->getNumAlerts(true);
+
   /*
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Updated: %s [%d]",
     ((StringHost*)node)->host_key(),
@@ -1726,6 +1731,8 @@ void NetworkInterface::periodicStatsUpdate() {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()){
     static_cast<MySQLDB*>(db)->updateStats(&tv);
   }
+
+  setRefreshAlertCounters(false);
 }
 
 /* **************************************************** */

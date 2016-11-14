@@ -1187,7 +1187,7 @@ void Host::updateStats(struct timeval *tv) {
   ((GenericHost*)this)->updateStats(tv);
   if(http) http->updateStats(tv);
 
-  if(!localHost || !triggerAlerts()) return;
+  if(!localHost) return;
 
   if(tv->tv_sec >= nextSitesUpdate) {
     if(nextSitesUpdate > 0) {
@@ -1202,16 +1202,31 @@ void Host::updateStats(struct timeval *tv) {
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 
-  if(isAboveQuota()) {
+  if(isAboveQuota() && triggerAlerts()) {
     const char *error_msg = "Host <A HREF=%s/lua/host_details.lua?host=%s&ifname=%s>%s</A> is above quota [%u])";
     char ip_buf[48], *h, msg[512];
     h = ip.print(ip_buf, sizeof(ip_buf));
 
     snprintf(msg, sizeof(msg),
-             error_msg, ntop->getPrefs()->get_http_prefix(),
-             h, iface->get_name(), h, host_quota_mb);
+	     error_msg, ntop->getPrefs()->get_http_prefix(),
+	     h, iface->get_name(), h, host_quota_mb);
     iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
   }
+
+}
+
+/* *************************************** */
+
+u_int32_t Host::getNumAlerts(bool from_alertsmanager)     {
+  if(!from_alertsmanager)
+    return(num_alerts_detected);
+
+  num_alerts_detected = iface->getAlertsManager()->getNumHostAlerts(this, true)
+    + iface->getAlertsManager()->getNumHostAlerts(this, false);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Refreshing alerts from alertsmanager [num: %i]", num_alerts_detected);
+
+  return(num_alerts_detected);
 }
 
 /* *************************************** */
