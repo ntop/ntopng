@@ -2298,3 +2298,38 @@ print [[
 ]]
 
 end
+
+-- ####################################################
+
+-- Compute the difference in seconds between local time and UTC.
+local function get_timezone()
+   local now = os.time()
+   return os.difftime(now, os.time(os.date("!*t", now)))
+end
+
+local function get_tzoffset(timezone)
+   local h, m = math.modf(timezone / 3600)
+   return string.format("%+.4d", 100 * h + 60 * m)
+end
+
+function get_timezone_offset()
+   local ts = get_tzoffset(get_timezone())
+   local utcdate   = os.date("!*t", ts)
+   local localdate = os.date("*t", ts)
+   localdate.isdst = false -- this is the trick
+   return os.difftime(os.time(localdate), os.time(utcdate))
+end
+
+function format_time(timestamp, format, tzoffset)
+   if tzoffset == "local" then  -- calculate local time zone (for the server)
+      local now = os.time()
+      local local_t = os.date("*t", now)
+      local utc_t = os.date("!*t", now)
+      local delta = (local_t.hour - utc_t.hour)*60 + (local_t.min - utc_t.min)
+      local h, m = math.modf( delta / 60)
+      tzoffset = string.format("%+.4d", 100 * h + 60 * m)
+   end
+
+   return os.date(format, timestamp + tzoffset)
+end
+

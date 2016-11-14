@@ -342,7 +342,7 @@ print [[/lua/logout.lua");  }, */
 
 print[[
 	      } /* closes if (prev_bytes > 0) */
-		var msg = "<i class=\"fa fa-time fa-lg\"></i>Uptime: "+rsp.uptime+"<br>";
+		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small><br>";
 
 		if(rsp.alerts > 0 || rsp.engaged_alerts > 0) {
 		   msg += "&nbsp;<a href=]]
