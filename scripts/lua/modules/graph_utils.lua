@@ -1023,17 +1023,16 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
    -- results coming from different RRDs
    local now  = os.time()
 
-   local last = ntop.rrd_lastupdate(rrdname)
+   local last,ds_count = ntop.rrd_lastupdate(rrdname)
 
    if((last ~= nil) and ((now-last) > 3600)) then
-      local tdiff = now - 1800 -- This avoids to set the uodate continuously
+      local tdiff = now - 1800 -- This avoids to set the update continuously
+      local label = tdiff
+      
       if(enable_second_debug == 1) then io.write("Updating "..rrdname.."\n") end
       
-      if rrdFile == "bytes.rrd" then
-	 ntop.rrd_update(rrdname, tdiff..":0:0")
-      else
-	 ntop.rrd_update(rrdname, tdiff..":0")
-      end
+      for i=1,ds_count do label = label .. ":0" end
+      ntop.rrd_update(rrdname, label)
     end
 
    --io.write(prefixLabel.."\n")

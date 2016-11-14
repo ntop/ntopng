@@ -2457,9 +2457,9 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
     free(last_ds), free(ds_names);
 
     lua_pushnumber(vm, last_update);
+    lua_pushnumber(vm, ds_count);
+    return(2 /* 2 values returned */);
   }
-
-  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
