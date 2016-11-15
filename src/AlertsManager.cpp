@@ -629,9 +629,9 @@ int AlertsManager::getHostAlerts(Host *h, lua_State* vm, patricia_tree_t *allowe
     lua_newtable(vm);
     return -1;
   }
-  snprintf(wherebuf, sizeof(wherebuf),
-	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\"",
-	   static_cast<int>(alert_entity_host), ipbuf_id);
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   "alert_entity=%i AND alert_entity_val='%q'",
+		   static_cast<int>(alert_entity_host), ipbuf_id);
   return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, wherebuf);
 }
 
@@ -646,9 +646,9 @@ int AlertsManager::getHostAlerts(const char *host_ip, u_int16_t vlan_id,
     lua_newtable(vm);
     return -1;
   }
-  snprintf(wherebuf, sizeof(wherebuf),
-	   "alert_entity=\"%i\" AND alert_entity_val=\"%s@%i\"",
-	   static_cast<int>(alert_entity_host), host_ip, vlan_id);
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   "alert_entity=%i AND alert_entity_val='%q@%i'",
+		   static_cast<int>(alert_entity_host), host_ip, vlan_id);
   return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, wherebuf);
 }
 
@@ -659,9 +659,9 @@ int AlertsManager::getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool
   if(!host_ip) {
     return -1;
   }
-  snprintf(wherebuf, sizeof(wherebuf),
-	   "alert_entity=\"%i\" AND alert_entity_val=\"%s@%i\"",
-	   static_cast<int>(alert_entity_host), host_ip, vlan_id);
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   "alert_entity=%i AND alert_entity_val='%q@%i'",
+		   static_cast<int>(alert_entity_host), host_ip, vlan_id);
   return getNumAlerts(engaged, wherebuf);
 }
 
@@ -674,9 +674,9 @@ int AlertsManager::getNumHostAlerts(Host *h, bool engaged) {
   if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
-  snprintf(wherebuf, sizeof(wherebuf),
-	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\"",
-	   static_cast<int>(alert_entity_host), ipbuf_id);
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   "alert_entity=%i AND alert_entity_val='%q'",
+		   static_cast<int>(alert_entity_host), ipbuf_id);
   return getNumAlerts(engaged, wherebuf);
 }
 
@@ -810,10 +810,10 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
 int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value) {
   char wherebuf[STORE_MANAGER_MAX_QUERY];
   
-  snprintf(wherebuf, sizeof(wherebuf),
-	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\"",
-	   static_cast<int>(alert_entity),
-	   alert_entity_value ? alert_entity_value : (char*)"");
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   "alert_entity=%i AND alert_entity_val='%q'",
+		   static_cast<int>(alert_entity),
+		   alert_entity_value ? alert_entity_value : (char*)"");
   return getNumAlerts(engaged, wherebuf);
 }
 
@@ -822,11 +822,11 @@ int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const ch
 int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type) {
   char wherebuf[STORE_MANAGER_MAX_QUERY];
 
-  snprintf(wherebuf, sizeof(wherebuf),
-	   "alert_entity=\"%i\" AND alert_entity_val=\"%s\" AND alert_type=\"%i\"",
-	   static_cast<int>(alert_entity),
-	   alert_entity_value ? alert_entity_value : (char*)"",
-	   static_cast<int>(alert_type));
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   "alert_entity=%i AND alert_entity_val='%q' AND alert_type=%i",
+		   static_cast<int>(alert_entity),
+		   alert_entity_value ? alert_entity_value : (char*)"",
+		   static_cast<int>(alert_type));
   return getNumAlerts(engaged, wherebuf);
 }
 

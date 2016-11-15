@@ -1058,7 +1058,6 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
     iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg);
-    incNumAlerts();
   }
 }
 
@@ -1082,7 +1081,6 @@ void Host::incNumFlows(bool as_client) {
       iface->getAlertsManager()->engageHostAlert(this,
 						 (char*)"scan_attacker",
 						 alert_flow_flood, alert_level_error, msg);
-      incNumAlerts();
       flow_flood_attacker_alert = true;
     }
   } else {
@@ -1102,7 +1100,6 @@ void Host::incNumFlows(bool as_client) {
       iface->getAlertsManager()->engageHostAlert(this,
 						 (char*)"scan_victim",
 						 alert_flow_flood, alert_level_error, msg);
-      incNumAlerts();
       flow_flood_victim_alert = true;
     }
   }
@@ -1129,7 +1126,6 @@ void Host::decNumFlows(bool as_client) {
 	iface->getAlertsManager()->releaseHostAlert(this,
 						    (char*)"scan_attacker",
 						    alert_flow_flood, alert_level_error, msg);
-	incNumAlerts();
 	flow_flood_attacker_alert = false;
       }
     } else
@@ -1152,7 +1148,6 @@ void Host::decNumFlows(bool as_client) {
 	iface->getAlertsManager()->releaseHostAlert(this,
 						    (char*)"scan_victim",
 						    alert_flow_flood, alert_level_error, msg);
-	incNumAlerts();
 	flow_flood_victim_alert = false;
       }
     } else
