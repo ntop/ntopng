@@ -339,7 +339,7 @@ class NetworkInterface {
   inline bool getRefreshAlertCounters()            { return refreshAlertCounters;   }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules(patricia_tree_t *ptree);
+  void refreshL7Rules(patricia_tree_t *removedNetworks);
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif

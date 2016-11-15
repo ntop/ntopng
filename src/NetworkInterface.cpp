@@ -3679,9 +3679,9 @@ void NetworkInterface::addAllAvailableInterfaces() {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshL7Rules(patricia_tree_t *ptree) {
+void NetworkInterface::refreshL7Rules(patricia_tree_t *removedNetworks) {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshL7Rules(ptree);
+    policer->refreshL7Rules(removedNetworks);
 }
 #endif
 

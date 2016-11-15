@@ -1151,6 +1151,8 @@ elseif(page == "filtering") then
 
    if(_GET["delete_network"] ~= nil) then
       ntop.delHashCache(policy_key, _GET["delete_network"])
+      -- reload all the rules, and update hosts affected by removal
+      interface.reloadL7Rules(_GET["delete_network"])
    end
 
    net = _GET["network"]
@@ -1197,8 +1199,10 @@ elseif(page == "filtering") then
       key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
       ntop.setHashCache(key, net, egress_shaper_id)
       -- ******************************
-      interface.reloadL7Rules(net)
-      -- io.write("reloading shapers for "..net.."\n")
+      
+      -- reload all the rules
+      interface.reloadL7Rules()
+      -- io.write("reloading shapers rules\n")
    end
 
    selected_network = net
