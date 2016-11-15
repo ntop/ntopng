@@ -13,6 +13,9 @@
 # Short-Description: Start/stop ntopng web
 ### END INIT INFO
 
+#Needed to skip systemctl redirect
+_SYSTEMCTL_SKIP_REDIRECT=yes
+
 DISTRO="unknown"
 
 ERROR=0
@@ -24,18 +27,15 @@ NTOPNG_BINARY=/usr/bin/ntopng
 #
 cd /
 
-#Don't remove init_script function. 
-#It is needed for systemd in ubuntu 16
-init_script() {
-  if [ -f /lib/lsb/init-functions ]; then
-     DISTRO="debian"
-     . /lib/lsb/init-functions
-  fi
-  if [ -f /etc/init.d/functions ]; then
-     DISTRO="centos"
-     . /etc/init.d/functions
-  fi
-}
+if [ -f /lib/lsb/init-functions ]; then
+   DISTRO="debian"
+   . /lib/lsb/init-functions
+fi
+if [ -f /etc/init.d/functions ]; then
+   DISTRO="centos"
+   . /etc/init.d/functions
+fi
+
 
 error_handler() {
     EXIT_ON_END=$0
@@ -253,8 +253,6 @@ status_ntopng() {
 ########
 
 logger "ntopng $1"
-
-init_script
 
 case "$1" in
   start)
