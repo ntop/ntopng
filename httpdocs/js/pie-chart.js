@@ -326,6 +326,14 @@ function create_pie_chart(name, units) {
     var textOffset = 14;
     var tweenDuration = 250;
     var r = 116; //100;
+
+    if($(name).hasClass("pie-chart-small")) {
+	w = 270;
+	h = 250;
+	r = w / 3 - 20;
+	ir = r / 2;
+    }
+
     var lines, valueLabels, nameLabels;
 
     //D3 helper function to populate pie slice parameters from array data
@@ -351,7 +359,7 @@ function create_pie_chart(name, units) {
     var vis = d3.select(name).append("svg:svg")
 	.attr("width", w)
 	.attr("height", h)
-	.attr("viewBox","0 0 500 325") 
+	.attr("viewBox","0 0 " + w + " " + h) 
 	.attr("preserveAspectRatio","xMidYMid");
 
     //GROUP FOR ARCS/PATHS

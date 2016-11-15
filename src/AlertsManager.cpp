@@ -763,7 +763,7 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
  out:
   m.unlock(__FILE__, __LINE__);
 
-  return rc;  
+  return rc;
 }
 
 /* **************************************************** */
@@ -899,6 +899,43 @@ int AlertsManager::deleteAlerts(bool engaged, AlertEntity alert_entity, const ch
   rc = 0;
  out:
   if (stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return rc;
+}
+
+/* ******************************************* */
+
+int AlertsManager::selectAlertsRaw(lua_State *vm, bool engaged, const char *selection, const char *clauses) {
+  alertsRetriever ar;
+  char query[STORE_MANAGER_MAX_QUERY];
+  char *zErrMsg = NULL;
+  int rc;
+
+  snprintf(query, sizeof(query),
+	   "SELECT %s FROM %s %s ",
+	   selection ? selection : "*",
+	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME,
+	   clauses ? clauses : "");
+
+  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
+
+  m.lock(__FILE__, __LINE__);
+
+  lua_newtable(vm);
+
+  ar.vm = vm, ar.current_offset = 0;
+  rc = sqlite3_exec(db, query, getAlertsCallback, (void*)&ar, &zErrMsg);
+
+  if( rc != SQLITE_OK ){
+    rc = 1;
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s\n%s", zErrMsg, query);
+    sqlite3_free(zErrMsg);
+    goto out;
+  }
+
+  rc = 0;
+ out:
   m.unlock(__FILE__, __LINE__);
 
   return rc;

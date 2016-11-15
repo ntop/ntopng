@@ -166,6 +166,12 @@ class AlertsManager : protected StoreManager {
   int deleteAlerts(bool engaged, const int *rowid);
   int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
 
+  
+  /*
+    ========== raw API ======
+  */
+  int selectAlertsRaw(lua_State *vm, bool engaged, const char *selection, const char *clauses);
+
   /* Following are the legacy methods that were formally global to the whole ntopng */
 #ifdef NOTUSED
   /**

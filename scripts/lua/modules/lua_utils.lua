@@ -296,8 +296,15 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
-function alertSeverityLabel(v)
-   return(_handleArray(alert_level_keys, tonumber(v)))
+function noHtml(s)
+   if s == nil then return nil end
+   return s:gsub("<.->(.-)</.->","%1"):gsub("^%s*(.-)%s*$", "%1")
+end
+
+function alertSeverityLabel(v, nohtml)
+   local res = _handleArray(alert_level_keys, tonumber(v))
+   if res ~= nil and nohtml == true then res = noHtml(res) end
+   return res
 end
 
 function alertSeverity(v)
@@ -308,8 +315,10 @@ function alertSeverity(v)
    return(_handleArray(severity_table, v))
 end
 
-function alertTypeLabel(v)
-   return(_handleArray(alert_type_keys, tonumber(v)))
+function alertTypeLabel(v, nohtml)
+   local res = _handleArray(alert_type_keys, tonumber(v))
+   if res ~= nil and nohtml == true then res = noHtml(res) end
+   return res
 end
 
 function alertType(v)
@@ -320,8 +329,10 @@ function alertType(v)
    return(_handleArray(typetable, v))
 end
 
-function alertEntityLabel(v)
-   return(_handleArray(alert_entity_keys, tonumber(v)))
+function alertEntityLabel(v, nothml)
+   local res = _handleArray(alert_entity_keys, tonumber(v))
+   if res ~= nil and nohtml == true then res = noHtml(res) end
+   return res
 end
 
 function alertEntity(v)

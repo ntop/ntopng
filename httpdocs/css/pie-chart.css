@@ -21,6 +21,12 @@
    -moz-box-sizing: border-box;
    box-sizing: border-box;
 }
+
+.pie-chart-small {
+  height: 260px;
+  width: 280px;
+}
+
 .pie-chart .total{
   font-size: 18px;
   font-weight: bold;

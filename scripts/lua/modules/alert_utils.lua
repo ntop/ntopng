@@ -671,6 +671,33 @@ end
 
 -- #################################
 
+function drawAlertStatsCharts()
+   print[[
+<table class="table table-bordered table-striped">
+<tr><th>Severity</th><th>Type</th><th>Duration</th><th>Counts</th></tr>
+<tr>
+  <td align="center"><div class="pie-chart pie-chart-small" id="pie-severity"></div></td>
+  <td align="center"><div class="pie-chart pie-chart-small" id="pie-type"></div></td>
+  <td align="center"><div class="pie-chart pie-chart-small" id="pie-duration"></div></td>
+  <td align="center"><div class="pie-chart pie-chart-small" id="pie-counts"></div></td>
+</tr>
+</table>
+
+<script type='text/javascript'>
+  var refresh = 15000;
+  var url = "]] print (ntop.getHttpPrefix()) print[[/lua/get_alerts_stats_data.lua";
+  window.onload=function() {
+    do_pie("#pie-severity", url, { stats_type: "severity_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
+    do_pie("#pie-type", url, { stats_type: "type_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
+    do_pie("#pie-duration", url, { stats_type: "duration_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
+    do_pie("#pie-counts", url, { stats_type: "counts_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
+}
+</script>
+]]  
+end
+
+-- #################################
+
 function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
    local alert_items = {}
 
