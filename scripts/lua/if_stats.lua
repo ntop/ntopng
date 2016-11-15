@@ -322,39 +322,43 @@ if((page == "overview") or (page == nil)) then
       print("</tr>\n")
    end
 
-   print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
-   
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
 
-   if is_physical_iface then
-      if(ifstats.name ~= nil) then
-	 print('<th>Custom Name</th><td colspan="3">')
-	 label = getInterfaceNameAlias(ifstats.name)
-	 inline_input_form("custom_name", "Custom Name",
-	     "Specify an alias for the interface",
-	     label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9]*$"')
+   if not interface.isBridgeInterface() then
+      print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
+
+      if is_physical_iface then
+	 if(ifstats.name ~= nil) then
+	    print('<th>Custom Name</th><td colspan="3">')
+	    label = getInterfaceNameAlias(ifstats.name)
+	    inline_input_form("custom_name", "Custom Name",
+		"Specify an alias for the interface",
+		label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9]*$"')
+	    print("</td></tr>\n")
+	 end
+      
+	 local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+	 local speed = ntop.getCache(speed_key)
+	 if speed == nil or speed == "" or tonumber(speed) == nil then
+	    speed = ifstats.speed
+	 end
+	 print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
+
+	 if interface.isPacketInterface() then
+	    print("</td><th>Scaling Factor</th><td colspan=3>")
+	    local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
+	    if((label == nil) or (label == "")) then label = "1" end
+	    inline_input_form("scaling_factor", "Scaling Factor",
+	       "This should match your capture interface sampling rate",
+	       label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
+	 end
+
 	 print("</td></tr>\n")
+      else
+	 print("<td colspan=4></td>")
       end
-   
-      local speed_key = 'ntopng.prefs.'..ifname..'.speed'
-      local speed = ntop.getCache(speed_key)
-      if speed == nil or speed == "" or tonumber(speed) == nil then
-	 speed = ifstats.speed
-      end
-      print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
-
-      if interface.isPacketInterface() then
-	 print("</td><th>Scaling Factor</th><td colspan=3>")
-	 local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
-	 if((label == nil) or (label == "")) then label = "1" end
-	 inline_input_form("scaling_factor", "Scaling Factor",
-	    "This should match your capture interface sampling rate",
-	    label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
-      end
-
-      print("</td></tr>\n")
    else
-      print("<td colspan=4></td>")
+      print("<tr><th>Bridge</th><td colspan=7>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"> "..ifstats["bridge.device_b"].."</td></tr>")
    end
 
    if(ifstats.ip_addresses ~= "") then
@@ -479,7 +483,7 @@ print("</script>\n")
 
    end
 
-   if(ifstats["bridge.device_a"] ~= nil) then
+   if(interface.isBridgeInterface()) then
       print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
       print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped Packets</th><th nowrap>Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
       print("<tr><th>".. ifstats["bridge.device_a"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_b"] .."</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")

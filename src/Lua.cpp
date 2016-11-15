@@ -2257,6 +2257,19 @@ static int ntop_interface_is_packet_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_is_bridge_interface(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, ntop_interface->is_bridge_interface());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_is_pcap_dump_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *interface_type;
@@ -5018,6 +5031,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getInterfacePacketsDumpedTap",   ntop_get_interface_pkts_dumped_tap },
   { "getEndpoint",                    ntop_get_interface_endpoint },
   { "isPacketInterface",              ntop_interface_is_packet_interface },
+  { "isBridgeInterface",              ntop_interface_is_bridge_interface },
   { "isPcapDumpInterface",            ntop_interface_is_pcap_dump_interface },
   { "isRunning",                      ntop_interface_is_running },
   { "isIdle",                         ntop_interface_is_idle },
