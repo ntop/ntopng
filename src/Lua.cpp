@@ -3103,7 +3103,7 @@ static int ntop_reload_l7_rules(lua_State *vm) {
     }
 
 #ifdef NTOPNG_PRO
-    ntop_interface->refreshL7Rules(ptree);
+    ntop_interface->refreshL7Rules(ptree ? true : false);
 #endif
 
     if (ptree)

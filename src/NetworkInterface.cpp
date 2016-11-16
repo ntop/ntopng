@@ -1765,17 +1765,17 @@ void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN])
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
   patricia_tree_t **ptree = (patricia_tree_t**)user_data;
   Flow *f = (Flow*)node;
-  patricia_tree_t *v_ptree = f->get_cli_host() ? ptree[f->get_cli_host()->get_vlan_id()] : NULL;
+  patricia_tree_t *v_ptree = (ptree && f->get_cli_host()) ? ptree[f->get_cli_host()->get_vlan_id()] : NULL;
   
   /* 
      As we have changed the policer, we need to do this update 
      for all hosts that used to have a policy set
   */  
-  if((ptree == NULL)
-     || (f->get_cli_host()
-	 && (f->get_cli_host()->isThereAPolicySet() || (v_ptree && f->get_cli_host()->match(v_ptree))))
+  if((f->get_cli_host()
+      && (f->get_cli_host()->isThereAPolicySet() || (v_ptree && f->get_cli_host()->match(v_ptree))))
      || (f->get_srv_host()
-	 && (f->get_srv_host()->isThereAPolicySet() || (v_ptree && f->get_srv_host()->match(v_ptree)))))
+	 && (f->get_srv_host()->isThereAPolicySet() || (v_ptree && f->get_srv_host()->match(v_ptree))))
+     )
     ((Flow*)node)->makeVerdict(true);
 
   return(false); /* false = keep on walking */
@@ -3693,9 +3693,9 @@ void NetworkInterface::addAllAvailableInterfaces() {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshL7Rules(patricia_tree_t *removedNetworks) {
+void NetworkInterface::refreshL7Rules(bool areWeRemovingRules) {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshL7Rules(removedNetworks);
+    policer->refreshL7Rules(areWeRemovingRules);
 }
 #endif
 
