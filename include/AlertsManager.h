@@ -154,8 +154,10 @@ class AlertsManager : protected StoreManager {
   */
 
   inline int getNumAlerts(bool engaged) {
-    return getNumAlerts(engaged, NULL /* no where clause, all the existing alerts */);
+    /* must force the cast or the compiler will go crazy with ambiguous calls */
+    return getNumAlerts(engaged, static_cast<const char*>(NULL) /* no where clause, all the existing alerts */);
   }
+  int getNumAlerts(bool engaged, u_int64_t start_time);
   int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
   int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);
 

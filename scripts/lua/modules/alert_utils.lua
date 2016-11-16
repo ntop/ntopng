@@ -674,6 +674,43 @@ end
 function drawAlertStatsCharts()
    print[[
 <table class="table table-bordered table-striped">
+<tr><th>Overview</th><th>Last Hour</th><th>Top Hosts</th><th>Longest Engaged</th></tr>
+<tr>
+  <td>
+    <table class="table">
+    <tr>
+      <td colspan="3" style="vertical-align:bottom;border-top:0;">
+        Alerts in the selected period<br>
+        <span id="count-last-period" style="font-size:4em;">-</span> &nbsp;
+        <span id="count-sparkline">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span id="count-last-minute">-</span>
+        <br>
+        <small>Last Minute</small>
+      </td>
+      <td>
+        <span id="count-last-hour">-</span>
+        <br>
+        <small>Last Hour</small>
+      </td>
+      <td>
+        <span id="count-last-day">-</span>
+        <br>
+        <small>Last Day</small>
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td></td>
+  <td>
+    <table class="table table-sm" id="top-hosts-table">
+    </table>
+  </td>
+  <td></td>
+</tr>
 <tr><th>Severity</th><th>Type</th><th>Duration</th><th>Counts</th></tr>
 <tr>
   <td align="center"><div class="pie-chart pie-chart-small" id="pie-severity"></div></td>
@@ -685,12 +722,64 @@ function drawAlertStatsCharts()
 
 <script type='text/javascript'>
   var refresh = 15000;
+
+  var sparkline = $("#count-sparkline").peity("line", { width: 180, height: 40, max: null });
+
+  var formatHost = function(host){
+    var url = "]] print (ntop.getHttpPrefix()) print[[/lua/host_details.lua";
+    url += "?page=alerts&host=" + host;
+    return "<a href='" + url + "'>" + host.replace("@0","") + "</a>"
+  }
+
   var url = "]] print (ntop.getHttpPrefix()) print[[/lua/get_alerts_stats_data.lua";
   window.onload=function() {
     do_pie("#pie-severity", url, { stats_type: "severity_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
     do_pie("#pie-type", url, { stats_type: "type_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
     do_pie("#pie-duration", url, { stats_type: "duration_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
     do_pie("#pie-counts", url, { stats_type: "counts_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
+
+
+    var refresher = function() {
+      // the sparkline
+      $.ajax({
+        type: 'GET', url: url, data : {stats_type: 'count_sparkline', ifname: ']] print(ifId.."") print[['},
+        success: function(rsp) {
+          var content = jQuery.parseJSON(rsp);
+          sparkline.text(content+"").change();
+        }
+      });
+
+      // counters
+      $.ajax({
+        type: 'GET', url: url, data : {stats_type: 'counts_plain', ifname: ']] print(ifId.."") print[['},
+        success: function(rsp) {
+          var content = jQuery.parseJSON(rsp);
+          $.each(content, function(index, value){
+            if(value > 0)
+              $('#'+index).text(value)
+            else
+              $('#'+index).text("-")
+          });
+        }
+      });
+
+      // top hosts
+      $.ajax({
+        type: 'GET', url: url, data : {stats_type: 'top_hosts', ifname: ']] print(ifId.."") print[['},
+        success: function(rsp) {
+          $("#top-hosts-table tr").remove();
+          var content = jQuery.parseJSON(rsp);
+          $.each(content, function(index, item){
+            $("#top-hosts-table").append('<tr><td>' + formatHost(item.host) + '</td><td>' + fint(item.value) + '</td></tr>');
+          });
+        }
+      });
+     }
+
+      // the counters
+
+    refresher();
+    setInterval(refresher, 3000);
 }
 </script>
 ]]  

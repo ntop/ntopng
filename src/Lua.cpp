@@ -4608,6 +4608,9 @@ static int ntop_interface_get_num_alerts(lua_State* vm) {
     } else {
       lua_pushnil(vm);
     }
+  } else if(lua_type(vm, 2) == LUA_TNUMBER) {
+    time_t epoch_start = lua_tonumber(vm, 2);
+    lua_pushinteger(vm, am->getNumAlerts(engaged, epoch_start));
   } else {
     lua_pushinteger(vm, am->getNumAlerts(engaged));
   }

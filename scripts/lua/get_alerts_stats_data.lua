@@ -8,7 +8,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require('dkjson')
 
+local min_align = function(secs) return secs - (secs % 60) end
+
 local stats_type = _GET["stats_type"]
+local period_mins  = 60  -- TODO: make it configurable
+local now = os.time()
+local period_begin = min_align(now - period_mins * 60)
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
@@ -21,15 +26,25 @@ local aggr = {}
 local selection
 local aggregation
 local labeller
-if stats_type == "severity_pie" or stats_type == "type_pie" then
+if stats_type == "severity_pie" or stats_type == "type_pie" or stats_type == "count_sparkline" or stats_type == "top_hosts" then
    if stats_type == "severity_pie" then
       selection   = "alert_severity as label, count(*) as value"
-      aggregation = "group by label"
+      aggregation = "where alert_tstamp >= ".. period_begin .." group by label"
       labeller = alertSeverityLabel
    elseif stats_type == "type_pie" then
       selection   = "alert_type as label, count(*) as value"
-      aggregation = "group by label"
+      aggregation = "where alert_tstamp >= ".. period_begin .." group by label"
       labeller = alertTypeLabel
+   elseif stats_type == "count_sparkline" then
+      selection = "(alert_tstamp - alert_tstamp % 60) as label, count(*) as value"
+      aggregation = "where alert_tstamp >= ".. period_begin .." group by label"
+      labeller = nil
+   elseif stats_type == "top_hosts" then
+      selection   = "alert_entity_val as label, count(*) as value"
+      aggregation = "where alert_entity = "..alertEntity("host")
+      aggregation = aggregation.." and alert_tstamp >= ".. period_begin
+      aggregation = aggregation.." group by label order by value desc limit 5"
+      labeller = nil
    end
    for _, engaged in pairs({true, false}) do
       local r = interface.selectAlertsRaw(engaged, selection, aggregation)
@@ -37,7 +52,7 @@ if stats_type == "severity_pie" or stats_type == "type_pie" then
       -- must aggregate again to sum counters between engaged and closed alerts
       for k, v in ipairs(r) do
 
-	 if v["label"] ~= nil then
+	 if v["label"] ~= nil and labeller ~= nil then
 	    v["label"] = labeller(v["label"], true)
 	 end
 
@@ -69,7 +84,7 @@ elseif stats_type == "duration_pie" then
    -- engaged
    -- the duration is the current instant minus the alert timestamp
    selection   = "(strftime('%s','now') - alert_tstamp) as label, count(*) as value"
-   aggregation = "group by label"
+   aggregation = "where alert_tstamp >= ".. period_begin .. " group by label"
    local r_engaged = interface.selectAlertsRaw(true, selection, aggregation)
    if r_engaged == nil then r_engaged = {} end
 
@@ -77,7 +92,7 @@ elseif stats_type == "duration_pie" then
    -- the duration is the difference between the end and the start time
    selection   = "(alert_tstamp_end - alert_tstamp) as label, count(*) as value"
    -- we don't take into account 'instant' alerts
-   aggregation = "where alert_tstamp_end is not null group by label"
+   aggregation = "where alert_tstamp >= ".. period_begin .. " and alert_tstamp_end is not null group by label"
    local r_closed = interface.selectAlertsRaw(false, selection, aggregation)
    if r_closed == nil then r_closed = {} end
    
@@ -94,13 +109,51 @@ elseif stats_type == "duration_pie" then
 	 end
       end
    end
+
 elseif stats_type == "counts_pie" then
-   aggr["Engaged"] = interface.getNumAlerts(true)
-   aggr["Closed"] = interface.getNumAlerts(false)
+
+   local num_engaged = interface.getNumAlerts(true, now - period_mins * 60)
+   local num_closed = interface.getNumAlerts(false, now - period_mins * 60)
+   if num_engaged > 0 then aggr["Engaged"] = num_engaged end
+   if num_closed > 0 then aggr["Closed"] = num_closed end
+
+elseif stats_type == "counts_plain" then
+   for _, range in pairs({{"count-last-minute", 60}, {"count-last-hour", 3600},
+	 {"count-last-day", 86400}, {"count-last-period", period_mins * 60}}) do
+      local num_engaged = interface.getNumAlerts(true, now - range[2])
+      local num_closed = interface.getNumAlerts(false, now - range[2])
+      aggr[range[1]] = num_engaged + num_closed
+   end
 end
 
-for k, v in pairs(aggr) do
-   res[#res + 1] = {label=k, value=tonumber(v)}
+
+-- post-processing before last aggregation
+if stats_type == "count_sparkline" then
+   local time_now = min_align(now)
+   local time_range_min = min_align(now - period_mins * 60)
+   -- add padding to the table
+   for minute=time_range_min,time_now,60 do
+      minute = tostring(minute)
+      if aggr[minute] == nil then
+	 aggr[minute] = 0
+      end
+   end
+
+   --prepare the final result
+   for k, v in pairsByKeys(aggr, rev) do
+      res[#res + 1] = tonumber(v)
+   end
+elseif stats_type == "counts_plain" then
+   res = aggr
+elseif stats_type == "top_hosts" then
+   for k, v in pairs(aggr) do aggr[k] = tonumber(v) end
+   for k, v in pairsByValues(aggr, rev) do
+      res[#res + 1] = {host=k, value=v}
+   end
+else
+   for k, v in pairs(aggr) do
+      res[#res + 1] = {label=k, value=tonumber(v)}
+   end
 end
 
 print(json.encode(res, nil))

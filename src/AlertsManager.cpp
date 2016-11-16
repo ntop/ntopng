@@ -662,7 +662,7 @@ int AlertsManager::getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
 		   "alert_entity=%i AND alert_entity_val='%q@%i'",
 		   static_cast<int>(alert_entity_host), host_ip, vlan_id);
-  return getNumAlerts(engaged, wherebuf);
+  return getNumAlerts(engaged, static_cast<const char*>(wherebuf));
 }
 
 /* ******************************************* */
@@ -677,7 +677,7 @@ int AlertsManager::getNumHostAlerts(Host *h, bool engaged) {
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
 		   "alert_entity=%i AND alert_entity_val='%q'",
 		   static_cast<int>(alert_entity_host), ipbuf_id);
-  return getNumAlerts(engaged, wherebuf);
+  return getNumAlerts(engaged, static_cast<const char *>(wherebuf));
 }
 
 /* ******************************************* */
@@ -782,6 +782,8 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
 	   sql_where_clause ? "WHERE"  : "",
 	   sql_where_clause ? sql_where_clause : "");
 
+  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
+
   m.lock(__FILE__, __LINE__);
   if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare statement for query %s.", query);
@@ -807,6 +809,16 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
 
 /* **************************************************** */
 
+int AlertsManager::getNumAlerts(bool engaged, u_int64_t start_time) {
+  char wherebuf[STORE_MANAGER_MAX_QUERY];
+  
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   "alert_tstamp >= %lu", start_time);
+  return getNumAlerts(engaged, static_cast<const char*>(wherebuf));
+}
+
+/* **************************************************** */
+
 int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value) {
   char wherebuf[STORE_MANAGER_MAX_QUERY];
   
@@ -814,7 +826,7 @@ int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const ch
 		   "alert_entity=%i AND alert_entity_val='%q'",
 		   static_cast<int>(alert_entity),
 		   alert_entity_value ? alert_entity_value : (char*)"");
-  return getNumAlerts(engaged, wherebuf);
+  return getNumAlerts(engaged, static_cast<const char*>(wherebuf));
 }
 
 /* **************************************************** */
@@ -827,7 +839,7 @@ int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const ch
 		   static_cast<int>(alert_entity),
 		   alert_entity_value ? alert_entity_value : (char*)"",
 		   static_cast<int>(alert_type));
-  return getNumAlerts(engaged, wherebuf);
+  return getNumAlerts(engaged, static_cast<const char*>(wherebuf));
 }
 
 /* **************************************************** */
