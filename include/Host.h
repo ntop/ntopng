@@ -192,6 +192,9 @@ class Host : public GenericHost {
   void incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_t when);
   void getIfaStats(InterFlowActivityProtos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff);
   inline UserActivityStats* get_user_activities() { return(user_activities); }
+#ifdef NTOPNG_PRO
+  inline bool isThereAPolicySet() { return(l7Policy ? true : false); };
+#endif
 };
 
 #endif /* _HOST_H_ */

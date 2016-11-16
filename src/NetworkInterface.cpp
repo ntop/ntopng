@@ -1728,7 +1728,7 @@ void NetworkInterface::periodicStatsUpdate() {
   hosts_hash->walk(update_hosts_stats, (void*)&tv);
   macs_hash->walk(update_macs_stats, (void*)&tv);
 
-  if(ntop->getPrefs()->do_dump_flows_on_mysql()){
+  if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
   }
 
@@ -1739,9 +1739,13 @@ void NetworkInterface::periodicStatsUpdate() {
 
 static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
   Host *h = (Host*)node;
-  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
-
-  if((ptree == NULL) || h->match(ptree))
+  patricia_tree_t **ptree = (patricia_tree_t**)user_data;
+  patricia_tree_t *v_ptree = ptree[h->get_vlan_id()];
+  
+  if((ptree == NULL)
+     || h->isThereAPolicySet() /* As we have changed the policer, we need to do this update
+				  for all hosts that used to have a policy set */
+     || (v_ptree && h->match(ptree[h->get_vlan_id()])))
     ((Host*)node)->updateHostL7Policy();
 
   return(false); /* false = keep on walking */
@@ -1749,7 +1753,7 @@ static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
+void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]) {
   if(isView()) return;
 
   hosts_hash->walk(update_host_l7_policy, ptree);
@@ -1758,12 +1762,19 @@ void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
 /* **************************************************** */
 
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
-  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
+  patricia_tree_t **ptree = (patricia_tree_t**)user_data;
   Flow *f = (Flow*)node;
-
+  patricia_tree_t *v_ptree = f->get_cli_host() ? ptree[f->get_cli_host()->get_vlan_id()] : NULL;
+  
+  /* 
+     As we have changed the policer, we need to do this update 
+     for all hosts that used to have a policy set
+  */  
   if((ptree == NULL)
-     || (f->get_cli_host() && f->get_cli_host()->match(ptree))
-     || (f->get_srv_host() && f->get_srv_host()->match(ptree)))
+     || (f->get_cli_host()
+	 && (f->get_cli_host()->isThereAPolicySet() || (v_ptree && f->get_cli_host()->match(v_ptree))))
+     || (f->get_srv_host()
+	 && (f->get_srv_host()->isThereAPolicySet() || (v_ptree && f->get_srv_host()->match(v_ptree)))))
     ((Flow*)node)->makeVerdict(true);
 
   return(false); /* false = keep on walking */
@@ -1771,7 +1782,7 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree) {
+void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]) {
   if(isView()) return;
 
   flows_hash->walk(update_flow_l7_policy, ptree);

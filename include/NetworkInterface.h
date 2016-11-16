@@ -254,7 +254,7 @@ class NetworkInterface {
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void dumpFlows();
   void getnDPIStats(nDPIStats *stats);
-  void updateFlowsL7Policy(patricia_tree_t *ptree);
+  void updateFlowsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]);
   void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
@@ -346,7 +346,7 @@ class NetworkInterface {
 
   PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
-  void updateHostsL7Policy(patricia_tree_t *ptree);
+  void updateHostsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]);
   bool updateDumpAllTrafficPolicy(void);
   bool updateDumpTrafficDiskPolicy();
   bool updateDumpTrafficTapPolicy();

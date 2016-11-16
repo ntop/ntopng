@@ -131,7 +131,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   flow_flood_attacker_alert = flow_flood_victim_alert = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
-  num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId,
+  num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
     ingress_shaper_id = egress_shaper_id = DEFAULT_SHAPER_ID,
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
