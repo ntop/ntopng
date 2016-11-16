@@ -2510,28 +2510,20 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_rrd_fetch(lua_State* vm) {
-  unsigned long i, j, step = 0, ds_cnt = 0;
-  rrd_value_t *data, *p;
-  char **names, *err;
-  const char *filename, *cf;
-  time_t  t, start, end;
+/* positional 1:4 parameters for ntop_rrd_fetch */
+static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
+  char *start_s, *end_s, *err;
   rrd_time_value_t start_tv, end_tv;
-  int status;
-
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((filename = (const char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
+  if((*filename = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-  if((cf = (const char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+  if((*cf = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
   if((lua_type(vm, 3) == LUA_TNUMBER) && (lua_type(vm, 4) == LUA_TNUMBER))
-    start = (time_t)lua_tonumber(vm, 3), end = (time_t)lua_tonumber(vm, 4);
+    *start = (time_t)lua_tonumber(vm, 3), *end = (time_t)lua_tonumber(vm, 4);
   else {
-    char *start_s, *end_s;
-
     if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
     if((start_s = (char*)lua_tostring(vm, 3)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -2548,20 +2540,23 @@ static int ntop_rrd_fetch(lua_State* vm) {
       return(CONST_LUA_PARAM_ERROR);
     }
 
-    if(rrd_proc_start_end(&start_tv, &end_tv, &start, &end) == -1)
+    if(rrd_proc_start_end(&start_tv, &end_tv, start, end) == -1)
       return(CONST_LUA_PARAM_ERROR);
   }
 
-  reset_rrd_state();
+  return(CONST_LUA_OK);
+}
 
-  status = rrd_fetch_r(filename, cf, &start, &end, &step, &ds_cnt, &names, &data);
+static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf) {
+  char * err;
+  
   if(status != 0) {
     err = rrd_get_error();
 
     if(err != NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Error '%s' while calling rrd_fetch_r(%s, %s): is the RRD corrupted perhaps?",
-				   err, filename, cf);
+                                   "Error '%s' while calling rrd_fetch_r(%s, %s): is the RRD corrupted perhaps?",
+                                   err, filename, cf);
       lua_pushnil(vm);
       lua_pushnil(vm);
       lua_pushnil(vm);
@@ -2569,6 +2564,26 @@ static int ntop_rrd_fetch(lua_State* vm) {
       return(CONST_LUA_ERROR);
     }
   }
+
+  return(CONST_LUA_OK);
+}
+
+/* Fetches data from RRD by rows */
+static int ntop_rrd_fetch(lua_State* vm) {
+  unsigned long i, j, step = 0, ds_cnt = 0;
+  rrd_value_t *data, *p;
+  char **names;
+  char *filename, *cf;
+  time_t t, start, end;
+  int status;
+
+  if ((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) return status;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
+
+  reset_rrd_state();
+
+  if ((status = __ntop_rrd_status(vm, rrd_fetch_r(filename, cf, &start, &end, &step, &ds_cnt, &names, &data), filename, cf)) != CONST_LUA_OK) return status;
 
   lua_pushnumber(vm, (lua_Number) start);
   lua_pushnumber(vm, (lua_Number) step);
@@ -2592,9 +2607,9 @@ static int ntop_rrd_fetch(lua_State* vm) {
       rrd_value_t value = *p++;
 
       if(value != DNAN /* Skip NaN */) {
-	lua_pushnumber(vm, (lua_Number)value);
-	lua_rawseti(vm, -2, j+1);
-	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.f", t, value);
+        lua_pushnumber(vm, (lua_Number)value);
+        lua_rawseti(vm, -2, j+1);
+        // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u / %.f", t, value);
       }
     }
     lua_rawseti(vm, -2, i+1);
@@ -2604,6 +2619,79 @@ static int ntop_rrd_fetch(lua_State* vm) {
   /* return the end as the last value */
   lua_pushnumber(vm, (lua_Number) end);
 
+  /* number of return values: start, step, names, data, end */
+  return(5);
+}
+
+/* ****************************************** */
+
+/*
+ * Similar to ntop_rrd_fetch, but data series oriented  (reads RRD by columns)
+ *
+ * Positional parameters:
+ *    filename: RRD file path
+ *    cf: RRD cf
+ *    start: the start time you wish to query
+ *    end: the end time you wish to query
+ *
+ * Positional return values:
+ *    start: the time of the first data in the series
+ *     step: the fetched data step
+ *     data: a table, where each key is an RRD name, and the value is its series data
+ *      end: the time of the last data in each series
+ *  npoints: the number of points in each series
+ */
+static int ntop_rrd_fetch_columns(lua_State* vm) {
+  char *filename, *cf;
+  time_t start, end;
+  int status, npoints = 0;
+  unsigned int i, j;
+  char **names;
+  unsigned long step = 0, ds_cnt = 0;
+  rrd_value_t *data, *p;
+  
+  if ((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) return status;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
+
+  reset_rrd_state();
+
+  if ((status = __ntop_rrd_status(vm, rrd_fetch_r(filename, cf, &start, &end, &step, &ds_cnt, &names, &data), filename, cf)) != CONST_LUA_OK) return status;
+
+  npoints = (end - start) / step;
+
+  lua_pushnumber(vm, (lua_Number) start);
+  lua_pushnumber(vm, (lua_Number) step);
+
+  /* create the data series table */
+  lua_createtable(vm, 0, ds_cnt);
+
+  for(i=0; i<ds_cnt; i++) {
+    /* a single serie table, preallocated */
+    lua_createtable(vm, npoints, 0);
+    p = data + i;
+
+    for(j=0; j<npoints; j++) {
+      rrd_value_t value = *p;
+      /* we are accessing data table by columns */
+      p = p + ds_cnt;
+      lua_pushnumber(vm, (lua_Number)value);
+      lua_rawseti(vm, -2, j+1);
+    }
+
+    /* add the single serie to the series table */
+    lua_setfield(vm, -2, names[i]);
+    rrd_freemem(names[i]);
+  }
+  
+  rrd_freemem(names);
+  rrd_freemem(data);
+
+  /* end and npoints as last values */
+  lua_pushnumber(vm, (lua_Number) end);
+  lua_pushnumber(vm, (lua_Number) npoints);
+
+  /* number of return values */
   return(5);
 }
 
@@ -5192,6 +5280,7 @@ static const luaL_Reg ntop_reg[] = {
   { "rrd_create",     ntop_rrd_create },
   { "rrd_update",     ntop_rrd_update },
   { "rrd_fetch",      ntop_rrd_fetch  },
+  { "rrd_fetch_columns", ntop_rrd_fetch_columns },
   { "rrd_lastupdate", ntop_rrd_lastupdate  },
 
   /* Prefs */
