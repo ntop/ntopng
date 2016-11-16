@@ -1737,6 +1737,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* **************************************************** */
 
+#ifdef NTOPNG_PRO
 static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
   Host *h = (Host*)node;
   patricia_tree_t **ptree = (patricia_tree_t**)user_data;
@@ -1787,6 +1788,8 @@ void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN])
 
   flows_hash->walk(update_flow_l7_policy, ptree);
 }
+
+#endif
 
 /* **************************************************** */
 
