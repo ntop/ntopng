@@ -35,6 +35,7 @@ class AlertsManager : protected StoreManager {
   /* methods used for alerts that have a timespan */
   bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
   bool isMaximumReached(AlertEntity alert_entity, const char *alert_entity_value, bool engaged);
+  int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, bool engaged);
   int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
@@ -167,8 +168,8 @@ class AlertsManager : protected StoreManager {
    */
   int deleteAlerts(bool engaged, const int *rowid);
   int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
+  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);
 
-  
   /*
     ========== raw API ======
   */
