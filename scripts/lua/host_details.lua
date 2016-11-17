@@ -331,11 +331,15 @@ if(ntop.exists(rrdname)) then
    end
 end
 
-if ntop.isEnterprise() and host["localhost"] == true then
-   if(page == "report") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text fa-lg'></i></a></li>\n")
+if host["localhost"] == true then
+   if(ntop.isEnterprise()) then
+      if(page == "traffic_report") then
+         print("\n<li class=\"active\"><a href=\"#\"><i class='fa fa-file-text fa-lg'></i></a></li>\n")
+      else
+         print("\n<li><a href=\""..url.."&page=traffic_report\"><i class='fa fa-file-text fa-lg'></i></a></li>")
+      end
    else
-      print("\n<li><a href=\""..url.."&page=report\"><i class='fa fa-file-text fa-lg'></i></a></li>")
+      print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text fa-lg'></i></A></li>\n")
    end
 end
 
@@ -2294,8 +2298,8 @@ if(host_vlan and (host_vlan > 0)) then
    host_key = host_key.."@"..host_vlan
 end
 drawRRD(ifId, host_key, rrdfile, _GET["graph_zoom"], ntop.getHttpPrefix()..'/lua/host_details.lua?ifname='..ifId..'&'..host_url..'&page=historical', 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
-elseif(page == "report") then
-   dofile(dirs.installdir .. "/pro/scripts/lua/traffic_report.lua")
+elseif(page == "traffic_report") then
+   dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 elseif(page == "sprobe") then
 
 

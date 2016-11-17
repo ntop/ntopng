@@ -48,9 +48,9 @@ print [[
 ]]
 
 if(_GET["mode"] ~= "hostsonly") then
- print('title: "Network Devices",\n')
+ print('title: "Layer 2 Devices",\n')
 else
- print('title: "All Network Devices",\n')
+ print('title: "All Layer 2 Devices",\n')
 end
 
 print ('rowCallback: function ( row ) { return mac_table_setID(row); },')
