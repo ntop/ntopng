@@ -1151,7 +1151,16 @@ elseif(page == "filtering") then
    end
 
    if(_GET["delete_network"] ~= nil) then
+      -- delete network policy
       ntop.delHashCache(policy_key, _GET["delete_network"])
+
+      -- delete network shaping settings
+      key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
+      tprint(key..".".._GET["delete_network"])
+      ntop.delHashCache(key, _GET["delete_network"])
+      key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
+      ntop.delHashCache(key, _GET["delete_network"])
+
       -- reload all the rules, and update hosts affected by removal
       interface.reloadL7Rules(_GET["delete_network"])
    end
