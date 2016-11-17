@@ -2,6 +2,10 @@
 -- (C) 2013-16 - ntop.org
 --
 
+--
+-- This script is executed once at startup similar to /etc/rc.local on Unix
+--
+
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
@@ -11,6 +15,7 @@ end
 
 require "lua_utils"
 require "alert_utils"
+require "blacklist_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -92,6 +97,10 @@ if suppressed_alerts ~= nil then
 end
 -- remember to delete the hash with named hash_name
 ntop.delCache(hash_name)
+
+-- ##################################################################
+
+loadHostBlackList()
 
 -- TODO: migrate custom re-arm settings
 

@@ -81,3 +81,5 @@ for _,_ifname in pairs(ifnames) do
    end
 end
 
+
+loadHostBlackList()

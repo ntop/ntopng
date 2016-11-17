@@ -203,18 +203,25 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       // else ntop->getRedis()->pushHostToResolve(host, false, localHost);
     }
 
-    if((!localHost || systemHost)
-       && ntop->getPrefs()->is_httpbl_enabled()
-       && ip.isIPv4()) {
-      // http:bl only works for IPv4 addresses
-      if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
-						      sizeof(trafficCategory), true) == 0) {
-	if(strcmp(trafficCategory, NULL_BL)) {
-	  blacklisted_host = true;
-	  ntop->getTrace()->traceEvent(TRACE_INFO,
-				       "Blacklisted host found %s [%s]",
-				       host, trafficCategory);
+    if(!localHost || systemHost) {     
+      blacklisted_host = ntop->isBlacklistedIP(&ip);
+      
+      if((!blacklisted_host) || (ntop->getPrefs()->is_httpbl_enabled() && ip.isIPv4())) {
+	// http:bl only works for IPv4 addresses
+	if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
+							sizeof(trafficCategory), true) == 0) {
+	  if(strcmp(trafficCategory, NULL_BL)) {
+	    blacklisted_host = true;
+	  }
 	}
+      }
+
+      if(blacklisted_host) {
+	char msg[64];
+
+	snprintf(msg, sizeof(msg), "Blacklisted host found %s", host);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "%s", msg);
+	iface->getAlertsManager()->storeHostAlert(this, alert_malware_detection, alert_level_error, msg);
       }
     }
 

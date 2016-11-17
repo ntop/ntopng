@@ -5455,9 +5455,6 @@ int Lua::run_script(char *script_path) {
     luaL_openlibs(L); /* Load base libraries */
     lua_register_classes(L, false); /* Load custom classes */
 
-    if(strstr(script_path, "nv_graph"))
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", script_path);
-
 #ifndef NTOPNG_PRO
     rc = luaL_dofile(L, script_path);
 #else
