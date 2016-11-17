@@ -1147,6 +1147,7 @@ elseif(page == "filtering") then
       -- We need to check if this network is local or not
       network_key = _GET["new_network"].."@".._GET["new_vlan"]
       ntop.setHashCache(policy_key, network_key, "")
+      interface.reloadL7Rules()
    end
 
    if(_GET["delete_network"] ~= nil) then
