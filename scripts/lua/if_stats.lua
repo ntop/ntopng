@@ -37,7 +37,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    if(can_edit) then
-      print('<input style="width:10em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
+      print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value) end
       print[["></input>&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>]]
    else
@@ -1142,23 +1142,38 @@ print [[</table>
 
 elseif(page == "filtering") then
    policy_key = "ntopng.prefs.".. ifid ..".l7_policy"
+   any_net = "0.0.0.0/0@0"
 
    -- ====================================
 
    if((_GET["new_vlan"] ~= nil) and (_GET["new_network"] ~= nil)) then
-      -- We need to check if this network is local or not
       network_key = _GET["new_network"].."@".._GET["new_vlan"]
-      ntop.setHashCache(policy_key, network_key, "")
+      initial_policy = ""
+      
+      if(_GET["clone_policy"] ~= nil) then
+         -- try to clone existing policy
+         value = ntop.getHashCache(policy_key, _GET["clone_policy"])
+         if value ~= nil then
+            initial_policy = value
+
+            -- also clone existing shapers
+            key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
+            ntop.setHashCache(key, network_key, ntop.getHashCache(key, _GET["clone_policy"]))
+            key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
+            ntop.setHashCache(key, network_key, ntop.getHashCache(key, _GET["clone_policy"]))
+         end
+      end
+
+      ntop.setHashCache(policy_key, network_key, initial_policy)
       interface.reloadL7Rules()
    end
 
-   if(_GET["delete_network"] ~= nil) then
+   if(_GET["delete_network"] ~= nil and _GET["delete_network"] ~= any_net) then
       -- delete network policy
       ntop.delHashCache(policy_key, _GET["delete_network"])
 
       -- delete network shaping settings
       key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
-      tprint(key..".".._GET["delete_network"])
       ntop.delHashCache(key, _GET["delete_network"])
       key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
       ntop.delHashCache(key, _GET["delete_network"])
@@ -1167,7 +1182,7 @@ elseif(page == "filtering") then
       interface.reloadL7Rules(_GET["delete_network"])
    end
 
-   net = _GET["network"]
+   net = _GET["network"] or _GET["new_network"]
 
    if(net ~= nil) then
       if(findString(net, "@") == nil) then
@@ -1179,16 +1194,11 @@ elseif(page == "filtering") then
       end
    end
 
-   any_net = "0.0.0.0/0@0"
-   --io.write('key: '..key..'\n')
-   nets = ntop.getHashKeysCache(key, any_net)
-
-   if((nets == nil) or (nets == "")) then
-      nets = ntop.getHashKeysCache(policy_key)
-   end
+   -- NB: this cannot be null, since it contains at least the 'any' network
+   nets = ntop.getHashKeysCache(policy_key)
 
    -- tprint(nets)
-   if((net == nil) and (nets ~= nil)) then
+   if(net == nil) then
       -- If there is not &network= parameter then use the first network available
       for k,v in pairsByKeys(nets, asc) do
 	 net = k
@@ -1230,15 +1240,13 @@ elseif(page == "filtering") then
   <tr><th width=10%>Network:</th><td> <select name="network" id="network">
 ]]
    selected_found = false
-   if(nets ~= nil) then
-      for k,v in pairsByKeys(nets, asc) do
+   for k,v in pairsByKeys(nets, asc) do
 	 if(k ~= "") then
 	    print("\t<option")
 	    if(k == selected_network) then print(" selected") end
 	    print(">"..k.."</option>\n")
 	    selected_found = true
 	 end
-      end
    end
 
 print [[
@@ -1260,7 +1268,9 @@ if((selected_found == true)
    print("&nbsp;[ <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..nw.."\"><i class=\"fa fa-desktop fa-lg\"></i> Show Host</A> ] ")
 end
 
-print(' [ <A HREF=/lua/if_stats.lua?page=filtering&delete_network='..selected_network..'> <i class="fa fa-trash-o fa-lg"></i> Delete '.. selected_network ..'</A> ]')
+if selected_network ~= any_net then
+   print(' [ <A HREF=/lua/if_stats.lua?page=filtering&delete_network='..selected_network..'> <i class="fa fa-trash-o fa-lg"></i> Delete '.. selected_network ..'</A> ]')
+end
 print('</td></tr>')
 
 -- ******************************************
@@ -1364,75 +1374,126 @@ end
     <tr><td colspan=2><button type="submit" class="btn btn-primary btn-block">Set Protocol Policy and Shaper</button></td></tr>
 
 <script>
-    function validateAddNetworkForm(network_field_id, vlan_field_id) {
-      if(is_network_mask($(network_field_id).val())) {
-	 var vlan= $(vlan_field_id).val();
-	 if((vlan >= 0) && (vlan <= 4095)) {
-	   $('#badnet').hide();
-	   return(true);
-	 } else {
-	   $('#badnet').show();
-	   return false;
-	 }
+    function validateAddNetworkForm(form, vlan_field_id) {
+      var badnet_invalid_msg = "<strong>Warning</strong> Invalid VLAN/network specified.";
+      var badnet_existing_msg = "<strong>Warning</strong> Specified VLAN/network policy exists.";
+      var network_field_id = "#" + getNetworkInputField();
+      var netval = $(network_field_id).val();
+    
+      if(is_network_mask(netval)) {
+         var vlan= $(vlan_field_id).val();
+         if((vlan >= 0) && (vlan <= 4095)) {
+            var existing = false;
+            var fullval = netval + "@" + vlan;
+            $("#network > option").each(function(){ if(this.value == fullval) existing=true; });
+            
+            if (! existing) {
+               $('#badnet').hide();
+               $('input[name="new_network"]').val(netval);
+               return true;
+            } else {
+               $('#badnet').html(badnet_existing_msg);
+               $('#badnet').show();
+               return false;
+            }
+         } else {
+            $('#badnet').html(badnet_invalid_msg);
+            $('#badnet').show();
+            return false;
+         }
       } else {
-       //alert("Invalid network specified");
-      $('#badnet').show();
-      return false;
-     }
-    }
+         //alert("Invalid network specified");
+         $('#badnet').html(badnet_invalid_msg);
+         $('#badnet').show();
+         return false;
+      }
+   }
+
+   function toggleCustomNetworkMode(form) {
+      var n_custom = document.getElementById("new_custom_network");
+      var n_local = document.getElementById("new_network");
+      var custom_mode = (n_custom.style.display != "none");
+
+      if (custom_mode) {
+         n_custom.style.display = "none";
+         n_local.style.display = "inline";
+      } else {
+         n_custom.style.display = "inline";
+         n_custom.value = n_local.value;
+         n_local.style.display = "none";
+      }
+
+      $('#badnet').hide();
+   }
+
+   function getNetworkInputField() {
+      var n_custom = document.getElementById("new_custom_network");
+      var custom_mode = (n_custom.style.display != "none");
+      if (custom_mode)
+         return "new_custom_network";
+      else
+         return "new_network";
+   }
 </script>
+</table>
 
+<table class="table table-striped table-bordered" style="margin:3em auto 3em auto;">
+<tr><th colspan=2>Create Traffic Filtering Policy</th></tr><tr></tr>
+<form class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
+   <input type=hidden name=page value="filtering">
+   <input type=hidden name="new_network">
+   <tr>
+      <th style="width:16em;">Target Network:</th>
+      <td>
+         <div id="badnet" class="alert alert-danger" style="display: none"></div>
+]]
+locals = ntop.getLocalNetworks()
+locals_empty = (next(locals) == nil)
+print[[
+         <input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
+]]
 
-
-<tr><th colspan=2>&nbsp;</th></tr>
-<tr><th colspan=2>Add VLAN/Network To Filter</th></tr>
-
-<tr><td colspan=2>
-<div id="badnet" class="alert alert-danger" style="display: none">
-    <strong>Warning</strong> Invalid VLAN/network specified.
-</div>
-
-<div class="container-fluid">
-  <div class="row">
-
-    <div class="col-md-6">
-      <form class="form-inline" onsubmit="return validateAddNetworkForm('#new_network', '#new_vlan');">
-      <div class="form-group">
-      <input type=hidden name=page value="filtering">
-      Local Network :
-      <select name="new_network" id="new_network">
-          ]]
-       locals = ntop.getLocalNetworks()
-       for s,_ in pairs(locals) do
-          print('<option value="'..s..'">'..s..'</option>\n')
-       end
-      print [[
-      </select>
-      VLAN <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" size=4>
-      <button type="submit" class="btn btn-primary btn-sm">Add Local VLAN/Network</button>
-      </div>
-      </form>
-    </div>
-
-    <div class="col-md-6">
-      <form class="form-inline" onsubmit="return validateAddNetworkForm('#new_custom_network', '#new_custom_vlan');">
-      <div class="form-group">
-      <input type=hidden name=page value="filtering">
-      Network (CIDR) <input type="text" class=form-control id="new_custom_network" name="new_network" size=14>
-      VLAN <input type="text" class=form-control id="new_custom_vlan" name="new_vlan" value="0" size=4>
-      <button type="submit" class="btn btn-primary btn-sm">Add Custom VLAN/Network</button>
-      </div>
-      </form>
-    </div>
-
-  </div>
-</div>
-
-</td>
-
-</tr>
- </table>
-  </form>
+if not locals_empty then
+   print('<select class="form-control" id="new_network" style="width:12em; margin-right:1em; display:inline;">')
+   for s,_ in pairs(locals) do
+      print('<option value="'..s..'">'..s..'</option>\n')
+   end
+   print('</select>')
+   print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" onClick="toggleCustomNetworkMode();"></button>')
+end
+   print[[
+      </td>
+   </tr>
+   <tr>
+      <th>Initial Policy:</th>
+      <td>
+         <div class="btn-group" data-toggle="buttons-radio">
+            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty">Empty</button>
+            <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone">Clone</button>
+         </div>
+         <span id="clone_from" style="display:none;"><span style="margin: 0 1em 0 1em;">from</span>
+            <select id="clone_from_select" class="form-control" style="display:inline; width:12em;">]]
+for k,v in pairsByKeys(nets, asc) do
+   if(k ~= "") then
+      print("\t<option>"..k.."</option>\n")
+   end
+end
+      print[[</span></select></td>
+   </tr>
+   <tr>
+      <th>VLAN</th>
+      <td>
+         <input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" style="width:4em;">
+      </td>
+   </tr>
+   <tr>
+      <td></td>
+      <td>
+         <button type="submit" class="btn btn-primary">Create Policy</button>
+      </td>
+   </tr>
+</form>
+</table>
   <script>
     var ndpiprotos1 = $('select[name="ndpiprotos"]').bootstrapDualListbox({
 			nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
@@ -1444,6 +1505,23 @@ end
       $('#blacklist').val($('[name="ndpiprotos"]').val());
       return true;
     });
+   $(".btn-group button").click(function () {
+      var active;
+      var inactive;
+      if ($(this).val() == "empty") {
+         active = "#bt_initial_empty";
+         inactive = "#bt_initial_clone";
+         $("#clone_from").css("display", "none");
+         $("#clone_from_select").removeAttr("clone_policy");
+      } else {
+         active = "#bt_initial_clone";
+         inactive = "#bt_initial_empty";
+         $("#clone_from").css("display", "inline");
+         $("#clone_from_select").attr("name", "clone_policy");
+      }
+      $(active).removeClass("btn-default").addClass("btn-primary");
+      $(inactive).removeClass("btn-primary").addClass("btn-default");
+   });
   </script>
 ]]
 elseif page == "traffic_report" then
