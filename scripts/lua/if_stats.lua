@@ -1210,7 +1210,7 @@ print [[<br><div id="manage" class="tab-pane active">
   <input type=hidden name=page value=filtering>
   
   <table class="table table-striped table-bordered">
-  <tr><th width=10%>Network:</th><td colspan=3> <select name="network" id="network">
+  <tr><th width=10%>Network</th><td colspan=3> <select name="network" id="network">
 ]]
    selected_found = false
    for k,v in pairsByKeys(nets, asc) do
@@ -1257,7 +1257,7 @@ print('</td></tr>')
 -- ******************************************
 
 print [[
-<tr><th>Ingress Shaper Id</th><td>
+<tr><th nowrap>Ingress Shaper Id</th><td>
 <select name="ingress_shaper_id" id="ingress_shaper_id">
    ]]
 
@@ -1277,13 +1277,13 @@ print [[
    end
 
 print [[
-</select><small style="margin-left:1em;">Specify the max <u>ingress</u> transmission bandwidth to be associated to this network/host.</small></td>
+</select><br><small>Specify the max <u>ingress</u> transmission bandwidth to be associated to this network/host.</small></td>
    ]]
 
 -- ******************************************
 
 print [[
-<th>Egress Shaper Id</th><td>
+<th nowrap>Egress Shaper Id</th><td>
 <select name="egress_shaper_id" id="egress_shaper_id">
    ]]
 
@@ -1305,7 +1305,7 @@ print [[
    end
 
 print [[
-</select><small style="margin-left:1em;">Specify the max <u>egress</u> transmission bandwidth to be associated to this network/host.</small></td></tr>
+</select><br><small>Specify the max <u>egress</u> transmission bandwidth to be associated to this network/host.</small></td></tr>
    ]]
 
 -- ******************************************
