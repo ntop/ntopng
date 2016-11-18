@@ -274,15 +274,9 @@ end
 
 if(ifstats.inline) then
    if(page == "filtering") then
-      print("<li class=\"active\"><a href=\""..url.."&page=filtering\">Traffic Filtering</a></li>")
+      print("<li class=\"active\"><a href=\""..url.."&page=filtering\">Traffic Policing</a></li>")
    else
-      print("<li><a href=\""..url.."&page=filtering\">Traffic Filtering</a></li>")
-   end
-
-   if(page == "shaping") then
-      print("<li class=\"active\"><a href=\""..url.."&page=shaping\">Traffic Shaping</a></li>")
-   else
-      print("<li><a href=\""..url.."&page=shaping\">Traffic Shaping</a></li>")
+      print("<li><a href=\""..url.."&page=filtering\">Traffic Policing</a></li>")
    end
 end
 
@@ -1091,55 +1085,6 @@ local ifname_clean = "iface_"..tostring(ifid)
 	 print [[</tr>]]
 
     print("</table>")
-elseif(page == "shaping") then
-shaper_id = _GET["shaper_id"]
-max_rate = _GET["max_rate"]
-
-if((shaper_id ~= nil) and (max_rate ~= nil)) then
-   shaper_id = tonumber(shaper_id)
-   max_rate = tonumber(max_rate)
-   if((shaper_id >= 0) and (shaper_id < max_num_shapers)) then
-      if(max_rate > 1048576) then max_rate = -1 end
-      if(max_rate < -1) then max_rate = -1 end
-      ntop.setHashCache(shaper_key, shaper_id, max_rate.."")
-      interface.reloadShapers()
-   end
-end
-
-print [[
-<table class="table table-striped table-bordered">
- <tr><th width=10%>Shaper Id</th><th>Max Rate</th></tr>
-]]
-
-
-for i=0,max_num_shapers-1 do
-   max_rate = ntop.getHashCache(shaper_key, i)
-   if(max_rate == "") then max_rate = -1 end
-   print('<tr><th style=\"text-align: center;\">'..i)
-
-   print [[
-	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="page" value="shaping">
-	 <input type="hidden" name="if_name" value="]] print(if_name) print[[">
-	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
-
-      if(isAdministrator()) then
-	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-
-	 print('<input class=form-control type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
-	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
-      else
-	 print("</td></tr>")
-      end
-end
-print [[</table>
-  NOTES
-<ul>
-<li>Shaper 0 is the default shaper used for local hosts that have no shaper defined.
-<li>Set max rate to:<ul><li>-1 for no shaping<li>0 for dropping all traffic</ul>
-</ul>
-]]
-
 elseif(page == "filtering") then
    policy_key = "ntopng.prefs.".. ifid ..".l7_policy"
    any_net = "0.0.0.0/0@0"
@@ -1233,11 +1178,21 @@ elseif(page == "filtering") then
    end
 
    print [[
+   <ul id="filterPageTabPanel" class="nav nav-tabs">
+      <li class="active"><a data-toggle="tab" href="#manage">Manage Policies</a></li>
+      <li><a data-toggle="tab" href="#create">Create Policies</a></li>
+      <li><a data-toggle="tab" href="#shapers">Manage Shapers</a></li>
+   </ul>
+   <div class="tab-content">]]
+
+-- ==== Manage policies tab ====
+
+print [[<br><div id="manage" class="tab-pane active">
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
   <input type=hidden name=page value=filtering>
+  
   <table class="table table-striped table-bordered">
-  <tr><th colspan=2>Manage Traffic Filtering Policies</th></tr>
-  <tr><th width=10%>Network:</th><td> <select name="network" id="network">
+  <tr><th width=10%>Network:</th><td colspan=3> <select name="network" id="network">
 ]]
    selected_found = false
    for k,v in pairsByKeys(nets, asc) do
@@ -1296,13 +1251,13 @@ print [[
    end
 
 print [[
-</select><br>&nbsp;<br><small>Specify the max <u>ingress</u> transmission bandwidth to be associated to this network/host.</small></td></tr>
+</select><small style="margin-left:1em;">Specify the max <u>ingress</u> transmission bandwidth to be associated to this network/host.</small></td>
    ]]
 
 -- ******************************************
 
 print [[
-<tr><th>Egress Shaper Id</th><td>
+<th>Egress Shaper Id</th><td>
 <select name="egress_shaper_id" id="egress_shaper_id">
    ]]
 
@@ -1324,13 +1279,13 @@ print [[
    end
 
 print [[
-</select><br>&nbsp;<br><small>Specify the max <u>egress</u> transmission bandwidth to be associated to this network/host.</small></td></tr>
+</select><small style="margin-left:1em;">Specify the max <u>egress</u> transmission bandwidth to be associated to this network/host.</small></td></tr>
    ]]
 
 -- ******************************************
 
 print [[
-<tr><td colspan=2>
+<tr><td colspan=4 style="padding:2em 1em;">
   <input type=hidden id=blacklist name=blacklist value="">
   <select multiple="multiple" size="10" name="ndpiprotos">
 ]]
@@ -1371,7 +1326,7 @@ end
    print [[
     </select>
     </td></tr>
-    <tr><td colspan=2><button type="submit" class="btn btn-primary btn-block">Set Protocol Policy and Shaper</button></td></tr>
+    <tr><td colspan=4><button type="submit" class="btn btn-primary btn-block">Set Protocol Policy and Shaper</button></td></tr>
 
 <script>
     function validateAddNetworkForm(form, vlan_field_id) {
@@ -1436,12 +1391,17 @@ end
    }
 </script>
 </table>
+</div>
+]]
 
-<table class="table table-striped table-bordered" style="margin:3em auto 3em auto;">
-<tr><th colspan=2>Create Traffic Filtering Policy</th></tr><tr></tr>
-<form class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
-   <input type=hidden name=page value="filtering">
-   <input type=hidden name="new_network">
+-- ==== Create policies tab ====
+
+print[[
+<div id="create" class="tab-pane">
+   <table class="table table-striped table-bordered">
+   <form class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
+      <input type=hidden name=page value="filtering">
+      <input type=hidden name="new_network">
    <tr>
       <th style="width:16em;">Target Network:</th>
       <td>
@@ -1494,6 +1454,8 @@ end
    </tr>
 </form>
 </table>
+</div>
+
   <script>
     var ndpiprotos1 = $('select[name="ndpiprotos"]').bootstrapDualListbox({
 			nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
@@ -1524,6 +1486,87 @@ end
    });
   </script>
 ]]
+
+-- ==== Manage shapers tab ====
+
+print[[
+  <div id="shapers" class="tab-pane">
+]]
+
+shaper_id = _GET["shaper_id"]
+max_rate = _GET["max_rate"]
+
+if((shaper_id ~= nil) and (max_rate ~= nil)) then
+   shaper_id = tonumber(shaper_id)
+   max_rate = tonumber(max_rate)
+   if((shaper_id >= 0) and (shaper_id < max_num_shapers)) then
+      if(max_rate > 1048576) then max_rate = -1 end
+      if(max_rate < -1) then max_rate = -1 end
+      ntop.setHashCache(shaper_key, shaper_id, max_rate.."")
+      interface.reloadShapers()
+   end
+end
+
+print [[
+<table class="table table-striped table-bordered">
+ <tr><th width=10%>Shaper Id</th><th>Max Rate</th></tr>
+]]
+
+
+for i=0,max_num_shapers-1 do
+   max_rate = ntop.getHashCache(shaper_key, i)
+   if(max_rate == "") then max_rate = -1 end
+   print('<tr><th style=\"text-align: center;\">'..i)
+
+   print [[
+	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
+	 <input type="hidden" name="page" value="filtering">
+	 <input type="hidden" name="if_name" value="]] print(if_name) print[[">
+	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
+
+      if(isAdministrator()) then
+	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
+	 print('<input class=form-control type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
+	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
+      else
+	 print("</td></tr>")
+      end
+end
+print [[</table>
+  NOTES
+<ul>
+<li>Shaper 0 is the default shaper used for local hosts that have no shaper defined.
+<li>Set max rate to:<ul><li>-1 for no shaping<li>0 for dropping all traffic</ul>
+</ul>
+</div>
+
+<script>
+   /*** Page Tab State ***/
+   $('#filterPageTabPanel a').click(function(e) {
+     e.preventDefault();
+     $(this).tab('show');
+   });
+
+   // store the currently selected tab in the hash value
+   $("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      if(history.pushState) {
+         // this will prevent the 'jump' to the hash
+         history.replaceState(null, null, "#"+id);
+      } else {
+         // fallback
+         window.location.hash = id;
+      }
+   });
+
+   // on load of the page: switch to the currently selected tab
+   var hash = window.location.hash;
+   $('#filterPageTabPanel a[href="' + hash + '"]').tab('show');
+   /*** End Page Tab State ***/
+</script>
+]]
+
 elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end
