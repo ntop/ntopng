@@ -41,11 +41,14 @@ NetworkInterface::NetworkInterface() { init(); }
 
 /* **************************************************** */
 
-NetworkInterface::NetworkInterface(const char *name) {
+NetworkInterface::NetworkInterface(const char *name, const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64];
 
   init();
+
+  customIftype = custom_interface_type;
+  
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
 #endif
@@ -165,6 +168,15 @@ NetworkInterface::NetworkInterface(const char *name) {
 
   statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
   alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
+
+  if(customIftype != CONST_INTERFACE_TYPE_VLAN) {
+    const char *rkey = "ntopng.prefs.dynamic_iface_vlan_creation";
+    char  rsp[16];
+
+    if((ntop->getRedis()->get((char*)rkey, rsp, sizeof(rsp)) == 0)
+       && (!strncmp(rsp, "1", 1)))      
+      vlanInterfaces = (NetworkInterface**)calloc(MAX_NUM_VLAN, sizeof(NetworkInterface*));
+  }
 }
 
 /* **************************************************** */
@@ -173,9 +185,9 @@ void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
-  sprobe_interface = inline_interface = false,has_vlan_packets = false,
+  sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, numSubInterfaces = 0,
+    running = false, numSubInterfaces = 0, numVlanInterfaces = 0, vlanInterfaces = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
   purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
   sprobe_interface = false, has_vlan_packets = false,
@@ -443,7 +455,7 @@ NetworkInterface::~NetworkInterface() {
   if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
   if(interfaceStats) delete interfaceStats;
-
+  if(vlanInterfaces) free(vlanInterfaces); /* Interfaces are deleted by the main termination function */
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
@@ -850,6 +862,27 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   bool pass_verdict = true;
   int a_shaper_id = DEFAULT_SHAPER_ID, b_shaper_id = DEFAULT_SHAPER_ID; /* Default */
 
+  if(vlanInterfaces && (vlan_id > 0)) {
+    if((vlanInterfaces[vlan_id] == NULL)
+       && (numVlanInterfaces < MAX_NUM_VIRTUAL_INTERFACES)) {
+      char buf[64];
+      NetworkInterface *vIface;
+      
+      snprintf(buf, sizeof(buf), "%s@%u", ifname, vlan_id);
+      
+      if((vIface = new NetworkInterface(buf, CONST_INTERFACE_TYPE_VLAN)) != NULL) {
+	vlanInterfaces[vlan_id] = vIface;
+	ntop->registerInterface(vIface);
+	numVlanInterfaces++;
+      }
+    }
+
+    if(vlanInterfaces[vlan_id])
+      return(vlanInterfaces[vlan_id]->processPacket(when, time, eth, vlan_id,
+						    iph, ip6, ipsize, rawsize,
+						    h, packet, shaped, ndpiProtocol));
+  }
+  
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
@@ -1442,7 +1475,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       }
 
       if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-	vlan_id = ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr & 0xFF;
+	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr) & 0xFF;
 
       try {
 	pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id, iph,
@@ -1528,7 +1561,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	}
 
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-	  vlan_id = ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr & 0xFF;
+	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] : iph->saddr) & 0xFF;
 
 	try {
 	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,

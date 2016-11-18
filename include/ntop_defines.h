@@ -163,6 +163,7 @@
 #define CONST_INTERFACE_TYPE_PCAP      "pcap"
 #define CONST_INTERFACE_TYPE_PCAP_DUMP "pcap dump"
 #define CONST_INTERFACE_TYPE_ZMQ       "zmq"
+#define CONST_INTERFACE_TYPE_VLAN      "Dynamic VLAN"
 #define CONST_INTERFACE_TYPE_VIEW      "view"
 #define CONST_INTERFACE_TYPE_PF_RING   "PF_RING"
 #define CONST_INTERFACE_TYPE_NETFILTER "netfilter"
@@ -244,6 +245,7 @@
 #define NUM_IFACE_STATS_HASH        1024
 #define MAX_NUM_FLOW_DEVICES          48
 #define MAX_NUM_VLAN                4096
+#define MAX_NUM_VIRTUAL_INTERFACES    32
 #define DEFAULT_SHAPER_ID              0
 #define NUM_TRAFFIC_SHAPERS           10
 #define MAX_SHAPER_RATE_KBPS       10240

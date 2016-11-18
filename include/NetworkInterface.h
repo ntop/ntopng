@@ -50,7 +50,10 @@ class L7Policer;
 class NetworkInterface {
  protected:
   char *ifname; /**< Network interface name. */
+  const char *customIftype;
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
+  u_int16_t numVlanInterfaces;
+  NetworkInterface **vlanInterfaces;
   string ip_addresses;
   int id;
   bool bridge_interface;
@@ -165,7 +168,7 @@ class NetworkInterface {
   * @return A new instance of NetworkInteface.
   */
   NetworkInterface();
-  NetworkInterface(const char *name);
+  NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
@@ -177,7 +180,7 @@ class NetworkInterface {
   virtual bool set_packet_filter(char *filter) { return(false); };
   virtual void incrDrops(u_int32_t num)        { ; }
   inline virtual bool isPacketInterface()      { return(true); }
-  inline virtual const char* get_type()        { return(CONST_INTERFACE_TYPE_UNKNOWN); }
+  inline virtual const char* get_type()        { return(customIftype ? customIftype : CONST_INTERFACE_TYPE_UNKNOWN); }
   inline FlowHash *get_flows_hash()            { return flows_hash;     }
   inline TcpFlowStats* getTcpFlowStats()       { return(&tcpFlowStats); }
   inline virtual bool is_ndpi_enabled()        { return(true);          }

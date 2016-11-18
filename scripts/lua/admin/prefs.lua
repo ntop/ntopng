@@ -36,6 +36,7 @@ on_disk_dbs_active = ""
 nbox_active = ""
 alerts_active = ""
 users_active = ""
+ifaces_active = ""
 logging_active = ""
 
 if (subpage_active == nil or subpage_active == "") then
@@ -67,6 +68,9 @@ end
 if (subpage_active == "users") then
    users_active = "active"
 end
+if (subpage_active == "ifaces") then
+   ifaces_active = "active"
+end
 if (subpage_active == "logging") then
    if not prefs.has_cmdl_trace_lvl then
       logging_active = "active"
@@ -87,6 +91,22 @@ function printReportVisualization()
   toggleTableButtonPrefs("Throughput Unit",
               "Select the throughput unit to be displayed in traffic reports.",
               "Bytes", "bps", "primary","Packets", "pps", "primary","toggle_thpt_content", "ntopng.prefs.thpt_content", "bps")
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+  print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form> ]]
+end
+
+-- ================================================================================
+function printInterfaces()
+  print('<form>')
+  print('<input type=hidden name="subpage_active" value="ifaces"/>\n')
+  print('<table class="table">')
+  print('<tr><th colspan=2 class="info">Network Interfaces</th></tr>')
+
+  toggleTableButtonPrefs("Dynamic VLAN Interfaces",
+			    "Toggle the automatic creation of virtual interfaces based on VLAN tags.<br><b>NOTE:</b> Value changes will not be effective for existing interfaaces.",
+			    "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -496,6 +516,7 @@ end
          <tr><td style="padding-right: 20px;">
            <div class="list-group ">
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=users" class="list-group-item ]] print(users_active) print[[">Users</a>
+             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=ifaces" class="list-group-item ]] print(ifaces_active) print[[">Network Interfaces</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=in_memory" class="list-group-item ]] print(in_memory_active) print[[">In-Memory Data</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_rrds" class="list-group-item ]] print(on_disk_rrds_active) print[[">On-Disk Timeseries</a>
              <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>]]
@@ -541,6 +562,9 @@ if (subpage_active == "nbox") then
 end
 if (subpage_active == "users") then
    printUsers()
+end
+if (subpage_active == "ifaces") then
+   printInterfaces()
 end
 if (subpage_active == "logging") then
    if not prefs.has_cmdl_trace_lvl then
