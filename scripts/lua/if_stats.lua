@@ -272,7 +272,7 @@ if(isAdministrator()) then
    end
 end
 
-if(ifstats.inline) then
+if(ifstats.inline and isAdministrator()) then
    if(page == "filtering") then
       print("<li class=\"active\"><a href=\""..url.."&page=filtering\">Traffic Policing</a></li>")
    else
@@ -1086,12 +1086,16 @@ local ifname_clean = "iface_"..tostring(ifid)
 
     print("</table>")
 elseif(page == "filtering") then
+   if not isAdministrator() then
+      error()
+   end
+
    policy_key = "ntopng.prefs.".. ifid ..".l7_policy"
    any_net = "0.0.0.0/0@0"
 
    -- ====================================
 
-   if((_GET["new_vlan"] ~= nil) and (_GET["new_network"] ~= nil)) then
+   if((_GET["csrf"] ~= nil) and (_GET["new_vlan"] ~= nil) and (_GET["new_network"] ~= nil)) then
       network_key = _GET["new_network"].."@".._GET["new_vlan"]
       initial_policy = ""
       
@@ -1114,7 +1118,7 @@ elseif(page == "filtering") then
       jsRedirect("if_stats.lua?id="..ifid.."&page=filtering&network="..network_key)
    end
 
-   if(_GET["delete_network"] ~= nil and _GET["delete_network"] ~= any_net) then
+   if((_GET["csrf"] ~= nil) and (_GET["delete_network"] ~= nil) and (_GET["delete_network"] ~= any_net)) then
       -- delete network policy
       ntop.delHashCache(policy_key, _GET["delete_network"])
 
@@ -1154,7 +1158,7 @@ elseif(page == "filtering") then
    end
 
    -- io.write(net.."\n")
-   if((net ~= nil) and (_GET["blacklist"] ~= nil)) then
+   if((_GET["csrf"] ~= nil) and (net ~= nil) and (_GET["blacklist"] ~= nil)) then
       ntop.setHashCache(policy_key, net, _GET["blacklist"])
 
       -- ******************************
@@ -1192,6 +1196,7 @@ elseif(page == "filtering") then
 
 print [[<br><div id="manage" class="tab-pane active">
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
+  <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input type=hidden name=page value=filtering>
   
   <table class="table table-striped table-bordered">
@@ -1405,6 +1410,7 @@ print[[
    <table class="table table-striped table-bordered">
    <form class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
       <input type=hidden name=page value="filtering">
+      <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input type=hidden name="new_network">
    <tr>
       <th style="width:16em;">Target Network:</th>
@@ -1500,7 +1506,7 @@ print[[
 shaper_id = _GET["shaper_id"]
 max_rate = _GET["max_rate"]
 
-if((shaper_id ~= nil) and (max_rate ~= nil)) then
+if((_GET["csrf"] ~= nil) and (shaper_id ~= nil) and (max_rate ~= nil)) then
    shaper_id = tonumber(shaper_id)
    max_rate = tonumber(max_rate)
    if((shaper_id >= 0) and (shaper_id < max_num_shapers)) then
