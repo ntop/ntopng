@@ -1064,7 +1064,10 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
     }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "SYN Flood: %s", msg);
-    iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg);
+    /* the f->get_srv_host() is just a guess */
+    iface->getAlertsManager()->storeHostAlert(this, alert_syn_flood, alert_level_error, msg,
+					      syn_sent ? this /* .. we are the cause of the trouble */ : f->get_srv_host(),
+					      syn_sent ? f->get_srv_host() /* .. the srve is a victim .. */: this);
   }
 }
 
@@ -1087,7 +1090,9 @@ void Host::incNumFlows(bool as_client) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
       iface->getAlertsManager()->engageHostAlert(this,
 						 (char*)"scan_attacker",
-						 alert_flow_flood, alert_level_error, msg);
+						 alert_flow_flood, alert_level_error, msg,
+						 this /* the originator of the alert, i.e., the cause of the trouble */,
+						 NULL /* the target of the alert, possibly many hosts */);
       flow_flood_attacker_alert = true;
     }
   } else {
@@ -1106,7 +1111,9 @@ void Host::incNumFlows(bool as_client) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Begin scan attack: %s", msg);
       iface->getAlertsManager()->engageHostAlert(this,
 						 (char*)"scan_victim",
-						 alert_flow_flood, alert_level_error, msg);
+						 alert_flow_flood, alert_level_error, msg,
+						 NULL /* presently we don't know the originator(s) of the alert ... */,
+						 this /* ... but we can say that we're the victim ... */);
       flow_flood_victim_alert = true;
     }
   }

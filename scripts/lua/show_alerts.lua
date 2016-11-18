@@ -27,7 +27,7 @@ elseif num_alerts == 0 and num_engaged_alerts == 0 then
    print("<div class=\"alert alert alert-info\"><img src=".. ntop.getHttpPrefix() .. "/img/info_icon.png> No recorded alerts so far for interface "..ifname.."</div>")
 else
 
-   -- drawAlertStatsCharts() 
+   --drawAlertStatsCharts() 
    drawAlertTables(num_alerts, num_engaged_alerts)
 
 end -- closes if ntop.getPrefs().are_alerts_enabled == false then

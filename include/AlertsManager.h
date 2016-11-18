@@ -38,18 +38,21 @@ class AlertsManager : protected StoreManager {
   int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, bool engaged);
   int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
-		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+		  const char *alert_origin, const char *alert_target);
   int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
-		   const char *engaged_alert_id,
-		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+		   const char *engaged_alert_id);
   int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+		 const char *alert_origin, const char *alert_target,
 		 bool check_maximum);
 
   int engageReleaseHostAlert(Host *h,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+			     Host *alert_origin, Host *alert_target,
 			     bool engage);
+
   int engageReleaseNetworkAlert(const char *cidr,
 				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
@@ -86,14 +89,24 @@ class AlertsManager : protected StoreManager {
   inline int engageHostAlert(Host *h,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, true /* engage */);
+    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, true /* engage */);
+  };
+  inline int engageHostAlert(Host *h,
+			     const char *engaged_alert_id,
+			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+			     Host *alert_origin, Host *alert_target) {
+    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, alert_origin, alert_target, true /* engage */);
   };
   inline int releaseHostAlert(Host *h,
 			      const char *engaged_alert_id,
 			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, false /* release */);
+    return engageReleaseHostAlert(h, engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL, false /* release */);
   };
-  int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+		     Host *alert_origin, Host *alert_target);
+  inline int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeHostAlert(h, alert_type, alert_severity, alert_json, NULL, NULL);
+  }
 
   int getHostAlerts(Host *h,
 		    lua_State* vm, patricia_tree_t *allowed_hosts,
@@ -111,7 +124,12 @@ class AlertsManager : protected StoreManager {
   /*
     ========== FLOW alerts API =========
    */
-  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+		     Host *alert_origin, Host *alert_target);
+  inline int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+    return storeFlowAlert(f, alert_type, alert_severity, alert_json, NULL, NULL);
+  };
+
 
   /*
     ========== NETWORK alerts API ======

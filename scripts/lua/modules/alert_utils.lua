@@ -674,7 +674,7 @@ end
 function drawAlertStatsCharts()
    print[[
 <table class="table table-bordered table-striped">
-<tr><th>Overview</th><th>Last Hour</th><th>Top Hosts</th><th>Longest Engaged</th></tr>
+<tr><th>Overview</th><th>Top Origins</th><th>Top Targets</th><th>Engaged for Longest Time</th></tr>
 <tr>
   <td>
     <table class="table">
@@ -704,12 +704,18 @@ function drawAlertStatsCharts()
     </tr>
     </table>
   </td>
-  <td></td>
   <td>
-    <table class="table table-sm" id="top-hosts-table">
+    <table class="table table-sm" id="top_origins">
     </table>
   </td>
-  <td></td>
+  <td>
+    <table class="table table-sm" id="top_targets">
+    </table>
+  </td>
+  <td>
+    <table class="table table-sm" id="top_hosts">
+    </table>
+  </td>
 </tr>
 <tr><th>Severity</th><th>Type</th><th>Duration</th><th>Counts</th></tr>
 <tr>
@@ -762,18 +768,22 @@ function drawAlertStatsCharts()
           });
         }
       });
-
-      // top hosts
+]]
+   for _, top_what in ipairs({"top_origins", "top_targets"}) do
+      print[[
       $.ajax({
-        type: 'GET', url: url, data : {stats_type: 'top_hosts', ifname: ']] print(ifId.."") print[['},
+        type: 'GET', url: url, data : {stats_type: ']] print(top_what) print[['},
         success: function(rsp) {
-          $("#top-hosts-table tr").remove();
+          $("#]] print(top_what) print[[ tr").remove();
           var content = jQuery.parseJSON(rsp);
           $.each(content, function(index, item){
-            $("#top-hosts-table").append('<tr><td>' + formatHost(item.host) + '</td><td>' + fint(item.value) + '</td></tr>');
+            $("#]] print(top_what) print[[").append('<tr><td>' + formatHost(item.host) + '</td><td>' + fint(item.value) + '</td></tr>');
           });
         }
       });
+]]
+   end
+   print[[
      }
 
       // the counters

@@ -26,7 +26,9 @@ local aggr = {}
 local selection
 local aggregation
 local labeller
-if stats_type == "severity_pie" or stats_type == "type_pie" or stats_type == "count_sparkline" or stats_type == "top_hosts" then
+if stats_type == "severity_pie" or stats_type == "type_pie"
+  or stats_type == "count_sparkline" or stats_type == "top_hosts"
+  or stats_type == "top_origins" or stats_type == "top_targets" then
    if stats_type == "severity_pie" then
       selection   = "alert_severity as label, count(*) as value"
       aggregation = "where alert_tstamp >= ".. period_begin .." group by label"
@@ -43,6 +45,18 @@ if stats_type == "severity_pie" or stats_type == "type_pie" or stats_type == "co
       selection   = "alert_entity_val as label, count(*) as value"
       aggregation = "where alert_entity = "..alertEntity("host")
       aggregation = aggregation.." and alert_tstamp >= ".. period_begin
+      aggregation = aggregation.." group by label order by value desc limit 5"
+      labeller = nil
+   elseif stats_type == "top_origins" then
+      selection   = "alert_origin as label, count(*) as value"
+      aggregation = "where alert_tstamp >= ".. period_begin
+      aggregation = aggregation.." and alert_origin is not null "
+      aggregation = aggregation.." group by label order by value desc limit 5"
+      labeller = nil
+   elseif stats_type == "top_targets" then
+      selection   = "alert_target as label, count(*) as value"
+      aggregation = "where alert_tstamp >= ".. period_begin
+      aggregation = aggregation.." and alert_target is not null "
       aggregation = aggregation.." group by label order by value desc limit 5"
       labeller = nil
    end
@@ -83,19 +97,20 @@ elseif stats_type == "duration_pie" then
 
    -- engaged
    -- the duration is the current instant minus the alert timestamp
-   selection   = "(strftime('%s','now') - alert_tstamp) as label, count(*) as value"
-   aggregation = "where alert_tstamp >= ".. period_begin .. " group by label"
-   local r_engaged = interface.selectAlertsRaw(true, selection, aggregation)
-   if r_engaged == nil then r_engaged = {} end
-
+   local engaged_selection   = "(strftime('%s','now') - alert_tstamp) as label, count(*) as value"
+   local engaged_aggregation = "where alert_tstamp >= ".. period_begin .. " group by label"
    -- not engaged
    -- the duration is the difference between the end and the start time
-   selection   = "(alert_tstamp_end - alert_tstamp) as label, count(*) as value"
+   local closed_selection   = "(alert_tstamp_end - alert_tstamp) as label, count(*) as value"
    -- we don't take into account 'instant' alerts
-   aggregation = "where alert_tstamp >= ".. period_begin .. " and alert_tstamp_end is not null group by label"
-   local r_closed = interface.selectAlertsRaw(false, selection, aggregation)
+   local closed_aggregation = "where alert_tstamp >= ".. period_begin .. " and alert_tstamp_end is not null group by label"
+
+   local r_engaged = interface.selectAlertsRaw(true, engaged_selection, engaged_aggregation)
+   if r_engaged == nil then r_engaged = {} end
+
+   local r_closed = interface.selectAlertsRaw(false, closed_selection, closed_aggregation)
    if r_closed == nil then r_closed = {} end
-   
+
    -- let's put things together
    for _, r in pairs({r_engaged, r_closed}) do
       for k, v in ipairs(r) do
@@ -106,6 +121,30 @@ elseif stats_type == "duration_pie" then
 	    aggr[v["label"]] = aggr[v["label"]] + v["value"]
 	 else
 	    aggr[v["label"]] = v["value"]
+	 end
+      end
+   end
+
+elseif stats_type == "longest_engaged" then
+   local closed_selection = "alert_entity as ae, alert_entity_val as av, sum(alert_tstamp_end - alert_tstamp) as total_time"
+   local closed_aggregation = "where alert_tstamp >= ".. period_begin
+   closed_aggregation = closed_aggregation.." and alert_tstamp_end is not null "
+   closed_aggregation = closed_aggregation.." group by alert_entity, alert_entity_val"
+
+   local engaged_selection = "alert_entity as ae, alert_entity_val as av, sum(strftime('%s','now') - alert_tstamp) as total_time"
+   local engaged_aggregation = "where alert_tstamp >= ".. period_begin
+   engaged_aggregation = engaged_aggregation.." group by alert_entity, alert_entity_val"
+
+   local r_closed = interface.selectAlertsRaw(false, closed_selection, closed_aggregation);
+   local r_engaged = interface.selectAlertsRaw(true, engaged_selection, engaged_aggregation);
+
+   for _, r in pairs({r_engaged, r_closed}) do
+      for k, v in ipairs(r) do
+	 local label = alertEntityLabel(tonumber(v["ae"])) .. "_" .. v["av"]
+	 if aggr[label] ~= nil then
+	    aggr[label] = aggr[label] + v["total_time"]
+	 else
+	    aggr[label] = v["total_time"]
 	 end
       end
    end
@@ -126,7 +165,6 @@ elseif stats_type == "counts_plain" then
    end
 end
 
-
 -- post-processing before last aggregation
 if stats_type == "count_sparkline" then
    local time_now = min_align(now)
@@ -145,10 +183,18 @@ if stats_type == "count_sparkline" then
    end
 elseif stats_type == "counts_plain" then
    res = aggr
-elseif stats_type == "top_hosts" then
+elseif stats_type == "top_hosts" or stats_type == "top_origins" or stats_type == "top_targets" then
    for k, v in pairs(aggr) do aggr[k] = tonumber(v) end
    for k, v in pairsByValues(aggr, rev) do
       res[#res + 1] = {host=k, value=v}
+   end
+elseif stats_type == "longest_engaged" then
+   for k, v in pairs(aggr) do aggr[k] = tonumber(v) end
+   local count = 1
+   for k, v in pairsByValues(aggr, rev) do
+      res[#res + 1] = {entity=k, total_time=v}
+      count = count + 1
+      if count > 5 then break end
    end
 else
    for k, v in pairs(aggr) do

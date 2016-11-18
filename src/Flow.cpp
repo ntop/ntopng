@@ -247,7 +247,8 @@ Flow::~Flow() {
 		 print(fbuf, sizeof(fbuf)));
 
 	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
-						  alert_level_warning, alert_msg);
+						  alert_level_warning, alert_msg,
+						  cli_host, srv_host);
 
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", print(alert_msg, sizeof(alert_msg)));
 	break;
@@ -304,21 +305,36 @@ void Flow::checkBlacklistedFlow() {
       char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
 
       c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+      if(c && cli_host->get_vlan_id())
+	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+
       s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+      if(s && srv_host->get_vlan_id())
+	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
       snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> contacted %s host "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s'>%s</A> [%s]",
+	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> contacted %s host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> [%s]",
 	       ntop->getPrefs()->get_http_prefix(),
 	       cli_host->is_blacklisted() ? "Blacklisted host" : "Host",
-	       c, iface->get_name(), cli_host->get_name() ? cli_host->get_name() : c,
+	       c, iface->get_name(),
+	       cli_host->isLocalHost() ? "&page=alerts" : "",
+	       cli_host->get_name() ? cli_host->get_name() : c,
 	       srv_host->is_blacklisted() ? "blacklisted" : "",
 	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_name(), srv_host->get_name() ? srv_host->get_name() : s,
+	       s, iface->get_name(),
+	       srv_host->isLocalHost() ? "&page=alerts" : "",
+	       srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 
+      /* force the vlan in the alert source and target */
+      if(!strstr(c, "@")) sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+      if(!strstr(s, "@")) sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
-						alert_level_warning, alert_msg);
+						alert_level_warning, alert_msg,
+						cli_host->is_blacklisted() ? srv_host : cli_host,
+						srv_host->is_blacklisted() ? srv_host : cli_host);
     }
 
     blacklist_alarm_emitted = true;
@@ -2414,6 +2430,7 @@ void Flow::checkFlowCategory() {
 	     s, iface->get_name(), s, srv_port,
 	     host_server_name, host_server_name);
 
+    /* TODO: see if it is meaningful to add source and target to the alert */
     iface->getAlertsManager()->storeFlowAlert(this, alert_malware_detection,
 					      alert_level_warning, alert_msg);
     badFlow = true, setDropVerdict();
