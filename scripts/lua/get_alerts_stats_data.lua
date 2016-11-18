@@ -27,7 +27,7 @@ local selection
 local aggregation
 local labeller
 if stats_type == "severity_pie" or stats_type == "type_pie"
-  or stats_type == "count_sparkline" or stats_type == "top_hosts"
+  or stats_type == "count_sparkline"
   or stats_type == "top_origins" or stats_type == "top_targets" then
    if stats_type == "severity_pie" then
       selection   = "alert_severity as label, count(*) as value"
@@ -40,12 +40,6 @@ if stats_type == "severity_pie" or stats_type == "type_pie"
    elseif stats_type == "count_sparkline" then
       selection = "(alert_tstamp - alert_tstamp % 60) as label, count(*) as value"
       aggregation = "where alert_tstamp >= ".. period_begin .." group by label"
-      labeller = nil
-   elseif stats_type == "top_hosts" then
-      selection   = "alert_entity_val as label, count(*) as value"
-      aggregation = "where alert_entity = "..alertEntity("host")
-      aggregation = aggregation.." and alert_tstamp >= ".. period_begin
-      aggregation = aggregation.." group by label order by value desc limit 5"
       labeller = nil
    elseif stats_type == "top_origins" then
       selection   = "alert_origin as label, count(*) as value"
@@ -183,16 +177,22 @@ if stats_type == "count_sparkline" then
    end
 elseif stats_type == "counts_plain" then
    res = aggr
-elseif stats_type == "top_hosts" or stats_type == "top_origins" or stats_type == "top_targets" then
+elseif stats_type == "top_origins" or stats_type == "top_targets" then
    for k, v in pairs(aggr) do aggr[k] = tonumber(v) end
    for k, v in pairsByValues(aggr, rev) do
-      res[#res + 1] = {host=k, value=v}
+      res[#res + 1] = {host=k, value=v,
+		       hostname=shortenString(ntop.getResolvedAddress(k:gsub("@.*","")))}
    end
 elseif stats_type == "longest_engaged" then
    for k, v in pairs(aggr) do aggr[k] = tonumber(v) end
    local count = 1
    for k, v in pairsByValues(aggr, rev) do
-      res[#res + 1] = {entity=k, total_time=v}
+      local entityname = k
+      if k:starts("Host_") then
+	 k = k:gsub("Host_",""):gsub("@.*","")
+	 entityname = shortenString(ntop.getResolvedAddress(k))
+      end
+      res[#res + 1] = {entity=k, total_time=v, entityname=entityname}
       count = count + 1
       if count > 5 then break end
    end

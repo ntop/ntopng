@@ -731,10 +731,10 @@ function drawAlertStatsCharts()
 
   var sparkline = $("#count-sparkline").peity("line", { width: 180, height: 40, max: null });
 
-  var formatHost = function(host){
+  var formatHost = function(item){
     var url = "]] print (ntop.getHttpPrefix()) print[[/lua/host_details.lua";
-    url += "?page=alerts&host=" + host;
-    return "<a href='" + url + "'>" + host.replace("@0","") + "</a>"
+    url += "?page=alerts&host=" + item.host;
+    return "<a href='" + url + "'>" + item.hostname + "</a>"
   }
 
   var url = "]] print (ntop.getHttpPrefix()) print[[/lua/get_alerts_stats_data.lua";
@@ -777,7 +777,7 @@ function drawAlertStatsCharts()
           $("#]] print(top_what) print[[ tr").remove();
           var content = jQuery.parseJSON(rsp);
           $.each(content, function(index, item){
-            $("#]] print(top_what) print[[").append('<tr><td>' + formatHost(item.host) + '</td><td>' + fint(item.value) + '</td></tr>');
+            $("#]] print(top_what) print[[").append('<tr><td>' + formatHost(item) + '</td><td>' + fint(item.value) + '</td></tr>');
           });
         }
       });
