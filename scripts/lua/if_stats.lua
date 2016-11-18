@@ -1111,6 +1111,7 @@ elseif(page == "filtering") then
 
       ntop.setHashCache(policy_key, network_key, initial_policy)
       interface.reloadL7Rules()
+      jsRedirect("if_stats.lua?id="..ifid.."&page=filtering&network="..network_key)
    end
 
    if(_GET["delete_network"] ~= nil and _GET["delete_network"] ~= any_net) then
@@ -1125,6 +1126,7 @@ elseif(page == "filtering") then
 
       -- reload all the rules, and update hosts affected by removal
       interface.reloadL7Rules(_GET["delete_network"])
+      jsRedirect("if_stats.lua?id="..ifid.."&page=filtering")
    end
 
    net = _GET["network"] or _GET["new_network"]
@@ -1169,6 +1171,7 @@ elseif(page == "filtering") then
       
       -- reload all the rules
       interface.reloadL7Rules()
+      jsRedirect("if_stats.lua?id="..ifid.."&page=filtering&network="..net)
       -- io.write("reloading shapers rules\n")
    end
 
@@ -1221,6 +1224,7 @@ if((selected_found == true)
    nw = string.gsub(selected_network, "/32", "");
    nw = string.gsub(nw, "/128", "");
    print("&nbsp;[ <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..nw.."\"><i class=\"fa fa-desktop fa-lg\"></i> Show Host</A> ] ")
+   
 end
 
 if selected_network ~= any_net then
@@ -1504,6 +1508,7 @@ if((shaper_id ~= nil) and (max_rate ~= nil)) then
       if(max_rate < -1) then max_rate = -1 end
       ntop.setHashCache(shaper_key, shaper_id, max_rate.."")
       interface.reloadShapers()
+      jsRedirect("if_stats.lua?id="..ifid.."&page=filtering#shapers")
    end
 end
 
@@ -1524,14 +1529,9 @@ for i=0,max_num_shapers-1 do
 	 <input type="hidden" name="if_name" value="]] print(if_name) print[[">
 	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
 
-      if(isAdministrator()) then
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-
 	 print('<input class=form-control type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
 	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
-      else
-	 print("</td></tr>")
-      end
 end
 print [[</table>
   NOTES
@@ -1551,7 +1551,7 @@ print [[</table>
    // store the currently selected tab in the hash value
    $("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
       var id = $(e.target).attr("href").substr(1);
-      if(history.pushState) {
+      if(history.replaceState) {
          // this will prevent the 'jump' to the hash
          history.replaceState(null, null, "#"+id);
       } else {

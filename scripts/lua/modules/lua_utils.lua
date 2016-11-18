@@ -2318,6 +2318,21 @@ print [[
 
 end
 
+function jsRedirect(subpage, withoutTag)
+   local url = '"'..ntop.getHttpPrefix()..'/lua/'..subpage..'"'
+   
+   if not withoutTag then print("<script>") end
+   print[[
+   if(history.replaceState) {
+      // use history facility if available
+      history.replaceState(null, null, ]] print(url) print[[);
+   } else {
+      // fallback
+      window.location.href = ]] print(url) print[[;
+   }]]
+   if not withoutTag then print("</script>") end
+end
+
 -- ####################################################
 
 -- Compute the difference in seconds between local time and UTC.
