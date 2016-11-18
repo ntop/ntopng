@@ -1137,11 +1137,7 @@ elseif(page == "filtering") then
 
    if(net ~= nil) then
       if(findString(net, "@") == nil) then
-	 net = net.."@0"
-      end
-
-      if(ntop.getHashCache(policy_key, net) == "") then
-	 ntop.setHashCache(policy_key, net, "")
+         net = net.."@0"
       end
    end
 
@@ -1152,8 +1148,8 @@ elseif(page == "filtering") then
    if(net == nil) then
       -- If there is not &network= parameter then use the first network available
       for k,v in pairsByKeys(nets, asc) do
-	 net = k
-	 break
+         net = k
+         break
       end
    end
 
@@ -1211,7 +1207,6 @@ max_rate = _GET["max_rate"]
 
 print [[<br><div id="manage" class="tab-pane active">
   <form id="ndpiprotosform" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
-  <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input type=hidden name=page value=filtering>
   
   <table class="table table-striped table-bordered">
@@ -1231,6 +1226,8 @@ print [[
 </select>
 
 <script>
+]] print(jsFormCSRF('ndpiprotosform', true)) print[[
+
 $("#network").change(function() {
    document.location.href = "]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua?page=filtering&network="+$("#network").val();
 });
@@ -1249,11 +1246,11 @@ end
 
 if selected_network ~= any_net then
    print[[<form id="deletePolicyForm" style="display:inline;" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
-     <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
      <input type=hidden name=page value="filtering">
      <input type=hidden name=delete_network value="]] print(selected_network) print[["/>
      [ <a href="javascript:void(0);" onclick="$('#deletePolicyForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(selected_network) print[[</a> ]
      </form>]]
+   print(jsFormCSRF("deletePolicyForm"))
 end
 print('</td></tr>')
 
@@ -1428,9 +1425,8 @@ end
 print[[
 <div id="create" class="tab-pane">
    <table class="table table-striped table-bordered">
-   <form class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
+   <form id="createPolicyForm" class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
       <input type=hidden name=page value="filtering">
-      <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
       <input type=hidden name="new_network">
    <tr>
       <th style="width:16em;">Target Network:</th>
@@ -1449,7 +1445,7 @@ if not locals_empty then
       print('<option value="'..s..'">'..s..'</option>\n')
    end
    print('</select>')
-   print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" onClick="toggleCustomNetworkMode();"></button>')
+   print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" onclick="toggleCustomNetworkMode();"></button>')
 end
    print[[
       </td>
@@ -1487,6 +1483,7 @@ end
 </div>
 
   <script>
+    ]] print(jsFormCSRF('createPolicyForm', true)) print[[
     var ndpiprotos1 = $('select[name="ndpiprotos"]').bootstrapDualListbox({
 			nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
 			selectedListLabel: 'Black Listed Protocols for ]] print(selected_network) print [[',
@@ -1532,14 +1529,13 @@ for i=0,max_num_shapers-1 do
    print('<tr><th style=\"text-align: center;\">'..i)
 
    print [[
-	 </th><td><form class="form-inline" style="margin-bottom: 0px;">
+	 </th><td><form id="setRateForm]] print(tostring(i)) print[[" class="form-inline" style="margin-bottom: 0px;">
 	 <input type="hidden" name="page" value="filtering">
 	 <input type="hidden" name="if_name" value="]] print(if_name) print[[">
 	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
-
-	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('<input class=form-control type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
 	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
+    print(jsFormCSRF("setRateForm" .. i))
 end
 print [[</table>
   NOTES
