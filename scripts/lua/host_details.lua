@@ -266,7 +266,7 @@ else
    end
 end
 
-if(ntop.isPro()) then
+if(ntop.isPro() and host['localhost']) then
    if(page == "snmp") then
       print("<li class=\"active\"><a href=\"#\">SNMP</a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
@@ -1697,7 +1697,7 @@ print [[
 ]]  
 elseif(page == "snmp") then
 if(ntop.isPro()) then
-   print_snmp_report(host_info, true, ifId)
+   print_snmp_report(host_ip, true, ifId)
 end
 
 elseif(page == "talkers") then
