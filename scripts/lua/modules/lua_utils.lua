@@ -2333,6 +2333,24 @@ function jsRedirect(subpage, withoutTag)
    if not withoutTag then print("</script>") end
 end
 
+-- Add a form submit lister to add the CRSF on form submit
+-- The form listener will not intercept plain 'onsubmit' html field
+function jsFormCSRF(formid, withoutTag)
+   local html = "";
+   
+   if not withoutTag then html = html .. "<script>" end
+   html = html .. [[$('#]] .. formid .. [[').submit(function(e) {
+      $('<input>').attr({
+         type: "hidden",
+         name: "csrf",
+         value: "]] .. (ntop.getRandomCSRFValue()) .. [["
+      }).appendTo($('#]] .. formid .. [['));
+   });
+   ]]
+   if not withoutTag then html = html .. "</script>" end
+   return html
+end
+
 -- ####################################################
 
 -- Compute the difference in seconds between local time and UTC.
