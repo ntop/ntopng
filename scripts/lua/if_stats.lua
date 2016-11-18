@@ -1184,6 +1184,21 @@ elseif(page == "filtering") then
       selected_network = any_net
    end
 
+shaper_id = _GET["shaper_id"]
+max_rate = _GET["max_rate"]
+
+   if((_GET["csrf"] ~= nil) and (shaper_id ~= nil) and (max_rate ~= nil)) then
+      shaper_id = tonumber(shaper_id)
+      max_rate = tonumber(max_rate)
+      if((shaper_id >= 0) and (shaper_id < max_num_shapers)) then
+         if(max_rate > 1048576) then max_rate = -1 end
+         if(max_rate < -1) then max_rate = -1 end
+         ntop.setHashCache(shaper_key, shaper_id, max_rate.."")
+         interface.reloadShapers()
+         jsRedirect("if_stats.lua?id="..ifid.."&page=filtering#shapers")
+      end
+   end
+
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs">
       <li class="active"><a data-toggle="tab" href="#manage">Manage Policies</a></li>
@@ -1233,7 +1248,12 @@ if((selected_found == true)
 end
 
 if selected_network ~= any_net then
-   print(' [ <A HREF=/lua/if_stats.lua?page=filtering&delete_network='..selected_network..'> <i class="fa fa-trash-o fa-lg"></i> Delete '.. selected_network ..'</A> ]')
+   print[[<form id="deletePolicyForm" style="display:inline;" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get">
+     <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+     <input type=hidden name=page value="filtering">
+     <input type=hidden name=delete_network value="]] print(selected_network) print[["/>
+     [ <a href="javascript:void(0);" onclick="$('#deletePolicyForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(selected_network) print[[</a> ]
+     </form>]]
 end
 print('</td></tr>')
 
@@ -1501,24 +1521,6 @@ end
 
 print[[
   <div id="shapers" class="tab-pane">
-]]
-
-shaper_id = _GET["shaper_id"]
-max_rate = _GET["max_rate"]
-
-if((_GET["csrf"] ~= nil) and (shaper_id ~= nil) and (max_rate ~= nil)) then
-   shaper_id = tonumber(shaper_id)
-   max_rate = tonumber(max_rate)
-   if((shaper_id >= 0) and (shaper_id < max_num_shapers)) then
-      if(max_rate > 1048576) then max_rate = -1 end
-      if(max_rate < -1) then max_rate = -1 end
-      ntop.setHashCache(shaper_key, shaper_id, max_rate.."")
-      interface.reloadShapers()
-      jsRedirect("if_stats.lua?id="..ifid.."&page=filtering#shapers")
-   end
-end
-
-print [[
 <table class="table table-striped table-bordered">
  <tr><th width=10%>Shaper Id</th><th>Max Rate</th></tr>
 ]]
