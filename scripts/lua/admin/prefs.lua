@@ -330,6 +330,11 @@ function printUsers()
      if showElements == true then
 	showElementsBind = showEnabledAnonymousBind
      end
+     -- These two fields are necessary to prevent chrome from filling in LDAP username and password with saved credentials
+     -- Chrome, in fact, ignores the autocomplete=off on the input field. The input fill-in triggers un-necessary are-you-sure leave message
+     print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
+     print('<input style="display:none;" type="password" name="__" data-ays-ignore="true" />')
+     --
      prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true)
      prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true)
 
