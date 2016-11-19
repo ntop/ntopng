@@ -2644,8 +2644,8 @@ static int ntop_rrd_fetch(lua_State* vm) {
 static int ntop_rrd_fetch_columns(lua_State* vm) {
   char *filename, *cf;
   time_t start, end;
-  int status, npoints = 0;
-  unsigned int i, j;
+  int status;
+  unsigned int npoints = 0, i, j;
   char **names;
   unsigned long step = 0, ds_cnt = 0;
   rrd_value_t *data, *p;
