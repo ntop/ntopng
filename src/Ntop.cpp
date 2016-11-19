@@ -58,7 +58,7 @@ Ntop::Ntop(char *appName) {
   export_interface = NULL;
   start_time = 0; /* It will be initialized by start() */
   memset(iface, 0, sizeof(iface));
-  httpd = NULL, runtimeprefs = NULL, geo = NULL, hostBlacklist = hostBlacklist = NULL;
+  httpd = NULL, runtimeprefs = NULL, geo = NULL, hostBlacklistShadow = hostBlacklist = NULL;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL,
