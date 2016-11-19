@@ -169,11 +169,13 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
   alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
 
-  if(customIftype != CONST_INTERFACE_TYPE_VLAN) {
-    const char *rkey = "ntopng.prefs.dynamic_iface_vlan_creation";
+  if(customIftype
+     && strncmp(customIftype, CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))
+     && strncmp(customIftype, CONST_INTERFACE_TYPE_DUMMY, strlen(CONST_INTERFACE_TYPE_DUMMY))) {
     char  rsp[16];
 
-    if((ntop->getRedis()->get((char*)rkey, rsp, sizeof(rsp)) == 0)
+    if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION,
+			      rsp, sizeof(rsp)) == 0)
        && (!strncmp(rsp, "1", 1)))      
       vlanInterfaces = (NetworkInterface**)calloc(MAX_NUM_VLAN, sizeof(NetworkInterface*));
   }

@@ -234,15 +234,13 @@ Flow::~Flow() {
 
 	snprintf(alert_msg, sizeof(alert_msg),
 		 "Probing or server down: "
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> &gt; "
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> [%s]",
+		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
+		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
 		 ntop->getPrefs()->get_http_prefix(),
 		 c, iface->get_name(),
-		 cli_host->isLocalHost() ? "&page=alerts" : "",
 		 cli_host->get_name() ? cli_host->get_name() : c,
 		 ntop->getPrefs()->get_http_prefix(),
 		 s, iface->get_name(),
-		 srv_host->isLocalHost() ? "&page=alerts" : "",
 		 srv_host->get_name() ? srv_host->get_name() : s,
 		 print(fbuf, sizeof(fbuf)));
 
@@ -313,17 +311,15 @@ void Flow::checkBlacklistedFlow() {
 	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
       snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> contacted %s host "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s%s'>%s</A> [%s]",
+	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> contacted %s host "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
 	       ntop->getPrefs()->get_http_prefix(),
 	       cli_host->is_blacklisted() ? "Blacklisted host" : "Host",
 	       c, iface->get_name(),
-	       cli_host->isLocalHost() ? "&page=alerts" : "",
 	       cli_host->get_name() ? cli_host->get_name() : c,
 	       srv_host->is_blacklisted() ? "blacklisted" : "",
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_name(),
-	       srv_host->isLocalHost() ? "&page=alerts" : "",
 	       srv_host->get_name() ? srv_host->get_name() : s,
 	       print(fbuf, sizeof(fbuf)));
 

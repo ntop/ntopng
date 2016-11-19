@@ -370,6 +370,7 @@
 #define CONST_RUNTIME_PREFS_ALERT_PROBING              "ntopng.prefs.probing_alerts"   /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_NBOX_INTEGRATION           "ntopng.prefs.nbox_integration" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
+#define CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION        "ntopng.prefs.dynamic_iface_vlan_creation"
 #ifdef NTOPNG_PRO
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */

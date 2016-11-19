@@ -315,7 +315,7 @@ else
 end
 end
 
-if ((host["ip"] ~= nil) and host['localhost']) then
+if (host["ip"] ~= nil) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
