@@ -5,9 +5,13 @@
 -- This file contains the description of all functions
 -- used to trigger host alerts
 
--- dirs = ntop.getDirs()
-
 local verbose = false
+
+if ntop.isEnterprise() then
+   local dirs = ntop.getDirs()
+   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+   require "enterprise_alert_utils"
+end
 
 j = require("dkjson")
 require "persistence"
@@ -667,132 +671,6 @@ function checkDeleteStoredAlerts()
 	 end
       end
    end
-end
-
--- #################################
-
-function drawAlertStatsCharts()
-   print[[
-<table class="table table-bordered table-striped">
-<tr><th>Overview</th><th>Top Origins</th><th>Top Targets</th><th>Engaged for Longest Time</th></tr>
-<tr>
-  <td>
-    <table class="table">
-    <tr>
-      <td colspan="3" style="vertical-align:bottom;border-top:0;">
-        Alerts in the selected period<br>
-        <span id="count-last-period" style="font-size:4em;">-</span> &nbsp;
-        <span id="count-sparkline">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <span id="count-last-minute">-</span>
-        <br>
-        <small>Last Minute</small>
-      </td>
-      <td>
-        <span id="count-last-hour">-</span>
-        <br>
-        <small>Last Hour</small>
-      </td>
-      <td>
-        <span id="count-last-day">-</span>
-        <br>
-        <small>Last Day</small>
-      </td>
-    </tr>
-    </table>
-  </td>
-  <td>
-    <table class="table table-sm" id="top_origins">
-    </table>
-  </td>
-  <td>
-    <table class="table table-sm" id="top_targets">
-    </table>
-  </td>
-  <td>
-    <table class="table table-sm" id="top_hosts">
-    </table>
-  </td>
-</tr>
-<tr><th>Severity</th><th>Type</th><th>Duration</th><th>Counts</th></tr>
-<tr>
-  <td align="center"><div class="pie-chart pie-chart-small" id="pie-severity"></div></td>
-  <td align="center"><div class="pie-chart pie-chart-small" id="pie-type"></div></td>
-  <td align="center"><div class="pie-chart pie-chart-small" id="pie-duration"></div></td>
-  <td align="center"><div class="pie-chart pie-chart-small" id="pie-counts"></div></td>
-</tr>
-</table>
-
-<script type='text/javascript'>
-  var refresh = 15000;
-
-  var sparkline = $("#count-sparkline").peity("line", { width: 180, height: 40, max: null });
-
-  var formatHost = function(item){
-    var url = "]] print (ntop.getHttpPrefix()) print[[/lua/host_details.lua";
-    url += "?page=alerts&host=" + item.host;
-    return "<a href='" + url + "'>" + item.hostname + "</a>"
-  }
-
-  var url = "]] print (ntop.getHttpPrefix()) print[[/lua/get_alerts_stats_data.lua";
-  window.onload=function() {
-    do_pie("#pie-severity", url, { stats_type: "severity_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
-    do_pie("#pie-type", url, { stats_type: "type_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
-    do_pie("#pie-duration", url, { stats_type: "duration_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
-    do_pie("#pie-counts", url, { stats_type: "counts_pie", ifname: "]] print(ifId.."") print[["}, "", refresh);
-
-
-    var refresher = function() {
-      // the sparkline
-      $.ajax({
-        type: 'GET', url: url, data : {stats_type: 'count_sparkline', ifname: ']] print(ifId.."") print[['},
-        success: function(rsp) {
-          var content = jQuery.parseJSON(rsp);
-          sparkline.text(content+"").change();
-        }
-      });
-
-      // counters
-      $.ajax({
-        type: 'GET', url: url, data : {stats_type: 'counts_plain', ifname: ']] print(ifId.."") print[['},
-        success: function(rsp) {
-          var content = jQuery.parseJSON(rsp);
-          $.each(content, function(index, value){
-            if(value > 0)
-              $('#'+index).text(value)
-            else
-              $('#'+index).text("-")
-          });
-        }
-      });
-]]
-   for _, top_what in ipairs({"top_origins", "top_targets"}) do
-      print[[
-      $.ajax({
-        type: 'GET', url: url, data : {stats_type: ']] print(top_what) print[['},
-        success: function(rsp) {
-          $("#]] print(top_what) print[[ tr").remove();
-          var content = jQuery.parseJSON(rsp);
-          $.each(content, function(index, item){
-            $("#]] print(top_what) print[[").append('<tr><td>' + formatHost(item) + '</td><td>' + fint(item.value) + '</td></tr>');
-          });
-        }
-      });
-]]
-   end
-   print[[
-     }
-
-      // the counters
-
-    refresher();
-    setInterval(refresher, 3000);
-}
-</script>
-]]  
 end
 
 -- #################################
