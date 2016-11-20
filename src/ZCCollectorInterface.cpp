@@ -57,7 +57,7 @@ ZCCollectorInterface::ZCCollectorInterface(const char *name) : ParserInterface(n
   if(buffer == NULL)
     throw("pfring_zc_get_packet_handle_from_pool error");
 
-  memset(&last_pfring_zc_stat, 0, sizeof(last_pfring_zc_stat);
+  memset(&last_pfring_zc_stat, 0, sizeof(last_pfring_zc_stat));
 }
 
 /* **************************************************** */
