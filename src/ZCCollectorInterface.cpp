@@ -56,6 +56,8 @@ ZCCollectorInterface::ZCCollectorInterface(const char *name) : ParserInterface(n
 
   if(buffer == NULL)
     throw("pfring_zc_get_packet_handle_from_pool error");
+
+  memset(&last_pfring_zc_stat, 0, sizeof(last_pfring_zc_stat);
 }
 
 /* **************************************************** */
@@ -152,7 +154,7 @@ bool ZCCollectorInterface::set_packet_filter(char *filter) {
 
 /* **************************************************** */
 
-u_int ZCCollectorInterface::getNumDroppedPackets() {
+u_int ZCCollectorInterface::getNumDroppedPackets(bool since_last_reset) {
   pfring_zc_stat stats;
 
   if(pfring_zc_stats(zq, &stats) >= 0) {
@@ -162,11 +164,18 @@ u_int ZCCollectorInterface::getNumDroppedPackets() {
 				 ifname, stats.sent, stats.recv, stats.drop,
 				 stats.sent-stats.recv);
 #endif
-    return(stats.drop);
+    return since_last_reset ? stats.drop - last_pfring_zc_stat.drop : stats.drop;
   }
 
-  return(0);
+  return 0;
 }
+
+/* **************************************************** */
+
+void ZCCollectorInterface::resetPacketsStats() {
+  if(pfring_zc_stats(zq, &last_pfring_zc_stat))
+    memset(&last_pfring_zc_stat, 0, sizeof(last_pfring_zc_stat));
+};
 
 /* **************************************************** */
 

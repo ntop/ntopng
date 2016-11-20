@@ -444,7 +444,7 @@ print("</script>\n")
    end
 
    if(ifstats.stats.drops > 0) then print('</span>') end
-   print("</span>  <span id=drops_trend></span></td><td colspan=3>&nbsp;</td></tr>\n")
+   print("</span>  <span id=drops_trend></span></td><td colspan=3><span id=button_reset_drops></span>&nbsp;</td></tr>\n")
 
    if(prefs.is_dump_flows_enabled) then
       local dump_to = "MySQL"
@@ -1610,6 +1610,16 @@ if(ifstats.zmqRecvStats ~= nil) then
 end
    
 print [[
+
+var resetInterfacePacketDrops = function() {
+$.ajax({ type: 'GET',
+  url: ']]
+print (ntop.getHttpPrefix())
+print [[/lua/reset_stats.lua?action=reset_interface_packet_drops',
+  success: function(rsp) {}
+});
+}
+
 setInterval(function() {
       $.ajax({
 	  type: 'GET',
@@ -1677,9 +1687,15 @@ print [[
 print("Pkts")
 print [[";
 
-	if(pctg > 0)      { drops = drops + " [ "+pctg+" % ]"; }
-	if(rsp.drops > 0) { drops = drops + '</span>';         }
+	if(pctg > 0)      { drops  += " [ "+pctg+" % ]"; }
+	if(rsp.drops > 0) { drops  += '</span>'; }
 	$('#if_drops').html(drops);
+
+        var button_reset = ""
+	if(rsp.drops > 0) {
+          var button_reset = '<button type="button" class="btn btn-primary btn-xs" onclick="resetInterfacePacketDrops();">Reset Drops</button>';
+        }
+        $('#button_reset_drops').html(button_reset);
 
         $('#exported_flows').html(fint(rsp.flow_export_count));
         $('#exported_flows_rate').html(Math.round(rsp.flow_export_rate * 100) / 100);

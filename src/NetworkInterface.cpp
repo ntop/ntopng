@@ -2976,9 +2976,9 @@ u_int64_t NetworkInterface::getNumBytes() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumPacketDrops() {
-  u_int tot = getNumDroppedPackets();
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumDroppedPackets();
+u_int NetworkInterface::getNumPacketDrops(bool since_last_reset) {
+  u_int tot = getNumDroppedPackets(since_last_reset);
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumDroppedPackets(since_last_reset);
   return(tot);
 };
 
@@ -3172,7 +3172,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "flows",   getNumFlows());
   lua_push_int_table_entry(vm, "hosts",   getNumHosts());
   lua_push_int_table_entry(vm, "http_hosts", getNumHTTPHosts());
-  lua_push_int_table_entry(vm, "drops",   getNumPacketDrops());
+  lua_push_int_table_entry(vm, "drops",   getNumPacketDrops(true /* since last reset */));
   lua_push_int_table_entry(vm, "devices", numL2Devices);
 
   /* even if the counter is global, we put it here on every interface

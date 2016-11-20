@@ -30,7 +30,8 @@ class PF_RINGInterface : public NetworkInterface {
  private:
   pfring *pfring_handle;
 
-  u_int getNumDroppedPackets();
+  pfring_stat last_pfring_stat;
+  u_int getNumDroppedPackets(bool since_last_reset = false);
 
  public:
   PF_RINGInterface(const char *name);
@@ -38,6 +39,7 @@ class PF_RINGInterface : public NetworkInterface {
 
   inline const char* get_type()      { return(CONST_INTERFACE_TYPE_PF_RING);     };
   inline pfring* get_pfring_handle() { return(pfring_handle); };
+  void resetPacketsStats();
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);

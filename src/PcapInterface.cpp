@@ -32,6 +32,7 @@ PcapInterface::PcapInterface(const char *name) : NetworkInterface(name) {
   struct stat buf;
 
   pcap_handle = NULL, pcap_list = NULL;
+  memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   
   if((stat(name, &buf) == 0) || (name[0] == '-') || !strncmp(name, "stdin", 5)) {
     /*
@@ -227,14 +228,21 @@ void PcapInterface::shutdown() {
 
 /* **************************************************** */
 
-u_int PcapInterface::getNumDroppedPackets() {
+u_int PcapInterface::getNumDroppedPackets(bool since_last_reset) {
   struct pcap_stat pcapStat;
 
   if(pcap_handle && (pcap_stats(pcap_handle, &pcapStat) >= 0)) {
-    return(pcapStat.ps_drop);
+    return since_last_reset ? pcapStat.ps_drop - last_pcap_stat.ps_drop : pcapStat.ps_drop;
   } else
-    return(0);
+    return 0;
 }
+
+/* **************************************************** */
+
+void PcapInterface::resetPacketsStats() {
+  if(!pcap_handle || pcap_stats(pcap_handle, &last_pcap_stat))
+    memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
+};
 
 /* **************************************************** */
 

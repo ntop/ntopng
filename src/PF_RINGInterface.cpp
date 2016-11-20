@@ -69,6 +69,8 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
   if(pfring_set_direction(pfring_handle, direction) != 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
+
+  memset(&last_pfring_stat, 0, sizeof(last_pfring_stat));
 }
 
 /* **************************************************** */
@@ -147,7 +149,7 @@ void PF_RINGInterface::shutdown() {
 
 /* **************************************************** */
 
-u_int PF_RINGInterface::getNumDroppedPackets() {
+u_int PF_RINGInterface::getNumDroppedPackets(bool since_last_reset) {
   pfring_stat stats;
 
   if(pfring_stats(pfring_handle, &stats) >= 0) {
@@ -155,11 +157,18 @@ u_int PF_RINGInterface::getNumDroppedPackets() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][Rcvd: %llu][Drops: %llu][DroppedByFilter: %u]",
 				 ifname, stats.recv, stats.drop, stats.droppedbyfilter);
 #endif
-    return(stats.drop);
+    return since_last_reset ? stats.drop - last_pfring_stat.drop : stats.drop;
   }
 
-  return(0);
+  return 0;
 }
+
+/* **************************************************** */
+
+void PF_RINGInterface::resetPacketsStats() {
+  if(pfring_stats(pfring_handle, &last_pfring_stat))
+    memset(&last_pfring_stat, 0, sizeof(last_pfring_stat));
+};
 
 /* **************************************************** */
 

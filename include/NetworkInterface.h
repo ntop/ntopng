@@ -146,7 +146,7 @@ class NetworkInterface {
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void triggerTooManyHostsAlert();
   void triggerTooManyFlowsAlert();
-  virtual u_int getNumDroppedPackets() { return 0; };
+  virtual u_int getNumDroppedPackets(bool since_last_reset = false) { return 0; };
   bool walker(WalkerType wtype,
 	      bool (*walker)(GenericHashEntry *h, void *user_data),
 	      void *user_data);
@@ -216,6 +216,7 @@ class NetworkInterface {
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
   void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
+  virtual void  resetPacketsStats() { };
   void updateSecondTraffic(time_t when);
 
   inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
@@ -314,7 +315,7 @@ class NetworkInterface {
 
   u_int64_t getNumPackets();
   u_int64_t getNumBytes();
-  u_int getNumPacketDrops();
+  u_int getNumPacketDrops(bool since_last_reset = false);
   u_int getNumFlows();
   u_int getNumHosts();
   u_int getNumMacs();
