@@ -4600,11 +4600,11 @@ static int ntop_interface_get_num_alerts(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(lua_type(vm, 1) == LUA_TBOOLEAN)
-    engaged = lua_toboolean(vm, 1);
-
   if(!iface || !(am = iface->getAlertsManager()))
     return (CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    engaged = lua_toboolean(vm, 1);
 
   if(lua_type(vm, 2) == LUA_TSTRING) {
     if((entity_type = (char*)lua_tostring(vm, 2)) == NULL)
@@ -4628,6 +4628,26 @@ static int ntop_interface_get_num_alerts(lua_State* vm) {
   } else {
     lua_pushinteger(vm, am->getNumAlerts(engaged));
   }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  AlertsManager *am;
+  bool engaged = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    engaged = lua_toboolean(vm, 1);
+
+  lua_pushinteger(vm, am->getCachedNumAlerts(engaged));
 
   return(CONST_LUA_OK);
 }
@@ -5198,6 +5218,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* New generation alerts */
   { "getAlerts" ,           ntop_interface_get_alerts               },
   { "getNumAlerts",         ntop_interface_get_num_alerts           },
+  { "getCachedNumAlerts",   ntop_interface_get_cached_num_alerts    },
   { "deleteAlerts",         ntop_interface_delete_alerts            },
   { "selectAlertsRaw",      ntop_interface_select_alerts_raw        },
   { "engageHostAlert",      ntop_interface_engage_host_alert        },

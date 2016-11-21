@@ -30,6 +30,7 @@ class AlertsManager : protected StoreManager {
  private:
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
+  u_int32_t num_alerts_stored, num_alerts_engaged;
   int openStore();
   
   /* methods used for alerts that have a timespan */
@@ -171,7 +172,13 @@ class AlertsManager : protected StoreManager {
   /*
     ========== counters API ======
   */
-
+  inline int getCachedNumAlerts(bool engaged) {
+    return engaged ? num_alerts_engaged : num_alerts_stored;
+  };
+  inline void refreshCachedNumAlerts() {
+    num_alerts_stored  = getNumAlerts(false, static_cast<char*>(NULL));
+    num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
+  };
   inline int getNumAlerts(bool engaged) {
     /* must force the cast or the compiler will go crazy with ambiguous calls */
     return getNumAlerts(engaged, static_cast<const char*>(NULL) /* no where clause, all the existing alerts */);

@@ -52,6 +52,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 				 fileFullPath);
 
   snprintf(queue_name, sizeof(queue_name), ALERTS_MANAGER_QUEUE_NAME, ifid);
+
+  refreshCachedNumAlerts();
 }
 
 /* **************************************************** */
@@ -324,6 +326,7 @@ bool AlertsManager::isMaximumReached(AlertEntity alert_entity, const char *alert
 		    alert_too_many_alerts) > 0) {
       /* possibly delete the old too-many-alerts alert so that the new ones becomes the most recent */
       deleteAlerts(false /* not engaged */, alert_entity, alert_entity_value, alert_too_many_alerts);
+      num_alerts_stored--;
     }
     storeAlert(alert_entity, alert_entity_value,
 	       alert_too_many_alerts, alert_level_error,
@@ -434,6 +437,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
       }
     }
 
+    num_alerts_engaged++;
     rc = 0;
   out:
     if (stmt) sqlite3_finalize(stmt);
@@ -523,6 +527,7 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   }
 
   rc = 0;
+  num_alerts_engaged--, num_alerts_stored++;
   // TODO: consider updating with the new parameters (use rowid)
  out:
   if (stmt) sqlite3_finalize(stmt);
@@ -577,6 +582,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
   }
 
   rc = 0;
+  num_alerts_stored++;
  out:
   if (stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);

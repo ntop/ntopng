@@ -1767,7 +1767,10 @@ void NetworkInterface::periodicStatsUpdate() {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
   }
 
-  setRefreshAlertCounters(false);
+  if(getRefreshAlertCounters()) {
+    alertsManager->refreshCachedNumAlerts();
+    setRefreshAlertCounters(false);
+  }
 }
 
 /* **************************************************** */
