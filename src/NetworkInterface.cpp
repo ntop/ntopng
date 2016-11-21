@@ -196,7 +196,7 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
-    pkt_dumper = NULL, numL2Devices = 0;
+    pkt_dumper = NULL, numL2Devices = 0, lastPktDropCount = 0;
   pollLoopCreated = false, bridge_interface = false;
   refreshAlertCounters = false;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
@@ -2976,9 +2976,9 @@ u_int64_t NetworkInterface::getNumBytes() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::getNumPacketDrops(bool since_last_reset) {
-  u_int tot = getNumDroppedPackets(since_last_reset);
-  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumDroppedPackets(since_last_reset);
+u_int32_t NetworkInterface::getNumPacketDrops() {
+  u_int32_t tot = getNumDroppedPackets();
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getNumDroppedPackets();
   return(tot);
 };
 
@@ -3172,7 +3172,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_int_table_entry(vm, "flows",   getNumFlows());
   lua_push_int_table_entry(vm, "hosts",   getNumHosts());
   lua_push_int_table_entry(vm, "http_hosts", getNumHTTPHosts());
-  lua_push_int_table_entry(vm, "drops",   getNumPacketDrops(true /* since last reset */));
+  lua_push_int_table_entry(vm, "drops",   getNumPacketDrops() - lastPktDropCount);
   lua_push_int_table_entry(vm, "devices", numL2Devices);
 
   /* even if the counter is global, we put it here on every interface

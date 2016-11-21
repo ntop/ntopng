@@ -149,7 +149,7 @@ void PF_RINGInterface::shutdown() {
 
 /* **************************************************** */
 
-u_int PF_RINGInterface::getNumDroppedPackets(bool since_last_reset) {
+u_int32_t PF_RINGInterface::getNumDroppedPackets() {
   pfring_stat stats;
 
   if(pfring_stats(pfring_handle, &stats) >= 0) {
@@ -157,18 +157,11 @@ u_int PF_RINGInterface::getNumDroppedPackets(bool since_last_reset) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][Rcvd: %llu][Drops: %llu][DroppedByFilter: %u]",
 				 ifname, stats.recv, stats.drop, stats.droppedbyfilter);
 #endif
-    return since_last_reset ? stats.drop - last_pfring_stat.drop : stats.drop;
+    return(stats.drop);
   }
 
   return 0;
 }
-
-/* **************************************************** */
-
-void PF_RINGInterface::resetPacketsStats() {
-  if(pfring_stats(pfring_handle, &last_pfring_stat))
-    memset(&last_pfring_stat, 0, sizeof(last_pfring_stat));
-};
 
 /* **************************************************** */
 

@@ -67,7 +67,7 @@ class NetworkInterface {
   pthread_t pollLoop;
   bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
   bool refreshAlertCounters;
-  u_int32_t ifSpeed, numL2Devices, scalingFactor;
+  u_int32_t ifSpeed, numL2Devices, scalingFactor, lastPktDropCount;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats ndpiStats;
@@ -146,7 +146,7 @@ class NetworkInterface {
   void dumpPacketTap(const struct pcap_pkthdr *h, const u_char *packet, dump_reason reason);
   void triggerTooManyHostsAlert();
   void triggerTooManyFlowsAlert();
-  virtual u_int getNumDroppedPackets(bool since_last_reset = false) { return 0; };
+  virtual u_int32_t getNumDroppedPackets() { return 0; };
   bool walker(WalkerType wtype,
 	      bool (*walker)(GenericHashEntry *h, void *user_data),
 	      void *user_data);
@@ -199,9 +199,9 @@ class NetworkInterface {
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
   inline int get_id()                          { return(id);                                           };
-  inline bool get_sprobe_interface()        { return sprobe_interface; }
-  inline bool get_inline_interface()        { return inline_interface; }
-  inline bool get_has_vlan_packets()        { return has_vlan_packets; }
+  inline bool get_sprobe_interface()           { return sprobe_interface; }
+  inline bool get_inline_interface()           { return inline_interface; }
+  inline bool get_has_vlan_packets()           { return has_vlan_packets; }
   inline bool  hasSeenVlanTaggedPackets()      { return(has_vlan_packets); }
   inline void  setSeenVlanTaggedPackets()      { has_vlan_packets = true; }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
@@ -216,7 +216,7 @@ class NetworkInterface {
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
   void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
-  virtual void  resetPacketsStats() { };
+  void resetPacketDrops()   { lastPktDropCount = getNumPacketDrops(); };
   void updateSecondTraffic(time_t when);
 
   inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
@@ -226,6 +226,7 @@ class NetworkInterface {
     pktStats.incStats(pkt_len);
     if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
   };
+  
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
 
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
@@ -315,7 +316,7 @@ class NetworkInterface {
 
   u_int64_t getNumPackets();
   u_int64_t getNumBytes();
-  u_int getNumPacketDrops(bool since_last_reset = false);
+  u_int getNumPacketDrops();
   u_int getNumFlows();
   u_int getNumHosts();
   u_int getNumMacs();

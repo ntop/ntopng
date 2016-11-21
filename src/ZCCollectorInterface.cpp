@@ -154,7 +154,7 @@ bool ZCCollectorInterface::set_packet_filter(char *filter) {
 
 /* **************************************************** */
 
-u_int ZCCollectorInterface::getNumDroppedPackets(bool since_last_reset) {
+u_int32_t ZCCollectorInterface::getNumDroppedPackets() {
   pfring_zc_stat stats;
 
   if(pfring_zc_stats(zq, &stats) >= 0) {
@@ -164,18 +164,11 @@ u_int ZCCollectorInterface::getNumDroppedPackets(bool since_last_reset) {
 				 ifname, stats.sent, stats.recv, stats.drop,
 				 stats.sent-stats.recv);
 #endif
-    return since_last_reset ? stats.drop - last_pfring_zc_stat.drop : stats.drop;
+    return(stats.drop);
   }
 
   return 0;
 }
-
-/* **************************************************** */
-
-void ZCCollectorInterface::resetPacketsStats() {
-  if(pfring_zc_stats(zq, &last_pfring_zc_stat))
-    memset(&last_pfring_zc_stat, 0, sizeof(last_pfring_zc_stat));
-};
 
 /* **************************************************** */
 

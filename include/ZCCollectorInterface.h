@@ -35,7 +35,7 @@ class ZCCollectorInterface : public ParserInterface {
   pfring_zc_pkt_buff *buffer;
   pfring_zc_stat last_pfring_zc_stat;
   
-  u_int getNumDroppedPackets(bool since_last_reset = false);
+  u_int32_t getNumDroppedPackets();
 
  public:
   ZCCollectorInterface(const char *name);
@@ -45,7 +45,6 @@ class ZCCollectorInterface : public ParserInterface {
   inline bool is_ndpi_enabled()         { return(false);      };
   inline void incrDrops(u_int32_t num)  { num_drops += num;   };
   inline bool isPacketInterface()       { return(false);      };
-  void resetPacketsStats();
   void collect_flows();
 
   void startPacketPolling();

@@ -26,7 +26,7 @@
 
 class DummyInterface : public ParserInterface {
  private:
-  inline u_int getNumDroppedPackets(bool since_last_reset = false)   { return(0); };
+  inline u_int32_t getNumDroppedPackets()   { return(0); };
 
  public:
   DummyInterface();

@@ -444,8 +444,12 @@ print("</script>\n")
    end
 
    if(ifstats.stats.drops > 0) then print('</span>') end
-   print("</span>  <span id=drops_trend></span></td><td colspan=3><span id=button_reset_drops></span>&nbsp;</td></tr>\n")
-
+   print("</span>&nbsp;")
+   if (isAdministrator()) then
+      print("<span id=drops_trend></span></td><td colspan=3><span id=button_reset_drops></span>\n")
+   end
+   print("</td></tr>\n")
+   
    if(prefs.is_dump_flows_enabled) then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
@@ -1693,7 +1697,7 @@ print [[";
 
         var button_reset = ""
 	if(rsp.drops > 0) {
-          var button_reset = '<button type="button" class="btn btn-primary btn-xs" onclick="resetInterfacePacketDrops();">Reset Drops</button>';
+          var button_reset = '<button type="button" class="btn btn-secondary btn-xs" onclick="resetInterfacePacketDrops();">Reset Drops</button>';
         }
         $('#button_reset_drops').html(button_reset);
 

@@ -3069,7 +3069,7 @@ static int ntop_get_interface_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_reset_packet_stats(lua_State* vm) {
+static int ntop_interface_reset_packet_drops(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -3077,7 +3077,7 @@ static int ntop_interface_reset_packet_stats(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->resetPacketsStats();
+  ntop_interface->resetPacketDrops();
   return(CONST_LUA_OK);
 }
 
@@ -5117,7 +5117,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getIfNames",             ntop_get_interface_names },
   { "select",                 ntop_select_interface },
   { "getStats",               ntop_get_interface_stats },
-  { "resetPacketStats",       ntop_interface_reset_packet_stats },
+  { "resetPacketDrops",       ntop_interface_reset_packet_drops },
   { "getnDPIStats",           ntop_get_ndpi_interface_stats },
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },

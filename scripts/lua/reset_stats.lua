@@ -17,7 +17,7 @@ interface.select(ifname)
 local res = { ["status"] = "ok" }
 if haveAdminPrivileges() then
    if action == "reset_interface_packet_drops" then
-      interface.resetPacketStats()
+      interface.resetPacketDrops()
    end
 else
    res["status"] = "unauthorized"

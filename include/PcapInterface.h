@@ -31,7 +31,7 @@ class PcapInterface : public NetworkInterface {
   FILE *pcap_list;
 
   pcap_stat last_pcap_stat;
-  u_int getNumDroppedPackets(bool since_last_reset = false);
+  u_int32_t getNumDroppedPackets();
 
  public:
   PcapInterface(const char *name);
@@ -41,7 +41,6 @@ class PcapInterface : public NetworkInterface {
   inline pcap_t* get_pcap_handle() { return(pcap_handle);   };
   inline void set_pcap_handle(pcap_t *p) { pcap_handle = p; };
   inline FILE*   get_pcap_list()   { return(pcap_list);     };
-  void resetPacketsStats();
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);
