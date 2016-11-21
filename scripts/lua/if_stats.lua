@@ -1679,7 +1679,7 @@ print [[
 	$('#drops_trend').html(get_trend(last_drops, rsp.drops));
 	last_pkts = rsp.packets
 	last_drops = rsp.drops;
-rsp.drops=10
+
 	if((rsp.packets+rsp.drops) > 0) { pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2); }
 	if(rsp.drops > 0) { drops = '<span class="label label-danger">'; }
 	drops = drops + addCommas(rsp.drops)+" ]]
