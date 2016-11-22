@@ -1,0 +1,34 @@
+ntop + Slack integration
+------------------------
+ntopng can send alerts to slack.com mobile/web-application by means of the slack webhook.
+
+All you need to do is:
+1. Go to http://slack.com and create a team
+
+
+2. Create a few channels. Make sure you use these exact channel names
+   #interface
+   #host
+   #network
+   #snmp
+   #flow
+
+   Each channel will receive notifications about a specific topic
+
+3. Invite people to channels
+
+4. Find on the slack page your webhook
+   Browse Apps > Custom Integrations > Incoming WebHooks > Edit configuration
+   It should look similar to
+   https://hooks.slack.com/services/ZZZZZZZZZZZz/YYYYYYYYY/XXXXXXXXXXXXX
+
+   See https://api.slack.com/tutorials/your-first-slash-command for more details
+   about creating your webhook
+   
+5. Go to ntopng menu Preferences > Alerts and set
+   - Enable slack integration to ON
+   - Set a name for the alert sender (e.g. myntopbot)
+   - Set the webhook to the value you have found on the previous step
+
+6. Wait until an alert is generated
+
