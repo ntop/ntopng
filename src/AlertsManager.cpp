@@ -637,7 +637,9 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
   if((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_ENABLED,
 			    buf, sizeof(buf)) >= 0)
-     && (!strcmp(buf, "1")))
+     && (!strcmp(buf, "1"))
+     && (alert_severity == alert_level_error) /* TODO Remove when preferences will be enabled */
+     )
     notifyAlert(alert_entity, alert_entity_value,
 		alert_type, alert_severity, alert_json,
 		alert_origin, alert_target);
