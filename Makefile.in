@@ -4,7 +4,7 @@ datadir = @datadir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
 PWD=@PWD@
-GPP=@GPP@
+GPP=@CXX@
 INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
 
