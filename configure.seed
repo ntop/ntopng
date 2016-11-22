@@ -4,6 +4,8 @@ dnl> Do not add anything above
 
 AC_PROG_CPP
 
+AC_PROG_CXX
+
 dnl> Add /usr/local/ /opt/local
 CFLAGS="-I${PWD} -I${PWD}/include"
 CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
@@ -372,14 +374,6 @@ then
 	GMAKE="make"
 fi
 
-GPP=`which clang++`
-if test x$GPP = x
-then
-	GPP="g++"
-else
-	GPP="$GPP -O0"
-fi
-
 GIT=`which git`
 if test x$GIT = x
 then
@@ -425,7 +419,7 @@ AC_SUBST(LINK_OPTS)
 AC_SUBST(GEOIP_LIB)
 AC_SUBST(SQLITE_LIB)
 AC_SUBST(GMAKE)
-AC_SUBST(GPP)
+AC_SUBST(CXX)
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CPPFLAGS)
