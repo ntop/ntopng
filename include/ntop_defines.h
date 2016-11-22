@@ -518,6 +518,20 @@
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"
 
+#define ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME "ntopng.alerts.notifications_queue"
+#define ALERTS_MANAGER_SENDER_USERNAME         "ntopng.alerts.sender_username"
+#define ALERTS_MANAGER_NOTIFICATION_ENABLED    "ntopng.alerts.notification_enabled"
+#define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.alerts.sender_username"
+#define ALERTS_MANAGER_NOTIFICATION_WEBHOOK    "ntopng.alerts.slack_webhook"
+
+#define STARTUP_SCRIPT_PATH        "startup.lua"
+#define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"
+#define SECOND_SCRIPT_PATH         "second.lua"
+#define MINUTE_SCRIPT_PATH         "minute.lua"
+#define HOURLY_SCRIPT_PATH         "hourly.lua"
+#define DAILY_SCRIPT_PATH          "daily.lua"
+
+
 /* GRE (Generic Route Encapsulation) */
 #ifndef IPPROTO_GRE
 #define IPPROTO_GRE 47

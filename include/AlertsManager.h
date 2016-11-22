@@ -48,6 +48,13 @@ class AlertsManager : protected StoreManager {
 		 const char *alert_origin, const char *alert_target,
 		 bool check_maximum);
 
+  const char* getAlertEntity(AlertEntity alert_entity);
+  const char* getAlertLevel(AlertLevel alert_severity);
+  const char* getAlertType(AlertType alert_type);
+  void notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
+		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+		   const char *alert_origin, const char *alert_target);
+  
   int engageReleaseHostAlert(Host *h,
 			     const char *engaged_alert_id,
 			     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,

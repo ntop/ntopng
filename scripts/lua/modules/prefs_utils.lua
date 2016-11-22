@@ -24,7 +24,7 @@ end
 
 -- Runtime preference
 
-function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete)
+function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs)
   if(string.ends(prekey, ".")) then
     k = prekey..key
   else
@@ -43,8 +43,13 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         ntop.setPref(k, tostring(v))
         value = v
       elseif (v_s ~= nil) then
-        v_s = string.gsub(v_s, "ldaps:__", "ldaps://")
-        v_s = string.gsub(v_s, "ldap:__", "ldap://")
+      	if(allowURLs) then
+		  io.write("Hello\n")
+	        v_s = string.gsub(v_s, "ldaps:__", "ldaps://")
+        	v_s = string.gsub(v_s, "ldap:__", "ldap://")
+		v_s = string.gsub(v_s, "http:__", "http://")
+		v_s = string.gsub(v_s, "https:__", "https://")
+	end
         ntop.setPref(k, v_s)
         value = v_s
       end

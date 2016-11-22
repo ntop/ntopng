@@ -32,6 +32,7 @@ PeriodicActivities::PeriodicActivities() {
 PeriodicActivities::~PeriodicActivities() {
   void *res;
 
+  pthread_join(housekeepingLoop, &res);
   pthread_join(secondLoop, &res);
   pthread_join(minuteLoop, &res);
   pthread_join(hourLoop, &res);
@@ -40,10 +41,11 @@ PeriodicActivities::~PeriodicActivities() {
 
 /* **************************************************** */
 
-static void* secondStartLoop(void* ptr) {  ((PeriodicActivities*)ptr)->secondActivitiesLoop(); return(NULL); }
-static void* minuteStartLoop(void* ptr) {  ((PeriodicActivities*)ptr)->minuteActivitiesLoop(); return(NULL); }
-static void* hourStartLoop(void* ptr)   {  ((PeriodicActivities*)ptr)->hourActivitiesLoop(); return(NULL);   }
-static void* dayStartLoop(void* ptr)    {  ((PeriodicActivities*)ptr)->dayActivitiesLoop(); return(NULL);    }
+static void* housekeepingStartLoop(void* ptr) {  ((PeriodicActivities*)ptr)->housekeepingActivitiesLoop(); return(NULL); }
+static void* secondStartLoop(void* ptr)       {  ((PeriodicActivities*)ptr)->secondActivitiesLoop(); return(NULL); }
+static void* minuteStartLoop(void* ptr)       {  ((PeriodicActivities*)ptr)->minuteActivitiesLoop(); return(NULL); }
+static void* hourStartLoop(void* ptr)         {  ((PeriodicActivities*)ptr)->hourActivitiesLoop(); return(NULL);   }
+static void* dayStartLoop(void* ptr)          {  ((PeriodicActivities*)ptr)->dayActivitiesLoop(); return(NULL);    }
 
 /* ******************************************* */
 
@@ -62,6 +64,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   }
 
   startupActivities();
+  pthread_create(&housekeepingLoop, NULL, housekeepingStartLoop, (void*)this);
   pthread_create(&secondLoop, NULL, secondStartLoop, (void*)this);
   pthread_create(&minuteLoop, NULL, minuteStartLoop, (void*)this);
   pthread_create(&hourLoop,   NULL, hourStartLoop,   (void*)this);
@@ -103,6 +106,20 @@ void PeriodicActivities::startupActivities() {
 
   snprintf(script, sizeof(script), "%s/%s", ntop->get_callbacks_dir(), STARTUP_SCRIPT_PATH);
   runScript(script, 0);
+}
+
+/* ******************************************* */
+
+void PeriodicActivities::housekeepingActivitiesLoop() {
+  char script[MAX_PATH];
+
+  snprintf(script, sizeof(script), "%s/%s",
+	   ntop->get_callbacks_dir(), HOUSEKEEPING_SCRIPT_PATH);
+
+  while(!ntop->getGlobals()->isShutdown()) {
+    runScript(script, 0);
+    sleep(3); /* Arbitrary low sleep value */
+  }
 }
 
 /* ******************************************* */

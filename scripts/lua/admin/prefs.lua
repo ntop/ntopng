@@ -122,7 +122,7 @@ function printTopTalkers()
 
   --default value
   minute_top_talkers_retention = 365
-  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention)
+  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, false)
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -131,6 +131,7 @@ function printTopTalkers()
 end
 
 -- ================================================================================
+
 function printStatsDatabases()
   print('<form>')
   print('<input type=hidden name="subpage_active" value="on_disk_dbs"/>\n')
@@ -138,7 +139,7 @@ function printStatsDatabases()
   print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 
   mysql_retention = 30
-  prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "ntopng.prefs.", "mysql_retention", mysql_retention)
+  prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "ntopng.prefs.", "mysql_retention", mysql_retention, false)
 
   print('</table>')
   print('<table class="table">')
@@ -146,7 +147,7 @@ function printStatsDatabases()
 
   --default value
   minute_top_talkers_retention = 365
-  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention)
+  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, false)
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -155,6 +156,7 @@ function printStatsDatabases()
 end
 
 -- ================================================================================
+
 function printAlerts()
    if prefs.has_cmdl_disable_alerts then return end
   print('<form>')
@@ -177,7 +179,7 @@ function printAlerts()
   prefsInputFieldPrefs("Maximum Number of Alerts per Entity",
 		       "The maximum number of alerts per alarmable entity. Alarmable entities are hosts, networks, interfaces and flows. "..
 		       "Once the maximum number of entity alerts is reached, new alerts raised by the same entities will be discarded. "..
-			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements)
+			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements, false)
   
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",
@@ -200,6 +202,20 @@ function printAlerts()
 		    "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "1",
 		    showElements == false)
 
+   print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> Slack Integration</th></tr>')
+
+   toggleTableButtonPrefs("Enable <A HREF=http://www.slack.com>Slack</A> Notification",
+                    "Toggle the alert notification via slack.",
+                    "On", "1", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
+		    "Off", "0", "danger", -- Off for enabled alerts implies 1 for disable_alerts_generation
+		    "toggle_slack_notification", "ntopng.alerts.notification_enabled", "0")
+
+  prefsInputFieldPrefs("Notification Sender Username",
+		       "Set the username of the sender of slack notifications", "ntopng.alerts.", "sender_username", "ntopng Webhook", nil, showElements, false)
+
+  prefsInputFieldPrefs("Notification Wekhook",
+		       "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook", "", nil, showElements, true, true)
+
   if (ntop.isPro()) then
     print('<tr><th colspan=2 class="info">Nagios Integration</th></tr>')
 
@@ -219,11 +235,11 @@ function printAlerts()
       showElements = false
     end
 
-    prefsInputFieldPrefs("Nagios NSCA Host", "Address of the host where the Nagios NSCA daemon is running. Default: localhost.", "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements)
-    prefsInputFieldPrefs("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, nil, showElements)
-    prefsInputFieldPrefs("Nagios send_nsca executable", "Absolute path to the Nagios NSCA send_nsca utility. Default: /usr/local/nagios/bin/send_nsca", "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showElements)
-    prefsInputFieldPrefs("Nagios send_nsca configuration", "Absolute path to the Nagios NSCA send_nsca utility configuration file. Default: /usr/local/nagios/etc/send_nsca.cfg", "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showElements)
-    prefsInputFieldPrefs("Nagios host_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showElements)
+    prefsInputFieldPrefs("Nagios NSCA Host", "Address of the host where the Nagios NSCA daemon is running. Default: localhost.", "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
+    prefsInputFieldPrefs("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, nil, showElements, false)
+    prefsInputFieldPrefs("Nagios send_nsca executable", "Absolute path to the Nagios NSCA send_nsca utility. Default: /usr/local/nagios/bin/send_nsca", "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showElements, false)
+    prefsInputFieldPrefs("Nagios send_nsca configuration", "Absolute path to the Nagios NSCA send_nsca utility configuration file. Default: /usr/local/nagios/etc/send_nsca.cfg", "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showElements, false)
+    prefsInputFieldPrefs("Nagios host_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showElements, false)
     prefsInputFieldPrefs("Nagios service_description", "The service description exactly as specified in Nagios passive service definition for the ntopng host. Default: NtopngAlert", "ntopng.prefs.", "nagios_service_name", prefs.nagios_service_name, nil, showElements)
   end
 
@@ -253,8 +269,8 @@ function printNbox()
     showElements = false
   end
 
-  prefsInputFieldPrefs("nBox User", "User that has privileges to access the nBox. Default: nbox", "ntopng.prefs.", "nbox_user", "nbox", nil, showElements)
-  prefsInputFieldPrefs("nBox Password", "Password associated to the nBox user. Default: nbox", "ntopng.prefs.", "nbox_password", "nbox", "password", showElements)
+  prefsInputFieldPrefs("nBox User", "User that has privileges to access the nBox. Default: nbox", "ntopng.prefs.", "nbox_user", "nbox", nil, showElements, false)
+  prefsInputFieldPrefs("nBox Password", "Password associated to the nBox user. Default: nbox", "ntopng.prefs.", "nbox_password", "nbox", "password", showElements, false)
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
 
@@ -283,7 +299,7 @@ function printUsers()
 		       ,
 		       "ntopng.prefs.",
 		       "google_apis_browser_key",
-		       "")
+		       "", false)
 
   if ntop.isPro() then
 
@@ -317,7 +333,7 @@ function printUsers()
 			      "Choose your account type",
 			      labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
 
-     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements)
+     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements, true, true)
 
      local elementToSwitchBind = {"bind_dn","bind_pwd"}
      toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
@@ -335,8 +351,8 @@ function printUsers()
      print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
      print('<input style="display:none;" type="password" name="__" data-ays-ignore="true" />')
      --
-     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true)
-     prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true)
+     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false)
+     prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
 
      prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements)
      prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements)
@@ -451,7 +467,7 @@ function printStatsRrds()
     toggleTableButtonPrefs("Activities Timeseries",
 			 "Toggle the creation of activities timeseries for local hosts and networks. Turn it off to save storage space.",
   	 	         "On", "1", "success", "Off", "0", "danger", toggle_local_activity, "ntopng.prefs.host_activity_rrd_creation", "0",
-                         false, activityPrefsToSwitch)
+                         false, activityPrefsToSwitch, false)
   end
 
   local info = ntop.getInfo()

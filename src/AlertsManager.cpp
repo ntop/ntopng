@@ -535,18 +535,115 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   return rc;  
 }
 
+
+/* **************************************************** */
+
+const char* AlertsManager::getAlertEntity(AlertEntity alert_entity) {
+  switch (alert_entity) {
+  case alert_entity_interface:   return("#interface");
+  case alert_entity_host:        return("#host");
+  case alert_entity_network:     return("#network");
+  case alert_entity_snmp_device: return("#snmp");
+  case alert_entity_flow:        return("#flow");
+  }
+
+  return(""); /* NOTREACHED */
+}
+
+/* **************************************************** */
+
+const char* AlertsManager::getAlertLevel(AlertLevel alert_severity) {
+  switch(alert_severity) {
+  case alert_level_info:    return(":information_source:");
+  case alert_level_warning: return(":warning:");
+  case alert_level_error:   return(":exclamation:");
+  }
+
+  return(""); /* NOTREACHED */
+}
+
+/* **************************************************** */
+
+const char* AlertsManager::getAlertType(AlertType alert_type) {
+  switch(alert_type) {
+  case alert_syn_flood:              return("SYN flood");
+  case alert_flow_flood:             return("Flow flood");
+  case alert_threshold_exceeded:     return("Threshold exceeded");
+  case alert_dangerous_host:         return("Dangerous host");
+  case alert_periodic_activity:      return("Periodic activity");
+  case alert_quota:                  return("quota");
+  case alert_malware_detection:      return("Malware detection");
+  case alert_host_under_attack:      return("Under attack");
+  case alert_host_attacker:          return("Host attacker");
+  case alert_app_misconfiguration:   return("Application misconfigured");
+  case alert_suspicious_activity:    return("Suspicious activity");
+  case alert_too_many_alerts:        return("Too many alerts");
+  }
+
+  return(""); /* NOTREACHED */
+}
+
+/* **************************************************** */
+
+void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
+				AlertType alert_type, AlertLevel alert_severity,
+				const char *alert_json,
+				const char *alert_origin, const char *alert_target) {
+  json_object *notification;
+  char alert_sender_name[64], message[2015];
+  const char* json_alert;
+   
+  if((notification = json_object_new_object()) == NULL) return;
+  
+  json_object_object_add(notification, "channel",
+			 json_object_new_string(getAlertEntity(alert_entity)));
+  json_object_object_add(notification, "icon_emoji",
+			 json_object_new_string(getAlertLevel(alert_severity)));
+
+  if(ntop->getRedis()->get((char*)ALERTS_MANAGER_SENDER_USERNAME,
+			   alert_sender_name, sizeof(alert_sender_name)) >= 0)
+    json_object_object_add(notification, "username",
+			   json_object_new_string(alert_sender_name));
+
+  snprintf(message, sizeof(message), "%s [%s][Origin: %s][Target: %s]",
+	   getAlertType(alert_type),
+	   alert_entity_value ? alert_entity_value : "",
+	   alert_origin ? alert_origin : "",
+	   alert_target ? alert_target : "");
+  json_object_object_add(notification, "text", json_object_new_string(message));
+
+  json_alert = json_object_to_json_string(notification);
+
+  if(ntop->getRedis()->lpush(ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME,
+			     (char*)json_alert, ALERTS_MANAGER_MAX_ENTITY_ALERTS))
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "An error occurred when pushing alert %s to redis list %s.",
+				 json_alert, ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME);
+  
+  /* Free memory */
+  json_object_put(notification); 
+}
+
 /* **************************************************** */
 
 int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
-			      AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+			      AlertType alert_type, AlertLevel alert_severity,
+			      const char *alert_json,
 			      const char *alert_origin, const char *alert_target,
 			      bool check_maximum) {
-  char query[STORE_MANAGER_MAX_QUERY];
+  char query[STORE_MANAGER_MAX_QUERY], buf[4];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
 
+  if((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_ENABLED,
+			    buf, sizeof(buf)) >= 0)
+     && (!strcmp(buf, "1")))
+    notifyAlert(alert_entity, alert_entity_value,
+		alert_type, alert_severity, alert_json,
+		alert_origin, alert_target);
+  
   if(!store_initialized || !store_opened)
-    return -1;
+    return(-1);
   else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
     deleteOldestAlert(alert_entity, alert_entity_value, false);
 

@@ -761,7 +761,7 @@ bool Utils::isPrintableChar(u_char c) {
 
 /* ************************************************************ */
 
-void Utils::purifyHTTPparam(char *param, bool strict) {
+void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
   if(strict) {
     for(int i=0; xssAttempts[i] != NULL; i++) {
       if(strstr(param, xssAttempts[i])) {
@@ -801,7 +801,7 @@ void Utils::purifyHTTPparam(char *param, bool strict) {
 
     if((i > 0)
        && (((param[i] == '.') && (param[i-1] == '.'))
-	   || ((param[i] == '/') && (param[i-1] == '/'))
+	   || ((!allowURL) && ((param[i] == '/') && (param[i-1] == '/')))
 	   || ((param[i] == '\\') && (param[i-1] == '\\'))
 	   )) {
       /* Make sure we do not have .. in the variable that can be used for future hacking */
@@ -842,7 +842,8 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url, char *js
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
-    if(username || password) {
+    if((username && (username[0] != '\0'))
+       || (password && (password[0] != '\0'))) {
       char auth[64];
 
       snprintf(auth, sizeof(auth), "%s:%s",

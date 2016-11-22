@@ -4287,6 +4287,24 @@ static int ntop_list_index_redis(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_lpop_redis(lua_State* vm) {
+  char msg[1024], *list_name;
+  Redis *redis = ntop->getRedis();
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  if((list_name = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(redis->lpop(list_name, msg, sizeof(msg)) == 0) {
+    lua_pushfstring(vm, "%s", msg);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 static int ntop_lpush_redis(lua_State* vm) {
   char *list_name, *value;
   u_int list_trim_size = 0;  // default 0 = no trim
@@ -5247,6 +5265,7 @@ static const luaL_Reg ntop_reg[] = {
   { "delCache",        ntop_delete_redis_key },
   { "listIndexCache",  ntop_list_index_redis },
   { "lpushCache",      ntop_lpush_redis },
+  { "lpopCache",       ntop_lpop_redis },
   { "lrangeCache",     ntop_lrange_redis },
   { "getMembersCache", ntop_get_set_members_redis },
   { "getHashCache",    ntop_get_hash_redis },
@@ -5735,8 +5754,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
 	    if((decoded_buf = http_decode(equal)) != NULL) {
 	      FILE *fd;
 
-	      Utils::purifyHTTPparam(tok, true);
-	      Utils::purifyHTTPparam(decoded_buf, false);
+	      Utils::purifyHTTPparam(tok, true, false);
+	      Utils::purifyHTTPparam(decoded_buf, false, false);
 
 	      /* Now make sure that decoded_buf is not a file path */
 	      if((decoded_buf[0] == '.')

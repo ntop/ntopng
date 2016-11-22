@@ -773,6 +773,7 @@ char* Host::serialize() {
 }
 
 /* *************************************** */
+
 void Host::serialize2redis() {
   if((localHost || systemHost)
      && (ntop->getPrefs()->is_idle_local_host_cache_enabled()
