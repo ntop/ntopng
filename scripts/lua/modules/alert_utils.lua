@@ -326,7 +326,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
             if(rc) then
 	       alert_status = 1 -- alert on
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
 	       -- only if the alert is not in its re-arming period...
 	       if not is_alert_re_arming(key, mode, t[1], ifname) then
