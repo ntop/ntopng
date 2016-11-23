@@ -69,7 +69,7 @@ class IpAddress {
   inline bool isPrivateAddress()                      { return(addr.privateIP); };
   inline bool isMulticastAddress()                    { return(addr.multicastIP); };
   inline bool isBroadcastAddress()                    { return(addr.broadcastIP); };
-  char* print(char *str, u_int str_len, u_int8_t bitmask = 0);
+  char* print(char *str, u_int str_len, u_int8_t bitmask = 0xFF);
   bool isLocalHost(int16_t *network_id);
   bool isLocalInterfaceAddress();
   void deserialize(json_object *o);

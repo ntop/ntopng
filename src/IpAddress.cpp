@@ -261,15 +261,21 @@ bool IpAddress::match(patricia_tree_t *ptree) {
 
 char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
   if((addr.ipVersion == 4) || (addr.ipVersion == 0 /* Misconfigured */)) {
+    bitmask = bitmask <= 32 ? bitmask : 32;
     u_int32_t a = ntohl(addr.ipType.ipv4);
 
     if(bitmask > 0) {
+      /* bitmask 0 here causes integer overflow */
       u_int32_t netmask = ~((1 << (32 - bitmask)) - 1);
       a &= netmask;
+    } else {
+      /* bitmask is 0 */
+      a = 0;
     }
 
     return(Utils::intoaV4(a, buf, bufLen));
   } else {
+    bitmask = bitmask <= 128 ? bitmask : 128;
     return(Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
   }
 }
