@@ -1395,10 +1395,10 @@ void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
 
 u_int16_t Utils::getIfMTU(const char *ifname) {
 #ifdef WIN32
-  return(CONST_DEFAULT_MTU);
+  return(CONST_DEFAULT_MAX_PACKET_SIZE);
 #else
   struct ifreq ifr;
-  u_int32_t mtu = CONST_DEFAULT_MTU; /* Default MTU */
+  u_int32_t max_packet_size = CONST_DEFAULT_MAX_PACKET_SIZE; /* default */
   int fd;
 
   memset(&ifr, 0, sizeof(ifr));
@@ -1411,16 +1411,16 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
     if(ioctl(fd, SIOCGIFMTU, &ifr) == -1)
       ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read MTU for device %s", ifname);
     else {
-      mtu = ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
+      max_packet_size = ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
 
-      if(mtu > ((u_int16_t)-1))
-	mtu = ((u_int16_t)-1);
+      if(max_packet_size > ((u_int16_t)-1))
+	max_packet_size = ((u_int16_t)-1);
     }
 
     closesocket(fd);
   }
 
-  return((u_int16_t)mtu);
+  return((u_int16_t) max_packet_size);
 #endif
 }
 

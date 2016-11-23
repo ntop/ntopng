@@ -406,7 +406,7 @@
 #define CONST_MAX_IDLE_FLOW_TIME       10*CONST_MAX_IDLE_INTERARRIVAL_TIME
 #define CONST_MAX_SSL_IDLE_TIME        46000 /* 46 sec */
 #define CONST_EPP_MAX_CMD_NUM          34
-#define CONST_DEFAULT_MTU              1514
+#define CONST_DEFAULT_MAX_PACKET_SIZE  1518
 
 #define HTTPBL_DOMAIN                  "dnsbl.httpbl.org"
 #define NULL_BL                        "''"

@@ -225,7 +225,7 @@ void NetworkInterface::init() {
   dump_max_pkts_file = CONST_MAX_NUM_PACKETS_PER_DUMP;
   dump_max_duration = CONST_MAX_DUMP_DURATION;
   dump_max_files = CONST_MAX_DUMP;
-  ifMTU = CONST_DEFAULT_MTU, mtuWarningShown = false;
+  ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
   flow_profiles = NULL;
 #endif
@@ -1255,7 +1255,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 
   if(h->len > ifMTU) {
     if(!mtuWarningShown) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][MTU: %u].", h->len, ifMTU);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max-len: %u].", h->len, ifMTU);
       ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
 #ifdef linux
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Use: sudo ethtool -K %s gro off gso off tso off", ifname);
