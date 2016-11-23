@@ -321,7 +321,7 @@ void Host::updateHostL7Policy() {
       else {
 	ingress_shaper_id = atoi(rsp);
 
-	if((ingress_shaper_id < DEFAULT_SHAPER_ID) || (ingress_shaper_id >= NUM_TRAFFIC_SHAPERS))
+	if(ingress_shaper_id < DEFAULT_SHAPER_ID)
 	  ingress_shaper_id = DEFAULT_SHAPER_ID;
       }
 
@@ -337,9 +337,10 @@ void Host::updateHostL7Policy() {
       else {
 	egress_shaper_id = atoi(rsp);
 
-	if((egress_shaper_id < DEFAULT_SHAPER_ID) || (egress_shaper_id >= NUM_TRAFFIC_SHAPERS))
+	if(egress_shaper_id < DEFAULT_SHAPER_ID)
 	  egress_shaper_id = DEFAULT_SHAPER_ID;
       }
+	//~ char name[256]; printf("%s -> %s - %d %d\n", get_name(name, sizeof(name), false), host_key, ingress_shaper_id, egress_shaper_id);
     } else
       l7Policy = NULL, ingress_shaper_id = egress_shaper_id = DEFAULT_SHAPER_ID;
   }

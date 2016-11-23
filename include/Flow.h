@@ -345,7 +345,7 @@ class Flow : public GenericHashEntry {
   FlowSSLEncryptionStatus getSSLEncryptionStatus();
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
-  void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, u_int16_t *ndpiProtocol);
+  void getFlowShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id, u_int16_t *ndpiProtocol);
 #ifdef NTOPNG_PRO
   inline void updateProfile()   { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}

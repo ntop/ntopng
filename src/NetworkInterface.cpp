@@ -862,7 +862,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
-  int a_shaper_id = DEFAULT_SHAPER_ID, b_shaper_id = DEFAULT_SHAPER_ID; /* Default */
+  u_int8_t a_shaper_id = DEFAULT_SHAPER_ID, b_shaper_id = DEFAULT_SHAPER_ID; /* Default */
 
   if(vlanInterfaces && (vlan_id > 0)) {
     if((vlanInterfaces[vlan_id] == NULL)
@@ -3740,9 +3740,9 @@ void NetworkInterface::refreshL7Rules(bool areWeRemovingRules) {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshShapers() {
+void NetworkInterface::refreshShapers(bool areWeRemovingShapers) {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshShapers();
+    policer->refreshShapers(areWeRemovingShapers);
 }
 #endif
 

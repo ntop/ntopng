@@ -511,9 +511,10 @@ print [[
 	 print("</ul>")
       end
 
-      print('<A class="btn btn-default btn-xs" HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=filtering&network='..host["ip"])
+      print('<A class="btn btn-default btn-xs" HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=filtering&new_network='..host["ip"])
       if(host["ip"]:match(":")) then print("/128") else print("/32") end
-      if(host["vlan"] ~= nil) then print("@"..host["vlan"]) end
+      if(host["vlan"] ~= nil) then print("&new_vlan="..host["vlan"]) end
+      print("&csrf="..ntop.getRandomCSRFValue())
       print('">Modify Host Traffic Policy</A></div>')
 
       if(host["bridge.ingress_shaper_id"] ~= nil) then

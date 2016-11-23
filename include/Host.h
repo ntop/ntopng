@@ -39,7 +39,7 @@ class Host : public GenericHost {
   u_int32_t host_quota_mb;
   int16_t local_network_id, deviceIfIdx;
   u_int32_t deviceIP;
-  int ingress_shaper_id, egress_shaper_id;
+  u_int8_t ingress_shaper_id, egress_shaper_id;
   float latitude, longitude;
   IpAddress ip;
   Mutex *m;
@@ -119,8 +119,8 @@ class Host : public GenericHost {
   inline char* get_country()                   { return(country);          }
   inline char* get_city()                      { return(city);             }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
-  inline int get_ingress_shaper_id()           { return(ingress_shaper_id); }
-  inline int get_egress_shaper_id()            { return(egress_shaper_id);  }
+  inline u_int8_t get_ingress_shaper_id()      { return(ingress_shaper_id); }
+  inline u_int8_t get_egress_shaper_id()       { return(egress_shaper_id);  }
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }

@@ -1398,7 +1398,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
     /* Shapers */
     if(cli_host && srv_host) {
-      int a, b;
+      u_int8_t a, b;
       u_int16_t p;
 
       getFlowShapers(true, &a, &b, &p);
@@ -2437,15 +2437,15 @@ void Flow::checkFlowCategory() {
 /* *************************************** */
 
 void Flow::getFlowShapers(bool src2dst_direction,
-			  int *a_shaper_id, int *b_shaper_id,
+			  u_int8_t *a_shaper_id, u_int8_t *b_shaper_id,
 			  u_int16_t *ndpiProtocol) {
   if(cli_host && srv_host) {
     if(src2dst_direction)
       *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id();
     else
-      *a_shaper_id = srv_host->get_egress_shaper_id(), *b_shaper_id = cli_host->get_ingress_shaper_id();
+      *a_shaper_id = cli_host->get_ingress_shaper_id(), *b_shaper_id = srv_host->get_egress_shaper_id();
   } else
-    *a_shaper_id = *b_shaper_id = 0;
+    *a_shaper_id = *b_shaper_id = DEFAULT_SHAPER_ID;
 
   *ndpiProtocol = ndpiDetectedProtocol.protocol;
 }

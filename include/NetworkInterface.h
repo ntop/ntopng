@@ -344,7 +344,7 @@ class NetworkInterface {
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules(bool areWeRemovingRules);
-  void refreshShapers();
+  void refreshShapers(bool areWeRemovingShapers);
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
 
@@ -391,7 +391,7 @@ class NetworkInterface {
   void updateFlowProfiles(char *old_profile, char *new_profile);
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
-  bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
+  bool passShaperPacket(u_int8_t a_shaper_id, u_int8_t b_shaper_id, struct pcap_pkthdr *h);
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,

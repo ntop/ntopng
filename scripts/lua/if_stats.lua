@@ -92,8 +92,6 @@ interface.select(if_name)
 is_packetdump_enabled = isLocalPacketdumpEnabled()
 is_packet_interface = interface.isPacketInterface()
 
-max_num_shapers = 10
-
 shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
 ifstats = interface.getStats()
 
@@ -1094,6 +1092,7 @@ elseif(page == "filtering") then
       error()
    end
 
+   local shaper_utils = require("shaper_utils")
    policy_key = "ntopng.prefs.".. ifid ..".l7_policy"
    any_net = "0.0.0.0/0@0"
 
@@ -1101,24 +1100,27 @@ elseif(page == "filtering") then
 
    if((_GET["csrf"] ~= nil) and (_GET["new_vlan"] ~= nil) and (_GET["new_network"] ~= nil)) then
       network_key = _GET["new_network"].."@".._GET["new_vlan"]
-      initial_policy = ""
-      
-      if(_GET["clone_policy"] ~= nil) then
-         -- try to clone existing policy
-         value = ntop.getHashCache(policy_key, _GET["clone_policy"])
-         if value ~= nil then
-            initial_policy = value
 
-            -- also clone existing shapers
-            key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
-            ntop.setHashCache(key, network_key, ntop.getHashCache(key, _GET["clone_policy"]))
-            key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
-            ntop.setHashCache(key, network_key, ntop.getHashCache(key, _GET["clone_policy"]))
+      -- check if network already exists, needed by host_details page
+      if(ntop.getHashCache(policy_key, network_key) == "") then
+         initial_policy = ""
+         
+         if(_GET["clone_policy"] ~= nil) then
+            -- try to clone existing policy
+            value = ntop.getHashCache(policy_key, _GET["clone_policy"])
+            if value ~= nil then
+               initial_policy = value
+
+               -- also clone existing shapers
+               key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
+               ntop.setHashCache(key, network_key, ntop.getHashCache(key, _GET["clone_policy"]))
+               key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
+               ntop.setHashCache(key, network_key, ntop.getHashCache(key, _GET["clone_policy"]))
+            end
          end
+         ntop.setHashCache(policy_key, network_key, initial_policy)
+         interface.reloadL7Rules()
       end
-
-      ntop.setHashCache(policy_key, network_key, initial_policy)
-      interface.reloadL7Rules()
       jsRedirect("if_stats.lua?id="..ifid.."&page=filtering&network="..network_key)
    end
 
@@ -1146,7 +1148,7 @@ elseif(page == "filtering") then
    end
 
    -- NB: this cannot be null, since it contains at least the 'any' network
-   nets = ntop.getHashKeysCache(policy_key)
+   nets = ntop.getHashKeysCache(policy_key) or {}
 
    -- tprint(nets)
    if(net == nil) then
@@ -1184,19 +1186,30 @@ elseif(page == "filtering") then
       selected_network = any_net
    end
 
-shaper_id = _GET["shaper_id"]
-max_rate = _GET["max_rate"]
+   if((_GET["csrf"] ~= nil) and (_GET["add_shapers"] ~= nil)) then
+      for shaper,mrate in pairs(_GET) do
+         local sp = split(shaper, "shaper_")
+         if #sp == 2 then
+            local shaper_id = tonumber(sp[2])
+            local max_rate = tonumber(mrate)
+            --~ tprint(shaper_id.." "..max_rate)
 
-   if((_GET["csrf"] ~= nil) and (shaper_id ~= nil) and (max_rate ~= nil)) then
-      shaper_id = tonumber(shaper_id)
-      max_rate = tonumber(max_rate)
-      if((shaper_id >= 0) and (shaper_id < max_num_shapers)) then
-         if(max_rate > 1048576) then max_rate = -1 end
-         if(max_rate < -1) then max_rate = -1 end
-         ntop.setHashCache(shaper_key, shaper_id, max_rate.."")
-         interface.reloadShapers()
-         jsRedirect("if_stats.lua?id="..ifid.."&page=filtering#shapers")
+            if(max_rate > 1048576) then max_rate = -1 end
+            if(max_rate < -1) then max_rate = -1 end
+
+            ntop.setHashCache(shaper_key, shaper_id, max_rate)
+         end
       end
+
+      interface.reloadShapers()
+      jsRedirect("if_stats.lua?id="..ifid.."&page=filtering#shapers")
+   end
+
+   if((_GET["csrf"] ~= nil) and (_GET["delete_shaper"] ~= nil)) then
+      local shaper_id = _GET["delete_shaper"]
+      
+      shaper_utils.deleteShaper(ifid, shaper_id)
+      jsRedirect("if_stats.lua?id="..ifid.."&page=filtering#shapers")
    end
 
    print [[
@@ -1260,25 +1273,27 @@ print('</td></tr>')
 
 -- ******************************************
 
+function print_network_shapers(shapers, curshaper_id)
+   if(curshaper_id == "") then curshaper_id = "0" else curshaper_id = tostring(curshaper_id) end
+   
+   for _,shaper in ipairs(shapers) do
+      print("<option value="..shaper.id)
+      if(shaper.id == curshaper_id) then print(" selected") end
+      print(">"..shaper.id.." (")
+
+      print(maxRateToString(shaper.rate)..")</option>\n")
+   end
+end
+
 print [[
 <tr><th nowrap>Ingress Shaper Id</th><td>
 <select name="ingress_shaper_id" id="ingress_shaper_id">
    ]]
 
+   local shapers = shaper_utils.getSortedShapers(ifid)
    key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
    ingress_shaper_id = ntop.getHashCache(key, selected_network)
-   if(ingress_shaper_id == "") then ingress_shaper_id = 0 else ingress_shaper_id = tonumber(ingress_shaper_id) end
-   if((ingress_shaper_id < 0) or (ingress_shaper_id > max_num_shapers)) then ingress_shaper_id = 0 end
-
-   for i=0,max_num_shapers-1 do
-      print("<option value="..i)
-      if(i == ingress_shaper_id) then print(" selected") end
-      print(">"..i.." (")
-
-      max_rate = ntop.getHashCache(shaper_key, i)
-
-      print(maxRateToString(max_rate)..")</option>\n")
-   end
+   print_network_shapers(shapers, ingress_shaper_id)
 
 print [[
 </select><br><small>Specify the max <u>ingress</u> transmission bandwidth to be associated to this network/host.</small></td>
@@ -1293,20 +1308,7 @@ print [[
 
    key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
    egress_shaper_id = ntop.getHashCache(key, selected_network)
-   if(egress_shaper_id == "") then egress_shaper_id = 0 else egress_shaper_id = tonumber(egress_shaper_id) end
-   if((egress_shaper_id < 0) or (egress_shaper_id > max_num_shapers)) then egress_shaper_id = 0 end
-
-   for i=0,max_num_shapers-1 do
-      print("<option value="..i)
-      if(i == egress_shaper_id) then print(" selected") end
-      print(">"..i.." (")
-
-      max_rate = ntop.getHashCache(shaper_key, i)
-
-      if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
-      print(maxRateToString(tonumber(max_rate)))
-      print(")</option>\n")
-   end
+   print_network_shapers(shapers, egress_shaper_id)
 
 print [[
 </select><br><small>Specify the max <u>egress</u> transmission bandwidth to be associated to this network/host.</small></td></tr>
@@ -1522,26 +1524,133 @@ end
 
 print[[
   <div id="shapers" class="tab-pane">
-<table class="table table-striped table-bordered">
- <tr><th width=10%>Shaper Id</th><th>Max Rate</th></tr>
-]]
+   <form id="deleteShaperForm">
+      <input type="hidden" name="page" value="filtering">
+      <input type="hidden" name="delete_shaper" value="">
+   </form>
+   <form id="addShaperForm">
+      <input type="hidden" name="page" value="filtering">
+      <input type="hidden" name="add_shapers" value="">
+   </form>
 
+   <form id="modifyShapersForm">
+      <input type="hidden" name="page" value="filtering">
+      <input type="hidden" name="add_shapers" value="">
+   <div id="table-shapers"></div>
+   
+   <script>
+   function shaperRateTextField(td_object, shaper_id, value) {
+      var input = $('<input name="shaper_' + shaper_id + '" class="no-spinner" type="number" min="-1"/>');
+      input.val(value);
+      td_object.html(input);
+   }
 
-for i=0,max_num_shapers-1 do
-   max_rate = ntop.getHashCache(shaper_key, i)
-   if(max_rate == "") then max_rate = -1 end
-   print('<tr><th style=\"text-align: center;\">'..i)
+   /* The next id to assign to new shapers */
+   var nextShaperId = 0;
+   
+   /* The max if of existing (redis) shapers */
+   var maxStoredShaperId = -1;
+   
+   function addNewShaper() {
+      var shaperId = nextShaperId;
+      /*nextShaperId += 1;*/
 
-   print [[
-	 </th><td><form id="setRateForm]] print(tostring(i)) print[[" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="page" value="filtering">
-	 <input type="hidden" name="if_name" value="]] print(if_name) print[[">
-	 <input type="hidden" name="shaper_id" value="]] print(i.."") print [[">]]
-	 print('<input class=form-control type="number" name="max_rate" placeholder="" min="-1" value="'.. max_rate ..'">&nbsp;Kbps')
-	 print('&nbsp;<button type="submit" style="margin-top: 0; height: 26px" class="btn btn-default btn-xs">Set Rate Shaper '.. i ..'</button></form></td></tr>')
-    print(jsFormCSRF("setRateForm" .. i))
-end
-print [[</table>
+      var form_obj = $("#addShaperForm");
+      form_obj.append($('<input type="hidden" name="shaper_' + shaperId + '" value="-1"/>'));
+      form_obj.submit();
+
+      /*tr_obj = $('<tr><td class="text-center">'+shaperId+'</td><td></td><td></td><td class="text-center"></td></tr>');
+      $("#table-shapers tr:last").after(tr_obj);
+      shaperRateTextField($("td:nth-child(2)", tr_obj), shaperId, -1);
+      addShaperActionsToRow(tr_obj, shaperId);*/
+   }
+
+   function deleteShaper(shaper_id) {
+      /*if (shaper_id > maxStoredShaperId) {
+          the shaper was added manually, just remove */
+         /*$("#table-shapers td:nth-child(1)").filter(function() {
+            return $(this).html() == shaper_id;
+         }).each(function(){
+            $(this).parent().remove();
+         })
+      } else {*/
+      
+      var form = $("#deleteShaperForm");
+      var todel = $("input[name='delete_shaper']", form);
+
+      todel.val(shaper_id);
+      form.submit();
+   }
+
+   function addShaperActionsToRow(tr_obj, shaper_id) {
+      if (shaper_id != ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) {
+         var td_obj = $("td:nth-child(4)", tr_obj);
+         td_obj.html('<a href="javascript:void(0)" class="add-on" onclick="deleteShaper(' + shaper_id + ')" role="button"><span class="label label-danger">Delete</span></a>');
+      }
+   }
+   
+   $("#table-shapers").datatable({
+      url: "]]
+   print (ntop.getHttpPrefix())
+   print [[/lua/get_shapers.lua?ifid=]] print(ifid.."") print[[",
+      showPagination: true,
+      perPage: 10,
+      title: "",
+      buttons: [
+         '<a id="addNewShaperBtn" onclick="addNewShaper()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+      ], columns: [
+         {
+            title: "Shaper Id",
+            field: "column_shaper_id",
+            css: {
+               textAlign: 'center',
+               width: '10%'
+            }
+         }, {
+            title: "Max Rate (Kbps)",
+            field: "column_max_rate",
+            css : {
+               width: '10%'
+            }
+         }, {
+            title: "Applied to",
+            field: "column_used_by"
+         }, {
+            title: "Actions",
+            css : {
+               width: '10%',
+               textAlign: 'center'
+            }
+         }
+      ], tableCallback: function() {
+         /* Make max rate editable */
+         $("#table-shapers tr").each(function(i) {
+            var shaper_id = $("td:nth-child(1)", $(this));
+            var max_rate = $("td:nth-child(2)", $(this));
+            
+            shaperRateTextField(max_rate, shaper_id.html(), max_rate.html());
+            addShaperActionsToRow($(this), shaper_id.html());
+         });
+
+         /* Find out what a new shaper ID could be */
+         $("#table-shapers td:nth-child(1)").each(function() {
+            nextShaperId = Math.max(nextShaperId, parseInt($(this).html())+1);
+         });
+         maxStoredShaperId = nextShaperId - 1;
+
+         $("#dt-bottom-details").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" type="submit">Save Shapers Settings</button>')
+
+         /* Only enable add button if we are in the last page */
+         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)");
+         $("#addNewShaperBtn").attr("disabled", ((lastpage.length == 1) && (lastpage.hasClass("active") == false)));
+      }
+   });
+   ]] print(jsFormCSRF('modifyShapersForm', true)) print[[
+   ]] print(jsFormCSRF('deleteShaperForm', true)) print[[
+   ]] print(jsFormCSRF('addShaperForm', true)) print[[
+</script>]]
+
+print [[</form>
   NOTES
 <ul>
 <li>Shaper 0 is the default shaper used for local hosts that have no shaper defined.

@@ -3131,12 +3131,18 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 
 static int ntop_reload_shapers(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *shaper_id = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface) {
+    /* You should pass the shaper ID whenever a shaper is removed */
+    if(lua_type(vm, 1) == LUA_TSTRING) {
+      shaper_id = (char*)lua_tostring(vm, 1);
+      if(shaper_id == NULL) return(CONST_LUA_PARAM_ERROR);
+    }
 #ifdef NTOPNG_PRO
-    ntop_interface->refreshShapers();
+    ntop_interface->refreshShapers(shaper_id != NULL ? true : false);
 #endif
     return(CONST_LUA_OK);
   } else
