@@ -41,7 +41,10 @@ local num_alerts
 if _GET["entity"] == "host" then
    alerts = interface.getAlerts(initial_idx, perPage, engaged, "host", _GET["entity_val"])
    num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
-else
+elseif status == "historical-flows" then
+   alerts = interface.getFlowAlerts(initial_idx, perPage)
+   num_alerts = interface.getNumFlowAlerts()
+else --if status == "historical" then
    alerts = interface.getAlerts(initial_idx, perPage, engaged)
    num_alerts = interface.getNumAlerts(engaged)
 end
@@ -58,8 +61,18 @@ for _key,_value in ipairs(alerts) do
    if(total > 0) then print(",\n") end
 
    alert_id        = _value["rowid"]
-   alert_entity    = alertEntityLabel(_value["alert_entity"])
-   alert_entity_val= _value["alert_entity_val"]
+   if _value["alert_entity"] ~= nil then
+      alert_entity    = alertEntityLabel(_value["alert_entity"])
+   else
+      alert_entity = "flow" -- flow alerts page doesn't have an entity
+   end
+   if _value["alert_entity_val"] ~= nil then
+      alert_entity_val = _value["alert_entity_val"]
+   else
+      alert_entity_val = ""
+   end
+--   tprint(alert_entity)
+--   tprint(alert_entity_val)
    column_date     = os.date("%c", _value["alert_tstamp"])
    if tonumber(_value["alert_tstamp_end"]) ~= nil then
       local duration = secondsToTime(tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"]))
@@ -69,7 +82,7 @@ for _key,_value in ipairs(alerts) do
    column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
    column_msg      = _value["alert_json"]
 
-   column_id = "<form class=form-inline style='margin-bottom: 0px;' method=get>"
+   column_id = "<form class=form-inline style='margin-bottom: 0px;' method=GET>"
    if _GET["ifname"] ~= nil and _GET["ifname"] ~= "" then
       column_id = column_id.."<input type=hidden name=ifname value=".._GET["ifname"]..">"
    end
@@ -82,7 +95,7 @@ for _key,_value in ipairs(alerts) do
    if _GET["page"] ~= nil and _GET["page"] ~= "" then
       column_id = column_id.."<input type=hidden name=page value=".._GET["page"]..">"
    end
-   column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><input type=hidden name=currentPage value=".. currentPage .."><input type=hidden name=perPage value=".. perPage .."><input type=hidden name=engaged value="..tostring(engaged).."><input type=hidden name=alerts_impl value="..tostring(alertsImpl).."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
+   column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><input type=hidden name=currentPage value=".. currentPage .."><input type=hidden name=perPage value=".. perPage .."><input type=hidden name=status value="..tostring(status).."><input type=hidden name=alerts_impl value="..tostring(alertsImpl).."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
 
    print('{ "column_key" : "'..column_id..'", "column_date" : "'..column_date..'", "column_severity" : "'..column_severity..'", "column_type" : "'..column_type..'", "column_msg" : "'..column_msg..'", "column_entity":"'..alert_entity..'", "column_entity_val":"'..alert_entity_val..'" }')
 

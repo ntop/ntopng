@@ -511,6 +511,7 @@
 #define STORE_MANAGER_MAX_KEY                20
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
+#define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
 #define ALERTS_MANAGER_STORE_NAME            "alerts_v2.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"

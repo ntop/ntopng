@@ -74,7 +74,11 @@ class AlertsManager : protected StoreManager {
   int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 		u_int32_t start_offset, u_int32_t end_offset,
 		bool engaged, const char *sql_where_clause);
+  int getFlowAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+		    u_int32_t start_offset, u_int32_t end_offset,
+		    const char *sql_where_clause);
   int getNumAlerts(bool engaged, const char *sql_where_clause);
+  int getNumFlowAlerts(const char *sql_where_clause);
 
   /* private methods to check the goodness of submitted inputs and possible return the input database string */
   bool isValidHost(Host *h, char *host_string, size_t host_string_len);
@@ -132,13 +136,14 @@ class AlertsManager : protected StoreManager {
   /*
     ========== FLOW alerts API =========
    */
-  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-		     Host *alert_origin, Host *alert_target);
-  inline int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
-    return storeFlowAlert(f, alert_type, alert_severity, alert_json, NULL, NULL);
+  int storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
+  inline int getFlowAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+			   u_int32_t start_offset, u_int32_t end_offset) {
+    return getFlowAlerts(vm, allowed_hosts, start_offset, end_offset, NULL);
   };
-
-
+  inline int getNumFlowAlerts() {
+    return getNumFlowAlerts(NULL);
+  };
   /*
     ========== NETWORK alerts API ======
    */
@@ -183,7 +188,7 @@ class AlertsManager : protected StoreManager {
     return engaged ? num_alerts_engaged : num_alerts_stored;
   };
   inline void refreshCachedNumAlerts() {
-    num_alerts_stored  = getNumAlerts(false, static_cast<char*>(NULL));
+    num_alerts_stored  = getNumAlerts(false, static_cast<char*>(NULL)) + getNumFlowAlerts(NULL);
     num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
   };
   inline int getNumAlerts(bool engaged) {
@@ -198,6 +203,7 @@ class AlertsManager : protected StoreManager {
   /*
     ========== delete API ======
    */
+  int deleteFlowAlerts(const int *rowid);
   int deleteAlerts(bool engaged, const int *rowid);
   int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
   int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);

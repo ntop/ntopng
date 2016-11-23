@@ -59,7 +59,7 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 /* **************************************************** */
 
 int AlertsManager::openStore() {
-  char create_query[STORE_MANAGER_MAX_QUERY];
+  char create_query[STORE_MANAGER_MAX_QUERY * 3];
   int rc;
 
   if(!store_initialized)
@@ -112,6 +112,69 @@ int AlertsManager::openStore() {
 	   ALERTS_MANAGER_ENGAGED_TABLE_NAME, ALERTS_MANAGER_ENGAGED_TABLE_NAME, ALERTS_MANAGER_ENGAGED_TABLE_NAME,
 	   ALERTS_MANAGER_ENGAGED_TABLE_NAME, ALERTS_MANAGER_ENGAGED_TABLE_NAME,
 	   ALERTS_MANAGER_ENGAGED_TABLE_NAME, ALERTS_MANAGER_ENGAGED_TABLE_NAME);
+  m.lock(__FILE__, __LINE__);
+  rc = exec_query(create_query, NULL, NULL);
+  m.unlock(__FILE__, __LINE__);
+
+  snprintf(create_query, sizeof(create_query),
+	   "CREATE TABLE IF NOT EXISTS %s ("
+	   "alert_tstamp     INTEGER NOT NULL, "
+	   "alert_type       INTEGER NOT NULL, "
+	   "alert_severity   INTEGER NOT NULL, "
+	   "alert_json       TEXT DEFAULT NULL, "
+	   "vlan_id          INTEGER NOT NULL DEFAULT 0, "
+	   "proto            INTEGER NOT NULL DEFAULT 0, "
+	   "l7_proto         INTEGER NOT NULL DEFAULT %u, "
+	   "first_switched   INTEGER NOT NULL DEFAULT 0, "
+	   "last_switched    INTEGER NOT NULL DEFAULT 0, "
+	   "cli_country      TEXT DEFAULT NULL, "
+	   "srv_country      TEXT DEFAULT NULL, "
+	   "cli_os           TEXT DEFAULT NULL, "
+	   "srv_os           TEXT DEFAULT NULL, "
+	   "cli_asn          TEXT DEFAULT NULL, "
+	   "srv_asn          TEXT DEFAULT NULL, "
+	   "cli_addr         TEXT DEFAULT NULL, "
+	   "srv_addr         TEXT DEFAULT NULL, "
+	   "cli_port         INTEGER NOT NULL DEFAULT 0, "
+	   "srv_port         INTEGER NOT NULL DEFAULT 0, "
+	   "cli2srv_bytes    INTEGER NOT NULL DEFAULT 0, "
+	   "srv2cli_bytes    INTEGER NOT NULL DEFAULT 0, "
+	   "cli2srv_packets  INTEGER NOT NULL DEFAULT 0, "
+	   "srv2cli_packets  INTEGER NOT NULL DEFAULT 0, "
+	   "cli2srv_tcpflags INTEGER DEFAULT NULL, "
+	   "srv2cli_tcpflags INTEGER DEFAULT NULL, "
+	   "cli_blacklisted  INTEGER NOT NULL DEFAULT 0, "
+	   "srv_blacklisted  INTEGER NOT NULL DEFAULT 0 "
+	   ");"
+	   "CREATE INDEX IF NOT EXISTS t3i_tstamp    ON %s(alert_tstamp); "
+	   "CREATE INDEX IF NOT EXISTS t3i_type      ON %s(alert_type); "
+	   "CREATE INDEX IF NOT EXISTS t3i_severity  ON %s(alert_severity); "
+	   "CREATE INDEX IF NOT EXISTS t3i_vlanid    ON %s(vlan_id); "
+	   "CREATE INDEX IF NOT EXISTS t3i_proto     ON %s(proto); "
+	   "CREATE INDEX IF NOT EXISTS t3i_l7proto   ON %s(l7_proto); "
+	   "CREATE INDEX IF NOT EXISTS t3i_fswitched ON %s(first_switched); "
+	   "CREATE INDEX IF NOT EXISTS t3i_lswitched ON %s(last_switched); "
+	   "CREATE INDEX IF NOT EXISTS t3i_ccountry  ON %s(cli_country); "
+	   "CREATE INDEX IF NOT EXISTS t3i_scountry  ON %s(srv_country); "
+	   "CREATE INDEX IF NOT EXISTS t3i_cos       ON %s(cli_os); "
+	   "CREATE INDEX IF NOT EXISTS t3i_sos       ON %s(srv_os); "
+	   "CREATE INDEX IF NOT EXISTS t3i_casn      ON %s(cli_asn); "
+	   "CREATE INDEX IF NOT EXISTS t3i_sasn      ON %s(srv_asn); "
+	   "CREATE INDEX IF NOT EXISTS t3i_caddr     ON %s(cli_addr); "
+	   "CREATE INDEX IF NOT EXISTS t3i_saddr     ON %s(srv_addr); "
+	   "CREATE INDEX IF NOT EXISTS t3i_cport     ON %s(cli_port); "
+	   "CREATE INDEX IF NOT EXISTS t3i_sport     ON %s(srv_port); ",
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   NDPI_PROTOCOL_UNKNOWN,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME);
   m.lock(__FILE__, __LINE__);
   rc = exec_query(create_query, NULL, NULL);
   m.unlock(__FILE__, __LINE__);
@@ -689,6 +752,103 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
   return rc;  
 }
 
+/* **************************************************** */
+
+int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+  char query[STORE_MANAGER_MAX_QUERY];
+  sqlite3_stmt *stmt = NULL;
+  int rc = 0;
+  Host *cli, *srv;
+  char *cli_ip = NULL, *srv_ip = NULL;
+
+  if(!store_initialized || !store_opened || !f)
+    return -1;
+
+  cli = f->get_cli_host(), srv = f->get_srv_host();
+  if(cli && cli->get_ip() && (cli_ip = (char*)malloc(sizeof(char) * 256)))
+    cli->get_ip()->print(cli_ip, 256);
+  if(srv && srv->get_ip() && (srv_ip = (char*)malloc(sizeof(char) * 256)))
+    srv->get_ip()->print(srv_ip, 256);
+
+  /* TODO: implement check maximum for flow alerts
+  else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
+    deleteOldestAlert(alert_entity, alert_entity_value, false);
+  */
+
+  /* This alert is being engaged */
+  snprintf(query, sizeof(query),
+	   "INSERT INTO %s "
+	   "(alert_tstamp, alert_type, alert_severity, alert_json, "
+	   "vlan_id, proto, l7_proto, first_switched, last_switched, "
+	   "cli_country, srv_country, cli_os, srv_os, cli_asn, srv_asn, "
+	   "cli_addr, srv_addr, cli_port, srv_port, "
+	   "cli2srv_bytes, srv2cli_bytes, "
+	   "cli2srv_packets, srv2cli_packets, "
+	   "cli2srv_tcpflags, srv2cli_tcpflags, cli_blacklisted, srv_blacklisted) "
+	   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME);
+
+  m.lock(__FILE__, __LINE__);
+
+  if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare the statement for %s", query);
+    rc = 3;
+    goto out;
+  }
+
+  if(sqlite3_bind_int64(stmt, 1, static_cast<long int>(time(NULL)))
+     || sqlite3_bind_int(stmt,   2, (int)(alert_type))
+     || sqlite3_bind_int(stmt,   3, (int)(alert_severity))
+     || sqlite3_bind_text(stmt,  4, alert_json, -1, SQLITE_STATIC)
+     || sqlite3_bind_int(stmt,   5, f->get_vlan_id())
+     || sqlite3_bind_int(stmt,   6, f->get_protocol())
+     || sqlite3_bind_int(stmt,   7, f->get_detected_protocol().protocol)
+     || sqlite3_bind_int(stmt,   8, f->get_first_seen())
+     || sqlite3_bind_int(stmt,   9, f->get_last_seen())
+     || sqlite3_bind_text(stmt, 10, cli ? cli->get_country() : NULL, -1, SQLITE_STATIC)
+     || sqlite3_bind_text(stmt, 11, srv ? srv->get_country() : NULL, -1, SQLITE_STATIC)
+     || sqlite3_bind_text(stmt, 12, cli ? cli->get_os() : NULL, -1, SQLITE_STATIC)
+     || sqlite3_bind_text(stmt, 13, srv ? srv->get_os() : NULL, -1, SQLITE_STATIC)
+     || sqlite3_bind_int(stmt,  14, cli ? cli->get_asn() : 0)
+     || sqlite3_bind_int(stmt,  15, srv ? srv->get_asn() : 0)
+     || sqlite3_bind_text(stmt, 16, cli_ip, -1, SQLITE_STATIC)
+     || sqlite3_bind_text(stmt, 17, srv_ip, -1, SQLITE_STATIC)
+     || sqlite3_bind_int(stmt,  18, f->get_cli_port())
+     || sqlite3_bind_int(stmt,  19, f->get_srv_port())
+     || sqlite3_bind_int64(stmt,20, f->get_bytes_cli2srv())
+     || sqlite3_bind_int64(stmt,21, f->get_bytes_srv2cli())
+     || sqlite3_bind_int64(stmt,22, f->get_packets_cli2srv())
+     || sqlite3_bind_int64(stmt,23, f->get_packets_srv2cli())
+     || sqlite3_bind_int(stmt,  24, f->getTcpFlagsCli2Srv())
+     || sqlite3_bind_int(stmt,  25, f->getTcpFlagsSrv2Cli())
+     || sqlite3_bind_int(stmt,  26, (cli && cli->is_blacklisted()) ? 1 : 0)
+     || sqlite3_bind_int(stmt,  27, (srv && srv->is_blacklisted()) ? 1 : 0)
+     ) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
+    rc = 2;
+    goto out;
+  }
+
+  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(rc == SQLITE_ERROR) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: step [%s]", query);
+      rc = 1;
+      goto out;
+    }
+  }
+
+  rc = 0;
+  num_alerts_stored++;
+ out:
+  if(cli_ip) free(cli_ip);
+  if(srv_ip) free(srv_ip);
+
+  if (stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return rc;  
+}
+
 /* ******************************************* */
 
 bool AlertsManager::isValidHost(Host *h, char *host_string, size_t host_string_len) {
@@ -812,10 +972,8 @@ int AlertsManager::getHostAlerts(Host *h, lua_State* vm, patricia_tree_t *allowe
   }
 
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
-		   " (alert_entity=%i AND alert_entity_val='%q') "
-		   " OR (alert_entity=%i AND ( alert_origin='%q' OR alert_target='%q'))",
-		   static_cast<int>(alert_entity_host), ipbuf_id,
-		   static_cast<int>(alert_entity_flow), ipbuf_id, ipbuf_id);
+		   " (alert_entity=%i AND alert_entity_val='%q') ",
+		   static_cast<int>(alert_entity_host), ipbuf_id);
 
   return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, wherebuf);
 }
@@ -833,10 +991,8 @@ int AlertsManager::getHostAlerts(const char *host_ip, u_int16_t vlan_id,
   }
 
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
-		   " (alert_entity=%i AND alert_entity_val='%q@%i') "
-		   " OR (alert_entity=%i AND ( alert_origin='%q@%i' OR alert_target='%q@%i'))",
-		   static_cast<int>(alert_entity_host), host_ip, vlan_id,
-		   static_cast<int>(alert_entity_flow), host_ip, vlan_id, host_ip, vlan_id);
+		   " (alert_entity=%i AND alert_entity_val='%q@%i') ",
+		   static_cast<int>(alert_entity_host), host_ip, vlan_id);
 
   return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, wherebuf);
 }
@@ -850,10 +1006,8 @@ int AlertsManager::getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool
   }
 
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
-		   " (alert_entity=%i AND alert_entity_val='%q@%i') "
-		   " OR (alert_entity=%i AND ( alert_origin='%q@%i' OR alert_target='%q@%i'))",
-		   static_cast<int>(alert_entity_host), host_ip, vlan_id,
-		   static_cast<int>(alert_entity_flow), host_ip, vlan_id, host_ip, vlan_id);
+		   " (alert_entity=%i AND alert_entity_val='%q@%i') ",
+		   static_cast<int>(alert_entity_host), host_ip, vlan_id);
 
   return getNumAlerts(engaged, static_cast<const char*>(wherebuf));
 }
@@ -868,28 +1022,10 @@ int AlertsManager::getNumHostAlerts(Host *h, bool engaged) {
     return -1;
 
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
-		   " (alert_entity=%i AND alert_entity_val='%q') "
-		   " OR (alert_entity=%i AND ( alert_origin='%q' OR alert_target='%q'))",
-		   static_cast<int>(alert_entity_host), ipbuf_id,
-		   static_cast<int>(alert_entity_flow), ipbuf_id, ipbuf_id);
+		   " (alert_entity=%i AND alert_entity_val='%q') ",
+		   static_cast<int>(alert_entity_host), ipbuf_id);
 
   return getNumAlerts(engaged, static_cast<const char *>(wherebuf));
-}
-
-/* ******************************************* */
-
-int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-				  Host *alert_origin, Host *alert_target) {
-  char ipbuf_origin[256];
-  char ipbuf_target[256];
-  int ret = 0;
-  ret = storeAlert(alert_entity_flow, (char*)"flow"/* TODO: possibly add an unique id for flows */,
-		   alert_type, alert_severity, alert_json,
-		   isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
-		   isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL,
-		   true /* perform check on maximum */);
-
-  return ret;
 }
 
 /* ******************************************* */
@@ -961,6 +1097,50 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
   return rc;
 }
 
+/* ******************************************* */
+
+int AlertsManager::getFlowAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+				 u_int32_t start_offset, u_int32_t end_offset,
+				 const char *sql_where_clause) {
+  alertsRetriever ar;
+  char query[STORE_MANAGER_MAX_QUERY];
+  char *zErrMsg = 0;
+  int rc = 0;
+
+  if(!store_initialized || !store_opened)
+    return -1;
+
+  snprintf(query, sizeof(query),
+	   "SELECT rowid, * "
+	   "FROM %s "
+	   "%s %s " /* optional where clause */
+	   "ORDER BY alert_tstamp DESC LIMIT %u,%u",
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME /* from */,
+	   sql_where_clause ? (char*)"WHERE"  : "",
+	   sql_where_clause ? sql_where_clause : "",
+	   start_offset, end_offset - start_offset + 1);
+
+  m.lock(__FILE__, __LINE__);
+
+  lua_newtable(vm);
+
+  ar.vm = vm, ar.current_offset = 0;
+  rc = sqlite3_exec(db, query, getAlertsCallback, (void*)&ar, &zErrMsg);
+
+  if( rc != SQLITE_OK ){
+    rc = 1;
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s\n%s", zErrMsg, query);
+    sqlite3_free(zErrMsg);
+    goto out;
+  }
+
+  rc = 0;
+ out:
+  m.unlock(__FILE__, __LINE__);
+
+  return rc;
+}
+
 /* **************************************************** */
 
 int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
@@ -1004,12 +1184,60 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
 
 /* **************************************************** */
 
+int AlertsManager::getNumFlowAlerts(const char *sql_where_clause) {
+  char query[STORE_MANAGER_MAX_QUERY];
+  sqlite3_stmt *stmt = NULL;
+  int rc;
+  int num = -1;
+
+  snprintf(query, sizeof(query),
+	   "SELECT count(*) "
+	   "FROM %s "
+	   "%s %s",
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   sql_where_clause ? "WHERE"  : "",
+	   sql_where_clause ? sql_where_clause : "");
+
+  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
+
+  m.lock(__FILE__, __LINE__);
+  if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare statement for query %s.", query);
+    goto out;
+  }
+
+  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if (rc == SQLITE_ROW) {
+      num = sqlite3_column_int(stmt, 0);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\n", sqlite3_column_text(stmt, 0));
+    } else if(rc == SQLITE_ERROR) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+      goto out;
+    }
+  }
+
+ out:
+  if (stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return num;
+}
+
+/* **************************************************** */
+
 int AlertsManager::getNumAlerts(bool engaged, u_int64_t start_time) {
   char wherebuf[STORE_MANAGER_MAX_QUERY];
+  int num_alerts, num_flow_alerts = 0;
   
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
 		   "alert_tstamp >= %lu", start_time);
-  return getNumAlerts(engaged, static_cast<const char*>(wherebuf));
+
+  num_alerts = getNumAlerts(engaged, static_cast<const char*>(wherebuf));
+
+  if(!engaged) /* flow alerts are by definition not engageable */
+    num_flow_alerts = getNumFlowAlerts(static_cast<const char*>(wherebuf));
+
+  return num_alerts + num_flow_alerts;
 }
 
 /* **************************************************** */
@@ -1035,6 +1263,44 @@ int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const ch
 		   alert_entity_value ? alert_entity_value : (char*)"",
 		   static_cast<int>(alert_type));
   return getNumAlerts(engaged, static_cast<const char*>(wherebuf));
+}
+
+/* **************************************************** */
+
+int AlertsManager::deleteFlowAlerts(const int *rowid) {
+  char query[STORE_MANAGER_MAX_QUERY];
+  sqlite3_stmt *stmt = NULL;
+  int rc;
+
+  snprintf(query, sizeof(query),
+	   "DELETE FROM %s %s ",
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   rowid ? "WHERE rowid = ?" : "");
+
+  m.lock(__FILE__, __LINE__);
+  if(sqlite3_prepare(db, query, -1, &stmt, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to prepare statement for query %s.", query);
+    rc = -1;
+    goto out;
+  } else if(rowid && sqlite3_bind_int(stmt,   1, *rowid)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind values to prepared statement for query %s.", query);
+    rc = -2;
+    goto out;
+  }
+
+  while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
+    if(rc == SQLITE_ERROR) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
+      goto out;
+    }
+  }
+
+  rc = 0;
+ out:
+  if (stmt) sqlite3_finalize(stmt);
+  m.unlock(__FILE__, __LINE__);
+
+  return rc;
 }
 
 /* **************************************************** */

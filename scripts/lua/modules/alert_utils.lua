@@ -658,14 +658,17 @@ function checkDeleteStoredAlerts()
 	       -- delete all existing alerts
 	       interface.deleteAlerts(true --[[ engaged --]])
 	       interface.deleteAlerts(false --[[ and not engaged --]])
+	       interface.deleteFlowAlerts()
 	    end
 	 else
 	    local id_to_delete = tonumber(_GET["id_to_delete"])
 	    if id_to_delete ~= nil then
-	       if _GET["engaged"] == "true" then
+	       if _GET["status"] == "engaged" then
 		  interface.deleteAlerts(true, id_to_delete)
-	       else
+	       elseif _GET["status"] == "historical" then
 		  interface.deleteAlerts(false, id_to_delete)
+	       elseif _GET["status"] == "historical-flows" then
+		  interface.deleteFlowAlerts(id_to_delete)
 	       end
 	    end
 	 end
@@ -675,15 +678,29 @@ end
 
 -- #################################
 
-function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
+function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_params)
    local alert_items = {}
 
+   print[[
+<br>
+<ul class="nav nav-tabs" role="tablist" id="alert-tabs">
+<!-- will be populated later with javascript -->
+</ul>
+
+<div class="tab-content">
+]]
+
+   local status = _GET["status"]
    if num_engaged_alerts > 0 then
-      alert_items[#alert_items + 1] = {["label"] = "Currently Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged", ["date"] = "First Seen"}
+      alert_items[#alert_items + 1] = {["label"] = "Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged", ["date"] = "First Seen"}
    end
 
    if num_alerts > 0 then
       alert_items[#alert_items +1] = {["label"] = "Alerts History", ["div-id"] = "table-alerts-history",  ["status"] = "historical", ["date"] = "Time"}
+   end
+
+   if num_flow_alerts > 0 then
+      alert_items[#alert_items +1] = {["label"] = "Flow Alerts History", ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows", ["date"] = "Time"}
    end
 
    local url_extra_params = ""
@@ -696,9 +713,22 @@ function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
    end
 
    for k, t in ipairs(alert_items) do
+      local clicked = "0"
+      if (k == 1 and status == nil) or (status ~= nil and status == t["status"]) then
+	 clicked = "1"
+      end
       print [[
-      <div id="]] print(t["div-id"]) print[["></div>
-	 <script>
+      <div class="tab-pane fade in" id="tab-]] print(t["div-id"]) print[[">
+        <div id="]] print(t["div-id"]) print[["></div>
+      </div>
+
+      <script type="text/javascript">
+
+         $("#alert-tabs").append('<li><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
+
+         $('a[href="#tab-]] print(t["div-id"]) print[["]').on('shown.bs.tab', function (e) {
+         // append the li to the tabs
+
 	 $("#]] print(t["div-id"]) print[[").datatable({
 			url: "]]
       print (ntop.getHttpPrefix())
@@ -706,8 +736,12 @@ function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
 	       showPagination: true,
 ]]
 
-      if(_GET["currentPage"] ~= nil) then print("currentPage: ".._GET["currentPage"]..",\n") end
-      if(_GET["perPage"] ~= nil)     then print("perPage: ".._GET["perPage"]..",\n") end
+      if(_GET["currentPage"] ~= nil and status == t["status"]) then
+	 print("currentPage: ".._GET["currentPage"]..",\n")
+      end
+      if(_GET["perPage"] ~= nil and status == t["status"]) then
+	 print("perPage: ".._GET["perPage"]..",\n")
+      end
 
       print [[
 	        title: "]] print(t["label"]) print[[",
@@ -744,22 +778,6 @@ function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
 	 },
 
 	 {
-	    title: "Entity Type",
-	    field: "column_entity",
-	    css: { 
-	       textAlign: 'center'
-	    }
-	 },
-
-	 {
-	    title: "Entity Value",
-	    field: "column_entity_val",
-	    css: { 
-	       textAlign: 'center'
-	    }
-	 },
-
-	 {
 	    title: "Description",
 	    field: "column_msg",
 	    css: { 
@@ -768,15 +786,31 @@ function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
 	 }
       ]
    });
+   });
    </script>
 	      ]]
 
    end
 
-   if (num_alerts > 0 or num_engaged_alerts > 0) then
-      print [[
 
-<a href="#myModal" role="button" class="btn btn-default" data-toggle="modal"><i type="submit" class="fa fa-trash-o"></i> Purge All Alerts</button></a>
+
+   if (num_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
+      -- trigger the click on the right tab to force table load
+      print[[
+<script type="text/javascript">
+$("[clicked=1]").trigger("click");
+</script>
+]]
+      
+      local entity = nil
+      if _GET["entity"] ~= nil and _GET["entity"] ~= "" then entity = _GET["entity"] end
+      local purge_msg = " Purge All "
+      if entity ~= nil and entity ~= "" then purge_msg = purge_msg..firstToUpper(entity).." " end
+      purge_msg = purge_msg.."Alerts"
+      print [[
+</div> <!-- closes tab-content -->
+
+<a href="#myModal" role="button" class="btn btn-default" data-toggle="modal"><i type="submit" class="fa fa-trash-o"></i>]] print(purge_msg) print[[</button></a>
  
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -803,8 +837,8 @@ function drawAlertTables(num_alerts, num_engaged_alerts, url_params)
 	    end
 	 end
       end
-      if _GET["entity"] ~= nil and _GET["entity"] ~= "" then
-	 print('<input name="entity" type="hidden" value="'.._GET["entity"]..'"/>\n')
+      if entity ~= nil and entity ~= "" then
+	 print('<input name="entity" type="hidden" value="'..entity..'"/>\n')
       end
       
       print [[

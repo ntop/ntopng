@@ -4430,6 +4430,32 @@ static int ntop_interface_get_alerts(lua_State* vm) {
 }
 
 /* ****************************************** */
+
+static int ntop_interface_get_flow_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  u_int32_t num, start_idx = 0;
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  start_idx = (u_int32_t)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  num = (u_int32_t)lua_tonumber(vm, 2);
+
+  if(num < 1) num = 1;
+  else if(num > CONST_MAX_NUM_READ_ALERTS) num = CONST_MAX_NUM_READ_ALERTS;
+
+  /* all the existing alerts */
+  return am->getFlowAlerts(vm, get_allowed_nets(vm), start_idx, start_idx + num - 1)
+    ? CONST_LUA_ERROR : CONST_LUA_OK;
+}
+
+/* ****************************************** */
 #ifdef NOTUSED
 static int ntop_interface_store_alert(lua_State* vm) {
   int ifid;
@@ -4658,6 +4684,22 @@ static int ntop_interface_get_num_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_get_num_flow_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, am->getNumFlowAlerts());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
@@ -4713,6 +4755,31 @@ static int ntop_interface_delete_alerts(lua_State* vm) {
   } else {
     /* delete everything */
     lua_pushinteger(vm, am->deleteAlerts(engaged, NULL));
+  }
+
+  iface->setRefreshAlertCounters(true);
+  return(CONST_LUA_OK);
+}
+/* ****************************************** */
+
+static int ntop_interface_delete_flow_alerts(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TNUMBER){
+    int rowid, *rowid_ptr = NULL;
+    rowid = lua_tonumber(vm, 1);
+    rowid_ptr = &rowid;
+    lua_pushinteger(vm, am->deleteFlowAlerts(rowid_ptr));
+
+  } else {
+    /* delete everything */
+    lua_pushinteger(vm, am->deleteFlowAlerts(NULL));
   }
 
   iface->setRefreshAlertCounters(true);
@@ -5241,9 +5308,12 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* New generation alerts */
   { "getAlerts" ,           ntop_interface_get_alerts               },
+  { "getFlowAlerts" ,       ntop_interface_get_flow_alerts          },
   { "getNumAlerts",         ntop_interface_get_num_alerts           },
+  { "getNumFlowAlerts",     ntop_interface_get_num_flow_alerts      },
   { "getCachedNumAlerts",   ntop_interface_get_cached_num_alerts    },
   { "deleteAlerts",         ntop_interface_delete_alerts            },
+  { "deleteFlowAlerts",     ntop_interface_delete_flow_alerts       },
   { "selectAlertsRaw",      ntop_interface_select_alerts_raw        },
   { "engageHostAlert",      ntop_interface_engage_host_alert        },
   { "releaseHostAlert",     ntop_interface_release_host_alert       },

@@ -1981,7 +1981,7 @@ if num_alerts > 0 or num_engaged_alerts > 0 then
    print("<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts&tab=alert_list\">Detected Alerts</a></li>\n")
 else
    -- if there are no alerts, we show the first alert granularity configuration page
-   if(tab == nil) then tab = alerts_granularity[1][1] end
+   if(tab == nil or tab=="alert_list") then tab = alerts_granularity[1][1] end
 end
 
 for _,e in pairs(alerts_granularity) do
@@ -2065,7 +2065,7 @@ if tab == "alert_list" then
    _GET["host"] = host_ip
    _GET["vlan"] = host_vlan
    _GET["ifname"] = ifId
-   drawAlertTables(num_alerts, num_engaged_alerts, _GET)
+   drawAlertTables(num_alerts, num_engaged_alerts, 0, _GET)
 else
    print [[
     <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>

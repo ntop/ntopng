@@ -212,7 +212,9 @@ class Flow : public GenericHashEntry {
   char* serialize(bool partial_dump = false, bool es_json = false);
   json_object* flow2json(bool partial_dump);
   json_object* flow2es(json_object *flow_object);
-  inline u_int8_t getTcpFlags() { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
+  inline u_int8_t getTcpFlags()        { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
+  inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
+  inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };
   bool isPassVerdict();
   void setDropVerdict()         { passVerdict = false; };
   u_int32_t getPid(bool client);
@@ -265,6 +267,8 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_bytes_srv2cli()            { return(srv2cli_bytes);                   };
   inline u_int64_t get_goodput_bytes()            { return(cli2srv_goodput_bytes+srv2cli_goodput_bytes);     };
   inline u_int64_t get_packets()                  { return(cli2srv_packets+srv2cli_packets); };
+  inline u_int64_t get_packets_cli2srv()          { return(cli2srv_packets);                 };
+  inline u_int64_t get_packets_srv2cli()          { return(srv2cli_packets);                 };
   inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
   inline u_int64_t get_partial_bytes_cli2srv()    { return(cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
   inline u_int64_t get_partial_bytes_srv2cli()    { return(srv2cli_bytes - last_db_dump.srv2cli_bytes);       };

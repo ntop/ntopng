@@ -245,8 +245,7 @@ Flow::~Flow() {
 		 print(fbuf, sizeof(fbuf)));
 
 	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
-						  alert_level_warning, alert_msg,
-						  cli_host, srv_host);
+						  alert_level_warning, alert_msg);
 
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", print(alert_msg, sizeof(alert_msg)));
 	break;
@@ -328,9 +327,7 @@ void Flow::checkBlacklistedFlow() {
       if(!strstr(s, "@")) sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
-						alert_level_warning, alert_msg,
-						cli_host->is_blacklisted() ? srv_host : cli_host,
-						srv_host->is_blacklisted() ? srv_host : cli_host);
+						alert_level_warning, alert_msg);
     }
 
     blacklist_alarm_emitted = true;
