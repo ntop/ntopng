@@ -823,7 +823,6 @@ print [[
       error: function(content) { console.log("Host Top Peers: Parse error"); },
       success: function(content) {
    var rsp;
-
 // set crossfilter
 var ndx = crossfilter(content),
     protocolDim  = ndx.dimension(function(d) {return d.l7proto;}),

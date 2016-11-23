@@ -648,6 +648,7 @@ function checkDeleteStoredAlerts()
    if(_GET["csrf"] ~= nil) then
       if(_GET["id_to_delete"] ~= nil) then
 	 if(_GET["id_to_delete"] == "__all__") then
+	    _GET["totalRows"] = nil -- reset this value so it will be re-computed
 	    if _GET["entity"] ~= nil and _GET["entity"] ~= "" then
 	       -- delete all alerts of a given entity (e.g., a given host)
 	       interface.deleteAlerts(true --[[ engaged --]],
@@ -662,6 +663,14 @@ function checkDeleteStoredAlerts()
 	    end
 	 else
 	    local id_to_delete = tonumber(_GET["id_to_delete"])
+	    -- update the muber of total rows to avoid recomputing it
+	    local total_rows = tonumber(_GET["totalRows"])
+	    if total_rows ~= nil and total_rows > 1 then
+	       total_rows = total_rows - 1
+	       _GET["totalRows"] = total_rows
+	    else
+	       _GET["totalRows"] = nil
+	    end
 	    if id_to_delete ~= nil then
 	       if _GET["status"] == "engaged" then
 		  interface.deleteAlerts(true, id_to_delete)
@@ -738,6 +747,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
       if label == active_entry then class_active = ' class="active"' end
       -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
       buttons = buttons..'<li'..class_active..'><a href="?status='..status
+      buttons = buttons..'&totalRows='..count
       buttons = buttons..'&'..selection_name..'='..label..'">'
       buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'
    end

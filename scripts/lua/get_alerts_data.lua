@@ -13,6 +13,7 @@ currentPage = _GET["currentPage"]
 perPage     = _GET["perPage"]
 sortColumn  = _GET["sortColumn"]
 sortOrder   = _GET["sortOrder"]
+totalRows   = _GET["totalRows"]
 
 status          = _GET["alert_status"]
 alertsImpl      = _GET["alerts_impl"]
@@ -73,21 +74,27 @@ end
 interface.select(ifname)
 
 local alerts
-local num_alerts
+local num_alerts = totalRows
 
 if _GET["entity"] == "host" then
    paginfo["entityFilter"] = alertEntity("host")
    paginfo["entityValueFilter"] = _GET["entity_val"]
    alerts = interface.getAlerts(paginfo, engaged)
-   num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
+   if num_alerts == nil then
+      num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
+   end
 
 elseif status == "historical-flows" then
    alerts = interface.getFlowAlerts(paginfo)
-   num_alerts = interface.getNumFlowAlerts()
+   if num_alerts == nil then
+      num_alerts = interface.getNumFlowAlerts()
+   end
 
 else --if status == "historical" then
    alerts = interface.getAlerts(paginfo, engaged)
-   num_alerts = interface.getNumAlerts(engaged)
+   if num_alerts == nil then
+      num_alerts = interface.getNumAlerts(engaged)
+   end
 
 end
 
@@ -124,18 +131,11 @@ for _key,_value in ipairs(alerts) do
    column_msg      = _value["alert_json"]
 
    column_id = "<form class=form-inline style='margin-bottom: 0px;' method=GET>"
-   if _GET["ifname"] ~= nil and _GET["ifname"] ~= "" then
-      column_id = column_id.."<input type=hidden name=ifname value=".._GET["ifname"]..">"
+
+   for k, v in pairs(_GET) do
+      column_id = column_id.."<input type=hidden name="..k.." value="..v..">"
    end
-   if _GET["host"] ~= nil and _GET["host"] ~= "" then
-      column_id = column_id.."<input type=hidden name=host value=".._GET["host"]..">"
-   end
-   if _GET["vlan"] ~= nil and _GET["vlan"] ~= "" then
-      column_id = column_id.."<input type=hidden name=vlan value=".._GET["vlan"]..">"
-   end
-   if _GET["page"] ~= nil and _GET["page"] ~= "" then
-      column_id = column_id.."<input type=hidden name=page value=".._GET["page"]..">"
-   end
+
    column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><input type=hidden name=currentPage value=".. currentPage .."><input type=hidden name=perPage value=".. perPage .."><input type=hidden name=status value="..tostring(status).."><input type=hidden name=alerts_impl value="..tostring(alertsImpl).."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
 
    print('{ "column_key" : "'..column_id..'", "column_date" : "'..column_date..'", "column_duration" : "'..column_duration..'", "column_severity" : "'..column_severity..'", "column_type" : "'..column_type..'", "column_msg" : "'..column_msg..'", "column_entity":"'..alert_entity..'", "column_entity_val":"'..alert_entity_val..'" }')
