@@ -757,17 +757,19 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	 {
 	    title: "First Seen",
 	    field: "column_date",
+            sortable: true,
 	    css: { 
 	       textAlign: 'center'
 	    }
 	 },
 ]]
 
-      if t["status"] ~= "engaged" then
+      if t["status"] == "historical" then
       print[[
 	 {
 	    title: "Duration",
 	    field: "column_duration",
+            sortable: true,
 	    css: { 
 	       textAlign: 'center'
 	    }
@@ -779,6 +781,7 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	 {
 	    title: "Severity",
 	    field: "column_severity",
+            sortable: true,
 	    css: { 
 	       textAlign: 'center'
 	    }
@@ -787,6 +790,7 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	 {
 	    title: "Alert Type",
 	    field: "column_type",
+            sortable: true,
 	    css: { 
 	       textAlign: 'center'
 	    }

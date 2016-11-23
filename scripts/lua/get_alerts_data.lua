@@ -11,8 +11,27 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 currentPage = _GET["currentPage"]
 perPage     = _GET["perPage"]
-status      = _GET["alert_status"]
-alertsImpl  = _GET["alerts_impl"]
+sortColumn  = _GET["sortColumn"]
+sortOrder   = _GET["sortOrder"]
+
+status          = _GET["alert_status"]
+alertsImpl      = _GET["alerts_impl"]
+alert_severity  = _GET["alerts_severity"]
+alert_type      = _GET["alerts_type"]
+
+if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
+   sortColumn = getDefaultTableSort("alerts")
+elseif sortColumn ~= "column_" and  sortColumn ~= "" then
+   tablePreferences("sort_alerts",sortColumn)
+else
+   sortColumn = "column_date"
+end
+
+if sortOrder == nil then
+   sortOrder = getDefaultTableSortOrder("alerts")
+elseif sortColumn ~= "column_" and sortColumn ~= "" then
+   tablePreferences("sort_order_alerts",sortOrder)
+end
 
 if(currentPage == nil) then
    currentPage = 1
@@ -26,31 +45,44 @@ else
    perPage = tonumber(perPage)
 end
 
+local a2z = false
+if(sortOrder == "asc") then a2z = true else a2z = false end
+
+to_skip = (currentPage-1) * perPage
+
+local paginfo = {
+   ["sortColumn"] = sortColumn, ["toSkip"] = to_skip, ["maxHits"] = perPage,
+   ["a2zSortOrder"] = a2z,
+   ["severityFilter"] = alert_severity,
+   ["typeFilter"] = alert_type
+}
+
 engaged = false
 if status == "engaged" then
    engaged = true
 end
 
-initial_idx = (currentPage-1)*perPage
 
 interface.select(ifname)
 
 local alerts
 local num_alerts
-
+tprint(alertEntity("host"))
 if _GET["entity"] == "host" then
-   alerts = interface.getAlerts(initial_idx, perPage, engaged, "host", _GET["entity_val"])
+   paginfo["entityFilter"] = alertEntity("host")
+   paginfo["entityValueFilter"] = _GET["entity_val"]
+   alerts = interface.getAlerts(paginfo, engaged)
    num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
-elseif status == "historical-flows" then
-   alerts = interface.getFlowAlerts(initial_idx, perPage)
-   num_alerts = interface.getNumFlowAlerts()
-else --if status == "historical" then
-   alerts = interface.getAlerts(initial_idx, perPage, engaged)
-   num_alerts = interface.getNumAlerts(engaged)
-end
 
--- tprint(interface.getAlerts(initial_idx, perPage, engaged, "host", "192.168.1.29@0"))
--- tprint(interface.getNumAlerts(engaged, "host", "192.168.1.29@0"))
+elseif status == "historical-flows" then
+   alerts = interface.getFlowAlerts(paginfo)
+   num_alerts = interface.getNumFlowAlerts()
+
+else --if status == "historical" then
+   alerts = interface.getAlerts(paginfo, engaged)
+   num_alerts = interface.getNumAlerts(engaged)
+
+end
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 total = 0
@@ -106,6 +138,6 @@ end -- for
 
 print ("\n], \"perPage\" : " .. perPage .. ",\n")
 
-print ("\"sort\" : [ [ \"\", \"\" ] ],\n")
+print ("\"sort\" : [ [ \""..sortColumn.."\", \""..sortOrder.."\" ] ],\n")
 print ("\"totalRows\" : " ..num_alerts .. " \n}")
 

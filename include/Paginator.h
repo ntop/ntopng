@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 
 class Paginator {
- private:
+ protected:
   u_int16_t max_hits, to_skip;
   bool a2z_sort_order, detailed_results;
   char *sort_column, *country_filter, *host_filter;
@@ -35,8 +35,8 @@ class Paginator {
 
  public:
   Paginator();
-  ~Paginator();
-  void readOptions(lua_State *L, int index);
+  virtual ~Paginator();
+  virtual void readOptions(lua_State *L, int index);
 
   inline u_int16_t maxHits() const    { return(min_val(max_hits, CONST_MAX_NUM_HITS));  }
   inline u_int16_t toSkip() const     { return(to_skip);  }

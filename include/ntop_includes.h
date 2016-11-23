@@ -237,6 +237,7 @@ using namespace std;
 #include "HTTPserver.h"
 #include "RuntimePrefs.h"
 #include "Paginator.h"
+#include "AlertsPaginator.h"
 #include "Ntop.h"
 
 

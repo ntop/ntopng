@@ -69,7 +69,7 @@ void Paginator::readOptions(lua_State *L, int index) {
   while(lua_next(L, index) != 0) {
     if(lua_type(L, -1) == LUA_TTABLE) {
       /* removes 'value'; keeps 'key' for next iteration */
-      readOptions(L, index);
+      Paginator::readOptions(L, index);
     } else {
       const char *key = lua_tostring(L, -2);
       int t = lua_type(L, -1);
@@ -85,8 +85,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	} else if(!strcmp(key, "hostFilter")) {
 	  if(host_filter) free(host_filter);
 	  host_filter = strdup(lua_tostring(L, -1));
-	} else
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
+	} //else
+	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid string type (%s) for option %s", lua_tostring(L, -1), key);
 	break;
 
       case LUA_TNUMBER:
@@ -100,8 +100,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  port_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "LocalNetworkFilter"))
 	  local_network_filter = lua_tointeger(L, -1);
-	else
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
+	//else
+	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
 	break;
 
       case LUA_TBOOLEAN:
@@ -109,8 +109,8 @@ void Paginator::readOptions(lua_State *L, int index) {
 	  a2z_sort_order = lua_toboolean(L, -1) ? true : false;
 	else if(!strcmp(key, "detailedResults"))
 	  detailed_results = lua_toboolean(L, -1) ? true : false;
-	else
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid bool type for option %s", key);
+	//else
+	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid bool type for option %s", key);
 	break;
 
       default:

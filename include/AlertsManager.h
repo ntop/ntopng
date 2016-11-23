@@ -25,6 +25,7 @@
 #include "ntop_includes.h"
 
 class Flow;
+class AlertsPaginator;
 
 class AlertsManager : protected StoreManager {
  private:
@@ -71,6 +72,8 @@ class AlertsManager : protected StoreManager {
 				  bool engage);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
+  int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+		AlertsPaginator *ap, const char *table);
   int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 		u_int32_t start_offset, u_int32_t end_offset,
 		bool engaged, const char *sql_where_clause);
@@ -141,6 +144,9 @@ class AlertsManager : protected StoreManager {
 			   u_int32_t start_offset, u_int32_t end_offset) {
     return getFlowAlerts(vm, allowed_hosts, start_offset, end_offset, NULL);
   };
+  inline int getFlowAlerts(lua_State* vm, patricia_tree_t *allowed_hosts, AlertsPaginator *ap) {
+    return getAlerts(vm, allowed_hosts, ap, (char*)ALERTS_MANAGER_FLOWS_TABLE_NAME);
+  };
   inline int getNumFlowAlerts() {
     return getNumFlowAlerts(NULL);
   };
@@ -179,6 +185,12 @@ class AlertsManager : protected StoreManager {
 		       u_int32_t start_offset, u_int32_t end_offset,
 		       bool engaged){
     return getAlerts(vm, allowed_hosts, start_offset, end_offset, engaged, NULL /* all alerts by default */);
+  }
+  inline int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+		       AlertsPaginator *ap,
+		       bool engaged){
+    return getAlerts(vm, allowed_hosts, ap,
+		     engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
   }
 
   /*
