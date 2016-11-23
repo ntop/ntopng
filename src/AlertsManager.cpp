@@ -1214,7 +1214,7 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 
   lua_newtable(vm);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
+  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
   
   ar.vm = vm, ar.current_offset = 0;
   rc = sqlite3_exec(db, query, getAlertsCallback, (void*)&ar, &zErrMsg);
