@@ -320,7 +320,7 @@ if((page == "overview") or (page == nil)) then
 
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
 
-   if not interface.isBridgeInterface() then
+   if((ifstats["bridge.device_a"] == nil) or (ifstats["bridge.device_b"] == nil)) then
       print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
 
       if is_physical_iface then
@@ -483,7 +483,7 @@ print("</script>\n")
 
    end
 
-   if(interface.isBridgeInterface()) then
+   if((ifstats["bridge.device_a"] == nil) or (ifstats["bridge.device_b"] == nil)) then
       print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
       print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped Packets</th><th nowrap>Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
       print("<tr><th>".. ifstats["bridge.device_a"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_b"] .."</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")
