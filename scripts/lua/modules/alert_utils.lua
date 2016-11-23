@@ -692,15 +692,15 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 
    local status = _GET["status"]
    if num_engaged_alerts > 0 then
-      alert_items[#alert_items + 1] = {["label"] = "Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged", ["date"] = "First Seen"}
+      alert_items[#alert_items + 1] = {["label"] = "Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
    end
 
    if num_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = "Alerts History", ["div-id"] = "table-alerts-history",  ["status"] = "historical", ["date"] = "Time"}
+      alert_items[#alert_items +1] = {["label"] = "Alerts History", ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
    end
 
    if num_flow_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = "Flow Alerts History", ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows", ["date"] = "Time"}
+      alert_items[#alert_items +1] = {["label"] = "Flow Alerts History", ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
    end
 
    local url_extra_params = ""
@@ -736,10 +736,10 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	       showPagination: true,
 ]]
 
-      if(_GET["currentPage"] ~= nil and status == t["status"]) then
+      if(_GET["currentPage"] ~= nil and _GET["status"] == t["status"]) then
 	 print("currentPage: ".._GET["currentPage"]..",\n")
       end
-      if(_GET["perPage"] ~= nil and status == t["status"]) then
+      if(_GET["perPage"] ~= nil and _GET["status"] == t["status"]) then
 	 print("perPage: ".._GET["perPage"]..",\n")
       end
 
@@ -755,12 +755,27 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	 },
 
 	 {
-	    title: "]] print(t["date"]) print[[",
+	    title: "First Seen",
 	    field: "column_date",
 	    css: { 
 	       textAlign: 'center'
 	    }
 	 },
+]]
+
+      if t["status"] ~= "engaged" then
+      print[[
+	 {
+	    title: "Duration",
+	    field: "column_duration",
+	    css: { 
+	       textAlign: 'center'
+	    }
+	 },
+	 ]]
+      end
+
+      print[[
 	 {
 	    title: "Severity",
 	    field: "column_severity",
