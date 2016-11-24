@@ -158,12 +158,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   networkStats = NULL;
 
 #ifdef NTOPNG_PRO
-  if (!strncmp(get_type(), CONST_INTERFACE_TYPE_PF_RING, strlen(CONST_INTERFACE_TYPE_PF_RING))
-      || !strncmp(get_type(), CONST_INTERFACE_TYPE_PCAP, strlen(CONST_INTERFACE_TYPE_PCAP))) {
-    policer  = new L7Policer(this);
-  } else {
-    policer = NULL;
-  }
+  policer = NULL; /* possibly instantiated by subclass PacketBridge */
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
 #endif
@@ -175,8 +170,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
 
   if(customIftype
-     && strncmp(get_type(), CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))
-     && strncmp(get_type(), CONST_INTERFACE_TYPE_DUMMY, strlen(CONST_INTERFACE_TYPE_DUMMY))) {
+     && strncmp(customIftype, CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))) {
     char  rsp[16];
 
     if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION,
@@ -1164,7 +1158,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, ndpiProtocol);
 
 #ifdef NTOPNG_PRO
-    if(pass_verdict) {
+    if(is_bridge_interface() && pass_verdict) {
       pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
       if(!pass_verdict) *shaped = true;
     }
