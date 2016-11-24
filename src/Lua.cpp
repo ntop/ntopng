@@ -4844,6 +4844,32 @@ static int ntop_interface_select_alerts_raw(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_select_flow_alerts_raw(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  AlertsManager *am;
+  char *selection = NULL, *clauses = NULL;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!iface || !(am = iface->getAlertsManager()))
+    return (CONST_LUA_ERROR);
+
+  if(lua_type(vm, 1) == LUA_TSTRING)
+    if((selection = (char*)lua_tostring(vm, 1)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 2) == LUA_TSTRING)
+    if((clauses = (char*)lua_tostring(vm, 2)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+
+  if(am->selectFlowAlertsRaw(vm, selection, clauses))
+    return(CONST_LUA_ERROR);
+
+  return (CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #if NTOPNG_PRO
 
 static int ntop_nagios_reload_config(lua_State* vm) {
@@ -5341,6 +5367,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "deleteAlerts",         ntop_interface_delete_alerts            },
   { "deleteFlowAlerts",     ntop_interface_delete_flow_alerts       },
   { "selectAlertsRaw",      ntop_interface_select_alerts_raw        },
+  { "selectFlowAlertsRaw",  ntop_interface_select_flow_alerts_raw   },
   { "engageHostAlert",      ntop_interface_engage_host_alert        },
   { "releaseHostAlert",     ntop_interface_release_host_alert       },
   { "engageNetworkAlert",   ntop_interface_engage_network_alert     },

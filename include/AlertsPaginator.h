@@ -47,7 +47,7 @@ class AlertsPaginator : public Paginator {
     if(alert_type_set) { if (at) *at = alert_type; return true; } return false;
   };
   inline bool entityFilter(AlertEntity *ae) {
-    if(alert_type_set) { if (ae) *ae = alert_entity; return true; } return false;
+    if(alert_entity_set) { if (ae) *ae = alert_entity; return true; } return false;
   };
   inline bool entityValueFilter(char **ev) {
     if(alert_entity_value) { (*ev) = alert_entity_value; return true; } return false;

@@ -678,7 +678,76 @@ end
 
 -- #################################
 
+local function drawDropdown(status, selection_name, active_entry, entries_table)
+   -- alert_level_keys and alert_type_keys are defined in lua_utils
+   local id_to_label = {}
+   if selection_name == "severity" then
+      for _, s in pairs(alert_level_keys) do id_to_label[s[2]] = s[3] end
+   elseif selection_name == "type" then
+      for _, s in pairs(alert_type_keys) do id_to_label[s[2]] = s[3] end
+   end
+
+   -- compute counters to avoid printing items that have zero entries in the database
+   local actual_entries = {}
+   if status == "historical-flows" then
+
+      if selection_name == "severity" then
+	 actual_entries = interface.selectFlowAlertsRaw("alert_severity id, count(*) count", "group by alert_severity")
+      elseif selection_name == "type" then
+	 actual_entries = interface.selectFlowAlertsRaw("alert_type id, count(*) count", "group by alert_type")
+      end
+
+   else -- dealing with non flow alerts (engaged and closed)
+      local engaged
+      if status == "engaged" then
+	 engaged = true
+      elseif status == "historical" then
+	 engaged = false
+      end
+
+      if selection_name == "severity" then
+	 actual_entries = interface.selectAlertsRaw(engaged, "alert_severity id, count(*) count", "group by alert_severity")
+      elseif selection_name == "type" then
+	 actual_entries = interface.selectAlertsRaw(engaged, "alert_type id, count(*) count", "group by alert_type")
+      end
+
+   end
+
+   local buttons = '<div class="btn-group">'
+
+   local button_label = firstToUpper(selection_name)
+   if active_entry ~= nil and active_entry ~= "" then
+      button_label = firstToUpper(active_entry)..'<span class="glyphicon glyphicon-filter"></span>'
+   end
+   
+   buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
+      buttons = buttons..'<span class="caret"></span></button>'
+   
+   buttons = buttons..'<ul class="dropdown-menu" role="menu">'
+
+   for _, entry in pairs(actual_entries) do
+      local id = tonumber(entry["id"])
+      local count = entry["count"]
+      local label = id_to_label[id]
+
+      local class_active = ""
+      if label == active_entry then class_active = ' class="active"' end
+      -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
+      buttons = buttons..'<li'..class_active..'><a href="?status='..status
+      buttons = buttons..'&'..selection_name..'='..label..'">'
+      buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'
+   end
+
+   buttons = buttons..'</ul></div>'
+   
+   return buttons
+end
+
+-- #################################
+
 function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_params)
+   local entity = nil
+   if _GET["entity"] ~= nil and _GET["entity"] ~= "" then entity = _GET["entity"] end   
    local alert_items = {}
 
    print[[
@@ -712,6 +781,7 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
       end
    end
 
+
    for k, t in ipairs(alert_items) do
       local clicked = "0"
       if (k == 1 and status == nil) or (status ~= nil and status == t["status"]) then
@@ -733,7 +803,27 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 			url: "]]
       print (ntop.getHttpPrefix())
       print [[/lua/get_alerts_data.lua?alerts_impl=new&alert_status=]] print(t["status"]..url_extra_params) print[[",
+               showFilter: true,
 	       showPagination: true,
+               buttons: [']]
+
+      if entity == nil then
+
+	 -- alert_level_keys and alert_type_keys are defined in lua_utils
+	 local alert_severities = {}
+	 for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
+	 local alert_types = {}
+	 for _, s in pairs(alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
+
+	 print(drawDropdown(t["status"], "type", _GET["type"], alert_types))
+	 print(drawDropdown(t["status"], "severity", _GET["severity"], alert_severities))
+
+      end
+
+      print[['],
+/*
+               buttons: ['<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Severity<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li>test severity</li></ul></div><div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Type<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li>test type</li></ul></div>'],
+*/
 ]]
 
       if(_GET["currentPage"] ~= nil and _GET["status"] == t["status"]) then
@@ -742,7 +832,7 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
       if(_GET["perPage"] ~= nil and _GET["status"] == t["status"]) then
 	 print("perPage: ".._GET["perPage"]..",\n")
       end
-
+      print ('sort: [ ["' .. getDefaultTableSort("alerts") ..'","' .. getDefaultTableSortOrder("alerts").. '"] ],\n')
       print [[
 	        title: "]] print(t["label"]) print[[",
       columns: [
@@ -821,8 +911,7 @@ $("[clicked=1]").trigger("click");
 </script>
 ]]
       
-      local entity = nil
-      if _GET["entity"] ~= nil and _GET["entity"] ~= "" then entity = _GET["entity"] end
+
       local purge_msg = " Purge All "
       if entity ~= nil and entity ~= "" then purge_msg = purge_msg..firstToUpper(entity).." " end
       purge_msg = purge_msg.."Alerts"

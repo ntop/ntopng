@@ -16,8 +16,15 @@ sortOrder   = _GET["sortOrder"]
 
 status          = _GET["alert_status"]
 alertsImpl      = _GET["alerts_impl"]
-alert_severity  = _GET["alerts_severity"]
-alert_type      = _GET["alerts_type"]
+alert_severity  = _GET["severity"]
+alert_type      = _GET["type"]
+
+if alert_severity ~= nil and alert_severity ~= "" then
+   alert_severity = alertSeverity(alert_severity)
+end
+if alert_type ~= nil and alert_type ~= "" then
+   alert_type = alertType(alert_type)
+end
 
 if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
    sortColumn = getDefaultTableSort("alerts")
@@ -67,7 +74,7 @@ interface.select(ifname)
 
 local alerts
 local num_alerts
-tprint(alertEntity("host"))
+
 if _GET["entity"] == "host" then
    paginfo["entityFilter"] = alertEntity("host")
    paginfo["entityValueFilter"] = _GET["entity_val"]

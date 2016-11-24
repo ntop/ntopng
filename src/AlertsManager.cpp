@@ -1169,11 +1169,6 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 		     &query[strlen(query)],
 		     " AND alert_type = %i ", alert_type);
 
-  if(ap->typeFilter(&alert_type))
-    sqlite3_snprintf(sizeof(query) - strlen(query) - 1,
-		     &query[strlen(query)],
-		     " AND alert_type = %i ", alert_type);
-
   if(ap->entityFilter(&alert_entity))
     sqlite3_snprintf(sizeof(query) - strlen(query) - 1,
 		     &query[strlen(query)],
@@ -1185,7 +1180,7 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 		     " AND alert_entity_val = '%q' ", alert_entity_value);
 
   if(ap->sortColumn()) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sorting by: %s", ap->sortColumn());
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sorting by: %s", ap->sortColumn());
     if(!strncmp(ap->sortColumn(), "column_date", strlen("column_date")))
       sqlite3_snprintf(sizeof(query) - strlen(query) - 1,
 		       &query[strlen(query)], " ORDER BY alert_tstamp ");
@@ -1214,7 +1209,7 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 
   lua_newtable(vm);
 
-  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
   
   ar.vm = vm, ar.current_offset = 0;
   rc = sqlite3_exec(db, query, getAlertsCallback, (void*)&ar, &zErrMsg);
@@ -1508,7 +1503,7 @@ int AlertsManager::deleteAlerts(bool engaged, AlertEntity alert_entity, const ch
 
 /* ******************************************* */
 
-int AlertsManager::selectAlertsRaw(lua_State *vm, bool engaged, const char *selection, const char *clauses) {
+int AlertsManager::selectAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name) {
   alertsRetriever ar;
   char query[STORE_MANAGER_MAX_QUERY];
   char *zErrMsg = NULL;
@@ -1517,8 +1512,8 @@ int AlertsManager::selectAlertsRaw(lua_State *vm, bool engaged, const char *sele
   snprintf(query, sizeof(query),
 	   "SELECT %s FROM %s %s ",
 	   selection ? selection : "*",
-	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME,
-	   clauses ? clauses : "");
+	   table_name ? table_name : (char*)"",
+	   clauses ? clauses : (char*)"");
 
   //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
 

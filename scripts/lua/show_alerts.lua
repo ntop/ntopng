@@ -32,7 +32,7 @@ else
    if ntop.isEnterprise() then
       -- drawAlertStatsCharts()
    end
-   drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts)
+   drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET)
 
 end -- closes if ntop.getPrefs().are_alerts_enabled == false then
 
