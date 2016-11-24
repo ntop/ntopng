@@ -725,12 +725,16 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
    
    buttons = buttons..'<ul class="dropdown-menu" role="menu">'
 
+   local class_active = ""
+   if active_entry == nil then class_active = ' class="active"' end
+   buttons = buttons..'<li'..class_active..'><a href="?status='..status..'">All</a></i>'
+   
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
       local count = entry["count"]
       local label = id_to_label[id]
 
-      local class_active = ""
+      class_active = ""
       if label == active_entry then class_active = ' class="active"' end
       -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
       buttons = buttons..'<li'..class_active..'><a href="?status='..status
