@@ -155,10 +155,15 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
     pkt_dumper = NULL, pkt_dumper_tap = NULL;
   }
 
-  networkStats = NULL,
+  networkStats = NULL;
 
 #ifdef NTOPNG_PRO
-  policer  = new L7Policer(this);
+  if (!strncmp(get_type(), CONST_INTERFACE_TYPE_PF_RING, strlen(CONST_INTERFACE_TYPE_PF_RING))
+      || !strncmp(get_type(), CONST_INTERFACE_TYPE_PCAP, strlen(CONST_INTERFACE_TYPE_PCAP))) {
+    policer  = new L7Policer(this);
+  } else {
+    policer = NULL;
+  }
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
 #endif
@@ -170,8 +175,8 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
 
   if(customIftype
-     && strncmp(customIftype, CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))
-     && strncmp(customIftype, CONST_INTERFACE_TYPE_DUMMY, strlen(CONST_INTERFACE_TYPE_DUMMY))) {
+     && strncmp(get_type(), CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))
+     && strncmp(get_type(), CONST_INTERFACE_TYPE_DUMMY, strlen(CONST_INTERFACE_TYPE_DUMMY))) {
     char  rsp[16];
 
     if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION,
