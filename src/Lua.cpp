@@ -4729,19 +4729,14 @@ static int ntop_interface_get_num_flow_alerts(lua_State* vm) {
 static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
-  bool engaged = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!iface || !(am = iface->getAlertsManager()))
     return (CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) == LUA_TBOOLEAN)
-    engaged = lua_toboolean(vm, 1);
+  return (!am->getCachedNumAlerts(vm)) ? CONST_LUA_OK : CONST_LUA_ERROR;
 
-  lua_pushinteger(vm, am->getCachedNumAlerts(engaged));
-
-  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */

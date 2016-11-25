@@ -398,6 +398,7 @@ bool AlertsManager::isMaximumReached(AlertEntity alert_entity, const char *alert
 	       "increase their maximum number.",
 	       NULL, NULL,
 	       false /* force store alert, do not check maximum here */);
+    error_level_alerts = true;
     return true;
   }
   return false;
@@ -501,6 +502,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     }
 
     num_alerts_engaged++;
+    if(alert_severity == alert_level_error) error_level_alerts = true;
     rc = 0;
   out:
     if (stmt) sqlite3_finalize(stmt);
@@ -590,7 +592,11 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   }
 
   rc = 0;
-  num_alerts_engaged--, num_alerts_stored++;
+  /* not enough to num_alerts_engaged--, num_alerts_stored++;
+     must refresh as the severity of the released alert is not know
+   */
+  if(ntop->getInterfaceById(ifid))
+    ntop->getInterfaceById(ifid)->setRefreshAlertCounters(true);
   // TODO: consider updating with the new parameters (use rowid)
  out:
   if (stmt) sqlite3_finalize(stmt);
@@ -745,6 +751,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
   rc = 0;
   num_alerts_stored++;
+  if(alert_severity == alert_level_error) error_level_alerts = true;
  out:
   if (stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
@@ -839,6 +846,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
 
   rc = 0;
   num_alerts_stored++;
+  if(alert_severity == alert_level_error) error_level_alerts = true;
  out:
   if(cli_ip) free(cli_ip);
   if(srv_ip) free(srv_ip);
@@ -1309,6 +1317,31 @@ int AlertsManager::getNumFlowAlerts(const char *sql_where_clause) {
 
   return num;
 }
+
+/* **************************************************** */
+int AlertsManager::getCachedNumAlerts(lua_State *vm) {
+  lua_newtable(vm);
+
+  lua_push_int_table_entry(vm, "num_alerts", num_alerts_stored);
+  lua_push_int_table_entry(vm, "num_alerts_engaged", num_alerts_engaged);
+  lua_push_bool_table_entry(vm, "error_level_alerts", error_level_alerts);
+
+  return 0;
+};
+
+/* **************************************************** */
+
+void AlertsManager::refreshCachedNumAlerts() {
+  char wherebuf[STORE_MANAGER_MAX_QUERY];
+
+  num_alerts_stored  = getNumAlerts(false, static_cast<char*>(NULL)) + getNumFlowAlerts(NULL);
+  num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
+
+  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
+		   " alert_severity=%i ",
+		   static_cast<int>(alert_level_error));
+  error_level_alerts = getNumAlerts(false, wherebuf) || getNumAlerts(true, wherebuf) || getNumFlowAlerts(wherebuf);
+};
 
 /* **************************************************** */
 

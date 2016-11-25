@@ -291,13 +291,19 @@ print [[/lua/logout.lua"><i class="fa fa-power-off"></i> Logout ]]    print(_COO
 end
 
 interface.select(ifname)
-if((interface.getNumAlerts(true) > 0 or interface.getNumAlerts(false) > 0) and ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1") then
+
+local alert_cache = interface.getCachedNumAlerts()
+local color = "#F0AD4E" -- bootstrap warning orange
+if alert_cache["error_level_alerts"] == true then
+   color = "#B94A48" -- bootstrap danger red
+end
+if((alert_cache["num_alerts"] > 0 or alert_cache["num_alerts_engaged"] > 0) and ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1") then
 print [[
 <li id="alerts-li">
 <a  href="]]
 print(ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua">
-<i class="fa fa-warning fa-lg" style="color: #B94A48;"></i>
+<i class="fa fa-warning fa-lg" style="color: ]] print(color) print[[;" id="alerts-menu-triangle"></i>
 </a>
 </li>
    ]]

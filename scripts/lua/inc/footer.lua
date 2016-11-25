@@ -345,18 +345,29 @@ print[[
 		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small><br>";
 
 		if(rsp.alerts > 0 || rsp.engaged_alerts > 0) {
+                   var color = "#F0AD4E"; // bootstrap warning orange
+                   var label = "label-warning";
+
+                   if(rsp.error_level_alerts) {
+                     color = "#B94A48";  // bootstrap danger red
+                     label = "label-danger";
+                   }
+
+                   // update the color of the menu triangle
+                   $("#alerts-menu-triangle").attr("style","color:" + color +";")
+
 		   msg += "&nbsp;<a href=]]
 print (ntop.getHttpPrefix())
-print [[/lua/show_alerts.lua><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i>"
+print [[/lua/show_alerts.lua><i class=\"fa fa-warning\" style=\"color: " + color + ";\"></i>"
 
 		   if(rsp.engaged_alerts > 0) {
-		      msg += "&nbsp;<span class=\"label label-danger\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
+		      msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
 		      if(rsp.engaged_alerts > 1) msg += "s";
                       msg += "</span>";
 		   }
 
                    if(rsp.alerts > 0) {
-		     msg += "&nbsp;<span class=\"label label-danger\">"+addCommas(rsp.alerts)+" Alert";
+		     msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.alerts)+" Alert";
 		     if(rsp.alerts > 1) msg += "s";
 		     msg += "</span>";
 		}
