@@ -30,7 +30,7 @@ elseif num_alerts == 0 and num_flow_alerts == 0 and num_engaged_alerts == 0 then
 else
 
    if ntop.isEnterprise() then
-      -- drawAlertStatsCharts()
+      --drawAlertStatsCharts()
    end
 
    drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET)

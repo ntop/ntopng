@@ -851,7 +851,7 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	        title: "]] print(t["label"]) print[[",
       columns: [
 	 {
-	    title: "Action",
+	    title: "Actions",
 	    field: "column_key",
 	    css: { 
 	       textAlign: 'center'

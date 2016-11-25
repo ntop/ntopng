@@ -766,17 +766,18 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
   Host *cli, *srv;
-  char *cli_ip = NULL, *srv_ip = NULL;
+  char *cli_ip = NULL, *cli_ip_buf = NULL, *srv_ip = NULL, *srv_ip_buf = NULL;
 
   if(!store_initialized || !store_opened || !f)
     return -1;
 
   cli = f->get_cli_host(), srv = f->get_srv_host();
-  if(cli && cli->get_ip() && (cli_ip = (char*)malloc(sizeof(char) * 256)))
-    cli->get_ip()->print(cli_ip, 256);
-  if(srv && srv->get_ip() && (srv_ip = (char*)malloc(sizeof(char) * 256)))
-    srv->get_ip()->print(srv_ip, 256);
+  if(cli && cli->get_ip() && (cli_ip_buf = (char*)malloc(sizeof(char) * 256)))
+    cli_ip = cli->get_ip()->print(cli_ip_buf, 256);
+  if(srv && srv->get_ip() && (srv_ip_buf = (char*)malloc(sizeof(char) * 256)))
+    srv_ip = srv->get_ip()->print(srv_ip_buf, 256);
 
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %s", cli_ip, srv_ip);
   /* TODO: implement check maximum for flow alerts
   else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
     deleteOldestAlert(alert_entity, alert_entity_value, false);
@@ -848,8 +849,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
   num_alerts_stored++;
   if(alert_severity == alert_level_error) error_level_alerts = true;
  out:
-  if(cli_ip) free(cli_ip);
-  if(srv_ip) free(srv_ip);
+  if(cli_ip_buf) free(cli_ip_buf);
+  if(srv_ip_buf) free(srv_ip_buf);
 
   if (stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
@@ -1548,7 +1549,7 @@ int AlertsManager::selectAlertsRaw(lua_State *vm, const char *selection, const c
 	   table_name ? table_name : (char*)"",
 	   clauses ? clauses : (char*)"");
 
-  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
 
   m.lock(__FILE__, __LINE__);
 

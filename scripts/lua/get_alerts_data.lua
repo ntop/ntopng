@@ -130,7 +130,7 @@ for _key,_value in ipairs(alerts) do
    column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
    column_msg      = _value["alert_json"]
 
-   column_id = "<form class=form-inline style='margin-bottom: 0px;' method=GET>"
+   column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method=GET>"
 
    for k, v in pairs(_GET) do
       column_id = column_id.."<input type=hidden name="..k.." value="..v..">"
@@ -138,6 +138,23 @@ for _key,_value in ipairs(alerts) do
 
    column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><input type=hidden name=currentPage value=".. currentPage .."><input type=hidden name=perPage value=".. perPage .."><input type=hidden name=status value="..tostring(status).."><input type=hidden name=alerts_impl value="..tostring(alertsImpl).."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
 
+   if ntop.isEnterprise() and status == "historical-flows" then
+      local explore = function(peer)
+	 local h
+	 if peer == "client" then h = _value["cli_addr"]
+	 elseif peer == "server" then h = _value["srv_addr"] end
+	 
+	 local url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flow_alerts_explorer.lua?host="..h
+	 if _value["alert_tstamp"] ~= nil then
+	    url = url..'&period_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
+	    url = url..'&period_end='..(tonumber(_value["alert_tstamp"]) + 1800)
+	 end
+	 return "&nbsp;<a href='"..url.."'>"..peer.."</a>&nbsp;"
+      end
+      column_msg = column_msg.."&nbsp;<strong>flow alerts explorer:</strong> "..explore("client")..explore("server")
+
+   end
+   
    print('{ "column_key" : "'..column_id..'", "column_date" : "'..column_date..'", "column_duration" : "'..column_duration..'", "column_severity" : "'..column_severity..'", "column_type" : "'..column_type..'", "column_msg" : "'..column_msg..'", "column_entity":"'..alert_entity..'", "column_entity_val":"'..alert_entity_val..'" }')
 
    total = total + 1

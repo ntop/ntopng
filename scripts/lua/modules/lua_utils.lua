@@ -2385,3 +2385,11 @@ function format_time(timestamp, format, tzoffset)
    return os.date(format, timestamp + tzoffset)
 end
 
+function makeTimeStamp(d)
+   local pattern = "(%d+)%/(%d+)%/(%d+) (%d+):(%d+):(%d+)"
+   local day,month, year, hour, minute, seconds = string.match(d, pattern);
+
+   local timestamp = os.time({year=year, month=month, day=day, hour=hour, min=minute, sec=seconds});
+
+   return timestamp.."";
+end
