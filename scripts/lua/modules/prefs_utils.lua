@@ -44,7 +44,6 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         value = v
       elseif (v_s ~= nil) then
       	if(allowURLs) then
-		  io.write("Hello\n")
 	        v_s = string.gsub(v_s, "ldaps:__", "ldaps://")
         	v_s = string.gsub(v_s, "ldap:__", "ldap://")
 		v_s = string.gsub(v_s, "http:__", "http://")
