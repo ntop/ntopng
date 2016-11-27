@@ -2318,13 +2318,13 @@ print [[
 
 end
 
-function jsRedirect(subpage, withoutTag)
+function jsUrlChange(subpage, withoutTag)
    local url = '"'..ntop.getHttpPrefix()..'/lua/'..subpage..'"'
    
    if not withoutTag then print("<script>") end
    print[[
    if(history.replaceState) {
-      // use history facility if available
+      // use history facility if available - NB: this does not cause a redirect/refresh!
       history.replaceState(null, null, ]] print(url) print[[);
    } else {
       // fallback
@@ -2340,11 +2340,14 @@ function jsFormCSRF(formid, withoutTag)
    
    if not withoutTag then html = html .. "<script>" end
    html = html .. [[$('#]] .. formid .. [[').submit(function(e) {
-      $('<input>').attr({
-         type: "hidden",
-         name: "csrf",
-         value: "]] .. (ntop.getRandomCSRFValue()) .. [["
-      }).appendTo($('#]] .. formid .. [['));
+      /* avoid repeating in case of aborted form submits */
+      if ($("#]] .. formid .. [[ input[name='csrf']").length == 0) {
+         $('<input>').attr({
+            type: "hidden",
+            name: "csrf",
+            value: "]] .. (ntop.getRandomCSRFValue()) .. [["
+         }).appendTo($('#]] .. formid .. [['));
+      }
    });
    ]]
    if not withoutTag then html = html .. "</script>" end

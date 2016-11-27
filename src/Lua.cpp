@@ -3129,6 +3129,23 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_l7_proto_rules(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+#ifdef NTOPNG_PRO
+    if (ntop_interface->getL7Policer()) {
+      ntop_interface->getL7Policer()->refreshProtocolShapers();
+      return(CONST_LUA_OK);
+    }
+#endif
+  }
+  return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_shapers(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *shaper_id = NULL;
@@ -5344,6 +5361,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
+  { "reloadL7ProtoRules",             ntop_reload_l7_proto_rules },
   { "reloadShapers",                  ntop_reload_shapers },
 
   /* DB */

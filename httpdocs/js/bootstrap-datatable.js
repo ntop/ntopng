@@ -122,8 +122,9 @@
               })
             , success: function( res ) {
                 that.resultset = res;
-
-                if(!res || res === undefined || !res.data || res.data.length == 0) {
+// ------------- Start ntop Patch ---------------
+                if(!res || res === undefined || !res.data || (res.data.length == 0 && !o.forceTable) ) {
+// ------------- End ntop Patch -----------------
                   showError.call(that);
                   return;
                 }

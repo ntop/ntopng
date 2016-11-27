@@ -394,7 +394,9 @@ class NetworkInterface {
   void updateFlowProfiles(char *old_profile, char *new_profile);
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
-  bool passShaperPacket(u_int8_t a_shaper_id, u_int8_t b_shaper_id, struct pcap_pkthdr *h);
+  
+  bool passShaperPacket(int a_shaper_id, int b_shaper_id, int c_shaper_id, int d_shaper_id, struct pcap_pkthdr *h);
+  void initL7Policer();
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit,
 		      char *remoteProbeAddress, char *remoteProbePublicAddress,

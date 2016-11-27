@@ -233,6 +233,40 @@ void NetworkInterface::init() {
 
 /* **************************************************** */
 
+#ifdef NTOPNG_PRO
+
+void NetworkInterface::initL7Policer() {
+  /* Create a 0.0.0.0/0 network for policies */
+  char key[64];
+  char rsp[1024];
+  const char any_net[] = "0.0.0.0/0@0";
+  
+  snprintf(key, sizeof(key), "ntopng.prefs.%d.l7_policy", get_id());
+  
+  if (ntop->getRedis()->hashGet(key, (char*)any_net, rsp, sizeof(rsp)) != 0) {
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Creating '%s' network rule on interface %d",
+            any_net, get_id());
+#endif
+    /* set an empty rule */
+    ntop->getRedis()->hashSet(key, (char*)any_net, (char*)"");
+  }
+
+  /* Create default shaper */
+  snprintf(key, sizeof(key), "ntopng.prefs.%d.shaper_max_rate", get_id());
+  if (ntop->getRedis()->hashGet(key, (char*)"0", rsp, sizeof(rsp)) != 0) {
+    /* set as not shaping */
+    ntop->getRedis()->hashSet(key, (char*)"0", (char*)"-1");
+  }
+
+  /* Instantiate the policer */
+  policer = new L7Policer(this);
+}
+
+#endif
+
+/* **************************************************** */
+
 void NetworkInterface::loadDumpPrefs() {
   if(ntop->getRedis() != NULL) {
     updateDumpAllTrafficPolicy();
@@ -861,7 +895,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
-  u_int8_t a_shaper_id = DEFAULT_SHAPER_ID, b_shaper_id = DEFAULT_SHAPER_ID; /* Default */
+  int a_shaper_id = -1, b_shaper_id = -1;
 
   if(vlanInterfaces && (vlan_id > 0)) {
     if((vlanInterfaces[vlan_id] == NULL)
@@ -1159,7 +1193,24 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
 #ifdef NTOPNG_PRO
     if(is_bridge_interface() && pass_verdict) {
-      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
+      int ingress_proto_shaper = -1, egress_proto_shaper = -1;
+
+      /* Get the per-network protocol shapers */
+      if(policer && flow->get_cli_host() && flow->get_srv_host()) {
+        l7_policy_direction cli_dir, srv_dir;
+        
+        if(src2dst_direction)
+          cli_dir = L7_POLICY_DIRECTION_INGRESS, srv_dir = L7_POLICY_DIRECTION_EGRESS;
+        else
+          cli_dir = L7_POLICY_DIRECTION_EGRESS, srv_dir = L7_POLICY_DIRECTION_INGRESS;
+
+        ingress_proto_shaper = policer->getShaperIdForProtocol(flow->get_cli_host()->getL7NetworkIndex(), *ndpiProtocol, cli_dir);
+        egress_proto_shaper = policer->getShaperIdForProtocol(flow->get_srv_host()->getL7NetworkIndex(), *ndpiProtocol, srv_dir);
+      } else {
+        ingress_proto_shaper = egress_proto_shaper = -1;
+      }
+  
+      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, ingress_proto_shaper, egress_proto_shaper, (struct pcap_pkthdr*)h);
       if(!pass_verdict) *shaped = true;
     }
 #endif
