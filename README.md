@@ -2,7 +2,6 @@
 # ntopng 
 
 [![Build Status](https://travis-ci.org/ntop/ntopng.png?branch=dev)](https://travis-ci.org/ntop/ntopng)
-[![Coverage Status](https://coveralls.io/repos/github/ntop/ntopng/badge.svg?branch=dev)](https://coveralls.io/github/ntop/ntopng?branch=dev)
 
 ## Introduction
 
