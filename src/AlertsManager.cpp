@@ -27,6 +27,16 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   snprintf(filePath, sizeof(filePath), "%s/%d/alerts/",
            ntop->get_working_dir(), ifid);
+
+  /* clean old databases */
+  int base_offset = strlen(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts.db");
+  unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v2.db");
+  unlink(filePath);
+  filePath[base_offset] = 0;
+
+  /* open the newest */
   strncpy(fileName, filename, sizeof(fileName));
   snprintf(fileFullPath, sizeof(fileFullPath), "%s/%d/alerts/%s",
 	   ntop->get_working_dir(), ifid, filename);
@@ -64,6 +74,9 @@ int AlertsManager::openStore() {
 
   if(!store_initialized)
     return 1;
+
+  /* cleanup old database files */
+
 
   snprintf(create_query, sizeof(create_query),
 	   "CREATE TABLE IF NOT EXISTS %s ("
@@ -144,7 +157,9 @@ int AlertsManager::openStore() {
 	   "cli2srv_tcpflags INTEGER DEFAULT NULL, "
 	   "srv2cli_tcpflags INTEGER DEFAULT NULL, "
 	   "cli_blacklisted  INTEGER NOT NULL DEFAULT 0, "
-	   "srv_blacklisted  INTEGER NOT NULL DEFAULT 0 "
+	   "srv_blacklisted  INTEGER NOT NULL DEFAULT 0, "
+	   "cli_localhost    INTEGER NOT NULL DEFAULT 0, "
+	   "srv_localhost    INTEGER NOT NULL DEFAULT 0 "
 	   ");"
 	   "CREATE INDEX IF NOT EXISTS t3i_tstamp    ON %s(alert_tstamp); "
 	   "CREATE INDEX IF NOT EXISTS t3i_type      ON %s(alert_type); "
@@ -163,9 +178,12 @@ int AlertsManager::openStore() {
 	   "CREATE INDEX IF NOT EXISTS t3i_caddr     ON %s(cli_addr); "
 	   "CREATE INDEX IF NOT EXISTS t3i_saddr     ON %s(srv_addr); "
 	   "CREATE INDEX IF NOT EXISTS t3i_cport     ON %s(cli_port); "
-	   "CREATE INDEX IF NOT EXISTS t3i_sport     ON %s(srv_port); ",
+	   "CREATE INDEX IF NOT EXISTS t3i_sport     ON %s(srv_port); "
+	   "CREATE INDEX IF NOT EXISTS t3i_clocal    ON %s(cli_localhost); "
+	   "CREATE INDEX IF NOT EXISTS t3i_slocal    ON %s(srv_localhost); ",
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME,
 	   NDPI_PROTOCOL_UNKNOWN,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
@@ -792,8 +810,9 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
 	   "cli_addr, srv_addr, cli_port, srv_port, "
 	   "cli2srv_bytes, srv2cli_bytes, "
 	   "cli2srv_packets, srv2cli_packets, "
-	   "cli2srv_tcpflags, srv2cli_tcpflags, cli_blacklisted, srv_blacklisted) "
-	   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	   "cli2srv_tcpflags, srv2cli_tcpflags, cli_blacklisted, srv_blacklisted, "
+	   "cli_localhost, srv_localhost) "
+	   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
   m.lock(__FILE__, __LINE__);
@@ -831,6 +850,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
      || sqlite3_bind_int(stmt,  25, f->getTcpFlagsSrv2Cli())
      || sqlite3_bind_int(stmt,  26, (cli && cli->is_blacklisted()) ? 1 : 0)
      || sqlite3_bind_int(stmt,  27, (srv && srv->is_blacklisted()) ? 1 : 0)
+     || sqlite3_bind_int(stmt,  28, (cli && cli->isLocalHost()) ? 1 : 0)
+     || sqlite3_bind_int(stmt,  29, (srv && srv->isLocalHost()) ? 1 : 0)
      ) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
     rc = 2;

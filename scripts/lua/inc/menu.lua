@@ -58,8 +58,12 @@ else
    print("/lua/index.lua")
 end
 
-print [["><i class="fa fa-dashboard"></i> Dashboard</a></li>
-      ]]
+print [["><i class="fa fa-dashboard"></i> Dashboard</a></li>]]
+
+if ntop.isEnterprise() then
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Alerts Dashboard</a></li>]]
+end
+
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical data explorer</a></li>')
 end

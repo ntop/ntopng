@@ -12,7 +12,7 @@
 
 .pie-chart {
   background-color: #ffffff;
-  border: 3px dotted #dddddd;
+  border: 0px dotted #dddddd;
   font: 10px sans-serif;
   height: 325px; /*280px;*/
   text-shadow: none;
