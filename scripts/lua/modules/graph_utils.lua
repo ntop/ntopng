@@ -100,9 +100,10 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 	       end
 	    end
 	else
-	    rrd = singlerrd2json(ifid, host, v, start_time, end_time, true, false)
+	    local last_update,_ = ntop.rrd_lastupdate(getRRDName(ifid, host, k))
+	    if last_update ~= nil and last_update >= start_time then
+	       -- only show if there has been an update within the specified time frame
 
-	    if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
 	       if(top_rrds[v] == nil) then
 		  if(label == "*") then
 		     to_skip = true
