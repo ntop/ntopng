@@ -19,6 +19,12 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 
+local i18n = require "i18n"
+-- TODO this should be set somewhere else
+local locale = "en"
+i18n.loadFile(dirs.installdir..'/scripts/locales/'..locale..'.lua')
+--
+
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 page = _GET["page"]
@@ -1152,7 +1158,7 @@ end
          
          initial_policy = ""
          if(_GET["clone"] ~= nil) then
-            local clone_from = _GET["clone"]
+            local clone_from = shaper_utils.addVlan0(_GET["clone"])
             
             -- clone blacklist rules
             value = ntop.getHashCache(policy_key, clone_from)
@@ -1210,9 +1216,7 @@ end
    net = _GET["network"] or _GET["proto_network"] or _GET["view_network"]
 
    if(net ~= nil) then
-      if(findString(net, "@") == nil) then
-         net = net.."@0"
-      end
+      net = shaper_utils.addVlan0(net)
    end
 
    -- NB: this cannot be null, since it contains at least the 'any' network
@@ -1292,9 +1296,9 @@ end
 
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs">
-      <li class="active"><a data-toggle="tab" href="#networks">Network Groups</a></li>
-      <li><a data-toggle="tab" href="#protocols">Protocols</a></li>
-      <li><a data-toggle="tab" href="#shapers">Manage Shapers</a></li>
+      <li class="active"><a data-toggle="tab" class="btn" href="#networks">]] print(i18n("shaping.network_groups")) print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#protocols">]] print(i18n("shaping.protocols")) print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.manage_shapers")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
 
@@ -1321,7 +1325,7 @@ $("#network").change(function() {
 
 local shapers = shaper_utils.getSortedShapers(ifid)
 
-function print_network_shapers(shapers, curshaper_id, terminator)
+function print_shapers(shapers, curshaper_id, terminator)
    terminator = terminator or "\n"
    if(curshaper_id == "") then curshaper_id = "0" else curshaper_id = tostring(curshaper_id) end
    
@@ -1355,8 +1359,9 @@ print[[
 <script>
 ]] print(jsFormCSRF('deleteNetworkForm', true)) print[[
 ]] print(jsFormCSRF('editNetworksForm', true)) print[[
-function doAddDeleteButton(td_idx, callback_str) {
-   $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on" onclick="' + callback_str + '" role="button"><span class="label label-danger">Delete</span></a>');
+function doAddDeleteButton(td_idx, callback_str, label) {
+   if (! label) label = "]] print(i18n('delete')) print[[";
+   $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on" onclick="' + callback_str + '" role="button"><span class="label label-danger">' + label + '</span></a>');
 }
                
 function foreachDatatableRow(tableid, callbacks) {
@@ -1377,8 +1382,8 @@ function doMakeShapersDropdown(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper_id = ingress_shaper.html();
    var egress_shaper_id = egress_shaper.html();
 
-   ingress_shaper.html('<select name="ishaper_'+suffix+'">]] print_network_shapers(shapers, "", "\\\n") print[[</select>');
-   egress_shaper.html('<select name="eshaper_'+suffix+'">]] print_network_shapers(shapers, "", "\\\n") print[[</select>');
+   ingress_shaper.html('<select class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   egress_shaper.html('<select class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
 
    /* Select the current value */
    $("select", ingress_shaper).val(ingress_shaper_id);
@@ -1422,35 +1427,38 @@ function toggleCustomNetworkMode() {
 }
 
 function addNewNetworkPolicy(net) {
-   $("#table-networks table").append('<tr><td class="text-center">\
+   var tr = $('<tr id="new_added_row"><td class="text-center">\
    ]]
-print[[<input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(" display:none") end print('">\\')
+print[[<input id="new_custom_network" type="text" class="form-control" style="width:12em; ]] if not locals_empty then print(" display:none") end print('">\\')
 if not locals_empty then
-   print('<select class="form-control" id="new_network"  style="width:12em; margin-right:1em; display:inline;">\\')
+   print('<select class="form-control" id="new_network"  style="width:12em; display:inline;">\\')
    for s,_ in pairs(locals) do
       print('<option value="'..s..'">'..s..'</option>\\')
    end
    print('</select>\\')
-   print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" onclick="toggleCustomNetworkMode();"></button>\\')
 end
-print[[</td><td class="text-center"><input type="text" class=form-control id="new_vlan" name="new_vlan" value="0" style="width:4em; margin:0 auto;"></td><td class="text-center"><select name="new_ingress_shaper_id">\
-]] print_network_shapers(shapers, "0", "\\") print[[
-      </select></td><td class="text-center"><select name="new_egress_shaper_id">\
-]] print_network_shapers(shapers, "0", "\\") print[[
-      </select></td><td class="text-center"><div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">\
-            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty" title="Initial protocol rules will be empty">Empty</button>\
-            <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone" title="Initial protocol rules will be cloned">Clone</button>\
+print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" style="margin-left: 0.5em;" onclick="toggleCustomNetworkMode();"></button>\\')
+print[[<br><div style="margin-top:1em;">]] print(i18n("shaping.protocols_policies")) print[[&nbsp;&nbsp;<div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">\
+            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty" title="]] print(i18n("shaping.initial_empty_protocols")) print[[">]] print(i18n("empty")) print[[</button>\
+            <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone" title="]] print(i18n("shaping.initial_clone_protocols")) print[[">]] print(i18n("clone")) print[[</button>\
          </div>\
-      <span id="clone_from" style="display:none;"><span style="margin: 0 0.2em 0 0.2em;">from</span>\
-         <select id="clone_from_select" class="form-control" style="display:inline; width:12em;" title="Select an existing network to clone the protocol rules from">\]]
+      <span id="clone_from_container" style="visibility:hidden"><span style="margin: 0 0.5em;">]] print(i18n("from")) print[[</span>\
+         <select id="clone_from_select" class="form-control" style="display:inline; width:12em;" title="]] print(i18n("shaping.select_to_clone")) print[[">\]]
 for k,v in pairsByKeys(nets, asc) do
    if(k ~= "") then
-      print("\t<option>"..k.."</option>\\\n")
+      print("\t<option>"..shaper_utils.trimVlan0(k).."</option>\\\n")
    end
 end
-      print[[</span></select></td></tr>');
-      
+      print[[</select></span></div></td><td style="vertical-align:middle;" class="text-center"><input type="text" class="form-control" id="new_vlan" name="new_vlan" value="0" style="width:4em; margin:0 auto;"></td>\
+      <td class="text-center" style="vertical-align:middle;"><select class="form-control shaper-selector" name="new_ingress_shaper_id">\
+]] print_shapers(shapers, "0", "\\") print[[
+      </select></td><td class="text-center" style="vertical-align:middle;"><select class="form-control shaper-selector" name="new_egress_shaper_id">\
+]] print_shapers(shapers, "0", "\\") print[[
+      </select></td><td class="text-center" style="vertical-align:middle;"></td></tr>');
+
+   $("#table-networks table").append(tr);
    $("#addNewNetworkPolicyButton").attr('disabled', true);
+   doAddDeleteButton.bind(tr)(5, "undoAddRow('#addNewNetworkPolicyButton')", "]] print(i18n("undo")) print[[");
 
    $("#clone_proto_policy button").click(function () {
       var active;
@@ -1458,13 +1466,13 @@ end
       if ($(this).val() == "empty") {
          active = "#bt_initial_empty";
          inactive = "#bt_initial_clone";
-         $("#clone_from").css("display", "none");
-         $("#clone_from_select").removeAttr("clone");
+         $("#clone_from_select").removeAttr("name");
+         $("#clone_from_container").css("visibility", "hidden");
       } else {
          active = "#bt_initial_clone";
          inactive = "#bt_initial_empty";
-         $("#clone_from").css("display", "inline");
          $("#clone_from_select").attr("name", "clone");
+         $("#clone_from_container").css("visibility", "visible");
       }
       $(active).removeClass("btn-default").addClass("btn-primary");
       $(inactive).removeClass("btn-primary").addClass("btn-default");
@@ -1479,6 +1487,8 @@ end
          $("#new_vlan").val(s[1]);
       }
    }
+
+   $('#editNetworksForm').trigger('checkform.areYouSure');
 }
 
 function deleteNetwork(net_id) {   
@@ -1498,38 +1508,43 @@ $("#table-networks").datatable({
          '<a id="addNewNetworkPolicyButton" onclick="addNewNetworkPolicy()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
-            title: "Network Group",
+            title: "]] print(i18n("shaping.network_group")) print[[",
             field: "column_network",
             css: {
                textAlign: 'center',
-               width: '15%'
+               width: '15%',
+               verticalAlign: 'middle'
             }
          }, {
             title: "VLAN",
             field: "column_vlan",
             css: {
                textAlign: 'center',
-               width: '5%'
+               width: '5%',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Ingress Shaper",
+            title: "]] print(i18n("shaping.ingress_shaper")) print[[",
             field: "column_ingress_shaper",
             css : {
                textAlign: 'center',
-               width: '10%'
+               width: '10%',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Egress Shaper",
+            title: "]] print(i18n("shaping.egress_shaper")) print[[",
             field: "column_egress_shaper",
             css : {
                textAlign: 'center',
-               width: '10%'
+               width: '10%',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Actions",
+            title: "]] print(i18n("actions")) print[[",
             css : {
                width: '10%',
-               textAlign: 'center'
+               textAlign: 'center',
+               verticalAlign: 'middle'
             }
          }
       ], tableCallback: function() {
@@ -1550,7 +1565,14 @@ $("#table-networks").datatable({
                doAddDeleteButton.bind(this)(5, "deleteNetwork('" + netkey + "')");
          }]);
 
-         $("#table-networks > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" type="submit">Save Networks Settings</button>')
+         $("#table-networks > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>')
+
+         /* Only enable add button if we are in the last page */
+         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-networks"));
+         $("#addNewNetworkPolicyButton").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
+
+         // Update ays state
+         $('#editNetworksForm').trigger('reinitialize.areYouSure');
       }
    });
 </script>
@@ -1563,13 +1585,13 @@ $("#table-networks").datatable({
 
 print [[<div id="protocols" class="tab-pane"><br>
 
-Network Group <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
+]] print(i18n("shaping.network_group")) print[[ <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
 ]]
    for k,v in pairsByKeys(nets, asc) do
 	 if(k ~= "") then
 	    print("\t<option")
 	    if(k == selected_network) then print(" selected") end
-	    print(">"..k.."</option>\n")
+	    print(">"..shaper_utils.trimVlan0(k).."</option>\n")
 	 end
    end
 
@@ -1656,16 +1678,29 @@ end
       return true;
    }
 
+   function undoAddRow(bt_to_enable) {
+      if (bt_to_enable)
+         $(bt_to_enable).removeAttr("disabled");
+      
+      var form = $("#new_added_row").closest("form");
+      $("#new_added_row").remove();
+      form.trigger('rescan.areYouSure');
+   }
+
    function addNewShapedProto() {
-      $("#table-protos table").append('<tr><td><select name="new_protocol_id">\
+      var tr = $('<tr id="new_added_row" ><td><select class="form-control" name="new_protocol_id">\
 ]] print_ndpi_protocols(protos, {}, shaper_utils.getNetworkProtoShapers(ifid, net), "\\") print[[
-      </select></td><td class="text-center"><select name="ingress_shaper_id">\
-]] print_network_shapers(shapers, "0", "\\") print[[
-      </select></td><td class="text-center"><select name="egress_shaper_id">\
-]] print_network_shapers(shapers, "0", "\\") print[[
-      </select></td><td></td></tr>');
+      </select></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
+]] print_shapers(shapers, "0", "\\") print[[
+      </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
+]] print_shapers(shapers, "0", "\\") print[[
+      </select></td><td class="text-center" style="vertical-align: middle;"></td></tr>');
+
+      $("#table-protos table").append(tr);
+      doAddDeleteButton.bind(tr)(4, "undoAddRow('#addNewShapedProtoBtn')", "Undo");
 
       $("#addNewShapedProtoBtn").attr('disabled', true);
+      $('#l7ProtosForm').trigger('checkform.areYouSure');
    }
 
    function deleteShapedProtocol(proto_id) {
@@ -1688,30 +1723,34 @@ end
          '<a id="addNewShapedProtoBtn" onclick="addNewShapedProto()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
-            title: "Protocol",
+            title: "]] print(i18n("protocol")) print[[",
             field: "column_proto",
             css: {
-               width: '15%'
+               width: '15%',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Ingress shaper",
+            title: "]] print(i18n("shaping.ingress_shaper")) print[[",
             field: "column_ingress_shaper",
             css: {
                width: '20%',
-               textAlign: 'center'
+               textAlign: 'center',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Egress shaper",
+            title: "]] print(i18n("shaping.egress_shaper")) print[[",
             field: "column_egress_shaper",
             css: {
                width: '20%',
-               textAlign: 'center'
+               textAlign: 'center',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Actions",
+            title: "]] print(i18n("actions")) print[[",
             css : {
                width: '15%',
-               textAlign: 'center'
+               textAlign: 'center',
+               verticalAlign: 'middle'
             }
          }
       ], tableCallback: function() {
@@ -1727,11 +1766,14 @@ end
             }
          ]);
 
-         $("#table-protos > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" type="submit">Save Protocols Settings</button>')
+         $("#table-protos > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>')
          
          /* Only enable add button if we are in the last page */
-         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)");
+         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-protos"));
          $("#addNewShapedProtoBtn").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
+
+         // update ays state
+         $('#l7ProtosForm').trigger('reinitialize.areYouSure');
       }
    });
 
@@ -1819,7 +1861,7 @@ print[[
    
    <script>
    function shaperRateTextField(td_object, shaper_id, value) {
-      var input = $('<input name="shaper_' + shaper_id + '" class="no-spinner" type="number" min="-1"/>');
+      var input = $('<input name="shaper_' + shaper_id + '" class="form-control no-spinner" type="number" min="-1"/>');
       input.val(value);
       td_object.html(input);
    }
@@ -1879,26 +1921,32 @@ print[[
          '<a id="addNewShaperBtn" onclick="addNewShaper()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
-            title: "Shaper Id",
+            title: "]] print(i18n("shaping.shaper_id")) print[[",
             field: "column_shaper_id",
             css: {
                textAlign: 'center',
-               width: '10%'
+               width: '10%',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Max Rate (Kbps)",
+            title: "]] print(i18n("max_rate")) print[[ (Kbps)",
             field: "column_max_rate",
             css : {
-               width: '10%'
+               width: '10%',
+               verticalAlign: 'middle'
             }
          }, {
-            title: "Applied to",
-            field: "column_used_by"
+            title: "]] print(i18n("shaping.applied_to")) print[[",
+            field: "column_used_by",
+            css : {
+               verticalAlign: 'middle'
+            }
          }, {
-            title: "Actions",
+            title: "]] print(i18n("actions")) print[[",
             css : {
                width: '10%',
-               textAlign: 'center'
+               textAlign: 'center',
+               verticalAlign: 'middle'
             }
          }
       ], tableCallback: function() {
@@ -1917,11 +1965,14 @@ print[[
          });
          maxStoredShaperId = nextShaperId - 1;
 
-         $("#table-shapers > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" type="submit">Save Shapers Settings</button>')
+         $("#table-shapers > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>')
 
          /* Only enable add button if we are in the last page */
-         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)");
+         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-shapers"));
          $("#addNewShaperBtn").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))) || nextShaperId > 255);
+
+         // update ays state
+         $('#modifyShapersForm').trigger('reinitialize.areYouSure');
       }
    });
    ]] print(jsFormCSRF('modifyShapersForm', true)) print[[
@@ -1930,10 +1981,13 @@ print[[
 </script>]]
 
 print [[</form>
-  NOTES
+  ]] print(i18n('NOTES')) print[[
 <ul>
-<li>Shaper 0 is the default shaper used for local hosts that have no shaper defined.
-<li>Set max rate to:<ul><li>-1 for no shaping<li>0 for dropping all traffic</li>
+<li>]] print(i18n('shaping.shaper0_message')) print[[</li>
+<li>]] print(i18n('shaping.set_max_rate_to')) print[[<ul>
+   <li>-1 ]] print(i18n('shaping.for_no_shaping')) print[[</li>
+   <li>0 ]] print(i18n('shaping.for_dropping_all_traffic')) print[[</li>
+</ul></li>
 </ul>
 </div>
 
@@ -1960,6 +2014,39 @@ print [[</form>
    var hash = window.location.hash;
    $('#filterPageTabPanel a[href="' + hash + '"]').tab('show');
    /*** End Page Tab State ***/
+   $(function() {      
+      // Enable ays on every form. Adding new fields will make form dirty
+      $('form').areYouSure({'addRemoveFieldsMarksDirty':true});
+
+      $('form').on('dirty.areYouSure', function() {
+         // Enable save button only as the form is dirty.
+         $(this).find('button[type="submit"]').removeAttr('disabled');
+
+         // Disable pagination controls
+         $(this).find("a.dropdown-toggle").attr("disabled", "disabled");
+         $(this).find("ul.pagination a").css("pointer-events", "none").css("cursor", "default");
+
+         // Disable navigation between tabs
+         $("#filterPageTabPanel").find("a").each(function() {
+            if (! $(this).closest("li").hasClass("active"))
+               $(this).attr("disabled", "disabled");
+         });
+      });
+
+     $('form').on('clean.areYouSure', function() {
+         // Form is clean so nothing to save - disable the save button.
+         $(this).find('button[type="submit"]').attr('disabled', 'disabled');
+
+         // Enable pagination controls
+         $(this).find("a.dropdown-toggle").removeAttr("disabled");
+         $(this).find("ul.pagination a").css("pointer-events", "").css("cursor", "");
+
+         // Enable navigation between tabs
+         $("#filterPageTabPanel").find("a").each(function() {
+            $(this).removeAttr("disabled");
+         });
+     });
+   });
 </script>
 ]]
 
