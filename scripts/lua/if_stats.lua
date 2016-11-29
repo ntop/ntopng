@@ -1268,6 +1268,7 @@ end
          key = shaper_utils.getProtoShaperKey(ifid, target_net, "egress")
          ntop.delHashCache(key, protocol_id)
       else
+         -- TODO totally remove blacklist code
          if (ntop.getHashCache(policy_key, target_net) ~= _GET["blacklist"]) then
             -- *** Handle the blacklist ***
             ntop.setHashCache(policy_key, target_net, _GET["blacklist"])
@@ -1306,7 +1307,7 @@ print [[<br><div id="networks" class="tab-pane active">
 
 print [[
 <script>
-]] print(jsFormCSRF('ndpiprotosform', true)) print[[
+]] print(jsFormCSRF('l7ProtosForm', true)) print[[
 
 // TODO is this still needed?
 $("#network").change(function() {
@@ -1580,12 +1581,10 @@ print [[
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
    <input type="hidden" name="del_l7_proto" value="">
 </form>
-<form id="ndpiprotosform" onsubmit="return doCheckShapedProtosForm();">
+<form id="l7ProtosForm" onsubmit="return doCheckShapedProtosForm();">
    <input type="hidden" name="page" value="filtering">
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
    <input type=hidden id=blacklist name=blacklist value="">
-
-  <div style="margin:3em 0em 0.5em 1em;"><select multiple="multiple" size="10" name="ndpiprotos">
 ]]
 
 blacklist = { }
@@ -1628,19 +1627,12 @@ function print_ndpi_protocols(protos, selected, excluded, terminator)
       end
    end
 end
-   print_ndpi_protocols(protos, blacklist)
    
-   print [[</select></div>
-   <div id="table-protos"></div>
-
-   NOTES
-      <ul>
-         <li>Blacklist rules take precendence over shaped protocols rules</li>
-      </ul>
+   print [[<div id="table-protos"></div>
 </form>
    
 <script>
-   ]] print(jsFormCSRF('ndpiprotosform', true)) print[[
+   ]] print(jsFormCSRF('l7ProtosForm', true)) print[[
    ]] print(jsFormCSRF('deleteShapedProtocolForm', true)) print[[
    $("#proto_network").change(function() {
       document.location.href = "]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua?page=filtering&network="+$("#proto_network").val()+"#protocols";
@@ -1794,16 +1786,10 @@ print[[     ];
       }
       return null;
    }
-   
-    var ndpiprotos1 = $('select[name="ndpiprotos"]').bootstrapDualListbox({
-			nonSelectedListLabel: 'White Listed Protocols for ]] print(selected_network) print [[',
-			selectedListLabel: 'Black Listed Protocols for ]] print(selected_network) print [[',
-			moveOnSelect: false,
-         selectorMinimalHeight: 120
-		      });
-    $("#ndpiprotosform").submit(function() {
+
+    $("#l7ProtosForm").submit(function() {
       // alert($('[name="ndpiprotos"]').val());
-      $('#blacklist').val($('[name="ndpiprotos"]').val());
+      $('#blacklist').val("");
       return true;
     });
 </script>
