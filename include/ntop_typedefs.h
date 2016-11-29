@@ -60,6 +60,12 @@ typedef enum {
 	     */
 
 typedef enum {
+  notify_all_alerts = 0,
+  notify_errors_and_warnings,
+  notify_errors_only,  
+} SlackNotificationChoice;
+
+typedef enum {
   alert_level_info = 0,
   alert_level_warning,
   alert_level_error,
