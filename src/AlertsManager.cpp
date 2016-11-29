@@ -488,6 +488,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     if(isMaximumReached(alert_entity, alert_entity_value, true /* engaged */))
       deleteOldestAlert(alert_entity, alert_entity_value, true /* engaged */);
     /* This alert is being engaged */
+
     snprintf(query, sizeof(query),
 	     "REPLACE INTO %s "
 	     "(alert_id, alert_tstamp, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, "
@@ -525,6 +526,12 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
   out:
     if (stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
+  
+
+  notifyToSlackIfNeeded(alert_entity, alert_entity_value,
+             alert_type, alert_severity, alert_json,
+             alert_origin, alert_target);
+
   }
 
   return rc;
