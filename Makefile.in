@@ -36,7 +36,7 @@ else
 endif
 ######
 LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8
-HAS_LIBRRDTOOL=$(shell pkg-config --exists librrd; echo $$?)
+HAS_LIBRRDTOOL=$(shell pkg-config --atleast-version=1.4.8 librrd; echo $$?)
 ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_INC = $(shell pkg-config --cflags librrd)
 	LIBRRDTOOL_LIB = $(shell pkg-config --libs librrd)
