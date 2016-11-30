@@ -25,7 +25,7 @@ print [[
       <hr>
       </ul>
 
-      <div id="table-hosts"></div>
+      <div id="table-localhosts"></div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
@@ -110,7 +110,7 @@ function row_update(host_key) {
 // Updating function
 function host_table_update () {
 
-  var $dt = $("#table-hosts").data("datatable");
+  var $dt = $("#table-localhosts").data("datatable");
   var rows = $dt.rows;
 
   for (var row in rows){
@@ -126,7 +126,7 @@ var host_table_interval = window.setInterval(host_table_update, 10000);
 
 
 	 host_rows_option["ip"] = true;
-	 $("#table-hosts").datatable({
+	 $("#table-localhosts").datatable({
 			title: "Local Hosts",
 			url: url_update ,
 	 ]]

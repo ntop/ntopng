@@ -20,8 +20,10 @@ long_names  = _GET["long_names"]
 criteria    = _GET["criteria"]
 
 criteria_key = nil
+sortPrefs = "hosts"
 if(criteria ~= nil) then
    criteria_key, criteria_format = label2criteriakey(criteria)
+   sortPrefs = "localhosts"
 end
 
 -- Host comparison parameters
@@ -63,31 +65,25 @@ else
    end
 end
 
+
 if((sortColumn == nil) or (sortColumn == "column_"))then
-   if(criteria == nil) then
-      sortColumn = getDefaultTableSort("hosts")
-   else
-      sortColumn = getDefaultTableSort("localhosts")
-   end
+   sortColumn = getDefaultTableSort(sortPrefs)
 else
    if((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
-      tablePreferences("sort_hosts",sortColumn)
+      tablePreferences("sort_"..sortPrefs,sortColumn)
    end
 end
 
 if(sortOrder == nil) then
-   if(criteria == nil) then
-      sortOrder = getDefaultTableSortOrder("hosts")
-   else
-      sortOrder = getDefaultTableSortOrder("localhosts")
-   end
+   sortOrder = getDefaultTableSortOrder(sortPrefs)
 else
    if((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
-      tablePreferences("sort_order_hosts",sortOrder)
+      tablePreferences("sort_order_"..sortPrefs,sortOrder)
    end
 end
+
 
 if(currentPage == nil) then
    currentPage = 1
@@ -129,7 +125,6 @@ if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
 -- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
 
--- io.write("->"..total.." ["..sortColumn.."]\n")
 
 if(all ~= nil) then
    perPage = 0

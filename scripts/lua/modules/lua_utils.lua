@@ -1551,7 +1551,7 @@ end
 
 function getDefaultTableSort(table_type)
    local table_key = getRedisPrefix("ntopng.prefs.table")
-   local value
+   local value = nil
 
   if(table_type ~= nil) then
      value = ntop.getHashCache(table_key, "sort_"..table_type)
@@ -1562,7 +1562,7 @@ end
 
 function getDefaultTableSortOrder(table_type)
    local table_key = getRedisPrefix("ntopng.prefs.table")
-   local value
+   local value = nil
 
   if(table_type ~= nil) then
     value = ntop.getHashCache(table_key, "sort_order_"..table_type)
@@ -1580,6 +1580,7 @@ end
 
 function tablePreferences(key, value)
   table_key = getRedisPrefix("ntopng.prefs.table")
+
   if((value == nil) or (value == "")) then
     -- Get preferences
     return ntop.getHashCache(table_key, key)
