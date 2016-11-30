@@ -12,7 +12,6 @@ local  en = {
    difference = "Difference",
    total = "Total",
    today = "Today",
-   NOTES = "NOTES",
    actions = "Actions",
    delete = "Delete",
    undo = "Undo",
@@ -57,6 +56,7 @@ local  en = {
       initial_clone_protocols = "Initial protocol rules will be cloned",
       shaper_id = "Shaper Id",
       applied_to = "Applied to",
+      notes = "NOTES",
    },
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..

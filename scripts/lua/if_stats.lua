@@ -1972,7 +1972,7 @@ print[[
 </script>]]
 
 print [[</form>
-  ]] print(i18n('NOTES')) print[[
+  ]] print(i18n('shaping.notes')) print[[
 <ul>
 <li>]] print(i18n('shaping.shaper0_message')) print[[</li>
 <li>]] print(i18n('shaping.set_max_rate_to')) print[[<ul>
