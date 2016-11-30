@@ -528,7 +528,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     m.unlock(__FILE__, __LINE__);
   
 
-  notifyToSlackIfNeeded(alert_entity, alert_entity_value,
+    notifyToSlackIfNeeded(alert_entity, alert_entity_value,
              alert_type, alert_severity, alert_json,
              alert_origin, alert_target);
 
@@ -693,7 +693,7 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 				const char *alert_json,
 				const char *alert_origin, const char *alert_target) {
   json_object *notification;
-  char alert_sender_name[64], message[2015];
+  char alert_sender_name[64], message[2015], notification_username[96];
   const char* json_alert;
    
   if((notification = json_object_new_object()) == NULL) return;
@@ -703,10 +703,20 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
   json_object_object_add(notification, "icon_emoji",
 			 json_object_new_string(getAlertLevel(alert_severity)));
 
+
   if(ntop->getRedis()->get((char*)ALERTS_MANAGER_SENDER_USERNAME,
-			   alert_sender_name, sizeof(alert_sender_name)) >= 0)
+			   alert_sender_name, sizeof(alert_sender_name)) >= 0) {
+
+    strncpy(notification_username, alert_sender_name, 64);
+
+    if (alert_severity == alert_level_error) strncat(notification_username, " - NOTIFY OF ERROR", 32);
+    else if (alert_severity == alert_level_warning) strncat(notification_username, " - NOTIFY OF WARNING", 32);
+    else if (alert_severity == alert_level_info) strncat(notification_username, " - NOTIFY OF INFO", 32);
+
     json_object_object_add(notification, "username",
-			   json_object_new_string(alert_sender_name));
+			   json_object_new_string(notification_username));
+
+  }
 
   snprintf(message, sizeof(message), "%s [%s][Origin: %s][Target: %s]",
 	   getAlertType(alert_type),
