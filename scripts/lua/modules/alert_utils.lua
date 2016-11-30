@@ -775,15 +775,18 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 
    local status = _GET["status"]
    if num_engaged_alerts > 0 then
-      alert_items[#alert_items + 1] = {["label"] = "Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
+      alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
+	 ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
    end
 
    if num_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = "Alerts History", ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
+      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
+	 ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
    end
 
    if num_flow_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = "Flow Alerts History", ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
+      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_flow_alerts"),
+	 ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
    end
 
    local url_extra_params = ""
