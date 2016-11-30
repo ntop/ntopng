@@ -35,15 +35,15 @@ print [[
 	       end
 	    end
 	 end
-	 
+	 tprint(res)
 	 for k, v in pairs(res) do
 	    if(v ~= "") then
 	       if values[v] > 1 then
 	          -- we matched both an ipv4 and ipv6 with same host name, display differently
-	          if findString(v, ":") == nil then
-	            v = v .. " (IPv4)"
-	          else
+	          if isIPv6String(v) then
 	            v = v .. " (IPv6)"
+	          else
+	            v = v .. " (IPv4)"
 	          end
 	       end
 	       
