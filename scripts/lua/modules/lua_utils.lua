@@ -2436,11 +2436,11 @@ function label2criteriakey(what)
   local id
 
   for id, _ in ipairs(looking_glass_criteria) do
-    local criteria = looking_glass_criteria[id][1]
+    local c        = looking_glass_criteria[id][1]
     local key      = looking_glass_criteria[id][3]
     local fnctn    = looking_glass_criteria[id][4]
 
-    if(what == criteria) then
+    if(what == c) then
        return key, fnctn
     end
   end

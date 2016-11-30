@@ -143,7 +143,7 @@ preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 -- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("localhosts") ..'","' .. getDefaultTableSortOrder("localhosts").. '"] ],\n')
+print ('sort: [ ["' .. getDefaultTableSort("localhosts_"..criteria) ..'","' .. getDefaultTableSortOrder("localhosts_"..criteria).. '"] ],\n')
 
 print [[    showPagination: true, 
 ]]

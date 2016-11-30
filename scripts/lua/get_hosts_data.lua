@@ -19,13 +19,6 @@ net         = _GET["net"]
 long_names  = _GET["long_names"]
 criteria    = _GET["criteria"]
 
-criteria_key = nil
-sortPrefs = "hosts"
-if(criteria ~= nil) then
-   criteria_key, criteria_format = label2criteriakey(criteria)
-   sortPrefs = "localhosts"
-end
-
 -- Host comparison parameters
 mode        = _GET["mode"]
 tracked     = _GET["tracked"]
@@ -64,6 +57,15 @@ else
       long_names = false
    end
 end
+
+criteria_key = nil
+sortPrefs = "hosts"
+if(criteria ~= nil) then
+   criteria_key, criteria_format = label2criteriakey(criteria)
+   sortPrefs = "localhosts_"..criteria
+   mode = "local"
+end
+
 
 
 if((sortColumn == nil) or (sortColumn == "column_"))then
@@ -260,10 +262,14 @@ for key, value in pairs(hosts_stats) do
 	 vals[hosts_stats[key]["ipkey"]+postfix] = key
 	 -- looking_glass_criteria
       elseif(criteria ~= nil) then
-	 -- io.write("==> "..criteria.."\n")
+	 io.write("==> "..criteria.."\n")
 	 if(sortColumn == "column_"..criteria) then
-	    vals[hosts_stats[key]["criteria"][criteria_key]+postfix] = key
-	    --io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
+	    local c = hosts_stats[key]["criteria"]
+
+	    if(c ~= nil) then
+	       vals[c[criteria_key]+postfix] = key
+	       --io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
+	    end
 	 end
       end
    else
@@ -394,8 +400,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
 	    print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
 
-	    if(criteria ~= nil) then
-	       -- io.write(criteria_key.."\n")
+
+	    if((criteria_key ~= nil) and (value["criteria"] ~= nil)) then
 	       print("\"column_"..criteria.."\" : \"" .. criteria_format(value["criteria"][criteria_key]) .. "\", ")
 	    end
 
