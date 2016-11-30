@@ -19,12 +19,6 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 
-local i18n = require "i18n"
--- TODO this should be set somewhere else
-local locale = "en"
-i18n.loadFile(dirs.installdir..'/scripts/locales/'..locale..'.lua')
---
-
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 page = _GET["page"]
@@ -1348,7 +1342,7 @@ print[[
      <input type="hidden" name="page" value="filtering"/>
      <input type="hidden" name="delete_network" value=""/>
 </form>
-<form id="editNetworksForm" onsubmit="return doCheckNetworksForm();">
+<form id="editNetworksForm" onsubmit="return checkNetworksFormCallback();">
    <input type="hidden" name="page" value="filtering"/>
    <input type="hidden" name="edit_networks" value=""/>
    <div id="badnet" class="alert alert-danger" style="display: none"></div>
@@ -1359,7 +1353,7 @@ print[[
 <script>
 ]] print(jsFormCSRF('deleteNetworkForm', true)) print[[
 ]] print(jsFormCSRF('editNetworksForm', true)) print[[
-function doAddDeleteButton(td_idx, callback_str, label) {
+function addDeleteButtonCallback(td_idx, callback_str, label) {
    if (! label) label = "]] print(i18n('delete')) print[[";
    $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on" onclick="' + callback_str + '" role="button"><span class="label label-danger">' + label + '</span></a>');
 }
@@ -1376,7 +1370,7 @@ function foreachDatatableRow(tableid, callbacks) {
    });
 }
 
-function doMakeShapersDropdown(suffix, ingress_shaper_idx, egress_shaper_idx) {
+function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper = $("td:nth-child("+ingress_shaper_idx+")", $(this));
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
    var ingress_shaper_id = ingress_shaper.html();
@@ -1392,7 +1386,7 @@ function doMakeShapersDropdown(suffix, ingress_shaper_idx, egress_shaper_idx) {
 
 /* -------------------------------------------------------------------------- */
 
-function doCheckNetworksForm() {
+function checkNetworksFormCallback() {
    var new_net_field = "#" + getNetworkInputField();
    var new_net_name = $(new_net_field).val();
 
@@ -1458,7 +1452,7 @@ end
 
    $("#table-networks table").append(tr);
    $("#addNewNetworkPolicyButton").attr('disabled', true);
-   doAddDeleteButton.bind(tr)(5, "undoAddRow('#addNewNetworkPolicyButton')", "]] print(i18n("undo")) print[[");
+   addDeleteButtonCallback.bind(tr)(5, "undoAddRow('#addNewNetworkPolicyButton')", "]] print(i18n("undo")) print[[");
 
    $("#clone_proto_policy button").click(function () {
       var active;
@@ -1488,7 +1482,7 @@ end
       }
    }
 
-   $('#editNetworksForm').trigger('checkform.areYouSure');
+   aysRecheckForm('#editNetworksForm');
 }
 
 function deleteNetwork(net_id) {   
@@ -1559,10 +1553,10 @@ $("#table-networks").datatable({
                $("td:nth-child(1)", $(this)).html(net + '&nbsp;[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?host=' + nw + '"><i class=\"fa fa-desktop fa-lg\"></i> Show Host</a> ]');
             }*/
          }, function() {
-            doMakeShapersDropdown.bind(this)(netkey, 3, 4);
+            makeShapersDropdownCallback.bind(this)(netkey, 3, 4);
          }, function() {
             if (netkey != "0.0.0.0/0@0")
-               doAddDeleteButton.bind(this)(5, "deleteNetwork('" + netkey + "')");
+               addDeleteButtonCallback.bind(this)(5, "deleteNetwork('" + netkey + "')");
          }]);
 
          $("#table-networks > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>')
@@ -1571,8 +1565,7 @@ $("#table-networks").datatable({
          var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-networks"));
          $("#addNewNetworkPolicyButton").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
 
-         // Update ays state
-         $('#editNetworksForm').trigger('reinitialize.areYouSure');
+         aysResetForm('#editNetworksForm');
       }
    });
 </script>
@@ -1603,7 +1596,7 @@ print [[
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
    <input type="hidden" name="del_l7_proto" value="">
 </form>
-<form id="l7ProtosForm" onsubmit="return doCheckShapedProtosForm();">
+<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();">
    <input type="hidden" name="page" value="filtering">
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
    <input type=hidden id=blacklist name=blacklist value="">
@@ -1660,7 +1653,7 @@ end
       document.location.href = "]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua?page=filtering&network="+$("#proto_network").val()+"#protocols";
    });
 
-   function doCheckShapedProtosForm() {
+   function checkShapedProtosFormCallback() {
       var new_proto = $("#table-protos select[name='new_protocol_id']").closest('tr');
       if (new_proto.length == 1) {
          var td_proto = $("td:nth-child(1)", new_proto);
@@ -1684,7 +1677,7 @@ end
       
       var form = $("#new_added_row").closest("form");
       $("#new_added_row").remove();
-      form.trigger('rescan.areYouSure');
+      aysUpdateForm(form);
    }
 
    function addNewShapedProto() {
@@ -1697,10 +1690,10 @@ end
       </select></td><td class="text-center" style="vertical-align: middle;"></td></tr>');
 
       $("#table-protos table").append(tr);
-      doAddDeleteButton.bind(tr)(4, "undoAddRow('#addNewShapedProtoBtn')", "Undo");
+      addDeleteButtonCallback.bind(tr)(4, "undoAddRow('#addNewShapedProtoBtn')", "Undo");
 
       $("#addNewShapedProtoBtn").attr('disabled', true);
-      $('#l7ProtosForm').trigger('checkform.areYouSure');
+      aysRecheckForm('#l7ProtosForm');
    }
 
    function deleteShapedProtocol(proto_id) {
@@ -1760,9 +1753,9 @@ end
             function() {
                proto_id = $("td:nth-child(1) span", $(this)).attr("data-proto-id");
             }, function() {
-               doMakeShapersDropdown.bind(this)(proto_id, 2, 3);
+               makeShapersDropdownCallback.bind(this)(proto_id, 2, 3);
             }, function() {
-               doAddDeleteButton.bind(this)(4, "deleteShapedProtocol(" + proto_id + ")");
+               addDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol(" + proto_id + ")");
             }
          ]);
 
@@ -1772,8 +1765,7 @@ end
          var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-protos"));
          $("#addNewShapedProtoBtn").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
 
-         // update ays state
-         $('#l7ProtosForm').trigger('reinitialize.areYouSure');
+         aysResetForm('#l7ProtosForm');
       }
    });
 
@@ -1971,8 +1963,7 @@ print[[
          var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-shapers"));
          $("#addNewShaperBtn").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))) || nextShaperId > 255);
 
-         // update ays state
-         $('#modifyShapersForm').trigger('reinitialize.areYouSure');
+         aysResetForm('#modifyShapersForm');
       }
    });
    ]] print(jsFormCSRF('modifyShapersForm', true)) print[[
@@ -2014,38 +2005,11 @@ print [[</form>
    var hash = window.location.hash;
    $('#filterPageTabPanel a[href="' + hash + '"]').tab('show');
    /*** End Page Tab State ***/
-   $(function() {      
-      // Enable ays on every form. Adding new fields will make form dirty
-      $('form').areYouSure({'addRemoveFieldsMarksDirty':true});
 
-      $('form').on('dirty.areYouSure', function() {
-         // Enable save button only as the form is dirty.
-         $(this).find('button[type="submit"]').removeAttr('disabled');
-
-         // Disable pagination controls
-         $(this).find("a.dropdown-toggle").attr("disabled", "disabled");
-         $(this).find("ul.pagination a").css("pointer-events", "none").css("cursor", "default");
-
-         // Disable navigation between tabs
-         $("#filterPageTabPanel").find("a").each(function() {
-            if (! $(this).closest("li").hasClass("active"))
-               $(this).attr("disabled", "disabled");
-         });
-      });
-
-     $('form').on('clean.areYouSure', function() {
-         // Form is clean so nothing to save - disable the save button.
-         $(this).find('button[type="submit"]').attr('disabled', 'disabled');
-
-         // Enable pagination controls
-         $(this).find("a.dropdown-toggle").removeAttr("disabled");
-         $(this).find("ul.pagination a").css("pointer-events", "").css("cursor", "");
-
-         // Enable navigation between tabs
-         $("#filterPageTabPanel").find("a").each(function() {
-            $(this).removeAttr("disabled");
-         });
-     });
+   aysHandleForm("form", {
+      handle_datatable: true,
+      handle_tabs: true,
+      ays_options: {addRemoveFieldsMarksDirty: true}
    });
 </script>
 ]]
