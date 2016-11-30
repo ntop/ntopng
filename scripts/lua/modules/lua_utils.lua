@@ -1550,7 +1550,9 @@ end
  -- Table preferences
 
 function getDefaultTableSort(table_type)
-   table_key = getRedisPrefix("ntopng.prefs.table")
+   local table_key = getRedisPrefix("ntopng.prefs.table")
+   local value
+
   if(table_type ~= nil) then
      value = ntop.getHashCache(table_key, "sort_"..table_type)
   end
@@ -1559,7 +1561,9 @@ function getDefaultTableSort(table_type)
 end
 
 function getDefaultTableSortOrder(table_type)
-  table_key = getRedisPrefix("ntopng.prefs.table")
+   local table_key = getRedisPrefix("ntopng.prefs.table")
+   local value
+
   if(table_type ~= nil) then
     value = ntop.getHashCache(table_key, "sort_order_"..table_type)
   end
@@ -2396,3 +2400,50 @@ function makeTimeStamp(d)
 
    return timestamp.."";
 end
+
+-- ###########################################
+
+-- IMPORTANT: keep it in sync wiht sortField (ntop_typedefs.h)
+--            AND host_search_walker:NetworkInterface.cpp
+--            AND NetworkInterface::getFlows()
+looking_glass_criteria = {
+   -- KEY  LABEL   Host::lua()-label  formatting
+   { "uploaders", i18n("uploaders"), "upload", bytesToSize },
+   { "downloaders", i18n("downloaders"), "download", bytesToSize },
+   { "unknowers", i18n("unknowers"), "unknown", bytesToSize },
+   { "incomingflows", i18n("incomingflows"), "incomingflows", formatValue },
+   { "outgoingflows", i18n("outgoingflows"), "outgoingflows", formatValue },
+}
+
+function criteria2label(criteria)
+  local id
+
+  for id, _ in ipairs(looking_glass_criteria) do
+    local key   = looking_glass_criteria[id][1]
+    local label = looking_glass_criteria[id][2]
+    local fnctn = looking_glass_criteria[id][4]
+
+    if(key == criteria) then
+      return label, fnctn
+    end
+  end
+
+  return criteria, formatValue
+end
+
+function label2criteriakey(what)
+  local id
+
+  for id, _ in ipairs(looking_glass_criteria) do
+    local criteria = looking_glass_criteria[id][1]
+    local key      = looking_glass_criteria[id][3]
+    local fnctn    = looking_glass_criteria[id][4]
+
+    if(what == criteria) then
+       return key, fnctn
+    end
+  end
+
+  return what, formatValue
+end
+

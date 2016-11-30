@@ -533,8 +533,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
 
     lua_push_int_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
-    lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-    lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes()); 
+   lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
     lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
 
     lua_push_bool_table_entry(vm, "drop_all_host_traffic", drop_all_host_traffic);
@@ -564,6 +564,21 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
       getSites(vm, topSitesKey, "sites");
       getSites(vm, oldk, "sites.old");
     }
+  }
+
+  if(localHost) {
+    /* Criteria */
+    lua_newtable(vm);
+    
+    lua_push_int_table_entry(vm, "upload", getNumBytesSent());
+    lua_push_int_table_entry(vm, "download", getNumBytesRcvd());
+    lua_push_int_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
+    lua_push_int_table_entry(vm, "incomingflows", getNumIncomingFlows());
+    lua_push_int_table_entry(vm, "outgoingflows", getNumOutgoingFlows());
+
+    lua_pushstring(vm, "criteria");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 
   lua_push_int_table_entry(vm, "seen.first", first_seen);

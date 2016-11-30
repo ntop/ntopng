@@ -202,7 +202,13 @@ typedef enum {
   column_mac,
   column_os,
   /* column_thpt, */
-  column_traffic
+  column_traffic,
+  /* sort criteria */
+  column_uploaders,
+  column_downloaders,
+  column_unknowers,
+  column_incomingflows,
+  column_outgoingflows,
 } sortField;
 
 typedef struct {
