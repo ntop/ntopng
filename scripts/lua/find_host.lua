@@ -35,7 +35,7 @@ print [[
 	       end
 	    end
 	 end
-	 tprint(res)
+
 	 for k, v in pairs(res) do
 	    if(v ~= "") then
 	       if values[v] > 1 then
