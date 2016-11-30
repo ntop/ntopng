@@ -14,7 +14,8 @@ print [[
 
 	 <div class="control-group" style="width:15em;">
           <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
-	 <input id="search_typeahead" type="text" name="host" class="form-control search-query span2" placeholder="Search Host" data-provide="typeahead" autocomplete="off"></input>
+   <input id="search_host_ip" type="hidden" name="host" />
+	 <input id="search_typeahead" type="text" class="form-control search-query span2" placeholder="Search Host" data-provide="typeahead" autocomplete="off"></input>
 	 </div>
          </div>
 
@@ -29,6 +30,8 @@ print (ntop.getHttpPrefix())
 print [[/lua/find_host.lua', { query: query }, function (data) {
 		                 return process(data.results);
 		});
+	 }, afterSelect: function(item) {
+      $("#search_host_ip").val(item.ip);
 	 }
 	});
 	</script>

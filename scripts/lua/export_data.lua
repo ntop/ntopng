@@ -37,7 +37,8 @@ print [[
   <div class="control-group">
     <label class="control-label">Host</label>
     <div class="controls">
-      <input type="text" id="hostIP" name="hostIP" placeholder="IP or MAC Address" class="form-control">
+      <input type="hidden" id="hostIP" name="hostIP">
+      <input type="text" id="hostIPSearch" placeholder="IP or MAC Address" class="form-control">
     </div>
 <label><small>NOTE: If the field is empty all hosts will be exported</small></label>
   </div>
@@ -61,13 +62,15 @@ print [[
 
 <script type='text/javascript'>
   function auto_ip_mac () {
-   $('#hostIP').typeahead({
+   $('#hostIPSearch').typeahead({
        source: function (query, process) {
                return $.get(']]
 print (ntop.getHttpPrefix())
 print [[/lua/find_host.lua', { query: query }, function (data) {
                      return process(data.results);
       });
+      }, afterSelect: function(item) {
+        $("#hostIP").val(item.ip);
       }
     });
   }
