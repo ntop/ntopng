@@ -208,13 +208,13 @@ int AlertsManager::storeAlert(AlertType alert_type, AlertLevel alert_severity, c
   int rc = 0;
   u_int now = (u_int)time(NULL);
   now = now - (now % 60);  // reduce the cardinality by doing minute bins
-  
+
   if(!store_initialized || !store_opened)
     return -1;
 
   if(alert_json == NULL)
     alert_json = (char*)"";
-  
+
   snprintf(query, sizeof(query), "INSERT INTO %s "
 	   "(alert_tstamp, alert_type, alert_severity, alert_json) "
 	   "VALUES(?,?,?,?)",
@@ -241,7 +241,7 @@ int AlertsManager::storeAlert(AlertType alert_type, AlertLevel alert_severity, c
 
   rc = 0;
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -268,10 +268,10 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
     retval = -1;
     goto cleanup;
   }
-  
+
   lua_pushnil(L);
   while(lua_next(L, index) != 0 && good_alert) {
-    if (strcmp(ALERTS_MANAGER_TYPE_FIELD, lua_tostring(L, -2)) == 0) {
+    if(strcmp(ALERTS_MANAGER_TYPE_FIELD, lua_tostring(L, -2)) == 0) {
       if(lua_type(L, -1) == LUA_TNUMBER) {
 	alert_type = (AlertType)lua_tointeger(L, -1);
 	alert_type_read = true;
@@ -281,7 +281,7 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
 	good_alert = false;
 	goto next_iter;
       }
-    } else if (strcmp(ALERTS_MANAGER_SEVERITY_FIELD, lua_tostring(L, -2)) == 0) {
+    } else if(strcmp(ALERTS_MANAGER_SEVERITY_FIELD, lua_tostring(L, -2)) == 0) {
       if(lua_type(L, -1) == LUA_TNUMBER) {
 	alert_severity = (AlertLevel)lua_tointeger(L, -1);
 	alert_severity_read = true;
@@ -299,11 +299,11 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
       json_object_object_add(my_object,
 			     lua_tostring(L, -2),
 			     json_object_new_int(lua_tointeger(L, -1)));
-    } else if (lua_type(L, -1) == LUA_TSTRING) {
+    } else if(lua_type(L, -1) == LUA_TSTRING) {
       json_object_object_add(my_object,
 			     lua_tostring(L, -2),
 			     json_object_new_string(lua_tostring(L, -1)));
-    } else if (lua_type(L, -1) == LUA_TBOOLEAN) {
+    } else if(lua_type(L, -1) == LUA_TBOOLEAN) {
       json_object_object_add(my_object,
 			     lua_tostring(L, -2),
 			     json_object_new_boolean(lua_toboolean(L, -1)));
@@ -317,10 +317,10 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
   }
 
   /* post-lua table iteration checks */
-  if (!good_alert) {
+  if(!good_alert) {
     retval = -2;
     goto cleanup; /* error message already print  */
-  } else if (!alert_type_read || ! alert_severity_read) {
+  } else if(!alert_type_read || ! alert_severity_read) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
 				 "One or more mandatory alert keys are missing.");
     retval = -3;
@@ -329,7 +329,7 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
 
   json_alert_str = strdup(json_object_to_json_string(my_object));
   retval = storeAlert(alert_type, alert_severity, json_alert_str);
-  
+
  cleanup:
   /* Free memory */
   if(my_object) json_object_put(my_object);
@@ -365,7 +365,7 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
   }
 
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if (rc == SQLITE_ROW) {
+    if(rc == SQLITE_ROW) {
       found = true;
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\n", sqlite3_column_text(stmt, 0));
     } else if(rc == SQLITE_ERROR) {
@@ -376,7 +376,7 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
   }
 
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return found;
@@ -387,7 +387,7 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
 bool AlertsManager::isMaximumReached(AlertEntity alert_entity, const char *alert_entity_value, bool engaged) {
   int max_num = ntop->getPrefs()->get_max_num_alerts_per_entity(), num;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum configured number of alerts per entity: %i", max_num);
-  
+
   if(max_num < 0)
     return false; /* unlimited allowance */
 
@@ -442,7 +442,7 @@ int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert
 	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
 
   //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to delete via: %s", query);
-  
+
   m.lock(__FILE__, __LINE__);
 
   if(sqlite3_prepare(db, query, -1, &stmt, 0)
@@ -463,7 +463,7 @@ int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert
 
   rc = 0;
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -524,13 +524,12 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     if(alert_severity == alert_level_error) error_level_alerts = true;
     rc = 0;
   out:
-    if (stmt) sqlite3_finalize(stmt);
+    if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
-  
 
-    notifyToSlackIfNeeded(alert_entity, alert_entity_value,
-             alert_type, alert_severity, alert_json,
-             alert_origin, alert_target);
+    notifySlack(alert_entity, alert_entity_value,
+		alert_type, alert_severity, alert_json,
+		alert_origin, alert_target);
 
   }
 
@@ -588,9 +587,9 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   }
   m.unlock(__FILE__, __LINE__);
 
-  
+
   /* remove the alert from those engaged */
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   stmt = NULL;
   snprintf(query, sizeof(query),
 	   "DELETE "
@@ -607,7 +606,7 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
     rc = -3;
     goto out;
   }
-  
+
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
     if(rc == SQLITE_ERROR) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
@@ -619,14 +618,14 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   rc = 0;
   /* not enough to num_alerts_engaged--, num_alerts_stored++;
      must refresh as the severity of the released alert is not know
-   */
+  */
   if(ntop->getInterfaceById(ifid))
     ntop->getInterfaceById(ifid)->setRefreshAlertCounters(true);
   // TODO: consider updating with the new parameters (use rowid)
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
-  return rc;  
+  return rc;
 }
 
 
@@ -679,9 +678,9 @@ const char* AlertsManager::getAlertType(AlertType alert_type) {
 
 /* **************************************************** */
 SlackNotificationChoice AlertsManager::getSlackNotificationChoice(char* choice) {
-  
-  if (strcmp(choice, "only_errors")==0) return notify_errors_only;
-  if (strcmp(choice, "errors_and_warnings")==0) return notify_errors_and_warnings;
+
+  if(strcmp(choice, "only_errors")==0) return notify_errors_only;
+  if(strcmp(choice, "errors_and_warnings")==0) return notify_errors_and_warnings;
   return notify_all_alerts; /* default choice*/
 }
 
@@ -694,28 +693,28 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 				const char *alert_origin, const char *alert_target) {
   json_object *notification;
   char alert_sender_name[64], message[2015], notification_username[96];
-  const char* json_alert;
-   
+  const char *json_alert, *level;
+
   if((notification = json_object_new_object()) == NULL) return;
-  
+
   json_object_object_add(notification, "channel",
 			 json_object_new_string(getAlertEntity(alert_entity)));
   json_object_object_add(notification, "icon_emoji",
 			 json_object_new_string(getAlertLevel(alert_severity)));
 
-
   if(ntop->getRedis()->get((char*)ALERTS_MANAGER_SENDER_USERNAME,
-			   alert_sender_name, sizeof(alert_sender_name)) >= 0) {
+			   alert_sender_name, sizeof(alert_sender_name)) >= 0) {    
+    switch(alert_severity) {
+    case alert_level_error:   level = "ERROR";   break;
+    case alert_level_warning: level = "WARNING"; break;
+    case alert_level_info:    level = "INFO";    break;
+    }
 
-    strncpy(notification_username, alert_sender_name, 64);
-
-    if (alert_severity == alert_level_error) strncat(notification_username, " - NOTIFY OF ERROR", 32);
-    else if (alert_severity == alert_level_warning) strncat(notification_username, " - NOTIFY OF WARNING", 32);
-    else if (alert_severity == alert_level_info) strncat(notification_username, " - NOTIFY OF INFO", 32);
+    snprintf(notification_username, sizeof(notification_username),
+	     "%s [%s]", alert_sender_name, level);
 
     json_object_object_add(notification, "username",
 			   json_object_new_string(notification_username));
-
   }
 
   snprintf(message, sizeof(message), "%s [%s][Origin: %s][Target: %s]",
@@ -732,52 +731,43 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
     ntop->getTrace()->traceEvent(TRACE_WARNING,
 				 "An error occurred when pushing alert %s to redis list %s.",
 				 json_alert, ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME);
-  
+
   /* Free memory */
-  json_object_put(notification); 
+  json_object_put(notification);
 }
 
 /* **************************************************** */
 
-void AlertsManager::notifyToSlackIfNeeded (AlertEntity alert_entity, const char *alert_entity_value,
-        AlertType alert_type, AlertLevel alert_severity,
-        const char *alert_json,
-        const char *alert_origin, const char *alert_target) {
+void AlertsManager::notifySlack (AlertEntity alert_entity, const char *alert_entity_value,
+				 AlertType alert_type, AlertLevel alert_severity,
+				 const char *alert_json,
+				 const char *alert_origin, const char *alert_target) {
 
   char buf[4], choice[32];
-  bool alert_to_be_notified=false; //indicates if the notification has to be done according to the slack notifications preference
+  bool alert_to_be_notified=false; // Checksd if the notification has to be done according to the slack notifications preference
   SlackNotificationChoice notification_choice;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
-    "Entrata alert %s %s %s %s", getAlertLevel(alert_severity),
-    alert_entity_value, alert_origin, alert_target );
-
   if((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_ENABLED,
-          buf, sizeof(buf)) >= 0)
-     && (!strcmp(buf, "1"))
-    ) 
-
-  {
-
+			    buf, sizeof(buf)) >= 0)
+     && (!strcmp(buf, "1"))) {
     ntop->getRedis()->get((char*) ALERTS_MANAGER_NOTIFICATION_SEVERITY, choice, sizeof(choice));
 
     notification_choice=getSlackNotificationChoice(choice);
 
-    if (notification_choice == notify_all_alerts) alert_to_be_notified=true;
-    else if (notification_choice == notify_errors_and_warnings) {
-              if (alert_severity==alert_level_error || alert_severity == alert_level_warning)
-                  alert_to_be_notified=true;
-          }
-    else {if (notification_choice == notify_errors_only && alert_severity == alert_level_error)
-            alert_to_be_notified =true;}
+    if(notification_choice == notify_all_alerts) alert_to_be_notified=true;
+    else if(notification_choice == notify_errors_and_warnings) {
+      if(alert_severity==alert_level_error || alert_severity == alert_level_warning)
+	alert_to_be_notified=true;
+    } else {
+      if(notification_choice == notify_errors_only && alert_severity == alert_level_error)
+	alert_to_be_notified =true;
+    }
 
-    if (alert_to_be_notified)      
+    if(alert_to_be_notified)
       notifyAlert(alert_entity, alert_entity_value,
-      alert_type, alert_severity, alert_json,
-      alert_origin, alert_target);
-
+		  alert_type, alert_severity, alert_json,
+		  alert_origin, alert_target);
   }
-
 }
 
 /* **************************************************** */
@@ -791,10 +781,10 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
 
-  notifyToSlackIfNeeded(alert_entity, alert_entity_value,
-		alert_type, alert_severity, alert_json,
-		alert_origin, alert_target);
-  
+  notifySlack(alert_entity, alert_entity_value,
+	      alert_type, alert_severity, alert_json,
+	      alert_origin, alert_target);
+
   if(!store_initialized || !store_opened)
     return(-1);
   else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
@@ -835,10 +825,10 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
   num_alerts_stored++;
   if(alert_severity == alert_level_error) error_level_alerts = true;
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
-  return rc;  
+  return rc;
 }
 
 /* **************************************************** */
@@ -859,14 +849,14 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
   if(srv && srv->get_ip() && (srv_ip_buf = (char*)malloc(sizeof(char) * 256)))
     srv_ip = srv->get_ip()->print(srv_ip_buf, 256);
 
-  notifyToSlackIfNeeded(alert_entity_flow, "flow",
-    alert_type, alert_severity, alert_json,
-    cli_ip, srv_ip);
+  notifySlack(alert_entity_flow, "flow",
+	      alert_type, alert_severity, alert_json,
+	      cli_ip, srv_ip);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %s", cli_ip, srv_ip);
   /* TODO: implement check maximum for flow alerts
-  else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
-    deleteOldestAlert(alert_entity, alert_entity_value, false);
+     else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
+     deleteOldestAlert(alert_entity, alert_entity_value, false);
   */
 
   /* This alert is being engaged */
@@ -941,10 +931,10 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
   if(cli_ip_buf) free(cli_ip_buf);
   if(srv_ip_buf) free(srv_ip_buf);
 
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
-  return rc;  
+  return rc;
 }
 
 /* ******************************************* */
@@ -952,7 +942,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
 bool AlertsManager::isValidHost(Host *h, char *host_string, size_t host_string_len) {
   char ipbuf[256];
 
-  if (!h) return false;
+  if(!h) return false;
 
   IpAddress *ip = h->get_ip();
   if(!ip) return false;
@@ -971,13 +961,13 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 					  bool engage) {
   char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
 
-  if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
+  if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
   if(!h->triggerAlerts() || !h->isLocalHost())
     return 0;
 
-  if (engage) {
+  if(engage) {
     h->incNumAlerts();
     return engageAlert(alert_entity_host, ipbuf_id,
 		       engaged_alert_id, alert_type, alert_severity, alert_json,
@@ -1002,7 +992,7 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
   if(!cidr) return -1;
 
   strncpy(ip_buf, cidr, sizeof(ip_buf));
-  if ((slash = strchr(ip_buf, '/')) == NULL) return -2;
+  if((slash = strchr(ip_buf, '/')) == NULL) return -2;
   slash[0] = '\0';
 
   if(inet_pton(AF_INET, ip_buf, &addr4) != 1 && inet_pton(AF_INET6, ip_buf, &addr6) != 1) {
@@ -1010,7 +1000,7 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
     return -2; /* not a valid network */
   }
 
-  if (engage)
+  if(engage)
     return engageAlert(alert_entity_network, cidr,
 		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
   else
@@ -1029,7 +1019,7 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 
   snprintf(id_buf, sizeof(id_buf), "%u", n -> get_id());
 
-  if (engage)
+  if(engage)
     return engageAlert(alert_entity_interface, id_buf,
 		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
   else
@@ -1044,14 +1034,14 @@ int AlertsManager::storeHostAlert(Host *h,
 				  Host *alert_origin, Host *alert_target) {
   char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
 
-  if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
+  if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
   if(!h->triggerAlerts() || !h->isLocalHost())
     return 0;
 
   h->incNumAlerts();
-  
+
   return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
 		    isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		    isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL,
@@ -1116,7 +1106,7 @@ int AlertsManager::getNumHostAlerts(Host *h, bool engaged) {
   char wherebuf[256];
   char ipbuf_id[256];
 
-  if (!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
+  if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
@@ -1308,7 +1298,7 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
   lua_newtable(vm);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to execute: %s", query);
-  
+
   ar.vm = vm, ar.current_offset = 0;
   rc = sqlite3_exec(db, query, getAlertsCallback, (void*)&ar, &zErrMsg);
 
@@ -1351,7 +1341,7 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
   }
 
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if (rc == SQLITE_ROW) {
+    if(rc == SQLITE_ROW) {
       num = sqlite3_column_int(stmt, 0);
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\n", sqlite3_column_text(stmt, 0));
     } else if(rc == SQLITE_ERROR) {
@@ -1361,7 +1351,7 @@ int AlertsManager::getNumAlerts(bool engaged, const char *sql_where_clause) {
   }
 
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return num;
@@ -1392,7 +1382,7 @@ int AlertsManager::getNumFlowAlerts(const char *sql_where_clause) {
   }
 
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
-    if (rc == SQLITE_ROW) {
+    if(rc == SQLITE_ROW) {
       num = sqlite3_column_int(stmt, 0);
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\n", sqlite3_column_text(stmt, 0));
     } else if(rc == SQLITE_ERROR) {
@@ -1402,7 +1392,7 @@ int AlertsManager::getNumFlowAlerts(const char *sql_where_clause) {
   }
 
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return num;
@@ -1438,7 +1428,7 @@ void AlertsManager::refreshCachedNumAlerts() {
 int AlertsManager::getNumAlerts(bool engaged, u_int64_t start_time) {
   char wherebuf[STORE_MANAGER_MAX_QUERY];
   int num_alerts, num_flow_alerts = 0;
-  
+
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
 		   "alert_tstamp >= %lu", start_time);
 
@@ -1454,7 +1444,7 @@ int AlertsManager::getNumAlerts(bool engaged, u_int64_t start_time) {
 
 int AlertsManager::getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value) {
   char wherebuf[STORE_MANAGER_MAX_QUERY];
-  
+
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
 		   "alert_entity=%i AND alert_entity_val='%q'",
 		   static_cast<int>(alert_entity),
@@ -1507,7 +1497,7 @@ int AlertsManager::deleteFlowAlerts(const int *rowid) {
 
   rc = 0;
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -1545,7 +1535,7 @@ int AlertsManager::deleteAlerts(bool engaged, const int *rowid) {
 
   rc = 0;
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -1581,7 +1571,7 @@ int AlertsManager::deleteAlerts(bool engaged, AlertEntity alert_entity, const ch
 
   rc = 0;
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -1618,7 +1608,7 @@ int AlertsManager::deleteAlerts(bool engaged, AlertEntity alert_entity, const ch
 
   rc = 0;
  out:
-  if (stmt) sqlite3_finalize(stmt);
+  if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return rc;
@@ -1697,7 +1687,7 @@ int AlertsManager::getQueuedAlerts(lua_State* vm, patricia_tree_t *allowed_hosts
   int rc;
 
   // TODO: Filter events that belong to allowed_hosts only
-  
+
   rc = redis->lrange(queue_name, &l_elements, start_offset, end_offset);
 
   if(rc > 0) {
@@ -1711,7 +1701,7 @@ int AlertsManager::getQueuedAlerts(lua_State* vm, patricia_tree_t *allowed_hosts
     free(l_elements);
   } else
     lua_pushnil(vm);
-  
+
   return rc;
 }
 

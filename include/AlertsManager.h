@@ -55,10 +55,10 @@ class AlertsManager : protected StoreManager {
   const char* getAlertType(AlertType alert_type);
   SlackNotificationChoice getSlackNotificationChoice(char* choice);
   
-  void notifyToSlackIfNeeded (AlertEntity alert_entity, const char *alert_entity_value,
-        AlertType alert_type, AlertLevel alert_severity,
-        const char *alert_json,
-        const char *alert_origin, const char *alert_target);
+  void notifySlack (AlertEntity alert_entity, const char *alert_entity_value,
+		    AlertType alert_type, AlertLevel alert_severity,
+		    const char *alert_json,
+		    const char *alert_origin, const char *alert_target);
   void notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		   const char *alert_origin, const char *alert_target);
