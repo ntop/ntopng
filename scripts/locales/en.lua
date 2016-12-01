@@ -104,6 +104,7 @@ local  en = {
 
       type_explorer = "Type Explorer",
       type_alerts_by_type = "Flow Alerts By Type",
+      by_target_port = "By Target Port",
       origins = "Origins",
       targets = "Targets",
       
