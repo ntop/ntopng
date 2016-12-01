@@ -488,6 +488,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     if(isMaximumReached(alert_entity, alert_entity_value, true /* engaged */))
       deleteOldestAlert(alert_entity, alert_entity_value, true /* engaged */);
     /* This alert is being engaged */
+
     snprintf(query, sizeof(query),
 	     "REPLACE INTO %s "
 	     "(alert_id, alert_tstamp, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, "
@@ -525,6 +526,12 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
   out:
     if (stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
+  
+
+    notifyToSlackIfNeeded(alert_entity, alert_entity_value,
+             alert_type, alert_severity, alert_json,
+             alert_origin, alert_target);
+
   }
 
   return rc;
@@ -671,13 +678,22 @@ const char* AlertsManager::getAlertType(AlertType alert_type) {
 }
 
 /* **************************************************** */
+SlackNotificationChoice AlertsManager::getSlackNotificationChoice(char* choice) {
+  
+  if (strcmp(choice, "only_errors")==0) return notify_errors_only;
+  if (strcmp(choice, "errors_and_warnings")==0) return notify_errors_and_warnings;
+  return notify_all_alerts; /* default choice*/
+}
+
+
+/* **************************************************** */
 
 void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
 				AlertType alert_type, AlertLevel alert_severity,
 				const char *alert_json,
 				const char *alert_origin, const char *alert_target) {
   json_object *notification;
-  char alert_sender_name[64], message[2015];
+  char alert_sender_name[64], message[2015], notification_username[96];
   const char* json_alert;
    
   if((notification = json_object_new_object()) == NULL) return;
@@ -687,10 +703,20 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
   json_object_object_add(notification, "icon_emoji",
 			 json_object_new_string(getAlertLevel(alert_severity)));
 
+
   if(ntop->getRedis()->get((char*)ALERTS_MANAGER_SENDER_USERNAME,
-			   alert_sender_name, sizeof(alert_sender_name)) >= 0)
+			   alert_sender_name, sizeof(alert_sender_name)) >= 0) {
+
+    strncpy(notification_username, alert_sender_name, 64);
+
+    if (alert_severity == alert_level_error) strncat(notification_username, " - NOTIFY OF ERROR", 32);
+    else if (alert_severity == alert_level_warning) strncat(notification_username, " - NOTIFY OF WARNING", 32);
+    else if (alert_severity == alert_level_info) strncat(notification_username, " - NOTIFY OF INFO", 32);
+
     json_object_object_add(notification, "username",
-			   json_object_new_string(alert_sender_name));
+			   json_object_new_string(notification_username));
+
+  }
 
   snprintf(message, sizeof(message), "%s [%s][Origin: %s][Target: %s]",
 	   getAlertType(alert_type),
@@ -713,21 +739,59 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 
 /* **************************************************** */
 
+void AlertsManager::notifyToSlackIfNeeded (AlertEntity alert_entity, const char *alert_entity_value,
+        AlertType alert_type, AlertLevel alert_severity,
+        const char *alert_json,
+        const char *alert_origin, const char *alert_target) {
+
+  char buf[4], choice[32];
+  bool alert_to_be_notified=false; //indicates if the notification has to be done according to the slack notifications preference
+  SlackNotificationChoice notification_choice;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+    "Entrata alert %s %s %s %s", getAlertLevel(alert_severity),
+    alert_entity_value, alert_origin, alert_target );
+
+  if((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_ENABLED,
+          buf, sizeof(buf)) >= 0)
+     && (!strcmp(buf, "1"))
+    ) 
+
+  {
+
+    ntop->getRedis()->get((char*) ALERTS_MANAGER_NOTIFICATION_SEVERITY, choice, sizeof(choice));
+
+    notification_choice=getSlackNotificationChoice(choice);
+
+    if (notification_choice == notify_all_alerts) alert_to_be_notified=true;
+    else if (notification_choice == notify_errors_and_warnings) {
+              if (alert_severity==alert_level_error || alert_severity == alert_level_warning)
+                  alert_to_be_notified=true;
+          }
+    else {if (notification_choice == notify_errors_only && alert_severity == alert_level_error)
+            alert_to_be_notified =true;}
+
+    if (alert_to_be_notified)      
+      notifyAlert(alert_entity, alert_entity_value,
+      alert_type, alert_severity, alert_json,
+      alert_origin, alert_target);
+
+  }
+
+}
+
+/* **************************************************** */
+
 int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
 			      AlertType alert_type, AlertLevel alert_severity,
 			      const char *alert_json,
 			      const char *alert_origin, const char *alert_target,
 			      bool check_maximum) {
-  char query[STORE_MANAGER_MAX_QUERY], buf[4];
+  char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
 
-  if((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_ENABLED,
-			    buf, sizeof(buf)) >= 0)
-     && (!strcmp(buf, "1"))
-     && (alert_severity == alert_level_error) /* TODO Remove when preferences will be enabled */
-     )
-    notifyAlert(alert_entity, alert_entity_value,
+  notifyToSlackIfNeeded(alert_entity, alert_entity_value,
 		alert_type, alert_severity, alert_json,
 		alert_origin, alert_target);
   
@@ -794,6 +858,10 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
     cli_ip = cli->get_ip()->print(cli_ip_buf, 256);
   if(srv && srv->get_ip() && (srv_ip_buf = (char*)malloc(sizeof(char) * 256)))
     srv_ip = srv->get_ip()->print(srv_ip_buf, 256);
+
+  notifyToSlackIfNeeded(alert_entity_flow, "flow",
+    alert_type, alert_severity, alert_json,
+    cli_ip, srv_ip);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %s", cli_ip, srv_ip);
   /* TODO: implement check maximum for flow alerts
