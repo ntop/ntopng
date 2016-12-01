@@ -123,7 +123,7 @@ end
 -- ##############################################
 
 -- Simplified checker
-function isIPv6String(ip)
+function isIPv6Address(ip)
   if(string.find(ip, ":") ~= nil) then
      return true
   end

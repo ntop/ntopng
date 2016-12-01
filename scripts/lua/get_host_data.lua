@@ -91,7 +91,7 @@ else
    label, fnctn = label2criteriakey(criteria)
 
    c = host.criteria
-   print("\"column_"..criteria.."\" : \"" .. fnctn(c[label]).. "\", ")
+   if(c ~= nil) then print("\"column_"..criteria.."\" : \"" .. fnctn(c[label]).. "\", ") end
    
    if((host["throughput_trend_"..throughput_type] ~= nil)
    and (host["throughput_trend_"..throughput_type] > 0)) then

@@ -40,10 +40,8 @@ print [[
 	    if(v ~= "") then
 	       if values[v] > 1 then
 	          -- we matched both an ipv4 and ipv6 with same host name, display differently
-	          if isIPv6String(v) then
-	            v = v .. " (IPv6)"
-	          else
-	            v = v .. " (IPv4)"
+	          if isIPv6Address(k) then
+		     v = v .. " [IPv6]"
 	          end
 	       end
 	       

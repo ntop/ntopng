@@ -185,7 +185,7 @@ function getCurrentTopTalkers(ifid, ifname, filter_col, filter_val, concat, mode
 	    rsp = rsp .. '\n\t\t { "address": "'..id.. '", "label": "'
 	       ..(hosts_stats[id]["name"] or 'n.a.')
 
-	    if((hosts_stats[id]["name"] ~= "") and (isIPv6String(id) == true)) then
+	    if((hosts_stats[id]["name"] ~= "") and (isIPv6Address(id) == true)) then
 	       rsp = rsp .. " (IPv6)"
 	       end
 
