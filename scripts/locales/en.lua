@@ -98,6 +98,7 @@ local  en = {
    },
 
    flow_alerts_explorer = {
+      label = "Flow Alerts Explorer",
       flow_alert_origin  = "Alert Origin",
       flow_alert_target  = "Alert Target",
 

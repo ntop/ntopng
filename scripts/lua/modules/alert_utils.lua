@@ -857,7 +857,7 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	    title: "Actions",
 	    field: "column_key",
 	    css: { 
-	       textAlign: 'center'
+	       textAlign: 'center', width: '100px'
 	    }
 	 },
 

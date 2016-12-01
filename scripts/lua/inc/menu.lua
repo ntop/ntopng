@@ -61,11 +61,15 @@ end
 print [["><i class="fa fa-dashboard"></i> Dashboard</a></li>]]
 
 if ntop.isEnterprise() then
-   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Alerts Dashboard</a></li>]]
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i><sup><i class="fa fa-exclamation-triangle" aria-hidden="true" style="position:absolute; margin-left:-19px; margin-top:4px;"></i></sup> Alerts Dashboard</a></li>]]
 end
 
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical data explorer</a></li>')
+end
+
+if ntop.isEnterprise() then
+   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i><sup><i class="fa fa-exclamation-triangle" aria-hidden="true" style="position:absolute; margin-left:-19px; margin-top:4px;"></i></sup> Historical alerts explorer</a></li>]]
 end
 
 if(ntop.isPro()) then
