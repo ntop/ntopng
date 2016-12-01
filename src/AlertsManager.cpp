@@ -759,7 +759,7 @@ void AlertsManager::notifyToSlackIfNeeded (AlertEntity alert_entity, const char 
 
   {
 
-    ntop->getRedis()->get((char*) ALERTS_MANAGER_NOTIFICATION_GRAVITY, choice, sizeof(choice));
+    ntop->getRedis()->get((char*) ALERTS_MANAGER_NOTIFICATION_SEVERITY, choice, sizeof(choice));
 
     notification_choice=getSlackNotificationChoice(choice);
 

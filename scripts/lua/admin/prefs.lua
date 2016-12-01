@@ -222,9 +222,9 @@ function printAlerts()
     local labels = {"Errors","Errors and Warnings","All"}
     local values = {"only_errors","errors_and_warnings","all_alerts"}
   
-    local retVal = multipleTableButtonPrefs("Notification Preference Based On Gravity",
-               "Errors (errors only), Errors and Warnings (errors and warnings, no info), All (Every kind of alerts will be notified).",
-               labels, values, "only_errors", "primary", "slack_notification_gravity_preference", "ntopng.prefs.slack_alert_gravity", nil,  nil, nil, nil)
+    local retVal = multipleTableButtonPrefs("Notification Preference Based On Severity",
+               "Errors (errors only), Errors and Warnings (errors and warnings, no info), All (every kind of alerts will be notified).",
+               labels, values, "only_errors", "primary", "slack_notification_severity_preference", "ntopng.prefs.slack_alert_severity", nil,  nil, nil, nil)
 
 --]]
 
