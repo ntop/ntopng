@@ -932,7 +932,7 @@ function updateDeleteContext(tabid) {
 	 },
 ]]
 
-      if t["status"] == "historical" then
+      if t["status"] ~= "historical-flows" then
       print[[
 	 {
 	    title: "Duration",

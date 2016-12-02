@@ -127,7 +127,9 @@ for _key,_value in ipairs(alerts) do
    column_date     = os.date("%c", _value["alert_tstamp"])
 
    column_duration = "-"
-   if tonumber(_value["alert_tstamp_end"]) ~= nil then
+   if engaged == true then
+      column_duration = secondsToTime(os.time() - tonumber(_value["alert_tstamp"]))
+   elseif tonumber(_value["alert_tstamp_end"]) ~= nil then
       column_duration = secondsToTime(tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"]))
    end
 
