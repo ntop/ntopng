@@ -939,7 +939,7 @@ function updateDeleteContext(tabid) {
 	        title: "]] print(title) print[[",
       columns: [
 	 {
-	    title: "Actions",
+	    title: "]]print(i18n("show_alerts.alert_actions"))print[[",
 	    field: "column_key",
 	    css: { 
 	       textAlign: 'center', width: '100px'
@@ -947,7 +947,7 @@ function updateDeleteContext(tabid) {
 	 },
 
 	 {
-	    title: "First Seen",
+	    title: "]]print(i18n("show_alerts.alert_datetime"))print[[",
 	    field: "column_date",
             sortable: true,
 	    css: { 
@@ -959,7 +959,7 @@ function updateDeleteContext(tabid) {
       if t["status"] ~= "historical-flows" then
       print[[
 	 {
-	    title: "Duration",
+	    title: "]]print(i18n("show_alerts.alert_duration"))print[[",
 	    field: "column_duration",
             sortable: true,
 	    css: { 
@@ -971,7 +971,7 @@ function updateDeleteContext(tabid) {
 
       print[[
 	 {
-	    title: "Severity",
+	    title: "]]print(i18n("show_alerts.alert_severity"))print[[",
 	    field: "column_severity",
             sortable: true,
 	    css: { 
@@ -980,7 +980,7 @@ function updateDeleteContext(tabid) {
 	 },
 
 	 {
-	    title: "Alert Type",
+	    title: "]]print(i18n("show_alerts.alert_type"))print[[",
 	    field: "column_type",
             sortable: true,
 	    css: { 
@@ -989,7 +989,7 @@ function updateDeleteContext(tabid) {
 	 },
 
 	 {
-	    title: "Description",
+	    title: "]]print(i18n("show_alerts.alert_description"))print[[",
 	    field: "column_msg",
 	    css: { 
 	       textAlign: 'left'

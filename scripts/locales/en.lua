@@ -75,6 +75,16 @@ local  en = {
       older_1_month_ago = "older than 1 month ago",
       older_6_months_ago = "older than 6 months ago",
       older_1_year_ago = "older than 1 year ago",
+      alert_actions = "Actions",
+      alert_severity = "Severity",
+      alert_type = "Alert Type",
+      alert_datetime = "Date/Time",
+      alert_duration = "Duration",
+      alert_description = "Description",
+      alert_counts = "Counts",
+      last_minute = "Last Minute",
+      last_hour = "Last Hour",
+      last_day = "Last Day"
    },
 
    alerts_dashboard = {
