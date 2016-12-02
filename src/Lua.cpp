@@ -4730,13 +4730,33 @@ static int ntop_interface_get_num_alerts(lua_State* vm) {
 static int ntop_interface_get_num_flow_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
+  char *entity_type = NULL, *entity_value = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!iface || !(am = iface->getAlertsManager()))
     return (CONST_LUA_ERROR);
 
-  lua_pushinteger(vm, am->getNumFlowAlerts());
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+    if((entity_type = (char*)lua_tostring(vm, 1)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+    if(lua_type(vm, 2) == LUA_TSTRING) {
+      if((entity_value = (char*)lua_tostring(vm, 2)) == NULL)
+        return(CONST_LUA_PARAM_ERROR);
+    }
+
+    if(!strncmp("host", entity_type, 4)){
+      char buf[256];
+      char *host_ip; u_int16_t vlan_id = 0;
+
+      get_host_vlan_info(entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
+      lua_pushinteger(vm, am->getNumHostFlowAlerts(host_ip, vlan_id));
+    } else {
+      lua_pushnil(vm);
+    }
+  } else {
+    lua_pushinteger(vm, am->getNumFlowAlerts());
+  }
 
   return(CONST_LUA_OK);
 }
@@ -4763,6 +4783,7 @@ static int ntop_interface_delete_alerts(lua_State* vm) {
   AlertsManager *am;
   bool engaged = false;
   char *entity_type = NULL, *entity_value = NULL;
+  time_t older_than = 0;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4772,11 +4793,14 @@ static int ntop_interface_delete_alerts(lua_State* vm) {
   if(lua_type(vm, 1) == LUA_TBOOLEAN)
     engaged = lua_toboolean(vm, 1);
 
+  if(lua_type(vm, 5) == LUA_TNUMBER)
+    older_than = lua_tonumber(vm, 5);
+
   if(lua_type(vm, 2) == LUA_TNUMBER){
     int rowid, *rowid_ptr = NULL;
     rowid = lua_tonumber(vm, 2);
     rowid_ptr = &rowid;
-    lua_pushinteger(vm, am->deleteAlerts(engaged, rowid_ptr));
+    lua_pushinteger(vm, am->deleteAlerts(engaged, rowid_ptr, older_than));
 
   } else if(lua_type(vm, 2) == LUA_TSTRING /* entity type */
 	    && lua_type(vm, 3) == LUA_TSTRING /* entity_value */) {
@@ -4786,13 +4810,13 @@ static int ntop_interface_delete_alerts(lua_State* vm) {
       return(CONST_LUA_PARAM_ERROR);
 
     if(!strncmp("host", entity_type, 4)){
-      lua_pushinteger(vm, am->deleteAlerts(engaged, alert_entity_host, entity_value));
+      lua_pushinteger(vm, am->deleteAlerts(engaged, alert_entity_host, entity_value, older_than));
     } else {
       lua_pushnil(vm);
     }
   } else {
     /* delete everything */
-    lua_pushinteger(vm, am->deleteAlerts(engaged, NULL));
+    lua_pushinteger(vm, am->deleteAlerts(engaged, NULL, older_than));
   }
 
   iface->setRefreshAlertCounters(true);
@@ -4802,22 +4826,38 @@ static int ntop_interface_delete_alerts(lua_State* vm) {
 
 static int ntop_interface_delete_flow_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
+  time_t older_than = 0;
   AlertsManager *am;
+  char *entity_type = NULL, *entity_value = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!iface || !(am = iface->getAlertsManager()))
     return (CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) == LUA_TNUMBER){
-    int rowid, *rowid_ptr = NULL;
-    rowid = lua_tonumber(vm, 1);
-    rowid_ptr = &rowid;
-    lua_pushinteger(vm, am->deleteFlowAlerts(rowid_ptr));
+  if(lua_type(vm, 4) == LUA_TNUMBER)
+    older_than = lua_tonumber(vm, 4);
 
+  if(lua_type(vm, 1) == LUA_TSTRING /* entity type */
+	    && lua_type(vm, 2) == LUA_TSTRING /* entity_value */) {
+    if((entity_type = (char*)lua_tostring(vm, 1)) == NULL
+       ||(entity_value = (char*)lua_tostring(vm, 2)) == NULL)
+      return(CONST_LUA_PARAM_ERROR);
+
+    if(strncmp("host", entity_type, 4) != 0){
+      lua_pushnil(vm);
+      return(CONST_LUA_OK);
+    }
+  }
+
+  if(lua_type(vm, 3) == LUA_TNUMBER){
+    int rowid, *rowid_ptr = NULL;
+    rowid = lua_tonumber(vm, 3);
+    rowid_ptr = &rowid;
+    lua_pushinteger(vm, am->deleteFlowAlerts(rowid_ptr, older_than, entity_value));
   } else {
     /* delete everything */
-    lua_pushinteger(vm, am->deleteFlowAlerts(NULL));
+    lua_pushinteger(vm, am->deleteFlowAlerts(NULL, older_than, entity_value));
   }
 
   iface->setRefreshAlertCounters(true);

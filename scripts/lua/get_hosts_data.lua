@@ -17,6 +17,7 @@ sortOrder   = _GET["sortOrder"]
 protocol    = _GET["protocol"]
 net         = _GET["net"]
 long_names  = _GET["long_names"]
+criteria    = _GET["criteria"]
 
 -- Host comparison parameters
 mode        = _GET["mode"]
@@ -57,23 +58,34 @@ else
    end
 end
 
+criteria_key = nil
+sortPrefs = "hosts"
+if(criteria ~= nil) then
+   criteria_key, criteria_format = label2criteriakey(criteria)
+   sortPrefs = "localhosts_"..criteria
+   mode = "local"
+end
+
+
+
 if((sortColumn == nil) or (sortColumn == "column_"))then
-   sortColumn = getDefaultTableSort("hosts")
+   sortColumn = getDefaultTableSort(sortPrefs)
 else
    if((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
-      tablePreferences("sort_hosts",sortColumn)
+      tablePreferences("sort_"..sortPrefs,sortColumn)
    end
 end
 
 if(sortOrder == nil) then
-   sortOrder = getDefaultTableSortOrder("hosts")
+   sortOrder = getDefaultTableSortOrder(sortPrefs)
 else
    if((sortColumn ~= "column_")
     and (sortColumn ~= "")) then
-      tablePreferences("sort_order_hosts",sortOrder)
+      tablePreferences("sort_order_"..sortPrefs,sortOrder)
    end
 end
+
 
 if(currentPage == nil) then
    currentPage = 1
@@ -105,7 +117,7 @@ elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
 end
 
-hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder, 
+hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
 	                           country, os_, tonumber(vlan), tonumber(asn),
 				   tonumber(network), mac) -- false = little details
 
@@ -115,7 +127,6 @@ if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
 -- for k,v in pairs(hosts_stats) do io.write(k.." ["..sortColumn.."]\n") end
 
--- io.write("->"..total.." ["..sortColumn.."]\n")
 
 if(all ~= nil) then
    perPage = 0
@@ -214,48 +225,59 @@ for key, value in pairs(hosts_stats) do
    end
 
    if(ok == true) then
-     -- io.write("==>"..key.."\n")
-      -- tprint(hosts_stats[key])
+      --io.write("==>"..key.."\n")
+       -- tprint(hosts_stats[key])
       --io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
       if(sortColumn == "column_") then
 	 vals[key] = key -- hosts_stats[key]["ipkey"]
-	 elseif(sortColumn == "column_name") then
+      elseif(sortColumn == "column_name") then
 	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
 	 vals[hosts_stats[key]["name"]..postfix] = key
-	 elseif(sortColumn == "column_since") then
+      elseif(sortColumn == "column_since") then
 	 vals[(now-hosts_stats[key]["seen.first"])+postfix] = key
-	 elseif(sortColumn == "column_alerts") then
+      elseif(sortColumn == "column_alerts") then
 	 vals[(now-hosts_stats[key]["num_alerts"])+postfix] = key
-	 elseif(sortColumn == "column_family") then
+      elseif(sortColumn == "column_family") then
 	 vals[(now-hosts_stats[key]["family"])+postfix] = key
-	 elseif(sortColumn == "column_last") then
+      elseif(sortColumn == "column_last") then
 	 vals[(now-hosts_stats[key]["seen.last"]+1)+postfix] = key
-	 elseif(sortColumn == "column_category") then
+      elseif(sortColumn == "column_category") then
 	 if(hosts_stats[key]["category"] == nil) then hosts_stats[key]["category"] = "" end
 	 vals[hosts_stats[key]["category"]..postfix] = key
-         elseif(sortColumn == "column_httpbl") then
+      elseif(sortColumn == "column_httpbl") then
 	 if(hosts_stats[key]["httpbl"] == nil) then hosts_stats[key]["httpbl"] = "" end
 	 vals[hosts_stats[key]["httpbl"]..postfix] = key
-	 elseif(sortColumn == "column_asn") then
+      elseif(sortColumn == "column_asn") then
 	 vals[hosts_stats[key]["asn"]..postfix] = key
-	 elseif(sortColumn == "column_country") then
+      elseif(sortColumn == "column_country") then
 	 vals[hosts_stats[key]["country"]..postfix] = key
-	 elseif(sortColumn == "column_vlan") then
+      elseif(sortColumn == "column_vlan") then
 	 vals[hosts_stats[key]["vlan"]..postfix] = key
-	 elseif(sortColumn == "column_thpt") then
+      elseif(sortColumn == "column_thpt") then
 	 vals[hosts_stats[key]["throughput_"..throughput_type]+postfix] = key
-	 elseif(sortColumn == "column_queries") then
+      elseif(sortColumn == "column_queries") then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
-	 elseif(sortColumn == "column_ip") then
+      elseif(sortColumn == "column_ip") then
 	 vals[hosts_stats[key]["ipkey"]+postfix] = key
-      else
-	 -- io.write(key.."\n")
-	 -- io.write(hosts_stats[key].."\n")
-	 -- for k,v in pairs(hosts_stats[key]) do io.write(k.."\n") end
+	 -- looking_glass_criteria
+      elseif(criteria ~= nil) then
+	 io.write("==> "..criteria.."\n")
+	 if(sortColumn == "column_"..criteria) then
+	    local c = hosts_stats[key]["criteria"]
 
-	 vals[(hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"])+postfix] = key
+	    if(c ~= nil) then
+	       vals[c[criteria_key]+postfix] = key
+	       --io.write(key.."="..hosts_stats[key]["criteria"][criteria_key].."\n")
+	    end
+	 end
       end
+   else
+      -- io.write(key.."\n")
+      -- io.write(hosts_stats[key].."\n")
+      -- for k,v in pairs(hosts_stats[key]) do io.write(k.."\n") end
+      
+      vals[(hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"])+postfix] = key
    end
 end
 end
@@ -375,9 +397,13 @@ for _key, _value in pairsByKeys(vals, funct) do
 	       end
 	    end
 
-
 	    print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
 	    print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
+
+
+	    if((criteria_key ~= nil) and (value["criteria"] ~= nil)) then
+	       print("\"column_"..criteria.."\" : \"" .. criteria_format(value["criteria"][criteria_key]) .. "\", ")
+	    end
 
 	    if((value["throughput_trend_"..throughput_type] ~= nil) and
 	       (value["throughput_trend_"..throughput_type] > 0)) then

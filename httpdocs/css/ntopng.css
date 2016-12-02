@@ -135,6 +135,12 @@ min-width: 100px;
   /*background-color: #f5f5f5;*/
 }
 
+/* For shaper id selection, should also inherit from form-control */
+.shaper-selector {
+  width: 10em;
+  margin: 0 auto;
+}
+
 /*Hide numeric input box spinners for 'no-spinner' class */
 input.no-spinner[type=number]::-webkit-inner-spin-button,
 input.no-spinner[type=number]::-webkit-outer-spin-button {

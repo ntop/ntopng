@@ -204,10 +204,8 @@ if(network_url == "") then
    print (ntop.getHttpPrefix())
    print ('/lua/hosts_stats.lua?mode=local">Local Only</a></li><li><a href="')
    print (ntop.getHttpPrefix())
-   print ('/lua/hosts_stats.lua?mode=remote">Remote Only</a></li><li>&nbsp;</li><li><a href="')
-   print (ntop.getHttpPrefix())
-   print ('/lua/network_stats.lua">Local Networks</a></li></ul>')
-   print ("</div>' ],")
+   print ('/lua/hosts_stats.lua?mode=remote">Remote Only</a></li>')
+   print("</ul></div>' ],")
 else
    print('buttons: [ \'')
 
@@ -256,7 +254,34 @@ print [[
 ]]
 end
 
+print [[
+			     {
+			     title: "Location",
+				 field: "column_location",
+				 sortable: false,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+
+				 },			     
+]]
+
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_top.inc")
+
+print [[
+
+			     {
+			     title: "ASN",
+				 field: "column_asn",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+
+				 },
+
+]]
+
 
 if(prefs.is_httpbl_enabled) then
 print [[

@@ -1966,8 +1966,9 @@ print('<ul class="nav nav-tabs">')
 -- possibly add a tab if there are alerts configured for the host
 local num_alerts         = interface.getNumAlerts(--[[ NOT engaged --]]false, "host", hostkey)
 local num_engaged_alerts = interface.getNumAlerts(--[[ engaged --]]     true, "host", hostkey)
+local num_flow_alerts    = interface.getNumFlowAlerts("host", hostkey)
 
-if num_alerts > 0 or num_engaged_alerts > 0 then
+if num_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
    if(tab == nil) then
       -- if no tab is selected and there are alert, we show them by default
       tab = "alert_list"
@@ -1986,7 +1987,7 @@ end
 for _,e in pairs(alerts_granularity) do
    local k = e[1]
    local l = e[2]
-   l = '<i class="fa fa-wrench" aria-hidden="true"></i>&nbsp;'..l
+   l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
    
 
    if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
@@ -2064,7 +2065,7 @@ if tab == "alert_list" then
    _GET["host"] = host_ip
    _GET["vlan"] = host_vlan
    _GET["ifname"] = ifId
-   drawAlertTables(num_alerts, num_engaged_alerts, 0, _GET)
+   drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET)
 else
    print [[
     <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>

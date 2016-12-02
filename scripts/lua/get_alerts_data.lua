@@ -75,25 +75,30 @@ interface.select(ifname)
 
 local alerts
 local num_alerts = totalRows
+local has_host_filter = (_GET["entity"] == "host")
 
-if _GET["entity"] == "host" then
+if has_host_filter then
    paginfo["entityFilter"] = alertEntity("host")
    paginfo["entityValueFilter"] = _GET["entity_val"]
-   alerts = interface.getAlerts(paginfo, engaged)
-   if num_alerts == nil then
-      num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
-   end
+end
 
-elseif status == "historical-flows" then
+if status == "historical-flows" then
    alerts = interface.getFlowAlerts(paginfo)
    if num_alerts == nil then
-      num_alerts = interface.getNumFlowAlerts()
+      if has_host_filter then
+         num_alerts = interface.getNumFlowAlerts("host", _GET["entity_val"])
+      else
+         num_alerts = interface.getNumFlowAlerts()
+      end
    end
-
 else --if status == "historical" then
    alerts = interface.getAlerts(paginfo, engaged)
    if num_alerts == nil then
-      num_alerts = interface.getNumAlerts(engaged)
+      if has_host_filter then
+         num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
+      else
+         num_alerts = interface.getNumAlerts(engaged)
+      end
    end
 
 end
@@ -139,19 +144,23 @@ for _key,_value in ipairs(alerts) do
    column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><input type=hidden name=currentPage value=".. currentPage .."><input type=hidden name=perPage value=".. perPage .."><input type=hidden name=status value="..tostring(status).."><input type=hidden name=alerts_impl value="..tostring(alertsImpl).."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
 
    if ntop.isEnterprise() and status == "historical-flows" then
-      local explore = function(peer)
-	 local h
-	 if peer == "client" then h = _value["cli_addr"]
-	 elseif peer == "server" then h = _value["srv_addr"] end
-	 
-	 local url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flow_alerts_explorer.lua?host="..h
+      local explore = function()
+	 local url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flow_alerts_explorer.lua?"
+	 local origin = _value["cli_addr"]
+	 local target = _value["srv_addr"]
+	 if origin ~= nil and origin ~= "" then
+	    url = url..'&origin='..origin
+	 end
+	 if target ~= nil and target ~= "" then
+	    url = url..'&target='..target
+	 end
 	 if _value["alert_tstamp"] ~= nil then
 	    url = url..'&period_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
 	    url = url..'&period_end='..(tonumber(_value["alert_tstamp"]) + 1800)
 	 end
-	 return "&nbsp;<a href='"..url.."'>"..peer.."</a>&nbsp;"
+	 return "&nbsp;<a class='btn btn-default btn-xs' href='"..url.."' title='"..i18n("flow_alerts_explorer.label").."'><i class='fa fa-history'></i><sup><i class='fa fa-exclamation-triangle' aria-hidden='true' style='position:absolute; margin-left:-19px; margin-top:4px;'></i></sup></a>&nbsp;"
       end
-      column_msg = column_msg.."&nbsp;<strong>flow alerts explorer:</strong> "..explore("client")..explore("server")
+      column_id = column_id.." "..explore()
 
    end
    
