@@ -638,6 +638,22 @@ end
 
 -- #################################
 
+function getExtraParameters(url_params)
+   local params = {}
+   
+   if type(url_params) == "table" then
+      for k, v in pairs(url_params) do
+        if ((k ~= "csrf") and (k ~= "older_than_seconds") and (k ~= "tab_id")) then
+           params[k] = v
+        end
+      end
+   end
+
+   return params
+end
+
+-- #################################
+
 function checkDeleteStoredAlerts()
    if(_GET["csrf"] ~= nil) then
       if(_GET["id_to_delete"] ~= nil) then
@@ -697,9 +713,6 @@ function checkDeleteStoredAlerts()
 	    end
 	 end
       end
-
-      -- keeping old CSRF is annoying, just go backward
-      print("<script>window.history.back();</script>")
    end
 end
 
@@ -856,12 +869,8 @@ function updateDeleteContext(tabid) {
 
    -- This possibly passes some parameters to the search query
    local url_extra_params = ""
-   if type(url_params) == "table" then
-      for k, v in pairs(url_params) do
-	 if ((k ~= "csrf") and (k ~= "older_than_seconds") and (k ~= "tab_id")) then
-	    url_extra_params = url_extra_params.."&"..k.."="..v
-	 end
-      end
+   for k, v in pairs(getExtraParameters(url_params)) do
+      url_extra_params = url_extra_params.."&"..k.."="..v
    end
 
 
@@ -906,7 +915,7 @@ function updateDeleteContext(tabid) {
 	    local host_ip = entity_val
 	    local sp = split(host_ip, "@")
 	    if #sp == 2 then
-	       host_ip = sp[1]
+	       host_ip = ntop.resolveAddress(sp[1])
 	    end
 	    
 	    title = title .. " - Host " .. host_ip
@@ -1042,13 +1051,10 @@ $("[clicked=1]").trigger("click");
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
       -- This is required because of drawAlertTables integration in other complex pages
-      if type(url_params) == "table" then
-	 for k, v in pairs(url_params) do
-	    if ((k ~= "csrf") and (k ~= "older_than_seconds") and (k ~= "tab_id")) then
-	       print('<input name="'..k..'" type="hidden" value="'..v..'"/>\n')
-	    end
-	 end
+      for k, v in pairs(getExtraParameters(url_params)) do
+	 print('<input name="'..k..'" type="hidden" value="'..v..'"/>\n')
       end
+
       if entity ~= nil and entity ~= "" then
 	 print('<input name="entity" type="hidden" value="'..entity..'"/>\n')
       end
