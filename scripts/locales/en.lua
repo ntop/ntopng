@@ -82,7 +82,7 @@ local  en = {
       flow_alert_targets  = "Flow Alert Targets",
       engaged_for_longest = "Engaged for Longest",
 
-      trailing_msg = "Alerts occurred during the trailing",
+      trailing_msg = "Alerts occurred during the last",
       one_min = "Minute",
       five_mins = "5 Minutes",
       one_hour = "Hour",
