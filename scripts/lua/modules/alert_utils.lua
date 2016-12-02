@@ -1007,12 +1007,12 @@ $("[clicked=1]").trigger("click");
       print [[
 </div> <!-- closes tab-content -->
 
-]] print('<i type="submit" class="fa fa-trash-o"></i><strong>'..purge_msg.."<strong>") print[[
-<button type="button" style="margin:0 1em;" class="btn btn-secondary open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">Older than</span>]]
-for k,v in ipairs(zoom_vals) do
-  print('<button type="button" class="btn btn-secondary open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
-end
-print[[
+]] print('<i type="submit" class="fa fa-trash-o"></i>'..purge_msg) print[[
+<button type="button" style="margin:0 1em;" class="btn btn-default open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">Older than: </span>]]
+      for k,v in ipairs(zoom_vals) do
+	 print('<button type="button" class="btn btn-default open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
+      end
+      print[[
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
