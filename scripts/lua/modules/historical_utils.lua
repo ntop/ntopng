@@ -1556,7 +1556,7 @@ print[[
         $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i> ' + msg.statusText  + '</H5>').show()
         return;
       } else if(msg.count.IPv4.tot_flows <= 0 && msg.count.IPv6.tot_flows <= 0) {
-        $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i> No results found. Please modify your search criteria.</H5>').show()
+        $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;]]print(i18n("error_no_search_results"))print[[</H5>').show()
         return;
       }
   
