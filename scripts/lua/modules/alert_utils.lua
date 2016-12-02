@@ -790,6 +790,190 @@ end
 
 -- #################################
 
+function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
+   local num_alerts, num_engaged_alerts, num_flow_alerts
+   local tab = _GET["tab"]
+
+   print('<ul class="nav nav-tabs">')
+
+   local function printTab(tab, content, sel_tab)
+      if(tab == sel_tab) then print("\t<li class=active>") else print("\t<li>") end
+      print("<a href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=alerts&tab="..tab)
+      for param, value in pairs(page_params) do
+         print("&"..param.."="..value)
+      end
+      print("\">"..content.."</a></li>\n")
+   end
+
+   if(show_entity) then
+      -- possibly process pending delete arguments
+      checkDeleteStoredAlerts()
+      
+      -- possibly add a tab if there are alerts configured for the host
+      num_alerts         = interface.getNumAlerts(--[[ NOT engaged --]]false, show_entity, alert_source)
+      num_engaged_alerts = interface.getNumAlerts(--[[ engaged --]]     true, show_entity, alert_source)
+      num_flow_alerts    = interface.getNumFlowAlerts(show_entity, alert_source)
+
+      if num_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
+         if(tab == nil) then
+            -- if no tab is selected and there are alerts, we show them by default
+            tab = "alert_list"
+         end
+
+         printTab("alert_list", "Detected Alerts", tab)
+      else
+         -- if there are no alerts, we show the first alert granularity configuration page
+         if(tab=="alert_list") then tab = nil end
+      end
+   end
+
+   if(tab == nil) then tab = alerts_granularity[1][1] end
+
+   for _,e in pairs(alerts_granularity) do
+      local k = e[1]
+      local l = e[2]
+      l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
+      printTab(k, l, tab)
+   end
+
+   print('</ul>')
+
+   if((show_entity) and (tab == "alert_list")) then
+      _GET["entity"] = show_entity
+      _GET["entity_val"] = alert_source
+      drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET, true)
+   else
+      -- Before doing anything we need to check if we need to save values
+
+      vals = { }
+      alerts = ""
+      to_save = false
+
+      if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
+         delete_alert_configuration(alert_source, ifname)
+         alerts = nil
+      else
+         for k,_ in pairs(alert_functions_description) do
+       value    = _GET["value_"..k]
+       operator = _GET["operator_"..k]
+
+       if((value ~= nil) and (operator ~= nil)) then
+          --io.write("\t"..k.."\n")
+          to_save = true
+          value = tonumber(value)
+          if(value ~= nil) then
+            if(alerts ~= "") then alerts = alerts .. "," end
+            alerts = alerts .. k .. ";" .. operator .. ";" .. value
+          else
+            if ntop.isPro() then ntop.withdrawNagiosAlert(alert_source, tab, k, "alarm not installed") end
+          end
+       end
+         end
+
+         --print(alerts)
+
+         if(to_save) then
+            refresh_alert_configuration(alert_source, ifname, tab, alerts)
+            if(alerts == "") then
+               ntop.delHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+            else
+               ntop.setHashCache(get_alerts_hash_name(tab, ifname), alert_source, alerts)
+            end
+         else
+            alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), alert_source)
+         end
+      end
+
+      if(alerts ~= nil) then
+         --print(alerts)
+         --tokens = string.split(alerts, ",")
+         tokens = split(alerts, ",")
+
+         --print(tokens)
+         if(tokens ~= nil) then
+       for _,s in pairs(tokens) do
+          t = string.split(s, ";")
+          --print("-"..t[1].."-")
+          if(t ~= nil) then vals[t[1]] = { t[2], t[3] } end
+       end
+         end
+      end
+
+
+      print [[
+       </ul>
+       <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
+       <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
+
+      <form>
+       <input type=hidden name=page value=alerts>
+      ]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print('<input type=hidden name=tab value="'..tab..'" />\n')
+
+      for param,value in pairs(page_params) do
+         print('<input type=hidden name="'..param..'" value="'..value..'">\n')
+      end
+
+      for k,v in pairsByKeys(alert_functions_description, asc) do
+         print("<tr><th>"..k.."</th><td>\n")
+         print("<select name=operator_".. k ..">\n")
+         if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
+         print("value=\"gt\">&gt;</option>\n")
+
+         if((vals[k] ~= nil) and (vals[k][1] == "eq")) then print("<option selected=\"selected\"") else print("<option ") end
+         print("value=\"eq\">=</option>\n")
+
+         if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
+         print("value=\"lt\">&lt;</option>\n")
+         print("</select>\n")
+         print("<input type=text name=\"value_"..k.."\" value=\"")
+         if(vals[k] ~= nil) then print(vals[k][2]) end
+         print("\">\n\n")
+         print("<br><small>"..v.."</small>\n")
+         print("</td></tr>\n")
+      end
+
+      print [[
+      <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
+
+      <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
+
+      <a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> ]] print(delete_button_msg) print[[ ]</button></a>
+      <!-- Modal -->
+      <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+       <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+          <h3 id="myModalLabel">Confirm Action</h3>
+        </div>
+        <div class="modal-body">
+       <p>]] print(delete_confirm_msg) print(" ") if alt_name ~= nil then print(alt_name) else print(alert_source) end print[[?</p>
+        </div>
+        <div class="modal-footer">
+          <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">
+      ]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
+          <button class="btn btn-primary" type="submit">Delete All</button>
+
+        </div>
+      </form>
+      </div>
+      </div>
+
+      </th> </tr>
+
+
+
+      </tbody> </table>
+      ]]
+   end
+end
+
+-- #################################
+
 function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_params, hide_extended_title)
    local entity = nil
    local entity_val = nil

@@ -24,7 +24,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 page = _GET["page"]
 if_name = _GET["if_name"]
 ifid = (_GET["id"] or _GET["ifId"])
-
+ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_clss)
@@ -883,160 +883,12 @@ end
    print("</table>")
 end
 elseif(page == "alerts") then
-local ifname_clean = "iface_"..tostring(ifid)
-local tab = _GET["tab"]
-local re_arm_minutes = ""
 
-if(tab == nil) then tab = alerts_granularity[1][1] end
+   drawAlertSourceSettings(ifname_clean,
+      i18n("show_alerts.iface_delete_config_btn"), i18n("show_alerts.iface_delete_config_confirm"),
+      "if_stats.lua", {ifid=ifid},
+      if_name)
 
-print [[ <ul class="nav nav-tabs">
-]]
-
-for _,e in pairs(alerts_granularity) do
-   local k = e[1]
-   local l = e[2]
-   l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
-
-   if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
-   print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..ifid.."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
-end
-
--- Before doing anything we need to check if we need to save values
-
-vals = { }
-alerts = ""
-to_save = false
-
-if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
-   delete_alert_configuration(ifname_clean, ifname)
-   alerts = nil
-else
-   for k,_ in pairs(alert_functions_description) do
-      value    = _GET["value_"..k]
-      operator = _GET["operator_"..k]
-
-      if((value ~= nil) and (operator ~= nil)) then
-	 --io.write("\t"..k.."\n")
-	 to_save = true
-	 value = tonumber(value)
-	 if(value ~= nil) then
-	   if(alerts ~= "") then alerts = alerts .. "," end
-	   alerts = alerts .. k .. ";" .. operator .. ";" .. value
-	 else
-	   if ntop.isPro() then ntop.withdrawNagiosAlert(ifname_clean, tab, k, "alarm not installed") end
-	 end
-      end
-   end
-
-   --print(alerts)
-
-   if(to_save) then
-      refresh_alert_configuration(ifname_clean, ifname, tab, alerts)
-      if(alerts == "") then
-	 ntop.delHashCache(get_alerts_hash_name(tab, ifname), ifname_clean)
-      else
-	 ntop.setHashCache(get_alerts_hash_name(tab, ifname), ifname_clean, alerts)
-      end
-   else
-      alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), ifname_clean)
-   end
-end
-
-if(alerts ~= nil) then
-   --print(alerts)
-   --tokens = string.split(alerts, ",")
-   tokens = split(alerts, ",")
-
-   --print(tokens)
-   if(tokens ~= nil) then
-      for _,s in pairs(tokens) do
-	 t = string.split(s, ";")
-	 --print("-"..t[1].."-")
-	 if(t ~= nil) then vals[t[1]] = { t[2], t[3] } end
-      end
-   end
-end
-
-if(tab == "alerts_preferences") then
-   suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), "iface_"..tostring(ifid))
-   if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-      alerts_checked = 'checked="checked"'
-      alerts_value = "false" -- Opposite
-   else
-      alerts_checked = ""
-      alerts_value = "true" -- Opposite
-   end
-
-else
-   print [[
-    </ul>
-    <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
-    <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
-
-
-   <form>
-    <input type=hidden name=page value=alerts>
-   ]]
-
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print("<input type=hidden name=ifId value=\""..ifid.."\">\n")
-   print("<input type=hidden name=tab value="..tab..">\n")
-
-   for k,v in pairsByKeys(alert_functions_description, asc) do
-      print("<tr><th>"..k.."</th><td>\n")
-      print("<select name=operator_".. k ..">\n")
-      if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end
-      print("value=\"gt\">&gt;</option>\n")
-
-      if((vals[k] ~= nil) and (vals[k][1] == "eq")) then print("<option selected=\"selected\"") else print("<option ") end
-      print("value=\"eq\">=</option>\n")
-
-      if((vals[k] ~= nil) and (vals[k][1] == "lt")) then print("<option selected=\"selected\"") else print("<option ") end
-      print("value=\"lt\">&lt;</option>\n")
-      print("</select>\n")
-      print("<input type=text name=\"value_"..k.."\" value=\"")
-      if(vals[k] ~= nil) then print(vals[k][2]) end
-      print("\">\n\n")
-      print("<br><small>"..v.."</small>\n")
-      print("</td></tr>\n")
-   end
-
-   print [[
-   <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
-
-   <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
-
-   <a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> Delete All Interface Configured Alerts ]</button></a>
-   <!-- Modal -->
-   <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-     <div class="modal-dialog">
-       <div class="modal-content">
-	 <div class="modal-header">
-       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
-       <h3 id="myModalLabel">Confirm Action</h3>
-     </div>
-     <div class="modal-body">
-	 <p>Do you really want to delete all configured alerts for interface ]] print(if_name) print [[?</p>
-     </div>
-     <div class="modal-footer">
-       <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">
-   ]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-       <button class="btn btn-primary" type="submit">Delete All</button>
-
-     </div>
-   </form>
-   </div>
-   </div>
-
-   </th> </tr>
-
-
-
-   </tbody> </table>
-   ]]
-end
 elseif(page == "config") then
 local re_arm_minutes = nil
 local if_name = ifstats.name

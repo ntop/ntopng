@@ -84,7 +84,13 @@ local  en = {
       alert_counts = "Counts",
       last_minute = "Last Minute",
       last_hour = "Last Hour",
-      last_day = "Last Day"
+      last_day = "Last Day",
+      iface_delete_config_btn = "Delete All Interface Configured Alerts",
+      iface_delete_config_confirm = "Do you really want to delete all configured alerts for interface",
+      network_delete_config_btn = "Delete All Network Configured Alerts",
+      network_delete_config_confirm = "Do you really want to delete all configured alerts for network",
+      host_delete_config_btn = "Delete All Host Configured Alerts",
+      host_delete_config_confirm = "Do you really want to delete all configured alerts for host",
    },
 
    alerts_dashboard = {
