@@ -279,4 +279,3 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
     return(Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
   }
 }
-

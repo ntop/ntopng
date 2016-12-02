@@ -63,9 +63,18 @@ local  en = {
    },
 
    show_alerts = {
+      alerts = "Alerts",
       engaged_alerts = "Engaged Alerts",
       past_alerts = "Past Alerts",
-      past_flow_alerts = "Past Flow Alerts"
+      past_flow_alerts = "Past Flow Alerts",
+      older_5_minutes_ago = "older than 5 minutes ago",
+      older_30_minutes_ago = "older than 30 minutes ago",
+      older_1_hour_ago = "older than 1 hour ago",
+      older_1_day_ago = " older than 1 day ago",
+      older_1_week_ago = "older than 1 week ago",
+      older_1_month_ago = "older than 1 month ago",
+      older_6_months_ago = "older than 6 months ago",
+      older_1_year_ago = "older than 1 year ago",
    },
 
    alerts_dashboard = {

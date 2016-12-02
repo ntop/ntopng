@@ -144,6 +144,7 @@ class AlertsManager : protected StoreManager {
 
   int getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged);
   int getNumHostAlerts(Host *h, bool engaged);
+  int getNumHostFlowAlerts(const char *host_ip, u_int16_t vlan_id);
 
   /*
     ========== FLOW alerts API =========
@@ -219,10 +220,10 @@ class AlertsManager : protected StoreManager {
   /*
     ========== delete API ======
    */
-  int deleteFlowAlerts(const int *rowid);
-  int deleteAlerts(bool engaged, const int *rowid);
-  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
-  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);
+  int deleteFlowAlerts(const int *rowid, time_t older_than, const char * host_filter);
+  int deleteAlerts(bool engaged, const int *rowid, time_t older_than);
+  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, time_t older_than);
+  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type, time_t older_than);
 
   /*
     ========== raw API ======

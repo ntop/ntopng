@@ -75,25 +75,30 @@ interface.select(ifname)
 
 local alerts
 local num_alerts = totalRows
+local has_host_filter = (_GET["entity"] == "host")
 
-if _GET["entity"] == "host" then
+if has_host_filter then
    paginfo["entityFilter"] = alertEntity("host")
    paginfo["entityValueFilter"] = _GET["entity_val"]
-   alerts = interface.getAlerts(paginfo, engaged)
-   if num_alerts == nil then
-      num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
-   end
+end
 
-elseif status == "historical-flows" then
+if status == "historical-flows" then
    alerts = interface.getFlowAlerts(paginfo)
    if num_alerts == nil then
-      num_alerts = interface.getNumFlowAlerts()
+      if has_host_filter then
+         num_alerts = interface.getNumFlowAlerts("host", _GET["entity_val"])
+      else
+         num_alerts = interface.getNumFlowAlerts()
+      end
    end
-
 else --if status == "historical" then
    alerts = interface.getAlerts(paginfo, engaged)
    if num_alerts == nil then
-      num_alerts = interface.getNumAlerts(engaged)
+      if has_host_filter then
+         num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
+      else
+         num_alerts = interface.getNumAlerts(engaged)
+      end
    end
 
 end

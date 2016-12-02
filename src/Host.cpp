@@ -1585,3 +1585,22 @@ void Host::getIfaStats(InterFlowActivityProtos proto, time_t when,
     }
   }
 }
+
+/* *************************************** */
+
+/* Splits a string in the format hostip@vlanid: *buf=hostip, *vlan_id=vlanid */
+void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id) {
+  int size;
+  const char *vlan_ptr = strchr(at_sign_str, '@');
+
+  if (vlan_ptr == NULL) {
+    vlan_ptr = at_sign_str + strlen(at_sign_str);
+    *vlan_id = 0;
+  } else {
+    *vlan_id = atoi(vlan_ptr + 1);
+  }
+
+  size = min(bufsize, (int)(vlan_ptr - at_sign_str + 1));
+  strncpy(buf, at_sign_str, size);
+  buf[size-1] = '\0';
+}
