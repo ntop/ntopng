@@ -278,6 +278,13 @@ if(ifstats.inline and isAdministrator()) then
    end
 end
 
+local ifname_clean = "iface_"..tostring(ifid)
+
+if _GET["re_arm_minutes"] ~= nil then
+   page = "config"
+   ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean), _GET["re_arm_minutes"])
+end
+
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
 </ul>
@@ -878,7 +885,7 @@ end
 elseif(page == "alerts") then
 local ifname_clean = "iface_"..tostring(ifid)
 local tab = _GET["tab"]
-local re_arm_minutes = nil
+local re_arm_minutes = ""
 
 if(tab == nil) then tab = alerts_granularity[1][1] end
 
@@ -888,7 +895,7 @@ print [[ <ul class="nav nav-tabs">
 for _,e in pairs(alerts_granularity) do
    local k = e[1]
    local l = e[2]
-   l = '<i class="fa fa-wrench" aria-hidden="true"></i>&nbsp;'..l
+   l = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..l
 
    if(k == tab) then print("\t<li class=active>") else print("\t<li>") end
    print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..ifid.."&page=alerts&tab="..k.."\">"..l.."</a></li>\n")
@@ -933,14 +940,6 @@ else
    else
       alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), ifname_clean)
    end
-   if _GET["re_arm_minutes"] then
-      ntop.setHashCache(get_re_arm_alerts_hash_name(tab),
-			"ifid_"..tostring(ifId).."_"..ifname_clean,
-			_GET["re_arm_minutes"])
-   end
-   re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(tab),
-				      "ifid_"..tostring(ifId).."_"..ifname_clean)
-   if not re_arm_minutes then re_arm_minutes="" end
 end
 
 if(alerts ~= nil) then
@@ -1003,15 +1002,6 @@ else
    end
 
    print [[
-   <tr><td colspan=2  style="text-align: left; white-space: nowrap;" ></td></tr>
-   <tr>
-     <td style="text-align: left; white-space: nowrap;" ><b>Re-arm minutes</b></td>
-     <td>
-     <input type="number" name="re_arm_minutes" style="width: 50px;" value=]] print(tostring(re_arm_minutes)) print[[><br>
-     <small>The re-arm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
-     </td>
-   </tr>
-
    <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
 
    <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
@@ -1048,8 +1038,8 @@ else
    ]]
 end
 elseif(page == "config") then
+local re_arm_minutes = nil
 local if_name = ifstats.name
-local ifname_clean = "iface_"..tostring(ifid)
 
    if(isAdministrator()) then
       trigger_alerts = _GET["trigger_alerts"]
@@ -1061,6 +1051,9 @@ local ifname_clean = "iface_"..tostring(ifid)
 	 end
       end
    end
+
+   re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean))
+   if re_arm_minutes == "" then re_arm_minutes=default_re_arm_minutes end
 
    print("<table class=\"table table-striped table-bordered\">\n")
        suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), ifname_clean)
@@ -1085,6 +1078,19 @@ local ifname_clean = "iface_"..tostring(ifid)
 	 print('</form>')
 	 print('</td>')
 	 print [[</tr>]]
+
+   print[[<tr><form class="form-inline" style="margin-bottom: 0px;">
+      <input type="hidden" name="tab" value="alerts_preferences">
+        <input type="hidden" name="ifId" value="]]
+        print(ifid)
+      print[["><input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+         <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
+         <td>
+            <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
+            &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+            <br><small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+         </td>
+    </form></tr>]]
 
     print("</table>")
 elseif(page == "filtering") then

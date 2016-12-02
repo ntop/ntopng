@@ -68,6 +68,10 @@ if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
         -- interface.loadHostAlertPrefs(network_name, network_vlan) TODO: decide to implement it for networks
     end
 end
+if _GET["re_arm_minutes"] ~= nil then
+    page = "config"
+    ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, network_name), _GET["re_arm_minutes"])
+end
 
 --[[
 Create Menu Bar with buttons
@@ -135,6 +139,8 @@ if page == "historical" then
     drawRRD(ifId, 'net:'..network_name, rrdfile, _GET["graph_zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
 elseif (page == "config") then
+    local re_arm_minutes = ""
+
     if(isAdministrator()) then
         trigger_alerts = _GET["trigger_alerts"]
         if(trigger_alerts ~= nil) then
@@ -145,6 +151,9 @@ elseif (page == "config") then
             end
         end
     end
+
+    re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, network_name))
+    if re_arm_minutes == "" then re_arm_minutes=default_re_arm_minutes end
 
     local flow_rate_alter_thresh = ntop.getCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.flow_rate_alert_threshold')
     local syn_alert_thresh = ntop.getCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.syn_alert_threshold')
@@ -230,17 +239,29 @@ elseif (page == "config") then
     print('</td>')
     print [[</tr>]]
 
+    print[[<tr><form class="form-inline" style="margin-bottom: 0px;">
+      <input type="hidden" name="tab" value="alerts_preferences">
+        <input type="hidden" name="network" value="]]
+        print(network)
+      print[["><input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+         <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
+         <td>
+            <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
+            &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+            <br><small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+         </td>
+      </form></tr>]]
+
     print("</table>")
 
 elseif(page == "alerts") then
     local tab = _GET["tab"]
-    local re_arm_minutes = nil
     if(tab == nil) then tab = alerts_granularity[1][1] end
     print('<ul class="nav nav-tabs">')
     for _,e in pairs(alerts_granularity) do
         local tab_id = e[1]
         local tab_label = e[2]
-	tab_label = '<i class="fa fa-wrench" aria-hidden="true"></i>&nbsp;'..tab_label
+	tab_label = '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;'..tab_label
 
         if(tab_id == tab) then print("\t<li class=active>") else print("\t<li>") end
         print("<a href=\""..ntop.getHttpPrefix().."/lua/network_details.lua?network="..network.."&vlan="..network_vlan.."&page=alerts&tab="..tab_id.."\">"..tab_label.."</a></li>\n")
@@ -279,14 +300,6 @@ elseif(page == "alerts") then
         else
 	   alerts = ntop.getHashCache(get_alerts_hash_name(tab, ifname), network_name)
         end
-        if _GET["re_arm_minutes"] then
-	   ntop.setHashCache(get_re_arm_alerts_hash_name(tab),
-			     "ifid_"..tostring(ifId).."_"..network_name,
-			     _GET["re_arm_minutes"])
-        end
-        re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(tab),
-					   "ifid_"..tostring(ifId).."_"..network_name)
-        if not re_arm_minutes then re_arm_minutes="" end
     end
 
     if(alerts ~= nil) then
@@ -335,15 +348,6 @@ elseif(page == "alerts") then
     end
 
     print [[
-   <tr><td colspan=2  style="text-align: left; white-space: nowrap;" ></td></tr>
-   <tr>
-     <td style="text-align: left; white-space: nowrap;" ><b>Re-arm minutes</b></td>
-     <td>
-     <input type="number" name="re_arm_minutes" style="width: 50px;" value=]] print(tostring(re_arm_minutes)) print[[><br>
-     <small>The re-arm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
-     </td>
-   </tr>
-
    <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
 
    <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">

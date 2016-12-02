@@ -43,19 +43,25 @@ function get_alerts_hash_name(timespan, ifname)
    return "ntopng.prefs.alerts_"..timespan..".ifid_"..tostring(ifid)
 end
 
-function get_re_arm_alerts_hash_name(timespan)
-   if not is_allowed_timespan(timespan) then
-      return nil
-   end
-   return "ntopng.prefs.alerts_"..timespan.."_re_arm_minutes"
+function get_re_arm_alerts_hash_name()
+   return "ntopng.prefs.alerts_re_arm_minutes"
 end
 
-function get_re_arm_alerts_temporary_key(timespan, ifname, alarmed_source, alarmed_metric)
+function get_re_arm_alerts_hash_key(ifid, ifname_or_network)
+   local parts = {"ifid", tostring(ifid)}
+   if ifname_or_network ~= nil then
+      parts[#parts+1] = ifname_or_network
+   end
+
+   return table.concat(parts, "_")
+end
+
+function get_re_arm_alerts_temporary_key(ifname, alarmed_source, alarmed_metric)
    local ifid = getInterfaceId(ifname)
-   if not is_allowed_timespan(timespan) or tonumber(ifid) == nil or not is_allowed_alarmable_metric(alarmed_metric) then
+   if(tonumber(ifid) == nil) or (not is_allowed_alarmable_metric(alarmed_metric)) then
       return nil
    end
-   local alarm_string = alarmed_source.."_"..timespan.."_"..alarmed_metric
+   local alarm_string = alarmed_source.."_"..alarmed_metric
    return "ntopng.alerts.ifid_"..tostring(ifid).."_re_arming_"..alarm_string
 end
 
@@ -135,12 +141,7 @@ alerts_granularity = {
 
 alarmable_metrics = {'bytes', 'packets', 'dns', 'p2p', 'idle', 'ingress', 'egress', 'inner'}
 
-default_re_arm_minutes = {
-    ["min"]  = 1    ,
-    ["5mins"]= 5    ,
-    ["hour"] = 60   ,
-    ["day"]  = 3600
-}
+default_re_arm_minutes = 5
 
 alert_functions_description = {
     ["bytes"]   = "Bytes delta (sent + received)",
@@ -157,15 +158,14 @@ network_alert_functions_description = {
 }
 
 
-function re_arm_alert(alarm_source, timespan, alarmed_metric, ifname)
+function re_arm_alert(alarm_source, alarmed_metric, ifname)
    local ifid = getInterfaceId(ifname)
-   local re_arm_key = get_re_arm_alerts_temporary_key(timespan, ifname, alarm_source, alarmed_metric)
-   local re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(timespan),
-					    "ifid_"..tostring(ifid).."_"..alarm_source)
+   local re_arm_key = get_re_arm_alerts_temporary_key(ifname, alarm_source, alarmed_metric)
+   local re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifid, alarm_source))
    if re_arm_minutes ~= "" then
       re_arm_minutes = tonumber(re_arm_minutes)
    else
-      re_arm_minutes = default_re_arm_minutes[timespan]
+      re_arm_minutes = default_re_arm_minutes
    end
    if verbose then io.write('re_arm_minutes: '..re_arm_minutes..'\n') end
    -- we don't care about key contents, we just care about its exsistance
@@ -176,8 +176,8 @@ function re_arm_alert(alarm_source, timespan, alarmed_metric, ifname)
 		 re_arm_minutes * 60 - 5 --[[ subtract 5 seconds to make sure the limit is obeyed --]])
 end
 
-function is_alert_re_arming(alarm_source, timespan, alarmed_metric, ifname)
-   local re_arm_key = get_re_arm_alerts_temporary_key(timespan, ifname, alarm_source, alarmed_metric)
+function is_alert_re_arming(alarm_source, alarmed_metric, ifname)
+   local re_arm_key = get_re_arm_alerts_temporary_key(ifname, alarm_source, alarmed_metric)
    local is_rearming = ntop.getCache(re_arm_key)
    if is_rearming ~= "" then
       if verbose then io.write('re_arm_key: '..re_arm_key..' -> ' ..is_rearming..'-- \n') end
@@ -188,15 +188,10 @@ end
 
 -- #################################################################
 function delete_re_arming_alerts(alert_source, ifid)
-   for k1, timespan in pairs(alerts_granularity) do
-        timespan = timespan[1]
-        local alarm_string = alert_source.."_"..timespan
-        for k2, alarmed_metric in pairs(alarmable_metrics) do
-            local alarm_string_2 = alarm_string.."_"..alarmed_metric
-            local re_arm_key = "ntopng.alerts.ifid_"..tostring(ifid).."_re_arming_"..alarm_string_2
-            ntop.delCache(re_arm_key)
-        end
-    end
+     for k2, alarmed_metric in pairs(alarmable_metrics) do
+	 local re_arm_key = get_re_arm_alerts_temporary_key(ifid, alert_source, alarmed_metric)
+	 ntop.delCache(re_arm_key)
+     end
 end
 
 function delete_alert_configuration(alert_source, ifname)
@@ -226,8 +221,7 @@ function delete_alert_configuration(alert_source, ifname)
 	 end
 	 ntop.delHashCache(key, alert_source)
       end
-      ntop.delHashCache(get_re_arm_alerts_hash_name(timespan),
-			"ifid_"..tostring(ifid).."_"..alert_source)
+      ntop.delHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifid, alert_source))
    end
 end
 
@@ -329,10 +323,10 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
 	       -- only if the alert is not in its re-arming period...
-	       if not is_alert_re_arming(key, mode, t[1], ifname) then
+	       if not is_alert_re_arming(key, t[1], ifname) then
 		  if verbose then io.write("queuing alert\n") end
 		  -- re-arm the alert
-		  re_arm_alert(key, mode, t[1], ifname)
+		  re_arm_alert(key, t[1], ifname)
 		  -- and send it to ntopng
 		  interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
 		  if ntop.isPro() then
@@ -347,7 +341,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
             else  -- alert has not been triggered
 	       alert_status = 2 -- alert off
 	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-	       if not is_alert_re_arming(key, mode, t[1], ifname) then
+	       if not is_alert_re_arming(key, t[1], ifname) then
 		  interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
 		  if ntop.isPro() then
 		     ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
@@ -412,9 +406,9 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             if(rc) then
                 local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF="..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
-                if not is_alert_re_arming(network_name, mode, t[1], ifname) then
+                if not is_alert_re_arming(network_name, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
-                    re_arm_alert(network_name, mode, t[1], ifname)
+                    re_arm_alert(network_name, t[1], ifname)
 		    interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
@@ -426,7 +420,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if not is_alert_re_arming(network_name, mode, t[1], ifname) then
+                if not is_alert_re_arming(network_name, t[1], ifname) then
 		   interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
 		   if ntop.isPro() then
 		      ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
@@ -485,9 +479,9 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
                 ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
-                if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
+                if not is_alert_re_arming(ifname_clean, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
-                    re_arm_alert(ifname_clean, mode, t[1], ifname)
+                    re_arm_alert(ifname_clean, t[1], ifname)
 		    interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
@@ -500,7 +494,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 if(verbose) then print("<font color=red>".. alert_msg .."</font><br>\n") end
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
-                if not is_alert_re_arming(ifname_clean, mode, t[1], ifname) then
+                if not is_alert_re_arming(ifname_clean, t[1], ifname) then
 		   interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
 		   if ntop.isPro() then
 		      ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
