@@ -1003,14 +1003,14 @@ $("[clicked=1]").trigger("click");
 
       local purge_msg = " Purge "
       if entity ~= nil and entity ~= "" then purge_msg = purge_msg..firstToUpper(entity).." " else purge_msg = purge_msg..'<span id="purgeBtnLabel"></span>' end
-      purge_msg = purge_msg.."Alerts"
+      purge_msg = purge_msg.."Alerts:"
       print [[
 </div> <!-- closes tab-content -->
 
 ]] print('<i type="submit" class="fa fa-trash-o"></i>'..purge_msg) print[[
-<button type="button" style="margin:0 1em;" class="btn btn-default open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">Older than: </span>]]
+<button type="button" style="margin:0 1em;" class="btn btn-default btn-xs open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">older than </span>]]
       for k,v in ipairs(zoom_vals) do
-	 print('<button type="button" class="btn btn-default open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
+	 print('<button type="button" class="btn btn-default btn-xs open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
       end
       print[[
 <!-- Modal -->
