@@ -122,16 +122,24 @@ if(host == nil) then
       if(not(restoreFailed) and (host_info ~= nil) and (host_info["host"] ~= nil)) then json = ntop.getCache(host_info["host"].. "." .. ifId .. ".json") end
       sendHTTPHeader('text/html; charset=iso-8859-1')
       ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-      dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-      print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> Host '.. hostinfo2hostkey(host_info) .. ' cannot be found. ')
-      if((json ~= nil) and (json ~= "")) then
-	 print(' Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
+      if page == "alerts" then
+	 print('<script>window.location.href = "')
+	 print(ntop.getHttpPrefix())
+	 print('/lua/show_alerts.lua?entity=host&entity_val=')
+	 print(hostkey)
+	 print('";</script>')
       else
-	 print(purgedErrorString())
-      end
+	 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+	 print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> Host '.. hostinfo2hostkey(host_info) .. ' cannot be found. ')
+	 if((json ~= nil) and (json ~= "")) then
+	    print(' Click <A HREF="?ifname='..ifId..'&'..hostinfo2url(host_info) ..'&mode=restore">here</A> to restore it from cache.\n')
+	 else
+	    print(purgedErrorString())
+	 end
 
-      print("</div>")
-      dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+	 print("</div>")
+	 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+      end
       return
    end
 else
@@ -2060,7 +2068,7 @@ if tab == "alert_list" then
    _GET["host"] = host_ip
    _GET["vlan"] = host_vlan
    _GET["ifname"] = ifId
-   drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET)
+   drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET, true)
 else
    print [[
     <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>

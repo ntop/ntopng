@@ -777,9 +777,11 @@ end
 
 -- #################################
 
-function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_params)
+function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_params, hide_extended_title)
    local entity = nil
-   if _GET["entity"] ~= nil and _GET["entity"] ~= "" then entity = _GET["entity"] end   
+   local entity_val = nil
+   if _GET["entity"] ~= nil and _GET["entity"] ~= "" then entity = _GET["entity"] end
+   if _GET["entity_val"] ~= nil and _GET["entity_val"] ~= "" then entity_val = _GET["entity_val"] end
    local alert_items = {}
 
    print[[
@@ -813,6 +815,9 @@ function getActiveTabId() {
 
 function updateDeleteLabel(tabid) {
    var label = $("#purgeBtnLabel");
+   var prefix = "]]
+if entity ~= nil and entity ~= "" then print(firstToUpper(entity).." ") end
+print [[";
    var val = "";
 
    if (tabid == "tab-table-engaged-alerts")
@@ -820,9 +825,9 @@ function updateDeleteLabel(tabid) {
    else if (tabid == "tab-table-alerts-history")
       val = "Past ";
    else if (tabid == "tab-table-flow-alerts-history")
-      val = "Past Flow ";
-      
-   label.html(val);
+      val = "Flow ";
+   
+   label.html(prefix + val);
 }
 
 function updateDeleteContext(tabid) {
@@ -885,8 +890,9 @@ function updateDeleteContext(tabid) {
 	       showPagination: true,
                buttons: [']]
 
+      local title = t["label"]
+      
       if entity == nil then
-
 	 -- alert_level_keys and alert_type_keys are defined in lua_utils
 	 local alert_severities = {}
 	 for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
@@ -895,7 +901,16 @@ function updateDeleteContext(tabid) {
 
 	 print(drawDropdown(t["status"], "type", _GET["type"], alert_types))
 	 print(drawDropdown(t["status"], "severity", _GET["severity"], alert_severities))
-
+      elseif((entity_val ~= nil) and (not hide_extended_title)) then
+	 if entity == "host" then
+	    local host_ip = entity_val
+	    local sp = split(host_ip, "@")
+	    if #sp == 2 then
+	       host_ip = sp[1]
+	    end
+	    
+	    title = title .. " - Host " .. host_ip
+	 end
       end
 
       print[['],
@@ -912,7 +927,7 @@ function updateDeleteContext(tabid) {
       end
       print ('sort: [ ["' .. getDefaultTableSort("alerts") ..'","' .. getDefaultTableSortOrder("alerts").. '"] ],\n')
       print [[
-	        title: "]] print(t["label"]) print[[",
+	        title: "]] print(title) print[[",
       columns: [
 	 {
 	    title: "Actions",
@@ -997,15 +1012,10 @@ local zoom_vals = {
 $("[clicked=1]").trigger("click");
 </script>
 ]]
-      
-
-      local purge_msg = " Purge "
-      if entity ~= nil and entity ~= "" then purge_msg = purge_msg..firstToUpper(entity).." " else purge_msg = purge_msg..'<span id="purgeBtnLabel"></span>' end
-      purge_msg = purge_msg.."Alerts:"
       print [[
 </div> <!-- closes tab-content -->
 
-]] print('<i type="submit" class="fa fa-trash-o"></i>'..purge_msg) print[[
+]] print('<i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts') print[[
 <button type="button" style="margin:0 1em;" class="btn btn-default btn-xs open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">older than </span>]]
       for k,v in ipairs(zoom_vals) do
 	 print('<button type="button" class="btn btn-default btn-xs open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
