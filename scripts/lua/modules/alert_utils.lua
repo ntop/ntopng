@@ -643,16 +643,18 @@ function checkDeleteStoredAlerts()
       if(_GET["id_to_delete"] ~= nil) then
 	 local older_than_seconds = tonumber(_GET["older_than_seconds"]) or 0
 	 local older_than = nil
-	 local delete_engaged, delete_past
+	 local delete_engaged, delete_past, delete_flows
 	 
 	 if(_GET["tab_id"] == nil) then
-	    delete_engaged, delete_past = true, true
+	    delete_engaged, delete_past, delete_flows = true, true, true
 	 elseif(_GET["tab_id"] == "tab-table-engaged-alerts") then
-	    delete_engaged, delete_past = true, false
-	 elseif((_GET["tab_id"] == "tab-table-flow-alerts-history") or (_GET["tab_id"] == "tab-table-alerts-history")) then
-	    delete_engaged, delete_past = false, true
+	    delete_engaged, delete_past, delete_flows = true, false, false
+	 elseif((_GET["tab_id"] == "tab-table-flow-alerts-history")) then
+	    delete_engaged, delete_past, delete_flows = false, false, true
+	 elseif(_GET["tab_id"] == "tab-table-alerts-history") then
+	    delete_engaged, delete_past, delete_flows = false, true, false
 	 else
-	    delete_engaged, delete_past = false, false
+	    delete_engaged, delete_past, delete_flows = false, false, false
 	 end
 	 
 	 if older_than_seconds > 0 then
@@ -667,12 +669,12 @@ function checkDeleteStoredAlerts()
 				      _GET["entity"], _GET["entity_val"], nil, older_than) end
 	       if delete_past then interface.deleteAlerts(false --[[ not engaged --]],
 				      _GET["entity"], _GET["entity_val"], nil, older_than) end
-	       if delete_past then interface.deleteFlowAlerts(_GET["entity"], _GET["entity_val"], nil, older_than) end
+	       if delete_flows then interface.deleteFlowAlerts(_GET["entity"], _GET["entity_val"], nil, older_than) end
 	    else
 	       -- delete all existing alerts
 	       if delete_engaged then interface.deleteAlerts(true --[[ engaged --]], nil, nil, nil, older_than) end
 	       if delete_past then interface.deleteAlerts(false --[[ not engaged --]], nil, nil, nil, older_than) end
-	       if delete_past then interface.deleteFlowAlerts(nil, nil, nil, older_than) end
+	       if delete_flows then interface.deleteFlowAlerts(nil, nil, nil, older_than) end
 	    end
 	 else
 	    local id_to_delete = tonumber(_GET["id_to_delete"])
@@ -690,7 +692,7 @@ function checkDeleteStoredAlerts()
 	       elseif _GET["status"] == "historical" then
 		  if delete_past then interface.deleteAlerts(false, id_to_delete, nil, nil, older_than) end
 	       elseif _GET["status"] == "historical-flows" then
-		  if delete_past then interface.deleteFlowAlerts(nil, nil, id_to_delete, older_than) end
+		  if delete_flows then interface.deleteFlowAlerts(nil, nil, id_to_delete, older_than) end
 	       end
 	    end
 	 end
@@ -815,8 +817,10 @@ function updateDeleteLabel(tabid) {
 
    if (tabid == "tab-table-engaged-alerts")
       val = "Engaged ";
-   else if ((tabid == "tab-table-alerts-history") ||  (tabid == "tab-table-flow-alerts-history"))
+   else if (tabid == "tab-table-alerts-history")
       val = "Past ";
+   else if (tabid == "tab-table-flow-alerts-history")
+      val = "Past Flow ";
       
    label.html(val);
 }
