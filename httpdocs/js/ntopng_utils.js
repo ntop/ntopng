@@ -194,3 +194,127 @@ function enableAllDropdownsAndTabs(){
     });
     toggleAllTabs(true)
 }
+
+function capitalize(s) {
+    return s && s[0].toUpperCase() + s.slice(1);
+}
+
+function addCommas(nStr) {
+  nStr += '';
+  var x = nStr.split('.');
+  var x1 = x[0];
+  var x2 = x.length > 1 ? '.' + x[1] : '';
+  var rgx = /(\d+)(\d{3})/;
+  while (rgx.test(x1)) {
+    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+  }
+  return x1 + x2;
+}
+
+function formatPackets(n) {
+  return(addCommas(n)+" Pkts");
+}
+
+function bytesToVolume(bytes) {
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes == 0) return '0 Bytes';
+  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+};
+
+function bytesToVolumeAndLabel(bytes) {
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes == 0) return '0 Bytes';
+  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+  return [ (bytes / Math.pow(1024, i)).toFixed(2), sizes[i] ];
+};
+
+function bitsToSize(bits, factor) {
+  var sizes = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+  if (bits == 0) return '0 bps';
+  var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
+  if (i == 0) return bits + ' ' + sizes[i];
+  return (bits / Math.pow(factor, i)).toFixed(2) + ' ' + sizes[i];
+};
+
+function bytesToSize(bytes) {
+  return(bytesToSize(bytes*8));
+}
+
+function secondsToTime(seconds) {
+   if(seconds < 1) {
+      return("< 1 sec")
+   }
+
+   var days = Math.floor(seconds / 86400)
+   var hours =  Math.floor((seconds / 3600) - (days * 24))
+   var minutes = Math.floor((seconds / 60) - (days * 1440) - (hours * 60))
+   var sec = seconds % 60
+   var msg = "", msg_array = []
+
+   if(days > 0) {
+      years = Math.floor(days/365)
+
+      if(years > 0) {
+	 days = days % 365
+
+	 msg = years + " year"
+	 if(years > 1) {
+	    msg += "s"
+	 }
+
+         msg_array.push(msg)
+         msg = ""
+      }
+      msg = days + " day"
+      if(days > 1) { msg += "s" }
+      msg_array.push(msg)
+      msg = ""
+   }
+
+   if(hours > 0) {
+      msg = hours + " hour";
+      if(hours > 1) { msg +=  "s" }
+      msg_array.push(msg)
+      msg = ""
+   }
+
+   if(minutes > 0) {
+      msg_array.push(minutes + " min")
+   }
+
+   if(sec > 0) {
+      msg_array.push(sec + " sec")
+   }
+
+   return msg_array.join(", ")
+}
+
+Date.prototype.format = function(format) { //author: meizz
+  var o = {
+     "M+" : this.getMonth()+1, //month
+     "d+" : this.getDate(),    //day
+     "h+" : this.getHours(),   //hour
+     "m+" : this.getMinutes(), //minute
+     "s+" : this.getSeconds(), //second
+     "q+" : Math.floor((this.getMonth()+3)/3),  //quarter
+     "S" : this.getMilliseconds() //millisecond
+  }
+
+  if(/(y+)/.test(format)) format=format.replace(RegExp.$1,
+						(this.getFullYear()+"").substr(4 - RegExp.$1.length));
+  for(var k in o)if(new RegExp("("+ k +")").test(format))
+    format = format.replace(RegExp.$1,
+			    RegExp.$1.length==1 ? o[k] :
+			    ("00"+ o[k]).substr((""+ o[k]).length));
+  return format;
+}
+
+
+function epoch2Seen(epoch) {
+  /* 08/01/13 15:12:37 [18 min, 13 sec ago] */
+  var d = new Date(epoch*1000);
+  var tdiff = Math.floor(((new Date()).getTime()/1000)-epoch);
+
+  return(d.format("dd/MM/yyyy hh:mm:ss")+" ["+secondsToTime(tdiff)+" ago]");
+}

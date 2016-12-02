@@ -647,19 +647,38 @@ end
 function checkDeleteStoredAlerts()
    if(_GET["csrf"] ~= nil) then
       if(_GET["id_to_delete"] ~= nil) then
+	 local older_than_seconds = tonumber(_GET["older_than_seconds"]) or 0
+	 local older_than = nil
+	 local delete_engaged, delete_past
+	 
+	 if(_GET["tab_id"] == nil) then
+	    delete_engaged, delete_past = true, true
+	 elseif(_GET["tab_id"] == "tab-table-engaged-alerts") then
+	    delete_engaged, delete_past = true, false
+	 elseif((_GET["tab_id"] == "tab-table-flow-alerts-history") or (_GET["tab_id"] == "tab-table-alerts-history")) then
+	    delete_engaged, delete_past = false, true
+	 else
+	    delete_engaged, delete_past = false, false
+	 end
+	 
+	 if older_than_seconds > 0 then
+	    older_than = os.time() - older_than_seconds
+	 end
+	 
 	 if(_GET["id_to_delete"] == "__all__") then
 	    _GET["totalRows"] = nil -- reset this value so it will be re-computed
 	    if _GET["entity"] ~= nil and _GET["entity"] ~= "" then
 	       -- delete all alerts of a given entity (e.g., a given host)
-	       interface.deleteAlerts(true --[[ engaged --]],
-				      _GET["entity"], _GET["entity_val"])
-	       interface.deleteAlerts(false --[[ and not engaged --]],
-				      _GET["entity"], _GET["entity_val"])
+	       if delete_engaged then interface.deleteAlerts(true --[[ engaged --]],
+				      _GET["entity"], _GET["entity_val"], nil, older_than) end
+	       if delete_past then interface.deleteAlerts(false --[[ not engaged --]],
+				      _GET["entity"], _GET["entity_val"], nil, older_than) end
+	       if delete_past then interface.deleteFlowAlerts(_GET["entity"], _GET["entity_val"], nil, older_than) end
 	    else
 	       -- delete all existing alerts
-	       interface.deleteAlerts(true --[[ engaged --]])
-	       interface.deleteAlerts(false --[[ and not engaged --]])
-	       interface.deleteFlowAlerts()
+	       if delete_engaged then interface.deleteAlerts(true --[[ engaged --]], nil, nil, nil, older_than) end
+	       if delete_past then interface.deleteAlerts(false --[[ not engaged --]], nil, nil, nil, older_than) end
+	       if delete_past then interface.deleteFlowAlerts(nil, nil, nil, older_than) end
 	    end
 	 else
 	    local id_to_delete = tonumber(_GET["id_to_delete"])
@@ -673,15 +692,18 @@ function checkDeleteStoredAlerts()
 	    end
 	    if id_to_delete ~= nil then
 	       if _GET["status"] == "engaged" then
-		  interface.deleteAlerts(true, id_to_delete)
+		  if delete_engaged then interface.deleteAlerts(true, id_to_delete, nil, nil, older_than) end
 	       elseif _GET["status"] == "historical" then
-		  interface.deleteAlerts(false, id_to_delete)
+		  if delete_past then interface.deleteAlerts(false, id_to_delete, nil, nil, older_than) end
 	       elseif _GET["status"] == "historical-flows" then
-		  interface.deleteFlowAlerts(id_to_delete)
+		  if delete_past then interface.deleteFlowAlerts(nil, nil, id_to_delete, older_than) end
 	       end
 	    end
 	 end
       end
+
+      -- keeping old CSRF is annoying, just go backward
+      print("<script>window.history.back();</script>")
    end
 end
 
@@ -732,7 +754,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
    buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
       buttons = buttons..'<span class="caret"></span></button>'
    
-   buttons = buttons..'<ul class="dropdown-menu" role="menu">'
+   buttons = buttons..'<ul class="dropdown-menu dropdown-menu-right" role="menu">'
 
    local class_active = ""
    if active_entry == nil then class_active = ' class="active"' end
@@ -770,26 +792,70 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 <!-- will be populated later with javascript -->
 </ul>
 
+<script>
+
+/* Handle the current tab */
+$(function() {
+ $("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      history.replaceState(null, null, "#"+id);
+      updateDeleteLabel(id);
+      updateDeleteContext(id);
+   });
+
+  var hash = window.location.hash;
+  $('#alert-tabs a[href="' + hash + '"]').tab('show');
+
+  var tabid = getActiveTabId();
+  updateDeleteLabel(tabid);
+  updateDeleteContext(tabid);
+});
+
+function getActiveTabId() {
+   return $("#alert-tabs > li.active > a").attr('href').substr(1);
+}
+
+function updateDeleteLabel(tabid) {
+   var label = $("#purgeBtnLabel");
+   var val = "";
+
+   if (tabid == "tab-table-engaged-alerts")
+      val = "Engaged ";
+   else if ((tabid == "tab-table-alerts-history") ||  (tabid == "tab-table-flow-alerts-history"))
+      val = "Past ";
+      
+   label.html(val);
+}
+
+function updateDeleteContext(tabid) {
+   $("#modalDeleteAlertsTab").val(tabid);
+}
+</script>
+
 <div class="tab-content">
 ]]
 
    local status = _GET["status"]
    if num_engaged_alerts > 0 then
-      alert_items[#alert_items + 1] = {["label"] = "Engaged Alerts", ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
+      alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
+	 ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
    end
 
    if num_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = "Alerts History", ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
+      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
+	 ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
    end
 
    if num_flow_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = "Flow Alerts History", ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
+      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_flow_alerts"),
+	 ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
    end
 
+   -- This possibly passes some parameters to the search query
    local url_extra_params = ""
    if type(url_params) == "table" then
       for k, v in pairs(url_params) do
-	 if k ~= "csrf" then
+	 if ((k ~= "csrf") and (k ~= "older_than_seconds") and (k ~= "tab_id")) then
 	    url_extra_params = url_extra_params.."&"..k.."="..v
 	 end
       end
@@ -854,7 +920,7 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 	    title: "Actions",
 	    field: "column_key",
 	    css: { 
-	       textAlign: 'center'
+	       textAlign: 'center', width: '100px'
 	    }
 	 },
 
@@ -915,7 +981,16 @@ function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_pa
 
    end
 
-
+local zoom_vals = {
+   { "5m",  5*60*1, i18n("show_alerts.older_5_minutes_ago") },
+   { "30m", 30*60*1, i18n("show_alerts.older_30_minutes_ago") },
+   { "1h",  60*60*1, i18n("show_alerts.older_1_hour_ago") },
+   { "1d",  60*60*24, i18n("show_alerts.older_1_day_ago") },
+   { "1w",  60*60*24*7, i18n("show_alerts.older_1_week_ago") },
+   { "1M",  60*60*24*31, i18n("show_alerts.older_1_month_ago") },
+   { "6M",  60*60*24*31*6, i18n("show_alerts.older_6_months_ago") },
+   { "1Y",  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
+}
 
    if (num_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
       -- trigger the click on the right tab to force table load
@@ -926,14 +1001,18 @@ $("[clicked=1]").trigger("click");
 ]]
       
 
-      local purge_msg = " Purge All "
-      if entity ~= nil and entity ~= "" then purge_msg = purge_msg..firstToUpper(entity).." " end
+      local purge_msg = " Purge "
+      if entity ~= nil and entity ~= "" then purge_msg = purge_msg..firstToUpper(entity).." " else purge_msg = purge_msg..'<span id="purgeBtnLabel"></span>' end
       purge_msg = purge_msg.."Alerts"
       print [[
 </div> <!-- closes tab-content -->
 
-<a href="#myModal" role="button" class="btn btn-default" data-toggle="modal"><i type="submit" class="fa fa-trash-o"></i>]] print(purge_msg) print[[</button></a>
- 
+]] print('<i type="submit" class="fa fa-trash-o"></i>'..purge_msg) print[[
+<button type="button" style="margin:0 1em;" class="btn btn-default open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">Older than: </span>]]
+      for k,v in ipairs(zoom_vals) do
+	 print('<button type="button" class="btn btn-default open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
+      end
+      print[[
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -943,18 +1022,21 @@ $("[clicked=1]").trigger("click");
     <h3 id="myModalLabel">Confirm Action</h3>
   </div>
   <div class="modal-body">
-    <p>Do you really want to purge all alerts?</p>
+    <p>Do you really want to purge all the<span id="modalDeleteContext"></span> alerts<span id="modalDeleteAlertsMsg"></span>?</p>
   </div>
   <div class="modal-footer">
 
     <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=id_to_delete value="__all__">
+      <input type="hidden" id="modalDeleteAlertsOlderThan" name="older_than_seconds" value="-1">
+      <input type="hidden" id="modalDeleteAlertsTab" name="tab_id">
       ]]
 
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
+      -- This is required because of drawAlertTables integration in other complex pages
       if type(url_params) == "table" then
 	 for k, v in pairs(url_params) do
-	    if k ~= "csrf" then
+	    if ((k ~= "csrf") and (k ~= "older_than_seconds") and (k ~= "tab_id")) then
 	       print('<input name="'..k..'" type="hidden" value="'..v..'"/>\n')
 	    end
 	 end
@@ -965,13 +1047,21 @@ $("[clicked=1]").trigger("click");
       
       print [[
     <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" type="submit">Purge All</button>
+    <button class="btn btn-primary" type="submit">Purge</button>
 </form>
   </div>
   </div>
 </div>
 </div>
-
+<script>
+$(document).on("click", ".open-myModal", function () {
+   var lb = $("#purgeBtnLabel");
+   
+   $(".modal-body #modalDeleteAlertsMsg").html($(this).data('msg'));
+   if (lb.length == 1)
+      $(".modal-body #modalDeleteContext").html(" " + lb.html());
+   $(".modal-footer #modalDeleteAlertsOlderThan").val($(this).data('older'));
+});</script>
       ]]
    end
 

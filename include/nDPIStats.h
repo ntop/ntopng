@@ -72,6 +72,14 @@ class nDPIStats {
   json_object* getJSONObject(NetworkInterface *iface);
   void deserialize(NetworkInterface *iface, json_object *o);
   void sum(nDPIStats *s);
+  inline u_int64_t getProtoBytes(u_int16_t proto_id) { 
+    if((proto_id < MAX_NDPI_PROTOS) && counters[proto_id]) {
+      TrafficCounter *tc = &counters[proto_id]->bytes;
+
+      return(tc ? tc->sent+tc->rcvd : 0);
+    } else 
+      return(0); 
+  }
 };
 
 #endif /* _NDPI_STATS_H_ */

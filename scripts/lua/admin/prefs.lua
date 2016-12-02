@@ -623,24 +623,7 @@ print[[
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
    print([[<script>
-/* jQuery AreYouSure plugin activation */
-// Disable save buttons by default
-$('form').find('button[type="submit"]').attr('disabled', 'disabled');
-
-$(function() {
-  // Enable on all forms
-  $('form').areYouSure();
-
-  $('form').on('dirty.areYouSure', function() {
-    // Enable save button only as the form is dirty.
-    $(this).find('button[type="submit"]').removeAttr('disabled');
-  });
-
-  $('form').on('clean.areYouSure', function() {
-    // Form is clean so nothing to save - disable the save button.
-    $(this).find('button[type="submit"]').attr('disabled', 'disabled');
-  });
-});
+aysHandleForm();
 </script>]])
 
 end

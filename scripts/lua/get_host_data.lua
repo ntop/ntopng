@@ -57,6 +57,9 @@ interface.select(ifname)
 
 host_info = url2hostinfo(_GET)
 
+criteria = _GET["criteria"]
+if(criteria == nil) then criteria = "" end
+
 interface.select(ifname)
 
 if(host_info["host"] ~= nil) then
@@ -79,9 +82,16 @@ else
    -- Get from redis the throughput type bps or pps
    throughput_type = getThroughputType()
 
+   --tprint(host)
+
    print("\"column_since\" : \"" .. secondsToTime(now-host["seen.first"]+1) .. "\", ")
    print("\"column_last\" : \"" .. secondsToTime(now-host["seen.last"]+1) .. "\", ")
    print("\"column_traffic\" : \"" .. bytesToSize(host["bytes.sent"]+host["bytes.rcvd"]).. "\", ")
+
+   label, fnctn = label2criteriakey(criteria)
+
+   c = host.criteria
+   if(c ~= nil) then print("\"column_"..criteria.."\" : \"" .. fnctn(c[label]).. "\", ") end
    
    if((host["throughput_trend_"..throughput_type] ~= nil)
    and (host["throughput_trend_"..throughput_type] > 0)) then

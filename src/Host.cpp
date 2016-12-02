@@ -533,8 +533,8 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
 
     lua_push_int_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
-    lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
-    lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
+    lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes()); 
+   lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
     lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
 
     lua_push_bool_table_entry(vm, "drop_all_host_traffic", drop_all_host_traffic);
@@ -564,6 +564,21 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
       getSites(vm, topSitesKey, "sites");
       getSites(vm, oldk, "sites.old");
     }
+  }
+
+  if(localHost) {
+    /* Criteria */
+    lua_newtable(vm);
+    
+    lua_push_int_table_entry(vm, "upload", getNumBytesSent());
+    lua_push_int_table_entry(vm, "download", getNumBytesRcvd());
+    lua_push_int_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
+    lua_push_int_table_entry(vm, "incomingflows", getNumIncomingFlows());
+    lua_push_int_table_entry(vm, "outgoingflows", getNumOutgoingFlows());
+
+    lua_pushstring(vm, "criteria");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 
   lua_push_int_table_entry(vm, "seen.first", first_seen);
@@ -1569,4 +1584,23 @@ void Host::getIfaStats(InterFlowActivityProtos proto, time_t when,
       }
     }
   }
+}
+
+/* *************************************** */
+
+/* Splits a string in the format hostip@vlanid: *buf=hostip, *vlan_id=vlanid */
+void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id) {
+  int size;
+  const char *vlan_ptr = strchr(at_sign_str, '@');
+
+  if (vlan_ptr == NULL) {
+    vlan_ptr = at_sign_str + strlen(at_sign_str);
+    *vlan_id = 0;
+  } else {
+    *vlan_id = atoi(vlan_ptr + 1);
+  }
+
+  size = min(bufsize, (int)(vlan_ptr - at_sign_str + 1));
+  strncpy(buf, at_sign_str, size);
+  buf[size-1] = '\0';
 }
