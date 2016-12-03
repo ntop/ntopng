@@ -990,7 +990,7 @@ end
          jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#protocols")
       else
          -- network does not exist, trigger add action
-         print("<script>$(function() { addNewNetworkPolicy('".._GET["view_network"].."'); });</script>")
+         print("<script>var add_new_network_at_startup = true;</script>")
       end
    end
    
@@ -1278,7 +1278,7 @@ function toggleCustomNetworkMode() {
    }
 }
 
-function addNewNetworkPolicy(net) {
+function addNewNetworkGroup(net) {
    var tr = $('<tr id="new_added_row"><td class="text-center">\
    ]]
 print[[<input id="new_custom_network" type="text" class="form-control" style="width:12em; ]] if not locals_empty then print(" display:none") end print('">\\')
@@ -1309,8 +1309,8 @@ end
       </select></td><td class="text-center" style="vertical-align:middle;"></td></tr>');
 
    $("#table-networks table").append(tr);
-   $("#addNewNetworkPolicyButton").attr('disabled', true);
-   addDeleteButtonCallback.bind(tr)(5, "undoAddRow('#addNewNetworkPolicyButton')", "]] print(i18n("undo")) print[[");
+   $("#addNewNetworkGroupButton").attr('disabled', true);
+   addDeleteButtonCallback.bind(tr)(5, "undoAddRow('#addNewNetworkGroupButton')", "]] print(i18n("undo")) print[[");
 
    $("#clone_proto_policy button").click(function () {
       var active;
@@ -1357,7 +1357,7 @@ $("#table-networks").datatable({
       perPage: 10,
       title: "",
       buttons: [
-         '<a id="addNewNetworkPolicyButton" onclick="addNewNetworkPolicy()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
+         '<a id="addNewNetworkGroupButton" onclick="addNewNetworkGroup()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
             title: "]] print(i18n("shaping.network_group")) print[[",
@@ -1421,9 +1421,15 @@ $("#table-networks").datatable({
 
          /* Only enable add button if we are in the last page */
          var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-networks"));
-         $("#addNewNetworkPolicyButton").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
+         $("#addNewNetworkGroupButton").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
 
          aysResetForm('#editNetworksForm');
+
+         if(typeof add_new_network_at_startup != 'undefined') {
+            // need to schedule in the future, after table load
+            $(function() { addNewNetworkGroup("]] print(_GET["view_network"] or "") print[["); });
+            add_new_network_at_startup = false;
+         }
       }
    });
 </script>
