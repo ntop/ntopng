@@ -1188,14 +1188,14 @@ function updateDeleteContext(tabid) {
    end
 
 local zoom_vals = {
-   { "5m",  5*60*1, i18n("show_alerts.older_5_minutes_ago") },
-   { "30m", 30*60*1, i18n("show_alerts.older_30_minutes_ago") },
-   { "1h",  60*60*1, i18n("show_alerts.older_1_hour_ago") },
-   { "1d",  60*60*24, i18n("show_alerts.older_1_day_ago") },
-   { "1w",  60*60*24*7, i18n("show_alerts.older_1_week_ago") },
-   { "1M",  60*60*24*31, i18n("show_alerts.older_1_month_ago") },
-   { "6M",  60*60*24*31*6, i18n("show_alerts.older_6_months_ago") },
-   { "1Y",  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
+   { "5 min",  5*60*1, i18n("show_alerts.older_5_minutes_ago") },
+   { "30 min", 30*60*1, i18n("show_alerts.older_30_minutes_ago") },
+   { "1 hour",  60*60*1, i18n("show_alerts.older_1_hour_ago") },
+   { "1 day",  60*60*24, i18n("show_alerts.older_1_day_ago") },
+   { "1 week",  60*60*24*7, i18n("show_alerts.older_1_week_ago") },
+   { "1 month",  60*60*24*31, i18n("show_alerts.older_1_month_ago") },
+   { "6 months",  60*60*24*31*6, i18n("show_alerts.older_6_months_ago") },
+   { "1 year",  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
 }
 
    if (num_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
@@ -1211,7 +1211,7 @@ $("[clicked=1]").trigger("click");
 ]] print('<i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts') print[[
 <button type="button" style="margin:0 1em;" class="btn btn-default btn-xs open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">older than </span>]]
       for k,v in ipairs(zoom_vals) do
-	 print('<button type="button" class="btn btn-default btn-xs open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
+	 print('<button type="button" class="btn btn-default btn-xs  open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
       end
       print[[
 <!-- Modal -->
