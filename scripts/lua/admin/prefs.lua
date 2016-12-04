@@ -204,11 +204,13 @@ function printAlerts()
 
    print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> Slack Integration</th></tr>')
 
+   local elementToSwitchSlack = {"row_slack_notification_severity_preference", "sender_username", "slack_webhook"}
+
    toggleTableButtonPrefs("Enable <A HREF=http://www.slack.com>Slack</A> Notification",
                     "Toggle the alert notification via slack.",
                     "On", "1", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
 		    "Off", "0", "danger", -- Off for enabled alerts implies 1 for disable_alerts_generation
-		    "toggle_slack_notification", "ntopng.alerts.notification_enabled", "0")
+		    "toggle_slack_notification", "ntopng.alerts.notification_enabled", "0", showElements==false, elementToSwitchSlack)
 
   local showSlackNotificationPrefs = false
   if ntop.getPref("ntopng.alerts.notification_enabled") == "1" then
@@ -217,24 +219,19 @@ function printAlerts()
      showSlackNotificationPrefs = false
   end
 
-  if (showSlackNotificationPrefs) then
----[[
-    local labels = {"Errors","Errors and Warnings","All"}
-    local values = {"only_errors","errors_and_warnings","all_alerts"}
+  local labels = {"Errors","Errors and Warnings","All"}
+  local values = {"only_errors","errors_and_warnings","all_alerts"}
   
-    local retVal = multipleTableButtonPrefs("Notification Preference Based On Severity",
+  local retVal = multipleTableButtonPrefs("Notification Preference Based On Severity",
                "Errors (errors only), Errors and Warnings (errors and warnings, no info), All (every kind of alerts will be notified).",
-               labels, values, "only_errors", "primary", "slack_notification_severity_preference", "ntopng.prefs.slack_alert_severity", nil,  nil, nil, nil)
+               labels, values, "only_errors", "primary", "slack_notification_severity_preference", "ntopng.prefs.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
 
---]]
+  prefsInputFieldPrefs("Notification Sender Username",
+          "Set the username of the sender of slack notifications", "ntopng.alerts.", "sender_username", "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false)
 
-    prefsInputFieldPrefs("Notification Sender Username",
-           "Set the username of the sender of slack notifications", "ntopng.alerts.", "sender_username", "ntopng Webhook", nil, showElements, false)
+  prefsInputFieldPrefs("Notification Wekhook",
+          "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook", "", nil, showElements and showSlackNotificationPrefs, true, true)
 
-    prefsInputFieldPrefs("Notification Wekhook",
-           "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook", "", nil, showElements, true, true)
-
-  end
 
   if (ntop.isPro()) then
     print('<tr><th colspan=2 class="info">Nagios Integration</th></tr>')
