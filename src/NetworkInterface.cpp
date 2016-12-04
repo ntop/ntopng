@@ -1109,6 +1109,32 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     struct ndpi_flow_struct *ndpi_flow;
 
     switch(ndpi_get_lower_proto(flow->get_detected_protocol())) {
+    case NDPI_PROTOCOL_DHCP:
+      if(payload_len > 240) {
+	for(int i = 240; i<payload_len; ) {
+	  u_int8_t id  = payload[i], len = payload[i+1];
+
+	  if(id == 12 /* Host Name */) {
+	    char name[64], buf[24], *client_mac;
+	    int j;
+	    
+	    j = ndpi_min(len, sizeof(name)-1);
+	    strncpy((char*)name, (char*)&payload[i+2], j);
+	    name[j] = '\0';
+
+	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf)),
+	    ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
+
+	    ntop->getRedis()->hashSet((char*)DHCP_CACHE, client_mac, name);
+	    break;
+	  } else if(id == 0xFF)
+	    break; /* End of options */
+	  
+	  i += len + 2;
+	}
+      }
+      break;
+      
     case NDPI_PROTOCOL_BITTORRENT:
       if((flow->getBitTorrentHash() == NULL)
 	 && (l4_proto == IPPROTO_UDP)

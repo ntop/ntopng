@@ -60,7 +60,7 @@ Host::~Host() {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
 
   serialize2redis(); /* possibly dumps counters and data to redis */
-  
+
   if(mac) mac->decUses();
 #ifdef NTOPNG_PRO
   if(sent_to_sketch)   delete sent_to_sketch;
@@ -171,6 +171,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
       snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
       ntop->getRedis()->rename(topSitesKey, oldk);
+      readDHCPCache();
     }
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loading %s (%s)", k, localHost ? "local": "remote");
@@ -205,9 +206,9 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       // else ntop->getRedis()->pushHostToResolve(host, false, localHost);
     }
 
-    if(!localHost || systemHost) {     
+    if(!localHost || systemHost) {
       blacklisted_host = ntop->isBlacklistedIP(&ip);
-      
+
       if((!blacklisted_host) || (ntop->getPrefs()->is_httpbl_enabled() && ip.isIPv4())) {
 	// http:bl only works for IPv4 addresses
 	if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
@@ -233,7 +234,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     if(country) { free(country); country = NULL; }
     if(city)    { free(city); city = NULL;       }
     ntop->getGeolocation()->getInfo(&ip, &country, &city, &latitude, &longitude);
-    
+
     if(localHost || systemHost) {
 #ifdef NTOPNG_PRO
       sent_to_sketch   = new CountMinSketch();
@@ -244,7 +245,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       if(ntop->getPrefs()->is_flow_activity_enabled()) {
 	ifa_stats = new InterFlowActivityStats[IFA_STATS_PROTOS_N*INTER_FLOW_ACTIVITY_SLOTS];
 	user_activities = new UserActivityStats;
-	
+
 	if(ifa_stats) memset(ifa_stats, 0, sizeof(InterFlowActivityStats)*IFA_STATS_PROTOS_N*INTER_FLOW_ACTIVITY_SLOTS);
 	if(user_activities) memset(user_activities, 0, sizeof(UserActivityStats));
       }
@@ -255,6 +256,22 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   readAlertPrefs();
   if(!host_serial) computeHostSerial();
   updateHostL7Policy();
+}
+
+/* *************************************** */
+
+void Host::readDHCPCache() {
+  if(mac) {
+    /* Check DHCP cache */
+    char client_mac[24], buf[64];
+
+    Utils::formatMac(mac->get_mac(), client_mac, sizeof(client_mac));
+
+    if(ntop->getRedis()->hashGet((char*)DHCP_CACHE, client_mac, buf, sizeof(buf)) == 0) {
+      if(symbolic_name == NULL)
+	symbolic_name = strdup(buf);
+    }
+  }
 }
 
 /* *************************************** */
@@ -382,7 +399,7 @@ void Host::updateLocal() {
     char buf[64];
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s",
-				 ip.print(buf, sizeof(buf)), 
+				 ip.print(buf, sizeof(buf)),
 				 localHost ? "local" : "remote");
   }
 }
@@ -533,7 +550,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "icmp.bytes.rcvd", icmp_rcvd.getNumBytes());
 
     lua_push_int_table_entry(vm, "other_ip.packets.sent",  other_ip_sent.getNumPkts());
-    lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes()); 
+    lua_push_int_table_entry(vm, "other_ip.bytes.sent", other_ip_sent.getNumBytes());
    lua_push_int_table_entry(vm, "other_ip.packets.rcvd",  other_ip_rcvd.getNumPkts());
     lua_push_int_table_entry(vm, "other_ip.bytes.rcvd", other_ip_rcvd.getNumBytes());
 
@@ -569,7 +586,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
   if(localHost) {
     /* Criteria */
     lua_newtable(vm);
-    
+
     lua_push_int_table_entry(vm, "upload", getNumBytesSent());
     lua_push_int_table_entry(vm, "download", getNumBytesRcvd());
     lua_push_int_table_entry(vm, "unknown", get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN));
@@ -636,7 +653,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     } else {
       sprintf(buf_id, "%s@%d", ip.print(buf, sizeof(buf)), vlan_id);
     }
-  }  
+  }
 
   ((GenericTrafficElement*)this)->lua(vm, host_details);
 
@@ -684,8 +701,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   int rc;
   time_t now = time(NULL);
 
-  if(nextResolveAttempt
-     && ((nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
+  if(nextResolveAttempt && ((nextResolveAttempt > now) || (nextResolveAttempt == (time_t)-1))) {
     return(symbolic_name);
   } else
     nextResolveAttempt = ntop->getPrefs()->is_dns_resolution_enabled() ? now + MIN_HOST_RESOLUTION_FREQUENCY : (time_t)-1;
@@ -695,6 +711,10 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if((symbolic_name != NULL) && strcmp(symbolic_name, addr))
     return(symbolic_name);
 
+  readDHCPCache();
+
+  if(symbolic_name) return(symbolic_name);
+					 
   rc = ntop->getRedis()->getAddress(addr, redis_buf, sizeof(redis_buf),
 				    force_resolution_if_not_found);
 
@@ -703,7 +723,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   else
     setName(addr);
 
-  return(symbolic_name);  
+  return(symbolic_name);
 }
 
 /* ***************************************** */
@@ -976,7 +996,7 @@ bool Host::deserialize(char *json_str, char *key) {
   if(json_object_object_get_ex(o, "tcpPacketStats.pktRetr", &obj)) tcpPacketStats.pktRetr = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "tcpPacketStats.pktOOO",  &obj)) tcpPacketStats.pktOOO  = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "tcpPacketStats.pktLost", &obj)) tcpPacketStats.pktLost = json_object_get_int(obj);
-  
+
   if(json_object_object_get_ex(o, "flows.as_client", &obj))  total_num_flows_as_client = json_object_get_int(obj);
   if(json_object_object_get_ex(o, "flows.as_server", &obj))  total_num_flows_as_server = json_object_get_int(obj);
   if(user_activities) if(json_object_object_get_ex(o, "userActivities", &obj))  user_activities->deserialize(obj);
@@ -1277,7 +1297,7 @@ void Host::loadFlowRateAlertPrefs() {
   int retval = CONST_MAX_NEW_FLOWS_SECOND;
   char rkey[128], rsp[16];
   char ip_buf[48];
-  
+
   snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flow_rate_alert_threshold",
 	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
   if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
@@ -1292,7 +1312,7 @@ void Host::loadSynAlertPrefs() {
   int retval = CONST_MAX_NUM_SYN_PER_SECOND;
   char rkey[128], rsp[16];
   char ip_buf[48];
-  
+
   snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.syn_alert_threshold",
 	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
   if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
@@ -1307,7 +1327,7 @@ void Host::loadFlowsAlertPrefs() {
   u_int32_t retval = CONST_MAX_NUM_HOST_ACTIVE_FLOWS;
   char rkey[128], rsp[16];
   char ip_buf[48];
-  
+
   snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flows_alert_threshold",
 	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
   if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
@@ -1561,10 +1581,10 @@ void Host::incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_
 
 /* *************************************** */
 
-void Host::getIfaStats(InterFlowActivityProtos proto, time_t when, 
+void Host::getIfaStats(InterFlowActivityProtos proto, time_t when,
 		       int * count, u_int32_t * packets, time_t * max_diff) {
   *count = 0, *max_diff = 0, *packets = 0;
-  
+
   if(ifa_stats) {
     uint tbase = proto*INTER_FLOW_ACTIVITY_SLOTS;
 
@@ -1578,7 +1598,7 @@ void Host::getIfaStats(InterFlowActivityProtos proto, time_t when,
           *count += 1;
           *max_diff = max(ifa_stats[idx].last - ifa_stats[idx].first, *max_diff);
         }
-	
+
         // this is affected by activity continuity
         *packets += ifa_stats[idx].pkts;
       }
