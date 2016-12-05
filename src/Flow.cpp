@@ -109,6 +109,7 @@ Flow::Flow(NetworkInterface *_iface,
     last_update_time.tv_sec = (long)first_seen;
 
 #ifdef NTOPNG_PRO
+  flow_shapers.src2dst.cli = flow_shapers.src2dst.srv = flow_shapers.dst2src.cli = flow_shapers.dst2src.srv = -1;
   trafficProfile = NULL;
 #endif
 
@@ -554,8 +555,12 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
     detection_completed = true;
   }
 
-  if (detection_completed)
+  if(detection_completed) {
+#ifdef NTOPNG_PRO
+    updateFlowShapers();
+#endif
     iface->luaEvalFlow(this, callback_flow_proto_callback);
+  }
 
 #ifdef NTOPNG_PRO
   // Update the profile even if the detection is not yet completed.
@@ -857,6 +862,22 @@ bool Flow::dumpFlow(bool partial_dump) {
 
   return(rc);
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+void Flow::updateFlowShapers() {
+  L7Policer *policer = iface->getL7Policer();
+
+  if(cli_host && srv_host && policer) {
+    flow_shapers.src2dst.cli = policer->getShaperIdForProtocol(cli_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_INGRESS);
+    flow_shapers.src2dst.srv = policer->getShaperIdForProtocol(srv_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_EGRESS);
+    flow_shapers.dst2src.cli = policer->getShaperIdForProtocol(cli_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_EGRESS);
+    flow_shapers.dst2src.srv = policer->getShaperIdForProtocol(srv_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_INGRESS);
+  } else
+    flow_shapers.src2dst.cli = flow_shapers.src2dst.srv = flow_shapers.dst2src.cli = flow_shapers.dst2src.srv = -1;
+}
+#endif
 
 /* *************************************** */
 
@@ -1393,20 +1414,25 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_int_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
     }
 
+#ifdef NTOPNG_PRO
     /* Shapers */
     if(cli_host && srv_host) {
-      int a, b;
-      u_int16_t p;
+      int a, b, c, d;
 
-      getFlowShapers(true, &a, &b, &p);
+      getFlowShapers(true, &a, &b, &c, &d);
       lua_push_int_table_entry(vm, "shaper.cli2srv_a", a);
       lua_push_int_table_entry(vm, "shaper.cli2srv_b", b);
+      lua_push_int_table_entry(vm, "shaper.cli2srv_c", c);
+      lua_push_int_table_entry(vm, "shaper.cli2srv_d", d);
 
-      getFlowShapers(false, &a, &b, &p);
+      getFlowShapers(false, &a, &b, &c, &d);
       lua_push_int_table_entry(vm, "shaper.srv2cli_a", a);
       lua_push_int_table_entry(vm, "shaper.srv2cli_b", b);
+      lua_push_int_table_entry(vm, "shaper.srv2cli_c", c);
+      lua_push_int_table_entry(vm, "shaper.srv2cli_d", d);
     }
-
+#endif
+    
     if(isHTTP() && protos.http.last_method && protos.http.last_url)
       lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
 
@@ -1918,7 +1944,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len, u_int8_t l4_proto,
 		    const struct timeval *when) {
   payload_len *= iface->getScalingFactor();
-  
+
   updateSeen();
   updatePacketStats(cli2srv_direction ? &cli2srvStats.pktTime : &srv2cliStats.pktTime, when);
 
@@ -2084,7 +2110,7 @@ void Flow::incTcpBadStats(bool src2dst_direction,
   TCPPacketStats * stats;
   /*Host * host;*/
 
-  if (src2dst_direction) {
+  if(src2dst_direction) {
     stats = &tcp_stats_s2d;
     /*host = cli_host;*/
   } else {
@@ -2383,8 +2409,8 @@ bool Flow::isPassVerdict() {
 
   /* TODO: isAboveQuota() must be checked periodically */
   if(cli_host && srv_host)
-    return(!(cli_host->isAboveQuota() || srv_host->isAboveQuota()) &&
-	   !(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()));
+    return((!(cli_host->isAboveQuota() || srv_host->isAboveQuota()))
+	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic())));
   else
     return(true);
 }
@@ -2433,19 +2459,22 @@ void Flow::checkFlowCategory() {
 
 /* *************************************** */
 
+#ifdef NTOPNG_PRO
 void Flow::getFlowShapers(bool src2dst_direction,
 			  int *a_shaper_id, int *b_shaper_id,
-			  u_int16_t *ndpiProtocol) {
+			  int *c_shaper_id, int *d_shaper_id) {
   if(cli_host && srv_host) {
-    if(src2dst_direction)
-      *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id();
-    else
-      *a_shaper_id = cli_host->get_ingress_shaper_id(), *b_shaper_id = srv_host->get_egress_shaper_id();
+    if(src2dst_direction) {
+      *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id(),
+	*c_shaper_id = flow_shapers.src2dst.cli, *d_shaper_id = flow_shapers.src2dst.srv;
+    } else {
+      *a_shaper_id = cli_host->get_ingress_shaper_id(), *b_shaper_id = srv_host->get_egress_shaper_id(),
+	*c_shaper_id = flow_shapers.dst2src.cli, *d_shaper_id = flow_shapers.dst2src.srv;
+    }
   } else
-    *a_shaper_id = *b_shaper_id = -1;
-
-  *ndpiProtocol = ndpiDetectedProtocol.protocol;
+    *a_shaper_id = *b_shaper_id = *c_shaper_id = *d_shaper_id = -1;
 }
+#endif
 
 /* *************************************** */
 

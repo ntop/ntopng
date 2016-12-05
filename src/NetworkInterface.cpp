@@ -880,7 +880,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 				     u_int32_t rawsize,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
-				     bool *shaped,
 				     u_int16_t *ndpiProtocol) {
   bool src2dst_direction;
   u_int8_t l4_proto;
@@ -895,7 +894,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
-  int a_shaper_id = -1, b_shaper_id = -1;
 
   if(vlanInterfaces && (vlan_id > 0)) {
     if((vlanInterfaces[vlan_id] == NULL)
@@ -915,7 +913,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     if(vlanInterfaces[vlan_id])
       return(vlanInterfaces[vlan_id]->processPacket(when, time, eth, vlan_id,
 						    iph, ip6, ipsize, rawsize,
-						    h, packet, shaped, ndpiProtocol));
+						    h, packet, ndpiProtocol));
   }
   
  decode_ip:
@@ -1213,31 +1211,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
         flow->dissectSSL(payload, payload_len, when, src2dst_direction);
     }
 
-    flow->processDetectedProtocol(), *shaped = false;
-    pass_verdict = flow->isPassVerdict();
-    flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, ndpiProtocol);
+    flow->processDetectedProtocol(), pass_verdict = flow->isPassVerdict();
 
 #ifdef NTOPNG_PRO
     if(is_bridge_interface() && pass_verdict) {
-      int ingress_proto_shaper = -1, egress_proto_shaper = -1;
-
-      /* Get the per-network protocol shapers */
-      if(policer && flow->get_cli_host() && flow->get_srv_host()) {
-        l7_policy_direction cli_dir, srv_dir;
-        
-        if(src2dst_direction)
-          cli_dir = L7_POLICY_DIRECTION_INGRESS, srv_dir = L7_POLICY_DIRECTION_EGRESS;
-        else
-          cli_dir = L7_POLICY_DIRECTION_EGRESS, srv_dir = L7_POLICY_DIRECTION_INGRESS;
-
-        ingress_proto_shaper = policer->getShaperIdForProtocol(flow->get_cli_host()->getL7NetworkIndex(), *ndpiProtocol, cli_dir);
-        egress_proto_shaper = policer->getShaperIdForProtocol(flow->get_srv_host()->getL7NetworkIndex(), *ndpiProtocol, srv_dir);
-      } else {
-        ingress_proto_shaper = egress_proto_shaper = -1;
-      }
-  
-      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, ingress_proto_shaper, egress_proto_shaper, (struct pcap_pkthdr*)h);
-      if(!pass_verdict) *shaped = true;
+      int a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id;
+      
+      flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, &c_shaper_id, &d_shaper_id);        
+      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id, (struct pcap_pkthdr*)h);
     }
 #endif
 
@@ -1319,7 +1300,7 @@ void NetworkInterface::purgeIdle(time_t when) {
 /* **************************************************** */
 
 bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
-				     const u_char *packet, bool *shaped,
+				     const u_char *packet,
 				     u_int16_t *ndpiProtocol) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
@@ -1558,7 +1539,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       try {
 	pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
-				     h, packet, shaped, ndpiProtocol);
+				     h, packet, ndpiProtocol);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -1644,7 +1625,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	try {
 	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
-				       h, packet, shaped, ndpiProtocol);
+				       h, packet, ndpiProtocol);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 

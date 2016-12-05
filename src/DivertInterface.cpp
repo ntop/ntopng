@@ -59,7 +59,7 @@ static void* divertPacketPollLoop(void* ptr) {
     }
    
     h.len = h.caplen = len, gettimeofday(&h.ts, NULL);
-    iface->dissectPacket(&h, packet, &shaped, &c);
+    iface->dissectPacket(&h, packet, &c);
 
     /* Enable the row below to specify the firewall rule corresponding to the protocol */
 #if 0

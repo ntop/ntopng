@@ -490,10 +490,9 @@ print("</script>\n")
 
    if((ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)) then
       print("<tr><th colspan=7>Bridged Traffic</th></tr>\n")
-      print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped Packets</th><th nowrap>Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
+      print("<tr><th nowrap>Interface Direction</th><th nowrap>Ingress Packets</th><th nowrap>Egress Packets</th><th nowrap>Shaped/Filtered Packets</th><th nowrap>Send Error</th><th nowrap>Buffer Full</th></tr>\n")
       print("<tr><th>".. ifstats["bridge.device_a"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_b"] .."</th><td><span id=a_to_b_in_pkts>".. formatPackets(ifstats["bridge.a_to_b.in_pkts"]) .."</span> <span id=a_to_b_in_pps></span></td>")
       print("<td><span id=a_to_b_out_pkts>".. formatPackets(ifstats["bridge.a_to_b.out_pkts"]) .."</span> <span id=a_to_b_out_pps></span></td>")
-      print("<td><span id=a_to_b_shaped_pkts>".. formatPackets(ifstats["bridge.a_to_b.shaped_pkts"]) .."</span></td>")
       print("<td><span id=a_to_b_filtered_pkts>".. formatPackets(ifstats["bridge.a_to_b.filtered_pkts"]) .."</span></td>")
 
       print("<td><span id=a_to_b_num_pkts_send_error>".. formatPackets(ifstats["bridge.a_to_b.num_pkts_send_error"]) .."</span></td>")
@@ -503,7 +502,6 @@ print("</script>\n")
 
       print("<tr><th>".. ifstats["bridge.device_b"] .. " <i class=\"fa fa-arrow-right\"></i> ".. ifstats["bridge.device_a"] .."</th><td><span id=b_to_a_in_pkts>".. formatPackets(ifstats["bridge.b_to_a.in_pkts"]) .."</span> <span id=b_to_a_in_pps></span></td>")
       print("<td><span id=b_to_a_out_pkts>"..formatPackets( ifstats["bridge.b_to_a.out_pkts"]) .."</span> <span id=b_to_a_out_pps></span></td>")
-      print("<td><span id=b_to_a_shaped_pkts>".. formatPackets(ifstats["bridge.b_to_a.shaped_pkts"]) .."</span></td>")
       print("<td><span id=b_to_a_filtered_pkts>".. formatPackets(ifstats["bridge.b_to_a.filtered_pkts"]) .."</span></td>")
 
       print("<td><span id=b_to_a_num_pkts_send_error>".. formatPackets(ifstats["bridge.b_to_a.num_pkts_send_error"]) .."</span></td>")
@@ -1895,7 +1893,6 @@ if(ifstats["bridge.device_a"] ~= nil) then
    print("var a_to_b_last_in_bytes  = " .. ifstats["bridge.a_to_b.in_bytes"] .. ";\n")
    print("var a_to_b_last_out_bytes  = " .. ifstats["bridge.a_to_b.out_bytes"] .. ";\n")
    print("var a_to_b_last_filtered_pkts  = " .. ifstats["bridge.a_to_b.filtered_pkts"] .. ";\n")
-   print("var a_to_b_last_shaped_pkts  = " .. ifstats["bridge.a_to_b.shaped_pkts"] .. ";\n")
    print("var a_to_b_last_num_pkts_send_buffer_full  = " .. ifstats["bridge.a_to_b.num_pkts_send_buffer_full"] .. ";\n")
    print("var a_to_b_last_num_pkts_send_error  = " .. ifstats["bridge.a_to_b.num_pkts_send_error"] .. ";\n")
 
@@ -1904,7 +1901,6 @@ if(ifstats["bridge.device_a"] ~= nil) then
    print("var b_to_a_last_in_bytes  = " .. ifstats["bridge.b_to_a.in_bytes"] .. ";\n")
    print("var b_to_a_last_out_bytes  = " .. ifstats["bridge.b_to_a.out_bytes"] .. ";\n")
    print("var b_to_a_last_filtered_pkts  = " .. ifstats["bridge.b_to_a.filtered_pkts"] .. ";\n")
-   print("var b_to_a_last_shaped_pkts  = " .. ifstats["bridge.b_to_a.shaped_pkts"] .. ";\n")
    print("var b_to_a_last_num_pkts_send_buffer_full  = " .. ifstats["bridge.b_to_a.num_pkts_send_buffer_full"] .. ";\n")
    print("var b_to_a_last_num_pkts_send_error  = " .. ifstats["bridge.b_to_a.num_pkts_send_error"] .. ";\n")
 end
@@ -2035,7 +2031,6 @@ print [[
     }
 
    $('#a_to_b_filtered_pkts').html(addCommas(rsp["a_to_b_filtered_pkts"])+" Pkts "+get_trend(a_to_b_last_filtered_pkts, rsp["a_to_b_filtered_pkts"]));
-   $('#a_to_b_shaped_pkts').html(addCommas(rsp["a_to_b_shaped_pkts"])+" Pkts "+get_trend(a_to_b_last_shaped_pkts, rsp["a_to_b_shaped_pkts"]));
    $('#a_to_b_num_pkts_send_error').html(addCommas(rsp["a_to_b_num_pkts_send_error"])+" Pkts "+get_trend(a_to_b_last_num_pkts_send_error, rsp["a_to_b_num_pkts_send_error"]));
    $('#a_to_b_num_pkts_send_buffer_full').html(addCommas(rsp["a_to_b_num_pkts_send_buffer_full"])+" Pkts "+get_trend(a_to_b_last_num_pkts_send_buffer_full, rsp["a_to_b_num_pkts_send_buffer_full"]));
 
@@ -2052,7 +2047,6 @@ print [[
       $('#b_to_a_out_pps').html(" ["+fbits(bps)+"]");
     }
    $('#b_to_a_filtered_pkts').html(addCommas(rsp["b_to_a_filtered_pkts"])+" Pkts "+get_trend(b_to_a_last_filtered_pkts, rsp["b_to_a_filtered_pkts"]));
-   $('#b_to_a_shaped_pkts').html(addCommas(rsp["b_to_a_shaped_pkts"])+" Pkts "+get_trend(b_to_a_last_shaped_pkts, rsp["b_to_a_shaped_pkts"]));
    $('#b_to_a_num_pkts_send_error').html(addCommas(rsp["b_to_a_num_pkts_send_error"])+" Pkts "+get_trend(b_to_a_last_num_pkts_send_error, rsp["b_to_a_num_pkts_send_error"]));
    $('#b_to_a_num_pkts_send_buffer_full').html(addCommas(rsp["b_to_a_num_pkts_send_buffer_full"])+" Pkts "+get_trend(b_to_a_last_num_pkts_send_buffer_full, rsp["b_to_a_num_pkts_send_buffer_full"]));
 
@@ -2061,7 +2055,6 @@ print [[
    a_to_b_last_in_bytes = rsp["a_to_b_in_bytes"];
    a_to_b_last_out_bytes = rsp["a_to_b_out_bytes"];
    a_to_b_last_filtered_pkts = rsp["a_to_b_filtered_pkts"];
-   a_to_b_last_shaped_pkts = rsp["a_to_b_shaped_pkts"];
    a_to_b_last_num_pkts_send_buffer_full = rsp["a_to_b_num_pkts_send_buffer_full"];
    a_to_b_last_num_pkts_send_error = rsp["a_to_b_num_pkts_send_error"];
 
@@ -2070,7 +2063,6 @@ print [[
    b_to_a_last_in_bytes = rsp["b_to_a_in_bytes"];
    b_to_a_last_out_bytes = rsp["b_to_a_out_bytes"];
    b_to_a_last_filtered_pkts = rsp["b_to_a_filtered_pkts"];
-   b_to_a_last_shaped_pkts = rsp["b_to_a_shaped_pkts"];
    b_to_a_last_num_pkts_send_buffer_full = rsp["b_to_a_num_pkts_send_buffer_full"];
    b_to_a_last_num_pkts_send_error = rsp["b_to_a_num_pkts_send_error"];
    last_epoch = rsp["epoch"];
