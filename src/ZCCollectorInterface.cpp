@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 
-#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__))
+#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__)) && (!defined(__i686__))
 
 /* **************************************************** */
 

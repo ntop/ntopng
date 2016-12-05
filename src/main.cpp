@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 	  endpoint = ifName;
 
 	iface = new CollectorInterface(endpoint);
-#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__))
+#if defined(HAVE_PF_RING) && (!defined(__mips)) && (!defined(__arm__)) && (!defined(__i686__))
       } else if(strstr(ifName, "zcflow:")) {
 	iface = new ZCCollectorInterface(ifName);
 #endif
