@@ -262,7 +262,7 @@ for key, value in pairs(hosts_stats) do
 	 vals[hosts_stats[key]["ipkey"]+postfix] = key
 	 -- looking_glass_criteria
       elseif(criteria ~= nil) then
-	 io.write("==> "..criteria.."\n")
+	 -- io.write("==> "..criteria.."\n")
 	 if(sortColumn == "column_"..criteria) then
 	    local c = hosts_stats[key]["criteria"]
 
