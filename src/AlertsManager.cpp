@@ -833,7 +833,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
 /* **************************************************** */
 
-int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel alert_severity, const char *alert_json) {
+int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
+				  AlertLevel alert_severity, const char *alert_json) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
@@ -841,7 +842,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
   char *cli_ip = NULL, *cli_ip_buf = NULL, *srv_ip = NULL, *srv_ip_buf = NULL;
 
   if(!store_initialized || !store_opened || !f)
-    return -1;
+    return(-1);
 
   cli = f->get_cli_host(), srv = f->get_srv_host();
   if(cli && cli->get_ip() && (cli_ip_buf = (char*)malloc(sizeof(char) * 256)))
@@ -934,6 +935,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type, AlertLevel aler
   if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
+  f->setFlowAlerted();
+  
   return rc;
 }
 

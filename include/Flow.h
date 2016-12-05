@@ -79,7 +79,7 @@ class Flow : public GenericHashEntry {
   struct ndpi_flow_struct *ndpiFlow;
   bool detection_completed, protocol_processed, blacklist_alarm_emitted,
     cli2srv_direction, twh_over, dissect_next_http_packet, passVerdict,
-    check_tor, l7_protocol_guessed,
+    check_tor, l7_protocol_guessed, flow_alerted,
     good_low_flow_detected, good_ssl_hs;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
@@ -375,6 +375,8 @@ class Flow : public GenericHashEntry {
   bool isIdleFlow();
   inline FlowState getFlowState()                   { return(state);                          }
   inline bool      isEstablished()                  { return state == flow_state_established; }
+  inline bool      isFlowAlerted()                  { return(flow_alerted);                   }
+  inline void      setFlowAlerted()                 { flow_alerted = true;                    }
 
   void setActivityFilter(ActivityFilterID fid, const activity_filter_config * config);
   inline bool getActivityFilterId(ActivityFilterID *out) {
@@ -395,6 +397,8 @@ class Flow : public GenericHashEntry {
     }
     return false;
   }
+
+  
 };
 
 #endif /* _FLOW_H_ */

@@ -53,7 +53,8 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   if(name == NULL) name = "1"; /* First available interface */
 #endif
 
-  scalingFactor = 1, remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
+  scalingFactor = 1, remoteIfname = remoteIfIPaddr
+    = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
   if(strcmp(name, "-") == 0) name = "stdin";
 
   if(ntop->getRedis())
@@ -92,6 +93,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 	printAvailableInterfaces(false, 0, NULL, 0);
 	exit(0);
       }
+
       name = _ifname;
     }
   }
@@ -4427,9 +4429,6 @@ void NetworkInterface::termLuaInterpreter() {
 /* **************************************** */
 
 int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
-  if(!ntop->getPrefs()->is_flow_activity_enabled())
-    return 0 /* nothing to do */;
-
   int rc;
   lua_State *L;
   const char *luaFunction;
@@ -4463,6 +4462,9 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
     return(-1);
   }
 
+  if(L == NULL)
+    return(-2);
+  
   lua_settop(L, 0); /* Reset stack */
   lua_pushlightuserdata(L, f);
   lua_setglobal(L, CONST_USERACTIVITY_FLOW);

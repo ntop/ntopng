@@ -184,6 +184,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     if((localHost || systemHost)
        && ntop->getPrefs()->is_idle_local_host_cache_enabled()){
       char *json;
+
       if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
 				     "Unable to allocate memory to deserialize %s", redis_key);
@@ -359,7 +360,10 @@ void Host::updateHostL7Policy() {
 	if(egress_shaper_id < 0)
 	  egress_shaper_id = -1;
       }
-	//~ char name[256]; printf("%s -> %s - %d %d\n", get_name(name, sizeof(name), false), l7Network, ingress_shaper_id, egress_shaper_id);
+      /*
+	char name[256]; printf("%s -> %s - %d %d\n", 
+	get_name(name, sizeof(name), false), l7Network, ingress_shaper_id, egress_shaper_id);
+      */
     } else {
       l7Policy = NULL;
       memset(l7Network, 0, sizeof(l7Network));
