@@ -437,35 +437,13 @@ void MySQLDB::lua(lua_State *vm) const {
 
 /* ******************************************* */
 
-#ifdef NOTUSED
-char* MySQLDB::get_insert_into_values(IPVersion vers) {
-  char sql[CONST_MAX_SQL_QUERY_LEN];
-
-  snprintf(sql,
-	   sizeof(sql),
-	   "INSERT INTO `%sv%i` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
-	   "BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
-#ifdef NTOPNG_PRO
-	   ",PROFILE"
-#endif
-	   ") "
-	   "VALUES ",
-	   ntop->getPrefs()->get_mysql_tablename(),
-	   vers);
-
-  return strdup(sql);
-}
-#endif
-
-/* ******************************************* */
-
-bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
-  char sql[CONST_MAX_SQL_QUERY_LEN], cli_str[64], srv_str[64], *json_buf;
+int MySQLDB::flow2InsertValues(bool partial_dump, Flow *f, char *json, char *values_buf, size_t values_buf_len) const {
+  char cli_str[64], srv_str[64], *json_buf;
   u_int32_t packets, first_seen, last_seen;
   u_int32_t bytes_cli2srv, bytes_srv2cli;
 
-  if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL) || !MySQLDB::db_created)
-    return(false);
+  if(! values_buf_len || !values_buf_len)
+    return -1;
 
   if(json == NULL)
     json_buf = strdup("");
@@ -476,7 +454,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 
     if((json_buf = (char*)malloc(2*l + 1)) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-      return(false);
+      return -2;
     }
 
     for(i = 0, j = 0; i<l; i++) {
@@ -505,18 +483,8 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
   }
 
   if(f->get_cli_host()->get_ip()->isIPv4()) {
-    snprintf(sql, sizeof(sql),
-	     "INSERT INTO `%sv4` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
-	     "IN_BYTES,OUT_BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
-#ifdef NTOPNG_PRO
-	     ",PROFILE"
-#endif
-	     ") VALUES ('%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
-#ifdef NTOPNG_PRO
-	     ",'%s'"  // this is the string for traffic profile
-#endif
-	     ") ",
-	     ntop->getPrefs()->get_mysql_tablename(),
+    snprintf(values_buf, values_buf_len,
+	     MYSQL_INSERT_VALUES_V4,
 	     f->get_vlan_id(),
 	     f->get_detected_protocol().protocol,
 	     htonl(f->get_cli_host()->get_ip()->get_ipv4()),
@@ -535,18 +503,8 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 #endif
 	     );
   }  else {
-    snprintf(sql, sizeof(sql),
-	     "INSERT INTO `%sv6` (VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL,"
-	     "IN_BYTES,OUT_BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID"
-#ifdef NTOPNG_PRO
-	     ",PROFILE"
-#endif
-	     ") VALUES ('%u','%u','%s','%u','%s','%u','%u','%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'"
-#ifdef NTOPNG_PRO
-	     ",'%s'"  // this is the string for traffic profile
-#endif
-	     ") ",
-	     ntop->getPrefs()->get_mysql_tablename(),
+    snprintf(values_buf, values_buf_len,
+	     MYSQL_INSERT_VALUES_V6,
 	     f->get_vlan_id(),
 	     f->get_detected_protocol().protocol,
 	     f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
@@ -566,6 +524,27 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
 	     );
   }
   free(json_buf);
+
+  return 0;
+}
+
+/* ******************************************* */
+
+bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
+  char sql[CONST_MAX_SQL_QUERY_LEN];
+
+  if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL) || !MySQLDB::db_created)
+    return(false);
+
+  if(f->get_cli_host()->get_ip()->isIPv4())
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv4` " MYSQL_INSERT_FIELDS " VALUES ",
+	     ntop->getPrefs()->get_mysql_tablename());
+  else
+    snprintf(sql, sizeof(sql), "INSERT INTO `%sv6` " MYSQL_INSERT_FIELDS " VALUES ",
+	     ntop->getPrefs()->get_mysql_tablename());
+
+  /* do the actual flow insertion as a tuple */
+  flow2InsertValues(partial_dump, f, json, &sql[strlen(sql)], sizeof(sql) - strlen(sql) - 1);
 
   if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
     /* We know that we should have locked before evaluating the condition

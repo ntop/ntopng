@@ -515,6 +515,22 @@
 #define MYSQL_MAX_NUM_FIELDS  255
 #define MYSQL_MAX_NUM_ROWS    999
 
+#ifdef NTOPNG_PRO
+#define MYSQL_INSERT_PROFILE ",PROFILE"
+#define MYSQL_PROFILE_VALUE ",'%s'"
+#else
+#define MYSQL_INSERT_PROFILE ""
+#define MYSQL_PROFILE_VALUE ""
+#endif
+
+#define MYSQL_INSERT_FIELDS "(VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL," \
+  "IN_BYTES,OUT_BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID" \
+  MYSQL_INSERT_PROFILE ")"
+#define MYSQL_INSERT_VALUES_V4 "('%u','%u','%u','%u','%u','%u','%u'," \
+  "'%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'" MYSQL_PROFILE_VALUE ")"
+#define MYSQL_INSERT_VALUES_V6 "('%u','%u','%s','%u','%s','%u','%u'," \
+  "'%u','%u','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'" MYSQL_PROFILE_VALUE ")"
+
 // sqlite (StoreManager and subclasses) related fields
 #define STORE_MANAGER_MAX_QUERY              1024
 #define STORE_MANAGER_MAX_KEY                20
