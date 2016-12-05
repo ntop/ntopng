@@ -97,6 +97,8 @@ local  en = {
       flow_alert_origins  = "Flow Alert Origins",
       flow_alert_targets  = "Flow Alert Targets",
       engaged_for_longest = "Engaged for Longest",
+      occurred_during_selected_period = "Alerts occurred during the selected period",
+      total_alerts = "Total Alerts",
       no_alerts = "No alerts",
       not_engaged = "Not engaged",
 

@@ -131,6 +131,7 @@ for _key,_value in ipairs(alerts) do
    else
       column_date = os.date("%c", _value["alert_tstamp"])
    end
+
    column_duration = "-"
    if engaged == true then
       column_duration = secondsToTime(os.time() - tonumber(_value["alert_tstamp"]))
