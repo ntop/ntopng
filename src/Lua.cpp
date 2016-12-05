@@ -4866,7 +4866,7 @@ static int ntop_interface_delete_flow_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_select_alerts_raw(lua_State* vm) {
+static int ntop_interface_query_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
   bool engaged = false;
@@ -4888,7 +4888,7 @@ static int ntop_interface_select_alerts_raw(lua_State* vm) {
     if((clauses = (char*)lua_tostring(vm, 3)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
 
-  if(am->selectAlertsRaw(vm, engaged, selection, clauses))
+  if(am->queryAlertsRaw(vm, engaged, selection, clauses))
     return(CONST_LUA_ERROR);
 
   return (CONST_LUA_OK);
@@ -4896,7 +4896,7 @@ static int ntop_interface_select_alerts_raw(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_select_flow_alerts_raw(lua_State* vm) {
+static int ntop_interface_query_flow_alerts_raw(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   AlertsManager *am;
   char *selection = NULL, *clauses = NULL;
@@ -4914,7 +4914,7 @@ static int ntop_interface_select_flow_alerts_raw(lua_State* vm) {
     if((clauses = (char*)lua_tostring(vm, 2)) == NULL)
       return(CONST_LUA_PARAM_ERROR);
 
-  if(am->selectFlowAlertsRaw(vm, selection, clauses))
+  if(am->queryFlowAlertsRaw(vm, selection, clauses))
     return(CONST_LUA_ERROR);
 
   return (CONST_LUA_OK);
@@ -5419,8 +5419,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getCachedNumAlerts",   ntop_interface_get_cached_num_alerts    },
   { "deleteAlerts",         ntop_interface_delete_alerts            },
   { "deleteFlowAlerts",     ntop_interface_delete_flow_alerts       },
-  { "selectAlertsRaw",      ntop_interface_select_alerts_raw        },
-  { "selectFlowAlertsRaw",  ntop_interface_select_flow_alerts_raw   },
+  { "queryAlertsRaw",       ntop_interface_query_alerts_raw         },
+  { "queryFlowAlertsRaw",   ntop_interface_query_flow_alerts_raw    },
   { "engageHostAlert",      ntop_interface_engage_host_alert        },
   { "releaseHostAlert",     ntop_interface_release_host_alert       },
   { "engageNetworkAlert",   ntop_interface_engage_network_alert     },
