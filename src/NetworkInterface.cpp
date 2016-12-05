@@ -1114,6 +1114,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	for(int i = 240; i<payload_len; ) {
 	  u_int8_t id  = payload[i], len = payload[i+1];
 
+	  if(len == 0) break;
+	  
 	  if(id == 12 /* Host Name */) {
 	    char name[64], buf[24], *client_mac;
 	    int j;

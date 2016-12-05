@@ -30,7 +30,6 @@
 static void* divertPacketPollLoop(void* ptr) {
   DivertInterface *iface = (DivertInterface*)ptr;
   int fd;
-  bool shaped;
 
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
