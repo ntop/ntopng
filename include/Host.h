@@ -196,8 +196,8 @@ class Host : public GenericHost {
   void getIfaStats(InterFlowActivityProtos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff);
   inline UserActivityStats* get_user_activities() { return(user_activities); }
 #ifdef NTOPNG_PRO
-  inline bool isThereAPolicySet() { return(l7Policy ? true : false); };
-  inline int getL7NetworkIndex () { return(l7NetworkIndex); };
+  inline bool isThereAPolicySet()    { return(l7Policy ? true : false); };
+  inline int getL7NetworkIndex ()    { return(l7NetworkIndex);          };
   inline void updateL7NetworkIndex() { l7NetworkIndex = getInterface()->getL7Policer()->precalculateNetworkIndex(l7Network); };
 #endif
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }

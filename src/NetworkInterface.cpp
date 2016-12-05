@@ -48,7 +48,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   init();
 
   customIftype = custom_interface_type;
-  
+
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
 #endif
@@ -177,7 +177,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 
     if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION,
 			      rsp, sizeof(rsp)) == 0)
-       && (!strncmp(rsp, "1", 1)))      
+       && (!strncmp(rsp, "1", 1)))
       vlanInterfaces = (NetworkInterface**)calloc(MAX_NUM_VLAN, sizeof(NetworkInterface*));
   }
 }
@@ -242,9 +242,9 @@ void NetworkInterface::initL7Policer() {
   char key[64];
   char rsp[1024];
   const char any_net[] = "0.0.0.0/0@0";
-  
+
   snprintf(key, sizeof(key), "ntopng.prefs.%d.l7_policy", get_id());
-  
+
   if (ntop->getRedis()->hashGet(key, (char*)any_net, rsp, sizeof(rsp)) != 0) {
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Creating '%s' network rule on interface %d",
@@ -902,9 +902,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
        && (numVlanInterfaces < MAX_NUM_VIRTUAL_INTERFACES)) {
       char buf[64];
       NetworkInterface *vIface;
-      
+
       snprintf(buf, sizeof(buf), "%s@%u", ifname, vlan_id);
-      
+
       if((vIface = new NetworkInterface(buf, CONST_INTERFACE_TYPE_VLAN)) != NULL) {
 	vlanInterfaces[vlan_id] = vIface;
 	ntop->registerInterface(vIface);
@@ -917,7 +917,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 						    iph, ip6, ipsize, rawsize,
 						    h, packet, ndpiProtocol));
   }
-  
+
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
@@ -1115,11 +1115,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	  u_int8_t id  = payload[i], len = payload[i+1];
 
 	  if(len == 0) break;
-	  
+
 	  if(id == 12 /* Host Name */) {
 	    char name[64], buf[24], *client_mac;
 	    int j;
-	    
+
 	    j = ndpi_min(len, sizeof(name)-1);
 	    strncpy((char*)name, (char*)&payload[i+2], j);
 	    name[j] = '\0';
@@ -1131,12 +1131,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	    break;
 	  } else if(id == 0xFF)
 	    break; /* End of options */
-	  
+
 	  i += len + 2;
 	}
       }
       break;
-      
+
     case NDPI_PROTOCOL_BITTORRENT:
       if((flow->getBitTorrentHash() == NULL)
 	 && (l4_proto == IPPROTO_UDP)
@@ -1220,8 +1220,12 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 #ifdef NTOPNG_PRO
     if(is_bridge_interface() && pass_verdict) {
       int a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id;
-      
-      flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, &c_shaper_id, &d_shaper_id);        
+      char buf[64];
+
+      flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, &c_shaper_id, &d_shaper_id);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %d / %d / %d / %d", 
+				   flow->get_detected_protocol_name(buf, sizeof(buf)),
+				   a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id);
       pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id, (struct pcap_pkthdr*)h);
     }
 #endif
@@ -1841,7 +1845,7 @@ static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
   Host *h = (Host*)node;
   patricia_tree_t **ptree = (patricia_tree_t**)user_data;
   patricia_tree_t *v_ptree = ptree[h->get_vlan_id()];
-  
+
   if((ptree == NULL)
      || h->isThereAPolicySet() /* As we have changed the policer, we need to do this update
 				  for all hosts that used to have a policy set */
@@ -1865,11 +1869,11 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
   patricia_tree_t **ptree = (patricia_tree_t**)user_data;
   Flow *f = (Flow*)node;
   patricia_tree_t *v_ptree = (ptree && f->get_cli_host()) ? ptree[f->get_cli_host()->get_vlan_id()] : NULL;
-  
-  /* 
-     As we have changed the policer, we need to do this update 
+
+  /*
+     As we have changed the policer, we need to do this update
      for all hosts that used to have a policy set
-  */  
+  */
   if((f->get_cli_host()
       && (f->get_cli_host()->isThereAPolicySet() || (v_ptree && f->get_cli_host()->match(v_ptree))))
      || (f->get_srv_host()
@@ -2284,7 +2288,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   case column_mac:
     r->elems[r->actNumEntries++].numericValue = Utils::macaddr_int(h->get_mac());
     break;
-    
+
     /* Criteria */
   case column_uploaders:      r->elems[r->actNumEntries++].numericValue = h->getNumBytesSent(); break;
   case column_downloaders:    r->elems[r->actNumEntries++].numericValue = h->getNumBytesRcvd(); break;
@@ -2534,7 +2538,7 @@ int NetworkInterface::getFlows(lua_State* vm,
   else if(!strcmp(sortColumn, "column_info")) retriever.sorter = column_info, sorter = stringSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
-    retriever.sorter = column_bytes, sorter = numericSorter;    
+    retriever.sorter = column_bytes, sorter = numericSorter;
   }
 
   /* ******************************* */
@@ -4466,7 +4470,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
   if(L == NULL)
     return(-2);
-  
+
   lua_settop(L, 0); /* Reset stack */
   lua_pushlightuserdata(L, f);
   lua_setglobal(L, CONST_USERACTIVITY_FLOW);

@@ -148,12 +148,6 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL,
     user_activities = NULL, ifa_stats = NULL;
 
-#ifdef NTOPNG_PRO
-  l7Policy = NULL;
-  l7NetworkIndex = -1;
-  memset(l7Network, 0, sizeof(l7Network));
-#endif
-
   if(init_all) {
     char sitesBuf[64], *strIP = ip.print(buf, sizeof(buf));
 
@@ -252,6 +246,12 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       }
     }
   }
+
+#ifdef NTOPNG_PRO
+  l7Policy = NULL;
+  memset(l7Network, 0, sizeof(l7Network));
+  updateL7NetworkIndex();
+#endif
 
   loadAlertPrefs();
   readAlertPrefs();
