@@ -79,7 +79,7 @@ class AlertsManager : protected StoreManager {
 				  bool engage);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
-  int selectAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name);
+  int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name);
 
   int getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 		AlertsPaginator *ap, const char *table);
@@ -216,7 +216,6 @@ class AlertsManager : protected StoreManager {
   int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);
   int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type);
 
-
   /*
     ========== delete API ======
    */
@@ -228,12 +227,12 @@ class AlertsManager : protected StoreManager {
   /*
     ========== raw API ======
   */
-  inline int selectAlertsRaw(lua_State *vm, bool engaged, const char *selection, const char *clauses) {
-    return selectAlertsRaw(vm, selection, clauses,
-			   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
+  inline int queryAlertsRaw(lua_State *vm, bool engaged, const char *selection, const char *clauses) {
+    return queryAlertsRaw(vm, selection, clauses,
+			  engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
   };
-  inline int selectFlowAlertsRaw(lua_State *vm, const char *selection, const char *clauses) {
-    return selectAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_FLOWS_TABLE_NAME);
+  inline int queryFlowAlertsRaw(lua_State *vm, const char *selection, const char *clauses) {
+    return queryAlertsRaw(vm, selection, clauses, ALERTS_MANAGER_FLOWS_TABLE_NAME);
   };
 
   /* Following are the legacy methods that were formally global to the whole ntopng */

@@ -732,9 +732,9 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
    if status == "historical-flows" then
 
       if selection_name == "severity" then
-	 actual_entries = interface.selectFlowAlertsRaw("alert_severity id, count(*) count", "group by alert_severity")
+	 actual_entries = interface.queryFlowAlertsRaw("select alert_severity id, count(*) count", "group by alert_severity")
       elseif selection_name == "type" then
-	 actual_entries = interface.selectFlowAlertsRaw("alert_type id, count(*) count", "group by alert_type")
+	 actual_entries = interface.queryFlowAlertsRaw("select alert_type id, count(*) count", "group by alert_type")
       end
 
    else -- dealing with non flow alerts (engaged and closed)
@@ -746,9 +746,9 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
       end
 
       if selection_name == "severity" then
-	 actual_entries = interface.selectAlertsRaw(engaged, "alert_severity id, count(*) count", "group by alert_severity")
+	 actual_entries = interface.queryAlertsRaw(engaged, "select alert_severity id, count(*) count", "group by alert_severity")
       elseif selection_name == "type" then
-	 actual_entries = interface.selectAlertsRaw(engaged, "alert_type id, count(*) count", "group by alert_type")
+	 actual_entries = interface.queryAlertsRaw(engaged, "select alert_type id, count(*) count", "group by alert_type")
       end
 
    end

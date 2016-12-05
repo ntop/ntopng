@@ -1683,14 +1683,14 @@ int AlertsManager::deleteAlerts(bool engaged, AlertEntity alert_entity, const ch
 
 /* ******************************************* */
 
-int AlertsManager::selectAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name) {
+int AlertsManager::queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name) {
   alertsRetriever ar;
   char query[STORE_MANAGER_MAX_QUERY];
   char *zErrMsg = NULL;
   int rc;
 
   snprintf(query, sizeof(query),
-	   "SELECT %s FROM %s %s ",
+	   "%s FROM %s %s ",
 	   selection ? selection : "*",
 	   table_name ? table_name : (char*)"",
 	   clauses ? clauses : (char*)"");
