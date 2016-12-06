@@ -640,10 +640,11 @@ end
 
 function getExtraParameters(url_params)
    local params = {}
-   
+   local exclude = {csrf=1, id_to_delete=1, older_than_seconds=1, tab_id=1}
+
    if type(url_params) == "table" then
       for k, v in pairs(url_params) do
-        if ((k ~= "csrf") and (k ~= "older_than_seconds") and (k ~= "tab_id")) then
+        if not exclude[k] then
            params[k] = v
         end
       end
@@ -654,10 +655,102 @@ end
 
 -- #################################
 
+function performAlertsQuery(statement, what, options)
+   local opts = {
+      row_id=nil,
+      entity_type=nil,
+      entity_value=nil,
+      older_than=nil,
+      alert_type=nil,
+      alert_severity=nil,
+   }
+   for k,v in pairs(options) do opts[k] = v end
+
+   local wargs = {"WHERE", "1=1"}
+
+   if opts.row_id ~= nil then
+      wargs[#wargs+1] = 'AND rowid = '..(opts.row_id)
+   end
+
+   if (opts.entity_type ~= nil) and (opts.entity_value ~= nil) then
+      if((what == "historical-flows") and (alertEntityRaw(opts.entity_type) == "host")) then
+         -- need to handle differently for flows table
+         local info = hostkey2hostinfo(opts.entity_value)
+         wargs[#wargs+1] = 'AND (cli_addr="'..(info.host)..'" OR srv_addr="'..(info.host)..'")'
+         wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
+      else
+         wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity_type)..'"'
+         wargs[#wargs+1] = 'AND alert_entity_val = "'..(opts.entity_value)..'"'
+      end
+   end
+
+   if opts.older_than ~= nil then
+      wargs[#wargs+1] = 'AND alert_tstamp < '..(opts.older_than)
+   end
+
+   if opts.alert_type ~= nil then
+      wargs[#wargs+1] = "AND alert_type = "..(opts.alert_type)
+   end
+
+   if opts.alert_severity ~= nil then
+      wargs[#wargs+1] = "AND alert_severity = "..(opts.alert_severity)
+   end
+
+   local query = table.concat(wargs, " ")
+   local res
+
+   --~ tprint(statement.." (from "..what..") "..query)
+
+   if what == "engaged" then
+      res = interface.queryAlertsRaw(true, statement, query)
+   elseif what == "historical" then
+      res = interface.queryAlertsRaw(false, statement, query)
+   elseif what == "historical-flows" then
+      res = interface.queryFlowAlertsRaw(statement, query)
+   else
+      error("Invald alert subject: "..what)
+   end
+
+   return res
+end
+
+-- #################################
+
+function deleteAlerts(what, options)
+   return performAlertsQuery("Delete", what, options)
+end
+
+-- #################################
+
+-- builds an URL query string from an options object (performAlertsQuery parameters)
+function alertsQueryParametersToUrl(opts)
+   local res = ""
+
+   if opts.alert_severity ~= nil then res = res.."&severity="..alertSeverityRaw(opts.alert_severity) end
+   if opts.alert_type ~= nil then res = res.."&type="..alertTypeRaw(opts.alert_type) end
+   if ((opts.entity_type ~= nil) and (opts.entity_value ~= nil)) then res = res .."&entity="..alertEntityRaw(opts.entity_type).."&entity_val="..opts.entity_value end
+   if opts.older_than ~= nil then res = res.."&older_than_seconds="..opts.older_than end
+
+   return res
+end
+
+-- builds an options object suitable to be passed to performAlertsQuery from GET parameters
+function UrlToalertsQueryParameters(_GET)
+   local opts = {}
+   
+   if _GET["severity"] ~= nil then opts.alert_severity = alertSeverity(_GET["severity"]) end
+   if _GET["type"] ~= nil then opts.alert_type = alertType(_GET["type"]) end
+   if ((_GET["entity"] ~= nil) and (_GET["entity_val"] ~= nil)) then opts.entity_type = alertEntity(_GET["entity"]); opts.entity_value = _GET["entity_val"] end
+   if _GET["older_than_seconds"] ~= nil then opts.older_than = os.time() - tonumber(_GET["older_than_seconds"]) end
+
+   return opts
+end
+
+-- #################################
+
 function checkDeleteStoredAlerts()
    if(_GET["csrf"] ~= nil) then
       if(_GET["id_to_delete"] ~= nil) then
-	 local older_than_seconds = tonumber(_GET["older_than_seconds"]) or 0
 	 local older_than = nil
 	 local delete_engaged, delete_past, delete_flows
 	 
@@ -672,43 +765,28 @@ function checkDeleteStoredAlerts()
 	 else
 	    delete_engaged, delete_past, delete_flows = false, false, false
 	 end
-	 
-	 if older_than_seconds > 0 then
+
+    local older_than_seconds = tonumber(_GET["older_than_seconds"])
+	 if((older_than_seconds ~= nil) and (older_than_seconds > 0)) then
 	    older_than = os.time() - older_than_seconds
 	 end
 	 
 	 if(_GET["id_to_delete"] == "__all__") then
-	    _GET["totalRows"] = nil -- reset this value so it will be re-computed
-	    if _GET["entity"] ~= nil and _GET["entity"] ~= "" then
-	       -- delete all alerts of a given entity (e.g., a given host)
-	       if delete_engaged then interface.deleteAlerts(true --[[ engaged --]],
-				      _GET["entity"], _GET["entity_val"], nil, older_than) end
-	       if delete_past then interface.deleteAlerts(false --[[ not engaged --]],
-				      _GET["entity"], _GET["entity_val"], nil, older_than) end
-	       if delete_flows then interface.deleteFlowAlerts(_GET["entity"], _GET["entity_val"], nil, older_than) end
-	    else
-	       -- delete all existing alerts
-	       if delete_engaged then interface.deleteAlerts(true --[[ engaged --]], nil, nil, nil, older_than) end
-	       if delete_past then interface.deleteAlerts(false --[[ not engaged --]], nil, nil, nil, older_than) end
-	       if delete_flows then interface.deleteFlowAlerts(nil, nil, nil, older_than) end
+	    local function invokeDelete(what)
+         deleteAlerts(what, UrlToalertsQueryParameters(_GET))
 	    end
+
+	    if delete_engaged then invokeDelete("engaged") end
+	    if delete_past then invokeDelete("historical") end
+	    if delete_flows then invokeDelete("historical-flows") end
 	 else
 	    local id_to_delete = tonumber(_GET["id_to_delete"])
-	    -- update the muber of total rows to avoid recomputing it
-	    local total_rows = tonumber(_GET["totalRows"])
-	    if total_rows ~= nil and total_rows > 1 then
-	       total_rows = total_rows - 1
-	       _GET["totalRows"] = total_rows
-	    else
-	       _GET["totalRows"] = nil
-	    end
 	    if id_to_delete ~= nil then
-	       if _GET["status"] == "engaged" then
-		  if delete_engaged then interface.deleteAlerts(true, id_to_delete, nil, nil, older_than) end
-	       elseif _GET["status"] == "historical" then
-		  if delete_past then interface.deleteAlerts(false, id_to_delete, nil, nil, older_than) end
-	       elseif _GET["status"] == "historical-flows" then
-		  if delete_flows then interface.deleteFlowAlerts(nil, nil, id_to_delete, older_than) end
+	       if _GET["status"] ~= nil then
+		  deleteAlerts(_GET["status"], {
+		     older_than=tonumber(_GET["older_than_seconds"]), -- possibly null
+		     row_id=id_to_delete
+		  })
 	       end
 	    end
 	 end
@@ -778,7 +856,6 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
       if label == active_entry then class_active = ' class="active"' end
       -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
       buttons = buttons..'<li'..class_active..'><a href="?status='..status
-      buttons = buttons..'&totalRows='..count
       buttons = buttons..'&'..selection_name..'='..label..'">'
       buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'
    end
@@ -1022,13 +1099,28 @@ print [[";
    else if (tabid == "tab-table-alerts-history")
       val = "Past ";
    else if (tabid == "tab-table-flow-alerts-history")
-      val = "Flow ";
+      val = "Past Flow ";
    
    label.html(prefix + val);
 }
 
 function updateDeleteContext(tabid) {
    $("#modalDeleteAlertsTab").val(tabid);
+}
+
+function getCurrentStatus() {
+   var tabid = getActiveTabId();
+
+   if (tabid == "tab-table-engaged-alerts")
+      val = "engaged";
+   else if (tabid == "tab-table-alerts-history")
+      val = "historical";
+   else if (tabid == "tab-table-flow-alerts-history")
+      val = "historical-flows";
+   else
+      val = "engaged";
+
+   return val;
 }
 </script>
 
@@ -1208,12 +1300,13 @@ $("[clicked=1]").trigger("click");
       print [[
 </div> <!-- closes tab-content -->
 
-]] print('<i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts') print[[
-<button type="button" style="margin:0 1em;" class="btn btn-default btn-xs open-myModal" href="#myModal" data-toggle="modal" data-older="0" data-msg=""><b>All</b></button><span style="margin-right: 1em;">older than </span>]]
+]] print('<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>') print[[
+<select id="deleteZoomSelector" class="form-control" style="display:inline; width:12em; margin-left:1em;">]]
+      print('<optgroup><option data-older="0" data-msg="">All</option></<optgroup>\n<optgroup label="older than">')
       for k,v in ipairs(zoom_vals) do
-	 print('<button type="button" class="btn btn-default btn-xs  open-myModal" name="options" href="#myModal" data-toggle="modal" data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '"><b>'..zoom_vals[k][1]..'</b></button>\n')
+         print('<option data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
       end
-      print[[
+      print[[</optgroup></select>
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -1245,22 +1338,59 @@ $("[clicked=1]").trigger("click");
       
       print [[
     <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
-    <button class="btn btn-primary" type="submit">Purge</button>
+    <button class="btn btn-primary" type="submit">Purge [<img id="alerts-summary-wait" src="]] print(ntop.getHttpPrefix()) print[[/img/loading.gif"\><span id="alerts-summary-body"></span> alerts]</button>
 </form>
   </div>
   </div>
 </div>
 </div>
 <script>
-$(document).on("click", ".open-myModal", function () {
+var cur_alert_num_req = null;
+
+/* This acts before shown.bs.modal event, avoiding visual fields substitution glitch */
+$('#buttonOpenDeleteModal').on('click', function() {
    var lb = $("#purgeBtnLabel");
-   
-   $(".modal-body #modalDeleteAlertsMsg").html($(this).data('msg'));
+   var zoomsel = $("#deleteZoomSelector").find(":selected");
+
+   $(".modal-body #modalDeleteAlertsMsg").html(zoomsel.data('msg') + ']]
+   if _GET["severity"] ~= nil then
+      print(' with severity "'..firstToUpper(_GET["severity"])..'" ')
+   elseif _GET["type"] ~= nil then
+      print(' with type "'..firstToUpper(_GET["type"])..'" ')
+   end
+   print[[');
    if (lb.length == 1)
       $(".modal-body #modalDeleteContext").html(" " + lb.html());
-   $(".modal-footer #modalDeleteAlertsOlderThan").val($(this).data('older'));
-});</script>
-      ]]
+   $(".modal-footer #modalDeleteAlertsOlderThan").val(zoomsel.data('older'));
+
+   cur_alert_num_req = $.ajax({
+      type: 'GET',
+      ]] print("url: '"..ntop.getHttpPrefix().."/lua/get_num_alerts.lua?older_than_seconds=' + $(\"#modalDeleteAlertsOlderThan\").val() + '&status=' + getCurrentStatus() + '")
+      print(alertsQueryParametersToUrl(UrlToalertsQueryParameters(url_params)))
+      print[[',
+       complete: function() {
+         $("#alerts-summary-wait").hide();
+       }, error: function() {
+         $("#alerts-summary-body").html("?");
+       }, success: function(count){
+         $("#alerts-summary-body").html(count);
+         if (count == 0)
+            $('#myModal button[type="submit"]').attr("disabled", "disabled");
+       }
+    });
+});
+
+$('#myModal').on('hidden.bs.modal', function () {
+   if(cur_alert_num_req) {
+      cur_alert_num_req.abort();
+      cur_alert_num_req = null;
+   }
+   
+   $("#alerts-summary-wait").show();
+   $("#alerts-summary-body").html("");
+   $('#myModal button[type="submit"]').removeAttr("disabled");
+})
+</script>]]
    end
 
 end

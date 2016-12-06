@@ -219,9 +219,6 @@ class AlertsManager : protected StoreManager {
   /*
     ========== delete API ======
    */
-  int deleteFlowAlerts(const int *rowid, time_t older_than, const char * host_filter);
-  int deleteAlerts(bool engaged, const int *rowid, time_t older_than);
-  int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, time_t older_than);
   int deleteAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value, AlertType alert_type, time_t older_than);
 
   /*
