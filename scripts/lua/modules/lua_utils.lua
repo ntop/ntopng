@@ -323,6 +323,14 @@ function alertSeverity(v)
    return(_handleArray(severity_table, v))
 end
 
+function alertSeverityRaw(sev_idx)
+   sev_idx = sev_idx + 1
+   if sev_idx <= #alert_level_keys then
+      return alert_level_keys[sev_idx][3]
+   end
+   return nil
+end
+
 function alertTypeLabel(v, nohtml)
    local res = _handleArray(alert_type_keys, tonumber(v))
    if res ~= nil and nohtml == true then res = noHtml(res) end
@@ -337,6 +345,14 @@ function alertType(v)
    return(_handleArray(typetable, v))
 end
 
+function alertTypeRaw(alert_idx)
+   alert_idx = alert_idx + 1
+   if alert_idx <= #alert_type_keys then
+      return alert_type_keys[alert_idx][3]
+   end
+   return nil
+end
+
 function alertEntityLabel(v, nothml)
    local res = _handleArray(alert_entity_keys, tonumber(v))
    if res ~= nil and nohtml == true then res = noHtml(res) end
@@ -349,6 +365,14 @@ function alertEntity(v)
       typetable[#typetable + 1] = {t[2], t[3]}
    end
    return(_handleArray(typetable, v))
+end
+
+function alertEntityRaw(entity_idx)
+   entity_idx = entity_idx + 1
+   if entity_idx <= #alert_entity_keys then
+      return alert_entity_keys[entity_idx][3]
+   end
+   return nil
 end
 
 function firstToUpper(str)
