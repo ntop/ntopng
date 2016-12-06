@@ -188,6 +188,13 @@ typedef enum {
 } FlowStatus;
 
 typedef enum {
+  details_normal = 0,
+  details_high,
+  details_higher,
+  details_max,
+} DetailsLevel;
+
+typedef enum {
   /* Flows */
   column_client = 0,
   column_server,

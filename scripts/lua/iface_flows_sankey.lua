@@ -21,9 +21,10 @@ local debug = false
 
 -- 1. compute total traffic
 total_traffic = 0
+
 for key, values in pairs(peers) do
-   total_traffic = total_traffic + values["sent.last"] + values["rcvd.last"]
-   if(debug) then io.write("->"..key.."\t[".. (values["sent.last"] + values["rcvd.last"]) .."][".. values["duration"].."]" .. "\n") end
+   total_traffic = total_traffic + values["bytes.last"]
+   if(debug) then io.write("->"..key.."\t[".. (values["bytes.last"]) .."][".. values["duration"].."]" .. "\n") end
 end
 
 if(debug) then io.write("\n") end
@@ -46,18 +47,18 @@ print '{"nodes":[\n'
 while(num == 0) do
    for key, values in pairs(peers) do
       -- print("[" .. key .. "][" .. values["client"] .. ",".. values["client.vlan_id"] .. "][" .. values["server"] .. ",".. values["client.vlan_id"] .. "]\n")
-      last = values["sent.last"] + values["rcvd.last"]
+      last = values["bytes.last"]
       if((last == 0) and (values.duration < 3)) then
-	 last = values["sent"] + values["rcvd"]
+	 last = values["bytes"]
       end
       if(last > threshold) then
 
-	 if(debug) then io.write("==>"..key.."\t[T:"..tracked_host.. (values["sent.last"] + values["rcvd.last"]) .."][".. values["duration"].."][" .. last.. "]\n") end
+	 if(debug) then io.write("==>"..key.."\t[T:"..tracked_host.. (values["bytes.last"]) .."][".. values["duration"].."][" .. last.. "]\n") end
 	 if((debug) and (findString(key, tracked_host) ~= nil))then io.write("findString(key, tracked_host)==>"..findString(key, tracked_host)) end
 	 if((debug) and (findString(values["cli.ip"], tracked_host) ~= nil)) then io.write("findString(values[cli.ip], tracked_host)==>"..findString(values["cli.ip"], tracked_host)) end
 	 if((debug) and (findString(values["srv.ip"], tracked_host) ~= nil)) then io.write("findString(values[srv.ip], tracked_host)==>"..findString(values["srv.ip"], tracked_host)) end
 
-	 k = string.split(key, " ")
+	 local k = {hostinfo2hostkey(values, "cli"), hostinfo2hostkey(values, "srv")}  --string.split(key, " ")
 
 	 if((tracked_host == nil)
    	    or findString(k[1], tracked_host)
@@ -67,7 +68,8 @@ while(num == 0) do
 	    -- print("[" .. key .. "]")
 	    -- print("[" .. tracked_host .. "]\n")
 
-	    for key,word in pairs(split(key, " ")) do
+	    for key,word in pairs(k) do
+
 	       if(num >= max_num_hosts) then
 		  break
 	       end
@@ -170,13 +172,14 @@ num = 0
 -- Avoid to have a link A->B, and B->A
 reverse_nodes = {}
 for key, values in pairs(peers) do
-   val = values["sent.last"] + values["rcvd.last"]
+   key = {hostinfo2hostkey(values, "cli"), hostinfo2hostkey(values, "srv")}  --string.split(key, " ")
+   val = values["bytes.last"]
 
-   if(((val == 0) or (val > threshold)) or ((top_host ~= nil) and (findString(key, top_host) ~= nil)) and (num < max_num_links)) then
+   if(((val == 0) or (val > threshold)) or ((top_host ~= nil) and (findString(table.concat(key, " "), top_host) ~= nil)) and (num < max_num_links)) then
       e = {}
       id = 0
       --print("->"..key.."\n")
-      for key,word in pairs(split(key, " ")) do
+      for key,word in pairs(key) do
 	 --print(word .. "=" .. hosts[word].."\n")
 	 e[id] = hosts[word]
 	 id = id + 1
@@ -189,8 +192,8 @@ for key, values in pairs(peers) do
 
 	 reverse_nodes[e[1]..":"..e[0]] = 1
 
-	 sentv = values["sent.last"]
-	 recvv = values["rcvd.last"]
+	 sentv = values["cli2srv.last"]
+	 recvv = values["srv2cli.last"]
 
 	 if(val == 0) then
 	    val = 1

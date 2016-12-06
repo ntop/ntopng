@@ -1731,7 +1731,7 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
   if(f == NULL)
     return(CONST_LUA_ERROR);
   else {
-    f->lua(vm, ptree, true, false);
+    f->lua(vm, ptree, details_high, false);
     return(CONST_LUA_OK);
   }
 }

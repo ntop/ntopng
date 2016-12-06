@@ -62,50 +62,50 @@ print [[
 
     maxval = 0
     for key, values in pairs(peers) do
-       t = values["sent"]+values["rcvd"]
+       t = values["bytes"]
 
        if(t > maxval) then maxval = t end
     end
 
     min_threshold = 0 --  0.5%
     for key, values in pairs(peers) do
-       t = values["sent"]+values["rcvd"]
+       t = values["bytes"]
        pctg = (t*100)/maxval
 
-       if(not(values["client.private"])
-       and not(values["server.private"])
-    and not(isBroadMulticast(values["client"])) 
- and not(isBroadMulticast(values["server"]))) then
+       if(not(values["cli.private"])
+       and not(values["srv.private"])
+    and not(isBroadMulticast(values["cli.ip"])) 
+ and not(isBroadMulticast(values["srv.ip"]))) then
 	  if((pctg >= min_threshold)
-	  and (values["client.latitude"] ~= nil)
-       and (values["client.longitude"] ~= nil)) then 
+	  and (values["cli.latitude"] ~= nil)
+       and (values["cli.longitude"] ~= nil)) then 
 	     if(num > 0) then print(",") end
 	     print('\n{\n"host":\n[	\n{\n')
-	     print('"lat": '..values["client.latitude"]..',\n')
-	     print('"lng": '..values["client.longitude"]..',\n')
+	     print('"lat": '..values["cli.latitude"]..',\n')
+	     print('"lng": '..values["cli.longitude"]..',\n')
 
 	     print('"html": "')
-	     if((values["client.city"] ~= nil) and (values["client.city"] ~= "")) then
-		print('City: '..values["client.city"])
+	     if((values["cli.city"] ~= nil) and (values["cli.city"] ~= "")) then
+		print('City: '..values["cli.city"])
 	     end
 
-	     print(getFlag(values["country"]))
+	     print(getFlag(values["cli.country"]))
 	     print('",\n')
 
-	     print('"name": "'..values["client"].."@"..values["client.vlan"]..'"\n')
+	     print('"name": "'..hostinfo2hostkey(values, "cli")..'"\n')
 	     print('},\n{\n')
-	     print('"lat": '..values["server.latitude"]..',\n')
-	     print('"lng": '..values["server.longitude"]..',\n')
+	     print('"lat": '..values["srv.latitude"]..',\n')
+	     print('"lng": '..values["srv.longitude"]..',\n')
 	     
 	     print('"html": "')
-	     if((values["server.city"] ~= nil) and (values["server.city"] ~= "")) then
-		print('City: '..values["server.city"])
+	     if((values["srv.city"] ~= nil) and (values["srv.city"] ~= "")) then
+		print('City: '..values["srv.city"])
 	     end
-	     print(getFlag(values["server.country"]))
+	     print(getFlag(values["srv.country"]))
 	     print('",\n')
 
-	     print('"name": "'..values["server"].."@"..values["client.vlan"]..'"\n')
-	     print('}\n],\n"flusso": '.. pctg..',"html":"Flow '.. key .. '"\n')
+	     print('"name": "'..hostinfo2hostkey(values, "srv")..'"\n')
+	     print('}\n],\n"flusso": '.. pctg..',"html":"Flow '.. hostinfo2hostkey(values, "cli").." "..hostinfo2hostkey(values, "srv") .. '"\n')
 	     print('}\n')
 	     num = num + 1
 	     

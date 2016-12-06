@@ -689,79 +689,6 @@ u_int64_t Flow::get_current_packets_srv2cli() {
   return((diff > 0) ? diff : 0);
 };
 
-
-/* *************************************** */
-
-void Flow::print_peers(lua_State* vm, patricia_tree_t * ptree, bool verbose) {
-  char buf1[64], buf2[64], buf[256];
-  Host *src = get_cli_host(), *dst = get_srv_host();
-
-  if((src == NULL) || (dst == NULL)) return;
-
-  if((!src->match(ptree)) && (!dst->match(ptree)))
-    return;
-
-  lua_newtable(vm);
-
-  lua_push_str_table_entry(vm, "client", get_cli_host()->get_ip()->print(buf, sizeof(buf)));
-  lua_push_int_table_entry(vm, "client.vlan", get_cli_host()->get_vlan_id());
-  lua_push_str_table_entry(vm, "server", get_srv_host()->get_ip()->print(buf, sizeof(buf)));
-  lua_push_int_table_entry(vm, "server.vlan", get_srv_host()->get_vlan_id());
-  lua_push_int_table_entry(vm, "sent", cli2srv_bytes);
-  lua_push_int_table_entry(vm, "rcvd", srv2cli_bytes);
-  lua_push_int_table_entry(vm, "sent.last", get_current_bytes_cli2srv());
-  lua_push_int_table_entry(vm, "rcvd.last", get_current_bytes_srv2cli());
-  lua_push_int_table_entry(vm, "goodput_sent", cli2srv_goodput_bytes);
-  lua_push_int_table_entry(vm, "goodput_rcvd", srv2cli_goodput_bytes);
-  lua_push_int_table_entry(vm, "goodput_sent.last", get_current_goodput_bytes_cli2srv());
-  lua_push_int_table_entry(vm, "goodput_rcvd.last", get_current_goodput_bytes_srv2cli());
-  lua_push_int_table_entry(vm, "duration", get_duration());
-
-  lua_push_float_table_entry(vm, "client.latitude", get_cli_host()->get_latitude());
-  lua_push_float_table_entry(vm, "client.longitude", get_cli_host()->get_longitude());
-  lua_push_float_table_entry(vm, "server.latitude", get_srv_host()->get_latitude());
-  lua_push_float_table_entry(vm, "server.longitude", get_srv_host()->get_longitude());
-
-  if(verbose) {
-    lua_push_bool_table_entry(vm, "client.private", get_cli_host()->get_ip()->isPrivateAddress());
-    lua_push_str_table_entry(vm,  "client.country", get_cli_host()->get_country() ? get_cli_host()->get_country() : (char*)"");
-    lua_push_bool_table_entry(vm, "server.private", get_srv_host()->get_ip()->isPrivateAddress());
-    lua_push_str_table_entry(vm,  "server.country", get_srv_host()->get_country() ? get_srv_host()->get_country() : (char*)"");
-    lua_push_str_table_entry(vm,  "client.city", get_cli_host()->get_city() ? get_cli_host()->get_city() : (char*)"");
-    lua_push_str_table_entry(vm,  "server.city", get_srv_host()->get_city() ? get_srv_host()->get_city() : (char*)"");
-
-    if(((cli2srv_packets+srv2cli_packets) > NDPI_MIN_NUM_PACKETS)
-       || (ndpiDetectedProtocol.protocol != NDPI_PROTOCOL_UNKNOWN)
-       || iface->is_ndpi_enabled()
-       || iface->is_sprobe_interface()
-       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ))
-       || (!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZC_FLOW)))
-      lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
-    else
-      lua_push_str_table_entry(vm, "proto.ndpi", (char*)CONST_TOO_EARLY);
-
-    lua_push_int_table_entry(vm, "proto.ndpi_id", ndpiDetectedProtocol.protocol);
-  }
-
-  // Key
-  /* Use the ip@vlan_id as a key only in case of multi vlan_id, otherwise use only the ip as a key */
-  if((get_cli_host()->get_vlan_id() == 0) && (get_srv_host()->get_vlan_id() == 0)) {
-    snprintf(buf, sizeof(buf), "%s %s",
-	     intoaV4(ntohl(get_cli_ipv4()), buf1, sizeof(buf1)),
-	     intoaV4(ntohl(get_srv_ipv4()), buf2, sizeof(buf2)));
-  } else {
-    snprintf(buf, sizeof(buf), "%s@%d %s@%d",
-	     intoaV4(ntohl(get_cli_ipv4()), buf1, sizeof(buf1)),
-	     get_cli_host()->get_vlan_id(),
-	     intoaV4(ntohl(get_srv_ipv4()), buf2, sizeof(buf2)),
-	     get_srv_host()->get_vlan_id());
-  }
-
-  lua_pushstring(vm, buf);
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-}
-
 /* ****************************************************** */
 
 char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
@@ -1231,7 +1158,7 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
 /* *************************************** */
 
 void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
-	       bool detailed_dump, bool skipNewTable) {
+	       DetailsLevel details_level, bool skipNewTable) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
   bool src_match, dst_match;
@@ -1246,61 +1173,52 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
   if(!skipNewTable)
     lua_newtable(vm);
 
-  if(!detailed_dump) {
-    if(src) {
-      lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "cli.key", src->key());
-    } else {
-      lua_push_nil_table_entry(vm, "cli.ip");
-      lua_push_nil_table_entry(vm, "cli.key");
-    }
-    lua_push_int_table_entry(vm, "cli.port", get_cli_port());
-
-    if(dst) {
-      lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "srv.key", dst->key());
-    } else {
-      lua_push_nil_table_entry(vm, "srv.ip");
-      lua_push_nil_table_entry(vm, "srv.key");
-    }
-
-    lua_push_int_table_entry(vm, "srv.port", get_srv_port());
-    lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
-    lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
+  if(src) {
+    lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
+    lua_push_int_table_entry(vm, "cli.key", src->key());
   } else {
+    lua_push_nil_table_entry(vm, "cli.ip");
+    lua_push_nil_table_entry(vm, "cli.key");
+  }
+  lua_push_int_table_entry(vm, "cli.port", get_cli_port());
+
+  if(dst) {
+    lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
+    lua_push_int_table_entry(vm, "srv.key", dst->key());
+  } else {
+    lua_push_nil_table_entry(vm, "srv.ip");
+    lua_push_nil_table_entry(vm, "srv.key");
+  }
+  lua_push_int_table_entry(vm, "srv.port", get_srv_port());
+
+  lua_push_int_table_entry(vm, "bytes", cli2srv_bytes+srv2cli_bytes);
+  lua_push_int_table_entry(vm, "goodput_bytes", cli2srv_goodput_bytes+srv2cli_goodput_bytes);
+
+  if(details_level >= details_high) {
+
     if(src) {
       lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
-      lua_push_str_table_entry(vm, "cli.ip", src->get_ip()->print(buf, sizeof(buf)));
       lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "cli.key", src->key());
-
+  
       lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
       lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
       lua_push_int32_table_entry(vm, "cli.network_id", src->get_local_network_id());
     } else {
       lua_push_nil_table_entry(vm, "cli.host");
-      lua_push_nil_table_entry(vm, "cli.ip");
-      lua_push_nil_table_entry(vm, "cli.key");
     }
-
-    lua_push_int_table_entry(vm, "cli.port", get_cli_port());
 
     if(dst) {
       lua_push_str_table_entry(vm, "srv.host", dst->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "srv.source_id", src->getSourceId());
-      lua_push_str_table_entry(vm, "srv.ip", dst->get_ip()->print(buf, sizeof(buf)));
       lua_push_str_table_entry(vm, "srv.mac", Utils::formatMac(dst->get_mac(), buf, sizeof(buf)));
-      lua_push_int_table_entry(vm, "srv.key", dst->key());
       lua_push_bool_table_entry(vm, "srv.systemhost", dst->isSystemHost());
       lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
       lua_push_int32_table_entry(vm, "srv.network_id", dst->get_local_network_id());
     } else {
       lua_push_nil_table_entry(vm, "srv.host");
-      lua_push_nil_table_entry(vm, "srv.ip");
     }
 
-    lua_push_int_table_entry(vm, "srv.port", get_srv_port());
     lua_push_int_table_entry(vm, "vlan", get_vlan_id());
     lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
 
@@ -1328,8 +1246,6 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_str_table_entry(vm, "profile", trafficProfile->getName());
 #endif
 
-    lua_push_int_table_entry(vm, "bytes",
-			     cli2srv_bytes+srv2cli_bytes);
     lua_push_int_table_entry(vm, "bytes.last",
 			     get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
     lua_push_int_table_entry(vm, "goodput_bytes",
@@ -1349,10 +1265,6 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_int_table_entry(vm, "srv2cli.goodput_bytes", srv2cli_goodput_bytes);
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
-#ifdef NTOPNG_PRO
-    // lua_push_float_table_entry(vm, "cli2srv.trend", c2sBytes.getTrend());
-    // lua_push_float_table_entry(vm, "srv2cli.trend", s2cBytes.getTrend());
-#endif
 
     if(isICMP()) {
       lua_newtable(vm);
@@ -1455,19 +1367,34 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
     lua_push_float_table_entry(vm, "throughput_cli2srv_pps", pkts_thpt_cli2srv);
     lua_push_float_table_entry(vm, "throughput_srv2cli_pps", pkts_thpt_srv2cli);
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt: %.2f] [bytes_thpt_trend: %d]", bytes_thpt,bytes_thpt_trend);
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt_cli2srv: %.2f]", bytes_thpt_cli2srv);
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[bytes_thpt_srv2cli: %.2f]", bytes_thpt_srv2cli);
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt_cli2srv: %.2f]", pkts_thpt_cli2srv);
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt_srv2cli: %.2f]", pkts_thpt_srv2cli);
-
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
 
     /* ********************* */
     dumpPacketStats(vm, true);
     dumpPacketStats(vm, false);
+
+    if(details_level >= details_higher) {
+      lua_push_int_table_entry(vm, "cli2srv.last", get_current_bytes_cli2srv());
+      lua_push_int_table_entry(vm, "srv2cli.last", get_current_bytes_srv2cli());
+
+      lua_push_int_table_entry(vm, "cli2srv.goodput_bytes.last", get_current_goodput_bytes_cli2srv());
+      lua_push_int_table_entry(vm, "srv2cli.goodput_bytes.last", get_current_goodput_bytes_srv2cli());
+
+      lua_push_float_table_entry(vm, "cli.latitude", get_cli_host()->get_latitude());
+      lua_push_float_table_entry(vm, "cli.longitude", get_cli_host()->get_longitude());
+      lua_push_float_table_entry(vm, "srv.latitude", get_srv_host()->get_latitude());
+      lua_push_float_table_entry(vm, "srv.longitude", get_srv_host()->get_longitude());
+
+      if(details_level >= details_max) {
+	lua_push_bool_table_entry(vm, "cli.private", get_cli_host()->get_ip()->isPrivateAddress()); // cli. */
+	lua_push_str_table_entry(vm,  "cli.country", get_cli_host()->get_country() ? get_cli_host()->get_country() : (char*)"");
+	lua_push_str_table_entry(vm,  "cli.city", get_cli_host()->get_city() ? get_cli_host()->get_city() : (char*)"");
+	lua_push_bool_table_entry(vm, "srv.private", get_srv_host()->get_ip()->isPrivateAddress());
+	lua_push_str_table_entry(vm,  "srv.country", get_srv_host()->get_country() ? get_srv_host()->get_country() : (char*)"");
+	lua_push_str_table_entry(vm,  "srv.city", get_srv_host()->get_city() ? get_srv_host()->get_city() : (char*)"");
+      }
+    }
   }
 
   lua_push_bool_table_entry(vm, "flow.idle", isIdleFlow());
@@ -1475,14 +1402,6 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 
   // this is used to dynamicall update entries in the GUI
   lua_push_int_table_entry(vm, "ntopng.key", key()); // Key
-
-  /*
-    if(asListElement) {
-    lua_pushnumber(vm, key()); // Key
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-    }
-  */
 }
 
 /* *************************************** */

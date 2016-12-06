@@ -2432,7 +2432,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 			       bool a2zSortOrder) {
   struct flowHostRetriever retriever;
   int (*sorter)(const void *_a, const void *_b);
-  bool highDetails = (location == location_local_only || (maxHits != CONST_MAX_NUM_HITS)) ? true : false;
+  DetailsLevel highDetails = (location == location_local_only || (maxHits != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
   if((maxHits > CONST_MAX_NUM_HITS) || (maxHits == 0)) maxHits = CONST_MAX_NUM_HITS;
   retriever.pag = NULL;
@@ -2507,14 +2507,14 @@ int NetworkInterface::getFlows(lua_State* vm,
   struct flowHostRetriever retriever;
   int (*sorter)(const void *_a, const void *_b);
   char sortColumn[32];
-  bool highDetails;
+  DetailsLevel highDetails;
 
   if(p == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to return results with a NULL paginator");
     return(-1);
   }
 
-  highDetails = p->detailedResults() ? true : (location == location_local_only || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? true : false;
+  highDetails = p->detailedResults() ? details_high : (location == location_local_only || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
   retriever.pag = p;
   retriever.host = host, retriever.location = location;
@@ -2951,6 +2951,7 @@ struct flow_peers_info {
   char *numIP;
   u_int16_t vlanId;
   patricia_tree_t *allowed_hosts;
+  u_int32_t peer_num;
 };
 
 static bool flow_peers_walker(GenericHashEntry *h, void *user_data) {
@@ -2958,8 +2959,13 @@ static bool flow_peers_walker(GenericHashEntry *h, void *user_data) {
   struct flow_peers_info *info = (struct flow_peers_info*)user_data;
 
   if((info->numIP == NULL) || flow->isFlowPeer(info->numIP, info->vlanId)) {
-    flow->print_peers(info->vm, info->allowed_hosts,
-		      (info->numIP == NULL) ? false : true);
+    //flow->print_peers(info->vm, info->allowed_hosts, (info->numIP == NULL) ? false : true);
+    flow->lua(info->vm, info->allowed_hosts, (info->numIP == NULL) ? details_higher : details_max, false);
+
+    info->peer_num++;
+    lua_pushnumber(info->vm, info->peer_num);
+    lua_insert(info->vm, -2);
+    lua_settable(info->vm, -3);
   }
 
   return(false); /* false = keep on walking */
@@ -2975,6 +2981,7 @@ void NetworkInterface::getFlowPeersList(lua_State* vm,
   lua_newtable(vm);
 
   info.vm = vm, info.numIP = numIP, info.vlanId = vlanId, info.allowed_hosts = allowed_hosts;
+  info.peer_num = 0;
   walker(walker_flows, flow_peers_walker, (void*)&info);
 }
 
@@ -3625,7 +3632,7 @@ static bool userfinder_walker(GenericHashEntry *node, void *user_data) {
     user = f->get_username(false);
 
   if(user && (strcmp(user, info->username) == 0)) {
-    f->lua(info->vm, NULL, false /* Minimum details */, false);
+    f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
@@ -3655,7 +3662,7 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
   char *name = f->get_proc_name(true);
 
   if(name && (strcmp(name, info->proc_name) == 0)) {
-      f->lua(info->vm, NULL, false /* Minimum details */, false);
+      f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
       lua_pushnumber(info->vm, f->key()); // Key
       lua_insert(info->vm, -2);
       lua_settable(info->vm, -3);
@@ -3663,7 +3670,7 @@ static bool proc_name_finder_walker(GenericHashEntry *node, void *user_data) {
     name = f->get_proc_name(false);
 
     if(name && (strcmp(name, info->proc_name) == 0)) {
-        f->lua(info->vm, NULL, false /* Minimum details */, false);
+        f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
         lua_pushnumber(info->vm, f->key()); // Key
         lua_insert(info->vm, -2);
         lua_settable(info->vm, -3);
@@ -3692,7 +3699,7 @@ static bool pidfinder_walker(GenericHashEntry *node, void *pid_data) {
   struct pid_flows *info = (struct pid_flows*)pid_data;
 
   if((f->getPid(true) == info->pid) || (f->getPid(false) == info->pid)) {
-    f->lua(info->vm, NULL, false /* Minimum details */, false);
+    f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
@@ -3717,7 +3724,7 @@ static bool father_pidfinder_walker(GenericHashEntry *node, void *father_pid_dat
   struct pid_flows *info = (struct pid_flows*)father_pid_data;
 
   if((f->getFatherPid(true) == info->pid) || (f->getFatherPid(false) == info->pid)) {
-    f->lua(info->vm, NULL, false /* Minimum details */, false);
+    f->lua(info->vm, NULL, details_normal /* Minimum details */, false);
     lua_pushnumber(info->vm, f->key()); // Key
     lua_insert(info->vm, -2);
     lua_settable(info->vm, -3);
@@ -4059,7 +4066,7 @@ static int lua_flow_dump(lua_State* vm) {
   f = (Flow*)lua_touserdata(vm, lua_gettop(vm));
   if(!f) return(CONST_LUA_ERROR);
 
-  f->lua(vm, NULL, true, false);
+  f->lua(vm, NULL, details_high, false);
   return(CONST_LUA_OK);
 }
 

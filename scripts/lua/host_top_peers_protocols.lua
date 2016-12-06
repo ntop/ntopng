@@ -19,15 +19,15 @@ local peers = {}
 local peers_proto = {}
 local ndpi = {}
 
-for key, flow in pairs(flows) do
+for _, flow in pairs(flows) do
 
-   if(flow.client == _GET["host"]) then
-      peer = flow.server .. '@' .. flow['server.vlan']
+   if(flow["cli.ip"] == _GET["host"]) then
+      peer = hostinfo2hostkey(flow, "srv")
    else
-      peer = flow.client .. '@' .. flow['client.vlan']
+      peer = hostinfo2hostkey(flow, "cli")
    end
 
-   v = flow.rcvd + flow.sent
+   v = flow["bytes"]
    if(peers[peer] == nil) then peers[peer] = 0  end
    peers[peer] = peers[peer] + v
 
@@ -78,6 +78,6 @@ for peer,value in pairsByValues(peers, rev) do
       end
    end
 end
-
+-- tprint(res)
 print(json.encode(res, nil))
 
