@@ -248,9 +248,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   }
 
 #ifdef NTOPNG_PRO
-  l7Policy = NULL;
+  l7Policy = NULL, l7NetworkIndex = -1;
   memset(l7Network, 0, sizeof(l7Network));
-  updateL7NetworkIndex();
 #endif
 
   loadAlertPrefs();
@@ -315,7 +314,8 @@ void Host::updateHostTrafficPolicy(char *key) {
 
 void Host::updateHostL7Policy() {
 #ifdef NTOPNG_PRO
-  if(!iface->is_bridge_interface()) return;
+  if(!iface->is_bridge_interface() && !iface->getL7Policer())
+    return;
 
   if(ntop->getPro()->has_valid_license()) {
     if(localHost || systemHost) {
