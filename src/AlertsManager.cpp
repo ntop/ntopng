@@ -1126,12 +1126,25 @@ int AlertsManager::getNumHostFlowAlerts(const char *host_ip, u_int16_t vlan_id) 
 
   if (! host_ip) return 0;
 
-  // TODO vlan or not vlan?
   sqlite3_snprintf(sizeof(wherebuf), wherebuf,
 		   " (cli_addr='%q' OR srv_addr='%q') AND vlan_id=%i ",
 		   host_ip, host_ip, vlan_id);
 
   return getNumFlowAlerts(wherebuf);
+}
+
+/* ******************************************* */
+
+int AlertsManager::getNumHostFlowAlerts(Host *h) {
+  char ipbuf_id[128], *ipaddr = (char*)"";
+
+  if(!h)
+    return -1;
+
+  if(h->get_ip())
+    ipaddr = h->get_ip()->print(ipbuf_id, sizeof(ipbuf_id));
+
+  return getNumHostFlowAlerts(ipaddr, h->get_vlan_id());
 }
 
 /* ******************************************* */

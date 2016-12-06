@@ -1280,7 +1280,8 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager)     {
     return(num_alerts_detected);
 
   num_alerts_detected = iface->getAlertsManager()->getNumHostAlerts(this, true)
-    + iface->getAlertsManager()->getNumHostAlerts(this, false);
+    + iface->getAlertsManager()->getNumHostAlerts(this, false)
+    + iface->getAlertsManager()->getNumHostFlowAlerts(this);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Refreshing alerts from alertsmanager [num: %i]", num_alerts_detected);
 

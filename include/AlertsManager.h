@@ -145,6 +145,7 @@ class AlertsManager : protected StoreManager {
   int getNumHostAlerts(const char *host_ip, u_int16_t vlan_id, bool engaged);
   int getNumHostAlerts(Host *h, bool engaged);
   int getNumHostFlowAlerts(const char *host_ip, u_int16_t vlan_id);
+  int getNumHostFlowAlerts(Host *h);
 
   /*
     ========== FLOW alerts API =========
