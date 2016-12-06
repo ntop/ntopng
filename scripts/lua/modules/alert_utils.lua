@@ -717,7 +717,8 @@ end
 -- #################################
 
 function deleteAlerts(what, options)
-   return performAlertsQuery("Delete", what, options)
+   performAlertsQuery("Delete", what, options)
+   interface.refreshAlertCounters()
 end
 
 -- #################################

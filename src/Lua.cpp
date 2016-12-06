@@ -1529,6 +1529,21 @@ static int ntop_interface_host_disable_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_refresh_alert_counters(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((!ntop_interface))
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->setRefreshAlertCounters(true);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_correalate_host_activity(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -5339,6 +5354,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
   { "enableHostAlerts",     ntop_interface_host_enable_alerts       },
   { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
+  { "refreshAlertCounters", ntop_interface_refresh_alert_counters   },
   { NULL,                             NULL }
 };
 
