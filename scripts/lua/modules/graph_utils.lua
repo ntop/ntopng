@@ -202,20 +202,21 @@ end
 
 -- ########################################################
 
+-- label, relative_difference, seconds, graph_tick_step
 zoom_vals = {
-   { "1m",  "now-60s",  60 },
-   { "5m",  "now-300s", 60*5 },
-   { "10m", "now-600s", 60*10 },
-   { "1h",  "now-1h",   60*60*1 },
-   { "3h",  "now-3h",   60*60*3 },
-   { "6h",  "now-6h",   60*60*6 },
-   { "12h", "now-12h",  60*60*12 },
-   { "1d",  "now-1d",   60*60*24 },
-   { "1w",  "now-1w",   60*60*24*7 },
-   { "2w",  "now-2w",   60*60*24*14 },
-   { "1M",  "now-1mon", 60*60*24*31 },
-   { "6M",  "now-6mon", 60*60*24*31*6 },
-   { "1Y",  "now-1y",   60*60*24*366 }
+   { "1m",  "now-60s",  60,            (60)/12 },
+   { "5m",  "now-300s", 60*5,          (60*5)/10 },
+   { "10m", "now-600s", 60*10,         (60*10)/10 },
+   { "1h",  "now-1h",   60*60*1,       (60*60*1)/12 },
+   { "3h",  "now-3h",   60*60*3,       (60*60*3)/12 },
+   { "6h",  "now-6h",   60*60*6,       (60*60*6)/12 },
+   { "12h", "now-12h",  60*60*12,      (60*60*12)/12 },
+   { "1d",  "now-1d",   60*60*24,      (60*60*24)/12 },
+   { "1w",  "now-1w",   60*60*24*7,    (60*60*24*7)/7 },
+   { "2w",  "now-2w",   60*60*24*14,   (60*60*24*14)/14 },
+   { "1M",  "now-1mon", 60*60*24*31,   (60*60*24*31)/15 },
+   { "6M",  "now-6mon", 60*60*24*31*6, (60*60*24*31*6)/18 },
+   { "1Y",  "now-1y",   60*60*24*366,  (60*60*24*366)/12 }
 }
 
 function getZoomAtPos(cur_zoom, pos_offset)
@@ -259,6 +260,30 @@ function zoomLevel2sec(zoomLevel)
    return(3600) -- NOT REACHED
 end
 
+-- ########################################################
+
+function getZoomTicksInterval(cur_zoom)
+   for k,v in pairs(zoom_vals) do
+      if(zoom_vals[k][1] == cur_zoom) then
+	 return(zoom_vals[k][4])
+      end
+   end
+
+   return(12)
+end
+
+-- ########################################################
+
+function getZoomTicksJsArray(start_time, end_time, zoom)
+   local parts = {}
+   local step = getZoomTicksInterval(zoom)
+
+   for t=start_time,end_time,step do
+      parts[#parts+1] = t
+   end
+
+   return "[" .. table.concat(parts, ', ') .. "]"
+end
 
 -- ########################################################
 

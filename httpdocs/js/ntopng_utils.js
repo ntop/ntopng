@@ -318,3 +318,40 @@ function epoch2Seen(epoch) {
 
   return(d.format("dd/MM/yyyy hh:mm:ss")+" ["+secondsToTime(tdiff)+" ago]");
 }
+
+/* ticks for graph x axis */
+function graphGetXAxisTicksFormat(diff_epoch) {
+  var tickFormat;
+
+   if(diff_epoch <= 86400) {
+      tickFormat = "%H:%M:%S";
+   } else if(diff_epoch <= 2*86400) {
+      tickFormat = "%b %e, %H:%M:%S";
+   } else {
+      tickFormat = "%b %e";
+   }
+
+   return(tickFormat);
+}
+
+/* ticks for graph tooltip header */
+function graphGetHeaderTicksFormat(diff_epoch) {
+   var tickFormat;
+
+   /*if(diff_epoch < 86400) {
+      tickFormat = "%H:%M:%S";
+   } else {*/
+   tickFormat = "%b %e, %H:%M:%S";
+
+   return(tickFormat);
+}
+
+function nvGraphSetXTicksFormat(chart, diff_epoch) {
+    /* Set the tooltip displayed on mouse over/move */
+    chart.interactiveLayer.tooltip.headerFormatter(function (d) {
+      return d3.time.format(graphGetHeaderTicksFormat(diff_epoch))(new Date(d*1000));
+    });
+
+    /* Set the x axis format */
+    chart.xAxis.tickFormat(function(d) { return d3.time.format(graphGetXAxisTicksFormat(diff_epoch))(new Date(d*1000)) });
+}
