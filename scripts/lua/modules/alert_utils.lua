@@ -1300,9 +1300,9 @@ $("[clicked=1]").trigger("click");
       print [[
 </div> <!-- closes tab-content -->
 
-]] print('<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>') print[[
+]] print('<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>') print[[
 <select id="deleteZoomSelector" class="form-control" style="display:inline; width:12em; margin-left:1em;">]]
-      print('<optgroup><option data-older="0" data-msg="">All</option></<optgroup>\n<optgroup label="older than">')
+      print('<option data-older="0" data-msg="">All</option>\n<optgroup label="older than">')
       for k,v in ipairs(zoom_vals) do
          print('<option data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
       end
