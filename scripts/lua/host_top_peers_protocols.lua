@@ -6,20 +6,20 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local json = require("dkjson")
 
 sendHTTPHeader('application/json')
 
 interface.select(ifname)
-host_info = url2hostinfo(_GET)
-flows     = interface.getFlowPeers(host_info["host"],host_info["vlan"])
+local host_info = url2hostinfo(_GET)
+local flows     = interface.getFlowPeers(host_info["host"],host_info["vlan"])
 
-tot = 0
-peers = {}
-peers_proto = {}
-ndpi = {}
+local tot = 0
+local peers = {}
+local peers_proto = {}
+local ndpi = {}
 
-for key, value in pairs(flows) do
-   flow = flows[key]
+for key, flow in pairs(flows) do
 
    if(flow.client == _GET["host"]) then
       peer = flow.server .. '@' .. flow['server.vlan']
@@ -47,41 +47,27 @@ for key, value in pairs(flows) do
    tot = tot + v
 end
 
-_peers = { }
-for key, value in pairs(peers) do
-   _peers[value] = key
-end
-
-_ndpi = { }
-n = 0
-for key, value in pairs(ndpi) do
-   _ndpi[value] = key
-   n = n + 1
-end
-
 -- Print up to this number of entries
-max_num_peers = 10
+local max_num_peers = 10
+local num = 0
 
-print "[\n"
-num = 0
-for value,peer in pairsByKeys(_peers, rev) do
+local res = {}
+
+for peer,value in pairsByValues(peers, rev) do
    if(peers_proto[peer] ~= nil) then
-      n = 0
-      for value,proto in pairsByKeys(_ndpi, rev) do
 
+      for proto,value in pairsByValues(ndpi, rev) do
 	 if(peers_proto[peer][proto] ~= nil) then
-	    if((n+num) > 0) then
-	       print ",\n"
-	    end
-      
+
 	    host = interface.getHostInfo(peer)
 	    if(host ~= nil) then
   	      if(host["name"] == nil) then
 	        host["name"] = ntop.getResolvedAddress(hostinfo2hostkey(host))	
 	      end
 
-	      print("\t { \"host\": \"" .. peer .."\", \"name\": \"".. host.name.."\", \"url\": \"<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. hostinfo2hostkey(host) .."'>"..host.name .."</A>\", \"l7proto\": \"".. proto .."\", \"l7proto_url\": \"<A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(host) .."&application="..proto..">"..proto.."</A>\", \"traffic\": ".. math.log10(peers_proto[peer][proto]) .. " }")
-   	      n = n + 1
+	      local r = {host=peer, name=host.name, url="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. hostinfo2hostkey(host) .."'>"..host.name .."</A>", l7proto=proto, l7proto_url="<A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(host) .."&application="..proto..">"..proto.."</A>", traffic=math.log10(peers_proto[peer][proto])}
+
+	      res[#res + 1] = r
 	    end
 	 end
       end
@@ -93,6 +79,5 @@ for value,peer in pairsByKeys(_peers, rev) do
    end
 end
 
-
-print "\n]"
+print(json.encode(res, nil))
 
