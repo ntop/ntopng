@@ -5,6 +5,13 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local shaper_utils
+
+if ntop.isPro() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+   shaper_utils = require("shaper_utils")
+end
+
 require "lua_utils"
 require "historical_utils"
 require "flow_utils"
@@ -198,7 +205,7 @@ else
       c = flowinfo2hostname(flow,"cli",ifstats.vlan)
       s = flowinfo2hostname(flow,"srv",ifstats.vlan)
 
-      shaper_key = "ntopng.prefs."..ifstats.id..".shaper_max_rate"
+      shaper_key = shaper_utils.getShapersMaxRateKey(ifstats.id)
 
       cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_a"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_b"]) if(srv_max_rate == "") then srv_max_rate = -1 end

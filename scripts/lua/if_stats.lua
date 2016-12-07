@@ -92,7 +92,6 @@ interface.select(if_name)
 is_packetdump_enabled = isLocalPacketdumpEnabled()
 is_packet_interface = interface.isPacketInterface()
 
-shaper_key = "ntopng.prefs."..ifid..".shaper_max_rate"
 ifstats = interface.getStats()
 
 if (isAdministrator()) then
@@ -949,7 +948,6 @@ elseif(page == "filtering") then
    end
 
    local shaper_utils = require("shaper_utils")
-   policy_key = "ntopng.prefs.".. ifid ..".l7_policy"
    any_net = "0.0.0.0/0@0"
 
    -- ====================================
@@ -980,23 +978,18 @@ function get_shapers_from_parameters(callback)
 end
 
    if (_GET["view_network"] ~= nil) then
-      local ingress_key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
-      
       -- this is used by host_details.lua. Checks if the network exists, otherwise creates it
-      if ntop.getHashCache(ingress_key, _GET["view_network"]) ~= "" then
+      if isin(_GET["view_network"],  shaper_utils.getNetworksList(ifid)) then
          -- network exists, redirect
          jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#protocols")
       else
          -- network does not exist, trigger add action
-         print("<script>var add_new_network_at_startup = true;</script>")
+         print('<script>var add_new_network_at_startup = "'.._GET["view_network"]..'";</script>')
+         _GET["view_network"] = nil
       end
    end
-   
-   if((_GET["csrf"] ~= nil) and (_GET["edit_networks"] ~= nil)) then
-      local ingress_key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
-      local egress_key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
-      
 
+   if((_GET["csrf"] ~= nil) and (_GET["edit_networks"] ~= nil)) then
       local proto_shapers_cloned = false
       
       get_shapers_from_parameters(function(network_key, ingress_shaper, egress_shaper)
@@ -1006,30 +999,18 @@ end
          network_key = network_key:gsub("_2F", "/")
          network_key = network_key:gsub("_40", "@")
          
-         initial_policy = ""
          if(_GET["clone"] ~= nil) then
             local clone_from = shaper_utils.addVlan0(_GET["clone"])
-            
-            -- clone blacklist rules
-            value = ntop.getHashCache(policy_key, clone_from)
-            if value ~= nil then
-               initial_policy = value
-            end
 
-            -- clone shaped protocols rules
-            local net_ingress_key = shaper_utils.getProtoShaperKey(ifid, network_key, "ingress")
-            local net_egress_key = shaper_utils.getProtoShaperKey(ifid, network_key, "egress")
-            
+            -- clone everything from the network
             for _,proto_config in pairs(shaper_utils.getNetworkProtoShapers(ifid, clone_from, false)) do
-               ntop.setHashCache(net_ingress_key, proto_config.protoId, proto_config.ingress);
-               ntop.setHashCache(net_egress_key, proto_config.protoId, proto_config.egress);
+               shaper_utils.setProtocolShapers(ifid, network_key, proto_config.protoId, proto_config.ingress, proto_config.egress)
                proto_shapers_cloned = true
             end
+         else
+            -- Do not create any additional protocol rule
+            shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper)
          end
-
-         ntop.setHashCache(policy_key, network_key, initial_policy)
-         ntop.setHashCache(ingress_key, network_key, ingress_shaper)
-         ntop.setHashCache(egress_key, network_key, egress_shaper)
       end)
 
       if proto_shapers_cloned then
@@ -1043,20 +1024,8 @@ end
 
    if((_GET["csrf"] ~= nil) and (_GET["delete_network"] ~= nil) and (_GET["delete_network"] ~= any_net)) then
       local target_net = _GET["delete_network"]
-      -- delete network policy
-      ntop.delHashCache(policy_key, target_net)
 
-      -- delete network shaping settings
-      key = "ntopng.prefs.".. ifid ..".l7_policy_ingress_shaper_id"
-      ntop.delHashCache(key, target_net)
-      key = "ntopng.prefs.".. ifid ..".l7_policy_egress_shaper_id"
-      ntop.delHashCache(key, target_net)
-
-      -- delete l7 protocols rules of that network
-      local keys = ntop.getKeysCache(shaper_utils.getProtoShaperKey(ifid, target_net, "*")) or {}
-      for key,_ in pairs(keys) do
-         ntop.delCache(key)
-      end
+      shaper_utils.deleteNetwork(ifid, target_net)
 
       -- reload all the rules, and update hosts affected by removal
       interface.reloadL7Rules(target_net)
@@ -1069,13 +1038,14 @@ end
       net = shaper_utils.addVlan0(net)
    end
 
-   -- NB: this cannot be null, since it contains at least the 'any' network
-   nets = ntop.getHashKeysCache(policy_key) or {}
+   -- NB: this contains at least the 'default' network
+   -- NB: this must be placed after 'delete_network' in order to fetch latest networks list
+   nets = shaper_utils.getNetworksList(ifid)
 
    -- tprint(nets)
    if(net == nil) then
       -- If there is not &network= parameter then use the first network available
-      for k,v in pairsByKeys(nets, asc) do
+      for _,k in ipairs(nets) do
          net = k
          break
       end
@@ -1097,7 +1067,7 @@ end
             if(max_rate > 1048576) then max_rate = -1 end
             if(max_rate < -1) then max_rate = -1 end
 
-            ntop.setHashCache(shaper_key, shaper_id, max_rate)
+            ntop.setHashCache(getShapersMaxRateKey(ifid), shaper_id, max_rate)
          end
       end
 
@@ -1117,25 +1087,11 @@ end
 
       if (_GET["del_l7_proto"] ~= nil) then
          local protocol_id = _GET["del_l7_proto"]
-         key = shaper_utils.getProtoShaperKey(ifid, target_net, "ingress")
-         ntop.delHashCache(key, protocol_id)
-         key = shaper_utils.getProtoShaperKey(ifid, target_net, "egress")
-         ntop.delHashCache(key, protocol_id)
+         shaper_utils.deleteProtocol(ifid, target_net, protocol_id)
       else
-         -- TODO totally remove blacklist code
-         if (ntop.getHashCache(policy_key, target_net) ~= _GET["blacklist"]) then
-            -- *** Handle the blacklist ***
-            ntop.setHashCache(policy_key, target_net, _GET["blacklist"])
-            interface.reloadL7Rules()
-         end
-
-         -- *** Handle the shaped protocols ***
+         -- set protocols policy for the network
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper)
-            local ingress_key = shaper_utils.getProtoShaperKey(ifid, target_net, "ingress")
-            local egress_key = shaper_utils.getProtoShaperKey(ifid, target_net, "egress")
-            
-            ntop.setHashCache(ingress_key, proto_id, ingress_shaper)
-            ntop.setHashCache(egress_key, proto_id, egress_shaper)
+            shaper_utils.setProtocolShapers(ifid, target_net, proto_id, ingress_shaper, egress_shaper)
          end)
       end
 
@@ -1143,10 +1099,9 @@ end
       interface.reloadL7ProtoRules();
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network="..target_net.."#protocols")
    end
-
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs">
-      <li><a data-toggle="tab" class="btn" href="#protocols">]] print(i18n("shaping.protocols")) print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#protocols">]] print("Policies") print[[</a></li>
       <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.manage_shapers")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
@@ -1191,7 +1146,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 <table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
 ]] print(i18n("shaping.network_group")) print[[ <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
 ]]
-   for k,v in pairsByKeys(nets, asc) do
+   for _,k in ipairs(nets) do
 	 if(k ~= "") then
 	    print("\t<option")
 	    if(k == selected_network) then print(" selected") end
@@ -1211,17 +1166,7 @@ end
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();">
    <input type="hidden" name="page" value="filtering">
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
-   <input type=hidden id=blacklist name=blacklist value="">
 ]]
-
-blacklist = { }
-rules = ntop.getHashCache(policy_key, selected_network)
-if((rules ~= nil) and (string.len(rules) > 0)) then
-   local protos = split(rules, ",")
-   for k,v in pairs(protos) do
-      blacklist[v] = 1
-   end
-end
 
    protos = interface.getnDPIProtocols()
 
@@ -1289,7 +1234,7 @@ end
          </div>
          <span id="clone_from_container" style="visibility:hidden;"><span style="margin: 0 1em 0 1em;">from</span>
             <select id="clone_from_select" class="form-control" style="display:inline; width:12em;">]]
-for k,v in pairsByKeys(nets, asc) do
+for _,k in ipairs(nets) do
    if(k ~= "") then
       print("\t<option>"..k.."</option>\n")
    end
@@ -1398,16 +1343,15 @@ function toggleCustomNetworkMode() {
       $(inactive).removeClass("btn-primary").addClass("btn-default");
    });
 
-   // TODO add host page support
-   /*if (net != null) {
-      var s = net.split("@");
+   if (typeof add_new_network_at_startup != "undefined") {
+      var s = add_new_network_at_startup.split("@");
       if (s.length == 2) {
          // put an initial custom network and vlan
          toggleCustomNetworkMode();
          $("#new_custom_network").val(s[0]);
          $("#new_vlan").val(s[1]);
       }
-   }*/
+   }
 
    function checkShapedProtosFormCallback() {
       var new_proto = $("#table-protos select[name='new_protocol_id']").closest('tr');
@@ -1536,9 +1480,9 @@ function toggleCustomNetworkMode() {
             var fullval = netval + "@" + vlan;
 
             var nets = [
-]] for net,_ in pairs(nets) do
+]] for _,net in ipairs(nets) do
    print('"'..net..'",\n')
-end
+end; 
 print[[     ];
             existing = nets.indexOf(fullval) != -1;
             
@@ -1575,12 +1519,6 @@ print[[     ];
       }
       return null;
    }
-
-    $("#l7ProtosForm").submit(function() {
-      // alert($('[name="ndpiprotos"]').val());
-      $('#blacklist').val("");
-      return true;
-    });
 </script>
 </table>
 </div>
@@ -1651,7 +1589,7 @@ print[[
    }
 
    function addShaperActionsToRow(tr_obj, shaper_id) {
-      if (shaper_id != ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) {
+      if ((shaper_id != ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) && (shaper_id != ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
          var td_obj = $("td:nth-child(4)", tr_obj);
          td_obj.html('<a href="javascript:void(0)" class="add-on" onclick="deleteShaper(' + shaper_id + ')" role="button"><span class="label label-danger">Delete</span></a>');
       }
@@ -1699,11 +1637,17 @@ print[[
       ], tableCallback: function() {
          /* Make max rate editable */
          foreachDatatableRow("table-shapers", function() {
-            var shaper_id = $("td:nth-child(1)", $(this));
+            var shaper_id = $("td:nth-child(1)", $(this)).html();
             var max_rate = $("td:nth-child(2)", $(this));
-            
-            shaperRateTextField(max_rate, shaper_id.html(), max_rate.html());
-            addShaperActionsToRow($(this), shaper_id.html());
+
+            if (shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[)
+               max_rate.html("-1 (]] print(maxRateToString(-1)) print[[)");
+            else if (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)
+               max_rate.html("0 (]] print(maxRateToString(0)) print[[)");
+            else
+               shaperRateTextField(max_rate, shaper_id, max_rate.html());
+
+            addShaperActionsToRow($(this), shaper_id);
          });
 
          /* Find out what a new shaper ID could be */

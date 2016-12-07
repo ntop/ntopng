@@ -5,9 +5,12 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local shaper_utils
+
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    require "snmp_utils"
+   shaper_utils = require("shaper_utils")
 end
 
 require "lua_utils"
@@ -530,7 +533,7 @@ print [[
       print('">Modify Host Traffic Policy</A></div>')
 
       if(host["bridge.ingress_shaper_id"] ~= nil) then
-	 shaper_key = "ntopng.prefs.".. ifId ..".shaper_max_rate"
+	 shaper_key = shaper_utils.getShapersMaxRateKey(ifId)
 	 ingress_max_rate = ntop.getHashCache(shaper_key, host["bridge.ingress_shaper_id"])
 	 egress_max_rate = ntop.getHashCache(shaper_key, host["bridge.egress_shaper_id"])
 	 print("<p><table class=\"table table-bordered table-striped\"width=100%>")
