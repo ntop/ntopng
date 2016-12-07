@@ -854,12 +854,12 @@ static int ntop_swapHostBlacklist(lua_State* vm) {
 
 static int ntop_addToHostBlacklist(lua_State* vm) {
   char *net;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   net = (char*)lua_tostring(vm, 1);
-    
+
   ntop->addToHostBlacklist(net);
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -2529,7 +2529,7 @@ static int ntop_rrd_lastupdate(lua_State* vm) {
 static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *start, time_t *end) {
   char *start_s, *end_s, *err;
   rrd_time_value_t start_tv, end_tv;
-  
+
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((*filename = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
@@ -2564,7 +2564,7 @@ static int __ntop_rrd_args (lua_State* vm, char **filename, char **cf, time_t *s
 
 static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf) {
   char * err;
-  
+
   if(status != 0) {
     err = rrd_get_error();
 
@@ -2664,7 +2664,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
   char **names;
   unsigned long step = 0, ds_cnt = 0;
   rrd_value_t *data, *p;
-  
+
   if ((status = __ntop_rrd_args(vm, &filename, &cf, &start, &end)) != CONST_LUA_OK) return status;
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%s)", __FUNCTION__, filename);
@@ -2698,7 +2698,7 @@ static int ntop_rrd_fetch_columns(lua_State* vm) {
     lua_setfield(vm, -2, names[i]);
     rrd_freemem(names[i]);
   }
-  
+
   rrd_freemem(names);
   rrd_freemem(data);
 
@@ -3132,7 +3132,7 @@ static int ntop_reload_l7_rules(lua_State *vm) {
     }
 
 #ifdef NTOPNG_PRO
-    ntop_interface->refreshL7Rules(ptree ? true : false);
+    ntop_interface->refreshL7Rules(ptree);
 #endif
 
     if (ptree)
@@ -3144,37 +3144,14 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_l7_proto_rules(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_interface) {
-#ifdef NTOPNG_PRO
-    if (ntop_interface->getL7Policer()) {
-      ntop_interface->getL7Policer()->refreshProtocolShapers();
-      return(CONST_LUA_OK);
-    }
-#endif
-  }
-  return(CONST_LUA_ERROR);
-}
-
-/* ****************************************** */
-
 static int ntop_reload_shapers(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *shaper_id = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface) {
-    /* You should pass the shaper ID whenever a shaper is removed */
-    if(lua_type(vm, 1) == LUA_TSTRING) {
-      shaper_id = (char*)lua_tostring(vm, 1);
-      if(shaper_id == NULL) return(CONST_LUA_PARAM_ERROR);
-    }
 #ifdef NTOPNG_PRO
-    ntop_interface->refreshShapers(shaper_id != NULL ? true : false);
+    ntop_interface->refreshShapers();
 #endif
     return(CONST_LUA_OK);
   } else
@@ -4426,7 +4403,7 @@ static int ntop_interface_get_alerts(lua_State* vm) {
       return(CONST_LUA_ERROR);
 
     ap->readOptions(vm, 1);
-	
+
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);
     engaged = lua_toboolean(vm, 2);
 
@@ -4494,9 +4471,9 @@ static int ntop_interface_get_flow_alerts(lua_State* vm) {
       return(CONST_LUA_ERROR);
 
     ap->readOptions(vm, 1);
-    
+
     return am->getFlowAlerts(vm, get_allowed_nets(vm), ap) ? CONST_LUA_ERROR : CONST_LUA_OK;
-    
+
   } else {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
     start_idx = (u_int32_t)lua_tonumber(vm, 1);
@@ -5328,7 +5305,6 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
-  { "reloadL7ProtoRules",             ntop_reload_l7_proto_rules },
   { "reloadShapers",                  ntop_reload_shapers },
 
   /* DB */
@@ -5886,7 +5862,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
 		   || (strcmp(rsp, user) != 0)) {
 		  const char *msg = "The submitted form is expired. Please reload the page and try again";
-		  
+
 		  ntop->getTrace()->traceEvent(TRACE_WARNING,
 					       "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
 					       decoded_buf, rsp, user, tok);

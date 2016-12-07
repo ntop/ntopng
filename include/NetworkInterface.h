@@ -229,7 +229,7 @@ class NetworkInterface {
     pktStats.incStats(pkt_len);
     if(lastSecUpdate == 0) lastSecUpdate = when; else if(lastSecUpdate != when) updateSecondTraffic(when);
   };
-  
+
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender, bool localreceiver) {
 
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
@@ -345,8 +345,8 @@ class NetworkInterface {
   inline bool getRefreshAlertCounters()            { return refreshAlertCounters;   }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules(bool areWeRemovingRules);
-  void refreshShapers(bool areWeRemovingShapers);
+  void refreshL7Rules(patricia_tree_t *ptree);
+  void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
 
@@ -354,8 +354,8 @@ class NetworkInterface {
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
 
 #ifdef NTOPNG_PRO
-  void updateHostsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]);
-  void updateFlowsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]);
+  void updateHostsL7Policy(patricia_tree_t *ptree);
+  void updateFlowsL7Policy(patricia_tree_t *ptree);
 #endif
 
   bool updateDumpAllTrafficPolicy(void);
@@ -393,8 +393,8 @@ class NetworkInterface {
   void updateFlowProfiles(char *old_profile, char *new_profile);
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
-  
-  bool passShaperPacket(int a_shaper_id, int b_shaper_id, int c_shaper_id, int d_shaper_id, struct pcap_pkthdr *h);
+
+  bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
   void initL7Policer();
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit,

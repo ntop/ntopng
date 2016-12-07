@@ -55,7 +55,7 @@ class Host : public GenericHost {
   TrafficStats icmp_sent, icmp_rcvd;
   TrafficStats other_ip_sent, other_ip_rcvd;
   TrafficStats ingress_drops, egress_drops;
-  
+
   UserActivityStats *user_activities;
   InterFlowActivityStats *ifa_stats;
   PacketStats sent_stats, recv_stats;
@@ -70,8 +70,6 @@ class Host : public GenericHost {
 
 #ifdef NTOPNG_PRO
   NDPI_PROTOCOL_BITMASK *l7Policy;
-  char l7Network[MAX_L7_NETWORK_NAME];
-  int l7NetworkIndex;
 #endif
 
   struct {
@@ -87,7 +85,7 @@ class Host : public GenericHost {
   void loadFlowsAlertPrefs(void);
   void getSites(lua_State* vm, char *k, const char *label);
   void readDHCPCache();
-  
+
  public:
   Host(NetworkInterface *_iface);
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
@@ -129,7 +127,7 @@ class Host : public GenericHost {
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
   inline float get_latitude()                  { return(latitude);         }
   inline float get_longitude()                 { return(longitude);        }
-  bool isLocalInterfaceAddress();  
+  bool isLocalInterfaceAddress();
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   bool idle();
@@ -195,11 +193,6 @@ class Host : public GenericHost {
   void incIfaPackets(InterFlowActivityProtos proto, const Flow * flow, time_t when);
   void getIfaStats(InterFlowActivityProtos proto, time_t when, int * count, u_int32_t * packets, time_t * max_diff);
   inline UserActivityStats* get_user_activities() { return(user_activities); }
-#ifdef NTOPNG_PRO
-  inline bool isThereAPolicySet()    { return(l7Policy ? true : false); };
-  inline int getL7NetworkIndex ()    { return(l7NetworkIndex);          };
-  inline void updateL7NetworkIndex() { l7NetworkIndex = getInterface()->getL7Policer()->precalculateNetworkIndex(l7Network); };
-#endif
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
   static void splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id);

@@ -1219,14 +1219,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
 #ifdef NTOPNG_PRO
     if(is_bridge_interface() && pass_verdict) {
-      int a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id;
+      int a_shaper_id, b_shaper_id;
       char buf[64];
 
-      flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id, &c_shaper_id, &d_shaper_id);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %d / %d / %d / %d", 
+      flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %d / %d ",
 				   flow->get_detected_protocol_name(buf, sizeof(buf)),
-				   a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id);
-      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, c_shaper_id, d_shaper_id, (struct pcap_pkthdr*)h);
+				   a_shaper_id, b_shaper_id);
+      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
     }
 #endif
 
@@ -1841,15 +1841,12 @@ void NetworkInterface::periodicStatsUpdate() {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
+
 static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
   Host *h = (Host*)node;
-  patricia_tree_t **ptree = (patricia_tree_t**)user_data;
-  patricia_tree_t *v_ptree = ptree[h->get_vlan_id()];
+  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
 
-  if((ptree == NULL)
-     || h->isThereAPolicySet() /* As we have changed the policer, we need to do this update
-				  for all hosts that used to have a policy set */
-     || (v_ptree && h->match(ptree[h->get_vlan_id()])))
+  if((ptree == NULL) || h->match(ptree))
     ((Host*)node)->updateHostL7Policy();
 
   return(false); /* false = keep on walking */
@@ -1857,28 +1854,20 @@ static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]) {
+void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
   if(isView()) return;
-
   hosts_hash->walk(update_host_l7_policy, ptree);
 }
 
 /* **************************************************** */
 
 static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
-  patricia_tree_t **ptree = (patricia_tree_t**)user_data;
+  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
   Flow *f = (Flow*)node;
-  patricia_tree_t *v_ptree = (ptree && f->get_cli_host()) ? ptree[f->get_cli_host()->get_vlan_id()] : NULL;
 
-  /*
-     As we have changed the policer, we need to do this update
-     for all hosts that used to have a policy set
-  */
-  if((f->get_cli_host()
-      && (f->get_cli_host()->isThereAPolicySet() || (v_ptree && f->get_cli_host()->match(v_ptree))))
-     || (f->get_srv_host()
-	 && (f->get_srv_host()->isThereAPolicySet() || (v_ptree && f->get_srv_host()->match(v_ptree))))
-     )
+  if((ptree == NULL)
+     || (f->get_cli_host() && f->get_cli_host()->match(ptree))
+     || (f->get_srv_host() && f->get_srv_host()->match(ptree)))
     ((Flow*)node)->makeVerdict(true);
 
   return(false); /* false = keep on walking */
@@ -1886,7 +1875,7 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree[MAX_NUM_VLAN]) {
+void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree) {
   if(isView()) return;
 
   flows_hash->walk(update_flow_l7_policy, ptree);
@@ -3822,18 +3811,18 @@ void NetworkInterface::addAllAvailableInterfaces() {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshL7Rules(bool areWeRemovingRules) {
+void NetworkInterface::refreshL7Rules(patricia_tree_t *ptree) {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshL7Rules(areWeRemovingRules);
+    policer->refreshL7Rules(ptree);
 }
 #endif
 
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshShapers(bool areWeRemovingShapers) {
+void NetworkInterface::refreshShapers() {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshShapers(areWeRemovingShapers);
+    policer->refreshShapers();
 }
 #endif
 

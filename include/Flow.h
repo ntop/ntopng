@@ -83,10 +83,6 @@ class Flow : public GenericHashEntry {
     good_low_flow_detected, good_ssl_hs;
   u_int16_t diff_num_http_requests;
 #ifdef NTOPNG_PRO
-  struct {
-    struct { int cli, srv; } src2dst;
-    struct { int cli, srv; } dst2src;
-  } flow_shapers;
   FlowProfile *trafficProfile;
   CounterTrend throughputTrend, goodputTrend, thptRatioTrend;
 #endif
@@ -195,7 +191,6 @@ class Flow : public GenericHashEntry {
   }
   FlowStatus getFlowStatus();
   char* printTCPflags(u_int8_t flags, char *buf, u_int buf_len);
-  void updateFlowShapers();
   inline bool isProtoSSL(u_int16_t p ) { return((ndpi_get_lower_proto(ndpiDetectedProtocol) == p) ? true : false); }
   inline bool isSSL()                  { return(isProtoSSL(NDPI_PROTOCOL_SSL));  }
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
@@ -353,7 +348,7 @@ class Flow : public GenericHashEntry {
   void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
   bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
 #ifdef NTOPNG_PRO
-  void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id, int *c_shaper_id, int *d_shaper_id);
+  void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id);
   inline void updateProfile()   { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
@@ -397,7 +392,7 @@ class Flow : public GenericHashEntry {
     return false;
   }
 
-  
+
 };
 
 #endif /* _FLOW_H_ */

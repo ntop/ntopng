@@ -248,8 +248,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   }
 
 #ifdef NTOPNG_PRO
-  l7Policy = NULL, l7NetworkIndex = -1;
-  memset(l7Network, 0, sizeof(l7Network));
+  l7Policy = NULL;
 #endif
 
   loadAlertPrefs();
@@ -319,15 +318,14 @@ void Host::updateHostL7Policy() {
 
   if(ntop->getPro()->has_valid_license()) {
     if(localHost || systemHost) {
-      char hash_name[64], rsp[32];
+      char host_key[64], hash_name[64], rsp[32];
       char buf[64], *host;
       u_int8_t bitmask;
 
       l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id, &bitmask);
 
       host = ip.print(buf, sizeof(buf), bitmask);
-      snprintf(l7Network, sizeof(l7Network), "%s/%u@%u", host,
-	       bitmask, vlan_id);
+      snprintf(host_key, sizeof(host_key), "%s/%u@%u", host, bitmask, vlan_id);
 
       /* ************************************************* */
 
@@ -335,8 +333,8 @@ void Host::updateHostL7Policy() {
 	       "ntopng.prefs.%u.l7_policy_ingress_shaper_id",
 	       getInterface()->get_id());
 
-      if((ntop->getRedis()->hashGet(hash_name, l7Network, rsp, sizeof(rsp)) != 0)
-	 || (rsp[0] == '\0'))
+      if((ntop->getRedis()->hashGet(hash_name, host_key, rsp, sizeof(rsp)) != 0)
+        || (rsp[0] == '\0'))
 	ingress_shaper_id = -1;
       else {
 	ingress_shaper_id = atoi(rsp);
@@ -351,8 +349,8 @@ void Host::updateHostL7Policy() {
 	       "ntopng.prefs.%u.l7_policy_egress_shaper_id",
 	       getInterface()->get_id());
 
-      if((ntop->getRedis()->hashGet(hash_name, l7Network, rsp, sizeof(rsp)) != 0)
-	 || (rsp[0] == '\0'))
+      if((ntop->getRedis()->hashGet(hash_name, host_key, rsp, sizeof(rsp)) != 0)
+        || (rsp[0] == '\0'))
 	egress_shaper_id = -1;
       else {
 	egress_shaper_id = atoi(rsp);
@@ -361,17 +359,14 @@ void Host::updateHostL7Policy() {
 	  egress_shaper_id = -1;
       }
       /*
-	char name[256]; printf("%s -> %s - %d %d\n", 
+	char name[256]; printf("%s -> %s - %d %d\n",
 	get_name(name, sizeof(name), false), l7Network, ingress_shaper_id, egress_shaper_id);
       */
     } else {
       l7Policy = NULL;
-      memset(l7Network, 0, sizeof(l7Network));
       ingress_shaper_id = egress_shaper_id = -1;
     }
 
-    /* cache l7 network ID to speedup per packet access */
-    updateL7NetworkIndex();
   }
 #endif
 }
@@ -718,7 +713,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   readDHCPCache();
 
   if(symbolic_name) return(symbolic_name);
-					 
+
   rc = ntop->getRedis()->getAddress(addr, redis_buf, sizeof(redis_buf),
 				    force_resolution_if_not_found);
 

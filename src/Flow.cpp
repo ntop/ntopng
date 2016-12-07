@@ -97,7 +97,6 @@ Flow::Flow(NetworkInterface *_iface,
     last_update_time.tv_sec = (long)first_seen;
 
 #ifdef NTOPNG_PRO
-  flow_shapers.src2dst.cli = flow_shapers.src2dst.srv = flow_shapers.dst2src.cli = flow_shapers.dst2src.srv = -1;
   trafficProfile = NULL;
 #endif
 
@@ -542,9 +541,6 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   }
 
   if(detection_completed) {
-#ifdef NTOPNG_PRO
-    updateFlowShapers();
-#endif
     iface->luaEvalFlow(this, callback_flow_proto_callback);
   }
 
@@ -775,22 +771,6 @@ bool Flow::dumpFlow(bool partial_dump) {
 
   return(rc);
 }
-
-/* *************************************** */
-
-#ifdef NTOPNG_PRO
-void Flow::updateFlowShapers() {
-  L7Policer *policer = iface->getL7Policer();
-
-  if(cli_host && srv_host && policer) {
-    flow_shapers.src2dst.cli = policer->getShaperIdForProtocol(cli_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_INGRESS);
-    flow_shapers.src2dst.srv = policer->getShaperIdForProtocol(srv_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_EGRESS);
-    flow_shapers.dst2src.cli = policer->getShaperIdForProtocol(cli_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_EGRESS);
-    flow_shapers.dst2src.srv = policer->getShaperIdForProtocol(srv_host->getL7NetworkIndex(), ndpiDetectedProtocol.protocol, L7_POLICY_DIRECTION_INGRESS);
-  } else
-    flow_shapers.src2dst.cli = flow_shapers.src2dst.srv = flow_shapers.dst2src.cli = flow_shapers.dst2src.srv = -1;
-}
-#endif
 
 /* *************************************** */
 
@@ -1200,7 +1180,7 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
       lua_push_str_table_entry(vm, "cli.host", src->get_name(buf, sizeof(buf), false));
       lua_push_int_table_entry(vm, "cli.source_id", src->getSourceId());
       lua_push_str_table_entry(vm, "cli.mac", Utils::formatMac(src->get_mac(), buf, sizeof(buf)));
-  
+
       lua_push_bool_table_entry(vm, "cli.systemhost", src->isSystemHost());
       lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
       lua_push_int32_table_entry(vm, "cli.network_id", src->get_local_network_id());
@@ -1320,22 +1300,18 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 #ifdef NTOPNG_PRO
     /* Shapers */
     if(cli_host && srv_host) {
-      int a, b, c, d;
+      int a, b;
 
-      getFlowShapers(true, &a, &b, &c, &d);
+      getFlowShapers(true, &a, &b);
       lua_push_int_table_entry(vm, "shaper.cli2srv_a", a);
       lua_push_int_table_entry(vm, "shaper.cli2srv_b", b);
-      lua_push_int_table_entry(vm, "shaper.cli2srv_c", c);
-      lua_push_int_table_entry(vm, "shaper.cli2srv_d", d);
 
-      getFlowShapers(false, &a, &b, &c, &d);
+      getFlowShapers(false, &a, &b);
       lua_push_int_table_entry(vm, "shaper.srv2cli_a", a);
       lua_push_int_table_entry(vm, "shaper.srv2cli_b", b);
-      lua_push_int_table_entry(vm, "shaper.srv2cli_c", c);
-      lua_push_int_table_entry(vm, "shaper.srv2cli_d", d);
     }
 #endif
-    
+
     if(isHTTP() && protos.http.last_method && protos.http.last_url)
       lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
 
@@ -2373,18 +2349,15 @@ void Flow::checkFlowCategory() {
 
 #ifdef NTOPNG_PRO
 void Flow::getFlowShapers(bool src2dst_direction,
-			  int *a_shaper_id, int *b_shaper_id,
-			  int *c_shaper_id, int *d_shaper_id) {
+			  int *a_shaper_id, int *b_shaper_id) {
   if(cli_host && srv_host) {
     if(src2dst_direction) {
-      *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id(),
-	*c_shaper_id = flow_shapers.src2dst.cli, *d_shaper_id = flow_shapers.src2dst.srv;
+      *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id();
     } else {
-      *a_shaper_id = cli_host->get_ingress_shaper_id(), *b_shaper_id = srv_host->get_egress_shaper_id(),
-	*c_shaper_id = flow_shapers.dst2src.cli, *d_shaper_id = flow_shapers.dst2src.srv;
+      *a_shaper_id = cli_host->get_ingress_shaper_id(), *b_shaper_id = srv_host->get_egress_shaper_id();
     }
   } else
-    *a_shaper_id = *b_shaper_id = *c_shaper_id = *d_shaper_id = -1;
+    *a_shaper_id = *b_shaper_id = -1;
 }
 #endif
 
@@ -2426,7 +2399,7 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
     if((cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_CLIENT)) ||
        (!cli2srv && (getSSLEncryptionStatus() & SSL_ENCRYPTION_SERVER)) ) {
       protos.ssl.is_data = true;
-      
+
       if(!protos.ssl.firstdata_seen) {
 	if(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH) {
 	  memcpy(&protos.ssl.lastdata_time, when, sizeof(struct timeval));
@@ -2489,7 +2462,7 @@ void Flow::dissectSSL(u_int8_t *payload, u_int16_t payload_len, const struct bpf
 					    - Utils::timeval2usec(&protos.ssl.clienthello_time)))/1000;
 	// iface->luaEvalFlow(this, callback_flow_proto_callback);
       }
-      
+
       protos.ssl.hs_packets++;
       good_ssl_hs &= protos.ssl.hs_packets <= SSL_MAX_HANDSHAKE_PCKS;
     }
@@ -2589,4 +2562,3 @@ bool Flow::invokeActivityFilter(const struct timeval *when,
 }
 
 /* ***************************************************** */
-
