@@ -171,8 +171,8 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
   alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
 
-  if(customIftype
-     && strncmp(customIftype, CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))) {
+  if((!customIftype)
+     || strncmp(customIftype, CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))) {
     char  rsp[16];
 
     if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION,
