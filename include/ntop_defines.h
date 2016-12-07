@@ -353,6 +353,7 @@
 #define CONST_HOST_ACTIVITY_RRD_1H_DAYS    "ntopng.prefs.host_activity_rrd_1h_days"
 #define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
 #define CONST_MAX_NUM_ALERTS_PER_ENTITY    "ntopng.prefs.max_num_alerts_per_entity"
+#define CONST_MAX_NUM_FLOW_ALERTS          "ntopng.prefs.max_num_flow_alerts"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS       "ntopng.profiles_counters.ifid_%i"
 
@@ -511,6 +512,7 @@
 #define STORE_MANAGER_MAX_QUERY              1024
 #define STORE_MANAGER_MAX_KEY                20
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
+#define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
 #define ALERTS_MANAGER_TABLE_NAME            "closed_alerts"
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"

@@ -86,7 +86,7 @@ class Prefs {
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
   bool has_cmdl_trace_lvl;	/**< Indicate whether a verbose level has been provided on the command line.*/
   bool has_cmdl_disable_alerts;	/**< Indicate whether alerts were forcefully disabled from the command line */
-  int max_num_alerts_per_entity;
+  int max_num_alerts_per_entity, max_num_flow_alerts;
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
@@ -151,6 +151,7 @@ class Prefs {
   inline char* get_http_prefix()                        { return(http_prefix); };
   inline char* get_instance_name()                      { return(instance_name); };
   inline int   get_max_num_alerts_per_entity()          { return(max_num_alerts_per_entity); };
+  inline int   get_max_num_flow_alerts()                { return(max_num_flow_alerts); };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  is_idle_local_host_cache_enabled()       { return(enable_idle_local_hosts_cache);    };

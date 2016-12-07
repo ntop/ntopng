@@ -223,6 +223,7 @@ function delete_alert_configuration(alert_source, ifname)
       end
       ntop.delHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifid, alert_source))
    end
+   interface.refreshAlertCounters()
 end
 
 function refresh_alert_configuration(alert_source, ifname, timespan, alerts_string)

@@ -27,6 +27,7 @@
 class StoreManager {
  protected:
   int ifid;
+  NetworkInterface *iface;
   Mutex m;
   sqlite3 *db;
 
@@ -35,8 +36,10 @@ class StoreManager {
 		 int (*callback)(void *, int, char **, char **),
 		 void *payload);
  public:
-  StoreManager(int interface_id) { ifid = interface_id; db = NULL; };
+  StoreManager(int interface_id);
   ~StoreManager();
+
+  NetworkInterface* getNetworkInterface();
   
 };
 

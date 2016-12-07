@@ -384,71 +384,87 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
 
 /* **************************************************** */
 
-bool AlertsManager::isMaximumReached(AlertEntity alert_entity, const char *alert_entity_value, bool engaged) {
-  int max_num = ntop->getPrefs()->get_max_num_alerts_per_entity(), num;
+void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name) {
+  int max_num = strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME))
+    ? ntop->getPrefs()->get_max_num_alerts_per_entity() : ntop->getPrefs()->get_max_num_flow_alerts();
+  int num = 0;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum configured number of alerts per entity: %i", max_num);
 
   if(max_num < 0)
-    return false; /* unlimited allowance */
+    return; /* unlimited allowance */
 
-  num = getNumAlerts(engaged, alert_entity, alert_entity_value);
+  if(!strncmp(table_name, ALERTS_MANAGER_ENGAGED_TABLE_NAME, strlen(ALERTS_MANAGER_ENGAGED_TABLE_NAME)))
+    num = getNumAlerts(true, alert_entity, alert_entity_value);
+  else if(!strncmp(table_name, ALERTS_MANAGER_TABLE_NAME, strlen(ALERTS_MANAGER_TABLE_NAME)))
+    num = getNumAlerts(false, alert_entity, alert_entity_value);
+  else if(!strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME)))
+    num = getNumFlowAlerts(); /* no need to check alert entity if entity is a flow */
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Checking maximum %salerts for %s [got: %i]",
-			       engaged ? (char*)"engaged " : (char*)"",
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Checking maximum %s for %s [got: %i]",
+			       table_name ? table_name : (char*)"",
 			       alert_entity_value ? alert_entity_value : (char*)"",
 			       num);
 
   if(num >= max_num) {
-    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum number of %salerts exceeded for %s",
-				 engaged ? (char*)"engaged " : (char*)"",
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Maximum number of %s exceeded for %s",
+				 table_name ? table_name : (char*)"",
 				 alert_entity_value ? alert_entity_value : (char*)"");
     if(getNumAlerts(false /* too many alerts always go to not engaged table */,
 		    alert_entity, alert_entity_value,
 		    alert_too_many_alerts) > 0) {
       /* possibly delete the old too-many-alerts alert so that the new ones becomes the most recent */
       deleteAlerts(false /* not engaged */, alert_entity, alert_entity_value, alert_too_many_alerts, 0);
-      num_alerts_stored--;
     }
+
+    /* make room by deleting the oldest alert matching the input criteria */
+    deleteOldestAlert(alert_entity, alert_entity_value, table_name, max_num - 1);
+
+    char msg[256];
+    snprintf(msg, sizeof(msg), "Too many %s alerts. Oldest alerts will be overwritten "
+	     "unless you delete some alerts or increase their maximum number.",
+	     alert_entity_value ? alert_entity_value : "");
+    
     storeAlert(alert_entity, alert_entity_value,
-	       alert_too_many_alerts, alert_level_error,
-	       "Too many alerts for this alarmed entity. Oldest alerts will be overwritten "
-	       "unless you delete some old alerts or "
-	       "increase their maximum number.",
+	       alert_too_many_alerts, alert_level_error, msg,
 	       NULL, NULL,
 	       false /* force store alert, do not check maximum here */);
-    error_level_alerts = true;
-    return true;
+
+    if(getNetworkInterface())
+      getNetworkInterface()->setRefreshAlertCounters(true);
+    return; /* room has been actually made */
   }
-  return false;
+
+  return;
 }
 
 /* **************************************************** */
 
-int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, bool engaged) {
+int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
+  bool flows_table = !strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME));
 
   if(!store_initialized || !store_opened)
     return -1;
 
   snprintf(query, sizeof(query),
 	   "DELETE FROM %s "
-	   "WHERE rowid IN "
+	   "WHERE rowid NOT IN "
 	   "(SELECT rowid FROM %s "
-	   "WHERE alert_entity = ? AND alert_entity_val = ? AND alert_type <> ? "
-	   "ORDER BY alert_tstamp ASC LIMIT 1)",
-	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME,
-	   engaged ? ALERTS_MANAGER_ENGAGED_TABLE_NAME : ALERTS_MANAGER_TABLE_NAME);
+	   "WHERE alert_type <> ? %s"
+	   "ORDER BY alert_tstamp DESC LIMIT %u)",
+	   table_name, table_name, !flows_table ? (char*)" AND alert_entity = ? AND alert_entity_val = ? " : (char*)"",
+	   max_num_rows);
 
-  //  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to delete via: %s", query);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Going to delete via: %s", query);
 
   m.lock(__FILE__, __LINE__);
 
   if(sqlite3_prepare(db, query, -1, &stmt, 0)
      || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_entity))
-     || sqlite3_bind_text(stmt,  2, alert_entity_value, -1, SQLITE_STATIC)
-     || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_too_many_alerts))) {
+     || (!flows_table && sqlite3_bind_text(stmt,  2, alert_entity_value, -1, SQLITE_STATIC))
+     || (!flows_table && sqlite3_bind_int(stmt,   3, static_cast<int>(alert_too_many_alerts)))) {
     rc = 1;
     goto out;
   }
@@ -485,8 +501,8 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
   if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
     // TODO: update the values
   } else {
-    if(isMaximumReached(alert_entity, alert_entity_value, true /* engaged */))
-      deleteOldestAlert(alert_entity, alert_entity_value, true /* engaged */);
+    makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_ENGAGED_TABLE_NAME);
+
     /* This alert is being engaged */
 
     snprintf(query, sizeof(query),
@@ -551,8 +567,7 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
     return 0;  // cannot release an alert that has not been engaged
   }
 
-  if(isMaximumReached(alert_entity, alert_entity_value, false /* not engaged */))
-    deleteOldestAlert(alert_entity, alert_entity_value, false /* not engaged*/);
+  makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
   /* move the alert from engaged to closed */
   snprintf(query, sizeof(query),
@@ -616,12 +631,6 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   }
 
   rc = 0;
-  /* not enough to num_alerts_engaged--, num_alerts_stored++;
-     must refresh as the severity of the released alert is not know
-  */
-  if(ntop->getInterfaceById(ifid))
-    ntop->getInterfaceById(ifid)->setRefreshAlertCounters(true);
-  // TODO: consider updating with the new parameters (use rowid)
  out:
   if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
@@ -787,8 +796,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 
   if(!store_initialized || !store_opened)
     return(-1);
-  else if(check_maximum && isMaximumReached(alert_entity, alert_entity_value, false))
-    deleteOldestAlert(alert_entity, alert_entity_value, false);
+  else if(check_maximum)
+    makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
   /* This alert is being engaged */
   snprintf(query, sizeof(query),
@@ -843,6 +852,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
 
   if(!store_initialized || !store_opened || !f)
     return(-1);
+
+  makeRoom(alert_entity_flow, (char*)"flow", ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
   cli = f->get_cli_host(), srv = f->get_srv_host();
   if(cli && cli->get_ip() && (cli_ip_buf = (char*)malloc(sizeof(char) * 256)))
@@ -927,6 +938,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
 
   rc = 0;
   num_alerts_stored++;
+  if(cli) cli->incNumAlerts();
+  if(srv) srv->incNumAlerts();
   if(alert_severity == alert_level_error) error_level_alerts = true;
  out:
   if(cli_ip_buf) free(cli_ip_buf);
@@ -976,9 +989,11 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 		       engaged_alert_id, alert_type, alert_severity, alert_json,
 		       isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		       isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
-  } else
+  } else {
+    /* no need to h->decNumAlerts() as a released alerts goes into the past alerts so the counter is still ok */
     return releaseAlert(alert_entity_host, ipbuf_id,
 			engaged_alert_id);
+  }
 };
 
 /* ******************************************* */

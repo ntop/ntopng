@@ -1792,7 +1792,7 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
   host->updateStats(tv);
 
-  if(host->isLocalHost() && host->getInterface()->getRefreshAlertCounters())
+  if(host->getInterface()->getRefreshAlertCounters())
     host->getNumAlerts(true /* refresh alert counter from the database */);
 
   /*

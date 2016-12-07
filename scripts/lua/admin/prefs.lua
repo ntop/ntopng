@@ -190,8 +190,12 @@ function printAlerts()
 
   prefsInputFieldPrefs("Maximum Number of Alerts per Entity",
 		       "The maximum number of alerts per alarmable entity. Alarmable entities are hosts, networks, interfaces and flows. "..
-		       "Once the maximum number of entity alerts is reached, new alerts raised by the same entities will be discarded. "..
+		       "Once the maximum number of entity alerts is reached, oldest alerts will be overwritten. "..
 			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements, false)
+
+  prefsInputFieldPrefs("Maximum Number of Flow Alerts",
+		       "The maximum number of flow alerts. Once the maximum number of alerts is reached, oldest alerts will be overwritten. "..
+			  "Default: 16384.", "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, nil, showElements, false)
 
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",

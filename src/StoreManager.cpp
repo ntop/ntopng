@@ -21,6 +21,11 @@
 
 #include "ntop_includes.h"
 
+StoreManager::StoreManager(int interface_id) {
+    ifid = interface_id;
+    iface = ntop->getInterfaceById(interface_id);
+    db = NULL;
+};
 
 int StoreManager::init(const char *db_file_full_path) {
   if(sqlite3_open(db_file_full_path, &db)) {
@@ -31,6 +36,12 @@ int StoreManager::init(const char *db_file_full_path) {
   }
 
   return 0;
+}
+
+NetworkInterface* StoreManager::getNetworkInterface() {
+  if(!iface)
+    iface = ntop->getInterfaceById(ifid);
+  return iface;
 }
 
 StoreManager::~StoreManager() {
