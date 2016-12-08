@@ -1011,14 +1011,10 @@ end
             -- Do not create any additional protocol rule
             shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper)
          end
+
+	 interface.reloadL7Rules(network_key)
       end)
 
-      if proto_shapers_cloned then
-         -- reload the l7 networks in use by protocol shapers
-         -- interface.reloadL7ProtoRules(); -- TODO: uncomment when C is ready
-      end
-
-      interface.reloadL7Rules()
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering")
    end
 
@@ -1096,7 +1092,7 @@ end
       end
 
       -- Note: this could optimized to only reload this specific network
-      -- interface.reloadL7ProtoRules(); -- TODO: uncomment this when the C method is ready
+      interface.reloadL7Rules(target_net)
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network="..target_net.."#protocols")
    end
    print [[

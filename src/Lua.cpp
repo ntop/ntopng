@@ -3121,31 +3121,27 @@ static int ntop_is_enterprise(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_reload_l7_rules(lua_State *vm) {
+#ifdef NTOPNG_PRO
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *net;
+  patricia_tree_t *ptree = NULL;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_interface) {
-    patricia_tree_t *ptree = NULL;
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  net = (char*)lua_tostring(vm, 1);
 
-    /* You should pass the network name whenever a network rule is removed */
-    if(lua_type(vm, 1) == LUA_TSTRING) {
-      char *net = (char*)lua_tostring(vm, 1);
-      if(net == NULL) return(CONST_LUA_PARAM_ERROR);
-
-      ptree = New_Patricia(128);
-      /* the removed network */
-      Utils::ptree_add_rule(ptree, net);
-    }
-
-#ifdef NTOPNG_PRO
-    ntop_interface->refreshL7Rules(ptree);
-#endif
-
-    if (ptree)
-      Destroy_Patricia(ptree, NULL);
-    return(CONST_LUA_OK);
-  } else
+  if((!ntop_interface) || (ptree = New_Patricia(128)) == NULL)
     return(CONST_LUA_ERROR);
+
+  Utils::ptree_add_rule(ptree, net);
+
+  ntop_interface->refreshL7Rules(ptree);
+
+  if (ptree) Destroy_Patricia(ptree, NULL);
+
+#endif
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
