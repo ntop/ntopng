@@ -332,8 +332,9 @@ else
      print("</td><td> Client <i class=\"fa fa-arrow-left\"></i> Server: ")
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
-	end
+   end
 
+  
    if((flow["cli2srv.trend"] ~= nil) and false) then
      print("<tr><th width=30%>Througput Trend</th><td nowrap>"..flow["cli.ip"].." <i class=\"fa fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
      print(flow["cli2srv.trend"])
@@ -511,18 +512,30 @@ else
 
    if (flow["moreinfo.json"] ~= nil) then
       local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
+      local isThereSIP = 0
+      local isThereRTP = 0
 
+      -- Convert the array to symbolic identifiers if necessary
+      local syminfo = {}
+      for key,value in pairs(info) do
+	 local k = rtemplate[tonumber(key)]
+	 if(k ~= nil) then
+	    syminfo[k] = value
+	 else
+	    syminfo[key] = value
+	 end
+      end
+      info = syminfo
+
+      
       -- get SIP rows
       if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
         local sip_table_rows = getSIPTableRows(info)
         print(sip_table_rows)
-      end
 
-      isThereSIP = 0
-      if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
-        isThereSIP = isThereProtocol(SIP, info)
+        isThereSIP = isThereProtocol("SIP", info)
         if(isThereSIP == 1) then
-          isThereSIP = isThereSIPCall(info)
+	   isThereSIP = isThereSIPCall(info)
         end
       end
       info = removeProtocolFields("SIP",info)
@@ -531,11 +544,9 @@ else
       if(ntop.isPro() and (flow["proto.ndpi"] == "RTP")) then
         local rtp_table_rows = getRTPTableRows(info)
         print(rtp_table_rows)
-      end
 
-      isThereRTP = 0
-      if(ntop.isPro() and (flow["proto.ndpi"] == "RTP")) then
-        isThereRTP = isThereProtocol(RTP, info)
+	-- io.write(flow["proto.ndpi"].."\n")
+	isThereRTP = isThereProtocol("RTP", info)
       end
 
       info = removeProtocolFields("RTP",info)
@@ -544,11 +555,11 @@ else
 
       for key,value in pairs(info) do
 	 if(num == 0) then
-	 print("<tr><th colspan=3 class=\"info\">Additional Flow Elements</th></tr>\n")
+	    print("<tr><th colspan=3 class=\"info\">Additional Flow Elements</th></tr>\n")
 	 end
-
+	 
 	 if(value ~= "") then
-	      print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value) .. "</td></tr>\n")
+	    print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value) .. "</td></tr>\n")
 	 end
 
 	 num = num + 1

@@ -452,7 +452,7 @@ else
         print(', "rtp.packet_lost_out":"'..getFlowValue(info, "RTP_OUT_PKT_LOST")..'"' )
         print(', "rtp.packet_drop_in":"'..getFlowValue(info, "RTP_IN_PKT_DROP")..'"' )
         print(', "rtp.packet_drop_out":"'..getFlowValue(info, "RTP_OUT_PKT_DROP")..'"' )
-        print(', "rtp.payload_type_in":"'..formatRtpPayloadType(getFlowValue(info, "RTP_IN_PAYLOAD_TYPE"))..'"' )
+	print(', "rtp.payload_type_in":"'..formatRtpPayloadType(getFlowValue(info, "RTP_IN_PAYLOAD_TYPE"))..'"' )
         print(', "rtp.payload_type_out":"'..formatRtpPayloadType(getFlowValue(info, "RTP_OUT_PAYLOAD_TYPE"))..'"' )
         print(', "rtp.max_delta_time_in":"'..getFlowValue(info, "RTP_IN_MAX_DELTA")..'"' )
         print(', "rtp.max_delta_time_out":"'..getFlowValue(info, "RTP_OUT_MAX_DELTA")..'"' )
