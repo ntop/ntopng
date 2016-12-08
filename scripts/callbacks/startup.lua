@@ -10,7 +10,8 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if (ntop.isPro()) then
-  package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
 end
 
 require "lua_utils"
@@ -37,6 +38,29 @@ if prefs.sticky_hosts ~= nil then
 	    interface.restoreHost(hostkey, true --[[ skip privileges checks: no web access --]])
 	 end
       end
+   end
+end
+
+-- initialize packet bridge keys
+if ntop.isPro() == true then
+   local shaper_utils = require("shaper_utils")
+
+   for _, ifname in pairs(interface.getIfNames()) do
+      local ifid = getInterfaceId(ifname)
+      if interface.isBridgeInterface(ifid) == false then
+	 goto continue
+      end
+
+      -- shaper 0 unlimited bandwidth
+      ntop.setHashCache(getShapersMaxRateKey(ifid), 0, -1)
+      -- shaper 1 no bandwidth
+      ntop.setHashCache(getShapersMaxRateKey(ifid), 1, 0)
+      -- default policy for the network of last restort
+      shaper_utils.setProtocolShapers(ifid, "0.0.0.0/0@0",
+				      shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY,
+				      0 --[[ ingress shaper --]],
+				      0 --[[ egress shaper --]])
+      ::continue::
    end
 end
 

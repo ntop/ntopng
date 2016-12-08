@@ -954,7 +954,7 @@ elseif(page == "filtering") then
 
 function get_shapers_from_parameters(callback)
    local done = {}
-   
+
    for option,value in pairs(_GET) do
       local sp = split(option, "ishaper_")
       local k = nil
@@ -1015,7 +1015,7 @@ end
 
       if proto_shapers_cloned then
          -- reload the l7 networks in use by protocol shapers
-         interface.reloadL7ProtoRules();
+         -- interface.reloadL7ProtoRules(); -- TODO: uncomment when C is ready
       end
 
       interface.reloadL7Rules()
@@ -1096,7 +1096,7 @@ end
       end
 
       -- Note: this could optimized to only reload this specific network
-      interface.reloadL7ProtoRules();
+      -- interface.reloadL7ProtoRules(); -- TODO: uncomment this when the C method is ready
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network="..target_net.."#protocols")
    end
    print [[
@@ -1211,8 +1211,7 @@ end
       <div id="badnet" class="alert alert-danger" style="display: none"></div>
       <td><strong style="margin-right:1em">Network Group:</strong>
 ]]
-locals = ntop.getLocalNetworks()
-locals_empty = (next(locals) == nil)
+
 print[[
          <input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
 ]]
