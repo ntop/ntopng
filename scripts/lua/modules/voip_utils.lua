@@ -103,12 +103,12 @@ rtp_payload_type = {
 -- ########################################################
 
 function formatRtpPayloadType(flags)
+   if(flags == nil) then return("") end
+   
    flags = tonumber(flags)
 
    if(rtp_payload_type[flags] ~= nil) then
-
       return(rtp_payload_type[flags])
-
    end
 
    return flags;
