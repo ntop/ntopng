@@ -1794,7 +1794,8 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
   if((host->getInterface()->getRefreshNumAlerts() == refresh_all_after_delete
       && host->getNumAlerts() > 0)
-     || host->getRefreshNumAlerts() == refresh_after_delete) {
+     || host->getRefreshNumAlerts() == refresh_after_delete
+     || host->getRefreshNumAlerts() == refresh_after_init) {
     host->getNumAlerts(true /* refresh alert counter from the database */);
     host->setRefreshNumAlerts(no_refresh_needed);
   }
