@@ -164,8 +164,10 @@ class Host : public GenericHost {
   inline void disableAlerts()                            { trigger_host_alerts = false;                   };
   inline void enableAlerts()                             { trigger_host_alerts = true;                    };
   inline bool triggerAlerts()                            { return(trigger_host_alerts);                   };
-  inline void incNumAlerts()                             { num_alerts_detected++;                         };
+
   u_int32_t getNumAlerts(bool from_alertsmanager = false);
+  inline void setRefreshNumAlerts(AlertRefresh alert_refresh) { refresh_num_alerts = alert_refresh; }
+  inline AlertRefresh getRefreshNumAlerts()                   { return refresh_num_alerts;          }
 
   inline NetworkStats* getNetworkStats(int16_t networkId){ return(iface->getNetworkStats(networkId));      };
 

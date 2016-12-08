@@ -199,7 +199,7 @@ void NetworkInterface::init() {
     tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
     pkt_dumper = NULL, numL2Devices = 0, lastPktDropCount = 0;
   pollLoopCreated = false, bridge_interface = false;
-  refreshAlertCounters = false;
+  refresh_num_alerts = refresh_after_init;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -1792,8 +1792,12 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
   host->updateStats(tv);
 
-  if(host->getInterface()->getRefreshAlertCounters())
+  if((host->getInterface()->getRefreshNumAlerts() == refresh_all_after_delete
+      && host->getNumAlerts() > 0)
+     || host->getRefreshNumAlerts() == refresh_after_delete) {
     host->getNumAlerts(true /* refresh alert counter from the database */);
+    host->setRefreshNumAlerts(no_refresh_needed);
+  }
 
   /*
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Updated: %s [%d]",
@@ -1832,9 +1836,9 @@ void NetworkInterface::periodicStatsUpdate() {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
   }
 
-  if(getRefreshAlertCounters()) {
+  if(getRefreshNumAlerts() != no_refresh_needed) {
     alertsManager->refreshCachedNumAlerts();
-    setRefreshAlertCounters(false);
+    setRefreshNumAlerts(no_refresh_needed);
   }
 }
 
