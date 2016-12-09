@@ -83,7 +83,7 @@ class Host : public GenericHost {
   void loadSynAlertPrefs(void);
   void loadFlowsAlertPrefs(void);
   void getSites(lua_State* vm, char *k, const char *label);
-  void readDHCPCache();
+  bool readDHCPCache();
 
  public:
   Host(NetworkInterface *_iface);

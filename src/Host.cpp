@@ -255,7 +255,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
 /* *************************************** */
 
-void Host::readDHCPCache() {
+bool Host::readDHCPCache() {
   if(mac) {
     /* Check DHCP cache */
     char client_mac[24], buf[64];
@@ -263,10 +263,12 @@ void Host::readDHCPCache() {
     Utils::formatMac(mac->get_mac(), client_mac, sizeof(client_mac));
 
     if(ntop->getRedis()->hashGet((char*)DHCP_CACHE, client_mac, buf, sizeof(buf)) == 0) {
-      if(symbolic_name == NULL)
-	symbolic_name = strdup(buf);
+      setName(buf);
+      return true;
     }
   }
+
+  return false;
 }
 
 /* *************************************** */
@@ -632,9 +634,7 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
   if((symbolic_name != NULL) && strcmp(symbolic_name, addr))
     return(symbolic_name);
 
-  readDHCPCache();
-
-  if(symbolic_name) return(symbolic_name);
+  if(readDHCPCache() && symbolic_name) return(symbolic_name);
 
   rc = ntop->getRedis()->getAddress(addr, redis_buf, sizeof(redis_buf),
 				    force_resolution_if_not_found);
