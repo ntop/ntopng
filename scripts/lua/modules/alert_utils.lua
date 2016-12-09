@@ -656,7 +656,9 @@ end
 
 function getExtraParameters(url_params)
    local params = {}
-   local exclude = {csrf=1, id_to_delete=1, older_than_seconds=1, tab_id=1}
+   -- Note: entity and entity_val are used to perform queries, so cannot apper here
+   local exclude = {csrf=1, id_to_delete=1, older_than_seconds=1, tab_id=1,
+      alert_status=1, id_to_delete=1}
 
    if type(url_params) == "table" then
       for k, v in pairs(url_params) do
@@ -740,6 +742,7 @@ end
 
 function deleteAlerts(what, options)
    performAlertsQuery("Delete", what, options)
+   _GET["older_than_seconds"] = nil
 end
 
 -- #################################
@@ -763,7 +766,7 @@ function UrlToalertsQueryParameters(_GET)
    if _GET["severity"] ~= nil then opts.alert_severity = alertSeverity(_GET["severity"]) end
    if _GET["type"] ~= nil then opts.alert_type = alertType(_GET["type"]) end
    if ((_GET["entity"] ~= nil) and (_GET["entity_val"] ~= nil)) then opts.entity_type = alertEntity(_GET["entity"]); opts.entity_value = _GET["entity_val"] end
-   if _GET["older_than_seconds"] ~= nil then opts.older_than = os.time() - tonumber(_GET["older_than_seconds"]) end
+   if((tonumber(_GET["older_than_seconds"]) ~= nil) and (tonumber(_GET["older_than_seconds"]) > 0)) then opts.older_than = os.time() - tonumber(_GET["older_than_seconds"]) end
 
    return opts
 end
@@ -1099,10 +1102,6 @@ $(function() {
 
   var hash = window.location.hash;
   $('#alert-tabs a[href="' + hash + '"]').tab('show');
-
-  var tabid = getActiveTabId();
-  updateDeleteLabel(tabid);
-  updateDeleteContext(tabid);
 });
 
 function getActiveTabId() {
@@ -1128,6 +1127,7 @@ print [[";
 
 function updateDeleteContext(tabid) {
    $("#modalDeleteAlertsTab").val(tabid);
+   $("#modalDeleteAlertsStatus").val(getCurrentStatus());
 }
 
 function getCurrentStatus() {
@@ -1153,16 +1153,22 @@ function getCurrentStatus() {
    if num_engaged_alerts > 0 then
       alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
 	 ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
+   elseif status == "engaged" then
+      status = nil
    end
 
    if num_alerts > 0 then
       alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
 	 ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
+   elseif status == "historical" then
+      status = nil
    end
 
    if num_flow_alerts > 0 then
       alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_flow_alerts"),
 	 ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
+   elseif status == "historical-flows" then
+      status = nil
    end
 
    -- This possibly passes some parameters to the search query
@@ -1206,8 +1212,17 @@ function getCurrentStatus() {
 	 local alert_types = {}
 	 for _, s in pairs(alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
 
-	 print(drawDropdown(t["status"], "type", _GET["type"], alert_types))
-	 print(drawDropdown(t["status"], "severity", _GET["severity"], alert_severities))
+    local a_type, a_severity
+    if clicked == "1" then
+      a_type = _GET["type"]
+      a_severity = _GET["severity"]
+   else
+      a_type = nil
+      a_severity = nil
+    end
+
+	 print(drawDropdown(t["status"], "type", a_type, alert_types))
+	 print(drawDropdown(t["status"], "severity", a_severity, alert_severities))
       elseif((entity_val ~= nil) and (not hide_extended_title)) then
 	 if entity == "host" then
 	    local host_ip = entity_val
@@ -1296,6 +1311,19 @@ function getCurrentStatus() {
       ]
    });
    });
+   ]]
+   if (clicked == "1") then
+      print[[
+         // must wait for modalDeleteAlertsTab to be created
+         $(function() {
+            var tabid = "]] print("tab-"..t["div-id"]) print[[";
+            history.replaceState(null, null, "#"+tabid);
+            updateDeleteLabel(tabid);
+            updateDeleteContext(tabid);
+         });
+      ]]
+   end
+   print[[
    </script>
 	      ]]
 
@@ -1345,6 +1373,7 @@ $("[clicked=1]").trigger("click");
     <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=id_to_delete value="__all__">
       <input type="hidden" id="modalDeleteAlertsOlderThan" name="older_than_seconds" value="-1">
       <input type="hidden" id="modalDeleteAlertsTab" name="tab_id">
+      <input type="hidden" id="modalDeleteAlertsStatus" name="status">
       ]]
 
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
