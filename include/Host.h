@@ -39,7 +39,6 @@ class Host : public GenericHost {
   u_int32_t host_quota_mb;
   int16_t local_network_id, deviceIfIdx;
   u_int32_t deviceIP;
-  int ingress_shaper_id, egress_shaper_id;
   float latitude, longitude;
   IpAddress ip;
   Mutex *m;
@@ -69,7 +68,7 @@ class Host : public GenericHost {
   CategoryStats *categoryStats;
 
 #ifdef NTOPNG_PRO
-  NDPI_PROTOCOL_BITMASK *l7Policy;
+  L7Policy_t* l7Policy;
 #endif
 
   struct {
@@ -120,8 +119,8 @@ class Host : public GenericHost {
   inline char* get_country()                   { return(country);          }
   inline char* get_city()                      { return(city);             }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
-  inline int get_ingress_shaper_id()           { return(ingress_shaper_id); }
-  inline int get_egress_shaper_id()            { return(egress_shaper_id);  }
+  int get_ingress_shaper_id(u_int16_t ndpiProtocol);
+  int get_egress_shaper_id(u_int16_t ndpiProtocol);
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }
@@ -174,7 +173,6 @@ class Host : public GenericHost {
 
   bool match(patricia_tree_t *ptree) { return(get_ip() ? get_ip()->match(ptree) : false); };
   void updateHostL7Policy();
-  bool doDropProtocol(ndpi_protocol l7_proto);
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);

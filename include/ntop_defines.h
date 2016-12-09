@@ -248,7 +248,7 @@
 #define MAX_NUM_VLAN                4096
 #define MAX_NUM_VIRTUAL_INTERFACES    32
 #define DEFAULT_SHAPER_ID              0
-#define NUM_TRAFFIC_SHAPERS           10
+#define NUM_TRAFFIC_SHAPERS           16
 #define MAX_SHAPER_RATE_KBPS       10240
 #define HOUSEKEEPING_FREQUENCY         5
 #define MAX_NUM_HOST_CONTACTS         16

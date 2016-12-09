@@ -1859,28 +1859,6 @@ void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
   hosts_hash->walk(update_host_l7_policy, ptree);
 }
 
-/* **************************************************** */
-
-static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
-  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
-  Flow *f = (Flow*)node;
-
-  if((ptree == NULL)
-     || (f->get_cli_host() && f->get_cli_host()->match(ptree))
-     || (f->get_srv_host() && f->get_srv_host()->match(ptree)))
-    ((Flow*)node)->makeVerdict(true);
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::updateFlowsL7Policy(patricia_tree_t *ptree) {
-  if(isView()) return;
-
-  flows_hash->walk(update_flow_l7_policy, ptree);
-}
-
 #endif
 
 /* **************************************************** */

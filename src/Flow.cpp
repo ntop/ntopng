@@ -326,7 +326,6 @@ void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
 
   if(protocol_processed || (ndpiFlow == NULL)) {
-    makeVerdict(false);
     return;
   }
 
@@ -482,25 +481,6 @@ void Flow::processDetectedProtocol() {
      && (l7proto != NDPI_PROTOCOL_DNS))
     freeDPIMemory();
 
-  makeVerdict(false);
-}
-
-/* *************************************** */
-
-/* This method is used to decide whether this flow must pass or not */
-
-void Flow::makeVerdict(bool reset) {
-#ifdef NTOPNG_PRO
-  if(ntop->getPro()->has_valid_license() && get_cli_host() && get_srv_host()) {
-    if(get_cli_host()->doDropProtocol(ndpiDetectedProtocol)
-       || get_srv_host()->doDropProtocol(ndpiDetectedProtocol)) {
-      setDropVerdict();
-      return;
-    }
-  }
-
-  if(reset) passVerdict = true;
-#endif
 }
 
 /* *************************************** */
@@ -2352,12 +2332,12 @@ void Flow::getFlowShapers(bool src2dst_direction,
 			  int *a_shaper_id, int *b_shaper_id) {
   if(cli_host && srv_host) {
     if(src2dst_direction) {
-      *a_shaper_id = cli_host->get_egress_shaper_id(), *b_shaper_id = srv_host->get_ingress_shaper_id();
+      *a_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol.protocol), *b_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol.protocol);
     } else {
-      *a_shaper_id = cli_host->get_ingress_shaper_id(), *b_shaper_id = srv_host->get_egress_shaper_id();
+      *a_shaper_id = cli_host->get_ingress_shaper_id(ndpiDetectedProtocol.protocol), *b_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol.protocol);
     }
   } else
-    *a_shaper_id = *b_shaper_id = -1;
+    *a_shaper_id = *b_shaper_id = 0;
 }
 #endif
 

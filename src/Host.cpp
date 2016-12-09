@@ -114,6 +114,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
+  l7Policy = NULL;
 #endif
 
   if(_mac == NULL)
@@ -132,7 +133,6 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   flow_flood_attacker_alert = flow_flood_victim_alert = false;
   os[0] = '\0', trafficCategory[0] = '\0', blacklisted_host = false;
   num_uses = 0, symbolic_name = NULL, vlan_id = _vlanId % MAX_NUM_VLAN,
-    ingress_shaper_id = egress_shaper_id = -1,
     total_num_flows_as_client = total_num_flows_as_server = 0,
     num_active_flows_as_client = num_active_flows_as_server = 0;
   first_seen = last_seen = iface->getTimeLastPktRcvd();
@@ -247,10 +247,6 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     }
   }
 
-#ifdef NTOPNG_PRO
-  l7Policy = NULL;
-#endif
-
   loadAlertPrefs();
   readAlertPrefs();
   if(!host_serial) computeHostSerial();
@@ -318,72 +314,20 @@ void Host::updateHostL7Policy() {
 
   if(ntop->getPro()->has_valid_license()) {
     if(localHost || systemHost) {
-      char host_key[64], hash_name[64], rsp[32];
-      char buf[64], *host;
-      u_int8_t bitmask;
 
-      l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id, &bitmask);
-
-      host = ip.print(buf, sizeof(buf), bitmask);
-      snprintf(host_key, sizeof(host_key), "%s/%u@%u", host, bitmask, vlan_id);
-
-      /* ************************************************* */
-
-      snprintf(hash_name, sizeof(hash_name),
-	       "ntopng.prefs.%u.l7_policy_ingress_shaper_id",
-	       getInterface()->get_id());
-
-      if((ntop->getRedis()->hashGet(hash_name, host_key, rsp, sizeof(rsp)) != 0)
-        || (rsp[0] == '\0'))
-	ingress_shaper_id = -1;
-      else {
-	ingress_shaper_id = atoi(rsp);
-
-	if(ingress_shaper_id < 0)
-	  ingress_shaper_id = -1;
+      if(l7Policy != NULL){
+        /* free memory before copy */
+        free_ptree_l7_policy_data((void*)l7Policy);
+        l7Policy = NULL;
       }
 
-      /* ************************************************* */
-
-      snprintf(hash_name, sizeof(hash_name),
-	       "ntopng.prefs.%u.l7_policy_egress_shaper_id",
-	       getInterface()->get_id());
-
-      if((ntop->getRedis()->hashGet(hash_name, host_key, rsp, sizeof(rsp)) != 0)
-        || (rsp[0] == '\0'))
-	egress_shaper_id = -1;
-      else {
-	egress_shaper_id = atoi(rsp);
-
-	if(egress_shaper_id < 0)
-	  egress_shaper_id = -1;
-      }
-      /*
-	char name[256]; printf("%s -> %s - %d %d\n",
-	get_name(name, sizeof(name), false), l7Network, ingress_shaper_id, egress_shaper_id);
-      */
+      l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
     } else {
       l7Policy = NULL;
-      ingress_shaper_id = egress_shaper_id = -1;
     }
 
   }
 #endif
-}
-
-/* *************************************** */
-
-bool Host::doDropProtocol(ndpi_protocol l7_proto) {
-#ifdef NTOPNG_PRO
-  if(ntop->getPro()->has_valid_license()) {
-    if(l7Policy)
-      return((NDPI_ISSET(l7Policy, l7_proto.protocol)
-	      || NDPI_ISSET(l7Policy, l7_proto.master_protocol)) ? true : false);
-    else
-      return(false);
-  }
-#endif
-  return false;
 }
 
 /* *************************************** */
@@ -564,8 +508,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_int_table_entry(vm, "host_quota_mb", host_quota_mb);
 
     if(localHost || systemHost) {
-      lua_push_int_table_entry(vm, "bridge.ingress_shaper_id", ingress_shaper_id);
-      lua_push_int_table_entry(vm, "bridge.egress_shaper_id", egress_shaper_id);
       lua_push_int_table_entry(vm, "bridge.host_quota_mb", host_quota_mb);
     }
 
@@ -623,26 +565,6 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     if(dns)  dns->lua(vm);
     if(http) http->lua(vm);
 
-#ifdef NTOPNG_PRO
-    if(ntop->getPro()->has_valid_license()) {
-      if(l7Policy != NULL) {
-	lua_newtable(vm);
-
-	for(int i=1; i<NDPI_MAX_SUPPORTED_PROTOCOLS+NDPI_MAX_NUM_CUSTOM_PROTOCOLS; i++) {
-	  if(NDPI_ISSET(l7Policy, i)) {
-	    char *proto = ndpi_get_proto_by_id(iface->get_ndpi_struct(), i);
-
-	    if(proto)
-	      lua_push_int_table_entry(vm, proto, i);
-	  }
-	}
-
-	lua_pushstring(vm, "l7_traffic_policy");
-	lua_insert(vm, -2);
-	lua_settable(vm, -3);
-      }
-    }
-#endif
   }
 
   if(!returnHost) {
@@ -1210,6 +1132,42 @@ void Host::decNumFlows(bool as_client) {
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
+}
+
+/* *************************************** */
+int Host::get_ingress_shaper_id(u_int16_t ndpiProtocol){
+#ifdef NTOPNG_PRO
+  ShaperDirection_t *sd;
+  if (l7Policy && l7Policy->mapping_proto_shaper_id) {
+    HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &ndpiProtocol, sd);
+    if(sd)
+      return sd->ingress; /* A protocol shaper is defined */
+    else
+      return l7Policy->default_shaper_id.ingress; /* The default shaper is returned */
+  } else {
+    return 0;
+  }
+#else
+  return 0;
+#endif
+}
+
+/* *************************************** */
+int Host::get_egress_shaper_id(u_int16_t ndpiProtocol){
+#ifdef NTOPNG_PRO
+  ShaperDirection_t *sd;
+  if (l7Policy && l7Policy->mapping_proto_shaper_id) {
+    HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &ndpiProtocol, sd);
+    if(sd)
+      return sd->egress; /* A protocol shaper is defined */
+    else
+      return l7Policy->default_shaper_id.egress; /* The default shaper is returned */
+  } else {
+    return 0;
+  }
+#else
+  return 0;
+#endif
 }
 
 /* *************************************** */

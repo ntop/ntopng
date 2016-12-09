@@ -355,7 +355,6 @@ class NetworkInterface {
 
 #ifdef NTOPNG_PRO
   void updateHostsL7Policy(patricia_tree_t *ptree);
-  void updateFlowsL7Policy(patricia_tree_t *ptree);
 #endif
 
   bool updateDumpAllTrafficPolicy(void);
