@@ -408,3 +408,5 @@ for _,_ifname in pairs(ifnames) do
    end -- if(good interface type
 end -- for ifname,_ in pairs(ifnames) do
 
+-- check MySQL open files status
+checkOpenFiles()

@@ -282,18 +282,19 @@ alert_level_keys = {
 }
 
 alert_type_keys = {
-  { "<i class='fa fa-tint'></i> TCP SYN Flood",                0, "tcp_syn_flood"       },
-  { "<i class='fa fa-tint'></i> Flows Flood",                  1, "flows_flood"         },
-  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",   2, "threshold_cross"     },
-  { "<i class='fa fa-frown-o'></i> Blacklist Host",            3, "blacklist_host"      },
-  { "<i class='fa fa-clock-o'></i> Periodic Activity",         4, "periodic_activity"   },
-  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",           5, "quota_exceeded"      },
-  { "<i class='fa fa-ban'></i> Malware Detected",              6, "malware_detected"    },
-  { "<i class='fa fa-bomb'></i> Ongoing Attacker",             7, "ongoing_attacker"    },
-  { "<i class='fa fa-bomb'></i> Under Attack",                 8, "under_attack"        },
-  { "<i class='fa fa-exclamation'></i> Misconfigured App",     9, "misconfigured_app"   },
-  { "<i class='fa fa-exclamation'></i> Suspicious Activity",  10, "suspicious_activity" },
-  { "<i class='fa fa-exclamation'></i> Too Many Alerts",      11, "too_many_alerts"     },
+  { "<i class='fa fa-tint'></i> TCP SYN Flood",                            0, "tcp_syn_flood"              },
+  { "<i class='fa fa-tint'></i> Flows Flood",                              1, "flows_flood"                },
+  { "<i class='fa fa-arrow-circle-up'></i> Threshold Cross",               2, "threshold_cross"            },
+  { "<i class='fa fa-frown-o'></i> Blacklist Host",                        3, "blacklist_host"             },
+  { "<i class='fa fa-clock-o'></i> Periodic Activity",                     4, "periodic_activity"          },
+  { "<i class='fa fa-sort-asc'></i> Quota Exceeded",                       5, "quota_exceeded"             },
+  { "<i class='fa fa-ban'></i> Malware Detected",                          6, "malware_detected"           },
+  { "<i class='fa fa-bomb'></i> Ongoing Attacker",                         7, "ongoing_attacker"           },
+  { "<i class='fa fa-bomb'></i> Under Attack",                             8, "under_attack"               },
+  { "<i class='fa fa-exclamation'></i> Misconfigured App",                 9, "misconfigured_app"          },
+  { "<i class='fa fa-exclamation'></i> Suspicious Activity",              10, "suspicious_activity"        },
+  { "<i class='fa fa-exclamation'></i> Too Many Alerts",                  11, "too_many_alerts"            },
+  { "<i class='fa fa-exclamation'></i> MySQL open_files_limit too small", 12, "open_files_limit_too_small" },
 }
 
 alert_entity_keys = {

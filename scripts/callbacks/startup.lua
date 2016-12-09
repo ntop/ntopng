@@ -17,6 +17,7 @@ end
 require "lua_utils"
 require "alert_utils"
 require "blacklist_utils"
+require "db_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -125,6 +126,6 @@ ntop.delCache(hash_name)
 -- ##################################################################
 
 loadHostBlackList()
-
+checkOpenFiles()
 -- TODO: migrate custom re-arm settings
 

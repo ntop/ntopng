@@ -732,3 +732,69 @@ function getPeersTrafficHistogram(interface_id, peer1, peer2, info, begin_epoch,
       return(res)
    end
 end
+
+function checkOpenFiles()
+   local prefs = ntop.getPrefs()
+
+   local interfaces = interface.getIfNames()
+   local num_interfaces = 0
+   for _, i in pairs(interfaces) do num_interfaces = num_interfaces + 1 end
+
+   local alert_severity = alertSeverity("warning")
+   local alert_type = alertType("open_files_limit_too_small")
+   local alert_id = "open_files_limit_too_small"
+   local alert_msg = i18n("alert_messages.open_files_limit_too_small")
+
+   local open_files_too_small = false
+
+   if prefs.are_alerts_enabled == true and prefs.is_dump_flows_to_mysql_enabled == true and
+   ntop.getPref("ntopng.prefs.mysql_check_open_files_limit") == "1" then
+
+      local num_tables = 2 -- flowsv4 and flowsv6
+      local num_partitions = 32 -- keep this in sync with mysql create table statements in MySQLDB.cpp
+      local data_and_indices = 2 -- MYD for data and MYI for indices (valid only for MyISAM)
+      local num_connections_per_interface = 2 -- one in MySQLDB::queryLoop and the other is mysql class member
+
+      -- https://dev.mysql.com/doc/refman/5.7/en/table-cache.html explains how mysql open files
+      -- i.e., "To minimize the problem with multiple client sessions having different states
+      -- on the same table, the table is opened independently by each concurrent session."
+      --
+      -- The worst case of maximum open files can occur, for example, during daily cleanup operations
+      -- when all the partitions in all the tables are opened to clear old flows
+      local worst_case_max_num_open_files = num_tables * num_interfaces * num_partitions * data_and_indices * num_connections_per_interface
+
+      local query = interface.execSQLQuery("show global variables like 'open_files_limit'")
+      local open_files_limit
+      if query == nil or query[1] == nil or query[1]["Value"] == nil then
+	 return
+      end
+      open_files_limit = tonumber(query[1]["Value"])
+
+
+      -- raise an alert if the worst case number is >= the 80% of open_files_limit
+      if worst_case_max_num_open_files >= open_files_limit * .8 then
+	 open_files_too_small = true
+      end
+
+   end
+
+   ::set_alert_status::
+   for ifid, ifname in pairs(interfaces) do
+      interface.select(ifname)
+      local alert_cache = interface.getCachedNumAlerts()
+      local engaged_alerts = alert_cache["num_alerts_engaged"]
+
+      if open_files_too_small == true then
+	 interface.engageInterfaceAlert(alert_id, alert_type, alert_severity, alert_msg)
+	 engaged_alerts = engaged_alerts + 1
+      else
+	 if engaged_alerts > 0 then
+	    interface.releaseInterfaceAlert(alert_id, alert_type, alert_severity, alert_msg)
+	 end
+      end
+
+      if engaged_alerts > 0 then
+	 interface.refreshNumAlerts() -- light refresh just for the footer
+      end
+   end
+end

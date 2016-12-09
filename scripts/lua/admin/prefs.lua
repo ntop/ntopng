@@ -143,6 +143,10 @@ function printStatsDatabases()
   mysql_retention = 30
   prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "ntopng.prefs.", "mysql_retention", mysql_retention, false)
 
+  toggleTableButtonPrefs("Check open_files_limit",
+			 "Toggle the periodic check of MySQL open_files_limit.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_mysql_check_open_files_limit", "ntopng.prefs.mysql_check_open_files_limit", "1")
+
   print('</table>')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
