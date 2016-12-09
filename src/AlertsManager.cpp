@@ -429,8 +429,8 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
 	       NULL, NULL,
 	       false /* force store alert, do not check maximum here */);
 
-    if(getNetworkInterface())
-      getNetworkInterface()->setRefreshAlertCounters(true);
+    triggerRefreshAfterDelete(alert_entity, alert_entity_value);
+
     return; /* room has been actually made */
   }
 
@@ -1470,6 +1470,44 @@ int AlertsManager::getCachedNumAlerts(lua_State *vm) {
   lua_push_bool_table_entry(vm, "error_level_alerts", error_level_alerts);
 
   return 0;
+};
+
+/* **************************************************** */
+
+void AlertsManager::triggerRefreshAfterDelete(AlertEntity alert_entity, const char *alert_entity_value) {
+  if(!getNetworkInterface())
+    return;
+
+  if (alert_entity == alert_entity_flow) {
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing interface and hosts after delete");
+
+    getNetworkInterface()->setRefreshNumAlerts(refresh_all_after_delete);
+
+  } else {
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing host %s after delete", alert_entity_value);
+
+    if(alert_entity == alert_entity_host) {
+      Host *h;
+      char ipbuf[128], *at;
+      u_int16_t vlan = 0;
+
+      snprintf(ipbuf, sizeof(ipbuf), "%s", alert_entity_value);
+
+      if((at = strrchr(ipbuf, '@'))) {
+	vlan = atoi(at + 1);
+	*at = '\0';
+      }
+
+      if((h = getNetworkInterface()->getHost(ipbuf, vlan)) == NULL)
+	return;
+
+      h->setRefreshNumAlerts(refresh_after_delete);
+    }
+
+    getNetworkInterface()->setRefreshNumAlerts(refresh_after_delete);
+  }
+
+  return;
 };
 
 /* **************************************************** */

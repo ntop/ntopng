@@ -30,6 +30,7 @@ class GenericHost : public GenericHashEntry, public GenericTrafficElement {
  protected:
   bool localHost, systemHost;
   u_int32_t host_serial, num_alerts_detected;
+  AlertRefresh refresh_num_alerts;
   nDPIStats *ndpiStats;
   ActivityStats activityStats;
   u_int32_t low_goodput_client_flows, low_goodput_server_flows;

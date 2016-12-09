@@ -198,6 +198,7 @@ function delete_alert_configuration(alert_source, ifname)
    local ifid = getInterfaceId(ifname)
    local alert_level  = 1 -- alert_level_warning
    local alert_type   = 2 -- alert_threshold_exceeded
+   local is_host = false
    delete_re_arming_alerts(alert_source, ifid)
    for k1,timespan in pairs(alerts_granularity) do
       timespan = timespan[1]
@@ -211,6 +212,7 @@ function delete_alert_configuration(alert_source, ifname)
 	    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
 	    if string.match(alert_source, "@") then
 	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
+	       is_host = true
 	    -- check if this is a subnet
 	    elseif string.match(alert_source, "/") then
 	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
@@ -223,7 +225,12 @@ function delete_alert_configuration(alert_source, ifname)
       end
       ntop.delHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifid, alert_source))
    end
-   interface.refreshAlertCounters()
+
+   if is_host == true then
+      interface.refreshNumAlerts(alert_source)
+   else
+      interface.refreshNumAlerts()
+   end
 end
 
 function refresh_alert_configuration(alert_source, ifname, timespan, alerts_string)
@@ -232,6 +239,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    local ifid = getInterfaceId(ifname)
    local alert_level  = 1 -- alert_level_warning
    local alert_type   = 2 -- alert_threshold_exceeded
+   local is_host = false
    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
 
    local new_alert_ids = {}
@@ -264,6 +272,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
 	 if new_alert_ids[timespan.."_"..metric] ~= true then
 	    if string.match(alert_source, "@") then
 	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
+	       is_host = true
 	    elseif string.match(alert_source, "/") then
 	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
 	    else
@@ -271,6 +280,12 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
 	    end
 	 end
       end
+   end
+
+   if is_host == true then
+      interface.refreshNumAlerts(alert_source)
+   else
+      interface.refreshNumAlerts()
    end
 end
 
@@ -704,12 +719,18 @@ function performAlertsQuery(statement, what, options)
 
    if what == "engaged" then
       res = interface.queryAlertsRaw(true, statement, query)
+
    elseif what == "historical" then
       res = interface.queryAlertsRaw(false, statement, query)
    elseif what == "historical-flows" then
       res = interface.queryFlowAlertsRaw(statement, query)
    else
       error("Invald alert subject: "..what)
+   end
+
+   -- trigger counters refresh
+   if trimSpace(statement:lower()) == "delete" then
+      interface.refreshNumAlerts(true)
    end
 
    return res
@@ -719,7 +740,6 @@ end
 
 function deleteAlerts(what, options)
    performAlertsQuery("Delete", what, options)
-   interface.refreshAlertCounters()
 end
 
 -- #################################
@@ -775,7 +795,7 @@ function checkDeleteStoredAlerts()
 	 
 	 if(_GET["id_to_delete"] == "__all__") then
 	    local function invokeDelete(what)
-         deleteAlerts(what, UrlToalertsQueryParameters(_GET))
+	       deleteAlerts(what, UrlToalertsQueryParameters(_GET))
 	    end
 
 	    if delete_engaged then invokeDelete("engaged") end

@@ -90,6 +90,7 @@ class AlertsManager : protected StoreManager {
 		    u_int32_t start_offset, u_int32_t end_offset,
 		    const char *sql_where_clause);
   int getNumAlerts(bool engaged, const char *sql_where_clause);
+  void triggerRefreshAfterDelete(AlertEntity alert_entity, const char *alert_entity_value);
   int getNumFlowAlerts(const char *sql_where_clause);
 
   /* private methods to check the goodness of submitted inputs and possible return the input database string */

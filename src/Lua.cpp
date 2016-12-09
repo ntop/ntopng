@@ -1529,15 +1529,41 @@ static int ntop_interface_host_disable_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_refresh_alert_counters(lua_State* vm) {
+static int ntop_interface_refresh_num_alerts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  Host *h;
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[128];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if((!ntop_interface))
     return(CONST_LUA_ERROR);
 
-  ntop_interface->setRefreshAlertCounters(true);
+  if(lua_type(vm, 1) == LUA_TSTRING) {
+      get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+      /* Optional VLAN id */
+      if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
+      if((h = ntop_interface->getHost(host_ip, vlan_id)) == NULL)
+	return(CONST_LUA_ERROR);
+
+      h->setRefreshNumAlerts(refresh_after_delete);
+
+        /* refresh is interface-wide */
+      ntop_interface->setRefreshNumAlerts(refresh_after_delete);
+  } else if (lua_type(vm, 1) == LUA_TBOOLEAN) {
+    if (lua_toboolean(vm, 1))
+      ntop_interface->setRefreshNumAlerts(refresh_all_after_delete);
+    else
+      ntop_interface->setRefreshNumAlerts(refresh_after_delete);
+  } else {
+    ntop_interface->setRefreshNumAlerts(refresh_after_delete);
+  }
+
+
 
   return(CONST_LUA_OK);
 }
@@ -1555,7 +1581,7 @@ static int ntop_correalate_host_activity(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
 
-  /* Optional VLAN id */
+   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
   if((!ntop_interface) || !ntop_interface->correlateHostActivity(vm, get_allowed_nets(vm), host_ip, vlan_id))
@@ -5332,7 +5358,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "releaseInterfaceAlert",ntop_interface_release_interface_alert  },
   { "enableHostAlerts",     ntop_interface_host_enable_alerts       },
   { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
-  { "refreshAlertCounters", ntop_interface_refresh_alert_counters   },
+  { "refreshNumAlerts",     ntop_interface_refresh_num_alerts       },
   { NULL,                             NULL }
 };
 
