@@ -18,7 +18,6 @@ require "lua_utils"
 require "alert_utils"
 require "blacklist_utils"
 require "db_utils"
-shaper_utils = require "shaper_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -43,7 +42,10 @@ if prefs.sticky_hosts ~= nil then
    end
 end
 
-shaper_utils.initShapers()
+if(ntop.isPro()) then
+   shaper_utils = require "shaper_utils"
+   shaper_utils.initShapers()
+end
 
 -- old host alerts were global and did not consider vlans
 -- this part of the script aims at converting old global alerts to per-interface, vlan aware alerts

@@ -98,6 +98,7 @@ Flow::Flow(NetworkInterface *_iface,
 
 #ifdef NTOPNG_PRO
   trafficProfile = NULL;
+  flowShaperIds.cli2srv.ingress = flowShaperIds.cli2srv.egress = flowShaperIds.srv2cli.ingress = flowShaperIds.srv2cli.egress = DEFAULT_SHAPER_ID;
 #endif
 
   iface->luaEvalFlow(this, callback_flow_create);
@@ -521,6 +522,9 @@ void Flow::setDetectedProtocol(ndpi_protocol proto_id, bool forceDetection) {
   }
 
   if(detection_completed) {
+#ifdef NTOPNG_PRO
+    updateFlowShapers();
+#endif
     iface->luaEvalFlow(this, callback_flow_proto_callback);
   }
 
@@ -683,13 +687,24 @@ char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
 
 char* Flow::print(char *buf, u_int buf_len) {
   char buf1[32], buf2[32], buf3[32], pbuf[32];
+#ifdef NTOPNG_PRO
+  char shapers[64];
+
+  snprintf(shapers, sizeof(shapers), "[shapers: cli2srv=%u/%u, srv2cli=%u/%u]",
+	   flowShaperIds.cli2srv.ingress, flowShaperIds.cli2srv.egress,
+	   flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress);
+#endif
 
   buf[0] = '\0';
 
   if((cli_host == NULL) || (srv_host == NULL)) return(buf);
 
   snprintf(buf, buf_len,
-	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s",
+	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
+#ifdef NTOPNG_PRO
+	   "%s"
+#endif
+	   ,
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
@@ -699,7 +714,11 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
 	   (isSSL() && protos.ssl.certificate) ? "[" : "",
 	   (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : "",
-	   (isSSL() && protos.ssl.certificate) ? "]" : "");
+	   (isSSL() && protos.ssl.certificate) ? "]" : ""
+#ifdef NTOPNG_PRO
+	   , shapers
+#endif
+	   );
 
   return(buf);
 }
@@ -1280,15 +1299,10 @@ void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
 #ifdef NTOPNG_PRO
     /* Shapers */
     if(cli_host && srv_host) {
-      int a, b;
-
-      getFlowShapers(true, &a, &b);
-      lua_push_int_table_entry(vm, "shaper.cli2srv_a", a);
-      lua_push_int_table_entry(vm, "shaper.cli2srv_b", b);
-
-      getFlowShapers(false, &a, &b);
-      lua_push_int_table_entry(vm, "shaper.srv2cli_a", a);
-      lua_push_int_table_entry(vm, "shaper.srv2cli_b", b);
+      lua_push_int_table_entry(vm, "shaper.cli2srv_ingress", flowShaperIds.cli2srv.ingress);
+      lua_push_int_table_entry(vm, "shaper.cli2srv_egress", flowShaperIds.cli2srv.egress);
+      lua_push_int_table_entry(vm, "shaper.srv2cli_ingress", flowShaperIds.srv2cli.ingress);
+      lua_push_int_table_entry(vm, "shaper.srv2cli_egress", flowShaperIds.srv2cli.egress);
     }
 #endif
 
@@ -2328,17 +2342,37 @@ void Flow::checkFlowCategory() {
 /* *************************************** */
 
 #ifdef NTOPNG_PRO
-void Flow::getFlowShapers(bool src2dst_direction,
-			  int *a_shaper_id, int *b_shaper_id) {
+
+void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id) {
   if(cli_host && srv_host) {
     if(src2dst_direction) {
-      *a_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol.protocol), *b_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol.protocol);
+      *a_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol),
+	*b_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol);
     } else {
-      *a_shaper_id = cli_host->get_ingress_shaper_id(ndpiDetectedProtocol.protocol), *b_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol.protocol);
+      *a_shaper_id = cli_host->get_ingress_shaper_id(ndpiDetectedProtocol),
+	*b_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol);
     }
   } else
     *a_shaper_id = *b_shaper_id = 0;
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+void Flow::updateFlowShapers() {
+  updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress),
+    updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
+
+#ifdef SHAPER_DEBUG
+  {
+    char buf[512];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SHAPERS] %s", print(buf, sizeof(buf)));
+  }
+#endif
+}
+#endif
+
 #endif
 
 /* *************************************** */

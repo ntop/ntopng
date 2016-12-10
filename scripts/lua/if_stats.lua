@@ -1139,7 +1139,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 </form>
 
 <table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
-]] print(i18n("shaping.network_group")) print[[ <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
+]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
 ]]
    for _,k in ipairs(nets) do
 	 if(k ~= "") then
@@ -1149,11 +1149,12 @@ print [[<div id="protocols" class="tab-pane"><br>
 	 end
    end
 print("</select>")
+this_net = shaper_utils.trimVlan0(selected_network)
 if selected_network ~= shaper_utils.ANY_NETWORK then
    print[[<form id="deleteNetworkForm" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get" style="display:inline;">
      <input type="hidden" name="page" value="filtering"/>
      <input type="hidden" name="delete_network" value="]] print(selected_network) print[["/>
-     [ <a href="javascript:void(0);" onclick="$('#deleteNetworkForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(shaper_utils.trimVlan0(selected_network)) print[[</a> ]
+     [ <a href="javascript:void(0);" onclick="$('#deleteNetworkForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(this_net) print[[</a> ]
    </form>]]
    print(jsFormCSRF("deletePolicyForm"))
 end
@@ -1417,7 +1418,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("shaping.ingress_shaper")) print[[",
+            title: "]] print(i18n("shaping.local_networks") .. " -> " .. this_net) print[[",
             field: "column_ingress_shaper",
             css: {
                width: '20%',
@@ -1425,7 +1426,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("shaping.egress_shaper")) print[[",
+            title: "]] print(this_net .. " -> " .. i18n("shaping.local_networks")) print[[",
             field: "column_egress_shaper",
             css: {
                width: '20%',

@@ -84,6 +84,9 @@ class Host : public GenericHost {
   void loadFlowsAlertPrefs(void);
   void getSites(lua_State* vm, char *k, const char *label);
   bool readDHCPCache();
+#ifdef NTOPNG_PRO
+  u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
+#endif
 
  public:
   Host(NetworkInterface *_iface);
@@ -119,8 +122,10 @@ class Host : public GenericHost {
   inline char* get_country()                   { return(country);          }
   inline char* get_city()                      { return(city);             }
   inline char* get_httpbl()                    { refreshHTTPBL();     return(trafficCategory); }
-  int get_ingress_shaper_id(u_int16_t ndpiProtocol);
-  int get_egress_shaper_id(u_int16_t ndpiProtocol);
+#ifdef NTOPNG_PRO
+  inline u_int8_t get_ingress_shaper_id(ndpi_protocol ndpiProtocol) { return(get_shaper_id(ndpiProtocol, true)); }
+  inline u_int8_t get_egress_shaper_id(ndpi_protocol ndpiProtocol)  { return(get_shaper_id(ndpiProtocol, false)); }
+#endif
   inline u_int32_t get_asn()                   { return(asn);              }
   inline char*     get_asname()                { return(asname);           }
   inline bool isPrivateHost()                  { return(ip.isPrivateAddress()); }

@@ -43,10 +43,9 @@ local  en = {
    },
 
    shaping = {
-      ingress_shaper = "Ingress Shaper",
-      egress_shaper = "Egress Shaper",
-      network_group = "Network Group",
-      network_groups = "Network Groups",
+      local_networks = "Local Networks",
+      network_group = "Network",
+      network_groups = "Networks",
       protocols = "Protocols",
       manage_shapers = "Traffic Shapers",
       shaper0_message = "Shaper 0 is the default shaper used for local hosts that have no shaper defined",

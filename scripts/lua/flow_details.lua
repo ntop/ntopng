@@ -200,20 +200,20 @@ else
    end
    print("</tr>\n")
 
-   if(ifstats.inline and (flow["shaper.cli2srv_a"] ~= nil)) then
+   if(ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
       print("<tr><th width=30% rowspan=2>Flow Shapers</th>")
       c = flowinfo2hostname(flow,"cli",ifstats.vlan)
       s = flowinfo2hostname(flow,"srv",ifstats.vlan)
 
       shaper_key = shaper_utils.getShapersMaxRateKey(ifstats.id)
 
-      cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_a"]) if(cli_max_rate == "") then cli_max_rate = -1 end
-      srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_b"]) if(srv_max_rate == "") then srv_max_rate = -1 end
+      cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
+      srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.cli2srv_egress"]) if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
       print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
 
-      cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_a"]) if(cli_max_rate == "") then cli_max_rate = -1 end
-      srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_b"]) if(srv_max_rate == "") then srv_max_rate = -1 end
+      cli_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
+      srv_max_rate = ntop.getHashCache(shaper_key, flow["shaper.srv2cli_egress"])  if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
       print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
       print("</tr>")

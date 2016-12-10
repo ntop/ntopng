@@ -1219,15 +1219,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
 #ifdef NTOPNG_PRO
     if(is_bridge_interface() && pass_verdict) {
-      int a_shaper_id, b_shaper_id;
+      u_int8_t shaper_ingress, shaper_engress;
       char buf[64];
 
-      flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id);
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %d / %d ",
+      flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
 				   flow->get_detected_protocol_name(buf, sizeof(buf)),
-				   a_shaper_id, b_shaper_id);
-      pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
-
+				   shaper_ingress, shaper_engress);
+      pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
     }
 #endif
 

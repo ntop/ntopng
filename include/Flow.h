@@ -158,6 +158,17 @@ class Flow : public GenericHashEntry {
     u_int32_t last_dump;
   } last_db_dump;
 
+#ifdef NTOPNG_PRO
+  struct {
+    struct {
+      u_int8_t ingress, egress;
+    } cli2srv;
+
+    struct {
+      u_int8_t ingress, egress;
+    } srv2cli;
+  } flowShaperIds;
+#endif
   struct timeval last_update_time;
 
   float bytes_thpt, goodput_bytes_thpt, top_bytes_thpt, top_goodput_bytes_thpt, top_pkts_thpt;
@@ -196,6 +207,10 @@ class Flow : public GenericHashEntry {
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
+#ifdef NTOPNG_PRO
+  void updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id);
+  void updateFlowShapers();
+#endif
 
  public:
   Flow(NetworkInterface *_iface,
@@ -340,15 +355,14 @@ class Flow : public GenericHashEntry {
   inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
   inline char* getSSLCertificate()  { return(isSSL() ? protos.ssl.certificate : (char*)""); }
   bool isSSLProto();
-  inline bool isSSLData()              { return(isSSLProto() && good_ssl_hs && protos.ssl.is_data); }
+  inline bool isSSLData()              { return(isSSLProto() && good_ssl_hs && protos.ssl.is_data);  }
   inline bool isSSLHandshake()         { return(isSSLProto() && good_ssl_hs && !protos.ssl.is_data); }
-  inline bool hasSSLHandshakeEnded()   { return(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH); }
+  inline bool hasSSLHandshakeEnded()   { return(getSSLEncryptionStatus() == SSL_ENCRYPTION_BOTH);    }
   FlowSSLEncryptionStatus getSSLEncryptionStatus();
-  void setDumpFlowTraffic(bool what)  { dump_flow_traffic = what; }
-  bool getDumpFlowTraffic(void)       { return dump_flow_traffic; }
+  void setDumpFlowTraffic(bool what)   { dump_flow_traffic = what; }
+  bool getDumpFlowTraffic(void)        { return dump_flow_traffic; }
 #ifdef NTOPNG_PRO
-  void getFlowShapers(bool src2dst_direction, int *a_shaper_id, int *b_shaper_id);
-  inline void updateProfile()   { trafficProfile = iface->getFlowProfile(this); }
+  inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
 #endif
   inline float getFlowRTT() { return(rttSec); }
@@ -372,17 +386,21 @@ class Flow : public GenericHashEntry {
   inline void      setFlowAlerted()                 { flow_alerted = true;                    }
 
   void setActivityFilter(ActivityFilterID fid, const activity_filter_config * config);
+
   inline bool getActivityFilterId(ActivityFilterID *out) {
     if(activityDetection && activityDetection->filterSet) {
         *out = activityDetection->filterId; return true;
     }
     return false;
   }
+
   bool invokeActivityFilter(const struct timeval *when, bool cli2srv, u_int16_t payload_len);
+
   inline void setActivityId(UserActivityID id) {
     if(activityDetection == NULL) return;
     activityDetection->activityId = id; activityDetection->activitySet = true;
   }
+
   inline bool getActivityId(UserActivityID *out) {
     if(activityDetection == NULL) return false;
     if(activityDetection->activitySet) {
@@ -391,7 +409,14 @@ class Flow : public GenericHashEntry {
     return false;
   }
 
-
+#ifdef NTOPNG_PRO
+  void getFlowShapers(bool src2dst_direction, u_int8_t *shaper_ingress, u_int8_t *shaper_engress) {
+    if(src2dst_direction)
+      *shaper_ingress = flowShaperIds.cli2srv.ingress, *shaper_engress = flowShaperIds.cli2srv.egress;
+    else
+      *shaper_ingress = flowShaperIds.srv2cli.ingress, *shaper_engress = flowShaperIds.srv2cli.egress;
+  }
+#endif
 };
 
 #endif /* _FLOW_H_ */

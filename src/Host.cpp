@@ -316,18 +316,15 @@ void Host::updateHostL7Policy() {
 
   if(ntop->getPro()->has_valid_license()) {
     if(localHost || systemHost) {
-
-      if(l7Policy != NULL){
+      if(l7Policy != NULL) {
         /* free memory before copy */
         free_ptree_l7_policy_data((void*)l7Policy);
         l7Policy = NULL;
       }
 
       l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
-    } else {
+    } else
       l7Policy = NULL;
-    }
-
   }
 #endif
 }
@@ -1135,40 +1132,47 @@ void Host::decNumFlows(bool as_client) {
 }
 
 /* *************************************** */
-int Host::get_ingress_shaper_id(u_int16_t ndpiProtocol){
-#ifdef NTOPNG_PRO
-  ShaperDirection_t *sd;
-  if (l7Policy) {
-    HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &ndpiProtocol, sd);
-    if(sd)
-      return sd->ingress; /* A protocol shaper is defined */
-    else
-      return l7Policy->default_shaper_id.ingress; /* The default shaper is returned */
-  } else {
-    return 0;
-  }
-#else
-  return 0;
-#endif
-}
 
-/* *************************************** */
-int Host::get_egress_shaper_id(u_int16_t ndpiProtocol){
 #ifdef NTOPNG_PRO
-  ShaperDirection_t *sd;
-  if (l7Policy) {
-    HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &ndpiProtocol, sd);
-    if(sd)
-      return sd->egress; /* A protocol shaper is defined */
-    else
-      return l7Policy->default_shaper_id.egress; /* The default shaper is returned */
-  } else {
-    return 0;
+
+u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
+  u_int8_t ret = DEFAULT_SHAPER_ID;
+  ShaperDirection_t *sd = NULL;
+
+  if(l7Policy) {
+    int protocol = ndpiProtocol.protocol;
+
+    HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &protocol, sd);
+    if(!sd) {
+      protocol = ndpiProtocol.master_protocol;
+      HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &protocol, sd);
+    }
+
+    if(sd) {
+      /* A protocol shaper is defined */
+      ret = isIngress ? sd->ingress : sd->egress;
+    } else {
+      /* The default shaper is returned */
+      ret = isIngress ? l7Policy->default_shaper_id.ingress : l7Policy->default_shaper_id.egress;
+    }
   }
-#else
-  return 0;
+
+#ifdef SHAPER_DEBUG
+  {
+    char buf[64], buf1[64];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [%s@%u][ndpiProtocol=%d/%s] => [policer=%p][shaper_id=%d]%s",
+				 isIngress ? "INGRESS" : "EGRESS",
+				 ip.print(buf, sizeof(buf)), vlan_id,
+				 ndpiProtocol.protocol,
+				 ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1, sizeof(buf1)),
+				 l7Policy ? l7Policy : "<default>", ret, sd ? "" : " [DEFAULT]");
+  }
 #endif
+
+  return(ret);
 }
+#endif
 
 /* *************************************** */
 
@@ -1570,7 +1574,7 @@ void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16
   int size;
   const char *vlan_ptr = strchr(at_sign_str, '@');
 
-  if (vlan_ptr == NULL) {
+  if(vlan_ptr == NULL) {
     vlan_ptr = at_sign_str + strlen(at_sign_str);
     *vlan_id = 0;
   } else {
