@@ -1223,10 +1223,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       char buf[64];
 
       flow->getFlowShapers(src2dst_direction, &a_shaper_id, &b_shaper_id);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %d / %d ",
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %d / %d ",
 				   flow->get_detected_protocol_name(buf, sizeof(buf)),
 				   a_shaper_id, b_shaper_id);
       pass_verdict = passShaperPacket(a_shaper_id, b_shaper_id, (struct pcap_pkthdr*)h);
+
     }
 #endif
 

@@ -1138,7 +1138,7 @@ void Host::decNumFlows(bool as_client) {
 int Host::get_ingress_shaper_id(u_int16_t ndpiProtocol){
 #ifdef NTOPNG_PRO
   ShaperDirection_t *sd;
-  if (l7Policy && l7Policy->mapping_proto_shaper_id) {
+  if (l7Policy) {
     HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &ndpiProtocol, sd);
     if(sd)
       return sd->ingress; /* A protocol shaper is defined */
@@ -1156,7 +1156,7 @@ int Host::get_ingress_shaper_id(u_int16_t ndpiProtocol){
 int Host::get_egress_shaper_id(u_int16_t ndpiProtocol){
 #ifdef NTOPNG_PRO
   ShaperDirection_t *sd;
-  if (l7Policy && l7Policy->mapping_proto_shaper_id) {
+  if (l7Policy) {
     HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &ndpiProtocol, sd);
     if(sd)
       return sd->egress; /* A protocol shaper is defined */
