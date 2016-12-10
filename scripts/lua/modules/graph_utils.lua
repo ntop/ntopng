@@ -306,8 +306,8 @@ function drawPeity(ifid, host, rrdFile, zoomLevel, selectedEpoch)
 	    start_time = epoch - zoom_vals[k][3]/2
 	    end_time = epoch + zoom_vals[k][3]/2
 	 else
-	    start_time = zoom_vals[k][2]
-	    end_time = "now"
+	    end_time = os.time()
+	    start_time = end_time - zoom_vals[k][3]
 	 end
       end
    end
@@ -315,7 +315,7 @@ function drawPeity(ifid, host, rrdFile, zoomLevel, selectedEpoch)
    --print("=> Found "..rrdname.."<p>\n")
    if(ntop.notEmptyFile(rrdname)) then
       --io.write("=> Found ".. start_time .. "|" .. end_time .. "<p>\n")
-      local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time..", end_time..")
+      local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrdname, 'AVERAGE', start_time, end_time)
 
       if(fstart ~= nil) then
 	 local max_num_points = 512 -- This is to avoid having too many points and thus a fat graph
@@ -432,8 +432,8 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 	    start_time = epoch - zoom_vals[k][3]/2
 	    end_time = epoch + zoom_vals[k][3]/2
 	 else
-	    start_time = zoom_vals[k][2]
-	    end_time = "now"
+	    end_time = os.time()
+	    start_time = end_time - zoom_vals[k][3]
 	 end
       end
    end
@@ -1475,8 +1475,8 @@ function showHostActivityStats(hostbase, selectedEpoch, zoomLevel)
                start_time = epoch - zoom_vals[k][3]/2
                end_time = epoch + zoom_vals[k][3]/2
             else
-               start_time = zoom_vals[k][2]
-               end_time = "now"
+               end_time = os.time()
+               start_time = end_time - zoom_vals[k][3]
             end
          end
       end
