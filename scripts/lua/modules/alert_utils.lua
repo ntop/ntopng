@@ -696,7 +696,7 @@ function getExtraParameters(url_params)
    local params = {}
    -- Note: entity and entity_val are used to perform queries, so cannot apper here
    local exclude = {csrf=1, id_to_delete=1, older_than_seconds=1, tab_id=1,
-      alert_status=1, id_to_delete=1}
+      id_to_delete=1, status=1}
 
    if type(url_params) == "table" then
       for k, v in pairs(url_params) do
@@ -716,11 +716,22 @@ function performAlertsQuery(statement, what, options)
       row_id=nil,
       entity_type=nil,
       entity_value=nil,
-      older_than=nil,
+      period_begin=nil,
+      period_end=nil,
       alert_type=nil,
       alert_severity=nil,
+      origin=nil,
+      target=nil,
+      hosts_type=nil,
+
+   -- pagination parameters
+      current_page=nil,
+      per_page=nil,
+      sort_column=nil,
+      sort_order=nil,
    }
    for k,v in pairs(options) do opts[k] = v end
+   --~ tprint(opts)
 
    local wargs = {"WHERE", "1=1"}
 
@@ -740,8 +751,42 @@ function performAlertsQuery(statement, what, options)
       end
    end
 
-   if opts.older_than ~= nil then
-      wargs[#wargs+1] = 'AND alert_tstamp < '..(opts.older_than)
+   if opts.origin ~= nil then
+      local info = hostkey2hostinfo(opts.origin)
+      wargs[#wargs+1] = 'AND cli_addr="'..(info.host)..'"'
+      wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
+   end
+
+   if opts.target ~= nil then
+      local info = hostkey2hostinfo(opts.target)
+      wargs[#wargs+1] = 'AND srv_addr="'..(info.host)..'"'
+      wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
+   end
+
+   if opts.period_begin ~= nil then
+      wargs[#wargs+1] = 'AND alert_tstamp >= '..(opts.period_begin)
+   end
+
+   if opts.period_end ~= nil then
+      wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.period_end)
+   end
+
+   if opts.hosts_type ~= nil then
+      if opts.hosts_type ~= "all_hosts" then
+         local cli_local, srv_local = 0, 0
+
+         if opts.hosts_type == "local_only" then cli_local, srv_local = 1, 1
+         elseif opts.hosts_type == "remote_only" then cli_local, srv_local = 0, 0
+         elseif opts.hosts_type == "local_origin_remote_target" then cli_local, srv_local = 1, 0
+         elseif opts.hosts_type == "remote_origin_local_target" then cli_local, srv_local = 0, 1
+         end
+
+         if what == "historical-flows" then
+            wargs[#wargs+1] = "AND cli_localhost = "..cli_local
+            wargs[#wargs+1] = "AND srv_localhost = "..srv_local
+         end
+         -- TODO cannot apply it to other tables right now
+      end
    end
 
    if opts.alert_type ~= nil then
@@ -752,9 +797,37 @@ function performAlertsQuery(statement, what, options)
       wargs[#wargs+1] = "AND alert_severity = "..(opts.alert_severity)
    end
 
+   if((opts.sort_column ~= nil) and (opts.sort_order ~= nil)) then      
+      local order_by
+      
+      if opts.sort_column == "column_date" then
+         order_by = "alert_tstamp"
+      elseif opts.sort_column == "column_severity" then
+         order_by = "alert_severity"
+      elseif opts.sort_column == "column_type" then
+         order_by = "alert_type"
+      elseif((opts.sort_column == "column_duration") and (what == "historical")) then
+         order_by = "(alert_tstamp_end - alert_tstamp)"
+      else
+         -- default
+         order_by = "alert_tstamp"
+      end
+
+      wargs[#wargs+1] = "ORDER BY "..order_by
+      wargs[#wargs+1] = string.upper(opts.sort_order)
+   end
+
+   -- pagination
+   if((opts.per_page ~= nil) and (opts.current_page ~= nil)) then
+      local to_skip = (opts.current_page-1) * opts.per_page
+      wargs[#wargs+1] = "LIMIT"
+      wargs[#wargs+1] = to_skip..","..(opts.per_page)
+   end
+
    local query = table.concat(wargs, " ")
    local res
 
+   -- Uncomment to debug the queries
    --~ tprint(statement.." (from "..what..") "..query)
 
    if what == "engaged" then
@@ -778,8 +851,26 @@ end
 
 -- #################################
 
+function getNumAlerts(what, options)
+   local num = 0
+   local opts = getUnpagedAlertOptions(options or {})
+   local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
+   if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
+
+   return num
+end
+
+-- #################################
+
+function getAlerts(what, options)
+   return performAlertsQuery("SELECT rowid, *", what, options)
+end
+
+-- #################################
+
 function deleteAlerts(what, options)
-   performAlertsQuery("Delete", what, options)
+   local opts = getUnpagedAlertOptions(options or {})
+   performAlertsQuery("DELETE", what, opts)
    _GET["older_than_seconds"] = nil
 end
 
@@ -792,7 +883,15 @@ function alertsQueryParametersToUrl(opts)
    if opts.alert_severity ~= nil then res = res.."&severity="..alertSeverityRaw(opts.alert_severity) end
    if opts.alert_type ~= nil then res = res.."&type="..alertTypeRaw(opts.alert_type) end
    if ((opts.entity_type ~= nil) and (opts.entity_value ~= nil)) then res = res .."&entity="..alertEntityRaw(opts.entity_type).."&entity_val="..opts.entity_value end
-   if opts.older_than ~= nil then res = res.."&older_than_seconds="..opts.older_than end
+   if opts.origin ~= nil then res = res.."&origin="..opts.origin end
+   if opts.target ~= nil then res = res.."&target="..opts.target end
+   if opts.hosts_type ~= nil then res = res.."&hosts_type="..opts.hosts_type end
+   if opts.period_begin ~= nil then res = res.."&period_begin="..opts.period_begin end
+   if opts.period_end ~= nil then res = res.."&period_end="..opts.period_end end
+   if opts.current_page ~= nil then res = res.."&currentPage="..opts.current_page end
+   if opts.per_page ~= nil then res = res.."&perPage="..opts.per_page end
+   if opts.sort_column ~= nil then res = res.."&sortColumn="..opts.sort_column end
+   if opts.sort_order ~= nil then res = res.."&sortOrder="..opts.sort_order end
 
    return res
 end
@@ -801,59 +900,57 @@ end
 function UrlToalertsQueryParameters(_GET)
    local opts = {}
    
-   if _GET["severity"] ~= nil then opts.alert_severity = alertSeverity(_GET["severity"]) end
-   if _GET["type"] ~= nil then opts.alert_type = alertType(_GET["type"]) end
-   if ((_GET["entity"] ~= nil) and (_GET["entity_val"] ~= nil)) then opts.entity_type = alertEntity(_GET["entity"]); opts.entity_value = _GET["entity_val"] end
-   if((tonumber(_GET["older_than_seconds"]) ~= nil) and (tonumber(_GET["older_than_seconds"]) > 0)) then opts.older_than = os.time() - tonumber(_GET["older_than_seconds"]) end
+   if not isEmptyString(_GET["severity"]) then opts.alert_severity = alertSeverity(_GET["severity"]) end
+   if not isEmptyString(_GET["type"]) then opts.alert_type = alertType(_GET["type"]) end
+   if((not isEmptyString(_GET["entity"])) and (not isEmptyString(_GET["entity_val"]))) then opts.entity_type = alertEntity(_GET["entity"]); opts.entity_value = _GET["entity_val"] end
+   if not isEmptyString(_GET["origin"]) then opts.origin = _GET["origin"] end
+   if not isEmptyString(_GET["target"]) then opts.target = _GET["target"] end
+   if not isEmptyString(_GET["hosts_type"]) then opts.hosts_type = _GET["hosts_type"] end
+
+   -- TODO unify
+   if((tonumber(_GET["older_than_seconds"]) ~= nil) and (tonumber(_GET["older_than_seconds"]) > 0)) then opts.period_end = os.time() - tonumber(_GET["older_than_seconds"]) end
+   if((tonumber(_GET["period_end"]) ~= nil) and (tonumber(_GET["period_end"]) > 0)) then opts.period_end = tonumber(_GET["period_end"]) end
+   
+   if((tonumber(_GET["period_begin"]) ~= nil) and (tonumber(_GET["period_begin"]) > 0)) then opts.period_begin = tonumber(_GET["period_begin"]) end
+
+   -- Pagination
+   if((tonumber(_GET["currentPage"]) ~= nil) and (tonumber(_GET["perPage"]) ~= nil)) then opts.current_page = tonumber(_GET["currentPage"]); opts.per_page = tonumber(_GET["perPage"]) end
+   if((not isEmptyString(_GET["sortColumn"])) and (not isEmptyString(_GET["sortOrder"]))) then
+      opts.sort_column = _GET["sortColumn"]
+      opts.sort_order = _GET["sortOrder"]
+   end
 
    return opts
 end
 
 -- #################################
 
-function checkDeleteStoredAlerts()
-   if(_GET["csrf"] ~= nil) then
-      if(_GET["id_to_delete"] ~= nil) then
-	 local older_than = nil
-	 local delete_engaged, delete_past, delete_flows
-	 
-	 if(_GET["tab_id"] == nil) then
-	    delete_engaged, delete_past, delete_flows = true, true, true
-	 elseif(_GET["tab_id"] == "tab-table-engaged-alerts") then
-	    delete_engaged, delete_past, delete_flows = true, false, false
-	 elseif((_GET["tab_id"] == "tab-table-flow-alerts-history")) then
-	    delete_engaged, delete_past, delete_flows = false, false, true
-	 elseif(_GET["tab_id"] == "tab-table-alerts-history") then
-	    delete_engaged, delete_past, delete_flows = false, true, false
-	 else
-	    delete_engaged, delete_past, delete_flows = false, false, false
-	 end
+-- Remove pagination options from the options
+function getUnpagedAlertOptions(options)
+   local res = {}
 
-    local older_than_seconds = tonumber(_GET["older_than_seconds"])
-	 if((older_than_seconds ~= nil) and (older_than_seconds > 0)) then
-	    older_than = os.time() - older_than_seconds
-	 end
-	 
-	 if(_GET["id_to_delete"] == "__all__") then
-	    local function invokeDelete(what)
-	       deleteAlerts(what, UrlToalertsQueryParameters(_GET))
-	    end
+   local paged_option = { current_page=1, per_page=1, sort_column=1, sort_order=1 }
 
-	    if delete_engaged then invokeDelete("engaged") end
-	    if delete_past then invokeDelete("historical") end
-	    if delete_flows then invokeDelete("historical-flows") end
-	 else
-	    local id_to_delete = tonumber(_GET["id_to_delete"])
-	    if id_to_delete ~= nil then
-	       if _GET["status"] ~= nil then
-		  deleteAlerts(_GET["status"], {
-		     older_than=tonumber(_GET["older_than_seconds"]), -- possibly null
-		     row_id=id_to_delete
-		  })
-	       end
-	    end
-	 end
+   for k,v in pairs(options) do
+      if not paged_option[k] then
+         res[k] = v
       end
+   end
+
+   return res
+end
+
+-- #################################
+
+function checkDeleteStoredAlerts()
+   if((_GET["csrf"] ~= nil) and (_GET["status"] ~= nil)) then
+      local delete_params = UrlToalertsQueryParameters(_GET)
+
+      if(_GET["id_to_delete"] ~= "__all__") then
+         delete_params.row_id = tonumber(_GET["id_to_delete"])
+      end
+
+      deleteAlerts(_GET["status"], delete_params)
    end
 end
 
@@ -931,7 +1028,7 @@ end
 -- #################################
 
 function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
-   local num_alerts, num_engaged_alerts, num_flow_alerts
+   local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
 
    print('<ul class="nav nav-tabs">')
@@ -946,15 +1043,22 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    end
 
    if(show_entity) then
+      -- these fields will be used to perfom queries
+      _GET["entity"] = show_entity
+      _GET["entity_val"] = alert_source
+   end
+
+   if(show_entity) then
       -- possibly process pending delete arguments
       checkDeleteStoredAlerts()
       
       -- possibly add a tab if there are alerts configured for the host
-      num_alerts         = interface.getNumAlerts(--[[ NOT engaged --]]false, show_entity, alert_source)
-      num_engaged_alerts = interface.getNumAlerts(--[[ engaged --]]     true, show_entity, alert_source)
-      num_flow_alerts    = interface.getNumFlowAlerts(show_entity, alert_source)
+      local alert_opts = UrlToalertsQueryParameters(_GET)
+      num_engaged_alerts = getNumAlerts("engaged", alert_opts)
+      num_past_alerts = getNumAlerts("historical", alert_opts)
+      num_flow_alerts = getNumAlerts("historical-flows", alert_opts)
 
-      if num_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
+      if num_past_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
          if(tab == nil) then
             -- if no tab is selected and there are alerts, we show them by default
             tab = "alert_list"
@@ -979,9 +1083,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    print('</ul>')
 
    if((show_entity) and (tab == "alert_list")) then
-      _GET["entity"] = show_entity
-      _GET["entity_val"] = alert_source
-      drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET, true)
+      drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true)
    else
       -- Before doing anything we need to check if we need to save values
 
@@ -1114,20 +1216,39 @@ end
 
 -- #################################
 
-function drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, url_params, hide_extended_title)
+function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, url_params, hide_extended_title, alt_nav_tabs)
    local entity = nil
    local entity_val = nil
    if _GET["entity"] ~= nil and _GET["entity"] ~= "" then entity = _GET["entity"] end
    if _GET["entity_val"] ~= nil and _GET["entity_val"] ~= "" then entity_val = _GET["entity_val"] end
    local alert_items = {}
 
+if not alt_nav_tabs then
    print[[
 <br>
 <ul class="nav nav-tabs" role="tablist" id="alert-tabs">
 <!-- will be populated later with javascript -->
 </ul>
+]]
+   nav_tab_id = "alert-tabs"
+else
+   nav_tab_id = alt_nav_tabs
+end
 
+print[[
 <script>
+
+function checkAlertActionsPanel() {
+   /* check if this tab is handled by this script */
+   if(getCurrentStatus() == "")
+      $("#alertsActionsPanel").css("display", "none");
+   else
+      $("#alertsActionsPanel").css("display", "");
+}
+
+function setActiveHashTab(hash) {
+   $('#]] print(nav_tab_id) --[[ see "clicked" below for the other part of this logic ]] print[[ a[href="' + hash + '"]').tab('show');
+}
 
 /* Handle the current tab */
 $(function() {
@@ -1136,14 +1257,21 @@ $(function() {
       history.replaceState(null, null, "#"+id);
       updateDeleteLabel(id);
       updateDeleteContext(id);
+      checkAlertActionsPanel();
    });
 
   var hash = window.location.hash;
-  $('#alert-tabs a[href="' + hash + '"]').tab('show');
+  if (! hash && ]] if(isEmptyString(status) and not isEmptyString(_GET["tab"])) then print("true") else print("false") end print[[)
+    hash = "#]] print(_GET["tab"] or "") print[[";
+
+  if (hash)
+    setActiveHashTab(hash)
+
+  $(function() { checkAlertActionsPanel(); });
 });
 
 function getActiveTabId() {
-   return $("#alert-tabs > li.active > a").attr('href').substr(1);
+   return $("#]] print(nav_tab_id) print[[ > li.active > a").attr('href').substr(1);
 }
 
 function updateDeleteLabel(tabid) {
@@ -1164,7 +1292,6 @@ print [[";
 }
 
 function updateDeleteContext(tabid) {
-   $("#modalDeleteAlertsTab").val(tabid);
    $("#modalDeleteAlertsStatus").val(getCurrentStatus());
 }
 
@@ -1178,35 +1305,36 @@ function getCurrentStatus() {
    else if (tabid == "tab-table-flow-alerts-history")
       val = "historical-flows";
    else
-      val = "engaged";
+      val = "";
 
    return val;
 }
 </script>
-
-<div class="tab-content">
 ]]
+   if not alt_nav_tabs then print [[<div class="tab-content">]] end
 
    local status = _GET["status"]
+   local status_reset = 0
+
    if num_engaged_alerts > 0 then
       alert_items[#alert_items + 1] = {["label"] = i18n("show_alerts.engaged_alerts"),
 	 ["div-id"] = "table-engaged-alerts",  ["status"] = "engaged"}
    elseif status == "engaged" then
-      status = nil
+      status = nil; status_reset = 1
    end
 
-   if num_alerts > 0 then
+   if num_past_alerts > 0 then
       alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_alerts"),
 	 ["div-id"] = "table-alerts-history",  ["status"] = "historical"}
    elseif status == "historical" then
-      status = nil
+      status = nil; status_reset = 1
    end
 
    if num_flow_alerts > 0 then
       alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_flow_alerts"),
 	 ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
    elseif status == "historical-flows" then
-      status = nil
+      status = nil; status_reset = 1
    end
 
    -- This possibly passes some parameters to the search query
@@ -1218,7 +1346,7 @@ function getCurrentStatus() {
 
    for k, t in ipairs(alert_items) do
       local clicked = "0"
-      if (k == 1 and status == nil) or (status ~= nil and status == t["status"]) then
+      if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
 	 clicked = "1"
       end
       print [[
@@ -1228,7 +1356,7 @@ function getCurrentStatus() {
 
       <script type="text/javascript">
 
-         $("#alert-tabs").append('<li><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
+         $("#]] print(nav_tab_id) print[[").append('<li><a href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
 
          $('a[href="#tab-]] print(t["div-id"]) print[["]').on('shown.bs.tab', function (e) {
          // append the li to the tabs
@@ -1236,14 +1364,15 @@ function getCurrentStatus() {
 	 $("#]] print(t["div-id"]) print[[").datatable({
 			url: "]]
       print (ntop.getHttpPrefix())
-      print [[/lua/get_alerts_data.lua?alerts_impl=new&alert_status=]] print(t["status"]..url_extra_params) print[[",
+      print [[/lua/get_alerts_data.lua?&status=]] print(t["status"]..url_extra_params) print[[",
                showFilter: true,
 	       showPagination: true,
                buttons: [']]
 
       local title = t["label"]
-      
-      if entity == nil then
+
+      -- TODO this condition should be removed and page integration support implemented
+      if((entity == nil) and isEmptyString(_GET["period_begin"]) and isEmptyString(_GET["period_end"])) then
 	 -- alert_level_keys and alert_type_keys are defined in lua_utils
 	 local alert_severities = {}
 	 for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
@@ -1352,10 +1481,18 @@ function getCurrentStatus() {
    ]]
    if (clicked == "1") then
       print[[
-         // must wait for modalDeleteAlertsTab to be created
+         // must wait for modalDeleteAlertsStatus to be created
          $(function() {
-            var tabid = "]] print("tab-"..t["div-id"]) print[[";
-            history.replaceState(null, null, "#"+tabid);
+            var status_reset = ]] print(status_reset) --[[ this is necessary because of status parameter inconsinstency after tab switch ]] print[[;
+            var tabid;
+            
+            if ((status_reset) || (getCurrentStatus() == "")) {
+               tabid = "]] print("tab-"..t["div-id"]) print[[";
+               history.replaceState(null, null, "#"+tabid);
+            } else {
+               tabid = getActiveTabId();
+            }
+
             updateDeleteLabel(tabid);
             updateDeleteContext(tabid);
          });
@@ -1378,25 +1515,37 @@ local zoom_vals = {
    { "1 year",  60*60*24*366 , i18n("show_alerts.older_1_year_ago") }
 }
 
-   if (num_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
+   if (num_past_alerts > 0 or num_flow_alerts > 0 or num_engaged_alerts > 0) then
       -- trigger the click on the right tab to force table load
       print[[
 <script type="text/javascript">
 $("[clicked=1]").trigger("click");
 </script>
 ]]
-      print [[
-</div> <!-- closes tab-content -->
 
-Alerts to Purge: <select id="deleteZoomSelector" class="form-control" style="display:inline; width:12em; margin-left:1em;">]]
-      print('<option data-older="0" data-msg="">All</option>\n<optgroup label="older than">')
+if not alt_nav_tabs then print [[</div> <!-- closes tab-content -->]] end
+local has_fixed_period = ((_GET["period_begin"] ~= nil) or (_GET["period_end"] ~= nil))
+
+print('<div id="alertsActionsPanel">')
+print('<br>Alerts to Purge: ')
+print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
+   local all_msg = ""
+
+   if not has_fixed_period then
+      print('<optgroup label="older than">')
       for k,v in ipairs(zoom_vals) do
          print('<option data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
       end
-      print[[</optgroup></select>
-]] print('&nbsp;<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>') print[[
+      print('</optgroup>')
+   else
+      all_msg = " in the selected time period"
+   end
 
+   print('<option selected="selected" data-older="0" data-msg="') print(all_msg) print('">All</option>\n')
+   
 
+      print[[</select>]]
+print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -1412,7 +1561,6 @@ Alerts to Purge: <select id="deleteZoomSelector" class="form-control" style="dis
 
     <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=id_to_delete value="__all__">
       <input type="hidden" id="modalDeleteAlertsOlderThan" name="older_than_seconds" value="-1">
-      <input type="hidden" id="modalDeleteAlertsTab" name="tab_id">
       <input type="hidden" id="modalDeleteAlertsStatus" name="status">
       ]]
 
@@ -1421,10 +1569,6 @@ Alerts to Purge: <select id="deleteZoomSelector" class="form-control" style="dis
       -- This is required because of drawAlertTables integration in other complex pages
       for k, v in pairs(getExtraParameters(url_params)) do
 	 print('<input name="'..k..'" type="hidden" value="'..v..'"/>\n')
-      end
-
-      if entity ~= nil and entity ~= "" then
-	 print('<input name="entity" type="hidden" value="'..entity..'"/>\n')
       end
       
       print [[
@@ -1435,6 +1579,8 @@ Alerts to Purge: <select id="deleteZoomSelector" class="form-control" style="dis
   </div>
 </div>
 </div>
+</div> <!-- closes alertsActionsPanel -->
+
 <script>
 var cur_alert_num_req = null;
 

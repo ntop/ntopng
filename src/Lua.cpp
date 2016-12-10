@@ -4416,113 +4416,6 @@ static int ntop_redis_get_id_to_host(lua_State* vm) {
 }
 
 /* ****************************************** */
-
-static int ntop_interface_get_alerts(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  u_int32_t num, start_idx = 0;
-  bool engaged = false;
-  char *entity_type = NULL, *entity_value = NULL;
-  AlertsManager *am;
-  AlertsPaginator *ap;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!iface || !(am = iface->getAlertsManager()))
-    return (CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TTABLE) {
-    if((ap = new(std::nothrow) AlertsPaginator()) == NULL)
-      return(CONST_LUA_ERROR);
-
-    ap->readOptions(vm, 1);
-
-    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);
-    engaged = lua_toboolean(vm, 2);
-
-    return am->getAlerts(vm, get_allowed_nets(vm), ap, engaged) ? CONST_LUA_ERROR : CONST_LUA_OK;
-  }
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  start_idx = (u_int32_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-  num = (u_int32_t)lua_tonumber(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN)) return(CONST_LUA_ERROR);
-  engaged = lua_toboolean(vm, 3);
-
-  if(num < 1) num = 1;
-  else if(num > CONST_MAX_NUM_READ_ALERTS) num = CONST_MAX_NUM_READ_ALERTS;
-
-
-
-  if(lua_type(vm, 4) == LUA_TSTRING) {
-    if((entity_type = (char*)lua_tostring(vm, 4)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-    if(lua_type(vm, 5) == LUA_TSTRING) {
-      if((entity_value = (char*)lua_tostring(vm, 5)) == NULL)
-	return(CONST_LUA_PARAM_ERROR);
-    }
-
-    if(!strncmp("host", entity_type, 4)){
-      char buf[256];
-      char *host_ip; u_int16_t vlan_id = 0;
-      get_host_vlan_info(entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
-
-      if(am->getHostAlerts(host_ip, vlan_id, vm, get_allowed_nets(vm), start_idx, start_idx + num - 1, engaged))
-	return CONST_LUA_ERROR;
-
-    } else {
-      return(CONST_LUA_PARAM_ERROR);
-    }
-
-    return CONST_LUA_OK;
-  }
-
-
-  /* all the existing alerts */
-  return am->getAlerts(vm, get_allowed_nets(vm), start_idx, start_idx + num - 1, engaged)
-    ? CONST_LUA_ERROR : CONST_LUA_OK;
-}
-
-/* ****************************************** */
-
-static int ntop_interface_get_flow_alerts(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  u_int32_t num, start_idx = 0;
-  AlertsManager *am;
-  AlertsPaginator *ap = NULL;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!iface || !(am = iface->getAlertsManager()))
-    return (CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TTABLE) {
-    if((ap = new(std::nothrow) AlertsPaginator()) == NULL)
-      return(CONST_LUA_ERROR);
-
-    ap->readOptions(vm, 1);
-
-    return am->getFlowAlerts(vm, get_allowed_nets(vm), ap) ? CONST_LUA_ERROR : CONST_LUA_OK;
-
-  } else {
-    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    start_idx = (u_int32_t)lua_tonumber(vm, 1);
-
-    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    num = (u_int32_t)lua_tonumber(vm, 2);
-
-    if(num < 1) num = 1;
-    else if(num > CONST_MAX_NUM_READ_ALERTS) num = CONST_MAX_NUM_READ_ALERTS;
-
-    /* all the existing alerts */
-    return am->getFlowAlerts(vm, get_allowed_nets(vm), start_idx, start_idx + num - 1)
-      ? CONST_LUA_ERROR : CONST_LUA_OK;
-  }
-}
-
-/* ****************************************** */
 #ifdef NOTUSED
 static int ntop_interface_store_alert(lua_State* vm) {
   int ifid;
@@ -4705,84 +4598,6 @@ static int ntop_interface_engage_interface_alert(lua_State* vm) {
 
 static int ntop_interface_release_interface_alert(lua_State* vm) {
   return ntop_interface_engage_release_interface_alert(vm, false /* release */);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_get_num_alerts(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  AlertsManager *am;
-  bool engaged = false;
-  char *entity_type = NULL, *entity_value = NULL;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!iface || !(am = iface->getAlertsManager()))
-    return (CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TBOOLEAN)
-    engaged = lua_toboolean(vm, 1);
-
-  if(lua_type(vm, 2) == LUA_TSTRING) {
-    if((entity_type = (char*)lua_tostring(vm, 2)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-    if(lua_type(vm, 3) == LUA_TSTRING) {
-      if((entity_value = (char*)lua_tostring(vm, 3)) == NULL)
-	return(CONST_LUA_PARAM_ERROR);
-    }
-
-    if(!strncmp("host", entity_type, 4)){
-      char buf[256];
-      char *host_ip; u_int16_t vlan_id = 0;
-      get_host_vlan_info(entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
-      lua_pushinteger(vm, am->getNumHostAlerts(host_ip, vlan_id, engaged));
-    } else {
-      lua_pushnil(vm);
-    }
-  } else if(lua_type(vm, 2) == LUA_TNUMBER) {
-    time_t epoch_start = lua_tonumber(vm, 2);
-    lua_pushinteger(vm, am->getNumAlerts(engaged, epoch_start));
-  } else {
-    lua_pushinteger(vm, am->getNumAlerts(engaged));
-  }
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_interface_get_num_flow_alerts(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  AlertsManager *am;
-  char *entity_type = NULL, *entity_value = NULL;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!iface || !(am = iface->getAlertsManager()))
-    return (CONST_LUA_ERROR);
-
-  if(lua_type(vm, 1) == LUA_TSTRING) {
-    if((entity_type = (char*)lua_tostring(vm, 1)) == NULL)
-      return(CONST_LUA_PARAM_ERROR);
-    if(lua_type(vm, 2) == LUA_TSTRING) {
-      if((entity_value = (char*)lua_tostring(vm, 2)) == NULL)
-        return(CONST_LUA_PARAM_ERROR);
-    }
-
-    if(!strncmp("host", entity_type, 4)){
-      char buf[256];
-      char *host_ip; u_int16_t vlan_id = 0;
-
-      get_host_vlan_info(entity_value, &host_ip, &vlan_id, buf, sizeof(buf));
-      lua_pushinteger(vm, am->getNumHostFlowAlerts(host_ip, vlan_id));
-    } else {
-      lua_pushnil(vm);
-    }
-  } else {
-    lua_pushinteger(vm, am->getNumFlowAlerts());
-  }
-
-  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -5347,10 +5162,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getFlowDeviceInfo",  ntop_getflowdeviceinfo },
 
   /* New generation alerts */
-  { "getAlerts" ,           ntop_interface_get_alerts               },
-  { "getFlowAlerts" ,       ntop_interface_get_flow_alerts          },
-  { "getNumAlerts",         ntop_interface_get_num_alerts           },
-  { "getNumFlowAlerts",     ntop_interface_get_num_flow_alerts      },
   { "getCachedNumAlerts",   ntop_interface_get_cached_num_alerts    },
   { "queryAlertsRaw",       ntop_interface_query_alerts_raw         },
   { "queryFlowAlertsRaw",   ntop_interface_query_flow_alerts_raw    },

@@ -6,104 +6,46 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "alert_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-currentPage = _GET["currentPage"]
-perPage     = _GET["perPage"]
-sortColumn  = _GET["sortColumn"]
-sortOrder   = _GET["sortOrder"]
-totalRows   = _GET["totalRows"]
-
-status          = _GET["alert_status"]
-alertsImpl      = _GET["alerts_impl"]
-alert_severity  = _GET["severity"]
-alert_type      = _GET["type"]
-
-if alert_severity ~= nil and alert_severity ~= "" then
-   alert_severity = alertSeverity(alert_severity)
-end
-if alert_type ~= nil and alert_type ~= "" then
-   alert_type = alertType(alert_type)
-end
-
-if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
-   sortColumn = getDefaultTableSort("alerts")
-elseif sortColumn ~= "column_" and  sortColumn ~= "" then
-   tablePreferences("sort_alerts",sortColumn)
-else
-   sortColumn = "column_date"
-end
-
-if sortOrder == nil then
-   sortOrder = getDefaultTableSortOrder("alerts")
-elseif sortColumn ~= "column_" and sortColumn ~= "" then
-   tablePreferences("sort_order_alerts",sortOrder)
-end
-
-if(currentPage == nil) then
-   currentPage = 1
-else
-   currentPage = tonumber(currentPage)
-end
-
-if(perPage == nil) then
-   perPage = getDefaultTableSize()
-else
-   perPage = tonumber(perPage)
-end
-
-local a2z = false
-if(sortOrder == "asc") then a2z = true else a2z = false end
-
-to_skip = (currentPage-1) * perPage
-
-local paginfo = {
-   ["sortColumn"] = sortColumn, ["toSkip"] = to_skip, ["maxHits"] = perPage,
-   ["a2zSortOrder"] = a2z,
-   ["severityFilter"] = alert_severity,
-   ["typeFilter"] = alert_type
-}
+status          = _GET["status"]
 
 engaged = false
 if status == "engaged" then
    engaged = true
 end
 
-
 interface.select(ifname)
 
-local alerts
-local num_alerts = totalRows
-local has_host_filter = (_GET["entity"] == "host")
+if(tonumber(_GET["currentPage"]) == nil) then _GET["currentPage"] = 1 end
+if(tonumber(_GET["perPage"]) == nil) then _GET["perPage"] = getDefaultTableSize() end
 
-if has_host_filter then
-   paginfo["entityFilter"] = alertEntity("host")
-   paginfo["entityValueFilter"] = _GET["entity_val"]
+if(isEmptyString(_GET["sortColumn"]) or (_GET["sortColumn"] == "column_")) then
+   _GET["sortColumn"] = getDefaultTableSort("alerts")
+elseif((_GET["sortColumn"] ~= "column_") and (_GET["sortColumn"] ~= "")) then
+   tablePreferences("sort_alerts", _GET["sortColumn"])
 end
 
-if status == "historical-flows" then
-   alerts = interface.getFlowAlerts(paginfo)
-   if num_alerts == nil then
-      if has_host_filter then
-         num_alerts = interface.getNumFlowAlerts("host", _GET["entity_val"])
-      else
-         num_alerts = interface.getNumFlowAlerts()
-      end
-   end
-else --if status == "historical" then
-   alerts = interface.getAlerts(paginfo, engaged)
-   if num_alerts == nil then
-      if has_host_filter then
-         num_alerts = interface.getNumAlerts(engaged, "host", _GET["entity_val"])
-      else
-         num_alerts = interface.getNumAlerts(engaged)
-      end
-   end
+if _GET["sortOrder"] == nil then
+   _GET["sortOrder"] = getDefaultTableSortOrder("alerts")
+elseif((_GET["sortColumn"] == "column_") or (_GET["sortOrder"] == "")) then
+   _GET["sortOrder"] = "asc"
+end
+tablePreferences("sort_order_alerts", _GET["sortOrder"])
 
+local alert_options = UrlToalertsQueryParameters(_GET)
+--~ tprint(alert_options)
+
+local num_alerts = tonumber(_GET["totalRows"])
+if num_alerts == nil then
+   num_alerts = getNumAlerts(status, alert_options)
 end
 
-print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
+local alerts = getAlerts(status, alert_options)
+
+print ("{ \"currentPage\" : " .. alert_options.current_page .. ",\n \"data\" : [\n")
 total = 0
 
 if alerts == nil then alerts = {} end
@@ -117,6 +59,7 @@ for _key,_value in ipairs(alerts) do
    else
       alert_entity = "flow" -- flow alerts page doesn't have an entity
    end
+
    if _value["alert_entity_val"] ~= nil then
       alert_entity_val = _value["alert_entity_val"]
    else
@@ -146,10 +89,10 @@ for _key,_value in ipairs(alerts) do
    column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method=GET>"
 
    for k, v in pairs(_GET) do
-      column_id = column_id.."<input type=hidden name="..k.." value="..v..">"
+      column_id = column_id.."<input type=hidden name='"..k.."' value='"..v.."'>"
    end
 
-   column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><input type=hidden name=currentPage value=".. currentPage .."><input type=hidden name=perPage value=".. perPage .."><input type=hidden name=status value="..tostring(status).."><input type=hidden name=alerts_impl value="..tostring(alertsImpl).."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
+   column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
 
    if ntop.isEnterprise() and (status == "historical-flows" or status == "historical") then
       local explore = function()
@@ -177,8 +120,8 @@ for _key,_value in ipairs(alerts) do
    total = total + 1
 end -- for
 
-print ("\n], \"perPage\" : " .. perPage .. ",\n")
+print ("\n], \"perPage\" : " .. alert_options.per_page .. ",\n")
 
-print ("\"sort\" : [ [ \""..sortColumn.."\", \""..sortOrder.."\" ] ],\n")
+print ("\"sort\" : [ [ \""..alert_options.sort_column .."\", \""..alert_options.sort_order.."\" ] ],\n")
 print ("\"totalRows\" : " ..num_alerts .. " \n}")
 
