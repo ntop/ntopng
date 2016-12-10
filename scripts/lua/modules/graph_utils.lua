@@ -307,7 +307,7 @@ function drawPeity(ifid, host, rrdFile, zoomLevel, selectedEpoch)
 	    end_time = epoch + zoom_vals[k][3]/2
 	 else
 	    end_time = os.time()
-	    start_time = end_time - zoom_vals[k][3]
+	    start_time = end_time - zoom_vals[k][3]/2
 	 end
       end
    end
@@ -433,7 +433,7 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 	    end_time = epoch + zoom_vals[k][3]/2
 	 else
 	    end_time = os.time()
-	    start_time = end_time - zoom_vals[k][3]
+	    start_time = end_time - zoom_vals[k][3]/2
 	 end
       end
    end
@@ -1476,7 +1476,7 @@ function showHostActivityStats(hostbase, selectedEpoch, zoomLevel)
                end_time = epoch + zoom_vals[k][3]/2
             else
                end_time = os.time()
-               start_time = end_time - zoom_vals[k][3]
+               start_time = end_time - zoom_vals[k][3]/2
             end
          end
       end
