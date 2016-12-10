@@ -315,16 +315,13 @@ void Host::updateHostL7Policy() {
     return;
 
   if(ntop->getPro()->has_valid_license()) {
-    if(localHost || systemHost) {
-      if(l7Policy != NULL) {
-        /* free memory before copy */
-        free_ptree_l7_policy_data((void*)l7Policy);
-        l7Policy = NULL;
-      }
-
-      l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
-    } else
+    if(l7Policy != NULL) {
+      /* free memory before copy */
+      free_ptree_l7_policy_data((void*)l7Policy);
       l7Policy = NULL;
+    }
+
+    l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
   }
 #endif
 }
