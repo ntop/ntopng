@@ -383,6 +383,8 @@ end
 
 function pairsByKeys(t, f)
   local a = {}
+
+  -- io.write(debug.traceback().."\n")
   for n in pairs(t) do table.insert(a, n) end
   table.sort(a, f)
   local i = 0      -- iterator variable

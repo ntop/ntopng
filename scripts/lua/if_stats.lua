@@ -948,7 +948,6 @@ elseif(page == "filtering") then
    end
 
    local shaper_utils = require("shaper_utils")
-   any_net = "0.0.0.0/0@0"
 
    -- ====================================
 
@@ -1004,12 +1003,12 @@ end
 
             -- clone everything from the network
             for _,proto_config in pairs(shaper_utils.getNetworkProtoShapers(ifid, clone_from, false)) do
-               shaper_utils.setProtocolShapers(ifid, network_key, proto_config.protoId, proto_config.ingress, proto_config.egress)
+               shaper_utils.setProtocolShapers(ifid, network_key, proto_config.protoId, proto_config.ingress, proto_config.egress, false)
                proto_shapers_cloned = true
             end
          else
             -- Do not create any additional protocol rule
-            shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper)
+            shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper, false)
          end
 
 	 interface.reloadL7Rules(network_key)
@@ -1018,7 +1017,7 @@ end
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering")
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["delete_network"] ~= nil) and (_GET["delete_network"] ~= any_net)) then
+   if((_GET["csrf"] ~= nil) and (_GET["delete_network"] ~= nil) and (_GET["delete_network"] ~= shaper_utils.ANY_NETWORK)) then
       local target_net = _GET["delete_network"]
 
       shaper_utils.deleteNetwork(ifid, target_net)
@@ -1038,7 +1037,7 @@ end
    -- NB: this must be placed after 'delete_network' in order to fetch latest networks list
    nets = shaper_utils.getNetworksList(ifid)
 
-   -- tprint(nets)
+   --tprint(nets)
    if(net == nil) then
       -- If there is not &network= parameter then use the first network available
       for _,k in ipairs(nets) do
@@ -1049,7 +1048,7 @@ end
 
    selected_network = net
    if(selected_network == nil) then
-      selected_network = any_net
+      selected_network = shaper_utils.ANY_NETWORK
    end
 
    if((_GET["csrf"] ~= nil) and (_GET["add_shapers"] ~= nil)) then
@@ -1063,7 +1062,7 @@ end
             if(max_rate > 1048576) then max_rate = -1 end
             if(max_rate < -1) then max_rate = -1 end
 
-            ntop.setHashCache(getShapersMaxRateKey(ifid), shaper_id, max_rate)
+            ntop.setHashCache(shaper_utils.getShapersMaxRateKey(ifid), shaper_id, max_rate)
          end
       end
 
@@ -1087,7 +1086,7 @@ end
       else
          -- set protocols policy for the network
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper)
-            shaper_utils.setProtocolShapers(ifid, target_net, proto_id, ingress_shaper, egress_shaper)
+            shaper_utils.setProtocolShapers(ifid, target_net, proto_id, ingress_shaper, egress_shaper, false)
          end)
       end
 
@@ -1150,7 +1149,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 	 end
    end
 print("</select>")
-if selected_network ~= any_net then
+if selected_network ~= shaper_utils.ANY_NETWORK then
    print[[<form id="deleteNetworkForm" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get" style="display:inline;">
      <input type="hidden" name="page" value="filtering"/>
      <input type="hidden" name="delete_network" value="]] print(selected_network) print[["/>
