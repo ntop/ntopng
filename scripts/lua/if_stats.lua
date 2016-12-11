@@ -19,6 +19,10 @@ require "graph_utils"
 require "alert_utils"
 require "db_utils"
 
+if ntop.isPro() then
+   shaper_utils = require("shaper_utils")
+end
+
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 page = _GET["page"]
@@ -947,8 +951,6 @@ elseif(page == "filtering") then
       error()
    end
 
-   local shaper_utils = require("shaper_utils")
-
    -- ====================================
 
 function get_shapers_from_parameters(callback)
@@ -1202,7 +1204,16 @@ end
 </form>
    <form id="createPolicyForm" class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
       <input type=hidden name=page value="filtering">
-      <input type=hidden name="new_network"><tr></tr></table><table class="table table-striped table-bordered"><tr><th>Create</th></tr><tr><td>
+      <input type=hidden name="new_network"><tr></tr>
+</table>
+
+NOTES:
+<ul>
+<li>Traffic shaping is applied only to local hosts traffic (-m command line option).
+<li>Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.
+</ul>
+
+<table class="table table-striped table-bordered"><tr><th>Create</th></tr><tr><td>
    <table class="table table-borderless"><tr>
       <div id="badnet" class="alert alert-danger" style="display: none"></div>
       <td><strong style="margin-right:1em">Network Group:</strong>

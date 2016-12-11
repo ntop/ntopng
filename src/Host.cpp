@@ -310,20 +310,29 @@ void Host::updateHostTrafficPolicy(char *key) {
 /* *************************************** */
 
 void Host::updateHostL7Policy() {
+  if(localHost || systemHost) {
 #ifdef NTOPNG_PRO
-  if(!iface->is_bridge_interface() && !iface->getL7Policer())
-    return;
+    if(!iface->is_bridge_interface() && !iface->getL7Policer())
+      return;
 
-  if(ntop->getPro()->has_valid_license()) {
-    if(l7Policy != NULL) {
-      /* free memory before copy */
-      free_ptree_l7_policy_data((void*)l7Policy);
-      l7Policy = NULL;
-    }
+    if(ntop->getPro()->has_valid_license()) {
+#ifdef SHAPER_DEBUG
+      char buf[64];
 
-    l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
-  }
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating host policy %s", 
+				   ip.print(buf, sizeof(buf)));
 #endif
+
+      if(l7Policy != NULL) {
+	/* free memory before copy */
+	free_ptree_l7_policy_data((void*)l7Policy);
+	l7Policy = NULL;
+      }
+
+      l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
+    }
+#endif
+  }
 }
 
 /* *************************************** */
@@ -1139,6 +1148,9 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   if(l7Policy) {
     int protocol = ndpiProtocol.protocol;
 
+    if(protocol == 5)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "#####");
+
     HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &protocol, sd);
     if(!sd) {
       protocol = ndpiProtocol.master_protocol;
@@ -1163,7 +1175,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 				 ip.print(buf, sizeof(buf)), vlan_id,
 				 ndpiProtocol.protocol,
 				 ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1, sizeof(buf1)),
-				 l7Policy ? l7Policy : "<default>", ret, sd ? "" : " [DEFAULT]");
+				 l7Policy ? l7Policy : NULL, ret, sd ? "" : " [DEFAULT]");
   }
 #endif
 

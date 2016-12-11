@@ -3158,6 +3158,10 @@ static int ntop_reload_l7_rules(lua_State *vm) {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
     if((net = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
+#ifdef SHAPER_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s)", __FUNCTION__, net);
+#endif
+
     ptree = New_Patricia(128);
     Utils::ptree_add_rule(ptree, net);
 

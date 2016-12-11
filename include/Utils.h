@@ -94,6 +94,7 @@ class Utils {
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
   static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
   static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
+  static inline u_int64_t toUs(struct timeval *t) { return(((u_int64_t)t->tv_sec)*1000000+((u_int64_t)t->tv_usec)); };
 };
 
 #endif /* _UTILS_H_ */
