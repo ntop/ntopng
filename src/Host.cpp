@@ -1148,9 +1148,6 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   if(l7Policy) {
     int protocol = ndpiProtocol.protocol;
 
-    if(protocol == 5)
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "#####");
-
     HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &protocol, sd);
     if(!sd) {
       protocol = ndpiProtocol.master_protocol;
