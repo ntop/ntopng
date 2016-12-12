@@ -65,13 +65,13 @@ Host::~Host() {
 #ifdef NTOPNG_PRO
   if(sent_to_sketch)   delete sent_to_sketch;
   if(rcvd_from_sketch) delete rcvd_from_sketch;
-#endif
 
-  if(l7Policy)       free_ptree_l7_policy_data((void*)l7Policy);
-  if(l7PolicyShadow) free_ptree_l7_policy_data((void*)l7PolicyShadow);
+  if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
+  if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
+#endif
   
-  if(dns)  delete dns;
-  if(http) delete http;
+  if(dns)             delete dns;
+  if(http)            delete http;
   if(user_activities) delete user_activities;
   if(ifa_stats)       delete ifa_stats;
   if(symbolic_name)   free(symbolic_name);
