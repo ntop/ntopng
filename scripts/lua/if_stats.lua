@@ -1054,6 +1054,8 @@ end
    end
 
    if((_GET["csrf"] ~= nil) and (_GET["add_shapers"] ~= nil)) then
+      local num_added = 0
+      local last_added = nil
       for shaper,mrate in pairs(_GET) do
          local sp = split(shaper, "shaper_")
          if #sp == 2 then
@@ -1064,8 +1066,14 @@ end
             if(max_rate > 1048576) then max_rate = -1 end
             if(max_rate < -1) then max_rate = -1 end
 
-            ntop.setHashCache(shaper_utils.getShapersMaxRateKey(ifid), shaper_id, max_rate)
+            shaper_utils.setShaperMaxRate(ifid, shaper_id, max_rate)
+            num_added = num_added + 1
+            last_added = shaper_id
          end
+      end
+
+      if num_added == 1 then
+         print("<script>var shaper_just_added = "..last_added..";</script>")
       end
 
       interface.reloadShapers()
@@ -1548,24 +1556,23 @@ print[[
    <form id="modifyShapersForm">
       <input type="hidden" name="page" value="filtering">
       <input type="hidden" name="add_shapers" value="">
-   <div id="table-shapers"></div>
+   <br/><div id="table-shapers"></div>
    
    <script>
    function shaperRateTextField(td_object, shaper_id, value) {
       var input = $('<input name="shaper_' + shaper_id + '" class="form-control no-spinner" type="number" min="-1"/>');
       input.val(value);
       td_object.html(input);
+
+      if((typeof shaper_just_added != "undefined") && (shaper_just_added == shaper_id))
+         input.focus();
    }
 
    /* The next id to assign to new shapers */
-   var nextShaperId = 0;
-   
-   /* The max if of existing (redis) shapers */
-   var maxStoredShaperId = -1;
+   var nextShaperId = 2;
    
    function addNewShaper() {
       var shaperId = nextShaperId;
-      /*nextShaperId += 1;*/
 
       var form_obj = $("#addShaperForm");
       form_obj.append($('<input type="hidden" name="shaper_' + shaperId + '" value="-1"/>'));
@@ -1578,15 +1585,6 @@ print[[
    }
 
    function deleteShaper(shaper_id) {
-      /*if (shaper_id > maxStoredShaperId) {
-          the shaper was added manually, just remove */
-         /*$("#table-shapers td:nth-child(1)").filter(function() {
-            return $(this).html() == shaper_id;
-         }).each(function(){
-            $(this).parent().remove();
-         })
-      } else {*/
-      
       var form = $("#deleteShaperForm");
       var todel = $("input[name='delete_shaper']", form);
 
@@ -1597,7 +1595,12 @@ print[[
    function addShaperActionsToRow(tr_obj, shaper_id) {
       if ((shaper_id != ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) && (shaper_id != ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
          var td_obj = $("td:nth-child(4)", tr_obj);
-         td_obj.html('<a href="javascript:void(0)" class="add-on" onclick="deleteShaper(' + shaper_id + ')" role="button"><span class="label label-danger">Delete</span></a>');
+         td_obj.html('<a href="javascript:void(0)" class="add-on btn" onclick="deleteShaper(' + shaper_id + ')" role="button"><span class="label label-danger">Delete</span></a>');
+
+         var applied_to = $("td:nth-child(3)", tr_obj);
+         if (applied_to.html() != "&nbsp;")
+            // this shaper is in use
+            $("a", td_obj).attr("disabled", "disabled");
       }
    }
    
@@ -1605,9 +1608,9 @@ print[[
       url: "]]
    print (ntop.getHttpPrefix())
    print [[/lua/get_shapers.lua?ifid=]] print(ifid.."") print[[",
-      showPagination: true,
-      perPage: 10,
       title: "",
+      hidePerPage: true,
+      perPage: ]] print(shaper_utils.MAX_NUM_SHAPERS) print[[,
       buttons: [
          '<a id="addNewShaperBtn" onclick="addNewShaper()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
@@ -1656,17 +1659,17 @@ print[[
             addShaperActionsToRow($(this), shaper_id);
          });
 
-         /* Find out what a new shaper ID could be */
+         /* pick the first unused shaper ID */
          $("#table-shapers td:nth-child(1)").each(function() {
-            nextShaperId = Math.max(nextShaperId, parseInt($(this).html())+1);
+            var this_shaper_id = parseInt($(this).html());
+            if(nextShaperId == this_shaper_id)
+               nextShaperId += 1;
          });
-         maxStoredShaperId = nextShaperId - 1;
 
          $("#table-shapers > div:last").append('<button class="btn btn-primary btn-block" style="width:30%; margin:1em auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>')
 
-         /* Only enable add button if we are in the last page */
-         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-shapers"));
-         $("#addNewShaperBtn").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))) || nextShaperId > 255);
+         var num_shapers = $('#table-shapers tr').length - 1;
+         $("#addNewShaperBtn").attr("disabled", num_shapers >= ]] print(shaper_utils.MAX_NUM_SHAPERS) print[[);
 
          aysResetForm('#modifyShapersForm');
       }
@@ -1680,6 +1683,7 @@ print [[</form>
   ]] print(i18n('shaping.notes')) print[[
 <ul>
 <li>]] print(i18n('shaping.shaper0_message')) print[[</li>
+<li>]] print(i18n('shaping.shapers_in_use_message')) print[[</li>
 <li>]] print(i18n('shaping.set_max_rate_to')) print[[<ul>
    <li>-1 ]] print(i18n('shaping.for_no_shaping')) print[[</li>
    <li>0 ]] print(i18n('shaping.for_dropping_all_traffic')) print[[</li>

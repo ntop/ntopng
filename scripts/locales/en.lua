@@ -59,6 +59,7 @@ local  en = {
       shaper_id = "Shaper Id",
       applied_to = "Applied to",
       notes = "NOTES",
+      shapers_in_use_message = "Shapers can be deleted only if they are not applied to any network",
    },
 
    alert_messages = {

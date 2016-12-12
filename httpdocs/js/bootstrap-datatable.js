@@ -658,7 +658,9 @@
     var o = this.options;
 
     // create the perpage dropdown
-    _initPerPage.call(this);
+// ------------- Start ntop Patch ---------------
+    if(! o.hidePerPage)   _initPerPage.call(this);
+// ------------- End ntop Patch ---------------
 
     // handle filter options
     if(o.filterModal)     _initFilterModal.call(this);
