@@ -68,7 +68,7 @@ class Host : public GenericHost {
   CategoryStats *categoryStats;
 
 #ifdef NTOPNG_PRO
-  L7Policy_t* l7Policy;
+  L7Policy_t *l7Policy, *l7PolicyShadow;
 #endif
 
   struct {

@@ -67,6 +67,9 @@ Host::~Host() {
   if(rcvd_from_sketch) delete rcvd_from_sketch;
 #endif
 
+  if(l7Policy)       free_ptree_l7_policy_data((void*)l7Policy);
+  if(l7PolicyShadow) free_ptree_l7_policy_data((void*)l7PolicyShadow);
+  
   if(dns)  delete dns;
   if(http) delete http;
   if(user_activities) delete user_activities;
@@ -114,7 +117,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
-  l7Policy = NULL;
+  l7Policy = l7PolicyShadow = NULL;
 #endif
 
   if(_mac == NULL)
@@ -316,20 +319,24 @@ void Host::updateHostL7Policy() {
       return;
 
     if(ntop->getPro()->has_valid_license()) {
+	if(l7PolicyShadow) {
+	    free_ptree_l7_policy_data((void*)l7PolicyShadow);
+	    l7PolicyShadow = NULL;
+	}
+
+	l7PolicyShadow = l7Policy;
+	
 #ifdef SHAPER_DEBUG
-      char buf[64];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating host policy %s", 
-				   ip.print(buf, sizeof(buf)));
+	{
+	    char buf[64];
+	    
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+					 "Updating host policy %s", 
+					 ip.print(buf, sizeof(buf)));
+	}
 #endif
-
-      if(l7Policy != NULL) {
-	/* free memory before copy */
-	free_ptree_l7_policy_data((void*)l7Policy);
-	l7Policy = NULL;
-      }
-
-      l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
+	
+	l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
     }
 #endif
   }
@@ -1144,14 +1151,18 @@ void Host::decNumFlows(bool as_client) {
 u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   u_int8_t ret = DEFAULT_SHAPER_ID;
   ShaperDirection_t *sd = NULL;
-
-  if(l7Policy) {
+  L7Policy_t *policy = l7Policy; /* 
+				    Cache value so that even if updateHostL7Policy()
+				    runs in the meantime, we're consistent with the policer
+				 */
+  
+  if(policy) {
     int protocol = ndpiProtocol.protocol;
 
-    HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &protocol, sd);
+    HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
     if(!sd) {
       protocol = ndpiProtocol.master_protocol;
-      HASH_FIND_INT(l7Policy->mapping_proto_shaper_id, &protocol, sd);
+      HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
     }
 
     if(sd) {
@@ -1159,7 +1170,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
       ret = isIngress ? sd->ingress : sd->egress;
     } else {
       /* The default shaper is returned */
-      ret = isIngress ? l7Policy->default_shaper_id.ingress : l7Policy->default_shaper_id.egress;
+      ret = isIngress ? policy->default_shaper_id.ingress : policy->default_shaper_id.egress;
     }
   }
 
@@ -1172,7 +1183,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 				 ip.print(buf, sizeof(buf)), vlan_id,
 				 ndpiProtocol.protocol,
 				 ndpi_protocol2name(iface->get_ndpi_struct(), ndpiProtocol, buf1, sizeof(buf1)),
-				 l7Policy ? l7Policy : NULL, ret, sd ? "" : " [DEFAULT]");
+				 policy ? policy : NULL, ret, sd ? "" : " [DEFAULT]");
   }
 #endif
 
