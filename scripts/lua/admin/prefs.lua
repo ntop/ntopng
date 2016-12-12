@@ -176,14 +176,14 @@ function printAlerts()
       showElements = false
   end
 
- local elementToSwitch = { "max_num_alerts_per_entity", "toggle_alert_probing", "toggle_malware_probing", "toggle_alert_syslog" }
+ local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts", "row_toggle_alert_probing", "toggle_malware_probing", "row_toggle_alert_syslog" }
 
   toggleTableButtonPrefs("Enable Alerts",
                     "Toggle the overall generation of alerts.",
                     "On", "0", "success", -- On  means alerts enabled and thus disable_alerts_generation == 0
 		    "Off", "1", "danger", -- Off for enabled alerts implies 1 for disable_alerts_generation
 		    "disable_alerts_generation", "ntopng.prefs.disable_alerts_generation", "0",
-                    showElements==false,
+                    false,
                     elementToSwitch)
 
   if ntop.getPrefs().are_alerts_enabled == true then
@@ -206,7 +206,7 @@ function printAlerts()
                     "On", "1", "success",
 		    "Off","0", "danger",
 		    "toggle_alert_probing", "ntopng.prefs.probing_alerts", "1",
-		    showElements == false)
+		    false, nil, nil, showElements)
 
 if(false) then
   toggleTableButtonPrefs("Enable Hosts Malware Blacklists",
@@ -214,7 +214,7 @@ if(false) then
                     "On", "enabled", "success",
 		    "Off","disabled", "danger",
 		    "toggle_malware_probing", "ntopng.prefs.host_blacklist", "1",
-		    showElements == false)
+		    false, nil, nil, showElements)
 end
 
   toggleTableButtonPrefs("Alerts On Syslog",
@@ -222,7 +222,7 @@ end
                     "On", "1", "success",
 		    "Off", "0", "danger",
 		    "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "1",
-		    showElements == false)
+		    false, nil, nil, showElements)
 
    print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> Slack Integration</th></tr>')
 
@@ -258,11 +258,7 @@ end
   if (ntop.isPro()) then
     print('<tr><th colspan=2 class="info">Nagios Integration</th></tr>')
 
-    if ntop.getPref("ntopng.prefs.alerts_nagios") == "1" then
-      showElements = true
-    else
-      showElements = false
-    end
+    local alertsEnabled = showElements
 
     local elementToSwitch = {"nagios_nsca_host","nagios_nsca_port","nagios_send_nsca_executable","nagios_send_nsca_config","nagios_host_name","nagios_service_name"}
 
@@ -271,8 +267,13 @@ end
                     "On", "1", "success",
 		    "Off", "0", "danger",
 		    "toggle_alert_nagios", "ntopng.prefs.alerts_nagios", "0",
-                    showElements==false,
+                    alertsEnabled==false,
 		    elementToSwitch)
+
+    if ntop.getPref("ntopng.prefs.alerts_nagios") == "0" then
+      showElements = false
+    end
+    showElements = alertsEnabled and showElements
 
     prefsInputFieldPrefs("Nagios NSCA Host", "Address of the host where the Nagios NSCA daemon is running. Default: localhost.", "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
     prefsInputFieldPrefs("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, nil, showElements, false)
