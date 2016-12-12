@@ -237,10 +237,6 @@ function bitsToSize(bits, factor) {
   return (bits / Math.pow(factor, i)).toFixed(2) + ' ' + sizes[i];
 };
 
-function bytesToSize(bytes) {
-  return(bytesToSize(bytes*8));
-}
-
 function secondsToTime(seconds) {
    if(seconds < 1) {
       return("< 1 sec")
