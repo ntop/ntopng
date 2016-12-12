@@ -31,7 +31,7 @@ end
 function loadHostBlackList()
    local bl = ntop.getCache("ntopng.prefs.host_blacklist")
 
-   if(bl == "enabled") then
+   if((bl == "1") or (bl == "enabled")) then
       ntop.allocHostBlacklist()
       
       for _,url in pairs(blacklistURLs) do
