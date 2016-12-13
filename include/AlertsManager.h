@@ -39,11 +39,11 @@ class AlertsManager : protected StoreManager {
   bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
   void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
   int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows);
-  int engageAlert(NetworkInterface *n, Host *h, AlertEntity alert_entity, const char *alert_entity_value,
+  int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		  const char *alert_origin, const char *alert_target);
-  int releaseAlert(NetworkInterface *n, Host *h, AlertEntity alert_entity, const char *alert_entity_value,
+  int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		   const char *engaged_alert_id);
   int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,

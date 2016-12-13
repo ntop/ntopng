@@ -487,7 +487,7 @@ int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert
 
 /* **************************************************** */
 
-int AlertsManager::engageAlert(NetworkInterface *n, Host *h, AlertEntity alert_entity, const char *alert_entity_value,
+int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
 			       const char *engaged_alert_id,
 			       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 			       const char *alert_origin, const char *alert_target) {
@@ -501,7 +501,7 @@ int AlertsManager::engageAlert(NetworkInterface *n, Host *h, AlertEntity alert_e
   if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
     // TODO: update the values
   } else {
-    if(n) n->incAlertLevel();
+    if(getNetworkInterface()) getNetworkInterface()->incAlertLevel();
     makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_ENGAGED_TABLE_NAME);
 
     /* This alert is being engaged */
@@ -555,8 +555,7 @@ int AlertsManager::engageAlert(NetworkInterface *n, Host *h, AlertEntity alert_e
 
 /* **************************************************** */
 
-int AlertsManager::releaseAlert(NetworkInterface *n, Host *h,
-				AlertEntity alert_entity, const char *alert_entity_value,
+int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
 				const char *engaged_alert_id) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
@@ -569,7 +568,7 @@ int AlertsManager::releaseAlert(NetworkInterface *n, Host *h,
     return 0;  // cannot release an alert that has not been engaged
   }
 
-  if(n) n->decAlertLevel();
+  if(getNetworkInterface()) getNetworkInterface()->decAlertLevel();
   makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
   /* move the alert from engaged to closed */
@@ -683,6 +682,8 @@ const char* AlertsManager::getAlertType(AlertType alert_type) {
   case alert_app_misconfiguration:   return("Application misconfigured");
   case alert_suspicious_activity:    return("Suspicious activity");
   case alert_too_many_alerts:        return("Too many alerts");
+  case alert_db_misconfiguration:    return("MySQL open_files_limit too small");
+  case alert_interface_alerted:        return("Interface Alerted");
   }
 
   return(""); /* NOTREACHED */
@@ -988,13 +989,13 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 
   if(engage) {
     h->incNumAlerts();
-    return engageAlert(NULL, h, alert_entity_host, ipbuf_id,
+    return engageAlert(alert_entity_host, ipbuf_id,
 		       engaged_alert_id, alert_type, alert_severity, alert_json,
 		       isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		       isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
   } else {
     /* no need to h->decNumAlerts() as a released alerts goes into the past alerts so the counter is still ok */
-      return releaseAlert(NULL, h, alert_entity_host, ipbuf_id,
+      return releaseAlert(alert_entity_host, ipbuf_id,
 			  engaged_alert_id);
   }
 };
@@ -1022,10 +1023,10 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
   }
 
   if(engage)
-      return engageAlert(NULL, NULL, alert_entity_network, cidr,
+      return engageAlert(alert_entity_network, cidr,
 		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
   else
-      return releaseAlert(NULL, NULL, alert_entity_network, cidr,
+      return releaseAlert(alert_entity_network, cidr,
 			engaged_alert_id);
 };
 
@@ -1041,10 +1042,10 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
   snprintf(id_buf, sizeof(id_buf), "%u", n -> get_id());
 
   if(engage)
-      return engageAlert(n, NULL, alert_entity_interface, id_buf,
+      return engageAlert(alert_entity_interface, id_buf,
 		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
   else
-      return releaseAlert(n, NULL, alert_entity_interface, id_buf,
+      return releaseAlert(alert_entity_interface, id_buf,
 			engaged_alert_id);
 };
 
