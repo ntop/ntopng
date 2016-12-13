@@ -854,6 +854,7 @@ end
 function getNumAlerts(what, options)
    local num = 0
    local opts = getUnpagedAlertOptions(options or {})
+   checkFilterOptions(opts)
    local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
    if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
 
@@ -863,7 +864,8 @@ end
 -- #################################
 
 function getAlerts(what, options)
-   return performAlertsQuery("SELECT rowid, *", what, options)
+   local opts = checkFilterOptions(options, true)
+   return performAlertsQuery("SELECT rowid, *", what, opts)
 end
 
 -- #################################
@@ -934,6 +936,29 @@ function getUnpagedAlertOptions(options)
    for k,v in pairs(options) do
       if not paged_option[k] then
          res[k] = v
+      end
+   end
+
+   return res
+end
+
+-- #################################
+
+-- this removes filter options for tabs which are not the active one
+function checkFilterOptions(opts, clone)
+   local res
+
+   if clone then
+      res = {}
+      for k,v in pairs(opts) do res[k] = v end
+   else
+      res = opts
+   end
+
+   if not isEmptyString(_GET["status"]) then
+      if _GET["status"] ~= what then
+         res.alert_severity = nil
+         res.alert_type = nil
       end
    end
 
