@@ -238,7 +238,8 @@ Flow::~Flow() {
 
 	iface->getAlertsManager()->storeFlowAlert(this,
 						  (status == status_flow_when_interface_alerted) ? alert_interface_alerted : alert_suspicious_activity,
-						  alert_level_warning, alert_msg);
+						  alert_level_warning,
+						  alert_msg);
 	break;
 
       default:

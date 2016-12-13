@@ -54,7 +54,6 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 #endif
 
   scalingFactor = 1, remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
-  alertLevel = 0; // TODO: on startup resync from DB
   if(strcmp(name, "-") == 0) name = "stdin";
 
   if(ntop->getRedis())
@@ -168,9 +167,12 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   loadDumpPrefs();
   loadScalingFactorPrefs();
 
-  statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME);
-  alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
-
+  if(((statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME)) == NULL)
+     || ((alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME)) == NULL))
+      throw "Not enough memory";
+  
+  alertLevel = alertsManager->getNumAlerts(true);
+    
   if((!customIftype)
      || strncmp(customIftype, CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))) {
     char  rsp[16];

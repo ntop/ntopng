@@ -544,10 +544,9 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
 
-    notifySlack(alert_entity, alert_entity_value,
+    notifySlack(alert_entity, alert_entity_value, engaged_alert_id,
 		alert_type, alert_severity, alert_json,
 		alert_origin, alert_target);
-
   }
 
   return rc;
@@ -571,7 +570,17 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   if(getNetworkInterface()) getNetworkInterface()->decAlertLevel();
   makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
-  /* move the alert from engaged to closed */
+#if 0
+  /* TODO
+     - Modify isAlertEngaged to extract the missing parameters for the function call below
+     - Modify the INSERT.... below using parameters retuned above
+  */
+  notifySlack(alert_entity, alert_entity_value, engaged_alert_id,
+	      alert_type, alert_severity, alert_json,
+	      alert_origin, alert_target);
+#endif
+  
+  /* Move the alert from engaged to closed */
   snprintf(query, sizeof(query),
 	   "INSERT INTO %s "
 	   "(alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, "
@@ -690,8 +699,8 @@ const char* AlertsManager::getAlertType(AlertType alert_type) {
 }
 
 /* **************************************************** */
-SlackNotificationChoice AlertsManager::getSlackNotificationChoice(char* choice) {
 
+SlackNotificationChoice AlertsManager::getSlackNotificationChoice(char* choice) {
   if(strcmp(choice, "only_errors")==0) return notify_errors_only;
   if(strcmp(choice, "errors_and_warnings")==0) return notify_errors_and_warnings;
   return notify_all_alerts; /* default choice*/
@@ -701,6 +710,7 @@ SlackNotificationChoice AlertsManager::getSlackNotificationChoice(char* choice) 
 /* **************************************************** */
 
 void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_entity_value,
+				const char *engaged_alert_id,
 				AlertType alert_type, AlertLevel alert_severity,
 				const char *alert_json,
 				const char *alert_origin, const char *alert_target) {
@@ -730,9 +740,10 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 			   json_object_new_string(notification_username));
   }
 
-  snprintf(message, sizeof(message), "%s [%s][Origin: %s][Target: %s]",
+  snprintf(message, sizeof(message), "%s [%s][%s][Origin: %s][Target: %s]",
 	   getAlertType(alert_type),
 	   alert_entity_value ? alert_entity_value : "",
+	   engaged_alert_id ? engaged_alert_id : "",
 	   alert_origin ? alert_origin : "",
 	   alert_target ? alert_target : "");
   json_object_object_add(notification, "text", json_object_new_string(message));
@@ -751,11 +762,11 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
 
 /* **************************************************** */
 
-void AlertsManager::notifySlack (AlertEntity alert_entity, const char *alert_entity_value,
-				 AlertType alert_type, AlertLevel alert_severity,
-				 const char *alert_json,
-				 const char *alert_origin, const char *alert_target) {
-
+void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_entity_value,
+				const char *engaged_alert_id,
+				AlertType alert_type, AlertLevel alert_severity,
+				const char *alert_json,
+				const char *alert_origin, const char *alert_target) {
   char buf[4], choice[32];
   bool alert_to_be_notified=false; // Checksd if the notification has to be done according to the slack notifications preference
   SlackNotificationChoice notification_choice;
@@ -765,19 +776,20 @@ void AlertsManager::notifySlack (AlertEntity alert_entity, const char *alert_ent
      && (!strcmp(buf, "1"))) {
     ntop->getRedis()->get((char*) ALERTS_MANAGER_NOTIFICATION_SEVERITY, choice, sizeof(choice));
 
-    notification_choice=getSlackNotificationChoice(choice);
+    notification_choice = getSlackNotificationChoice(choice);
 
-    if(notification_choice == notify_all_alerts) alert_to_be_notified=true;
-    else if(notification_choice == notify_errors_and_warnings) {
-      if(alert_severity==alert_level_error || alert_severity == alert_level_warning)
+    if(notification_choice == notify_all_alerts)
 	alert_to_be_notified=true;
+    else if(notification_choice == notify_errors_and_warnings) {
+	if((alert_severity == alert_level_error) || (alert_severity == alert_level_warning))
+	    alert_to_be_notified=true;
     } else {
-      if(notification_choice == notify_errors_only && alert_severity == alert_level_error)
-	alert_to_be_notified =true;
+	if((notification_choice == notify_errors_only) && (alert_severity == alert_level_error))
+	    alert_to_be_notified =true;
     }
 
     if(alert_to_be_notified)
-      notifyAlert(alert_entity, alert_entity_value,
+	notifyAlert(alert_entity, alert_entity_value, engaged_alert_id,
 		  alert_type, alert_severity, alert_json,
 		  alert_origin, alert_target);
   }
@@ -793,10 +805,6 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
-
-  notifySlack(alert_entity, alert_entity_value,
-	      alert_type, alert_severity, alert_json,
-	      alert_origin, alert_target);
 
   if(!store_initialized || !store_opened)
     return(-1);
@@ -847,7 +855,8 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 /* **************************************************** */
 
 int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
-				  AlertLevel alert_severity, const char *alert_json) {
+				  AlertLevel alert_severity,
+				  const char *alert_json) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
@@ -865,7 +874,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
   if(srv && srv->get_ip() && (srv_ip_buf = (char*)malloc(sizeof(char) * 256)))
     srv_ip = srv->get_ip()->print(srv_ip_buf, 256);
 
-  notifySlack(alert_entity_flow, "flow",
+  notifySlack(alert_entity_flow, "flow", NULL,
 	      alert_type, alert_severity, alert_json,
 	      cli_ip, srv_ip);
 
