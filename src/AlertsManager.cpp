@@ -487,7 +487,7 @@ int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert
 
 /* **************************************************** */
 
-int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
+int AlertsManager::engageAlert(NetworkInterface *n, Host *h, AlertEntity alert_entity, const char *alert_entity_value,
 			       const char *engaged_alert_id,
 			       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 			       const char *alert_origin, const char *alert_target) {
@@ -501,6 +501,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
   if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
     // TODO: update the values
   } else {
+    if(n) n->incAlertLevel();
     makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_ENGAGED_TABLE_NAME);
 
     /* This alert is being engaged */
@@ -554,7 +555,8 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
 
 /* **************************************************** */
 
-int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
+int AlertsManager::releaseAlert(NetworkInterface *n, Host *h,
+				AlertEntity alert_entity, const char *alert_entity_value,
 				const char *engaged_alert_id) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
@@ -567,6 +569,7 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
     return 0;  // cannot release an alert that has not been engaged
   }
 
+  if(n) n->decAlertLevel();
   makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
   /* move the alert from engaged to closed */
@@ -985,14 +988,14 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 
   if(engage) {
     h->incNumAlerts();
-    return engageAlert(alert_entity_host, ipbuf_id,
+    return engageAlert(NULL, h, alert_entity_host, ipbuf_id,
 		       engaged_alert_id, alert_type, alert_severity, alert_json,
 		       isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		       isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
   } else {
     /* no need to h->decNumAlerts() as a released alerts goes into the past alerts so the counter is still ok */
-    return releaseAlert(alert_entity_host, ipbuf_id,
-			engaged_alert_id);
+      return releaseAlert(NULL, h, alert_entity_host, ipbuf_id,
+			  engaged_alert_id);
   }
 };
 
@@ -1019,10 +1022,10 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
   }
 
   if(engage)
-    return engageAlert(alert_entity_network, cidr,
+      return engageAlert(NULL, NULL, alert_entity_network, cidr,
 		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
   else
-    return releaseAlert(alert_entity_network, cidr,
+      return releaseAlert(NULL, NULL, alert_entity_network, cidr,
 			engaged_alert_id);
 };
 
@@ -1038,10 +1041,10 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
   snprintf(id_buf, sizeof(id_buf), "%u", n -> get_id());
 
   if(engage)
-    return engageAlert(alert_entity_interface, id_buf,
+      return engageAlert(n, NULL, alert_entity_interface, id_buf,
 		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
   else
-    return releaseAlert(alert_entity_interface, id_buf,
+      return releaseAlert(n, NULL, alert_entity_interface, id_buf,
 			engaged_alert_id);
 };
 

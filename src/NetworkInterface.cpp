@@ -53,8 +53,8 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
   if(name == NULL) name = "1"; /* First available interface */
 #endif
 
-  scalingFactor = 1, remoteIfname = remoteIfIPaddr
-    = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
+  scalingFactor = 1, remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
+  alertLevel = 0; // TODO: on startup resync from DB
   if(strcmp(name, "-") == 0) name = "stdin";
 
   if(ntop->getRedis())
@@ -3260,6 +3260,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "type", (char*)get_type());
   lua_push_int_table_entry(vm, "speed", ifSpeed);
   lua_push_int_table_entry(vm, "mtu", ifMTU);
+  lua_push_int_table_entry(vm, "alertLevel", alertLevel);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
 
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,

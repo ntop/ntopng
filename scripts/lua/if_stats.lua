@@ -249,10 +249,15 @@ end
 
 if(isAdministrator()) then
    if(page == "alerts") then
-      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+      print("\n<li class=\"active\"><a href=\"#\">")
    elseif interface.isPcapDumpInterface() == false then
-      print("\n<li><a href=\""..url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+      print("\n<li><a href=\""..url.."&page=alerts\">")
    end
+   
+   if(ifstats.alertLevel > 0) then print("<font color=#B94A48>") end
+   print("<i class=\"fa fa-warning fa-lg\"></i></a>")
+   if(ifstats.alertLevel > 0) then print("</font>") end
+   print("</li>")
 end
 
 if(ntop.isEnterprise()) then
@@ -311,6 +316,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       interface.setInterfaceIdleState(on_state)
+
       print("</td></tr>\n")
    end
 

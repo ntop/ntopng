@@ -52,6 +52,7 @@ class NetworkInterface {
   char *ifname; /**< Network interface name. */
   const char *customIftype;
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
+  u_int8_t alertLevel;
   u_int16_t numVlanInterfaces;
   NetworkInterface **vlanInterfaces;
   string ip_addresses;
@@ -415,6 +416,9 @@ class NetworkInterface {
   inline u_int32_t getScalingFactor()       { return(scalingFactor); }
   inline void setScalingFactor(u_int32_t f) { scalingFactor = f;     }
   inline bool isSampledTraffic()            { return((scalingFactor == 1) ? false : true); }
+  inline void incAlertLevel()               { alertLevel++;                        }
+  inline void decAlertLevel()               { if(--alertLevel < 0) alertLevel = 0; }
+  inline int8_t getAlertLevel()             { return(alertLevel);                  }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

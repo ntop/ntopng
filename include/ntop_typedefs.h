@@ -53,7 +53,9 @@ typedef enum {
   alert_host_attacker,
   alert_app_misconfiguration,
   alert_suspicious_activity,
-  alert_too_many_alerts
+  alert_too_many_alerts,
+  alert_db_misconfiguration,
+  alert_interface_alerted
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
@@ -192,6 +194,7 @@ typedef enum {
   status_suspicious_tcp_syn_probing /* 5 */,
   status_connection_reset /* 6 */,
   status_suspicious_tcp_probing /* 7 */,
+  status_flow_when_interface_alerted /* 8 */,  
 } FlowStatus;
 
 typedef enum {

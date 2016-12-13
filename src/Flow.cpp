@@ -196,7 +196,10 @@ void Flow::categorizeFlow() {
 Flow::~Flow() {
   struct timeval tv = { 0, 0 };
   FlowStatus status = getFlowStatus();
-
+  
+  if((status == status_normal) && (iface->getAlertLevel() > 0))
+      status = status_flow_when_interface_alerted;
+  
   if(status != status_normal) {
     char buf[128], *f;
 
@@ -205,13 +208,13 @@ Flow::~Flow() {
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
 				 Utils::flowstatus2str(status), f);
 
-    if(ntop->getRuntimePrefs()->are_probing_alerts_enabled()
-       && cli_host
-       && srv_host) {
+    if((ntop->getRuntimePrefs()->are_probing_alerts_enabled() || (status == status_flow_when_interface_alerted))
+       && cli_host && srv_host) {
       switch(status) {
       case status_suspicious_tcp_probing:
       case status_suspicious_tcp_syn_probing:
-	char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
+      case status_flow_when_interface_alerted:
+	  char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
 
 	c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
 	if(c && cli_host->get_vlan_id())
@@ -222,9 +225,9 @@ Flow::~Flow() {
 	  sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
 	snprintf(alert_msg, sizeof(alert_msg),
-		 "Probing or server down: "
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
+		 "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
 		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
+		 (status == status_flow_when_interface_alerted) ? "Interface alerted" : "Probing or server down",
 		 ntop->getPrefs()->get_http_prefix(),
 		 c, iface->get_name(),
 		 cli_host->get_name() ? cli_host->get_name() : c,
@@ -233,7 +236,8 @@ Flow::~Flow() {
 		 srv_host->get_name() ? srv_host->get_name() : s,
 		 print(fbuf, sizeof(fbuf)));
 
-	iface->getAlertsManager()->storeFlowAlert(this, alert_suspicious_activity,
+	iface->getAlertsManager()->storeFlowAlert(this,
+						  (status == status_flow_when_interface_alerted) ? alert_interface_alerted : alert_suspicious_activity,
 						  alert_level_warning, alert_msg);
 	break;
 

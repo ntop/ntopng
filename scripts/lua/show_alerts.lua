@@ -34,9 +34,8 @@ if ntop.getPrefs().are_alerts_enabled == false then
    print("<div class=\"alert alert alert-warning\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Alerts are disabled. Please check the preferences page to enable them.</div>")
 --return
 elseif num_alerts == 0 and num_flow_alerts == 0 and num_engaged_alerts == 0 then
-   print("<div class=\"alert alert alert-info\"><img src=".. ntop.getHttpPrefix() .. "/img/info_icon.png> No recorded alerts so far for interface "..ifname.."</div>")
+   print("<div class=\"alert alert alert-info\"><i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i>" .. " No recorded alerts for interface "..ifname.."</div>")
 else
-
    drawAlertTables(num_alerts, num_engaged_alerts, num_flow_alerts, _GET)
 end -- closes if ntop.getPrefs().are_alerts_enabled == false then
 

@@ -7,6 +7,82 @@
 
 local verbose = false
 
+alerts_granularity = {
+    { "min", "Every Minute", 60 },
+    { "5mins", "Every 5 Minutes", 300 },
+    { "hour", "Hourly", 3600 },
+    { "day", "Daily", 86400 }
+}
+
+alarmable_metrics = {'bytes', 'dns', 'idle', 'packets', 'p2p', 'throughput', 'ingress', 'egress', 'inner'}
+
+default_re_arm_minutes = 5
+
+alert_functions_description = {
+    ["bytes"]   = "Bytes delta (sent + received)",
+    ["dns"]     = "DNS traffic delta bytes (sent + received)",
+    ["idle"]    = "Idle time since last packet sent (seconds)",	
+    ["packets"] = "Packets delta (sent + received)",
+    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
+    ["throughput"]   = "Avergage throughput (sent + received) [Mbps]",
+}
+
+network_alert_functions_description = {
+    ["ingress"] = "Ingress Bytes delta",
+    ["egress"]  = "Egress Bytes delta",
+    ["inner"]   = "Inner Bytes delta",
+}
+
+-- ##############################################################################
+
+function bytes(old, new, interval)
+    -- io.write(debug.traceback().."\n")
+    if(verbose) then print("bytes("..interval..")") end
+    
+    if(new["sent"] ~= nil) then
+        -- Host
+        return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
+    else
+       -- Interface
+        return(new.stats.bytes - old.stats.bytes)
+    end
+end
+
+function packets(old, new, interval)
+    if(verbose) then print("packets("..interval..")") end
+    if(new["sent"] ~= nil) then
+        -- Host
+        return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
+    else
+        -- Interface
+        return(new.stats.packets - old.stats.packets)
+    end
+end
+
+function idle(old, new, interval)
+      if(verbose) then print("idle("..interval..")") end
+      local diff = os.time()-new["seen.last"]
+      return(diff)
+end
+
+function dns(old, new, interval)
+    if(verbose) then print("dns("..interval..")") end
+    return(proto_bytes(old, new, "DNS"))
+end
+
+function p2p(old, new, interval)
+    if(verbose) then print("p2p("..interval..")") end
+    return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype"))
+end
+
+function throughput(old, new, interval)
+    if(verbose) then print("throughput("..interval..")") end
+
+    return((bytes(old, new, interval) * 8)/ (interval*1000000))
+end
+
+-- ##############################################################################
+
 if ntop.isEnterprise() then
    local dirs = ntop.getDirs()
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
@@ -84,34 +160,6 @@ function proto_bytes(old, new, protoname)
 end
 -- =====================================================
 
-function bytes(old, new)
-    if(new["sent"] ~= nil) then
-        -- Host
-        return((new["sent"]["bytes"]+new["rcvd"]["bytes"])-(old["sent"]["bytes"]+old["rcvd"]["bytes"]))
-    else
-       -- Interface
-        return(new.stats.bytes - old.stats.bytes)
-    end
-end
-
-function packets(old, new)
-    if(new["sent"] ~= nil) then
-        -- Host
-        return((new["sent"]["packets"]+new["rcvd"]["packets"])-(old["sent"]["packets"]+old["rcvd"]["packets"]))
-    else
-        -- Interface
-        return(new.stats.packets - old.stats.packets)
-    end
-end
-
-function idle(old, new)
-      local diff = os.time()-new["seen.last"]
-      return(diff)
-end
-
-function dns(old, new)   return(proto_bytes(old, new, "DNS")) end
-function p2p(old, new)   return(proto_bytes(old, new, "eDonkey")+proto_bytes(old, new, "BitTorrent")+proto_bytes(old, new, "Skype")) end
-
 function get_alerts_suppressed_hash_name(ifname)
    local hash_name = "ntopng.prefs.alerts.ifid_"..tostring(getInterfaceId(ifname))
    return hash_name
@@ -131,32 +179,6 @@ function are_alerts_suppressed(observed, ifname)
       return true -- alerts are suppressed
    end
 end
-
-alerts_granularity = {
-    { "min", "Every Minute" },
-    { "5mins", "Every 5 Minutes" },
-    { "hour", "Hourly" },
-    { "day", "Daily" }
-}
-
-alarmable_metrics = {'bytes', 'packets', 'dns', 'p2p', 'idle', 'ingress', 'egress', 'inner'}
-
-default_re_arm_minutes = 5
-
-alert_functions_description = {
-    ["bytes"]   = "Bytes delta (sent + received)",
-    ["packets"] = "Packets delta (sent + received)",
-    ["dns"]     = "DNS traffic delta bytes (sent + received)",
-    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
-    ["idle"]    = "Idle time since last packet sent (seconds)",
-}
-
-network_alert_functions_description = {
-    ["ingress"] = "Ingress Bytes delta",
-    ["egress"]  = "Egress Bytes delta",
-    ["inner"]   = "Inner Bytes delta",
-}
-
 
 function re_arm_alert(alarm_source, alarmed_metric, ifname)
    local ifid = getInterfaceId(ifname)
@@ -187,6 +209,7 @@ function is_alert_re_arming(alarm_source, alarmed_metric, ifname)
 end
 
 -- #################################################################
+
 function delete_re_arming_alerts(alert_source, ifid)
      for k2, alarmed_metric in pairs(alarmable_metrics) do
 	 local re_arm_key = get_re_arm_alerts_temporary_key(ifid, alert_source, alarmed_metric)
@@ -310,7 +333,8 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
     -- str = "bytes;>;123,packets;>;12"
     hkey = get_alerts_hash_name(mode, ifname)
     str = ntop.getHashCache(hkey, hostname)
-
+    duration = granularity2sec(mode)
+    
     -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
     if((str ~= nil) and (str ~= "")) then
         tokens = split(str, ",")
@@ -329,7 +353,8 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
                 end
             end
 
-            local what = "val = "..t[1].."(old, new); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
+	    -- This is where magic happens: loadstring() evaluates the string
+            local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
@@ -414,6 +439,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
                 end
             end
 
+	    -- This is where magic happens: loadstring() evaluates the string
             local what = "val = deltas['"..t[1].."']; if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
@@ -455,9 +481,9 @@ function check_interface_alert(ifname, mode, old_table, new_table)
         print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
 
-    local alert_level = 1 -- alert_level_warning
+    local alert_level  = 1 -- alert_level_warning
     local alert_status = 1 -- alert_on
-    local alert_type = 2 -- alert_threshold_exceeded
+    local alert_type   = 2 -- alert_threshold_exceeded
 
     -- Needed because Lua. loadstring() won't work otherwise.
     old = old_table
@@ -465,7 +491,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 
     -- str = "bytes;>;123,packets;>;12"
     hkey = get_alerts_hash_name(mode, ifname)
-
+    duration = granularity2sec(mode)
     str = ntop.getHashCache(hkey, ifname_clean)
 
     -- if(verbose) then ("--"..hkey.."="..str.."--<br>") end
@@ -486,7 +512,8 @@ function check_interface_alert(ifname, mode, old_table, new_table)
                 end
             end
 
-            local what = "val = "..t[1].."(old, new); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
+	    -- This is where magic happens: loadstring() evaluates the string
+            local what = "val = "..t[1].."(old, new, duration); if(val ".. op .. " " .. t[3] .. ") then return(true) else return(false) end"
             local f = loadstring(what)
             local rc = f()
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
@@ -521,6 +548,17 @@ function check_interface_alert(ifname, mode, old_table, new_table)
     end
 end
 
+-- #################################
+
+function granularity2sec(g)
+   for _, granularity in pairs(alerts_granularity) do
+       if(granularity[1] == g) then
+       	   return(granularity[3])
+       end
+   end
+
+   return(0)
+end
 
 -- #################################
 
@@ -531,7 +569,7 @@ function check_interface_threshold(ifname, mode)
 
     if are_alerts_suppressed("iface_"..ifname_id, ifname) then return end
 
-    if(verbose) then print("check_interface_threshold("..ifname_id..", "..mode..")<br>\n") end
+    if(verbose) then print("check_interface_threshold(ifaceId="..ifname_id..", timePeriod="..mode..")<br>\n") end
     basedir = fixPath(dirs.workingdir .. "/" .. ifname_id .. "/json/" .. mode)
     if(not(ntop.exists(basedir))) then
         ntop.mkdir(basedir)
@@ -1350,13 +1388,15 @@ $("[clicked=1]").trigger("click");
       print [[
 </div> <!-- closes tab-content -->
 
-]] print('<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>') print[[
-<select id="deleteZoomSelector" class="form-control" style="display:inline; width:12em; margin-left:1em;">]]
+Alerts to Purge: <select id="deleteZoomSelector" class="form-control" style="display:inline; width:12em; margin-left:1em;">]]
       print('<option data-older="0" data-msg="">All</option>\n<optgroup label="older than">')
       for k,v in ipairs(zoom_vals) do
          print('<option data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
       end
       print[[</optgroup></select>
+]] print('&nbsp;<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-default"><i type="submit" class="fa fa-trash-o"></i> Purge <span id="purgeBtnLabel"></span>Alerts</button>') print[[
+
+
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">

@@ -295,6 +295,7 @@ alert_type_keys = {
   { "<i class='fa fa-exclamation'></i> Suspicious Activity",              10, "suspicious_activity"        },
   { "<i class='fa fa-exclamation'></i> Too Many Alerts",                  11, "too_many_alerts"            },
   { "<i class='fa fa-exclamation'></i> MySQL open_files_limit too small", 12, "open_files_limit_too_small" },
+  { "<i class='fa fa-exclamation'></i> Interface Alerted",                13, "interface_alerted"          },
 }
 
 alert_entity_keys = {
