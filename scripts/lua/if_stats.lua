@@ -253,7 +253,7 @@ if(isAdministrator()) then
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=alerts\">")
    end
-   
+
    if(ifstats.alertLevel > 0) then print("<font color=#B94A48>") end
    print("<i class=\"fa fa-warning fa-lg\"></i></a>")
    if(ifstats.alertLevel > 0) then print("</font>") end
@@ -346,7 +346,7 @@ if((page == "overview") or (page == nil)) then
 		label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9]*$"')
 	    print("</td></tr>\n")
 	 end
-      
+
 	 local speed_key = 'ntopng.prefs.'..ifname..'.speed'
 	 local speed = ntop.getCache(speed_key)
 	 if speed == nil or speed == "" or tonumber(speed) == nil then
@@ -463,7 +463,7 @@ print("</script>\n")
       print("<span id=drops_trend></span></td><td colspan=3><span id=button_reset_drops></span>\n")
    end
    print("</td></tr>\n")
-   
+
    if(prefs.is_dump_flows_enabled) then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
@@ -998,14 +998,14 @@ end
 
    if((_GET["csrf"] ~= nil) and (_GET["edit_networks"] ~= nil)) then
       local proto_shapers_cloned = false
-      
+
       get_shapers_from_parameters(function(network_key, ingress_shaper, egress_shaper)
          -- reconstruct from url encoded
          -- TODO ipv6 local address format?
          network_key = network_key:gsub("(%d+)_(%d+)_(%d+)_(%d+)", "%1.%2.%3.%4")
          network_key = network_key:gsub("_2F", "/")
          network_key = network_key:gsub("_40", "@")
-         
+
          if(_GET["clone"] ~= nil) then
             local clone_from = shaper_utils.addVlan0(_GET["clone"])
 
@@ -1088,7 +1088,7 @@ end
 
    if((_GET["csrf"] ~= nil) and (_GET["delete_shaper"] ~= nil)) then
       local shaper_id = _GET["delete_shaper"]
-      
+
       shaper_utils.deleteShaper(ifid, shaper_id)
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering#shapers")
    end
@@ -1125,7 +1125,7 @@ local shapers = shaper_utils.getSortedShapers(ifid)
 function print_shapers(shapers, curshaper_id, terminator)
    terminator = terminator or "\n"
    if(curshaper_id == "") then curshaper_id = "0" else curshaper_id = tostring(curshaper_id) end
-   
+
    for _,shaper in ipairs(shapers) do
       print("<option value="..shaper.id)
       if(shaper.id == curshaper_id) then print(" selected") end
@@ -1186,7 +1186,7 @@ function print_ndpi_protocols(protos, selected, excluded, terminator)
    selected = selected or {}
    excluded = excluded or {}
    terminator = terminator or "\n"
-   
+
    for k,v in pairsByKeys(protos, asc) do
       if((k ~= "GRE")
 	    and (k ~= "BGP")
@@ -1211,7 +1211,7 @@ function print_ndpi_protocols(protos, selected, excluded, terminator)
       end
    end
 end
-   
+
    print [[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </td></tr>
@@ -1223,7 +1223,6 @@ end
 
 NOTES:
 <ul>
-<li>Traffic shaping is applied only to local hosts traffic (-m command line option).
 <li>Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.
 </ul>
 
@@ -1264,7 +1263,7 @@ end
 <button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Create</button></td></tr>
 </form>
 </table>
-   
+
 <script>
 ]] print(jsFormCSRF('deleteNetworkForm', true)) print[[
 ]] print(jsFormCSRF('editNetworksForm', true)) print[[
@@ -1272,7 +1271,7 @@ function addDeleteButtonCallback(td_idx, callback_str, label) {
    if (! label) label = "]] print(i18n('delete')) print[[";
    $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on" onclick="' + callback_str + '" role="button"><span class="label label-danger">' + label + '</span></a>');
 }
-               
+
 function foreachDatatableRow(tableid, callbacks) {
    $("#"+tableid+" tr:not(:first)").each(function(row_i) {
       if(typeof callbacks === 'function') {
@@ -1379,7 +1378,7 @@ function toggleCustomNetworkMode() {
          var td_proto = $("td:nth-child(1)", new_proto);
          var td_ingress_shaper = $("td:nth-child(2)", new_proto);
          var td_egress_shaper = $("td:nth-child(3)", new_proto);
-         
+
          var proto_id = $("option:selected", td_proto).val();
 
          /* set form fields names to match datatable generated ones */
@@ -1387,14 +1386,14 @@ function toggleCustomNetworkMode() {
          $("select", td_ingress_shaper).attr('name', 'ishaper_'+proto_id);
          $("select", td_egress_shaper).attr('name', 'eshaper_'+proto_id);
       }
-      
+
       return true;
    }
 
    function undoAddRow(bt_to_enable) {
       if (bt_to_enable)
          $(bt_to_enable).removeAttr("disabled");
-      
+
       var form = $("#new_added_row").closest("form");
       $("#new_added_row").remove();
       aysUpdateForm(form);
@@ -1443,7 +1442,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("shaping.local_networks") .. " -> " .. this_net) print[[",
+            title: "]] print(" Traffic to " .. this_net) print[[",
             field: "column_ingress_shaper",
             css: {
                width: '20%',
@@ -1451,7 +1450,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(this_net .. " -> " .. i18n("shaping.local_networks")) print[[",
+            title: "]] print(" Traffic from " .. this_net) print[[",
             field: "column_egress_shaper",
             css: {
                width: '20%',
@@ -1468,7 +1467,7 @@ function toggleCustomNetworkMode() {
          }
       ], tableCallback: function() {
          var proto_id;
-         
+
          foreachDatatableRow("table-protos", [
             function() {
                proto_id = $("td:nth-child(1) span", $(this)).attr("data-proto-id");
@@ -1479,7 +1478,7 @@ function toggleCustomNetworkMode() {
                   addDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol(" + proto_id + ")");
             }
          ]);
-         
+
          /* Only enable add button if we are in the last page */
          var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-protos"));
          $("#addNewShapedProtoBtn").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
@@ -1492,7 +1491,7 @@ function toggleCustomNetworkMode() {
       var badnet_invalid_msg = "<strong>Warning</strong> Invalid VLAN/network specified.";
       var badnet_existing_msg = "<strong>Warning</strong> Specified VLAN/network policy exists.";
       var netval = $(network_field_id).val();
-    
+
       if(is_network_mask(netval)) {
          var vlan= $(vlan_field_id).val();
          if((vlan >= 0) && (vlan <= 4095)) {
@@ -1502,10 +1501,10 @@ function toggleCustomNetworkMode() {
             var nets = [
 ]] for _,net in ipairs(nets) do
    print('"'..net..'",\n')
-end; 
+end;
 print[[     ];
             existing = nets.indexOf(fullval) != -1;
-            
+
             if (! existing) {
                $('#badnet').hide();
                $('input[name="new_network"]').val(netval);
@@ -1563,7 +1562,7 @@ print[[
       <input type="hidden" name="page" value="filtering">
       <input type="hidden" name="add_shapers" value="">
    <br/><div id="table-shapers"></div>
-   
+
    <script>
    function shaperRateTextField(td_object, shaper_id, value) {
       var input = $('<input name="shaper_' + shaper_id + '" class="form-control no-spinner" type="number" min="-1"/>');
@@ -1576,7 +1575,7 @@ print[[
 
    /* The next id to assign to new shapers */
    var nextShaperId = 2;
-   
+
    function addNewShaper() {
       var shaperId = nextShaperId;
 
@@ -1609,7 +1608,7 @@ print[[
             $("a", td_obj).attr("disabled", "disabled");
       }
    }
-   
+
    $("#table-shapers").datatable({
       url: "]]
    print (ntop.getHttpPrefix())
@@ -1765,7 +1764,7 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_events = ".. ifstats.zmqRecvStats.events .. ";\n")
    print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
 end
-   
+
 print [[
 
 var resetInterfacePacketDrops = function() {
@@ -1805,9 +1804,9 @@ print [[/lua/network_load.lua',
            } else {
               label = " "+get_trend(0,0);
            }
-           $('#if_zmq_flows').html(addCommas(rsp.zmqRecvStats.flows)+label); 
-           $('#if_zmq_events').html(addCommas(rsp.zmqRecvStats.events)+" "+get_trend(rsp.zmqRecvStats.events, last_zmq_events)); 
-           $('#if_zmq_counters').html(addCommas(rsp.zmqRecvStats.counters)+" "+get_trend(rsp.zmqRecvStats.counters, last_zmq_counters)); 
+           $('#if_zmq_flows').html(addCommas(rsp.zmqRecvStats.flows)+label);
+           $('#if_zmq_events').html(addCommas(rsp.zmqRecvStats.events)+" "+get_trend(rsp.zmqRecvStats.events, last_zmq_events));
+           $('#if_zmq_counters').html(addCommas(rsp.zmqRecvStats.counters)+" "+get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
 
            last_zmq_flows = rsp.zmqRecvStats.flows;
            last_zmq_events = rsp.zmqRecvStats.events;

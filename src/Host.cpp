@@ -69,7 +69,7 @@ Host::~Host() {
   if(l7Policy)         free_ptree_l7_policy_data((void*)l7Policy);
   if(l7PolicyShadow)   free_ptree_l7_policy_data((void*)l7PolicyShadow);
 #endif
-  
+
   if(dns)             delete dns;
   if(http)            delete http;
   if(user_activities) delete user_activities;
@@ -313,7 +313,6 @@ void Host::updateHostTrafficPolicy(char *key) {
 /* *************************************** */
 
 void Host::updateHostL7Policy() {
-  if(localHost || systemHost) {
 #ifdef NTOPNG_PRO
     if(!iface->is_bridge_interface() && !iface->getL7Policer())
       return;
@@ -325,21 +324,20 @@ void Host::updateHostL7Policy() {
 	}
 
 	l7PolicyShadow = l7Policy;
-	
+
 #ifdef SHAPER_DEBUG
 	{
 	    char buf[64];
-	    
+
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-					 "Updating host policy %s", 
+					 "Updating host policy %s",
 					 ip.print(buf, sizeof(buf)));
 	}
 #endif
-	
+
 	l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
     }
 #endif
-  }
 }
 
 /* *************************************** */
@@ -1151,11 +1149,11 @@ void Host::decNumFlows(bool as_client) {
 u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
   u_int8_t ret = DEFAULT_SHAPER_ID;
   ShaperDirection_t *sd = NULL;
-  L7Policy_t *policy = l7Policy; /* 
+  L7Policy_t *policy = l7Policy; /*
 				    Cache value so that even if updateHostL7Policy()
 				    runs in the meantime, we're consistent with the policer
 				 */
-  
+
   if(policy) {
     int protocol = ndpiProtocol.protocol;
 

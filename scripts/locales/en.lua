@@ -43,7 +43,6 @@ local  en = {
    },
 
    shaping = {
-      local_networks = "Local Networks",
       network_group = "Network",
       network_groups = "Networks",
       protocols = "Protocols",
@@ -145,7 +144,7 @@ local  en = {
       by_target_port = "By Target Port",
       origins = "Origins",
       targets = "Targets",
-      
+
       visual_explorer = "Visual Explorer",
       search = "Search Flow Alerts",
 
@@ -177,5 +176,3 @@ local  en = {
 }
 
 return {en = en}
-
-   
