@@ -122,12 +122,14 @@ local  en = {
       local_origin_remote_target = "Local Origin - Remote Target",
       remote_origin_local_target = "Remote Origin - Local Target",
 
-      submit = "Update",
+      search_criteria = "Dashboard Settings",
+      submit = "Update Dashboard",
 
       alert_severity = "Severity",
       alert_type = "Type",
       alert_duration = "Duration",
       alert_counts = "Counts",
+      custom_period = "Custom Period",
       last_minute = "Last Minute",
       last_hour = "Last Hour",
       last_day = "Last Day"
