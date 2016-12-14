@@ -1567,7 +1567,7 @@ int AlertsManager::queueAlert(AlertLevel level, AlertStatus s, AlertType t, char
 
 #ifndef WIN32
   // Print alerts into syslog
-  if(ntop->getRuntimePrefs()->are_alerts_syslog_enabled()) {
+  if(ntop->getPrefs()->are_alerts_syslog_enabled()) {
     if(alert_level_info == level) syslog(LOG_INFO, "%s", what);
     else if(alert_level_warning == level) syslog(LOG_WARNING, "%s", what);
     else if(alert_level_error == level) syslog(LOG_ALERT, "%s", what);

@@ -45,14 +45,6 @@ class RuntimePrefs {
    */
   RuntimePrefs();
 
-   /**
-   * @brief Set alert syslog preference.
-   * @details Enable or disable the preference and save it in Redis.
-   *
-   * @param enable Preference boolean value.
-   */
-  void set_alerts_syslog(bool enable);
-
 #ifdef NTOPNG_PRO
   /**
    * @brief Set alert nagios preference.
@@ -86,22 +78,6 @@ class RuntimePrefs {
    * @return The preference boolean value
    */
   bool is_nbox_integration_enabled();
-
-  /**
-   * @brief Get the alert syslog preference.
-   * @details Read for Redis the preference, if it doesn't exist
-   * the preference will be set to default value (TRUE).
-   * @return The preference boolean value
-   */
-  bool are_alerts_syslog_enabled();
-
-  /**
-   * @brief Get the probing alert preference.
-   * @details Read for Redis the preference, if it doesn't exist
-   * the preference will be set to default value (TRUE).
-   * @return The preference boolean value
-   */
-  bool are_probing_alerts_enabled();
 
   /**
    * @brief Set the local hosts rrd creation preference.

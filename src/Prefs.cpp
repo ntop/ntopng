@@ -65,6 +65,9 @@ Prefs::Prefs(Ntop *_ntop) {
   packet_filter = NULL;
   enable_idle_local_hosts_cache   = true;
   enable_active_local_hosts_cache = false; /* only cache active hosts on exit */
+  enable_probing_alerts = CONST_DEFAULT_ALERT_PROBING_ENABLED;
+  enable_syslog_alerts =  CONST_DEFAULT_ALERT_SYSLOG_ENABLED;
+  enable_probing_alerts = enable_syslog_alerts = false; /* set later */
   num_interfaces = 0, enable_auto_logout = true;
   dump_flows_on_es = dump_flows_on_mysql = false;
   enable_taps = false;
@@ -421,6 +424,12 @@ void Prefs::reloadPrefsFromRedis() {
   max_num_flow_alerts             = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS,
 							 ALERTS_MANAGER_MAX_FLOW_ALERTS);
 
+  // alert preferences
+  enable_probing_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING,
+					       CONST_DEFAULT_ALERT_PROBING_ENABLED);
+  enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
+					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
+  
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
 }

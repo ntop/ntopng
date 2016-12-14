@@ -220,7 +220,7 @@ function printAlerts()
                     "Enable alerts logging on system syslog.",
                     "On", "1", "success",
 		    "Off", "0", "danger",
-		    "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "1",
+		    "toggle_alert_syslog", "ntopng.prefs.alerts_syslog", "0",
 		    false, nil, nil, showElements)
 
    print('<tr><th colspan=2 class="info"><i class="fa fa-slack" aria-hidden="true"></i> Slack Integration</th></tr>')

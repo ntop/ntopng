@@ -243,7 +243,7 @@ void Flow::dumpFlowAlert(bool partial_dump) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
 				     Utils::flowstatus2str(status), f);
 
-	if(ntop->getRuntimePrefs()->are_probing_alerts_enabled()
+	if(ntop->getPrefs()->are_probing_alerts_enabled()
 	   && cli_host && srv_host) {
 	    switch(status) {
 	    case status_suspicious_tcp_probing:
