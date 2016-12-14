@@ -195,56 +195,7 @@ void Flow::categorizeFlow() {
 
 Flow::~Flow() {
   struct timeval tv = { 0, 0 };
-  FlowStatus status = getFlowStatus();
-  
-  if(status != status_normal) {
-    char buf[128], *f;
-
-    f = print(buf, sizeof(buf));
-
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
-				 Utils::flowstatus2str(status), f);
-
-    if(ntop->getRuntimePrefs()->are_probing_alerts_enabled()
-       && cli_host && srv_host) {
-      switch(status) {
-      case status_suspicious_tcp_probing:
-      case status_suspicious_tcp_syn_probing:
-	  char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
-
-	c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-	if(c && cli_host->get_vlan_id())
-	  sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-
-	s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-	if(s && srv_host->get_vlan_id())
-	  sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
-
-	snprintf(alert_msg, sizeof(alert_msg),
-		 "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-		 "Probing or server down",
-		 ntop->getPrefs()->get_http_prefix(),
-		 c, iface->get_name(),
-		 cli_host->get_name() ? cli_host->get_name() : c,
-		 ntop->getPrefs()->get_http_prefix(),
-		 s, iface->get_name(),
-		 srv_host->get_name() ? srv_host->get_name() : s,
-		 print(fbuf, sizeof(fbuf)));
-
-	iface->getAlertsManager()->storeFlowAlert(this,
-						  alert_suspicious_activity,
-						  alert_level_warning,
-						  alert_msg);
-	break;
-
-      default:
-	/* Nothing to do */
-	break;
-      }
-    }
-      }
-
+ 
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
     if(srv_host) srv_host->decLowGoodputFlows(false);
@@ -279,6 +230,60 @@ Flow::~Flow() {
   freeDPIMemory();
 }
 
+/* *************************************** */
+
+void Flow::dumpFlowAlert(bool partial_dump) {
+    FlowStatus status = getFlowStatus();
+  
+    if(status != status_normal) {
+	char buf[128], *f;
+
+	f = print(buf, sizeof(buf));
+
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
+				     Utils::flowstatus2str(status), f);
+
+	if(ntop->getRuntimePrefs()->are_probing_alerts_enabled()
+	   && cli_host && srv_host) {
+	    switch(status) {
+	    case status_suspicious_tcp_probing:
+	    case status_suspicious_tcp_syn_probing:
+		char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
+
+		c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+		if(c && cli_host->get_vlan_id())
+		    sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+
+		s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+		if(s && srv_host->get_vlan_id())
+		    sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+
+		snprintf(alert_msg, sizeof(alert_msg),
+			 "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
+			 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
+			 "Probing or server down",
+			 ntop->getPrefs()->get_http_prefix(),
+			 c, iface->get_name(),
+			 cli_host->get_name() ? cli_host->get_name() : c,
+			 ntop->getPrefs()->get_http_prefix(),
+			 s, iface->get_name(),
+			 srv_host->get_name() ? srv_host->get_name() : s,
+			 print(fbuf, sizeof(fbuf)));
+
+		iface->getAlertsManager()->storeFlowAlert(this,
+							  alert_suspicious_activity,
+							  alert_level_warning,
+							  alert_msg);
+		break;
+
+	    default:
+		/* Nothing to do */
+		break;
+	    }
+	}
+    }
+}
+    
 /* *************************************** */
 
 void Flow::checkBlacklistedFlow() {
@@ -729,9 +734,11 @@ char* Flow::print(char *buf, u_int buf_len) {
 bool Flow::dumpFlow(bool partial_dump) {
   bool rc = false;
 
+  dumpFlowAlert(partial_dump);
+  
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
-    return rc;
+      return(rc);
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
@@ -2353,13 +2360,16 @@ void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id,
       *a_shaper_id = cli_host->get_ingress_shaper_id(ndpiDetectedProtocol),
 	*b_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol);
     }
+
+    passVerdict = ((*a_shaper_id == DROP_ALL_SHAPER_ID) || (*b_shaper_id == DROP_ALL_SHAPER_ID)) ? false : true;
   } else
-    *a_shaper_id = *b_shaper_id = 0;
+    *a_shaper_id = *b_shaper_id = PASS_ALL_SHAPER_ID;
 }
 
 /* *************************************** */
 
 #ifdef NTOPNG_PRO
+
 void Flow::updateFlowShapers() {
   updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress),
     updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
@@ -2540,6 +2550,9 @@ FlowStatus Flow::getFlowStatus() {
       }
     }
   }
+
+  if(iface->getAlertLevel() > 0)
+   return(status_flow_when_interface_alerted);
 
   return status_normal;
 }
