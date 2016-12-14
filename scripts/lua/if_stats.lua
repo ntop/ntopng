@@ -1180,7 +1180,6 @@ end
       print[[</select></span></td>
    </tr></table>
 <button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Create</button></td></tr>
-</form>
 </table>
 
 NOTES:<ul>
@@ -1264,11 +1263,7 @@ end
 
    print [[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-</td></tr>
-</form>
-   <form id="createPolicyForm" class="form-inline" onsubmit="return validateAddNetworkForm(this, '#new_vlan');">
-      <input type=hidden name=page value="filtering">
-      <input type=hidden name="new_network"><tr></tr>
+</form></td></tr>
 </table>
 
 NOTES:
