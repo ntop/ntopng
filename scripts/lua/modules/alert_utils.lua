@@ -1204,7 +1204,7 @@ function getActiveTabId() {
 function updateDeleteLabel(tabid) {
    var label = $("#purgeBtnLabel");
    var prefix = "]]
-if not isEmptyString(_GET["entity"]) then print(alertEntityLabel(_GET["entity"], true)) end
+if not isEmptyString(_GET["entity"]) then print(alertEntityLabel(_GET["entity"], true).." ") end
 print [[";
    var val = "";
 
@@ -1531,7 +1531,7 @@ $('#buttonOpenDeleteModal').on('click', function() {
 
    $(".modal-body #modalDeleteAlertsMsg").html(zoomsel.data('msg') + ']]
    if tonumber(_GET["alert_severity"]) ~= nil then
-      print(' with severity "'..alertTypeLabel(_GET["alert_severity"], true)..'" ')
+      print(' with severity "'..alertSeverityLabel(_GET["alert_severity"], true)..'" ')
    elseif tonumber(_GET["alert_type"]) ~= nil then
       print(' with type "'..alertTypeLabel(_GET["alert_type"], true)..'" ')
    end

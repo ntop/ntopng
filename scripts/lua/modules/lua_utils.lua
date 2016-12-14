@@ -2389,16 +2389,9 @@ end
 
 -- ####################################################
 
--- Note: can only handle basic types
 function tableToJsObject(lua_table)
-   local parts = {}
-
-   for k,v in pairs(lua_table) do
-      if type(v) == 'string' then v = "'"..v.."'" end
-      parts[#parts + 1] = k..":"..v
-   end
-
-   return "{".. table.concat(parts, ", ") .."}"
+   local json = require("dkjson")
+   return json.encode(lua_table, nil)
 end
 
 -- ####################################################
