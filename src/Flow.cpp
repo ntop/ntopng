@@ -2366,8 +2366,8 @@ void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id,
     sa = getInterface()->getL7Policer()->getShaper(*a_shaper_id),
 	sb = getInterface()->getL7Policer()->getShaper(*b_shaper_id);
 
-    passVerdict = ((sa && (sa->get_max_rate_bytes_sec() == 0))
-		   || (sb && (sb->get_max_rate_bytes_sec() == 0))) ? false : true;
+    passVerdict = ((sa && (sa->get_max_rate_kbit_sec() == 0))
+		   || (sb && (sb->get_max_rate_kbit_sec() == 0))) ? false : true;
   } else
     *a_shaper_id = *b_shaper_id = PASS_ALL_SHAPER_ID;
 }
