@@ -991,6 +991,7 @@ end
          jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#protocols")
       else
          -- network does not exist, trigger add action
+         jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#networks")
          print('<script>var add_new_network_at_startup = "'.._GET["view_network"]..'";</script>')
          _GET["view_network"] = nil
       end
@@ -1112,7 +1113,8 @@ end
    end
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs">
-      <li><a data-toggle="tab" class="btn" href="#protocols">]] print("Policies") print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#protocols">]] print("Manage Networks") print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#networks">]] print("Create Networks") print[[</a></li>
       <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.manage_shapers")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
@@ -1139,6 +1141,54 @@ end
 
 locals = ntop.getLocalNetworks()
 locals_empty = (next(locals) == nil)
+
+-- ==== Create networks tab ====
+print [[<div id="networks" class="tab-pane"><br>
+
+<table class="table table-striped table-bordered"><tr><th>Create</th></tr><tr><td>
+   <table class="table table-borderless"><tr>
+      <div id="badnet" class="alert alert-danger" style="display: none"></div>
+      <td><strong style="margin-right:1em">Network:</strong>
+]]
+
+print[[
+         <input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
+]]
+
+if not locals_empty then
+   print('<select class="form-control" id="new_network" style="width:12em; margin-right:1em; display:inline;">')
+   for s,_ in pairs(locals) do
+      print('<option value="'..s..'">'..s..'</option>\n')
+   end
+   print('</select>')
+   print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" onclick="toggleCustomNetworkMode();"></button></td>')
+end
+   print[[
+   <td><strong style="margin-right:1em">VLAN</strong><input type="text" class="form-control" id="new_vlan" name="new_vlan" value="0" style="width:4em; display:inline;"></td>
+   <td><strong style="margin-right:1em">Initial Policy:</strong>
+         <div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">
+            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty">Default</button>
+            <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone">Clone</button>
+         </div>
+         <span id="clone_from_container" style="visibility:hidden;"><span style="margin: 0 1em 0 1em;">from</span>
+            <select id="clone_from_select" class="form-control" style="display:inline; width:12em;">]]
+for _,k in ipairs(nets) do
+   if(k ~= "") then
+      print("\t<option>"..k.."</option>\n")
+   end
+end
+      print[[</select></span></td>
+   </tr></table>
+<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Create</button></td></tr>
+</form>
+</table>
+
+NOTES:<ul>
+   <li>These networks are used to define traffic policies </li>
+</ul>
+
+</div>
+]]
 
 -- ==== Manage protocols tab ====
 
@@ -1226,43 +1276,7 @@ NOTES:
 <li>Dropping some core protocols can have side effects on other protocols. For instance if you block DNS,<br>symbolic host names are no longer resolved, and thus only communication with numeric IPs work.
 </ul>
 
-<table class="table table-striped table-bordered"><tr><th>Create</th></tr><tr><td>
-   <table class="table table-borderless"><tr>
-      <div id="badnet" class="alert alert-danger" style="display: none"></div>
-      <td><strong style="margin-right:1em">Network Group:</strong>
-]]
 
-print[[
-         <input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
-]]
-
-if not locals_empty then
-   print('<select class="form-control" id="new_network" style="width:12em; margin-right:1em; display:inline;">')
-   for s,_ in pairs(locals) do
-      print('<option value="'..s..'">'..s..'</option>\n')
-   end
-   print('</select>')
-   print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" onclick="toggleCustomNetworkMode();"></button></td>')
-end
-   print[[
-   <td><strong style="margin-right:1em">VLAN</strong><input type="text" class="form-control" id="new_vlan" name="new_vlan" value="0" style="width:4em; display:inline;"></td>
-   <td><strong style="margin-right:1em">Initial Policy:</strong>
-         <div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">
-            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty">Default</button>
-            <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone">Clone</button>
-         </div>
-         <span id="clone_from_container" style="visibility:hidden;"><span style="margin: 0 1em 0 1em;">from</span>
-            <select id="clone_from_select" class="form-control" style="display:inline; width:12em;">]]
-for _,k in ipairs(nets) do
-   if(k ~= "") then
-      print("\t<option>"..k.."</option>\n")
-   end
-end
-      print[[</select></span></td>
-   </tr></table>
-<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Create</button></td></tr>
-</form>
-</table>
 
 <script>
 ]] print(jsFormCSRF('deleteNetworkForm', true)) print[[
