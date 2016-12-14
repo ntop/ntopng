@@ -225,9 +225,9 @@ for key, value in pairs(hosts_stats) do
    end
 
    if(ok == true) then
-      --io.write("==>"..key.."\n")
-       -- tprint(hosts_stats[key])
-      --io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
+      -- io.write("==>"..key.."\n")
+      -- tprint(hosts_stats[key])
+      -- io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
       if(sortColumn == "column_") then
 	 vals[key] = key -- hosts_stats[key]["ipkey"]
@@ -237,7 +237,8 @@ for key, value in pairs(hosts_stats) do
       elseif(sortColumn == "column_since") then
 	 vals[(now-hosts_stats[key]["seen.first"])+postfix] = key
       elseif(sortColumn == "column_alerts") then
-	 vals[(now-hosts_stats[key]["num_alerts"])+postfix] = key
+	 vals[hosts_stats[key]["num_alerts"]+postfix] = key
+	 -- print("["..key.."=".. hosts_stats[key]["num_alerts"].."]\n")
       elseif(sortColumn == "column_family") then
 	 vals[(now-hosts_stats[key]["family"])+postfix] = key
       elseif(sortColumn == "column_last") then
