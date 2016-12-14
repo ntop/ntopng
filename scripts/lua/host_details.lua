@@ -128,7 +128,7 @@ if(host == nil) then
       if page == "alerts" then
 	 print('<script>window.location.href = "')
 	 print(ntop.getHttpPrefix())
-	 print('/lua/show_alerts.lua?entity=host&entity_val=')
+	 print('/lua/show_alerts.lua?entity='..alertEntity("host")..'&entity_val=')
 	 print(hostkey)
 	 print('";</script>')
       else

@@ -692,86 +692,46 @@ end
 
 -- #################################
 
-function getExtraParameters(url_params)
-   local params = {}
-   -- Note: entity and entity_val are used to perform queries, so cannot apper here
-   local exclude = {csrf=1, id_to_delete=1, older_than_seconds=1, tab_id=1,
-      id_to_delete=1, status=1}
-
-   if type(url_params) == "table" then
-      for k, v in pairs(url_params) do
-        if not exclude[k] then
-           params[k] = v
-        end
-      end
-   end
-
-   return params
-end
-
--- #################################
-
-function performAlertsQuery(statement, what, options)
-   local opts = {
-      row_id=nil,
-      entity_type=nil,
-      entity_value=nil,
-      period_begin=nil,
-      period_end=nil,
-      alert_type=nil,
-      alert_severity=nil,
-      origin=nil,
-      target=nil,
-      hosts_type=nil,
-
-   -- pagination parameters
-      current_page=nil,
-      per_page=nil,
-      sort_column=nil,
-      sort_order=nil,
-   }
-   for k,v in pairs(options) do opts[k] = v end
-   --~ tprint(opts)
-
+function performAlertsQuery(statement, what, opts)
    local wargs = {"WHERE", "1=1"}
 
-   if opts.row_id ~= nil then
+   if tonumber(opts.row_id) ~= nil then
       wargs[#wargs+1] = 'AND rowid = '..(opts.row_id)
    end
 
-   if (opts.entity_type ~= nil) and (opts.entity_value ~= nil) then
-      if((what == "historical-flows") and (alertEntityRaw(opts.entity_type) == "host")) then
+   if (not isEmptyString(opts.entity)) and (not isEmptyString(opts.entity_val)) then
+      if((what == "historical-flows") and (alertEntityRaw(opts.entity) == "host")) then
          -- need to handle differently for flows table
-         local info = hostkey2hostinfo(opts.entity_value)
+         local info = hostkey2hostinfo(opts.entity_val)
          wargs[#wargs+1] = 'AND (cli_addr="'..(info.host)..'" OR srv_addr="'..(info.host)..'")'
          wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
       else
-         wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity_type)..'"'
-         wargs[#wargs+1] = 'AND alert_entity_val = "'..(opts.entity_value)..'"'
+         wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity)..'"'
+         wargs[#wargs+1] = 'AND alert_entity_val = "'..(opts.entity_val)..'"'
       end
    end
 
-   if opts.origin ~= nil then
+   if not isEmptyString(opts.origin) then
       local info = hostkey2hostinfo(opts.origin)
       wargs[#wargs+1] = 'AND cli_addr="'..(info.host)..'"'
       wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
    end
 
-   if opts.target ~= nil then
+   if not isEmptyString(opts.target) then
       local info = hostkey2hostinfo(opts.target)
       wargs[#wargs+1] = 'AND srv_addr="'..(info.host)..'"'
       wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
    end
 
-   if opts.period_begin ~= nil then
+   if tonumber(opts.period_begin) ~= nil then
       wargs[#wargs+1] = 'AND alert_tstamp >= '..(opts.period_begin)
    end
 
-   if opts.period_end ~= nil then
+   if tonumber(opts.period_end) ~= nil then
       wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.period_end)
    end
 
-   if opts.hosts_type ~= nil then
+   if not isEmptyString(opts.hosts_type) then
       if opts.hosts_type ~= "all_hosts" then
          local cli_local, srv_local = 0, 0
 
@@ -789,24 +749,24 @@ function performAlertsQuery(statement, what, options)
       end
    end
 
-   if opts.alert_type ~= nil then
+   if tonumber(opts.alert_type) ~= nil then
       wargs[#wargs+1] = "AND alert_type = "..(opts.alert_type)
    end
 
-   if opts.alert_severity ~= nil then
+   if tonumber(opts.alert_severity) ~= nil then
       wargs[#wargs+1] = "AND alert_severity = "..(opts.alert_severity)
    end
 
-   if((opts.sort_column ~= nil) and (opts.sort_order ~= nil)) then      
+   if((not isEmptyString(opts.sortColumn)) and (not isEmptyString(opts.sortOrder))) then      
       local order_by
       
-      if opts.sort_column == "column_date" then
+      if opts.sortColumn == "column_date" then
          order_by = "alert_tstamp"
-      elseif opts.sort_column == "column_severity" then
+      elseif opts.sortColumn == "column_severity" then
          order_by = "alert_severity"
-      elseif opts.sort_column == "column_type" then
+      elseif opts.sortColumn == "column_type" then
          order_by = "alert_type"
-      elseif((opts.sort_column == "column_duration") and (what == "historical")) then
+      elseif((opts.sortColumn == "column_duration") and (what == "historical")) then
          order_by = "(alert_tstamp_end - alert_tstamp)"
       else
          -- default
@@ -814,14 +774,14 @@ function performAlertsQuery(statement, what, options)
       end
 
       wargs[#wargs+1] = "ORDER BY "..order_by
-      wargs[#wargs+1] = string.upper(opts.sort_order)
+      wargs[#wargs+1] = string.upper(opts.sortOrder)
    end
 
    -- pagination
-   if((opts.per_page ~= nil) and (opts.current_page ~= nil)) then
-      local to_skip = (opts.current_page-1) * opts.per_page
+   if((tonumber(opts.perPage) ~= nil) and (tonumber(opts.currentPage) ~= nil)) then
+      local to_skip = (tonumber(opts.currentPage)-1) * tonumber(opts.perPage)
       wargs[#wargs+1] = "LIMIT"
-      wargs[#wargs+1] = to_skip..","..(opts.per_page)
+      wargs[#wargs+1] = to_skip..","..(opts.perPage)
    end
 
    local query = table.concat(wargs, " ")
@@ -854,7 +814,6 @@ end
 function getNumAlerts(what, options)
    local num = 0
    local opts = getUnpagedAlertOptions(options or {})
-   checkFilterOptions(opts)
    local res = performAlertsQuery("SELECT COUNT(*) AS count", what, opts)
    if((res ~= nil) and (#res == 1) and (res[1].count ~= nil)) then num = tonumber(res[1].count) end
 
@@ -864,8 +823,7 @@ end
 -- #################################
 
 function getAlerts(what, options)
-   local opts = checkFilterOptions(options, true)
-   return performAlertsQuery("SELECT rowid, *", what, opts)
+   return performAlertsQuery("SELECT rowid, *", what, options)
 end
 
 -- #################################
@@ -873,55 +831,21 @@ end
 function deleteAlerts(what, options)
    local opts = getUnpagedAlertOptions(options or {})
    performAlertsQuery("DELETE", what, opts)
-   _GET["older_than_seconds"] = nil
 end
 
 -- #################################
 
--- builds an URL query string from an options object (performAlertsQuery parameters)
-function alertsQueryParametersToUrl(opts)
-   local res = ""
-
-   if opts.alert_severity ~= nil then res = res.."&severity="..alertSeverityRaw(opts.alert_severity) end
-   if opts.alert_type ~= nil then res = res.."&type="..alertTypeRaw(opts.alert_type) end
-   if ((opts.entity_type ~= nil) and (opts.entity_value ~= nil)) then res = res .."&entity="..alertEntityRaw(opts.entity_type).."&entity_val="..opts.entity_value end
-   if opts.origin ~= nil then res = res.."&origin="..opts.origin end
-   if opts.target ~= nil then res = res.."&target="..opts.target end
-   if opts.hosts_type ~= nil then res = res.."&hosts_type="..opts.hosts_type end
-   if opts.period_begin ~= nil then res = res.."&period_begin="..opts.period_begin end
-   if opts.period_end ~= nil then res = res.."&period_end="..opts.period_end end
-   if opts.current_page ~= nil then res = res.."&currentPage="..opts.current_page end
-   if opts.per_page ~= nil then res = res.."&perPage="..opts.per_page end
-   if opts.sort_column ~= nil then res = res.."&sortColumn="..opts.sort_column end
-   if opts.sort_order ~= nil then res = res.."&sortOrder="..opts.sort_order end
-
-   return res
-end
-
--- builds an options object suitable to be passed to performAlertsQuery from GET parameters
-function UrlToalertsQueryParameters(_GET)
+-- this function returns an object with parameters specific for one tab
+function getTabParameters(_get, what)
    local opts = {}
-   
-   if not isEmptyString(_GET["severity"]) then opts.alert_severity = alertSeverity(_GET["severity"]) end
-   if not isEmptyString(_GET["type"]) then opts.alert_type = alertType(_GET["type"]) end
-   if((not isEmptyString(_GET["entity"])) and (not isEmptyString(_GET["entity_val"]))) then opts.entity_type = alertEntity(_GET["entity"]); opts.entity_value = _GET["entity_val"] end
-   if not isEmptyString(_GET["origin"]) then opts.origin = _GET["origin"] end
-   if not isEmptyString(_GET["target"]) then opts.target = _GET["target"] end
-   if not isEmptyString(_GET["hosts_type"]) then opts.hosts_type = _GET["hosts_type"] end
+   for k,v in pairs(_get) do opts[k] = v end
 
-   -- TODO unify
-   if((tonumber(_GET["older_than_seconds"]) ~= nil) and (tonumber(_GET["older_than_seconds"]) > 0)) then opts.period_end = os.time() - tonumber(_GET["older_than_seconds"]) end
-   if((tonumber(_GET["period_end"]) ~= nil) and (tonumber(_GET["period_end"]) > 0)) then opts.period_end = tonumber(_GET["period_end"]) end
-   
-   if((tonumber(_GET["period_begin"]) ~= nil) and (tonumber(_GET["period_begin"]) > 0)) then opts.period_begin = tonumber(_GET["period_begin"]) end
-
-   -- Pagination
-   if((tonumber(_GET["currentPage"]) ~= nil) and (tonumber(_GET["perPage"]) ~= nil)) then opts.current_page = tonumber(_GET["currentPage"]); opts.per_page = tonumber(_GET["perPage"]) end
-   if((not isEmptyString(_GET["sortColumn"])) and (not isEmptyString(_GET["sortOrder"]))) then
-      opts.sort_column = _GET["sortColumn"]
-      opts.sort_order = _GET["sortOrder"]
+   -- these options are contextual to the current tab (status)
+   if _get.status ~= what then
+      opts.alert_type = nil
+      opts.alert_severity = nil
    end
-
+   if not isEmptyString(what) then opts.status = what end
    return opts
 end
 
@@ -931,7 +855,7 @@ end
 function getUnpagedAlertOptions(options)
    local res = {}
 
-   local paged_option = { current_page=1, per_page=1, sort_column=1, sort_order=1 }
+   local paged_option = { currentPage=1, perPage=1, sortColumn=1, sortOrder=1 }
 
    for k,v in pairs(options) do
       if not paged_option[k] then
@@ -944,38 +868,19 @@ end
 
 -- #################################
 
--- this removes filter options for tabs which are not the active one
-function checkFilterOptions(opts, clone)
-   local res
-
-   if clone then
-      res = {}
-      for k,v in pairs(opts) do res[k] = v end
-   else
-      res = opts
-   end
-
-   if not isEmptyString(_GET["status"]) then
-      if _GET["status"] ~= what then
-         res.alert_severity = nil
-         res.alert_type = nil
-      end
-   end
-
-   return res
-end
-
--- #################################
-
 function checkDeleteStoredAlerts()
-   if((_GET["csrf"] ~= nil) and (_GET["status"] ~= nil)) then
-      local delete_params = UrlToalertsQueryParameters(_GET)
-
+   if((_GET["csrf"] ~= nil) and (_GET["status"] ~= nil) and (_GET["id_to_delete"] ~= nil)) then
       if(_GET["id_to_delete"] ~= "__all__") then
-         delete_params.row_id = tonumber(_GET["id_to_delete"])
+         _GET["row_id"] = tonumber(_GET["id_to_delete"])
       end
 
-      deleteAlerts(_GET["status"], delete_params)
+      deleteAlerts(_GET["status"], _GET)
+      -- to avoid performing the delete again
+      _GET["id_to_delete"] = nil
+      -- to avoid filtering by id
+      _GET["row_id"] = nil
+      -- in case of delete "older than" button, resets the time period after the delete took place
+      if isEmptyString(_GET["period_begin"]) then _GET["period_end"] = nil end
    end
 end
 
@@ -983,11 +888,11 @@ end
 
 local function drawDropdown(status, selection_name, active_entry, entries_table)
    -- alert_level_keys and alert_type_keys are defined in lua_utils
-   local id_to_label = {}
+   local id_to_label
    if selection_name == "severity" then
-      for _, s in pairs(alert_level_keys) do id_to_label[s[2]] = s[3] end
+      id_to_label = alertSeverityLabel
    elseif selection_name == "type" then
-      for _, s in pairs(alert_type_keys) do id_to_label[s[2]] = s[3] end
+      id_to_label = alertTypeLabel
    end
 
    -- compute counters to avoid printing items that have zero entries in the database
@@ -1035,13 +940,13 @@ local function drawDropdown(status, selection_name, active_entry, entries_table)
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
       local count = entry["count"]
-      local label = id_to_label[id]
+      local label = id_to_label(id, true)
 
       class_active = ""
       if label == active_entry then class_active = ' class="active"' end
       -- buttons = buttons..'<li'..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
       buttons = buttons..'<li'..class_active..'><a href="?status='..status
-      buttons = buttons..'&'..selection_name..'='..label..'">'
+      buttons = buttons..'&alert_'..selection_name..'='..id..'">'
       buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'
    end
 
@@ -1069,7 +974,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
    if(show_entity) then
       -- these fields will be used to perfom queries
-      _GET["entity"] = show_entity
+      _GET["entity"] = alertEntity(show_entity)
       _GET["entity_val"] = alert_source
    end
 
@@ -1078,10 +983,9 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       checkDeleteStoredAlerts()
       
       -- possibly add a tab if there are alerts configured for the host
-      local alert_opts = UrlToalertsQueryParameters(_GET)
-      num_engaged_alerts = getNumAlerts("engaged", alert_opts)
-      num_past_alerts = getNumAlerts("historical", alert_opts)
-      num_flow_alerts = getNumAlerts("historical-flows", alert_opts)
+      num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
+      num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
+      num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
 
       if num_past_alerts > 0 or num_engaged_alerts > 0 or num_flow_alerts > 0 then
          if(tab == nil) then
@@ -1241,12 +1145,10 @@ end
 
 -- #################################
 
-function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, url_params, hide_extended_title, alt_nav_tabs)
-   local entity = nil
-   local entity_val = nil
-   if _GET["entity"] ~= nil and _GET["entity"] ~= "" then entity = _GET["entity"] end
-   if _GET["entity_val"] ~= nil and _GET["entity_val"] ~= "" then entity_val = _GET["entity_val"] end
+function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, get_params, hide_extended_title, alt_nav_tabs)
    local alert_items = {}
+   local url_params = {}
+   for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
 
 if not alt_nav_tabs then
    print[[
@@ -1302,7 +1204,7 @@ function getActiveTabId() {
 function updateDeleteLabel(tabid) {
    var label = $("#purgeBtnLabel");
    var prefix = "]]
-if entity ~= nil and entity ~= "" then print(firstToUpper(entity).." ") end
+if not isEmptyString(_GET["entity"]) then print(alertEntityLabel(_GET["entity"], true)) end
 print [[";
    var val = "";
 
@@ -1317,7 +1219,7 @@ print [[";
 }
 
 function updateDeleteContext(tabid) {
-   $("#modalDeleteAlertsStatus").val(getCurrentStatus());
+   $("#modalDeleteForm input[name='status']").val(getCurrentStatus());
 }
 
 function getCurrentStatus() {
@@ -1362,13 +1264,6 @@ function getCurrentStatus() {
       status = nil; status_reset = 1
    end
 
-   -- This possibly passes some parameters to the search query
-   local url_extra_params = ""
-   for k, v in pairs(getExtraParameters(url_params)) do
-      url_extra_params = url_extra_params.."&"..k.."="..v
-   end
-
-
    for k, t in ipairs(alert_items) do
       local clicked = "0"
       if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
@@ -1387,9 +1282,7 @@ function getCurrentStatus() {
          // append the li to the tabs
 
 	 $("#]] print(t["div-id"]) print[[").datatable({
-			url: "]]
-      print (ntop.getHttpPrefix())
-      print [[/lua/get_alerts_data.lua?&status=]] print(t["status"]..url_extra_params) print[[",
+			url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_alerts_data.lua?" + $.param(]] print(tableToJsObject(getTabParameters(url_params, t["status"]))) print [[),
                showFilter: true,
 	       showPagination: true,
                buttons: [']]
@@ -1397,27 +1290,24 @@ function getCurrentStatus() {
       local title = t["label"]
 
       -- TODO this condition should be removed and page integration support implemented
-      if((entity == nil) and isEmptyString(_GET["period_begin"]) and isEmptyString(_GET["period_end"])) then
+      if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["period_begin"]) and isEmptyString(_GET["period_end"])) then
 	 -- alert_level_keys and alert_type_keys are defined in lua_utils
 	 local alert_severities = {}
 	 for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
 	 local alert_types = {}
 	 for _, s in pairs(alert_type_keys) do alert_types[#alert_types +1 ] = s[3] end
 
-    local a_type, a_severity
+    local a_type, a_severity = nil, nil
     if clicked == "1" then
-      a_type = _GET["type"]
-      a_severity = _GET["severity"]
-   else
-      a_type = nil
-      a_severity = nil
+      if tonumber(_GET["alert_type"]) ~= nil then a_type = alertTypeLabel(_GET["alert_type"], true) end
+      if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alertSeverityLabel(_GET["alert_severity"], true) end
     end
 
 	 print(drawDropdown(t["status"], "type", a_type, alert_types))
 	 print(drawDropdown(t["status"], "severity", a_severity, alert_severities))
-      elseif((entity_val ~= nil) and (not hide_extended_title)) then
+      elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	 if entity == "host" then
-	    local host_ip = entity_val
+	    local host_ip = _GET["entity_val"]
 	    local sp = split(host_ip, "@")
 	    if #sp == 2 then
 	       host_ip = ntop.resolveAddress(sp[1])
@@ -1549,7 +1439,7 @@ $("[clicked=1]").trigger("click");
 ]]
 
 if not alt_nav_tabs then print [[</div> <!-- closes tab-content -->]] end
-local has_fixed_period = ((_GET["period_begin"] ~= nil) or (_GET["period_end"] ~= nil))
+local has_fixed_period = ((not isEmptyString(_GET["period_begin"])) or (not isEmptyString(_GET["period_end"])))
 
 print('<div id="alertsActionsPanel">')
 print('<br>Alerts to Purge: ')
@@ -1559,7 +1449,7 @@ print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if
    if not has_fixed_period then
       print('<optgroup label="older than">')
       for k,v in ipairs(zoom_vals) do
-         print('<option data-older="'..zoom_vals[k][2]..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
+         print('<option data-older="'..(os.time() - zoom_vals[k][2])..'" data-msg="'.." "..zoom_vals[k][3].. '">'..zoom_vals[k][1]..'</option>\n')
       end
       print('</optgroup>')
    else
@@ -1584,18 +1474,14 @@ print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myMo
   </div>
   <div class="modal-footer">
 
-    <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=id_to_delete value="__all__">
-      <input type="hidden" id="modalDeleteAlertsOlderThan" name="older_than_seconds" value="-1">
-      <input type="hidden" id="modalDeleteAlertsStatus" name="status">
+    <form id="modalDeleteForm" class=form-inline style="margin-bottom: 0px;" method=get action="#" onsubmit="return checkModalDelete();">
+         <input type="hidden" id="modalDeleteAlertsOlderThan" value="-1" />
       ]]
 
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      -- we need to dynamically modify parameters at js-time because we switch tab
+      local delete_params = getTabParameters(url_params, nil)
+      delete_params.period_end = -1
 
-      -- This is required because of drawAlertTables integration in other complex pages
-      for k, v in pairs(getExtraParameters(url_params)) do
-	 print('<input name="'..k..'" type="hidden" value="'..v..'"/>\n')
-      end
-      
       print [[
     <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
     <button class="btn btn-primary" type="submit">Purge [<img id="alerts-summary-wait" src="]] print(ntop.getHttpPrefix()) print[[/img/loading.gif"\><span id="alerts-summary-body"></span> alerts]</button>
@@ -1607,6 +1493,35 @@ print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myMo
 </div> <!-- closes alertsActionsPanel -->
 
 <script>
+
+paramsToForm('#modalDeleteForm', ]] print(tableToJsObject(delete_params)) print[[);
+
+function getTabSpecificParams() {
+   var tab_specific = {status:getCurrentStatus()};
+   var period_end = $('#modalDeleteAlertsOlderThan').val();
+   if (parseInt(period_end) > 0)
+      tab_specific.period_end = period_end;
+
+   if (tab_specific.status == "]] print(_GET["status"]) print[[") {
+      tab_specific.alert_severity = ]] if tonumber(_GET["alert_severity"]) ~= nil then print(_GET["alert_severity"]) else print('""') end print[[;
+      tab_specific.alert_type = ]] if tonumber(_GET["alert_type"]) ~= nil then print(_GET["alert_type"]) else print('""') end print[[;
+   }
+
+   // merge the general parameters to the tab specific ones
+   return paramsExtend(]] print(tableToJsObject(getTabParameters(url_params, nil))) print[[, tab_specific);
+}
+
+function checkModalDelete() {
+   var delete_params = getTabSpecificParams();
+   delete_params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+   delete_params.id_to_delete = "__all__";
+
+   // this actually performs the GET request
+   var form = paramsToForm('<form method="get" action="#"></form>', delete_params);
+   form.appendTo('body').submit();
+   return false;
+}
+
 var cur_alert_num_req = null;
 
 /* This acts before shown.bs.modal event, avoiding visual fields substitution glitch */
@@ -1615,21 +1530,21 @@ $('#buttonOpenDeleteModal').on('click', function() {
    var zoomsel = $("#deleteZoomSelector").find(":selected");
 
    $(".modal-body #modalDeleteAlertsMsg").html(zoomsel.data('msg') + ']]
-   if _GET["severity"] ~= nil then
-      print(' with severity "'..firstToUpper(_GET["severity"])..'" ')
-   elseif _GET["type"] ~= nil then
-      print(' with type "'..firstToUpper(_GET["type"])..'" ')
+   if tonumber(_GET["alert_severity"]) ~= nil then
+      print(' with severity "'..alertTypeLabel(_GET["alert_severity"], true)..'" ')
+   elseif tonumber(_GET["alert_type"]) ~= nil then
+      print(' with type "'..alertTypeLabel(_GET["alert_type"], true)..'" ')
    end
    print[[');
    if (lb.length == 1)
       $(".modal-body #modalDeleteContext").html(" " + lb.html());
-   $(".modal-footer #modalDeleteAlertsOlderThan").val(zoomsel.data('older'));
+
+   $('#modalDeleteAlertsOlderThan').val(zoomsel.data('older'));
 
    cur_alert_num_req = $.ajax({
       type: 'GET',
-      ]] print("url: '"..ntop.getHttpPrefix().."/lua/get_num_alerts.lua?older_than_seconds=' + $(\"#modalDeleteAlertsOlderThan\").val() + '&status=' + getCurrentStatus() + '")
-      print(alertsQueryParametersToUrl(UrlToalertsQueryParameters(url_params)))
-      print[[',
+      ]] print("url: '"..ntop.getHttpPrefix().."/lua/get_num_alerts.lua'") print[[,
+       data: getTabSpecificParams(),
        complete: function() {
          $("#alerts-summary-wait").hide();
        }, error: function() {

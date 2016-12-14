@@ -351,3 +351,20 @@ function nvGraphSetXTicksFormat(chart, diff_epoch) {
     /* Set the x axis format */
     chart.xAxis.tickFormat(function(d) { return d3.time.format(graphGetXAxisTicksFormat(diff_epoch))(new Date(d*1000)) });
 }
+
+function paramsExtend(defaults, override) {
+    return $.extend({}, defaults, override);
+}
+
+function paramsToForm(form, params) {
+    form = $(form);
+
+    for (var k in params) {
+        if (params.hasOwnProperty(k)) {
+            var input = $('<input type="hidden" name="' + k + '" value="' + params[k] + '">');
+            input.appendTo(form);
+        }
+    }
+
+    return form;
+}

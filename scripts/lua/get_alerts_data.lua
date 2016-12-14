@@ -35,8 +35,7 @@ elseif((_GET["sortColumn"] == "column_") or (_GET["sortOrder"] == "")) then
 end
 tablePreferences("sort_order_alerts", _GET["sortOrder"])
 
-local alert_options = UrlToalertsQueryParameters(_GET)
---~ tprint(alert_options)
+local alert_options = _GET
 
 local num_alerts = tonumber(_GET["totalRows"])
 if num_alerts == nil then
@@ -45,7 +44,7 @@ end
 
 local alerts = getAlerts(status, alert_options)
 
-print ("{ \"currentPage\" : " .. alert_options.current_page .. ",\n \"data\" : [\n")
+print ("{ \"currentPage\" : " .. alert_options.currentPage .. ",\n \"data\" : [\n")
 total = 0
 
 if alerts == nil then alerts = {} end
@@ -120,8 +119,8 @@ for _key,_value in ipairs(alerts) do
    total = total + 1
 end -- for
 
-print ("\n], \"perPage\" : " .. alert_options.per_page .. ",\n")
+print ("\n], \"perPage\" : " .. alert_options.perPage .. ",\n")
 
-print ("\"sort\" : [ [ \""..alert_options.sort_column .."\", \""..alert_options.sort_order.."\" ] ],\n")
+print ("\"sort\" : [ [ \""..alert_options.sortColumn .."\", \""..alert_options.sortOrder.."\" ] ],\n")
 print ("\"totalRows\" : " ..num_alerts .. " \n}")
 
