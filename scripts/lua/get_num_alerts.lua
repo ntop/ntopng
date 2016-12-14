@@ -13,6 +13,6 @@ interface.select(ifname)
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 if(_GET["status"] ~= nil) then
-   local num = getNumAlerts(_GET["status"], UrlToalertsQueryParameters(_GET))
+   local num = getNumAlerts(_GET["status"], _GET)
    print(tostring(num))
 end

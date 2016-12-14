@@ -18,10 +18,9 @@ checkDeleteStoredAlerts()
 active_page = "alerts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local alert_opts = UrlToalertsQueryParameters(_GET)
-local num_engaged_alerts = getNumAlerts("engaged", alert_opts)
-local num_past_alerts = getNumAlerts("historical", alert_opts)
-local num_flow_alerts = getNumAlerts("historical-flows", alert_opts)
+local num_engaged_alerts = getNumAlerts("engaged", getTabParameters(_GET, "engaged"))
+local num_past_alerts = getNumAlerts("historical", getTabParameters(_GET, "historical"))
+local num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, "historical-flows"))
 
 if ntop.getPrefs().are_alerts_enabled == false then
    print("<div class=\"alert alert alert-warning\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Alerts are disabled. Please check the preferences page to enable them.</div>")

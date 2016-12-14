@@ -2389,6 +2389,20 @@ end
 
 -- ####################################################
 
+-- Note: can only handle basic types
+function tableToJsObject(lua_table)
+   local parts = {}
+
+   for k,v in pairs(lua_table) do
+      if type(v) == 'string' then v = "'"..v.."'" end
+      parts[#parts + 1] = k..":"..v
+   end
+
+   return "{".. table.concat(parts, ", ") .."}"
+end
+
+-- ####################################################
+
 -- Compute the difference in seconds between local time and UTC.
 local function get_timezone()
    local now = os.time()
