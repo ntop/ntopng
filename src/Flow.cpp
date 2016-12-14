@@ -2353,6 +2353,8 @@ void Flow::checkFlowCategory() {
 
 void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id) {
   if(cli_host && srv_host) {
+    TrafficShaper *sa, *sb;
+    
     if(src2dst_direction) {
       *a_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol),
 	*b_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol);
@@ -2361,7 +2363,11 @@ void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id,
 	*b_shaper_id = srv_host->get_egress_shaper_id(ndpiDetectedProtocol);
     }
 
-    passVerdict = ((*a_shaper_id == DROP_ALL_SHAPER_ID) || (*b_shaper_id == DROP_ALL_SHAPER_ID)) ? false : true;
+    sa = getInterface()->getL7Policer()->getShaper(*a_shaper_id),
+	sb = getInterface()->getL7Policer()->getShaper(*b_shaper_id);
+
+    passVerdict = ((sa && (sa->get_max_rate_bytes_sec() == 0))
+		   || (sb && (sb->get_max_rate_bytes_sec() == 0))) ? false : true;
   } else
     *a_shaper_id = *b_shaper_id = PASS_ALL_SHAPER_ID;
 }
