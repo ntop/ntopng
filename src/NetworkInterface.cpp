@@ -1229,18 +1229,21 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
         flow->dissectSSL(payload, payload_len, when, src2dst_direction);
     }
 
-    flow->processDetectedProtocol(), pass_verdict = flow->isPassVerdict();
+    flow->processDetectedProtocol();
 
 #ifdef NTOPNG_PRO
-    if(is_bridge_interface() && pass_verdict) {
-      u_int8_t shaper_ingress, shaper_engress;
-      char buf[64];
+    if(is_bridge_interface()) {
+      pass_verdict = flow->isPassVerdict();
+      if(pass_verdict) {
+        u_int8_t shaper_ingress, shaper_engress;
+        char buf[64];
 
-      flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
+        flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
+        ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
 				   flow->get_detected_protocol_name(buf, sizeof(buf)),
 				   shaper_ingress, shaper_engress);
-      pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
+        pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
+      }
     }
 #endif
 

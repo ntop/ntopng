@@ -195,7 +195,7 @@ void Flow::categorizeFlow() {
 
 Flow::~Flow() {
   struct timeval tv = { 0, 0 };
- 
+
   if(good_low_flow_detected) {
     if(cli_host) cli_host->decLowGoodputFlows(true);
     if(srv_host) srv_host->decLowGoodputFlows(false);
@@ -234,7 +234,7 @@ Flow::~Flow() {
 
 void Flow::dumpFlowAlert(bool partial_dump) {
     FlowStatus status = getFlowStatus();
-  
+
     if(status != status_normal) {
 	char buf[128], *f;
 
@@ -283,7 +283,7 @@ void Flow::dumpFlowAlert(bool partial_dump) {
 	}
     }
 }
-    
+
 /* *************************************** */
 
 void Flow::checkBlacklistedFlow() {
@@ -756,7 +756,7 @@ bool Flow::dumpFlow(bool partial_dump, bool idle_flow) {
       if((now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
 	return(rc);
     }
-    
+
     if(cli_host) {
       if(ntop->getPrefs()->do_dump_flows_on_mysql())
 	cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, idle_flow, this);
@@ -2300,7 +2300,8 @@ bool Flow::isPassVerdict() {
   /* TODO: isAboveQuota() must be checked periodically */
   if(cli_host && srv_host)
     return((!(cli_host->isAboveQuota() || srv_host->isAboveQuota()))
-	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic())));
+	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
+           && (!(cli_host->is_blacklisted() || srv_host->is_blacklisted())));
   else
     return(true);
 }
@@ -2355,7 +2356,7 @@ void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id,
   if(cli_host && srv_host) {
     TrafficShaper *sa, *sb;
     L7Policer *p = getInterface()->getL7Policer();
-    
+
     if(src2dst_direction) {
       *a_shaper_id = cli_host->get_egress_shaper_id(ndpiDetectedProtocol),
 	*b_shaper_id = srv_host->get_ingress_shaper_id(ndpiDetectedProtocol);
@@ -2366,7 +2367,7 @@ void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id,
 
     if(p) {
       sa = p->getShaper(*a_shaper_id), sb = p->getShaper(*b_shaper_id);
-      
+
       passVerdict = ((sa && (sa->get_max_rate_kbit_sec() == 0))
 		     || (sb && (sb->get_max_rate_kbit_sec() == 0))) ? false : true;
     }
