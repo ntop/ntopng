@@ -1313,6 +1313,14 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
 		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
     max_num_flow_alerts = atoi(pref_value);
+  else if (!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_PREFS_ALERT_PROBING,
+		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_PROBING)))
+    enable_probing_alerts = pref_value[0] == '1' ? true : false;
+  else if (!strncmp(pref_name,
+		    (char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
+		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG)))
+    enable_syslog_alerts = pref_value[0] == '1' ? true : false;
 
   return 0;
 }
