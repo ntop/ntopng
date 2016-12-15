@@ -204,10 +204,10 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
       // else ntop->getRedis()->pushHostToResolve(host, false, localHost);
     }
 
-    if(!localHost || systemHost) {
+    if(!(localHost || systemHost)) {
       blacklisted_host = ntop->isBlacklistedIP(&ip);
 
-      if((!blacklisted_host) || (ntop->getPrefs()->is_httpbl_enabled() && ip.isIPv4())) {
+      if((!blacklisted_host) && ntop->getPrefs()->is_httpbl_enabled() && ip.isIPv4()) {
 	// http:bl only works for IPv4 addresses
 	if(ntop->getRedis()->getAddressTrafficFiltering(host, iface, trafficCategory,
 							sizeof(trafficCategory), true) == 0) {
@@ -250,8 +250,11 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     }
   }
 
-  loadAlertPrefs();
-  readAlertPrefs();
+  if(localHost || systemHost) {
+      loadAlertPrefs();
+      readAlertPrefs();
+  }
+  
   if(!host_serial) computeHostSerial();
   updateHostL7Policy();
 }
@@ -1254,7 +1257,9 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager)     {
     + iface->getAlertsManager()->getNumHostAlerts(this, false)
     + iface->getAlertsManager()->getNumHostFlowAlerts(this);
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Refreshing alerts from alertsmanager [num: %i]", num_alerts_detected);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Refreshing alerts from alertsmanager [num: %i]",
+			       num_alerts_detected);
 
   return(num_alerts_detected);
 }
@@ -1274,7 +1279,7 @@ void Host::loadFlowRateAlertPrefs() {
   char rkey[128], rsp[16];
   char ip_buf[48];
 
-  snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flow_rate_alert_threshold",
+  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_RATE,
 	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
   if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
     retval = atoi(rsp);
@@ -1289,7 +1294,7 @@ void Host::loadSynAlertPrefs() {
   char rkey[128], rsp[16];
   char ip_buf[48];
 
-  snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.syn_alert_threshold",
+  snprintf(rkey, sizeof(rkey), CONST_IFACE_SYN_ALERT,
 	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
   if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
     retval = atoi(rsp);
@@ -1304,7 +1309,7 @@ void Host::loadFlowsAlertPrefs() {
   char rkey[128], rsp[16];
   char ip_buf[48];
 
-  snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s:%d.flows_alert_threshold",
+  snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_THRESHOLD,
 	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
   if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
     retval = (u_int32_t)strtoul(rsp, NULL, 10);
