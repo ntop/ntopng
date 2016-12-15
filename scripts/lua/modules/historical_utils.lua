@@ -1439,7 +1439,16 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
       _GET["host"] = host
       div_data = div_data..' host="'..tostring(host)..'" '
    end
-   if l7proto ~= "" and l7proto ~= nil then
+   if l7proto ~= "" and l7proto ~= nil and not string.starts(tostring(l7proto), 'all') then
+      if not isnumber(l7proto) then
+	 l7proto = string.gsub(l7proto, "%.rrd", "")
+	 local id = interface.getnDPIProtoId(l7proto)
+	 if id ~= -1 then
+	    l7proto = id
+	 else
+	    l7proto = ""
+	 end
+      end
       _GET["protocol"] = l7proto
       div_data = div_data..' l7_proto_id="'..l7proto..'" '
    end
