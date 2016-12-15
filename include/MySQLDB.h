@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 
 class MySQLDB : public DB {
- private:
+ protected:
   MYSQL mysql;
   bool db_operational;
   struct timeval lastUpdateTime;
@@ -43,14 +43,14 @@ class MySQLDB : public DB {
 
  public:
   MySQLDB(NetworkInterface *_iface = NULL);
-  ~MySQLDB();
+  virtual ~MySQLDB();
 
-  void* queryLoop();
+  virtual void* queryLoop();
   bool createDBSchema();
   static volatile bool isDbCreated() {return db_created;};
   inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlowsQueueTooLong; };
   inline float exportRate() const { return mysqlExportRate; };
-  bool dumpFlow(time_t when, bool partial_dump, Flow *f, char *json);
+  virtual bool dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f, char *json);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows);
   void startDBLoop();
   void updateStats(const struct timeval *tv);

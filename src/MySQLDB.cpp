@@ -530,7 +530,7 @@ int MySQLDB::flow2InsertValues(bool partial_dump, Flow *f, char *json, char *val
 
 /* ******************************************* */
 
-bool MySQLDB::dumpFlow(time_t when, bool partial_dump, Flow *f, char *json) {
+bool MySQLDB::dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f, char *json) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL) || !MySQLDB::db_created)

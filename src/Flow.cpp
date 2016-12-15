@@ -203,7 +203,7 @@ Flow::~Flow() {
 
   checkBlacklistedFlow();
   update_hosts_stats(&tv, true);
-  dumpFlow(true /* Dump only the last part of the flow */);
+  dumpFlow(true /* Dump only the last part of the flow */, true /* the flow is expired */);
 
   iface->luaEvalFlow(this, callback_flow_delete);
 
@@ -731,11 +731,11 @@ char* Flow::print(char *buf, u_int buf_len) {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(bool partial_dump) {
+bool Flow::dumpFlow(bool partial_dump, bool idle_flow) {
   bool rc = false;
 
   dumpFlowAlert(partial_dump);
-  
+
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
       return(rc);
@@ -756,10 +756,10 @@ bool Flow::dumpFlow(bool partial_dump) {
       if((now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
 	return(rc);
     }
-
+    
     if(cli_host) {
       if(ntop->getPrefs()->do_dump_flows_on_mysql())
-	cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, this);
+	cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, idle_flow, this);
       else if(ntop->getPrefs()->do_dump_flows_on_es())
 	cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
     }
@@ -1022,7 +1022,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(true)) {
+  if(dumpFlow(true /* partial dump */, false /* the flow isn't idle, this is periodic update stuff */)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
       last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,

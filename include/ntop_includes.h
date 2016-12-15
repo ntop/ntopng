@@ -203,6 +203,8 @@ using namespace std;
 #include "PacketBridge.h"
 #include "TrafficShaper.h"
 #include "L7Policer.h"
+#include "BatchedMySQLDB.h"
+#include "SPSCQueue.h"
 #include "LuaHandler.h"
 #include "NagiosManager.h"
 #include "FlowChecker.h"

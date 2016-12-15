@@ -144,8 +144,14 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 
     running = false, sprobe_interface = false, inline_interface = false;
 
-    if(ntop->getPrefs()->do_dump_flows_on_mysql())
-      db = new MySQLDB(this);
+    if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+      if(ntop->getPrefs()->is_enterprise_edition()) {
+	db = new BatchedMySQLDB(this);
+      } else {
+	db = new MySQLDB(this);
+      }
+      if(!db) throw "Not enough memory";
+    }
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
@@ -505,9 +511,9 @@ NetworkInterface::~NetworkInterface() {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpFlow(time_t when, bool partial_dump, Flow *f) {
+int NetworkInterface::dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f) {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    return(dumpDBFlow(when, partial_dump, f));
+    return(dumpDBFlow(when, partial_dump, idle_flow, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es())
     return(dumpEsFlow(when, partial_dump, f));
   else {
@@ -534,12 +540,12 @@ int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpDBFlow(time_t when, bool partial_dump, Flow *f) {
+int NetworkInterface::dumpDBFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f) {
   char *json = f->serialize(partial_dump, false);
   int rc;
 
   if(json) {
-    rc = db->dumpFlow(when, partial_dump, f, json);
+    rc = db->dumpFlow(when, partial_dump, idle_flow, f, json);
     free(json);
   } else
     rc = -1;
@@ -1843,6 +1849,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
+    //db->flush(false /* not idle, periodic activities */);
   }
 
   if(getRefreshNumAlerts() != no_refresh_needed) {
@@ -3027,6 +3034,12 @@ u_int NetworkInterface::purgeIdleFlows() {
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle flows");
     n = flows_hash->purgeIdle();
+
+    // if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+      // flush the queue
+      //db->flush(true /* idle */);
+    // }
+
     next_idle_flow_purge = last_pkt_rcvd + FLOW_PURGE_FREQUENCY;
     return(n);
   }
