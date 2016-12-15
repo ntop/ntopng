@@ -2002,7 +2002,7 @@ static bool update_flow_profile(GenericHashEntry *h, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateFlowProfiles(char *old_profile, char *new_profile) {
+void NetworkInterface::updateFlowProfiles() {
   if(isView()) return;
 
   if(ntop->getPro()->has_valid_license()) {
