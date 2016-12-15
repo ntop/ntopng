@@ -254,9 +254,7 @@ if(isAdministrator()) then
       print("\n<li><a href=\""..url.."&page=alerts\">")
    end
 
-   if(ifstats.alertLevel > 0) then print("<font color=#B94A48>") end
    print("<i class=\"fa fa-warning fa-lg\"></i></a>")
-   if(ifstats.alertLevel > 0) then print("</font>") end
    print("</li>")
 end
 
