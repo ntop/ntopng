@@ -881,6 +881,13 @@ function checkDeleteStoredAlerts()
       _GET["row_id"] = nil
       -- in case of delete "older than" button, resets the time period after the delete took place
       if isEmptyString(_GET["period_begin"]) then _GET["period_end"] = nil end
+
+      local new_num = getNumAlerts(_GET["status"], _GET)
+      if new_num == 0 then
+         -- reset the filter to avoid hiding the tab
+         _GET["alert_severity"] = nil
+         _GET["alert_type"] = nil
+      end
    end
 end
 
