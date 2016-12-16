@@ -16,7 +16,7 @@ alerts_granularity = {
 
 alarmable_metrics = {'bytes', 'dns', 'idle', 'packets', 'p2p', 'throughput', 'ingress', 'egress', 'inner'}
 
-default_re_arm_minutes = 5
+default_re_arm_minutes = 1
 
 alert_functions_description = {
     ["bytes"]   = "Bytes delta (sent + received)",

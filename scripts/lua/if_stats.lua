@@ -341,7 +341,7 @@ if((page == "overview") or (page == nil)) then
 	    label = getInterfaceNameAlias(ifstats.name)
 	    inline_input_form("custom_name", "Custom Name",
 		"Specify an alias for the interface",
-		label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9]*$"')
+		label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9 ]*$"')
 	    print("</td></tr>\n")
 	 end
 
