@@ -51,6 +51,7 @@ class MySQLDB : public DB {
   inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlowsQueueTooLong; };
   inline float exportRate() const { return mysqlExportRate; };
   virtual bool dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f, char *json);
+  virtual void flush(bool idle) {};
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows);
   void startDBLoop();
   void updateStats(const struct timeval *tv);
