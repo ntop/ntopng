@@ -439,7 +439,8 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
 
 /* **************************************************** */
 
-int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows) {
+int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value,
+				     const char *table_name, u_int32_t max_num_rows) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
@@ -564,7 +565,7 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
     return -1;
 
   if(!isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
-    return 0;  // cannot release an alert that has not been engaged
+      return 0;  /* Cannot release an alert that has not been engaged */
   }
 
   if(getNetworkInterface()) getNetworkInterface()->decAlertLevel();
@@ -642,12 +643,12 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   }
 
   rc = 0;
+  
  out:
   if(stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
   return rc;
 }
-
 
 /* **************************************************** */
 
@@ -705,7 +706,6 @@ SlackNotificationChoice AlertsManager::getSlackNotificationChoice(char* choice) 
   if(strcmp(choice, "errors_and_warnings")==0) return notify_errors_and_warnings;
   return notify_all_alerts; /* default choice*/
 }
-
 
 /* **************************************************** */
 
@@ -768,7 +768,7 @@ void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_enti
 				const char *alert_json,
 				const char *alert_origin, const char *alert_target) {
   char buf[4], choice[32];
-  bool alert_to_be_notified=false; // Checksd if the notification has to be done according to the slack notifications preference
+  bool alert_to_be_notified = false; // Checks if the notification has to be done according to the slack notifications preference
   SlackNotificationChoice notification_choice;
 
   if((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_ENABLED,
@@ -782,10 +782,10 @@ void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_enti
 	alert_to_be_notified=true;
     else if(notification_choice == notify_errors_and_warnings) {
 	if((alert_severity == alert_level_error) || (alert_severity == alert_level_warning))
-	    alert_to_be_notified=true;
+	    alert_to_be_notified = true;
     } else {
 	if((notification_choice == notify_errors_only) && (alert_severity == alert_level_error))
-	    alert_to_be_notified =true;
+	    alert_to_be_notified = true;
     }
 
     if(alert_to_be_notified)
@@ -931,8 +931,8 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
      || sqlite3_bind_int64(stmt,23, f->get_packets_srv2cli())
      || sqlite3_bind_int(stmt,  24, f->getTcpFlagsCli2Srv())
      || sqlite3_bind_int(stmt,  25, f->getTcpFlagsSrv2Cli())
-     || sqlite3_bind_int(stmt,  26, (cli && cli->is_blacklisted()) ? 1 : 0)
-     || sqlite3_bind_int(stmt,  27, (srv && srv->is_blacklisted()) ? 1 : 0)
+     || sqlite3_bind_int(stmt,  26, (cli && cli->isBlacklisted()) ? 1 : 0)
+     || sqlite3_bind_int(stmt,  27, (srv && srv->isBlacklisted()) ? 1 : 0)
      || sqlite3_bind_int(stmt,  28, (cli && cli->isLocalHost()) ? 1 : 0)
      || sqlite3_bind_int(stmt,  29, (srv && srv->isLocalHost()) ? 1 : 0)
      ) {
@@ -1013,8 +1013,8 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 
 int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
 					     const char *engaged_alert_id,
-					     AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-					     bool engage) {
+					     AlertType alert_type, AlertLevel alert_severity,
+					     const char *alert_json, bool engage) {
   struct in_addr addr4;
   struct in6_addr addr6;
   char ip_buf[256];

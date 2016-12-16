@@ -264,11 +264,12 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 bool Host::readDHCPCache() {
   if(mac) {
     /* Check DHCP cache */
-    char client_mac[24], buf[64];
+      char client_mac[24], buf[64], key[64];
 
     Utils::formatMac(mac->get_mac(), client_mac, sizeof(client_mac));
 
-    if(ntop->getRedis()->hashGet((char*)DHCP_CACHE, client_mac, buf, sizeof(buf)) == 0) {
+    snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
+    if(ntop->getRedis()->hashGet(key, client_mac, buf, sizeof(buf)) == 0) {
       setName(buf);
       return true;
     }

@@ -253,7 +253,7 @@ void NetworkInterface::initL7Policer() {
 
   snprintf(key, sizeof(key), "ntopng.prefs.%d.l7_policy", get_id());
 
-  if (ntop->getRedis()->hashGet(key, (char*)any_net, rsp, sizeof(rsp)) != 0) {
+  if(ntop->getRedis()->hashGet(key, (char*)any_net, rsp, sizeof(rsp)) != 0) {
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Creating '%s' network rule on interface %d",
             any_net, get_id());
@@ -264,7 +264,7 @@ void NetworkInterface::initL7Policer() {
 
   /* Create default shaper */
   snprintf(key, sizeof(key), "ntopng.prefs.%d.shaper_max_rate", get_id());
-  if (ntop->getRedis()->hashGet(key, (char*)"0", rsp, sizeof(rsp)) != 0) {
+  if(ntop->getRedis()->hashGet(key, (char*)"0", rsp, sizeof(rsp)) != 0) {
     /* set as not shaping */
     ntop->getRedis()->hashSet(key, (char*)"0", (char*)"-1");
   }
@@ -1131,7 +1131,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	  if(len == 0) break;
 
 	  if(id == 12 /* Host Name */) {
-	    char name[64], buf[24], *client_mac;
+	      char name[64], buf[24], *client_mac, key[64];
 	    int j;
 
 	    j = ndpi_min(len, sizeof(name)-1);
@@ -1141,7 +1141,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	    client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf)),
 	    ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'", client_mac, name);
 
-	    ntop->getRedis()->hashSet((char*)DHCP_CACHE, client_mac, name);
+	    snprintf(key, sizeof(key), DHCP_CACHE, get_id());
+	    ntop->getRedis()->hashSet(key, client_mac, name);
 	    break;
 	  } else if(id == 0xFF)
 	    break; /* End of options */
@@ -1233,43 +1234,40 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
 #ifdef NTOPNG_PRO
     if(is_bridge_interface()) {
-      pass_verdict = flow->isPassVerdict();
-      if(pass_verdict) {
-        u_int8_t shaper_ingress, shaper_engress;
-        char buf[64];
-
-        flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
-        ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
-				   flow->get_detected_protocol_name(buf, sizeof(buf)),
-				   shaper_ingress, shaper_engress);
-        pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
-      }
+	pass_verdict = flow->isPassVerdict();
+	
+	if(pass_verdict) {
+	    u_int8_t shaper_ingress, shaper_engress;
+	    char buf[64];
+	
+	    flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
+	    ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
+					 flow->get_detected_protocol_name(buf, sizeof(buf)),
+					 shaper_ingress, shaper_engress);
+	    pass_verdict = passShaperPacket(shaper_ingress, shaper_engress, (struct pcap_pkthdr*)h);
+	}
     }
 #endif
 
-    if(pass_verdict)
-      incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	       flow->get_detected_protocol().protocol,
-	       rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-
-    bool dump_is_unknown = dump_unknown_traffic
+    bool dump_if_unknown = dump_unknown_traffic
       && (!flow->isDetectionCompleted() ||
 	  flow->get_detected_protocol().protocol == NDPI_PROTOCOL_UNKNOWN);
 
-    if(dump_is_unknown
+    if(dump_if_unknown
        || dump_all_traffic
        || dump_security_packets
        || flow->dumpFlowTraffic()) {
-      if(dump_to_disk) dumpPacketDisk(h, packet, dump_is_unknown ? UNKNOWN : GUI);
+      if(dump_to_disk) dumpPacketDisk(h, packet, dump_if_unknown ? UNKNOWN : GUI);
       if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
     }
-  } else
-    incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
-	     flow->get_detected_protocol().protocol,
-	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-
+  }
+  
+  incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+	   flow->get_detected_protocol().protocol,
+	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
+  
   // Detect user activities
-  if ((!isSampledTraffic())
+  if((!isSampledTraffic())
       && (ntop->getPrefs()->is_flow_activity_enabled())) {
     Host *cli = flow->get_cli_host();
     Host *srv = flow->get_srv_host();
@@ -3778,7 +3776,7 @@ bool NetworkInterface::isInterfaceUp(char *name) {
   struct ifreq ifr;
   int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
-  if (strlen(name) >= sizeof(ifr.ifr_name))
+  if(strlen(name) >= sizeof(ifr.ifr_name))
     return(false);
 
   memset(&ifr, 0, sizeof(ifr));
@@ -4171,6 +4169,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+0: config.all.pass = true;
       }
       break;
+      
     case activity_filter_web:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.web.numsamples = lua_tonumber(vm, ++params);
@@ -4199,6 +4198,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+4: config.web.serverdominant = true;
       }
       break;
+      
     case activity_filter_ratio:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.ratio.numsamples = lua_tonumber(vm, ++params);
@@ -4217,6 +4217,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+2: config.ratio.clisrv_ratio = -1.f;
       }
       break;
+      
     case activity_filter_interflow:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.interflow.minflows = min((int)lua_tonumber(vm, ++params), INTER_FLOW_ACTIVITY_SLOTS);
@@ -4224,7 +4225,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         if(lua_type(vm, params+1) == LUA_TNUMBER) {
           config.interflow.minpkts = lua_tonumber(vm, ++params);
 
-          if (lua_type(vm, params+1) == LUA_TNUMBER) {
+          if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.interflow.minduration = lua_tonumber(vm, ++params);
 
             if(lua_type(vm, params+1) == LUA_TBOOLEAN)
@@ -4240,8 +4241,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+3: config.interflow.sslonly = false;
       }
       break;
+      
     case activity_filter_metrics_test:
       break;
+      
     case activity_filter_sma:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.sma.edge = lua_tonumber(vm, ++params);
@@ -4265,6 +4268,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+3: config.sma.sustain = 1000;
       }
       break;
+      
     case activity_filter_wma:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.wma.edge = lua_tonumber(vm, ++params);
@@ -4288,6 +4292,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+3: config.wma.aggrsecs = 0;
       }
       break;
+      
     case activity_filter_command_sequence:
       if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
         config.command_sequence.mustwait = lua_toboolean(vm, ++params);
@@ -4298,10 +4303,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
           if(lua_type(vm, params+1) == LUA_TNUMBER) {
             config.command_sequence.maxinterval = lua_tonumber(vm, ++params);
 
-            if (lua_type(vm, params+1) == LUA_TNUMBER) {
+            if(lua_type(vm, params+1) == LUA_TNUMBER) {
               config.command_sequence.mincommands = lua_tonumber(vm, ++params);
 
-              if (lua_type(vm, params+1) == LUA_TNUMBER)
+              if(lua_type(vm, params+1) == LUA_TNUMBER)
                 config.command_sequence.minflips = lua_tonumber(vm, ++params);
             }
           }
@@ -4315,6 +4320,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+4: config.command_sequence.minflips = 1;
       }
       break;
+      
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid activity filter (%d)", filterID);
       return (CONST_LUA_ERROR);

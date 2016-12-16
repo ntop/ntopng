@@ -290,8 +290,8 @@ void Flow::checkBlacklistedFlow() {
   if(!blacklist_alarm_emitted) {
     if(cli_host
        && srv_host
-       && (cli_host->is_blacklisted()
-	   || srv_host->is_blacklisted())) {
+       && (cli_host->isBlacklisted()
+	   || srv_host->isBlacklisted())) {
       char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
 
       c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
@@ -306,10 +306,10 @@ void Flow::checkBlacklistedFlow() {
 	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> contacted %s host "
 	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
 	       ntop->getPrefs()->get_http_prefix(),
-	       cli_host->is_blacklisted() ? "Blacklisted host" : "Host",
+	       cli_host->isBlacklisted() ? "Blacklisted host" : "Host",
 	       c, iface->get_name(),
 	       cli_host->get_name() ? cli_host->get_name() : c,
-	       srv_host->is_blacklisted() ? "blacklisted" : "",
+	       srv_host->isBlacklisted() ? "blacklisted" : "",
 	       ntop->getPrefs()->get_http_prefix(),
 	       s, iface->get_name(),
 	       srv_host->get_name() ? srv_host->get_name() : s,
@@ -2301,7 +2301,7 @@ bool Flow::isPassVerdict() {
   if(cli_host && srv_host)
     return((!(cli_host->isAboveQuota() || srv_host->isAboveQuota()))
 	   && (!(cli_host->dropAllTraffic() || srv_host->dropAllTraffic()))
-           && (!(cli_host->is_blacklisted() || srv_host->is_blacklisted())));
+           && (!(cli_host->isBlacklisted() || srv_host->isBlacklisted())));
   else
     return(true);
 }
