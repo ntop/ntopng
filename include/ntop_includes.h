@@ -204,6 +204,7 @@ using namespace std;
 #include "TrafficShaper.h"
 #include "L7Policer.h"
 #include "BatchedMySQLDB.h"
+#include "BatchedMySQLDBEntry.h"
 #include "SPSCQueue.h"
 #include "LuaHandler.h"
 #include "NagiosManager.h"

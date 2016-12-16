@@ -1855,7 +1855,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
-    //db->flush(false /* not idle, periodic activities */);
+    db->flush(false /* not idle, periodic activities */);
   }
 
   if(getRefreshNumAlerts() != no_refresh_needed) {
@@ -3041,10 +3041,10 @@ u_int NetworkInterface::purgeIdleFlows() {
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle flows");
     n = flows_hash->purgeIdle();
 
-    // if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+    if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
       // flush the queue
-      //db->flush(true /* idle */);
-    // }
+      db->flush(true /* idle */);
+    }
 
     next_idle_flow_purge = last_pkt_rcvd + FLOW_PURGE_FREQUENCY;
     return(n);

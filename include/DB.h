@@ -36,6 +36,7 @@ class DB {
   virtual bool dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f, char *json);
   virtual int exec_sql_query(lua_State *vm, char *sql, bool limit_rows);
   virtual void startDBLoop();
+  virtual void flush(bool idle) {};
   virtual bool createDBSchema() {return false; /* override in non-schemaless subclasses */};
   virtual void updateStats(const struct timeval *tv) {};
   virtual void lua(lua_State* vm) const {};
