@@ -51,12 +51,13 @@ void* MySQLDB::queryLoop() {
 				     "Tried to execute a query longer than %u. Skipping.",
 				     CONST_MAX_SQL_QUERY_LEN - 2);
 	continue;  // prevents overflown queries to generate mysql errors
-      } else if((rc = exec_sql_query(&mysql_alt, sql, true, true, false)) < 0) {
+      } else if((rc = exec_sql_query(&mysql_alt, sql, true /* Attempt to reconnect */, true /* Don't print errors */, false)) < 0) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s [rc=%d]", get_last_db_error(&mysql_alt), rc);
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
+
+	/* Don't give up, manually re-connect */
 	mysql_close(&mysql_alt);
-	if(!connectToDB(&mysql_alt, true))
-	  return(NULL);
+	if(!connectToDB(&mysql_alt, true)) _usleep(100);
       } else {
 	mysqlExportedFlows++;
       }
@@ -582,7 +583,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
     return(false);
   }
 
-  if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socket */
+  if(ntop->getPrefs()->get_mysql_host()[0] == '/') /* Use socketD */
     rc = mysql_real_connect(conn,
 			    NULL, /* Host */
 			    ntop->getPrefs()->get_mysql_user(),
