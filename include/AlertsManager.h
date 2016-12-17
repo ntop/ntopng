@@ -202,7 +202,7 @@ class AlertsManager : protected StoreManager {
   void refreshCachedNumAlerts();
   inline int getNumAlerts(bool engaged) {
     /* must force the cast or the compiler will go crazy with ambiguous calls */
-    return getNumAlerts(engaged, static_cast<const char*>(NULL) /* no where clause, all the existing alerts */);
+    return getNumAlerts(engaged, "alert_severity=2" /* errors only */);
   }
   int getNumAlerts(bool engaged, u_int64_t start_time);
   int getNumAlerts(bool engaged, AlertEntity alert_entity, const char *alert_entity_value);

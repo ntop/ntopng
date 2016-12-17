@@ -296,6 +296,7 @@ alert_type_keys = {
   { "<i class='fa fa-exclamation'></i> Too Many Alerts",                  11, "too_many_alerts"            },
   { "<i class='fa fa-exclamation'></i> MySQL open_files_limit too small", 12, "open_files_limit_too_small" },
   { "<i class='fa fa-exclamation'></i> Interface Alerted",                13, "interface_alerted"          },
+  { "<i class='fa fa-exclamation'></i> Flow Misbehaviour",                14, "flow_misbehaviour"          },
 }
 
 alert_entity_keys = {
@@ -2102,8 +2103,10 @@ function getFlowStatus(status)
   elseif(status == 3) then return("<font color=orange>Slow Data Exchange (Slowloris?)</font>")
   elseif(status == 4) then return("<font color=orange>Low Goodput</font>")
   elseif(status == 5) then return("<font color=orange>Suspicious TCP SYN Probing (or server port down)</font>")
-  elseif(status == 6) then return("<font color=orange>TCP Connection Reset</font>")
+  elseif(status == 6) then return("<font color=orange>TCP Connection Issues (Retransmission, OOO, Lost)</font>")
   elseif(status == 7) then return("<font color=orange>Suspicious TCP Probing</font>")
+  elseif(status == 8) then return("<font color=orange>Flow emitted when network interface was alerted</font>")
+  elseif(status == 9) then return("<font color=orange>TCP connection refused</font>")
   else return("<font color=orange>Unknown status ("..status..")</font>")
   end
 end

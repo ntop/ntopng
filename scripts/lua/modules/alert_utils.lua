@@ -1157,7 +1157,18 @@ function drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, g
    local url_params = {}
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
 
-if not alt_nav_tabs then
+   print [[
+     <div align=right><i id="PageRefresh" class="fa fa-refresh" aria-hidden="true"></i></div>
+
+        <script type="text/javascript">
+            $('#PageRefresh').click(function() {
+                document.location = "]] print(ntop.getHttpPrefix().."/lua/show_alerts.lua") print [[";
+            });
+        </script>
+]]
+   
+
+   if not alt_nav_tabs then
    print[[
 <br>
 <ul class="nav nav-tabs" role="tablist" id="alert-tabs">

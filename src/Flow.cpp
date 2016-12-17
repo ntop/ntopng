@@ -237,15 +237,23 @@ void Flow::dumpFlowAlert(bool partial_dump) {
 
   if((!isFlowAlerted()) && (status != status_normal)) {
     char buf[128], *f = print(buf, sizeof(buf));
+    AlertType aType;
+    const char *msg = Utils::flowStatus2str(status, &aType);
+    
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, f);
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s",
-				 Utils::flowstatus2str(status), f);
-
-    if(ntop->getPrefs()->are_probing_alerts_enabled()
-       && cli_host && srv_host) {
-      switch(status) {
-      case status_suspicious_tcp_probing:
-      case status_suspicious_tcp_syn_probing:
+    switch(status) {
+    case status_slow_tcp_connection: /* 1 */
+    case status_slow_application_header: /* 2 */
+    case status_slow_data_exchange: /* 3 */
+    case status_low_goodput: /* 4 */
+    case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similaria */
+    case status_tcp_connection_refused: /* 9 */
+      /* Don't log them for the time being otherwise we'll have too many flows */
+      break;
+	
+    default:
+      if(ntop->getPrefs()->are_probing_alerts_enabled() && cli_host && srv_host) {
 	char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
 
 	c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
@@ -259,7 +267,7 @@ void Flow::dumpFlowAlert(bool partial_dump) {
 	snprintf(alert_msg, sizeof(alert_msg),
 		 "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
 		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-		 "Probing or server down",
+		 msg, /* TODO: remove string and save numeric status */
 		 ntop->getPrefs()->get_http_prefix(),
 		 c, iface->get_name(),
 		 cli_host->get_name() ? cli_host->get_name() : c,
@@ -268,17 +276,11 @@ void Flow::dumpFlowAlert(bool partial_dump) {
 		 srv_host->get_name() ? srv_host->get_name() : s,
 		 print(fbuf, sizeof(fbuf)));
 
-	iface->getAlertsManager()->storeFlowAlert(this,
-						  alert_suspicious_activity,
-						  alert_level_warning,
-						  alert_msg);
-	break;
-
-      default:
-	/* Nothing to do */
-	break;
+	iface->getAlertsManager()->storeFlowAlert(this, aType,
+						  alert_level_warning, alert_msg);
       }
-    }
+      break;
+    }    
 
     setFlowAlerted();
   }
@@ -692,18 +694,40 @@ char* Flow::printTCPflags(u_int8_t flags, char *buf, u_int buf_len) {
 /* *************************************** */
 
 char* Flow::print(char *buf, u_int buf_len) {
-  char buf1[32], buf2[32], buf3[32], pbuf[32];
+  char buf1[32], buf2[32], buf3[32], pbuf[32], tcp_buf[64];
 #ifdef NTOPNG_PRO
   char shapers[64];
-
-  snprintf(shapers, sizeof(shapers), "[shapers: cli2srv=%u/%u, srv2cli=%u/%u]",
-	   flowShaperIds.cli2srv.ingress, flowShaperIds.cli2srv.egress,
-	   flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress);
 #endif
 
   buf[0] = '\0';
 
   if((cli_host == NULL) || (srv_host == NULL)) return(buf);
+
+#ifdef NTOPNG_PRO
+  if(iface->is_bridge_interface()) {
+    snprintf(shapers, sizeof(shapers), "[shapers: cli2srv=%u/%u, srv2cli=%u/%u]",
+	     flowShaperIds.cli2srv.ingress, flowShaperIds.cli2srv.egress,
+	     flowShaperIds.srv2cli.ingress, flowShaperIds.srv2cli.egress);
+  } else
+    shapers[0] = '\0';
+#endif
+
+  tcp_buf[0] = '\0';
+  if(protocol == IPPROTO_TCP) {
+    int len = 0;
+
+    if((tcp_stats_s2d.pktOOO+tcp_stats_d2s.pktOOO) > 0)
+      len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[OOO=%u/%u]",
+		      tcp_stats_s2d.pktOOO, tcp_stats_d2s.pktOOO);
+
+    if((tcp_stats_s2d.pktLost+tcp_stats_d2s.pktLost) > 0)
+      len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[Lost=%u/%u]",
+		      tcp_stats_s2d.pktLost, tcp_stats_d2s.pktLost);
+
+    if((tcp_stats_s2d.pktRetr+tcp_stats_d2s.pktRetr) > 0)
+      len += snprintf(&tcp_buf[len], sizeof(tcp_buf)-len, "[Retr=%u/%u]",
+		      tcp_stats_s2d.pktRetr, tcp_stats_d2s.pktRetr);
+  }
 
   snprintf(buf, buf_len,
 	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
@@ -2524,14 +2548,14 @@ FlowStatus Flow::getFlowStatus() {
   /* All flows */
   threshold = cli2srv_packets / CONST_TCP_CHECK_ISSUES_RATIO;
   if((tcp_stats_s2d.pktRetr + tcp_stats_s2d.pktOOO + tcp_stats_s2d.pktLost) > threshold)
-    return status_suspicious_tcp_syn_probing;
-  
+    return status_tcp_connection_issues;
+
   threshold = srv2cli_packets / CONST_TCP_CHECK_ISSUES_RATIO;
   if((tcp_stats_d2s.pktRetr + tcp_stats_d2s.pktOOO + tcp_stats_d2s.pktLost) > threshold)
-    return status_suspicious_tcp_syn_probing;
-  
+    return status_tcp_connection_issues;
+
   if(!strcmp(iface->get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
-    /* ZMQ flows */    
+    /* ZMQ flows */
   } else {
     /* Packet flows */
     bool isIdle = isIdleFlow();
@@ -2539,7 +2563,7 @@ FlowStatus Flow::getFlowStatus() {
 
     if(protocol == IPPROTO_TCP) {
       u_int16_t l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
-      
+
       if((srv2cli_packets == 0) && ((time(NULL)-last_seen) > CONST_ALERT_PROBING_TIME))
 	return status_suspicious_tcp_probing;
 
@@ -2565,7 +2589,12 @@ FlowStatus Flow::getFlowStatus() {
 
 	if(isIdle  && lowGoodput)  return status_slow_data_exchange;
 	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
-	if(!isIdle && lowGoodput)  return status_low_goodput;
+	if(!isIdle && lowGoodput) {
+	  if((src2dst_tcp_flags && TH_SYN) && (dst2src_tcp_flags && TH_RST))
+	    return status_tcp_connection_refused;
+	  else
+	    return status_low_goodput;
+	}
       }
     }
   }

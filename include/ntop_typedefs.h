@@ -42,6 +42,7 @@ typedef enum {
 } LocationPolicy;
 
 typedef enum {
+  alert_none = -1,
   alert_syn_flood = 0,
   alert_flow_flood,
   alert_threshold_exceeded,
@@ -55,11 +56,13 @@ typedef enum {
   alert_suspicious_activity,
   alert_too_many_alerts,
   alert_db_misconfiguration,
-  alert_interface_alerted
+  alert_interface_alerted,
+  alert_flow_misbehaviour
 } AlertType; /*
 	       NOTE:
 	       keep it in sync with alert_type_keys
 	       in ntopng/scripts/lua/modules/lua_utils.lua
+	       and AlertsManager::getAlertType
 	     */
 
 typedef enum {
@@ -182,7 +185,7 @@ struct string_list {
 
 /*
   Remember to update
-  - Utils.cpp      Utils::flowstatus2str()
+  - Utils.cpp      Utils::flowStatus2str()
   - lua_utils.lua  getFlowStatus(status)
  */
 typedef enum {
@@ -194,7 +197,8 @@ typedef enum {
   status_suspicious_tcp_syn_probing /* 5 */,
   status_tcp_connection_issues /* 6 - i.e. too many retransmission, ooo... or similaria */,
   status_suspicious_tcp_probing /* 7 */,
-  status_flow_when_interface_alerted /* 8 */,  
+  status_flow_when_interface_alerted /* 8 */,
+  status_tcp_connection_refused /* 9 */,  
 } FlowStatus;
 
 typedef enum {

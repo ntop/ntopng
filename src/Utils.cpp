@@ -272,29 +272,42 @@ bool Utils::mkdir_tree(char *path) {
 
 /* **************************************************** */
 
-const char* Utils::flowstatus2str(FlowStatus s) {
+const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
+  *aType = alert_flow_misbehaviour; /* Default */
+  
   switch(s) {
-  case 0:
+  case status_normal:
+    *aType = alert_none;
     return("Normal");
     break;
-  case 1:
+  case status_slow_tcp_connection:
     return("Slow TCP Connection");
     break;
-  case 2:
+  case status_slow_application_header:
     return("Slow Application Header");
     break;
-  case 3:
+  case status_slow_data_exchange:
     return("Slow Data Exchange (Slowloris?)");
     break;
-  case 4:
+  case status_low_goodput:
     return("Low Goodput");
     break;
-  case 5:
-    return("Suspicious TCP Probing (or server port down)");
+  case status_suspicious_tcp_syn_probing:
+    *aType = alert_suspicious_activity;
+    return("Suspicious TCP SYN Probing (or server port down)");
     break;
-  case 6:
-    return("TCP Connection Reset");
+  case status_tcp_connection_issues:
+    return("TCP Connection Issues");
     break;
+  case status_suspicious_tcp_probing:
+    *aType = alert_suspicious_activity;
+    return("Suspicious TCP Probing");
+  case status_flow_when_interface_alerted:
+    *aType = alert_interface_alerted;
+    return("Flow emitted during alerted interface");
+  case status_tcp_connection_refused:
+    *aType = alert_suspicious_activity;
+    return("TCP connection refused");
   default:
     return("Unknown status");
     break;
