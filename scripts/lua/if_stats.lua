@@ -440,7 +440,8 @@ print("</script>\n")
    print("<tr><th colspan=7 nowrap>ZMQ RX Statistics</th></tr>\n")
    print("<tr><th nowrap>Collected Flows</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span>")
    print("<th nowrap>Interface RX Updates</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span>")
-   print("<th nowrap>sFlow Counter Updates</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
+   -- print("<th nowrap>sFlow Counter Updates</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></tr>")
+   print("<th nowrap>ZMQ Message Drops</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></tr>")
    end
 
    print("<tr><th colspan=7 nowrap>Ingress Traffic</th></tr>\n")
@@ -1770,6 +1771,7 @@ if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_flows = ".. ifstats.zmqRecvStats.flows .. ";\n")
    print("var last_zmq_events = ".. ifstats.zmqRecvStats.events .. ";\n")
    print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
+   print("var last_zmq_msg_drops = ".. ifstats.zmqRecvStats.zmq_msg_drops .. ";\n")
 end
 
 print [[
@@ -1814,6 +1816,7 @@ print [[/lua/network_load.lua',
            $('#if_zmq_flows').html(addCommas(rsp.zmqRecvStats.flows)+label);
            $('#if_zmq_events').html(addCommas(rsp.zmqRecvStats.events)+" "+get_trend(rsp.zmqRecvStats.events, last_zmq_events));
            $('#if_zmq_counters').html(addCommas(rsp.zmqRecvStats.counters)+" "+get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
+           $('#if_zmq_msg_drops').html(addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
 
            last_zmq_flows = rsp.zmqRecvStats.flows;
            last_zmq_events = rsp.zmqRecvStats.events;
