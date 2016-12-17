@@ -110,10 +110,17 @@ typedef enum {
 } NagiosAlertStatus;
 #endif
 
-struct zmq_msg_hdr {
+struct zmq_msg_hdr_v0 {
   char url[32];
   u_int32_t version;
   u_int32_t size;
+};
+
+struct zmq_msg_hdr {
+  char url[16];
+  u_int8_t version, _pad;
+  u_int16_t size;
+  u_int32_t msg_id;
 };
 
 typedef uint8_t dump_mac_t[DUMP_MAC_SIZE];

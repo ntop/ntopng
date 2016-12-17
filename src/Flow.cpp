@@ -2590,7 +2590,7 @@ FlowStatus Flow::getFlowStatus() {
 	if(isIdle  && lowGoodput)  return status_slow_data_exchange;
 	if(isIdle  && !lowGoodput) return status_slow_tcp_connection;
 	if(!isIdle && lowGoodput) {
-	  if((src2dst_tcp_flags && TH_SYN) && (dst2src_tcp_flags && TH_RST))
+	  if((src2dst_tcp_flags & TH_SYN) && (dst2src_tcp_flags & TH_RST))
 	    return status_tcp_connection_refused;
 	  else
 	    return status_low_goodput;

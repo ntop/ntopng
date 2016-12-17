@@ -135,16 +135,25 @@ void CollectorInterface::collect_flows() {
     } while(rc == 0);
 
     for(int source_id=0; source_id<num_subscribers; source_id++) {
+      u_int32_t msg_id;
+	
       if(items[source_id].revents & ZMQ_POLLIN) {
 	size = zmq_recv(items[source_id].socket, &h, sizeof(h), 0);
 
-	if((size != sizeof(h)) || (h.version != MSG_VERSION)) {
+	if(size == sizeof(struct zmq_msg_hdr_v0)) {
+	  /* Legacy version */
+	  msg_id = 0;
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "v0");
+	} else if((size != sizeof(h)) || (h.version != ZMQ_MSG_VERSION)) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "Unsupported publisher version [%d]: your nProbe sender is outdated?",
-				       h.version);
+				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
+				       sizeof(struct zmq_msg_hdr), sizeof(h));
 	  continue;
-	}
-
+	} else
+	    msg_id = h.msg_id;
+	    
+	// ntop->getTrace()->traceEvent(TRACE_WARNING, "msg_id=%u", msg_id);
+	
 	size = zmq_recv(items[source_id].socket, payload, payload_len, 0);
 
 	if(size > 0) {
@@ -179,8 +188,8 @@ void CollectorInterface::collect_flows() {
 
 	  if(ntop->getPrefs()->get_zmq_encryption_pwd())
 	    Utils::xor_encdec((u_char*)uncompressed, uncompressed_len, (u_char*)ntop->getPrefs()->get_zmq_encryption_pwd());
-
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "%s", uncompressed);
+	  
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "%s [msg_id=%u]", uncompressed, msg_id);
 
 	  switch(h.url[0]) {
 	  case 'e': /* event */
