@@ -151,8 +151,21 @@ void CollectorInterface::collect_flows() {
 	  continue;
 	} else
 	    msg_id = h.msg_id;
-	    
-	// ntop->getTrace()->traceEvent(TRACE_WARNING, "msg_id=%u", msg_id);
+
+	if(msg_id > 0) {
+	  if(msg_id < recvStats.last_zmq_msg_id) {
+	    /* Start over */
+	  } else if(recvStats.last_zmq_msg_id > 0) {
+	    u_int32_t diff = msg_id - recvStats.last_zmq_msg_id;
+
+	    if(diff != 1) {
+	      recvStats.zmq_msg_drops += diff;
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "msg_id=%u, drops=%u", msg_id, recvStats.zmq_msg_drops);
+	    }
+	  }
+
+	  recvStats.last_zmq_msg_id = msg_id;
+	}       
 	
 	size = zmq_recv(items[source_id].socket, payload, payload_len, 0);
 
@@ -270,6 +283,7 @@ void CollectorInterface::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "flows", recvStats.num_flows);
   lua_push_int_table_entry(vm, "events", recvStats.num_events);
   lua_push_int_table_entry(vm, "counters", recvStats.num_counters);
+  lua_push_int_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
   lua_pushstring(vm, "zmqRecvStats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
