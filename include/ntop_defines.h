@@ -83,7 +83,7 @@
 #endif
 #endif
 
-#define MSG_VERSION               0
+#define ZMQ_MSG_VERSION           1
 #define LOGIN_URL                 "/lua/login.lua"
 #define PLEASE_WAIT_URL           "/lua/please_wait.lua"
 #define AUTHORIZE_URL             "/authorize.html"

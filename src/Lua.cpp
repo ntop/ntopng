@@ -1141,7 +1141,7 @@ static int ntop_zmq_receive(lua_State* vm) {
 
   size = zmq_recv(subscriber, &h, sizeof(h), 0);
 
-  if(size != sizeof(h) || h.version != MSG_VERSION) {
+  if(size != sizeof(h) || h.version != ZMQ_MSG_VERSION) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported publisher version [%d]", h.version);
     return -1;
   }
