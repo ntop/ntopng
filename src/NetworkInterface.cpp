@@ -145,15 +145,14 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
     running = false, sprobe_interface = false, inline_interface = false;
 
     if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+      db = NULL;
+      
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_edition()) {
-	db = new BatchedMySQLDB(this);
-      } else {
-	db = new MySQLDB(this);
-      }
-#else
-      db = new MySQLDB(this);      
+      // if(ntop->getPrefs()->is_enterprise_edition()) db = new BatchedMySQLDB(this);
 #endif
+
+      if(db == NULL)
+	db = new MySQLDB(this);      
       
       if(!db) throw "Not enough memory";
     }

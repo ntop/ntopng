@@ -165,6 +165,8 @@ void nDPIusage() {
   exit(0);
 }
 
+/* ******************************************* */
+
 /* C-binding needed by Win32 service call */
 void usage() {
   printf("ntopng %s v.%s - "NTOP_COPYRIGHT"\n\n"
@@ -675,10 +677,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'w':
-    if (strchr(optarg, ':') == NULL){
+    if(strchr(optarg, ':') == NULL){
       // only the port
       http_port = atoi(optarg);
-    } else if (optarg[0] == ':'){
+    } else if(optarg[0] == ':'){
       // first char == ':' binds to the loopback address
       http_port = atoi(&optarg[1]);
       bind_http_to_loopback();
@@ -693,10 +695,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'W':
-    if (strchr(optarg, ':') == NULL){
+    if(strchr(optarg, ':') == NULL){
       // only the port
       https_port = atoi(optarg);
-    } else if (optarg[0] == ':'){
+    } else if(optarg[0] == ':'){
       // first char == ':' binds to the loopback address
       https_port = atoi(&optarg[1]);
       bind_https_to_loopback();
@@ -762,7 +764,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	c = strtok_r(NULL, ":", &w);
 	if(c) redis_password = strdup(c);
-      } else if (strlen(buf) > 0) {
+      } else if(strlen(buf) > 0) {
 	/* only the host */
 	if(redis_host) free(redis_host);
 	redis_host = strdup(buf);
@@ -771,7 +773,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "ntopng will use redis %s:%u@%u",
 				   redis_host, redis_port, redis_db_id);
-      if (redis_password)
+      if(redis_password)
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "redis connection is password-protected");
     }
@@ -826,7 +828,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 				     "Invalid '%s' value specified for -v: ignored",
 				     optarg);
       } else {
-	if (lvl < 0) lvl = 0;
+	if(lvl < 0) lvl = 0;
 	ntop->getTrace()->set_trace_level((u_int8_t)lvl);
       }
     }
@@ -1201,7 +1203,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 
   /* Sticky hosts preferences */
-  if (sticky_hosts != location_none) {
+  if(sticky_hosts != location_none) {
     char *location_string = NULL;
     if(sticky_hosts == location_all) location_string = (char*)"all";
     else if(sticky_hosts == location_local_only) location_string = (char*)"local";
@@ -1226,98 +1228,98 @@ void Prefs::lua(lua_State* vm) {
 /* *************************************** */
 
 int Prefs::refresh(const char *pref_name, const char *pref_value) {
-  if (!pref_name || !pref_value)
+  if(!pref_name || !pref_value)
     return -1;
 
-  if (!strncmp(pref_name,
+  if(!strncmp(pref_name,
 	       (char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
 	       strlen((char*)CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY)))
     housekeeping_frequency = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS,
 		    strlen((char*)CONST_LOCAL_HOST_CACHE_DURATION_PREFS)))
     local_host_cache_duration = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_LOCAL_HOST_IDLE_PREFS,
 		    strlen((char*)CONST_LOCAL_HOST_IDLE_PREFS)))
     local_host_max_idle = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_REMOTE_HOST_IDLE_PREFS,
 		    strlen((char*)CONST_REMOTE_HOST_IDLE_PREFS)))
     non_local_host_max_idle = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_FLOW_MAX_IDLE_PREFS,
 		    strlen((char*)CONST_FLOW_MAX_IDLE_PREFS)))
     flow_max_idle = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_INTF_RRD_RAW_DAYS,
 		    strlen((char*)CONST_INTF_RRD_RAW_DAYS)))
     intf_rrd_raw_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_INTF_RRD_1MIN_DAYS,
 		    strlen((char*)CONST_INTF_RRD_1MIN_DAYS)))
     intf_rrd_1min_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_INTF_RRD_1H_DAYS,
 		    strlen((char*)CONST_INTF_RRD_1H_DAYS)))
     intf_rrd_1h_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_INTF_RRD_1D_DAYS,
 		    strlen((char*)CONST_INTF_RRD_1D_DAYS)))
     intf_rrd_1d_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_OTHER_RRD_RAW_DAYS,
 		    strlen((char*)CONST_OTHER_RRD_RAW_DAYS)))
     other_rrd_raw_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_OTHER_RRD_1MIN_DAYS,
 		    strlen((char*)CONST_OTHER_RRD_1MIN_DAYS)))
     other_rrd_1min_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_OTHER_RRD_1H_DAYS,
 		    strlen((char*)CONST_OTHER_RRD_1H_DAYS)))
     other_rrd_1h_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_OTHER_RRD_1D_DAYS,
 		    strlen((char*)CONST_OTHER_RRD_1D_DAYS)))
     other_rrd_1d_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS,
 		    strlen((char*)CONST_HOST_ACTIVITY_RRD_RAW_HOURS)))
     host_activity_rrd_raw_hours = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS,
 		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1H_DAYS)))
     host_activity_rrd_1h_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS,
 		    strlen((char*)CONST_HOST_ACTIVITY_RRD_1D_DAYS)))
     host_activity_rrd_1d_days = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
     disable_alerts = pref_value[0] == '1' ? true : false;
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
 		    strlen((char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED)))
     enable_idle_local_hosts_cache = pref_value[0] == '1' ? true : false;
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
 		    strlen((char*)CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED)))
     enable_active_local_hosts_cache = pref_value[0] == '1' ? true : false;
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_MAX_NUM_ALERTS_PER_ENTITY,
 		    strlen((char*)CONST_MAX_NUM_ALERTS_PER_ENTITY)))
     max_num_alerts_per_entity = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_MAX_NUM_FLOW_ALERTS,
 		    strlen((char*)CONST_MAX_NUM_FLOW_ALERTS)))
     max_num_flow_alerts = atoi(pref_value);
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_PREFS_ALERT_PROBING,
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_PROBING)))
     enable_probing_alerts = pref_value[0] == '1' ? true : false;
-  else if (!strncmp(pref_name,
+  else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG)))
     enable_syslog_alerts = pref_value[0] == '1' ? true : false;
