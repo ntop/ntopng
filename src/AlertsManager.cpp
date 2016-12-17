@@ -502,7 +502,9 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
   if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
     // TODO: update the values
   } else {
-    if(getNetworkInterface()) getNetworkInterface()->incAlertLevel();
+    if(getNetworkInterface() && (alert_severity == alert_level_error))
+      getNetworkInterface()->incAlertLevel();
+    
     makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_ENGAGED_TABLE_NAME);
 
     /* This alert is being engaged */
@@ -568,7 +570,9 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
       return 0;  /* Cannot release an alert that has not been engaged */
   }
 
-  if(getNetworkInterface()) getNetworkInterface()->decAlertLevel();
+  if(getNetworkInterface())
+    getNetworkInterface()->decAlertLevel();
+  
   makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
 #if 0
@@ -680,12 +684,13 @@ const char* AlertsManager::getAlertLevel(AlertLevel alert_severity) {
 
 const char* AlertsManager::getAlertType(AlertType alert_type) {
   switch(alert_type) {
+  case alert_none:                   return("No alert");
   case alert_syn_flood:              return("SYN flood");
   case alert_flow_flood:             return("Flow flood");
   case alert_threshold_exceeded:     return("Threshold exceeded");
   case alert_dangerous_host:         return("Dangerous host");
   case alert_periodic_activity:      return("Periodic activity");
-  case alert_quota:                  return("quota");
+  case alert_quota:                  return("Quota exceeded");
   case alert_malware_detection:      return("Malware detection");
   case alert_host_under_attack:      return("Under attack");
   case alert_host_attacker:          return("Host attacker");
@@ -693,7 +698,8 @@ const char* AlertsManager::getAlertType(AlertType alert_type) {
   case alert_suspicious_activity:    return("Suspicious activity");
   case alert_too_many_alerts:        return("Too many alerts");
   case alert_db_misconfiguration:    return("MySQL open_files_limit too small");
-  case alert_interface_alerted:        return("Interface Alerted");
+  case alert_interface_alerted:      return("Interface Alerted");
+  case alert_flow_misbehaviour:      return("Flow misbehaviour");
   }
 
   return(""); /* NOTREACHED */
