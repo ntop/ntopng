@@ -141,6 +141,8 @@
 #define TRAFFIC_FILTERING_CACHE_DURATIION  43200 /* 12 h */
 #define DNS_CACHE_DURATION                 3600  /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION         3600  /*  1 h */
+#define CONST_ALERT_PROBING_TIME            120  /* 2 mins */
+#define CONST_TCP_CHECK_ISSUES_RATIO         10  /* 10% */
 #define HOST_LABEL_NAMES        "ntopng.host_labels"
 #define HOST_SERIALIZED_KEY     "ntopng.serialized_hosts.ifid_%u__%s@%d"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"

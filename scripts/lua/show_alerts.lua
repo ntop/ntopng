@@ -25,7 +25,7 @@ local num_flow_alerts = getNumAlerts("historical-flows", getTabParameters(_GET, 
 if ntop.getPrefs().are_alerts_enabled == false then
    print("<div class=\"alert alert alert-warning\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> Alerts are disabled. Please check the preferences page to enable them.</div>")
 --return
-elseif num_alerts == 0 and num_flow_alerts == 0 and num_engaged_alerts == 0 then
+elseif num_past_alerts == 0 and num_flow_alerts == 0 and num_engaged_alerts == 0 then
    print("<div class=\"alert alert alert-info\"><i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i>" .. " No recorded alerts for interface "..ifname.."</div>")
 else
    drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET)
