@@ -1265,7 +1265,7 @@ function getCurrentStatus() {
    end
 
    if num_flow_alerts > 0 then
-      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.past_flow_alerts"),
+      alert_items[#alert_items +1] = {["label"] = i18n("show_alerts.flow_alerts"),
 	 ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
    elseif status == "historical-flows" then
       status = nil; status_reset = 1
@@ -1484,6 +1484,7 @@ print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myMo
     <form id="modalDeleteForm" class=form-inline style="margin-bottom: 0px;" method=get action="#" onsubmit="return checkModalDelete();">
          <input type="hidden" id="modalDeleteAlertsOlderThan" value="-1" />
       ]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
       -- we need to dynamically modify parameters at js-time because we switch tab
       local delete_params = getTabParameters(url_params, nil)
