@@ -1809,20 +1809,22 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
   host->updateStats(tv);
 
-  if((host->getInterface()->getRefreshNumAlerts() == refresh_all_after_delete
-      && host->getNumAlerts() > 0)
-     || host->getRefreshNumAlerts() == refresh_after_delete
-     || host->getRefreshNumAlerts() == refresh_after_init) {
-    host->getNumAlerts(true /* refresh alert counter from the database */);
-    host->setRefreshNumAlerts(no_refresh_needed);
+  if(!ntop->getPrefs()->are_alerts_disabled()) {
+    if((host->getInterface()->getRefreshNumAlerts() == refresh_all_after_delete
+	&& host->getNumAlerts() > 0)
+       || host->getRefreshNumAlerts() == refresh_after_delete
+       || host->getRefreshNumAlerts() == refresh_after_init) {
+      host->getNumAlerts(true /* refresh alert counter from the database */);
+      host->setRefreshNumAlerts(no_refresh_needed);
+    }
   }
-
+  
   /*
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Updated: %s [%d]",
     ((StringHost*)node)->host_key(),
     host->getThptTrend());
   */
-
+  
   return(false); /* false = keep on walking */
 }
 
