@@ -10,6 +10,7 @@
     <script src="@HTTP_PREFIX@/js/jquery.js"></script>
     <script src="@HTTP_PREFIX@/bootstrap/js/bootstrap.js"></script>
     <script src="@HTTP_PREFIX@/js/bootstrap-datatable.js"></script>
+    <script src="@HTTP_PREFIX@/js/datatable_utils.js"></script>
     <script src="@HTTP_PREFIX@/js/bootstrap3-typeahead.js"></script>
     <script charset="utf-8" src="@HTTP_PREFIX@/js/d3.v3.js"></script>
     <script src="@HTTP_PREFIX@/js/jquery.peity.js"></script>
