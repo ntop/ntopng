@@ -39,7 +39,7 @@ class MySQLDB : public DB {
   bool connectToDB(MYSQL *conn, bool select_db);
   char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
   int flow2InsertValues(bool partial_dump, Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
-  int exec_sql_query(MYSQL *conn, char *sql, bool doReconnect = true, bool ignoreErrors = false, bool doLock = true);
+  int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true, bool ignoreErrors = false, bool doLock = true);
 
  public:
   MySQLDB(NetworkInterface *_iface = NULL);
