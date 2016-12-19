@@ -394,7 +394,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 /* ******************************************* */
 
 void Prefs::reloadPrefsFromRedis() {
-  /* attempt to load preferences set from the web ui and apply default values in not found */
+  /* Attempt to load preferences set from the web ui and apply default values in not found */
   local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION);
   local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
   non_local_host_max_idle   = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE);
@@ -411,8 +411,10 @@ void Prefs::reloadPrefsFromRedis() {
   host_activity_rrd_raw_hours = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_RAW_HOURS, HOST_ACTIVITY_RRD_RAW_HOURS);
   host_activity_rrd_1h_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1H_DAYS, HOST_ACTIVITY_RRD_1H_DAYS);
   host_activity_rrd_1d_days   = getDefaultPrefsValue(CONST_HOST_ACTIVITY_RRD_1D_DAYS, HOST_ACTIVITY_RRD_1D_DAYS);
-  housekeeping_frequency = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
-						HOUSEKEEPING_FREQUENCY);
+  housekeeping_frequency      = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY,
+						     HOUSEKEEPING_FREQUENCY);
+  notifications_enabled          = getDefaultPrefsValue(ALERTS_MANAGER_NOTIFICATION_ENABLED, 0 /* Disabled by default */);
+  dump_flow_alerts_when_iface_alerted = getDefaultPrefsValue(ALERTS_DUMP_DURING_IFACE_ALERTED, 0 /* Disabled by default */);
 
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,

@@ -44,11 +44,11 @@ class Prefs {
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
-    enable_auto_logout, use_promiscuous_mode,
+    enable_auto_logout, use_promiscuous_mode, notifications_enabled,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
-    enable_users_login, disable_localhost_login, online_license_check;
-  bool enable_idle_local_hosts_cache,  enable_active_local_hosts_cache;
-  bool enable_probing_alerts, enable_syslog_alerts;
+    enable_users_login, disable_localhost_login, online_license_check,
+    enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
+    enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
@@ -177,7 +177,9 @@ class Prefs {
   inline u_int16_t get_flow_max_idle()                  { return(flow_max_idle);          };
   inline u_int32_t get_max_num_hosts()                  { return(max_num_hosts);          };
   inline u_int32_t get_max_num_flows()                  { return(max_num_flows);          };
+  inline bool are_notifications_enabled()               { return(notifications_enabled);  };
   inline bool daemonize_ntopng()                        { return(daemonize);              };
+  inline bool do_dump_flow_alerts_when_iface_alerted()  { return(dump_flow_alerts_when_iface_alerted); };
   void add_default_interfaces();
   int loadFromCLI(int argc, char *argv[]);
   int loadFromFile(const char *path);

@@ -552,7 +552,8 @@
 #define ALERTS_MANAGER_NOTIFICATION_ENABLED    "ntopng.alerts.notification_enabled"
 #define ALERTS_MANAGER_NOTIFICATION_SENDER     "ntopng.alerts.sender_username"
 #define ALERTS_MANAGER_NOTIFICATION_WEBHOOK    "ntopng.alerts.slack_webhook"
-#define ALERTS_MANAGER_NOTIFICATION_SEVERITY    "ntopng.prefs.slack_alert_severity"
+#define ALERTS_MANAGER_NOTIFICATION_SEVERITY   "ntopng.alerts.slack_alert_severity"
+#define ALERTS_DUMP_DURING_IFACE_ALERTED       "ntopng.alerts.dump_alerts_when_iface_is_alerted"
 
 #define STARTUP_SCRIPT_PATH        "startup.lua"
 #define HOUSEKEEPING_SCRIPT_PATH   "housekeeping.lua"

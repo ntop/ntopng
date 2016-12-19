@@ -774,12 +774,10 @@ void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_enti
 				const char *alert_json,
 				const char *alert_origin, const char *alert_target) {
   char buf[4], choice[32];
-  bool alert_to_be_notified = false; // Checks if the notification has to be done according to the slack notifications preference
+  bool alert_to_be_notified = false;
   SlackNotificationChoice notification_choice;
 
-  if((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_ENABLED,
-			    buf, sizeof(buf)) >= 0)
-     && (!strcmp(buf, "1"))) {
+  if(ntop->getPrefs()->are_notifications_enabled()) {
     ntop->getRedis()->get((char*) ALERTS_MANAGER_NOTIFICATION_SEVERITY, choice, sizeof(choice));
 
     notification_choice = getSlackNotificationChoice(choice);
