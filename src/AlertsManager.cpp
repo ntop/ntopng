@@ -773,7 +773,7 @@ void AlertsManager::notifySlack(AlertEntity alert_entity, const char *alert_enti
 				AlertType alert_type, AlertLevel alert_severity,
 				const char *alert_json,
 				const char *alert_origin, const char *alert_target) {
-  char buf[4], choice[32];
+  char choice[32];
   bool alert_to_be_notified = false;
   SlackNotificationChoice notification_choice;
 
