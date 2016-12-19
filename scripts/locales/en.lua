@@ -59,6 +59,7 @@ local  en = {
       applied_to = "Applied to",
       notes = "NOTES",
       shapers_in_use_message = "Shapers can be deleted only if they are not applied to any network",
+      no_shapers_available = "No shapers available",
    },
 
    alert_messages = {
@@ -153,6 +154,24 @@ local  en = {
       summary_n_targets = "Total Targets",
       summary_cli2srv = "Total Origin to Target Traffic",
       summary_srv2cli = "Total Target to Origin Traffic"
+   },
+
+   traffic_profiles = {
+      edit_traffic_profiles = "Edit Traffic Profiles",
+      traffic_filter_bpf = "Traffic Filter (BPF Format)",
+      profile_name = "Profile Name",
+      no_profiles = "No profiles set",
+      filter_examples = "Filter Examples",
+      note = "Note",
+      hint_1_pre = "Hint: use",
+      hint_1_after = "to print all nDPI supported protocols",
+      note_0 = "Traffic profile names allow alpha-numeric characters, spaces, and underscores",
+      note_1 = "Traffic profiles are applied to flows. Each flow can have up to one profile, thus in case of multiple profile matches, only the first one is selected",
+      note_2 = "See ntopng -h for a list of nDPI numeric protocol number to be used with term l7proto. Only numernic protocol identifiers are accepted (no symbolic protocol names)",
+      enter_profile_name = "Enter a profile name",
+      enter_profile_filter = "Enter the profile filter",
+      invalid_bpf = "Invalid BPF filter",
+      duplicate_profile = "Duplicate profile name"
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

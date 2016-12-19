@@ -442,6 +442,7 @@ int MySQLDB::flow2InsertValues(bool partial_dump, Flow *f, char *json, char *val
   char cli_str[64], srv_str[64], *json_buf;
   u_int32_t packets, first_seen, last_seen;
   u_int32_t bytes_cli2srv, bytes_srv2cli;
+  size_t len;
 
   if(! values_buf_len || !values_buf_len)
     return -1;
@@ -484,49 +485,49 @@ int MySQLDB::flow2InsertValues(bool partial_dump, Flow *f, char *json, char *val
   }
 
   if(f->get_cli_host()->get_ip()->isIPv4()) {
-    snprintf(values_buf, values_buf_len,
-	     MYSQL_INSERT_VALUES_V4,
-	     f->get_vlan_id(),
-	     f->get_detected_protocol().protocol,
-	     htonl(f->get_cli_host()->get_ip()->get_ipv4()),
-	     f->get_cli_port(),
-	     htonl(f->get_srv_host()->get_ip()->get_ipv4()),
-	     f->get_srv_port(),
-	     f->get_protocol(),
-	     bytes_cli2srv, bytes_srv2cli,
-	     packets, first_seen, last_seen,
-	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-	     json_buf,
-	     ntop->getPrefs()->get_instance_name(),
-	     iface->get_id()
+    len = snprintf(values_buf, values_buf_len,
+		   MYSQL_INSERT_VALUES_V4,
+		   f->get_vlan_id(),
+		   f->get_detected_protocol().protocol,
+		   htonl(f->get_cli_host()->get_ip()->get_ipv4()),
+		   f->get_cli_port(),
+		   htonl(f->get_srv_host()->get_ip()->get_ipv4()),
+		   f->get_srv_port(),
+		   f->get_protocol(),
+		   bytes_cli2srv, bytes_srv2cli,
+		   packets, first_seen, last_seen,
+		   f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
+		   json_buf,
+		   ntop->getPrefs()->get_instance_name(),
+		   iface->get_id()
 #ifdef NTOPNG_PRO
-	     ,f->get_profile_name()
+		   ,f->get_profile_name()
 #endif
 	     );
   }  else {
-    snprintf(values_buf, values_buf_len,
-	     MYSQL_INSERT_VALUES_V6,
-	     f->get_vlan_id(),
-	     f->get_detected_protocol().protocol,
-	     f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
-	     f->get_cli_port(),
-	     f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
-	     f->get_srv_port(),
-	     f->get_protocol(),
-	     bytes_cli2srv, bytes_srv2cli,
-	     packets, first_seen, last_seen,
-	     f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
-	     json_buf,
-	     ntop->getPrefs()->get_instance_name(),
-	     iface->get_id()
+    len = snprintf(values_buf, values_buf_len,
+		   MYSQL_INSERT_VALUES_V6,
+		   f->get_vlan_id(),
+		   f->get_detected_protocol().protocol,
+		   f->get_cli_host()->get_ip()->print(cli_str, sizeof(cli_str)),
+		   f->get_cli_port(),
+		   f->get_srv_host()->get_ip()->print(srv_str, sizeof(srv_str)),
+		   f->get_srv_port(),
+		   f->get_protocol(),
+		   bytes_cli2srv, bytes_srv2cli,
+		   packets, first_seen, last_seen,
+		   f->getFlowServerInfo() ? f->getFlowServerInfo() : "",
+		   json_buf,
+		   ntop->getPrefs()->get_instance_name(),
+		   iface->get_id()
 #ifdef NTOPNG_PRO
-	     ,f->get_profile_name()
+		   ,f->get_profile_name()
 #endif
 	     );
   }
   free(json_buf);
 
-  return 0;
+  return len;
 }
 
 /* ******************************************* */
@@ -627,7 +628,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   Locking is necessary when multiple queries are executed
   simulatenously (e.g. via Lua)
 */
-int MySQLDB::exec_sql_query(MYSQL *conn, char *sql,
+int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 			    bool doReconnect, bool ignoreErrors,
 			    bool doLock) {
   int rc;
