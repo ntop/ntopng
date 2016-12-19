@@ -617,7 +617,7 @@ patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix, int inclusiv
 
   while (node->bit < bitlen) {
 
-    if(node->prefix) {
+    if((node->prefix) && (node->prefix->family == prefix->family)) {
 #ifdef PATRICIA_DEBUG
       fprintf (stderr, "patricia_search_best: push %s/%d\n",
 	       prefix_toa (node->prefix), node->prefix->bitlen);
@@ -652,7 +652,7 @@ patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix, int inclusiv
       break;
   }
 
-  if(inclusive && node && node->prefix)
+  if(inclusive && node && node->prefix && (node->prefix->family == prefix->family))
     stack[cnt++] = node;
 
 #ifdef PATRICIA_DEBUG
