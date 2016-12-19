@@ -114,7 +114,7 @@ class Host : public GenericHost {
   inline void setOS(char *_os)                 { if(os[0] == '\0') snprintf(os, sizeof(os), "%s", _os); }
   inline IpAddress* get_ip()                   { return(&ip);              }
   void set_mac(char *m);
-  inline bool isBlacklisted()                 { return(blacklisted_host); }
+  inline bool isBlacklisted()                  { return(blacklisted_host); }
   inline u_int8_t*  get_mac()                  { return(mac ? mac->get_mac() : NULL);      }
   inline Mac* getMac()                         { return(mac);              }
   inline char* get_os()                        { return(os);               }
