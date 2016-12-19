@@ -155,6 +155,23 @@ local  en = {
       summary_srv2cli = "Total Target to Origin Traffic"
    },
 
+   traffic_profiles = {
+      edit_traffic_profiles = "Edit Traffic Profiles",
+      traffic_filter_bpf = "Traffic Filter (BPF Format)",
+      profile_name = "Profile Name",
+      no_profiles = "No profiles available",
+      filter_examples = "Filter Examples",
+      note = "Note",
+      hint_1_pre = "Hint: use",
+      hint_1_after = "to print all nDPI supported protocols",
+      note_1 = "Traffic profiles are applied to flows. Each flow can have up to one profile, thus in case of multiple profile matches, only the first one is selected",
+      note_2 = "See ntopng -h for a list of nDPI numeric protocol number to be used with term l7proto. Only numernic protocol identifiers are accepted (no symbolic protocol names)",
+      enter_profile_name = "Enter a profile name",
+      enter_profile_filter = "Enter the profile filter",
+      invalid_bpf = "Invalid BPF filter",
+      duplicate_profile = "Duplicate profile name"
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
