@@ -34,11 +34,12 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
 
   if((tmp = strdup(_endpoint)) == NULL) throw("Out of memory");
 
+  is_collector = false;
+  
   e = strtok(tmp, ",");
   while(e != NULL) {
     int l = strlen(e)-1;
     char last_char = e[l];
-    bool is_collector = false;
 
     if(num_subscribers == MAX_ZMQ_SUBSCRIBERS) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -152,7 +153,11 @@ void CollectorInterface::collect_flows() {
 	} else
 	    msg_id = h.msg_id;
 
-	if(msg_id > 0) {
+	if((!is_collector) && (msg_id > 0)) {
+	  /* 
+	     TODO
+	     Develop logic for computing drops in collector mode
+	  */
 	  if(msg_id < recvStats.last_zmq_msg_id) {
 	    /* Start over */
 	  } else if(recvStats.last_zmq_msg_id > 0) {
@@ -160,7 +165,7 @@ void CollectorInterface::collect_flows() {
 
 	    if(diff != 1) {
 	      recvStats.zmq_msg_drops += diff;
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "msg_id=%u, drops=%u", msg_id, recvStats.zmq_msg_drops);
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "msg_id=%u, drops=%u", msg_id, recvStats.zmq_msg_drops);
 	    }
 	  }
 
