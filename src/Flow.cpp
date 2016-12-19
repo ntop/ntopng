@@ -239,48 +239,60 @@ void Flow::dumpFlowAlert(bool partial_dump) {
     char buf[128], *f = print(buf, sizeof(buf));
     AlertType aType;
     const char *msg = Utils::flowStatus2str(status, &aType);
+    bool do_dump = true;
     
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, f);
 
     switch(status) {
+    case status_normal:
+      do_dump = false;
+      break;
+	
     case status_slow_tcp_connection: /* 1 */
     case status_slow_application_header: /* 2 */
     case status_slow_data_exchange: /* 3 */
     case status_low_goodput: /* 4 */
     case status_tcp_connection_issues: /* 6 - i.e. too many retransmission ooo... or similaria */
-    case status_tcp_connection_refused: /* 9 */
       /* Don't log them for the time being otherwise we'll have too many flows */
+      do_dump = false;
       break;
-	
-    default:
-      if(ntop->getPrefs()->are_probing_alerts_enabled() && cli_host && srv_host) {
-	char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
 
-	c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-	if(c && cli_host->get_vlan_id())
-	  sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-
-	s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-	if(s && srv_host->get_vlan_id())
-	  sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
-
-	snprintf(alert_msg, sizeof(alert_msg),
-		 "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
-		 "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-		 msg, /* TODO: remove string and save numeric status */
-		 ntop->getPrefs()->get_http_prefix(),
-		 c, iface->get_name(),
-		 cli_host->get_name() ? cli_host->get_name() : c,
-		 ntop->getPrefs()->get_http_prefix(),
-		 s, iface->get_name(),
-		 srv_host->get_name() ? srv_host->get_name() : s,
-		 print(fbuf, sizeof(fbuf)));
-
-	iface->getAlertsManager()->storeFlowAlert(this, aType,
-						  alert_level_warning, alert_msg);
-      }
+    case status_suspicious_tcp_syn_probing: /* 5 */
+    case status_suspicious_tcp_probing:     /* 7 */
+    case status_tcp_connection_refused: /* 9 */
+      do_dump = ntop->getPrefs()->are_probing_alerts_enabled();
       break;
-    }    
+
+    case status_flow_when_interface_alerted /* 8 */:
+      do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
+      break;
+    }
+
+    if(do_dump && cli_host && srv_host) {
+      char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
+
+      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
+      if(c && cli_host->get_vlan_id())
+	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+
+      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
+      if(s && srv_host->get_vlan_id())
+	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+
+      snprintf(alert_msg, sizeof(alert_msg),
+	       "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
+	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
+	       msg, /* TODO: remove string and save numeric status */
+	       ntop->getPrefs()->get_http_prefix(),
+	       c, iface->get_name(),
+	       cli_host->get_name() ? cli_host->get_name() : c,
+	       ntop->getPrefs()->get_http_prefix(),
+	       s, iface->get_name(),
+	       srv_host->get_name() ? srv_host->get_name() : s,
+	       print(fbuf, sizeof(fbuf)));
+
+      iface->getAlertsManager()->storeFlowAlert(this, aType, alert_level_warning, alert_msg);
+    }
 
     setFlowAlerted();
   }
