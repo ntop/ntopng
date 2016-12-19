@@ -233,7 +233,7 @@ print[[
 
                    if(rsp.error_level_alerts) {
                      color = error_color;
-                     label = label_danger;
+                     label = error_label;
                    }
 
                    // update the color of the menu triangle
