@@ -1275,22 +1275,6 @@ NOTES:
 <script>
 ]] print(jsFormCSRF('deleteNetworkForm', true)) print[[
 ]] print(jsFormCSRF('editNetworksForm', true)) print[[
-function addDeleteButtonCallback(td_idx, callback_str, label) {
-   if (! label) label = "]] print(i18n('delete')) print[[";
-   $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on" onclick="' + callback_str + '" role="button"><span class="label label-danger">' + label + '</span></a>');
-}
-
-function foreachDatatableRow(tableid, callbacks) {
-   $("#"+tableid+" tr:not(:first)").each(function(row_i) {
-      if(typeof callbacks === 'function') {
-         callbacks.bind(this)(row_i);
-      } else {
-         var i;
-         for (i=0; i<callbacks.length; i++)
-            callbacks[i].bind(this)(row_i);
-      }
-   });
-}
 
 function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper = $("td:nth-child("+ingress_shaper_idx+")", $(this));
@@ -1398,15 +1382,6 @@ function toggleCustomNetworkMode() {
       return true;
    }
 
-   function undoAddRow(bt_to_enable) {
-      if (bt_to_enable)
-         $(bt_to_enable).removeAttr("disabled");
-
-      var form = $("#new_added_row").closest("form");
-      $("#new_added_row").remove();
-      aysUpdateForm(form);
-   }
-
    function addNewShapedProto() {
       var tr = $('<tr id="new_added_row" ><td><select class="form-control" name="new_protocol_id">\
 ]] print_ndpi_protocols(protos, {}, shaper_utils.getNetworkProtoShapers(ifid, net), "\\") print[[
@@ -1417,7 +1392,7 @@ function toggleCustomNetworkMode() {
       </select></td><td class="text-center" style="vertical-align: middle;"></td></tr>');
 
       $("#table-protos table").append(tr);
-      addDeleteButtonCallback.bind(tr)(4, "undoAddRow('#addNewShapedProtoBtn')", "Undo");
+      datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#new_added_row', ']] print(i18n("shaping.no_shapers_available")) print[[', '#addNewShapedProtoBtn')", "]] print(i18n('undo')) print[[");
 
       $("#addNewShapedProtoBtn").attr('disabled', true);
       aysRecheckForm('#l7ProtosForm');
@@ -1476,14 +1451,14 @@ function toggleCustomNetworkMode() {
       ], tableCallback: function() {
          var proto_id;
 
-         foreachDatatableRow("table-protos", [
+         datatableForEachRow("#table-protos", [
             function() {
                proto_id = $("td:nth-child(1) span", $(this)).attr("data-proto-id");
             }, function() {
                makeShapersDropdownCallback.bind(this)(proto_id, 2, 3);
             }, function() {
                if (proto_id != ']] print(shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY) print[[')
-                  addDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol(" + proto_id + ")");
+                  datatableAddDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol(" + proto_id + ")", "]] print(i18n('delete')) print[[");
             }
          ]);
 
@@ -1658,7 +1633,7 @@ print[[
          }
       ], tableCallback: function() {
          /* Make max rate editable */
-         foreachDatatableRow("table-shapers", function() {
+         datatableForEachRow("#table-shapers", function() {
             var shaper_id = $("td:nth-child(1)", $(this)).html();
             var max_rate = $("td:nth-child(2)", $(this));
 
