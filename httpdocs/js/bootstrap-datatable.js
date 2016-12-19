@@ -164,7 +164,9 @@
                   that.$bottom_details.append(that.pagination().clone(true));
 
                 // update the details for the results
-                that.details();
+// ------------- Start ntop Patch ---------------
+                if(! o.hideDetails)     that.details();
+// ------------- End ntop Patch ---------------
 
                 // initialize the toolbar
                 _initToolbar.call(that);
