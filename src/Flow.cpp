@@ -320,7 +320,7 @@ void Flow::checkBlacklistedFlow() {
 	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> contacted %s host "
 	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
 	       ntop->getPrefs()->get_http_prefix(),
-	       cli_host->isBlacklisted() ? "Blacklisted host" : "Host",
+	       cli_host->isBlacklisted() ? "blacklisted" : "",
 	       c, iface->get_name(),
 	       cli_host->get_name() ? cli_host->get_name() : c,
 	       srv_host->isBlacklisted() ? "blacklisted" : "",
@@ -334,7 +334,7 @@ void Flow::checkBlacklistedFlow() {
       if(!strstr(s, "@")) sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
 
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
-						alert_level_warning, alert_msg);
+						alert_level_error, alert_msg);
     }
 
     blacklist_alarm_emitted = true;

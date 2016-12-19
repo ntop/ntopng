@@ -165,7 +165,7 @@ Ntop::~Ntop() {
 
   if(hostBlacklist)       Destroy_Patricia(hostBlacklist, NULL);
   if(hostBlacklistShadow) Destroy_Patricia(hostBlacklistShadow, NULL);
-  
+
   Destroy_Patricia(local_interface_addresses, NULL);
   delete address;
   delete pa;
@@ -1283,12 +1283,19 @@ void Ntop::swapHostBlacklist() {
 /* ******************************************* */
 
 void Ntop::addToHostBlacklist(char *net) {
-  if(hostBlacklistShadow)
-    Utils::ptree_add_rule(hostBlacklistShadow, net);  
+  if(hostBlacklistShadow) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Loading blacklist %s", net);
+    Utils::ptree_add_rule(hostBlacklistShadow, net);
+  }
 }
 
 /* ******************************************* */
 
 bool Ntop::isBlacklistedIP(IpAddress *ip) {
-  return((hostBlacklist && ip->findAddress(hostBlacklist)) ? true : false);
+  patricia_node_t *n;
+  bool rc = (hostBlacklist && (n = (patricia_node_t*)ip->findAddress(hostBlacklist))) ? true : false;
+
+  // if(rc) ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Found blacklist [%p]", n);
+	      
+  return(rc);
 }

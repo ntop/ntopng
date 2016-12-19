@@ -441,6 +441,9 @@ for _key, _value in pairsByKeys(vals, funct) do
 	       if value["localhost"] == true or value["systemhost"] == true then
 		  print("<span class='label label-success'>Local</span>") else print("<span class='label label-default'>Remote</span>")
 	       end
+	       if value["is_blacklisted"] == true then
+		     print(" <span class='label label-danger'>Blacklist</span>")
+	       end
 	    end
 
 	    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)

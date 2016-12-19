@@ -142,15 +142,13 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
     if(ntop->getPrefs()->are_taps_enabled())
       pkt_dumper_tap = new PacketDumperTuntap(this);
 
-    running = false, sprobe_interface = false, inline_interface = false;
+    running = false, sprobe_interface = false, inline_interface = false, db = NULL;
 
-    if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-      db = NULL;
-      
+    if((!isView()) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
 #ifdef NTOPNG_PRO
       // if(ntop->getPrefs()->is_enterprise_edition()) db = new BatchedMySQLDB(this);
 #endif
-
+      
       if(db == NULL)
 	db = new MySQLDB(this);      
       

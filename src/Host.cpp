@@ -251,8 +251,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   }
 
   if(localHost || systemHost) {
-      loadAlertPrefs();
-      readAlertPrefs();
+    loadAlertPrefs();
+    readAlertPrefs();
   }
   
   if(!host_serial) computeHostSerial();
@@ -463,6 +463,7 @@ void Host::lua(lua_State* vm, patricia_tree_t *ptree,
     lua_push_str_table_entry(vm, "local_network_name", local_net);
 
   lua_push_bool_table_entry(vm, "systemhost", systemHost);
+  lua_push_bool_table_entry(vm, "is_blacklisted", blacklisted_host);
   lua_push_int_table_entry(vm, "source_id", source_id);
   lua_push_int_table_entry(vm, "asn", asn);
 
@@ -1268,9 +1269,11 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager)     {
 /* *************************************** */
 
 void Host::loadAlertPrefs() {
-  loadFlowRateAlertPrefs();
-  loadSynAlertPrefs();
-  loadFlowsAlertPrefs();
+  if(!ntop->getPrefs()->are_alerts_disabled()) {    
+    loadFlowRateAlertPrefs();
+    loadSynAlertPrefs();
+    loadFlowsAlertPrefs();
+  }
 }
 
 /* *************************************** */

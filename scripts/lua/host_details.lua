@@ -631,6 +631,7 @@ end
       if(host["localhost"] == true) then print('<span class="label label-success">Local</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
       if(host["systemhost"] == true) then print(' <span class="label label-info">System <i class=\"fa fa-flag\"></i></span>') end
+      if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">Blacklisted Host</span>') end
 
       print(getHostIcon(labelKey))
       print("</td>\n")
