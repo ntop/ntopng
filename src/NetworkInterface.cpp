@@ -4453,6 +4453,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
   lua_State *L;
   const char *luaFunction;
 
+  return(0); // FIX
   if(reloadLuaInterpreter) {
     if(L_flow_create_delete_ndpi || L_flow_update) termLuaInterpreter();
     L_flow_create_delete_ndpi = initLuaInterpreter(CONST_FLOWACTIVITY_SCRIPT);
