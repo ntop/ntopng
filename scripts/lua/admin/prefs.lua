@@ -206,7 +206,7 @@ function printAlerts()
                     "Enable alerts generated when probing attempts are detected.",
                     "On", "1", "success",
 		    "Off","0", "danger",
-		    "toggle_alert_probing", "ntopng.prefs.probing_alerts", "1",
+		    "toggle_alert_probing", "ntopng.prefs.probing_alerts", "0",
 		    false, nil, nil, showElements)
 
   toggleTableButtonPrefs("Dump Flow Alerts",
@@ -252,13 +252,16 @@ function printAlerts()
 
   local retVal = multipleTableButtonPrefs("Notification Preference Based On Severity",
                "Errors (errors only), Errors and Warnings (errors and warnings, no info), All (every kind of alerts will be notified).",
-               labels, values, "only_errors", "primary", "slack_notification_severity_preference", "ntopng.alerts.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
+               labels, values, "only_errors", "primary", "slack_notification_severity_preference",
+	       "ntopng.alerts.slack_alert_severity", nil, nil, nil,  nil, showElements and showSlackNotificationPrefs)
 
   prefsInputFieldPrefs("Notification Sender Username",
-          "Set the username of the sender of slack notifications", "ntopng.alerts.", "sender_username", "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false)
+		       "Set the username of the sender of slack notifications", "ntopng.alerts.", "sender_username",
+		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false)
 
   prefsInputFieldPrefs("Notification Wekhook",
-          "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook", "", nil, showElements and showSlackNotificationPrefs, true, true)
+		       "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook",
+		       "", nil, showElements and showSlackNotificationPrefs, true, true)
 
 
   if (ntop.isPro()) then
