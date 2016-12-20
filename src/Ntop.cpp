@@ -54,7 +54,6 @@ Ntop::Ntop(char *appName) {
   elastic_search = NULL;
   num_cpus = -1;
   num_defined_interfaces = 0;
-  local_interface_addresses = New_Patricia(128);
   export_interface = NULL;
   start_time = 0; /* It will be initialized by start() */
   memset(iface, 0, sizeof(iface));
@@ -160,13 +159,12 @@ Ntop::~Ntop() {
   if(httpbl)     delete httpbl;
   if(flashstart) delete flashstart;
   if(httpd)      delete httpd;
-  if(custom_ndpi_protos) delete(custom_ndpi_protos);
-  if(elastic_search) delete(elastic_search);
+  if(custom_ndpi_protos)  delete(custom_ndpi_protos);
+  if(elastic_search)      delete(elastic_search);
 
-  if(hostBlacklist)       Destroy_Patricia(hostBlacklist, NULL);
-  if(hostBlacklistShadow) Destroy_Patricia(hostBlacklistShadow, NULL);
+  if(hostBlacklist)       delete hostBlacklist;
+  if(hostBlacklistShadow) delete hostBlacklistShadow;
 
-  Destroy_Patricia(local_interface_addresses, NULL);
   delete address;
   delete pa;
   if(geo)   delete geo;
@@ -317,13 +315,6 @@ bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id) {
   *network_id = address->findAddress(family, addr);
   return(((*network_id) == -1) ? false : true);
 };
-
-/* ******************************************* */
-
-bool Ntop::isLocalInterfaceAddress(int family, void *addr) {
-  return((Utils::ptree_match(local_interface_addresses, family, addr,
-			     (family == AF_INET) ? 32 : 128) != NULL) ? true /* found */ : false /* not found */);
-}
 
 /* ******************************************* */
 
@@ -516,12 +507,12 @@ void Ntop::loadLocalInterfaceAddress() {
       }
 
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
-#ifdef ADD_INTERFACE_ADDRESSES
+	char buf_orig[32];
+	
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 32);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig, iface[ifId]->get_name());
-	ptree_add_rule(local_interface_addresses, buf_orig);
+	local_interface_addresses.addAddress(buf_orig);
 	iface[ifId]->addInterfaceAddress(buf_orig);
-#endif
 
 	/* Set to zero non network bits */
 	s4->sin_addr.s_addr = htonl(ntohl(s4->sin_addr.s_addr) & ntohl(netmask));
@@ -545,12 +536,10 @@ void Ntop::loadLocalInterfaceAddress() {
 
       s6 = (struct sockaddr_in6 *)(ifa->ifa_addr);
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
-#ifdef ADD_INTERFACE_ADDRESSES
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 128);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 interface address for %s", buf_orig, iface[ifId]->get_name());
 	address->setLocalNetwork(buf_orig);
 	iface[ifId]->addInterfaceAddress(buf_orig);
-#endif
 
 	for(int i = cidr, j = 0; i > 0; i -= 8, ++j)
 	  s6->sin6_addr.s6_addr[j] &= i >= 8 ? 0xff : (u_int32_t)(( 0xffU << ( 8 - i ) ) & 0xffU );
@@ -558,7 +547,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network for %s", buf_orig, iface[ifId]->get_name());
-	Utils::ptree_add_rule(local_interface_addresses, buf_orig);
+	local_interface_addresses.addAddresses(buf_orig);
       }
     }
   }
@@ -1264,17 +1253,17 @@ void Ntop::shutdown() {
 
 void Ntop::allocHostBlacklist() {
   if(hostBlacklistShadow != NULL) {
-    Destroy_Patricia(hostBlacklistShadow, NULL);
+    delete hostBlacklistShadow;
     hostBlacklistShadow = NULL;
   }
 
-  hostBlacklistShadow = New_Patricia(128);
+  hostBlacklistShadow = new AddressTree();
 }
 
 /* ******************************************* */
 
 void Ntop::swapHostBlacklist() {
-  patricia_tree_t *cp = hostBlacklist;
+  AddressTree *cp = hostBlacklist;
 
   hostBlacklist = hostBlacklistShadow;
   hostBlacklistShadow = cp;
@@ -1285,15 +1274,14 @@ void Ntop::swapHostBlacklist() {
 void Ntop::addToHostBlacklist(char *net) {
   if(hostBlacklistShadow) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Loading blacklist %s", net);
-    Utils::ptree_add_rule(hostBlacklistShadow, net);
+    hostBlacklistShadow->addAddresses(net);
   }
 }
 
 /* ******************************************* */
 
 bool Ntop::isBlacklistedIP(IpAddress *ip) {
-  patricia_node_t *n;
-  bool rc = (hostBlacklist && (n = (patricia_node_t*)ip->findAddress(hostBlacklist))) ? true : false;
+  bool rc = (hostBlacklist && ip->findAddress(hostBlacklist)) ? true : false;
 
   // if(rc) ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Found blacklist [%p]", n);
 	      

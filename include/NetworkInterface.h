@@ -128,7 +128,7 @@ class NetworkInterface {
 		time_t first_seen, time_t last_seen,
 		bool *new_flow);
   int sortHosts(struct flowHostRetriever *retriever,
-		patricia_tree_t *allowed_hosts,
+		AddressTree *allowed_hosts,
 		bool host_details,
 		LocationPolicy location,
 		char *countryFilter, char *mac_filter,
@@ -245,8 +245,8 @@ class NetworkInterface {
   void findFlowHosts(u_int16_t vlan_id,
 		     u_int8_t src_mac[6], IpAddress *_src_ip, Host **src,
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
-  Flow* findFlowByKey(u_int32_t key, patricia_tree_t *allowed_hosts);
-  bool findHostsByName(lua_State* vm, patricia_tree_t *allowed_hosts, char *key);
+  Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
+  bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
   bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol);
   bool processPacket(const struct bpf_timeval *when,
 		     const u_int64_t time,
@@ -281,16 +281,16 @@ class NetworkInterface {
    * @param allowed_hosts A patricia tree containing allowed hosts.
    */
   int getLatestActivityHostsList(lua_State* vm,
-				 patricia_tree_t *allowed_hosts);
+				 AddressTree *allowed_hosts);
   int getActiveHostsList(lua_State* vm,
-			 patricia_tree_t *allowed_hosts,
+			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
 			 char *countryFilter, char *mac_filter,
 			 u_int16_t *vlan_id, char *osFilter, u_int32_t *asnFilter, int16_t *networkFilter,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
   int getActiveHostsGroup(lua_State* vm,
-			  patricia_tree_t *allowed_hosts,
+			  AddressTree *allowed_hosts,
 			  bool host_details, LocationPolicy location,
 			  char *countryFilter,
 			  u_int16_t *vlan_id, char *osFilter,
@@ -302,14 +302,14 @@ class NetworkInterface {
 		       u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
   void getNetworksStats(lua_State* vm);
-  int  getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
+  int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
 		Host *host, int ndpi_proto, LocationPolicy location,
 		char *sortColumn, u_int32_t maxHits,
 		u_int32_t toSkip, bool a2zSortOrder);
-  int  getFlows(lua_State* vm, patricia_tree_t *allowed_hosts,
+  int  getFlows(lua_State* vm, AddressTree *allowed_hosts,
 		LocationPolicy location, Host *host,
 		Paginator *p);
-  void getFlowPeersList(lua_State* vm, patricia_tree_t *allowed_hosts,
+  void getFlowPeersList(lua_State* vm, AddressTree *allowed_hosts,
 			char *numIP, u_int16_t vlanId);
   void getLocalHostActivity(lua_State* vm, const char * host);
 
@@ -328,10 +328,10 @@ class NetworkInterface {
   void runHousekeepingTasks();
   Mac*  getMac(u_int8_t _mac[6], u_int16_t vlanId, bool createIfNotPresent);
   Host* getHost(char *host_ip, u_int16_t vlan_id);
-  bool getHostInfo(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  bool loadHostAlertPrefs(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  bool correlateHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  bool similarHostActivity(lua_State* vm, patricia_tree_t *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  bool getHostInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  bool loadHostAlertPrefs(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  bool correlateHostActivity(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  bool similarHostActivity(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
   void findUserFlows(lua_State *vm, char *username);
   void findPidFlows(lua_State *vm, u_int32_t pid);
   void findFatherPidFlows(lua_State *vm, u_int32_t pid);
@@ -346,7 +346,7 @@ class NetworkInterface {
   inline AlertRefresh getRefreshNumAlerts()                   { return refresh_num_alerts;          }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules(patricia_tree_t *ptree);
+  void refreshL7Rules(AddressTree *ptree);
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
@@ -355,7 +355,7 @@ class NetworkInterface {
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
 
 #ifdef NTOPNG_PRO
-  void updateHostsL7Policy(patricia_tree_t *ptree);
+  void updateHostsL7Policy(AddressTree *ptree);
 #endif
 
   bool updateDumpAllTrafficPolicy(void);
@@ -376,7 +376,7 @@ class NetworkInterface {
   void loadScalingFactorPrefs();
   void getnDPIFlowsCount(lua_State *vm);
 
-  Host* findHostsByIP(patricia_tree_t *allowed_hosts,
+  Host* findHostsByIP(AddressTree *allowed_hosts,
 		      char *host_ip, u_int16_t vlan_id);
 
   inline HostHash* get_hosts_hash()  { return(hosts_hash);       }

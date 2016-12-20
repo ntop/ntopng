@@ -1871,7 +1871,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
 static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
   Host *h = (Host*)node;
-  patricia_tree_t *ptree = (patricia_tree_t*)user_data;
+  AddressTree *ptree = (AddressTree*)user_data;
 
   if((ptree == NULL) || h->match(ptree))
     ((Host*)node)->updateHostL7Policy();
@@ -1881,7 +1881,7 @@ static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateHostsL7Policy(patricia_tree_t *ptree) {
+void NetworkInterface::updateHostsL7Policy(AddressTree *ptree) {
   if(isView()) return;
   hosts_hash->walk(update_host_l7_policy, ptree);
 }
@@ -2044,7 +2044,7 @@ void NetworkInterface::updateFlowProfiles() {
 /* **************************************************** */
 
 bool NetworkInterface::getHostInfo(lua_State* vm,
-				   patricia_tree_t *allowed_hosts,
+				   AddressTree *allowed_hosts,
 				   char *host_ip, u_int16_t vlan_id) {
   Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
@@ -2058,7 +2058,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 /* **************************************************** */
 
 bool NetworkInterface::loadHostAlertPrefs(lua_State* vm,
-				          patricia_tree_t *allowed_hosts,
+				          AddressTree *allowed_hosts,
 				          char *host_ip, u_int16_t vlan_id) {
   Host *h = findHostsByIP(allowed_hosts, host_ip, vlan_id);
 
@@ -2071,7 +2071,7 @@ bool NetworkInterface::loadHostAlertPrefs(lua_State* vm,
 
 /* **************************************************** */
 
-Host* NetworkInterface::findHostsByIP(patricia_tree_t *allowed_hosts,
+Host* NetworkInterface::findHostsByIP(AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id) {
   if(host_ip != NULL) {
     Host *h = getHost(host_ip, vlan_id);
@@ -2096,7 +2096,7 @@ struct flowHostRetrieveList {
 
 struct flowHostRetriever {
   /* Search criteria */
-  patricia_tree_t *allowed_hosts;
+  AddressTree *allowed_hosts;
   Host *host;
   Mac *mac;
   bool skipSpecialMacs, hostMacsOnly;
@@ -2417,7 +2417,7 @@ void NetworkInterface::enablePurge(bool on_flows) {
 /* **************************************************** */
 
 int NetworkInterface::getFlows(lua_State* vm,
-			       patricia_tree_t *allowed_hosts,
+			       AddressTree *allowed_hosts,
 			       Host *host, int ndpi_proto,
 			       LocationPolicy location,
 			       char *sortColumn,
@@ -2495,7 +2495,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 /* **************************************************** */
 
 int NetworkInterface::getFlows(lua_State* vm,
-			       patricia_tree_t *allowed_hosts,
+			       AddressTree *allowed_hosts,
 			       LocationPolicy location, Host *host,
 			       Paginator *p) {
   struct flowHostRetriever retriever;
@@ -2586,7 +2586,7 @@ int NetworkInterface::getFlows(lua_State* vm,
 
 /* **************************************************** */
 
-int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t *allowed_hosts) {
+int NetworkInterface::getLatestActivityHostsList(lua_State* vm, AddressTree *allowed_hosts) {
   struct flowHostRetriever retriever;
 
   memset(&retriever, 0, sizeof(retriever));
@@ -2631,7 +2631,7 @@ int NetworkInterface::getLatestActivityHostsList(lua_State* vm, patricia_tree_t 
 /* **************************************************** */
 
 int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
-				patricia_tree_t *allowed_hosts,
+				AddressTree *allowed_hosts,
 				bool host_details,
 				LocationPolicy location,
 				char *countryFilter, char *mac_filter,
@@ -2742,7 +2742,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 
 /* **************************************************** */
 
-int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed_hosts,
+int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hosts,
 					 bool host_details, LocationPolicy location,
 					 char *countryFilter, char *mac_filter,
 					 u_int16_t *vlan_id, char *osFilter,
@@ -2800,7 +2800,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, patricia_tree_t *allowed
 }
 /* **************************************************** */
 
-int NetworkInterface::getActiveHostsGroup(lua_State* vm, patricia_tree_t *allowed_hosts,
+int NetworkInterface::getActiveHostsGroup(lua_State* vm, AddressTree *allowed_hosts,
 					  bool host_details, LocationPolicy location,
 					  char *countryFilter,
 					  u_int16_t *vlan_id, char *osFilter,
@@ -2944,7 +2944,7 @@ struct flow_peers_info {
   lua_State *vm;
   char *numIP;
   u_int16_t vlanId;
-  patricia_tree_t *allowed_hosts;
+  AddressTree *allowed_hosts;
   u_int32_t peer_num;
 };
 
@@ -2968,7 +2968,7 @@ static bool flow_peers_walker(GenericHashEntry *h, void *user_data) {
 /* **************************************************** */
 
 void NetworkInterface::getFlowPeersList(lua_State* vm,
-					patricia_tree_t *allowed_hosts,
+					AddressTree *allowed_hosts,
 					char *numIP, u_int16_t vlanId) {
   struct flow_peers_info info;
 
@@ -3367,7 +3367,7 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], u_int16_t vlanId,
 /* **************************************************** */
 
 Flow* NetworkInterface::findFlowByKey(u_int32_t key,
-				      patricia_tree_t *allowed_hosts) {
+				      AddressTree *allowed_hosts) {
   Flow *f;
 
   if(!isView())
@@ -3389,7 +3389,7 @@ struct search_host_info {
   lua_State *vm;
   char *host_name_or_ip;
   u_int num_matches;
-  patricia_tree_t *allowed_hosts;
+  AddressTree *allowed_hosts;
 };
 
 /* **************************************************** */
@@ -3408,7 +3408,7 @@ static bool hosts_search_walker(GenericHashEntry *h, void *user_data) {
 /* **************************************************** */
 
 bool NetworkInterface::findHostsByName(lua_State* vm,
-				       patricia_tree_t *allowed_hosts,
+				       AddressTree *allowed_hosts,
 				       char *key) {
   struct search_host_info info;
 
@@ -3578,7 +3578,7 @@ static bool similarity_walker(GenericHashEntry *node, void *user_data) {
 /* **************************************************** */
 
 bool NetworkInterface::correlateHostActivity(lua_State* vm,
-					     patricia_tree_t *allowed_hosts,
+					     AddressTree *allowed_hosts,
 					     char *host_ip, u_int16_t vlan_id) {
   Host *h = getHost(host_ip, vlan_id);
 
@@ -3599,7 +3599,7 @@ bool NetworkInterface::correlateHostActivity(lua_State* vm,
 /* **************************************************** */
 
 bool NetworkInterface::similarHostActivity(lua_State* vm,
-					   patricia_tree_t *allowed_hosts,
+					   AddressTree *allowed_hosts,
 					   char *host_ip, u_int16_t vlan_id) {
   Host *h = getHost(host_ip, vlan_id);
 
@@ -3823,7 +3823,7 @@ void NetworkInterface::addAllAvailableInterfaces() {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshL7Rules(patricia_tree_t *ptree) {
+void NetworkInterface::refreshL7Rules(AddressTree *ptree) {
   if(ntop->getPro()->has_valid_license() && policer)
     policer->refreshL7Rules(ptree);
 }

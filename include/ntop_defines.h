@@ -187,6 +187,8 @@
 #define HOST_SITES_REFRESH             300 /* 5 min */
 #define HOST_MAX_SERIALIZED_LEN        16348 /* bytes */
 
+#define CONST_MAX_NUM_NETWORKS         255
+
 #define BATADV_COMPAT_VERSION_15 15
 #define BATADV_COMPAT_VERSION_14 14
 

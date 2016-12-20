@@ -235,13 +235,13 @@ static int ntop_get_interface_names(lua_State* vm) {
 
 /* ****************************************** */
 
-static patricia_tree_t* get_allowed_nets(lua_State* vm) {
-  patricia_tree_t *ptree;
+static AddressTree* get_allowed_nets(lua_State* vm) {
+  AddressTree *ptree;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_getglobal(vm, CONST_ALLOWED_NETS);
-  ptree = (patricia_tree_t*)lua_touserdata(vm, lua_gettop(vm));
+  ptree = (AddressTree*)lua_touserdata(vm, lua_gettop(vm));
   //ntop->getTrace()->traceEvent(TRACE_WARNING, "GET %p", ptree);
   return(ptree);
 }
@@ -1767,7 +1767,7 @@ static int ntop_get_interface_find_flow_by_key(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
   Flow *f;
-  patricia_tree_t *ptree = get_allowed_nets(vm);
+  AddressTree *ptree = get_allowed_nets(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1792,7 +1792,7 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key;
   Flow *f;
-  patricia_tree_t *ptree = get_allowed_nets(vm);
+  AddressTree *ptree = get_allowed_nets(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1817,7 +1817,7 @@ static int ntop_dump_flow_traffic(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int32_t key, what;
   Flow *f;
-  patricia_tree_t *ptree = get_allowed_nets(vm);
+  AddressTree *ptree = get_allowed_nets(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3162,23 +3162,21 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 
   if(ntop_interface) {
     char *net;
-    patricia_tree_t *ptree;
+    AddressTree ptree;
 
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
-    if((net = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+    if((net = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
 
 #ifdef SHAPER_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s)", __FUNCTION__, net);
 #endif
 
-    ptree = New_Patricia(128);
-    Utils::ptree_add_rule(ptree, net);
+    ptree.addAddresses(net);
 
 #ifdef NTOPNG_PRO
-    ntop_interface->refreshL7Rules(ptree);
+    ntop_interface->refreshL7Rules(&ptree);
 #endif
 
-    Destroy_Patricia(ptree, NULL);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
@@ -5633,7 +5631,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 			       char *script_path) {
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
   char *_cookies, user[64] = { '\0' }, outbuf[FILENAME_MAX];
-  patricia_tree_t *ptree = NULL;
+  AddressTree ptree;
   int rc;
 
   if(!L) return(-1);
@@ -5789,20 +5787,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
     snprintf(key, sizeof(key), "ntopng.user.%s.allowed_nets", user);
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
        && (val[0] != '\0')) {
-      char *what, *net;
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", val);
-
-      ptree = New_Patricia(128);
-      net = strtok_r(val, ",", &what);
-
-      while(net != NULL) {
-	// ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", net);
-	Utils::ptree_add_rule(ptree, net);
-	net = strtok_r(NULL, ",", &what);
-      }
-
-      lua_pushlightuserdata(L, ptree);
+      ptree.addAddresses(val);
+      lua_pushlightuserdata(L, &ptree);
       lua_setglobal(L, CONST_ALLOWED_NETS);
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
     }
@@ -5827,13 +5813,10 @@ int Lua::handle_script_request(struct mg_connection *conn,
   if(rc != 0) {
     const char *err = lua_tostring(L, -1);
 
-    if(ptree) Destroy_Patricia(ptree, NULL);
-
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
     return(send_error(conn, 500 /* Internal server error */,
 		      "Internal server error", PAGE_ERROR, script_path, err));
   }
 
-  if(ptree) Destroy_Patricia(ptree, NULL);
   return(CONST_LUA_OK);
 }

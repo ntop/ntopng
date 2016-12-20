@@ -135,7 +135,7 @@ class Host : public GenericHost {
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
   inline char* get_string_key(char *buf, u_int buf_len) { return(ip.print(buf, buf_len)); };
   bool idle();
-  void lua(lua_State* vm, patricia_tree_t * ptree, bool host_details,
+  void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement,
 	   bool exclude_deserialized_bytes);
   void resolveHostName();
@@ -153,7 +153,7 @@ class Host : public GenericHost {
   char* serialize();
   void  serialize2redis();
   bool  deserialize(char *json_str, char *key);
-  bool addIfMatching(lua_State* vm, patricia_tree_t * ptree, char *key);
+  bool addIfMatching(lua_State* vm, AddressTree * ptree, char *key);
   void updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent);
 
   void incNumFlows(bool as_client);
@@ -178,7 +178,7 @@ class Host : public GenericHost {
   void readAlertPrefs();
   void updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd);
 
-  bool match(patricia_tree_t *ptree) { return(get_ip() ? get_ip()->match(ptree) : false); };
+  bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
   void updateHostL7Policy();
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };

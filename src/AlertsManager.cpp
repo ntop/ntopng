@@ -1103,7 +1103,7 @@ int AlertsManager::storeHostAlert(Host *h,
 
 /* ******************************************* */
 
-int AlertsManager::getHostAlerts(Host *h, lua_State* vm, patricia_tree_t *allowed_hosts,
+int AlertsManager::getHostAlerts(Host *h, lua_State* vm, AddressTree *allowed_hosts,
 				 u_int32_t start_offset, u_int32_t end_offset,
 				 bool engaged) {
   char ipbuf_id[256], wherebuf[256];
@@ -1122,7 +1122,7 @@ int AlertsManager::getHostAlerts(Host *h, lua_State* vm, patricia_tree_t *allowe
 /* ******************************************* */
 
 int AlertsManager::getHostAlerts(const char *host_ip, u_int16_t vlan_id,
-				 lua_State* vm, patricia_tree_t *allowed_hosts,
+				 lua_State* vm, AddressTree *allowed_hosts,
 				 u_int32_t start_offset, u_int32_t end_offset,
 				 bool engaged) {
   char wherebuf[256];
@@ -1223,7 +1223,7 @@ static int getAlertsCallback(void *data, int argc, char **argv, char **azColName
 
 /* ******************************************* */
 
-int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+int AlertsManager::getAlerts(lua_State* vm, AddressTree *allowed_hosts,
 			     u_int32_t start_offset, u_int32_t end_offset,
 			     bool engaged, const char *sql_where_clause) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
@@ -1271,7 +1271,7 @@ int AlertsManager::getAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
 
 /* ******************************************* */
 
-int AlertsManager::getFlowAlerts(lua_State* vm, patricia_tree_t *allowed_hosts,
+int AlertsManager::getFlowAlerts(lua_State* vm, AddressTree *allowed_hosts,
 				 u_int32_t start_offset, u_int32_t end_offset,
 				 const char *sql_where_clause) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
