@@ -55,6 +55,8 @@ bool AddressTree::addAddresses(char *rule) {
   while(net != NULL) {
     if(!addAddress(net))
       return false;
+    else
+      numAddresses++;
     
     net = strtok(NULL, ",");
   }
