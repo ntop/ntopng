@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 
 class AddressResolution {
-  AddressTree localNetworks;
+  AddressList localNetworks;
   u_int32_t num_resolved_addresses, num_resolved_fails;
   pthread_t resolveThreadLoop;
   Mutex m;
@@ -41,7 +41,7 @@ class AddressResolution {
   inline char *get_local_network(u_int8_t id) { return localNetworks.getAddressString(id); };
   bool setLocalNetworks(char *rule);
   int16_t findAddress(int family, void *addr); /* if(rc > 0) networdId else notfound */
-  void setLocalNetwork(char *net){localNetworks.addAddress(net);};
+  void setLocalNetwork(char *net)             { localNetworks.addAddress(net);             };
   void getLocalNetworks(lua_State* vm);
 };
 

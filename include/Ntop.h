@@ -39,7 +39,7 @@ class NtopPro;
  */
 class Ntop {
  private:
-  patricia_tree_t *local_interface_addresses;
+  AddressTree local_interface_addresses;
   char working_dir[MAX_PATH]; /**< Array of working directory. */
   char install_dir[MAX_PATH]; /**< Array of install directory. */
   char startup_dir[MAX_PATH]; /**< Array of startup directory. */
@@ -67,7 +67,7 @@ class Ntop {
   NagiosManager *nagios_manager;
   FlowChecker *flow_checker;
 #endif
-  patricia_tree_t *hostBlacklist, *hostBlacklistShadow;
+  AddressTree *hostBlacklist, *hostBlacklistShadow;
   
   void loadLocalInterfaceAddress();
   
@@ -369,7 +369,7 @@ class Ntop {
   void daemonize();
   void shutdown();
   void runHousekeepingTasks();
-  bool isLocalInterfaceAddress(int family, void *addr);
+  bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr));    };
   inline char* getLocalNetworkName(int16_t local_network_id) { return(address->get_local_network((u_int8_t)local_network_id)); };
   void createExportInterface();
   void initRedis();

@@ -174,16 +174,16 @@ bool IpAddress::isLocalHost(int16_t *network_id) {
 
 /* ******************************************* */
 
-void* IpAddress::findAddress(patricia_tree_t *ptree) {
+void* IpAddress::findAddress(AddressTree *ptree) {
   if(ptree == NULL)
     return(NULL);
   else {
     void *ret;
 
     if(addr.ipVersion == 4)
-      ret = Utils::ptree_match(ptree, AF_INET, &addr.ipType.ipv4, 32);
+      ret = Utils::ptree_match(ptree->getTree(true), AF_INET, &addr.ipType.ipv4, 32);
     else
-      ret = Utils::ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
+      ret = Utils::ptree_match(ptree->getTree(false), AF_INET6, (void*)&addr.ipType.ipv6, 128);
 
     return(ret);
   }
@@ -244,17 +244,22 @@ json_object* IpAddress::getJSONObject() {
  * @param ptree     The hosts allowed to be accessed.
  * @return true if the host matches the ptre, false otherwise.
  */
-bool IpAddress::match(patricia_tree_t *ptree) {
-  patricia_node_t *node;
-
-  if(ptree == NULL) return(true);
-
-  if(addr.ipVersion == 4)
-    node = Utils::ptree_match(ptree, AF_INET, (void*)&addr.ipType.ipv4, 32);
-  else
-    node = Utils::ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
-
-  return((node == NULL) ? false : true);
+bool IpAddress::match(AddressTree *tree) {
+  if(tree == NULL)
+    return(true);
+  else {
+    patricia_tree_t *ptree = tree->getTree((addr.ipVersion == 4) ? true : false);
+    patricia_node_t *node;
+    
+    if(ptree == NULL) return(true);
+    
+    if(addr.ipVersion == 4)
+      node = Utils::ptree_match(ptree, AF_INET, (void*)&addr.ipType.ipv4, 32);
+    else
+      node = Utils::ptree_match(ptree, AF_INET6, (void*)&addr.ipType.ipv6, 128);
+    
+    return((node == NULL) ? false : true);
+  }
 }
 
 /* ****************************** */

@@ -413,15 +413,11 @@ void Host::getSites(lua_State* vm, char *k, const char *label) {
 
 /* *************************************** */
 
-void Host::lua(lua_State* vm, patricia_tree_t *ptree,
+void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
 	       bool returnHost, bool asListElement,
 	       bool exclude_deserialized_bytes) {
-  char buf[64];
-  char buf_id[64];
-  char ip_buf[64];
-  char *ipaddr = NULL;
-  char *local_net;
+  char buf[64], buf_id[64], ip_buf[64], *ipaddr = NULL, *local_net;
 
   if(ptree && (!match(ptree)))
     return;
@@ -850,7 +846,7 @@ json_object* Host::getJSONObject() {
 
 /* *************************************** */
 
-bool Host::addIfMatching(lua_State* vm, patricia_tree_t *ptree, char *key) {
+bool Host::addIfMatching(lua_State* vm, AddressTree *ptree, char *key) {
   char keybuf[64] = { 0 }, *r;
 
   if(!match(ptree)) return(false);

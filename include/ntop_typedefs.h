@@ -171,7 +171,7 @@ typedef struct zmq_flow {
 
 struct vm_ptree {
   lua_State* vm;
-  patricia_tree_t *ptree;
+  AddressTree *ptree;
 };
 
 struct active_flow_stats {

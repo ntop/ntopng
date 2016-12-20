@@ -19,26 +19,26 @@
  *
  */
 
-#ifndef _ADDRESS_TREE_H_
-#define _ADDRESS_TREE_H_
+#ifndef _ADDRESS_LIST_H_
+#define _ADDRESS_LIST_H_
 
 #include "ntop_includes.h"
 
-class AddressTree {
-  u_int16_t numAddresses;
-  patricia_tree_t *ptree_v4, *ptree_v6;
-   
+class AddressList {
+  char *addressString[CONST_MAX_NUM_NETWORKS];
+  AddressTree tree;
+  
  public:
-  AddressTree();
-  ~AddressTree();
+  AddressList();
+  ~AddressList();
 
-  inline u_int16_t getNumAddresses() { return(numAddresses); }
-  bool removeAddress(char *net);
-  inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }
-  patricia_node_t* addAddress(char *_net);
+  inline u_int8_t getNumAddresses() { return(tree.getNumAddresses()); }
+  bool addAddress(char *_net);
   bool addAddresses(char *net);
-  void getAddresses(lua_State* vm);
-  int16_t findAddress(int family, void *addr);
+  
+  int16_t findAddress(int family, void *addr) { return(tree.findAddress(family, addr));                      };
+  void getAddresses(lua_State* vm)            { return(tree.getAddresses(vm));                               };
+  inline char *getAddressString(u_int8_t id)  { return((id < getNumAddresses()) ? addressString[id] : NULL); };
 };
 
-#endif /* _ADDRESS_TREE_H_ */
+#endif /* _ADDRESS_LIST_H_ */

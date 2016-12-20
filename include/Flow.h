@@ -329,7 +329,7 @@ class Flow : public GenericHashEntry {
 		       Host *srv, u_int16_t srv_port,
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
-  void lua(lua_State* vm, patricia_tree_t * ptree, DetailsLevel details_level, bool asListElement);
+  void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   bool equal(IpAddress *_cli_ip, IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
@@ -338,7 +338,7 @@ class Flow : public GenericHashEntry {
   void guessProtocol();
   bool dumpFlow(bool partial_dump, bool idle_flow);
   bool dumpFlowTraffic(void);
-  bool match(patricia_tree_t *ptree);
+  bool match(AddressTree *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }
   inline Host* get_real_server() { return(cli2srv_direction ? srv_host : cli_host); }
   inline bool isBadFlow()        { return(badFlow); }

@@ -26,49 +26,24 @@
 /* **************************************** */
 
 AddressTree::AddressTree() {
-  numAddresses = 0, memset(addressString, 0, sizeof(addressString));
-  ptree = New_Patricia(128);
-}
-
-/* *********************************************** */
-
-u_int8_t AddressTree::getNumAddresses() {
-  return(numAddresses);
+  numAddresses = 0;
+  ptree_v4 = New_Patricia(128), ptree_v6 = New_Patricia(128);
 }
 
 /* ******************************************* */
 
 bool AddressTree::removeAddress(char *net) {
-  return(Utils::ptree_remove_rule(ptree, net) == 1 ? false /* not found */ : true /* found */);
+  bool rc = Utils::ptree_remove_rule(strchr(net, '.') ? ptree_v4 : ptree_v6, net) == 1 ? false /* not found */ : true /* found */;
+
+  if(rc) numAddresses--;
+
+  return(rc);
 }
 
 /* ******************************************* */
 
-int16_t AddressTree::addAddress(char *_net) {
-  patricia_node_t *node;
-  char *net;
-
-  if(numAddresses >= CONST_MAX_NUM_NETWORKS) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s", numAddresses, _net);
-    return -1;
-  }
-  
-  if((net = strdup(_net)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return -1;
-  }
-
-  node = Utils::ptree_add_rule(ptree, net);
-
-  free(net);
-
-  if(node) {
-    node->user_data = numAddresses;
-    addressString[numAddresses++] = strdup(_net);
-    return node->user_data;
-  }
-
-  return -1;
+patricia_node_t* AddressTree::addAddress(char *_net) {
+  return(Utils::ptree_add_rule(strchr(_net, '.') ? ptree_v4 : ptree_v6, _net));
 }
 
 /* ******************************************* */
@@ -78,17 +53,22 @@ bool AddressTree::addAddresses(char *rule) {
   char *net = strtok(rule, ",");
   
   while(net != NULL) {
-    if(addAddress(net) < 0) return false;
+    if(!addAddress(net))
+      return false;
+    
     net = strtok(NULL, ",");
   }
+  
   return true;
 }
 
 /* ******************************************* */
 
 int16_t AddressTree::findAddress(int family, void *addr) {
-  patricia_node_t *node = Utils::ptree_match(ptree, family, addr, (family == AF_INET) ? 32 : 128);
-
+  patricia_node_t *node = Utils::ptree_match((family == AF_INET) ? ptree_v4 : ptree_v6,
+					     family, addr,
+					     (family == AF_INET) ? 32 : 128);
+  
   if(node == NULL)
     return(-1);
   else
@@ -97,15 +77,13 @@ int16_t AddressTree::findAddress(int family, void *addr) {
 
 /* **************************************** */
 
-void free_ptree_data(void *data) { ; }
+static void free_ptree_data(void *data) { ; }
 
-/* **************************************** */
+  /* **************************************** */
 
 AddressTree::~AddressTree() {
-  if(ptree) Destroy_Patricia(ptree, free_ptree_data);
-
-  for(int i=0; i<numAddresses; i++)
-    free(addressString[i]);
+  if(ptree_v4) Destroy_Patricia(ptree_v4, free_ptree_data);
+  if(ptree_v6) Destroy_Patricia(ptree_v6, free_ptree_data);
 }
 
 /* **************************************************** */
@@ -132,5 +110,7 @@ void print_funct(prefix_t *prefix, void *data, void *user_data) {
 /* **************************************************** */
 
 void AddressTree::getAddresses(lua_State* vm) {
-  patricia_walk_inorder(ptree->head, print_funct, vm);
+  patricia_walk_inorder(ptree_v4->head, print_funct, vm);
+  patricia_walk_inorder(ptree_v6->head, print_funct, vm);
 }
+

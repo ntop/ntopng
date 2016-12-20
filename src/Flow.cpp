@@ -1182,7 +1182,7 @@ void Flow::processLua(lua_State* vm, ProcessInfo *proc, bool client) {
 
 /* *************************************** */
 
-void Flow::lua(lua_State* vm, patricia_tree_t * ptree,
+void Flow::lua(lua_State* vm, AddressTree * ptree,
 	       DetailsLevel details_level, bool skipNewTable) {
   char buf[64];
   Host *src = get_cli_host(), *dst = get_srv_host();
@@ -2187,7 +2187,7 @@ char* Flow::get_proc_name(bool client) {
 
 /* *************************************** */
 
-bool Flow::match(patricia_tree_t *ptree) {
+bool Flow::match(AddressTree *ptree) {
   if((cli_host && cli_host->match(ptree))
      || (srv_host && srv_host->match(ptree)))
     return(true);
