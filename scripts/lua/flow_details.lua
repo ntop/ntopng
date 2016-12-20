@@ -144,6 +144,7 @@ else
 
       print("</th><td colspan=2>" .. flow["vlan"].. "</td></tr>\n")
    end
+   -- tprint(flow)
      print("<tr><th width=30%>Flow Peers [ Client / Server ]</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,"cli") .. "\">")
      print(flowinfo2hostname(flow,"cli",ifstats.vlan))
      if(flow["cli.systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end

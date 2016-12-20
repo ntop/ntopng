@@ -350,7 +350,10 @@ void Flow::processDetectedProtocol() {
     return;
   }
 
-  if((ndpiFlow->host_server_name[0] != '\0')
+  l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
+
+  if((l7proto != NDPI_PROTOCOL_DNS)
+     && (ndpiFlow->host_server_name[0] != '\0')
      && (host_server_name == NULL)) {
     Utils::sanitizeHostName((char*)ndpiFlow->host_server_name);
 
@@ -361,13 +364,11 @@ void Flow::processDetectedProtocol() {
     }
 
     /*
-    Host server name equals the Host: HTTP header field.
+      Host server name equals the Host: HTTP header field.
     */
     host_server_name = strdup((char*)ndpiFlow->host_server_name);
     categorizeFlow();
   }
-
-  l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   switch(l7proto) {
   case NDPI_PROTOCOL_BITTORRENT:
@@ -403,7 +404,7 @@ void Flow::processDetectedProtocol() {
 	      protocol_processed = true;
 
 	      if(at != NULL) {
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
+		// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
 
 		if(ntop->get_flashstart()) /* Cache category */
