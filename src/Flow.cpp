@@ -319,8 +319,8 @@ void Flow::checkBlacklistedFlow() {
       snprintf(alert_msg, sizeof(alert_msg),
 	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> contacted %s host "
 	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-	       ntop->getPrefs()->get_http_prefix(),
 	       cli_host->isBlacklisted() ? "blacklisted" : "",
+	       ntop->getPrefs()->get_http_prefix(),
 	       c, iface->get_name(),
 	       cli_host->get_name() ? cli_host->get_name() : c,
 	       srv_host->isBlacklisted() ? "blacklisted" : "",

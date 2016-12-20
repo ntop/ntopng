@@ -588,7 +588,9 @@ patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix)
     fprintf (stderr, "patricia_search_exact: found %s/%d\n",
 	     prefix_toa (node->prefix), node->prefix->bitlen);
 #endif /* PATRICIA_DEBUG */
-    return (node);
+
+    if(node->prefix->family == prefix->family)
+      return (node);
   }
   return (NULL);
 }
