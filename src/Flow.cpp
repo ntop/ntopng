@@ -396,13 +396,14 @@ void Flow::processDetectedProtocol() {
 	  name = (char*)ndpiFlow->host_server_name;
 
 	if(name) {
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);	  
 
 	  if(ndpiFlow->protos.dns.reply_code == 0) {
 	    if(ndpiFlow->protos.dns.num_answers > 0) {
 	      protocol_processed = true;
 
 	      if(at != NULL) {
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <-> %s", name, (char*)ndpiFlow->host_server_name);
 		ntop->getRedis()->setResolvedAddress(name, (char*)ndpiFlow->host_server_name);
 
 		if(ntop->get_flashstart()) /* Cache category */

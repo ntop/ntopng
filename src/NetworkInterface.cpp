@@ -44,6 +44,7 @@ NetworkInterface::NetworkInterface() { init(); }
 NetworkInterface::NetworkInterface(const char *name, const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64];
+  bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0; /* We need to do it as isView() is not yet initialized */
 
   init();
 
@@ -54,6 +55,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 #endif
 
   scalingFactor = 1, remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = remoteProbePublicIPaddr = NULL;
+  if(strcmp(name, "-") == 0) name = "stdin";
   if(strcmp(name, "-") == 0) name = "stdin";
 
   if(ntop->getRedis())
@@ -144,7 +146,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 
     running = false, sprobe_interface = false, inline_interface = false, db = NULL;
 
-    if((!isView()) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
+    if((!isViewInterface) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
 #ifdef NTOPNG_PRO
       // if(ntop->getPrefs()->is_enterprise_edition()) db = new BatchedMySQLDB(this);
 #endif
@@ -3273,7 +3275,7 @@ void NetworkInterface::lua(lua_State *vm) {
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
     ntop->getElasticSearch()->lua(vm);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    db->lua(vm);
+    if(db) db->lua(vm);
   }
 
   lua_pushstring(vm, "stats");
