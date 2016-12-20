@@ -22,13 +22,17 @@ end
 
 
 function expandIpV4Network(net)
-   local prefix = net:match("/(.+)")
-   address = net:gsub("/.+","")
+   local prefix = tonumber(net:match("/(.+)"))
+   local address = net:gsub("/.+","")
 
-   if(prefix == nil) then prefix = 32 end
+   if(prefix == nil or prefix > 32 or prefix <= 0) then prefix = 32 end
 
    local num_hosts = 2^(32-prefix)
    local addr = iptonumber(address)
+
+   for i=1,32-prefix do
+      addr = clearbit(addr, bit(i))
+   end
 
    return({ addr, addr+num_hosts-1 })
 end
@@ -162,7 +166,16 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
 
    if((host ~= nil) and (host ~= "")) then
       if(version == 4) then
-	 sql = sql .." AND (IP_SRC_ADDR=INET_ATON('"..host.."') OR IP_DST_ADDR=INET_ATON('"..host.."'))"
+	 local ip_range = expandIpV4Network(host)
+	 local ip_lowest  = ip_range[1]
+	 local ip_highest = ip_range[2]
+
+	 if ip_lowest == ip_highest then
+	    sql = sql .." AND (IP_SRC_ADDR='"..ip_highest.."' OR IP_DST_ADDR='"..ip_highest.."')"
+	 else
+	    sql = sql .." AND ((IP_SRC_ADDR>='"..ip_lowest.."' AND IP_SRC_ADDR<='"..ip_highest.."')"
+	    sql = sql .." OR (IP_DST_ADDR>='"..ip_lowest.."' AND IP_DST_ADDR<='"..ip_highest.."'))"
+	 end
       else
 	 sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
       end

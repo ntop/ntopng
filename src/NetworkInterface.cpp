@@ -148,7 +148,7 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 
     if((!isViewInterface) && (ntop->getPrefs()->do_dump_flows_on_mysql())) {
 #ifdef NTOPNG_PRO
-      // if(ntop->getPrefs()->is_enterprise_edition()) db = new BatchedMySQLDB(this);
+      if(ntop->getPrefs()->is_enterprise_edition()) db = new BatchedMySQLDB(this);
 #endif
       
       if(db == NULL)
