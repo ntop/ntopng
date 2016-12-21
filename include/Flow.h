@@ -211,7 +211,7 @@ class Flow : public GenericHashEntry {
   void updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id);
   void updateFlowShapers();
 #endif
-  void dumpFlowAlert(bool partial_dump);
+  void dumpFlowAlert();
   
  public:
   Flow(NetworkInterface *_iface,
@@ -224,8 +224,8 @@ class Flow : public GenericHashEntry {
   struct site_categories* getFlowCategory(bool force_categorization);
   void categorizeFlow();
   void freeDPIMemory();
-  char* serialize(bool partial_dump = false, bool es_json = false);
-  json_object* flow2json(bool partial_dump);
+  char* serialize(bool es_json = false);
+  json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
   inline u_int8_t getTcpFlags()        { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
@@ -286,6 +286,8 @@ class Flow : public GenericHashEntry {
   inline u_int64_t get_partial_bytes()            { return(get_bytes() - (last_db_dump.cli2srv_bytes+last_db_dump.srv2cli_bytes));       };
   inline u_int64_t get_partial_bytes_cli2srv()    { return(cli2srv_bytes - last_db_dump.cli2srv_bytes);       };
   inline u_int64_t get_partial_bytes_srv2cli()    { return(srv2cli_bytes - last_db_dump.srv2cli_bytes);       };
+  inline u_int64_t get_partial_packets_cli2srv()  { return(cli2srv_packets - last_db_dump.cli2srv_packets);   };
+  inline u_int64_t get_partial_packets_srv2cli()  { return(srv2cli_packets - last_db_dump.srv2cli_packets);   };
   inline u_int64_t get_partial_goodput_bytes()    { return(get_goodput_bytes() - (last_db_dump.cli2srv_goodput_bytes+last_db_dump.srv2cli_goodput_bytes));       };
   inline u_int64_t get_partial_packets()          { return(get_packets() - (last_db_dump.cli2srv_packets+last_db_dump.srv2cli_packets)); };
   inline float get_bytes_thpt()                   { return(bytes_thpt);                      };
@@ -336,7 +338,7 @@ class Flow : public GenericHashEntry {
 	     bool *src2srv_direction);
   void sumStats(nDPIStats *stats);
   void guessProtocol();
-  bool dumpFlow(bool partial_dump, bool idle_flow);
+  bool dumpFlow(bool idle_flow);
   bool dumpFlowTraffic(void);
   bool match(AddressTree *ptree);
   inline Host* get_real_client() { return(cli2srv_direction ? cli_host : srv_host); }

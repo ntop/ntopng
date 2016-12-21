@@ -203,7 +203,7 @@ Flow::~Flow() {
 
   checkBlacklistedFlow();
   update_hosts_stats(&tv, true);
-  dumpFlow(true /* Dump only the last part of the flow */, true /* the flow is expired */);
+  dumpFlow(true /* the flow is expired */);
 
   iface->luaEvalFlow(this, callback_flow_delete);
 
@@ -232,7 +232,7 @@ Flow::~Flow() {
 
 /* *************************************** */
 
-void Flow::dumpFlowAlert(bool partial_dump) {
+void Flow::dumpFlowAlert() {
   FlowStatus status = getFlowStatus();
 
   if((!isFlowAlerted()) && (status != status_normal)) {
@@ -769,10 +769,10 @@ char* Flow::print(char *buf, u_int buf_len) {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(bool partial_dump, bool idle_flow) {
+bool Flow::dumpFlow(bool idle_flow) {
   bool rc = false;
 
-  dumpFlowAlert(partial_dump);
+  dumpFlowAlert();
 
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
      && ((srv2cli_packets - last_db_dump.srv2cli_packets) == 0))
@@ -788,22 +788,25 @@ bool Flow::dumpFlow(bool partial_dump, bool idle_flow) {
       updateProfile();
 #endif
 
-    if(partial_dump) {
-      time_t now = time(NULL);
+    time_t now = time(NULL);
 
-      if((now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
+    if(!idle_flow) {
+      if((now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
+	 || (now - last_db_dump.last_dump) < CONST_DB_DUMP_FREQUENCY)
 	return(rc);
+    } else {
+      /* idle flows always dumped */
     }
 
     if(cli_host) {
       if(ntop->getPrefs()->do_dump_flows_on_mysql())
-	cli_host->getInterface()->dumpDBFlow(last_seen, partial_dump, idle_flow, this);
+	cli_host->getInterface()->dumpDBFlow(last_seen, idle_flow, this);
       else if(ntop->getPrefs()->do_dump_flows_on_es())
-	cli_host->getInterface()->dumpEsFlow(last_seen, partial_dump, this);
+	cli_host->getInterface()->dumpEsFlow(last_seen, this);
     }
 
     if(ntop->get_export_interface()) {
-      char *json = serialize(partial_dump, false);
+      char *json = serialize(false);
 
       if(json) {
 	ntop->get_export_interface()->export_data(json);
@@ -1060,7 +1063,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(true /* partial dump */, false /* the flow isn't idle, this is periodic update stuff */)) {
+  if(dumpFlow(false /* the flow isn't idle, this is periodic update stuff */)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
       last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,
@@ -1513,7 +1516,7 @@ void Flow::sumStats(nDPIStats *stats) {
 
 /* *************************************** */
 
-char* Flow::serialize(bool partial_dump, bool es_json) {
+char* Flow::serialize(bool es_json) {
   json_object *my_object;
   char *rsp;
 
@@ -1522,7 +1525,7 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
 
   if(es_json) {
     ntop->getPrefs()->set_json_symbolic_labels_format(true);
-    if((my_object = flow2json(partial_dump)) != NULL) {
+    if((my_object = flow2json()) != NULL) {
 
       /* JSON string */
       rsp = strdup(json_object_to_json_string(my_object));
@@ -1534,7 +1537,7 @@ char* Flow::serialize(bool partial_dump, bool es_json) {
   } else {
     /* JSON string */
     ntop->getPrefs()->set_json_symbolic_labels_format(false);
-    my_object = flow2json(partial_dump);
+    my_object = flow2json();
     rsp = strdup(json_object_to_json_string(my_object));
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Emitting Flow: %s", rsp);
 
@@ -1581,7 +1584,7 @@ json_object* Flow::flow2es(json_object *flow_object) {
 
 /* *************************************** */
 
-json_object* Flow::flow2json(bool partial_dump) {
+json_object* Flow::flow2json() {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
   time_t t;
@@ -1651,19 +1654,19 @@ json_object* Flow::flow2json(bool partial_dump) {
 			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
   json_object_object_add(my_object, Utils::jsonLabel(IN_PKTS, "IN_PKTS", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int64(partial_dump ? (cli2srv_packets - last_db_dump.cli2srv_packets) : cli2srv_packets));
+			 json_object_new_int64(get_partial_packets_cli2srv()));
   json_object_object_add(my_object, Utils::jsonLabel(IN_BYTES, "IN_BYTES", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int64(partial_dump ? (cli2srv_bytes - last_db_dump.cli2srv_bytes) : cli2srv_bytes));
+			 json_object_new_int64(get_partial_bytes_cli2srv()));
 
   json_object_object_add(my_object, Utils::jsonLabel(OUT_PKTS, "OUT_PKTS", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int64(partial_dump ? (srv2cli_packets - last_db_dump.srv2cli_packets) : srv2cli_packets));
+			 json_object_new_int64(get_partial_packets_srv2cli()));
   json_object_object_add(my_object, Utils::jsonLabel(OUT_BYTES, "OUT_BYTES", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int64(partial_dump ? (srv2cli_bytes - last_db_dump.srv2cli_bytes) : srv2cli_bytes));
+			 json_object_new_int64(get_partial_bytes_srv2cli()));
 
   json_object_object_add(my_object, Utils::jsonLabel(FIRST_SWITCHED, "FIRST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int((u_int32_t)(partial_dump && last_db_dump.last_dump) ? last_db_dump.last_dump : first_seen));
+			 json_object_new_int((u_int32_t)get_partial_first_seen()));
   json_object_object_add(my_object, Utils::jsonLabel(LAST_SWITCHED, "LAST_SWITCHED", jsonbuf, sizeof(jsonbuf)),
-			 json_object_new_int((u_int32_t)last_seen));
+			 json_object_new_int((u_int32_t)get_partial_last_seen()));
 
   if(json_info && strcmp(json_info, "{}")) {
     json_object *o;

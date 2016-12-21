@@ -442,13 +442,13 @@ void MySQLDB::lua(lua_State *vm, bool since_last_checkpoint) const {
 
 /* ******************************************* */
 
-int MySQLDB::flow2InsertValues(bool partial_dump, Flow *f, char *json, char *values_buf, size_t values_buf_len) const {
+int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const {
   char cli_str[64], srv_str[64], *json_buf;
   u_int32_t packets, first_seen, last_seen;
   u_int32_t bytes_cli2srv, bytes_srv2cli;
   size_t len;
 
-  if(! values_buf_len || !values_buf_len)
+  if(!values_buf || !values_buf_len)
     return -1;
 
   if(json == NULL)
@@ -474,19 +474,12 @@ int MySQLDB::flow2InsertValues(bool partial_dump, Flow *f, char *json, char *val
     json_buf[j] = '\0';
   }
 
-  if(partial_dump) {
-    bytes_cli2srv = f->get_partial_bytes_cli2srv();
-    bytes_srv2cli = f->get_partial_bytes_srv2cli();
-    packets = f->get_partial_packets();
-    first_seen = f->get_partial_first_seen();
-    last_seen = f->get_partial_last_seen();
-  } else {
-    bytes_cli2srv = f->get_bytes_cli2srv();
-    bytes_srv2cli = f->get_bytes_srv2cli();
-    packets = f->get_packets();
-    first_seen = f->get_first_seen();
-    last_seen = f->get_last_seen();
-  }
+  /* Use of partial_ functions is safe as they will deal with partial dumps automatically */
+  bytes_cli2srv = f->get_partial_bytes_cli2srv();
+  bytes_srv2cli = f->get_partial_bytes_srv2cli();
+  packets = f->get_partial_packets();
+  first_seen = f->get_partial_first_seen();
+  last_seen = f->get_partial_last_seen();
 
   if(f->get_cli_host()->get_ip()->isIPv4()) {
     len = snprintf(values_buf, values_buf_len,
@@ -536,7 +529,7 @@ int MySQLDB::flow2InsertValues(bool partial_dump, Flow *f, char *json, char *val
 
 /* ******************************************* */
 
-bool MySQLDB::dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f, char *json) {
+bool MySQLDB::dumpFlow(time_t when, bool idle_flow, Flow *f, char *json) {
   char sql[CONST_MAX_SQL_QUERY_LEN];
 
   if((f->get_cli_host() == NULL) || (f->get_srv_host() == NULL) || !MySQLDB::db_created)
@@ -550,7 +543,7 @@ bool MySQLDB::dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f, 
 	     ntop->getPrefs()->get_mysql_tablename());
 
   /* do the actual flow insertion as a tuple */
-  flow2InsertValues(partial_dump, f, json, &sql[strlen(sql)], sizeof(sql) - strlen(sql) - 1);
+  flow2InsertValues(f, json, &sql[strlen(sql)], sizeof(sql) - strlen(sql) - 1);
 
   if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
     /* We know that we should have locked before evaluating the condition
