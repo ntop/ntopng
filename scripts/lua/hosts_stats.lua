@@ -202,10 +202,10 @@ if(network_url == "") then
    print (ntop.getHttpPrefix())
    print ('/lua/hosts_stats.lua">All Hosts</a></li><li><a href="')
    print (ntop.getHttpPrefix())
-   print ('/lua/hosts_stats.lua?mode=local">Local Only</a></li><li><a href="')
+   print ('/lua/hosts_stats.lua?mode=local">Local Hosts Only</a></li><li><a href="')
    print (ntop.getHttpPrefix())
-   print ('/lua/hosts_stats.lua?mode=remote">Remote Only</a></li>')
-   print("</ul></div>' ],")
+   print ('/lua/hosts_stats.lua?mode=remote">Remote Hosts Only</a></li>')
+   print("</ul>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' ],")
 else
    print('buttons: [ \'')
 
