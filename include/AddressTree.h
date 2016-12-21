@@ -39,6 +39,7 @@ class AddressTree {
   bool addAddresses(char *net);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr);
+  void dump();
 };
 
 #endif /* _ADDRESS_TREE_H_ */

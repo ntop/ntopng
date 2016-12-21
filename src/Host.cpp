@@ -158,8 +158,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 
     updateLocal();
     updateHostTrafficPolicy(host);
-    systemHost = ip.isLocalInterfaceAddress();
-
+    
     if(localHost) {
       char oldk[64];
 
@@ -179,17 +178,20 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     }
 
     if((localHost || systemHost)
-       && ntop->getPrefs()->is_idle_local_host_cache_enabled()){
+       && ntop->getPrefs()->is_idle_local_host_cache_enabled()) {
       char *json;
 
       if((json = (char*)malloc(HOST_MAX_SERIALIZED_LEN * sizeof(char))) == NULL)
 	ntop->getTrace()->traceEvent(TRACE_ERROR,
 				     "Unable to allocate memory to deserialize %s", redis_key);
       else if(!ntop->getRedis()->get(redis_key, json, HOST_MAX_SERIALIZED_LEN)){
+	bool shadow_localHost = localHost, shadow_systemHost = systemHost; /* Just in case */
 	/* Found saved copy of the host so let's start from the previous state */
 	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s => %s", redis_key, json);
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", redis_key);
+
 	deserialize(json, redis_key);
+	localHost = shadow_localHost, systemHost = shadow_systemHost;
       }
 
       if(json) free(json);
@@ -351,14 +353,19 @@ void Host::updateLocal() {
 
   if(local_network_id >= 0)
     networkStats = getNetworkStats(local_network_id);
+  
+  systemHost = localHost ? ip.isLocalInterfaceAddress() : false;
 
-  if(0) {
+#if 0
+  if(1) {
     char buf[64];
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s",
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s %s [%p]",
 				 ip.print(buf, sizeof(buf)),
-				 localHost ? "local" : "remote");
+				 localHost ? "local" : "remote",
+				 systemHost ? "systemHost" : "", this);
   }
+#endif
 }
 
 /* *************************************** */
@@ -422,6 +429,17 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(ptree && (!match(ptree)))
     return;
 
+#if 0
+  if(1) {
+    char buf[64];
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "********* %s is %s %s [%p]",
+				 ip.print(buf, sizeof(buf)),
+				 localHost ? "local" : "remote",
+				 systemHost ? "systemHost" : "", this);
+  }
+#endif
+  
   lua_newtable(vm);
   lua_push_str_table_entry(vm, "ip", (ipaddr = ip.print(ip_buf, sizeof(ip_buf))));
   lua_push_int_table_entry(vm, "ipkey", ip.key());
@@ -1219,7 +1237,7 @@ void Host::updateStats(struct timeval *tv) {
 
   if(!localHost) return;
 
-  if(tv->tv_sec >= nextSitesUpdate) {
+  if(topSitesKey && (tv->tv_sec >= nextSitesUpdate)) {
     if(nextSitesUpdate > 0) {
       char oldk[64];
 
@@ -1242,12 +1260,11 @@ void Host::updateStats(struct timeval *tv) {
 	     h, iface->get_name(), h, host_quota_mb);
     iface->getAlertsManager()->storeHostAlert(this, alert_quota, alert_level_warning, msg);
   }
-
 }
 
 /* *************************************** */
 
-u_int32_t Host::getNumAlerts(bool from_alertsmanager)     {
+u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
   if(!from_alertsmanager)
     return(num_alerts_detected);
 

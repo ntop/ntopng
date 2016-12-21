@@ -376,6 +376,7 @@ print [[
 </div>
    ]]
 
+--tprint(host)
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
 
@@ -627,6 +628,7 @@ end
 	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
       end
 
+--tprint(host) io.write("\n")
       print(host["name"] .. "</span></A> <i class=\"fa fa-external-link\"></i> ")
       if(host["localhost"] == true) then print('<span class="label label-success">Local</span>') else print('<span class="label label-default">Remote</span>') end
       if(host["privatehost"] == true) then print(' <span class="label label-warning">Private IP</span>') end
