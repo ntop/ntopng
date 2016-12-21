@@ -36,12 +36,12 @@ bool AddressList::addAddress(char *_net) {
   if(id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
 				 id, _net);
-    return -1;
+    return(false);
   }
   
   if((net = strdup(_net)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return -1;
+    return(false);
   }
 
   tree.addAddresses(net);
@@ -59,7 +59,7 @@ bool AddressList::addAddresses(char *rule) {
   char *net = strtok(rule, ",");
   
   while(net != NULL) {
-    if(addAddress(net) < 0) return false;
+    if(!addAddress(net)) return false;
     net = strtok(NULL, ",");
   }
   return true;

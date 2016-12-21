@@ -34,9 +34,7 @@ bool AddressResolution::setLocalNetworks(char *rule) {
   char *net = strtok(rule, ",");
 
   while(net != NULL) {
-    int16_t rc;
-
-    if((rc = localNetworks.addAddress(net)) < 0) return false;
+    if(!localNetworks.addAddress(net)) return false;
     net = strtok(NULL, ",");
   }
   return true;
