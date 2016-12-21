@@ -26,8 +26,10 @@
 
 class AddressTree {
   u_int16_t numAddresses;
-  patricia_tree_t *ptree_v4, *ptree_v6;
-   
+  patricia_tree_t *ptree_v4, *ptree_v6, *ptree_mac;
+
+  patricia_tree_t* getPatricia(char* what);
+  
  public:
   AddressTree();
   ~AddressTree();
@@ -39,6 +41,7 @@ class AddressTree {
   bool addAddresses(char *net);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr);
+  int16_t findMac(int family, void *addr)     { return(findAddress(AF_MAC, addr)); }
   void dump();
 };
 

@@ -1685,14 +1685,30 @@ static int fill_prefix_v6(prefix_t *prefix, struct in6_addr *addr, int bits, int
 
 /* ******************************************* */
 
+static int fill_prefix_mac(prefix_t *prefix, u_int8_t *mac, int bits, int maxbits) {
+  if(bits < 0 || bits > maxbits)
+    return -1;
+
+  memcpy(prefix->add.mac, mac, 6);
+  prefix->family = AF_MAC;
+  prefix->bitlen = bits;
+  prefix->ref_count = 0;
+
+  return 0;
+}
+
+/* ******************************************* */
+
 static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
   prefix_t prefix;
   patricia_node_t *node;
 
   if(family == AF_INET)
     fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
-  else
+  else if(family == AF_INET6)
     fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
+  else
+    fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, tree->maxbits);
 
   node = patricia_lookup(tree, &prefix);
 
@@ -1740,6 +1756,8 @@ patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char *line) {
   char *ip, *bits, *slash = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;
+  u_int8_t mac[6];
+  u_int32_t _mac[6];
   patricia_node_t *node = NULL;
   
   ip = line;
@@ -1755,7 +1773,11 @@ patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char *line) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Rule %s/%s", ip, bits);
 
-  if(strchr(ip, ':') != NULL) { /* IPv6 */
+  if(sscanf(ip, "%02X:%02X:%02X:%02X:%02X:%02X",
+	    &_mac[0], &_mac[1], &_mac[2], &_mac[3], &_mac[4], &_mac[5]) == 6) {
+    for(int i=0; i<6; i++) mac[i] = _mac[i];
+    node = add_to_ptree(ptree, AF_MAC, mac, 48);
+  } else if(strchr(ip, ':') != NULL) { /* IPv6 */
     if(inet_pton(AF_INET6, ip, &addr6) == 1)
       node = add_to_ptree(ptree, AF_INET6, &addr6, atoi(bits));
     else
@@ -1798,6 +1820,8 @@ int Utils::ptree_remove_rule(patricia_tree_t *ptree, char *line) {
   char *ip, *bits, *slash = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;
+  u_int32_t  _mac[6];
+  u_int8_t mac[6];
   int rc = -1;
   
   ip = line;
@@ -1813,7 +1837,11 @@ int Utils::ptree_remove_rule(patricia_tree_t *ptree, char *line) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Rule %s/%s", ip, bits);
 
-  if(strchr(ip, ':') != NULL) { /* IPv6 */
+  if(sscanf(ip, "%02X:%02X:%02X:%02X:%02X:%02X",
+	    &_mac[0], &_mac[1], &_mac[2], &_mac[3], &_mac[4], &_mac[5]) == 6) {
+    for(int i=0; i<6; i++) mac[i] = _mac[i];
+    rc = remove_from_ptree(ptree, AF_MAC, mac, 48);
+  } else if(strchr(ip, ':') != NULL) { /* IPv6 */
     if(inet_pton(AF_INET6, ip, &addr6) == 1)
       rc = remove_from_ptree(ptree, AF_INET6, &addr6, atoi(bits));
     else

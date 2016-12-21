@@ -89,6 +89,8 @@ typedef struct the_prefix4_t {
   struct in_addr sin;
 } prefix4_t;
 
+#define AF_MAC            99
+
 typedef struct the_prefix_t {
   unsigned short family;		/* AF_INET | AF_INET6 */
   unsigned short bitlen;		/* same as mask? */
@@ -98,6 +100,7 @@ typedef struct the_prefix_t {
 #ifdef PATRICIA_IPV6
     struct in6_addr sin6;
 #endif /* IPV6 */
+    u_int8_t mac[6];
   } add;
 } prefix_t;
 
