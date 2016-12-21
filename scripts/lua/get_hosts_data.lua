@@ -442,10 +442,10 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
 	       print ("\", \"column_location\" : \"")
 	       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
-		  print("<span class='label label-success'>Local</span>") else print("<span class='label label-default'>Remote</span>")
+		  print("<span class='label label-success'>Local Host</span>") else print("<span class='label label-default'>Remote Host</span>")
 	       end
 	       if value["is_blacklisted"] == true then
-		     print(" <span class='label label-danger'>Blacklist</span>")
+		     print(" <span class='label label-danger'>Blacklisted Host</span>")
 	       end
 	    end
 
