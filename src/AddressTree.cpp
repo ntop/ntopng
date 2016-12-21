@@ -43,7 +43,10 @@ bool AddressTree::removeAddress(char *net) {
 /* ******************************************* */
 
 patricia_node_t* AddressTree::addAddress(char *_net) {
-  return(Utils::ptree_add_rule(strchr(_net, '.') ? ptree_v4 : ptree_v6, _net));
+  patricia_node_t *node = Utils::ptree_add_rule(strchr(_net, '.') ? ptree_v4 : ptree_v6, _net);
+
+  if(node) node->user_data = numAddresses++;
+  return(node);
 }
 
 /* ******************************************* */
@@ -55,8 +58,6 @@ bool AddressTree::addAddresses(char *rule) {
   while(net != NULL) {
     if(!addAddress(net))
       return false;
-    else
-      numAddresses++;
     
     net = strtok(NULL, ",");
   }
