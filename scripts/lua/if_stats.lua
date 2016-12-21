@@ -507,14 +507,21 @@ print("</script>\n")
       print("<td colspan=4>")
 
       local cls = ""
-      if ifstats.stats.bytes + ifstats.stats.packets + ifstats.stats.drops + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops == 0 then
+      local tot	= ifstats.stats.bytes + ifstats.stats.packets + ifstats.stats.drops
+      if(ifstats.stats.flow_export_count ~= nil) then
+      	tot = tot + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops
+      end
+      
+      if tot == 0 then
 	 cls = " disabled"
       end
       print('<button id="btn_reset_all" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(false);">All Counters</button>&nbsp;')
 
       cls = ""
-      if ifstats.stats.drops + ifstats.stats.flow_export_drops == 0 then
+      if(ifstats.stats.flow_export_count ~= nil) then
+        if ifstats.stats.drops + ifstats.stats.flow_export_drops == 0 then
 	 cls = " disabled"
+	end
       end
       print('<button id="btn_reset_drops" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(true);">Drops Only</button>')
       print("</td>")
