@@ -213,9 +213,9 @@ class NetworkInterface {
   inline bool is_sprobe_interface()            { return(sprobe_interface); };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   inline void enable_sprobe()                  { sprobe_interface = true; };
-  int dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f);
-  int dumpDBFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f);
-  int dumpEsFlow(time_t when, bool partial_dump, Flow *f);
+  int dumpFlow(time_t when, bool idle_flow, Flow *f);
+  int dumpDBFlow(time_t when, bool idle_flow, Flow *f);
+  int dumpEsFlow(time_t when, Flow *f);
   int dumpLocalHosts2redis(bool disable_purge);
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };

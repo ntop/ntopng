@@ -416,10 +416,6 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
    names =  {}
    series = {}
 
-   if(zoomLevel == nil) then
-      zoomLevel = "1h"
-   end
-
    nextZoomLevel = zoomLevel;
    epoch = tonumber(selectedEpoch);
 
@@ -428,12 +424,12 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
 	 if(k > 1) then
 	    nextZoomLevel = zoom_vals[k-1][1]
 	 end
-	 if(epoch) then
+	 if(epoch ~= nil) then
 	    start_time = epoch - zoom_vals[k][3]/2
 	    end_time = epoch + zoom_vals[k][3]/2
 	 else
 	    end_time = os.time()
-	    start_time = end_time - zoom_vals[k][3]/2
+	    start_time = end_time - zoom_vals[k][3]
 	 end
       end
    end

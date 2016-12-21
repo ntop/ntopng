@@ -516,11 +516,11 @@ NetworkInterface::~NetworkInterface() {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f) {
+int NetworkInterface::dumpFlow(time_t when, bool idle_flow, Flow *f) {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    return(dumpDBFlow(when, partial_dump, idle_flow, f));
+    return(dumpDBFlow(when, idle_flow, f));
   } else if(ntop->getPrefs()->do_dump_flows_on_es())
-    return(dumpEsFlow(when, partial_dump, f));
+    return(dumpEsFlow(when, f));
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
     return(-1);
@@ -529,8 +529,8 @@ int NetworkInterface::dumpFlow(time_t when, bool partial_dump, bool idle_flow, F
 
 /* **************************************************** */
 
-int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
-  char *json = f->serialize(partial_dump, true);
+int NetworkInterface::dumpEsFlow(time_t when, Flow *f) {
+  char *json = f->serialize(true);
   int rc;
 
   if(json) {
@@ -545,12 +545,12 @@ int NetworkInterface::dumpEsFlow(time_t when, bool partial_dump, Flow *f) {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpDBFlow(time_t when, bool partial_dump, bool idle_flow, Flow *f) {
-  char *json = f->serialize(partial_dump, false);
+int NetworkInterface::dumpDBFlow(time_t when, bool idle_flow, Flow *f) {
+  char *json = f->serialize(false);
   int rc;
 
   if(json) {
-    rc = db->dumpFlow(when, partial_dump, idle_flow, f, json);
+    rc = db->dumpFlow(when, idle_flow, f, json);
     free(json);
   } else
     rc = -1;
