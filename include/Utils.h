@@ -89,7 +89,8 @@ class Utils {
   static void  parseMac(u_int8_t *mac, const char *symMac);
   static u_int32_t macHash(u_int8_t *mac);
   static bool isSpecialMac(u_int8_t *mac);
-
+  static int numberOfSetBits(u_int32_t i);
+  
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
   static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
