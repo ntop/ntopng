@@ -392,6 +392,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
   mysqlDroppedFlowsQueueTooLong = 0;
   mysqlExportedFlows = 0, mysqlLastExportedFlows = 0;
   mysqlExportRate = 0;
+  checkpointDroppedFlows = checkpointExportedFlows = 0;
   lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
   connectToDB(&mysql, false);
 }
@@ -430,10 +431,13 @@ void MySQLDB::updateStats(const struct timeval *tv) {
 
 /* ******************************************* */
 
-void MySQLDB::lua(lua_State *vm) const {
-  lua_push_int_table_entry(vm,   "flow_export_count", mysqlExportedFlows);
-  lua_push_int32_table_entry(vm, "flow_export_drops", mysqlDroppedFlowsQueueTooLong);
-  lua_push_float_table_entry(vm, "flow_export_rate",  mysqlExportRate);
+void MySQLDB::lua(lua_State *vm, bool since_last_checkpoint) const {
+  lua_push_int_table_entry(vm, "flow_export_count",
+			   mysqlExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
+  lua_push_int32_table_entry(vm, "flow_export_drops",
+			     mysqlDroppedFlowsQueueTooLong - (since_last_checkpoint ? checkpointDroppedFlows : 0));
+  lua_push_float_table_entry(vm, "flow_export_rate",
+			     mysqlExportRate >= 0 ? mysqlExportRate : 0);
 }
 
 /* ******************************************* */

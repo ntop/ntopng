@@ -68,7 +68,8 @@ class NetworkInterface {
   pthread_t pollLoop;
   bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
   AlertRefresh refresh_num_alerts;
-  u_int32_t ifSpeed, numL2Devices, scalingFactor, lastPktDropCount;
+  u_int32_t ifSpeed, numL2Devices, scalingFactor;
+  u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats ndpiStats;
@@ -219,9 +220,14 @@ class NetworkInterface {
   inline void incRetransmittedPkts(u_int32_t num)   { tcpPacketStats.incRetr(num); };
   inline void incOOOPkts(u_int32_t num)             { tcpPacketStats.incOOO(num);  };
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num); };
-  void resetSecondTraffic() { memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;  };
-  void resetPacketDrops()   { lastPktDropCount = getNumPacketDrops(); };
+  inline void resetSecondTraffic() {
+    memset(currentMinuteTraffic, 0, sizeof(currentMinuteTraffic)); lastSecTraffic = 0, lastSecUpdate = 0;
+  };
   void updateSecondTraffic(time_t when);
+  void checkPointCounters(bool drops_only);
+  u_int64_t getCheckPointNumPackets();
+  u_int64_t getCheckPointNumBytes();
+  u_int32_t getCheckPointNumPacketDrops();
 
   inline void incStats(time_t when, u_int16_t eth_proto, u_int16_t ndpi_proto,
 		       u_int pkt_len, u_int num_pkts, u_int pkt_overhead) {

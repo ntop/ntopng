@@ -98,6 +98,15 @@ is_packet_interface = interface.isPacketInterface()
 
 ifstats = interface.getStats()
 
+-- this is a user-browseable page, so we must return counters from
+-- the latest reset as the user may have chosen to reset statistics at some point
+if ifstats.stats and ifstats.stats_since_reset then
+   -- override stats with the values calculated from the latest user reset
+   for k, v in pairs(ifstats.stats_since_reset) do
+      ifstats.stats[k] = v
+   end
+end
+
 if (isAdministrator()) then
    if(_GET["custom_name"] ~=nil) then
       if(_GET["csrf"] ~= nil) then
@@ -457,13 +466,10 @@ print("</script>\n")
    end
 
    if(ifstats.stats.drops > 0) then print('</span>') end
-   print("</span>&nbsp;")
-   if (isAdministrator()) then
-      print("<span id=drops_trend></span></td><td colspan=3><span id=button_reset_drops></span>\n")
-   end
+   print("</span>&nbsp;<span id=drops_trend></span></td><td colspan=3>")
    print("</td></tr>\n")
 
-   if(prefs.is_dump_flows_enabled) then
+   if(prefs.is_dump_flows_enabled and ifstats.isView == false) then
       local dump_to = "MySQL"
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
@@ -494,6 +500,26 @@ print("</script>\n")
       print("<td colspan=3>&nbsp;</td>")
       print("</tr>")
 
+   end
+
+   if (isAdministrator() and ifstats.isView == false) then
+      print("<tr><th width=250>Reset Counters</th>")
+      print("<td colspan=4>")
+
+      local cls = ""
+      if ifstats.stats.bytes + ifstats.stats.packets + ifstats.stats.drops + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops == 0 then
+	 cls = " disabled"
+      end
+      print('<button id="btn_reset_all" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(false);">All Counters</button>&nbsp;')
+
+      cls = ""
+      if ifstats.stats.drops + ifstats.stats.flow_export_drops == 0 then
+	 cls = " disabled"
+      end
+      print('<button id="btn_reset_drops" type="button" class="btn btn-default btn-xs'..cls..'" onclick="resetInterfaceCounters(true);">Drops Only</button>')
+      print("</td>")
+
+      print("</tr>\n")
    end
 
    if((ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)) then
@@ -1751,13 +1777,15 @@ end
 
 print [[
 
-var resetInterfacePacketDrops = function() {
-$.ajax({ type: 'GET',
-  url: ']]
+var resetInterfaceCounters = function(drops_only) {
+  var action = "reset_all";
+  if(drops_only) action = "reset_drops";
+  $.ajax({ type: 'GET',
+    url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/reset_stats.lua?action=reset_interface_packet_drops',
-  success: function(rsp) {}
-});
+print [[/lua/reset_stats.lua?action=' + action,
+    success: function(rsp) {}
+  });
 }
 
 setInterval(function() {
@@ -1768,6 +1796,7 @@ print (ntop.getHttpPrefix())
 print [[/lua/network_load.lua',
 	  data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
 	  success: function(rsp) {
+
 	var v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
 
@@ -1818,11 +1847,15 @@ print [[
 
 	$('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
 	$('#drops_trend').html(get_trend(last_drops, rsp.drops));
-	last_pkts = rsp.packets
+	last_pkts = rsp.packets;
 	last_drops = rsp.drops;
 
-	if((rsp.packets+rsp.drops) > 0) { pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2); }
-	if(rsp.drops > 0) { drops = '<span class="label label-danger">'; }
+	if((rsp.packets + rsp.drops) > 0) {
+          pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);
+        }
+	if(rsp.drops > 0) {
+          drops = '<span class="label label-danger">';
+        }
 	drops = drops + addCommas(rsp.drops)+" ]]
 
 print("Pkts")
@@ -1832,24 +1865,37 @@ print [[";
 	if(rsp.drops > 0) { drops  += '</span>'; }
 	$('#if_drops').html(drops);
 
-        var button_reset = ""
-	if(rsp.drops > 0) {
-          var button_reset = '<button type="button" class="btn btn-secondary btn-xs" onclick="resetInterfacePacketDrops();">Reset Drops</button>';
-        }
-        $('#button_reset_drops').html(button_reset);
-
         $('#exported_flows').html(fint(rsp.flow_export_count));
         $('#exported_flows_rate').html(Math.round(rsp.flow_export_rate * 100) / 100);
         if(rsp.flow_export_drops > 0) {
           $('#exported_flows_drops')
             .addClass("label label-danger")
-            .html(rsp.flow_export_drops);
+            .html(fint(rsp.flow_export_drops));
           if(rsp.flow_export_count > 0) {
             $('#exported_flows_drops_pct')
               .addClass("label label-danger")
               .html("[" + Math.round(rsp.flow_export_drops / rsp.flow_export_count * 100 * 1000) / 1000 + "%]");
+          } else {
+            /* If rsp.flow_export_count means that only drops have been occuring so it is meaningless to print a pct */
+            $('#exported_flows_drops_pct').removeClass().html("");
           }
+        } else {
+          $('#exported_flows_drops').removeClass().html("0");
+          $('#exported_flows_drops_pct').removeClass().html("[0%]");
         }
+
+        var btn_disabled = false;
+	if(rsp.drops + rsp.bytes + rsp.packets + rsp.flow_export_count + rsp.flow_export_drops == 0) {
+          btn_disabled = true;
+        }
+        $('#btn_reset_all').disable(btn_disabled);
+
+        btn_disabled = false;
+	if(rsp.drops + rsp.flow_export_drops == 0) {
+          btn_disabled = true;
+        }
+        $('#btn_reset_drops').disable(btn_disabled);
+
 ]]
 
 if(ifstats["bridge.device_a"] ~= nil) then
