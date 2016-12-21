@@ -77,6 +77,7 @@ class IpAddress {
   json_object* getJSONObject();
   bool match(AddressTree *tree);
   void* findAddress(AddressTree *ptree);
+  void dump();
 };
 
 #endif /* _IP_ADDRESS_H_ */

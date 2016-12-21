@@ -441,7 +441,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	IPAddr.S_un.S_addr = (u_long)(pIPAddrTable->table[ifIdx].dwAddr & pIPAddrTable->table[ifIdx].dwMask);
 
 	snprintf(buf, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as local address for %s", buf, iface[id]->get_name());
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %", buf, iface[id]->get_name());
 	address->setLocalNetwork(buf);
 
 	IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
@@ -472,7 +472,6 @@ void Ntop::loadLocalInterfaceAddress() {
     struct ifreq ifr;
     u_int32_t netmask;
     int cidr, ifId = -1;
-
     if((ifa->ifa_addr == NULL)
        || ((ifa->ifa_addr->sa_family != AF_INET)
 	   && (ifa->ifa_addr->sa_family != AF_INET6))
@@ -538,7 +537,7 @@ void Ntop::loadLocalInterfaceAddress() {
       if(inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf)) != NULL) {
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 128);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 interface address for %s", buf_orig, iface[ifId]->get_name());
-	address->setLocalNetwork(buf_orig);
+	local_interface_addresses.addAddresses(buf_orig);
 	iface[ifId]->addInterfaceAddress(buf_orig);
 
 	for(int i = cidr, j = 0; i > 0; i -= 8, ++j)
@@ -547,7 +546,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	inet_ntop(ifa->ifa_addr->sa_family,(void *)&(s6->sin6_addr), buf, sizeof(buf));
 	snprintf(buf_orig, bufsize, "%s/%d", buf, cidr);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv6 local network for %s", buf_orig, iface[ifId]->get_name());
-	local_interface_addresses.addAddresses(buf_orig);
+	address->setLocalNetwork(buf_orig);
       }
     }
   }
@@ -556,6 +555,22 @@ void Ntop::loadLocalInterfaceAddress() {
 
   closesocket(sock);
 #endif
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Local Interface Addresses (System Host)");
+  local_interface_addresses.dump();
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Local Networks");
+  address->dump();
+
+  if(0) {
+    IpAddress a;
+
+    a.set((char*)"192.12.193.113"); a.dump();
+    a.set((char*)"192.12.193.11"); a.dump();
+    a.set((char*)"2a00:d40:1:3:192:12:193:11"); a.dump();
+    a.set((char*)"2a00:d40:1:3:192:12:193:12"); a.dump();
+
+    exit(0);
+  }
 }
 
 /* ******************************************* */

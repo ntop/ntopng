@@ -27,7 +27,7 @@
 
 AddressTree::AddressTree() {
   numAddresses = 0;
-  ptree_v4 = New_Patricia(128), ptree_v6 = New_Patricia(128);
+  ptree_v4 = New_Patricia(32), ptree_v6 = New_Patricia(128);
 }
 
 /* ******************************************* */
@@ -90,29 +90,40 @@ AddressTree::~AddressTree() {
 
 /* **************************************************** */
 
-void print_funct(prefix_t *prefix, void *data, void *user_data) {
+static void address_tree_dump_funct(prefix_t *prefix, void *data, void *user_data) {
   char address[64], ret[64], *a;
 
   if(!prefix) return;
 
   if(prefix->family == AF_INET) {
-    if((prefix->bitlen == 0) || (prefix->bitlen == 32)) return;
+    // if((prefix->bitlen == 0) || (prefix->bitlen == 32)) return;
 
     a = Utils::intoaV4(ntohl(prefix->add.sin.s_addr), address, sizeof(address));
   } else {
-    if((prefix->bitlen == 0) || (prefix->bitlen == 128)) return;
+    // if((prefix->bitlen == 0) || (prefix->bitlen == 128)) return;
 
     a = Utils::intoaV6(*((struct ndpi_in6_addr*)&prefix->add.sin6), prefix->bitlen, address, sizeof(address));
   }
 
   snprintf(ret, sizeof(ret), "%s/%d", a, prefix->bitlen);
-  lua_push_str_table_entry((lua_State*)user_data, ret, (char*)"");
+
+  if(user_data)
+    lua_push_str_table_entry((lua_State*)user_data, ret, (char*)"");
+  else
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", ret);
 }
 
 /* **************************************************** */
 
 void AddressTree::getAddresses(lua_State* vm) {
-  patricia_walk_inorder(ptree_v4->head, print_funct, vm);
-  patricia_walk_inorder(ptree_v6->head, print_funct, vm);
+  if(ptree_v4->head) patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, vm);
+  if(ptree_v6->head) patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, vm);
+}
+
+/* **************************************************** */
+
+void AddressTree::dump() {
+  if(ptree_v4->head) patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, NULL);
+  if(ptree_v6->head) patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, NULL);
 }
 

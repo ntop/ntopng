@@ -39,6 +39,7 @@ class AddressList {
   int16_t findAddress(int family, void *addr) { return(tree.findAddress(family, addr));                      };
   void getAddresses(lua_State* vm)            { return(tree.getAddresses(vm));                               };
   inline char *getAddressString(u_int8_t id)  { return((id < getNumAddresses()) ? addressString[id] : NULL); };
+  inline void dump()                          { tree.dump(); }
 };
 
 #endif /* _ADDRESS_LIST_H_ */

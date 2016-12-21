@@ -437,9 +437,11 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    else
 	       print("0")
 	    end
+	    -- io.write("-------------------------\n")
+	    -- tprint(value)
 	    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
 	       print ("\", \"column_location\" : \"")
-	       if value["localhost"] == true or value["systemhost"] == true then
+	       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
 		  print("<span class='label label-success'>Local</span>") else print("<span class='label label-default'>Remote</span>")
 	       end
 	       if value["is_blacklisted"] == true then

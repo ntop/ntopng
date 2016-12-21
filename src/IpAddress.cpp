@@ -284,3 +284,19 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) {
     return(Utils::intoaV6(addr.ipType.ipv6, bitmask, buf, bufLen));
   }
 }
+/* ****************************** */
+
+void IpAddress::dump() {
+  int16_t network_id;
+  char buf[48];
+  const char *local, *system;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "-------------------- [ Local ]");
+  local  =  isLocalHost(&network_id)  ? "Yes" : "No";
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "-------------------- [ System ]");
+  system =  isLocalInterfaceAddress() ? "Yes" : "No";
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "--------------------");
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Local: %s][SystemHost: %s]",
+			       print(buf, sizeof(buf)), local, system);
+}

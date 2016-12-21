@@ -43,6 +43,7 @@ class AddressResolution {
   int16_t findAddress(int family, void *addr); /* if(rc > 0) networdId else notfound */
   void setLocalNetwork(char *net)             { localNetworks.addAddress(net);             };
   void getLocalNetworks(lua_State* vm);
+  inline void dump()                          { localNetworks.dump(); }
 };
 
 #endif /* _ADDRESS_RESOLUTION_H_ */
