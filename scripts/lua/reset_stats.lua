@@ -16,8 +16,10 @@ interface.select(ifname)
 
 local res = { ["status"] = "ok" }
 if haveAdminPrivileges() then
-   if action == "reset_interface_packet_drops" then
-      interface.resetPacketDrops()
+   if action == "reset_drops" then
+      interface.resetCounters(true --[[ reset only drops --]])
+   elseif action == "reset_all" then
+      interface.resetCounters(false --[[ reset all counters --]])
    end
 else
    res["status"] = "unauthorized"

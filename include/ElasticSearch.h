@@ -35,9 +35,15 @@ class ElasticSearch {
   u_int32_t elkDroppedFlowsQueueTooLong;
   u_int64_t elkExportedFlows, elkLastExportedFlows;
   float elkExportRate;
+  u_int64_t checkpointDroppedFlows, checkpointExportedFlows; /* Those will hold counters at checkpoints */
  public:
   ElasticSearch();
   ~ElasticSearch();
+  void checkPointCounters(bool drops_only) {
+    if(!drops_only)
+      checkpointExportedFlows = elkExportedFlows;
+    checkpointDroppedFlows = elkDroppedFlowsQueueTooLong;
+  };
   inline u_int32_t numDroppedFlows() const { return elkDroppedFlowsQueueTooLong; };
   int sendToES(char* msg);
   void pushEStemplate();
@@ -45,7 +51,7 @@ class ElasticSearch {
   void startFlowDump();
 
   void updateStats(const struct timeval *tv);
-  void lua(lua_State* vm) const;
+  void lua(lua_State* vm, bool since_last_checkpoint) const;
 };
 
 

@@ -39,7 +39,8 @@ class DB {
   virtual void flush(bool idle) {};
   virtual bool createDBSchema() {return false; /* override in non-schemaless subclasses */};
   virtual void updateStats(const struct timeval *tv) {};
-  virtual void lua(lua_State* vm) const {};
+  virtual void checkPointCounters(bool drops_only) {};
+  virtual void lua(lua_State* vm, bool since_last_checkpoint) const {};
 };
 
 #endif /* _DB_CLASS_H_ */

@@ -40,6 +40,7 @@ ElasticSearch::ElasticSearch() {
   elkDroppedFlowsQueueTooLong = 0;
   elkExportedFlows = 0, elkLastExportedFlows = 0;
   elkExportRate = 0;
+  checkpointDroppedFlows = checkpointExportedFlows = 0;
   lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
 }
 
@@ -70,10 +71,13 @@ void ElasticSearch::updateStats(const struct timeval *tv) {
 
 /* ******************************************* */
 
-void ElasticSearch::lua(lua_State *vm) const {
-  lua_push_int_table_entry(vm,   "flow_export_count", elkExportedFlows);
-  lua_push_int32_table_entry(vm, "flow_export_drops", elkDroppedFlowsQueueTooLong);
-  lua_push_float_table_entry(vm, "flow_export_rate",  elkExportRate);
+void ElasticSearch::lua(lua_State *vm, bool since_last_checkpoint) const {
+  lua_push_int_table_entry(vm,   "flow_export_count",
+			   elkExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
+  lua_push_int32_table_entry(vm, "flow_export_drops",
+			     elkDroppedFlowsQueueTooLong - (since_last_checkpoint ? checkpointDroppedFlows : 0));
+  lua_push_float_table_entry(vm, "flow_export_rate",
+			     elkExportRate >= 0 ? elkExportRate : 0);
 }
 
 /* **************************************** */

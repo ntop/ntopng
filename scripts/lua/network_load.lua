@@ -27,15 +27,17 @@ function dumpInterfaceStats(interface_name)
       flows_pctg = math.floor(1+((ifstats.stats.flows*100)/prefs.max_num_flows))
 
       res["ifname"]  = interface_name
-      res["packets"] = ifstats.stats.packets
-      res["bytes"]   = ifstats.stats.bytes
-      res["drops"]   = ifstats.stats.drops
+      -- network load is used by web pages that are shown to the user
+      -- so we must return statistics since the latest (possible) reset
+      res["packets"] = ifstats.stats_since_reset.packets
+      res["bytes"]   = ifstats.stats_since_reset.bytes
+      res["drops"]   = ifstats.stats_since_reset.drops
       
       if prefs.is_dump_flows_to_es_enabled == true
        or prefs.is_dump_flows_to_mysql_enabled == true then
-	  res["flow_export_drops"] = ifstats.stats.flow_export_drops
-	  res["flow_export_rate"]  = ifstats.stats.flow_export_rate
-	  res["flow_export_count"]  = ifstats.stats.flow_export_count
+	  res["flow_export_drops"]  = ifstats.stats_since_reset.flow_export_drops
+	  res["flow_export_rate"]   = ifstats.stats_since_reset.flow_export_rate
+	  res["flow_export_count"]  = ifstats.stats_since_reset.flow_export_count
       end
 
       if prefs.are_alerts_enabled == true then

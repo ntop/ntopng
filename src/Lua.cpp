@@ -3125,15 +3125,19 @@ static int ntop_get_interface_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_reset_packet_drops(lua_State* vm) {
+static int ntop_interface_reset_counters(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool only_drops = true;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    only_drops = lua_toboolean(vm, 1) ? true : false;
+    
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  ntop_interface->resetPacketDrops();
+  ntop_interface->checkPointCounters(only_drops);
   return(CONST_LUA_OK);
 }
 
@@ -5081,7 +5085,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getIfNames",             ntop_get_interface_names },
   { "select",                 ntop_select_interface },
   { "getStats",               ntop_get_interface_stats },
-  { "resetPacketDrops",       ntop_interface_reset_packet_drops },
+  { "resetCounters",          ntop_interface_reset_counters },
   { "getnDPIStats",           ntop_get_ndpi_interface_stats },
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },

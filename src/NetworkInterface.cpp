@@ -209,7 +209,8 @@ void NetworkInterface::init() {
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
-    pkt_dumper = NULL, numL2Devices = 0, lastPktDropCount = 0;
+    pkt_dumper = NULL, numL2Devices = 0;
+  checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0;
   pollLoopCreated = false, bridge_interface = false;
   refresh_num_alerts = refresh_after_init;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
@@ -3261,24 +3262,35 @@ void NetworkInterface::lua(lua_State *vm) {
   if(remoteProbePublicIPaddr) lua_push_str_table_entry(vm, "probe.public_ip", remoteProbePublicIPaddr);
 
   lua_newtable(vm);
-  lua_push_int_table_entry(vm, "packets", getNumPackets());
-  lua_push_int_table_entry(vm, "bytes",   getNumBytes());
-  lua_push_int_table_entry(vm, "flows",   getNumFlows());
-  lua_push_int_table_entry(vm, "hosts",   getNumHosts());
-  lua_push_int_table_entry(vm, "http_hosts", getNumHTTPHosts());
-  lua_push_int_table_entry(vm, "drops",   getNumPacketDrops() - lastPktDropCount);
+  lua_push_int_table_entry(vm, "packets",     getNumPackets());
+  lua_push_int_table_entry(vm, "bytes",       getNumBytes());
+  lua_push_int_table_entry(vm, "flows",       getNumFlows());
+  lua_push_int_table_entry(vm, "hosts",       getNumHosts());
+  lua_push_int_table_entry(vm, "http_hosts",  getNumHTTPHosts());
+  lua_push_int_table_entry(vm, "drops",       getNumPacketDrops());
   lua_push_int_table_entry(vm, "devices", numL2Devices);
-
   /* even if the counter is global, we put it here on every interface
      as we may decide to make an elasticsearch thread per interface.
    */
   if(ntop->getPrefs()->do_dump_flows_on_es()) {
-    ntop->getElasticSearch()->lua(vm);
+    ntop->getElasticSearch()->lua(vm, false /* Overall */);
   } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
-    if(db) db->lua(vm);
+    if(db) db->lua(vm, false /* Overall */);
   }
-
   lua_pushstring(vm, "stats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  lua_push_int_table_entry(vm, "packets",     getNumPackets() - getCheckPointNumPackets());
+  lua_push_int_table_entry(vm, "bytes",       getNumBytes() - getCheckPointNumBytes());
+  lua_push_int_table_entry(vm, "drops",       getNumPacketDrops() - getCheckPointNumPacketDrops());
+  if(ntop->getPrefs()->do_dump_flows_on_es()) {
+    ntop->getElasticSearch()->lua(vm, true /* Since last checkpoint */);
+  } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+    if(db) db->lua(vm, true /* Since last checkpoint */);
+  }
+  lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
@@ -3892,6 +3904,46 @@ void NetworkInterface::updateSecondTraffic(time_t when) {
 
   currentMinuteTraffic[sec] = max_val(0, bytes-lastSecTraffic);
   lastSecTraffic = bytes;
+};
+
+/* **************************************** */
+
+void NetworkInterface::checkPointCounters(bool drops_only) {
+  if(!drops_only) {
+    checkpointPktCount = getNumPackets(),
+      checkpointBytesCount = getNumBytes();
+  }
+  checkpointPktDropCount = getNumPacketDrops();
+
+  if(ntop->getPrefs()->do_dump_flows_on_es()) {
+    ntop->getElasticSearch()->checkPointCounters(drops_only);
+  } else if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
+    if(db) db->checkPointCounters(drops_only);
+  }
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumPackets() {
+  u_int64_t tot = checkpointPktCount;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumPackets();
+  return(tot);
+};
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumBytes() {
+  u_int64_t tot = checkpointBytesCount;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumBytes();
+  return(tot);
+}
+
+/* **************************************************** */
+
+u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
+  u_int32_t tot = checkpointPktDropCount;
+  for(u_int8_t s = 0; s<numSubInterfaces; s++) tot += subInterfaces[s]->getCheckPointNumPacketDrops();
+  return(tot);
 };
 
 /* **************************************** */
