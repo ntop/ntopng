@@ -1710,7 +1710,6 @@ void NetworkInterface::shutdown() {
 /* **************************************************** */
 
 void NetworkInterface::cleanup() {
-  last_pkt_rcvd = 0;
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1, has_vlan_packets = false;
   running = false, sprobe_interface = false, inline_interface = false;
