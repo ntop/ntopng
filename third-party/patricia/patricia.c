@@ -68,12 +68,14 @@ void DeleteEntry(void *a) {
  * convert prefix information to bytes
  */
 u_char *
-prefix_tochar (prefix_t * prefix)
+prefix_tochar (prefix_t * prefix, unsigned short family)
 {
   if(prefix == NULL)
     return (NULL);
 
-  return ((u_char *) & prefix->add.sin);
+  if(family == AF_INET) return ((u_char *) & prefix->add.sin);
+  else if(family == AF_INET6) return ((u_char *) & prefix->add.sin6);
+  else /* if(family == AF_MAC) */ return ((u_char *) & prefix->add.mac);
 }
 
 int
@@ -582,7 +584,7 @@ patricia_search_exact (patricia_tree_t *patricia, prefix_t *prefix)
     return (NULL);
   assert (node->bit == bitlen);
   assert (node->bit == node->prefix->bitlen);
-  if(comp_with_mask (prefix_tochar (node->prefix), prefix_tochar (prefix),
+  if(comp_with_mask (prefix_tochar (node->prefix, node->prefix->family), prefix_tochar (prefix, prefix->family),
 		     bitlen)) {
 #ifdef PATRICIA_DEBUG
     fprintf (stderr, "patricia_search_exact: found %s/%d\n",
@@ -676,8 +678,8 @@ patricia_search_best2 (patricia_tree_t *patricia, prefix_t *prefix, int inclusiv
     fprintf (stderr, "patricia_search_best: pop %s/%d\n",
 	     prefix_toa (node->prefix), node->prefix->bitlen);
 #endif /* PATRICIA_DEBUG */
-    if(comp_with_mask (prefix_tochar (node->prefix),
-		       prefix_tochar (prefix),
+    if(comp_with_mask (prefix_tochar (node->prefix, node->prefix->family),
+		       prefix_tochar (prefix, prefix->family),
 		       node->prefix->bitlen) && node->prefix->bitlen <= bitlen) {
 #ifdef PATRICIA_DEBUG
       fprintf (stderr, "patricia_search_best: found %s/%d\n",

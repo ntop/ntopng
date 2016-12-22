@@ -30,15 +30,7 @@ AddressResolution::AddressResolution() {
 /* ******************************************* */
 
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
-bool AddressResolution::setLocalNetworks(char *rule) {
-  char *net = strtok(rule, ",");
-
-  while(net != NULL) {
-    if(!localNetworks.addAddress(net)) return false;
-    net = strtok(NULL, ",");
-  }
-  return true;
-}
+bool AddressResolution::setLocalNetworks(char *rule) { return(localNetworks.addAddress(rule)); }
 
 /* ******************************************* */
 
