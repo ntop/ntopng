@@ -120,7 +120,6 @@ end
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
 	                           country, os_, tonumber(vlan), tonumber(asn),
 				   tonumber(network), mac) -- false = little details
-
 --io.write("hello\n")
 --tprint(hosts_stats)
 --io.write("---\n")
@@ -256,6 +255,8 @@ for key, value in pairs(hosts_stats) do
 	 vals[hosts_stats[key]["country"]..postfix] = key
       elseif(sortColumn == "column_vlan") then
 	 vals[hosts_stats[key]["vlan"]..postfix] = key
+      elseif(sortColumn == "column_traffic") then
+	 vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
       elseif(sortColumn == "column_thpt") then
 	 vals[hosts_stats[key]["throughput_"..throughput_type]+postfix] = key
       elseif(sortColumn == "column_queries") then
