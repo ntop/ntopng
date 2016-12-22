@@ -263,8 +263,10 @@ if(isAdministrator()) then
       print("\n<li><a href=\""..url.."&page=alerts\">")
    end
 
-   print("<i class=\"fa fa-warning fa-lg\"></i></a>")
-   print("</li>")
+   if interface.isPcapDumpInterface() == false then
+      print("<i class=\"fa fa-warning fa-lg\"></i></a>")
+      print("</li>")
+   end
 end
 
 if(ntop.isEnterprise()) then
@@ -332,70 +334,78 @@ if((page == "overview") or (page == nil)) then
       if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
       if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td><td></td>") end
       if(ifstats["probe.public_ip"] ~= "") then
-	 print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
+         print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
       else
-	 print("<td>&nbsp;</td>\n")
+         print("<td colspan=2>&nbsp;</td>\n")
       end
       print("</tr>\n")
    end
 
    local is_physical_iface = (interface.isPacketInterface()) and (interface.isPcapDumpInterface() == false)
+   local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 
-   if((ifstats["bridge.device_a"] == nil) or (ifstats["bridge.device_b"] == nil)) then
+   if not is_bridge_iface then
       print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
-
-      if is_physical_iface then
-	 if(ifstats.name ~= nil) then
-	    print('<th>Custom Name</th><td colspan="3">')
-	    label = getInterfaceNameAlias(ifstats.name)
-	    inline_input_form("custom_name", "Custom Name",
-		"Specify an alias for the interface",
-		label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9 ]*$"')
-	    print("</td></tr>\n")
-	 end
-
-	 local speed_key = 'ntopng.prefs.'..ifname..'.speed'
-	 local speed = ntop.getCache(speed_key)
-	 if speed == nil or speed == "" or tonumber(speed) == nil then
-	    speed = ifstats.speed
-	 end
-	 print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
-
-	 if interface.isPacketInterface() then
-	    print("</td><th>Scaling Factor</th><td colspan=3>")
-	    local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
-	    if((label == nil) or (label == "")) then label = "1" end
-	    inline_input_form("scaling_factor", "Scaling Factor",
-	       "This should match your capture interface sampling rate",
-	       label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
-	 end
-
-	 print("</td></tr>\n")
-      else
-	 print("<td colspan=4></td>")
-      end
    else
-      print("<tr><th>Bridge</th><td colspan=7>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"> "..ifstats["bridge.device_b"].."</td></tr>")
+      print("<tr><th>Bridge</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"> "..ifstats["bridge.device_b"].."</td>")
    end
 
-   if(ifstats.ip_addresses ~= "") then
-      tokens = split(ifstats.ip_addresses, ",")
+   if not interface.isPcapDumpInterface() then
+      if((ifstats.name ~= nil) and (ifstats.name ~= "dummy")) then
+          print('<th>Custom Name</th><td colspan="3">')
+          label = getInterfaceNameAlias(ifstats.name)
+          inline_input_form("custom_name", "Custom Name",
+         "Specify an alias for the interface",
+         label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9 ]*$"')
+          print("</td></tr>\n")
+      else
+         print("<td colspan=2></td></tr>")
+      end
+   end
+
+   if not is_bridge_iface then
+      if is_physical_iface then
+         local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+         local speed = ntop.getCache(speed_key)
+         if speed == nil or speed == "" or tonumber(speed) == nil then
+            speed = ifstats.speed
+         end
+         print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
+
+         if interface.isPacketInterface() then
+            print("</td><th>Scaling Factor</th><td colspan=3>")
+            local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
+            if((label == nil) or (label == "")) then label = "1" end
+               inline_input_form("scaling_factor", "Scaling Factor",
+               "This should match your capture interface sampling rate",
+               label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
+            end
+
+            print("</td></tr>\n")
+         end
+      end
+
+      if(ifstats.ip_addresses ~= "") then
+         tokens = split(ifstats.ip_addresses, ",")
 
       if(tokens ~= nil) then
-	 print("<tr><th width=250>IP Address</th><td colspan=5>")
+         print("<tr><th width=250>IP Address</th><td colspan=5>")
+         local addresses = {}
 
-	 for _,s in pairs(tokens) do
-	    t = string.split(s, "/")
-	    host = interface.getHostInfo(t[1])
+         for _,s in pairs(tokens) do
+            t = string.split(s, "/")
+            host = interface.getHostInfo(t[1])
 
-	    if(host ~= nil) then
-	       print("<li><A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1]..">".. t[1].."</A>\n")
-	    else
-	       print("<li>".. t[1].."\n")
-	    end
-	 end
+            if(host ~= nil) then
+               addresses[#addresses+1] = "<a href="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1]..">".. t[1].."</a>"
+            else
+               addresses[#addresses+1] = t[1]
+            end
+         end
 
-	 print("</td></tr>")
+         print(table.concat(addresses, ", "))
+
+         print("</td></tr>")
       end
    end
 
