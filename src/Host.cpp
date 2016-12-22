@@ -356,8 +356,7 @@ void Host::updateLocal() {
   
   systemHost = localHost ? ip.isLocalInterfaceAddress() : false;
 
-#if 0
-  if(1) {
+  if(0) {
     char buf[64];
     
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s %s [%p]",
@@ -365,7 +364,6 @@ void Host::updateLocal() {
 				 localHost ? "local" : "remote",
 				 systemHost ? "systemHost" : "", this);
   }
-#endif
 }
 
 /* *************************************** */
