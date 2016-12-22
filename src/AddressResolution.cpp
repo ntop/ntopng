@@ -30,7 +30,7 @@ AddressResolution::AddressResolution() {
 /* ******************************************* */
 
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
-bool AddressResolution::setLocalNetworks(char *rule) { return(localNetworks.addAddress(rule)); }
+bool AddressResolution::setLocalNetworks(char *rule) { return(localNetworks.addAddresses(rule)); }
 
 /* ******************************************* */
 
