@@ -577,20 +577,26 @@ print [[
    end
 
    if(ifstats.inline and (host.localhost or host.systemhost) and isAdministrator()) then
-	 if(_GET["host_quota"] ~= nil) then
-	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
-	    interface.setHostQuota(tonumber(_GET["host_quota"]), host_info["host"], host_vlan)
-	 end
+	 host_quota_value = host["host_quota_mb"]
 
-         host_quota_value = host["host_quota_mb"]
-         if(_GET["host_quota"] ~= nil) then host_quota_value = _GET["host_quota"] end
+         if(_GET["host_quota"] ~= nil) then
+	    if(_GET["host_quota"] == "") then
+	       -- default: unlimited
+	       host_quota_value = "0"
+	    else
+	       host_quota_value = _GET["host_quota"]
+	    end
+
+	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
+	    interface.setHostQuota(tonumber(host_quota_value), host_info["host"], host_vlan)
+	 end
 	 print [[<td><form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">]]
 
 	 print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
 	 print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
 
-	 print('<input type="hidden" name="host_quota" value="'..host_quota_value..'">Host quota <input type="number" name="host_quota" placeholder="" min="0" step="100" max="100000" value="')print(tostring(host_quota_value))
-         print [[" onclick="this.form.submit();"> MB</input>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+	 print('<input type="hidden" name="host_quota" value="'..host_quota_value..'">Host quota &nbsp;<input type="number" name="host_quota" placeholder="" min="0" step="100" max="100000" value="')print(tostring(host_quota_value))
+         print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
          print('</form>')
 	 print('</td></tr>')
    else
@@ -656,7 +662,7 @@ print("\"></input>")
 pickIcon(labelKey)
 
 print [[
-	 &nbsp;<button type="submit" class="btn btn-default">Save</button>]]
+	 &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
 print [[</form>
