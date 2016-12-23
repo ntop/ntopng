@@ -2754,7 +2754,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm, AddressTree *allowed_hos
   disablePurge(false);
 
   if(sortHosts(&retriever, allowed_hosts, host_details, location,
-	       countryFilter, osFilter, vlan_id, osFilter,
+	       countryFilter, mac_filter, vlan_id, osFilter,
 	       asnFilter, networkFilter, true, sortColumn) < 0) {
     enablePurge(false);
     return -1;
