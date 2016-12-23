@@ -23,6 +23,7 @@ local  en = {
    max_rate = "Max Rate",
    duration = "Duration",
    traffic = "Traffic",
+   save = "Save",
    save_settings = "Save Settings",
 
    traffic_report = {
