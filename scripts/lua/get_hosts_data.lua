@@ -138,93 +138,23 @@ print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 now = os.time()
 vals = {}
 
-sort_mode = mode
--- for k,v in pairs(hosts_stats) do io.write(k.."\n") end
-
-if(net ~= nil) then
-   net = string.gsub(net, "_", "/")
-end
-
-if(mode == "network") then
-   my_networks = { }
-   for key, value in pairs(hosts_stats) do
-      h = hosts_stats[key]
-      nw_name = h["local_network_name"]
-
-      if(h["local_network_name"] ~= nil) then
-	 -- io.write(nw_name.."\n")
-
-	 if(nw_name ~= nil) then
-	    if(my_networks[nw_name] == nil) then
-	       h["ip"] = nw_name
-	       h["name"] = nw_name -- FIX
-
-	       my_networks[nw_name] = h
-	    else
-	       my_networks[nw_name]["num_alerts"] = my_networks[nw_name]["num_alerts"] + h["num_alerts"]
-	       my_networks[nw_name]["throughput_bps"] = my_networks[nw_name]["throughput_bps"] + h["throughput_bps"]
-	       my_networks[nw_name]["throughput_pps"] = my_networks[nw_name]["throughput_pps"] + h["throughput_pps"]
-	       my_networks[nw_name]["bytes.sent"] = my_networks[nw_name]["bytes.sent"] + h["bytes.sent"]
-	       my_networks[nw_name]["bytes.rcvd"] = my_networks[nw_name]["bytes.rcvd"] + h["bytes.rcvd"]
-
-	       if(my_networks[nw_name]["seen.first"] > h["seen.first"]) then
-		  my_networks[nw_name]["seen.first"] = h["seen.first"]
-	       end
-	    end
-	 end
-      end
-   end
-
-   hosts_stats = my_networks
-   mode = "local"
-end
-
 num = 0
 if(hosts_stats ~= nil) then
-for key, value in pairs(hosts_stats) do
-   num = num + 1
-   postfix = string.format("0.%04u", num)
-   ok = true
+   for key, value in pairs(hosts_stats) do
+      num = num + 1
+      postfix = string.format("0.%04u", num)
 
-   if not(mode == "all" or mode == "remote" or mode == "local") then
-      ok = false
-   end
+      --[[
+	 if((protocol ~= nil) and (ok == true)) then
+	 info = interface.getHostInfo(key)
 
-   if(net ~= nil) then
-      if((value["local_network_name"] == nil) or (value["local_network_name"] ~= net)) then
+	 if((info == nil) or (info["ndpi"][protocol] == nil)) then
 	 ok = false
-      end
-   end
-
-   if(ok == true) then
-      if(client ~= nil) then
-	 ok = false
-
-	 for k,v in pairs(hosts_stats[key]["contacts"]["client"]) do
-	    --io.write(k.."\n")
-	    if((ok == false) and (k == client)) then ok = true end
 	 end
-
-	 if(ok == false) then
-	    for k,v in pairs(hosts_stats[key]["contacts"]["server"]) do
-	       -- io.write(k.."\n")
-	       if((ok == false) and (k == client)) then ok = true end
-	    end
 	 end
-      else
-	 ok = true
-      end
-   end
+      --]]
 
-   if((protocol ~= nil) and (ok == true)) then
-      info = interface.getHostInfo(key)
 
-      if((info == nil) or (info["ndpi"][protocol] == nil)) then
-	 ok = false
-      end
-   end
-
-   if(ok == true) then
       -- io.write("==>"..key.."\n")
       -- tprint(hosts_stats[key])
       -- io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
@@ -275,14 +205,8 @@ for key, value in pairs(hosts_stats) do
 	    end
 	 end
       end
-   else
-      -- io.write(key.."\n")
-      -- io.write(hosts_stats[key].."\n")
-      -- for k,v in pairs(hosts_stats[key]) do io.write(k.."\n") end
-      
-      vals[(hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"])+postfix] = key
+
    end
-end
 end
 
 if(sortOrder == "asc") then
@@ -295,169 +219,153 @@ num = 0
 for _key, _value in pairsByKeys(vals, funct) do
    key = vals[_key]
 
-   if((key ~= nil) and (not(key == "")) and
-((asn == nil) or (asn == tostring(hosts_stats[key]["asn"]))) and
-((os_ == nil) or (os_ == tostring(hosts_stats[key]["os"]))) and
-((country == nil) or (country == tostring(hosts_stats[key]["country"]))) and
-((mac == nil) or (mac == tostring(hosts_stats[key]["mac"]))) and
-((vlan == nil) or (vlan == tostring(hosts_stats[key]["vlan"]))) and
-((network == nil) or (network == tostring(hosts_stats[key]["local_network_id"])))) then
-      value = hosts_stats[key]
+   value = hosts_stats[key]
 
-	 if((num < perPage) or (all ~= nil))then
-	    if(num > 0) then print ",\n" end
-	    print ('{ ')
-	    symkey = hostinfo2jqueryid(hosts_stats[key])
-	    print ('\"key\" : \"'..symkey..'\",')
+   if(num > 0) then print ",\n" end
+   print ('{ ')
+   symkey = hostinfo2jqueryid(hosts_stats[key])
+   print ('\"key\" : \"'..symkey..'\",')
 
-	    print ("\"column_ip\" : \"<A HREF='")
+   print ("\"column_ip\" : \"<A HREF='")
+   url = ntop.getHttpPrefix().."/lua/host_details.lua?" ..hostinfo2url(hosts_stats[key])
+   print(url .. "'>")
+   print(mapOS2Icon(key))
+   print(" </A> ")
 
-	    if(sort_mode == "network") then
-	       url = nil
-	       print(ntop.getHttpPrefix().."/lua/hosts_stats.lua?net=" ..string.gsub(hosts_stats[key]["ip"], "/", "_") .. "'>")
-	    else
- 	       url = ntop.getHttpPrefix().."/lua/host_details.lua?" ..hostinfo2url(hosts_stats[key])
-	       print(url .. "'>")
-	    end
+   if(value["systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
 
-	    print(mapOS2Icon(key))
+   if((value["country"] ~= nil) and (value["country"] ~= "")) then
+      print("&nbsp;<a href=".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
+   end
 
-	    print(" </A> ")
+   print("&nbsp;")
 
-	    if(value["systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
+   local icon = getOSIcon(value["os"])
+   if(mac ~= nil and trimSpace(getOSIcon(value["os"])) ~= trimSpace(getHostIcon(hosts_stats[key]["mac"]))) then
+      icon = icon.."&nbsp;"..getHostIcon(hosts_stats[key]["mac"])
+   end
+   if(icon == "") then icon = getHostIcon(hosts_stats[key]["ip"].."@"..hosts_stats[key]["vlan"]) end
+   print(icon)
 
-	    if((value["country"] ~= nil) and (value["country"] ~= "")) then
-	       print("&nbsp;<a href=".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
-	    end
+   if(value["dump_host_traffic"] == true) then print("&nbsp;<i class='fa fa-hdd-o fa-lg'></i>") end
 
-            print("&nbsp;")
-	    print(getOSIcon(value["os"]))
-	    icon = ""
-	    if(mac ~= nil) then icon = getHostIcon(hosts_stats[key]["mac"]) end
-	    if(icon == "") then icon = getHostIcon(hosts_stats[key]["ip"].."@"..hosts_stats[key]["vlan"]) end
-	    print(icon)
+   print("\", ")
 
-	    if(value["dump_host_traffic"] == true) then print("&nbsp;<i class='fa fa-hdd-o fa-lg'></i>") end
+   if(url ~= nil) then
+      print("\"column_url\" : \""..url.."\", ")
+   end
 
-	    print("\", ")
+   print("\"column_name\" : \"")
 
-            if(url ~= nil) then
-	       print("\"column_url\" : \""..url.."\", ")
- 	    end
+   if(value["name"] == nil) then
+      value["name"] = ntop.getResolvedAddress(key)
+   end
 
-	    print("\"column_name\" : \"")
+   if(value["name"] == "") then
+      value["name"] = key
+   end
 
-	    if(value["name"] == nil) then
-	       value["name"] = ntop.getResolvedAddress(key)
-	    end
+   if(long_names) then
+      print(value["name"])
+   else
+      print(shortHostName(value["name"]))
+   end
 
-	    if(value["name"] == "") then
-	       value["name"] = key
-	    end
-
-	    if(long_names) then
-      	       print(value["name"])
-            else
-	       print(shortHostName(value["name"]))
-	    end
-
-	    if(value["ip"] ~= nil) then
-	       label = getHostAltName(value["ip"])
-	       if(label ~= value["ip"]) then
-		  print (" ["..label.."]")
-	       end
-	    end
-
-	    if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then
-	       print (" <i class='fa fa-frown-o'></i>")
-	    end
-
-	    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
-	       print(" <i class='fa fa-warning fa-lg' style='color: #B94A48;'></i>")
-	    end
-
-	    --   print("</div>")
-
-	    if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then print("\", \"column_httpbl\" : \"".. value["httpbl"]) end
-
-	    if(value["vlan"] ~= nil) then
-
-	       if(value["vlan"] ~= 0) then
-		  print("\", \"column_vlan\" : "..value["vlan"])
-	       else
-		  print("\", \"column_vlan\" : \"0\"")
-	       end
-
-	    else
-	       print("\", \"column_vlan\" : \"\"")
-	    end
-
-	    if(value["asn"] ~= nil) then
-	       if(value["asn"] == 0) then
-		  print(", \"column_asn\" : 0")
-	       else
-		  print(", \"column_asn\" : \"<A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. value["asn"] ..">"..value["asname"].."</A>\"")
-	       end
-	    end
-
-	    print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
-	    print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
-
-
-	    if((criteria_key ~= nil) and (value["criteria"] ~= nil)) then
-	       print("\"column_"..criteria.."\" : \"" .. criteria_format(value["criteria"][criteria_key]) .. "\", ")
-	    end
-
-	    if((value["throughput_trend_"..throughput_type] ~= nil) and
-	       (value["throughput_trend_"..throughput_type] > 0)) then
-
-	       if(throughput_type == "pps") then
-		  print ("\"column_thpt\" : \"" .. pktsToSize(value["throughput_pps"]).. " ")
-	       else
-		  print ("\"column_thpt\" : \"" .. bitsToSize(8*value["throughput_bps"]).. " ")
-	       end
-
-	       if(value["throughput_trend_"..throughput_type] == 1) then
-		  print("<i class='fa fa-arrow-up'></i>")
-		  elseif(value["throughput_trend_"..throughput_type] == 2) then
-		  print("<i class='fa fa-arrow-down'></i>")
-		  elseif(value["throughput_trend_"..throughput_type] == 3) then
-		  print("<i class='fa fa-minus'></i>")
-	       end
-
-	       print("\",")
-	    else
-	       print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
-	    end
-
-	    print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))
-
-	    print ("\", \"column_alerts\" : \"")
-	    if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
-	       print(""..value["num_alerts"])
-	    else
-	       print("0")
-	    end
-	    -- io.write("-------------------------\n")
-	    -- tprint(value)
-	    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
-	       print ("\", \"column_location\" : \"")
-	       if value["localhost"] == true --[[or value["systemhost"] == true --]] then
-		  print("<span class='label label-success'>Local Host</span>") else print("<span class='label label-default'>Remote Host</span>")
-	       end
-	       if value["is_blacklisted"] == true then
-		     print(" <span class='label label-danger'>Blacklisted Host</span>")
-	       end
-	    end
-
-	    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
-	    print ("\", \"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
-		   .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
-
-	    print("\" } ")
-	    num = num + 1
+   if(value["ip"] ~= nil) then
+      label = getHostAltName(value["ip"])
+      if(label ~= value["ip"]) then
+	 print (" ["..label.."]")
       end
    end
+
+   if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then
+      print (" <i class='fa fa-frown-o'></i>")
+   end
+
+   if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
+      print(" <i class='fa fa-warning fa-lg' style='color: #B94A48;'></i>")
+   end
+
+   --   print("</div>")
+
+   if((value["httpbl"] ~= nil) and (string.len(value["httpbl"]) > 2)) then print("\", \"column_httpbl\" : \"".. value["httpbl"]) end
+
+   if(value["vlan"] ~= nil) then
+
+      if(value["vlan"] ~= 0) then
+	 print("\", \"column_vlan\" : "..value["vlan"])
+      else
+	 print("\", \"column_vlan\" : \"0\"")
+      end
+
+   else
+      print("\", \"column_vlan\" : \"\"")
+   end
+
+   if(value["asn"] ~= nil) then
+      if(value["asn"] == 0) then
+	 print(", \"column_asn\" : 0")
+      else
+	 print(", \"column_asn\" : \"<A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. value["asn"] ..">"..value["asname"].."</A>\"")
+      end
+   end
+
+   print(", \"column_since\" : \"" .. secondsToTime(now-value["seen.first"]+1) .. "\", ")
+   print("\"column_last\" : \"" .. secondsToTime(now-value["seen.last"]+1) .. "\", ")
+
+
+   if((criteria_key ~= nil) and (value["criteria"] ~= nil)) then
+      print("\"column_"..criteria.."\" : \"" .. criteria_format(value["criteria"][criteria_key]) .. "\", ")
+   end
+
+   if((value["throughput_trend_"..throughput_type] ~= nil) and
+      (value["throughput_trend_"..throughput_type] > 0)) then
+
+      if(throughput_type == "pps") then
+	 print ("\"column_thpt\" : \"" .. pktsToSize(value["throughput_pps"]).. " ")
+      else
+	 print ("\"column_thpt\" : \"" .. bitsToSize(8*value["throughput_bps"]).. " ")
+      end
+
+      if(value["throughput_trend_"..throughput_type] == 1) then
+	 print("<i class='fa fa-arrow-up'></i>")
+      elseif(value["throughput_trend_"..throughput_type] == 2) then
+	 print("<i class='fa fa-arrow-down'></i>")
+      elseif(value["throughput_trend_"..throughput_type] == 3) then
+	 print("<i class='fa fa-minus'></i>")
+      end
+
+      print("\",")
+   else
+      print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
+   end
+
+   print("\"column_traffic\" : \"" .. bytesToSize(value["bytes.sent"]+value["bytes.rcvd"]))
+
+   print ("\", \"column_alerts\" : \"")
+   if((value["num_alerts"] ~= nil) and (value["num_alerts"] > 0)) then
+      print(""..value["num_alerts"])
+   else
+      print("0")
+   end
+   -- io.write("-------------------------\n")
+   -- tprint(value)
+   if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
+      print ("\", \"column_location\" : \"")
+      if value["localhost"] == true --[[or value["systemhost"] == true --]] then
+	 print("<span class='label label-success'>Local Host</span>") else print("<span class='label label-default'>Remote Host</span>")
+      end
+      if value["is_blacklisted"] == true then
+	 print(" <span class='label label-danger'>Blacklisted Host</span>")
+      end
+   end
+
+   sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
+   print ("\", \"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
+	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
+
+   print("\" } ")
+   num = num + 1
 end -- for
 
 print ("\n], \"perPage\" : " .. perPage .. ",\n")

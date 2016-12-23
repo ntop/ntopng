@@ -26,7 +26,10 @@
 Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6), vlan_id = _vlanId;
   special_mac = Utils::isSpecialMac(mac);
-  first_seen = last_seen = iface->getTimeLastPktRcvd();
+  if(iface->getTimeLastPktRcvd() > 0)
+    first_seen = last_seen = iface->getTimeLastPktRcvd();
+  else
+    first_seen = last_seen = time(NULL);
 
 #ifdef DEBUG
   char buf[32];
@@ -43,6 +46,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
 /* *************************************** */
 
 Mac::~Mac() {
+  /* TODO: decide if it is useful to dump mac stats to redis */
   if(!special_mac) iface->decNumL2Devices();
 
 #ifdef DEBUG

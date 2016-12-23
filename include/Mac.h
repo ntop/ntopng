@@ -39,7 +39,11 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline u_int8_t* get_mac()     { return(mac);                 }
   inline u_int16_t get_vlan_id() { return(vlan_id);             }
   bool equal(u_int16_t _vlanId, const u_int8_t _mac[6]);
-  inline void incSentStats(u_int pkt_len)  { sent.incStats(pkt_len), last_seen = iface->getTimeLastPktRcvd(); }
+  inline void incSentStats(u_int pkt_len)  {
+    sent.incStats(pkt_len);
+    if(first_seen == 0) first_seen = iface->getTimeLastPktRcvd();
+    last_seen = iface->getTimeLastPktRcvd();
+  }
   inline void incRcvdStats(u_int pkt_len)  { rcvd.incStats(pkt_len); }
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
