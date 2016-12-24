@@ -1019,6 +1019,7 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 		      engaged_alert_id);
     if(!rc)
       h->decNumAlerts(); /* Only if the alter was actually engaged */
+    return rc;
   }
 };
 
