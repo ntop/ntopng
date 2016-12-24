@@ -222,19 +222,14 @@ print[[
 	      } /* closes if (prev_bytes > 0) */
 		var msg = "&nbsp;<i class=\"fa fa-clock-o\"></i> <small>"+rsp.localtime+" | Uptime: "+rsp.uptime+"</small><br>";
 
-		if(rsp.alerts > 0 || rsp.engaged_alerts > 0) {
-                   var warning_color = "#F0AD4E"; // bootstrap warning orange
+		if(rsp.engaged_alerts > 0) {
+                   // var warning_color = "#F0AD4E"; // bootstrap warning orange
+                   // var warning_label = "label-warning";
                    var error_color = "#B94A48";  // bootstrap danger red
-                   var warning_label = "label-warning";
                    var error_label = "label-danger";
                    var error_color = error_color;
-                   var color = warning_color;
-                   var label = warning_label;
-
-                   if(rsp.error_level_alerts) {
-                     color = error_color;
-                     label = error_label;
-                   }
+                   var color = error_color;
+                   var label = error_label;
 
                    // update the color of the menu triangle
                    $("#alerts-menu-triangle").attr("style","color:" + color +";")

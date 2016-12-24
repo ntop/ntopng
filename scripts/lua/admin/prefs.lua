@@ -193,10 +193,12 @@ function printAlerts()
      showElements = false
   end
 
+  --[[ disabled, due to efficiency reasons limits are honoured only for flow alerts
   prefsInputFieldPrefs("Maximum Number of Alerts per Entity",
 		       "The maximum number of alerts per alarmable entity. Alarmable entities are hosts, networks, interfaces and flows. "..
 		       "Once the maximum number of entity alerts is reached, oldest alerts will be overwritten. "..
 			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements, false)
+  --]]
 
   prefsInputFieldPrefs("Maximum Number of Flow Alerts",
 		       "The maximum number of flow alerts. Once the maximum number of alerts is reached, oldest alerts will be overwritten. "..

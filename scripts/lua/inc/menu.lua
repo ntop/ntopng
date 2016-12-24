@@ -304,10 +304,10 @@ interface.select(ifname)
 
 local alert_cache = interface.getCachedNumAlerts()
 local color = "#F0AD4E" -- bootstrap warning orange
-if alert_cache["error_level_alerts"] == true then
-   color = "#B94A48" -- bootstrap danger red
-end
-if((alert_cache["num_alerts"] > 0 or alert_cache["num_alerts_engaged"] > 0) and ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1") then
+-- if alert_cache["error_level_alerts"] == true then
+--   color = "#B94A48" -- bootstrap danger red
+-- end
+if alert_cache["num_alerts_engaged"] > 0 then
 print [[
 <li id="alerts-li">
 <a  href="]]
