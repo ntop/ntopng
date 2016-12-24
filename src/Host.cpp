@@ -452,6 +452,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
 
+  lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
   if(host_details) {
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
@@ -571,7 +572,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_int_table_entry(vm, "duration", get_duration());
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[pkts_thpt: %.2f] [pkts_thpt_trend: %d]", pkts_thpt,pkts_thpt_trend);
-  lua_push_int_table_entry(vm, "num_alerts", triggerAlerts() ? getNumAlerts() : 0);
 
   if(ntop->getPrefs()->is_httpbl_enabled())
     lua_push_str_table_entry(vm, "httpbl", get_httpbl());
@@ -1266,9 +1266,7 @@ u_int32_t Host::getNumAlerts(bool from_alertsmanager) {
   if(!from_alertsmanager)
     return(num_alerts_detected);
 
-  num_alerts_detected = iface->getAlertsManager()->getNumHostAlerts(this, true)
-    + iface->getAlertsManager()->getNumHostAlerts(this, false)
-    + iface->getAlertsManager()->getNumHostFlowAlerts(this);
+  num_alerts_detected = iface->getAlertsManager()->getNumHostAlerts(this, true);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
 			       "Refreshing alerts from alertsmanager [num: %i]",

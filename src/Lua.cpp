@@ -1521,9 +1521,11 @@ static int ntop_interface_host_disable_alerts(lua_State* vm) {
 
 static int ntop_interface_refresh_num_alerts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  AlertsManager *am;
   Host *h;
   char *host_ip;
   u_int16_t vlan_id = 0;
+  u_int32_t num_alerts;
   char buf[128];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1532,28 +1534,28 @@ static int ntop_interface_refresh_num_alerts(lua_State* vm) {
     return(CONST_LUA_ERROR);
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
-      get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+    get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
 
-      /* Optional VLAN id */
-      if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+    /* Optional VLAN id */
+    if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-      if((h = ntop_interface->getHost(host_ip, vlan_id)) == NULL)
-	return(CONST_LUA_ERROR);
+    if((h = ntop_interface->getHost(host_ip, vlan_id))) {
 
-      h->setRefreshNumAlerts(refresh_after_delete);
+      if(lua_type(vm, 3) == LUA_TNUMBER) {
+	num_alerts = (u_int32_t)lua_tonumber(vm, 3);
+	h->setNumAlerts(num_alerts);
+      } else {
+	h->getNumAlerts(true /* From AlertsManager re-reads the values */);
+      }
+    }
 
-        /* refresh is interface-wide */
-      ntop_interface->setRefreshNumAlerts(refresh_after_delete);
-  } else if (lua_type(vm, 1) == LUA_TBOOLEAN) {
-    if (lua_toboolean(vm, 1))
-      ntop_interface->setRefreshNumAlerts(refresh_all_after_delete);
-    else
-      ntop_interface->setRefreshNumAlerts(refresh_after_delete);
   } else {
-    ntop_interface->setRefreshNumAlerts(refresh_after_delete);
+
+    if((am = ntop_interface->getAlertsManager()) == NULL)
+      return(CONST_LUA_ERROR);
+
+    am->refreshCachedNumAlerts();
   }
-
-
 
   return(CONST_LUA_OK);
 }
@@ -4473,7 +4475,7 @@ static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) 
     ret = am->releaseHostAlert(h, engaged_alert_id,
 			       (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
 
-  return !ret ? CONST_LUA_OK : CONST_LUA_ERROR;
+  return ret >= 0 ? CONST_LUA_OK : CONST_LUA_ERROR;
 }
 
 /* ****************************************** */
@@ -4515,7 +4517,7 @@ static int ntop_interface_engage_release_network_alert(lua_State* vm, bool engag
     ret = am->releaseNetworkAlert(cidr, engaged_alert_id,
 				  (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
 
-  return !ret ? CONST_LUA_OK : CONST_LUA_ERROR;
+  return ret >= 0 ? CONST_LUA_OK : CONST_LUA_ERROR;
 }
 
 /* ****************************************** */
@@ -4553,7 +4555,7 @@ static int ntop_interface_engage_release_interface_alert(lua_State* vm, bool eng
     ret = am->releaseInterfaceAlert(ntop_interface, engaged_alert_id,
 				    (AlertType)alert_type, (AlertLevel)alert_severity, alert_json);
 
-  return !ret ? CONST_LUA_OK : CONST_LUA_ERROR;
+  return ret >= 0 ? CONST_LUA_OK : CONST_LUA_ERROR;
 }
 
 /* ****************************************** */

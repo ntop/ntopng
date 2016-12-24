@@ -30,8 +30,7 @@ class AlertsManager : protected StoreManager {
  private:
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
-  u_int32_t num_alerts_stored, num_alerts_engaged;
-  bool error_level_alerts;
+  u_int32_t num_alerts_engaged;
   int openStore();
   
   /* methods used for alerts that have a timespan */
@@ -89,7 +88,6 @@ class AlertsManager : protected StoreManager {
 		    u_int32_t start_offset, u_int32_t end_offset,
 		    const char *sql_where_clause);
   int getNumAlerts(bool engaged, const char *sql_where_clause);
-  void triggerRefreshAfterDelete(AlertEntity alert_entity, const char *alert_entity_value);
   int getNumFlowAlerts(const char *sql_where_clause);
 
   /* private methods to check the goodness of submitted inputs and possible return the input database string */
@@ -199,7 +197,9 @@ class AlertsManager : protected StoreManager {
     ========== counters API ======
   */
   int getCachedNumAlerts(lua_State *vm);
-  void refreshCachedNumAlerts();
+  inline void refreshCachedNumAlerts() {
+    num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
+  }
   inline int getNumAlerts(bool engaged) {
     /* must force the cast or the compiler will go crazy with ambiguous calls */
     return getNumAlerts(engaged, "alert_severity=2" /* errors only */);

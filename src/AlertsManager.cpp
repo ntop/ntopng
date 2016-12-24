@@ -431,8 +431,6 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
 		 alert_too_many_alerts, alert_level_error, msg,
 		 NULL, NULL,
 		 false /* force store alert, do not check maximum here */);
-
-      triggerRefreshAfterDelete(alert_entity, alert_entity_value);
     }
   }
 }
@@ -503,13 +501,10 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
       return -1;
 
     if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
-      // TODO: update the values
+      rc = 1; /* Already engaged */
     } else {
       if(getNetworkInterface() && (alert_severity == alert_level_error))
 	getNetworkInterface()->incAlertLevel();
-    
-      makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_ENGAGED_TABLE_NAME);
-
       /* This alert is being engaged */
 
       snprintf(query, sizeof(query),
@@ -531,20 +526,19 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
 	 || sqlite3_bind_text(stmt,  7, alert_json, -1, SQLITE_STATIC)
 	 || sqlite3_bind_text(stmt,  8, alert_origin, -1, SQLITE_STATIC)
 	 || sqlite3_bind_text(stmt,  9, alert_target, -1, SQLITE_STATIC)) {
-	rc = 1;
+	rc = -2;
 	goto out;
       }
 
       while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
 	if(rc == SQLITE_ERROR) {
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
-	  rc = 1;
+	  rc = -3;
 	  goto out;
 	}
       }
 
       num_alerts_engaged++;
-      if(alert_severity == alert_level_error) error_level_alerts = true;
       rc = 0;
     out:
       if(stmt) sqlite3_finalize(stmt);
@@ -557,7 +551,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
 
     return rc;
   } else
-    return(-1);
+    return 0;
 }
 
 /* **************************************************** */
@@ -573,14 +567,12 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
       return -1;
 
     if(!isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
-      return 0;  /* Cannot release an alert that has not been engaged */
+      /* Cannot release an alert that has not been engaged */
+      return 1;
     }
 
     if(getNetworkInterface())
       getNetworkInterface()->decAlertLevel();
-  
-    makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
-
 #if 0
     /* TODO
        - Modify isAlertEngaged to extract the missing parameters for the function call below
@@ -652,6 +644,7 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
       }
     }
 
+    num_alerts_engaged--;
     rc = 0;
   
   out:
@@ -860,8 +853,6 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     }
 
     rc = 0;
-    num_alerts_stored++;
-    if(alert_severity == alert_level_error) error_level_alerts = true;
   out:
     if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
@@ -970,10 +961,6 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
     }
 
     rc = 0;
-    num_alerts_stored++;
-    if(cli) cli->incNumAlerts();
-    if(srv) srv->incNumAlerts();
-    if(alert_severity == alert_level_error) error_level_alerts = true;
   out:
     if(cli_ip_buf) free(cli_ip_buf);
     if(srv_ip_buf) free(srv_ip_buf);
@@ -1011,6 +998,7 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 					  Host *alert_origin, Host *alert_target,
 					  bool engage) {
   char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
+  int rc;
 
   if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
@@ -1019,15 +1007,18 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
     return 0;
 
   if(engage) {
-    h->incNumAlerts();
-    return engageAlert(alert_entity_host, ipbuf_id,
-		       engaged_alert_id, alert_type, alert_severity, alert_json,
-		       isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
-		       isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
+    rc = engageAlert(alert_entity_host, ipbuf_id,
+		     engaged_alert_id, alert_type, alert_severity, alert_json,
+		     isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
+		     isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
+    if(!rc)
+      h->incNumAlerts(); /* Only if the alert wasn't already engaged */
+    return rc;
   } else {
-    /* no need to h->decNumAlerts() as a released alerts goes into the past alerts so the counter is still ok */
-      return releaseAlert(alert_entity_host, ipbuf_id,
-			  engaged_alert_id);
+    rc = releaseAlert(alert_entity_host, ipbuf_id,
+		      engaged_alert_id);
+    if(!rc)
+      h->decNumAlerts(); /* Only if the alter was actually engaged */
   }
 };
 
@@ -1409,63 +1400,9 @@ int AlertsManager::getNumFlowAlerts(const char *sql_where_clause) {
 int AlertsManager::getCachedNumAlerts(lua_State *vm) {
   lua_newtable(vm);
 
-  lua_push_int_table_entry(vm, "num_alerts", num_alerts_stored);
   lua_push_int_table_entry(vm, "num_alerts_engaged", num_alerts_engaged);
-  lua_push_bool_table_entry(vm, "error_level_alerts", error_level_alerts);
 
   return 0;
-};
-
-/* **************************************************** */
-
-void AlertsManager::triggerRefreshAfterDelete(AlertEntity alert_entity, const char *alert_entity_value) {
-  if(!getNetworkInterface())
-    return;
-
-  if (alert_entity == alert_entity_flow) {
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing interface and hosts after delete");
-
-    getNetworkInterface()->setRefreshNumAlerts(refresh_all_after_delete);
-
-  } else {
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing host %s after delete", alert_entity_value);
-
-    if(alert_entity == alert_entity_host) {
-      Host *h;
-      char ipbuf[128], *at;
-      u_int16_t vlan = 0;
-
-      snprintf(ipbuf, sizeof(ipbuf), "%s", alert_entity_value);
-
-      if((at = strrchr(ipbuf, '@'))) {
-	vlan = atoi(at + 1);
-	*at = '\0';
-      }
-
-      if((h = getNetworkInterface()->getHost(ipbuf, vlan)) == NULL)
-	return;
-
-      h->setRefreshNumAlerts(refresh_after_delete);
-    }
-
-    getNetworkInterface()->setRefreshNumAlerts(refresh_after_delete);
-  }
-
-  return;
-};
-
-/* **************************************************** */
-
-void AlertsManager::refreshCachedNumAlerts() {
-  char wherebuf[STORE_MANAGER_MAX_QUERY];
-
-  num_alerts_stored  = getNumAlerts(false, static_cast<char*>(NULL)) + getNumFlowAlerts(NULL);
-  num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
-
-  sqlite3_snprintf(sizeof(wherebuf), wherebuf,
-		   " alert_severity=%i ",
-		   static_cast<int>(alert_level_error));
-  error_level_alerts = getNumAlerts(false, wherebuf) || getNumAlerts(true, wherebuf) || getNumFlowAlerts(wherebuf);
 };
 
 /* **************************************************** */

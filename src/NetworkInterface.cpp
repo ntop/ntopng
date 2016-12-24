@@ -212,7 +212,6 @@ void NetworkInterface::init() {
     pkt_dumper = NULL, numL2Devices = 0;
   checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0;
   pollLoopCreated = false, bridge_interface = false;
-  refresh_num_alerts = refresh_after_init;
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -1811,16 +1810,6 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
 
   host->updateStats(tv);
 
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
-    if((host->getInterface()->getRefreshNumAlerts() == refresh_all_after_delete
-	&& host->getNumAlerts() > 0)
-       || host->getRefreshNumAlerts() == refresh_after_delete
-       || host->getRefreshNumAlerts() == refresh_after_init) {
-      host->getNumAlerts(true /* refresh alert counter from the database */);
-      host->setRefreshNumAlerts(no_refresh_needed);
-    }
-  }
-  
   /*
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Updated: %s [%d]",
     ((StringHost*)node)->host_key(),
@@ -1857,11 +1846,6 @@ void NetworkInterface::periodicStatsUpdate() {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()) {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
     db->flush(false /* not idle, periodic activities */);
-  }
-
-  if(getRefreshNumAlerts() != no_refresh_needed) {
-    alertsManager->refreshCachedNumAlerts();
-    setRefreshNumAlerts(no_refresh_needed);
   }
 }
 

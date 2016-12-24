@@ -219,7 +219,7 @@ end
 
 function delete_alert_configuration(alert_source, ifname)
    local ifid = getInterfaceId(ifname)
-   local alert_level  = 1 -- alert_level_warning
+   local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    delete_re_arming_alerts(alert_source, ifid)
@@ -251,16 +251,15 @@ function delete_alert_configuration(alert_source, ifname)
 
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
-   else
-      interface.refreshNumAlerts()
    end
+   interface.refreshNumAlerts()
 end
 
 function refresh_alert_configuration(alert_source, ifname, timespan, alerts_string)
    if tostring(alerts_string) == nil then return nil end
    if is_allowed_timespan(timespan) == false then return nil end
    local ifid = getInterfaceId(ifname)
-   local alert_level  = 1 -- alert_level_warning
+   local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
@@ -307,9 +306,8 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
 
    if is_host == true then
       interface.refreshNumAlerts(alert_source)
-   else
-      interface.refreshNumAlerts()
    end
+   interface.refreshNumAlerts()
 end
 
 function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
@@ -323,7 +321,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
         print("<p>--------------------------------------------<p>\n")
     end
 
-   local alert_level  = 1 -- alert_level_warning
+   local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local alert_status     -- to be set later
 
@@ -403,7 +401,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
         tprint(old_table)
     end
 
-   local alert_level = 1 -- alert_level_warning
+   local alert_level = 2 -- alert_level_error
    local alert_status = 1 -- alert_on
    local alert_type = 2 -- alert_threshold_exceeded
 
@@ -481,7 +479,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
         print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
 
-    local alert_level  = 1 -- alert_level_warning
+    local alert_level  = 2 -- alert_level_error
     local alert_status = 1 -- alert_on
     local alert_type   = 2 -- alert_threshold_exceeded
 
@@ -803,10 +801,65 @@ function performAlertsQuery(statement, what, opts)
 
    -- trigger counters refresh
    if trimSpace(statement:lower()) == "delete" then
-      interface.refreshNumAlerts(true)
+      -- keep counters in sync only for engaged alerts
+      if what == "engaged" then
+	 refreshHostsEngagedAlertsCounters()
+      end
    end
 
    return res
+end
+
+-- #################################
+function refreshHostsEngagedAlertsCounters(host_vlan)
+   local hosts
+   
+   if isEmptyString(host_vlan) == false then
+      hosts[host_vlan:gsub("@0","")] = {updated = false}
+   else 
+      hosts = interface.getHostsInfo(false --[[ no details --]])
+      hosts = hosts["hosts"]
+   end
+
+   for k, v in pairs(hosts) do
+      if v["num_alerts"] > 0 then
+	 hosts[k] = {updated = false}
+      else
+	 hosts[k] = nil
+      end
+   end
+
+   local res = interface.queryAlertsRaw(true, "select alert_entity_val, count(*) cnt",
+					"where alert_entity="..alertEntity("host")
+					   .. " group by alert_entity_val having cnt > 0")
+
+   if res == nil then res = {} end
+
+   -- update the hosts that actually have engaged alerts
+   for _, k in pairs(res) do
+      local entity_val = k["alert_entity_val"]
+      local sp = split(entity_val, "@")
+      local host = sp[1]
+      local vlan = tonumber(sp[2])
+      if vlan == 0 then
+	 entity_val = host -- no vlan in the key if vlan is zero
+      end
+
+      interface.refreshNumAlerts(host, vlan, tonumber(k["cnt"]))
+
+      if hosts[entity_val] ~= nil then
+	 hosts[entity_val]["updated"] = true
+      end
+   end
+
+   -- finally update the hosts that no longer have engaged alerts
+   for k, v in pairs(hosts) do
+      if v["updated"] == false then
+	 interface.refreshNumAlerts(k, nil, 0);
+      end
+   end
+
+   interface.refreshNumAlerts()
 end
 
 -- #################################
@@ -968,6 +1021,12 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
 
+   local descr = alert_functions_description
+   if alert_source:match("/") then
+      descr = network_alert_functions_description
+   end
+   
+
    print('<ul class="nav nav-tabs">')
 
    local function printTab(tab, content, sel_tab)
@@ -1031,7 +1090,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          delete_alert_configuration(alert_source, ifname)
          alerts = nil
       else
-         for k,_ in pairs(alert_functions_description) do
+         for k,_ in pairs(descr) do
        value    = _GET["value_"..k]
        operator = _GET["operator_"..k]
 
@@ -1093,7 +1152,7 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
          print('<input type=hidden name="'..param..'" value="'..value..'">\n')
       end
 
-      for k,v in pairsByKeys(alert_functions_description, asc) do
+      for k,v in pairsByKeys(descr, asc) do
          print("<tr><th>"..k.."</th><td>\n")
          print("<select name=operator_".. k ..">\n")
          if((vals[k] ~= nil) and (vals[k][1] == "gt")) then print("<option selected=\"selected\"") else print("<option ") end

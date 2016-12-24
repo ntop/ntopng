@@ -67,7 +67,6 @@ class NetworkInterface {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, tooManyHostsAlertTriggered, tooManyFlowsAlertTriggered, mtuWarningShown;
-  AlertRefresh refresh_num_alerts;
   u_int32_t ifSpeed, numL2Devices, scalingFactor;
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount; /* Those will hold counters at checkpoints */
   u_int16_t ifMTU;
@@ -348,8 +347,6 @@ class NetworkInterface {
   inline void setIdleState(bool new_state)         { is_idle = new_state;           }
   inline StatsManager  *getStatsManager()          { return statsManager;           }
   inline AlertsManager *getAlertsManager()         { return alertsManager;          }
-  inline void setRefreshNumAlerts(AlertRefresh alert_refresh) { refresh_num_alerts = alert_refresh; }
-  inline AlertRefresh getRefreshNumAlerts()                   { return refresh_num_alerts;          }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules(AddressTree *ptree);

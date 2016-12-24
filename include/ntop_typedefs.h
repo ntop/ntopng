@@ -92,13 +92,6 @@ typedef enum {
 } AlertStatus;
 
 typedef enum {
-  no_refresh_needed = 0,
-  refresh_after_delete,
-  refresh_all_after_delete,
-  refresh_after_init,
-} AlertRefresh;
-
-typedef enum {
   IPV4 = 4,
   IPV6 = 6
 } IPVersion;
