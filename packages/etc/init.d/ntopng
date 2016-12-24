@@ -275,7 +275,7 @@ case "$1" in
 	status_ntopng;
 	;;
 
-  restart)
+  reload | force-reload | restart)
         stop_ntopng;
 	start_ntopng 0;
 	;;
