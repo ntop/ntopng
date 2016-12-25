@@ -1,4 +1,4 @@
-<div class="center-block" style="width:60em;">
+<div class="center-block" style="width:70em;">
   <table class="table table-bordered table-condensed table-striped">
   <thead>
     <tr>
@@ -23,9 +23,9 @@
       
 	  {% for j in range(2, #report.values) do %}
 	  {% if i == report.rows then %}
-      <th class='text-right col-sm-1'>{{report.values[j][i]}}</th>  <!-- Total-->
+      <th class='text-right col-sm-1'>{{report.values[j][i].bytes}} <small>{{report.values[j][i].activity}}</small></th>  <!-- Total-->
       {% else %}
-      <td class='text-right col-sm-1'>{{report.values[j][i]}}</td>
+      <td class='text-right col-sm-1'>{{report.values[j][i].bytes}} <small>{{report.values[j][i].activity}}</small></td>
       {% end %}
       {% end %}
     </tr>

@@ -172,6 +172,10 @@ margin-right: 5px;
   font-size: 11px;
 }
 
+.report-icon {
+  font-size: 18px;
+}
+
 path.link {
   fill: none;
   stroke: #ccc;
