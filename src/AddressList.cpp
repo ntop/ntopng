@@ -44,7 +44,7 @@ bool AddressList::addAddress(char *_net) {
     return(false);
   }
 
-  tree.addAddresses(net);
+  tree.addAddress(net);
 
   free(net);
 
