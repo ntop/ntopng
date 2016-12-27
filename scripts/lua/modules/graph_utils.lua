@@ -1074,8 +1074,8 @@ function singlerrd2json(ifid, host, rrdFile, start_time, end_time, rickshaw_json
 
    if transform_columns_function ~= nil then
       --~ tprint(rrdname)
-      fstart, fstep, fnames, fdata = transform_columns_function(fstart, fstep, fnames, fdata)
-      prefixLabel = ""
+      fstart, fstep, fnames, fdata, prefixLabel = transform_columns_function(fstart, fstep, fnames, fdata)
+      prefixLabel = prefixLabel or ""
    end
 
    --[[
