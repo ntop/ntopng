@@ -202,10 +202,12 @@ int main(int argc, char *argv[])
 
     if(iface) {
       if(affinity != NULL) {
+	char *tmp;
+	
 	if(indexAffinity == 0)
-	  core_id_s = strtok(affinity, ",");
+	  core_id_s = strtok_r(affinity, ",", &tmp);
 	else 
-	  core_id_s = strtok(NULL, ",");
+	  core_id_s = strtok_r(NULL, ",", &tmp);
             
 	if(core_id_s != NULL)
 	  core_id = atoi(core_id_s);

@@ -27,13 +27,14 @@
 class AddressList {
   char *addressString[CONST_MAX_NUM_NETWORKS];
   AddressTree tree;
+
+  bool addAddress(char *_net);
   
  public:
   AddressList();
   ~AddressList();
 
   inline u_int8_t getNumAddresses() { return(tree.getNumAddresses()); }
-  bool addAddress(char *_net);
   bool addAddresses(char *net);
   
   int16_t findAddress(int family, void *addr) { return(tree.findAddress(family, addr));                      };

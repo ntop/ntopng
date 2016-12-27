@@ -24,7 +24,7 @@
 /* **************************************************** */
 
 CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(_endpoint) {
-  char *tmp, *e;
+  char *tmp, *e, *t;
   const char *topics[] = { "flow", "event", "counter", NULL };
 
   memset(&recvStats, 0, sizeof(recvStats));
@@ -36,7 +36,7 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
 
   is_collector = false;
   
-  e = strtok(tmp, ",");
+  e = strtok_r(tmp, ",", &t);
   while(e != NULL) {
     int l = strlen(e)-1;
     char last_char = e[l];
@@ -84,7 +84,8 @@ CollectorInterface::CollectorInterface(const char *_endpoint) : ParserInterface(
     subscriber[num_subscribers].endpoint = strdup(e);
 
     num_subscribers++;
-    e = strtok(NULL, ",");
+
+    e = strtok_r(NULL, ",", &t);
   }
 
   free(tmp);

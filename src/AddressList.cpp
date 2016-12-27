@@ -44,7 +44,7 @@ bool AddressList::addAddress(char *_net) {
     return(false);
   }
 
-  tree.addAddress(net);
+  tree.addAddresses(net);
 
   free(net);
 
@@ -56,12 +56,13 @@ bool AddressList::addAddress(char *_net) {
 
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
 bool AddressList::addAddresses(char *rule) {
-  char *net = strtok(rule, ",");
+  char *tmp, *net = strtok_r(rule, ",", &tmp);
   
   while(net != NULL) {
     if(!addAddress(net)) return false;
-    net = strtok(NULL, ",");
+    net = strtok_r(NULL, ",", &tmp);   
   }
+  
   return true;
 }
 
@@ -69,6 +70,9 @@ bool AddressList::addAddresses(char *rule) {
 
 AddressList::~AddressList() {
   for(int i=0; i<CONST_MAX_NUM_NETWORKS; i++)
-    if(addressString[i]) free(addressString[i]); else break;
+    if(addressString[i])
+      free(addressString[i]);
+    else
+      break;
 }
 

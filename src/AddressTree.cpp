@@ -78,13 +78,13 @@ patricia_node_t* AddressTree::addAddress(char *_net) {
 
 /* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
 bool AddressTree::addAddresses(char *rule) {
-  char *net = strtok(rule, ",");
+  char *tmp, *net = strtok_r(rule, ",", &tmp);
   
   while(net != NULL) {
     if(!addAddress(net))
       return false;
     
-    net = strtok(NULL, ",");
+    net = strtok_r(NULL, ",", &tmp);
   }
   
   return true;

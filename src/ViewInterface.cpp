@@ -27,7 +27,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
   char *ifaces = strdup(&_endpoint[5]); /* Skip view: */
 
   if(ifaces) {
-    char *iface = strtok(ifaces, ",");
+    char *tmp, *iface = strtok_r(ifaces, ",", &tmp);
 
     while(iface != NULL) {
       bool found = false;
@@ -58,7 +58,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
       else if(numSubInterfaces == MAX_NUM_VIEW_INTERFACES)
 	break; /* Upper interface limit reached */
       
-      iface = strtok(NULL, ",");
+      iface = strtok_r(NULL, ",", &tmp);
     }
     
     free(ifaces);

@@ -567,9 +567,9 @@ int Prefs::setOption(int optkey, char *optarg) {
     if(strncmp(optarg, HTTPBL_STRING, strlen(HTTPBL_STRING)) == 0)
       httpbl_key = &optarg[strlen(HTTPBL_STRING)];
     else if(strncmp(optarg, FLASHSTART_STRING, strlen(FLASHSTART_STRING)) == 0) {
-      char *user = strtok(&optarg[strlen(FLASHSTART_STRING)], ":"), *pwd = NULL;
+      char *tmp, *user = strtok_r(&optarg[strlen(FLASHSTART_STRING)], ":", &tmp), *pwd = NULL;
 
-      if(user) pwd = strtok(NULL, ":");
+      if(user) pwd = strtok_r(NULL, ":", &tmp);
 
       if(user && pwd) {
 	if((flashstart = new Flashstart(user, pwd)) != NULL)
@@ -838,14 +838,14 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'F':
     if((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
-      char *elastic_index_type = NULL, *elastic_index_name = NULL,
+      char *elastic_index_type = NULL, *elastic_index_name = NULL, *tmp = NULL,
 	*elastic_url = NULL, *elastic_user = NULL, *elastic_pwd = NULL;
       /* es;<index type>;<index name>;<es URL>;<es pwd> */
 
-      if((elastic_index_type = strtok(&optarg[3], ";")) != NULL) {
-	if((elastic_index_name = strtok(NULL, ";")) != NULL) {
-	  if((elastic_url = strtok(NULL, ";")) != NULL) {
-	    if((elastic_user = strtok(NULL, ";")) == NULL)
+      if((elastic_index_type = strtok_r(&optarg[3], ";", &tmp)) != NULL) {
+	if((elastic_index_name = strtok_r(NULL, ";", &tmp)) != NULL) {
+	  if((elastic_url = strtok_r(NULL, ";", &tmp)) != NULL) {
+	    if((elastic_user = strtok_r(NULL, ";", &tmp)) == NULL)
 	      elastic_pwd = (char*)"";
 	    else {
 	      char *double_col = strchr(elastic_user, ':');
