@@ -275,7 +275,7 @@ void NetworkInterface::checkAggregationMode() {
  if(!customIftype) {
     char rsp[32];
     
-    if(get_type() == CONST_INTERFACE_TYPE_ZMQ) {
+    if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
       if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) == 0) {
 	
 	if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
