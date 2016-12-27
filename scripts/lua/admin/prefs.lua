@@ -104,11 +104,25 @@ function printInterfaces()
   print('<form>')
   print('<input type=hidden name="subpage_active" value="ifaces"/>\n')
   print('<table class="table">')
-  print('<tr><th colspan=2 class="info">Network Interfaces</th></tr>')
+  print('<tr><th colspan=2 class="info">Dynamic Network Interfaces</th></tr>')
 
-  toggleTableButtonPrefs("Dynamic VLAN Interfaces",
-			    "Toggle the automatic creation of virtual interfaces based on VLAN tags.<br><b>NOTE:</b> Value changes will not be effective for existing interfaaces.",
+  toggleTableButtonPrefs("VLAN Disaggregation",
+			    "Toggle the automatic creation of virtual interfaces based on VLAN tags.<p><b>NOTE:</b><ul><li>Value changes will not be effective for existing interfaces.<li>This setting is valid only for packet-based interfaces (no flow collection).</ul>",
 			    "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
+  
+  local labels = {"None","Probe IP Address","Ingress Flow Interface"}
+  local values = {"none","probe_ip","ingress_iface_idx"}
+  local elementToSwitch = {}
+  local showElementArray = { true, false, false }
+  local javascriptAfterSwitch = "";
+
+  retVal = multipleTableButtonPrefs("Dynamic Flow Collection Interfaces",
+				    "When ntopng is used in flow collection mode (e.g. -i tcp://127.0.0.1:1234c), "..
+				       "flows can be collected on dynamic sub-interfaces based on the specified criteria.<p><b>NOTE:</b><ul>"..
+				    "<li>Value changes will not be effective for existing interfaces.<li>This setting is valid only for based-based interfaces (no packet collection).</ul>",
+				    labels, values, "none", "primary", "multiple_flow_collection", "ntopng.prefs.dynamic_flow_collection_mode", nil,
+				    elementToSwitch, showElementArray, javascriptAfterSwitch)
+
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -355,7 +369,6 @@ function printUsers()
 		       "", false)
 
   if ntop.isPro() then
-
      print('<tr><th colspan=2 class="info">Authentication</th></tr>')
      local labels = {"Local","LDAP","LDAP/Local"}
      local values = {"local","ldap","ldap_local"}
@@ -373,7 +386,8 @@ function printUsers()
      javascriptAfterSwitch = javascriptAfterSwitch.."  }\n"
      local retVal = multipleTableButtonPrefs("Authentication Method",
 					     "Local (Local only), LDAP (LDAP server only), LDAP/Local (Authenticate with LDAP server, if fails it uses local authentication).",
-					     labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,  elementToSwitch, showElementArray, javascriptAfterSwitch)
+					     labels, values, "local", "primary", "multiple_ldap_authentication", "ntopng.prefs.auth_type", nil,
+					     elementToSwitch, showElementArray, javascriptAfterSwitch)
 
      local showElements = true;
      if ntop.getPref("ntopng.prefs.auth_type") == "local" then

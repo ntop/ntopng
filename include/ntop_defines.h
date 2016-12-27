@@ -167,6 +167,7 @@
 #define CONST_INTERFACE_TYPE_PCAP_DUMP "pcap dump"
 #define CONST_INTERFACE_TYPE_ZMQ       "zmq"
 #define CONST_INTERFACE_TYPE_VLAN      "Dynamic VLAN"
+#define CONST_INTERFACE_TYPE_FLOW      "Dynamic Flow Collection"
 #define CONST_INTERFACE_TYPE_VIEW      "view"
 #define CONST_INTERFACE_TYPE_PF_RING   "PF_RING"
 #define CONST_INTERFACE_TYPE_NETFILTER "netfilter"
@@ -384,6 +385,7 @@
 #define CONST_RUNTIME_PREFS_NBOX_INTEGRATION           "ntopng.prefs.nbox_integration" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_LOGGING_LEVEL              "ntopng.prefs.logging_level"
 #define CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION        "ntopng.prefs.dynamic_iface_vlan_creation"
+#define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      "ntopng.prefs.dynamic_flow_collection_mode" /* {"none","probe_ip","ingress_iface_idx"} */
 #ifdef NTOPNG_PRO
 #define CONST_RUNTIME_PREFS_ALERT_NAGIOS             "ntopng.prefs.alerts_nagios"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            "ntopng.prefs.daily_reports"    /* 0 / 1 */

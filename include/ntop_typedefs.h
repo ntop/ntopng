@@ -290,5 +290,11 @@ typedef enum {
   walker_macs
 } WalkerType;
 
-
+typedef enum {
+  flowhashing_none = 0,
+  flowhashing_probe_ip,
+  flowhashing_ingress_iface_idx,
+  flowhashing_vlan
+} FlowHashingEnum;
+  
 #endif /* _NTOP_TYPEDEFS_H_ */

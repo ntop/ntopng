@@ -41,14 +41,14 @@ NetworkInterface::NetworkInterface() { init(); }
 
 /* **************************************************** */
 
-NetworkInterface::NetworkInterface(const char *name, const char *custom_interface_type) {
+NetworkInterface::NetworkInterface(const char *name,
+				   const char *custom_interface_type) {
   NDPI_PROTOCOL_BITMASK all;
   char _ifname[64];
   bool isViewInterface = (strncmp(name, "view:", 5) == 0) ? 1 : 0; /* We need to do it as isView() is not yet initialized */
 
+  customIftype = custom_interface_type, flowHashingMode = flowhashing_none;
   init();
-
-  customIftype = custom_interface_type;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -131,8 +131,8 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
     ndpi_set_proto_defaults(ndpi_struct, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
 			    no_master, no_master,
 			    (char*)"Operating System",
-          NDPI_PROTOCOL_CATEGORY_SYSTEM,
-          d_port, d_port);
+			    NDPI_PROTOCOL_CATEGORY_SYSTEM,
+			    d_port, d_port);
 
     // enable all protocols
     NDPI_BITMASK_SET_ALL(all);
@@ -150,10 +150,10 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 #ifdef NTOPNG_PRO
       if(ntop->getPrefs()->is_enterprise_edition()) db = new BatchedMySQLDB(this);
 #endif
-      
+
       if(db == NULL)
-	db = new MySQLDB(this);      
-      
+	db = new MySQLDB(this);
+
       if(!db) throw "Not enough memory";
     }
 
@@ -179,19 +179,9 @@ NetworkInterface::NetworkInterface(const char *name, const char *custom_interfac
 
   if(((statsManager  = new StatsManager(id, STATS_MANAGER_STORE_NAME)) == NULL)
      || ((alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME)) == NULL))
-      throw "Not enough memory";
-  
-  alertLevel = alertsManager->getNumAlerts(true);
-    
-  if((!customIftype)
-     || strncmp(customIftype, CONST_INTERFACE_TYPE_VLAN, strlen(CONST_INTERFACE_TYPE_VLAN))) {
-    char  rsp[16];
+    throw "Not enough memory";
 
-    if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION,
-			      rsp, sizeof(rsp)) == 0)
-       && (!strncmp(rsp, "1", 1)))
-      vlanInterfaces = (NetworkInterface**)calloc(MAX_NUM_VLAN, sizeof(NetworkInterface*));
-  }
+  alertLevel = alertsManager->getNumAlerts(true);
 }
 
 /* **************************************************** */
@@ -202,7 +192,7 @@ void NetworkInterface::init() {
     ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
   sprobe_interface = inline_interface = false, has_vlan_packets = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, numSubInterfaces = 0, numVlanInterfaces = 0, vlanInterfaces = NULL,
+    running = false, numSubInterfaces = 0, numVirtualInterfaces = 0, flowHashing = NULL,
     pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
   purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
   sprobe_interface = false, has_vlan_packets = false,
@@ -242,7 +232,7 @@ void NetworkInterface::init() {
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
   flow_profiles = NULL;
-#endif
+#endif 
 }
 
 /* **************************************************** */
@@ -278,6 +268,26 @@ void NetworkInterface::initL7Policer() {
 }
 
 #endif
+
+/* **************************************************** */
+
+void NetworkInterface::checkAggregationMode() {
+ if(!customIftype) {
+    char rsp[32];
+    
+    if(get_type() == CONST_INTERFACE_TYPE_ZMQ) {
+      if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) == 0) {
+	
+	if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
+	else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
+      }
+    } else {
+      if((ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_VLAN_CREATION, rsp, sizeof(rsp)) == 0)
+	 && (!strncmp(rsp, "1", 1)))
+	flowHashingMode = flowhashing_vlan;
+    }
+  }
+}
 
 /* **************************************************** */
 
@@ -504,7 +514,17 @@ NetworkInterface::~NetworkInterface() {
   if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;
   if(interfaceStats) delete interfaceStats;
-  if(vlanInterfaces) free(vlanInterfaces); /* Interfaces are deleted by the main termination function */
+
+  if(flowHashing) {
+    FlowHashing *current, *tmp;
+    
+    HASH_ITER(hh, flowHashing, current, tmp) {
+      /* Interfaces are deleted by the main termination function */
+      HASH_DEL(flowHashing, current);
+      free(current);
+    }    
+  }
+  
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
@@ -711,7 +731,7 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 	  if(host->isLocalHost() || host->isSystemHost())
 	      ret->get_cli_host()->setDeviceIfIdx(deviceIP, inIndex);
       }
-      
+
       /*
 	We have decided to set only ingress traffic to make sure we do not mix truth with invalid data
 	if(outIndex && ret->get_srv_host()) ret->get_srv_host()->setDeviceIfIdx(deviceIP, outIndex);
@@ -766,12 +786,85 @@ void NetworkInterface::triggerTooManyHostsAlert() {
 
 /* **************************************************** */
 
+NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
+  FlowHashing *h = NULL;
+
+  HASH_FIND_INT(flowHashing, &criteria, h);
+
+  if(h == NULL) {
+    /* Interface not found */
+    
+    if(numVirtualInterfaces < MAX_NUM_VIRTUAL_INTERFACES) {
+      if((h = (FlowHashing*)malloc(sizeof(FlowHashing))) != NULL) {
+	char buf[64], buf1[48];
+	
+	h->criteria = criteria;
+
+	switch(flowHashingMode) {
+	case flowhashing_vlan:
+	  snprintf(buf, sizeof(buf), "%s [vlanId: %u]", ifname, criteria);
+	  break;
+
+	case flowhashing_probe_ip:
+	  snprintf(buf, sizeof(buf), "%s [probeIP: %s]", ifname,
+		   Utils::intoaV4(criteria, buf1, sizeof(buf1)));
+	  break;
+
+	case flowhashing_ingress_iface_idx:
+	  snprintf(buf, sizeof(buf), "%s [ifIdx: %u]", ifname, criteria);
+	  break;
+
+	default:
+	  break;
+	}
+	
+	if((h->iface = new NetworkInterface(buf, CONST_INTERFACE_TYPE_FLOW)) != NULL) {
+	  HASH_ADD_INT(flowHashing, criteria, h);
+	  ntop->registerInterface(h->iface);
+	  numVirtualInterfaces++;
+	}
+      } else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");      
+    }
+
+    if(h) return(h->iface);
+  } else
+    return(h->iface);
+
+  return(NULL);
+}
+
+/* **************************************************** */
+
 void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p;
   time_t now = time(NULL);
 
+  if(flowHashingMode != flowhashing_none) {
+    NetworkInterface *vIface;
+    
+    switch(flowHashingMode) {
+    case flowhashing_probe_ip:
+      vIface = getSubInterface((u_int32_t)zflow->deviceIP);
+      break;
+      
+    case flowhashing_ingress_iface_idx:
+      vIface = getSubInterface((u_int32_t)zflow->inIndex);
+      break;
+      
+    default:
+      vIface = NULL;
+      break;
+    }
+
+    if(vIface) {
+      vIface->processFlow(zflow);
+      return;
+    }
+  }
+  
   if(last_pkt_rcvd_remote > 0) {
     int drift = now - last_pkt_rcvd_remote;
 
@@ -915,27 +1008,17 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
 
-  if(vlanInterfaces && (vlan_id > 0)) {
-    if((vlanInterfaces[vlan_id] == NULL)
-       && (numVlanInterfaces < MAX_NUM_VIRTUAL_INTERFACES)) {
-      char buf[64];
-      NetworkInterface *vIface;
-
-      snprintf(buf, sizeof(buf), "%s@%u", ifname, vlan_id);
-
-      if((vIface = new NetworkInterface(buf, CONST_INTERFACE_TYPE_VLAN)) != NULL) {
-	vlanInterfaces[vlan_id] = vIface;
-	ntop->registerInterface(vIface);
-	numVlanInterfaces++;
-      }
+  /* VLAN disaggregation */
+  if((flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
+    NetworkInterface *vIface;
+    
+    if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
+      return(vIface->processPacket(when, time, eth, vlan_id,
+				   iph, ip6, ipsize, rawsize,
+				   h, packet, ndpiProtocol));
     }
-
-    if(vlanInterfaces[vlan_id])
-      return(vlanInterfaces[vlan_id]->processPacket(when, time, eth, vlan_id,
-						    iph, ip6, ipsize, rawsize,
-						    h, packet, ndpiProtocol));
   }
-
+  
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
@@ -1239,11 +1322,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 #ifdef NTOPNG_PRO
     if(is_bridge_interface()) {
 	pass_verdict = flow->isPassVerdict();
-	
+
 	if(pass_verdict) {
 	    u_int8_t shaper_ingress, shaper_engress;
 	    char buf[64];
-	
+
 	    flow->getFlowShapers(src2dst_direction, &shaper_ingress, &shaper_engress);
 	    ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
 					 flow->get_detected_protocol_name(buf, sizeof(buf)),
@@ -1265,11 +1348,11 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       if(dump_to_tap)  dumpPacketTap(h, packet, GUI);
     }
   }
-  
+
   incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	   flow->get_detected_protocol().protocol,
 	   rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
-  
+
   // Detect user activities
   if((!isSampledTraffic())
       && (ntop->getPrefs()->is_flow_activity_enabled())) {
@@ -1815,7 +1898,7 @@ static bool update_hosts_stats(GenericHashEntry *node, void *user_data) {
     ((StringHost*)node)->host_key(),
     host->getThptTrend());
   */
-  
+
   return(false); /* false = keep on walking */
 }
 
@@ -4210,7 +4293,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+0: config.all.pass = true;
       }
       break;
-      
+
     case activity_filter_web:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.web.numsamples = lua_tonumber(vm, ++params);
@@ -4239,7 +4322,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+4: config.web.serverdominant = true;
       }
       break;
-      
+
     case activity_filter_ratio:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.ratio.numsamples = lua_tonumber(vm, ++params);
@@ -4258,7 +4341,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+2: config.ratio.clisrv_ratio = -1.f;
       }
       break;
-      
+
     case activity_filter_interflow:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.interflow.minflows = min((int)lua_tonumber(vm, ++params), INTER_FLOW_ACTIVITY_SLOTS);
@@ -4282,10 +4365,10 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+3: config.interflow.sslonly = false;
       }
       break;
-      
+
     case activity_filter_metrics_test:
       break;
-      
+
     case activity_filter_sma:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.sma.edge = lua_tonumber(vm, ++params);
@@ -4309,7 +4392,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+3: config.sma.sustain = 1000;
       }
       break;
-      
+
     case activity_filter_wma:
       if(lua_type(vm, params+1) == LUA_TNUMBER) {
         config.wma.edge = lua_tonumber(vm, ++params);
@@ -4333,7 +4416,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+3: config.wma.aggrsecs = 0;
       }
       break;
-      
+
     case activity_filter_command_sequence:
       if(lua_type(vm, params+1) == LUA_TBOOLEAN) {
         config.command_sequence.mustwait = lua_toboolean(vm, ++params);
@@ -4361,7 +4444,7 @@ static int lua_flow_set_activity_filter(lua_State* vm) {
         case 2+4: config.command_sequence.minflips = 1;
       }
       break;
-      
+
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid activity filter (%d)", filterID);
       return (CONST_LUA_ERROR);

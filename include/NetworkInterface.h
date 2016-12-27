@@ -1,4 +1,4 @@
- /*
+/*
  *
  * (C) 2013-16 - ntop.org
  *
@@ -40,6 +40,12 @@ class Paginator;
 class L7Policer;
 #endif
 
+typedef struct {
+  u_int32_t criteria;        /* IP address, interface... */
+  NetworkInterface *iface;
+  UT_hash_handle hh;         /* makes this structure hashable */
+} FlowHashing;
+
 /** @class NetworkInterface
  *  @brief Main class of network interface of ntopng.
  *  @details .......
@@ -53,8 +59,12 @@ class NetworkInterface {
   const char *customIftype;
   char *remoteIfname, *remoteIfIPaddr, *remoteProbeIPaddr, *remoteProbePublicIPaddr;
   u_int8_t alertLevel;
-  u_int16_t numVlanInterfaces;
-  NetworkInterface **vlanInterfaces;
+
+  /* Disaggregations */
+  u_int16_t numVirtualInterfaces;
+  FlowHashingEnum flowHashingMode;
+  FlowHashing *flowHashing;
+	  
   string ip_addresses;
   int id;
   bool bridge_interface;
@@ -119,6 +129,7 @@ class NetworkInterface {
   void termLuaInterpreter();
   void init();
   void deleteDataStructures();
+  NetworkInterface* getSubInterface(u_int32_t criteria);
   Flow* getFlow(u_int8_t *src_eth, u_int8_t *dst_eth, u_int16_t vlan_id,
 		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
   		IpAddress *src_ip, IpAddress *dst_ip,
@@ -160,7 +171,7 @@ class NetworkInterface {
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
-
+  
  public:
   /**
   * @brief A Constructor
@@ -172,6 +183,7 @@ class NetworkInterface {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
+  void checkAggregationMode();
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   virtual void startPacketPolling();
   virtual void shutdown();

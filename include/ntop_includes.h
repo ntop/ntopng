@@ -119,11 +119,11 @@ extern "C" {
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
-};
 
 #include "third-party/uthash.h"
 #include <mysql.h>
 #include <errmsg.h>
+};
 
 #include <fstream>
 #include <map>

@@ -501,7 +501,8 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
   NetworkInterface * iface = (NetworkInterface*)data;
 
   // payload[payload_size] = '\0';
-
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if(o != NULL) {
@@ -651,7 +652,7 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           flow.direction = atoi(value);
           break;
 	case EXPORTER_IPV4_ADDRESS:
-	  /* a.b.c.d */
+	  /* Format: a.b.c.d */
 	  flow.deviceIP = ntohl(inet_addr(value));
 	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u [%s]", flow.deviceIP, value);
 	  break;
