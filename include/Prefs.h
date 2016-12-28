@@ -42,7 +42,7 @@ class Prefs {
   char *deferred_interfaces_to_register[MAX_NUM_INTERFACES], *cli;
   char *http_binding_address, *https_binding_address;
   Ntop *ntop;
-  bool enable_dns_resolution, sniff_dns_responses,
+  bool enable_dns_resolution, sniff_dns_responses, slack_enabled,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, use_promiscuous_mode, notifications_enabled,
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
@@ -124,7 +124,8 @@ class Prefs {
   inline bool is_dns_resolution_enabled()               { return(enable_dns_resolution);  };
   inline bool is_users_login_enabled()                  { return(enable_users_login);     };
   inline bool is_localhost_users_login_disabled()       { return(disable_localhost_login);};
-  inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };
+  inline bool is_slack_enabled()                        { return(slack_enabled);          };
+  inline void disable_dns_responses_decoding()          { sniff_dns_responses = false;    };  
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
   inline void enable_categorization()                   { categorization_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };

@@ -29,8 +29,7 @@ class MySQLDB : public DB {
   MYSQL mysql;
   bool db_operational;
   struct timeval lastUpdateTime;
-
-  u_int32_t mysqlDroppedFlowsQueueTooLong;
+  u_int32_t mysqlDroppedFlows;
   u_int64_t mysqlExportedFlows, mysqlLastExportedFlows;
   float mysqlExportRate;
 
@@ -50,16 +49,17 @@ class MySQLDB : public DB {
 
   virtual void* queryLoop();
   bool createDBSchema();
+  void disconnectFromDB(MYSQL *conn);
   static volatile bool isDbCreated() { return db_created; };
   void checkPointCounters(bool drops_only) {
     if(!drops_only)
       checkpointExportedFlows = mysqlExportedFlows;
-    checkpointDroppedFlows = mysqlDroppedFlowsQueueTooLong;
+    checkpointDroppedFlows = mysqlDroppedFlows;
   };
-  inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlowsQueueTooLong; };
-  inline float exportRate() const { return mysqlExportRate; };
+  inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows; };
+  inline float exportRate()          const { return mysqlExportRate; };
   virtual bool dumpFlow(time_t when, bool idle_flow, Flow *f, char *json);
-  virtual void flush(bool idle) {};
+  virtual void flush(bool idle) { ; };
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows);
   void startDBLoop();
   void updateStats(const struct timeval *tv);

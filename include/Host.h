@@ -35,7 +35,7 @@ class Host : public GenericHost {
  private:
   u_int32_t asn;
   char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *topSitesKey;
-  bool blacklisted_host, drop_all_host_traffic, dump_host_traffic;
+  bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated;
   u_int32_t host_quota_mb;
   int16_t local_network_id, deviceIfIdx;
   u_int32_t deviceIP;

@@ -709,9 +709,10 @@ const char* AlertsManager::getAlertType(AlertType alert_type) {
 /* **************************************************** */
 
 SlackNotificationChoice AlertsManager::getSlackNotificationChoice(char* choice) {
-  if(strcmp(choice, "only_errors")==0) return notify_errors_only;
-  if(strcmp(choice, "errors_and_warnings")==0) return notify_errors_and_warnings;
-  return notify_all_alerts; /* default choice*/
+  if(strcmp(choice, "only_errors") == 0)         return notify_errors_only;
+  if(strcmp(choice, "errors_and_warnings") == 0) return notify_errors_and_warnings;
+
+  return notify_all_alerts; /* default choice */
 }
 
 /* **************************************************** */
@@ -853,6 +854,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     }
 
     rc = 0;
+
   out:
     if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);

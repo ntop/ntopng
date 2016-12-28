@@ -771,7 +771,8 @@ char* Flow::print(char *buf, u_int buf_len) {
 
 bool Flow::dumpFlow(bool idle_flow) {
   bool rc = false;
-
+  time_t now;
+  
   dumpFlowAlert();
 
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
@@ -781,14 +782,13 @@ bool Flow::dumpFlow(bool idle_flow) {
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      || ntop->getPrefs()->do_dump_flows_on_es()
      || ntop->get_export_interface()) {
-
 #ifdef NTOPNG_PRO
     if(!detection_completed || cli2srv_packets + srv2cli_packets <= NDPI_MIN_NUM_PACKETS)
-      // force profile detection even if the L7 Protocol has not been detected
+      /* force profile detection even if the L7 Protocol has not been detected */
       updateProfile();
 #endif
 
-    time_t now = time(NULL);
+    now = time(NULL);
 
     if(!idle_flow) {
       if((now - get_first_seen()) < CONST_DB_DUMP_FREQUENCY
@@ -1760,7 +1760,8 @@ json_object* Flow::flow2json() {
   if(isSSL() && protos.ssl.certificate)
     json_object_object_add(my_object, "SSL_SERVER_NAME", json_object_new_string(protos.ssl.certificate));
 
-  json_object_object_add(my_object, "PASS_VERDICT", json_object_new_boolean(passVerdict ? (json_bool)1 : (json_bool)0));
+  if(iface->is_bridge_interface())
+    json_object_object_add(my_object, "PASS_VERDICT", json_object_new_boolean(passVerdict ? (json_bool)1 : (json_bool)0));
 
   return(my_object);
 }

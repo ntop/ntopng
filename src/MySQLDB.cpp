@@ -56,7 +56,7 @@ void* MySQLDB::queryLoop() {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", sql);
 
 	/* Don't give up, manually re-connect */
-	mysql_close(&mysql_alt);
+	disconnectFromDB(&mysql_alt);
 	if(!connectToDB(&mysql_alt, true)) _usleep(100);
       } else {
 	mysqlExportedFlows++;
@@ -65,7 +65,7 @@ void* MySQLDB::queryLoop() {
       sleep(1);    
   }
 
-  mysql_close(&mysql_alt);
+  disconnectFromDB(&mysql_alt);
   return(NULL);
 }
 
@@ -389,7 +389,7 @@ bool MySQLDB::createDBSchema() {
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
-  mysqlDroppedFlowsQueueTooLong = 0;
+  mysqlDroppedFlows = 0;
   mysqlExportedFlows = 0, mysqlLastExportedFlows = 0;
   mysqlExportRate = 0;
   checkpointDroppedFlows = checkpointExportedFlows = 0;
@@ -400,7 +400,7 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 /* ******************************************* */
 
 MySQLDB::~MySQLDB() {
-  mysql_close(&mysql);
+  disconnectFromDB(&mysql);
 }
 
 /* ******************************************* */
@@ -435,7 +435,7 @@ void MySQLDB::lua(lua_State *vm, bool since_last_checkpoint) const {
   lua_push_int_table_entry(vm, "flow_export_count",
 			   mysqlExportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
   lua_push_int32_table_entry(vm, "flow_export_drops",
-			     mysqlDroppedFlowsQueueTooLong - (since_last_checkpoint ? checkpointDroppedFlows : 0));
+			     mysqlDroppedFlows - (since_last_checkpoint ? checkpointDroppedFlows : 0));
   lua_push_float_table_entry(vm, "flow_export_rate",
 			     mysqlExportRate >= 0 ? mysqlExportRate : 0);
 }
@@ -500,7 +500,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t val
 #ifdef NTOPNG_PRO
 		   ,f->get_profile_name()
 #endif
-	     );
+		   );
   }  else {
     len = snprintf(values_buf, values_buf_len,
 		   MYSQL_INSERT_VALUES_V6,
@@ -520,8 +520,9 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf, size_t val
 #ifdef NTOPNG_PRO
 		   ,f->get_profile_name()
 #endif
-	     );
+		   );
   }
+  
   free(json_buf);
 
   return len;
@@ -550,15 +551,22 @@ bool MySQLDB::dumpFlow(time_t when, bool idle_flow, Flow *f, char *json) {
        above as another thread, via the lpush below, can invalidate the condition.
        However, we prefer to avoid an additional lock as the lpush guarantees
        that no more than CONST_MAX_MYSQL_QUEUE_LEN will ever be in the queue.
-       The drawback is that the counter mysqlDroppedFlowsQueueTooLong
+       The drawback is that the counter mysqlDroppedFlows
        is not guaranteed to be 100% accurate but we can tolerate this.
     */
     ntop->getRedis()->lpush(CONST_SQL_QUEUE, sql, CONST_MAX_MYSQL_QUEUE_LEN);
   } else {
-    mysqlDroppedFlowsQueueTooLong++;
+    mysqlDroppedFlows++;
   }
 
   return(true);
+}
+
+/* ******************************************* */
+
+void MySQLDB::disconnectFromDB(MYSQL *conn) {
+  mysql_close(conn);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Disconnected from MySQL for interface %s...", iface->get_name());
 }
 
 /* ******************************************* */
@@ -647,7 +655,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
     case CR_SERVER_GONE_ERROR:
     case CR_SERVER_LOST:
       if(doReconnect) {
-	mysql_close(conn);
+	disconnectFromDB(conn);
 	if(doLock && m) m->unlock(__FILE__, __LINE__);
 
 	connectToDB(conn, true);
@@ -699,7 +707,7 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
 
   if((rc = mysql_query(&mysql, sql)) != 0) {
     /* retry */
-    mysql_close(&mysql);
+    disconnectFromDB(&mysql);
     if(m) m->unlock(__FILE__, __LINE__);
     connectToDB(&mysql, true);
 

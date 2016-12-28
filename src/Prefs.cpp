@@ -394,6 +394,8 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 /* ******************************************* */
 
 void Prefs::reloadPrefsFromRedis() {
+  char rsp[32];
+  
   /* Attempt to load preferences set from the web ui and apply default values in not found */
   local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION);
   local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
@@ -427,13 +429,15 @@ void Prefs::reloadPrefsFromRedis() {
 							 ALERTS_MANAGER_MAX_ENTITY_ALERTS);
   max_num_flow_alerts             = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS,
 							 ALERTS_MANAGER_MAX_FLOW_ALERTS);
-
+  
   // alert preferences
   enable_probing_alerts = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_PROBING,
 					       CONST_DEFAULT_ALERT_PROBING_ENABLED);
   enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
-  
+
+  slack_enabled = ((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_WEBHOOK, rsp, sizeof(rsp)) == 0) && rsp[0] != '\0') ? true : false;
+    
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
 }
@@ -1201,6 +1205,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "housekeeping_frequency",    housekeeping_frequency);
   lua_push_int_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
   lua_push_int_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
+  lua_push_bool_table_entry(vm, "slack_enabled", slack_enabled);
   
   lua_push_str_table_entry(vm, "instance_name", instance_name ? instance_name : (char*)"");
 

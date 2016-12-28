@@ -409,4 +409,5 @@ for _,_ifname in pairs(ifnames) do
 end -- for ifname,_ in pairs(ifnames) do
 
 -- check MySQL open files status
-checkOpenFiles()
+-- NOTE: performed on startup.lua
+-- checkOpenFiles()

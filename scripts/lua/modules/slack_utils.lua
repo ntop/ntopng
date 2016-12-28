@@ -9,9 +9,15 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.
 require "lua_trace"
 
 function sendSlackMessages()
-  local webhook = ntop.getCache("ntopng.alerts.slack_webhook")
+  local prefs = ntop.getPrefs()
   local debug = false
+  local webhook
+
+  if(prefs.slack_enabled == false) then
+    return
+  end
   
+  webhook = ntop.getCache("ntopng.alerts.slack_webhook")
   if((webhook == nil) or (webhook == "")) then
      return
   end

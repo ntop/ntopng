@@ -125,7 +125,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   else if((mac = iface->getMac(_mac, _vlanId, true)) != NULL)
     mac->incUses();
 
-  drop_all_host_traffic = false, dump_host_traffic = false,
+  drop_all_host_traffic = false, dump_host_traffic = false, dhcpUpdated = false,
     deviceIP = 0, deviceIfIdx = 0;
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
@@ -264,10 +264,11 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
 /* *************************************** */
 
 bool Host::readDHCPCache() {
-  if(mac) {
+  if(mac && (!dhcpUpdated)) {
     /* Check DHCP cache */
-      char client_mac[24], buf[64], key[64];
+    char client_mac[24], buf[64], key[64];
 
+    dhcpUpdated = true;
     Utils::formatMac(mac->get_mac(), client_mac, sizeof(client_mac));
 
     snprintf(key, sizeof(key), DHCP_CACHE, iface->get_id());
