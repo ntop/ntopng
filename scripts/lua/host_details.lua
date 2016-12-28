@@ -595,7 +595,7 @@ print [[
 	 print[[<input type="hidden" name="host" value="]] print(host_info["host"]) print[[">]]
 	 print[[<input type="hidden" name="vlan" value="]] print(tostring(host_info["vlan"])) print[[">]]
 
-	 print('<input type="hidden" name="host_quota" value="'..host_quota_value..'">Host quota &nbsp;<input type="number" name="host_quota" placeholder="" min="0" step="100" max="100000" value="')print(tostring(host_quota_value))
+	 print('<input type="hidden" name="host_quota" value="'..host_quota_value..'">Host quota &nbsp;<input type="number" name="host_quota" placeholder="" min="0" step="10" max="100000" value="')print(tostring(host_quota_value))
          print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
          print('</form>')
 	 print('</td></tr>')
