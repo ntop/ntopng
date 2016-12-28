@@ -22,9 +22,106 @@ end
 
 -- ############################################
 
+local options_ctr = 0
+local options_script_loaded = false
+
+-- Note: use data-min and data-max to setup ranges
+local function prefsResolutionButtons(fmt, value)
+  local ctrl_id = tostring(options_ctr)
+  options_ctr = options_ctr + 1
+
+  local fmt_to_data = {
+    ["s"] = {"Seconds", "Sec", 1},
+    ["m"] = {"Minutes", "Min", 60},
+    ["h"] = {"Hours", "H", 3600},
+  }
+
+  local selected = nil
+
+  -- find the highest values which divides input value
+  if tonumber(value) ~= nil then
+    -- foreach character in format
+    string.gsub(fmt, ".", function(k)
+      local v = fmt_to_data[k]
+      if v ~= nil then
+        if((selected == nil) or ((v[3] > fmt_to_data[selected][3]) and (value % v[3] == 0))) then
+          selected = k
+        end
+      end
+    end)
+  end
+  selected = selected or string.sub(fmt, 1, 1)
+
+  print[[<div class="btn-group" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:inline;">]]
+
+  -- foreach character in format
+  string.gsub(fmt, ".", function(k)
+    local v = fmt_to_data[k]
+    if v ~= nil then
+      print[[<label class="btn]]
+      if selected == k then print[[ btn-warning active]] end
+      print[[ btn-sm"><input value="]] print(tostring(v[3])) print[[" title="]] print(v[1]) print[[" name="options_]] print(ctrl_id) print[[" autocomplete="off" type="radio"]]
+      if selected == k then print(" checked") end print[[/><b>]] print(v[2]) print[[</b></label>]]
+    end
+  end)
+
+  print[[</div>]]
+
+  if not options_script_loaded then
+    print[[<script>
+      function resol_selector_get_input(an_input) {
+        return $(" > input", $(an_input).parent().parent().parent()).first();
+      }
+
+      /* This function scales values wrt selected resolution */
+      function resol_selector_reset_input_range(selected) {
+        var selected = $(selected);
+        var input = resol_selector_get_input(selected);
+
+        var raw = parseInt(input.attr("data-min"));
+        if (! isNaN(raw))
+          input.attr("min", Math.floor(raw / selected.val()));
+
+        raw = parseInt(input.attr("data-max"));
+        if (! isNaN(raw))
+          input.attr("max", Math.floor(raw / selected.val()));
+      }
+
+      function resol_selector_change_callback(event) {
+        var selected = $(this);
+        selected.closest("label").addClass('btn-warning').siblings().removeClass('btn-warning');
+
+        resol_selector_reset_input_range(selected);
+      }
+    </script>]]
+    options_script_loaded = true
+  end
+
+  print[[<script>
+    $('#options_group_]] print(ctrl_id) print[[ input').change(resol_selector_change_callback);
+    $(function() {
+      var elemid = "#options_group_]] print(ctrl_id) print[[";
+      var selected = $(elemid + ' input[checked]');
+      resol_selector_reset_input_range(selected);
+    });
+  </script>
+  ]]
+
+  if tonumber(value) ~= nil then
+    -- returns the new value with selected resolution
+    return tonumber(value) / fmt_to_data[selected][3]
+  else
+    return nil
+  end
+end
+
+-- ############################################
+
 -- Runtime preference
 
-function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs)
+function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
+  extra = extra or {}
+
   if(string.ends(prekey, ".")) then
     k = prekey..key
   else
@@ -71,16 +168,27 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     showEnabled = "none"
   end
 
+  local more_opts = ""
+  if extra.min ~= nil then more_opts = more_opts .. ' data-min="' .. extra.min .. '"' end
+  if extra.max ~= nil then more_opts = more_opts .. ' data-max="' .. extra.max .. '"' end
+
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
   print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
+
+  local style = "text-align:right;"
 
   print [[
 	   <td class="input-group col-lg-3" align=right>]]
 print [[
     <div class="input-group" >
-      <div >
-        <input id="id_input_]] print(key) print[["type="]] print(input_type) print [[" class="form-control" name="]] print(key) print [[" style="text-align:right;" value="]] print(value..'"')
+      <div >]]
+      if extra.tformat ~= nil then
+        value = prefsResolutionButtons(extra.tformat, value)
+        style = style .. ' width: 10em; margin-left:1em;'
+      end
+      print[[
+        <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(more_opts) print[[ name="]] print(key) print [[" style="]] print(style) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[>
       </div>
