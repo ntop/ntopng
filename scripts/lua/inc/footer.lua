@@ -212,7 +212,6 @@ print [[/lua/logout.lua");  }, */
 		$('#networkload').css("width", v+"%")
 		$('#networkload').html(v+"%");
 
-
 ]]
 
    end
@@ -231,26 +230,19 @@ print[[
                    var color = error_color;
                    var label = error_label;
 
-                   // update the color of the menu triangle
-                   $("#alerts-menu-triangle").attr("style","color:" + color +";")
-
 		   msg += "&nbsp;<a href=]]
 print (ntop.getHttpPrefix())
 print [[/lua/show_alerts.lua><i class=\"fa fa-warning\" style=\"color: " + color + ";\"></i>"
 
-		   if(rsp.engaged_alerts > 0) {
-		      msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
-		      if(rsp.engaged_alerts > 1) msg += "s";
-                      msg += "</span>";
-		   }
-
-                   if(rsp.alerts > 0) {
-		     msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.alerts)+" Alert";
-		     if(rsp.alerts > 1) msg += "s";
-		     msg += "</span>";
-		}
+                   msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
+                   if(rsp.engaged_alerts > 1) msg += "s";
+                   msg += "</span>";
 
                    msg += "</A>&nbsp;"
+                }
+
+		if((rsp.engaged_alerts > 0 || rsp.alerts_stored == true) && $("#alerts-id").is(":visible") == false) {
+                  $("#alerts-id").show();
                 }
 
 		var alarm_threshold_low = 60;  /* 60% */
@@ -339,6 +331,13 @@ $(document).ready(function(){
       $(this).find('.dropdown-menu').stop(true, true).delay(150).fadeIn(100);
     }, function() {
       $(this).find('.dropdown-menu').stop(true, true).delay(150).fadeOut(100);
+    });
+    $('.collapse')
+      .on('shown.bs.collapse', function(){
+        $(this).parent().find(".fa-caret-down").removeClass("fa-caret-down").addClass("fa-caret-up");
+      })
+      .on('hidden.bs.collapse', function(){
+        $(this).parent().find(".fa-caret-up").removeClass("fa-caret-up").addClass("fa-caret-down");
     });
 });
 

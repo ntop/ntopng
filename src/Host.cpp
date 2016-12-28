@@ -846,7 +846,7 @@ json_object* Host::getJSONObject() {
     json_object_object_add(my_object, "userActivities", user_activities->getJSONObject());
 
   /* Generic Host */
-  json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumAlerts()));
+  json_object_object_add(my_object, "num_alerts", json_object_new_int(triggerAlerts() ? getNumAlerts() : 0));
   json_object_object_add(my_object, "sent", sent.getJSONObject());
   json_object_object_add(my_object, "rcvd", rcvd.getJSONObject());
   json_object_object_add(my_object, "ndpiStats", ndpiStats->getJSONObject(iface));

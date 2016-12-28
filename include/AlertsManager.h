@@ -31,6 +31,7 @@ class AlertsManager : protected StoreManager {
   char queue_name[CONST_MAX_LEN_REDIS_KEY];
   bool store_opened, store_initialized;
   u_int32_t num_alerts_engaged;
+  bool alerts_stored;
   int openStore();
   
   /* methods used for alerts that have a timespan */
@@ -199,6 +200,7 @@ class AlertsManager : protected StoreManager {
   int getCachedNumAlerts(lua_State *vm);
   inline void refreshCachedNumAlerts() {
     num_alerts_engaged = getNumAlerts(true,  static_cast<char*>(NULL));
+    alerts_stored = (getNumAlerts(false,  static_cast<char*>(NULL)) + getNumFlowAlerts()) > 0;
   }
   inline int getNumAlerts(bool engaged) {
     /* must force the cast or the compiler will go crazy with ambiguous calls */

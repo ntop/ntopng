@@ -805,6 +805,7 @@ function performAlertsQuery(statement, what, opts)
       if what == "engaged" then
 	 refreshHostsEngagedAlertsCounters()
       end
+      interface.refreshNumAlerts()
    end
 
    return res
@@ -858,8 +859,6 @@ function refreshHostsEngagedAlertsCounters(host_vlan)
 	 interface.refreshNumAlerts(k, nil, 0);
       end
    end
-
-   interface.refreshNumAlerts()
 end
 
 -- #################################

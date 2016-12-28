@@ -60,16 +60,8 @@ end
 
 print [["><i class="fa fa-dashboard"></i> Dashboard</a></li>]]
 
-if ntop.isEnterprise() then
-   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i><sup><i class="fa fa-exclamation-triangle" aria-hidden="true" style="position:absolute; margin-left:-19px; margin-top:4px;"></i></sup> Alerts Dashboard</a></li>]]
-end
-
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical data explorer</a></li>')
-end
-
-if ntop.isEnterprise() then
-   print[[<li><a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i><sup><i class="fa fa-exclamation-triangle" aria-hidden="true" style="position:absolute; margin-left:-19px; margin-top:4px;"></i></sup> Historical alerts explorer</a></li>]]
 end
 
 if(ntop.isPro()) then
@@ -302,22 +294,61 @@ end
 
 interface.select(ifname)
 
-local alert_cache = interface.getCachedNumAlerts()
-local color = "#F0AD4E" -- bootstrap warning orange
--- if alert_cache["error_level_alerts"] == true then
---   color = "#B94A48" -- bootstrap danger red
--- end
-if alert_cache["num_alerts_engaged"] > 0 then
-print [[
-<li id="alerts-li">
-<a  href="]]
-print(ntop.getHttpPrefix())
-print [[/lua/show_alerts.lua">
-<i class="fa fa-warning fa-lg" style="color: ]] print(color) print[[;" id="alerts-menu-triangle"></i>
-</a>
-</li>
+if ntop.getPrefs().are_alerts_enabled == true then
+   
+   local alert_cache = interface.getCachedNumAlerts()
+   local active = ""
+   local style = ""
+   local color = ""
+
+   -- if alert_cache["num_alerts_engaged"] > 0 then
+   -- color = 'style="color: #B94A48;"' -- bootstrap danger red
+   -- end
+
+   if alert_cache["num_alerts_engaged"] == 0 and alert_cache["alerts_stored"] == false then
+      style = ' style="display: none;"'
+   end
+
+   if active_page == "alerts" then
+      active = ' active'
+   end
+
+   -- local color = "#F0AD4E" -- bootstrap warning orange
+   print [[
+      <li class="dropdown]] print(active) print[[" id="alerts-id"]] print(style) print[[>
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+	 <i class="fa fa-warning fa-lg "]] print(color) print[["></i> <b class="caret"></b>
+      </a>
+    <ul class="dropdown-menu">
+      <li>
+        <a  href="]]
+   print(ntop.getHttpPrefix())
+   print [[/lua/show_alerts.lua">
+          <i class="fa fa-warning id="alerts-menu-triangle"></i> Detected Alerts
+        </a>
+      </li>
+]]
+   if ntop.isEnterprise() then
+      print[[
+      <li>
+        <a href="]]
+      print(ntop.getHttpPrefix())
+      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i> Alerts Dashboard
+        </a>
+     </li>
+     <li><a href="]] print(ntop.getHttpPrefix())
+      print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i> Historical alerts explorer
+        </a>
+     </li>
+]]
+   end
+
+   print[[
+    </ul>
+  </li>
    ]]
 end
+
 
 if(user_group ~= "administrator") then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")

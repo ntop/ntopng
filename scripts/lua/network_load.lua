@@ -43,6 +43,7 @@ function dumpInterfaceStats(interface_name)
       if prefs.are_alerts_enabled == true then
 	 local alert_cache = interface.getCachedNumAlerts()
 	 res["engaged_alerts"]     = alert_cache["num_alerts_engaged"]
+	 res["alerts_stored"]      = alert_cache["alerts_stored"]
       end
 
       res["num_flows"]  = ifstats.stats.flows
