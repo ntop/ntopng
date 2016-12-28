@@ -1,16 +1,19 @@
-<div class="center-block" style="width:70em;">
+<div class="center-block" style="width:80em;">
   <table class="table table-bordered table-condensed table-striped">
   <thead>
     <tr>
-      <th></th>
       {% for j in range(2, #report.series) do %}
+        {% if j == 2 then %}
+        <th class='text-center' colspan='3'>{{report.series[j]}}</th>
+        {% else %}
         <th class='text-center' colspan='2'>{{report.series[j]}}</th>
+        {% end %}
       {% end %}
     </tr><tr>
-      <th>{{report.series[1]}}</th>
+      <th class='text-center'>{{report.series[1]}}</th>
     {% for j in range(2, #report.series) do %}
-      <th class='text-right'>Traffic</th>
-      <th class='text-right'>Activity</th>
+      <th class='text-right'>{{i18n('traffic')}}</th>
+      <th class='text-center'>{{i18n('duration')}}</th>
     {% end %}
     </tr>
   </thead>
@@ -18,20 +21,20 @@
   {% for i in range(report.rows) do %}
     <tr>
       {% if i == report.rows then %}
-        <th class='col-sm-1'>{{report.values[1][i]}}</th> <!-- Total -->
+        <th class='col-sm-1 text-right'>{{report.values[1][i]}}</th> <!-- Total -->
       {% else %}
         {% if report.values[1][i].highlited then %}
-          <td class='col-sm-1' ><span style="color: #FF5454;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></span></td>
+          <td class='col-sm-1 text-center' ><span style="color: #FF5454;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></span></td>
         {% else %}
-          <td class='col-sm-1' ><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></td>
+          <td class='col-sm-1 text-center' ><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></td>
         {% end %}
       {% end %}
       
       {% for j in range(2, #report.values) do %}
         {% if i == report.rows then %}
-      <th class='text-right col-sm-1'>{{report.values[j][i].bytes}}</td><td class='text-right col-sm-1'>{{report.values[j][i].activity}}</td></th>  <!-- Total-->
+      <th class='text-right col-sm-1'>{{report.values[j][i].bytes}}</th><th class='text-center col-sm-1'>{{report.values[j][i].activity}}</th>  <!-- Total-->
         {% else %}
-      <td class='text-right col-sm-1'>{{report.values[j][i].bytes}}</td><td class='text-right col-sm-1'>{{report.values[j][i].activity}}</td>
+      <td class='text-right col-sm-1'>{{report.values[j][i].bytes}}</td><td class='text-center col-sm-1'>{{report.values[j][i].activity}}</td>
         {% end %}
       {% end %}
     </tr>
