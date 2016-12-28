@@ -112,18 +112,24 @@ end
 --  rawdata - the raw derived series data
 --  npoints - number of points in each data serie
 --  rawstep - rawdata internal step
---  date_mode - if true, the resolution is interpreted as if you want dates to be
+--  extra - extra parameters, for additional functionalities
+--      date_mode - if true, the resolution is interpreted as if you want dates to be
 --              separated by this resolution step. This enables daylight checks to
 --              to adjust actual time intervals, which are computational intensive because of
 --              Lua dates functions usage.
+--      with_activity - if true, a new column "activity" will be added to the output data, containing the
+--              total activity time in seconds for the interval.
 --
 -- Returns
 --   On success: a list of times,
---               the data parameter will be modified in place
+--               the rawdata parameter will be modified in place
 --   On error: a string containing some error message
 --
-function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawdata, npoints, rawstep, date_mode)
+function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawdata, npoints, rawstep, extra)
   resolution = math.floor(resolution)
+  extra = extra or {}
+  local date_mode = extra.date_mode
+  local with_activity = extra.with_activity
   local orig_resol = resolution
 
   -- check resolution consinstency
@@ -136,6 +142,11 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   if epoch_start < start  then
     -- TODO i18n
     return {error='error_rrd_starts_before'}
+  end
+
+  if((with_activity) and (rawdata.activity ~= nil)) then
+    -- TODO i18n
+    return {error='error_activity_column_exists'}
   end
 
   local function set_resolution(prevtime, newtime)
@@ -152,7 +163,6 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
       end
     end
   end
-
 
   -- functions to handle the n-dimensional counters
   local function create_counters()
@@ -179,12 +189,14 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
 
   -- Pre-declare callbacks to improve performance while looping
   local prefix_slice
+  local traffic_in_step = 0
 
   local function c_dump_slice (value, col)
     -- Save the previous value to avoid overwriting it when (src_idx == dst_idx)
     local prev_val = rawdata[col][src_idx]
     -- Calculate the traffic belonging to previous step
     local prefix_traffic = prefix_slice * rawdata[col][src_idx]
+    traffic_in_step = traffic_in_step + prefix_traffic
 
     -- Save into previous step
     rawdata[col][dst_idx] = value + prefix_traffic
@@ -194,6 +206,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   end
 
   local function c_accumulate_partial (value, col)
+    traffic_in_step = traffic_in_step + rawdata[col][src_idx]
     return value + rawdata[col][src_idx]
   end
 
@@ -233,6 +246,8 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
 
   local curtime = start + (src_idx-1) * rawstep   -- goes up with raw steps
   local times = {}
+  local activity = {}
+  local activity_secs = 0
 
   local function debug_me()
     io.write("\nsrc_idx="..src_idx.." dst_idx="..dst_idx.." fstep/res="..rawstep.."/"..resolution.." curtime/dstart="..curtime.."/"..epoch_start.."\n")
@@ -246,6 +261,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   -- main integration
   while src_idx <= npoints and time_sum <= epoch_end do
     set_resolution(time_sum, curtime)
+    traffic_in_step = 0
     
     if curtime + rawstep >= time_sum + resolution then
       local prefix_t = time_sum + resolution - curtime
@@ -256,12 +272,26 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
 
       times[dst_idx] = time_sum
       for_each_counter_do_update(integr_ctrs, c_dump_slice)
+
+      if with_activity then
+        if traffic_in_step > 0 then
+          activity_secs = activity_secs + prefix_t
+        end
+
+        activity[dst_idx] = activity_secs;
+        activity_secs = 0
+      end
+
       dst_idx = dst_idx + 1
       
       time_sum = time_sum + resolution
     else
       -- Accumulate partial slices of traffic
       for_each_counter_do_update(integr_ctrs, c_accumulate_partial)
+
+      if(with_activity and (traffic_in_step > 0)) then
+        activity_secs = activity_secs + rawstep
+      end
     end
 
     curtime = curtime + rawstep
@@ -273,6 +303,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
     -- Save integr_ctrs result
     set_resolution(curtime, time_sum)
     times[dst_idx] = time_sum
+    if with_activity then activity[dst_idx] = activity_secs; activity_secs = 0 end
     --~ assert(dst_idx < src_idx)
     for_each_counter_do_update(integr_ctrs, c_fill_remaining)
     dst_idx = dst_idx + 1
@@ -288,5 +319,6 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
     dst_idx = dst_idx + 1
   end
 
+  if with_activity then rawdata.activity = activity end
   return times
 end
