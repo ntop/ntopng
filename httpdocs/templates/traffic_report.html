@@ -2,9 +2,15 @@
   <table class="table table-bordered table-condensed table-striped">
   <thead>
     <tr>
+      <th></th>
+      {% for j in range(2, #report.series) do %}
+        <th class='text-center' colspan='2'>{{report.series[j]}}</th>
+      {% end %}
+    </tr><tr>
       <th>{{report.series[1]}}</th>
     {% for j in range(2, #report.series) do %}
-      <th class='text-right'>{{report.series[j]}}</th>
+      <th class='text-right'>Traffic</th>
+      <th class='text-right'>Activity</th>
     {% end %}
     </tr>
   </thead>
@@ -21,12 +27,12 @@
         {% end %}
       {% end %}
       
-	  {% for j in range(2, #report.values) do %}
-	  {% if i == report.rows then %}
-      <th class='text-right col-sm-1'>{{report.values[j][i].bytes}} <small>{{report.values[j][i].activity}}</small></th>  <!-- Total-->
-      {% else %}
-      <td class='text-right col-sm-1'>{{report.values[j][i].bytes}} <small>{{report.values[j][i].activity}}</small></td>
-      {% end %}
+      {% for j in range(2, #report.values) do %}
+        {% if i == report.rows then %}
+      <th class='text-right col-sm-1'>{{report.values[j][i].bytes}}</td><td class='text-right col-sm-1'>{{report.values[j][i].activity}}</td></th>  <!-- Total-->
+        {% else %}
+      <td class='text-right col-sm-1'>{{report.values[j][i].bytes}}</td><td class='text-right col-sm-1'>{{report.values[j][i].activity}}</td>
+        {% end %}
       {% end %}
     </tr>
   {% end %}
