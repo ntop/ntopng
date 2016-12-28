@@ -3,6 +3,7 @@ local  en = {
    version = "Your version is %{vers}.",
    error = "Error",
    host = "Host %{host}",
+   hour = "Hour",
    day = "Day",
    week = "Week",
    month = "Month",
