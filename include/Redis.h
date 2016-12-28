@@ -32,6 +32,7 @@ class Redis {
   Mutex *l;
   char *redis_host;
   char *redis_password;
+  u_int32_t num_requests, num_reconnections;
   u_int16_t redis_port;
   u_int8_t redis_db_id;
   pthread_t esThreadLoop;
@@ -111,6 +112,7 @@ class Redis {
   u_int32_t incrKey(char *key);
   int delKey(char *key)              { return(oneOperator("DEL", key));            };
   int rename(char *oldk, char *newk) { return(twoOperators("RENAME", oldk, newk)); };
+  void lua(lua_State *vm);
 };
 
 #endif /* _REDIS_H_ */
