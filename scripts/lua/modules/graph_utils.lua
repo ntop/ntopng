@@ -1352,18 +1352,27 @@ end
 -- #################################################
 
 function rrd2json_merge(ret, num)
-   local i = 1
    -- if we are expanding an interface view, we want to concatenate
    -- jsons for single interfaces, and not for the view. Since view statistics
    -- are in ret[1], it suffices to aggregate jsons from index i >= 2
    local json = "["
    local first = true  -- used to decide where to append commas
-   while i <= num do
+
+   -- sort by "totalval" to get the top "num" results
+   local by_totalval = {}
+   for i = 1, #ret do
+      by_totalval[i] = ret[i].totalval
+   end
+
+   local ctr = 0
+
+   for i,_ in pairsByValues(by_totalval, rev) do
+      if ctr >= num then break end
       if(debug_metric) then io.write("->"..i.."\n") end
       if not first then json = json.."," end
       json = json..ret[i].json
-      i = i + 1
       first = false
+      ctr = ctr + 1
    end
    json = json.."]"
    -- the (possibly aggregated) json always goes into ret[1]
