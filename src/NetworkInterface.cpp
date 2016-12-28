@@ -172,6 +172,7 @@ NetworkInterface::NetworkInterface(const char *name,
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
+  shadow_flow_profiles = NULL;
 #endif
 
   loadDumpPrefs();
@@ -231,7 +232,7 @@ void NetworkInterface::init() {
   dump_max_files = CONST_MAX_DUMP;
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
-  flow_profiles = NULL;
+  flow_profiles = shadow_flow_profiles = NULL;
 #endif 
 }
 
@@ -528,6 +529,7 @@ NetworkInterface::~NetworkInterface() {
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
+  if(shadow_flow_profiles) delete(shadow_flow_profiles);
 #endif
 
   termLuaInterpreter();
@@ -2093,16 +2095,20 @@ void NetworkInterface::updateFlowProfiles() {
   if(isView()) return;
 
   if(ntop->getPro()->has_valid_license()) {
-    flow_profiles->dumpCounters();
-    FlowProfiles *oldP = flow_profiles, *newP = new FlowProfiles(id);
+    FlowProfiles *newP;
+    
+    if(shadow_flow_profiles) {
+      delete shadow_flow_profiles;
+      shadow_flow_profiles = NULL;
+    }
 
+    flow_profiles->dumpCounters();
+    shadow_flow_profiles = flow_profiles, newP = new FlowProfiles(id);
+
+    newP->loadProfiles();/* and reload */
     flow_profiles = newP; /* Overwrite the current profiles */
-    flow_profiles->loadProfiles();/* and reload */
 
     flows_hash->walk(update_flow_profile, NULL);
-
-    sleep(1);    /* Relax a bit... */
-    delete oldP; /* Finally free the old memory */
   }
 }
 

@@ -70,7 +70,7 @@ class NetworkInterface {
   bool bridge_interface;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
-  FlowProfiles  *flow_profiles;
+  FlowProfiles  *flow_profiles, *shadow_flow_profiles;
 #endif
   EthStats ethStats;
   LocalTrafficStats localStats;

@@ -509,7 +509,6 @@ print("</script>\n")
 	       ..formatValue(round(export_drops_pct, 2)).."%]</span></td>")
       print("<td colspan=3>&nbsp;</td>")
       print("</tr>")
-
    end
 
    if (isAdministrator() and ifstats.isView == false) then
