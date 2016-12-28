@@ -20,6 +20,8 @@ local  en = {
    from = "from",
    protocol = "Protocol",
    max_rate = "Max Rate",
+   duration = "Duration",
+   traffic = "Traffic",
    save_settings = "Save Settings",
 
    traffic_report = {
