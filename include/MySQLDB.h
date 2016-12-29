@@ -40,7 +40,6 @@ class MySQLDB : public DB {
 
   bool connectToDB(MYSQL *conn, bool select_db);
   char* get_last_db_error(MYSQL *conn) { return((char*)mysql_error(conn)); }
-  int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
   int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true, bool ignoreErrors = false, bool doLock = true);
 
  public:
@@ -58,6 +57,7 @@ class MySQLDB : public DB {
   };
   inline u_int32_t numDroppedFlows() const { return mysqlDroppedFlows; };
   inline float exportRate()          const { return mysqlExportRate; };
+  int flow2InsertValues(Flow *f, char *json, char *values_buf, size_t values_buf_len) const;
   virtual bool dumpFlow(time_t when, bool idle_flow, Flow *f, char *json);
   virtual void flush(bool idle) { ; };
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows);
