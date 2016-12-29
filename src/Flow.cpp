@@ -202,8 +202,7 @@ Flow::~Flow() {
   }
 
   checkBlacklistedFlow();
-  update_hosts_stats(&tv, true);
-  dumpFlow(true /* the flow is expired */);
+  update_hosts_stats(&tv, true); /* dumpFlow is done inside */
 
   iface->luaEvalFlow(this, callback_flow_delete);
 
@@ -1063,7 +1062,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   if(updated)
     memcpy(&last_update_time, tv, sizeof(struct timeval));
 
-  if(dumpFlow(false /* the flow isn't idle, this is periodic update stuff */)) {
+  if(dumpFlow(inDeleteMethod /* whether this is an active or idle flow */)) {
     last_db_dump.cli2srv_packets = cli2srv_packets,
       last_db_dump.srv2cli_packets = srv2cli_packets, last_db_dump.cli2srv_bytes = cli2srv_bytes,
       last_db_dump.cli2srv_goodput_bytes = cli2srv_goodput_bytes,
