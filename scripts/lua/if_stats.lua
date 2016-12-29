@@ -10,8 +10,9 @@ if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
    require "common"
-   local json = require "dkjson"
 end
+
+local json = require "dkjson"
 
 require "lua_utils"
 require "prefs_utils"
@@ -1052,7 +1053,7 @@ end
             local clone_from = shaper_utils.addVlan0(_GET["clone"])
 
             -- clone everything from the network
-            for _,proto_config in pairs(shaper_utils.getNetworkProtoShapers(ifid, clone_from, false)) do
+            for _,proto_config in pairs(shaper_utils.getNetworkProtoShapers(ifid, clone_from)) do
                shaper_utils.setProtocolShapers(ifid, network_key, proto_config.protoId, proto_config.ingress, proto_config.egress, false)
                proto_shapers_cloned = true
             end
@@ -1154,9 +1155,9 @@ end
    end
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs">
-      <li><a data-toggle="tab" class="btn" href="#protocols">]] print("Manage Networks") print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#networks">]] print("Create Networks") print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.manage_shapers")) print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#networks">]] print(i18n("shaping.create_networks")) print[[</a></li>
+      <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
 
@@ -1270,7 +1271,9 @@ print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
 ]]
 
-   protos = interface.getnDPIProtocols()
+local protos = interface.getnDPIProtocols()
+local protos_in_use = shaper_utils.getNetworkProtoShapers(ifid, net)
+local protocol_categories = interface.getnDPICategories()
 
 function print_ndpi_protocols(protos, selected, excluded, terminator)
    selected = selected or {}
@@ -1290,7 +1293,7 @@ function print_ndpi_protocols(protos, selected, excluded, terminator)
 	    and (not excluded[v]) -- excluded by protocol number
        and (not excluded[k]) -- excluded by protocol name
       ) then
-	 print("<option value=\""..v.."\"")
+	 print("<option value=\""..v.."\" data-category=\""..(interface.getnDPIProtoCategory(tonumber(v)).id).."\"")
 
 	 --print(""..v.."<p>")
 	 if(selected[v] ~= nil) then
@@ -1298,6 +1301,30 @@ function print_ndpi_protocols(protos, selected, excluded, terminator)
 	 end
 
 	 print(">"..k.."</option>"..terminator)
+      end
+   end
+end
+
+-- build the array of already used protocol families
+local families_in_use = {}
+for k,v in pairs(protos_in_use) do
+   local proto_id = tonumber(v.protoId)
+
+   -- can be null for default
+   if proto_id ~= nil then
+      local family = interface.getnDPIProtoCategory(proto_id)
+      if not families_in_use[family.id] then
+         families_in_use[family.id] = 1
+      else
+         families_in_use[family.id] = families_in_use[family.id] + 1
+      end
+   end
+end
+
+function print_ndpi_families(categories, terminator)
+   for k,v in pairsByKeys(categories, asc) do
+      if v ~= "0" then
+         print("<option value=\"cat_"..v.."\">"..k.."</option>"..terminator)
       end
    end
 end
@@ -1413,7 +1440,28 @@ function toggleCustomNetworkMode() {
          var td_ingress_shaper = $("td:nth-child(2)", new_proto);
          var td_egress_shaper = $("td:nth-child(3)", new_proto);
 
-         var proto_id = $("option:selected", td_proto).val();
+         var selected = $("option:selected", td_proto);
+         var proto_id = selected.val();
+         var proto_category = null;
+         var in_use = null;
+
+         if (proto_id.startsWith("cat_")) {
+            // this is a family
+            proto_category = proto_id.split("cat_")[1];
+            in_use = ]] print(json.encode(families_in_use)) print[[;
+         } else {
+            // this is a protocol
+            proto_category = selected.attr("data-category");
+            // TODO check for entire families
+            in_use = {};
+         }
+
+         if (in_use[proto_category]) {
+            // TODO replace alert
+            alert("Family is already in use!");
+            // TODO UI controls are locked after this
+            return false;
+         }
 
          /* set form fields names to match datatable generated ones */
          $("select", td_proto).attr('name', '');
@@ -1426,11 +1474,16 @@ function toggleCustomNetworkMode() {
 
    function addNewShapedProto() {
       var tr = $('<tr id="new_added_row" ><td><select class="form-control" name="new_protocol_id">\
-]] print_ndpi_protocols(protos, {}, shaper_utils.getNetworkProtoShapers(ifid, net), "\\") print[[
+         <optgroup label="]] print(i18n("shaping.families")) print[[">\
+            ]] print_ndpi_families(protocol_categories, "\\") print[[
+         </optgroup>\
+         <optgroup label="]] print(i18n("shaping.protocols")) print[[">\
+]] print_ndpi_protocols(protos, {}, protos_in_use, "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
+         </optgroup>\
       </select></td><td class="text-center" style="vertical-align: middle;"></td></tr>');
 
       $("#table-protos table").append(tr);
@@ -1500,7 +1553,7 @@ function toggleCustomNetworkMode() {
                makeShapersDropdownCallback.bind(this)(proto_id, 2, 3);
             }, function() {
                if (proto_id != ']] print(shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY) print[[')
-                  datatableAddDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol(" + proto_id + ")", "]] print(i18n('delete')) print[[");
+                  datatableAddDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol('" + proto_id + "')", "]] print(i18n('delete')) print[[");
             }
          ]);
 
