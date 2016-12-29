@@ -203,6 +203,8 @@ class NetworkInterface {
   inline u_int  getNumnDPIProtocols()          { return(ndpi_get_num_supported_protocols(ndpi_struct)); };
   inline time_t getTimeLastPktRcvd()           { return(last_pkt_rcvd); };
   inline void  setTimeLastPktRcvd(time_t t)    { last_pkt_rcvd = t; };
+  inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(ndpi_struct, proto)); };
+  ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   inline char* get_ndpi_proto_name(u_int id)   { return(ndpi_get_proto_name(ndpi_struct, id));   };
   inline int   get_ndpi_proto_id(char *proto)  { return(ndpi_get_protocol_id(ndpi_struct, proto));   };
   inline char* get_ndpi_proto_breed_name(u_int id) {
@@ -282,6 +284,7 @@ class NetworkInterface {
   void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
+  void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter);
 
   /**
    * @brief Returns host statistics during latest activity

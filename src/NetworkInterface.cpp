@@ -3219,6 +3219,23 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm) {
 
 /* **************************************************** */
 
+void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter) {
+  int i;
+
+  lua_newtable(vm);
+
+  for(i=0; i<(int)ndpi_struct->ndpi_num_supported_protocols; i++) {
+    char buf[8];
+
+    if (ndpi_struct->proto_defaults[i].protoCategory == filter) {
+      snprintf(buf, sizeof(buf), "%d", i);
+      lua_push_str_table_entry(vm, ndpi_struct->proto_defaults[i].protoName, buf);
+    }
+  }
+}
+
+/* **************************************************** */
+
 #define NUM_TCP_STATES      4
 /*
   0 = RST
@@ -4067,6 +4084,15 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
     interfaceStats->set(stats->deviceIP, stats->ifIndex, stats);
   }
+}
+
+/* **************************************** */
+
+ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int protoid) {
+  ndpi_protocol proto;
+  proto.protocol = NDPI_PROTOCOL_UNKNOWN;
+  proto.master_protocol = protoid;
+  return get_ndpi_proto_category(proto);
 }
 
 /* **************************************** */
