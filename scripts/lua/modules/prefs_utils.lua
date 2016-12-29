@@ -195,6 +195,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   end
 
   local more_opts = ""
+
   if extra.min ~= nil then
     if extra.tformat ~= nil then
       more_opts = more_opts .. ' data-min="' .. extra.min .. '"'
@@ -202,12 +203,17 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       more_opts = more_opts .. ' min="' .. extra.min .. '"'
     end
   end
+
   if extra.max ~= nil then
     if extra.tformat ~= nil then
       more_opts = more_opts .. ' data-max="' .. extra.max .. '"'
     else
       more_opts = more_opts .. ' max="' .. extra.max .. '"'
     end
+  end
+
+  if (_input_type == "number") then
+    more_opts = more_opts .. " required"
   end
 
   local input_type = "text"
