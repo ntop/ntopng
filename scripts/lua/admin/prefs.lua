@@ -139,7 +139,7 @@ function printTopTalkers()
 
   --default value
   minute_top_talkers_retention = 365
-  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, false)
+  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10, --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -156,7 +156,7 @@ function printStatsDatabases()
   print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 
   mysql_retention = 30
-  prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "ntopng.prefs.", "mysql_retention", mysql_retention, false)
+  prefsInputFieldPrefs("Data Retention", "Duration in days of data retention in the MySQL database. Default: 30 days", "ntopng.prefs.", "mysql_retention", mysql_retention, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
 
   toggleTableButtonPrefs("Check open_files_limit",
 			 "Toggle the periodic check of MySQL open_files_limit.",
@@ -168,7 +168,7 @@ function printStatsDatabases()
 
   --default value
   minute_top_talkers_retention = 365
-  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, false)
+  prefsInputFieldPrefs("Data Retention", "Duration in days of minute top talkers data retention. Default: 365 days", "ntopng.prefs.", "minute_top_talkers_retention", minute_top_talkers_retention, "number", nil, nil, nil, {min=1, max=365*10, --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -216,7 +216,7 @@ function printAlerts()
 
   prefsInputFieldPrefs("Maximum Number of Flow Alerts",
 		       "The maximum number of flow alerts. Once the maximum number of alerts is reached, oldest alerts will be overwritten. "..
-			  "Default: 16384.", "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, nil, showElements, false)
+			  "Default: 16384.", "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
 
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",
@@ -301,7 +301,7 @@ function printAlerts()
     showElements = alertsEnabled and showElements
 
     prefsInputFieldPrefs("Nagios NSCA Host", "Address of the host where the Nagios NSCA daemon is running. Default: localhost.", "ntopng.prefs.", "nagios_nsca_host", prefs.nagios_nsca_host, nil, showElements, false)
-    prefsInputFieldPrefs("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, nil, showElements, false)
+    prefsInputFieldPrefs("Nagios NSCA Port", "Port where the Nagios daemon's NSCA is listening. Default: 5667.", "ntopng.prefs.", "nagios_nsca_port", prefs.nagios_nsca_port, "number", showElements, false, nil, {min=1, max=65535})
     prefsInputFieldPrefs("Nagios send_nsca executable", "Absolute path to the Nagios NSCA send_nsca utility. Default: /usr/local/nagios/bin/send_nsca", "ntopng.prefs.", "nagios_send_nsca_executable", prefs.nagios_send_nsca_executable, nil, showElements, false)
     prefsInputFieldPrefs("Nagios send_nsca configuration", "Absolute path to the Nagios NSCA send_nsca utility configuration file. Default: /usr/local/nagios/etc/send_nsca.cfg", "ntopng.prefs.", "nagios_send_nsca_config", prefs.nagios_send_nsca_conf, nil, showElements, false)
     prefsInputFieldPrefs("Nagios host_name", "The host_name exactly as specified in Nagios host definition for the ntopng host. Default: ntopng-host", "ntopng.prefs.", "nagios_host_name", prefs.nagios_host_name, nil, showElements, false)
@@ -469,9 +469,9 @@ function printInMemory()
   prefsInputFieldPrefs("Local Host Idle Timeout", "Inactivity time after which a local host is considered idle (sec). "..
 		          "Idle local hosts are dumped to a cache so their counters can be restored in case they become active again. "..
 			  "Counters include, but are not limited to, packets and bytes total and per Layer-7 application. "..
-			  "Default: 300.", "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle)
-  prefsInputFieldPrefs("Remote Host Idle Timeout", "Inactivity time after which a remote host is considered idle (sec). Default: 60.", "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle)
-  prefsInputFieldPrefs("Flow Idle Timeout", "Inactivity time after which a flow is considered idle (sec). Default: 60.", "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle)
+			  "Default: 5 min.", "ntopng.prefs.","local_host_max_idle", prefs.local_host_max_idle, "number", nil, nil, nil, {min=1, max=3600, tformat="smh" --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs("Remote Host Idle Timeout", "Inactivity time after which a remote host is considered idle. Default: 1 min.", "ntopng.prefs.", "non_local_host_max_idle", prefs.non_local_host_max_idle, "number", nil, nil, nil, {min=1, max=3600, tformat="smh" --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs("Flow Idle Timeout", "Inactivity time after which a flow is considered idle. Default: 1 min.", "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil, {min=1, max=3600, tformat="smh" --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">Local Hosts Cache Settings</th></tr>')
   toggleTableButtonPrefs("Idle Local Hosts Cache",
@@ -490,18 +490,18 @@ function printInMemory()
 			 "On", "1", "success", "Off", "0", "danger",
 			 "toggle_active_local_host_cache_enabled",
 			 "ntopng.prefs.is_active_local_host_cache_enabled", "0")
-  prefsInputFieldPrefs("Local Hosts Cache Duration", "Time after which a cached local host is deleted from the cache (sec). "..
-			 "Default: 3600.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration)
+  prefsInputFieldPrefs("Local Hosts Cache Duration", "Time after which a cached local host is deleted from the cache. "..
+			 "Default: 1 hour.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, max=86400, tformat="smh" --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">Hosts Statistics Update Frequency</th></tr>')
-  prefsInputFieldPrefs("Update frequency in seconds",
+  prefsInputFieldPrefs("Update frequency",
 		       "Some host statistics such as throughputs are updated periodically. "..
 			  "This value regulates how often ntopng will update these statistics. "..
 			  "Larger values are less computationally intensive and tend to average out minor variations. "..
 			  "Smaller values are more computationally intensive and tend to highlight minor variations. "..
 			  "Values in the order of few secods are safe. " ..
 			  "Default: 5 seconds.",
-		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency)
+		       "ntopng.prefs.", "housekeeping_frequency", prefs.housekeeping_frequency, "number", nil, nil, nil, {min=1, max=3600, tformat="smh" --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
@@ -556,23 +556,23 @@ function printStatsRrds()
 
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Network Interface Timeseries</th></tr>')
-  prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days)
-  prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days)
-  prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "intf_rrd_1h_days", prefs.intf_rrd_1h_days)
-  prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "intf_rrd_1d_days", prefs.intf_rrd_1d_days)
+  prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "intf_rrd_1h_days", prefs.intf_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "intf_rrd_1d_days", prefs.intf_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">Protocol/Networks Timeseries</th></tr>')
-  prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "other_rrd_raw_days", prefs.other_rrd_raw_days)
+  prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "other_rrd_raw_days", prefs.other_rrd_raw_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   --prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "other_rrd_1min_days", prefs.other_rrd_1min_days)
-  prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "other_rrd_1h_days", prefs.other_rrd_1h_days)
-  prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "other_rrd_1d_days", prefs.other_rrd_1d_days)
+  prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 100.", "ntopng.prefs.", "other_rrd_1h_days", prefs.other_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+  prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 365.", "ntopng.prefs.", "other_rrd_1d_days", prefs.other_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
 
   -- Only shown when toggle_local_activity switch is on
   if prefs.is_flow_activity_enabled then
      print('<tr id="local_activity_prefs"><th colspan=2 class="info">Local Activity Timeseries</th></tr>')
-     prefsInputFieldPrefs("Hours for raw stats", "Number of hours for which raw stats are kept. Default: 48.", "ntopng.prefs.", "host_activity_rrd_raw_hours", prefs.host_activity_rrd_raw_hours)
-     prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 15.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days)
-     prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 90.", "ntopng.prefs.", "host_activity_rrd_1d_days", prefs.host_activity_rrd_1d_days)
+     prefsInputFieldPrefs("Hours for raw stats", "Number of hours for which raw stats are kept. Default: 48.", "ntopng.prefs.", "host_activity_rrd_raw_hours", prefs.host_activity_rrd_raw_hours, "number", nil, nil, nil, {min=1, max=24*7, --[[ TODO check min/max ]]})
+     prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 15.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
+     prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 90.", "ntopng.prefs.", "host_activity_rrd_1d_days", prefs.host_activity_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
@@ -674,6 +674,9 @@ print[[
 
    print([[<script>
 aysHandleForm();
+
+/* Use the validator plugin to override default chrome bubble, which is displayed out of window */
+$("form").validator({disable:true});
 </script>]])
 
 if(_GET["disable_alerts_generation"] ~= nil) then
