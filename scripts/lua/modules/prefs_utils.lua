@@ -33,7 +33,7 @@ local function prefsResolutionButtons(fmt, value)
   local fmt_to_data = {
     ["s"] = {"Seconds", "Sec", 1},
     ["m"] = {"Minutes", "Min", 60},
-    ["h"] = {"Hours", "H", 3600},
+    ["h"] = {"Hours", "Hour", 3600},
   }
 
   local selected = nil
@@ -61,7 +61,7 @@ local function prefsResolutionButtons(fmt, value)
       print[[<label class="btn]]
       if selected == k then print[[ btn-warning active]] end
       print[[ btn-sm"><input value="]] print(tostring(v[3])) print[[" title="]] print(v[1]) print[[" name="options_]] print(ctrl_id) print[[" autocomplete="off" type="radio"]]
-      if selected == k then print(" checked") end print[[/><b>]] print(v[2]) print[[</b></label>]]
+      if selected == k then print(' checked="checked"') end print[[/><b>]] print(v[2]) print[[</b></label>]]
     end
   end)
 
@@ -80,18 +80,37 @@ local function prefsResolutionButtons(fmt, value)
 
         var raw = parseInt(input.attr("data-min"));
         if (! isNaN(raw))
-          input.attr("min", Math.floor(raw / selected.val()));
+          input.attr("min", Math.ceil(raw / selected.val()));
 
         raw = parseInt(input.attr("data-max"));
         if (! isNaN(raw))
-          input.attr("max", Math.floor(raw / selected.val()));
+          input.attr("max", Math.ceil(raw / selected.val()));
       }
 
       function resol_selector_change_callback(event) {
         var selected = $(this);
-        selected.closest("label").addClass('btn-warning').siblings().removeClass('btn-warning');
+        selected.attr('checked', 'checked').closest("label").addClass('btn-warning').siblings().removeClass('btn-warning').find("input").removeAttr('checked');
 
         resol_selector_reset_input_range(selected);
+      }
+
+      function resol_selector_on_form_submit(event) {
+        var form = $(this);
+
+        if (event.isDefaultPrevented())   // isDefaultPrevented is true when the form is invalid
+          return false;
+
+        form.find("[id^=options_group_]").each(function(){
+          var selected = $(this).find("input[checked]");
+          var input = resol_selector_get_input(selected);
+
+          // transform in raw units
+          var new_input = $("<input type='hidden'/>");
+          new_input.attr("name", input.attr("name"));
+          input.removeAttr("name");
+          new_input.val(parseInt(selected.val()) * parseInt(input.val()));
+          new_input.appendTo(form);
+        });
       }
     </script>]]
     options_script_loaded = true
@@ -103,6 +122,13 @@ local function prefsResolutionButtons(fmt, value)
       var elemid = "#options_group_]] print(ctrl_id) print[[";
       var selected = $(elemid + ' input[checked]');
       resol_selector_reset_input_range(selected);
+
+      // setup the form submit callback (only once)
+      var form = selected.closest("form");
+      if (! form.attr("data-options-handler")) {
+        form.attr("data-options-handler", 1);
+        form.submit(resol_selector_on_form_submit);
+      }
     });
   </script>
   ]]
@@ -169,28 +195,43 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   end
 
   local more_opts = ""
-  if extra.min ~= nil then more_opts = more_opts .. ' data-min="' .. extra.min .. '"' end
-  if extra.max ~= nil then more_opts = more_opts .. ' data-max="' .. extra.max .. '"' end
+  if extra.min ~= nil then
+    if extra.tformat ~= nil then
+      more_opts = more_opts .. ' data-min="' .. extra.min .. '"'
+    else
+      more_opts = more_opts .. ' min="' .. extra.min .. '"'
+    end
+  end
+  if extra.max ~= nil then
+    if extra.tformat ~= nil then
+      more_opts = more_opts .. ' data-max="' .. extra.max .. '"'
+    else
+      more_opts = more_opts .. ' max="' .. extra.max .. '"'
+    end
+  end
 
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
   print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
 
-  local style = "text-align:right;"
+  local style = "text-align:right; margin-bottom:0.5em;"
 
   print [[
 	   <td class="input-group col-lg-3" align=right>]]
 print [[
     <div class="input-group" >
-      <div >]]
+      <div class="form-group">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
         style = style .. ' width: 10em; margin-left:1em;'
+      else
+        style = style .. ' width: 15em;'
       end
       print[[
         <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(more_opts) print[[ name="]] print(key) print [[" style="]] print(style) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
-        print [[>
+        print [[/>
+        <div class="help-block with-errors"></div>
       </div>
     </div><!-- /input-group -->
   </td></tr>
