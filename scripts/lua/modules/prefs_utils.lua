@@ -31,9 +31,10 @@ local function prefsResolutionButtons(fmt, value)
   options_ctr = options_ctr + 1
 
   local fmt_to_data = {
-    ["s"] = {"Seconds", "Sec", 1},
-    ["m"] = {"Minutes", "Min", 60},
-    ["h"] = {"Hours", "Hour", 3600},
+    ["s"] = {"Seconds", "Secs",  1},
+    ["m"] = {"Minutes", "Mins",  60},
+    ["h"] = {"Hours",   "Hours", 3600},
+    ["d"] = {"Days",    "Days",  3600*24},
   }
 
   local selected = nil
@@ -58,10 +59,10 @@ local function prefsResolutionButtons(fmt, value)
   string.gsub(fmt, ".", function(k)
     local v = fmt_to_data[k]
     if v ~= nil then
-      print[[<label class="btn]]
-      if selected == k then print[[ btn-warning active]] end
+      print[[<label class="btn btn-default]]
+      if selected == k then print[[ active]] end
       print[[ btn-sm"><input value="]] print(tostring(v[3])) print[[" title="]] print(v[1]) print[[" name="options_]] print(ctrl_id) print[[" autocomplete="off" type="radio"]]
-      if selected == k then print(' checked="checked"') end print[[/><b>]] print(v[2]) print[[</b></label>]]
+      if selected == k then print(' checked="checked"') end print[[/>]] print(v[2]) print[[</label>]]
     end
   end)
 
@@ -89,7 +90,7 @@ local function prefsResolutionButtons(fmt, value)
 
       function resol_selector_change_callback(event) {
         var selected = $(this);
-        selected.attr('checked', 'checked').closest("label").addClass('btn-warning').siblings().removeClass('btn-warning').find("input").removeAttr('checked');
+        selected.attr('checked', 'checked').closest("label").siblings().find("input").removeAttr('checked');
 
         resol_selector_reset_input_range(selected);
       }

@@ -491,7 +491,7 @@ function printInMemory()
 			 "toggle_active_local_host_cache_enabled",
 			 "ntopng.prefs.is_active_local_host_cache_enabled", "0")
   prefsInputFieldPrefs("Local Hosts Cache Duration", "Time after which a cached local host is deleted from the cache. "..
-			 "Default: 1 hour.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, max=86400, tformat="smh" --[[ TODO check min/max ]]})
+			 "Default: 1 hour.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, max=60*60*24*60, tformat="smhd" --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">Hosts Statistics Update Frequency</th></tr>')
   prefsInputFieldPrefs("Update frequency",
@@ -673,10 +673,10 @@ print[[
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
    print([[<script>
-aysHandleForm();
+aysHandleForm("form[id!='search-host-form']");
 
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
-$("form").validator({disable:true});
+$("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
 if(_GET["disable_alerts_generation"] ~= nil) then
