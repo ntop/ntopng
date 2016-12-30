@@ -1272,8 +1272,8 @@ print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();
 ]]
 
 local protos = interface.getnDPIProtocols()
-local protos_in_use = shaper_utils.getNetworkProtoShapers(ifid, net)
-local protocol_categories = interface.getnDPICategories()
+local protos_in_use = shaper_utils.getNetworkProtoShapers(ifid, net, true --[[ do not aggregate into categories ]])
+local protocol_categories = shaper_utils.getCategoriesWithProtocols()
 
 function print_ndpi_protocols(protos, selected, excluded, terminator)
    selected = selected or {}
@@ -1290,14 +1290,14 @@ function print_ndpi_protocols(protos, selected, excluded, terminator)
 	    and (k ~= "PPTP")
 	    and (k ~= "SCTP")
 	    and (k ~= "TFTP")
-	    and (not excluded[v]) -- excluded by protocol number
-       and (not excluded[k]) -- excluded by protocol name
       ) then
 	 print("<option value=\""..v.."\" data-category=\""..(interface.getnDPIProtoCategory(tonumber(v)).id).."\"")
 
 	 --print(""..v.."<p>")
-	 if(selected[v] ~= nil) then
-	    print(" selected=\"selected\"")
+	 if (excluded[v] or excluded[k]) then
+	    print(' disabled="disabled"')
+	 elseif(selected[v] ~= nil) then
+	    print(' selected="selected"')
 	 end
 
 	 print(">"..k.."</option>"..terminator)
@@ -1305,26 +1305,28 @@ function print_ndpi_protocols(protos, selected, excluded, terminator)
    end
 end
 
--- build the array of already used protocol families
-local families_in_use = {}
+-- families of protocols which are currently used by at least one protocol
+local categories_in_use = {}
 for k,v in pairs(protos_in_use) do
    local proto_id = tonumber(v.protoId)
 
    -- can be null for default
    if proto_id ~= nil then
       local family = interface.getnDPIProtoCategory(proto_id)
-      if not families_in_use[family.id] then
-         families_in_use[family.id] = 1
+      if not categories_in_use[family.id] then
+         categories_in_use[family.id] = 1
       else
-         families_in_use[family.id] = families_in_use[family.id] + 1
+         categories_in_use[family.id] = categories_in_use[family.id] + 1
       end
    end
 end
 
-function print_ndpi_families(categories, terminator)
-   for k,v in pairsByKeys(categories, asc) do
-      if v ~= "0" then
-         print("<option value=\"cat_"..v.."\">"..k.."</option>"..terminator)
+function print_ndpi_families(categories, excluded, terminator)
+   for k,category in pairsByKeys(categories, asc) do
+      if category.id ~= 0 then
+         print('<option value="cat_'..category.id..'"')
+         if excluded[category.id] ~= nil then print(' disabled="disabled"') end
+         print('>'..k.." (<i>".. category.count .. " " .. string.lower(i18n("shaping.protocols")) .. "</i>)"..'</option>'..terminator)
       end
    end
 end
@@ -1442,26 +1444,6 @@ function toggleCustomNetworkMode() {
 
          var selected = $("option:selected", td_proto);
          var proto_id = selected.val();
-         var proto_category = null;
-         var in_use = null;
-
-         if (proto_id.startsWith("cat_")) {
-            // this is a family
-            proto_category = proto_id.split("cat_")[1];
-            in_use = ]] print(json.encode(families_in_use)) print[[;
-         } else {
-            // this is a protocol
-            proto_category = selected.attr("data-category");
-            // TODO check for entire families
-            in_use = {};
-         }
-
-         if (in_use[proto_category]) {
-            // TODO replace alert
-            alert("Family is already in use!");
-            // TODO UI controls are locked after this
-            return false;
-         }
 
          /* set form fields names to match datatable generated ones */
          $("select", td_proto).attr('name', '');
@@ -1474,8 +1456,8 @@ function toggleCustomNetworkMode() {
 
    function addNewShapedProto() {
       var tr = $('<tr id="new_added_row" ><td><select class="form-control" name="new_protocol_id">\
-         <optgroup label="]] print(i18n("shaping.families")) print[[">\
-            ]] print_ndpi_families(protocol_categories, "\\") print[[
+         <optgroup label="]] print(i18n("shaping.protocol_families")) print[[">\
+            ]] print_ndpi_families(protocol_categories, categories_in_use, "\\") print[[
          </optgroup>\
          <optgroup label="]] print(i18n("shaping.protocols")) print[[">\
 ]] print_ndpi_protocols(protos, {}, protos_in_use, "\\") print[[
