@@ -224,6 +224,7 @@ class Flow : public GenericHashEntry {
   struct site_categories* getFlowCategory(bool force_categorization);
   void categorizeFlow();
   void freeDPIMemory();
+  bool isTiny();
   char* serialize(bool es_json = false);
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
