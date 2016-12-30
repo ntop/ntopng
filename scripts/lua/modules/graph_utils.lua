@@ -84,8 +84,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 
    -- io.write(debug.traceback().."\n")
 
-   rrds = ntop.readdir(path)
-   table.sort(rrds)
+   local rrds = ntop.readdir(path)
 
    for k,v in pairsByKeys(rrds, asc) do
       if(v ~= nil) then
@@ -392,14 +391,19 @@ function drawRRD(ifid, host, rrdFile, zoomLevel, baseurl, show_timeseries,
       print[[
        <script>
        setInterval(function() {
-	 var talkers_loaded, protocols_loaded;
+	 var talkers_loaded, protocols_loaded, flows_loaded;
 	 if($('a[href="#historical-top-talkers"]').length){
 	   talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
 	 }
 	 if($('a[href="#historical-top-apps"]').length){
 	   protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
 	 }
-	 if(typeof talkers_loaded == 'undefined' && typeof protocols_loaded == 'undefined'){
+	 if($('a[href="#historical-flows"]').length){
+	   flows_loaded = $('a[href="#historical-flows"]').attr("loaded");
+	 }
+	 if(typeof talkers_loaded == 'undefined'
+             && typeof protocols_loaded == 'undefined'
+             && typeof flows_loaded == 'undefined'){
 	   window.location.reload(); /* do not reload, it'a annoying */
 	 }
        }, 60*1000);
