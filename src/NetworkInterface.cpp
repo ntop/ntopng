@@ -1162,8 +1162,6 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
-    flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
-
     switch(l4_proto) {
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -1175,13 +1173,25 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     case IPPROTO_ICMP:
     case IPPROTO_ICMPV6:
       if(l4_packet_len > 2) {
-	u_int8_t icmp_type = l4[0];
-	u_int8_t icmp_code = l4[1];
+        u_int8_t icmp_type = l4[0];
+        u_int8_t icmp_code = l4[1];
 
-	flow->setICMP(icmp_type, icmp_code);
+        if((flow->get_cli_host()->isLocalHost()) && (flow->get_srv_host()->isLocalHost())) {
+          /* Set correct direction in localhost ping */
+          if((icmp_type == 8) ||                  /* ICMP Echo [RFC792] */
+            (icmp_type == 128))                   /* ICMPV6 Echo Request [RFC4443] */
+            src2dst_direction = true;
+          else if((icmp_type == 0) ||             /* ICMP Echo Reply [RFC792] */
+            (icmp_type == 129))                   /* ICMPV6 Echo Reply [RFC4443] */
+            src2dst_direction = false;
+        }
+
+        flow->setICMP(icmp_type, icmp_code);
       }
       break;
     }
+
+    flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
   }
 
   /* Protocol Detection */
