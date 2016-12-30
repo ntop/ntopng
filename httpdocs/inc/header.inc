@@ -8,6 +8,7 @@
     <link href="@HTTP_PREFIX@/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
     <link href="@HTTP_PREFIX@/font-awesome/css/font-awesome.css" rel="stylesheet">
     <script src="@HTTP_PREFIX@/js/jquery.js"></script>
+    <script src="@HTTP_PREFIX@/js/jquery-ui.js"></script>
     <script src="@HTTP_PREFIX@/bootstrap/js/bootstrap.js"></script>
     <script src="@HTTP_PREFIX@/js/bootstrap-datatable.js"></script>
     <script src="@HTTP_PREFIX@/js/datatable_utils.js"></script>
@@ -18,7 +19,6 @@
     <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/jquery-ui.css">
     <link type="text/css" rel="stylesheet" href="@HTTP_PREFIX@/css/rickshaw.css">
 
-    <script src="@HTTP_PREFIX@/js/jquery-ui.js"></script>
     <script src="@HTTP_PREFIX@/js/rickshaw.js"></script>
 
     <script src="@HTTP_PREFIX@/js/pie-chart.js"></script>
