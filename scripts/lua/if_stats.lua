@@ -1436,8 +1436,10 @@ function toggleCustomNetworkMode() {
    }
 
    function checkShapedProtosFormCallback() {
-      var new_proto = $("#table-protos select[name='new_protocol_id']").closest('tr');
-      if (new_proto.length == 1) {
+      var new_protos = $("#table-protos select[name='new_protocol_id']").closest('tr');
+
+      new_protos.each(function() {
+         var new_proto = $(this);
          var td_proto = $("td:nth-child(1)", new_proto);
          var td_ingress_shaper = $("td:nth-child(2)", new_proto);
          var td_egress_shaper = $("td:nth-child(3)", new_proto);
@@ -1449,13 +1451,20 @@ function toggleCustomNetworkMode() {
          $("select", td_proto).attr('name', '');
          $("select", td_ingress_shaper).attr('name', 'ishaper_'+proto_id);
          $("select", td_egress_shaper).attr('name', 'eshaper_'+proto_id);
-      }
+      });
 
       return true;
    }
 
+   var new_row_ctr = 0;
+   var protocol_categories = ]] print(json.encode(protocol_categories)) print[[;
+
    function addNewShapedProto() {
-      var tr = $('<tr id="new_added_row" ><td><select class="form-control" name="new_protocol_id">\
+      var newid_prefix = "new_added_row_"
+      var newid = newid_prefix + new_row_ctr;
+      new_row_ctr += 1;
+
+      var tr = $('<tr id="' + newid + '" ><td><select class="form-control" name="new_protocol_id">\
          <optgroup label="]] print(i18n("shaping.protocol_families")) print[[">\
             ]] print_ndpi_families(protocol_categories, categories_in_use, "\\") print[[
          </optgroup>\
@@ -1469,9 +1478,78 @@ function toggleCustomNetworkMode() {
       </select></td><td class="text-center" style="vertical-align: middle;"></td></tr>');
 
       $("#table-protos table").append(tr);
-      datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#new_added_row', ']] print(i18n("shaping.no_shapers_available")) print[[', '#addNewShapedProtoBtn')", "]] print(i18n('undo')) print[[");
+      datatableMakeSelectUnique(tr, newid_prefix, {
+         on_change: function(select, old_val, new_val, others, change_fn) {
 
-      $("#addNewShapedProtoBtn").attr('disabled', true);
+            function changeConditionally(option, to_enable) {
+               if(! to_enable) {
+                  if (! option.attr("disabled")) {
+                     option.attr("data-auto-disabled", true);
+                     change_fn(option, false);
+                  }
+               } else if (option.attr("data-auto-disabled")) {   // avoid to enable existing protocols
+                  change_fn(option, true);
+               }
+            }
+
+            function updateProtocols(category_id, to_enable) {
+               $.each(protocol_categories, function(_, category) {
+                  if(category.id == category_id) {
+                     for (var proto_name in category.protos) {
+                        var proto_id = category.protos[proto_name];
+                        $.each(others, function(_, other) {
+                           var option = other.find("option[value='" + proto_id + "']");
+                           changeConditionally(option, to_enable);
+                        });
+                     }
+                  }
+               });
+            }
+
+            function updateCategories(protocol_id, to_enable) {
+               var category_id = null;
+
+               $.each(protocol_categories, function(_, category) {
+                  for (var proto_name in category.protos) {
+                     var proto_id = category.protos[proto_name];
+
+                     if(proto_id == protocol_id) {
+                        // category found
+                        category_id = "cat_" + category.id;
+                        break;
+                     }
+                  }
+                  if (category_id != null)   return false;
+               });
+
+               if (category_id != null) {
+                  $.each(others, function(_, other) {
+                     var option = other.find("option[value='" + category_id + "']");
+                     changeConditionally(option, to_enable);
+                  });
+               }
+            }
+
+            if (old_val.startsWith("cat_")) {
+               // old value was a category, we must enable individual protocols
+               var category_id = old_val.split("cat_")[1];
+               updateProtocols(category_id, true);
+            } else {
+               // old value was a protocol, possibly enable its category
+               updateCategories(old_val, true);
+            }
+
+            if (new_val.startsWith("cat_")) {
+               // new value is a category, we must disable individual protocols
+               var category_id = new_val.split("cat_")[1];
+               updateProtocols(category_id, false);
+            } else {
+               // new value is a protocol, disable its category
+               updateCategories(new_val, false);
+            }
+         }
+      });
+      datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("shaping.no_shapers_available")) print[[')", "]] print(i18n('undo')) print[[");
       aysRecheckForm('#l7ProtosForm');
    }
 
