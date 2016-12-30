@@ -66,7 +66,7 @@ print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-
    print(ntop.getHttpPrefix())
    print('/lua/mac_stats.lua?mode=hostsonly">Hosts Only</a></li><li><a href="')
    print(ntop.getHttpPrefix())
-   print('/lua/mac_stats.lua?mode=all">All Devicess</a></li><li><a href="')
+   print('/lua/mac_stats.lua?mode=all">All Devices</a></li><li><a href="')
    print(ntop.getHttpPrefix())
    print("</div>' ],")
 
