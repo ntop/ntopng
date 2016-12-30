@@ -27,7 +27,7 @@ Prefs::Prefs(Ntop *_ntop) {
   num_deferred_interfaces_to_register = 0, cli = NULL;
   memset(deferred_interfaces_to_register, 0, sizeof(deferred_interfaces_to_register));
   ntop = _ntop, sticky_hosts = location_none, simulate_vlans = false;
-  local_networks = strdup(CONST_DEFAULT_HOME_NET","CONST_DEFAULT_LOCAL_NETS);
+  local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
@@ -169,7 +169,7 @@ void nDPIusage() {
 
 /* C-binding needed by Win32 service call */
 void usage() {
-  printf("ntopng %s v.%s - "NTOP_COPYRIGHT"\n\n"
+  printf("ntopng %s v.%s - " NTOP_COPYRIGHT "\n\n"
 	 "Usage:\n"
 	 "  ntopng <configuration file path>\n"
 	 "  or\n"
