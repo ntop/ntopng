@@ -1183,28 +1183,32 @@ NetworkInterface* Ntop::getNetworkInterface(lua_State* vm, const char *name) {
 /* ******************************************* */
 
 int Ntop::getInterfaceIdByName(char *name) {
-  /* This method accepts both interface names or Ids */
-  int if_id = atoi(name);
-  char str[8];
+  if(name == NULL) {
+    return(iface[0]->get_id());
+  } else {
+    /* This method accepts both interface names or Ids */
+    int if_id = atoi(name);
+    char str[8];
 
-  snprintf(str, sizeof(str), "%d", if_id);
-  if(strcmp(name, str) == 0) {
-    /* name is a number */
-    NetworkInterface *iface = getNetworkInterface(if_id);
+    snprintf(str, sizeof(str), "%d", if_id);
+    if(strcmp(name, str) == 0) {
+      /* name is a number */
+      NetworkInterface *iface = getNetworkInterface(if_id);
 
-    if(iface != NULL)
-      return(iface->get_id());
-    else
-      return(-1);
-  }
-
-  for(int i=0; i<num_defined_interfaces; i++) {
-    if(strcmp(iface[i]->get_name(), name) == 0) {
-      return(iface[i]->get_id());
+      if(iface != NULL)
+	return(iface->get_id());
+      else
+	return(-1);
     }
-  }
 
-  return(-1);
+    for(int i=0; i<num_defined_interfaces; i++) {
+      if(strcmp(iface[i]->get_name(), name) == 0) {
+	return(iface[i]->get_id());
+      }
+    }
+
+    return(-1);
+  }
 }
 
 /* ******************************************* */

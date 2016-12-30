@@ -27,6 +27,8 @@
 #include "third-party/hiredis/sds.c"
 #endif
 
+// #define CACHE_DEBUG 1
+
 /* **************************************** */
 
 Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_int8_t _redis_db_id) {
@@ -36,7 +38,7 @@ Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_
   num_requests = num_reconnections = 0;
   redis = NULL, operational = false;
   reconnectRedis();
-
+  stringCache = NULL, numCached = 0;
   l = new Mutex();
   setDefaults();
 }
@@ -45,9 +47,9 @@ Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_
 
 Redis::~Redis() {
   redisFree(redis);
+  flushCache();
   delete l;
 }
-
 
 /* **************************************** */
 
@@ -115,13 +117,19 @@ void Redis::reconnectRedis() {
 
 /* **************************************** */
 
-int Redis::expire(char *key, u_int expire_sec) {
+int Redis::expire(char *key, u_int expire_secs) {
   int rc;
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
+
+  if(expireCache(key, expire_secs)) {
+    l->unlock(__FILE__, __LINE__);
+    return(0);
+  }
+  
   num_requests++;
-  reply = (redisReply*)redisCommand(redis, "EXPIRE %s %u", key, expire_sec);
+  reply = (redisReply*)redisCommand(redis, "EXPIRE %s %u", key, expire_secs);
   if(!reply) reconnectRedis();
   if(reply && (reply->type == REDIS_REPLY_ERROR))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
@@ -133,24 +141,117 @@ int Redis::expire(char *key, u_int expire_sec) {
 
 /* **************************************** */
 
-int Redis::get(char *key, char *rsp, u_int rsp_len) {
+bool Redis::isCacheable(char *key) {
+  if(strstr(key, "ntopng.prefs.")
+     || strstr(key, "ntopng.user.")
+     )
+    return(true);
+
+  return(false);
+}
+
+/* **************************************** */
+
+bool Redis::expireCache(char *key, u_int expire_secs) {
+  StringCache_t *cached = NULL;
+  
+#ifdef CACHE_DEBUG
+  printf("**** Setting cache expire for %s [%u sec]\n", key, expire_secs);
+#endif
+
+  HASH_FIND_STR(stringCache, key, cached);
+
+  if(cached) {
+    cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
+    return(true);
+  }
+
+  return(false);
+}
+
+/* **************************************** */
+
+/* NOTE: We assume that the addToCache() caller locks this instance */
+void Redis::addToCache(char *key, char *value, u_int expire_secs) { 
+  StringCache_t *cached = NULL;
+ 
+#ifdef CACHE_DEBUG
+  printf("**** Caching %s=%s\n", key, value ? value : "<NULL>");
+#endif
+
+  HASH_FIND_STR(stringCache, key, cached);
+
+  if(cached) {
+    if(cached->value) free(cached->value);
+    cached->value = strdup(value);
+    cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
+    return;
+  }
+  
+  cached = (StringCache_t*)malloc(sizeof(StringCache_t));
+  if(cached) {
+    cached->key = strdup(key), cached->value = strdup(value);
+    cached->expire = expire_secs ? time(NULL)+expire_secs : 0;
+    
+    if(cached->key && cached->value) {
+      HASH_ADD_STR(stringCache, key, cached);
+      numCached++;
+    } else {
+      if(cached->key)   free(cached->key);
+      if(cached->value) free(cached->value);
+      free(cached);
+    }
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+}
+
+/* **************************************** */
+
+int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
   int rc;
+  bool cacheable = false;
   redisReply *reply;
+  StringCache_t *cached = NULL;
 
   l->lock(__FILE__, __LINE__);
+
+  HASH_FIND_STR(stringCache, key, cached);
+  if(cached) {
+    snprintf(rsp, rsp_len, "%s", cached->value);
+
+#ifdef CACHE_DEBUG
+    printf("**** Read from cache %s=%s\n", key, rsp);
+#endif
+    l->unlock(__FILE__, __LINE__);
+    return(rsp[0] == '\0' ? -1 : 0);
+  } else {
+#ifdef CACHE_DEBUG
+    printf("**** Unable to find on cache %s\n", key);
+#endif
+  }
+
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "GET %s", key);
   if(!reply) reconnectRedis();
   if(reply && (reply->type == REDIS_REPLY_ERROR))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
+  cacheable = isCacheable(key);
   if(reply && reply->str) {
     snprintf(rsp, rsp_len, "%s", reply->str), rc = 0;
   } else
     rsp[0] = 0, rc = -1;
 
+  if(cache_it || cacheable)
+    addToCache(key, rsp, 0);
+
   if(reply) freeReplyObject(reply);
   l->unlock(__FILE__, __LINE__);
+
+  if(cacheable && (rc == -1)) {
+    /* Add default */
+    set(key, (char*)"", 0);
+  }
 
   return(rc);
 }
@@ -159,8 +260,19 @@ int Redis::get(char *key, char *rsp, u_int rsp_len) {
 int Redis::del(char *key){
   int rc;
   redisReply *reply;
-
+  StringCache_t *cached = NULL;
+  
   l->lock(__FILE__, __LINE__);
+  
+  HASH_FIND_STR(stringCache, key, cached);
+
+  if(cached) {
+    HASH_DEL(stringCache, cached);
+    if(cached->key)   free(cached->key);
+    if(cached->value) free(cached->value);
+    free(cached);    
+  }
+  
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "DEL %s", key);
   if(!reply) reconnectRedis();
@@ -247,6 +359,10 @@ int Redis::set(char *key, char *value, u_int expire_secs) {
   redisReply *reply;
 
   l->lock(__FILE__, __LINE__);
+
+  if(isCacheable(key))
+    addToCache(key, value, expire_secs);
+  
   num_requests++;
   reply = (redisReply*)redisCommand(redis, "SET %s %s", key, value);
   if(!reply) reconnectRedis();
@@ -1187,4 +1303,28 @@ void Redis::lua(lua_State *vm) {
   lua_pushstring(vm, "redis");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+}
+
+/* **************************************** */
+
+void Redis::flushCache() {
+  StringCache_t *sd, *current, *tmp;
+
+  l->lock(__FILE__, __LINE__);
+  sd = stringCache;
+    
+  HASH_ITER(hh, sd, current, tmp) {
+    HASH_DEL(sd, current);
+    if(current->key)   free(current->key);
+    if(current->value) free(current->value);
+    free(current);
+  }
+
+  free(stringCache);
+  stringCache = NULL, numCached = 0;
+  l->unlock(__FILE__, __LINE__);
+  
+#ifdef CACHE_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "**** Successfully flushed cache\n");
+#endif
 }

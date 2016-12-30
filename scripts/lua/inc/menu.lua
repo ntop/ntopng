@@ -25,6 +25,8 @@ print [[
 interface.select(ifname)
 ifId = interface.getStats().id
 
+-- ##############################################
+
 if active_page == "home" or active_page == "about" then
   print [[ <li class="dropdown active"> ]]
 else
@@ -43,12 +45,25 @@ print [[/lua/about.lua"><i class="fa fa-question-circle"></i> About ntopng</a></
 print(ntop.getHttpPrefix())
 print [[/lua/runtime.lua"><i class="fa fa-hourglass-start"></i> Runtime Status</a></li>
       <li><a href="http://blog.ntop.org/" target="_blank"><i class="fa fa-rss"></i> ntop Blog <i class="fa fa-external-link"></i></a></li>
-      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>]]
+      <li><a href="https://github.com/ntop/ntopng/issues" target="_blank"><i class="fa fa-bug"></i> Report an Issue <i class="fa fa-external-link"></i></a></li>
+</ul>
+]]
+
+-- ##############################################
 
 if interface.isPcapDumpInterface() == false then
+   if(active_page == "dashboard") then
+  print [[ <li class="dropdown active"> ]]
+else
+  print [[ <li class="dropdown"> ]]
+   end
 
    print [[
-<li class="divider"></li>
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+        <i class="fa fa-dashboard fa-lg"></i> <b class="caret"></b>
+      </a>
+
+    <ul class="dropdown-menu">
 <li><a href="]]
 
 print(ntop.getHttpPrefix())
@@ -58,22 +73,84 @@ else
    print("/lua/index.lua")
 end
 
-print [["><i class="fa fa-dashboard"></i> Dashboard</a></li>]]
-
-if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical data explorer</a></li>')
-end
+print [["><i class="fa fa-dashboard"></i> Traffic Dashboard</a></li>]]
 
 if(ntop.isPro()) then
-	print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Report</a></li>')
+	print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/report.lua"><i class="fa fa-area-chart"></i> Traffic Report</a></li>')
 end
 
+if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
+  print('<li class="divider"></li>')
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical Data Explorer</a></li>')
 end
 
-print [[    </ul>
+
+print [[
+    </ul>
+   ]]
+end
+
+
+-- ##############################################
+
+interface.select(ifname)
+if ntop.getPrefs().are_alerts_enabled == true then
+   
+   local alert_cache = interface.getCachedNumAlerts()
+   local active = ""
+   local style = ""
+   local color = ""
+
+   -- if alert_cache["num_alerts_engaged"] > 0 then
+   -- color = 'style="color: #B94A48;"' -- bootstrap danger red
+   -- end
+
+   if alert_cache["num_alerts_engaged"] == 0 and alert_cache["alerts_stored"] == false then
+      style = ' style="display: none;"'
+   end
+
+   if active_page == "alerts" then
+      active = ' active'
+   end
+
+   -- local color = "#F0AD4E" -- bootstrap warning orange
+   print [[
+      <li class="dropdown]] print(active) print[[" id="alerts-id"]] print(style) print[[>
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+	 <i class="fa fa-warning fa-lg "]] print(color) print[["></i> <b class="caret"></b>
+      </a>
+    <ul class="dropdown-menu">
+      <li>
+        <a  href="]]
+   print(ntop.getHttpPrefix())
+   print [[/lua/show_alerts.lua">
+          <i class="fa fa-warning id="alerts-menu-triangle"></i> Detected Alerts
+        </a>
+      </li>
+]]
+   if ntop.isEnterprise() then
+      print[[
+      <li>
+        <a href="]]
+      print(ntop.getHttpPrefix())
+      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i> Alerts Dashboard
+        </a>
+     </li>
+     <li class="divider"></li>
+     <li><a href="]] print(ntop.getHttpPrefix())
+      print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i> Historical Alerts Explorer
+        </a>
+     </li>
+]]
+   end
+
+   print[[
+    </ul>
   </li>
    ]]
+end
 
+-- ##############################################
 
 _ifstats = interface.getStats()
 
@@ -89,12 +166,13 @@ else
    print('<li><a href="'..url..'">Flows</a></li>')
 end
 
+-- ##############################################
+
 if active_page == "hosts" then
   print [[ <li class="dropdown active"> ]]
 else
   print [[ <li class="dropdown"> ]]
 end
-
 print [[
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
         Hosts <b class="caret"></b>
@@ -171,6 +249,7 @@ print [[
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/mac_stats.lua">Layer 2</a></li>')
 
 if(info["version.enterprise_edition"] == true) then
+  print('<li class="divider"></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/flowdevices_stats.lua">sFlow/NetFlow</a></li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/snmpdevices_stats.lua">SNMP</a></li>')
 end
@@ -289,63 +368,6 @@ print(ntop.getHttpPrefix())
 print [[/lua/logout.lua"><i class="fa fa-power-off"></i> Logout ]]    print(_COOKIE["user"]) print [[</a></li>
     </ul>
     </li>
-   ]]
-end
-
-interface.select(ifname)
-
-if ntop.getPrefs().are_alerts_enabled == true then
-   
-   local alert_cache = interface.getCachedNumAlerts()
-   local active = ""
-   local style = ""
-   local color = ""
-
-   -- if alert_cache["num_alerts_engaged"] > 0 then
-   -- color = 'style="color: #B94A48;"' -- bootstrap danger red
-   -- end
-
-   if alert_cache["num_alerts_engaged"] == 0 and alert_cache["alerts_stored"] == false then
-      style = ' style="display: none;"'
-   end
-
-   if active_page == "alerts" then
-      active = ' active'
-   end
-
-   -- local color = "#F0AD4E" -- bootstrap warning orange
-   print [[
-      <li class="dropdown]] print(active) print[[" id="alerts-id"]] print(style) print[[>
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-	 <i class="fa fa-warning fa-lg "]] print(color) print[["></i> <b class="caret"></b>
-      </a>
-    <ul class="dropdown-menu">
-      <li>
-        <a  href="]]
-   print(ntop.getHttpPrefix())
-   print [[/lua/show_alerts.lua">
-          <i class="fa fa-warning id="alerts-menu-triangle"></i> Detected Alerts
-        </a>
-      </li>
-]]
-   if ntop.isEnterprise() then
-      print[[
-      <li>
-        <a href="]]
-      print(ntop.getHttpPrefix())
-      print[[/lua/pro/enterprise/alerts_dashboard.lua"><i class="fa fa-dashboard"></i> Alerts Dashboard
-        </a>
-     </li>
-     <li><a href="]] print(ntop.getHttpPrefix())
-      print[[/lua/pro/enterprise/flow_alerts_explorer.lua"><i class="fa fa-history"></i> Historical alerts explorer
-        </a>
-     </li>
-]]
-   end
-
-   print[[
-    </ul>
-  </li>
    ]]
 end
 

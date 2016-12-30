@@ -312,8 +312,13 @@ void NetworkInterface::loadScalingFactorPrefs() {
 
     snprintf(rkey, sizeof(rkey), CONST_IFACE_SCALING_FACTOR_PREFS, id);
 
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+    if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
       scalingFactor = atol(rsp);
+
+    if(scalingFactor == 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "INTERNAL ERROR: scalingFactor can't be 0!");
+      scalingFactor = 1;
+    }
   }
 }
 
@@ -463,7 +468,7 @@ bool NetworkInterface::checkIdle() {
     char rkey[128], rsp[16];
 
     snprintf(rkey, sizeof(rkey), "ntopng.prefs.%s_not_idle", ifname);
-    if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) {
+    if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0')) {
       int val = atoi(rsp);
 
       if(val == 0) is_idle = true;

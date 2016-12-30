@@ -206,7 +206,7 @@ static int is_authorized(const struct mg_connection *conn,
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] Received session %s/%s", session_id, username);
 
   snprintf(key, sizeof(key), CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED);
-  ntop->getRedis()->get(key, buf, sizeof(buf));
+  ntop->getRedis()->get(key, buf, sizeof(buf), true);
   // do_auto_logout() is the getter for the command-line specified
   // preference that defaults to true (i.e., auto_logout is enabled by default)
   // If do_auto_logout() is disabled, then the runtime auto logout preference
@@ -215,7 +215,7 @@ static int is_authorized(const struct mg_connection *conn,
   // of runtime preferences.
   if(ntop->getPrefs()->do_auto_logout() && strncmp(buf, (char*)"1", 1) == 0) {
     snprintf(key, sizeof(key), "sessions.%s", session_id);
-    if((ntop->getRedis()->get(key, user, sizeof(user)) < 0)
+    if((ntop->getRedis()->get(key, user, sizeof(user), true) < 0)
        || strcmp(user, username) /* Users don't match */) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Session %s/%s is expired or empty user",
 				   session_id, username);

@@ -146,8 +146,8 @@ end
 
 function breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow, thresholdHigh)
    if((sent+rcvd) > 0) then
-      sent2rcvd = round((sent * 100) / (sent+rcvd), 0)
-       --print(sent.."/"..rcvd.."/"..sent2rcvd)
+    sent2rcvd = round((sent * 100) / (sent+rcvd), 0)
+    -- io.write("****>> "..sent.."/"..rcvd.."/"..sent2rcvd.."\n")
     if((thresholdLow == nil) or (thresholdLow < 0)) then thresholdLow = 0 end
     if((thresholdHigh == nil) or (thresholdHigh > 100)) then thresholdHigh = 100 end
 
@@ -155,7 +155,7 @@ function breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow, thresholdH
     elseif(sent2rcvd > thresholdHigh) then rcvdLabel = '<i class="fa fa-warning fa-lg""></i> '..rcvdLabel end
 
       print('<div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'.. sent2rcvd..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd.. '%;">'..sentLabel)
-      print('</div><div class="progress-bar progress-bar-info" aria-valuenow="'.. (100 -sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
+      print('</div><div class="progress-bar progress-bar-info" aria-valuenow="'.. (100-sent2rcvd)..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100-sent2rcvd) .. '%;">' .. rcvdLabel .. '</div></div>')
 
    else
       print('&nbsp;')
@@ -165,6 +165,7 @@ end
 -- ########################################################
 
 function percentageBar(total, value, valueLabel)
+   -- io.write("****>> "..total.."/"..value.."\n")
    if((total ~= nil) and (total > 0)) then
       pctg = round((value * 100) / total, 0)
       print('<div class="progress"><div class="progress-bar progress-bar-warning" aria-valuenow="'.. pctg..'" aria-valuemin="0" aria-valuemax="100" style="width: ' .. pctg.. '%;">'..valueLabel)

@@ -274,9 +274,13 @@ static int ntop_select_interface(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  ifname = (char*)lua_tostring(vm, 1);
-
+  if(lua_type(vm, 1) == LUA_TNIL)
+    ifname = (char*)"any";
+  else {
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    ifname = (char*)lua_tostring(vm, 1);
+  }
+  
   lua_pushlightuserdata(vm, (char*)ntop->getNetworkInterface(vm, ifname));
   lua_setglobal(vm, "ntop_interface");
 
@@ -2369,9 +2373,13 @@ static int ntop_interface_name2id(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
-  if_name = (char*)lua_tostring(vm, 1);
-
+  if(lua_type(vm, 1) == LUA_TNIL)
+    if_name = NULL;
+  else {
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    if_name = (char*)lua_tostring(vm, 1);
+  }
+  
   lua_pushinteger(vm, ntop->getInterfaceIdByName(if_name));
 
   return(CONST_LUA_OK);
@@ -4130,14 +4138,19 @@ static int ntop_get_redis(lua_State* vm) {
   char *key, *rsp;
   u_int rsp_len = 32768;
   Redis *redis = ntop->getRedis();
-
+  bool cache_it = false;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
 
+  /* Optional cache_it */
+  if(lua_type(vm, 2) == LUA_TBOOLEAN) cache_it = lua_toboolean(vm, 2);
+
+  
   if((rsp = (char*)malloc(rsp_len)) != NULL) {
-    lua_pushfstring(vm, "%s", (redis->get(key, rsp, rsp_len) == 0) ? rsp : (char*)"");
+    lua_pushfstring(vm, "%s", (redis->get(key, rsp, rsp_len, cache_it) == 0) ? rsp : (char*)"");
     free(rsp);
     return(CONST_LUA_OK);
   } else
@@ -4606,7 +4619,6 @@ static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
     return (CONST_LUA_ERROR);
 
   return (!am->getCachedNumAlerts(vm)) ? CONST_LUA_OK : CONST_LUA_ERROR;
-
 }
 
 /* ****************************************** */

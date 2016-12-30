@@ -1325,7 +1325,7 @@ void Host::loadFlowsAlertPrefs() {
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_FLOW_THRESHOLD,
 	   ip.print(ip_buf, sizeof(ip_buf)), vlan_id);
-  if(ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0)
+  if((ntop->getRedis()->get(rkey, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     retval = (u_int32_t)strtoul(rsp, NULL, 10);
 
   max_num_active_flows = retval;

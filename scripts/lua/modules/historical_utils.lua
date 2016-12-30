@@ -1476,7 +1476,7 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
     <div class="tab-pane fade in active" id="historical-flows-summary">
       <br>
       <div class="panel panel-default" id="historical-flows-summary-div">
-        <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("search_results")) print[[</h3> </div>
+        <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("flow_search_results")) print[[</h3> </div>
         <div class="panel-body" id="historical-flows-summary-body" style="display:true;">
           <div id="flows-summary-too-slow" style="display:none;" class="alert alert-warning"></div>
           <div id="flows-summary-wait" style="display:true;">

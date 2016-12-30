@@ -190,8 +190,8 @@ local  en = {
    incomingflows = "Incoming Flows Count",
    outgoingflows = "Outgoing Flows Count",
 
-   search_criteria = "Search Criteria",
-   search_results = "Search Results",
+   flow_search_criteria = "Flow Search Criteria",
+   flow_search_results = "Flow Search Results",
    summary = "Summary",
    date_from = "Begin Date/Time:",
    date_to    = "End Date/Time:"

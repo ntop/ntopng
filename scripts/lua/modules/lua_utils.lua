@@ -1422,7 +1422,7 @@ function version2int(v)
 end
 
 function ntop_version_check()
-   _rsp = ntop.getCache("ntopng.version")
+   _rsp = ntop.getCache("ntopng.version", true)
 
    if((_rsp == nil) or (_rsp == "")) then
       _rsp = ntop.httpGet("http://www.ntop.org/ntopng.version", "", "", 10)

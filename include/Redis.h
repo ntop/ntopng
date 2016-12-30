@@ -26,6 +26,12 @@
 
 class Host;
 
+typedef struct {
+  char *key, *value;
+  time_t expire;
+  UT_hash_handle hh; /* makes this structure hashable */
+} StringCache_t;
+
 class Redis {
  private:
   redisContext *redis;
@@ -37,7 +43,9 @@ class Redis {
   u_int8_t redis_db_id;
   pthread_t esThreadLoop;
   bool operational;
-
+  StringCache_t *stringCache;
+  u_int numCached;
+  
   void setDefaults();
   void reconnectRedis();
   int msg_push(const char *cmd, const char *queue_name, char *msg, u_int queue_trim_size);
@@ -46,7 +54,10 @@ class Redis {
   int pushHost(const char* ns_cache, const char* ns_list, char *hostname,
 	       bool dont_check_for_existance, bool localHost);
   int popHost(const char* ns_list, char *hostname, u_int hostname_len);
-
+  void addToCache(char *key, char *value, u_int expire_secs);
+  bool isCacheable(char *key);
+  bool expireCache(char *key, u_int expire_sec);
+	  
  public:
   Redis(char *redis_host = (char*)"127.0.0.1",
 	char *redis_password = NULL,
@@ -57,7 +68,7 @@ class Redis {
 
   inline bool isOperational() { return(operational); };
   int expire(char *key, u_int expire_sec);
-  int get(char *key, char *rsp, u_int rsp_len);
+  int get(char *key, char *rsp, u_int rsp_len, bool cache_it = false);
   int hashGet(char *key, char *member, char *rsp, u_int rsp_len);
   int hashDel(char *key, char *field);
   int hashSet(char *key, char *field, char *value);
@@ -113,6 +124,8 @@ class Redis {
   int delKey(char *key)              { return(oneOperator("DEL", key));            };
   int rename(char *oldk, char *newk) { return(twoOperators("RENAME", oldk, newk)); };
   void lua(lua_State *vm);
+
+  void flushCache();
 };
 
 #endif /* _REDIS_H_ */
