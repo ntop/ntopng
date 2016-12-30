@@ -130,6 +130,8 @@ void AddressResolution::resolveHostName(char *_numeric_ip, char *symbolic, u_int
 static void* resolveLoop(void* ptr) {
   AddressResolution *a = (AddressResolution*)ptr;
   Redis *r = ntop->getRedis();
+  u_int no_resolution_loops = 0;
+  const u_int max_num_idle_loops = 3;
 
   while(!ntop->getGlobals()->isShutdown()) {
     char numeric_ip[64];
@@ -138,8 +140,12 @@ static void* resolveLoop(void* ptr) {
     if(rc == 0) {
       if(numeric_ip[0] != '\0')
 	a->resolveHostName(numeric_ip);
-    } else
-      sleep(1);    
+
+      no_resolution_loops = 0;
+    } else {
+      if(no_resolution_loops < max_num_idle_loops) no_resolution_loops++;
+      sleep(no_resolution_loops);
+    }
   }
 
   return(NULL);
