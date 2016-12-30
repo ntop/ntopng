@@ -2012,8 +2012,13 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
     } else
       result->tv_usec = end->tv_usec-begin->tv_usec;
 
-    if(divide_by_two)
-      result->tv_sec /= 2, result->tv_usec /= 2;
+    if(divide_by_two) {
+        if(result->tv_sec % 2 == 0)
+            result->tv_usec /= 2;
+        else
+            result->tv_usec =  result->tv_usec/2 + 500000;
+      result->tv_sec /= 2;
+    }
   } else
     result->tv_sec = 0, result->tv_usec = 0;
 }
