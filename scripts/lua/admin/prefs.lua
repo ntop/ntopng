@@ -16,6 +16,9 @@ end
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
+local show_advanced_prefs = false
+local show_advanced_prefs_key = "show_advanced_prefs"
+
 if(haveAdminPrivileges()) then
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -30,56 +33,46 @@ if(haveAdminPrivileges()) then
 
 subpage_active = _GET["subpage_active"]
 
-report_active = ""
-in_memory_active = ""
-on_disk_rrds_active = ""
-on_disk_dbs_active = ""
-nbox_active = ""
-alerts_active = ""
-users_active = ""
-ifaces_active = ""
-logging_active = ""
+if toboolean(_GET[show_advanced_prefs_key]) ~= nil then
+  ntop.setPref(show_advanced_prefs_key, _GET[show_advanced_prefs_key])
+  show_advanced_prefs = toboolean(_GET[show_advanced_prefs_key])
+  notifyNtopng(show_advanced_prefs_key, _GET[show_advanced_prefs_key])
+else
+  show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
+  if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
+end
+
 local PREFS_INPUT_WIDTH_MEDIUM = "18em"
 
-if (subpage_active == nil or subpage_active == "") then
-  subpage_active = "users"
+local menu_subpages = {
+  {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
+  {id="ifaces",        label="Network Interfaces",   advanced=false, pro_only=false,  disabled=false},
+  {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
+  {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false,  pro_only=false,  disabled=false},
+  {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true, pro_only=false,  disabled=false},
+  {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
+  {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
+  {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
+  {id="nbox",          label="nBox Integration",     advanced=false, pro_only=true,   disabled=false},
+}
+
+for _, subpage in ipairs(menu_subpages) do
+  if((subpage.disabled) or
+     ((subpage.advanced) and (not show_advanced_prefs)) or  -- restore default in case of simple preferences
+     ((subpage.pro_only) and (not ntop.isPro()))) then      -- restore default in case of non pro
+
+    subpage.disabled = true
+    
+    if subpage.id == subpage_active then
+      -- will set to default
+      subpage_active = nil
+    end
+  end
 end
 
-if (subpage_active == "report") then
-   report_active = "active"
-end
-if (subpage_active == "in_memory") then
-   in_memory_active = "active"
-end
-if (subpage_active == "on_disk_rrds") then
-   on_disk_rrds_active = "active"
-end
-if (subpage_active == "on_disk_dbs") then
-   on_disk_dbs_active = "active"
-end
-if (subpage_active == "nbox") then
-   nbox_active = "active"
-end
-if (subpage_active == "alerts") then
-   if not prefs.has_cmdl_disable_alerts then
-      alerts_active = "active"
-   else
-      report_active = "active" -- default
-   end
-end
-if (subpage_active == "users") then
-   users_active = "active"
-end
-if (subpage_active == "ifaces") then
-   ifaces_active = "active"
-end
-if (subpage_active == "logging") then
-   if not prefs.has_cmdl_trace_lvl then
-      logging_active = "active"
-   else
-      -- cannot change logging level when it has been specified from the command line
-      report_active = "active" -- default
-   end
+-- default subpage
+if isEmptyString(subpage_active) then
+  subpage_active = "users"
 end
 
 -- ================================================================================
@@ -214,11 +207,11 @@ function printAlerts()
 		       "Once the maximum number of entity alerts is reached, oldest alerts will be overwritten. "..
 			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements, false)
   --]]
-
+if show_advanced_prefs then
   prefsInputFieldPrefs("Maximum Number of Flow Alerts",
 		       "The maximum number of flow alerts. Once the maximum number of alerts is reached, oldest alerts will be overwritten. "..
 			  "Default: 16384.", "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
-
+end
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",
                     "On", "1", "success",
@@ -555,6 +548,7 @@ function printStatsRrds()
 			 "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
   print('</table>')
 
+if show_advanced_prefs then
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Network Interface Timeseries</th></tr>')
   prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
@@ -578,6 +572,7 @@ function printStatsRrds()
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
+end
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
@@ -600,29 +595,37 @@ function printLogging()
   </table>]]
 end
 
-
    print[[
        <table class="table table-bordered">
          <col width="20%">
          <col width="80%">
          <tr><td style="padding-right: 20px;">
-           <div class="list-group ">
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=users" class="list-group-item ]] print(users_active) print[[">Users</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=ifaces" class="list-group-item ]] print(ifaces_active) print[[">Network Interfaces</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=in_memory" class="list-group-item ]] print(in_memory_active) print[[">In-Memory Data</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_rrds" class="list-group-item ]] print(on_disk_rrds_active) print[[">On-Disk Timeseries</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>]]
-   if not prefs.has_cmdl_disable_alerts then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a>]]
-   end
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>]]
-   if not prefs.has_cmdl_trace_lvl then
-      print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=logging" class="list-group-item ]] print(logging_active) print[[">Log Level</a> ]]
-   end
+           <div style="width:100%; text-align:right">
+            <div id="advanced_prefs_toggle" class="btn-group" data-toggle="buttons-radio" style="margin-bottom:1em; margin-top:0.5em;">
+              <button value="false" type="button" class="btn btn-sm ]] if not show_advanced_prefs then print(" btn-primary active") else print("btn-default") end print[[" data-toggle="button">Simple</button>
+              <button value="true" type="button" class="btn btn-sm ]] if show_advanced_prefs then print(" btn-primary active") else print("btn-default") end print[[" data-toggle="button">Advanced</button>
+            </div>
+           </div>
+           <script>
+              $('#advanced_prefs_toggle > button').click(function() {
+                if(! $(this).hasClass("active")) {
+                  var params = {
+                    csrf: "]] print(ntop.getRandomCSRFValue()) print [[",
+                    ]] print(show_advanced_prefs_key) print[[: $(this).val(),
+                    subpage_active: "]] print(subpage_active) print[[",
+                  };
+                  var form = paramsToForm($("<form></form>"), params);
+                  form.appendTo('body').submit();
+                }
+              });
+           </script>
+           <div class="list-group">]]
 
-   if (ntop.isPro()) then
-      print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=nbox" class="list-group-item ]] print(nbox_active) print[[">nBox Integration</a> ]]
-   end
+for _, subpage in ipairs(menu_subpages) do
+  if not subpage.disabled then
+    print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=]] print(subpage.id) print[[" class="list-group-item]] if(subpage_active == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
+  end
+end
 
 print[[
            </div>
@@ -641,11 +644,7 @@ if (subpage_active == "on_disk_dbs") then
    printStatsDatabases()
 end
 if (subpage_active == "alerts") then
-   if not prefs.has_cmdl_disable_alerts then
-      printAlerts()
-   else
-      printReportVisualization()
-   end
+   printAlerts()
 end
 if (subpage_active == "nbox") then
   if (ntop.isPro()) then
@@ -659,11 +658,7 @@ if (subpage_active == "ifaces") then
    printInterfaces()
 end
 if (subpage_active == "logging") then
-   if not prefs.has_cmdl_trace_lvl then
-      printLogging()
-   else
-      printReportVisualization()
-   end
+   printLogging()
 end
 
 print[[

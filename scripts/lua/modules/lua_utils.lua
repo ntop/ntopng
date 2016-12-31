@@ -2526,3 +2526,13 @@ function table.merge(a, b)
 
   return merged
 end
+
+function toboolean(s)
+  if s == "true" then
+    return true
+  elseif s == "false" then
+    return false
+  else
+    return nil
+  end
+end
