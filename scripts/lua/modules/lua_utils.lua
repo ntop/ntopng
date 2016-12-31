@@ -2486,3 +2486,43 @@ function label2criteriakey(what)
   return what, formatValue
 end
 
+--
+-- Concatenates table keys to values with separators
+--
+-- Parameters
+--    keys_values: the table which contains the items
+--    kv_sep: a string to be put between a key and a value
+--    group_sep: a string to be put between key-value groups
+--    last_sep: a string to be put after last value, if table is not empty
+--    value_quote: a string to be used to quote values
+--
+function table.tconcat(keys_values, kv_sep, group_sep, last_sep, value_quote)
+  local groups = {}
+  kv_sep = kv_sep or ""
+  group_sep = group_sep or ""
+  last_sep = last_sep or ""
+  value_quote = value_quote or ""
+
+  for k, v in pairs(keys_values) do
+    local parts = {k, kv_sep, value_quote, v, value_quote}
+    groups[#groups + 1] = table.concat(parts, "")
+  end
+
+  if #groups > 0 then
+    return table.concat(groups, group_sep) .. last_sep
+  else
+    return ""
+  end
+end
+
+function table.merge(a, b)
+  local merged = {}
+
+  for _, t in ipairs({a, b}) do
+    for k,v in pairs(t) do
+      merged[k] = v
+    end
+  end
+
+  return merged
+end
