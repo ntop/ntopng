@@ -1086,11 +1086,6 @@ int AlertsManager::storeHostAlert(Host *h,
   if(!isValidHost(h, ipbuf_id, sizeof(ipbuf_id)))
     return -1;
 
-  if(!h->triggerAlerts() || !h->isLocalHost())
-    return 0;
-
-  h->incNumAlerts();
-
   return storeAlert(alert_entity_host, ipbuf_id, alert_type, alert_severity, alert_json,
 		    isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		    isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL,
