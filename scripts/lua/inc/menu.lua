@@ -95,7 +95,7 @@ end
 
 interface.select(ifname)
 if ntop.getPrefs().are_alerts_enabled == true then
-   
+
    local alert_cache = interface.getCachedNumAlerts()
    local active = ""
    local style = ""
@@ -360,12 +360,12 @@ if(_COOKIE["user"] ~= nil and _COOKIE["user"] ~= ntop.getNologinUser()) then
 print [[
     <li class="dropdown">
       <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-	 <i class="fa fa-user fa-lg"></i> <b class="caret"></b>
+	 <i class="fa fa-power-off fa-lg"></i> <b class="caret"></b>
       </a>
     <ul class="dropdown-menu">
 	 <li><a href="]]
 print(ntop.getHttpPrefix())
-print [[/lua/logout.lua"><i class="fa fa-power-off"></i> Logout ]]    print(_COOKIE["user"]) print [[</a></li>
+print [[/lua/logout.lua"><i class="fa fa-sign-out"></i> Logout ]]    print(_COOKIE["user"]) print [[</a></li>
     </ul>
     </li>
    ]]
