@@ -1187,7 +1187,7 @@ locals_empty = (next(locals) == nil)
 -- ==== Create networks tab ====
 print [[<div id="networks" class="tab-pane"><br>
 
-<table class="table table-striped table-bordered"><tr><th>Create</th></tr><tr><td>
+<table class="table table-striped table-bordered"><tr><th>Define Network</th></tr><tr><td>
    <table class="table table-borderless"><tr>
       <div id="badnet" class="alert alert-danger" style="display: none"></div>
       <td><strong style="margin-right:1em">Network:</strong>
@@ -1221,7 +1221,7 @@ for _,k in ipairs(nets) do
 end
       print[[</select></span></td>
    </tr></table>
-<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Create</button></td></tr>
+<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Define</button></td></tr>
 </table>
 
 NOTES:<ul>
