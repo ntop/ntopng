@@ -201,33 +201,35 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     showEnabled = "none"
   end
 
-  local more_opts = ""
+  local attributes = {}
 
   if extra.min ~= nil then
     if extra.tformat ~= nil then
-      more_opts = more_opts .. ' data-min="' .. extra.min .. '"'
+      attributes["data-min"] = extra.min
     else
-      more_opts = more_opts .. ' min="' .. extra.min .. '"'
+      attributes["min"] = extra.min
     end
   end
 
   if extra.max ~= nil then
     if extra.tformat ~= nil then
-      more_opts = more_opts .. ' data-max="' .. extra.max .. '"'
+      attributes["data-max"] = extra.max
     else
-      more_opts = more_opts .. ' max="' .. extra.max .. '"'
+      attributes["max"] = extra.max
     end
   end
 
   if (_input_type == "number") then
-    more_opts = more_opts .. " required"
+    attributes["required"] = "required"
   end
 
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
   print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
 
-  local style = "text-align:right; margin-bottom:0.5em;"
+  local style = {}
+  style["text-align"] = "right"
+  style["margin-bottom"] = "0.5em"
 
   print [[
 	   <td class="input-group col-lg-3" align=right>]]
@@ -236,12 +238,20 @@ print [[
       <div class="form-group">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
-        style = style .. ' width: 10em; margin-left:1em;'
+        if extra.width == nil then
+          
+        end
+        style["width"] = "10em"
+        style["margin-left"] = "1em"
       else
-        style = style .. ' width: 15em;'
+        style["width"] = "15em"
       end
+
+      style = table.merge(style, extra.style)
+      attributes = table.merge(attributes, extra.attributes)
+
       print[[
-        <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(more_opts) print[[ name="]] print(key) print [[" style="]] print(style) print[[" value="]] print(value..'"')
+        <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>
         <div class="help-block with-errors"></div>
