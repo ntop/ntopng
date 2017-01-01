@@ -60,7 +60,7 @@ local function prefsResolutionButtons(fmt, value)
     local v = fmt_to_data[k]
     if v ~= nil then
       print[[<label class="btn btn-default]]
-      if selected == k then print[[ active]] end
+      if selected == k then print[[ btn-primary active]] end
       print[[ btn-sm"><input value="]] print(tostring(v[3])) print[[" title="]] print(v[1]) print[[" name="options_]] print(ctrl_id) print[[" autocomplete="off" type="radio"]]
       if selected == k then print(' checked="checked"') end print[[/>]] print(v[2]) print[[</label>]]
     end
@@ -90,7 +90,7 @@ local function prefsResolutionButtons(fmt, value)
 
       function resol_selector_change_callback(event) {
         var selected = $(this);
-        selected.attr('checked', 'checked').closest("label").siblings().find("input").removeAttr('checked');
+        selected.attr('checked', 'checked').closest("label").addClass('btn-primary').siblings().removeClass('btn-primary').find("input").removeAttr('checked');
 
         resol_selector_reset_input_range(selected);
       }
