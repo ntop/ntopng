@@ -25,6 +25,7 @@ local  en = {
    traffic = "Traffic",
    save = "Save",
    save_settings = "Save Settings",
+   all = "All",
 
    traffic_report = {
       daily = "Daily",
@@ -50,7 +51,6 @@ local  en = {
       network_group = "Network",
       network_groups = "Networks",
       protocols = "Protocols",
-      protocol_families = "Protocol Families",
       create_networks = "Define Networks",
       manage_networks = "Manage Policies",
       bandwidth_manager = "Bandwidth Manager",
