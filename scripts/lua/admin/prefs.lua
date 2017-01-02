@@ -17,7 +17,7 @@ end
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 local show_advanced_prefs = false
-local show_advanced_prefs_key = "show_advanced_prefs"
+local show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
 
 if(haveAdminPrivileges()) then
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
@@ -33,12 +33,12 @@ if(haveAdminPrivileges()) then
 
 subpage_active = _GET["subpage_active"]
 
-if toboolean(_GET[show_advanced_prefs_key]) ~= nil then
-  ntop.setPref(show_advanced_prefs_key, _GET[show_advanced_prefs_key])
-  show_advanced_prefs = toboolean(_GET[show_advanced_prefs_key])
-  notifyNtopng(show_advanced_prefs_key, _GET[show_advanced_prefs_key])
+if toboolean(_GET["show_advanced_prefs"]) ~= nil then
+  ntop.setPref(show_advanced_prefs_key, _GET["show_advanced_prefs"])
+  show_advanced_prefs = toboolean(_GET["show_advanced_prefs"])
+  notifyNtopng(show_advanced_prefs_key, _GET["show_advanced_prefs"])
 else
-  show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
+   show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
 end
 
@@ -46,14 +46,14 @@ local PREFS_INPUT_WIDTH_MEDIUM = "18em"
 
 local menu_subpages = {
   {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
-  {id="ifaces",        label="Network Interfaces",   advanced=false, pro_only=false,  disabled=false},
+  {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
   {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
-  {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false,  pro_only=false,  disabled=false},
-  {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true, pro_only=false,  disabled=false},
+  {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
+  {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
   {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
   {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
   {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
-  {id="nbox",          label="nBox Integration",     advanced=false, pro_only=true,   disabled=false},
+  {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
 }
 
 for _, subpage in ipairs(menu_subpages) do
@@ -600,25 +600,7 @@ end
          <col width="20%">
          <col width="80%">
          <tr><td style="padding-right: 20px;">
-           <div style="width:100%; text-align:right">
-            <div id="advanced_prefs_toggle" class="btn-group" data-toggle="buttons-radio" style="margin-bottom:1em; margin-top:0.5em;">
-              <button value="false" type="button" class="btn btn-sm ]] if not show_advanced_prefs then print(" btn-primary active") else print("btn-default") end print[[" data-toggle="button">Simple</button>
-              <button value="true" type="button" class="btn btn-sm ]] if show_advanced_prefs then print(" btn-primary active") else print("btn-default") end print[[" data-toggle="button">Advanced</button>
-            </div>
-           </div>
-           <script>
-              $('#advanced_prefs_toggle > button').click(function() {
-                if(! $(this).hasClass("active")) {
-                  var params = {
-                    csrf: "]] print(ntop.getRandomCSRFValue()) print [[",
-                    ]] print(show_advanced_prefs_key) print[[: $(this).val(),
-                    subpage_active: "]] print(subpage_active) print[[",
-                  };
-                  var form = paramsToForm($("<form></form>"), params);
-                  form.appendTo('body').submit();
-                }
-              });
-           </script>
+
            <div class="list-group">]]
 
 for _, subpage in ipairs(menu_subpages) do
@@ -629,6 +611,42 @@ end
 
 print[[
            </div>
+           <br>
+           <div align="center">
+
+            <div id="prefs_toggle" class="btn-group">
+              <form>
+<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
+<input type=hidden name="subpage_active" value="]] print(subpage_active) print[["/>
+
+<br>Advanced Preferences &nbsp;
+<div class="btn-group btn-toggle">
+]]
+
+local cls_on      = "btn btn-sm"
+local onclick_on  = ""
+local cls_off     = cls_on
+local onclick_off = onclick_on
+if show_advanced_prefs then
+   cls_on  = cls_on..' btn-success active'
+   cls_off = cls_off..' btn-default'
+   onclick_off = "this.form.submit();"
+else
+   cls_on = cls_on..' btn-default'
+   cls_off = cls_off..' btn-danger active'
+   onclick_on = "this.form.submit();"
+end
+print('<button type="button" class="'..cls_on..'" onclick="'..onclick_on..'">On</button>')
+print('<button type="button" class="'..cls_off..'" onclick="'..onclick_off..'">Off</button>')
+
+print[[
+</div>
+              </form>
+
+            </div>
+
+           </div>
+
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
 if (subpage_active == "report") then
