@@ -1025,6 +1025,12 @@ function get_shapers_from_parameters(callback)
       end
    end
 end
+   local perPageProtos
+   if tonumber(tablePreferences("protocolShapers")) == nil then
+      perPageProtos = "10"
+   else
+      perPageProtos = tablePreferences("protocolShapers")
+   end
 
    if (_GET["view_network"] ~= nil) then
       -- this is used by host_details.lua. Checks if the network exists, otherwise creates it
@@ -1543,7 +1549,7 @@ function toggleCustomNetworkMode() {
    print (ntop.getHttpPrefix())
    print [[/lua/get_l7_proto_policies.lua?ifid=]] print(ifid.."") print[[&network=]] print(net) print[[",
       showPagination: true,
-      perPage: 5,
+      perPage: ]] print(perPageProtos) print[[,
       title: "",
       forceTable: true,
       buttons: [
