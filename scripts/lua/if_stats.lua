@@ -1108,6 +1108,8 @@ end
       selected_network = shaper_utils.ANY_NETWORK
    end
 
+   local SHAPERS_MAX_RATE_KPBS = 100*1000*1000           -- 100 Gbit/s
+
    if((_GET["csrf"] ~= nil) and (_GET["add_shapers"] ~= nil)) then
       local num_added = 0
       local last_added = nil
@@ -1118,7 +1120,7 @@ end
             local max_rate = tonumber(mrate)
             --~ tprint(shaper_id.." "..max_rate)
 
-            if(max_rate > 1048576) then max_rate = -1 end
+            if(max_rate > SHAPERS_MAX_RATE_KPBS) then max_rate = -1 end
             if(max_rate < -1) then max_rate = -1 end
 
             shaper_utils.setShaperMaxRate(ifid, shaper_id, max_rate)
@@ -1685,10 +1687,34 @@ print[[
    <br/><div id="table-shapers"></div>
 
    <script>
+]]
+
+local rate_buttons = shaper_utils.rateButtons(1)
+print(rate_buttons.init.."\n")
+
+print[[
+   var rate_buttons_code = ']] print(rate_buttons.js) print[[';
+
+   function replaceCtrlId(v, shaper_id) {
+      return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, "shaper_max_rate_" + shaper_id);
+   }
+
    function shaperRateTextField(td_object, shaper_id, value) {
-      var input = $('<input name="shaper_' + shaper_id + '" class="form-control no-spinner" type="number" min="-1"/>');
+      // fix ctrl id
+      var buttons = $(replaceCtrlId(td_object.html(), shaper_id));
+      var div = $('<div class="text-center" style="padding:0 1em;"></div>');
+      td_object.html("");
+      div.appendTo(td_object);
+      buttons.appendTo(div);
+
+      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:auto;"/>');
       input.val(value);
-      td_object.html(input);
+      var input_container = $('<div class="form-group" style="margin:0;"></div>');
+      input.appendTo(input_container);
+      input_container.appendTo(div);
+
+      // execute group specific code
+      eval(replaceCtrlId(rate_buttons_code, shaper_id));
 
       if((typeof shaper_just_added != "undefined") && (shaper_just_added == shaper_id))
          input.focus();
@@ -1749,10 +1775,10 @@ print[[
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("max_rate")) print[[ (Kbps)",
+            title: "]] print(i18n("max_rate")) print[[",
             field: "column_max_rate",
             css : {
-               width: '10%',
+               width: '25em',
                verticalAlign: 'middle'
             }
          }, {
@@ -1779,8 +1805,11 @@ print[[
                max_rate.html("-1 (]] print(maxRateToString(-1)) print[[)");
             else if (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)
                max_rate.html("0 (]] print(maxRateToString(0)) print[[)");
-            else
-               shaperRateTextField(max_rate, shaper_id, max_rate.html());
+            else {
+               var rate_input = max_rate.find("input[name='shaper_rate']");
+               rate_input.remove();
+               shaperRateTextField(max_rate, shaper_id, rate_input.val());
+            }
 
             addShaperActionsToRow($(this), shaper_id);
          });

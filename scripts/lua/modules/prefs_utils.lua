@@ -22,14 +22,10 @@ end
 
 -- ############################################
 
-local options_ctr = 0
 local options_script_loaded = false
+local options_ctr = 0
 
--- Note: use data-min and data-max to setup ranges
 local function prefsResolutionButtons(fmt, value)
-  local ctrl_id = tostring(options_ctr)
-  options_ctr = options_ctr + 1
-
   local fmt_to_data = {
     ["s"] = {"Seconds", "Secs",  1},
     ["m"] = {"Minutes", "Mins",  60},
@@ -37,115 +33,20 @@ local function prefsResolutionButtons(fmt, value)
     ["d"] = {"Days",    "Days",  3600*24},
   }
 
-  local selected = nil
+  local ctrl_id = "options_group_" .. options_ctr
+  options_ctr = options_ctr + 1
+  local res = makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, {classes={"pull-right"}})
 
-  -- find the highest values which divides input value
-  if tonumber(value) ~= nil then
-    -- foreach character in format
-    string.gsub(fmt, ".", function(k)
-      local v = fmt_to_data[k]
-      if v ~= nil then
-        if((selected == nil) or ((v[3] > fmt_to_data[selected][3]) and (value % v[3] == 0))) then
-          selected = k
-        end
-      end
-    end)
-  end
-  selected = selected or string.sub(fmt, 1, 1)
-
-  print[[<div class="btn-group pull-right" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:flex;">]]
-
-  -- foreach character in format
-  string.gsub(fmt, ".", function(k)
-    local v = fmt_to_data[k]
-    if v ~= nil then
-      print[[<label class="btn btn-sm]]
-      if selected == k then
-	 print[[ btn-primary active]]
-      else
-	 print[[ btn-default]]
-      end
-      print[[ btn-sm"><input value="]] print(tostring(v[3])) print[[" title="]] print(v[1]) print[[" name="options_]] print(ctrl_id) print[[" autocomplete="off" type="radio"]]
-      if selected == k then print(' checked="checked"') end print[[/>]] print(v[2]) print[[</label>]]
-    end
-  end)
-
-  print[[</div>]]
-
+  print(res.html)
+  print("<script>")
   if not options_script_loaded then
-    print[[<script>
-      function resol_selector_get_input(an_input) {
-        return $("input", $(an_input).closest(".form-group")).last();
-      }
-
-      /* This function scales values wrt selected resolution */
-      function resol_selector_reset_input_range(selected) {
-        var selected = $(selected);
-        var input = resol_selector_get_input(selected);
-
-        var raw = parseInt(input.attr("data-min"));
-        if (! isNaN(raw))
-          input.attr("min", Math.ceil(raw / selected.val()));
-
-        raw = parseInt(input.attr("data-max"));
-        if (! isNaN(raw))
-          input.attr("max", Math.ceil(raw / selected.val()));
-      }
-
-      function resol_selector_change_callback(event) {
-        var selected = $(this);
-        selected.attr('checked', 'checked')
-          .closest("label").removeClass('btn-default').addClass('btn-primary')
-          .siblings().removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
-
-        resol_selector_reset_input_range(selected);
-      }
-
-      function resol_selector_on_form_submit(event) {
-        var form = $(this);
-
-        if (event.isDefaultPrevented())   // isDefaultPrevented is true when the form is invalid
-          return false;
-
-        form.find("[id^=options_group_]").each(function(){
-          var selected = $(this).find("input[checked]");
-          var input = resol_selector_get_input(selected);
-
-          // transform in raw units
-          var new_input = $("<input type='hidden'/>");
-          new_input.attr("name", input.attr("name"));
-          input.removeAttr("name");
-          new_input.val(parseInt(selected.val()) * parseInt(input.val()));
-          new_input.appendTo(form);
-        });
-      }
-    </script>]]
+    print(res.init)
     options_script_loaded = true
   end
+  print(res.js)
+  print("</script>")
 
-  print[[<script>
-    $('#options_group_]] print(ctrl_id) print[[ input').change(resol_selector_change_callback);
-    $(function() {
-      var elemid = "#options_group_]] print(ctrl_id) print[[";
-      var selected = $(elemid + ' input[checked]');
-      resol_selector_reset_input_range(selected);
-
-      // setup the form submit callback (only once)
-      var form = selected.closest("form");
-      if (! form.attr("data-options-handler")) {
-        form.attr("data-options-handler", 1);
-        form.submit(resol_selector_on_form_submit);
-      }
-    });
-  </script>
-  ]]
-
-  if tonumber(value) ~= nil then
-    -- returns the new value with selected resolution
-    return tonumber(value) / fmt_to_data[selected][3]
-  else
-    return nil
-  end
+  return res.value
 end
 
 -- ############################################
@@ -250,6 +151,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       else
         style["width"] = "15em"
       end
+      style["margin-left"] = "auto"
 
       style = table.merge(style, extra.style)
       attributes = table.merge(attributes, extra.attributes)

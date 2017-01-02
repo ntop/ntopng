@@ -2536,3 +2536,129 @@ function toboolean(s)
     return nil
   end
 end
+
+-- ###########################################
+
+-- Note: use data-min and data-max to setup ranges
+function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
+  local extra = extra or {}
+  local html_lines = {}
+
+  local selected = nil
+
+  -- find the highest values which divides input value
+  if tonumber(value) ~= nil then
+    -- foreach character in format
+    string.gsub(fmt, ".", function(k)
+      local v = fmt_to_data[k]
+      if v ~= nil then
+        if((selected == nil) or ((v[3] > fmt_to_data[selected][3]) and (value % v[3] == 0))) then
+          selected = k
+        end
+      end
+    end)
+  end
+  selected = selected or string.sub(fmt, 1, 1)
+
+  html_lines[#html_lines+1] = [[<div class="btn-group ]] .. table.concat(extra.classes or {}, "") .. [[" id="]] .. ctrl_id .. [[" data-toggle="buttons" style="display:inline;">]]
+
+  -- foreach character in format
+  string.gsub(fmt, ".", function(k)
+    local v = fmt_to_data[k]
+    if v ~= nil then
+      local line = {}
+      line[#line+1] = [[<label class="btn btn-default]]
+      if selected == k then line[#line+1] = [[ btn-primary active]] end
+      line[#line+1] = [[ btn-sm"><input value="]] .. v[3] .. [[" title="]] .. v[1] .. [[" name="options_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
+      if selected == k then line[#line+1] = [[ checked="checked"]] end
+      line[#line+1] = [[/>]] .. v[2] .. [[</label>]]
+
+      html_lines[#html_lines+1] = table.concat(line, "")
+    end
+  end)
+
+  html_lines[#html_lines+1] = [[</div>]]
+
+  -- Note: no // comment below, only /* */
+
+  local js_init_code = [[
+      var _resol_inputs = [];
+
+      function resol_selector_get_input(an_input) {
+        return $(".form-group > input", $(an_input).parent().parent().parent().parent()).first();
+      }
+
+      /* This function scales values wrt selected resolution */
+      function resol_selector_reset_input_range(selected) {
+        var selected = $(selected);
+        var input = resol_selector_get_input(selected);
+
+        var raw = parseInt(input.attr("data-min"));
+        if (! isNaN(raw))
+          input.attr("min", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
+
+        raw = parseInt(input.attr("data-max"));
+        if (! isNaN(raw))
+          input.attr("max", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
+      }
+
+      function resol_selector_change_callback(event) {
+        var selected = $(this);
+        selected.attr('checked', 'checked')
+          .closest("label").removeClass('btn-default').addClass('btn-primary')
+          .siblings().removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
+
+        resol_selector_reset_input_range(selected);
+      }
+
+      function resol_selector_on_form_submit(event) {
+        var form = $(this);
+
+        if (event.isDefaultPrevented())   /* isDefaultPrevented is true when the form is invalid */
+          return false;
+
+        $.each(_resol_inputs, function(i, elem) {
+          var selected = $(elem).find("input[checked]");
+          var input = resol_selector_get_input(selected);
+
+          /* remove added input names */
+          $(elem).find("input").removeAttr("name");
+
+          /* transform in raw units */
+          var new_input = $("<input type=\"hidden\"/>");
+          new_input.attr("name", input.attr("name"));
+          input.removeAttr("name");
+          new_input.val(parseInt(selected.val()) * parseInt(input.val()));
+          new_input.appendTo(form);
+        });
+      }]]
+
+  local js_specific_code = [[
+    $("#]] .. ctrl_id .. [[ input").change(resol_selector_change_callback);
+    $(function() {
+      var elemid = "#]] .. ctrl_id .. [[";
+      _resol_inputs.push(elemid);
+      var selected = $(elemid + " input[checked]");
+      resol_selector_reset_input_range(selected);
+
+      /* setup the form submit callback (only once) */
+      var form = selected.closest("form");
+      if (! form.attr("data-options-handler")) {
+        form.attr("data-options-handler", 1);
+        form.submit(resol_selector_on_form_submit);
+      }
+    });
+  ]]
+
+  -- join strings and strip newlines
+  local html = string.gsub(table.concat(html_lines, ""), "\n", "")
+  js_init_code = string.gsub(js_init_code, "\n", "")
+  js_specific_code = string.gsub(js_specific_code, "\n", "")
+
+  if tonumber(value) ~= nil then
+    -- returns the new value with selected resolution
+    return {html=html, init=js_init_code, js=js_specific_code, value=tonumber(value) / fmt_to_data[selected][3]}
+  else
+    return {html=html, init=js_init_code, js=js_specific_code, value=nil}
+  end
+end
