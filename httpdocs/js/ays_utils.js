@@ -19,13 +19,6 @@ function aysHandleForm(form_selector, options) {
   var o = $.extend(true, {}, default_options, options);
   o.form_selector = form_selector;
 
-  if (o.handle_tabs) {
-    // Ensure li items have a "btn" class, otherwise we cannot disable them
-    $(".nav-tabs").find("a").each(function() {
-      $(this).addClass("btn");
-    });
-  }
-
   $(function() {
     $(o.form_selector).areYouSure(o.ays_options);
 
@@ -47,7 +40,7 @@ function aysHandleForm(form_selector, options) {
         // Disable navigation between tabs
         $(".nav-tabs").find("a").each(function() {
           if (! $(this).closest("li").hasClass("active"))
-            $(this).attr("disabled", "disabled");
+            $(this).removeAttr("data-toggle").closest("li").addClass("disabled");
          });
       }
 
@@ -59,7 +52,7 @@ function aysHandleForm(form_selector, options) {
       $(o.form_selector).find('button[type="submit"]').attr("disabled", "disabled");
 
     if (o.handle_datatable) {
-      // Enabled pagination controls
+        // Enabled pagination controls
         $(this).find("a.dropdown-toggle").removeAttr("disabled");
         $(this).find("ul.pagination a").css("pointer-events", "").css("cursor", "");
       }
@@ -67,7 +60,7 @@ function aysHandleForm(form_selector, options) {
       if (o.handle_tabs) {
         // Enable navigation between tabs
         $(".nav-tabs").find("a").each(function() {
-          $(this).removeAttr("disabled");
+          $(this).attr("data-toggle", "tab").closest("li").removeClass("disabled");
         });
       }
 

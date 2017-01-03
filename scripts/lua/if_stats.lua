@@ -1162,10 +1162,10 @@ end
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network="..target_net.."#protocols")
    end
    print [[
-   <ul id="filterPageTabPanel" class="nav nav-tabs">
-      <li><a data-toggle="tab" class="btn" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#networks">]] print(i18n("shaping.create_networks")) print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
+   <ul id="filterPageTabPanel" class="nav nav-tabs" role="tablist">
+      <li><a data-toggle="tab" role="tab" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#networks">]] print(i18n("shaping.create_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
 
@@ -1850,7 +1850,6 @@ print [[</form>
    /*** Page Tab State ***/
    $('#filterPageTabPanel a').click(function(e) {
      e.preventDefault();
-     $(this).tab('show');
    });
 
    // store the currently selected tab in the hash value
