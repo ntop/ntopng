@@ -238,11 +238,12 @@ fi
 
 AC_CHECK_HEADERS([netinet/in.h libnetfilter_queue/libnetfilter_queue.h])
 AC_CHECK_LIB([netfilter_queue], [nfq_create_queue])
+AC_CHECK_LIB([nfnetlink], [nfnl_rcvbufsiz])
 AC_CHECK_FUNC([nfq_set_verdict2], [AC_DEFINE([HAVE_NFQ_SET_VERDICT2],[1],[Define if nfq_set_verdict2 exists in netfilter_queue.])])
 
 if test "x$ac_cv_lib_netfilter_queue_nfq_create_queue" = xyes; then
   AC_DEFINE_UNQUOTED(HAVE_NETFILTER, 1, [NFQ is present])
-  LDFLAGS="${LDFLAGS} -lnetfilter_queue"
+  LDFLAGS="${LDFLAGS} -lnetfilter_queue -lnfnetlink"
 fi
 
 AC_CHECK_LIB([ldap], [ldap_initialize], [LDFLAGS="${LDFLAGS} -lldap -llber"])
