@@ -303,27 +303,36 @@ function historicalDownloadButtonsBar(button_id, pcap_request_data_container_div
   <script type="text/javascript">
 ]]
 
-
-
 print[[
+  if (typeof(recheckFlowsDownloadButtons) === "undefined") {
+    _tabs_to_check_for_download = [];
 
-  if($('#tab-ipv4').length > 0 || true /* TODO: disable if no flows are available */){
-    $('#download_flows_v4_]] print(button_id) print[[').click(function (event){
-      window.location.assign("]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
-      return false;
-    });
-  } else {
-    $('#download_flows_v4_]] print(button_id) print[[').attr("style", "display:none;");
+    function recheckFlowsDownloadButtons() {
+      for (var i=0; i<_tabs_to_check_for_download.length; i++) {
+        var item = _tabs_to_check_for_download[i];
+
+        if($(item.tab).attr("num_flows") > 0)
+          $(item.button).attr("style", "");
+        else
+          $(item.button).attr("style", "display:none;");
+      }
+    }
   }
 
-  if($('#tab-ipv6').length > 0 || true /* TODO: disable if no flows are available */){
-    $('#download_flows_v6_]] print(button_id) print[[').click(function (event){
-      window.location.assign("]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
-      return false;
-    });
-  } else {
-    $('#download_flows_v6_]] print(button_id) print[[').attr("style", "display:none;");
-  }
+  $('#download_flows_v4_]] print(button_id) print[[').click(function (event){
+    window.location.assign("]] print(flows_download_url) print [[?version=4&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
+    return false;
+  });
+
+  $('#download_flows_v6_]] print(button_id) print[[').click(function (event){
+    window.location.assign("]] print(flows_download_url) print [[?version=6&format=txt&" + $.param(buildRequestData(']] print(pcap_request_data_container_div_id) print[[')));
+    return false;
+  });
+
+  _tabs_to_check_for_download.push({button:'#download_flows_v4_]] print(button_id) print[[', tab:'#tab-ipv4'});
+  _tabs_to_check_for_download.push({button:'#download_flows_v6_]] print(button_id) print[[', tab:'#tab-ipv6'});
+
+  recheckFlowsDownloadButtons();
 ]]
 
 if ntop.getCache("ntopng.prefs.nbox_integration") == "1" and haveAdminPrivileges() then
@@ -1568,6 +1577,7 @@ print[[
       // populate the number of flows
       $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
       $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows)
+      recheckFlowsDownloadButtons();
 
       var tr=""
       $.each(msg.count, function(ipvers, item){
@@ -1797,7 +1807,7 @@ print [[
         }
 
         // if here, then we actually have to load the datatable
-        enableFlowTabs(false);
+        enableFlowTabs(false, "a[href='#tab-ipv6']");
         $('a[href="#tab-ipv6"]').attr("loaded", 1);
 
 
@@ -1813,7 +1823,7 @@ print [[
 
 						    showFilter: true,
 						    showPagination: true,
-						    tableCallback: function(){enableAllDropdowns(true);},
+						    tableCallback: function(){enableFlowTabs(true, "a[href='#tab-ipv6']");},
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
