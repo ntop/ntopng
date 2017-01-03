@@ -425,7 +425,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
    local sort_column= getDefaultTableSort("historical_stats_top_talkers")
    if not sort_column or sort_column == "column_" then sort_column = "column_bytes" end
    print[[
-
+<div class="tab-pane fade" id="historical-top-talkers">
 <ol class="breadcrumb" id="bc-talkers" style="margin-bottom: 5px;"]] print('root="'..breadcrumb_root..'"') print [[>
 </ol>
 
@@ -816,7 +816,7 @@ end
   $('a[href="#historical-top-talkers"]').attr("loaded", 1);
 });
 </script>
-
+</div>
 ]]
 end
 
@@ -1409,7 +1409,7 @@ end
 
 -- ##########################################
 
-function historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
+function historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, handle_selects)
    -- prepare some attributes that will be attached to divs
    local div_data = ""
 
@@ -1515,16 +1515,18 @@ function enableNavigation(toEnable) {
     selector = "li a";
 
   enableHistoricalTabs(selector, toEnable);
+]] if (handle_selects) then print[[
   $("select").each(function() { $(this).prop("disabled", !toEnable); });
+]] end
+print[[
 }
   
-$('a[href="#historical-flows-summary"]').on('shown.bs.tab', function (e) {
+ function loadFlowsSummary() {
   if ($('a[href="#historical-flows-summary"]').attr("loaded") == 1){
     // do nothing if the tabs have already been computed and populated
     return;
   }
 
-  var target = $(e.target).attr("href"); // activated tab
   $('a[href="#historical-flows-summary"]').attr("loaded", 1);
 
   enableNavigation(false);
@@ -1579,9 +1581,12 @@ print[[
       enableNavigation(true);
   
       // populate the number of flows
-      $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
-      $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows)
-      recheckFlowsDownloadButtons();
+      $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows);
+      $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows);
+
+      // can be null in non-pro
+      if (typeof(recheckFlowsDownloadButtons) === "function")
+        recheckFlowsDownloadButtons();
 
       var tr=""
       $.each(msg.count, function(ipvers, item){
@@ -1605,13 +1610,36 @@ print[[
     too_slow += " or tune the database for performance."
     $("#flows-summary-too-slow").html(too_slow).show();
   }, 15000)
-  
-});
+}
+
+/*$('a[href="#historical-flows-summary"]').on('shown.bs.tab', function(e) {
+  var target = $(e.target).attr("href"); // activated tab
+  loadFlowsSummary();
+});*/
+
+// summary must always be loaded in order to enable other tabs
+// TODO this could lead to long queries that cannot be aborted in pages where "Flows Summary" tab is not active
+loadFlowsSummary();
 
 </script>
 ]]
 historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
 
+end
+
+-- ##########################################
+
+function historicalFlowsNavigationTabs(show_talkers_and_apps, flows_tab_active)
+  if ntop.getPrefs().is_dump_flows_to_mysql_enabled then
+   print[[<li class="]] if flows_tab_active then print("active") end print[["> <a href="#historical-flows-summary" role="tab" data-toggle="tab" data-flows="1"> Flows Summary </a> </li>
+    <li class="disabled" data-flows="1"> <a href="#tab-ipv4" role="tab"> IPv4 </a> </li>
+    <li class="disabled" data-flows="1"> <a href="#tab-ipv6" role="tab"> IPv6 </a> </li>]]
+
+   if show_talkers_and_apps then
+      print('<li class="disabled"><a href="#historical-top-talkers" role="tab" data-toggle="tab"> Talkers </a> </li>\n')
+      print('<li class="disabled"><a href="#historical-top-apps" role="tab" data-toggle="tab"> Protocols </a> </li>\n')
+   end
+  end
 end
 
 -- ##########################################
