@@ -1419,7 +1419,7 @@ end
 
 -- ##########################################
 
-function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
+function historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
    -- prepare some attributes that will be attached to divs
    local div_data = ""
 
@@ -1463,16 +1463,6 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
 
    print[[
 
-<br>
-<div class="container-fluid" id="historical-flows-container">
-  <ul class="nav nav-tabs" role="tablist">
-    <li class="active"> <a href="#historical-flows-summary" role="tab" data-toggle="tab"> Summary </a> </li>
-    <li class="disabled"> <a href="#tab-ipv4" role="tab"> IPv4 </a> </li>
-    <li class="disabled"> <a href="#tab-ipv6" role="tab"> IPv6 </a> </li>
-  </ul>
-
-  <div class="tab-content">
-
     <div class="tab-pane fade in active" id="historical-flows-summary">
       <br>
       <div class="panel panel-default" id="historical-flows-summary-div">
@@ -1510,9 +1500,6 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
 			       ) print[[
     </div>
 
-  </div>
-</div>
-
 <script type="text/javascript">
 
 var xhr;
@@ -1524,18 +1511,18 @@ var abortQuery = function(){
   // error message is populated in the ajax error callback
 }
   
-$('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
-  if ($('a[href="#historical-flows"]').attr("loaded") == 1){
+$('a[href="#historical-flows-summary"]').on('shown.bs.tab', function (e) {
+  if ($('a[href="#historical-flows-summary"]').attr("loaded") == 1){
     enableAllDropdownsAndTabs();
     // do nothing if the tabs have already been computed and populated
     return;
   }
 
   var target = $(e.target).attr("href"); // activated tab
-  $('a[href="#historical-flows"]').attr("loaded", 1);
+  $('a[href="#historical-flows-summary"]').attr("loaded", 1);
 
   // disable all tabs
-  $("#historical-flows-container").find("li").addClass("disabled").find("a").removeAttr("data-toggle");
+  $("#historical-tabs-container").find("li[data-flows=1]").addClass("disabled").find("a").removeAttr("data-toggle");
 
   xhr = $.ajax({
     type: 'GET',]]
@@ -1570,7 +1557,7 @@ print[[
       }
   
       // re-enable all tabs
-      $("#historical-flows-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
+      $("#historical-tabs-container").find("li[data-flows=1]").removeClass("disabled").find("a").attr("data-toggle", "tab");
   
       // populate the number of flows
       $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
