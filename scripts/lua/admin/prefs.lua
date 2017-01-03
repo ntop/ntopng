@@ -548,8 +548,8 @@ function printStatsRrds()
 			 "ntopng.prefs.host_categories_rrd_creation", "0", not prefs.is_categorization_enabled)
   print('</table>')
 
-if show_advanced_prefs then
   print('<table class="table">')
+if show_advanced_prefs then
   print('<tr><th colspan=2 class="info">Network Interface Timeseries</th></tr>')
   prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
@@ -569,10 +569,10 @@ if show_advanced_prefs then
      prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 15.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
      prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 90.", "ntopng.prefs.", "host_activity_rrd_1d_days", prefs.host_activity_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   end
-
+end
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
-end
+
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end

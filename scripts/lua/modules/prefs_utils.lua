@@ -53,7 +53,7 @@ local function prefsResolutionButtons(fmt, value)
   end
   selected = selected or string.sub(fmt, 1, 1)
 
-  print[[<div class="btn-group" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:inline;">]]
+  print[[<div class="btn-group pull-right" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:inline;">]]
 
   -- foreach character in format
   string.gsub(fmt, ".", function(k)
@@ -232,10 +232,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   style["margin-bottom"] = "0.5em"
 
   print [[
-	   <td class="input-group col-lg-3" align=right>]]
-print [[
-    <div class="input-group" >
-      <div class="form-group">]]
+    <td class="col-lg-4" align=right>
+      <div class="col-md-1"></div>
+      <div class="form-group col-md-7">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
         if extra.width == nil then
@@ -251,12 +250,12 @@ print [[
       attributes = table.merge(attributes, extra.attributes)
 
       print[[
-        <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
+        </div>
+          <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>
-        <div class="help-block with-errors"></div>
+          <div class="help-block with-errors"></div>
       </div>
-    </div><!-- /input-group -->
   </td></tr>
 ]]
 
