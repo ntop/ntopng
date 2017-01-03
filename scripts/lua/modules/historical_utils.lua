@@ -558,10 +558,8 @@ var populateInterfaceTopTalkersTable = function(){
   showOne('historical-interface', 'historical-interface-top-talkers-table');
 
 
-  if ($('#historical-interface-top-talkers-table').attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {
-    disableAllDropdownsAndTabs();
+  if ($('#historical-interface-top-talkers-table').attr("loaded") != 1) {
+    enableTalkersTabs(false);
     $('#historical-interface-top-talkers-table').attr("loaded", 1);
     $('#historical-interface-top-talkers-table').datatable({
 	title: "",]]
@@ -573,7 +571,7 @@ var populateInterfaceTopTalkersTable = function(){
 	post: {totalRows: function(){ return $('#historical-interface-top-talkers-table').attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$('#historical-interface-top-talkers-table').attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$('#historical-interface-top-talkers-table').attr("total_rows", this.options.totalRows);enableTalkersTabs(true);},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -609,10 +607,8 @@ var populateHostTopTalkersTable = function(host){
   // load the table only if it is the first time we've been called
   div_id='#'+div_id;
 
-  if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {
-    disableAllDropdownsAndTabs();
+  if ($(div_id).attr("loaded") != 1) {
+    enableTalkersTabs(false);
     $(div_id).attr("loaded", 1);
     $(div_id).attr("host", host);
     $(div_id).datatable({
@@ -625,7 +621,7 @@ var populateHostTopTalkersTable = function(host){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableTalkersTabs(true);},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -669,10 +665,8 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
   div_id='#'+div_id;
 
   // if the table has already been loaded, we just show up all the dropdowns
-  if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {   // load the table only if it is the first time we've been called
-    disableAllDropdownsAndTabs();
+  if ($(div_id).attr("loaded") != 1) {   // load the table only if it is the first time we've been called
+    enableTalkersTabs(false);
     $(div_id).attr("loaded", 1);
     $(div_id).attr("peer1", peer1);
     $(div_id).attr("peer2", peer2);
@@ -686,7 +680,7 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableTalkersTabs(true);},
 	rowCallback: function(row){
 	  var l7_proto_id_td = $("td:eq(0)", row[0]);
 	  var label_td = $("td:eq(1)", row[0]);
@@ -733,10 +727,8 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
   div_id='#'+div_id;
 
   // if the table has already been loaded, we just show up all the dropdowns
-  if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {   // load the table only if it is the first time we've been called
-    disableAllDropdownsAndTabs();
+  if ($(div_id).attr("loaded") != 1) {   // load the table only if it is the first time we've been called
+    enableTalkersTabs(false);
     $(div_id).attr("loaded", 1);
     $(div_id).attr("peer1", peer1);
     $(div_id).attr("peer2", peer2);
@@ -752,7 +744,7 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
 	showPagination: true,
 totalRows: 100,
 	sort: [ [ "BYTES","desc"] ],
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableTalkersTabs(true);},
 	columns:
 	[
 	  {title: "Key",         field: "idx",            hidden: true},
@@ -775,7 +767,6 @@ totalRows: 100,
 $('a[href="#historical-top-talkers"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-top-talkers"]').attr("loaded") == 1){
     // do nothing if the tabs have already been computed and populated
-    enableAllDropdownsAndTabs();
     return;
   }
 
@@ -952,10 +943,8 @@ var populateInterfaceTopAppsTable = function(){
   hideAll('flows-per-host-pair-by-app-container');
   showOne('historical-interface-apps', 'historical-interface-top-apps-table');
 
-  if ($('#historical-interface-top-apps-table').attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {
-    disableAllDropdownsAndTabs();
+  if ($('#historical-interface-top-apps-table').attr("loaded") != 1) {
+    enableApplicationTabs(false);
     $('#historical-interface-top-apps-table').attr("loaded", 1);
     $('#historical-interface-top-apps-table').datatable({
       title: "",]]
@@ -967,7 +956,7 @@ print [[
       post: {totalRows: function(){ return $('#historical-interface-top-apps-table').attr("total_rows");} },
       showFilter: true,
       showPagination: true,
-      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);enableApplicationTabs(true);},
       rowCallback: function(row){
 	var proto_id_td = $("td:eq(0)", row[0]);
 	var proto_label_td = $("td:eq(1)", row[0]);
@@ -1030,10 +1019,8 @@ var populateAppTopTalkersTable = function(proto_id){
   // load the table only if it is the first time we've been called
   div_id='#'+div_id;
 
-  if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {
-    disableAllDropdownsAndTabs();
+  if ($(div_id).attr("loaded") != 1) {
+    enableApplicationTabs(false);
     $(div_id).attr("loaded", 1);
     $(div_id).attr("l7_proto", proto_id);
     $(div_id).datatable({
@@ -1046,7 +1033,7 @@ var populateAppTopTalkersTable = function(proto_id){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableApplicationTabs(true);},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -1085,10 +1072,8 @@ var populatePeersPerHostByApplication = function(host, proto_id){
   // load the table only if it is the first time we've been called
   div_id='#'+div_id;
 
-  if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {
-    disableAllDropdownsAndTabs();
+  if ($(div_id).attr("loaded") != 1) {
+    enableApplicationTabs(false);
     $(div_id).attr("loaded", 1);
     $(div_id).attr("l7_proto", proto_id);
     $(div_id).attr("host", host);
@@ -1102,7 +1087,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableApplicationTabs(true);},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -1150,10 +1135,8 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
   div_id='#'+div_id;
 
   // if the table has already been loaded, we just show up all the dropdowns
-  if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {   // load the table only if it is the first time we've been called
-    disableAllDropdownsAndTabs();
+  if ($(div_id).attr("loaded") != 1) {	// load the table only if it is the first time we've been called
+    enableApplicationTabs(false);
     $(div_id).attr("loaded", 1);
     $(div_id).attr("peer1", peer1);
     $(div_id).attr("peer2", peer2);
@@ -1169,7 +1152,7 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
 	showPagination: true,
 totalRows: 100,
 	sort: [ [ "BYTES","desc"] ],
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableApplicationTabs(true);},
 	columns:
 	[
 	  {title: "Key",         field: "idx",            hidden: true},
@@ -1206,10 +1189,8 @@ var populateHostTopAppsTable = function(host){
   hideAll('flows-per-host-pair-by-app-container');
   showOne('historical-interface-apps', 'historical-interface-top-apps-table');
 
-  if ($('#historical-interface-top-apps-table').attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
-  } else {
-    disableAllDropdownsAndTabs();
+  if ($('#historical-interface-top-apps-table').attr("loaded") != 1) {
+    enableApplicationTabs(false);
     $('#historical-interface-top-apps-table').attr("loaded", 1);
     $('#historical-interface-top-apps-table').attr("host", host);
     $('#historical-interface-top-apps-table').datatable({
@@ -1222,7 +1203,7 @@ print [[
       post: {totalRows: function(){ return $('#historical-interface-top-apps-table').attr("total_rows");} },
       showFilter: true,
       showPagination: true,
-      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);enableApplicationTabs(true);},
 	rowCallback: function(row){
 	var proto_id_td = $("td:eq(0)", row[0]);
 	var proto_label_td = $("td:eq(1)", row[0]);
@@ -1281,7 +1262,6 @@ adapts the breadcrumb depending on the page.
 */
 $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-top-apps"]').attr("loaded") == 1){
-    enableAllDropdownsAndTabs();
     // do nothing if the tabs have already been computed and populated
     return;
   }
@@ -1401,8 +1381,9 @@ print [[
 };
 
 $('a[href="#historical-pcaps"]').on('shown.bs.tab', function (e) {
+  // TODO enableTabsAndDropdowns logic here
   if ($('a[href="#historical-pcaps"]').attr("loaded") == 1){
-    enableAllDropdownsAndTabs();
+    enableTabsAndDropdowns("a[href='#historical-pcaps']", true);
     // do nothing if the tabs have already been computed and populated
     return;
   }
@@ -1510,10 +1491,31 @@ var abortQuery = function(){
   }
   // error message is populated in the ajax error callback
 }
+
+function enableAllDropdowns(toEnable) {
+  $("select").each(function() { $(this).prop("disabled", !toEnable); });
+}
+
+function enableTabsAndDropdowns(selector, toEnable) {
+  enableNavTabs("#historical-tabs-container", selector, toEnable);
+  enableAllDropdowns(toEnable);
+}
+
+function enableFlowTabs(toEnable, selector) {
+  selector = selector || "li[data-flows=1] a"
+  enableTabsAndDropdowns(selector, toEnable);
+}
+
+function enableApplicationTabs(toEnable) {
+  enableTabsAndDropdowns("li[data-apps=1] a", toEnable);
+}
+
+function enableTalkersTabs(toEnable) {
+  enableTabsAndDropdowns("li[data-talkers=1] a", toEnable);
+}
   
 $('a[href="#historical-flows-summary"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-flows-summary"]').attr("loaded") == 1){
-    enableAllDropdownsAndTabs();
     // do nothing if the tabs have already been computed and populated
     return;
   }
@@ -1521,8 +1523,7 @@ $('a[href="#historical-flows-summary"]').on('shown.bs.tab', function (e) {
   var target = $(e.target).attr("href"); // activated tab
   $('a[href="#historical-flows-summary"]').attr("loaded", 1);
 
-  // disable all tabs
-  $("#historical-tabs-container").find("li[data-flows=1]").addClass("disabled").find("a").removeAttr("data-toggle");
+  enableFlowTabs(false);
 
   xhr = $.ajax({
     type: 'GET',]]
@@ -1530,7 +1531,8 @@ print("url: '"..ntop.getHttpPrefix().."/lua/get_db_data.lua?ifname="..tostring(_
 print("data: "..json.encode(_GET, nil)..",")
 print[[
     complete: function() {
-      $("#flows-summary-wait").hide()
+      $("#flows-summary-wait").hide();
+      enableAllDropdowns(true);
     },
     error: function() {
       var err_msg = "."
@@ -1546,6 +1548,7 @@ print[[
         err_msg = "Query failed with an unknown status " + xhr.statusText + err_msg
   
       $("#historical-flows-summary-body").html(err_msg).show()
+      enableAllDropdowns(true);
     },
     success: function(msg){
       if(msg.status !== "ok") {
@@ -1556,8 +1559,11 @@ print[[
         return;
       }
   
-      // re-enable all tabs
-      $("#historical-tabs-container").find("li[data-flows=1]").removeClass("disabled").find("a").attr("data-toggle", "tab");
+      // only enable tabs when they have flows
+      if(msg.count.IPv4.tot_flows > 0)
+        enableFlowTabs(true, "a[href='#tab-ipv4']");
+      if(msg.count.IPv6.tot_flows > 0)
+        enableFlowTabs(true, "a[href='#tab-ipv6']");
   
       // populate the number of flows
       $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows)
@@ -1644,12 +1650,11 @@ print [[
       $('a[href="#tab-ipv4"]').on('shown.bs.tab', function (e) {
         if ($('a[href="#tab-ipv4"]').attr("loaded") == 1){
           // do nothing if the tab has already been computed and populated
-          enableAllDropdownsAndTabs();
           return;
         }
 
         // if here, then we actually have to load the datatable
-        disableAllDropdownsAndTabs();
+        
         $('a[href="#tab-ipv4"]').attr("loaded", 1);
 
    ]]
@@ -1665,7 +1670,7 @@ print [[
 print [[
 						    showFilter: true,
 						    showPagination: true,
-                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
+						    tableCallback: function(){enableAllDropdowns(true);},
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
@@ -1788,12 +1793,11 @@ print [[
       $('a[href="#tab-ipv6"]').on('shown.bs.tab', function (e) {
         if ($('a[href="#tab-ipv6"]').attr("loaded") == 1){
           // do nothing if the tab has already been computed and populated
-          enableAllDropdownsAndTabs();
           return;
         }
 
         // if here, then we actually have to load the datatable
-        disableAllDropdownsAndTabs();
+        enableFlowTabs(false);
         $('a[href="#tab-ipv6"]').attr("loaded", 1);
 
 
@@ -1809,7 +1813,7 @@ print [[
 
 						    showFilter: true,
 						    showPagination: true,
-                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
+						    tableCallback: function(){enableAllDropdowns(true);},
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
