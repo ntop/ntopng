@@ -75,7 +75,7 @@ local function prefsResolutionButtons(fmt, value)
   if not options_script_loaded then
     print[[<script>
       function resol_selector_get_input(an_input) {
-        return $(" > input", $(an_input).parent().parent().parent()).first();
+        return $(".form-group > input", $(an_input).parent().parent().parent().parent()).first();
       }
 
       /* This function scales values wrt selected resolution */
@@ -234,7 +234,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   print [[
     <td class="col-lg-4" align=right>
       <div class="col-md-1"></div>
-      <div class="form-group col-md-7">]]
+      <div class="col-md-7">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
         if extra.width == nil then
@@ -250,11 +250,12 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       attributes = table.merge(attributes, extra.attributes)
 
       print[[
-        </div>
+         </div><div class="form-group">
           <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>
           <div class="help-block with-errors"></div>
+        </div>
       </div>
   </td></tr>
 ]]
