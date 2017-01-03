@@ -241,7 +241,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
           
         end
         style["width"] = "10em"
-        style["margin-left"] = "1em"
+        style["margin-left"] = "auto"
       else
         style["width"] = "15em"
       end
