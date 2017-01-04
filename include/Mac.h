@@ -34,6 +34,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
 
+  inline u_int16_t getNumHosts() { return getUses();            }
   inline bool isSpecialMac()     { return(special_mac);         }
   inline u_int32_t key()         { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()     { return(mac);                 }

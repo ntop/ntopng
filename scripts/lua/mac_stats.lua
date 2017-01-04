@@ -24,19 +24,15 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=mac]]
+print [[/lua/get_macs_data.lua?]]
 
-if(_GET["mac"] ~= nil) then
-   print("&mac=".._GET["mac"])
+local skipSpecial = false
+local skipFilter = ""
+if(_GET["skipSpecial"] ~= nil) then
+   skipSpecial = true
+   skipFilter = '<span class="glyphicon glyphicon-filter"></span>'
+   print("skipSpecial=".._GET["skipSpecial"])
 end
-
-if(_GET["mode"] ~= nil) then
-  mode = _GET["mode"]
-else
-  mode = "hostsonly"  
-end
-
-print("&mode="..mode)
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/mac_stats_id.inc")
@@ -47,7 +43,7 @@ print [[
 			url: url_update , 
 ]]
 
-if(_GET["mode"] ~= "hostsonly") then
+if skipSpecial then
  print('title: "Layer 2 Devices",\n')
 else
  print('title: "All Layer 2 Devices",\n')
@@ -60,14 +56,14 @@ preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 -- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("mac") ..'","' .. getDefaultTableSortOrder("mac").. '"] ],')
+print ('sort: [ ["' .. getDefaultTableSort("macs") ..'","' .. getDefaultTableSortOrder("macs").. '"] ],')
 
-print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs'..skipFilter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
    print(ntop.getHttpPrefix())
-   print('/lua/mac_stats.lua?mode=hostsonly">Hosts Only</a></li><li><a href="')
+   print('/lua/mac_stats.lua?skipSpecial=true">Hosts Only</a></li>')
+   print('<li><a href="')
    print(ntop.getHttpPrefix())
-   print('/lua/mac_stats.lua?mode=all">All Devices</a></li><li><a href="')
-   print(ntop.getHttpPrefix())
+   print('/lua/mac_stats.lua">All Devices</a></li>')
    print("</div>' ],")
 
 print [[
@@ -92,7 +88,7 @@ print [[
                          {
 			     title: "Manufacturer",
 				 field: "column_manufacturer",
-				 sortable: true,
+				 sortable: false,
                              css: {
 			        textAlign: 'left'
 			     }

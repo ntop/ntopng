@@ -42,18 +42,6 @@ function host_table_setID (row) {
 
 }
 
-function hostkey2hostInfo(host_key) {
-    var info;
-    var hostinfo = [];
-
-    host_key = host_key.replace(/____/g, ":");
-    host_key = host_key.replace(/___/g, "/");
-    host_key = host_key.replace(/__/g, ".");
-
-    info = host_key.split("@");
-    return(info);
-} 
-
 function row_update(host_key) {
    var hostInfo = hostkey2hostInfo(host_key);
    var url = "@HTTP_PREFIX@/lua/get_host_data.lua?host="+hostInfo[0]+"&vlan=" + hostInfo[1];

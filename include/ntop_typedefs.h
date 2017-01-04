@@ -237,6 +237,8 @@ typedef enum {
   column_unknowers,
   column_incomingflows,
   column_outgoingflows,
+  /* Macs */
+  column_num_hosts,
 } sortField;
 
 typedef struct {

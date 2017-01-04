@@ -10,10 +10,11 @@ function mac_table_setID (row) {
   row.attr('id', mac_key);
 
   row.find("td").eq(index++).attr('id', mac_key+"_key");
-  row.find("td").eq(index++).attr('id', mac_key+"_number");
+  row.find("td").eq(index++).attr('id', mac_key+"_link");
+  row.find("td").eq(index++).attr('id', mac_key+"_manufacturer");
+
   // mac_stats_top
   row.find("td").eq(index++).attr('id', mac_key+"_hosts");
-  row.find("td").eq(index++).attr('id', mac_key+"_alerts");
   row.find("td").eq(index++).attr('id', mac_key+"_since");
 
   // mac_stats_bottom
@@ -26,7 +27,10 @@ function mac_table_setID (row) {
 }
 
 function mac_row_update(mac_key) {
-   var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=mac&mac="+mac_key;
+  var hostInfo = hostkey2hostInfo(mac_key);
+  var url = "@HTTP_PREFIX@/lua/get_mac_data.lua?host="+hostInfo[0];
+  if(hostInfo[1])
+    url += "&vlan=" + hostInfo[1];
 
   $.ajax({
     type: 'GET',

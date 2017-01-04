@@ -15,8 +15,10 @@ require "graph_utils"
 require "alert_utils"
 require "historical_utils"
 
-mac         = _GET["mac"]
-vlanId      = _GET["vlanId"]
+local host_info = url2hostinfo(_GET)
+
+mac         = host_info["host"]
+vlanId      = host_info["vlan"]
 
 if(vlanId == nil) then vlanId = 0 end
 
