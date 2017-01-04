@@ -53,7 +53,7 @@ local function prefsResolutionButtons(fmt, value)
   end
   selected = selected or string.sub(fmt, 1, 1)
 
-  print[[<div class="btn-group" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:inline;">]]
+  print[[<div class="btn-group pull-right" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:inline;">]]
 
   -- foreach character in format
   string.gsub(fmt, ".", function(k)
@@ -75,7 +75,7 @@ local function prefsResolutionButtons(fmt, value)
   if not options_script_loaded then
     print[[<script>
       function resol_selector_get_input(an_input) {
-        return $(" > input", $(an_input).parent().parent().parent()).first();
+        return $(".form-group > input", $(an_input).parent().parent().parent().parent()).first();
       }
 
       /* This function scales values wrt selected resolution */
@@ -201,52 +201,62 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     showEnabled = "none"
   end
 
-  local more_opts = ""
+  local attributes = {}
 
   if extra.min ~= nil then
     if extra.tformat ~= nil then
-      more_opts = more_opts .. ' data-min="' .. extra.min .. '"'
+      attributes["data-min"] = extra.min
     else
-      more_opts = more_opts .. ' min="' .. extra.min .. '"'
+      attributes["min"] = extra.min
     end
   end
 
   if extra.max ~= nil then
     if extra.tformat ~= nil then
-      more_opts = more_opts .. ' data-max="' .. extra.max .. '"'
+      attributes["data-max"] = extra.max
     else
-      more_opts = more_opts .. ' max="' .. extra.max .. '"'
+      attributes["max"] = extra.max
     end
   end
 
   if (_input_type == "number") then
-    more_opts = more_opts .. " required"
+    attributes["required"] = "required"
   end
 
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
   print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
 
-  local style = "text-align:right; margin-bottom:0.5em;"
+  local style = {}
+  style["text-align"] = "right"
+  style["margin-bottom"] = "0.5em"
 
   print [[
-	   <td class="input-group col-lg-3" align=right>]]
-print [[
-    <div class="input-group" >
-      <div class="form-group">]]
+    <td class="col-lg-4" align=right>
+      <div class="col-md-1"></div>
+      <div class="col-md-7">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
-        style = style .. ' width: 10em; margin-left:1em;'
+        if extra.width == nil then
+          
+        end
+        style["width"] = "10em"
+        style["margin-left"] = "auto"
       else
-        style = style .. ' width: 15em;'
+        style["width"] = "15em"
       end
+
+      style = table.merge(style, extra.style)
+      attributes = table.merge(attributes, extra.attributes)
+
       print[[
-        <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(more_opts) print[[ name="]] print(key) print [[" style="]] print(style) print[[" value="]] print(value..'"')
+         </div><div class="form-group">
+          <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>
-        <div class="help-block with-errors"></div>
+          <div class="help-block with-errors"></div>
+        </div>
       </div>
-    </div><!-- /input-group -->
   </td></tr>
 ]]
 

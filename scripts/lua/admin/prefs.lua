@@ -16,6 +16,9 @@ end
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
+local show_advanced_prefs = false
+local show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
+
 if(haveAdminPrivileges()) then
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
@@ -30,55 +33,46 @@ if(haveAdminPrivileges()) then
 
 subpage_active = _GET["subpage_active"]
 
-report_active = ""
-in_memory_active = ""
-on_disk_rrds_active = ""
-on_disk_dbs_active = ""
-nbox_active = ""
-alerts_active = ""
-users_active = ""
-ifaces_active = ""
-logging_active = ""
+if toboolean(_GET["show_advanced_prefs"]) ~= nil then
+  ntop.setPref(show_advanced_prefs_key, _GET["show_advanced_prefs"])
+  show_advanced_prefs = toboolean(_GET["show_advanced_prefs"])
+  notifyNtopng(show_advanced_prefs_key, _GET["show_advanced_prefs"])
+else
+   show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
+  if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
+end
 
-if (subpage_active == nil or subpage_active == "") then
+local PREFS_INPUT_WIDTH_MEDIUM = "18em"
+
+local menu_subpages = {
+  {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
+  {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
+  {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
+  {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
+  {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
+  {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
+  {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
+  {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
+  {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
+}
+
+for _, subpage in ipairs(menu_subpages) do
+  if((subpage.disabled) or
+     ((subpage.advanced) and (not show_advanced_prefs)) or  -- restore default in case of simple preferences
+     ((subpage.pro_only) and (not ntop.isPro()))) then      -- restore default in case of non pro
+
+    subpage.disabled = true
+    
+    if subpage.id == subpage_active then
+      -- will set to default
+      subpage_active = nil
+    end
+  end
+end
+
+-- default subpage
+if isEmptyString(subpage_active) then
   subpage_active = "users"
-end
-
-if (subpage_active == "report") then
-   report_active = "active"
-end
-if (subpage_active == "in_memory") then
-   in_memory_active = "active"
-end
-if (subpage_active == "on_disk_rrds") then
-   on_disk_rrds_active = "active"
-end
-if (subpage_active == "on_disk_dbs") then
-   on_disk_dbs_active = "active"
-end
-if (subpage_active == "nbox") then
-   nbox_active = "active"
-end
-if (subpage_active == "alerts") then
-   if not prefs.has_cmdl_disable_alerts then
-      alerts_active = "active"
-   else
-      report_active = "active" -- default
-   end
-end
-if (subpage_active == "users") then
-   users_active = "active"
-end
-if (subpage_active == "ifaces") then
-   ifaces_active = "active"
-end
-if (subpage_active == "logging") then
-   if not prefs.has_cmdl_trace_lvl then
-      logging_active = "active"
-   else
-      -- cannot change logging level when it has been specified from the command line
-      report_active = "active" -- default
-   end
 end
 
 -- ================================================================================
@@ -213,11 +207,11 @@ function printAlerts()
 		       "Once the maximum number of entity alerts is reached, oldest alerts will be overwritten. "..
 			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements, false)
   --]]
-
+if show_advanced_prefs then
   prefsInputFieldPrefs("Maximum Number of Flow Alerts",
 		       "The maximum number of flow alerts. Once the maximum number of alerts is reached, oldest alerts will be overwritten. "..
 			  "Default: 16384.", "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
-
+end
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",
                     "On", "1", "success",
@@ -273,11 +267,11 @@ function printAlerts()
 
   prefsInputFieldPrefs("Notification Sender Username",
 		       "Set the username of the sender of slack notifications", "ntopng.alerts.", "sender_username",
-		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false)
+		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}})
 
   prefsInputFieldPrefs("Notification Wekhook",
 		       "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook",
-		       "", nil, showElements and showSlackNotificationPrefs, true, true)
+		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
 
 
   if (ntop.isPro()) then
@@ -366,7 +360,7 @@ function printUsers()
 		       ,
 		       "ntopng.prefs.",
 		       "google_apis_browser_key",
-		       "", false)
+		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={pattern="[a-zA-Z0-9]{39}", spellcheck="false"} --[[ Google API keys consist of 39 alphanumeric characters ]] })
 
   if ntop.isPro() then
      print('<tr><th colspan=2 class="info">Authentication</th></tr>')
@@ -400,7 +394,7 @@ function printUsers()
 			      "Choose your account type",
 			      labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
 
-     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements, true, true)
+     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
 
      local elementToSwitchBind = {"bind_dn","bind_pwd"}
      toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
@@ -418,12 +412,12 @@ function printUsers()
      print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
      print('<input style="display:none;" type="password" name="__" data-ays-ignore="true" />')
      --
-     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false)
+     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
      prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
 
-     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements)
-     prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements)
-     prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements)
+     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+     prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
+     prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
 
   end
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" onclick="return save_button_users();" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
@@ -555,6 +549,7 @@ function printStatsRrds()
   print('</table>')
 
   print('<table class="table">')
+if show_advanced_prefs then
   print('<tr><th colspan=2 class="info">Network Interface Timeseries</th></tr>')
   prefsInputFieldPrefs("Days for raw stats", "Number of days for which raw stats are kept. Default: 1.", "ntopng.prefs.", "intf_rrd_raw_days", prefs.intf_rrd_raw_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   prefsInputFieldPrefs("Days for 1 min resolution stats", "Number of days for which stats are kept in 1 min resolution. Default: 30.", "ntopng.prefs.", "intf_rrd_1min_days", prefs.intf_rrd_1min_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
@@ -574,9 +569,10 @@ function printStatsRrds()
      prefsInputFieldPrefs("Days for 1 hour resolution stats", "Number of days for which stats are kept in 1 hour resolution. Default: 15.", "ntopng.prefs.", "host_activity_rrd_1h_days", prefs.host_activity_rrd_1h_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
      prefsInputFieldPrefs("Days for 1 day resolution stats", "Number of days for which stats are kept in 1 day resolution. Default: 90.", "ntopng.prefs.", "host_activity_rrd_1d_days", prefs.host_activity_rrd_1d_days, "number", nil, nil, nil, {min=1, max=365*5, --[[ TODO check min/max ]]})
   end
-
+end
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
   print('</table>')
+
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
 end
@@ -599,32 +595,58 @@ function printLogging()
   </table>]]
 end
 
-
    print[[
        <table class="table table-bordered">
          <col width="20%">
          <col width="80%">
          <tr><td style="padding-right: 20px;">
-           <div class="list-group ">
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=users" class="list-group-item ]] print(users_active) print[[">Users</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=ifaces" class="list-group-item ]] print(ifaces_active) print[[">Network Interfaces</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=in_memory" class="list-group-item ]] print(in_memory_active) print[[">In-Memory Data</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_rrds" class="list-group-item ]] print(on_disk_rrds_active) print[[">On-Disk Timeseries</a>
-             <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=on_disk_dbs" class="list-group-item ]] print(on_disk_dbs_active) print[[">On-Disk Databases</a>]]
-   if not prefs.has_cmdl_disable_alerts then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=alerts" class="list-group-item ]] print(alerts_active) print[[">Alerts</a>]]
-   end
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=report" class="list-group-item ]] print(report_active) print[[">Units of Measurement</a>]]
-   if not prefs.has_cmdl_trace_lvl then
-      print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=logging" class="list-group-item ]] print(logging_active) print[[">Log Level</a> ]]
-   end
 
-   if (ntop.isPro()) then
-      print [[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=nbox" class="list-group-item ]] print(nbox_active) print[[">nBox Integration</a> ]]
-   end
+           <div class="list-group">]]
+
+for _, subpage in ipairs(menu_subpages) do
+  if not subpage.disabled then
+    print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=]] print(subpage.id) print[[" class="list-group-item]] if(subpage_active == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
+  end
+end
 
 print[[
            </div>
+           <br>
+           <div align="center">
+
+            <div id="prefs_toggle" class="btn-group">
+              <form>
+<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
+<input type=hidden name="subpage_active" value="]] print(subpage_active) print[["/>
+
+<br>Advanced Preferences &nbsp;
+<div class="btn-group btn-toggle">
+]]
+
+local cls_on      = "btn btn-sm"
+local onclick_on  = ""
+local cls_off     = cls_on
+local onclick_off = onclick_on
+if show_advanced_prefs then
+   cls_on  = cls_on..' btn-success active'
+   cls_off = cls_off..' btn-default'
+   onclick_off = "this.form.submit();"
+else
+   cls_on = cls_on..' btn-default'
+   cls_off = cls_off..' btn-danger active'
+   onclick_on = "this.form.submit();"
+end
+print('<button type="button" class="'..cls_on..'" onclick="'..onclick_on..'">On</button>')
+print('<button type="button" class="'..cls_off..'" onclick="'..onclick_off..'">Off</button>')
+
+print[[
+</div>
+              </form>
+
+            </div>
+
+           </div>
+
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
 if (subpage_active == "report") then
@@ -640,11 +662,7 @@ if (subpage_active == "on_disk_dbs") then
    printStatsDatabases()
 end
 if (subpage_active == "alerts") then
-   if not prefs.has_cmdl_disable_alerts then
-      printAlerts()
-   else
-      printReportVisualization()
-   end
+   printAlerts()
 end
 if (subpage_active == "nbox") then
   if (ntop.isPro()) then
@@ -658,11 +676,7 @@ if (subpage_active == "ifaces") then
    printInterfaces()
 end
 if (subpage_active == "logging") then
-   if not prefs.has_cmdl_trace_lvl then
-      printLogging()
-   else
-      printReportVisualization()
-   end
+   printLogging()
 end
 
 print[[
