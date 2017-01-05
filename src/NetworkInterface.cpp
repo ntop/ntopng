@@ -2425,6 +2425,10 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
     r->elems[r->actNumEntries++].numericValue = m->getNumBytes();
     break;
 
+  case column_num_hosts:
+    r->elems[r->actNumEntries++].numericValue = m->getNumHosts();
+    break;
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
     break;
@@ -2818,6 +2822,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_since"))   retriever->sorter = column_since, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt"))    retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_hosts"))   retriever->sorter = column_num_hosts, sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
@@ -4672,7 +4677,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
-  bool show_details = false;
+  bool show_details = true;
 
   disablePurge(false);
 
@@ -4690,13 +4695,15 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
     for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Mac *m = retriever.elems[i].macValue;
 
-      m->lua(vm, show_details, true);
+      m->lua(vm, show_details, false);
+      lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
       Mac *m = retriever.elems[i].macValue;
 
-      m->lua(vm, show_details, true);
+      m->lua(vm, show_details, false);
+      lua_rawseti(vm, -2, num + 1);
     }
   }
 

@@ -107,6 +107,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_push_int_table_entry(vm, "seen.last", last_seen);
   lua_push_int_table_entry(vm, "duration", get_duration());
 
+  lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
+
   if(asListElement) {
     lua_pushstring(vm, m);
     lua_insert(vm, -2);
