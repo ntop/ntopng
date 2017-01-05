@@ -2399,7 +2399,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
      || m->idle()
      || ((r->vlan_id && (*(r->vlan_id) != m->get_vlan_id())))
      || (r->skipSpecialMacs && m->isSpecialMac())
-     )
+     || (r->hostMacsOnly && m->getNumHosts() == 0))
     return(false); /* false = keep on walking */
 
   r->elems[r->actNumEntries].macValue = m;
@@ -2797,6 +2797,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
 int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 			       u_int16_t vlan_id, bool skipSpecialMacs,
+			       bool hostMacsOnly,
 			       char *sortColumn) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
@@ -2809,7 +2810,8 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
     maxHits = CONST_MAX_NUM_HITS;
 
   retriever->vlan_id = &vlan_id, retriever->skipSpecialMacs = skipSpecialMacs,
-    retriever->actNumEntries = 0, retriever->maxNumEntries = maxHits,
+    retriever->hostMacsOnly = hostMacsOnly, retriever->actNumEntries = 0,
+    retriever->maxNumEntries = maxHits,
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
@@ -4674,6 +4676,7 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
 int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 				       bool skipSpecialMacs,
+				       bool hostMacsOnly,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
@@ -4681,7 +4684,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, sortColumn) < 0) {
+  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, hostMacsOnly, sortColumn) < 0) {
     enablePurge(false);
     return -1;
   }
