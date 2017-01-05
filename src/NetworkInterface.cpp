@@ -241,29 +241,6 @@ void NetworkInterface::init() {
 #ifdef NTOPNG_PRO
 
 void NetworkInterface::initL7Policer() {
-  /* Create a 0.0.0.0/0 network for policies */
-  char key[64];
-  char rsp[1024];
-  const char any_net[] = "0.0.0.0/0@0";
-
-  snprintf(key, sizeof(key), "ntopng.prefs.%d.l7_policy", get_id());
-
-  if(ntop->getRedis()->hashGet(key, (char*)any_net, rsp, sizeof(rsp)) != 0) {
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Creating '%s' network rule on interface %d",
-            any_net, get_id());
-#endif
-    /* set an empty rule */
-    ntop->getRedis()->hashSet(key, (char*)any_net, (char*)"");
-  }
-
-  /* Create default shaper */
-  snprintf(key, sizeof(key), "ntopng.prefs.%d.shaper_max_rate", get_id());
-  if(ntop->getRedis()->hashGet(key, (char*)"0", rsp, sizeof(rsp)) != 0) {
-    /* set as not shaping */
-    ntop->getRedis()->hashSet(key, (char*)"0", (char*)"-1");
-  }
-
   /* Instantiate the policer */
   policer = new L7Policer(this);
 }
