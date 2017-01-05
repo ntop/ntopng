@@ -26,12 +26,10 @@ print [[
 print (ntop.getHttpPrefix())
 print [[/lua/get_macs_data.lua?]]
 
-local skipSpecial = false
-local skipFilter = ""
-if(_GET["skipSpecial"] ~= nil) then
-   skipSpecial = true
-   skipFilter = '<span class="glyphicon glyphicon-filter"></span>'
-   print("skipSpecial=".._GET["skipSpecial"])
+local include_special_macs = false
+if(_GET["include_special_macs"] ~= nil) then
+   include_special_macs = true
+   print("include_special_macs=".._GET["include_special_macs"])
 end
 
 print ('";')
@@ -43,7 +41,7 @@ print [[
 			url: url_update , 
 ]]
 
-if skipSpecial then
+if include_special_macs == false then
  print('title: "Layer 2 Devices",\n')
 else
  print('title: "All Layer 2 Devices",\n')
@@ -58,12 +56,12 @@ if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 -- Automatic default sorted. NB: the column must exist.
 print ('sort: [ ["' .. getDefaultTableSort("macs") ..'","' .. getDefaultTableSortOrder("macs").. '"] ],')
 
-print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs'..skipFilter..'<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter MACs<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
    print(ntop.getHttpPrefix())
-   print('/lua/mac_stats.lua?skipSpecial=true">Hosts Only</a></li>')
+   print('/lua/mac_stats.lua">Hosts Only</a></li>')
    print('<li><a href="')
    print(ntop.getHttpPrefix())
-   print('/lua/mac_stats.lua">All Devices</a></li>')
+   print('/lua/mac_stats.lua?include_special_macs=true">All Devices</a></li>')
    print("</div>' ],")
 
 print [[

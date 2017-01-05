@@ -16,7 +16,7 @@ local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
 
 local vlan         = _GET["vlan"]
-local skipSpecial  = _GET["skipSpecial"]
+local include_special_macs  = _GET["include_special_macs"]
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
@@ -54,20 +54,21 @@ else
    tablePreferences("rows_number", perPage)
 end
 
-if isEmptyString(skipSpecial) == false then
-   skipSpecial = true
+if isEmptyString(include_special_macs) == false then
+   include_special_macs = true
 else
-   skipSpecial = false
+   include_special_macs = false
 end
 
 interface.select(ifname)
 
 to_skip = (currentPage-1) * perPage
 
+if(isEmptyString(vlan)) then vlan = 0 end
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
-
+tprint(include_special_macs)
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
-				    tonumber(vlan), skipSpecial)
+					 tonumber(vlan), include_special_macs == false --[[ skip special macs ]])
 
 local total_rows = 0
 
