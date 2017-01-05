@@ -17,6 +17,7 @@ local sortOrder    = _GET["sortOrder"]
 
 local vlan         = _GET["vlan"]
 local include_special_macs  = _GET["include_special_macs"]
+local host_macs_only        = _GET["host_macs_only"]
 
 local sortPrefs = "macs"
 
@@ -57,6 +58,12 @@ else
    include_special_macs = false
 end
 
+if isEmptyString(host_macs_only) == false then
+   host_macs_only = true
+else
+   host_macs_only = false
+end
+
 interface.select(ifname)
 
 to_skip = (currentPage-1) * perPage
@@ -65,7 +72,9 @@ if(isEmptyString(vlan)) then vlan = 0 end
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
-					 tonumber(vlan), include_special_macs == false --[[ skip special macs ]])
+					 tonumber(vlan),
+					 include_special_macs == false --[[ skip special macs ]],
+host_macs_only)
 
 local total_rows = 0
 

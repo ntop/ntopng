@@ -77,7 +77,10 @@ print(getHostIcon(mac))
 
 local label = getHostAltName(mac)
 
-print(" [ <A HREF=".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac..">Show Hosts</A> ]")
+if mac_info["num_hosts"] > 0 then
+   print(" [ <A HREF=".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac..">Show Hosts</A> ]")
+end
+
 print("</td>")
 if(isAdministrator()) then
        print("<td>")
