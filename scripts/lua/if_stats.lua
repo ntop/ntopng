@@ -1718,7 +1718,7 @@ print[[
       div.appendTo(td_object);
       buttons.appendTo(div);
 
-      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:auto;"/>');
+      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:auto;" required/>');
       input.val(value);
       var input_container = $('<div class="form-group" style="margin:0;"></div>');
       input.appendTo(input_container);
