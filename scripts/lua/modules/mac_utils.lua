@@ -1,6 +1,7 @@
 require "lua_utils"
 
-local json = require ("dkjson")
+-- Get from redis the throughput type bps or pps
+local throughput_type = getThroughputType()
 
 local now = os.time()
 
