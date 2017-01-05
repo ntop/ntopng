@@ -1279,6 +1279,7 @@ print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
 ]]
 
+local protos = interface.getnDPIProtocols()
 local protos_in_use = shaper_utils.getNetworkProtoShapers(ifid, net, true --[[ do not aggregate into categories ]])
 local protocol_categories = shaper_utils.getCategoriesWithProtocols()
 
@@ -1289,35 +1290,45 @@ for k,v in pairs(protos_in_use) do
 
    -- can be null for default
    if proto_id ~= nil then
-      local family = interface.getnDPIProtoCategory(proto_id)
-      if not categories_in_use[family.id] then
-         categories_in_use[family.id] = 1
+      local category_id = tostring(interface.getnDPIProtoCategory(proto_id).id)
+      if not categories_in_use[category_id] then
+         categories_in_use[category_id] = 1
       else
-         categories_in_use[family.id] = categories_in_use[family.id] + 1
+         categories_in_use[category_id] = categories_in_use[category_id] + 1
       end
    end
 end
 
-function print_ndpi_families_and_protocols(categories, categories_disabled, protos_disabled, terminator)
+function print_ndpi_families_and_protocols(categories, protos, categories_disabled, protos_disabled, terminator)
    local protos_excluded = {GRE=1, BGP=1, IGMP=1, IPP=1, IP_in_IP=1, OSPF=1, PPTP=1, SCTP=1, TFTP=1}
-   
+
+   print('<optgroup label="'..i18n("shaping.protocol_families")..'">')
    for k,category in pairsByKeys(categories, asc) do
-      print('<optgroup label="'..k..'">')
       print('<option value="cat_'..category.id..'"')
       if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
-      print('>' .. i18n("all") .. ' ' .. k .. " " .. i18n("shaping.protocols") .. ' ('.. category.count .. ')</option>'..terminator)
+      print('>' .. k .. " " .. ' ('.. category.count .. ')</option>'..terminator)
+   end
+   print('</optgroup>')
 
-      for protoName, protoId in pairsByKeys(category.protos) do
-         if not protos_excluded[protoName] then
-            print('<option value="'..protoId..'" data-category="'..category.id..'"')
-            if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
-               print(' disabled="disabled"')
+   print('<optgroup label="'..i18n("shaping.protocols")..'">')
+   for protoName,protoId in pairsByKeys(protos, asc) do
+      if not protos_excluded[protoName] then
+         -- find protocol category
+         for _,category in pairs(categories) do
+            for _,catProto in pairs(category.protos) do
+               if catProto == protoId then
+                  print('<option value="'..protoId..'" data-category="'..category.id..'"')
+                  if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
+                     print(' disabled="disabled"')
+                  end
+                  print(">"..protoName.."</option>"..terminator)
+                  break
+               end
             end
-            print(">"..protoName.."</option>"..terminator)
          end
       end
-      print('</optgroup>')
    end
+   print('</optgroup>')
 end
 
    print [[<div id="table-protos"></div>
@@ -1454,7 +1465,7 @@ function toggleCustomNetworkMode() {
       new_row_ctr += 1;
 
       var tr = $('<tr id="' + newid + '" ><td><select class="form-control" name="new_protocol_id">\
-            ]] print_ndpi_families_and_protocols(protocol_categories, categories_in_use, protos_in_use, "\\") print[[
+            ]] print_ndpi_families_and_protocols(protocol_categories, protos, categories_in_use, protos_in_use, "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
