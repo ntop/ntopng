@@ -151,6 +151,20 @@ for _,_ifname in pairs(ifnames) do
 	 ntop.rrd_update(rrdpath, "N:"..tolongint(sstats["ingress"]) .. ":" .. tolongint(sstats["egress"]) .. ":" .. tolongint(sstats["inner"]))
       end
 
+      basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd")
+      if not ntop.exists(basedir) then ntop.mkdir(basedir) end
+
+      -- General stats
+      makeRRD(basedir, _ifname, "num_hosts", 60, ifstats.stats.hosts)
+      makeRRD(basedir, _ifname, "num_devices", 60, ifstats.stats.devices)
+      makeRRD(basedir, _ifname, "num_flows", 60, ifstats.stats.flows)
+      makeRRD(basedir, _ifname, "num_http_hosts", 60, ifstats.stats.http_hosts)
+
+      -- TCP stats
+      makeRRD(basedir, _ifname, "tcp_retransmissions", 60, ifstats.tcpPacketStats.retransmissions)
+      makeRRD(basedir, _ifname, "tcp_ooo", 60, ifstats.tcpPacketStats.out_of_order)
+      makeRRD(basedir, _ifname, "tcp_lost", 60, ifstats.tcpPacketStats.lost)
+
       -- Save Profile stats every minute
       if ntop.isPro() and ifstats.profiles then  -- profiles are only available in the Pro version
 	 basedir = fixPath(dirs.workingdir .. "/" .. ifstats.id..'/profilestats')
