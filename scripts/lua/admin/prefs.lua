@@ -102,7 +102,7 @@ function printInterfaces()
 
   toggleTableButtonPrefs("VLAN Disaggregation",
 			    "Toggle the automatic creation of virtual interfaces based on VLAN tags.<p><b>NOTE:</b><ul><li>Value changes will not be effective for existing interfaces.<li>This setting is valid only for packet-based interfaces (no flow collection).</ul>",
-			    "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
+			    "On", "1", "success", "Off", "0", "danger", "dynamic_iface_vlan_creation", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
   
   local labels = {"None","Probe IP Address","Ingress Flow Interface"}
   local values = {"none","probe_ip","ingress_iface_idx"}
