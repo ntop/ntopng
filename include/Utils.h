@@ -64,7 +64,7 @@ class Utils {
   static void purifyHTTPparam(char *param, bool strict, bool allowURL);
   static char* stripHTML(const char * const str);
   static bool postHTTPJsonData(char *username, char *password, char *url, char *json);
-  static bool httpGet(lua_State* vm, char *url, char *username, 
+  static bool httpGet(lua_State* vm, char *url, char *username,
 		      char *password, int timeout, bool return_content);
   static char* urlEncode(char *url);
   static char* curlHTTPGet(char *url, long *http_code);
@@ -90,7 +90,9 @@ class Utils {
   static u_int32_t macHash(u_int8_t *mac);
   static bool isSpecialMac(u_int8_t *mac);
   static int numberOfSetBits(u_int32_t i);
-  
+  static u_int32_t in_cksum(unsigned char *buf, unsigned nbytes, u_int32_t sum);
+  static u_int32_t wrapsum(u_int32_t sum);
+
   /* Patricia Tree */
   static patricia_node_t* ptree_match(patricia_tree_t *tree, int family, void *addr, int bits);
   static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, char *line);
