@@ -2669,9 +2669,10 @@ end
 -- Extracts parameters from a lua table.
 -- This function performs the inverse conversion of javascript paramsPairsEncode.
 --
--- Note: plain parameters (not encoded with paramsPairsEncode) remain unchanged
+-- Note: plain parameters (not encoded with paramsPairsEncode) remain unchanged only
+-- when strict mode is *not* enabled
 --
-function paramsPairsDecode(params)
+function paramsPairsDecode(params, strict_mode)
    local res = {}
 
    for k,v in pairs(params) do
@@ -2684,7 +2685,7 @@ function paramsPairsDecode(params)
          end
       end
 
-      if res[v] == nil then
+      if((not strict_mode) and (res[v] == nil)) then
          -- this is a plain parameter
          res[k] = v
       end
