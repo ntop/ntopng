@@ -2413,8 +2413,8 @@ void Flow::updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id,
     if(p) {
       sa = p->getShaper(*a_shaper_id), sb = p->getShaper(*b_shaper_id);
 
-      passVerdict = ((sa && (sa->get_max_rate_kbit_sec() == 0))
-		     || (sb && (sb->get_max_rate_kbit_sec() == 0))) ? false : true;
+      passVerdict = ((sa && (sa->shaping_enabled()) && (sa->get_max_rate_kbit_sec() == 0))
+		     || (sb && (sa->shaping_enabled()) && (sb->get_max_rate_kbit_sec() == 0))) ? false : true;
     }
   } else
     *a_shaper_id = *b_shaper_id = PASS_ALL_SHAPER_ID;
