@@ -26,6 +26,7 @@ local  en = {
    save = "Save",
    save_settings = "Save Settings",
    all = "All",
+   define = "Define",
 
    traffic_report = {
       daily = "Daily",
@@ -51,7 +52,8 @@ local  en = {
       network_group = "Network",
       network_groups = "Networks",
       protocols = "Protocols",
-      create_networks = "Define Networks",
+      define_network = "Define Network",
+      define_networks = "Define Networks",
       manage_networks = "Manage Policies",
       bandwidth_manager = "Bandwidth Manager",
       shaper0_message = "Shaper 0 is the default shaper used for local hosts that have no shaper defined",

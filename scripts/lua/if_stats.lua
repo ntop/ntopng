@@ -1001,6 +1001,12 @@ elseif(page == "filtering") then
 
    -- ====================================
 
+   -- possibly decode parameters pairs
+   local _GET = paramsPairsDecode(_GET)
+
+   -- this is based upon maximum ipv6 address length
+   local NETWORK_FIELD_WIDTH = "23em"
+
 function get_shapers_from_parameters(callback)
    local done = {}
 
@@ -1049,12 +1055,6 @@ end
       local proto_shapers_cloned = false
 
       get_shapers_from_parameters(function(network_key, ingress_shaper, egress_shaper)
-         -- reconstruct from url encoded
-         -- TODO ipv6 local address format?
-         network_key = network_key:gsub("(%d+)_(%d+)_(%d+)_(%d+)", "%1.%2.%3.%4")
-         network_key = network_key:gsub("_2F", "/")
-         network_key = network_key:gsub("_40", "@")
-
          if(_GET["clone"] ~= nil) then
             local clone_from = shaper_utils.addVlan0(_GET["clone"])
 
@@ -1164,7 +1164,7 @@ end
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs" role="tablist">
       <li><a data-toggle="tab" role="tab" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
-      <li><a data-toggle="tab" role="tab" href="#networks">]] print(i18n("shaping.create_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#networks">]] print(i18n("shaping.define_networks")) print[[</a></li>
       <li><a data-toggle="tab" role="tab" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
@@ -1195,18 +1195,18 @@ locals_empty = (next(locals) == nil)
 -- ==== Create networks tab ====
 print [[<div id="networks" class="tab-pane"><br>
 
-<table class="table table-striped table-bordered"><tr><th>Define Network</th></tr><tr><td>
+<table class="table table-striped table-bordered"><tr><th>]] print(i18n("shaping.define_network")) print[[</th></tr><tr><td>
    <table class="table table-borderless"><tr>
       <div id="badnet" class="alert alert-danger" style="display: none"></div>
       <td><strong style="margin-right:1em">Network:</strong>
 ]]
 
 print[[
-         <input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
+         <input id="new_custom_network" type="text" class="form-control" style="width:]] print(NETWORK_FIELD_WIDTH) print[[; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
 ]]
 
 if not locals_empty then
-   print('<select class="form-control" id="new_network" style="width:12em; margin-right:1em; display:inline;">')
+   print('<select class="form-control" id="new_network" style="width:') print(NETWORK_FIELD_WIDTH) print('; margin-right:1em; display:inline;">')
    for s,_ in pairs(locals) do
       print('<option value="'..s..'">'..s..'</option>\n')
    end
@@ -1229,7 +1229,7 @@ for _,k in ipairs(nets) do
 end
       print[[</select></span></td>
    </tr></table>
-<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Define</button></td></tr>
+<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">]] print(i18n("define")) print[[</button></td></tr>
 </table>
 
 NOTES:<ul>
@@ -1254,7 +1254,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 </form>
 
 <table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
-]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
+]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control" name="network" style="width:]] print(NETWORK_FIELD_WIDTH) print[[; display:inline; margin-left:1em;">
 ]]
    for _,k in ipairs(nets) do
 	 if(k ~= "") then
@@ -1374,13 +1374,16 @@ function checkNetworksFormCallback() {
 
       // newtwork is valid here, now fill in the real form
       var netkey = new_net_name + "@" +  $("#new_vlan").val();
-      var form = $("#editNetworksForm");
+      var params = {};
+      params["network"] = netkey;
+      params["ishaper_" + netkey] = 0;
+      params["eshaper_" + netkey] = 0;
       if ($("#clone_from_select").attr("name") == "clone")
-         form.append('<input type="hidden" name="clone" value="' + $("#clone_from_select").find(":selected").val() + '">');
-      form.append('<input type="hidden" name="ishaper_' + netkey + '" value="0">');
-      form.append('<input type="hidden" name="eshaper_' + netkey + '" value="0">');
-      form.append('<input type="hidden" name="network" value="' + netkey + '">');
-      form.submit();
+         params["clone"] = $("#clone_from_select").find(":selected").val();
+
+      // encode parameters since networks could contain special characters
+      var encoded_params = paramsPairsEncode(params);
+      paramsToForm("#editNetworksForm", encoded_params).submit();
    }
 
    return false;

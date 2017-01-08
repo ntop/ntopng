@@ -2662,3 +2662,33 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
     return {html=html, init=js_init_code, js=js_specific_code, value=nil}
   end
 end
+
+-- ###########################################
+
+--
+-- Extracts parameters from a lua table.
+-- This function performs the inverse conversion of javascript paramsPairsEncode.
+--
+-- Note: plain parameters (not encoded with paramsPairsEncode) remain unchanged
+--
+function paramsPairsDecode(params)
+   local res = {}
+
+   for k,v in pairs(params) do
+      local sp = split(k, "key_")
+      if #sp == 2 then
+         local keyid = sp[2]
+         local value = "val_"..keyid
+         if params[value] then
+            res[v] = params[value]
+         end
+      end
+
+      if res[v] == nil then
+         -- this is a plain parameter
+         res[k] = v
+      end
+   end
+
+   return res
+end
