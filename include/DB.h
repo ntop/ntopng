@@ -34,7 +34,7 @@ class DB {
   virtual ~DB();
   
   virtual bool dumpFlow(time_t when, bool idle_flow, Flow *f, char *json);
-  virtual int exec_sql_query(lua_State *vm, char *sql, bool limit_rows);
+  virtual int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true);
   virtual void startDBLoop();
   virtual void flush(bool idle) {};
   virtual bool createDBSchema() {return false; /* override in non-schemaless subclasses */};

@@ -404,7 +404,9 @@ class NetworkInterface {
   inline bool is_bridge_interface()  { return(bridge_interface); }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);
-  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows) { return(db ? db->exec_sql_query(vm, sql, limit_rows) : -1); };
+  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
+    return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);
+  };
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
   void getsDPIStats(lua_State *vm);
