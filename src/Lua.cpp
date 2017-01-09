@@ -42,6 +42,8 @@ extern "C" {
 
 #include "../third-party/lsqlite3/lsqlite3.c"
 
+struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
+
 /* ******************************* */
 
 Lua::Lua() {
@@ -49,6 +51,7 @@ Lua::Lua() {
 
   if(L == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create Lua interpreter");
+    return;
   }
 }
 
@@ -102,7 +105,7 @@ static int ntop_dump_file(lua_State* vm) {
   char *fname;
   FILE *fd;
   struct mg_connection *conn;
-
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_getglobal(vm, CONST_HTTP_CONN);
@@ -117,31 +120,14 @@ static int ntop_dump_file(lua_State* vm) {
   ntop->fixPath(fname);
   if((fd = fopen(fname, "r")) != NULL) {
     char tmp[1024];
-
+    
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Serving file %s", fname);
 
-    while((fgets(tmp, sizeof(tmp), fd)) != NULL) {
-      char *http_prefix = strstr(tmp, CONST_HTTP_PREFIX_STRING);
+    while((fgets(tmp, sizeof(tmp)-256 /* To make sure we have room for replacements */, fd)) != NULL) {
+      for(int i=0; string_to_replace[i].key != NULL; i++)
+	Utils::replacestr(tmp, string_to_replace[i].key, string_to_replace[i].val);
 
-      if(http_prefix == NULL) {
-	mg_printf(conn, "%s", tmp);
-      } else {
-	char *begin = tmp;
-	int len = strlen(CONST_HTTP_PREFIX_STRING);
-
-	/* Replace CONST_HTTP_PREFIX_STRING with value specified with -Z */
-      handle_http_prefix:
-	http_prefix[0] = '\0';
-	mg_printf(conn, "%s", begin);
-	mg_printf(conn, "%s", ntop->getPrefs()->get_http_prefix());
-	begin = &http_prefix[len];
-	http_prefix = strstr(begin, CONST_HTTP_PREFIX_STRING);
-
-	if(http_prefix != NULL)
-	  goto handle_http_prefix;
-	else
-	  mg_printf(conn, "%s", begin);
-      }
+      mg_printf(conn, "%s", tmp);
     }
 
     fclose(fd);

@@ -38,7 +38,7 @@
 class Lua {
  private:
   lua_State *L; /**< The Lua state.*/
-
+  
   void lua_register_classes(lua_State *L, bool http_mode);
 
  public:

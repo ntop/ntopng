@@ -1925,3 +1925,24 @@ u_int32_t Utils::wrapsum(u_int32_t sum) {
   sum = ~sum & 0xFFFF;
   return(htons(sum));
 }
+
+/* ******************************************* */
+
+/* 
+   IMPORTANT: line buffer is large enough to contain the replaced string
+ */
+void Utils::replacestr(char *line, const char *search, const char *replace) {
+  char *sp;
+  int search_len, replace_len, tail_len;
+  
+  if ((sp = strstr(line, search)) == NULL) {
+    return;
+  }
+
+  search_len = strlen(search), replace_len = strlen(replace);
+  tail_len = strlen(sp+search_len);
+  
+  memmove(sp+replace_len,sp+search_len,tail_len+1);
+  memcpy(sp, replace, replace_len);
+}
+

@@ -40,6 +40,7 @@ class NtopPro;
 class Ntop {
  private:
   AddressTree local_interface_addresses;
+  char epoch_buf[11];
   char working_dir[MAX_PATH]; /**< Array of working directory. */
   char install_dir[MAX_PATH]; /**< Array of install directory. */
   char startup_dir[MAX_PATH]; /**< Array of startup directory. */
@@ -375,6 +376,8 @@ class Ntop {
   void initRedis();
   void initElasticSearch();
 
+  inline u_int32_t getStartime()        { return((u_int32_t)start_time); }
+  inline char*     getStartimeString()  { return(epoch_buf);             }
   inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
   inline int getUdpSock()               { return(udp_socket); }
 

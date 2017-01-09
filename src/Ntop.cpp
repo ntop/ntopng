@@ -41,6 +41,8 @@ static const char* dirs[] = {
   NULL
 };
 
+extern struct keyval string_to_replace[]; /* Lua.cpp */
+
 /* ******************************************* */
 
 Ntop::Ntop(char *appName) {
@@ -55,7 +57,7 @@ Ntop::Ntop(char *appName) {
   num_cpus = -1;
   num_defined_interfaces = 0;
   export_interface = NULL;
-  start_time = 0; /* It will be initialized by start() */
+  start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   memset(iface, 0, sizeof(iface));
   httpd = NULL, runtimeprefs = NULL, geo = NULL, hostBlacklistShadow = hostBlacklist = NULL;
 
@@ -264,7 +266,8 @@ void Ntop::createExportInterface() {
 void Ntop::start() {
   char daybuf[64], buf[32];
   time_t when = time(NULL);
-
+  int i = 0;
+  
   getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to ntopng %s v.%s - (C) 1998-2016 ntop.org",
 			 PACKAGE_MACHINE, PACKAGE_VERSION);
@@ -273,6 +276,11 @@ void Ntop::start() {
     getTrace()->traceEvent(TRACE_NORMAL, "Built on %s", PACKAGE_OS);
 
   start_time = time(NULL);
+  snprintf(epoch_buf, sizeof(epoch_buf), "%u", (u_int32_t)start_time);
+
+  string_to_replace[i].key = CONST_HTTP_PREFIX_STRING, string_to_replace[i].val = ntop->getPrefs()->get_http_prefix(); i++;
+  string_to_replace[i].key = CONST_NTOP_STARTUP_EPOCH, string_to_replace[i].val = ntop->getStartimeString(); i++;
+  string_to_replace[i].key = NULL, string_to_replace[i].val = NULL;
 
   strftime(daybuf, sizeof(daybuf), CONST_DB_DAY_FORMAT, localtime(&when));
   snprintf(buf, sizeof(buf), "ntopng.%s.hostkeys", daybuf);

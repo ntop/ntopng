@@ -303,6 +303,7 @@
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
 #define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
 #define CONST_HTTP_PREFIX_STRING     "@HTTP_PREFIX@"
+#define CONST_NTOP_STARTUP_EPOCH     "@NTOP_STARTUP_EPOCH@"
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 #define CONST_HTTP_CONN              "http.conn"
@@ -609,6 +610,8 @@
 #define _COMPILE_TIME_ASSERT3(X,L) _STATIC_ASSERT(X,static_assertion_at_line_##L)
 #define _COMPILE_TIME_ASSERT2(X,L) _COMPILE_TIME_ASSERT3(X,L)
 #define COMPILE_TIME_ASSERT(X)    _COMPILE_TIME_ASSERT2(X,__LINE__)
+
+#define MAX_NUM_HTTP_REPLACEMENTS                    3
 
 #define INTER_FLOW_ACTIVITY_SLOTS                    5
 #define INTER_FLOW_ACTIVITY_MAX_INTERVAL             5

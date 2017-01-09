@@ -298,5 +298,10 @@ typedef enum {
   flowhashing_ingress_iface_idx,
   flowhashing_vlan
 } FlowHashingEnum;
-  
+
+struct keyval {
+  const char *key;
+  char *val;
+};
+
 #endif /* _NTOP_TYPEDEFS_H_ */
