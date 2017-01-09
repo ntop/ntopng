@@ -2567,8 +2567,12 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
     local v = fmt_to_data[k]
     if v ~= nil then
       local line = {}
-      line[#line+1] = [[<label class="btn btn-default]]
-      if selected == k then line[#line+1] = [[ btn-primary active]] end
+      line[#line+1] = [[<label class="btn]]
+      if selected == k then
+	 line[#line+1] = [[ btn-primary active]]
+      else
+	 line[#line+1] = [[ btn-default]]
+      end
       line[#line+1] = [[ btn-sm"><input value="]] .. v[3] .. [[" title="]] .. v[1] .. [[" name="options_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
       if selected == k then line[#line+1] = [[ checked="checked"]] end
       line[#line+1] = [[/>]] .. v[2] .. [[</label>]]
