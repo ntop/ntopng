@@ -360,7 +360,7 @@ function printUsers()
 		       ,
 		       "ntopng.prefs.",
 		       "google_apis_browser_key",
-		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={pattern="[a-zA-Z0-9]{39}", spellcheck="false"} --[[ Google API keys consist of 39 alphanumeric characters ]] })
+		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
   if ntop.isPro() then
      print('<tr><th colspan=2 class="info">Authentication</th></tr>')
