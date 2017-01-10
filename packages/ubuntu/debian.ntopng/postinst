@@ -20,7 +20,7 @@ umask 022
 echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
-echo "Adding the ntopng startup script"
+echo "Adding the ntopng startup script [$1]"
 
 if [ -f /bin/systemctl ] ; then
   systemctl enable ntopng.service
