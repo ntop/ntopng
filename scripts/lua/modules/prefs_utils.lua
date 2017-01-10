@@ -233,14 +233,18 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   print [[
     <td align=right>
-      <div class="col-sm-0 col-md-1 col-lg-2"></div>
-      <div class="col-sm-12 col-md-6 col-lg-6">]]
+      <div class="col-sm-1 col-md-1 col-lg-3"></div>
+      <div class="col-sm-5 col-md-6 col-lg-5">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
-        if extra.width == nil then
-          
+      end
+
+      if extra.width == nil then
+        if _input_type == "number" then
+          style["width"] = "8em"
+        else
+          style["width"] = "18em"
         end
-        style["width"] = "10em"
         style["margin-left"] = "auto"
       else
         style["width"] = "15em"
