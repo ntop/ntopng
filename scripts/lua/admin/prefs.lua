@@ -42,8 +42,6 @@ else
   if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
 end
 
-local PREFS_INPUT_WIDTH_MEDIUM = "18em"
-
 local menu_subpages = {
   {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
   {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
@@ -271,7 +269,7 @@ end
 
   prefsInputFieldPrefs("Notification Wekhook",
 		       "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook",
-		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}})
 
 
   if (ntop.isPro()) then
@@ -394,7 +392,7 @@ function printUsers()
 			      "Choose your account type",
 			      labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
 
-     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}})
 
      local elementToSwitchBind = {"bind_dn","bind_pwd"}
      toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
@@ -412,10 +410,10 @@ function printUsers()
      print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
      print('<input style="display:none;" type="password" name="__" data-ays-ignore="true" />')
      --
-     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}})
      prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
 
-     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
      prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
      prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
 
