@@ -75,7 +75,7 @@ local function prefsResolutionButtons(fmt, value)
   if not options_script_loaded then
     print[[<script>
       function resol_selector_get_input(an_input) {
-        return $(".form-group > input", $(an_input).parent().parent().parent().parent()).first();
+        return $("input", $(an_input).closest(".form-group")).last();
       }
 
       /* This function scales values wrt selected resolution */
@@ -233,8 +233,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   print [[
     <td align=right>
-      <div class="col-sm-1 col-md-1 col-lg-3"></div>
-      <div class="col-sm-5 col-md-6 col-lg-5">]]
+      <table class="form-group" style="margin-bottom: 0;">
+        <tr>
+          <td style="vertical-align:top;">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
       end
@@ -254,13 +255,19 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       attributes = table.merge(attributes, extra.attributes)
 
       print[[
-         </div><div class="form-group">
-          <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
+          </td>
+          <td style="vertical-align:top; padding-left: 2em;">
+            <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>
-          <div class="help-block with-errors"></div>
-        </div>
-      </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:0;">
+            <div class="help-block with-errors text-right" style="height:1em;"></div>
+          </td>
+        </tr>
+      </table>
   </td></tr>
 ]]
 
