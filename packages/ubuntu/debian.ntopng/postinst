@@ -46,9 +46,9 @@ if [ -e /etc/ntopng/ntopng.start ] ; then
     echo "(Re)Starting ntopng..."
     
     if [ -f /bin/systemctl ] ; then
-	service ntopng start
+	service ntopng restart
     else
-	/etc/init.d/ntopng start
+	/etc/init.d/ntopng restart
     fi    
 fi
 
