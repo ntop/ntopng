@@ -432,7 +432,13 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     for nameCount = 1, #array_labels do
       local type_button = "btn-default"
       if(value == array_values[nameCount]) then
-        type_button = "btn-"..selected_color.."  active"
+        local color
+        if type(selected_color) == "table" then
+          color = selected_color[nameCount]
+        else
+          color = selected_color
+        end
+        type_button = "btn-"..color.."  active"
       end
       print('<button id="id_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..'" data-toggle="button">'..array_labels[nameCount]..'</button>\n')
     end
@@ -446,10 +452,17 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
       print(' field.val("'..array_values[nameCount]..'").trigger("change");\n')
 
       for indexLabel = 1, #array_labels do
+        local color
+        if type(selected_color) == "table" then
+          color = selected_color[indexLabel]
+        else
+          color = selected_color
+        end
+
         print[[ var class_]] print(array_values[indexLabel]) print[[ = document.getElementById("id_]] print(array_values[indexLabel]) print [[");
         class_]] print(array_values[indexLabel]) print[[.removeAttribute("class");]]
         if(array_values[indexLabel] == array_values[nameCount]) then
-          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(selected_color) print[[ active");]]
+          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(color) print[[ active");]]
         else
           print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-default");]]
         end
@@ -500,73 +513,15 @@ function loggingSelector(label, comment, submit_field, redis_key)
      value = "normal"
   end
 
-  if(value == "trace") then color = "default"
-  elseif(value == "debug") then color = "success"
-  elseif(value == "info") then color = "info"
-  elseif(value == "normal") then color = "primary"
-  elseif(value == "warning") then color = "warning"
-  elseif(value == "error") then color = "danger"
-  else color = "default"
-  end
+  local logging_values = {"trace", "debug", "info", "normal", "warning", "error"}
+  local color_map = {"default", "success", "info", "primary", "warning", "danger"}
+  local logging_keys = {}
+  local color = "default"
 
-  if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-  print[[
-     <input id="]] print(submit_field) print[[" name="]] print(submit_field) print[[" value="]] print(value) print[[" type="hidden">
-     <div class="dropdown">
-      <button class="btn btn-]] print(color) print[[ dropdown-toggle" type="button" data-toggle="dropdown">]] print(value:gsub("^%l", string.upper))
-  print[[
-      <span class="caret"></span></button>
-      <ul class="dropdown-menu dropdown-menu-right">
-        <li onclick="$('#]] print(submit_field) print[[').val('trace').trigger('change');"><a href="#">Trace</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('debug').trigger('change');"><a href="#">Debug</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('info').trigger('change');"><a href="#">Info</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('normal').trigger('change');"><a href="#">Normal</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('warning').trigger('change');"><a href="#">Warning</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('error').trigger('change');"><a href="#">Error</a></li>
-      </ul>
-    </div>
-    
-    <script type="text/javascript">
-      $(".dropdown-menu li a").click(function(){
-        $(this).parents('.btn-group').find('.dropdown-toggle').html($(this).text()+'<span class="caret"></span>');
-        $(".btn:first").removeClass("btn-default");
-        $(".btn:first").removeClass("btn-success");
-        $(".btn:first").removeClass("btn-info");
-        $(".btn:first").removeClass("btn-primary");
-        $(".btn:first").removeClass("btn-warning");
-        $(".btn:first").removeClass("btn-danger");
-        switch($(this).text()){
-            case "Trace":
-                $(".btn:first").addClass("btn-default");
-                $(".btn:first").html("Trace "+'<span class="caret"></span>');
-                break;
-            case "Debug":
-                $(".btn:first").addClass("btn-success");
-                $(".btn:first").html("Debug "+'<span class="caret"></span>');
-                break;
-            case "Info":
-                $(".btn:first").addClass("btn-info");
-                $(".btn:first").html("Info "+'<span class="caret"></span>');
-                break;
-            case "Normal":
-                $(".btn:first").addClass("btn-primary");
-                $(".btn:first").html("Normal "+'<span class="caret"></span>');
-                break;
-            case "Warning":
-                $(".btn:first").addClass("btn-warning");
-                $(".btn:first").html("Warning "+'<span class="caret"></span>');
-                break;
-            case "Error":
-                $(".btn:first").addClass("btn-danger");
-                $(".btn:first").html("Error "+'<span class="caret"></span>');
-                break;
-            default:
-                $(".btn:first").addClass("btn-default");
-        }
-      });
-    </script>
-  ]]
-  if(label ~= "") then print('</td></tr>') end
+  for i,v in ipairs(logging_values) do logging_keys[i] = firstToUpper(v) end
+
+  multipleTableButtonPrefs("Log level", "Choose the runtime logging level.",
+          logging_keys, logging_values, value, color_map, submit_field, redis_key)
 
   return(value)
 end
