@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -29,7 +29,7 @@ i18n.setLocale(locale)
 local res = {localized_msg_1 = i18n('welcome'),
 	     localized_msg_2 = i18n('version', {vers = ntop.getInfo()["version"]}),
 	     localized_msg_3 = i18n('report.period'),
-	     localized_msg_4 = i18n('report.date', {year=2016, day=10, month=11})}
+	     localized_msg_4 = i18n('report.date', {year=2016-17, day=10, month=11})}
 
 -- must use utf8 if you want to print special chars
 sendHTTPHeader('text/json; charset=utf-8')

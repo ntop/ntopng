@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -269,7 +269,7 @@ void Ntop::start() {
   int i = 0;
   
   getTrace()->traceEvent(TRACE_NORMAL,
-			 "Welcome to ntopng %s v.%s - (C) 1998-2016 ntop.org",
+			 "Welcome to ntopng %s v.%s - (C) 1998-17 ntop.org",
 			 PACKAGE_MACHINE, PACKAGE_VERSION);
 
   if(PACKAGE_OS[0] != '\0')
