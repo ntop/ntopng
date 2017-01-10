@@ -27,10 +27,10 @@ local options_ctr = 0
 
 local function prefsResolutionButtons(fmt, value)
   local fmt_to_data = {
-    ["s"] = {"Seconds", "Secs",  1},
-    ["m"] = {"Minutes", "Mins",  60},
-    ["h"] = {"Hours",   "Hours", 3600},
-    ["d"] = {"Days",    "Days",  3600*24},
+    ["s"] = {label="Secs",  value=1},
+    ["m"] = {label="Mins",  value=60},
+    ["h"] = {label="Hours", value=3600},
+    ["d"] = {label="Days",  value=3600*24},
   }
 
   local ctrl_id = "options_group_" .. options_ctr

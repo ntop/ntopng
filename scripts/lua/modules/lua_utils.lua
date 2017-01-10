@@ -2570,7 +2570,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
     string.gsub(fmt, ".", function(k)
       local v = fmt_to_data[k]
       if v ~= nil then
-        divisors[#divisors + 1] = {k=k, v=v[3]}
+        divisors[#divisors + 1] = {k=k, v=v.value}
       end
     end)
   end
@@ -2599,9 +2599,9 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       else
 	 line[#line+1] = [[ btn-default]]
       end
-      line[#line+1] = [[ btn-sm"><input value="]] .. v[3] .. [[" title="]] .. v[1] .. [[" name="options_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
+      line[#line+1] = [[ btn-sm"><input value="]] .. v.value .. [[" title="]] .. v.label .. [[" name="options_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
       if selected == k then line[#line+1] = [[ checked="checked"]] end
-      line[#line+1] = [[/>]] .. v[2] .. [[</label>]]
+      line[#line+1] = [[/>]] .. v.label .. [[</label>]]
 
       html_lines[#html_lines+1] = table.concat(line, "")
     end
@@ -2687,7 +2687,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
 
   if tonumber(value) ~= nil then
     -- returns the new value with selected resolution
-    return {html=html, init=js_init_code, js=js_specific_code, value=tonumber(value) / fmt_to_data[selected][3]}
+    return {html=html, init=js_init_code, js=js_specific_code, value=tonumber(value) / fmt_to_data[selected].value}
   else
     return {html=html, init=js_init_code, js=js_specific_code, value=nil}
   end
