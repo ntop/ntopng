@@ -619,7 +619,7 @@ print[[
 <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
 <input type=hidden name="subpage_active" value="]] print(subpage_active) print[["/>
 
-<br>Advanced Preferences &nbsp;
+<br>
 <div class="btn-group btn-toggle">
 ]]
 
@@ -628,16 +628,16 @@ local onclick_on  = ""
 local cls_off     = cls_on
 local onclick_off = onclick_on
 if show_advanced_prefs then
-   cls_on  = cls_on..' btn-success active'
+   cls_on  = cls_on..' btn-primary active'
    cls_off = cls_off..' btn-default'
    onclick_off = "this.form.submit();"
 else
    cls_on = cls_on..' btn-default'
-   cls_off = cls_off..' btn-danger active'
+   cls_off = cls_off..' btn-primary active'
    onclick_on = "this.form.submit();"
 end
-print('<button type="button" class="'..cls_on..'" onclick="'..onclick_on..'">On</button>')
-print('<button type="button" class="'..cls_off..'" onclick="'..onclick_off..'">Off</button>')
+print('<button type="button" class="'..cls_on..'" onclick="'..onclick_on..'">Expert View</button>')
+print('<button type="button" class="'..cls_off..'" onclick="'..onclick_off..'">Simple View</button>')
 
 print[[
 </div>
