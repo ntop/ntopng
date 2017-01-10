@@ -1004,9 +1004,6 @@ elseif(page == "filtering") then
    -- possibly decode parameters pairs
    local _GET = paramsPairsDecode(_GET)
 
-   -- this is based upon maximum ipv6 address length
-   local NETWORK_FIELD_WIDTH = "23em"
-
 function get_shapers_from_parameters(callback)
    local done = {}
 
@@ -1192,7 +1189,7 @@ end
 locals = ntop.getLocalNetworks()
 locals_empty = (next(locals) == nil)
 
--- ==== Create networks tab ====
+-- ==== Define networks tab ====
 print [[<div id="networks" class="tab-pane"><br>
 
 <table class="table table-striped table-bordered"><tr><th>]] print(i18n("shaping.define_network")) print[[</th></tr><tr><td>
@@ -1202,11 +1199,11 @@ print [[<div id="networks" class="tab-pane"><br>
 ]]
 
 print[[
-         <input id="new_custom_network" type="text" class="form-control" style="width:]] print(NETWORK_FIELD_WIDTH) print[[; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
+         <input id="new_custom_network" type="text" class="form-control network-selector" style="]] if not locals_empty then print('display:none') end print[[">
 ]]
 
 if not locals_empty then
-   print('<select class="form-control" id="new_network" style="width:') print(NETWORK_FIELD_WIDTH) print('; margin-right:1em; display:inline;">')
+   print('<select class="form-control network-selector" id="new_network" style="display:inline;">')
    for s,_ in pairs(locals) do
       print('<option value="'..s..'">'..s..'</option>\n')
    end
@@ -1239,7 +1236,7 @@ NOTES:<ul>
 </div>
 ]]
 
--- ==== Manage protocols tab ====
+-- ==== Manage policies tab ====
 
 print [[<div id="protocols" class="tab-pane"><br>
 
@@ -1254,7 +1251,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 </form>
 
 <table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
-]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control" name="network" style="width:]] print(NETWORK_FIELD_WIDTH) print[[; display:inline; margin-left:1em;">
+]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control network-selector" name="network" style="display:inline; margin-left:1em;">
 ]]
    for _,k in ipairs(nets) do
 	 if(k ~= "") then
@@ -1353,8 +1350,8 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
    var ingress_shaper_id = ingress_shaper.html();
    var egress_shaper_id = egress_shaper.html();
 
-   ingress_shaper.html('<select class="form-control shaper-selector" style="width:15em;" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
-   egress_shaper.html('<select class="form-control shaper-selector" style="width:15em;" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   ingress_shaper.html('<select class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   egress_shaper.html('<select class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
 
    /* Select the current value */
    $("select", ingress_shaper).val(ingress_shaper_id);
@@ -1688,7 +1685,7 @@ print[[     ];
 
 -- ******************************************
 
--- ==== Manage shapers tab ====
+-- ==== Bandwidth Manager tab ====
 
 print[[
   <div id="shapers" class="tab-pane">

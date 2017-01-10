@@ -137,8 +137,14 @@ min-width: 100px;
 
 /* For shaper id selection, should also inherit from form-control */
 .shaper-selector {
-  width: 10em;
+  width: 15em;
   margin: 0 auto;
+}
+
+/* For IPv4 / IPv6 network selection */
+.network-selector {
+  margin-right: 1em;
+  width: 23em;
 }
 
 /*Hide numeric input box spinners for 'no-spinner' class */
