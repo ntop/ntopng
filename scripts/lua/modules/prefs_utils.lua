@@ -53,7 +53,7 @@ local function prefsResolutionButtons(fmt, value)
   end
   selected = selected or string.sub(fmt, 1, 1)
 
-  print[[<div class="btn-group pull-right" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:inline;">]]
+  print[[<div class="btn-group pull-right" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:flex;">]]
 
   -- foreach character in format
   string.gsub(fmt, ".", function(k)
@@ -232,9 +232,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   style["margin-bottom"] = "0.5em"
 
   print [[
-    <td class="col-lg-4" align=right>
-      <div class="col-md-1"></div>
-      <div class="col-md-7">]]
+    <td align=right>
+      <div class="col-sm-0 col-md-1 col-lg-2"></div>
+      <div class="col-sm-12 col-md-6 col-lg-6">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
         if extra.width == nil then
