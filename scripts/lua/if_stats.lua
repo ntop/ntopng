@@ -1217,7 +1217,7 @@ end
    <td><strong style="margin-right:1em">VLAN</strong><input type="text" class="form-control" id="new_vlan" name="new_vlan" value="0" style="width:4em; display:inline;"></td>
    <td><strong style="margin-right:1em">Initial Policy:</strong>
          <div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">
-            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty">Default</button>
+            <button id="bt_initial_empty" type="button" class="btn btn-primary active" value="empty">Default</button>
             <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone">Clone</button>
          </div>
          <span id="clone_from_container" style="visibility:hidden;"><span style="margin: 0 1em 0 1em;">from</span>
@@ -1424,8 +1424,14 @@ function toggleCustomNetworkMode() {
          $("#clone_from_select").attr("name", "clone");
          $("#clone_from_container").css("visibility", "visible");
       }
-      $(active).removeClass("btn-default").addClass("btn-primary");
-      $(inactive).removeClass("btn-primary").addClass("btn-default");
+      $(active)
+         .removeClass("btn-default")
+         .addClass("active")
+         .addClass("btn-primary");
+      $(inactive)
+         .addClass("btn-default")
+         .removeClass("active")
+         .removeClass("btn-primary");
    });
 
    if (typeof add_new_network_at_startup != "undefined") {
