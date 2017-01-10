@@ -1183,7 +1183,7 @@ function print_shapers(shapers, curshaper_id, terminator)
       if(shaper.id == curshaper_id) then print(" selected") end
       print(">"..shaper.id.." (")
 
-      print(maxRateToString(shaper.rate)..")</option>"..terminator)
+      print(shaper_utils.shaperRateToString(shaper.rate)..")</option>"..terminator)
    end
 end
 
@@ -1353,8 +1353,8 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
    var ingress_shaper_id = ingress_shaper.html();
    var egress_shaper_id = egress_shaper.html();
 
-   ingress_shaper.html('<select class="form-control shaper-selector" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
-   egress_shaper.html('<select class="form-control shaper-selector" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   ingress_shaper.html('<select class="form-control shaper-selector" style="width:15em;" name="ishaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
+   egress_shaper.html('<select class="form-control shaper-selector" style="width:15em;" name="eshaper_'+suffix+'">]] print_shapers(shapers, "", "\\\n") print[[</select>');
 
    /* Select the current value */
    $("select", ingress_shaper).val(ingress_shaper_id);
@@ -1585,7 +1585,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(" Traffic to " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_to") .. " " .. this_net) print[[",
             field: "column_ingress_shaper",
             css: {
                width: '20%',
@@ -1593,7 +1593,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(" Traffic from " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_from") .. " " .. this_net) print[[",
             field: "column_egress_shaper",
             css: {
                width: '20%',
@@ -1733,6 +1733,12 @@ print[[
       input.appendTo(input_container);
       input_container.appendTo(div);
 
+      if ((shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) ||
+          (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
+         input.attr("disabled", "disabled");
+         buttons.find("label").attr("disabled", "disabled");
+      }
+
       // execute group specific code
       eval(replaceCtrlId(rate_buttons_code, shaper_id));
 
@@ -1821,15 +1827,9 @@ print[[
             var shaper_id = $("td:nth-child(1)", $(this)).html();
             var max_rate = $("td:nth-child(2)", $(this));
 
-            if (shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[)
-               max_rate.html("-1 (]] print(maxRateToString(-1)) print[[)");
-            else if (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)
-               max_rate.html("0 (]] print(maxRateToString(0)) print[[)");
-            else {
-               var rate_input = max_rate.find("input[name='shaper_rate']");
-               rate_input.remove();
-               shaperRateTextField(max_rate, shaper_id, rate_input.val());
-            }
+            var rate_input = max_rate.find("input[name='shaper_rate']");
+            rate_input.remove();
+            shaperRateTextField(max_rate, shaper_id, rate_input.val());
 
             addShaperActionsToRow($(this), shaper_id);
          });

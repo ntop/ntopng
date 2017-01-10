@@ -1840,12 +1840,7 @@ end
 function maxRateToString(max_rate)
    if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
    max_rate = tonumber(max_rate)
-   if(max_rate == -1) then
-      return("No Limit")
-   else
-      if(max_rate == 0) then
-	 return("Drop All Traffic")
-      else
+
 	 if(max_rate < 1000) then
 	    return(max_rate.." Kbit/s")
 	 else
@@ -1859,8 +1854,6 @@ function maxRateToString(max_rate)
 	       return(gbit.." Gbit/s")
 	    end
 	 end
-      end
-   end
 end
 
 -- makeTopStatsScriptsArray
@@ -2537,6 +2530,31 @@ function toboolean(s)
   end
 end
 
+--
+-- Find the highest divisor which divides input value.
+-- val_idx can be used to index divisors values.
+-- Returns the highest_idx
+--
+function highestDivisor(divisors, value, val_idx, iterator_fn)
+  local highest_idx = nil
+  local highest_val = nil
+  iterator_fn = iterator_fn or ipairs
+
+  for i, v in iterator_fn(divisors) do
+    local cmp_v
+    if val_idx ~= nil then
+      v = v[val_idx]
+    end
+
+    if((highest_val == nil) or ((v > highest_val) and (value % v == 0))) then
+      highest_val = v
+      highest_idx = i
+    end
+  end
+
+  return highest_idx
+end
+
 -- ###########################################
 
 -- Note: use data-min and data-max to setup ranges
@@ -2544,21 +2562,29 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
   local extra = extra or {}
   local html_lines = {}
 
-  local selected = nil
+  local divisors = {}
 
-  -- find the highest values which divides input value
+  -- fill in divisors
   if tonumber(value) ~= nil then
     -- foreach character in format
     string.gsub(fmt, ".", function(k)
       local v = fmt_to_data[k]
       if v ~= nil then
-        if((selected == nil) or ((v[3] > fmt_to_data[selected][3]) and (value % v[3] == 0))) then
-          selected = k
-        end
+        divisors[#divisors + 1] = {k=k, v=v[3]}
       end
     end)
   end
-  selected = selected or string.sub(fmt, 1, 1)
+
+  local selected = nil
+  if tonumber(value) ~= 0 then
+    selected = highestDivisor(divisors, value, "v")
+  end
+
+  if selected ~= nil then
+    selected = divisors[selected].k
+  else
+    selected = string.sub(fmt, 1, 1)
+  end
 
   html_lines[#html_lines+1] = [[<div class="btn-group ]] .. table.concat(extra.classes or {}, "") .. [[" id="]] .. ctrl_id .. [[" data-toggle="buttons" style="display:inline;">]]
 

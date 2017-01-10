@@ -70,6 +70,8 @@ local  en = {
       shapers_in_use_message = "Shapers can be deleted only if they are not applied to any network",
       no_shapers_available = "No shapers available",
       protocol_families = "Protocol Families",
+      traffic_to = "Traffic to",
+      traffic_from = "Traffic from",
    },
 
    alert_messages = {

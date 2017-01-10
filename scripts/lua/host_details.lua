@@ -537,8 +537,8 @@ print [[
 	 ingress_max_rate = shaper_utils.getShaperMaxRate(ifId, host["bridge.ingress_shaper_id"])
 	 egress_max_rate = shaper_utils.getShaperMaxRate(ifId, host["bridge.egress_shaper_id"])
 	 print("<p><table class=\"table table-bordered table-striped\"width=100%>")
-	 print("<tr><th>Ingress Policer</th><td>"..maxRateToString(ingress_max_rate).."</td></tr>")
-	 print("<tr><th>Egress Policer</th><td>"..maxRateToString(egress_max_rate).."</td></tr>")
+	 print("<tr><th>Ingress Policer</th><td>"..shaper_utils.shaperRateToString(ingress_max_rate).."</td></tr>")
+	 print("<tr><th>Egress Policer</th><td>"..shaper_utils.shaperRateToString(egress_max_rate).."</td></tr>")
          print("</table>")
       end
 
