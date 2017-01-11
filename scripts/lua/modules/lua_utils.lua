@@ -2586,7 +2586,8 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
     selected = string.sub(fmt, 1, 1)
   end
 
-  html_lines[#html_lines+1] = [[<div class="btn-group ]] .. table.concat(extra.classes or {}, "") .. [[" id="]] .. ctrl_id .. [[" data-toggle="buttons" style="display:inline;">]]
+  local style = table.merge({display="flex"}, extra.style or {})
+  html_lines[#html_lines+1] = [[<div class="btn-group ]] .. table.concat(extra.classes or {}, "") .. [[" id="]] .. ctrl_id .. [[" data-toggle="buttons" style="]] .. table.tconcat(style, ":", "; ", ";") .. [[">]]
 
   -- foreach character in format
   string.gsub(fmt, ".", function(k)
@@ -2615,7 +2616,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       var _resol_inputs = [];
 
       function resol_selector_get_input(an_input) {
-        return $(".form-group > input", $(an_input).parent().parent().parent().parent()).first();
+        return $("input", $(an_input).closest(".form-group")).last();
       }
 
       /* This function scales values wrt selected resolution */

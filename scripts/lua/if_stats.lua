@@ -1719,16 +1719,14 @@ print[[
    function shaperRateTextField(td_object, shaper_id, value) {
       // fix ctrl id
       var buttons = $(replaceCtrlId(td_object.html(), shaper_id));
-      var div = $('<div class="text-center" style="padding:0 1em;"></div>');
+      var div = $('<div class="text-center form-group" style="padding:0 1em; margin:0;"></div>');
       td_object.html("");
       div.appendTo(td_object);
       buttons.appendTo(div);
 
-      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:auto;" required/>');
+      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:1em; display:inline;" required/>');
       input.val(value);
-      var input_container = $('<div class="form-group" style="margin:0;"></div>');
-      input.appendTo(input_container);
-      input_container.appendTo(div);
+      input.appendTo(div);
 
       if ((shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) ||
           (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
