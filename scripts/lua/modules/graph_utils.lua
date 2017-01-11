@@ -637,7 +637,7 @@ if ntop.getPrefs().is_dump_flows_to_mysql_enabled
 then
    if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
       -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
-      historicalFlowsTabs(ifid, (host or ''), start_time, end_time, rrdFile, '', '', '', 5, 5)
+      historicalFlowsTabs(ifid, (host or ''), start_time, end_time, rrdFile, '', '', '', false)
    else
       printGraphTopFlows(ifid, (host or ''), _GET["epoch"], zoomLevel, rrdFile)
    end
@@ -1025,7 +1025,7 @@ function printGraphTopFlows(ifId, host, epoch, zoomLevel, l7proto)
    epoch_end = epoch
    epoch_begin = epoch-d
 
-   historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '')
+   historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, '', '', '', false)
 end
 
 -- ########################################################

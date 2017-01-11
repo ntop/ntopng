@@ -1409,7 +1409,7 @@ end
 
 -- ##########################################
 
-function historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, handle_selects)
+function historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, is_not_integrated)
    -- prepare some attributes that will be attached to divs
    local div_data = ""
 
@@ -1453,7 +1453,7 @@ function historicalFlowsTabs(ifId, host, epoch_begin, epoch_end, l7proto, l4prot
 
    print[[
 
-    <div class="tab-pane fade in active" id="historical-flows-summary">
+    <div class="tab-pane fade in]] if is_not_integrated then print(" active") end print[[" id="historical-flows-summary">
       <br>
       <div class="panel panel-default" id="historical-flows-summary-div">
         <div class="panel-heading"> <h3 class="panel-title">]] print(i18n("flow_search_results")) print[[</h3> </div>
@@ -1515,11 +1515,60 @@ function enableNavigation(toEnable) {
     selector = "li a";
 
   enableHistoricalTabs(selector, toEnable);
-]] if (handle_selects) then print[[
+]] if (is_not_integrated) then print[[
   $("select").each(function() { $(this).prop("disabled", !toEnable); });
 ]] end
 print[[
 }
+
+ function enableFlowsTabsConditionally(msg) {
+  if ((msg) &&
+      (msg.status === "ok") &&
+      ((msg.count.IPv4.tot_flows > 0) ||
+       (msg.count.IPv6.tot_flows > 0))) {
+
+    if(msg.count.IPv4.tot_flows > 0)
+      enableHistoricalTabs("a[href='#tab-ipv4']", true);
+    else
+      $("#historical-tabs-container a[href='#tab-ipv4']").closest("li").attr("data-manually-disabled", true);
+
+    if(msg.count.IPv6.tot_flows > 0)
+      enableHistoricalTabs("a[href='#tab-ipv6']", true);
+    else
+      $("#historical-tabs-container a[href='#tab-ipv6']").closest("li").attr("data-manually-disabled", true);
+
+    // populate the number of flows
+    $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows);
+    $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows);
+
+    // can be null in non-pro
+    if (typeof(recheckFlowsDownloadButtons) === "function")
+      recheckFlowsDownloadButtons();
+  } else {
+    // disable all tabs
+    $("#historical-tabs-container li").attr("data-manually-disabled", true);
+  }
+ }
+  
+
+ /* this function perfors an 'exist' query to enable flows tabs */
+ function initFlowTabsToEnable() {
+  enableNavigation(false);
+
+  xhr = $.ajax({
+    type: 'GET',]]
+print("url: '"..ntop.getHttpPrefix().."/lua/get_db_data.lua?ifname="..tostring(_GET["ifId"].."&limit=1").."', ")
+print("data: "..json.encode(_GET, nil)..",")
+print[[error: function() {
+      enableFlowsTabsConditionally(false);
+      enableNavigation(true);
+    },
+    success: function(msg){
+      enableFlowsTabsConditionally(msg);
+      enableNavigation(true);
+    }
+  });
+ }
   
  function loadFlowsSummary() {
   if ($('a[href="#historical-flows-summary"]').attr("loaded") == 1){
@@ -1553,40 +1602,20 @@ print[[
         err_msg = "Query failed with an unknown status " + xhr.statusText + err_msg
   
       $("#historical-flows-summary-body").html(err_msg).show();
+      enableFlowsTabsConditionally(false);
       enableNavigation(true);
     },
     success: function(msg){
+      enableFlowsTabsConditionally(msg);
+      enableNavigation(true);
+
       if(msg.status !== "ok") {
         $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i> ' + msg.statusText  + '</H5>').show()
-        enableNavigation(true);
         return;
       } else if(msg.count.IPv4.tot_flows <= 0 && msg.count.IPv6.tot_flows <= 0) {
         $("#historical-flows-summary-body").html('<H5><i class="fa fa-exclamation-triangle fa-2x"></i>&nbsp;]]print(i18n("error_no_search_results"))print[[</H5>').show();
-
-        // disable all tabs
-        $("#historical-tabs-container li").attr("data-manually-disabled", true);
-        enableNavigation(true);
         return;
       }
-
-      if(msg.count.IPv4.tot_flows > 0)
-        enableHistoricalTabs("a[href='#tab-ipv4']", true);
-      else
-        $("#historical-tabs-container a[href='#tab-ipv4']").closest("li").attr("data-manually-disabled", true);
-
-      if(msg.count.IPv6.tot_flows > 0)
-        enableHistoricalTabs("a[href='#tab-ipv6']", true);
-      else
-        $("#historical-tabs-container a[href='#tab-ipv6']").closest("li").attr("data-manually-disabled", true);
-      enableNavigation(true);
-  
-      // populate the number of flows
-      $("#tab-ipv4").attr("num_flows", msg.count.IPv4.tot_flows);
-      $("#tab-ipv6").attr("num_flows", msg.count.IPv6.tot_flows);
-
-      // can be null in non-pro
-      if (typeof(recheckFlowsDownloadButtons) === "function")
-        recheckFlowsDownloadButtons();
 
       var tr=""
       $.each(msg.count, function(ipvers, item){
@@ -1612,15 +1641,16 @@ print[[
   }, 15000)
 }
 
-/*$('a[href="#historical-flows-summary"]').on('shown.bs.tab', function(e) {
+$('a[href="#historical-flows-summary"]').on('shown.bs.tab', function(e) {
   var target = $(e.target).attr("href"); // activated tab
   loadFlowsSummary();
-});*/
+});
 
-// summary must always be loaded in order to enable other tabs
-// TODO this could lead to long queries that cannot be aborted in pages where "Flows Summary" tab is not active
-loadFlowsSummary();
+]] if not is_not_integrated then print[[
+  initFlowTabsToEnable();
+]] end -- otherwise the historical-flows-summary will be selected, so initFlowTabsToEnable is not needed
 
+print[[
 </script>
 ]]
 historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info)
