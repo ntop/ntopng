@@ -804,28 +804,34 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
     if(numVirtualInterfaces < MAX_NUM_VIRTUAL_INTERFACES) {
       if((h = (FlowHashing*)malloc(sizeof(FlowHashing))) != NULL) {
 	char buf[64], buf1[48];
+	const char *vIface_type;
 	
 	h->criteria = criteria;
 
 	switch(flowHashingMode) {
 	case flowhashing_vlan:
+	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
 	  snprintf(buf, sizeof(buf), "%s [vlanId: %u]", ifname, criteria);
 	  break;
 
 	case flowhashing_probe_ip:
+	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [probeIP: %s]", ifname,
 		   Utils::intoaV4(criteria, buf1, sizeof(buf1)));
 	  break;
 
 	case flowhashing_ingress_iface_idx:
+	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [ifIdx: %u]", ifname, criteria);
 	  break;
 
 	default:
+	  free(h);
+	  return(NULL);
 	  break;
 	}
 	
-	if((h->iface = new NetworkInterface(buf, CONST_INTERFACE_TYPE_FLOW)) != NULL) {
+	if((h->iface = new NetworkInterface(buf, vIface_type)) != NULL) {
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
 	  numVirtualInterfaces++;
@@ -833,10 +839,9 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");      
     }
+  }
 
-    if(h) return(h->iface);
-  } else
-    return(h->iface);
+  if(h) return(h->iface);
 
   return(NULL);
 }
@@ -1020,6 +1025,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     NetworkInterface *vIface;
     
     if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
+      vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
       return(vIface->processPacket(when, time, eth, vlan_id,
 				   iph, ip6, ipsize, rawsize,
 				   h, packet, ndpiProtocol));
@@ -1155,7 +1161,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* Updating Flow */
   flow = getFlow(eth_src, eth_dst, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
-		 l4_proto, &src2dst_direction, last_pkt_rcvd_remote, last_pkt_rcvd_remote, &new_flow);
+		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, &new_flow);
 
   if(flow == NULL) {
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
@@ -1431,7 +1437,6 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 				     u_int16_t *ndpiProtocol) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
-  static u_int64_t lasttime = 0;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
@@ -1452,9 +1457,6 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
   setTimeLastPktRcvd(h->ts.tv_sec);
 
   time = ((uint64_t) h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
-  if(lasttime > time) time = lasttime;
-
-  lasttime = time;
 
  datalink_check:
   if(pcap_datalink_type == DLT_NULL) {
