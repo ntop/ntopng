@@ -5781,11 +5781,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
   }
 
-  if(strstr(request_info->uri, "/admin/") && (!csrf_found)) {
-    const char *msg = "Missing CSRF parameter";
-    
-    return(send_error(conn, 500 /* Internal server error */, msg, PAGE_ERROR, request_info->uri, msg));
-  }
+  lua_push_bool_table_entry(L, "valid_csrf", csrf_found);
   
   lua_setglobal(L, "_GET"); /* Like in php */
 
