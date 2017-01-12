@@ -62,13 +62,18 @@ print [[
 ]]
 end
 
-print [[
-      <div id="table-hosts"></div>
-	 <script>
-	 var url_update = "]]
-print (ntop.getHttpPrefix())
-print [[/lua/get_hosts_data.lua?mode=]]
-print(mode)
+-- build the current filter url
+local filter_base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
+local filter_url_params = {}
+
+filter_url_params["mode"] = mode
+filter_url_params["os"] = os_
+filter_url_params["net"] = net
+filter_url_params["asn"] = asn
+filter_url_params["community"] = community
+filter_url_params["vlan"] = vlan
+filter_url_params["country"] = country
+filter_url_params["mac"] = mac
 
 if(protocol ~= nil) then
    -- Example HTTP.Facebook
@@ -77,47 +82,25 @@ if(protocol ~= nil) then
       protocol = string.sub(protocol, dot+1)
    end
 
-   print('&protocol='..protocol)
-end
-
-if(os_ ~= nil) then
-   print('&os='..os_)
-end
-
-if(net ~= nil) then
-   print('&net='..net)
-end
-
-if(asn ~= nil) then
-   print('&asn='..asn)
-end
-
-if(community ~= nil) then
-   print('&community='..community)
-end
-
-if(vlan ~= nil) then
-   print('&vlan='..vlan)
-end
-
-if(country ~= nil) then
-   print('&country='..country)
+   filter_url_params["protocol"] = protocol
 end
 
 if(network ~= nil) then
-   network_url='&network='..network
-   print(network_url)
+   filter_url_params["network"] = network
    network_name = ntop.getNetworkNameById(tonumber(network))
 else
    network_name = ""
-   network_url  = ""
 end
 
-if(mac ~= nil) then
-   print('&mac='..mac)
+function getPageUrl(params, base_url)
+   local base_url = base_url or filter_base_url
+   return base_url .. "?" .. table.tconcat(params, "=", "&")
 end
 
-print ('";')
+print [[
+      <div id="table-hosts"></div>
+	 <script>
+	 var url_update = "]] print(getPageUrl(filter_url_params, ntop.getHttpPrefix() .. "/lua/get_hosts_data.lua")) print[[";]]
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_id.inc")
 
@@ -197,14 +180,22 @@ print ('sort: [ ["' .. getDefaultTableSort("hosts") ..'","' .. getDefaultTableSo
 
 print [[    showPagination: true, ]]
 
-if(network_url == "") then
+if(filter_url_params.network == nil) then
+   local hosts_filter_params = table.clone(filter_url_params)
+
    print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
-   print (ntop.getHttpPrefix())
-   print ('/lua/hosts_stats.lua">All Hosts</a></li><li><a href="')
-   print (ntop.getHttpPrefix())
-   print ('/lua/hosts_stats.lua?mode=local">Local Hosts Only</a></li><li><a href="')
-   print (ntop.getHttpPrefix())
-   print ('/lua/hosts_stats.lua?mode=remote">Remote Hosts Only</a></li>')
+
+   hosts_filter_params.mode = nil
+   print (getPageUrl(hosts_filter_params))
+   print ('">All Hosts</a></li><li><a href="')
+
+   hosts_filter_params.mode = "local"
+   print (getPageUrl(hosts_filter_params))
+   print ('">Local Hosts Only</a></li><li><a href="')
+
+   hosts_filter_params.mode = "remote"
+   print (getPageUrl(hosts_filter_params))
+   print ('">Remote Hosts Only</a></li>')
    print("</ul>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' ],")
 else
    print('buttons: [ \'')

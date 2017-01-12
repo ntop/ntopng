@@ -2527,6 +2527,19 @@ function table.merge(a, b)
   return merged
 end
 
+function table.clone(t, filter)
+   local clone = {}
+   local filter = filter or function (k, v) return true end
+
+   for k, v in pairs(t) do
+      if filter(k, v) then
+         clone[k] = v
+      end
+   end
+
+   return clone
+end
+
 function toboolean(s)
   if s == "true" then
     return true
