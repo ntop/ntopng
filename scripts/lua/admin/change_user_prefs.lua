@@ -8,6 +8,7 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
+if(_GET["csrf"] ~= nil) then
 username = _GET["username"]
 host_role = _GET["host_role"]
 networks = _GET["networks"]
@@ -40,3 +41,4 @@ if(allowed_interface ~= nil) then
 end
 
 print ("{ \"result\" : 0, \"message\" : \"Parameters Updated\" }")
+end
