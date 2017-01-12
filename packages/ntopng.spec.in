@@ -94,6 +94,22 @@ rm -fr $RPM_BUILD_ROOT
 * Sun Jun 30 2013 Luca Deri <deri@ntop.org> 1.0
 - Current package version
 
+# Execution order:
+# install:    pre -> (copy) -> post
+# upgrade:    pre -> (copy) -> post -> preun (old) -> (delete old) -> postun (old)
+# un-install:                          preun       -> (delete)     -> postun
+
+%pre
+case "$1" in
+  1)
+    # install
+  ;;
+  2)
+    # upgrade
+    /etc/init.d/ntopng stop
+  ;;
+esac
+
 %post
 echo 'Setting up redis auto startup'
 /sbin/chkconfig redis on
@@ -106,8 +122,27 @@ if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local
 %else
 /sbin/chkconfig --add ntopng
 %endif
+case "$1" in
+  1)
+    # install
+    /etc/init.d/ntopng start
+  ;;
+  2)
+    # upgrade
+    /etc/init.d/ntopng start
+  ;;
+esac
 
 %preun
+case "$1" in
+  0)
+    # un-install
+    /etc/init.d/ntopng stop
+  ;;
+  1)
+    # upgrade
+  ;;
+esac
 %if 0%{?centos_ver} == 7
   /bin/systemctl disable ntopng.service
 %else
