@@ -5680,7 +5680,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
   char *_cookies, user[64] = { '\0' }, outbuf[FILENAME_MAX];
   AddressTree ptree;
   int rc;
-
+  bool csrf_found = false;
+  
   if(!L) return(-1);
 
   luaL_openlibs(L); /* Load base libraries */
@@ -5693,11 +5694,11 @@ int Lua::handle_script_request(struct mg_connection *conn,
   lua_newtable(L);
   if(request_info->query_string != NULL) {
     char *query_string = strdup(request_info->query_string);
-
+    
     if(query_string) {
       char *where;
       char *tok;
-
+      
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
 
       tok = strtok_r(query_string, "&", &where);
@@ -5759,6 +5760,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
 				    msg, PAGE_ERROR, query_string, msg));
 		} else
 		  ntop->getRedis()->delKey(decoded_buf);
+
+		csrf_found = true;
 	      }
 
 	      lua_push_str_table_entry(L, tok, decoded_buf);
@@ -5777,6 +5780,13 @@ int Lua::handle_script_request(struct mg_connection *conn,
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
   }
+
+  if(strstr(request_info->uri, "/admin/") && (!csrf_found)) {
+    const char *msg = "Missing CSRF parameter";
+    
+    return(send_error(conn, 500 /* Internal server error */, msg, PAGE_ERROR, request_info->uri, msg));
+  }
+  
   lua_setglobal(L, "_GET"); /* Like in php */
 
   /* _SERVER */
