@@ -8,6 +8,7 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
+if(_GET["csrf"] ~= nil) then
 if(haveAdminPrivileges()) then
    username = _GET["username"]
    full_name = _GET["full_name"]
@@ -32,4 +33,5 @@ if(haveAdminPrivileges()) then
    else
       print ("{ \"result\" : -1, \"message\" : \"Error while adding new user\" }")
    end
+end
 end

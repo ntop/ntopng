@@ -8,6 +8,7 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
+if(_GET["csrf"] ~= nil) then
 username = _GET["username"]
 old_password = _GET["old_password"]
 new_password = _GET["new_password"]
@@ -35,4 +36,5 @@ if(ntop.resetUserPassword(_SESSION["user"], username, old_password, new_password
    print ("{ \"result\" : 0, \"message\" : \"Password changed successfully\" }")
 else
    print ("{ \"result\" : -1, \"message\" : \"Unable to set the new user password: perhaps the old password was invalid ?\" }")
+end
 end
