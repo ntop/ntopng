@@ -696,4 +696,8 @@ if(_GET["disable_alerts_generation"] ~= nil) then
   ntop.reloadPreferences()
 end
 
+if(_GET["toggle_malware_probing"] ~= nil) then
+  loadHostBlackList(true --[[ force the reload of the list ]])
 end
+
+end --[[ haveAdminPrivileges ]]
