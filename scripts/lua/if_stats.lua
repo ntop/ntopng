@@ -1001,6 +1001,9 @@ elseif(page == "filtering") then
 
    -- ====================================
 
+   -- possibly decode parameters pairs
+   local _GET = paramsPairsDecode(_GET)
+
 function get_shapers_from_parameters(callback)
    local done = {}
 
@@ -1025,6 +1028,12 @@ function get_shapers_from_parameters(callback)
       end
    end
 end
+   local perPageProtos
+   if tonumber(tablePreferences("protocolShapers")) == nil then
+      perPageProtos = "10"
+   else
+      perPageProtos = tablePreferences("protocolShapers")
+   end
 
    if (_GET["view_network"] ~= nil) then
       -- this is used by host_details.lua. Checks if the network exists, otherwise creates it
@@ -1043,12 +1052,6 @@ end
       local proto_shapers_cloned = false
 
       get_shapers_from_parameters(function(network_key, ingress_shaper, egress_shaper)
-         -- reconstruct from url encoded
-         -- TODO ipv6 local address format?
-         network_key = network_key:gsub("(%d+)_(%d+)_(%d+)_(%d+)", "%1.%2.%3.%4")
-         network_key = network_key:gsub("_2F", "/")
-         network_key = network_key:gsub("_40", "@")
-
          if(_GET["clone"] ~= nil) then
             local clone_from = shaper_utils.addVlan0(_GET["clone"])
 
@@ -1102,6 +1105,8 @@ end
       selected_network = shaper_utils.ANY_NETWORK
    end
 
+   local SHAPERS_MAX_RATE_KPBS = 100*1000*1000           -- 100 Gbit/s
+
    if((_GET["csrf"] ~= nil) and (_GET["add_shapers"] ~= nil)) then
       local num_added = 0
       local last_added = nil
@@ -1112,7 +1117,7 @@ end
             local max_rate = tonumber(mrate)
             --~ tprint(shaper_id.." "..max_rate)
 
-            if(max_rate > 1048576) then max_rate = -1 end
+            if(max_rate > SHAPERS_MAX_RATE_KPBS) then max_rate = -1 end
             if(max_rate < -1) then max_rate = -1 end
 
             shaper_utils.setShaperMaxRate(ifid, shaper_id, max_rate)
@@ -1154,10 +1159,10 @@ end
       jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network="..target_net.."#protocols")
    end
    print [[
-   <ul id="filterPageTabPanel" class="nav nav-tabs">
-      <li><a data-toggle="tab" class="btn" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#networks">]] print(i18n("shaping.create_networks")) print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
+   <ul id="filterPageTabPanel" class="nav nav-tabs" role="tablist">
+      <li><a data-toggle="tab" role="tab" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#networks">]] print(i18n("shaping.define_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
 
@@ -1175,7 +1180,7 @@ function print_shapers(shapers, curshaper_id, terminator)
       if(shaper.id == curshaper_id) then print(" selected") end
       print(">"..shaper.id.." (")
 
-      print(maxRateToString(shaper.rate)..")</option>"..terminator)
+      print(shaper_utils.shaperRateToString(shaper.rate)..")</option>"..terminator)
    end
 end
 
@@ -1184,21 +1189,21 @@ end
 locals = ntop.getLocalNetworks()
 locals_empty = (next(locals) == nil)
 
--- ==== Create networks tab ====
+-- ==== Define networks tab ====
 print [[<div id="networks" class="tab-pane"><br>
 
-<table class="table table-striped table-bordered"><tr><th>Define Network</th></tr><tr><td>
+<table class="table table-striped table-bordered"><tr><th>]] print(i18n("shaping.define_network")) print[[</th></tr><tr><td>
    <table class="table table-borderless"><tr>
       <div id="badnet" class="alert alert-danger" style="display: none"></div>
       <td><strong style="margin-right:1em">Network:</strong>
 ]]
 
 print[[
-         <input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
+         <input id="new_custom_network" type="text" class="form-control network-selector" style="]] if not locals_empty then print('display:none') end print[[">
 ]]
 
 if not locals_empty then
-   print('<select class="form-control" id="new_network" style="width:12em; margin-right:1em; display:inline;">')
+   print('<select class="form-control network-selector" id="new_network" style="display:inline;">')
    for s,_ in pairs(locals) do
       print('<option value="'..s..'">'..s..'</option>\n')
    end
@@ -1209,7 +1214,7 @@ end
    <td><strong style="margin-right:1em">VLAN</strong><input type="text" class="form-control" id="new_vlan" name="new_vlan" value="0" style="width:4em; display:inline;"></td>
    <td><strong style="margin-right:1em">Initial Policy:</strong>
          <div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">
-            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty">Default</button>
+            <button id="bt_initial_empty" type="button" class="btn btn-primary active" value="empty">Default</button>
             <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone">Clone</button>
          </div>
          <span id="clone_from_container" style="visibility:hidden;"><span style="margin: 0 1em 0 1em;">from</span>
@@ -1221,7 +1226,7 @@ for _,k in ipairs(nets) do
 end
       print[[</select></span></td>
    </tr></table>
-<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Define</button></td></tr>
+<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">]] print(i18n("define")) print[[</button></td></tr>
 </table>
 
 NOTES:<ul>
@@ -1231,7 +1236,7 @@ NOTES:<ul>
 </div>
 ]]
 
--- ==== Manage protocols tab ====
+-- ==== Manage policies tab ====
 
 print [[<div id="protocols" class="tab-pane"><br>
 
@@ -1246,7 +1251,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 </form>
 
 <table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
-]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
+]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control network-selector" name="network" style="display:inline; margin-left:1em;">
 ]]
    for _,k in ipairs(nets) do
 	 if(k ~= "") then
@@ -1275,36 +1280,6 @@ local protos = interface.getnDPIProtocols()
 local protos_in_use = shaper_utils.getNetworkProtoShapers(ifid, net, true --[[ do not aggregate into categories ]])
 local protocol_categories = shaper_utils.getCategoriesWithProtocols()
 
-function print_ndpi_protocols(protos, selected, excluded, terminator)
-   selected = selected or {}
-   excluded = excluded or {}
-   terminator = terminator or "\n"
-
-   for k,v in pairsByKeys(protos, asc) do
-      if((k ~= "GRE")
-	    and (k ~= "BGP")
-	    and (k ~= "IGMP")
-	    and (k ~= "IPP")
-	    and (k ~= "IP_in_IP")
-	    and (k ~= "OSPF")
-	    and (k ~= "PPTP")
-	    and (k ~= "SCTP")
-	    and (k ~= "TFTP")
-      ) then
-	 print("<option value=\""..v.."\" data-category=\""..(interface.getnDPIProtoCategory(tonumber(v)).id).."\"")
-
-	 --print(""..v.."<p>")
-	 if (excluded[v] or excluded[k]) then
-	    print(' disabled="disabled"')
-	 elseif(selected[v] ~= nil) then
-	    print(' selected="selected"')
-	 end
-
-	 print(">"..k.."</option>"..terminator)
-      end
-   end
-end
-
 -- families of protocols which are currently used by at least one protocol
 local categories_in_use = {}
 for k,v in pairs(protos_in_use) do
@@ -1312,23 +1287,45 @@ for k,v in pairs(protos_in_use) do
 
    -- can be null for default
    if proto_id ~= nil then
-      local family = interface.getnDPIProtoCategory(proto_id)
-      if not categories_in_use[family.id] then
-         categories_in_use[family.id] = 1
+      local category_id = tostring(interface.getnDPIProtoCategory(proto_id).id)
+      if not categories_in_use[category_id] then
+         categories_in_use[category_id] = 1
       else
-         categories_in_use[family.id] = categories_in_use[family.id] + 1
+         categories_in_use[category_id] = categories_in_use[category_id] + 1
       end
    end
 end
 
-function print_ndpi_families(categories, excluded, terminator)
+function print_ndpi_families_and_protocols(categories, protos, categories_disabled, protos_disabled, terminator)
+   local protos_excluded = {GRE=1, BGP=1, IGMP=1, IPP=1, IP_in_IP=1, OSPF=1, PPTP=1, SCTP=1, TFTP=1}
+
+   print('<optgroup label="'..i18n("shaping.protocol_families")..'">')
    for k,category in pairsByKeys(categories, asc) do
-      if category.id ~= 0 then
-         print('<option value="cat_'..category.id..'"')
-         if excluded[category.id] ~= nil then print(' disabled="disabled"') end
-         print('>'..k.." (<i>".. category.count .. " " .. string.lower(i18n("shaping.protocols")) .. "</i>)"..'</option>'..terminator)
+      print('<option value="cat_'..category.id..'"')
+      if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
+      print('>' .. k .. " " .. ' ('.. category.count .. ')</option>'..terminator)
+   end
+   print('</optgroup>')
+
+   print('<optgroup label="'..i18n("shaping.protocols")..'">')
+   for protoName,protoId in pairsByKeys(protos, asc) do
+      if not protos_excluded[protoName] then
+         -- find protocol category
+         for _,category in pairs(categories) do
+            for _,catProto in pairs(category.protos) do
+               if catProto == protoId then
+                  print('<option value="'..protoId..'" data-category="'..category.id..'"')
+                  if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
+                     print(' disabled="disabled"')
+                  end
+                  print(">"..protoName.."</option>"..terminator)
+                  break
+               end
+            end
+         end
       end
    end
+   print('</optgroup>')
 end
 
    print [[<div id="table-protos"></div>
@@ -1374,13 +1371,16 @@ function checkNetworksFormCallback() {
 
       // newtwork is valid here, now fill in the real form
       var netkey = new_net_name + "@" +  $("#new_vlan").val();
-      var form = $("#editNetworksForm");
+      var params = {};
+      params["network"] = netkey;
+      params["ishaper_" + netkey] = 0;
+      params["eshaper_" + netkey] = 0;
       if ($("#clone_from_select").attr("name") == "clone")
-         form.append('<input type="hidden" name="clone" value="' + $("#clone_from_select").find(":selected").val() + '">');
-      form.append('<input type="hidden" name="ishaper_' + netkey + '" value="0">');
-      form.append('<input type="hidden" name="eshaper_' + netkey + '" value="0">');
-      form.append('<input type="hidden" name="network" value="' + netkey + '">');
-      form.submit();
+         params["clone"] = $("#clone_from_select").find(":selected").val();
+
+      // encode parameters since networks could contain special characters
+      var encoded_params = paramsPairsEncode(params);
+      paramsToForm("#editNetworksForm", encoded_params).submit();
    }
 
    return false;
@@ -1421,8 +1421,14 @@ function toggleCustomNetworkMode() {
          $("#clone_from_select").attr("name", "clone");
          $("#clone_from_container").css("visibility", "visible");
       }
-      $(active).removeClass("btn-default").addClass("btn-primary");
-      $(inactive).removeClass("btn-primary").addClass("btn-default");
+      $(active)
+         .removeClass("btn-default")
+         .addClass("active")
+         .addClass("btn-primary");
+      $(inactive)
+         .addClass("btn-default")
+         .removeClass("active")
+         .removeClass("btn-primary");
    });
 
    if (typeof add_new_network_at_startup != "undefined") {
@@ -1465,11 +1471,7 @@ function toggleCustomNetworkMode() {
       new_row_ctr += 1;
 
       var tr = $('<tr id="' + newid + '" ><td><select class="form-control" name="new_protocol_id">\
-         <optgroup label="]] print(i18n("shaping.protocol_families")) print[[">\
-            ]] print_ndpi_families(protocol_categories, categories_in_use, "\\") print[[
-         </optgroup>\
-         <optgroup label="]] print(i18n("shaping.protocols")) print[[">\
-]] print_ndpi_protocols(protos, {}, protos_in_use, "\\") print[[
+            ]] print_ndpi_families_and_protocols(protocol_categories, protos, categories_in_use, protos_in_use, "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
@@ -1566,7 +1568,7 @@ function toggleCustomNetworkMode() {
    print (ntop.getHttpPrefix())
    print [[/lua/get_l7_proto_policies.lua?ifid=]] print(ifid.."") print[[&network=]] print(net) print[[",
       showPagination: true,
-      perPage: 5,
+      perPage: ]] print(perPageProtos) print[[,
       title: "",
       forceTable: true,
       buttons: [
@@ -1580,7 +1582,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(" Traffic to " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_to") .. " " .. this_net) print[[",
             field: "column_ingress_shaper",
             css: {
                width: '20%',
@@ -1588,7 +1590,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(" Traffic from " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_from") .. " " .. this_net) print[[",
             field: "column_egress_shaper",
             css: {
                width: '20%',
@@ -1683,7 +1685,7 @@ print[[     ];
 
 -- ******************************************
 
--- ==== Manage shapers tab ====
+-- ==== Bandwidth Manager tab ====
 
 print[[
   <div id="shapers" class="tab-pane">
@@ -1702,10 +1704,38 @@ print[[
    <br/><div id="table-shapers"></div>
 
    <script>
+]]
+
+local rate_buttons = shaper_utils.rateButtons(1)
+print(rate_buttons.init.."\n")
+
+print[[
+   var rate_buttons_code = ']] print(rate_buttons.js) print[[';
+
+   function replaceCtrlId(v, shaper_id) {
+      return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, "shaper_max_rate_" + shaper_id);
+   }
+
    function shaperRateTextField(td_object, shaper_id, value) {
-      var input = $('<input name="shaper_' + shaper_id + '" class="form-control no-spinner" type="number" min="-1"/>');
+      // fix ctrl id
+      var buttons = $(replaceCtrlId(td_object.html(), shaper_id));
+      var div = $('<div class="text-center form-group" style="padding:0 1em; margin:0;"></div>');
+      td_object.html("");
+      div.appendTo(td_object);
+      buttons.appendTo(div);
+
+      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:1em; display:inline;" required/>');
       input.val(value);
-      td_object.html(input);
+      input.appendTo(div);
+
+      if ((shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) ||
+          (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
+         input.attr("disabled", "disabled");
+         buttons.find("label").attr("disabled", "disabled");
+      }
+
+      // execute group specific code
+      eval(replaceCtrlId(rate_buttons_code, shaper_id));
 
       if((typeof shaper_just_added != "undefined") && (shaper_just_added == shaper_id))
          input.focus();
@@ -1766,10 +1796,10 @@ print[[
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("max_rate")) print[[ (Kbps)",
+            title: "]] print(i18n("max_rate")) print[[",
             field: "column_max_rate",
             css : {
-               width: '10%',
+               width: '25em',
                verticalAlign: 'middle'
             }
          }, {
@@ -1792,12 +1822,9 @@ print[[
             var shaper_id = $("td:nth-child(1)", $(this)).html();
             var max_rate = $("td:nth-child(2)", $(this));
 
-            if (shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[)
-               max_rate.html("-1 (]] print(maxRateToString(-1)) print[[)");
-            else if (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)
-               max_rate.html("0 (]] print(maxRateToString(0)) print[[)");
-            else
-               shaperRateTextField(max_rate, shaper_id, max_rate.html());
+            var rate_input = max_rate.find("input[name='shaper_rate']");
+            rate_input.remove();
+            shaperRateTextField(max_rate, shaper_id, rate_input.val());
 
             addShaperActionsToRow($(this), shaper_id);
          });
@@ -1838,7 +1865,6 @@ print [[</form>
    /*** Page Tab State ***/
    $('#filterPageTabPanel a').click(function(e) {
      e.preventDefault();
-     $(this).tab('show');
    });
 
    // store the currently selected tab in the hash value

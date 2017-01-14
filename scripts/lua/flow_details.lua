@@ -209,12 +209,12 @@ else
       cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate =shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_egress"]) if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
 
       cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_egress"])  if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
       print("</tr>")
    end
 
