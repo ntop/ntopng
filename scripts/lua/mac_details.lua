@@ -65,12 +65,12 @@ if(s ~= mac) then
      print(" ("..s..")")
 end
 
-if(_GET["custom_name"] ~=nil) then
- setHostAltName(mac, _GET["custom_name"])
+if(_POST["custom_name"] ~=nil) then
+ setHostAltName(mac, _POST["custom_name"])
 end
 
-if(_GET["custom_icon"] ~=nil) then
- setHostIcon(mac, _GET["custom_icon"])
+if(_POST["custom_icon"] ~=nil) then
+ setHostIcon(mac, _POST["custom_icon"])
 end
 
 print(getHostIcon(mac))
@@ -85,11 +85,7 @@ print("</td>")
 if(isAdministrator()) then
        print("<td>")
 
-       print [[<form class="form-inline" style="margin-bottom: 0px;">]]
-
-       print[[<input type="hidden" name="mac" value="]] print(mac) print[[">]]
-       print[[<input type="hidden" name="vlan" value="]] print(vlanId.."") print[[">]]
-
+       print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
        print[[<input type="text" name="custom_name" placeholder="Custom Name" value="]]
       if(label ~= nil) then print(label) end
       print("\"></input>")

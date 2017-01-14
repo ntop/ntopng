@@ -33,10 +33,10 @@ if(haveAdminPrivileges()) then
 
 subpage_active = _GET["subpage_active"]
 
-if toboolean(_GET["show_advanced_prefs"]) ~= nil then
-  ntop.setPref(show_advanced_prefs_key, _GET["show_advanced_prefs"])
-  show_advanced_prefs = toboolean(_GET["show_advanced_prefs"])
-  notifyNtopng(show_advanced_prefs_key, _GET["show_advanced_prefs"])
+if toboolean(_POST["show_advanced_prefs"]) ~= nil then
+  ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+  show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
+  notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
 else
    show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
@@ -76,8 +76,7 @@ end
 -- ================================================================================
 
 function printReportVisualization()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="report"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Report Visualization</th></tr>')
 
@@ -93,8 +92,7 @@ end
 -- ================================================================================
 
 function printInterfaces()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="ifaces"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Dynamic Network Interfaces</th></tr>')
 
@@ -124,8 +122,7 @@ end
 -- ================================================================================
 
 function printTopTalkers()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="top_talkers"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
 
@@ -142,8 +139,7 @@ end
 -- ================================================================================
 
 function printStatsDatabases()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="on_disk_dbs"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 
@@ -172,8 +168,7 @@ end
 
 function printAlerts()
    if prefs.has_cmdl_disable_alerts then return end
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="alerts"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Alerts</th></tr>')
 
@@ -309,8 +304,7 @@ end
 -- ================================================================================
 
 function printNbox()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="nbox"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">nBox Integration</th></tr>')
@@ -340,8 +334,7 @@ end
 -- ================================================================================
 
 function printUsers()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="users"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">Web User Interface</th></tr>')
@@ -453,8 +446,7 @@ end
 -- ================================================================================
 
 function printInMemory()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="in_memory"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">Idle Timeout Settings</th></tr>')
@@ -504,8 +496,7 @@ end
 -- ================================================================================
 
 function printStatsRrds()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="on_disk_rrds"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Local Hosts and Networks Timeseries</th></tr>')
 
@@ -579,8 +570,7 @@ end
 
 function printLogging()
   if prefs.has_cmdl_trace_lvl then return end
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="logging"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Logging</th></tr>')
 
@@ -613,9 +603,10 @@ print[[
            <div align="center">
 
             <div id="prefs_toggle" class="btn-group">
-              <form>
+              <form method="post">
+<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
 <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
-<input type=hidden name="subpage_active" value="]] print(subpage_active) print[["/>
+
 
 <br>
 <div class="btn-group btn-toggle">
@@ -691,12 +682,12 @@ aysHandleForm("form[id!='search-host-form']");
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
-if(_GET["disable_alerts_generation"] ~= nil) then
+if(_POST["disable_alerts_generation"] ~= nil) then
   -- Check if we navigate the page or if we have set something
   ntop.reloadPreferences()
 end
 
-if(_GET["toggle_malware_probing"] ~= nil) then
+if(_POST["toggle_malware_probing"] ~= nil) then
   loadHostBlackList(true --[[ force the reload of the list ]])
 end
 

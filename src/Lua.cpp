@@ -5789,7 +5789,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
           csrf, rsp, user, "csrf");
 
       return(send_error(conn, 500 /* Internal server error */,
-          msg, PAGE_ERROR, ((request_info->query_string) ? (request_info->query_string) : ("")), msg));
+          msg, PAGE_ERROR, script_path, msg));
     } else {
       /* Invalidate csrf */
       ntop->getRedis()->delKey(csrf);

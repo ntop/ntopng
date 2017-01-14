@@ -62,8 +62,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     k = prekey.."."..key
   end
 
-  if(_GET[key] ~= nil) then
-    v_s = _GET[key]
+  if(_POST[key] ~= nil) then
+    v_s = _POST[key]
     v = tonumber(v_s)
 
     v_cache = ntop.getPref(k)
@@ -176,9 +176,9 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 end
 
 function toggleTableButton(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field, redis_key, disabled)
-  if(_GET[submit_field] ~= nil) then
-    ntop.setPref(redis_key, _GET[submit_field])
-    value = _GET[submit_field]
+  if(_POST[submit_field] ~= nil) then
+    ntop.setPref(redis_key, _POST[submit_field])
+    value = _POST[submit_field]
     notifyNtopng(submit_field)
   else
     value = ntop.getPref(redis_key)
@@ -201,7 +201,7 @@ function toggleTableButton(label, comment, on_label, on_value, on_color , off_la
   end
 
   if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-  print('<form>\n<div class="btn-group btn-toggle">')
+  print('<form method="post">\n<div class="btn-group btn-toggle">')
   print('<button type="submit" '..disabled..' class="btn btn-sm  '..on_active..'">'..on_label..'</button>')
   print('<button '..disabled..' class="btn btn-sm '..off_active..'">'..off_label..'</button></div>\n')
   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -216,10 +216,10 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement)
 
   value = ntop.getPref(redis_key)
-  if(_GET[submit_field] ~= nil) then
-    if ( (value == nil) or (value ~= _GET[submit_field])) then
-      ntop.setPref(redis_key, _GET[submit_field])
-      value = _GET[submit_field]
+  if(_POST[submit_field] ~= nil) then
+    if ( (value == nil) or (value ~= _POST[submit_field])) then
+      ntop.setPref(redis_key, _POST[submit_field])
+      value = _POST[submit_field]
       notifyNtopng(submit_field)
     end
   else
@@ -312,9 +312,9 @@ end
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
                                   javascriptAfterSwitch, showElement)
-  if(_GET[submit_field] ~= nil) then
-    ntop.setPref(redis_key, _GET[submit_field])
-    value = _GET[submit_field]
+  if(_POST[submit_field] ~= nil) then
+    ntop.setPref(redis_key, _POST[submit_field])
+    value = _POST[submit_field]
     notifyNtopng(submit_field)
   else
     value = ntop.getPref(redis_key)
@@ -414,10 +414,10 @@ function loggingSelector(label, comment, submit_field, redis_key)
   prefs = ntop.getPrefs()
   if prefs.has_cmdl_trace_lvl then return end
 
-  if(_GET[submit_field] ~= nil) then
-    ntop.setCache(redis_key, _GET[submit_field])
-    value = _GET[submit_field]
-    notifyNtopng(submit_field, _GET[submit_field])
+  if(_POST[submit_field] ~= nil) then
+    ntop.setCache(redis_key, _POST[submit_field])
+    value = _POST[submit_field]
+    notifyNtopng(submit_field, _POST[submit_field])
   else
     value = ntop.getCache(redis_key)
   end

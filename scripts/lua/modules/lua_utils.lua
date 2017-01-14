@@ -2107,7 +2107,7 @@ end
 
 -- prints purged information for hosts / flows
 function purgedErrorString()
-    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=data_purge"><i class="fa fa-flask"></i> Preferences</A>.'
+    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=in_memory"><i class="fa fa-flask"></i> Preferences</A>.'
 end
 
 -- print TCP flags
@@ -2346,42 +2346,6 @@ print [[
 </div>
 ]]
 
-end
-
-function jsUrlChange(subpage, withoutTag)
-   local url = '"'..ntop.getHttpPrefix()..'/lua/'..subpage..'"'
-   
-   if not withoutTag then print("<script>") end
-   print[[
-   if(history.replaceState) {
-      // use history facility if available - NB: this does not cause a redirect/refresh!
-      history.replaceState(null, null, ]] print(url) print[[);
-   } else {
-      // fallback
-      window.location.href = ]] print(url) print[[;
-   }]]
-   if not withoutTag then print("</script>") end
-end
-
--- Add a form submit lister to add the CRSF on form submit
--- The form listener will not intercept plain 'onsubmit' html field
-function jsFormCSRF(formid, withoutTag)
-   local html = "";
-   
-   if not withoutTag then html = html .. "<script>" end
-   html = html .. [[$('#]] .. formid .. [[').submit(function(e) {
-      /* avoid repeating in case of aborted form submits */
-      if ($("#]] .. formid .. [[ input[name='csrf']").length == 0) {
-         $('<input>').attr({
-            type: "hidden",
-            name: "csrf",
-            value: "]] .. (ntop.getRandomCSRFValue()) .. [["
-         }).appendTo($('#]] .. formid .. [['));
-      }
-   });
-   ]]
-   if not withoutTag then html = html .. "</script>" end
-   return html
 end
 
 -- ####################################################

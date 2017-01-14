@@ -33,12 +33,7 @@ ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_clss)
-   print [[
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="id" value="]]
-   print(tostring(ifstats.id))
-   print('">')
-
+   print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    if(can_edit) then
@@ -51,7 +46,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    print("</form>\n")
 end
 
-if(_GET["switch_interface"] ~= nil) then
+if(_POST["switch_interface"] ~= nil) then
 -- First switch interfaces so the new cookie will have effect
 ifname = interface.setActiveInterfaceId(tonumber(ifid))
 
@@ -109,67 +104,63 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 if (isAdministrator()) then
-   if(_GET["custom_name"] ~=nil) then
-      if(_GET["csrf"] ~= nil) then
+   if(_POST["custom_name"] ~=nil) then
 	 -- TODO move keys to new schema: replace ifstats.name with ifid
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_GET["custom_name"])
-      end
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
    end
 
-   if(_GET["scaling_factor"] ~= nil) then
-      if(_GET["csrf"] ~= nil) then
-	 local sf = tonumber(_GET["scaling_factor"])
+   if(_POST["scaling_factor"] ~= nil) then
+	 local sf = tonumber(_POST["scaling_factor"])
 	 if(sf == nil) then sf = 1 end
 	 ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
 	 interface.loadScalingFactorPrefs()
-      end
    end
 
    if is_packetdump_enabled then
-      if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_all_traffic"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_POST["dump_all_traffic"])
       end
-      if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_traffic_to_tap"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_POST["dump_traffic_to_tap"])
       end
-      if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_traffic_to_disk"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_POST["dump_traffic_to_disk"])
       end
-      if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_unknown_to_disk"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_POST["dump_unknown_to_disk"])
       end
-      if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_security_to_disk"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_POST["dump_security_to_disk"])
       end
 
-      if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["sampling_rate"]) ~= nil) then
+      if(_POST["sampling_rate"] ~= nil) then
+	 if(tonumber(_POST["sampling_rate"]) ~= nil) then
 	    page = "packetdump"
-	    val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
+	    val = ternary(_POST["sampling_rate"] ~= "0", _POST["sampling_rate"], "1")
 	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
 	 end
       end
-      if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["max_pkts_file"]) ~= nil) then
+      if(_POST["max_pkts_file"] ~= nil) then
+	 if(tonumber(_POST["max_pkts_file"]) ~= nil) then
 	    page = "packetdump"
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_POST["max_pkts_file"])
 	 end
       end
-      if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["max_sec_file"]) ~= nil) then
+      if(_POST["max_sec_file"] ~= nil) then
+	 if(tonumber(_POST["max_sec_file"]) ~= nil) then
 	    page = "packetdump"
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
 	 end
       end
-      if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["max_files"]) ~= nil) then
+      if(_POST["max_files"] ~= nil) then
+	 if(tonumber(_POST["max_files"]) ~= nil) then
 	    page = "packetdump"
-	    local max_files_size = tonumber(_GET["max_files"])
+	    local max_files_size = tonumber(_POST["max_files"])
 	    max_files_size = max_files_size * 1000000
 	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
 	 end
@@ -298,9 +289,9 @@ end
 
 local ifname_clean = "iface_"..tostring(ifid)
 
-if _GET["re_arm_minutes"] ~= nil then
+if _POST["re_arm_minutes"] ~= nil then
    page = "config"
-   ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean), _GET["re_arm_minutes"])
+   ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean), _POST["re_arm_minutes"])
 end
 
 print [[
@@ -777,10 +768,8 @@ if is_packetdump_enabled then
 
    print("<tr><th width=30%>Packet Dump</th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
@@ -788,10 +777,8 @@ if is_packetdump_enabled then
 
    print("<tr><th width=30%>Packet Dump To Disk</th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
 	       if(dump_traffic_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedFile()
 		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
@@ -803,20 +790,16 @@ if is_packetdump_enabled then
 
    print("<tr><th width=30%></th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th width=30%></th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
@@ -824,10 +807,8 @@ if is_packetdump_enabled then
    print("<tr><th>Packet Dump To Tap</th><td>")
    if(interface.getInterfaceDumpTapName() ~= "") then
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifId)
-	       print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedTap()
@@ -844,11 +825,8 @@ end
    print("<tr><th width=250>Sampling Rate</th>\n")
    print [[<td>]]
    if(dump_security_checked ~= "") then
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifId" value="]]
-      print(ifId)
-      print [[">]]
-      print('1 : <input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="sampling_rate" placeholder="" min="0" step="100" max="100000" value="]]
 	 srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
 	 if(srate ~= nil and srate ~= "" and srate ~= "0") then print(srate) else print("1000") end
@@ -872,10 +850,7 @@ end
    print(pcapdir.."</td></tr>\n")
    print("<tr><th width=250>Max Packets per File</th>\n")
    print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifid" value="]]
-      print(ifid)
-      print [[">]]
+    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_pkts_file" placeholder="" min="0" step="1000" max="100000" value="]]
 	 max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
@@ -891,10 +866,7 @@ end
        ]]
    print("<tr><th width=250>Max Duration of File</th>\n")
    print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifId" value="]]
-      print(ifid)
-      print [[">]]
+    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_sec_file" placeholder="" min="0" step="60" max="100000" value="]]
 	 max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
@@ -911,10 +883,7 @@ end
        ]]
    print("<tr><th width=250>Max Size of Dump Files</th>\n")
    print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifid" value="]]
-      print(ifid)
-      print [[">]]
+    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_files" placeholder="" min="0" step="1" max="100000000" value="]]
 	 max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
@@ -943,7 +912,7 @@ local re_arm_minutes = nil
 local if_name = ifstats.name
 
    if(isAdministrator()) then
-      trigger_alerts = _GET["trigger_alerts"]
+      trigger_alerts = _POST["trigger_alerts"]
       if(trigger_alerts ~= nil) then
 	 if(trigger_alerts == "true") then
 	    ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), ifname_clean)
@@ -968,23 +937,15 @@ local if_name = ifstats.name
 
        print [[
 	    <tr><th>Interface Alerts</th><td nowrap>
-	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	    <input type="hidden" name="tab" value="alerts_preferences">
-	    <input type="hidden" name="ifId" value="]]
-
-	 print(ifid)
-	 print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
+	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	 print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('<input type="hidden" name="page" value="config">')
 	 print('</form>')
 	 print('</td>')
 	 print [[</tr>]]
 
-   print[[<tr><form class="form-inline" style="margin-bottom: 0px;">
-      <input type="hidden" name="tab" value="alerts_preferences">
-        <input type="hidden" name="ifId" value="]]
-        print(ifid)
-      print[["><input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+   print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
          <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
          <td>
             <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
@@ -1002,12 +963,12 @@ elseif(page == "filtering") then
    -- ====================================
 
    -- possibly decode parameters pairs
-   local _GET = paramsPairsDecode(_GET)
+   local _POST = paramsPairsDecode(_POST)
 
 function get_shapers_from_parameters(callback)
    local done = {}
 
-   for option,value in pairs(_GET) do
+   for option,value in pairs(_POST) do
       local sp = split(option, "ishaper_")
       local k = nil
 
@@ -1023,7 +984,7 @@ function get_shapers_from_parameters(callback)
       if k ~= nil then
          if not done[k] then
             done[k] = true;
-            callback(k, _GET["ishaper_"..k], _GET["eshaper_"..k])
+            callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k])
          end
       end
    end
@@ -1039,21 +1000,20 @@ end
       -- this is used by host_details.lua. Checks if the network exists, otherwise creates it
       if isin(_GET["view_network"],  shaper_utils.getNetworksList(ifid)) then
          -- network exists, redirect
-         jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#protocols")
+         print('<script>window.location.hash = "#protocols"</script>')
       else
          -- network does not exist, trigger add action
-         jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#networks")
-         print('<script>var add_new_network_at_startup = "'.._GET["view_network"]..'";</script>')
+         print('<script>var add_new_network_at_startup = "'.._GET["view_network"]..'"; window.location.hash = "#networks";</script>')
          _GET["view_network"] = nil
       end
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["edit_networks"] ~= nil)) then
+   if(_POST["edit_networks"] ~= nil) then
       local proto_shapers_cloned = false
 
       get_shapers_from_parameters(function(network_key, ingress_shaper, egress_shaper)
-         if(_GET["clone"] ~= nil) then
-            local clone_from = shaper_utils.addVlan0(_GET["clone"])
+         if(_POST["clone"] ~= nil) then
+            local clone_from = shaper_utils.addVlan0(_POST["clone"])
 
             -- clone everything from the network
             for _,proto_config in pairs(shaper_utils.getNetworkProtoShapers(ifid, clone_from)) do
@@ -1065,23 +1025,23 @@ end
             shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper, false)
          end
 
+         -- make protocols tab active
+         print('<script>window.location.hash = "#protocols"</script>')
+
 	 interface.reloadL7Rules(network_key)
       end)
-
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering")
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["delete_network"] ~= nil) and (_GET["delete_network"] ~= shaper_utils.ANY_NETWORK)) then
-      local target_net = _GET["delete_network"]
+   if((_POST["delete_network"] ~= nil) and (_POST["delete_network"] ~= shaper_utils.ANY_NETWORK)) then
+      local target_net = _POST["delete_network"]
 
       shaper_utils.deleteNetwork(ifid, target_net)
 
       -- reload all the rules, and update hosts affected by removal
       interface.reloadL7Rules(target_net)
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering")
    end
 
-   net = _GET["network"] or _GET["proto_network"] or _GET["view_network"]
+   net = _GET["network"] or _POST["proto_network"] or _GET["view_network"]
 
    if(net ~= nil) then
       net = shaper_utils.addVlan0(net)
@@ -1107,10 +1067,10 @@ end
 
    local SHAPERS_MAX_RATE_KPBS = 100*1000*1000           -- 100 Gbit/s
 
-   if((_GET["csrf"] ~= nil) and (_GET["add_shapers"] ~= nil)) then
+   if(_POST["add_shapers"] ~= nil) then
       local num_added = 0
       local last_added = nil
-      for shaper,mrate in pairs(_GET) do
+      for shaper,mrate in pairs(_POST) do
          local sp = split(shaper, "shaper_")
          if #sp == 2 then
             local shaper_id = tonumber(sp[2])
@@ -1131,21 +1091,19 @@ end
       end
 
       interface.reloadShapers()
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering#shapers")
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["delete_shaper"] ~= nil)) then
-      local shaper_id = _GET["delete_shaper"]
+   if(_POST["delete_shaper"] ~= nil) then
+      local shaper_id = _POST["delete_shaper"]
 
       shaper_utils.deleteShaper(ifid, shaper_id)
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering#shapers")
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["proto_network"] ~= nil)) then
-      local target_net = _GET["proto_network"]
+   if(_POST["proto_network"] ~= nil) then
+      local target_net = _POST["proto_network"]
 
-      if (_GET["del_l7_proto"] ~= nil) then
-         local protocol_id = _GET["del_l7_proto"]
+      if (_POST["del_l7_proto"] ~= nil) then
+         local protocol_id = _POST["del_l7_proto"]
          shaper_utils.deleteProtocol(ifid, target_net, protocol_id)
       else
          -- set protocols policy for the network
@@ -1156,7 +1114,6 @@ end
 
       -- Note: this could optimized to only reload this specific network
       interface.reloadL7Rules(target_net)
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network="..target_net.."#protocols")
    end
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs" role="tablist">
@@ -1240,13 +1197,13 @@ NOTES:<ul>
 
 print [[<div id="protocols" class="tab-pane"><br>
 
-<form id="editNetworksForm">
-   <input type="hidden" name="page" value="filtering"/>
+<form id="editNetworksForm" method="post">
    <input type="hidden" name="edit_networks" value=""/>
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
 </form>
-<form id="deleteShapedProtocolForm">
-   <input type="hidden" name="page" value="filtering">
+<form id="deleteShapedProtocolForm" method="post">
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <input type="hidden" name="del_l7_proto" value="">
 </form>
 
@@ -1263,17 +1220,16 @@ print [[<div id="protocols" class="tab-pane"><br>
 print("</select>")
 this_net = shaper_utils.trimVlan0(selected_network)
 if selected_network ~= shaper_utils.ANY_NETWORK then
-   print[[<form id="deleteNetworkForm" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get" style="display:inline;">
-     <input type="hidden" name="page" value="filtering"/>
+   print[[<form id="deleteNetworkForm" style="display:inline;" method="post">
      <input type="hidden" name="delete_network" value="]] print(selected_network) print[["/>
+     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
      [ <a href="javascript:void(0);" onclick="$('#deleteNetworkForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(this_net) print[[</a> ]
    </form>]]
-   print(jsFormCSRF("deletePolicyForm"))
 end
 
-print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();">
-   <input type="hidden" name="page" value="filtering">
+print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
 ]]
 
 local protos = interface.getnDPIProtocols()
@@ -1341,9 +1297,6 @@ NOTES:
 
 
 <script>
-]] print(jsFormCSRF('deleteNetworkForm', true)) print[[
-]] print(jsFormCSRF('editNetworksForm', true)) print[[
-
 function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper = $("td:nth-child("+ingress_shaper_idx+")", $(this));
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
@@ -1401,8 +1354,6 @@ function toggleCustomNetworkMode() {
    }
 }
 
-   ]] print(jsFormCSRF('l7ProtosForm', true)) print[[
-   ]] print(jsFormCSRF('deleteShapedProtocolForm', true)) print[[
    $("#proto_network").change(function() {
       document.location.href = "]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua?page=filtering&network="+$("#proto_network").val()+"#protocols";
    });
@@ -1689,18 +1640,18 @@ print[[     ];
 
 print[[
   <div id="shapers" class="tab-pane">
-   <form id="deleteShaperForm">
-      <input type="hidden" name="page" value="filtering">
+   <form id="deleteShaperForm" method="post">
       <input type="hidden" name="delete_shaper" value="">
+      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    </form>
-   <form id="addShaperForm">
-      <input type="hidden" name="page" value="filtering">
+   <form id="addShaperForm" method="post">
       <input type="hidden" name="add_shapers" value="">
+      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    </form>
 
-   <form id="modifyShapersForm">
-      <input type="hidden" name="page" value="filtering">
+   <form id="modifyShapersForm" method="post">
       <input type="hidden" name="add_shapers" value="">
+      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <br/><div id="table-shapers"></div>
 
    <script>
@@ -1844,9 +1795,6 @@ print[[
          aysResetForm('#modifyShapersForm');
       }
    });
-   ]] print(jsFormCSRF('modifyShapersForm', true)) print[[
-   ]] print(jsFormCSRF('deleteShaperForm', true)) print[[
-   ]] print(jsFormCSRF('addShaperForm', true)) print[[
 </script>]]
 
 print [[</form>
@@ -1897,8 +1845,6 @@ elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end
 
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
-
 print("<script>\n")
 print("var last_pkts  = " .. ifstats.stats.packets .. ";\n")
 print("var last_drops = " .. ifstats.stats.drops .. ";\n")
@@ -1935,11 +1881,16 @@ print [[
 var resetInterfaceCounters = function(drops_only) {
   var action = "reset_all";
   if(drops_only) action = "reset_drops";
-  $.ajax({ type: 'GET',
+  $.ajax({ type: 'post',
     url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/reset_stats.lua?action=' + action,
-    success: function(rsp) {}
+print [[/lua/reset_stats.lua',
+    data: 'action=' + action + "&csrf=]] print(ntop.getRandomCSRFValue()) print[[",
+    success: function(rsp) {},
+    complete: function() {
+      /* reload the page to generate a new CSRF */
+      window.location.href = window.location.href;
+    }
   });
 }
 
@@ -2127,3 +2078,5 @@ $(document).ready(function()
 );
 </script>
 ]]
+
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
