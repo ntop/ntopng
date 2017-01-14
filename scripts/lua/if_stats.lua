@@ -1988,15 +1988,17 @@ print [[";
           $('#exported_flows_drops_pct').removeClass().html("[0%]");
         }
 
-        var btn_disabled = false;
-	if(rsp.drops + rsp.bytes + rsp.packets + rsp.flow_export_count + rsp.flow_export_drops == 0) {
-          btn_disabled = true;
+        var btn_disabled = true;
+	if(rsp.drops + rsp.bytes + rsp.packets + rsp.flow_export_count + rsp.flow_export_drops > 0) {
+          btn_disabled = false;
+          $('#btn_reset_all').removeClass("disabled");
         }
         $('#btn_reset_all').disable(btn_disabled);
 
-        btn_disabled = false;
+        btn_disabled = true;
 	if(rsp.drops + rsp.flow_export_drops == 0) {
-          btn_disabled = true;
+          btn_disabled = false;
+          $('#btn_reset_drops').removeClass("disabled");
         }
         $('#btn_reset_drops').disable(btn_disabled);
 
