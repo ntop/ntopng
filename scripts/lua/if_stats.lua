@@ -1025,10 +1025,7 @@ end
             shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper, false)
          end
 
-         -- make protocols tab active
-         print('<script>window.location.hash = "#protocols"</script>')
-
-	 interface.reloadL7Rules(network_key)
+         interface.reloadL7Rules(network_key)
       end)
    end
 
@@ -1220,7 +1217,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 print("</select>")
 this_net = shaper_utils.trimVlan0(selected_network)
 if selected_network ~= shaper_utils.ANY_NETWORK then
-   print[[<form id="deleteNetworkForm" style="display:inline;" method="post">
+   print[[<form id="deleteNetworkForm" style="display:inline;" method="post" action="?page=filtering#protocols">
      <input type="hidden" name="delete_network" value="]] print(selected_network) print[["/>
      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
      [ <a href="javascript:void(0);" onclick="$('#deleteNetworkForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(this_net) print[[</a> ]
@@ -1333,6 +1330,7 @@ function checkNetworksFormCallback() {
 
       // encode parameters since networks could contain special characters
       var encoded_params = paramsPairsEncode(params);
+      $("#editNetworksForm").attr("action", "?page=filtering&network=" + netkey + "#protocols");
       paramsToForm("#editNetworksForm", encoded_params).submit();
    }
 
