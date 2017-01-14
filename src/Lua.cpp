@@ -5671,13 +5671,15 @@ void Lua::setInterface(const char *user) {
   }
 }
 
-static void query_parameters_fill_lua_table(Lua *lua, struct mg_connection *conn,
-			       lua_State* vm, const char* query) {
+void Lua::setParamsTable(lua_State* vm, const char* table_name,
+			 const char* query) const {
   char outbuf[FILENAME_MAX];
   char *where;
   char *tok;
 
-  char *query_string = strdup(query);
+  char *query_string = query ? strdup(query) : NULL;
+
+  lua_newtable(L);
 
   if (query_string) {
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
@@ -5696,7 +5698,7 @@ static void query_parameters_fill_lua_table(Lua *lua, struct mg_connection *conn
         _equal = &_equal[1];
         len = strlen(_equal);
 
-        lua->purifyHTTPParameter(tok), lua->purifyHTTPParameter(_equal);
+        purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
 
         // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
 
@@ -5739,9 +5741,15 @@ static void query_parameters_fill_lua_table(Lua *lua, struct mg_connection *conn
       tok = strtok_r(NULL, "&", &where);
     } /* while */
 
-    free(query_string);
-  } else
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+
+  }
+
+  if(query_string) free(query_string);
+
+  if(table_name)
+    lua_setglobal(L, table_name);
+  else
+    lua_setglobal(L, (char*)"_GET"); /* Default */
 }
 
 /* ****************************************** */
@@ -5766,7 +5774,6 @@ int Lua::handle_script_request(struct mg_connection *conn,
   content_type = mg_get_header(conn, "Content-Type");
 
   /* Check for POST requests */
-  lua_newtable(L);
   if((strcmp(request_info->request_method, "POST") == 0) &&
       ((content_type != NULL) && (strstr(content_type, "application/x-www-form-urlencoded") == content_type))) {
     char post_data[1024] = { '\0' };
@@ -5796,15 +5803,12 @@ int Lua::handle_script_request(struct mg_connection *conn,
     }
 
     /* CSRF is valid here, now fill the _POST table with POST parameters */
-    query_parameters_fill_lua_table(this, conn, L, post_data);
-  }
-  lua_setglobal(L, "_POST");
+    setParamsTable(L, "_POST", post_data);
+  } else
+    setParamsTable(L, "_POST", NULL /* Empty */);    
 
   /* Put the GET params into the environment */
-  lua_newtable(L);
-  if(request_info->query_string != NULL)
-    query_parameters_fill_lua_table(this, conn, L, request_info->query_string);
-  lua_setglobal(L, "_GET"); /* Like in php */
+  setParamsTable(L, "_GET", request_info->query_string);
 
   /* _SERVER */
   lua_newtable(L);
