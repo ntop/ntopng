@@ -1112,7 +1112,7 @@ int Prefs::loadFromFile(const char *path) {
     value = strrchr(line, '=');
 
     /* Fallback to space */
-    if(value == NULL) value = strrchr(line, ' ');
+    if(value == NULL) value = strchr(line, ' ');
 
     if(value == NULL)
       value = &line[strlen(line)]; /* empty */
