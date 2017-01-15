@@ -5671,17 +5671,98 @@ void Lua::setInterface(const char *user) {
   }
 }
 
+void Lua::setParamsTable(lua_State* vm, const char* table_name,
+			 const char* query) const {
+  char outbuf[FILENAME_MAX];
+  char *where;
+  char *tok;
+
+  char *query_string = query ? strdup(query) : NULL;
+
+  lua_newtable(L);
+
+  if (query_string) {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
+
+    tok = strtok_r(query_string, "&", &where);
+
+    while(tok != NULL) {
+      /* key=val */
+      char *_equal = strchr(tok, '=');
+
+      if(_equal) {
+        char *equal;
+        int len;
+
+        _equal[0] = '\0';
+        _equal = &_equal[1];
+        len = strlen(_equal);
+
+        purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
+
+        // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
+
+        if((equal = (char*)malloc(len+1)) != NULL) {
+          char *decoded_buf;
+
+          Utils::urlDecode(_equal, equal, len+1);
+
+          if((decoded_buf = http_decode(equal)) != NULL) {
+            FILE *fd;
+
+            Utils::purifyHTTPparam(tok, true, false);
+            Utils::purifyHTTPparam(decoded_buf, false, false);
+
+            /* Now make sure that decoded_buf is not a file path */
+            if((decoded_buf[0] == '.')
+                && ((fd = fopen(decoded_buf, "r"))
+                || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
+
+              ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
+                  tok, decoded_buf);
+              decoded_buf[0] = '\0';
+              fclose(fd);
+            }
+
+            /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
+
+            /* Do not put csrf into the table */
+            if(strcmp(tok, "csrf") != 0)
+              lua_push_str_table_entry(vm, tok, decoded_buf);
+
+            free(decoded_buf);
+          }
+
+          free(equal);
+        } else
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      }
+
+      tok = strtok_r(NULL, "&", &where);
+    } /* while */
+
+
+  }
+
+  if(query_string) free(query_string);
+
+  if(table_name)
+    lua_setglobal(L, table_name);
+  else
+    lua_setglobal(L, (char*)"_GET"); /* Default */
+}
+
 /* ****************************************** */
 
 int Lua::handle_script_request(struct mg_connection *conn,
 			       const struct mg_request_info *request_info,
 			       char *script_path) {
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
-  char *_cookies, user[64] = { '\0' }, outbuf[FILENAME_MAX];
+  char *_cookies, user[64] = { '\0' };
   AddressTree ptree;
   int rc;
-  bool csrf_found = false;
-  
+  const char * content_type;
+
   if(!L) return(-1);
 
   luaL_openlibs(L); /* Load base libraries */
@@ -5690,100 +5771,44 @@ int Lua::handle_script_request(struct mg_connection *conn,
   lua_pushlightuserdata(L, (char*)conn);
   lua_setglobal(L, CONST_HTTP_CONN);
 
+  content_type = mg_get_header(conn, "Content-Type");
+
+  /* Check for POST requests */
+  if((strcmp(request_info->request_method, "POST") == 0) &&
+      ((content_type != NULL) && (strstr(content_type, "application/x-www-form-urlencoded") == content_type))) {
+    char post_data[1024] = { '\0' };
+    char rsp[32];
+    char csrf[64] = { '\0' };
+    char user[64] = { '\0' };
+    int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    post_data[sizeof(post_data)-1] = '\0';
+
+    /* CSRF is mandatory in POST request */
+    mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+    mg_get_cookie(conn, "user", user, sizeof(user));
+
+    if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
+        || (strcmp(rsp, user) != 0)) {
+      const char *msg = "The submitted form is expired. Please reload the page and try again";
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+          "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
+          csrf, rsp, user, "csrf");
+
+      return(send_error(conn, 500 /* Internal server error */,
+          msg, PAGE_ERROR, script_path, msg));
+    } else {
+      /* Invalidate csrf */
+      ntop->getRedis()->delKey(csrf);
+    }
+
+    /* CSRF is valid here, now fill the _POST table with POST parameters */
+    setParamsTable(L, "_POST", post_data);
+  } else
+    setParamsTable(L, "_POST", NULL /* Empty */);    
+
   /* Put the GET params into the environment */
-  lua_newtable(L);
-  if(request_info->query_string != NULL) {
-    char *query_string = strdup(request_info->query_string);
-    
-    if(query_string) {
-      char *where;
-      char *tok;
-      
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
-
-      tok = strtok_r(query_string, "&", &where);
-
-      while(tok != NULL) {
-	/* key=val */
-	char *_equal = strchr(tok, '=');
-
-	if(_equal) {
-	  char *equal;
-	  int len;
-
-	  _equal[0] = '\0';
-	  _equal = &_equal[1];
-	  len = strlen(_equal);
-
-	  purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
-
-	  // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
-
-	  if((equal = (char*)malloc(len+1)) != NULL) {
-	    char *decoded_buf;
-
-	    Utils::urlDecode(_equal, equal, len+1);
-
-	    if((decoded_buf = http_decode(equal)) != NULL) {
-	      FILE *fd;
-
-	      Utils::purifyHTTPparam(tok, true, false);
-	      Utils::purifyHTTPparam(decoded_buf, false, false);
-
-	      /* Now make sure that decoded_buf is not a file path */
-	      if((decoded_buf[0] == '.')
-		 && ((fd = fopen(decoded_buf, "r"))
-		     || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
-					     tok, decoded_buf);
-
-		decoded_buf[0] = '\0';
-		fclose(fd);
-	      }
-
-	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
-
-	      if(strcmp(tok, "csrf") == 0) {
-		char rsp[32], user[64] = { '\0' };
-
-		mg_get_cookie(conn, "user", user, sizeof(user));
-
-		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
-		   || (strcmp(rsp, user) != 0)) {
-		  const char *msg = "The submitted form is expired. Please reload the page and try again";
-
-		  ntop->getTrace()->traceEvent(TRACE_WARNING,
-					       "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
-					       decoded_buf, rsp, user, tok);
-		  free(equal);
-		  return(send_error(conn, 500 /* Internal server error */,
-				    msg, PAGE_ERROR, query_string, msg));
-		} else
-		  ntop->getRedis()->delKey(decoded_buf);
-
-		csrf_found = true;
-	      }
-
-	      lua_push_str_table_entry(L, tok, decoded_buf);
-	      free(decoded_buf);
-	    }
-
-	    free(equal);
-	  } else
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	}
-
-	tok = strtok_r(NULL, "&", &where);
-      } /* while */
-
-      free(query_string);
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-  }
-
-  lua_push_bool_table_entry(L, "valid_csrf", csrf_found);
-  
-  lua_setglobal(L, "_GET"); /* Like in php */
+  setParamsTable(L, "_GET", request_info->query_string);
 
   /* _SERVER */
   lua_newtable(L);

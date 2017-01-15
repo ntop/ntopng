@@ -17,7 +17,7 @@ print [[
   password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
 </script>
 
-  <form id="form_password_reset" class="form-horizontal" method="POST" action="]]  print(ntop.getHttpPrefix())  print[[/lua/admin/password_reset.lua">
+  <form id="form_password_reset" class="form-horizontal" method="post" action="]]  print(ntop.getHttpPrefix())  print[[/lua/admin/password_reset.lua">
 			   ]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 local user = ""

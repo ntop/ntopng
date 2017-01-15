@@ -849,6 +849,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
     }
 
     if(vIface) {
+      vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
       vIface->processFlow(zflow);
       return;
     }

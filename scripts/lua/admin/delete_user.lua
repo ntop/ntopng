@@ -8,9 +8,8 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-if(_GET["csrf"] ~= nil) then
 if(haveAdminPrivileges()) then
-   username = _GET["username"]
+   username = _POST["username"]
    
    if(username == nil) then
       print ("{ \"result\" : -1, \"message\" : \"Invalid parameters\" }")
@@ -22,5 +21,4 @@ if(haveAdminPrivileges()) then
    else
       print ("{ \"result\" : -1, \"message\" : \"Error deleting user\" }")
    end
-end
 end

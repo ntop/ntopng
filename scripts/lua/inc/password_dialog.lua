@@ -36,7 +36,7 @@ end
   password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
 </script>
 
-  <form data-toggle="validator" id="form_password_reset" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua">
+  <form data-toggle="validator" id="form_password_reset" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua">
 ]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
@@ -99,7 +99,9 @@ print [[
 </div>
 <div class="tab-pane" id="change-prefs-dialog">
 
-  <form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
+  <form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">]]
+print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+print [[
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
 <div class="row">
@@ -258,7 +260,7 @@ function reset_pwd_dialog(user) {
       $('#allowed_interface option').filter(function () {
         return $(this).html().trim() == data.allowed_ifname;
       }).attr('selected','selected');
-      -- $('#allowed_interface option[value = "'+data.allowed_ifname+'"]').attr('selected','selected');
+      // $('#allowed_interface option[value = "'+data.allowed_ifname+'"]').attr('selected','selected');
       $('#form_pref_change').show();
       $('#pref_part_separator').show();
       $('#password_alert_placeholder').html('');
