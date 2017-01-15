@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -145,14 +145,13 @@ void CollectorInterface::collect_flows() {
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version */
 	  msg_id = 0;
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "v0");
 	} else if((size != sizeof(h)) || (h.version != ZMQ_MSG_VERSION)) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u]",
 				       sizeof(struct zmq_msg_hdr), sizeof(h));
 	  continue;
 	} else
-	    msg_id = h.msg_id;
+	  msg_id = h.msg_id;
 
 	if((!is_collector) && (msg_id > 0)) {
 	  /* 

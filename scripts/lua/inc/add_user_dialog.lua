@@ -19,7 +19,7 @@ print [[
 
 </script>
 
- <form data-toggle="validator" id="form_add_user" class="form-horizontal" method="get" action="add_user.lua" >
+ <form data-toggle="validator" id="form_add_user" class="form-horizontal" method="post" action="add_user.lua" >
 			   ]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[

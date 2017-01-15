@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -80,7 +80,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 a = _GET["label"]
 
-if((a ~= nil) and (a ~= "")) then
+if not isEmptyString(a) then
    patterns = {
       ['_'] = "",
       ['-_'] = " <i class=\"fa fa-exchange fa-lg\"></i> "
@@ -123,13 +123,13 @@ if(flow == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> This flow cannot be found. '.. purgedErrorString()..'</div>')
 else
 
-   if(_GET["drop_flow_policy"] == "true") then
+   if(_POST["drop_flow_policy"] == "true") then
       interface.dropFlowTraffic(tonumber(flow_key))
       flow["verdict.pass"] = false
    end
-   if(_GET["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
-      interface.dumpFlowTraffic(tonumber(flow_key), ternary(_GET["dump_flow_to_disk"] == "true", 1, 0))
-      flow["dump.disk"] = ternary(_GET["dump_flow_to_disk"] == "true", true, false)
+   if(_POST["dump_flow_to_disk"] ~= nil and is_packetdump_enabled) then
+      interface.dumpFlowTraffic(tonumber(flow_key), ternary(_POST["dump_flow_to_disk"] == "true", 1, 0))
+      flow["dump.disk"] = ternary(_POST["dump_flow_to_disk"] == "true", true, false)
    end
 
    ifstats = interface.getStats()
@@ -185,20 +185,18 @@ else
    print("</A> ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.ssl.certificate"])
-   print("</td>")
 
    if(ifstats.inline) then
-      print('<td>')
       if(flow["verdict.pass"]) then
-	 print('<form class="form-inline" style="margin-bottom: 0px;"><input type="hidden" name="flow_key" value="'..flow_key..'">')
+	 print('<form class="form-inline pull-right" style="margin-bottom: 0px;" method="post">')
 	 print('<input type="hidden" name="drop_flow_policy" value="true">')
 	 print('<button style="position: relative; margin-top: 0; height: 26px" type="submit" class="btn btn-default btn-xs"><i class="fa fa-ban"></i> Drop Flow Traffic</button>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	 print('</form>')
       end
 
-      print('</td>')
    end
+   print('</td>')
    print("</tr>\n")
 
    if(ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
@@ -209,12 +207,12 @@ else
       cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate =shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.cli2srv_egress"]) if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-right'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
 
       cli_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_ingress"]) if(cli_max_rate == "") then cli_max_rate = -1 end
       srv_max_rate = shaper_utils.getShaperMaxRate(ifstats.id, flow["shaper.srv2cli_egress"])  if(srv_max_rate == "") then srv_max_rate = -1 end
       max_rate = getFlowMaxRate(cli_max_rate, srv_max_rate)
-      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..maxRateToString(max_rate).."</td></tr>")
+      print("<td nowrap>"..c.." <i class='fa fa-arrow-left'></i> "..s.."</td><td>"..shaper_utils.shaperRateToString(max_rate).."</td></tr>")
       print("</tr>")
    end
 
@@ -497,11 +495,7 @@ else
 
       print("<tr><th width=30%>Dump Flow Traffic</th><td colspan=2>")
       print [[
-        <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	  <input type="hidden" name="flow_key" value="]] print(flow_key .. '">')
-      if _GET["label"] ~= nil and _GET["label"] ~= "" then
-	 print('<input type="hidden" name="label" value="' .. _GET["label"] ..'">')
-      end
+        <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input type="hidden" name="dump_flow_to_disk" value="'..dump_flow_to_disk_value..'"><input type="checkbox" value="1" '..dump_flow_to_disk_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i>')
       print(' </input>')
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')

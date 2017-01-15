@@ -1,5 +1,5 @@
 --
--- (C) 2014-16 - ntop.org
+-- (C) 2014-17 - ntop.org
 --
 
 -- This file contains the description of all functions
@@ -921,14 +921,14 @@ end
 -- #################################
 
 function checkDeleteStoredAlerts()
-   if((_GET["csrf"] ~= nil) and (_GET["status"] ~= nil) and (_GET["id_to_delete"] ~= nil)) then
-      if(_GET["id_to_delete"] ~= "__all__") then
-         _GET["row_id"] = tonumber(_GET["id_to_delete"])
+   if((_POST["id_to_delete"] ~= nil) and (_GET["status"] ~= nil)) then
+      if(_POST["id_to_delete"] ~= "__all__") then
+         _GET["row_id"] = tonumber(_POST["id_to_delete"])
       end
 
       deleteAlerts(_GET["status"], _GET)
       -- to avoid performing the delete again
-      _GET["id_to_delete"] = nil
+      _POST["id_to_delete"] = nil
       -- to avoid filtering by id
       _GET["row_id"] = nil
       -- in case of delete "older than" button, resets the time period after the delete took place
@@ -1085,13 +1085,13 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       alerts = ""
       to_save = false
 
-      if((_GET["to_delete"] ~= nil) and (_GET["SaveAlerts"] == nil)) then
+      if((_POST["to_delete"] ~= nil) and (_POST["SaveAlerts"] == nil)) then
          delete_alert_configuration(alert_source, ifname)
          alerts = nil
       else
          for k,_ in pairs(descr) do
-       value    = _GET["value_"..k]
-       operator = _GET["operator_"..k]
+       value    = _POST["value_"..k]
+       operator = _POST["operator_"..k]
 
        if((value ~= nil) and (operator ~= nil)) then
           --io.write("\t"..k.."\n")
@@ -1141,15 +1141,9 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
        <table id="user" class="table table-bordered table-striped" style="clear: both"> <tbody>
        <tr><th width=20%>Alert Function</th><th>Threshold</th></tr>
 
-      <form>
-       <input type=hidden name=page value=alerts>
+      <form method="post">
       ]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('<input type=hidden name=tab value="'..tab..'" />\n')
-
-      for param,value in pairs(page_params) do
-         print('<input type=hidden name="'..param..'" value="'..value..'">\n')
-      end
 
       for k,v in pairsByKeys(descr, asc) do
          print("<tr><th>"..k.."</th><td>\n")
@@ -1188,7 +1182,8 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
        <p>]] print(delete_confirm_msg) print(" ") if alt_name ~= nil then print(alt_name) else print(alert_source) end print[[?</p>
         </div>
         <div class="modal-footer">
-          <form class=form-inline style="margin-bottom: 0px;" method=get action="#"><input type=hidden name=to_delete value="__all__">
+          <form class=form-inline style="margin-bottom: 0px;" method="post">
+          <input type=hidden name=to_delete value="__all__">
       ]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -1550,7 +1545,7 @@ print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myMo
   </div>
   <div class="modal-footer">
 
-    <form id="modalDeleteForm" class=form-inline style="margin-bottom: 0px;" method=get action="#" onsubmit="return checkModalDelete();">
+    <form id="modalDeleteForm" class=form-inline style="margin-bottom: 0px;" method="post" onsubmit="return checkModalDelete();">
          <input type="hidden" id="modalDeleteAlertsOlderThan" value="-1" />
       ]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -1589,12 +1584,14 @@ function getTabSpecificParams() {
 }
 
 function checkModalDelete() {
-   var delete_params = getTabSpecificParams();
-   delete_params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-   delete_params.id_to_delete = "__all__";
+   var get_params = getTabSpecificParams();
+   var post_params = {};
+   post_params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+   post_params.id_to_delete = "__all__";
 
-   // this actually performs the GET request
-   var form = paramsToForm('<form method="get" action="#"></form>', delete_params);
+   // this actually performs the request
+   var form = paramsToForm('<form method="post"></form>', post_params);
+   form.attr("action", "?" + $.param(get_params));
    form.appendTo('body').submit();
    return false;
 }

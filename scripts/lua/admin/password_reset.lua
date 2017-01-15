@@ -8,10 +8,10 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-username = _GET["username"]
-old_password = _GET["old_password"]
-new_password = _GET["new_password"]
-confirm_new_password = _GET["confirm_new_password"]
+username = _POST["username"]
+old_password = _POST["old_password"]
+new_password = _POST["new_password"]
+confirm_new_password = _POST["confirm_new_password"]
 
 user_group = ntop.getUserGroup()
 if(user_group == "administrator") then

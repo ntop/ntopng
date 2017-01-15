@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -33,12 +33,7 @@ ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
 function inline_input_form(name, placeholder, tooltip, value, can_edit, input_opts, input_clss)
-   print [[
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="id" value="]]
-   print(tostring(ifstats.id))
-   print('">')
-
+   print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
    print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
    if(can_edit) then
@@ -51,7 +46,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    print("</form>\n")
 end
 
-if(_GET["switch_interface"] ~= nil) then
+if(_POST["switch_interface"] ~= nil) then
 -- First switch interfaces so the new cookie will have effect
 ifname = interface.setActiveInterfaceId(tonumber(ifid))
 
@@ -109,67 +104,63 @@ if ifstats.stats and ifstats.stats_since_reset then
 end
 
 if (isAdministrator()) then
-   if(_GET["custom_name"] ~=nil) then
-      if(_GET["csrf"] ~= nil) then
+   if(_POST["custom_name"] ~=nil) then
 	 -- TODO move keys to new schema: replace ifstats.name with ifid
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_GET["custom_name"])
-      end
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.name',_POST["custom_name"])
    end
 
-   if(_GET["scaling_factor"] ~= nil) then
-      if(_GET["csrf"] ~= nil) then
-	 local sf = tonumber(_GET["scaling_factor"])
+   if(_POST["scaling_factor"] ~= nil) then
+	 local sf = tonumber(_POST["scaling_factor"])
 	 if(sf == nil) then sf = 1 end
 	 ntop.setCache(getRedisIfacePrefix(ifid)..'.scaling_factor',tostring(sf))
 	 interface.loadScalingFactorPrefs()
-      end
    end
 
    if is_packetdump_enabled then
-      if(_GET["dump_all_traffic"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_all_traffic"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_GET["dump_all_traffic"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_all_traffic',_POST["dump_all_traffic"])
       end
-      if(_GET["dump_traffic_to_tap"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_traffic_to_tap"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_GET["dump_traffic_to_tap"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_tap',_POST["dump_traffic_to_tap"])
       end
-      if(_GET["dump_traffic_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_traffic_to_disk"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_GET["dump_traffic_to_disk"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_disk',_POST["dump_traffic_to_disk"])
       end
-      if(_GET["dump_unknown_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_unknown_to_disk"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_GET["dump_unknown_to_disk"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_unknown_disk',_POST["dump_unknown_to_disk"])
       end
-      if(_GET["dump_security_to_disk"] ~= nil and _GET["csrf"] ~= nil) then
+      if(_POST["dump_security_to_disk"] ~= nil) then
 	 page = "packetdump"
-	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_GET["dump_security_to_disk"])
+	 ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_security_disk',_POST["dump_security_to_disk"])
       end
 
-      if(_GET["sampling_rate"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["sampling_rate"]) ~= nil) then
+      if(_POST["sampling_rate"] ~= nil) then
+	 if(tonumber(_POST["sampling_rate"]) ~= nil) then
 	    page = "packetdump"
-	    val = ternary(_GET["sampling_rate"] ~= "0", _GET["sampling_rate"], "1")
+	    val = ternary(_POST["sampling_rate"] ~= "0", _POST["sampling_rate"], "1")
 	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate', val)
 	 end
       end
-      if(_GET["max_pkts_file"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["max_pkts_file"]) ~= nil) then
+      if(_POST["max_pkts_file"] ~= nil) then
+	 if(tonumber(_POST["max_pkts_file"]) ~= nil) then
 	    page = "packetdump"
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_GET["max_pkts_file"])
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file',_POST["max_pkts_file"])
 	 end
       end
-      if(_GET["max_sec_file"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["max_sec_file"]) ~= nil) then
+      if(_POST["max_sec_file"] ~= nil) then
+	 if(tonumber(_POST["max_sec_file"]) ~= nil) then
 	    page = "packetdump"
-	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_GET["max_sec_file"])
+	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file',_POST["max_sec_file"])
 	 end
       end
-      if(_GET["max_files"] ~= nil and _GET["csrf"] ~= nil) then
-	 if(tonumber(_GET["max_files"]) ~= nil) then
+      if(_POST["max_files"] ~= nil) then
+	 if(tonumber(_POST["max_files"]) ~= nil) then
 	    page = "packetdump"
-	    local max_files_size = tonumber(_GET["max_files"])
+	    local max_files_size = tonumber(_POST["max_files"])
 	    max_files_size = max_files_size * 1000000
 	    ntop.setCache('ntopng.prefs.'..ifstats.name..'.dump_max_files', tostring(max_files_size))
 	 end
@@ -298,9 +289,9 @@ end
 
 local ifname_clean = "iface_"..tostring(ifid)
 
-if _GET["re_arm_minutes"] ~= nil then
+if _POST["re_arm_minutes"] ~= nil then
    page = "config"
-   ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean), _GET["re_arm_minutes"])
+   ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean), _POST["re_arm_minutes"])
 end
 
 print [[
@@ -777,10 +768,8 @@ if is_packetdump_enabled then
 
    print("<tr><th width=30%>Packet Dump</th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_all_traffic" value="'..dump_all_traffic_value..'"><input type="checkbox" value="1" '..dump_all_traffic_checked..' onclick="this.form.submit();">  Dump All Traffic')
 	       print('</input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
@@ -788,10 +777,8 @@ if is_packetdump_enabled then
 
    print("<tr><th width=30%>Packet Dump To Disk</th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_traffic_to_disk" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk')
 	       if(dump_traffic_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedFile()
 		 print(" - "..ternary(dumped, dumped, 0).." packets dumped")
@@ -803,20 +790,16 @@ if is_packetdump_enabled then
 
    print("<tr><th width=30%></th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_unknown_to_disk" value="'..dump_unknown_value..'"><input type="checkbox" value="1" '..dump_unknown_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Unknown Traffic To Disk </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
 
    print("<tr><th width=30%></th><td>")
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifid)
-	       print('"><input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('<input type="hidden" name="dump_security_to_disk" value="'..dump_security_value..'"><input type="checkbox" value="1" '..dump_security_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> Dump Traffic To Disk On Security Alert </input>')
 	       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 	       print('</form>')
    print("</td></tr>\n")
@@ -824,10 +807,8 @@ if is_packetdump_enabled then
    print("<tr><th>Packet Dump To Tap</th><td>")
    if(interface.getInterfaceDumpTapName() ~= "") then
    print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	 <input type="hidden" name="ifId" value="]]
-	       print(ifId)
-	       print('"><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
+<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	       print('><input type="hidden" name="dump_traffic_to_tap" value="'..dump_traffic_tap_value..'"><input type="checkbox" value="1" '..dump_traffic_tap_checked..' onclick="this.form.submit();"> <i class="fa fa-filter fa-lg"></i> Dump Traffic To Tap ')
 	       print('('..interface.getInterfaceDumpTapName()..')')
 	       if(dump_traffic_tap_checked ~= "") then
 		 dumped = interface.getInterfacePacketsDumpedTap()
@@ -844,11 +825,8 @@ end
    print("<tr><th width=250>Sampling Rate</th>\n")
    print [[<td>]]
    if(dump_security_checked ~= "") then
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifId" value="]]
-      print(ifId)
-      print [[">]]
-      print('1 : <input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+   print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="sampling_rate" placeholder="" min="0" step="100" max="100000" value="]]
 	 srate = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_sampling_rate')
 	 if(srate ~= nil and srate ~= "" and srate ~= "0") then print(srate) else print("1000") end
@@ -872,10 +850,7 @@ end
    print(pcapdir.."</td></tr>\n")
    print("<tr><th width=250>Max Packets per File</th>\n")
    print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifid" value="]]
-      print(ifid)
-      print [[">]]
+    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_pkts_file" placeholder="" min="0" step="1000" max="100000" value="]]
 	 max_pkts_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_pkts_file')
@@ -891,10 +866,7 @@ end
        ]]
    print("<tr><th width=250>Max Duration of File</th>\n")
    print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifId" value="]]
-      print(ifid)
-      print [[">]]
+    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_sec_file" placeholder="" min="0" step="60" max="100000" value="]]
 	 max_sec_file = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_sec_file')
@@ -911,10 +883,7 @@ end
        ]]
    print("<tr><th width=250>Max Size of Dump Files</th>\n")
    print [[<td>
-    <form class="form-inline" style="margin-bottom: 0px;">
-       <input type="hidden" name="ifid" value="]]
-      print(ifid)
-      print [[">]]
+    <form class="form-inline" style="margin-bottom: 0px;" method="post">]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[<input type="number" name="max_files" placeholder="" min="0" step="1" max="100000000" value="]]
 	 max_files = ntop.getCache('ntopng.prefs.'..ifstats.name..'.dump_max_files')
@@ -943,7 +912,7 @@ local re_arm_minutes = nil
 local if_name = ifstats.name
 
    if(isAdministrator()) then
-      trigger_alerts = _GET["trigger_alerts"]
+      trigger_alerts = _POST["trigger_alerts"]
       if(trigger_alerts ~= nil) then
 	 if(trigger_alerts == "true") then
 	    ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), ifname_clean)
@@ -968,23 +937,15 @@ local if_name = ifstats.name
 
        print [[
 	    <tr><th>Interface Alerts</th><td nowrap>
-	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-	    <input type="hidden" name="tab" value="alerts_preferences">
-	    <input type="hidden" name="ifId" value="]]
-
-	 print(ifid)
-	 print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
+	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+	 print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
 	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('<input type="hidden" name="page" value="config">')
 	 print('</form>')
 	 print('</td>')
 	 print [[</tr>]]
 
-   print[[<tr><form class="form-inline" style="margin-bottom: 0px;">
-      <input type="hidden" name="tab" value="alerts_preferences">
-        <input type="hidden" name="ifId" value="]]
-        print(ifid)
-      print[["><input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+   print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
          <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
          <td>
             <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
@@ -1001,10 +962,13 @@ elseif(page == "filtering") then
 
    -- ====================================
 
+   -- possibly decode parameters pairs
+   local _POST = paramsPairsDecode(_POST)
+
 function get_shapers_from_parameters(callback)
    local done = {}
 
-   for option,value in pairs(_GET) do
+   for option,value in pairs(_POST) do
       local sp = split(option, "ishaper_")
       local k = nil
 
@@ -1020,37 +984,36 @@ function get_shapers_from_parameters(callback)
       if k ~= nil then
          if not done[k] then
             done[k] = true;
-            callback(k, _GET["ishaper_"..k], _GET["eshaper_"..k])
+            callback(k, _POST["ishaper_"..k], _POST["eshaper_"..k])
          end
       end
    end
 end
+   local perPageProtos
+   if tonumber(tablePreferences("protocolShapers")) == nil then
+      perPageProtos = "10"
+   else
+      perPageProtos = tablePreferences("protocolShapers")
+   end
 
    if (_GET["view_network"] ~= nil) then
       -- this is used by host_details.lua. Checks if the network exists, otherwise creates it
       if isin(_GET["view_network"],  shaper_utils.getNetworksList(ifid)) then
          -- network exists, redirect
-         jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#protocols")
+         print('<script>window.location.hash = "#protocols"</script>')
       else
          -- network does not exist, trigger add action
-         jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network=".._GET["view_network"].."#networks")
-         print('<script>var add_new_network_at_startup = "'.._GET["view_network"]..'";</script>')
+         print('<script>var add_new_network_at_startup = "'.._GET["view_network"]..'"; window.location.hash = "#networks";</script>')
          _GET["view_network"] = nil
       end
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["edit_networks"] ~= nil)) then
+   if(_POST["edit_networks"] ~= nil) then
       local proto_shapers_cloned = false
 
       get_shapers_from_parameters(function(network_key, ingress_shaper, egress_shaper)
-         -- reconstruct from url encoded
-         -- TODO ipv6 local address format?
-         network_key = network_key:gsub("(%d+)_(%d+)_(%d+)_(%d+)", "%1.%2.%3.%4")
-         network_key = network_key:gsub("_2F", "/")
-         network_key = network_key:gsub("_40", "@")
-
-         if(_GET["clone"] ~= nil) then
-            local clone_from = shaper_utils.addVlan0(_GET["clone"])
+         if(_POST["clone"] ~= nil) then
+            local clone_from = shaper_utils.addVlan0(_POST["clone"])
 
             -- clone everything from the network
             for _,proto_config in pairs(shaper_utils.getNetworkProtoShapers(ifid, clone_from)) do
@@ -1062,23 +1025,20 @@ end
             shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper, false)
          end
 
-	 interface.reloadL7Rules(network_key)
+         interface.reloadL7Rules(network_key)
       end)
-
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering")
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["delete_network"] ~= nil) and (_GET["delete_network"] ~= shaper_utils.ANY_NETWORK)) then
-      local target_net = _GET["delete_network"]
+   if((_POST["delete_network"] ~= nil) and (_POST["delete_network"] ~= shaper_utils.ANY_NETWORK)) then
+      local target_net = _POST["delete_network"]
 
       shaper_utils.deleteNetwork(ifid, target_net)
 
       -- reload all the rules, and update hosts affected by removal
       interface.reloadL7Rules(target_net)
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering")
    end
 
-   net = _GET["network"] or _GET["proto_network"] or _GET["view_network"]
+   net = _GET["network"] or _POST["proto_network"] or _GET["view_network"]
 
    if(net ~= nil) then
       net = shaper_utils.addVlan0(net)
@@ -1102,17 +1062,19 @@ end
       selected_network = shaper_utils.ANY_NETWORK
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["add_shapers"] ~= nil)) then
+   local SHAPERS_MAX_RATE_KPBS = 100*1000*1000           -- 100 Gbit/s
+
+   if(_POST["add_shapers"] ~= nil) then
       local num_added = 0
       local last_added = nil
-      for shaper,mrate in pairs(_GET) do
+      for shaper,mrate in pairs(_POST) do
          local sp = split(shaper, "shaper_")
          if #sp == 2 then
             local shaper_id = tonumber(sp[2])
             local max_rate = tonumber(mrate)
             --~ tprint(shaper_id.." "..max_rate)
 
-            if(max_rate > 1048576) then max_rate = -1 end
+            if(max_rate > SHAPERS_MAX_RATE_KPBS) then max_rate = -1 end
             if(max_rate < -1) then max_rate = -1 end
 
             shaper_utils.setShaperMaxRate(ifid, shaper_id, max_rate)
@@ -1126,21 +1088,19 @@ end
       end
 
       interface.reloadShapers()
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering#shapers")
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["delete_shaper"] ~= nil)) then
-      local shaper_id = _GET["delete_shaper"]
+   if(_POST["delete_shaper"] ~= nil) then
+      local shaper_id = _POST["delete_shaper"]
 
       shaper_utils.deleteShaper(ifid, shaper_id)
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering#shapers")
    end
 
-   if((_GET["csrf"] ~= nil) and (_GET["proto_network"] ~= nil)) then
-      local target_net = _GET["proto_network"]
+   if(_POST["proto_network"] ~= nil) then
+      local target_net = _POST["proto_network"]
 
-      if (_GET["del_l7_proto"] ~= nil) then
-         local protocol_id = _GET["del_l7_proto"]
+      if (_POST["del_l7_proto"] ~= nil) then
+         local protocol_id = _POST["del_l7_proto"]
          shaper_utils.deleteProtocol(ifid, target_net, protocol_id)
       else
          -- set protocols policy for the network
@@ -1151,13 +1111,12 @@ end
 
       -- Note: this could optimized to only reload this specific network
       interface.reloadL7Rules(target_net)
-      jsUrlChange("if_stats.lua?id="..ifid.."&page=filtering&network="..target_net.."#protocols")
    end
    print [[
-   <ul id="filterPageTabPanel" class="nav nav-tabs">
-      <li><a data-toggle="tab" class="btn" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#networks">]] print(i18n("shaping.create_networks")) print[[</a></li>
-      <li><a data-toggle="tab" class="btn" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
+   <ul id="filterPageTabPanel" class="nav nav-tabs" role="tablist">
+      <li><a data-toggle="tab" role="tab" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#networks">]] print(i18n("shaping.define_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
 
@@ -1175,7 +1134,7 @@ function print_shapers(shapers, curshaper_id, terminator)
       if(shaper.id == curshaper_id) then print(" selected") end
       print(">"..shaper.id.." (")
 
-      print(maxRateToString(shaper.rate)..")</option>"..terminator)
+      print(shaper_utils.shaperRateToString(shaper.rate)..")</option>"..terminator)
    end
 end
 
@@ -1184,21 +1143,21 @@ end
 locals = ntop.getLocalNetworks()
 locals_empty = (next(locals) == nil)
 
--- ==== Create networks tab ====
+-- ==== Define networks tab ====
 print [[<div id="networks" class="tab-pane"><br>
 
-<table class="table table-striped table-bordered"><tr><th>Define Network</th></tr><tr><td>
+<table class="table table-striped table-bordered"><tr><th>]] print(i18n("shaping.define_network")) print[[</th></tr><tr><td>
    <table class="table table-borderless"><tr>
       <div id="badnet" class="alert alert-danger" style="display: none"></div>
       <td><strong style="margin-right:1em">Network:</strong>
 ]]
 
 print[[
-         <input id="new_custom_network" type="text" class="form-control" style="width:12em; margin-right:1em;]] if not locals_empty then print(' display:none') end print[[">
+         <input id="new_custom_network" type="text" class="form-control network-selector" style="]] if not locals_empty then print('display:none') end print[[">
 ]]
 
 if not locals_empty then
-   print('<select class="form-control" id="new_network" style="width:12em; margin-right:1em; display:inline;">')
+   print('<select class="form-control network-selector" id="new_network" style="display:inline;">')
    for s,_ in pairs(locals) do
       print('<option value="'..s..'">'..s..'</option>\n')
    end
@@ -1209,7 +1168,7 @@ end
    <td><strong style="margin-right:1em">VLAN</strong><input type="text" class="form-control" id="new_vlan" name="new_vlan" value="0" style="width:4em; display:inline;"></td>
    <td><strong style="margin-right:1em">Initial Policy:</strong>
          <div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">
-            <button id="bt_initial_empty" type="button" class="btn btn-primary" value="empty">Default</button>
+            <button id="bt_initial_empty" type="button" class="btn btn-primary active" value="empty">Default</button>
             <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone">Clone</button>
          </div>
          <span id="clone_from_container" style="visibility:hidden;"><span style="margin: 0 1em 0 1em;">from</span>
@@ -1221,7 +1180,7 @@ for _,k in ipairs(nets) do
 end
       print[[</select></span></td>
    </tr></table>
-<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">Define</button></td></tr>
+<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">]] print(i18n("define")) print[[</button></td></tr>
 </table>
 
 NOTES:<ul>
@@ -1231,22 +1190,22 @@ NOTES:<ul>
 </div>
 ]]
 
--- ==== Manage protocols tab ====
+-- ==== Manage policies tab ====
 
 print [[<div id="protocols" class="tab-pane"><br>
 
-<form id="editNetworksForm">
-   <input type="hidden" name="page" value="filtering"/>
+<form id="editNetworksForm" method="post">
    <input type="hidden" name="edit_networks" value=""/>
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
 </form>
-<form id="deleteShapedProtocolForm">
-   <input type="hidden" name="page" value="filtering">
+<form id="deleteShapedProtocolForm" method="post">
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <input type="hidden" name="del_l7_proto" value="">
 </form>
 
 <table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
-]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control" name="network" style="width:15em; display:inline; margin-left:1em;">
+]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control network-selector" name="network" style="display:inline; margin-left:1em;">
 ]]
    for _,k in ipairs(nets) do
 	 if(k ~= "") then
@@ -1258,52 +1217,21 @@ print [[<div id="protocols" class="tab-pane"><br>
 print("</select>")
 this_net = shaper_utils.trimVlan0(selected_network)
 if selected_network ~= shaper_utils.ANY_NETWORK then
-   print[[<form id="deleteNetworkForm" action="]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua" method="get" style="display:inline;">
-     <input type="hidden" name="page" value="filtering"/>
+   print[[<form id="deleteNetworkForm" style="display:inline;" method="post" action="?page=filtering#protocols">
      <input type="hidden" name="delete_network" value="]] print(selected_network) print[["/>
+     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
      [ <a href="javascript:void(0);" onclick="$('#deleteNetworkForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(this_net) print[[</a> ]
    </form>]]
-   print(jsFormCSRF("deletePolicyForm"))
 end
 
-print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();">
-   <input type="hidden" name="page" value="filtering">
+print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
    <input type="hidden" name="proto_network" value="]] print(net) print[[">
+   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
 ]]
 
 local protos = interface.getnDPIProtocols()
 local protos_in_use = shaper_utils.getNetworkProtoShapers(ifid, net, true --[[ do not aggregate into categories ]])
 local protocol_categories = shaper_utils.getCategoriesWithProtocols()
-
-function print_ndpi_protocols(protos, selected, excluded, terminator)
-   selected = selected or {}
-   excluded = excluded or {}
-   terminator = terminator or "\n"
-
-   for k,v in pairsByKeys(protos, asc) do
-      if((k ~= "GRE")
-	    and (k ~= "BGP")
-	    and (k ~= "IGMP")
-	    and (k ~= "IPP")
-	    and (k ~= "IP_in_IP")
-	    and (k ~= "OSPF")
-	    and (k ~= "PPTP")
-	    and (k ~= "SCTP")
-	    and (k ~= "TFTP")
-      ) then
-	 print("<option value=\""..v.."\" data-category=\""..(interface.getnDPIProtoCategory(tonumber(v)).id).."\"")
-
-	 --print(""..v.."<p>")
-	 if (excluded[v] or excluded[k]) then
-	    print(' disabled="disabled"')
-	 elseif(selected[v] ~= nil) then
-	    print(' selected="selected"')
-	 end
-
-	 print(">"..k.."</option>"..terminator)
-      end
-   end
-end
 
 -- families of protocols which are currently used by at least one protocol
 local categories_in_use = {}
@@ -1312,23 +1240,45 @@ for k,v in pairs(protos_in_use) do
 
    -- can be null for default
    if proto_id ~= nil then
-      local family = interface.getnDPIProtoCategory(proto_id)
-      if not categories_in_use[family.id] then
-         categories_in_use[family.id] = 1
+      local category_id = tostring(interface.getnDPIProtoCategory(proto_id).id)
+      if not categories_in_use[category_id] then
+         categories_in_use[category_id] = 1
       else
-         categories_in_use[family.id] = categories_in_use[family.id] + 1
+         categories_in_use[category_id] = categories_in_use[category_id] + 1
       end
    end
 end
 
-function print_ndpi_families(categories, excluded, terminator)
+function print_ndpi_families_and_protocols(categories, protos, categories_disabled, protos_disabled, terminator)
+   local protos_excluded = {GRE=1, BGP=1, IGMP=1, IPP=1, IP_in_IP=1, OSPF=1, PPTP=1, SCTP=1, TFTP=1}
+
+   print('<optgroup label="'..i18n("shaping.protocol_families")..'">')
    for k,category in pairsByKeys(categories, asc) do
-      if category.id ~= 0 then
-         print('<option value="cat_'..category.id..'"')
-         if excluded[category.id] ~= nil then print(' disabled="disabled"') end
-         print('>'..k.." (<i>".. category.count .. " " .. string.lower(i18n("shaping.protocols")) .. "</i>)"..'</option>'..terminator)
+      print('<option value="cat_'..category.id..'"')
+      if categories_disabled[category.id] ~= nil then print(' disabled="disabled"') end
+      print('>' .. k .. " " .. ' ('.. category.count .. ')</option>'..terminator)
+   end
+   print('</optgroup>')
+
+   print('<optgroup label="'..i18n("shaping.protocols")..'">')
+   for protoName,protoId in pairsByKeys(protos, asc) do
+      if not protos_excluded[protoName] then
+         -- find protocol category
+         for _,category in pairs(categories) do
+            for _,catProto in pairs(category.protos) do
+               if catProto == protoId then
+                  print('<option value="'..protoId..'" data-category="'..category.id..'"')
+                  if((protos_disabled[protoName]) or (protos_disabled[protoId])) then
+                     print(' disabled="disabled"')
+                  end
+                  print(">"..protoName.."</option>"..terminator)
+                  break
+               end
+            end
+         end
       end
    end
+   print('</optgroup>')
 end
 
    print [[<div id="table-protos"></div>
@@ -1344,9 +1294,6 @@ NOTES:
 
 
 <script>
-]] print(jsFormCSRF('deleteNetworkForm', true)) print[[
-]] print(jsFormCSRF('editNetworksForm', true)) print[[
-
 function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_idx) {
    var ingress_shaper = $("td:nth-child("+ingress_shaper_idx+")", $(this));
    var egress_shaper = $("td:nth-child("+egress_shaper_idx+")", $(this));
@@ -1374,13 +1321,17 @@ function checkNetworksFormCallback() {
 
       // newtwork is valid here, now fill in the real form
       var netkey = new_net_name + "@" +  $("#new_vlan").val();
-      var form = $("#editNetworksForm");
+      var params = {};
+      params["network"] = netkey;
+      params["ishaper_" + netkey] = 0;
+      params["eshaper_" + netkey] = 0;
       if ($("#clone_from_select").attr("name") == "clone")
-         form.append('<input type="hidden" name="clone" value="' + $("#clone_from_select").find(":selected").val() + '">');
-      form.append('<input type="hidden" name="ishaper_' + netkey + '" value="0">');
-      form.append('<input type="hidden" name="eshaper_' + netkey + '" value="0">');
-      form.append('<input type="hidden" name="network" value="' + netkey + '">');
-      form.submit();
+         params["clone"] = $("#clone_from_select").find(":selected").val();
+
+      // encode parameters since networks could contain special characters
+      var encoded_params = paramsPairsEncode(params);
+      $("#editNetworksForm").attr("action", "?page=filtering&network=" + netkey + "#protocols");
+      paramsToForm("#editNetworksForm", encoded_params).submit();
    }
 
    return false;
@@ -1401,8 +1352,6 @@ function toggleCustomNetworkMode() {
    }
 }
 
-   ]] print(jsFormCSRF('l7ProtosForm', true)) print[[
-   ]] print(jsFormCSRF('deleteShapedProtocolForm', true)) print[[
    $("#proto_network").change(function() {
       document.location.href = "]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua?page=filtering&network="+$("#proto_network").val()+"#protocols";
    });
@@ -1421,8 +1370,14 @@ function toggleCustomNetworkMode() {
          $("#clone_from_select").attr("name", "clone");
          $("#clone_from_container").css("visibility", "visible");
       }
-      $(active).removeClass("btn-default").addClass("btn-primary");
-      $(inactive).removeClass("btn-primary").addClass("btn-default");
+      $(active)
+         .removeClass("btn-default")
+         .addClass("active")
+         .addClass("btn-primary");
+      $(inactive)
+         .addClass("btn-default")
+         .removeClass("active")
+         .removeClass("btn-primary");
    });
 
    if (typeof add_new_network_at_startup != "undefined") {
@@ -1465,11 +1420,7 @@ function toggleCustomNetworkMode() {
       new_row_ctr += 1;
 
       var tr = $('<tr id="' + newid + '" ><td><select class="form-control" name="new_protocol_id">\
-         <optgroup label="]] print(i18n("shaping.protocol_families")) print[[">\
-            ]] print_ndpi_families(protocol_categories, categories_in_use, "\\") print[[
-         </optgroup>\
-         <optgroup label="]] print(i18n("shaping.protocols")) print[[">\
-]] print_ndpi_protocols(protos, {}, protos_in_use, "\\") print[[
+            ]] print_ndpi_families_and_protocols(protocol_categories, protos, categories_in_use, protos_in_use, "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
@@ -1566,7 +1517,7 @@ function toggleCustomNetworkMode() {
    print (ntop.getHttpPrefix())
    print [[/lua/get_l7_proto_policies.lua?ifid=]] print(ifid.."") print[[&network=]] print(net) print[[",
       showPagination: true,
-      perPage: 5,
+      perPage: ]] print(perPageProtos) print[[,
       title: "",
       forceTable: true,
       buttons: [
@@ -1580,7 +1531,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(" Traffic to " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_to") .. " " .. this_net) print[[",
             field: "column_ingress_shaper",
             css: {
                width: '20%',
@@ -1588,7 +1539,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(" Traffic from " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_from") .. " " .. this_net) print[[",
             field: "column_egress_shaper",
             css: {
                width: '20%',
@@ -1683,29 +1634,57 @@ print[[     ];
 
 -- ******************************************
 
--- ==== Manage shapers tab ====
+-- ==== Bandwidth Manager tab ====
 
 print[[
   <div id="shapers" class="tab-pane">
-   <form id="deleteShaperForm">
-      <input type="hidden" name="page" value="filtering">
+   <form id="deleteShaperForm" method="post">
       <input type="hidden" name="delete_shaper" value="">
+      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    </form>
-   <form id="addShaperForm">
-      <input type="hidden" name="page" value="filtering">
+   <form id="addShaperForm" method="post">
       <input type="hidden" name="add_shapers" value="">
+      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    </form>
 
-   <form id="modifyShapersForm">
-      <input type="hidden" name="page" value="filtering">
+   <form id="modifyShapersForm" method="post">
       <input type="hidden" name="add_shapers" value="">
+      <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <br/><div id="table-shapers"></div>
 
    <script>
+]]
+
+local rate_buttons = shaper_utils.rateButtons(1)
+print(rate_buttons.init.."\n")
+
+print[[
+   var rate_buttons_code = ']] print(rate_buttons.js) print[[';
+
+   function replaceCtrlId(v, shaper_id) {
+      return v.replace(/\_\_\_CTRL\_ID\_\_\_/g, "shaper_max_rate_" + shaper_id);
+   }
+
    function shaperRateTextField(td_object, shaper_id, value) {
-      var input = $('<input name="shaper_' + shaper_id + '" class="form-control no-spinner" type="number" min="-1"/>');
+      // fix ctrl id
+      var buttons = $(replaceCtrlId(td_object.html(), shaper_id));
+      var div = $('<div class="text-center form-group" style="padding:0 1em; margin:0;"></div>');
+      td_object.html("");
+      div.appendTo(td_object);
+      buttons.appendTo(div);
+
+      var input = $('<input name="shaper_' + shaper_id + '" class="form-control" type="number" data-min="-1" data-max="]] print(SHAPERS_MAX_RATE_KPBS.."") print[[" style="width:8em; text-align:right; margin-left:1em; display:inline;" required/>');
       input.val(value);
-      td_object.html(input);
+      input.appendTo(div);
+
+      if ((shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) ||
+          (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
+         input.attr("disabled", "disabled");
+         buttons.find("label").attr("disabled", "disabled");
+      }
+
+      // execute group specific code
+      eval(replaceCtrlId(rate_buttons_code, shaper_id));
 
       if((typeof shaper_just_added != "undefined") && (shaper_just_added == shaper_id))
          input.focus();
@@ -1766,10 +1745,10 @@ print[[
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("max_rate")) print[[ (Kbps)",
+            title: "]] print(i18n("max_rate")) print[[",
             field: "column_max_rate",
             css : {
-               width: '10%',
+               width: '25em',
                verticalAlign: 'middle'
             }
          }, {
@@ -1792,12 +1771,9 @@ print[[
             var shaper_id = $("td:nth-child(1)", $(this)).html();
             var max_rate = $("td:nth-child(2)", $(this));
 
-            if (shaper_id == ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[)
-               max_rate.html("-1 (]] print(maxRateToString(-1)) print[[)");
-            else if (shaper_id == ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)
-               max_rate.html("0 (]] print(maxRateToString(0)) print[[)");
-            else
-               shaperRateTextField(max_rate, shaper_id, max_rate.html());
+            var rate_input = max_rate.find("input[name='shaper_rate']");
+            rate_input.remove();
+            shaperRateTextField(max_rate, shaper_id, rate_input.val());
 
             addShaperActionsToRow($(this), shaper_id);
          });
@@ -1817,9 +1793,6 @@ print[[
          aysResetForm('#modifyShapersForm');
       }
    });
-   ]] print(jsFormCSRF('modifyShapersForm', true)) print[[
-   ]] print(jsFormCSRF('deleteShaperForm', true)) print[[
-   ]] print(jsFormCSRF('addShaperForm', true)) print[[
 </script>]]
 
 print [[</form>
@@ -1838,7 +1811,6 @@ print [[</form>
    /*** Page Tab State ***/
    $('#filterPageTabPanel a').click(function(e) {
      e.preventDefault();
-     $(this).tab('show');
    });
 
    // store the currently selected tab in the hash value
@@ -1870,8 +1842,6 @@ print [[</form>
 elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end
-
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
 print("<script>\n")
 print("var last_pkts  = " .. ifstats.stats.packets .. ";\n")
@@ -1909,11 +1879,16 @@ print [[
 var resetInterfaceCounters = function(drops_only) {
   var action = "reset_all";
   if(drops_only) action = "reset_drops";
-  $.ajax({ type: 'GET',
+  $.ajax({ type: 'post',
     url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/reset_stats.lua?action=' + action,
-    success: function(rsp) {}
+print [[/lua/reset_stats.lua',
+    data: 'action=' + action + "&csrf=]] print(ntop.getRandomCSRFValue()) print[[",
+    success: function(rsp) {},
+    complete: function() {
+      /* reload the page to generate a new CSRF */
+      window.location.href = window.location.href;
+    }
   });
 }
 
@@ -2013,15 +1988,17 @@ print [[";
           $('#exported_flows_drops_pct').removeClass().html("[0%]");
         }
 
-        var btn_disabled = false;
-	if(rsp.drops + rsp.bytes + rsp.packets + rsp.flow_export_count + rsp.flow_export_drops == 0) {
-          btn_disabled = true;
+        var btn_disabled = true;
+	if(rsp.drops + rsp.bytes + rsp.packets + rsp.flow_export_count + rsp.flow_export_drops > 0) {
+          btn_disabled = false;
+          $('#btn_reset_all').removeClass("disabled");
         }
         $('#btn_reset_all').disable(btn_disabled);
 
-        btn_disabled = false;
+        btn_disabled = true;
 	if(rsp.drops + rsp.flow_export_drops == 0) {
-          btn_disabled = true;
+          btn_disabled = false;
+          $('#btn_reset_drops').removeClass("disabled");
         }
         $('#btn_reset_drops').disable(btn_disabled);
 
@@ -2101,3 +2078,5 @@ $(document).ready(function()
 );
 </script>
 ]]
+
+dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

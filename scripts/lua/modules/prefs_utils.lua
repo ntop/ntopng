@@ -22,130 +22,31 @@ end
 
 -- ############################################
 
-local options_ctr = 0
 local options_script_loaded = false
+local options_ctr = 0
 
--- Note: use data-min and data-max to setup ranges
 local function prefsResolutionButtons(fmt, value)
-  local ctrl_id = tostring(options_ctr)
-  options_ctr = options_ctr + 1
-
   local fmt_to_data = {
-    ["s"] = {"Seconds", "Secs",  1},
-    ["m"] = {"Minutes", "Mins",  60},
-    ["h"] = {"Hours",   "Hours", 3600},
-    ["d"] = {"Days",    "Days",  3600*24},
+    ["s"] = {label="Secs",  value=1},
+    ["m"] = {label="Mins",  value=60},
+    ["h"] = {label="Hours", value=3600},
+    ["d"] = {label="Days",  value=3600*24},
   }
 
-  local selected = nil
+  local ctrl_id = "options_group_" .. options_ctr
+  options_ctr = options_ctr + 1
+  local res = makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, {classes={"pull-right"}})
 
-  -- find the highest values which divides input value
-  if tonumber(value) ~= nil then
-    -- foreach character in format
-    string.gsub(fmt, ".", function(k)
-      local v = fmt_to_data[k]
-      if v ~= nil then
-        if((selected == nil) or ((v[3] > fmt_to_data[selected][3]) and (value % v[3] == 0))) then
-          selected = k
-        end
-      end
-    end)
-  end
-  selected = selected or string.sub(fmt, 1, 1)
-
-  print[[<div class="btn-group pull-right" id="options_group_]] print(ctrl_id) print[[" data-toggle="buttons" style="display:inline;">]]
-
-  -- foreach character in format
-  string.gsub(fmt, ".", function(k)
-    local v = fmt_to_data[k]
-    if v ~= nil then
-      print[[<label class="btn btn-sm]]
-      if selected == k then
-	 print[[ btn-primary active]]
-      else
-	 print[[ btn-default]]
-      end
-      print[[ btn-sm"><input value="]] print(tostring(v[3])) print[[" title="]] print(v[1]) print[[" name="options_]] print(ctrl_id) print[[" autocomplete="off" type="radio"]]
-      if selected == k then print(' checked="checked"') end print[[/>]] print(v[2]) print[[</label>]]
-    end
-  end)
-
-  print[[</div>]]
-
+  print(res.html)
+  print("<script>")
   if not options_script_loaded then
-    print[[<script>
-      function resol_selector_get_input(an_input) {
-        return $(".form-group > input", $(an_input).parent().parent().parent().parent()).first();
-      }
-
-      /* This function scales values wrt selected resolution */
-      function resol_selector_reset_input_range(selected) {
-        var selected = $(selected);
-        var input = resol_selector_get_input(selected);
-
-        var raw = parseInt(input.attr("data-min"));
-        if (! isNaN(raw))
-          input.attr("min", Math.ceil(raw / selected.val()));
-
-        raw = parseInt(input.attr("data-max"));
-        if (! isNaN(raw))
-          input.attr("max", Math.ceil(raw / selected.val()));
-      }
-
-      function resol_selector_change_callback(event) {
-        var selected = $(this);
-        selected.attr('checked', 'checked')
-          .closest("label").removeClass('btn-default').addClass('btn-primary')
-          .siblings().removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
-
-        resol_selector_reset_input_range(selected);
-      }
-
-      function resol_selector_on_form_submit(event) {
-        var form = $(this);
-
-        if (event.isDefaultPrevented())   // isDefaultPrevented is true when the form is invalid
-          return false;
-
-        form.find("[id^=options_group_]").each(function(){
-          var selected = $(this).find("input[checked]");
-          var input = resol_selector_get_input(selected);
-
-          // transform in raw units
-          var new_input = $("<input type='hidden'/>");
-          new_input.attr("name", input.attr("name"));
-          input.removeAttr("name");
-          new_input.val(parseInt(selected.val()) * parseInt(input.val()));
-          new_input.appendTo(form);
-        });
-      }
-    </script>]]
+    print(res.init)
     options_script_loaded = true
   end
+  print(res.js)
+  print("</script>")
 
-  print[[<script>
-    $('#options_group_]] print(ctrl_id) print[[ input').change(resol_selector_change_callback);
-    $(function() {
-      var elemid = "#options_group_]] print(ctrl_id) print[[";
-      var selected = $(elemid + ' input[checked]');
-      resol_selector_reset_input_range(selected);
-
-      // setup the form submit callback (only once)
-      var form = selected.closest("form");
-      if (! form.attr("data-options-handler")) {
-        form.attr("data-options-handler", 1);
-        form.submit(resol_selector_on_form_submit);
-      }
-    });
-  </script>
-  ]]
-
-  if tonumber(value) ~= nil then
-    -- returns the new value with selected resolution
-    return tonumber(value) / fmt_to_data[selected][3]
-  else
-    return nil
-  end
+  return res.value
 end
 
 -- ############################################
@@ -161,8 +62,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     k = prekey.."."..key
   end
 
-  if(_GET[key] ~= nil) then
-    v_s = _GET[key]
+  if(_POST[key] ~= nil) then
+    v_s = _POST[key]
     v = tonumber(v_s)
 
     v_cache = ntop.getPref(k)
@@ -232,40 +133,52 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   style["margin-bottom"] = "0.5em"
 
   print [[
-    <td class="col-lg-4" align=right>
-      <div class="col-md-1"></div>
-      <div class="col-md-7">]]
+    <td align=right>
+      <table class="form-group" style="margin-bottom: 0;">
+        <tr>
+          <td style="vertical-align:top;">]]
       if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value)
-        if extra.width == nil then
-          
+      end
+
+      if extra.width == nil then
+        if _input_type == "number" then
+          style["width"] = "8em"
+        else
+          style["width"] = "18em"
         end
-        style["width"] = "10em"
         style["margin-left"] = "auto"
       else
         style["width"] = "15em"
       end
+      style["margin-left"] = "auto"
 
       style = table.merge(style, extra.style)
       attributes = table.merge(attributes, extra.attributes)
 
       print[[
-         </div><div class="form-group">
-          <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
+          </td>
+          <td style="vertical-align:top; padding-left: 2em;">
+            <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>
-          <div class="help-block with-errors"></div>
-        </div>
-      </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:0;">
+            <div class="help-block with-errors text-right" style="height:1em;"></div>
+          </td>
+        </tr>
+      </table>
   </td></tr>
 ]]
 
 end
 
 function toggleTableButton(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field, redis_key, disabled)
-  if(_GET[submit_field] ~= nil) then
-    ntop.setPref(redis_key, _GET[submit_field])
-    value = _GET[submit_field]
+  if(_POST[submit_field] ~= nil) then
+    ntop.setPref(redis_key, _POST[submit_field])
+    value = _POST[submit_field]
     notifyNtopng(submit_field)
   else
     value = ntop.getPref(redis_key)
@@ -288,7 +201,7 @@ function toggleTableButton(label, comment, on_label, on_value, on_color , off_la
   end
 
   if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-  print('<form>\n<div class="btn-group btn-toggle">')
+  print('<form method="post">\n<div class="btn-group btn-toggle">')
   print('<button type="submit" '..disabled..' class="btn btn-sm  '..on_active..'">'..on_label..'</button>')
   print('<button '..disabled..' class="btn btn-sm '..off_active..'">'..off_label..'</button></div>\n')
   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -303,10 +216,10 @@ function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , o
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement)
 
   value = ntop.getPref(redis_key)
-  if(_GET[submit_field] ~= nil) then
-    if ( (value == nil) or (value ~= _GET[submit_field])) then
-      ntop.setPref(redis_key, _GET[submit_field])
-      value = _GET[submit_field]
+  if(_POST[submit_field] ~= nil) then
+    if ( (value == nil) or (value ~= _POST[submit_field])) then
+      ntop.setPref(redis_key, _POST[submit_field])
+      value = _POST[submit_field]
       notifyNtopng(submit_field)
     end
   else
@@ -399,9 +312,9 @@ end
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
                                   submit_field, redis_key, disabled, elementToSwitch, showElementArray,
                                   javascriptAfterSwitch, showElement)
-  if(_GET[submit_field] ~= nil) then
-    ntop.setPref(redis_key, _GET[submit_field])
-    value = _GET[submit_field]
+  if(_POST[submit_field] ~= nil) then
+    ntop.setPref(redis_key, _POST[submit_field])
+    value = _POST[submit_field]
     notifyNtopng(submit_field)
   else
     value = ntop.getPref(redis_key)
@@ -432,7 +345,13 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     for nameCount = 1, #array_labels do
       local type_button = "btn-default"
       if(value == array_values[nameCount]) then
-        type_button = "btn-"..selected_color.."  active"
+        local color
+        if type(selected_color) == "table" then
+          color = selected_color[nameCount]
+        else
+          color = selected_color
+        end
+        type_button = "btn-"..color.."  active"
       end
       print('<button id="id_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..'" data-toggle="button">'..array_labels[nameCount]..'</button>\n')
     end
@@ -446,10 +365,17 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
       print(' field.val("'..array_values[nameCount]..'").trigger("change");\n')
 
       for indexLabel = 1, #array_labels do
+        local color
+        if type(selected_color) == "table" then
+          color = selected_color[indexLabel]
+        else
+          color = selected_color
+        end
+
         print[[ var class_]] print(array_values[indexLabel]) print[[ = document.getElementById("id_]] print(array_values[indexLabel]) print [[");
         class_]] print(array_values[indexLabel]) print[[.removeAttribute("class");]]
         if(array_values[indexLabel] == array_values[nameCount]) then
-          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(selected_color) print[[ active");]]
+          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(color) print[[ active");]]
         else
           print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-default");]]
         end
@@ -488,10 +414,10 @@ function loggingSelector(label, comment, submit_field, redis_key)
   prefs = ntop.getPrefs()
   if prefs.has_cmdl_trace_lvl then return end
 
-  if(_GET[submit_field] ~= nil) then
-    ntop.setCache(redis_key, _GET[submit_field])
-    value = _GET[submit_field]
-    notifyNtopng(submit_field, _GET[submit_field])
+  if(_POST[submit_field] ~= nil) then
+    ntop.setCache(redis_key, _POST[submit_field])
+    value = _POST[submit_field]
+    notifyNtopng(submit_field, _POST[submit_field])
   else
     value = ntop.getCache(redis_key)
   end
@@ -500,73 +426,15 @@ function loggingSelector(label, comment, submit_field, redis_key)
      value = "normal"
   end
 
-  if(value == "trace") then color = "default"
-  elseif(value == "debug") then color = "success"
-  elseif(value == "info") then color = "info"
-  elseif(value == "normal") then color = "primary"
-  elseif(value == "warning") then color = "warning"
-  elseif(value == "error") then color = "danger"
-  else color = "default"
-  end
+  local logging_values = {"trace", "debug", "info", "normal", "warning", "error"}
+  local color_map = {"default", "success", "info", "primary", "warning", "danger"}
+  local logging_keys = {}
+  local color = "default"
 
-  if(label ~= "") then print('<tr><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-  print[[
-     <input id="]] print(submit_field) print[[" name="]] print(submit_field) print[[" value="]] print(value) print[[" type="hidden">
-     <div class="dropdown">
-      <button class="btn btn-]] print(color) print[[ dropdown-toggle" type="button" data-toggle="dropdown">]] print(value:gsub("^%l", string.upper))
-  print[[
-      <span class="caret"></span></button>
-      <ul class="dropdown-menu dropdown-menu-right">
-        <li onclick="$('#]] print(submit_field) print[[').val('trace').trigger('change');"><a href="#">Trace</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('debug').trigger('change');"><a href="#">Debug</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('info').trigger('change');"><a href="#">Info</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('normal').trigger('change');"><a href="#">Normal</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('warning').trigger('change');"><a href="#">Warning</a></li>
-        <li onclick="$('#]] print(submit_field) print[[').val('error').trigger('change');"><a href="#">Error</a></li>
-      </ul>
-    </div>
-    
-    <script type="text/javascript">
-      $(".dropdown-menu li a").click(function(){
-        $(this).parents('.btn-group').find('.dropdown-toggle').html($(this).text()+'<span class="caret"></span>');
-        $(".btn:first").removeClass("btn-default");
-        $(".btn:first").removeClass("btn-success");
-        $(".btn:first").removeClass("btn-info");
-        $(".btn:first").removeClass("btn-primary");
-        $(".btn:first").removeClass("btn-warning");
-        $(".btn:first").removeClass("btn-danger");
-        switch($(this).text()){
-            case "Trace":
-                $(".btn:first").addClass("btn-default");
-                $(".btn:first").html("Trace "+'<span class="caret"></span>');
-                break;
-            case "Debug":
-                $(".btn:first").addClass("btn-success");
-                $(".btn:first").html("Debug "+'<span class="caret"></span>');
-                break;
-            case "Info":
-                $(".btn:first").addClass("btn-info");
-                $(".btn:first").html("Info "+'<span class="caret"></span>');
-                break;
-            case "Normal":
-                $(".btn:first").addClass("btn-primary");
-                $(".btn:first").html("Normal "+'<span class="caret"></span>');
-                break;
-            case "Warning":
-                $(".btn:first").addClass("btn-warning");
-                $(".btn:first").html("Warning "+'<span class="caret"></span>');
-                break;
-            case "Error":
-                $(".btn:first").addClass("btn-danger");
-                $(".btn:first").html("Error "+'<span class="caret"></span>');
-                break;
-            default:
-                $(".btn:first").addClass("btn-default");
-        }
-      });
-    </script>
-  ]]
-  if(label ~= "") then print('</td></tr>') end
+  for i,v in ipairs(logging_values) do logging_keys[i] = firstToUpper(v) end
+
+  multipleTableButtonPrefs("Log level", "Choose the runtime logging level.",
+          logging_keys, logging_values, value, color_map, submit_field, redis_key)
 
   return(value)
 end

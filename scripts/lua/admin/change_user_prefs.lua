@@ -8,10 +8,10 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-username = _GET["username"]
-host_role = _GET["host_role"]
-networks = _GET["networks"]
-allowed_interface = _GET["allowed_interface"]
+username = _POST["username"]
+host_role = _POST["host_role"]
+networks = _POST["networks"]
+allowed_interface = _POST["allowed_interface"]
 
 if(username == nil) then   
     print ("{ \"result\" : -1, \"message\" : \"Error in username\" }")

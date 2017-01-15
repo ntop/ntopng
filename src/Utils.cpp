@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -274,7 +274,7 @@ bool Utils::mkdir_tree(char *path) {
 
 const char* Utils::flowStatus2str(FlowStatus s, AlertType *aType) {
   *aType = alert_flow_misbehaviour; /* Default */
-  
+
   switch(s) {
   case status_normal:
     *aType = alert_none;
@@ -1341,7 +1341,7 @@ char* Utils::formatMac(u_int8_t *mac, char *buf, u_int buf_len) {
     snprintf(buf, buf_len, "%02X:%02X:%02X:%02X:%02X:%02X",
 	   mac[0] & 0xFF, mac[1] & 0xFF,
 	   mac[2] & 0xFF, mac[3] & 0xFF,
-	   mac[4] & 0xFF, mac[5] & 0xFF);    
+	   mac[4] & 0xFF, mac[5] & 0xFF);
   return(buf);
 }
 
@@ -1356,7 +1356,7 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
     for(u_int8_t i=0; i<6; i++){
       mac_int |= (mac[i] & 0xFF) << (5-i)*8;
     }
-    
+
     return mac_int;
   }
 }
@@ -1610,11 +1610,11 @@ u_int32_t Utils::macHash(u_int8_t *mac) {
   if(mac == NULL)
     return(0);
   else {
-    u_int32_t hash = 0; 
-    
+    u_int32_t hash = 0;
+
     for(int i=0; i<6; i++)
       hash += mac[i] << (i+1);
-    
+
     return(hash);
   }
 }
@@ -1650,7 +1650,7 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
 void Utils::parseMac(u_int8_t *mac, const char *symMac) {
   sscanf(symMac, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
 	 &mac[0], &mac[1], &mac[2],
-	 &mac[3], &mac[4], &mac[5]);  
+	 &mac[3], &mac[4], &mac[5]);
 }
 
 /* *********************************************** */
@@ -1733,7 +1733,7 @@ static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int 
     rc = 0, free(node);
   else
     rc = -1;
-  
+
   return(rc);
 }
 
@@ -1759,7 +1759,7 @@ patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char *line) {
   u_int8_t mac[6];
   u_int32_t _mac[6];
   patricia_node_t *node = NULL;
-  
+
   ip = line;
   bits = strchr(line, '/');
   if(bits == NULL)
@@ -1787,7 +1787,7 @@ patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char *line) {
     int num_octets;
     u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
     u_char *ip4 = (u_char *) &addr4;
-    
+
     if((num_octets = sscanf(ip, "%u.%u.%u.%u",
 			    &ip4_0, &ip4_1, &ip4_2, &ip4_3)) >= 1) {
       int num_bits = atoi(bits);
@@ -1810,7 +1810,7 @@ patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, char *line) {
   if(slash) slash[0] = '/';
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Added IPv%d rule %s/%s [%p]", isV4 ? 4 : 6, ip, bits, node);
-  
+
   return(node);
 }
 
@@ -1823,7 +1823,7 @@ int Utils::ptree_remove_rule(patricia_tree_t *ptree, char *line) {
   u_int32_t  _mac[6];
   u_int8_t mac[6];
   int rc = -1;
-  
+
   ip = line;
   bits = strchr(line, '/');
   if(bits == NULL)
@@ -1883,3 +1883,66 @@ int Utils::numberOfSetBits(u_int32_t i) {
   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
   return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
+
+/* ******************************************* */
+
+/*
+ * Checksum routine for Internet Protocol family headers (C Version)
+ *
+ * Borrowed from DHCPd
+ */
+u_int32_t Utils::in_cksum(unsigned char *buf, unsigned nbytes, u_int32_t sum) {
+  uint i;
+
+  /* Checksum all the pairs of bytes first... */
+  for (i = 0; i < (nbytes & ~1U); i += 2) {
+    sum += (u_int16_t) ntohs(*((u_int16_t *)(buf + i)));
+    /* Add carry. */
+    if(sum > 0xFFFF)
+      sum -= 0xFFFF;
+  }
+
+  /*
+     If there's a single byte left over, checksum it, too. Network
+     byte order is big-endian, so the remaining byte is the high byte.
+  */
+  if(i < nbytes) {
+#ifdef DEBUG_CHECKSUM_VERBOSE
+    debug ("sum = %x", sum);
+#endif
+    sum += buf [i] << 8;
+    /* Add carry. */
+    if(sum > 0xFFFF)
+      sum -= 0xFFFF;
+  }
+
+  return(sum);
+}
+
+/* ******************************************* */
+
+u_int32_t Utils::wrapsum(u_int32_t sum) {
+  sum = ~sum & 0xFFFF;
+  return(htons(sum));
+}
+
+/* ******************************************* */
+
+/* 
+   IMPORTANT: line buffer is large enough to contain the replaced string
+ */
+void Utils::replacestr(char *line, const char *search, const char *replace) {
+  char *sp;
+  int search_len, replace_len, tail_len;
+  
+  if ((sp = strstr(line, search)) == NULL) {
+    return;
+  }
+
+  search_len = strlen(search), replace_len = strlen(replace);
+  tail_len = strlen(sp+search_len);
+  
+  memmove(sp+replace_len,sp+search_len,tail_len+1);
+  memcpy(sp, replace, replace_len);
+}
+

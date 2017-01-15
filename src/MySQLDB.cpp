@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -693,13 +693,13 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql,
 
 /* ******************************************* */
 
-int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows) {
+int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows, bool wait_for_db_created) {
   MYSQL_RES *result;
   MYSQL_ROW row;
   char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
   int num_fields, rc, num = 0;
 
-  if(!MySQLDB::db_created /* Make sure the db exists before doing queries */
+  if((wait_for_db_created && !MySQLDB::db_created /* Make sure the db exists before doing queries */)
      || !db_operational)
     return(-2);
 

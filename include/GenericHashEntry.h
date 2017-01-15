@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -98,8 +98,9 @@ class GenericHashEntry {
   inline bool is_ready_to_be_purged() { return(will_be_purged); };
   virtual u_int32_t key()             { return(0);         };  
   virtual char* get_string_key(char *buf, u_int buf_len) { buf[0] = '\0'; return(buf); };
-  void incUses() { num_uses++; }
-  void decUses() { num_uses--; }
+  void incUses()      { num_uses++;      }
+  void decUses()      { num_uses--;      }
+  u_int16_t getUses() { return num_uses; }
 };
 
 #endif /* _GENERIC_HASH_ENTRY_H_ */

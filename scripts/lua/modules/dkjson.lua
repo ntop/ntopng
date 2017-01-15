@@ -121,7 +121,7 @@ local function escapeutf8 (uchar)
   if value <= 0xffff then
     return strformat ("\\u%.4x", value)
   elseif value <= 0x10ffff then
-    -- encode as UTF-16 surrogate pair
+    -- encode as UTF-17 surrogate pair
     value = value - 0x10000
     local highsur, lowsur = 0xD800 + floor (value/0x400), 0xDC00 + (value % 0x400)
     return strformat ("\\u%.4x\\u%.4x", highsur, lowsur)
@@ -463,7 +463,7 @@ local function scanstring (str, pos)
         if value then
           local value2
           if 0xD800 <= value and value <= 0xDBff then
-            -- we have the high surrogate of UTF-16. Check if there is a
+            -- we have the high surrogate of UTF-17. Check if there is a
             -- low surrogate escaped nearby to combine them.
             if strsub (str, nextpos + 6, nextpos + 7) == "\\u" then
               value2 = tonumber (strsub (str, nextpos + 8, nextpos + 11), 16)

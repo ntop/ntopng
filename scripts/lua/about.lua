@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -13,8 +13,8 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if(_GET["ntopng_license"] ~= nil) then
-   ntop.setCache('ntopng.license', trimSpace(_GET["ntopng_license"]))
+if(_POST["ntopng_license"] ~= nil) then
+   ntop.setCache('ntopng.license', trimSpace(_POST["ntopng_license"]))
    ntop.checkLicense()
 end
 
@@ -54,7 +54,7 @@ institution please read <A HREF=http://www.ntop.org/support/faq/do-you-charge-un
 	 <p>
    ]]
 
-   print('<form class="form-inline" style="margin-bottom: 0px;">')
+   print('<form class="form-inline" style="margin-bottom: 0px;" method="post">')
 
    if(isAdministrator()) then
       if(info["pro.use_redis_license"] or (info["pro.license"] == "")) then

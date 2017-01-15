@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -241,29 +241,6 @@ void NetworkInterface::init() {
 #ifdef NTOPNG_PRO
 
 void NetworkInterface::initL7Policer() {
-  /* Create a 0.0.0.0/0 network for policies */
-  char key[64];
-  char rsp[1024];
-  const char any_net[] = "0.0.0.0/0@0";
-
-  snprintf(key, sizeof(key), "ntopng.prefs.%d.l7_policy", get_id());
-
-  if(ntop->getRedis()->hashGet(key, (char*)any_net, rsp, sizeof(rsp)) != 0) {
-#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Creating '%s' network rule on interface %d",
-            any_net, get_id());
-#endif
-    /* set an empty rule */
-    ntop->getRedis()->hashSet(key, (char*)any_net, (char*)"");
-  }
-
-  /* Create default shaper */
-  snprintf(key, sizeof(key), "ntopng.prefs.%d.shaper_max_rate", get_id());
-  if(ntop->getRedis()->hashGet(key, (char*)"0", rsp, sizeof(rsp)) != 0) {
-    /* set as not shaping */
-    ntop->getRedis()->hashSet(key, (char*)"0", (char*)"-1");
-  }
-
   /* Instantiate the policer */
   policer = new L7Policer(this);
 }
@@ -804,28 +781,34 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
     if(numVirtualInterfaces < MAX_NUM_VIRTUAL_INTERFACES) {
       if((h = (FlowHashing*)malloc(sizeof(FlowHashing))) != NULL) {
 	char buf[64], buf1[48];
+	const char *vIface_type;
 	
 	h->criteria = criteria;
 
 	switch(flowHashingMode) {
 	case flowhashing_vlan:
+	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
 	  snprintf(buf, sizeof(buf), "%s [vlanId: %u]", ifname, criteria);
 	  break;
 
 	case flowhashing_probe_ip:
+	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [probeIP: %s]", ifname,
 		   Utils::intoaV4(criteria, buf1, sizeof(buf1)));
 	  break;
 
 	case flowhashing_ingress_iface_idx:
+	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [ifIdx: %u]", ifname, criteria);
 	  break;
 
 	default:
+	  free(h);
+	  return(NULL);
 	  break;
 	}
 	
-	if((h->iface = new NetworkInterface(buf, CONST_INTERFACE_TYPE_FLOW)) != NULL) {
+	if((h->iface = new NetworkInterface(buf, vIface_type)) != NULL) {
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
 	  numVirtualInterfaces++;
@@ -833,10 +816,9 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");      
     }
+  }
 
-    if(h) return(h->iface);
-  } else
-    return(h->iface);
+  if(h) return(h->iface);
 
   return(NULL);
 }
@@ -1020,6 +1002,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
     NetworkInterface *vIface;
     
     if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
+      vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
       return(vIface->processPacket(when, time, eth, vlan_id,
 				   iph, ip6, ipsize, rawsize,
 				   h, packet, ndpiProtocol));
@@ -1155,7 +1138,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 
   /* Updating Flow */
   flow = getFlow(eth_src, eth_dst, vlan_id, 0, 0, 0, &src_ip, &dst_ip, src_port, dst_port,
-		 l4_proto, &src2dst_direction, last_pkt_rcvd_remote, last_pkt_rcvd_remote, &new_flow);
+		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, &new_flow);
 
   if(flow == NULL) {
     incStats(when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6, NDPI_PROTOCOL_UNKNOWN,
@@ -1431,7 +1414,6 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 				     u_int16_t *ndpiProtocol) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
-  static u_int64_t lasttime = 0;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
@@ -1452,9 +1434,6 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
   setTimeLastPktRcvd(h->ts.tv_sec);
 
   time = ((uint64_t) h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
-  if(lasttime > time) time = lasttime;
-
-  lasttime = time;
 
  datalink_check:
   if(pcap_datalink_type == DLT_NULL) {
@@ -2399,7 +2378,7 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
      || m->idle()
      || ((r->vlan_id && (*(r->vlan_id) != m->get_vlan_id())))
      || (r->skipSpecialMacs && m->isSpecialMac())
-     )
+     || (r->hostMacsOnly && m->getNumHosts() == 0))
     return(false); /* false = keep on walking */
 
   r->elems[r->actNumEntries].macValue = m;
@@ -2423,6 +2402,10 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
 
   case column_traffic:
     r->elems[r->actNumEntries++].numericValue = m->getNumBytes();
+    break;
+
+  case column_num_hosts:
+    r->elems[r->actNumEntries++].numericValue = m->getNumHosts();
     break;
 
   default:
@@ -2793,6 +2776,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
 
 int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
 			       u_int16_t vlan_id, bool skipSpecialMacs,
+			       bool hostMacsOnly,
 			       char *sortColumn) {
   u_int32_t maxHits;
   int (*sorter)(const void *_a, const void *_b);
@@ -2805,7 +2789,8 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
     maxHits = CONST_MAX_NUM_HITS;
 
   retriever->vlan_id = &vlan_id, retriever->skipSpecialMacs = skipSpecialMacs,
-    retriever->actNumEntries = 0, retriever->maxNumEntries = maxHits,
+    retriever->hostMacsOnly = hostMacsOnly, retriever->actNumEntries = 0,
+    retriever->maxNumEntries = maxHits,
     retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
 
   if(retriever->elems == NULL) {
@@ -2818,6 +2803,7 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_since"))   retriever->sorter = column_since, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt"))    retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_hosts"))   retriever->sorter = column_num_hosts, sorter = numericSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!
@@ -4669,14 +4655,15 @@ int NetworkInterface::luaEvalFlow(Flow *f, const LuaCallback cb) {
 
 int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 				       bool skipSpecialMacs,
+				       bool hostMacsOnly,
 				       char *sortColumn, u_int32_t maxHits,
 				       u_int32_t toSkip, bool a2zSortOrder) {
   struct flowHostRetriever retriever;
-  bool show_details = false;
+  bool show_details = true;
 
   disablePurge(false);
 
-  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, sortColumn) < 0) {
+  if(sortMacs(&retriever, vlan_id, skipSpecialMacs, hostMacsOnly, sortColumn) < 0) {
     enablePurge(false);
     return -1;
   }
@@ -4690,13 +4677,15 @@ int NetworkInterface::getActiveMacList(lua_State* vm, u_int16_t vlan_id,
     for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Mac *m = retriever.elems[i].macValue;
 
-      m->lua(vm, show_details, true);
+      m->lua(vm, show_details, false);
+      lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
       Mac *m = retriever.elems[i].macValue;
 
-      m->lua(vm, show_details, true);
+      m->lua(vm, show_details, false);
+      lua_rawseti(vm, -2, num + 1);
     }
   }
 

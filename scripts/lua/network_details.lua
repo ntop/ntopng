@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -44,33 +44,33 @@ end
 --[[
 Process form data
 --]]
-if(_GET["flow_rate_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-    if (tonumber(_GET["flow_rate_alert_threshold"]) ~= nil) then
+if(_POST["flow_rate_alert_threshold"] ~= nil) then
+    if (tonumber(_POST["flow_rate_alert_threshold"]) ~= nil) then
         page = "config"
-        local val = ternary(_GET["flow_rate_alert_threshold"] ~= "0", _GET["flow_rate_alert_threshold"], "25")
+        local val = ternary(_POST["flow_rate_alert_threshold"] ~= "0", _POST["flow_rate_alert_threshold"], "25")
         ntop.setCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.flow_rate_alert_threshold', val)
         -- interface.loadHostAlertPrefs(network_name, network_vlan) TODO: decide to implement it for networks
     end
 end
-if(_GET["syn_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-    if (tonumber(_GET["syn_alert_threshold"]) ~= nil) then
+if(_POST["syn_alert_threshold"] ~= nil) then
+    if (tonumber(_POST["syn_alert_threshold"]) ~= nil) then
         page = "config"
-        val = ternary(_GET["syn_alert_threshold"] ~= "0", _GET["syn_alert_threshold"], "10")
+        val = ternary(_POST["syn_alert_threshold"] ~= "0", _POST["syn_alert_threshold"], "10")
         ntop.setCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.syn_alert_threshold', val)
         -- interface.loadHostAlertPrefs(network_name, network_vlan) TODO: decide to implement it for networks
     end
 end
-if(_GET["flows_alert_threshold"] ~= nil and _GET["csrf"] ~= nil) then
-    if (tonumber(_GET["flows_alert_threshold"]) ~= nil) then
+if(_POST["flows_alert_threshold"] ~= nil) then
+    if (tonumber(_POST["flows_alert_threshold"]) ~= nil) then
         page = "config"
-        val = ternary(_GET["flows_alert_threshold"] ~= "0", _GET["flows_alert_threshold"], "32768")
+        val = ternary(_POST["flows_alert_threshold"] ~= "0", _POST["flows_alert_threshold"], "32768")
         ntop.setCache('ntopng.prefs.'..network_name..':'..tostring(network_vlan)..'.flows_alert_threshold', val)
         -- interface.loadHostAlertPrefs(network_name, network_vlan) TODO: decide to implement it for networks
     end
 end
-if _GET["re_arm_minutes"] ~= nil then
+if _POST["re_arm_minutes"] ~= nil then
     page = "config"
-    ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, network_name), _GET["re_arm_minutes"])
+    ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, network_name), _POST["re_arm_minutes"])
 end
 
 --[[
@@ -142,7 +142,7 @@ elseif (page == "config") then
     local re_arm_minutes = ""
 
     if(isAdministrator()) then
-        trigger_alerts = _GET["trigger_alerts"]
+        trigger_alerts = _POST["trigger_alerts"]
         if(trigger_alerts ~= nil) then
             if(trigger_alerts == "true") then
                 ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), network_name)
@@ -164,8 +164,7 @@ elseif (page == "config") then
     print("<table class=\"table table-striped table-bordered\">\n")
     print("<tr><th width=250>Network Flow Alert Threshold</th>\n")
     print [[<td>]]
-    print[[<form class="form-inline" style="margin-bottom: 0px;">
-    <input type="hidden" name="network" value="]] print(network) print [[">]]
+    print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
     print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
     print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
     print(tostring(flow_rate_alter_thresh))
@@ -181,10 +180,7 @@ elseif (page == "config") then
 
     print("<tr><th width=250>Network SYN Alert Threshold</th>\n")
     print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;">
-    <input type="hidden" name="network" value="]]
-    print(network)
-    print [[">]]
+   print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
     print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
     print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
     print(tostring(syn_alert_thresh))
@@ -200,10 +196,7 @@ elseif (page == "config") then
 
     print("<tr><th width=250>Network Flows Threshold</th>\n")
     print [[<td>]]
-    print[[<form class="form-inline" style="margin-bottom: 0px;">
-    <input type="hidden" name="network" value="]]
-    print(network)
-    print [[">]]
+    print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
     print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
     print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
     print(tostring(flows_alert_thresh))
@@ -228,22 +221,15 @@ elseif (page == "config") then
 
     print [[
          <tr><th>Network Alerts</th><td nowrap>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;">
-         <input type="hidden" name="tab" value="alerts_preferences">
-    <input type="hidden" name="network" value="]]
-    print(network)
-    print('"><input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for network '..network_name..'</input>')
+         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+    print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for network '..network_name..'</input>')
     print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-    print('<input type="hidden" name="page" value="config">')
     print('</form>')
     print('</td>')
     print [[</tr>]]
 
-    print[[<tr><form class="form-inline" style="margin-bottom: 0px;">
-      <input type="hidden" name="tab" value="alerts_preferences">
-        <input type="hidden" name="network" value="]]
-        print(network)
-      print[["><input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+    print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
          <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
          <td>
             <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>

@@ -1,5 +1,5 @@
 --
--- (C) 2014-16 - ntop.org
+-- (C) 2014-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -1622,6 +1622,7 @@ end
 
 
 function getInterfaceNameAlias(interface_name)
+   if(interface_name == nil) then return("") end
    -- io.write(debug.traceback().."\n")
    label = ntop.getCache('ntopng.prefs.'..interface_name..'.name')
    if((label == nil) or (label == "")) then
@@ -1840,12 +1841,7 @@ end
 function maxRateToString(max_rate)
    if((max_rate == nil) or (max_rate == "")) then max_rate = -1 end
    max_rate = tonumber(max_rate)
-   if(max_rate == -1) then
-      return("No Limit")
-   else
-      if(max_rate == 0) then
-	 return("Drop All Traffic")
-      else
+
 	 if(max_rate < 1000) then
 	    return(max_rate.." Kbit/s")
 	 else
@@ -1859,8 +1855,6 @@ function maxRateToString(max_rate)
 	       return(gbit.." Gbit/s")
 	    end
 	 end
-      end
-   end
 end
 
 -- makeTopStatsScriptsArray
@@ -2113,7 +2107,7 @@ end
 
 -- prints purged information for hosts / flows
 function purgedErrorString()
-    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=data_purge"><i class="fa fa-flask"></i> Preferences</A>.'
+    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=in_memory"><i class="fa fa-flask"></i> Preferences</A>.'
 end
 
 -- print TCP flags
@@ -2354,42 +2348,6 @@ print [[
 
 end
 
-function jsUrlChange(subpage, withoutTag)
-   local url = '"'..ntop.getHttpPrefix()..'/lua/'..subpage..'"'
-   
-   if not withoutTag then print("<script>") end
-   print[[
-   if(history.replaceState) {
-      // use history facility if available - NB: this does not cause a redirect/refresh!
-      history.replaceState(null, null, ]] print(url) print[[);
-   } else {
-      // fallback
-      window.location.href = ]] print(url) print[[;
-   }]]
-   if not withoutTag then print("</script>") end
-end
-
--- Add a form submit lister to add the CRSF on form submit
--- The form listener will not intercept plain 'onsubmit' html field
-function jsFormCSRF(formid, withoutTag)
-   local html = "";
-   
-   if not withoutTag then html = html .. "<script>" end
-   html = html .. [[$('#]] .. formid .. [[').submit(function(e) {
-      /* avoid repeating in case of aborted form submits */
-      if ($("#]] .. formid .. [[ input[name='csrf']").length == 0) {
-         $('<input>').attr({
-            type: "hidden",
-            name: "csrf",
-            value: "]] .. (ntop.getRandomCSRFValue()) .. [["
-         }).appendTo($('#]] .. formid .. [['));
-      }
-   });
-   ]]
-   if not withoutTag then html = html .. "</script>" end
-   return html
-end
-
 -- ####################################################
 
 function tableToJsObject(lua_table)
@@ -2527,6 +2485,19 @@ function table.merge(a, b)
   return merged
 end
 
+function table.clone(t, filter)
+   local clone = {}
+   local filter = filter or function (k, v) return true end
+
+   for k, v in pairs(t) do
+      if filter(k, v) then
+         clone[k] = v
+      end
+   end
+
+   return clone
+end
+
 function toboolean(s)
   if s == "true" then
     return true
@@ -2535,4 +2506,199 @@ function toboolean(s)
   else
     return nil
   end
+end
+
+--
+-- Find the highest divisor which divides input value.
+-- val_idx can be used to index divisors values.
+-- Returns the highest_idx
+--
+function highestDivisor(divisors, value, val_idx, iterator_fn)
+  local highest_idx = nil
+  local highest_val = nil
+  iterator_fn = iterator_fn or ipairs
+
+  for i, v in iterator_fn(divisors) do
+    local cmp_v
+    if val_idx ~= nil then
+      v = v[val_idx]
+    end
+
+    if((highest_val == nil) or ((v > highest_val) and (value % v == 0))) then
+      highest_val = v
+      highest_idx = i
+    end
+  end
+
+  return highest_idx
+end
+
+-- ###########################################
+
+-- Note: use data-min and data-max to setup ranges
+function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
+  local extra = extra or {}
+  local html_lines = {}
+
+  local divisors = {}
+
+  -- fill in divisors
+  if tonumber(value) ~= nil then
+    -- foreach character in format
+    string.gsub(fmt, ".", function(k)
+      local v = fmt_to_data[k]
+      if v ~= nil then
+        divisors[#divisors + 1] = {k=k, v=v.value}
+      end
+    end)
+  end
+
+  local selected = nil
+  if tonumber(value) ~= 0 then
+    selected = highestDivisor(divisors, value, "v")
+  end
+
+  if selected ~= nil then
+    selected = divisors[selected].k
+  else
+    selected = string.sub(fmt, 1, 1)
+  end
+
+  local style = table.merge({display="flex"}, extra.style or {})
+  html_lines[#html_lines+1] = [[<div class="btn-group ]] .. table.concat(extra.classes or {}, "") .. [[" id="]] .. ctrl_id .. [[" data-toggle="buttons" style="]] .. table.tconcat(style, ":", "; ", ";") .. [[">]]
+
+  -- foreach character in format
+  string.gsub(fmt, ".", function(k)
+    local v = fmt_to_data[k]
+    if v ~= nil then
+      local line = {}
+      line[#line+1] = [[<label class="btn]]
+      if selected == k then
+	 line[#line+1] = [[ btn-primary active]]
+      else
+	 line[#line+1] = [[ btn-default]]
+      end
+      line[#line+1] = [[ btn-sm"><input value="]] .. v.value .. [[" title="]] .. v.label .. [[" name="options_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
+      if selected == k then line[#line+1] = [[ checked="checked"]] end
+      line[#line+1] = [[/>]] .. v.label .. [[</label>]]
+
+      html_lines[#html_lines+1] = table.concat(line, "")
+    end
+  end)
+
+  html_lines[#html_lines+1] = [[</div>]]
+
+  -- Note: no // comment below, only /* */
+
+  local js_init_code = [[
+      var _resol_inputs = [];
+
+      function resol_selector_get_input(an_input) {
+        return $("input", $(an_input).closest(".form-group")).last();
+      }
+
+      /* This function scales values wrt selected resolution */
+      function resol_selector_reset_input_range(selected) {
+        var selected = $(selected);
+        var input = resol_selector_get_input(selected);
+
+        var raw = parseInt(input.attr("data-min"));
+        if (! isNaN(raw))
+          input.attr("min", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
+
+        raw = parseInt(input.attr("data-max"));
+        if (! isNaN(raw))
+          input.attr("max", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
+      }
+
+      function resol_selector_change_callback(event) {
+        var selected = $(this);
+        selected.attr('checked', 'checked')
+          .closest("label").removeClass('btn-default').addClass('btn-primary')
+          .siblings().removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
+
+        resol_selector_reset_input_range(selected);
+      }
+
+      function resol_selector_on_form_submit(event) {
+        var form = $(this);
+
+        if (event.isDefaultPrevented())   /* isDefaultPrevented is true when the form is invalid */
+          return false;
+
+        $.each(_resol_inputs, function(i, elem) {
+          var selected = $(elem).find("input[checked]");
+          var input = resol_selector_get_input(selected);
+
+          /* remove added input names */
+          $(elem).find("input").removeAttr("name");
+
+          /* transform in raw units */
+          var new_input = $("<input type=\"hidden\"/>");
+          new_input.attr("name", input.attr("name"));
+          input.removeAttr("name");
+          new_input.val(parseInt(selected.val()) * parseInt(input.val()));
+          new_input.appendTo(form);
+        });
+      }]]
+
+  local js_specific_code = [[
+    $("#]] .. ctrl_id .. [[ input").change(resol_selector_change_callback);
+    $(function() {
+      var elemid = "#]] .. ctrl_id .. [[";
+      _resol_inputs.push(elemid);
+      var selected = $(elemid + " input[checked]");
+      resol_selector_reset_input_range(selected);
+
+      /* setup the form submit callback (only once) */
+      var form = selected.closest("form");
+      if (! form.attr("data-options-handler")) {
+        form.attr("data-options-handler", 1);
+        form.submit(resol_selector_on_form_submit);
+      }
+    });
+  ]]
+
+  -- join strings and strip newlines
+  local html = string.gsub(table.concat(html_lines, ""), "\n", "")
+  js_init_code = string.gsub(js_init_code, "\n", "")
+  js_specific_code = string.gsub(js_specific_code, "\n", "")
+
+  if tonumber(value) ~= nil then
+    -- returns the new value with selected resolution
+    return {html=html, init=js_init_code, js=js_specific_code, value=tonumber(value) / fmt_to_data[selected].value}
+  else
+    return {html=html, init=js_init_code, js=js_specific_code, value=nil}
+  end
+end
+
+-- ###########################################
+
+--
+-- Extracts parameters from a lua table.
+-- This function performs the inverse conversion of javascript paramsPairsEncode.
+--
+-- Note: plain parameters (not encoded with paramsPairsEncode) remain unchanged only
+-- when strict mode is *not* enabled
+--
+function paramsPairsDecode(params, strict_mode)
+   local res = {}
+
+   for k,v in pairs(params) do
+      local sp = split(k, "key_")
+      if #sp == 2 then
+         local keyid = sp[2]
+         local value = "val_"..keyid
+         if params[value] then
+            res[v] = params[value]
+         end
+      end
+
+      if((not strict_mode) and (res[v] == nil)) then
+         -- this is a plain parameter
+         res[k] = v
+      end
+   end
+
+   return res
 end

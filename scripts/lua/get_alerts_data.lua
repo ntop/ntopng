@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -85,12 +85,7 @@ for _key,_value in ipairs(alerts) do
    column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
    column_msg      = _value["alert_json"]
 
-   column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method=GET>"
-
-   for k, v in pairs(_GET) do
-      column_id = column_id.."<input type=hidden name='"..k.."' value='"..v.."'>"
-   end
-
+   column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method='post'>"
    column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
 
    if ntop.isEnterprise() and (status == "historical-flows" or status == "historical") then

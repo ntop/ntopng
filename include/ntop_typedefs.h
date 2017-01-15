@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -237,6 +237,8 @@ typedef enum {
   column_unknowers,
   column_incomingflows,
   column_outgoingflows,
+  /* Macs */
+  column_num_hosts,
 } sortField;
 
 typedef struct {
@@ -296,5 +298,10 @@ typedef enum {
   flowhashing_ingress_iface_idx,
   flowhashing_vlan
 } FlowHashingEnum;
-  
+
+struct keyval {
+  const char *key;
+  char *val;
+};
+
 #endif /* _NTOP_TYPEDEFS_H_ */

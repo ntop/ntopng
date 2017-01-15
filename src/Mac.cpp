@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -106,6 +106,8 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_push_int_table_entry(vm, "seen.first", first_seen);
   lua_push_int_table_entry(vm, "seen.last", last_seen);
   lua_push_int_table_entry(vm, "duration", get_duration());
+
+  lua_push_int_table_entry(vm,   "num_hosts", getNumHosts());
 
   if(asListElement) {
     lua_pushstring(vm, m);

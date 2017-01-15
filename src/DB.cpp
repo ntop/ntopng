@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,7 +45,7 @@ bool DB::dumpFlow(time_t when, bool idle_flow, Flow *f, char *json) {
 
 /* ******************************************* */
 
-int DB::exec_sql_query(lua_State *vm, char *sql, bool limit_rows) {
+int DB::exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
   return(false);
 }

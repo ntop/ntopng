@@ -25,6 +25,8 @@ local  en = {
    traffic = "Traffic",
    save = "Save",
    save_settings = "Save Settings",
+   all = "All",
+   define = "Define",
 
    traffic_report = {
       daily = "Daily",
@@ -50,8 +52,8 @@ local  en = {
       network_group = "Network",
       network_groups = "Networks",
       protocols = "Protocols",
-      protocol_families = "Protocol Families",
-      create_networks = "Define Networks",
+      define_network = "Define Network",
+      define_networks = "Define Networks",
       manage_networks = "Manage Policies",
       bandwidth_manager = "Bandwidth Manager",
       shaper0_message = "Shaper 0 is the default shaper used for local hosts that have no shaper defined",
@@ -67,6 +69,9 @@ local  en = {
       notes = "NOTES",
       shapers_in_use_message = "Shapers can be deleted only if they are not applied to any network",
       no_shapers_available = "No shapers available",
+      protocol_families = "Protocol Families",
+      traffic_to = "Traffic to",
+      traffic_from = "Traffic from",
    },
 
    alert_messages = {

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1181,13 +1181,16 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
       HASH_FIND_INT(policy->mapping_proto_shaper_id, &protocol, sd);
     }
 
+    ret = isIngress ? policy->default_shapers.ingress : policy->default_shapers.egress;
+
     if(sd) {
-      /* A protocol shaper is defined */
-      ret = isIngress ? sd->ingress : sd->egress;
-    } else {
-      /* The default shaper is returned */
-      ret = isIngress ? policy->default_shaper_id.ingress : policy->default_shaper_id.egress;
+      /* A protocol shaper has priority over the category shaper */
+      if(sd->protocol_shapers.enabled)
+	ret = isIngress ? sd->protocol_shapers.ingress : sd->protocol_shapers.egress;
+      else if(sd->category_shapers.enabled)
+	ret = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
     }
+
   }
 
 #ifdef SHAPER_DEBUG
@@ -1205,6 +1208,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 
   return(ret);
 }
+
 #endif
 
 /* *************************************** */

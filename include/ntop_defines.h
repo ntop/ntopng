@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -123,7 +123,7 @@
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT          "(C) 1998-2016 ntop.org"
+#define NTOP_COPYRIGHT          "(C) 1998-17 ntop.org"
 #define DEFAULT_PID_PATH        "/var/run/ntopng.pid"
 #define DOMAIN_CATEGORY         "ntopng.domain.category"
 #define DOMAIN_TO_CATEGORIZE    "ntopng.domain.tocategorize"
@@ -303,6 +303,7 @@
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
 #define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
 #define CONST_HTTP_PREFIX_STRING     "@HTTP_PREFIX@"
+#define CONST_NTOP_STARTUP_EPOCH     "@NTOP_STARTUP_EPOCH@"
 #define CONST_DEFAULT_NTOP_USER      "nobody"
 #define CONST_TOO_EARLY              "(Too Early)"
 #define CONST_HTTP_CONN              "http.conn"
@@ -609,6 +610,8 @@
 #define _COMPILE_TIME_ASSERT3(X,L) _STATIC_ASSERT(X,static_assertion_at_line_##L)
 #define _COMPILE_TIME_ASSERT2(X,L) _COMPILE_TIME_ASSERT3(X,L)
 #define COMPILE_TIME_ASSERT(X)    _COMPILE_TIME_ASSERT2(X,__LINE__)
+
+#define MAX_NUM_HTTP_REPLACEMENTS                    3
 
 #define INTER_FLOW_ACTIVITY_SLOTS                    5
 #define INTER_FLOW_ACTIVITY_MAX_INTERVAL             5

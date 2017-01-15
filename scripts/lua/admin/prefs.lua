@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -33,16 +33,14 @@ if(haveAdminPrivileges()) then
 
 subpage_active = _GET["subpage_active"]
 
-if toboolean(_GET["show_advanced_prefs"]) ~= nil then
-  ntop.setPref(show_advanced_prefs_key, _GET["show_advanced_prefs"])
-  show_advanced_prefs = toboolean(_GET["show_advanced_prefs"])
-  notifyNtopng(show_advanced_prefs_key, _GET["show_advanced_prefs"])
+if toboolean(_POST["show_advanced_prefs"]) ~= nil then
+  ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+  show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
+  notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
 else
    show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
 end
-
-local PREFS_INPUT_WIDTH_MEDIUM = "18em"
 
 local menu_subpages = {
   {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
@@ -78,8 +76,7 @@ end
 -- ================================================================================
 
 function printReportVisualization()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="report"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Report Visualization</th></tr>')
 
@@ -95,14 +92,13 @@ end
 -- ================================================================================
 
 function printInterfaces()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="ifaces"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Dynamic Network Interfaces</th></tr>')
 
   toggleTableButtonPrefs("VLAN Disaggregation",
 			    "Toggle the automatic creation of virtual interfaces based on VLAN tags.<p><b>NOTE:</b><ul><li>Value changes will not be effective for existing interfaces.<li>This setting is valid only for packet-based interfaces (no flow collection).</ul>",
-			    "On", "1", "success", "Off", "0", "danger", "toggle_autologout", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
+			    "On", "1", "success", "Off", "0", "danger", "dynamic_iface_vlan_creation", "ntopng.prefs.dynamic_iface_vlan_creation", "0")
   
   local labels = {"None","Probe IP Address","Ingress Flow Interface"}
   local values = {"none","probe_ip","ingress_iface_idx"}
@@ -126,8 +122,7 @@ end
 -- ================================================================================
 
 function printTopTalkers()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="top_talkers"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Top Talkers Storage</th></tr>')
 
@@ -144,8 +139,7 @@ end
 -- ================================================================================
 
 function printStatsDatabases()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="on_disk_dbs"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">MySQL Database</th></tr>')
 
@@ -174,8 +168,7 @@ end
 
 function printAlerts()
    if prefs.has_cmdl_disable_alerts then return end
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="alerts"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Alerts</th></tr>')
 
@@ -271,7 +264,7 @@ end
 
   prefsInputFieldPrefs("Notification Wekhook",
 		       "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook",
-		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}})
 
 
   if (ntop.isPro()) then
@@ -311,8 +304,7 @@ end
 -- ================================================================================
 
 function printNbox()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="nbox"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">nBox Integration</th></tr>')
@@ -342,8 +334,7 @@ end
 -- ================================================================================
 
 function printUsers()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="users"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">Web User Interface</th></tr>')
@@ -355,12 +346,12 @@ function printUsers()
   prefsInputFieldPrefs("Google APIs Browser Key",
 		       "Graphical hosts geomaps are based on Google Maps APIs. Google recently changed Maps API access policies "..
 		       "and now requires a browser API key to be sumbitted for every request. Detailed information on how to obtain an API key "..
-		       "<a href=\"https://googlegeodevelopers.blogspot.it/2016/06/building-for-scale-updates-to-google.html\">can be found here</a>. "..
-                       "Once obtained, the API key can be placed in this field. Valid keys are alpha-numeric strings with 39 characters."
+		       "<a href=\"https://googlegeodevelopers.blogspot.it/2016-17/06/building-for-scale-updates-to-google.html\">can be found here</a>. "..
+                       "Once obtained, the API key can be placed in this field."
 		       ,
 		       "ntopng.prefs.",
 		       "google_apis_browser_key",
-		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={pattern="[a-zA-Z0-9]{39}", spellcheck="false"} --[[ Google API keys consist of 39 alphanumeric characters ]] })
+		       "", false, nil, nil, nil, {style={width="25em;"}, attributes={spellcheck="false"} --[[ Note: Google API keys can vary in format ]] })
 
   if ntop.isPro() then
      print('<tr><th colspan=2 class="info">Authentication</th></tr>')
@@ -394,7 +385,7 @@ function printUsers()
 			      "Choose your account type",
 			      labels_account, values_account, "posix", "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
 
-     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+     prefsInputFieldPrefs("LDAP Server Address", "IP address and port of LDAP server (e.g. ldaps://localhost:636). Default: \"ldap://localhost:389\".", "ntopng.prefs.ldap", "server", "ldap://localhost:389", nil, showElements, true, true, {attributes={pattern="ldap(s)?://[0-9.\\-A-Za-z]+(:[0-9]+)?", spellcheck="false", required="required"}})
 
      local elementToSwitchBind = {"bind_dn","bind_pwd"}
      toggleTableButtonPrefs("LDAP Anonymous Binding","Enable anonymous binding.","On", "1", "success", "Off", "0", "danger", "toggle_ldap_anonymous_bind", "ntopng.prefs.ldap.anonymous_bind", "0", nil, elementToSwitchBind, true, showElements)
@@ -412,10 +403,10 @@ function printUsers()
      print('<input style="display:none;" type="text" name="_" data-ays-ignore="true" />')
      print('<input style="display:none;" type="password" name="__" data-ays-ignore="true" />')
      --
-     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+     prefsInputFieldPrefs("LDAP Bind DN", "Bind Distinguished Name of LDAP server. Example: \"CN=ntop_users,DC=ntop,DC=org,DC=local\".", "ntopng.prefs.ldap", "bind_dn", "", nil, showElementsBind, true, false, {attributes={spellcheck="false"}})
      prefsInputFieldPrefs("LDAP Bind Authentication Password", "Bind password used for authenticating with the LDAP server.", "ntopng.prefs.ldap", "bind_pwd", "", "password", showElementsBind, true, false)
 
-     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}, style={width=PREFS_INPUT_WIDTH_MEDIUM}})
+     prefsInputFieldPrefs("LDAP Search Path", "Root path used to search the users.", "ntopng.prefs.ldap", "search_path", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
      prefsInputFieldPrefs("LDAP User Group", "Group name to which user has to belong in order to authenticate as unprivileged user.", "ntopng.prefs.ldap", "user_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
      prefsInputFieldPrefs("LDAP Admin Group", "Group name to which user has to belong in order to authenticate as an administrator.", "ntopng.prefs.ldap", "admin_group", "", "text", showElements, nil, nil, {attributes={spellcheck="false"}})
 
@@ -455,8 +446,7 @@ end
 -- ================================================================================
 
 function printInMemory()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="in_memory"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">Idle Timeout Settings</th></tr>')
@@ -506,8 +496,7 @@ end
 -- ================================================================================
 
 function printStatsRrds()
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="on_disk_rrds"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Local Hosts and Networks Timeseries</th></tr>')
 
@@ -581,8 +570,7 @@ end
 
 function printLogging()
   if prefs.has_cmdl_trace_lvl then return end
-  print('<form>')
-  print('<input type=hidden name="subpage_active" value="logging"/>\n')
+  print('<form method="post">')
   print('<table class="table">')
   print('<tr><th colspan=2 class="info">Logging</th></tr>')
 
@@ -615,11 +603,12 @@ print[[
            <div align="center">
 
             <div id="prefs_toggle" class="btn-group">
-              <form>
+              <form method="post">
+<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
 <input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
-<input type=hidden name="subpage_active" value="]] print(subpage_active) print[["/>
 
-<br>Advanced Preferences &nbsp;
+
+<br>
 <div class="btn-group btn-toggle">
 ]]
 
@@ -628,16 +617,16 @@ local onclick_on  = ""
 local cls_off     = cls_on
 local onclick_off = onclick_on
 if show_advanced_prefs then
-   cls_on  = cls_on..' btn-success active'
+   cls_on  = cls_on..' btn-primary active'
    cls_off = cls_off..' btn-default'
    onclick_off = "this.form.submit();"
 else
    cls_on = cls_on..' btn-default'
-   cls_off = cls_off..' btn-danger active'
+   cls_off = cls_off..' btn-primary active'
    onclick_on = "this.form.submit();"
 end
-print('<button type="button" class="'..cls_on..'" onclick="'..onclick_on..'">On</button>')
-print('<button type="button" class="'..cls_off..'" onclick="'..onclick_off..'">Off</button>')
+print('<button type="button" class="'..cls_on..'" onclick="'..onclick_on..'">Expert View</button>')
+print('<button type="button" class="'..cls_off..'" onclick="'..onclick_off..'">Simple View</button>')
 
 print[[
 </div>
@@ -693,9 +682,13 @@ aysHandleForm("form[id!='search-host-form']");
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
-if(_GET["disable_alerts_generation"] ~= nil) then
+if(_POST["disable_alerts_generation"] ~= nil) then
   -- Check if we navigate the page or if we have set something
   ntop.reloadPreferences()
 end
 
+if(_POST["toggle_malware_probing"] ~= nil) then
+  loadHostBlackList(true --[[ force the reload of the list ]])
 end
+
+end --[[ haveAdminPrivileges ]]

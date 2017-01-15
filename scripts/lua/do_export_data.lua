@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -9,16 +9,16 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-if(_GET["csrf"] ~= nil) then
+if(_POST["export"] ~= nil) then
 
 interface.select(ifname)
-if((_GET["hostIP"] ~= nil) and (_GET["hostIP"] ~= "")) then
+if((_POST["hostIP"] ~= nil) and (_POST["hostIP"] ~= "")) then
    vlan = 0
-   if ((_GET["hostVlan"] ~= nil) and (_GET["hostIP"] ~= "")) then
-      vlan = tonumber(_GET["hostVlan"])
+   if ((_POST["hostVlan"] ~= nil) and (_POST["hostIP"] ~= "")) then
+      vlan = tonumber(_POST["hostVlan"])
    end
   
-   host = interface.getHostInfo(_GET["hostIP"], vlan)
+   host = interface.getHostInfo(_POST["hostIP"], vlan)
 
    if(host == nil) then 
       print("{ }\n")

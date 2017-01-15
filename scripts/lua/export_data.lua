@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -26,11 +26,11 @@ print [[
 
 <form class="form-horizontal" action="]]
 print (ntop.getHttpPrefix())
-print [[/lua/do_export_data.lua" method="GET">
+print [[/lua/do_export_data.lua" method="post">
 ]]
 
+print('<input name="export" type="hidden" value="" />\n')
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-
 
 print [[
 

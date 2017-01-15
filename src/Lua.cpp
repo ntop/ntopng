@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,8 @@ extern "C" {
 
 #include "../third-party/lsqlite3/lsqlite3.c"
 
+struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
+
 /* ******************************* */
 
 Lua::Lua() {
@@ -49,6 +51,7 @@ Lua::Lua() {
 
   if(L == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create Lua interpreter");
+    return;
   }
 }
 
@@ -102,7 +105,7 @@ static int ntop_dump_file(lua_State* vm) {
   char *fname;
   FILE *fd;
   struct mg_connection *conn;
-
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_getglobal(vm, CONST_HTTP_CONN);
@@ -117,31 +120,14 @@ static int ntop_dump_file(lua_State* vm) {
   ntop->fixPath(fname);
   if((fd = fopen(fname, "r")) != NULL) {
     char tmp[1024];
-
+    
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Serving file %s", fname);
 
-    while((fgets(tmp, sizeof(tmp), fd)) != NULL) {
-      char *http_prefix = strstr(tmp, CONST_HTTP_PREFIX_STRING);
+    while((fgets(tmp, sizeof(tmp)-256 /* To make sure we have room for replacements */, fd)) != NULL) {
+      for(int i=0; string_to_replace[i].key != NULL; i++)
+	Utils::replacestr(tmp, string_to_replace[i].key, string_to_replace[i].val);
 
-      if(http_prefix == NULL) {
-	mg_printf(conn, "%s", tmp);
-      } else {
-	char *begin = tmp;
-	int len = strlen(CONST_HTTP_PREFIX_STRING);
-
-	/* Replace CONST_HTTP_PREFIX_STRING with value specified with -Z */
-      handle_http_prefix:
-	http_prefix[0] = '\0';
-	mg_printf(conn, "%s", begin);
-	mg_printf(conn, "%s", ntop->getPrefs()->get_http_prefix());
-	begin = &http_prefix[len];
-	http_prefix = strstr(begin, CONST_HTTP_PREFIX_STRING);
-
-	if(http_prefix != NULL)
-	  goto handle_http_prefix;
-	else
-	  mg_printf(conn, "%s", begin);
-      }
+      mg_printf(conn, "%s", tmp);
     }
 
     fclose(fd);
@@ -568,7 +554,8 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
   char *sortColumn = (char*)"column_mac";
   u_int32_t toSkip = 0, maxHits = CONST_MAX_NUM_HITS;
   u_int16_t vlan_id = 0;
-  bool a2zSortOrder = true, skipSpecialMacs = false;
+  bool a2zSortOrder = true,
+    skipSpecialMacs = false, hostMacsOnly = false;
 
   if(lua_type(vm, 1) == LUA_TSTRING) {
     sortColumn = (char*)lua_tostring(vm, 1);
@@ -588,6 +575,9 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 	    if(lua_type(vm, 6) == LUA_TBOOLEAN) {
 	      skipSpecialMacs = lua_toboolean(vm, 6) ? true : false;
 	    }
+	    if(lua_type(vm, 7) == LUA_TBOOLEAN) {
+	      hostMacsOnly = lua_toboolean(vm, 7) ? true : false;
+	    }
 	  }
 	}
       }
@@ -596,6 +586,7 @@ static int ntop_get_interface_macs_info(lua_State* vm) {
 
   if(!ntop_interface ||
      ntop_interface->getActiveMacList(vm, vlan_id, skipSpecialMacs,
+				      hostMacsOnly,
 				      sortColumn, maxHits,
 				      toSkip, a2zSortOrder) < 0)
     return(CONST_LUA_ERROR);
@@ -3247,6 +3238,7 @@ static int ntop_reload_shapers(lua_State *vm) {
 static int ntop_interface_exec_sql_query(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool limit_rows = true;  // honour the limit by default
+  bool wait_for_db_created = true;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3262,7 +3254,11 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
       limit_rows = lua_toboolean(vm, 2) ? true : false;
     }
 
-    if(ntop_interface->exec_sql_query(vm, sql, limit_rows) < 0)
+    if(lua_type(vm, 3) == LUA_TBOOLEAN) {
+      wait_for_db_created = lua_toboolean(vm, 3) ? true : false;
+    }
+
+    if(ntop_interface->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) < 0)
       lua_pushnil(vm);
 
     return(CONST_LUA_OK);
@@ -3320,7 +3316,7 @@ static int ntop_get_info(lua_State* vm) {
 
   lua_newtable(vm);
   lua_push_str_table_entry(vm, "product", (char*)"ntopng");
-  lua_push_str_table_entry(vm, "copyright", (char*)"&copy; 1998-2016 - ntop.org");
+  lua_push_str_table_entry(vm, "copyright", (char*)"&copy; 1998-17 - ntop.org");
   lua_push_str_table_entry(vm, "authors", (char*)"The ntop.org team");
   lua_push_str_table_entry(vm, "license", (char*)"GNU GPLv3");
 
@@ -5675,15 +5671,97 @@ void Lua::setInterface(const char *user) {
   }
 }
 
+void Lua::setParamsTable(lua_State* vm, const char* table_name,
+			 const char* query) const {
+  char outbuf[FILENAME_MAX];
+  char *where;
+  char *tok;
+
+  char *query_string = query ? strdup(query) : NULL;
+
+  lua_newtable(L);
+
+  if (query_string) {
+    // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
+
+    tok = strtok_r(query_string, "&", &where);
+
+    while(tok != NULL) {
+      /* key=val */
+      char *_equal = strchr(tok, '=');
+
+      if(_equal) {
+        char *equal;
+        int len;
+
+        _equal[0] = '\0';
+        _equal = &_equal[1];
+        len = strlen(_equal);
+
+        purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
+
+        // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
+
+        if((equal = (char*)malloc(len+1)) != NULL) {
+          char *decoded_buf;
+
+          Utils::urlDecode(_equal, equal, len+1);
+
+          if((decoded_buf = http_decode(equal)) != NULL) {
+            FILE *fd;
+
+            Utils::purifyHTTPparam(tok, true, false);
+            Utils::purifyHTTPparam(decoded_buf, false, false);
+
+            /* Now make sure that decoded_buf is not a file path */
+            if((decoded_buf[0] == '.')
+                && ((fd = fopen(decoded_buf, "r"))
+                || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
+
+              ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
+                  tok, decoded_buf);
+              decoded_buf[0] = '\0';
+              fclose(fd);
+            }
+
+            /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
+
+            /* Do not put csrf into the table */
+            if(strcmp(tok, "csrf") != 0)
+              lua_push_str_table_entry(vm, tok, decoded_buf);
+
+            free(decoded_buf);
+          }
+
+          free(equal);
+        } else
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      }
+
+      tok = strtok_r(NULL, "&", &where);
+    } /* while */
+
+
+  }
+
+  if(query_string) free(query_string);
+
+  if(table_name)
+    lua_setglobal(L, table_name);
+  else
+    lua_setglobal(L, (char*)"_GET"); /* Default */
+}
+
 /* ****************************************** */
 
 int Lua::handle_script_request(struct mg_connection *conn,
 			       const struct mg_request_info *request_info,
 			       char *script_path) {
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
-  char *_cookies, user[64] = { '\0' }, outbuf[FILENAME_MAX];
+  char *_cookies, user[64] = { '\0' };
   AddressTree ptree;
   int rc;
+  const char * content_type;
 
   if(!L) return(-1);
 
@@ -5693,95 +5771,44 @@ int Lua::handle_script_request(struct mg_connection *conn,
   lua_pushlightuserdata(L, (char*)conn);
   lua_setglobal(L, CONST_HTTP_CONN);
 
+  content_type = mg_get_header(conn, "Content-Type");
+
+  /* Check for POST requests */
+  if((strcmp(request_info->request_method, "POST") == 0) &&
+      ((content_type != NULL) && (strstr(content_type, "application/x-www-form-urlencoded") == content_type))) {
+    char post_data[1024] = { '\0' };
+    char rsp[32];
+    char csrf[64] = { '\0' };
+    char user[64] = { '\0' };
+    int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    post_data[sizeof(post_data)-1] = '\0';
+
+    /* CSRF is mandatory in POST request */
+    mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+    mg_get_cookie(conn, "user", user, sizeof(user));
+
+    if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
+        || (strcmp(rsp, user) != 0)) {
+      const char *msg = "The submitted form is expired. Please reload the page and try again";
+
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+          "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
+          csrf, rsp, user, "csrf");
+
+      return(send_error(conn, 500 /* Internal server error */,
+          msg, PAGE_ERROR, script_path, msg));
+    } else {
+      /* Invalidate csrf */
+      ntop->getRedis()->delKey(csrf);
+    }
+
+    /* CSRF is valid here, now fill the _POST table with POST parameters */
+    setParamsTable(L, "_POST", post_data);
+  } else
+    setParamsTable(L, "_POST", NULL /* Empty */);    
+
   /* Put the GET params into the environment */
-  lua_newtable(L);
-  if(request_info->query_string != NULL) {
-    char *query_string = strdup(request_info->query_string);
-
-    if(query_string) {
-      char *where;
-      char *tok;
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] %s", query_string);
-
-      tok = strtok_r(query_string, "&", &where);
-
-      while(tok != NULL) {
-	/* key=val */
-	char *_equal = strchr(tok, '=');
-
-	if(_equal) {
-	  char *equal;
-	  int len;
-
-	  _equal[0] = '\0';
-	  _equal = &_equal[1];
-	  len = strlen(_equal);
-
-	  purifyHTTPParameter(tok), purifyHTTPParameter(_equal);
-
-	  // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
-
-	  if((equal = (char*)malloc(len+1)) != NULL) {
-	    char *decoded_buf;
-
-	    Utils::urlDecode(_equal, equal, len+1);
-
-	    if((decoded_buf = http_decode(equal)) != NULL) {
-	      FILE *fd;
-
-	      Utils::purifyHTTPparam(tok, true, false);
-	      Utils::purifyHTTPparam(decoded_buf, false, false);
-
-	      /* Now make sure that decoded_buf is not a file path */
-	      if((decoded_buf[0] == '.')
-		 && ((fd = fopen(decoded_buf, "r"))
-		     || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
-					     tok, decoded_buf);
-
-		decoded_buf[0] = '\0';
-		fclose(fd);
-	      }
-
-	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
-
-	      if(strcmp(tok, "csrf") == 0) {
-		char rsp[32], user[64] = { '\0' };
-
-		mg_get_cookie(conn, "user", user, sizeof(user));
-
-		if((ntop->getRedis()->get(decoded_buf, rsp, sizeof(rsp)) == -1)
-		   || (strcmp(rsp, user) != 0)) {
-		  const char *msg = "The submitted form is expired. Please reload the page and try again";
-
-		  ntop->getTrace()->traceEvent(TRACE_WARNING,
-					       "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
-					       decoded_buf, rsp, user, tok);
-		  free(equal);
-		  return(send_error(conn, 500 /* Internal server error */,
-				    msg, PAGE_ERROR, query_string, msg));
-		} else
-		  ntop->getRedis()->delKey(decoded_buf);
-	      }
-
-	      lua_push_str_table_entry(L, tok, decoded_buf);
-	      free(decoded_buf);
-	    }
-
-	    free(equal);
-	  } else
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-	}
-
-	tok = strtok_r(NULL, "&", &where);
-      } /* while */
-
-      free(query_string);
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-  }
-  lua_setglobal(L, "_GET"); /* Like in php */
+  setParamsTable(L, "_GET", request_info->query_string);
 
   /* _SERVER */
   lua_newtable(L);

@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -19,8 +19,8 @@ print('<hr><h2>'..ifstats.name..' Preferences</H2></br>\n')
 
 key = 'ntopng.prefs.'..ifname..'.name'
 
-if(_GET["ifName"] ~= nil) then
-   custom_name = tostring(_GET["ifName"])
+if(_POST["ifName"] ~= nil) then
+   custom_name = tostring(_POST["ifName"])
    ntop.setCache(key, custom_name)
 else
    custom_name = ntop.getCache(key)
@@ -33,8 +33,8 @@ ifstats.name = tostring(ifstats.name)
 -- Ask Redis for actual speed
 ifSpeed = ntop.getCache(key)
 
-if((_GET["ifSpeed"] ~= nil) and (string.len(_GET["ifSpeed"]) > 0)) then
-   ifSpeed = _GET["ifSpeed"]
+if((_POST["ifSpeed"] ~= nil) and (string.len(_POST["ifSpeed"]) > 0)) then
+   ifSpeed = _POST["ifSpeed"]
    
    if(ifSpeed ~= nil) then 
       ifSpeed = tonumber(ifSpeed) 
@@ -47,7 +47,7 @@ if((_GET["ifSpeed"] ~= nil) and (string.len(_GET["ifSpeed"]) > 0)) then
    
    -- set Redis cache for the speed to the associated interface
    ntop.setCache(key, tostring(ifSpeed))
-elseif _GET["ifSpeed"] ~= nil and _GET["ifSpeed"] == "" then
+elseif _POST["ifSpeed"] ~= nil and _POST["ifSpeed"] == "" then
    -- reset to the default detected value
    ntop.setCache(key, tostring(ifstats.speed))
    ifSpeed = ifstats.speed
@@ -62,7 +62,7 @@ end
 
 ifSpeed = math.floor(ifSpeed+0.5)
 
-print [[<form class="form-horizontal" method="GET" >]]
+print [[<form class="form-horizontal" method="post" >]]
 
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 

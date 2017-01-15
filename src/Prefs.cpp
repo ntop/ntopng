@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1186,6 +1186,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_int_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", dump_flows_on_es || dump_flows_on_mysql);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql);
+  if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_flow_activity_enabled", enable_flow_activity);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);

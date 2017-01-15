@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-16 - ntop.org
+ * (C) 2013-17 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -148,6 +148,7 @@ class NetworkInterface {
 		bool hostMacsOnly, char *sortColumn);
   int sortMacs(struct flowHostRetriever *retriever,
 	       u_int16_t vlan_id, bool skipSpecialMacs,
+	       bool hostMacsOnly,
 	       char *sortColumn);
 
   bool isNumber(const char *str);
@@ -318,6 +319,7 @@ class NetworkInterface {
 			  bool hostsOnly, char *groupColumn);
   int getActiveMacList(lua_State* vm, u_int16_t vlan_id,
 		       bool skipSpecialMacs,
+		       bool hostMacsOnly,
 		       char *sortColumn, u_int32_t maxHits,
 		       u_int32_t toSkip, bool a2zSortOrder);
   void getFlowsStats(lua_State* vm);
@@ -402,7 +404,9 @@ class NetworkInterface {
   inline bool is_bridge_interface()  { return(bridge_interface); }
   inline const char* getLocalIPAddresses() { return(ip_addresses.c_str()); }
   void addInterfaceAddress(char *addr);
-  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows) { return(db ? db->exec_sql_query(vm, sql, limit_rows) : -1); };
+  inline int exec_sql_query(lua_State *vm, char *sql, bool limit_rows, bool wait_for_db_created = true) {
+    return(db ? db->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) : -1);
+  };
   NetworkStats* getNetworkStats(u_int8_t networkId);
   void allocateNetworkStats();
   void getsDPIStats(lua_State *vm);

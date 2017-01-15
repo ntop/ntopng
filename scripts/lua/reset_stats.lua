@@ -1,5 +1,5 @@
 --
--- (C) 2013-16 - ntop.org
+-- (C) 2013-17 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -10,12 +10,12 @@ local json = require("dkjson")
 
 sendHTTPHeader('application/json; charset=iso-8859-1')
 
-local action = _GET["action"]
+local action = _POST["action"]
 
 interface.select(ifname)
 
 local res = { ["status"] = "ok" }
-if haveAdminPrivileges() then
+if((action ~= nil) and (haveAdminPrivileges())) then
    if action == "reset_drops" then
       interface.resetCounters(true --[[ reset only drops --]])
    elseif action == "reset_all" then

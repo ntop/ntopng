@@ -20,7 +20,7 @@ umask 022
 echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
-echo "Adding the ntopng startup script"
+echo "Adding the ntopng startup script [$1]"
 
 if [ -f /bin/systemctl ] ; then
   systemctl enable ntopng.service
@@ -28,9 +28,10 @@ else
   update-rc.d ntopng defaults 93 >/dev/null
 fi
 
-echo "Making the /etc/ntopng directory..."
-
-mkdir -p /etc/ntopng/
+if [ ! -d /etc/ntopng/ ] ; then
+    echo "Making the /etc/ntopng directory..."
+    mkdir -p /etc/ntopng/
+fi
 
 if [ ! -f /usr/local/bin/ntopng ] && [ ! -L /usr/local/bin/ntopng ] ; then
    ln -s /usr/bin/ntopng /usr/local/bin/ntopng
@@ -39,5 +40,17 @@ fi
 if [ -d /usr/local/share/ntopng ] ; then
     mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled
 fi
+
+# Start service after upgrade/install
+if [ -e /etc/ntopng/ntopng.start ] ; then
+    echo "(Re)Starting ntopng..."
+    
+    if [ -f /bin/systemctl ] ; then
+	service ntopng restart
+    else
+	/etc/init.d/ntopng restart
+    fi    
+fi
+
 
 exit 0

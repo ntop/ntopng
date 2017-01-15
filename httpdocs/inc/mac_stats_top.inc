@@ -8,14 +8,6 @@
 
 				 },
 			     {
-			     title: "Alerts",
-				 field: "column_alerts",
-				 sortable: true,
-                             css: {
-			        textAlign: 'center'
-			     }
-				 },
-			     {
 			     title: "Seen Since",
 				 field: "column_since",
 				 sortable: true,

@@ -1,5 +1,5 @@
 --
--- (C) 2016 - ntop.org
+-- (C) 2016-17 - ntop.org
 --
 
 local blacklistURLs = {
@@ -28,16 +28,22 @@ end
 
 -- ##################################################################
 
-function loadHostBlackList()
+function loadHostBlackList(force_purge)
    local bl = ntop.getCache("ntopng.prefs.host_blacklist")
+   local bl_enabled = ((bl == "1") or (bl == "enabled"))
+   local should_reload = ((bl_enabled) or (force_purge))
 
-   if((bl == "1") or (bl == "enabled")) then
+   if should_reload then
       ntop.allocHostBlacklist()
-      
+   end
+
+   if bl_enabled then
       for _,url in pairs(blacklistURLs) do
 	 loadBlackListFromURL(url)
       end
-      
+   end
+
+   if should_reload then
       ntop.swapHostBlacklist()
    end
 end

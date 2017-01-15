@@ -9,7 +9,7 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 if(haveAdminPrivileges()) then
-   username = _GET["username"]
+   username = _POST["username"]
    
    if(username == nil) then
       print ("{ \"result\" : -1, \"message\" : \"Invalid parameters\" }")
