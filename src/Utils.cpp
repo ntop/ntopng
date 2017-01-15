@@ -1946,3 +1946,49 @@ void Utils::replacestr(char *line, const char *search, const char *replace) {
   memcpy(sp, replace, replace_len);
 }
 
+/* ****************************************************** */
+
+/* Note: the returned IP address is in network byte order */
+u_int32_t Utils::getHostManagementIPv4Address() {
+  int sock = socket(AF_INET, SOCK_DGRAM, 0);
+  const char* kGoogleDnsIp = "8.8.8.8";
+  u_int16_t kDnsPort = 53;
+  struct sockaddr_in serv;
+  struct sockaddr_in name;
+  socklen_t namelen = sizeof(name);
+  u_int32_t me;
+
+  memset(&serv, 0, sizeof(serv));
+  serv.sin_family = AF_INET;
+  serv.sin_addr.s_addr = inet_addr(kGoogleDnsIp);
+  serv.sin_port = htons(kDnsPort);
+
+  if((connect(sock, (const struct sockaddr*) &serv, sizeof(serv)) == 0)
+     && (getsockname(sock, (struct sockaddr*) &name, &namelen) == 0)) {
+    me = name.sin_addr.s_addr;
+  } else
+    me = inet_addr("127.0.0.1");
+
+  closesocket(sock);
+
+  return(me);
+}
+
+/* ****************************************************** */
+
+bool Utils::isInterfaceUp(char *ifname) {
+  struct ifreq ifr;
+  int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+  memset(&ifr, 0, sizeof(ifr));
+  strcpy(ifr.ifr_name, ifname);
+
+  if(ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
+    /* perror("SIOCGIFFLAGS"); */
+    return(false);
+  }
+
+  close(sock);
+
+  return(!!(ifr.ifr_flags & IFF_UP) ? true : false);
+}

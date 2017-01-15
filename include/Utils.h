@@ -100,6 +100,8 @@ class Utils {
 
   static inline u_int64_t toUs(struct timeval *t) { return(((u_int64_t)t->tv_sec)*1000000+((u_int64_t)t->tv_usec)); };
   static void replacestr(char *line, const char *search, const char *replace);	  
+  static u_int32_t getHostManagementIPv4Address();
+  static bool isInterfaceUp(char *ifname);
 };
 
 #endif /* _UTILS_H_ */
