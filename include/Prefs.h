@@ -48,7 +48,8 @@ class Prefs {
     disable_alerts, enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
     enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
-    enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted;
+    enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
+    enable_top_talkers;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
@@ -155,6 +156,7 @@ class Prefs {
   inline int   get_max_num_alerts_per_entity()          { return(max_num_alerts_per_entity); };
   inline int   get_max_num_flow_alerts()                { return(max_num_flow_alerts); };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);     };
+  inline bool  are_top_talkers_enabled()                { return(enable_top_talkers);     };
   inline void  set_alerts_status(bool enabled)          { if(enabled) disable_alerts = false; else disable_alerts = true; };
   inline bool  are_probing_alerts_enabled()             { return(enable_probing_alerts);            };
   inline bool  are_alerts_syslog_enabled()              { return(enable_syslog_alerts);             };

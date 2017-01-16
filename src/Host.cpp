@@ -48,7 +48,7 @@ Host::~Host() {
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
-  if(topSitesKey) {
+  if(topSitesKey && ntop->getPrefs()->are_top_talkers_enabled()) {
     char oldk[64];
 
     snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
@@ -160,13 +160,16 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     updateHostTrafficPolicy(host);
     
     if(localHost) {
-      char oldk[64];
-
+      /* initialize this key in any case to support runtime 'are_top_talkers_enabled' changes */
       snprintf(sitesBuf, sizeof(sitesBuf), "sites.%s", strIP);
       topSitesKey = strdup(sitesBuf);
 
-      snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-      ntop->getRedis()->rename(topSitesKey, oldk);
+      if (ntop->getPrefs()->are_top_talkers_enabled()) {
+        char oldk[64];
+        snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
+        ntop->getRedis()->rename(topSitesKey, oldk);
+      }
+
       readDHCPCache();
     }
 
@@ -543,7 +546,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
 
-    if(topSitesKey) {
+    if(topSitesKey && ntop->getPrefs()->are_top_talkers_enabled()) {
       char oldk[64];
 
       snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
@@ -1240,7 +1243,7 @@ void Host::updateStats(struct timeval *tv) {
 
   if(!localHost) return;
 
-  if(topSitesKey && (tv->tv_sec >= nextSitesUpdate)) {
+  if(topSitesKey && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
     if(nextSitesUpdate > 0) {
       char oldk[64];
 
@@ -1480,6 +1483,7 @@ void Host::incrVisitedWebSite(char *hostname) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
 
   if(topSitesKey
+     && ntop->getPrefs()->are_top_talkers_enabled()
      && (strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
      ) {
