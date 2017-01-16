@@ -120,6 +120,7 @@
 #define HOST_ACTIVITY_RRD_1H_DAYS    15
 #define HOST_ACTIVITY_RRD_1D_DAYS    90
 #define CONST_DEFAULT_IS_FLOW_ACTIVITY_ENABLED   false /* disabled by default */
+#define CONST_DEFAULT_TOP_TALKERS_ENABLED        false
 #define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
@@ -333,6 +334,7 @@
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192
 #define CONST_ALERT_DISABLED_PREFS         "ntopng.prefs.disable_alerts_generation"
+#define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
 #define CONST_ALERT_PREFS                  "ntopng.prefs.alerts"
 #ifdef NTOPNG_PRO
 #define CONST_NAGIOS_NSCA_HOST_PREFS       "ntopng.prefs.nagios_nsca_host"

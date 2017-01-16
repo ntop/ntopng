@@ -59,6 +59,7 @@ Prefs::Prefs(Ntop *_ntop) {
   dns_mode = 0;
   logFd = NULL;
   disable_alerts = false;
+  enable_top_talkers = false;
   max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
   max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
   pid_path = strdup(DEFAULT_PID_PATH);
@@ -421,6 +422,8 @@ void Prefs::reloadPrefsFromRedis() {
   // sets to the default value in redis if no key is found
   getDefaultPrefsValue(CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED,
 		       CONST_DEFAULT_IS_AUTOLOGOUT_ENABLED);
+  enable_top_talkers		  = getDefaultPrefsValue(CONST_TOP_TALKERS_ENABLED,
+							 CONST_DEFAULT_TOP_TALKERS_ENABLED);
   enable_idle_local_hosts_cache   = getDefaultPrefsValue(CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
 							 CONST_DEFAULT_IS_IDLE_LOCAL_HOSTS_CACHE_ENABLED);
   enable_active_local_hosts_cache = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
@@ -1177,6 +1180,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_httpbl_enabled", is_httpbl_enabled());
   lua_push_bool_table_entry(vm, "is_autologout_enabled", enable_auto_logout);
   lua_push_bool_table_entry(vm, "are_alerts_enabled", !disable_alerts);
+  lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
   lua_push_int_table_entry(vm, "http_port", http_port);
   lua_push_int_table_entry(vm, "local_host_max_idle", local_host_max_idle);
   lua_push_int_table_entry(vm, "local_host_cache_duration", local_host_cache_duration);
@@ -1307,6 +1311,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_ALERT_DISABLED_PREFS,
 		    strlen((char*)CONST_ALERT_DISABLED_PREFS)))
     disable_alerts = pref_value[0] == '1' ? true : false;
+  else if(!strncmp(pref_name,
+		    (char*)CONST_TOP_TALKERS_ENABLED,
+		    strlen((char*)CONST_TOP_TALKERS_ENABLED)))
+    enable_top_talkers = pref_value[0] == '1' ? true : false;
   else if(!strncmp(pref_name,
 		    (char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED,
 		    strlen((char*)CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED)))
