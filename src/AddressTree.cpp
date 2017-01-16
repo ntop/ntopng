@@ -67,10 +67,17 @@ bool AddressTree::removeAddress(char *net) {
 
 /* ******************************************* */
 
-patricia_node_t* AddressTree::addAddress(char *_net) {
+patricia_node_t* AddressTree::addAddress(char *_net, const u_int16_t * const user_data) {
   patricia_node_t *node = Utils::ptree_add_rule(getPatricia(_net), _net);
 
-  if(node) node->user_data = numAddresses++;
+  if(node) {
+    numAddresses++;
+    if(user_data)
+      node->user_data = *user_data;
+    else
+      node->user_data = numAddresses; /* Default store numAddresses */
+  }
+
   return(node);
 }
 
