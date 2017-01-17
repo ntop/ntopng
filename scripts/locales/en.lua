@@ -186,6 +186,23 @@ local  en = {
       duplicate_profile = "Duplicate profile name"
    },
 
+   host_pools = {
+      pool = "Pool",
+      manage_pools = "Manage Pools",
+      create_pools = "Create Pools",
+      empty_pool = "Empty pool",
+      delete_pool = "Delete Pool",
+      pool_id = "Pool ID",
+      pool_name = "Pool Name",
+      no_pools = "No pools set",
+      member_address = "Member address",
+      specify_pool_name = "Specify a pool name",
+      specify_member_address = "Specify a IPv4/IPv6 address or a MAC address",
+      invalid_member = "Invalid member address format",
+      duplicate_member = "Duplicate member address",
+      duplicate_pool = "Duplicate pool name",
+   },
+
    noTraffic = "No traffic has been reported for the specified date/time selection",
    error_rrd_low_resolution = "You are asking to fetch data at lower resolution than the one available on RRD, which will lead to invalid data."..
       "<br>If you still want data with such granularity, please tune <a href=\"%{prefs}\">Protocol/Networks Timeseries</a> preferences",
