@@ -940,13 +940,13 @@ int Redis::addHostToDBDump(NetworkInterface *iface, IpAddress *ip, char *name) {
 /* ******************************************* */
 
 int Redis::sadd(const char *set_name, char *item) {
-  return(msg_push("SADD", set_name, item, -1 /* do not trim, this is not a queue */));
+  return(msg_push("SADD", set_name, item, 0 /* do not trim, this is not a queue */));
 }
 
 /* ******************************************* */
 
 int Redis::srem(const char *set_name, char *item) {
-  return(msg_push("SREM", set_name, item, -1 /* do not trim, this is not a queue */));
+  return(msg_push("SREM", set_name, item, 0 /* do not trim, this is not a queue */));
 }
 
 /* **************************************** */
@@ -1108,13 +1108,13 @@ int Redis::id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len) {
 /* ******************************************* */
 
 int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("LPUSH", queue_name, msg, 0));
+  return(msg_push("LPUSH", queue_name, msg, queue_trim_size));
 }
 
 /* ******************************************* */
 
 int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("RPUSH", queue_name, msg, 0));
+  return(msg_push("RPUSH", queue_name, msg, queue_trim_size));
 }
 
 /* ******************************************* */
