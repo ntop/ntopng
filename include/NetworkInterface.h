@@ -371,6 +371,7 @@ class NetworkInterface {
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
+  inline HostPools* getHostPools()         { return(host_pools);  } 
 
   PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
@@ -379,6 +380,7 @@ class NetworkInterface {
   void updateHostsL7Policy(AddressTree *ptree);
   void updateFlowsL7Policy();
 #endif
+  void refreshHostPools(u_int16_t *host_pool_id);
   inline u_int16_t getHostPool(Host *h) {
     if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID;
   };

@@ -3244,6 +3244,27 @@ static int ntop_is_enterprise(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_host_pools(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+    u_int16_t host_pool_id;
+
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+
+    host_pool_id = (u_int16_t)lua_tonumber(vm, 1);
+
+    ntop_interface->getHostPools()->reloadPools(host_pool_id);
+
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_l7_rules(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3270,6 +3291,7 @@ static int ntop_reload_l7_rules(lua_State *vm) {
   } else
     return(CONST_LUA_ERROR);
 }
+
 
 /* ****************************************** */
 
@@ -5280,6 +5302,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* L7 */
   { "reloadL7Rules",                  ntop_reload_l7_rules },
   { "reloadShapers",                  ntop_reload_shapers },
+
+  /* Host pools */
+  { "reloadHostPools",                ntop_reload_host_pools },
 
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },

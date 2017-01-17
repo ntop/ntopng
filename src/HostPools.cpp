@@ -112,6 +112,8 @@ void HostPools::reloadPools(u_int16_t pool_id) {
   }
 
   ptree = new_ptree;
+
+  iface->refreshHostPools(&pool_id);
 }
 
 u_int16_t HostPools::getPool(Host *h) {

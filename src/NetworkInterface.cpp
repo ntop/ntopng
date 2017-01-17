@@ -1940,6 +1940,44 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* **************************************************** */
 
+static bool update_host_host_pool(GenericHashEntry *node, void *user_data) {
+  Host *h = (Host*)node;
+  u_int16_t *host_pool_id = (u_int16_t*)user_data;
+  u_int16_t cur_pool_id = h->get_host_pool();
+
+  if((host_pool_id && *host_pool_id == NO_HOST_POOL_ID)
+     || (cur_pool_id == NO_HOST_POOL_ID)
+     || (host_pool_id && *host_pool_id == cur_pool_id)) {
+    h->updateHostPool();
+
+#ifdef HOST_POOLS_DEBUG
+    char buf[128];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Going to refresh pool for %s "
+				 "[pool id to refresh: %i] "
+				 "[host pool id before refresh: %i] "
+				 "[host pool id after refresh: %i] ",
+				 h->get_ip()->print(buf, sizeof(buf)),
+				 host_pool_id ? *host_pool_id : 0,
+				 cur_pool_id,
+				 h->get_host_pool());
+#endif
+
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+void NetworkInterface::refreshHostPools(u_int16_t * const host_pool_id) {
+  if(isView()) return;
+
+  hosts_hash->walk(update_host_host_pool, host_pool_id);
+}
+
+/* **************************************************** */
+
 #ifdef NTOPNG_PRO
 
 static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
