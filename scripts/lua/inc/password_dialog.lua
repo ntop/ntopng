@@ -20,7 +20,13 @@ print [[
   <ul class="nav nav-tabs" role="tablist" id="edit-user-container">
     <li class="active"><a href="#change-password-dialog" role="tab" data-toggle="tab"> Password </a></li>
 ]]
-if(user_group=="administrator") then
+
+local captive_portal_user = false
+if is_bridge_iface and _GET["captive_portal_users"] ~= nil then
+   captive_portal_user = true
+end
+
+if(user_group=="administrator" and not captive_portal_user) then
    print[[<li><a href="#change-prefs-dialog" role="tab" data-toggle="tab"> Preferences </a></li>]]
 end
    print[[

@@ -13,6 +13,7 @@ currentPage     = _GET["currentPage"]
 perPage         = _GET["perPage"]
 sortColumn      = _GET["sortColumn"]
 sortOrder       = _GET["sortOrder"]
+captivePortal   = _GET["captive_portal_users"]
 
 if(sortColumn == nil) then
   sortColumn = "column_"
@@ -40,16 +41,23 @@ to_skip = (currentPage-1) * perPage
 vals = {}
 num = 0
 for key, value in pairs(users_list) do
-    num = num + 1
-    postfix = string.format("0.%04u", num)
+   if captivePortal and value["group"] ~= "captive_portal" then
+      goto continue
+   elseif not captivePortal and value["group"] == "captive_portal" then
+      goto continue
+   end
 
-    if(sortColumn == "column_full_name") then
+   num = num + 1
+   postfix = string.format("0.%04u", num)
+
+   if(sortColumn == "column_full_name") then
       vals[users_list[key]["full_name"]..postfix] = key
-    elseif(sortColumn == "column_group") then
+   elseif(sortColumn == "column_group") then
       vals[users_list[key]["group"]..postfix] = key
-    else -- if(sortColumn == "column_username") then
+   else -- if(sortColumn == "column_username") then
       vals[key] = key
    end
+   ::continue::
 end
 
 table.sort(vals)

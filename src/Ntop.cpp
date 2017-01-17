@@ -947,7 +947,7 @@ bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
 /* ******************************************* */
 
 bool Ntop::addUser(char *username, char *full_name, char *password, char *host_role,
-		   char *allowed_networks, char *allowed_ifname) {
+		   char *allowed_networks, char *allowed_ifname, char *host_pool_id) {
   char key[64], val[64];
   char password_hash[33];
 
@@ -973,6 +973,13 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
     ntop->getRedis()->set(key, allowed_ifname, 0);
   }
 
+  snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
+  if(host_pool_id)
+    snprintf(val, sizeof(val), "%s", host_pool_id);
+  else
+    snprintf(val, sizeof(val), "%i", NO_HOST_POOL_ID);
+  ntop->getRedis()->set(key, val, 0);
+
   return(true);
 }
 
@@ -994,6 +1001,9 @@ bool Ntop::deleteUser(char *username) {
   ntop->getRedis()->delKey(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
+  ntop->getRedis()->delKey(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
   ntop->getRedis()->delKey(key);
 
   return true;

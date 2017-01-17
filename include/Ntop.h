@@ -362,7 +362,7 @@ class Ntop {
   bool changeAllowedNets(char *username, char *allowed_nets)     const;
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
-	       char *allowed_networks, char *allowed_ifname);
+	       char *allowed_networks, char *allowed_ifname, char *host_pool_id);
   bool deleteUser(char *username);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);

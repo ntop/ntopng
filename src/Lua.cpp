@@ -3061,7 +3061,7 @@ static int ntop_post_http_json_data(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_add_user(lua_State* vm) {
-  char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface;
+  char *username, *full_name, *password, *host_role, *allowed_networks, *allowed_interface, *host_pool_id = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3085,8 +3085,11 @@ static int ntop_add_user(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((allowed_interface = (char*)lua_tostring(vm, 6)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
+  if(lua_type(vm, 7) == LUA_TSTRING)
+    if((host_pool_id = (char*)lua_tostring(vm, 7)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
   return ntop->addUser(username, full_name, password, host_role,
-		       allowed_networks, allowed_interface);
+		       allowed_networks, allowed_interface, host_pool_id);
 }
 
 /* ****************************************** */

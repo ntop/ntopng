@@ -9,6 +9,11 @@ require "lua_utils"
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 if(haveAdminPrivileges()) then
+   interface.select(ifname)
+
+   ifstats = interface.getStats()
+   is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    
    active_page = "admin"

@@ -1,10 +1,22 @@
+local messages = {ntopng="Add ntopng User", captive_portal="Add Captive Portal User"}
+
+local add_user_msg = messages["ntopng"]
+local captive_portal_user = false
+if is_bridge_iface then
+   if _GET["captive_portal_users"] ~= nil then
+      add_user_msg = messages["captive_portal"]
+      captive_portal_user = true
+   end
+end
+
+
 print [[
 <div id="add_user_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add_user_dialog_label" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-  <h3 id="add_user_dialog_label">Add User</h3>
+  <h3 id="add_user_dialog_label">]]print(add_user_msg)print[[</h3>
 </div>
 
 <div class="modal-body">
@@ -64,6 +76,10 @@ print [[
   </div>
 </div>
 
+]]
+
+if captive_portal_user == false then
+   print[[
 <div class="row">
   <div class='col-md-6'>
     <div class="form-group has-feedback">
@@ -84,16 +100,14 @@ print [[
         <option value="">Any Interface</option>
 ]]
 
-for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
-   print('<option value="'..getInterfaceId(interface_name)..'"> '..interface_name..'</option>')
-end
-print[[
+   for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
+      print('<option value="'..getInterfaceId(interface_name)..'"> '..interface_name..'</option>')
+   end
+   print[[
       </select>
     </div>
   </div>
 </div>
-
-
 
 <div class="form-group has-feedback">
   <label class="form-label">Allowed Networks</label>
@@ -101,10 +115,34 @@ print[[
     <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
   </div>
   <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
-</div>
+</div>]]
 
+else -- a captive portal user is being added
+   print[[
 <div class="form-group has-feedback">
-  <button type="submit" id="add_user_submit" class="btn btn-default btn-primary btn-block">Add New User</button>
+  <label class="form-label">Host Pool</label>
+  <select name="host_pool_id" id="host_pool_id" class="form-control">
+    <option value="">No host pool</option>
+]]
+
+   local pools_key = "ntopng.prefs."..getInterfaceId(ifname)..".host_pools.pool_ids"
+   local pool_ids = ntop.getMembersCache(pools_key)
+   for _, pool_id in pairsByValues(pool_ids, asc) do
+      print('<option value="'..pool_id..'"> '..pool_id..'</option>')
+   end
+
+   print[[
+  </select>
+
+  <input id="host_role" name="host_role" type="hidden" value="captive_portal" />
+  <input id="allowed_networks" name="allowed_networks" type="hidden" value="0.0.0.0/0,::/0" />
+  <input id="allowed_interface" name="allowed_interface" type="hidden" value="]] print(getInterfaceId(ifname)) print[[" />
+</div>
+]]
+end
+
+print[[<div class="form-group has-feedback">
+  <button type="submit" id="add_user_submit" class="btn btn-primary btn-block">Add New User</button>
 </div>
 
 </form>
@@ -150,7 +188,11 @@ print[[
     // escape characters to send out valid latin-1 encoded characters
     $('#password_input').val(escape($('#password_input').val()))
     $('#confirm_password_input').val(escape($('#confirm_password_input').val()))
+]]
 
+if captive_portal_user == false then
+   -- network validation only for captive portal users
+   print[[
     if($("#allowed_networks_input").val().length == 0) {
       add_user_alert.error("Network list not specified");
       return(false);
@@ -162,8 +204,15 @@ print[[
           return(false);
         }
       }
-    }
+    }]]
+end
 
+local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
+if captive_portal_user then
+   location_href = location_href.."?captive_portal_users=1"
+end
+
+print[[
     $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?user='+$("#username_input").val()+"&networks="+$("#allowed_networks_input").val(), function(data){
       if (!data.valid) {
         add_user_alert.error(data.msg);
@@ -176,7 +225,7 @@ print[[
           var response = jQuery.parseJSON(data);
           if (response.result == 0) {
             add_user_alert.success(response.message);
-            window.location.href = 'users.lua';
+            window.location.href = ']] print(location_href) print[[';
           } else {
             add_user_alert.error(response.message);
           }

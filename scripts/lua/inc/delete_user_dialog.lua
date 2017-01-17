@@ -22,6 +22,12 @@ print [[
   <form id="form_delete_user" class="form-horizontal" method="post" action="delete_user.lua">
 			      ]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+
+local location_href = ntop.getHttpPrefix().."/lua/admin/users.lua"
+if is_bridge_iface and _GET["captive_portal_users"] ~= nil then
+   location_href = location_href.."?captive_portal_users=1"
+end
+
 print [[
     <input id="delete_dialog_username" type="hidden" name="username" value="" />
   </form>
@@ -37,7 +43,7 @@ print [[
         var response = jQuery.parseJSON(data);
         if (response.result == 0) {
           delete_user_alert.success(response.message); 
-          window.location.href = 'users.lua';
+          window.location.href = ']] print(location_href) print[[';
         } else {
           delete_user_alert.error(response.message);
         }
