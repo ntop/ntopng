@@ -49,7 +49,7 @@ local menu_subpages = {
   {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
   {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
   {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
-  {id="web_traffic",   label="Web Traffic",          advanced=false, pro_only=false,  disabled=false},
+  {id="protocols",   label="Protocols",            advanced=false, pro_only=false,  disabled=false},
   {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
   {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
   {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
@@ -304,14 +304,14 @@ end
 
 -- ================================================================================
 
-function printWebStraffic()
+function printProtocolPrefs()
   print('<form method="post">')
 
   print('<table class="table">')
 
-  print('<tr><th colspan=2 class="info">HTTP Settings</th></tr>')
+  print('<tr><th colspan=2 class="info">HTTP</th></tr>')
 
-  toggleTableButtonPrefs("Top Sites",
+  toggleTableButtonPrefs("Top HTTP Sites",
         "Toggle the creation of top visited sites for local hosts. This may increase the disk usage.",
         "On", "1", "success",
         "Off", "0", "danger",
@@ -676,8 +676,8 @@ end
 if (subpage_active == "alerts") then
    printAlerts()
 end
-if (subpage_active == "web_traffic") then
-   printWebStraffic()
+if (subpage_active == "protocols") then
+   printProtocolPrefs()
 end
 if (subpage_active == "nbox") then
   if (ntop.isPro()) then
