@@ -67,10 +67,18 @@ bool AddressTree::removeAddress(char *net) {
 
 /* ******************************************* */
 
-patricia_node_t* AddressTree::addAddress(char *_net) {
+patricia_node_t* AddressTree::addAddress(char *_net, const u_int16_t * const user_data) {
   patricia_node_t *node = Utils::ptree_add_rule(getPatricia(_net), _net);
 
-  if(node) node->user_data = numAddresses++;
+  if(node) {
+    if(user_data)
+      node->user_data = *user_data;
+    else
+      node->user_data = numAddresses; /* Default store numAddresses */
+
+    numAddresses++;
+  }
+
   return(node);
 }
 
@@ -93,14 +101,28 @@ bool AddressTree::addAddresses(char *rule) {
 /* ******************************************* */
 
 int16_t AddressTree::findAddress(int family, void *addr) {
-  patricia_node_t *node = Utils::ptree_match((family == AF_INET) ? ptree_v4 : ptree_v6,
-					     family, addr,
-					     (family == AF_INET) ? 32 : 128);
+  patricia_tree_t *p;
+  int bits;
+
+  if(family == AF_INET)
+    p = ptree_v4, bits = 32;
+  else if(family == AF_INET6)
+    p = ptree_v6, bits = 128;
+  else
+    p = ptree_mac, bits = 48;
+    
+  patricia_node_t *node = Utils::ptree_match(p, family, addr, bits);
   
   if(node == NULL)
     return(-1);
   else
     return(node->user_data);
+}
+
+/* ******************************************* */
+
+patricia_node_t* AddressTree::findMac(void *addr) {
+  return Utils::ptree_match(ptree_mac, AF_MAC, addr, 48);
 }
 
 /* **************************************************** */

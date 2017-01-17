@@ -1744,8 +1744,10 @@ patricia_node_t* Utils::ptree_match(patricia_tree_t *tree, int family, void *add
 
   if(family == AF_INET)
     fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
-  else
+  else if(family == AF_INET6)
     fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
+  else
+    fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, tree->maxbits);
 
   return(patricia_search_best(tree, &prefix));
 }

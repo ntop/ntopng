@@ -124,3 +124,17 @@ bool Mac::equal(u_int16_t _vlanId, const u_int8_t _mac[6]) {
   else
     return(false);
 }
+
+/* ******************************************* */
+
+void* Mac::findAddress(AddressTree *ptree) {
+  if(!ptree)
+    return NULL;
+  else {
+    void *ret;
+
+    ret = (void*)ptree->findMac(mac);
+
+    return ret;
+  }
+}

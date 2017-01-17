@@ -158,6 +158,7 @@ using namespace std;
 #include "KafkaManager.h"
 #endif
 #endif
+#include "HostPools.h"
 #include "Prefs.h"
 #include "Mutex.h"
 #include "Utils.h"

@@ -115,6 +115,7 @@ class NetworkInterface {
   u_int dump_sampling_rate, dump_max_pkts_file, dump_max_duration, dump_max_files;
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
+  HostPools *host_pools;
   bool has_vlan_packets;
   struct ndpi_detection_module_struct *ndpi_struct;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
@@ -378,6 +379,9 @@ class NetworkInterface {
   void updateHostsL7Policy(AddressTree *ptree);
   void updateFlowsL7Policy();
 #endif
+  inline u_int16_t getHostPool(Host *h) {
+    if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID;
+  };
 
   bool updateDumpAllTrafficPolicy(void);
   bool updateDumpTrafficDiskPolicy();

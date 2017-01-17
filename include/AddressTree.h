@@ -37,11 +37,11 @@ class AddressTree {
   inline u_int16_t getNumAddresses() { return(numAddresses); }
   bool removeAddress(char *net);
   inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }
-  patricia_node_t* addAddress(char *_net);
+  patricia_node_t* addAddress(char *_net, const u_int16_t * const user_data = NULL);
   bool addAddresses(char *net);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr);
-  int16_t findMac(int family, void *addr)     { return(findAddress(AF_MAC, addr)); }
+  patricia_node_t* findMac(void *addr);
   void dump();
 };
 
