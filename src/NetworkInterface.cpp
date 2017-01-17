@@ -1938,16 +1938,37 @@ static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
   AddressTree *ptree = (AddressTree*)user_data;
 
   if((ptree == NULL) || h->match(ptree))
-    ((Host*)node)->updateHostL7Policy();
+    h->updateHostL7Policy();
 
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
+static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
+  Flow *f = (Flow*)node;
+
+  f->updateFlowShapers();
+  f->updateProfile();
+
+  return(false); /* false = keep on walking */
+}
+
+
+/* **************************************************** */
+
 void NetworkInterface::updateHostsL7Policy(AddressTree *ptree) {
   if(isView()) return;
+
   hosts_hash->walk(update_host_l7_policy, ptree);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::updateFlowsL7Policy() {
+  if(isView()) return;
+
+  flows_hash->walk(update_flow_l7_policy, NULL);
 }
 
 #endif

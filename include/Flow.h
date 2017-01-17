@@ -209,7 +209,6 @@ class Flow : public GenericHashEntry {
   inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }
 #ifdef NTOPNG_PRO
   void updateDirectionShapers(bool src2dst_direction, u_int8_t *a_shaper_id, u_int8_t *b_shaper_id);
-  void updateFlowShapers();
 #endif
   void dumpFlowAlert();
   
@@ -368,6 +367,7 @@ class Flow : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   inline void updateProfile()     { trafficProfile = iface->getFlowProfile(this); }
   inline char* get_profile_name() { return(trafficProfile ? trafficProfile->getName() : (char*)"");}
+  void updateFlowShapers();
 #endif
   inline float getFlowRTT() { return(rttSec); }
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/ */

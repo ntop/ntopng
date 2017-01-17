@@ -5671,6 +5671,8 @@ void Lua::setInterface(const char *user) {
   }
 }
 
+/* ****************************************** */
+
 void Lua::setParamsTable(lua_State* vm, const char* table_name,
 			 const char* query) const {
   char outbuf[FILENAME_MAX];
@@ -5809,6 +5811,13 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
   /* Put the GET params into the environment */
   setParamsTable(L, "_GET", request_info->query_string);
+
+  lua_newtable(L);
+  for(int i=0; request_info->http_headers[i].name != NULL; i++)
+    lua_push_str_table_entry(L,
+			     request_info->http_headers[i].name,
+			     (char*)request_info->http_headers[i].value);
+  lua_setglobal(L, (char*)"_SERVER");
 
   /* _SERVER */
   lua_newtable(L);
