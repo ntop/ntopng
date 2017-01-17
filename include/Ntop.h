@@ -364,6 +364,7 @@ class Ntop {
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id);
   bool deleteUser(char *username);
+  bool getUserHostPool(char *username, u_int16_t *host_pool_id);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);
   void removeTrailingSlash(char *str);

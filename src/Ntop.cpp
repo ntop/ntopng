@@ -1011,6 +1011,23 @@ bool Ntop::deleteUser(char *username) {
 
 /* ******************************************* */
 
+bool Ntop::getUserHostPool(char *username, u_int16_t *host_pool_id) {
+  char key[64], val[64];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username ? username : "");
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    if(host_pool_id)
+      *host_pool_id = atoi(val);
+    return true;
+  }
+
+  if(host_pool_id)
+    *host_pool_id = NO_HOST_POOL_ID;
+  return false;
+}
+
+/* ******************************************* */
+
 void Ntop::fixPath(char *str, bool replaceDots) {
   for(int i=0; str[i] != '\0'; i++) {
 #ifdef WIN32
