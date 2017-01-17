@@ -229,6 +229,7 @@ typedef enum {
   column_country,
   column_mac,
   column_os,
+  column_num_flows, /* = column_incomingflows + column_outgoingflows */
   /* column_thpt, */
   column_traffic,
   /* sort criteria */

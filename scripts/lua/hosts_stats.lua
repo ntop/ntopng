@@ -255,6 +255,15 @@ print [[
 			     }
 
 				 },			     
+			     {
+			     title: "Flows",
+				 field: "column_num_flows",
+				 sortable: true,
+	 	             css: { 
+			        textAlign: 'center'
+			     }
+
+				 },			     
 ]]
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/hosts_stats_top.inc")

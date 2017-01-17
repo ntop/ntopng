@@ -201,6 +201,7 @@ class Host : public GenericHost {
   inline UserActivityStats* get_user_activities() { return(user_activities); }
   inline u_int32_t getNumOutgoingFlows()  { return(num_active_flows_as_client); }
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
+  inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   static void splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id);
 };
 

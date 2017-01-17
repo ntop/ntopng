@@ -39,6 +39,8 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   inline u_int32_t key()         { return(Utils::macHash(mac)); }
   inline u_int8_t* get_mac()     { return(mac);                 }
   inline u_int16_t get_vlan_id() { return(vlan_id);             }
+  inline bool isNull()           { for(int i=0; i<6; i++) { if(mac[i] != 0) return(false); } return(true); }      
+    
   bool equal(u_int16_t _vlanId, const u_int8_t _mac[6]);
   inline void incSentStats(u_int pkt_len)  {
     sent.incStats(pkt_len);

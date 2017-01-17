@@ -193,19 +193,23 @@ NetworkInterface::NetworkInterface(const char *name,
 void NetworkInterface::init() {
   ifname = remoteIfname = remoteIfIPaddr = remoteProbeIPaddr = NULL,
     remoteProbePublicIPaddr = NULL, flows_hash = NULL, hosts_hash = NULL,
-    ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0;
-  sprobe_interface = inline_interface = false, has_vlan_packets = false,
-    last_pkt_rcvd = last_pkt_rcvd_remote = 0, next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, numSubInterfaces = 0, numVirtualInterfaces = 0, flowHashing = NULL,
-    pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0;
-  purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0, last_remote_bps = 0;
-  sprobe_interface = false, has_vlan_packets = false,
+    ndpi_struct = NULL, zmq_initial_bytes = 0, zmq_initial_pkts = 0,
+    sprobe_interface = inline_interface = false, has_vlan_packets = false,
+    last_pkt_rcvd = last_pkt_rcvd_remote = 0,
+    next_idle_flow_purge = next_idle_host_purge = 0,
+    running = false, numSubInterfaces = 0,
+    numVirtualInterfaces = 0, flowHashing = NULL,
+    pcap_datalink_type = 0, mtuWarningShown = false, lastSecUpdate = 0,
+    purge_idle_flows_hosts = true, id = (u_int8_t)-1,
+    last_remote_pps = 0, last_remote_bps = 0,
+    sprobe_interface = false, has_vlan_packets = false,
     pcap_datalink_type = 0, cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     tooManyFlowsAlertTriggered = tooManyHostsAlertTriggered = false,
-    pkt_dumper = NULL, numL2Devices = 0;
-  checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0;
-  pollLoopCreated = false, bridge_interface = false;
+    pkt_dumper = NULL, numL2Devices = 0,
+    checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
+    pollLoopCreated = false, bridge_interface = false;
+  
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -1224,9 +1228,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	  if(len == 0) break;
 
 	  if(id == 12 /* Host Name */) {
-	      char name[64], buf[24], *client_mac, key[64];
+	    char name[64], buf[24], *client_mac, key[64];
 	    int j;
-
+	    
 	    j = ndpi_min(len, sizeof(name)-1);
 	    strncpy((char*)name, (char*)&payload[i+2], j);
 	    name[j] = '\0';
@@ -2365,6 +2369,10 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
     r->elems[r->actNumEntries++].numericValue = h->getBytesThpt();
     break;
 
+  case column_num_flows:
+    r->elems[r->actNumEntries++].numericValue = h->getNumActiveFlows();
+    break;
+    
   case column_traffic:
     r->elems[r->actNumEntries++].numericValue = h->getNumBytes();
     break;
@@ -2777,6 +2785,7 @@ int NetworkInterface::sortHosts(struct flowHostRetriever *retriever,
   else if(!strcmp(sortColumn, "column_since")) retriever->sorter = column_since, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_asn")) retriever->sorter = column_asn, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_num_flows")) retriever->sorter = column_num_flows, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_local_network_id")) retriever->sorter = column_local_network_id, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_mac")) retriever->sorter = column_mac, sorter = numericSorter;

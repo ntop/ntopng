@@ -112,11 +112,20 @@ else
    else
       print ("\"column_thpt\" : \"0 "..throughput_type.."\",")
    end
+
+   print ("\"column_num_flows\" : \""..host["active_flows.as_client"]+host["active_flows.as_server"].."\",")
+   print ("\"column_alerts\" : \"")
+   if((host["num_alerts"] ~= nil) and (host["num_alerts"] > 0)) then
+      print(""..host["num_alerts"].."\",")
+   else
+      print("0\",")
+   end
    
    sent2rcvd = round((host["bytes.sent"] * 100) / (host["bytes.sent"]+host["bytes.rcvd"]), 0)
    print ("\"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
 	  .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
 
+   
    print("\" } ")
 
 end

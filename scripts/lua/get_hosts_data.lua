@@ -185,6 +185,9 @@ if(hosts_stats ~= nil) then
 	 vals[hosts_stats[key]["country"]..postfix] = key
       elseif(sortColumn == "column_vlan") then
 	 vals[hosts_stats[key]["vlan"]..postfix] = key
+      elseif(sortColumn == "column_num_flows") then
+	 local t = hosts_stats[key]["active_flows.as_client"]+hosts_stats[key]["active_flows.as_server"]
+	 vals[t+postfix] = key
       elseif(sortColumn == "column_traffic") then
 	 vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
       elseif(sortColumn == "column_thpt") then
@@ -360,6 +363,8 @@ for _key, _value in pairsByKeys(vals, funct) do
       end
    end
 
+   print ("\", \"column_num_flows\" : \""..value["active_flows.as_client"]+value["active_flows.as_server"])
+   
    sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
    print ("\", \"column_breakdown\" : \"<div class='progress'><div class='progress-bar progress-bar-warning' style='width: "
 	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar progress-bar-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>")
