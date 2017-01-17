@@ -70,6 +70,7 @@ class Host : public GenericHost {
 #ifdef NTOPNG_PRO
   L7Policy_t *l7Policy, *l7PolicyShadow;
 #endif
+  u_int16_t host_pool;
 
   struct {
     u_int32_t pktRetr, pktOOO, pktLost;
@@ -179,6 +180,7 @@ class Host : public GenericHost {
 
   bool match(AddressTree *tree) { return(get_ip() ? get_ip()->match(tree) : false); };
   void updateHostL7Policy();
+  void updateHostPool();
   inline bool dropAllTraffic()  { return(drop_all_host_traffic); };
   inline bool dumpHostTraffic() { return(dump_host_traffic);     };
   void setDumpTrafficPolicy(bool new_policy);

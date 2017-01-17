@@ -182,6 +182,9 @@ NetworkInterface::NetworkInterface(const char *name,
      || ((alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME)) == NULL))
     throw "Not enough memory";
 
+  if((host_pools = new HostPools(this)) == NULL)
+    throw "Not enough memory";
+
   alertLevel = alertsManager->getNumAlerts(true);
 }
 
@@ -223,6 +226,7 @@ void NetworkInterface::init() {
   policer = NULL;
 #endif
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
+  host_pools = NULL;
   checkIdle();
   dump_all_traffic = dump_to_disk = dump_unknown_traffic
     = dump_security_packets = dump_to_tap = false;
@@ -493,6 +497,7 @@ NetworkInterface::~NetworkInterface() {
   if(db)             delete db;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
+  if(host_pools)     delete host_pools;
   if(networkStats)   delete []networkStats;
   if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;

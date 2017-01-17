@@ -41,7 +41,7 @@ class AddressTree {
   bool addAddresses(char *net);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr);
-  int16_t findMac(int family, void *addr)     { return(findAddress(AF_MAC, addr)); }
+  patricia_node_t* findMac(void *addr);
   void dump();
 };
 

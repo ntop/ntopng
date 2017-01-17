@@ -119,6 +119,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   sent_to_sketch = rcvd_from_sketch = NULL;
   l7Policy = l7PolicyShadow = NULL;
 #endif
+  host_pool = NO_HOST_POOL_ID;
 
   if(_mac == NULL)
     mac = NULL;
@@ -259,6 +260,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   
   if(!host_serial) computeHostSerial();
   updateHostL7Policy();
+  updateHostPool();
 }
 
 /* *************************************** */
@@ -344,6 +346,22 @@ void Host::updateHostL7Policy() {
 
 	l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
     }
+#endif
+}
+
+/* *************************************** */
+
+void Host::updateHostPool() {
+  if(!iface)
+    return;
+
+  host_pool = iface->getHostPool(this);
+
+#ifdef HOST_POOLS_DEBUG
+  char buf[128];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Updating host pool for %s [host pool: %i]",
+			       ip.print(buf, sizeof(buf)), host_pool);
 #endif
 }
 

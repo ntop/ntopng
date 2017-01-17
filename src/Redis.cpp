@@ -970,6 +970,45 @@ int Redis::smembers(lua_State* vm, char *setName) {
   return(rc);
 }
 
+/* **************************************** */
+
+int Redis::smembers(const char *set_name, char ***members) {
+  int rc = -1;
+  u_int i;
+  redisReply *reply = NULL;
+
+  l->lock(__FILE__, __LINE__);
+  num_requests++;
+  reply = (redisReply*)redisCommand(redis, "SMEMBERS %s", set_name);
+
+  if(!reply) reconnectRedis();
+
+  if(reply && (reply->type == REDIS_REPLY_ERROR)) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s [SMEMBERS %s]", reply->str ? reply->str : "???", set_name);
+    goto out;
+  }
+
+  (*members) = NULL;
+
+  if(reply && (reply->type == REDIS_REPLY_ARRAY)) {
+    rc = (int)reply->elements;
+
+    if(rc > 0) {
+      if(((*members) = (char**)malloc(reply->elements * sizeof(char*))) != NULL) {
+
+	for(i = 0; i < reply->elements; i++)
+	  (*members)[i] = strdup(reply->element[i]->str);
+      }
+    }
+  }
+
+ out:
+  if(reply) freeReplyObject(reply);
+  l->unlock(__FILE__, __LINE__);
+
+  return(rc);
+}
+
 /* *************************************** */
 
 void Redis::setHostId(NetworkInterface *iface, char *daybuf, char *host_name, u_int32_t id) {
