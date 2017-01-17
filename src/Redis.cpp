@@ -937,6 +937,18 @@ int Redis::addHostToDBDump(NetworkInterface *iface, IpAddress *ip, char *name) {
   return(host_to_id(iface, daybuf, what, &new_key));
 }
 
+/* ******************************************* */
+
+int Redis::sadd(const char *set_name, char *item) {
+  return(msg_push("SADD", set_name, item, -1 /* do not trim, this is not a queue */));
+}
+
+/* ******************************************* */
+
+int Redis::srem(const char *set_name, char *item) {
+  return(msg_push("SREM", set_name, item, -1 /* do not trim, this is not a queue */));
+}
+
 /* **************************************** */
 
 int Redis::smembers(lua_State* vm, char *setName) {

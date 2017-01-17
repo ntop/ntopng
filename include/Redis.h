@@ -100,6 +100,8 @@ class Redis {
 
   int addHostToDBDump(NetworkInterface *iface, IpAddress *ip, char *name);
 
+  int sadd(const char *set_name, char *item);
+  int srem(const char *set_name, char *item);
   int smembers(lua_State* vm, char *setName);
   int smembers(const char *set_name, char ***members);
 

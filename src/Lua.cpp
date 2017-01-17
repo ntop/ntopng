@@ -1043,6 +1043,56 @@ static int ntop_delete_redis_key(lua_State* vm) {
 
 /* ****************************************** */
 
+/* ****************************************** */
+
+/**
+ * @brief Add a member to the a redis set.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_add_set_member_redis(lua_State* vm) {
+  char *key, *value;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((value = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if (ntop->getRedis()->sadd(key, value) == 0)
+    return(CONST_LUA_OK);
+  else
+    return(CONST_LUA_ERROR);
+}
+
+/**
+ * @brief Removes a member from a redis set.
+ *
+ * @param vm The lua state.
+ * @return CONST_LUA_OK.
+ */
+static int ntop_del_set_member_redis(lua_State* vm) {
+  char *key, *value;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((value = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if (ntop->getRedis()->srem(key, value) == 0)
+    return(CONST_LUA_OK);
+  else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
 /**
  * @brief Get the members of a redis set.
  * @details Get the set key form the lua stack and push the mambers name into lua stack.
@@ -5239,6 +5289,8 @@ static const luaL_Reg ntop_reg[] = {
   { "lpushCache",      ntop_lpush_redis },
   { "lpopCache",       ntop_lpop_redis },
   { "lrangeCache",     ntop_lrange_redis },
+  { "setMembersCache", ntop_add_set_member_redis },
+  { "delMembersCache", ntop_del_set_member_redis },
   { "getMembersCache", ntop_get_set_members_redis },
   { "getHashCache",    ntop_get_hash_redis },
   { "setHashCache",    ntop_set_hash_redis },
