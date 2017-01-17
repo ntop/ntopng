@@ -1732,7 +1732,7 @@ print[[
    print [[/lua/get_shapers.lua?ifid=]] print(ifid.."") print[[",
       title: "",
       hidePerPage: true,
-      perPage: ]] print(shaper_utils.MAX_NUM_SHAPERS) print[[,
+      perPage: ]] print(tostring(shaper_utils.MAX_NUM_SHAPERS)) print[[,
       buttons: [
          '<a id="addNewShaperBtn" onclick="addNewShaper()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
@@ -1808,28 +1808,7 @@ print [[</form>
 </div>
 
 <script>
-   /*** Page Tab State ***/
-   $('#filterPageTabPanel a').click(function(e) {
-     e.preventDefault();
-   });
-
-   // store the currently selected tab in the hash value
-   $("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
-      var id = $(e.target).attr("href").substr(1);
-      if(history.replaceState) {
-         // this will prevent the 'jump' to the hash
-         history.replaceState(null, null, "#"+id);
-      } else {
-         // fallback
-         window.location.hash = id;
-      }
-   });
-
-   // on load of the page: switch to the currently selected tab
-   var hash = window.location.hash;
-   if (! hash) hash = "#protocols";
-   $('#filterPageTabPanel a[href="' + hash + '"]').tab('show');
-   /*** End Page Tab State ***/
+   handle_tab_state($("#filterPageTabPanel"), "protocols");
 
    aysHandleForm("form", {
       handle_datatable: true,
