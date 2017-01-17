@@ -36,7 +36,7 @@ class AlertsManager : protected StoreManager {
   
   /* methods used for alerts that have a timespan */
   bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
-  void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
+  void markForMakeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
   int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows);
   int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		  const char *engaged_alert_id,
@@ -105,6 +105,8 @@ class AlertsManager : protected StoreManager {
   int storeAlert(AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
   int storeAlert(lua_State *L, int index);
 #endif
+
+  void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
 
   /*
     ========== HOST alerts API =========

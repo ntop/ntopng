@@ -550,6 +550,7 @@
 #define ALERTS_MANAGER_ENGAGED_TABLE_NAME    "engaged_alerts"
 #define ALERTS_MANAGER_STORE_NAME            "alerts_v3.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
+#define ALERTS_MANAGER_MAKE_ROOM_SET_NAME    "ntopng.alerts.ifid_%i.make_room"
 #define ALERTS_MANAGER_TYPE_FIELD            "alert_type"
 #define ALERTS_MANAGER_SEVERITY_FIELD        "alert_severity"
 #define STATS_MANAGER_STORE_NAME             "top_talkers.db"

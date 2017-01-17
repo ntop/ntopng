@@ -11,7 +11,8 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+require "alert_utils"
 require "slack_utils"
 
-
+housekeepingAlertsMakeRoom()
 sendSlackMessages()

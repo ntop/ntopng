@@ -4541,6 +4541,7 @@ static int ntop_interface_store_alert(lua_State* vm) {
   return am->storeAlert(vm, 2) ? CONST_LUA_ERROR : CONST_LUA_OK;
 }
 #endif
+
 /* ****************************************** */
 
 static int ntop_interface_engage_release_host_alert(lua_State* vm, bool engage) {
@@ -4715,6 +4716,34 @@ static int ntop_interface_get_cached_num_alerts(lua_State* vm) {
     return (CONST_LUA_ERROR);
 
   return (!am->getCachedNumAlerts(vm)) ? CONST_LUA_OK : CONST_LUA_ERROR;
+}
+
+/* ****************************************** */
+
+static int ntop_interface_make_room_alerts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  int alert_entity;
+  char *alert_entity_value, *table_name;
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+  alert_entity = (int)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  alert_entity_value = (char*)lua_tostring(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING)) return(CONST_LUA_ERROR);
+  table_name = (char*)lua_tostring(vm, 3);
+
+  if((!ntop_interface)
+     || ((am = ntop_interface->getAlertsManager()) == NULL))
+    return(CONST_LUA_ERROR);
+
+  am->makeRoom((AlertEntity)alert_entity, alert_entity_value, table_name);
+
+  return CONST_LUA_OK;
 }
 
 /* ****************************************** */
@@ -5269,6 +5298,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "enableHostAlerts",     ntop_interface_host_enable_alerts       },
   { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
   { "refreshNumAlerts",     ntop_interface_refresh_num_alerts       },
+  { "makeRoomAlerts",       ntop_interface_make_room_alerts         },
   { NULL,                             NULL }
 };
 

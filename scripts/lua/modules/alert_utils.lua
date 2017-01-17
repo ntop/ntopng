@@ -123,6 +123,10 @@ function get_re_arm_alerts_hash_name()
    return "ntopng.prefs.alerts_re_arm_minutes"
 end
 
+function get_housekeeping_set_name(ifId)
+   return "ntopng.alerts.ifid_"..ifId..".make_room"
+end
+
 function get_re_arm_alerts_hash_key(ifid, ifname_or_network)
    local parts = {"ifid", tostring(ifid)}
    if ifname_or_network ~= nil then
@@ -1200,6 +1204,30 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
       </tbody> </table>
       ]]
+   end
+end
+
+-- #################################
+
+function housekeepingAlertsMakeRoom()
+   local ifnames = interface.getIfNames()
+   for id, n in pairs(ifnames) do
+      interface.select(n)
+
+      local ifId = getInterfaceId(n)
+      local k = get_housekeeping_set_name(ifId)
+
+      local members = ntop.getMembersCache(k)
+      for _, m in pairs(members) do
+	 ntop.delMembersCache(k, m)
+	 m = m:split("|")
+
+	 local alert_entity = tonumber(m[1])
+	 local alert_entity_value = m[2]
+	 local table_name = m[3]
+
+	 interface.makeRoomAlerts(alert_entity, alert_entity_value, table_name)
+      end
    end
 end
 

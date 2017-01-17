@@ -195,17 +195,16 @@ function printAlerts()
      showElements = false
   end
 
-  --[[ disabled, due to efficiency reasons limits are honoured only for flow alerts
+
   prefsInputFieldPrefs("Maximum Number of Alerts per Entity",
 		       "The maximum number of alerts per alarmable entity. Alarmable entities are hosts, networks, interfaces and flows. "..
 		       "Once the maximum number of entity alerts is reached, oldest alerts will be overwritten. "..
-			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, nil, showElements, false)
-  --]]
-if show_advanced_prefs then
+			  "Default: 1024.", "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
+
   prefsInputFieldPrefs("Maximum Number of Flow Alerts",
 		       "The maximum number of flow alerts. Once the maximum number of alerts is reached, oldest alerts will be overwritten. "..
 			  "Default: 16384.", "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
-end
+
   toggleTableButtonPrefs("Enable Probing Alerts",
                     "Enable alerts generated when probing attempts are detected.",
                     "On", "1", "success",

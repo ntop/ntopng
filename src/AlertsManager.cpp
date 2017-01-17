@@ -386,6 +386,29 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
 
 /* **************************************************** */
 
+void AlertsManager::markForMakeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name) {
+  if(!ntop->getPrefs()->are_alerts_disabled()) {
+    Redis *r = ntop->getRedis();
+    char k[128], buf[512];
+
+    if(!r) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to get a valid Redis instances");
+      return;
+    }
+
+    snprintf(k, sizeof(k), ALERTS_MANAGER_MAKE_ROOM_SET_NAME, ifid);
+
+    snprintf(buf, sizeof(buf), "%i|%s|%s",
+	     alert_entity,
+	     alert_entity_value ? alert_entity_value : "",
+	     table_name ? table_name : "");
+
+    r->sadd(k, buf);
+  }
+}
+
+/* **************************************************** */
+
 void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     int max_num = strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME))
@@ -569,7 +592,8 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
     if(!isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
       /* Cannot release an alert that has not been engaged */
       return 1;
-    }
+    } else
+      markForMakeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
     if(getNetworkInterface())
       getNetworkInterface()->decAlertLevel();
@@ -820,7 +844,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
     if(!store_initialized || !store_opened)
       return(-1);
     else if(check_maximum)
-      makeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
+      markForMakeRoom(alert_entity, alert_entity_value, ALERTS_MANAGER_TABLE_NAME);
 
     /* This alert is being engaged */
     snprintf(query, sizeof(query),
@@ -880,7 +904,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
     if(!store_initialized || !store_opened || !f)
       return(-1);
 
-    makeRoom(alert_entity_flow, (char*)"flow", ALERTS_MANAGER_FLOWS_TABLE_NAME);
+    markForMakeRoom(alert_entity_flow, (char*)"flow", ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     cli = f->get_cli_host(), srv = f->get_srv_host();
     if(cli && cli->get_ip() && (cli_ip_buf = (char*)malloc(sizeof(char) * 256)))
