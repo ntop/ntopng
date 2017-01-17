@@ -38,6 +38,7 @@ public:
   HostPools(NetworkInterface *_iface);
   void reloadPools(u_int16_t pool_id);
   u_int16_t getPool(Host *h);
+  void addToPool(u_int16_t pool_id, u_int16_t vlan_id, int family, void *addr);
 };
 
 #endif /* _HOST_POOLS_H_ */

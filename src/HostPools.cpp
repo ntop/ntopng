@@ -156,3 +156,12 @@ u_int16_t HostPools::getPool(Host *h) {
   return NO_HOST_POOL_ID;
 }
 
+void HostPools::addToPool(u_int16_t pool_id, u_int16_t vlan_id, int family, void *addr) {
+  /* Avoid race conditions with getPool */
+
+  if(ptree[vlan_id] || (ptree[vlan_id] = new AddressTree())) {
+    /* TODO: */
+    // ptree[vlan_id]->addAddress(&pool_id, family, addr);
+  }
+
+}
