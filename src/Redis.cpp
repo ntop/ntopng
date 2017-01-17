@@ -1108,13 +1108,13 @@ int Redis::id_to_host(char *daybuf, char *host_idx, char *buf, u_int buf_len) {
 /* ******************************************* */
 
 int Redis::lpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("LPUSH", queue_name, msg, queue_trim_size));
+  return(msg_push("LPUSH", queue_name, msg, 0));
 }
 
 /* ******************************************* */
 
 int Redis::rpush(const char *queue_name, char *msg, u_int queue_trim_size) {
-  return(msg_push("RPUSH", queue_name, msg, queue_trim_size));
+  return(msg_push("RPUSH", queue_name, msg, 0));
 }
 
 /* ******************************************* */
