@@ -49,6 +49,7 @@ local menu_subpages = {
   {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
   {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
   {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
+  {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
   {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
   {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
   {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
@@ -296,6 +297,28 @@ end
   end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+  print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form> ]]
+end
+
+-- ================================================================================
+
+function printProtocols()
+  print('<form method="post">')
+
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">HTTP Settings</th></tr>')
+
+  toggleTableButtonPrefs("Top Sites",
+        "Toggle the creation of Top Sites timeseries. This may increase the disk usage.",
+        "On", "1", "success",
+        "Off", "0", "danger",
+        "toggle_top_sites", "ntopng.prefs.host_top_sites_creation", "0")
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+
   print('</table>')
   print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
   </form> ]]
@@ -652,6 +675,9 @@ if (subpage_active == "on_disk_dbs") then
 end
 if (subpage_active == "alerts") then
    printAlerts()
+end
+if (subpage_active == "protocols") then
+   printProtocols()
 end
 if (subpage_active == "nbox") then
   if (ntop.isPro()) then
