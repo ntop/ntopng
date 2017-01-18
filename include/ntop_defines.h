@@ -371,9 +371,9 @@
 #define CONST_HOST_ACTIVITY_RRD_1D_DAYS    "ntopng.prefs.host_activity_rrd_1d_days"
 #define CONST_MAX_NUM_ALERTS_PER_ENTITY    "ntopng.prefs.max_num_alerts_per_entity"
 #define CONST_MAX_NUM_FLOW_ALERTS          "ntopng.prefs.max_num_flow_alerts"
-#define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
-#define CONST_PROFILES_COUNTERS       "ntopng.profiles_counters.ifid_%i"
-
+#define CONST_PROFILES_PREFS               "ntopng.prefs.profiles"
+#define CONST_PROFILES_COUNTERS            "ntopng.profiles_counters.ifid_%i"
+#define CONST_PREFS_CAPTIVE_PORTAL         "ntopng.prefs.enable_captive_portal"
 #define HOST_POOL_IDS_KEY             "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY         "ntopng.prefs.%u.host_pools.members.%s"
 #define HOST_POOL_SHAPERS_KEY         "ntopng.prefs.%u.l7_policies.%s"

@@ -9,7 +9,7 @@ require "lua_utils"
 require "prefs_utils"
 require "blacklist_utils"
 
-if (ntop.isPro()) then
+if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
   require "report_utils"
 end
@@ -49,11 +49,15 @@ local menu_subpages = {
   {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
   {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
   {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
-  {id="protocols",   label="Protocols",            advanced=false, pro_only=false,  disabled=false},
+  {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
   {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
   {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
   {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
 }
+
+if(info["version.enterprise_edition"]) then
+   table.insert(menu_subpages, {id="bridging",          label="Traffic Bridging",     advanced=false,  pro_only=true,   disabled=false})
+end
 
 for _, subpage in ipairs(menu_subpages) do
   if((subpage.disabled) or
@@ -267,7 +271,7 @@ function printAlerts()
 		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}})
 
 
-  if (ntop.isPro()) then
+  if(ntop.isPro()) then
     print('<tr><th colspan=2 class="info">Nagios Integration</th></tr>')
 
     local alertsEnabled = showElements
@@ -315,6 +319,28 @@ function printProtocolPrefs()
         "On", "1", "success",
         "Off", "0", "danger",
         "toggle_top_sites", "ntopng.prefs.host_top_sites_creation", "0")
+
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
+
+  print('</table>')
+  print [[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
+  </form> ]]
+end
+
+-- ================================================================================
+
+function printBridgingPrefs()
+  print('<form method="post">')
+
+  print('<table class="table">')
+
+  print('<tr><th colspan=2 class="info">User Authentication</th></tr>')
+
+  toggleTableButtonPrefs("Captive Portal",
+        "Enable the web captive portal for authenticating network users.",
+        "On", "1", "success",
+        "Off", "0", "danger",
+        "toggle_captive_portal", "ntopng.prefs.enable_captive_portal", "0")
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
 
@@ -382,8 +408,8 @@ function printUsers()
      local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind","server","bind_dn", "bind_pwd", "search_path", "user_group", "admin_group"}
      local showElementArray = {false, true, true}
      local javascriptAfterSwitch = "";
-     javascriptAfterSwitch = javascriptAfterSwitch.."  if ($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
-     javascriptAfterSwitch = javascriptAfterSwitch.."    if ($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."  if($(\"#id-toggle-multiple_ldap_authentication\").val() != \"local\"  ) {\n"
+     javascriptAfterSwitch = javascriptAfterSwitch.."    if($(\"#toggle_ldap_anonymous_bind_input\").val() == \"0\") {\n"
      javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_dn\").css(\"display\",\"table-row\");\n"
      javascriptAfterSwitch = javascriptAfterSwitch.."      $(\"#bind_pwd\").css(\"display\",\"table-row\");\n"
      javascriptAfterSwitch = javascriptAfterSwitch.."    } else {\n"
@@ -440,11 +466,11 @@ function printUsers()
   </form>
   <script>
     function save_button_users(){
-      if (typeof $("#id-toggle-multiple_ldap_authentication").val() !== 'undefined'
+      if(typeof $("#id-toggle-multiple_ldap_authentication").val() !== 'undefined'
           && $("#id-toggle-multiple_ldap_authentication").val() != "local") {
         var field = $("#id_input_server").val();
 
-        if ((field.substring(0, 7) != "ldap://") && (field.substring(0, 8) != "ldaps://")) {
+        if((field.substring(0, 7) != "ldap://") && (field.substring(0, 8) != "ldaps://")) {
           alert("Invalid LDAP Server Address Value: missing \"ldap://\" or \"ldaps://\" at beginning.");
           return false;
         }
@@ -660,36 +686,49 @@ print[[
 
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
-if (subpage_active == "report") then
+if(subpage_active == "report") then
    printReportVisualization()
 end
-if (subpage_active == "in_memory") then
+
+if(subpage_active == "in_memory") then
    printInMemory()
 end
-if (subpage_active == "on_disk_rrds") then
+
+if(subpage_active == "on_disk_rrds") then
    printStatsRrds()
 end
-if (subpage_active == "on_disk_dbs") then
+
+if(subpage_active == "on_disk_dbs") then
    printStatsDatabases()
 end
-if (subpage_active == "alerts") then
+
+if(subpage_active == "alerts") then
    printAlerts()
 end
-if (subpage_active == "protocols") then
+
+if(subpage_active == "protocols") then
    printProtocolPrefs()
 end
-if (subpage_active == "nbox") then
-  if (ntop.isPro()) then
+
+if(subpage_active == "nbox") then
+  if(ntop.isPro()) then
      printNbox()
   end
 end
-if (subpage_active == "users") then
+
+if(subpage_active == "bridging") then
+  if(info["version.enterprise_edition"]) then
+     printBridgingPrefs()
+  end
+end
+
+if(subpage_active == "users") then
    printUsers()
 end
-if (subpage_active == "ifaces") then
+if(subpage_active == "ifaces") then
    printInterfaces()
 end
-if (subpage_active == "logging") then
+if(subpage_active == "logging") then
    printLogging()
 end
 

@@ -58,7 +58,7 @@ Prefs::Prefs(Ntop *_ntop) {
   redis_db_id = 0;
   dns_mode = 0;
   logFd = NULL;
-  disable_alerts = false;
+  disable_alerts = enable_captive_portal = false;
   enable_top_talkers = false;
   max_num_alerts_per_entity = ALERTS_MANAGER_MAX_ENTITY_ALERTS;
   max_num_flow_alerts = ALERTS_MANAGER_MAX_FLOW_ALERTS;
@@ -394,9 +394,18 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer, cons
 
 /* ******************************************* */
 
-void Prefs::reloadPrefsFromRedis() {
-  char rsp[32];
+bool Prefs::getDefaultBoolPrefsValue(const char *pref_key, const bool default_value) {
+  char rsp[8];
   
+  if(ntop->getRedis()->get((char*)pref_key, rsp, sizeof(rsp)) == 0)
+    return((rsp[0] == '1') ? true : false);
+  else
+    return(default_value);
+}
+  
+/* ******************************************* */
+
+void Prefs::reloadPrefsFromRedis() {
   /* Attempt to load preferences set from the web ui and apply default values in not found */
   local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION);
   local_host_max_idle       = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE);
@@ -439,8 +448,9 @@ void Prefs::reloadPrefsFromRedis() {
   enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
 
-  slack_enabled = ((ntop->getRedis()->get((char*)ALERTS_MANAGER_NOTIFICATION_WEBHOOK, rsp, sizeof(rsp)) == 0) && rsp[0] != '\0') ? true : false;
-    
+  slack_enabled = getDefaultBoolPrefsValue(ALERTS_MANAGER_NOTIFICATION_WEBHOOK, false);
+  enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
+
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
 }

@@ -1,7 +1,5 @@
-
 Using ntopng in bridging mode
 -----------------------------
-
 0. Suppose you want to bridge zc:eth3 with zc:eth4. If the 
    interface names are different please adapt tools/load_hugepages.sh
 
@@ -21,3 +19,13 @@ NOTE:
 - Interface bridging is available in the professional version.
 - It can work (at lower speed and higher latency) also with non-ZC
   network interfaces
+
+
+
+Enabling Captive Portal
+-----------------------
+Captive portal is used to authenticate legitimate users and bind them to the
+correct host pool. In order to enable this feature
+- you need the enterprise version of ntopng
+- the captive portal option must be enabled in the ntoopng preferences menu
+- ntopng must be active on port 80 and 443 for authenticating users (-w 80 -W 443)

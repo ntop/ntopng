@@ -183,7 +183,7 @@ local  en = {
    },
 
    host_pools = {
-      pool = "Pool",
+      pool = "Pool Name",
       manage_pools = "Manage Pools",
       create_pools = "Create Pools",
       empty_pool = "Empty Pool",

@@ -115,6 +115,9 @@ end
 --------------------------------------------------------------------------------
 
 print [[
+<hr>
+<H2>Edit Host Pools</H2>
+<br>
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
     <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
     <li><a data-toggle="tab" role="tab" href="#create">]] print(i18n("host_pools.create_pools")) print[[</a></li>
@@ -202,11 +205,13 @@ print[[
 
       return count == 1;
     }
-  </script>]]
+  </script>
+]]
 
 -- ==== Manage tab ====
 
 print [[
+
   <script>
     var maxMembersNum = ]] print(tostring(host_pools_utils.MAX_MEMBERS_NUM)) print[[;
     var addedMemberCtr = 0;

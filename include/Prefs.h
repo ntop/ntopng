@@ -49,7 +49,7 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
     enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
-    enable_top_talkers;
+    enable_top_talkers, enable_captive_portal;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
@@ -98,8 +98,9 @@ class Prefs {
   void setTraceLevelFromRedis();
   void setAlertsEnabledFromRedis();
 
- void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
+  void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
   void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
+  bool getDefaultBoolPrefsValue(const char *pref_key, const bool default_value);
 
  public:
   Prefs(Ntop *_ntop);
@@ -219,8 +220,9 @@ class Prefs {
   inline char* getInterfaceAt(int id)     { return((id >= MAX_NUM_INTERFACES) ? NULL : ifNames[id].name); }
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }
-  inline bool hasCmdlTraceLevel()    { return has_cmdl_trace_lvl;      }
-  inline bool hasCmdlDisableAlerts() { return has_cmdl_disable_alerts; }
+  inline bool hasCmdlTraceLevel()      { return has_cmdl_trace_lvl;      }
+  inline bool hasCmdlDisableAlerts()   { return has_cmdl_disable_alerts; }
+  inline bool isCaptivePortalEnabled() { return(enable_captive_portal);  }
 };
 
 #endif /* _PREFS_H_ */
