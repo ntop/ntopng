@@ -380,7 +380,7 @@ class NetworkInterface {
   void updateHostsL7Policy(u_int16_t host_pool_id);
   void updateFlowsL7Policy();
 #endif
-  void refreshHostPools(u_int16_t ost_pool_id);
+  void refreshHostPools();
   inline u_int16_t getHostPool(Host *h) {
     if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID;
   };

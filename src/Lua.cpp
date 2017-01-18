@@ -3250,13 +3250,8 @@ static int ntop_reload_host_pools(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface) {
-    u_int16_t host_pool_id;
 
-    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-
-    host_pool_id = (u_int16_t)lua_tonumber(vm, 1);
-
-    ntop_interface->getHostPools()->reloadPools(host_pool_id);
+    ntop_interface->getHostPools()->reloadPools();
 
     return(CONST_LUA_OK);
   } else

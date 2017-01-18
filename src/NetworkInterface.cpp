@@ -1941,7 +1941,6 @@ void NetworkInterface::periodicStatsUpdate() {
 /* **************************************************** */
 
 struct update_host_pool_l7policy {
-  u_int16_t host_pool_id;
   bool update_pool_id;
   bool update_l7policy;
 };
@@ -1949,50 +1948,42 @@ struct update_host_pool_l7policy {
 static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_data) {
   Host *h = (Host*)node;
   update_host_pool_l7policy *up = (update_host_pool_l7policy*)user_data;
-  u_int16_t cur_pool_id = h->get_host_pool();
-
-  if((up->host_pool_id == NO_HOST_POOL_ID)
-     || (cur_pool_id == NO_HOST_POOL_ID)
-     || (up->host_pool_id == cur_pool_id)) {
-
-    if(up->update_pool_id)
-      h->updateHostPool();
-
-    if(up->update_l7policy)
-      h->updateHostL7Policy();
-
 #ifdef HOST_POOLS_DEBUG
-    char buf[128];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Going to refresh pool for %s "
-				 "[refresh pool id: %i] "
-				 "[refresh l7policy: %i] "
-				 "[pool id to refresh: %i] "
-				 "[host pool id before refresh: %i] "
-				 "[host pool id after refresh: %i] ",
-				 h->get_ip()->print(buf, sizeof(buf)),
-				 up->update_pool_id ? 1 : 0,
-				 up->update_l7policy ? 1 : 0,
-				 up->host_pool_id,
-				 cur_pool_id,
-				 h->get_host_pool());
+  char buf[128];
+  u_int16_t cur_pool_id = h->get_host_pool();
 #endif
 
-  }
+  if(up->update_pool_id)
+    h->updateHostPool();
+
+  if(up->update_l7policy)
+    h->updateHostL7Policy();
+
+#ifdef HOST_POOLS_DEBUG
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Going to refresh pool for %s "
+			       "[refresh pool id: %i] "
+			       "[refresh l7policy: %i] "
+			       "[host pool id before refresh: %i] "
+			       "[host pool id after refresh: %i] ",
+			       h->get_ip()->print(buf, sizeof(buf)),
+			       up->update_pool_id ? 1 : 0,
+			       up->update_l7policy ? 1 : 0,
+			       cur_pool_id,
+			       h->get_host_pool());
+
+#endif
 
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-void NetworkInterface::refreshHostPools(u_int16_t host_pool_id) {
+void NetworkInterface::refreshHostPools() {
   if(isView()) return;
-
-  
   
   struct update_host_pool_l7policy update_host;
-  update_host.host_pool_id = host_pool_id;
-
   update_host.update_pool_id = true;
   update_host.update_l7policy = false;
 
@@ -2031,7 +2022,6 @@ void NetworkInterface::updateHostsL7Policy(u_int16_t host_pool_id) {
   if(isView()) return;
 
   struct update_host_pool_l7policy update_host;
-  update_host.host_pool_id = host_pool_id;
   update_host.update_pool_id = false;
   update_host.update_l7policy = true;
   

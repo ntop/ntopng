@@ -28,10 +28,10 @@ HostPools::HostPools(NetworkInterface *_iface) {
   if(_iface)
     iface = _iface;
 
-  reloadPools(0);
+  reloadPools();
 }
 
-void HostPools::reloadPools(u_int16_t pool_id) {
+void HostPools::reloadPools() {
   char kname[CONST_MAX_LEN_REDIS_KEY];
   char **pools, **pool_members, *at, *member;
   int num_pools, num_members;
@@ -83,14 +83,18 @@ void HostPools::reloadPools(u_int16_t pool_id) {
 	  bool rc;
 	  
 	  _pool_id = (u_int16_t)atoi(pools[i]);
-	  rc = new_tree[vlan_id]->addAddress(member, _pool_id);
-
+	  if(!(rc = new_tree[vlan_id]->addAddress(member, _pool_id))
 #ifdef HOST_POOLS_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s tree node for %s [vlan %i] [host pool: %s]",
-				       rc ? "Successfully added" : "Unable to add",
-				       member, vlan_id,
-				       pools[i]);
+	     || true
 #endif
+	     )
+
+	    ntop->getTrace()->traceEvent(rc ? TRACE_WARNING : TRACE_NORMAL,
+					 "%s tree node for %s [vlan %i] [host pool: %s]",
+					 rc ? "Successfully added" : "Unable to add",
+					 member, vlan_id,
+					 pools[i]);
+
 	}
 
 	free(member);
@@ -114,7 +118,7 @@ void HostPools::reloadPools(u_int16_t pool_id) {
 
   tree = new_tree;
 
-  iface->refreshHostPools(pool_id);
+  iface->refreshHostPools();
 }
 
 u_int16_t HostPools::getPool(Host *h) {
