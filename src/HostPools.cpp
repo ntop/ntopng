@@ -89,7 +89,7 @@ void HostPools::reloadPools() {
 #endif
 	     )
 
-	    ntop->getTrace()->traceEvent(rc ? TRACE_WARNING : TRACE_NORMAL,
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL,
 					 "%s tree node for %s [vlan %i] [host pool: %s]",
 					 rc ? "Successfully added" : "Unable to add",
 					 member, vlan_id,
