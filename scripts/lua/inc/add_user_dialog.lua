@@ -1,3 +1,5 @@
+local host_pools_utils = require 'host_pools_utils'
+
 local messages = {ntopng="Add ntopng User", captive_portal="Add Captive Portal User"}
 
 local add_user_msg = messages["ntopng"]
@@ -125,10 +127,9 @@ else -- a captive portal user is being added
     <option value="">No host pool</option>
 ]]
 
-   local pools_key = "ntopng.prefs."..getInterfaceId(ifname)..".host_pools.pool_ids"
-   local pool_ids = ntop.getMembersCache(pools_key)
-   for _, pool_id in pairsByValues(pool_ids, asc) do
-      print('<option value="'..pool_id..'"> '..pool_id..'</option>')
+   local pool_ids = host_pools_utils.listPools(getInterfaceId(ifname))
+   for _, pool_id in pool_ids do
+      print('<option value="'..pool_id..'"> '..host_pools_utils.getPoolName(getInterfaceId(ifname), pool_id)..'</option>')
    end
 
    print[[

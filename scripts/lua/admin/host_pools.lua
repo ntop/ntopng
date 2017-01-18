@@ -127,7 +127,7 @@ if #available_pools > 0 then
       </form>
 ]] else
   print [[<br><br>
-  <div class="alert alert-warning">
+  <div class="alert alert-info">
     <strong>No Pools available</strong> Create one from the 'Create Pools' tab
   </div>
 ]] end
@@ -135,7 +135,7 @@ print[[
       <br/><br/>
     </div>
     <div id="create" class="tab-pane">
-      <form id="table-create-form"c>
+      <form id="table-create-form">
         <br/><div id="table-create"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
@@ -420,7 +420,7 @@ print [[
             field: "column_pool_id",
             css: {
                textAlign: 'center',
-               width: '2%',
+               width: '5%',
                verticalAlign: 'middle'
             }
          }, {
