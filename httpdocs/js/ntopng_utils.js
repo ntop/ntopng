@@ -47,6 +47,60 @@ function is_network_mask(what) {
     return(false);
 }
 
+function is_mac_address(what) {
+    return /^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$/.test(what);
+}
+
+function is_valid_pool_member(what) {
+    return is_mac_address(what) || is_network_mask(what);
+}
+
+function is_network_mask(what) {
+    var elems = what.split("/");
+    var mask;
+
+    if(elems.length != 2)
+	return(false);
+
+    if(!isNumeric(elems[1])) {
+	return(false);
+    }
+
+    mask = parseInt(elems[1]);
+    if(mask < 0) {
+	return(false);
+    }
+
+    if(is_good_ipv4(elems[0])) {
+	if(mask > 32) { return(false); }
+	return(true);
+    } else if(is_good_ipv6(elems[0])) {
+	if(mask > 128) { return(false); }
+	return(true);
+    }
+
+    return(false);
+}
+
+function makeUniqueValidator(items_function) {
+   return function(field) {
+      var cmp_name = field.val();
+      var count = 0;
+
+      // this will be checked separately, with 'required' argument
+      if(! cmp_name)
+         return true;
+
+      items_function(field).each(function() {
+         var name = $(this).val();
+         if (name == cmp_name)
+            count = count + 1;
+      });
+
+      return count == 1;
+   }
+}
+
 function fbits(bits) {
     var sizes = ['bps', 'Kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
     if(bits <= 0) return '0';
@@ -421,3 +475,26 @@ function hostkey2hostInfo(host_key) {
     info = host_key.split("@");
     return(info);
 } 
+
+function handle_tab_state(nav_object, default_tab) {
+   $('a', nav_object).click(function(e) {
+     e.preventDefault();
+   });
+
+   // store the currently selected tab in the hash value
+   $(" > li > a", nav_object).on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      if(history.replaceState) {
+         // this will prevent the 'jump' to the hash
+         history.replaceState(null, null, "#"+id);
+      } else {
+         // fallback
+         window.location.hash = id;
+      }
+   });
+
+   // on load of the page: switch to the currently selected tab
+   var hash = window.location.hash;
+   if (! hash) hash = "#" + default_tab;
+   $('a[href="' + hash + '"]', nav_object).tab('show');
+}

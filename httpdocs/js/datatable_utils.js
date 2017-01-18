@@ -16,7 +16,7 @@ function datatableGetByForm(form) {
   return $("table", $("#dt-top-details", $(form)).parent())
 }
 
-function datatableUndoAddRow(new_row, empty_str, bt_to_enable) {
+function datatableUndoAddRow(new_row, empty_str, bt_to_enable, callback_str) {
   if (bt_to_enable)
      $(bt_to_enable).removeAttr("disabled");
 
@@ -27,6 +27,10 @@ function datatableUndoAddRow(new_row, empty_str, bt_to_enable) {
 
   if (datatableIsEmpty(dt))
      datatableAddEmptyRow(dt, empty_str);
+
+   if (callback_str)
+      // invoke
+      window[callback_str](new_row);
 }
 
 function datatableForEachRow(table, callbacks) {
@@ -118,4 +122,25 @@ function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {
    select.on("change", function() { datatableOnSelectEntryChange.bind(this)(added_rows_prefix, options.selector_fn, options.on_change); });
    select.on("remove", function() {$(this).val("").trigger("change")});
    datatableOnAddSelectEntry(select, added_rows_prefix, options.selector_fn);
+}
+
+function datatableOrderedInsert(table, td_idx, to_insert, to_insert_val, cmp_fn) {
+   var cmp_fn = cmp_fn || function(a, b) { return b - a; };
+   var inserted = false;
+
+   datatableForEachRow(table, function() {
+      if(inserted) return;
+
+      var tr = $(this);
+      var cmp_val = parseInt($("td:nth-child(" + td_idx + ")", tr).html());
+
+      if ((! isNaN(cmp_val)) && (cmp_fn(cmp_val, to_insert_val) < 0)) {
+         tr.before(to_insert);
+         inserted = true;
+      }
+   });
+
+   if (! inserted)
+      // default: append
+      $(table).append(to_insert);
 }
