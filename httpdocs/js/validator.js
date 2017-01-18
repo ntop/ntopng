@@ -172,12 +172,22 @@
 
   Validator.prototype.showErrors = function ($el) {
     var method = this.options.html ? 'html' : 'text'
+    var self = this
 
     this.defer($el, function () {
       var $group = $el.closest('.form-group')
       var $block = $group.find('.help-block.with-errors')
       var $feedback = $group.find('.form-control-feedback')
       var errors = $el.data('bs.validator.errors')
+
+      /* BEGIN ntopng fix */
+      if (typeof(errors) === "undefined") {
+        /* this happens when a field is removed from the form */
+        errors = []
+        self.clearErrors($el)
+        self.toggleSubmit()
+      }
+      /* END ntopng fix */
 
       if (!errors.length) return
 

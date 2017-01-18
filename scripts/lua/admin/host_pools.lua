@@ -523,6 +523,13 @@ print[[
          unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
       }
     }
+
+    /* Retrigger the validation every second to clear outdated errors */
+    setInterval(function() {
+      $("form:data(bs.validator)").each(function(){
+        $(this).data("bs.validator").validate();
+      });
+    }, 1000);
   </script>
 ]]
 
