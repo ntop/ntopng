@@ -1940,25 +1940,40 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* **************************************************** */
 
-static bool update_host_host_pool(GenericHashEntry *node, void *user_data) {
+struct update_host_pool_l7policy {
+  u_int16_t host_pool_id;
+  bool update_pool_id;
+  bool update_l7policy;
+};
+
+static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_data) {
   Host *h = (Host*)node;
-  u_int16_t *host_pool_id = (u_int16_t*)user_data;
+  update_host_pool_l7policy *up = (update_host_pool_l7policy*)user_data;
   u_int16_t cur_pool_id = h->get_host_pool();
 
-  if((host_pool_id && *host_pool_id == NO_HOST_POOL_ID)
+  if((up->host_pool_id == NO_HOST_POOL_ID)
      || (cur_pool_id == NO_HOST_POOL_ID)
-     || (host_pool_id && *host_pool_id == cur_pool_id)) {
-    h->updateHostPool();
+     || (up->host_pool_id == cur_pool_id)) {
+
+    if(up->update_pool_id)
+      h->updateHostPool();
+
+    if(up->update_l7policy)
+      h->updateHostL7Policy();
 
 #ifdef HOST_POOLS_DEBUG
     char buf[128];
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Going to refresh pool for %s "
+				 "[refresh pool id: %i] "
+				 "[refresh l7policy: %i] "
 				 "[pool id to refresh: %i] "
 				 "[host pool id before refresh: %i] "
 				 "[host pool id after refresh: %i] ",
 				 h->get_ip()->print(buf, sizeof(buf)),
-				 host_pool_id ? *host_pool_id : 0,
+				 up->update_pool_id ? 1 : 0,
+				 up->update_l7policy ? 1 : 0,
+				 up->host_pool_id,
 				 cur_pool_id,
 				 h->get_host_pool());
 #endif
@@ -1970,25 +1985,33 @@ static bool update_host_host_pool(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::refreshHostPools(u_int16_t * const host_pool_id) {
+void NetworkInterface::refreshHostPools(u_int16_t host_pool_id) {
   if(isView()) return;
 
-  hosts_hash->walk(update_host_host_pool, host_pool_id);
+  
+  
+  struct update_host_pool_l7policy update_host;
+  update_host.host_pool_id = host_pool_id;
+
+  update_host.update_pool_id = true;
+  update_host.update_l7policy = false;
+
+  if(is_bridge_interface() && getL7Policer()) {
+    getL7Policer()->refreshL7Rules();
+    /* Must refresh l7policies as a change in the host pool id
+       may determine an l7policy change for that host */
+    update_host.update_l7policy = true;
+  }
+
+  hosts_hash->walk(update_host_host_pool_l7policy, &update_host);
+
+  if(update_host.update_l7policy)
+    updateFlowsL7Policy();
 }
 
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-
-static bool update_host_l7_policy(GenericHashEntry *node, void *user_data) {
-  Host *h = (Host*)node;
-  AddressTree *ptree = (AddressTree*)user_data;
-
-  if((ptree == NULL) || h->match(ptree))
-    h->updateHostL7Policy();
-
-  return(false); /* false = keep on walking */
-}
 
 /* **************************************************** */
 
@@ -2004,10 +2027,15 @@ static bool update_flow_l7_policy(GenericHashEntry *node, void *user_data) {
 
 /* **************************************************** */
 
-void NetworkInterface::updateHostsL7Policy(AddressTree *ptree) {
+void NetworkInterface::updateHostsL7Policy(u_int16_t host_pool_id) {
   if(isView()) return;
 
-  hosts_hash->walk(update_host_l7_policy, ptree);
+  struct update_host_pool_l7policy update_host;
+  update_host.host_pool_id = host_pool_id;
+  update_host.update_pool_id = false;
+  update_host.update_l7policy = true;
+  
+  hosts_hash->walk(update_host_host_pool_l7policy, &update_host);
 }
 
 /* **************************************************** */
@@ -2168,7 +2196,7 @@ void NetworkInterface::updateFlowProfiles() {
     flow_profiles->dumpCounters();
     shadow_flow_profiles = flow_profiles, newP = new FlowProfiles(id);
 
-    newP->loadProfiles();/* and reload */
+    newP->loadProfiles(); /* and reload */
     flow_profiles = newP; /* Overwrite the current profiles */
 
     flows_hash->walk(update_flow_profile, NULL);
@@ -3999,9 +4027,9 @@ void NetworkInterface::addAllAvailableInterfaces() {
 /* **************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::refreshL7Rules(AddressTree *ptree) {
+void NetworkInterface::refreshL7Rules() {
   if(ntop->getPro()->has_valid_license() && policer)
-    policer->refreshL7Rules(ptree);
+    policer->refreshL7Rules();
 }
 #endif
 

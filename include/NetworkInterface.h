@@ -367,7 +367,7 @@ class NetworkInterface {
   inline AlertsManager *getAlertsManager()         { return alertsManager;          }
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
-  void refreshL7Rules(AddressTree *ptree);
+  void refreshL7Rules();
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
@@ -377,10 +377,10 @@ class NetworkInterface {
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
 
 #ifdef NTOPNG_PRO
-  void updateHostsL7Policy(AddressTree *ptree);
+  void updateHostsL7Policy(u_int16_t host_pool_id);
   void updateFlowsL7Policy();
 #endif
-  void refreshHostPools(u_int16_t *host_pool_id);
+  void refreshHostPools(u_int16_t ost_pool_id);
   inline u_int16_t getHostPool(Host *h) {
     if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID;
   };

@@ -350,7 +350,7 @@ void Host::updateHostL7Policy() {
 	}
 #endif
 
-	l7Policy = getInterface()->getL7Policer()->getIpPolicy(&ip, vlan_id);
+	l7Policy = getInterface()->getL7Policer()->getIpPolicy(host_pool);
     }
 #endif
 }
@@ -1215,8 +1215,6 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 	ret = isIngress ? sd->category_shapers.ingress : sd->category_shapers.egress;
     }
 
-  }
-
 #ifdef SHAPER_DEBUG
   {
     char buf[64], buf1[64];
@@ -1229,6 +1227,8 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 				 policy ? policy : NULL, ret, sd ? "" : " [DEFAULT]");
   }
 #endif
+
+  }
 
   return(ret);
 }

@@ -24,10 +24,18 @@
 
 #include "ntop_includes.h"
 
-class AddressTree {
-  u_int16_t numAddresses;
-  patricia_tree_t *ptree_v4, *ptree_v6, *ptree_mac;
+typedef struct {
+  u_int8_t mac[6];
+  int16_t value;
+  UT_hash_handle hh; /* makes this structure hashable */
+} MacKey_t;
 
+class AddressTree {
+ private:
+  u_int16_t numAddresses;
+  patricia_tree_t *ptree_v4, *ptree_v6;
+  MacKey_t *macs;
+  
   patricia_tree_t* getPatricia(char* what);
   
  public:
@@ -35,13 +43,13 @@ class AddressTree {
   ~AddressTree();
 
   inline u_int16_t getNumAddresses() { return(numAddresses); }
-  bool removeAddress(char *net);
+
   inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }
-  patricia_node_t* addAddress(char *_net, const u_int16_t * const user_data = NULL);
-  bool addAddresses(char *net);
+  bool addAddress(char *_net, const int16_t user_data = 0);
+  bool addAddresses(char *net, const int16_t user_data = 0);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr);
-  patricia_node_t* findMac(void *addr);
+  int16_t findMac(u_int8_t addr[]);
   void dump();
 };
 

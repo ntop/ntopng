@@ -98,6 +98,7 @@
 #define MAX_NUM_INTERFACE_HOSTS   131072
 #define MAX_NUM_INTERFACES        48
 #define MAX_NUM_VIEW_INTERFACES   8
+#define MAX_NUM_HOST_POOLS        16
 #define MAX_NUM_PROFILES          16
 #define MAX_INTERFACE_NAME_LEN    256
 
@@ -372,6 +373,10 @@
 #define CONST_MAX_NUM_FLOW_ALERTS          "ntopng.prefs.max_num_flow_alerts"
 #define CONST_PROFILES_PREFS          "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS       "ntopng.profiles_counters.ifid_%i"
+
+#define HOST_POOL_IDS_KEY             "ntopng.prefs.%u.host_pools.pool_ids"
+#define HOST_POOL_MEMBERS_KEY         "ntopng.prefs.%u.host_pools.members.%s"
+#define HOST_POOL_SHAPERS_KEY         "ntopng.prefs.%u.l7_policies.%s"
 
 #define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
 #define CONST_LOCAL_HOST_IDLE_PREFS            "ntopng.prefs.local_host_max_idle"

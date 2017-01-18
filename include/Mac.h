@@ -51,7 +51,7 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   bool idle();
   void lua(lua_State* vm, bool show_details, bool asListElement);
   inline char* get_string_key(char *buf, u_int buf_len) { return(Utils::formatMac(mac, buf, buf_len)); }
-  void *findAddress(AddressTree *ptree);
+  inline int16_t findAddress(AddressTree *ptree)        { return ptree ? ptree->findMac(mac) : -1;     };
 };
 
 #endif /* _MAC_H_ */

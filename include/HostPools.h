@@ -31,7 +31,7 @@ class Host;
 
 class HostPools {
  private:
-  AddressTree **ptree, **ptree_shadow;
+  AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
 
 public:

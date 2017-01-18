@@ -24,7 +24,7 @@
 /* *************************************** */
 
 HostPools::HostPools(NetworkInterface *_iface) {
-  ptree = ptree_shadow = NULL;
+  tree = tree_shadow = NULL;
   if(_iface)
     iface = _iface;
 
@@ -36,27 +36,26 @@ void HostPools::reloadPools(u_int16_t pool_id) {
   char **pools, **pool_members, *at, *member;
   int num_pools, num_members;
   u_int16_t _pool_id, vlan_id;
-  AddressTree **new_ptree;
-  patricia_node_t *node;
+  AddressTree **new_tree;
   Redis *redis = ntop->getRedis();
 
   if(!iface || iface->get_id() == -1)
     return;
 
-  if((new_ptree = new AddressTree*[MAX_NUM_VLAN]) == NULL) {
+  if((new_tree = new AddressTree*[MAX_NUM_VLAN]) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
   for(u_int32_t i = 0; i < MAX_NUM_VLAN; i++)
-    new_ptree[i] = NULL;
+    new_tree[i] = NULL;
 
   snprintf(kname, sizeof(kname),
-	   "ntopng.prefs.%u.host_pools.pool_ids", iface->get_id());
+	   HOST_POOL_IDS_KEY, iface->get_id());
 
   /* Keys are pool ids */
   if((num_pools = redis->smembers(kname, &pools)) <= 0) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "No host pools for interface %s", iface->get_name());
-    delete new_ptree; /* No need to invoke destructors here as elements are empty */
+    delete new_tree; /* No need to invoke destructors here as elements are empty */
     return;
   }
 
@@ -64,7 +63,7 @@ void HostPools::reloadPools(u_int16_t pool_id) {
     if(!pools[i]) continue;
 
     snprintf(kname, sizeof(kname),
-	     "ntopng.prefs.%u.host_pools.members.%s", iface->get_id(), pools[i]);
+	     HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
 
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {
@@ -80,13 +79,15 @@ void HostPools::reloadPools(u_int16_t pool_id) {
 	} else
 	  vlan_id = 0;
 
-	if(new_ptree[vlan_id] || (new_ptree[vlan_id] = new AddressTree())) {
+	if(new_tree[vlan_id] || (new_tree[vlan_id] = new AddressTree())) {
+	  bool rc;
+	  
 	  _pool_id = (u_int16_t)atoi(pools[i]);
-	  node = new_ptree[vlan_id]->addAddress(member, &_pool_id);
+	  rc = new_tree[vlan_id]->addAddress(member, _pool_id);
 
 #ifdef HOST_POOLS_DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s ptree node for %s [vlan %i] [host pool: %s]",
-				       node ? "Successfully added" : "Unable to add",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s tree node for %s [vlan %i] [host pool: %s]",
+				       rc ? "Successfully added" : "Unable to add",
 				       member, vlan_id,
 				       pools[i]);
 #endif
@@ -105,44 +106,46 @@ void HostPools::reloadPools(u_int16_t pool_id) {
     free(pools);
 
 
-  if(ptree) {
-    if(ptree_shadow)
-      delete []ptree_shadow; /* Invokes the destructor */
-    ptree_shadow = ptree;
+  if(tree) {
+    if(tree_shadow)
+      delete []tree_shadow; /* Invokes the destructor */
+    tree_shadow = tree;
   }
 
-  ptree = new_ptree;
+  tree = new_tree;
 
-  iface->refreshHostPools(&pool_id);
+  iface->refreshHostPools(pool_id);
 }
 
 u_int16_t HostPools::getPool(Host *h) {
   Mac *mac;
   IpAddress *ip;
   patricia_node_t *node;
+  int16_t ret;
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
   char *k;
 #endif
 
-  if(!h || !ptree || !ptree[h->get_vlan_id()])
+  if(!h || !tree || !tree[h->get_vlan_id()])
     return NO_HOST_POOL_ID;
 
   if((mac = h->getMac()) && !mac->isSpecialMac()) {
-    node = (patricia_node_t*)mac->findAddress(ptree[h->get_vlan_id()]);
-    if(node) {
+    ret = mac->findAddress(tree[h->get_vlan_id()]);
+
 #ifdef HOST_POOLS_DEBUG
+    if(ret != -1) {
       k = mac->get_string_key(buf, sizeof(buf));
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Found pool for %s [pool id: %i]",
-				   k, node->user_data);
-#endif
-      return node->user_data;
+				   k, ret);
+      return (u_int16_t)ret;
     }
+#endif
   }
 
   if((ip = h->get_ip())) {
-    node = (patricia_node_t*)ip->findAddress(ptree[h->get_vlan_id()]);
+    node = (patricia_node_t*)ip->findAddress(tree[h->get_vlan_id()]);
     if(node) {
 #ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -159,9 +162,9 @@ u_int16_t HostPools::getPool(Host *h) {
 void HostPools::addToPool(u_int16_t pool_id, u_int16_t vlan_id, int family, void *addr) {
   /* Avoid race conditions with getPool */
 
-  if(ptree[vlan_id] || (ptree[vlan_id] = new AddressTree())) {
+  if(tree[vlan_id] || (tree[vlan_id] = new AddressTree())) {
     /* TODO: */
-    // ptree[vlan_id]->addAddress(&pool_id, family, addr);
+    // tree[vlan_id]->addAddress(&pool_id, family, addr);
   }
 
 }
