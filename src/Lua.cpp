@@ -105,7 +105,7 @@ static int ntop_dump_file(lua_State* vm) {
   char *fname;
   FILE *fd;
   struct mg_connection *conn;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_getglobal(vm, CONST_HTTP_CONN);
@@ -120,7 +120,7 @@ static int ntop_dump_file(lua_State* vm) {
   ntop->fixPath(fname);
   if((fd = fopen(fname, "r")) != NULL) {
     char tmp[1024];
-    
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Serving file %s", fname);
 
     while((fgets(tmp, sizeof(tmp)-256 /* To make sure we have room for replacements */, fd)) != NULL) {
@@ -266,7 +266,7 @@ static int ntop_select_interface(lua_State* vm) {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
     ifname = (char*)lua_tostring(vm, 1);
   }
-  
+
   lua_pushlightuserdata(vm, (char*)ntop->getNetworkInterface(vm, ifname));
   lua_setglobal(vm, "ntop_interface");
 
@@ -405,7 +405,7 @@ static int ntop_get_ndpi_protocol_category(lua_State* vm) {
 
   if(ntop_interface) {
     ndpi_protocol_category_t category = ntop_interface->get_ndpi_proto_category(proto);
-    
+
     lua_newtable(vm);
     lua_push_int32_table_entry(vm, "id", category);
     lua_push_str_table_entry(vm, "name", (char*)ndpi_category_str(category));
@@ -2443,7 +2443,7 @@ static int ntop_interface_name2id(lua_State* vm) {
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
     if_name = (char*)lua_tostring(vm, 1);
   }
-  
+
   lua_pushinteger(vm, ntop->getInterfaceIdByName(if_name));
 
   return(CONST_LUA_OK);
@@ -3218,7 +3218,7 @@ static int ntop_interface_reset_counters(lua_State* vm) {
 
   if(lua_type(vm, 1) == LUA_TBOOLEAN)
     only_drops = lua_toboolean(vm, 1) ? true : false;
-    
+
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
@@ -3265,18 +3265,16 @@ static int ntop_reload_l7_rules(lua_State *vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+
   if(ntop_interface) {
-    u_int16_t host_pool_id;
-
-    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
-
-    host_pool_id = (u_int16_t)lua_tonumber(vm, 1);
+#ifdef NTOPNG_PRO
+    u_int16_t host_pool_id = (u_int16_t)lua_tonumber(vm, 1);
 
 #ifdef SHAPER_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%i)", __FUNCTION__, host_pool_id);
 #endif
 
-#ifdef NTOPNG_PRO
     ntop_interface->refreshL7Rules();
     ntop_interface->updateHostsL7Policy(host_pool_id);
     ntop_interface->updateFlowsL7Policy();
@@ -3286,7 +3284,6 @@ static int ntop_reload_l7_rules(lua_State *vm) {
   } else
     return(CONST_LUA_ERROR);
 }
-
 
 /* ****************************************** */
 
@@ -4255,7 +4252,7 @@ static int ntop_get_redis(lua_State* vm) {
   u_int rsp_len = 32768;
   Redis *redis = ntop->getRedis();
   bool cache_it = false;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_ERROR);
@@ -4264,7 +4261,7 @@ static int ntop_get_redis(lua_State* vm) {
   /* Optional cache_it */
   if(lua_type(vm, 2) == LUA_TBOOLEAN) cache_it = lua_toboolean(vm, 2);
 
-  
+
   if((rsp = (char*)malloc(rsp_len)) != NULL) {
     lua_pushfstring(vm, "%s", (redis->get(key, rsp, rsp_len, cache_it) == 0) ? rsp : (char*)"");
     free(rsp);
@@ -5912,7 +5909,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
     /* CSRF is valid here, now fill the _POST table with POST parameters */
     setParamsTable(L, "_POST", post_data);
   } else
-    setParamsTable(L, "_POST", NULL /* Empty */);    
+    setParamsTable(L, "_POST", NULL /* Empty */);
 
   /* Put the GET params into the environment */
   setParamsTable(L, "_GET", request_info->query_string);
