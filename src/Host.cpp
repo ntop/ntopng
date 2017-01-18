@@ -262,8 +262,8 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   }
   
   if(!host_serial) computeHostSerial();
-  updateHostL7Policy();
   updateHostPool();
+  updateHostL7Policy();
 }
 
 /* *************************************** */
