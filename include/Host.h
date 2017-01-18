@@ -91,6 +91,7 @@ class Host : public GenericHost {
 
  public:
   Host(NetworkInterface *_iface);
+  Host(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
   Host(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId, IpAddress *_ip);
   ~Host();

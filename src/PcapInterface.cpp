@@ -165,6 +165,8 @@ static void* packetPollLoop(void* ptr) {
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if((rc > 0) && (pkt != NULL) && (hdr->caplen > 0)) {
 	  u_int16_t p;
+	  Host *srcHost = NULL, *dstHost = NULL;
+	  Flow *flow = NULL;
 
 #ifdef WIN32
 	  /*
@@ -181,10 +183,10 @@ static void* packetPollLoop(void* ptr) {
 	  hdr_copy.len = min(hdr->len, sizeof(pkt_copy) - 1);
 	  hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
 	  memcpy(pkt_copy, pkt, hdr_copy.len);
-	  iface->dissectPacket(&hdr_copy, (const u_char*)pkt_copy, &p);
+	  iface->dissectPacket(&hdr_copy, (const u_char*)pkt_copy, &p, &srcHost);
 #else
 	  hdr->caplen = min_val(hdr->caplen, iface->getMTU());
-	  iface->dissectPacket(hdr, pkt, &p);
+	  iface->dissectPacket(hdr, pkt, &p, &srcHost, &dstHost, &flow);
 #endif
 	}
       } else if(rc < 0) {

@@ -44,6 +44,12 @@ Host::Host(NetworkInterface *_iface, u_int8_t _mac[6],
 
 /* *************************************** */
 
+Host::Host(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : GenericHost(_iface) {
+  initialize(_mac, _vlanId, true);
+}
+
+/* *************************************** */
+
 Host::~Host() {
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);

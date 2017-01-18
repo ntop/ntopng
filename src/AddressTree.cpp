@@ -63,7 +63,7 @@ bool AddressTree::addAddress(char *_what, const int16_t user_data) {
 
     for(int i=0; i<6; i++) mac[i] = (u_int8_t)_mac[i];
 
-    if((v = findMac(mac)) != -1) {
+    if((v = findMac(mac)) == -1) {
       /* Not found: let's add it */
       MacKey_t *s;
 

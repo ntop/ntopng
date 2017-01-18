@@ -102,9 +102,12 @@ static void* packetPollLoop(void* ptr) {
       if(pfring_recv(pd, &buffer, 0, &hdr, 0 /* wait_for_packet */) > 0) {
 	try {
 	  u_int16_t p;
+	  Host *srcHost = NULL, *dstHost = NULL;
+	  Flow *flow = NULL;
 
 	  if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
-	  iface->dissectPacket((const struct pcap_pkthdr *) &hdr, buffer, &p);
+	  iface->dissectPacket((const struct pcap_pkthdr *) &hdr, buffer, 
+			       &p, &srcHost, &dstHost, &flow);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 

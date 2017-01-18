@@ -992,7 +992,9 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 				     u_int32_t rawsize,
 				     const struct pcap_pkthdr *h,
 				     const u_char *packet,
-				     u_int16_t *ndpiProtocol) {
+				     u_int16_t *ndpiProtocol,
+				     Host **srcHost, Host **dstHost,
+				     Flow **hostFlow) {
   bool src2dst_direction;
   u_int8_t l4_proto;
   Flow *flow;
@@ -1015,7 +1017,8 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
       return(vIface->processPacket(when, time, eth, vlan_id,
 				   iph, ip6, ipsize, rawsize,
-				   h, packet, ndpiProtocol));
+				   h, packet, ndpiProtocol,
+				   srcHost, dstHost, hostFlow));
     }
   }
   
@@ -1155,6 +1158,10 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	     rawsize, 1, 24 /* 8 Preamble + 4 CRC + 12 IFG */);
     return(pass_verdict);
   } else {
+    *srcHost = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
+    *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
+    *hostFlow = flow;
+
     switch(l4_proto) {
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -1421,7 +1428,9 @@ void NetworkInterface::purgeIdle(time_t when) {
 
 bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 				     const u_char *packet,
-				     u_int16_t *ndpiProtocol) {
+				     u_int16_t *ndpiProtocol,
+				     Host **srcHost, Host **dstHost,
+				     Flow **flow) {
   struct ndpi_ethhdr *ethernet, dummy_ethernet;
   u_int64_t time;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
@@ -1655,7 +1664,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       try {
 	pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id, iph,
 				     ip6, h->caplen - ip_offset, rawsize,
-				     h, packet, ndpiProtocol);
+				     h, packet, ndpiProtocol, srcHost, dstHost, flow);
       } catch(std::bad_alloc& ba) {
 	static bool oom_warning_sent = false;
 
@@ -1741,7 +1750,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
 	try {
 	  pass_verdict = processPacket(&h->ts, time, ethernet, vlan_id,
 				       iph, ip6, h->len - ip_offset, rawsize,
-				       h, packet, ndpiProtocol);
+				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 

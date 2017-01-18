@@ -31,6 +31,8 @@ HostPools::HostPools(NetworkInterface *_iface) {
   reloadPools();
 }
 
+/* *************************************** */
+
 void HostPools::reloadPools() {
   char kname[CONST_MAX_LEN_REDIS_KEY];
   char **pools, **pool_members, *at, *member;
@@ -81,7 +83,7 @@ void HostPools::reloadPools() {
 
 	if(new_tree[vlan_id] || (new_tree[vlan_id] = new AddressTree())) {
 	  bool rc;
-	  
+
 	  _pool_id = (u_int16_t)atoi(pools[i]);
 	  if(!(rc = new_tree[vlan_id]->addAddress(member, _pool_id))
 #ifdef HOST_POOLS_DEBUG
@@ -121,11 +123,12 @@ void HostPools::reloadPools() {
   iface->refreshHostPools();
 }
 
+/* *************************************** */
+
 u_int16_t HostPools::getPool(Host *h) {
   Mac *mac;
   IpAddress *ip;
   patricia_node_t *node;
-  int16_t ret;
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
   char *k;
@@ -135,17 +138,18 @@ u_int16_t HostPools::getPool(Host *h) {
     return NO_HOST_POOL_ID;
 
   if((mac = h->getMac()) && !mac->isSpecialMac()) {
-    ret = mac->findAddress(tree[h->get_vlan_id()]);
+    int16_t ret = mac->findAddress(tree[h->get_vlan_id()]);
 
-#ifdef HOST_POOLS_DEBUG
     if(ret != -1) {
+#ifdef HOST_POOLS_DEBUG
       k = mac->get_string_key(buf, sizeof(buf));
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Found pool for %s [pool id: %i]",
 				   k, ret);
-      return (u_int16_t)ret;
-    }
 #endif
+
+      return((u_int16_t)ret);
+    }
   }
 
   if((ip = h->get_ip())) {
@@ -162,6 +166,8 @@ u_int16_t HostPools::getPool(Host *h) {
 
   return NO_HOST_POOL_ID;
 }
+
+/* *************************************** */
 
 void HostPools::addToPool(u_int16_t pool_id, u_int16_t vlan_id, int family, void *addr) {
   /* Avoid race conditions with getPool */

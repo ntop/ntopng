@@ -268,7 +268,8 @@ class NetworkInterface {
 		     u_int8_t dst_mac[6], IpAddress *_dst_ip, Host **dst);
   Flow* findFlowByKey(u_int32_t key, AddressTree *allowed_hosts);
   bool findHostsByName(lua_State* vm, AddressTree *allowed_hosts, char *key);
-  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol);
+  bool dissectPacket(const struct pcap_pkthdr *h, const u_char *packet, u_int16_t *ndpiProtocol,
+		     Host **srcHost, Host **dstHost, Flow **flow);
   bool processPacket(const struct bpf_timeval *when,
 		     const u_int64_t time,
 		     struct ndpi_ethhdr *eth,
@@ -278,7 +279,8 @@ class NetworkInterface {
 		     u_int16_t ipsize, u_int32_t rawsize,
 		     const struct pcap_pkthdr *h,
 		     const u_char *packet,
-		     u_int16_t *ndpiProtocol);
+		     u_int16_t *ndpiProtocol,
+		     Host **srcHost, Host **dstHost, Flow **flow);
   void processFlow(ZMQ_Flow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void dumpFlows();
@@ -381,9 +383,7 @@ class NetworkInterface {
   void updateFlowsL7Policy();
 #endif
   void refreshHostPools();
-  inline u_int16_t getHostPool(Host *h) {
-    if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID;
-  };
+  inline u_int16_t getHostPool(Host *h) { if(h && host_pools) return host_pools->getPool(h); return NO_HOST_POOL_ID; };
 
   bool updateDumpAllTrafficPolicy(void);
   bool updateDumpTrafficDiskPolicy();
