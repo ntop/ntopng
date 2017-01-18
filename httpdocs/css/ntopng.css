@@ -141,10 +141,11 @@ min-width: 100px;
   margin: 0 auto;
 }
 
-/* For IPv4 / IPv6 network selection */
-.network-selector {
+/* Pool name selector */
+.pool-selector {
   margin-right: 1em;
   width: 23em;
+  margin-left: 1em;
 }
 
 /*Hide numeric input box spinners for 'no-spinner' class */

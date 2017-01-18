@@ -18,6 +18,7 @@ require "lua_utils"
 require "alert_utils"
 require "blacklist_utils"
 require "db_utils"
+host_pools_utils = require "host_pools_utils"
 
 local prefs = ntop.getPrefs()
 
@@ -41,6 +42,8 @@ if prefs.sticky_hosts ~= nil then
       end
    end
 end
+
+host_pools_utils.initPools()
 
 if(ntop.isPro()) then
    shaper_utils = require "shaper_utils"

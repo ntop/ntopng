@@ -6,6 +6,8 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
 local host_pools_utils = {}
+host_pools_utils.DEFAULT_POOL_ID = "0"
+host_pools_utils.DEFAULT_POOL_NAME = "Default"
 host_pools_utils.MAX_NUM_POOLS = 16
 host_pools_utils.MAX_MEMBERS_NUM = 32
 
@@ -86,6 +88,15 @@ end
 
 function host_pools_utils.getPoolName(ifid, pool_id)
   return get_pool_detail(ifid, pool_id, "name")
+end
+
+function host_pools_utils.initPools()
+  for _, ifname in pairs(interface.getIfNames()) do
+    local ifid = getInterfaceId(ifname)
+
+    -- Note: possible shapers are initialized in shaper_utils::initShapers
+    host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
+  end
 end
 
 return host_pools_utils

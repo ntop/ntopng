@@ -13,6 +13,7 @@ if ntop.isPro() then
 end
 
 local json = require "dkjson"
+local host_pools_utils = require "host_pools_utils"
 
 require "lua_utils"
 require "prefs_utils"
@@ -996,70 +997,22 @@ end
       perPageProtos = tablePreferences("protocolShapers")
    end
 
-   if (_GET["view_network"] ~= nil) then
-      -- this is used by host_details.lua. Checks if the network exists, otherwise creates it
-      if isin(_GET["view_network"],  shaper_utils.getNetworksList(ifid)) then
-         -- network exists, redirect
-         print('<script>window.location.hash = "#protocols"</script>')
-      else
-         -- network does not exist, trigger add action
-         print('<script>var add_new_network_at_startup = "'.._GET["view_network"]..'"; window.location.hash = "#networks";</script>')
-         _GET["view_network"] = nil
+   -- TODO refactor view_network logic
+
+   local selected_pool_id = _GET["pool"] or _POST["target_pool"]
+   local selected_pool = nil
+
+   local available_pools = {}
+   for _, pool_id in host_pools_utils.listPools(ifid) do
+      local pool = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
+      available_pools[#available_pools + 1] = pool
+      if pool_id == selected_pool_id then
+         selected_pool = pool
       end
    end
 
-   if(_POST["edit_networks"] ~= nil) then
-      local proto_shapers_cloned = false
-
-      get_shapers_from_parameters(function(network_key, ingress_shaper, egress_shaper)
-         if(_POST["clone"] ~= nil) then
-            local clone_from = shaper_utils.addVlan0(_POST["clone"])
-
-            -- clone everything from the network
-            for _,proto_config in pairs(shaper_utils.getNetworkProtoShapers(ifid, clone_from)) do
-               shaper_utils.setProtocolShapers(ifid, network_key, proto_config.protoId, proto_config.ingress, proto_config.egress, false)
-               proto_shapers_cloned = true
-            end
-         else
-            -- Do not create any additional protocol rule
-            shaper_utils.setProtocolShapers(ifid, network_key, shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY, ingress_shaper, egress_shaper, false)
-         end
-
-         interface.reloadL7Rules(network_key)
-      end)
-   end
-
-   if((_POST["delete_network"] ~= nil) and (_POST["delete_network"] ~= shaper_utils.ANY_NETWORK)) then
-      local target_net = _POST["delete_network"]
-
-      shaper_utils.deleteNetwork(ifid, target_net)
-
-      -- reload all the rules, and update hosts affected by removal
-      interface.reloadL7Rules(target_net)
-   end
-
-   net = _GET["network"] or _POST["proto_network"] or _GET["view_network"]
-
-   if(net ~= nil) then
-      net = shaper_utils.addVlan0(net)
-   end
-
-   -- NB: this contains at least the 'default' network
-   -- NB: this must be placed after 'delete_network' in order to fetch latest networks list
-   nets = shaper_utils.getNetworksList(ifid)
-
-   --tprint(nets)
-   if(net == nil) then
-      -- If there is not &network= parameter then use the first network available
-      for _,k in ipairs(nets) do
-         net = k
-         break
-      end
-   end
-
-   selected_network = net
-   if(selected_network == nil) then
-      selected_network = shaper_utils.ANY_NETWORK
+   if selected_pool == nil then
+      selected_pool = available_pools[1]
    end
 
    local SHAPERS_MAX_RATE_KPBS = 100*1000*1000           -- 100 Gbit/s
@@ -1096,26 +1049,24 @@ end
       shaper_utils.deleteShaper(ifid, shaper_id)
    end
 
-   if(_POST["proto_network"] ~= nil) then
-      local target_net = _POST["proto_network"]
+   if(_POST["target_pool"] ~= nil) then
+      local target_pool = _POST["target_pool"]
 
       if (_POST["del_l7_proto"] ~= nil) then
          local protocol_id = _POST["del_l7_proto"]
-         shaper_utils.deleteProtocol(ifid, target_net, protocol_id)
+         shaper_utils.deleteProtocol(ifid, target_pool, protocol_id)
       else
-         -- set protocols policy for the network
+         -- set protocols policy for the pool
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper)
-            shaper_utils.setProtocolShapers(ifid, target_net, proto_id, ingress_shaper, egress_shaper, false)
+            shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, false)
          end)
       end
 
-      -- Note: this could optimized to only reload this specific network
-      interface.reloadL7Rules(target_net)
+      interface.reloadL7Rules(tonumber(selected_pool.id))
    end
    print [[
    <ul id="filterPageTabPanel" class="nav nav-tabs" role="tablist">
-      <li><a data-toggle="tab" role="tab" href="#protocols">]] print(i18n("shaping.manage_networks")) print[[</a></li>
-      <li><a data-toggle="tab" role="tab" href="#networks">]] print(i18n("shaping.define_networks")) print[[</a></li>
+      <li><a data-toggle="tab" role="tab" href="#protocols">]] print(i18n("shaping.manage_policies")) print[[</a></li>
       <li><a data-toggle="tab" role="tab" href="#shapers">]] print(i18n("shaping.bandwidth_manager")) print[[</a></li>
    </ul>
    <div class="tab-content">]]
@@ -1140,97 +1091,33 @@ end
 
 -- ******************************************
 
-locals = ntop.getLocalNetworks()
-locals_empty = (next(locals) == nil)
-
--- ==== Define networks tab ====
-print [[<div id="networks" class="tab-pane"><br>
-
-<table class="table table-striped table-bordered"><tr><th>]] print(i18n("shaping.define_network")) print[[</th></tr><tr><td>
-   <table class="table table-borderless"><tr>
-      <div id="badnet" class="alert alert-danger" style="display: none"></div>
-      <td><strong style="margin-right:1em">Network:</strong>
-]]
-
-print[[
-         <input id="new_custom_network" type="text" class="form-control network-selector" style="]] if not locals_empty then print('display:none') end print[[">
-]]
-
-if not locals_empty then
-   print('<select class="form-control network-selector" id="new_network" style="display:inline;">')
-   for s,_ in pairs(locals) do
-      print('<option value="'..s..'">'..s..'</option>\n')
-   end
-   print('</select>')
-   print('<button type="button" class="btn btn-default btn-sm fa fa-pencil" onclick="toggleCustomNetworkMode();"></button></td>')
-end
-   print[[
-   <td><strong style="margin-right:1em">VLAN</strong><input type="text" class="form-control" id="new_vlan" name="new_vlan" value="0" style="width:4em; display:inline;"></td>
-   <td><strong style="margin-right:1em">Initial Policy:</strong>
-         <div id="clone_proto_policy" class="btn-group" data-toggle="buttons-radio">
-            <button id="bt_initial_empty" type="button" class="btn btn-primary active" value="empty">Default</button>
-            <button id="bt_initial_clone" type="button" class="btn btn-default" value="clone">Clone</button>
-         </div>
-         <span id="clone_from_container" style="visibility:hidden;"><span style="margin: 0 1em 0 1em;">from</span>
-            <select id="clone_from_select" class="form-control" style="display:inline; width:12em;">]]
-for _,k in ipairs(nets) do
-   if(k ~= "") then
-      print("\t<option>"..k.."</option>\n")
-   end
-end
-      print[[</select></span></td>
-   </tr></table>
-<button type="button" class="btn btn-primary" style="float:right; margin-right:2em;" onclick="checkNetworksFormCallback()">]] print(i18n("define")) print[[</button></td></tr>
-</table>
-
-NOTES:<ul>
-   <li>These networks are used to define traffic policies </li>
-</ul>
-
-</div>
-]]
-
 -- ==== Manage policies tab ====
 
 print [[<div id="protocols" class="tab-pane"><br>
 
-<form id="editNetworksForm" method="post">
-   <input type="hidden" name="edit_networks" value=""/>
-   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-</form>
-<form id="deleteShapedProtocolForm" method="post">
-   <input type="hidden" name="proto_network" value="]] print(net) print[[">
+<form id="deletePolicyForm" method="post">
+   <input type="hidden" name="target_pool" value="]] print(selected_pool.id) print[[">
    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <input type="hidden" name="del_l7_proto" value="">
 </form>
 
 <table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
-]] print(i18n("shaping.network_group")..":") print[[ <select id="proto_network" class="form-control network-selector" name="network" style="display:inline; margin-left:1em;">
+]] print(i18n("host_pools.pool")..":") print[[ <select id="target_pool" class="form-control pool-selector" name="pool" style="display:inline;">
 ]]
-   for _,k in ipairs(nets) do
-	 if(k ~= "") then
-	    print("\t<option")
-	    if(k == selected_network) then print(" selected") end
-	    print(">"..shaper_utils.trimVlan0(k).."</option>\n")
-	 end
+   for _,pool in ipairs(available_pools) do
+	    print("\t<option value=\""..pool.id.."\"")
+	    if(pool.id == selected_pool.id) then print(" selected") end
+	    print(">"..(pool.name).."</option>\n")
    end
 print("</select>")
-this_net = shaper_utils.trimVlan0(selected_network)
-if selected_network ~= shaper_utils.ANY_NETWORK then
-   print[[<form id="deleteNetworkForm" style="display:inline;" method="post" action="?page=filtering#protocols">
-     <input type="hidden" name="delete_network" value="]] print(selected_network) print[["/>
-     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-     [ <a href="javascript:void(0);" onclick="$('#deleteNetworkForm').submit();"> <i class="fa fa-trash-o fa-lg"></i> Delete ]]print(this_net) print[[</a> ]
-   </form>]]
-end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
-   <input type="hidden" name="proto_network" value="]] print(net) print[[">
+   <input type="hidden" name="target_pool" value="]] print(selected_pool.id) print[[">
    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
 ]]
 
 local protos = interface.getnDPIProtocols()
-local protos_in_use = shaper_utils.getNetworkProtoShapers(ifid, net, true --[[ do not aggregate into categories ]])
+local protos_in_use = shaper_utils.getPoolProtoShapers(ifid, selected_pool.id, true --[[ do not aggregate into categories ]])
 local protocol_categories = shaper_utils.getCategoriesWithProtocols()
 
 -- families of protocols which are currently used by at least one protocol
@@ -1310,85 +1197,9 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
 
 /* -------------------------------------------------------------------------- */
 
-function checkNetworksFormCallback() {
-   var new_net_field = "#" + getNetworkInputField();
-   var new_net_name = $(new_net_field).val();
-
-   if (new_net_name) {
-      /* we are adding a new network */
-      if (! validateAddNetworkForm(new_net_field, "#new_vlan"))
-         return false;
-
-      // newtwork is valid here, now fill in the real form
-      var netkey = new_net_name + "@" +  $("#new_vlan").val();
-      var params = {};
-      params["network"] = netkey;
-      params["ishaper_" + netkey] = 0;
-      params["eshaper_" + netkey] = 0;
-      if ($("#clone_from_select").attr("name") == "clone")
-         params["clone"] = $("#clone_from_select").find(":selected").val();
-
-      // encode parameters since networks could contain special characters
-      var encoded_params = paramsPairsEncode(params);
-      $("#editNetworksForm").attr("action", "?page=filtering&network=" + netkey + "#protocols");
-      paramsToForm("#editNetworksForm", encoded_params).submit();
-   }
-
-   return false;
-}
-
-function toggleCustomNetworkMode() {
-   var n_custom = document.getElementById("new_custom_network");
-   var n_local = document.getElementById("new_network");
-   var custom_mode = (n_custom.style.display != "none");
-
-   if (custom_mode) {
-      n_custom.style.display = "none";
-      n_local.style.display = "inline";
-   } else {
-      n_custom.style.display = "inline";
-      n_custom.value = n_local.value;
-      n_local.style.display = "none";
-   }
-}
-
-   $("#proto_network").change(function() {
-      document.location.href = "]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua?page=filtering&network="+$("#proto_network").val()+"#protocols";
+   $("#target_pool").change(function() {
+      document.location.href = "]] print(ntop.getHttpPrefix()) print [[/lua/if_stats.lua?page=filtering&pool="+$("#target_pool").val()+"#protocols";
    });
-
-   $("#clone_proto_policy button").click(function () {
-      var active;
-      var inactive;
-      if ($(this).val() == "empty") {
-         active = "#bt_initial_empty";
-         inactive = "#bt_initial_clone";
-         $("#clone_from_select").removeAttr("name");
-         $("#clone_from_container").css("visibility", "hidden");
-      } else {
-         active = "#bt_initial_clone";
-         inactive = "#bt_initial_empty";
-         $("#clone_from_select").attr("name", "clone");
-         $("#clone_from_container").css("visibility", "visible");
-      }
-      $(active)
-         .removeClass("btn-default")
-         .addClass("active")
-         .addClass("btn-primary");
-      $(inactive)
-         .addClass("btn-default")
-         .removeClass("active")
-         .removeClass("btn-primary");
-   });
-
-   if (typeof add_new_network_at_startup != "undefined") {
-      var s = add_new_network_at_startup.split("@");
-      if (s.length == 2) {
-         // put an initial custom network and vlan
-         toggleCustomNetworkMode();
-         $("#new_custom_network").val(s[0]);
-         $("#new_vlan").val(s[1]);
-      }
-   }
 
    function checkShapedProtosFormCallback() {
       var new_protos = $("#table-protos select[name='new_protocol_id']").closest('tr');
@@ -1505,7 +1316,7 @@ function toggleCustomNetworkMode() {
    }
 
    function deleteShapedProtocol(proto_id) {
-      var form = $("#deleteShapedProtocolForm");
+      var form = $("#deletePolicyForm");
       var todel = $("input[name='del_l7_proto']", form);
 
       todel.val(proto_id);
@@ -1515,7 +1326,7 @@ function toggleCustomNetworkMode() {
    $("#table-protos").datatable({
       url: "]]
    print (ntop.getHttpPrefix())
-   print [[/lua/get_l7_proto_policies.lua?ifid=]] print(ifid.."") print[[&network=]] print(net) print[[",
+   print [[/lua/get_l7_proto_policies.lua?ifid=]] print(ifid.."") print[[&pool=]] print(selected_pool.id) print[[",
       showPagination: true,
       perPage: ]] print(perPageProtos) print[[,
       title: "",
@@ -1531,7 +1342,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("shaping.traffic_to") .. " " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_to") .. " " .. selected_pool.name) print[[",
             field: "column_ingress_shaper",
             css: {
                width: '20%',
@@ -1539,7 +1350,7 @@ function toggleCustomNetworkMode() {
                verticalAlign: 'middle'
             }
          }, {
-            title: "]] print(i18n("shaping.traffic_from") .. " " .. this_net) print[[",
+            title: "]] print(i18n("shaping.traffic_from") .. " " .. selected_pool.name) print[[",
             field: "column_egress_shaper",
             css: {
                width: '20%',
@@ -1563,7 +1374,7 @@ function toggleCustomNetworkMode() {
             }, function() {
                makeShapersDropdownCallback.bind(this)(proto_id, 2, 3);
             }, function() {
-               if (proto_id != ']] print(shaper_utils.NETWORK_SHAPER_DEFAULT_PROTO_KEY) print[[')
+               if (proto_id != ']] print(shaper_utils.POOL_SHAPER_DEFAULT_PROTO_KEY) print[[')
                   datatableAddDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol('" + proto_id + "')", "]] print(i18n('delete')) print[[");
             }
          ]);
@@ -1575,58 +1386,6 @@ function toggleCustomNetworkMode() {
          aysResetForm('#l7ProtosForm');
       }
    });
-
-   function validateAddNetworkForm(network_field_id, vlan_field_id) {
-      var badnet_invalid_msg = "<strong>Warning</strong> Invalid VLAN/network specified.";
-      var badnet_existing_msg = "<strong>Warning</strong> Specified VLAN/network policy exists.";
-      var netval = $(network_field_id).val();
-
-      if(is_network_mask(netval)) {
-         var vlan= $(vlan_field_id).val();
-         if((vlan >= 0) && (vlan <= 4095)) {
-            var existing = false;
-            var fullval = netval + "@" + vlan;
-
-            var nets = [
-]] for _,net in ipairs(nets) do
-   print('"'..net..'",\n')
-end;
-print[[     ];
-            existing = nets.indexOf(fullval) != -1;
-
-            if (! existing) {
-               $('#badnet').hide();
-               $('input[name="new_network"]').val(netval);
-               return true;
-            } else {
-               $('#badnet').html(badnet_existing_msg);
-               $('#badnet').show();
-               return false;
-            }
-         } else {
-            $('#badnet').html(badnet_invalid_msg);
-            $('#badnet').show();
-            return false;
-         }
-      } else {
-         //alert("Invalid network specified");
-         $('#badnet').html(badnet_invalid_msg);
-         $('#badnet').show();
-         return false;
-      }
-   }
-
-   function getNetworkInputField() {
-      var n_custom = document.getElementById("new_custom_network");
-      if (n_custom) {
-         var custom_mode = (n_custom.style.display != "none");
-         if (custom_mode)
-            return "new_custom_network";
-         else
-            return "new_network";
-      }
-      return null;
-   }
 </script>
 </table>
 </div>

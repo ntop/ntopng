@@ -6,6 +6,10 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+if(ntop.isPro()) then
+  package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+  shaper_utils = require "shaper_utils"
+end
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
@@ -23,11 +27,21 @@ if _POST["edit_pools"] ~= nil then
   for pool_id, pool_name in pairs(config) do
     -- create or rename
     host_pools_utils.createPool(ifId, pool_id, pool_name)
+
+    if(interface.isBridgeInterface(ifId) == true) then
+      -- create default shapers
+      shaper_utils.setProtocolShapers(ifId,
+          pool_id,
+          shaper_utils.POOL_SHAPER_DEFAULT_PROTO_KEY,
+          shaper_utils.DEFAULT_SHAPER_ID --[[ ingress shaper --]],
+          shaper_utils.DEFAULT_SHAPER_ID --[[ egress shaper --]],
+          true) -- Set only if the key does NOT exist
+    end
   end
   -- Note: do not call reload here
 elseif _POST["pool_to_delete"] ~= nil then
   host_pools_utils.deletePool(ifId, _POST["pool_to_delete"])
-  interface.reloadHostPools(tonumber(_POST["pool_to_delete"]))
+  interface.reloadHostPools()
 elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool_id"]
   local config = paramsPairsDecode(_POST, true)
@@ -48,12 +62,12 @@ elseif (_POST["edit_members"] ~= nil) then
     end
   end
 
-  interface.reloadHostPools(tonumber(pool_to_edit))
+  interface.reloadHostPools()
 elseif (_POST["member_to_delete"] ~= nil) then
   local pool_to_edit = _POST["pool_id"]
 
   host_pools_utils.deleteFromPoll(ifId, pool_to_edit, _POST["member_to_delete"])
-  interface.reloadHostPools(tonumber(pool_to_edit))
+  interface.reloadHostPools()
 end
 
 function printPoolNameField(pool_id_str)
@@ -109,8 +123,7 @@ print [[
     <div id="manage" class="tab-pane">
 ]]
 
-if #available_pools > 0 then
-  print('<br/>') print(i18n("host_pools.pool")) print(': <select class="form-control network-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
+  print('<br/>') print(i18n("host_pools.pool")) print(': <select class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
   for _,pool in ipairs(available_pools) do
     print('<option value="'..tostring(pool.id)..'"')
     if pool.id == selected_pool_id then
@@ -125,12 +138,8 @@ if #available_pools > 0 then
         <br/><div id="table-manage"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
-]] else
-  print [[<br><br>
-  <div class="alert alert-info">
-    <strong>No Pools available</strong> Create one from the 'Create Pools' tab
-  </div>
-]] end
+]]
+
 print[[
       <br/><br/>
     </div>
@@ -269,7 +278,10 @@ print [[
             }
          }
       ], tableCallback: function() {
-        if(datatableIsEmpty("#table-manage")) {
+        if (]] print(selected_pool_id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
+          datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.default_pool_read_only")) print[[");
+          $("#addPoolMemberBtn").attr("disabled", "disabled");
+        } else if(datatableIsEmpty("#table-manage")) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.empty_pool")) print[[");
         } else {
           datatableForEachRow("#table-manage", function() {
@@ -277,7 +289,7 @@ print [[
             var vlan = $("td:nth-child(2)", $(this));
             var member_id = addedMemberCtr++;
 
-            /* Make pool name editable */
+            /* Make member name editable */
             var input = $(']] printMemberNameField('member_id', 'member_address.html() + \'@\' + vlan.html()') print[[');
             $("input", input).first().val(member_address.html());
             member_address.html(input);
@@ -448,11 +460,13 @@ print [[
             var pool_name = $("td:nth-child(2)", $(this));
 
             /* Make pool name editable */
-            var input = $(']] printPoolNameField('pool_id') print[[');
-            $("input", input).first().val(pool_name.html());
-            pool_name.html(input);
+            if (pool_id != ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
+              var input = $(']] printPoolNameField('pool_id') print[[');
+              $("input", input).first().val(pool_name.html());
+              pool_name.html(input);
 
-            datatableAddDeleteButtonCallback.bind(this)(3, "deletePool('" + pool_id + "')", "]] print(i18n('delete')) print[[");
+              datatableAddDeleteButtonCallback.bind(this)(3, "deletePool('" + pool_id + "')", "]] print(i18n('delete')) print[[");
+            }
          });
 
          /* pick the first unused pool ID */
