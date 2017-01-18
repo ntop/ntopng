@@ -262,7 +262,7 @@ function printAlerts()
 		       "Set the username of the sender of slack notifications", "ntopng.alerts.", "sender_username",
 		       "ntopng Webhook", nil, showElements and showSlackNotificationPrefs, false, nil, {attributes={spellcheck="false"}})
 
-  prefsInputFieldPrefs("Notification Wekhook",
+  prefsInputFieldPrefs("Notification Webhook",
 		       "Send your notification to this slack URL", "ntopng.alerts.", "slack_webhook",
 		       "", nil, showElements and showSlackNotificationPrefs, true, true, {attributes={spellcheck="false"}})
 
