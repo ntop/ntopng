@@ -1989,7 +1989,10 @@ void NetworkInterface::refreshHostPools() {
 
 #ifdef NTOPNG_PRO
   if(is_bridge_interface() && getL7Policer()) {
-    /* Must refresh l7policies as a change in the host pool id
+    /* Every pool is associated with a set of L7 rules
+     so a refresh must be triggered to seal this association */
+    getL7Policer()->refreshL7Rules();
+    /* Must refresh host l7policies as a change in the host pool id
        may determine an l7policy change for that host */
     update_host.update_l7policy = true;
   }
