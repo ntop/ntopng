@@ -760,7 +760,6 @@ $("form[id!='search-host-form']").validator({disable:true});
 if(_SERVER["REQUEST_METHOD"] == "POST") then
    -- Something has changed
   ntop.reloadPreferences()
-  io.write("$$$$$$$$$$$ RELOAD $$$$$$$$$$$")
 end
 
 if(_POST["toggle_malware_probing"] ~= nil) then
