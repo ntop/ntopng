@@ -80,10 +80,11 @@ for _key, _value in pairsByKeys(vals, funct) do
 	 if(num > 0) then
 	    print ",\n"
 	 end
-	 
+
 	 print ("{")
 	 print ("  \"column_username\"  : \"" .. key .. "\", ")
 	 print ("  \"column_full_name\" : \"" .. value["full_name"] .. "\", ")
+
 	 print ("  \"column_group\"     : \"" .. value["group"] .. "\", ")
 	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. key.."\\\"));'><span class='label label-info'>Manage</span></a> ")
 
