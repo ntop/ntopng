@@ -13,6 +13,7 @@ if(haveAdminPrivileges()) then
 
    ifstats = interface.getStats()
    is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+   is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
 
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    

@@ -22,7 +22,7 @@ print [[
 ]]
 
 local captive_portal_user = false
-if is_bridge_iface and _GET["captive_portal_users"] ~= nil then
+if is_bridge_iface and _GET["captive_portal_users"] ~= nil and is_captive_portal_enabled then
    captive_portal_user = true
 end
 
