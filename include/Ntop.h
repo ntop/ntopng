@@ -398,6 +398,10 @@ class Ntop {
   void swapHostBlacklist();
   void addToHostBlacklist(char *net);
   bool isBlacklistedIP(IpAddress *ip);
+
+#ifdef NTOPNG_PRO
+  void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, bool permanentAuthorization);
+#endif
 };
 
 extern Ntop *ntop;

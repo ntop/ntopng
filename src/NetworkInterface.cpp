@@ -209,7 +209,7 @@ void NetworkInterface::init() {
     pkt_dumper = NULL, numL2Devices = 0,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount = 0,
     pollLoopCreated = false, bridge_interface = false;
-  
+
   if(ntop && ntop->getPrefs() && ntop->getPrefs()->are_taps_enabled())
     pkt_dumper_tap = new PacketDumperTuntap(this);
   else
@@ -241,7 +241,7 @@ void NetworkInterface::init() {
   ifMTU = CONST_DEFAULT_MAX_PACKET_SIZE, mtuWarningShown = false;
 #ifdef NTOPNG_PRO
   flow_profiles = shadow_flow_profiles = NULL;
-#endif 
+#endif
 }
 
 /* **************************************************** */
@@ -260,10 +260,10 @@ void NetworkInterface::initL7Policer() {
 void NetworkInterface::checkAggregationMode() {
  if(!customIftype) {
     char rsp[32];
-    
+
     if(!strcmp(get_type(), CONST_INTERFACE_TYPE_ZMQ)) {
       if(ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION, rsp, sizeof(rsp)) == 0) {
-	
+
 	if(!strcmp(rsp, "probe_ip")) flowHashingMode = flowhashing_probe_ip;
 	else if(!strcmp(rsp, "ingress_iface_idx")) flowHashingMode = flowhashing_ingress_iface_idx;
       }
@@ -509,14 +509,14 @@ NetworkInterface::~NetworkInterface() {
 
   if(flowHashing) {
     FlowHashing *current, *tmp;
-    
+
     HASH_ITER(hh, flowHashing, current, tmp) {
       /* Interfaces are deleted by the main termination function */
       HASH_DEL(flowHashing, current);
       free(current);
-    }    
+    }
   }
-  
+
 #ifdef NTOPNG_PRO
   if(policer)       delete(policer);
   if(flow_profiles) delete(flow_profiles);
@@ -786,12 +786,12 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
 
   if(h == NULL) {
     /* Interface not found */
-    
+
     if(numVirtualInterfaces < MAX_NUM_VIRTUAL_INTERFACES) {
       if((h = (FlowHashing*)malloc(sizeof(FlowHashing))) != NULL) {
 	char buf[64], buf1[48];
 	const char *vIface_type;
-	
+
 	h->criteria = criteria;
 
 	switch(flowHashingMode) {
@@ -816,14 +816,14 @@ NetworkInterface* NetworkInterface::getSubInterface(u_int32_t criteria) {
 	  return(NULL);
 	  break;
 	}
-	
+
 	if((h->iface = new NetworkInterface(buf, vIface_type)) != NULL) {
 	  HASH_ADD_INT(flowHashing, criteria, h);
 	  ntop->registerInterface(h->iface);
 	  numVirtualInterfaces++;
 	}
       } else
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");      
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     }
   }
 
@@ -842,16 +842,16 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
 
   if(flowHashingMode != flowhashing_none) {
     NetworkInterface *vIface;
-    
+
     switch(flowHashingMode) {
     case flowhashing_probe_ip:
       vIface = getSubInterface((u_int32_t)zflow->deviceIP);
       break;
-      
+
     case flowhashing_ingress_iface_idx:
       vIface = getSubInterface((u_int32_t)zflow->inIndex);
       break;
-      
+
     default:
       vIface = NULL;
       break;
@@ -863,7 +863,7 @@ void NetworkInterface::processFlow(ZMQ_Flow *zflow) {
       return;
     }
   }
-  
+
   if(last_pkt_rcvd_remote > 0) {
     int drift = now - last_pkt_rcvd_remote;
 
@@ -1012,7 +1012,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
   /* VLAN disaggregation */
   if((flowHashingMode == flowhashing_vlan) && (vlan_id > 0)) {
     NetworkInterface *vIface;
-    
+
     if((vIface = getSubInterface((u_int32_t)vlan_id)) != NULL) {
       vIface->setTimeLastPktRcvd(getTimeLastPktRcvd());
       return(vIface->processPacket(when, time, eth, vlan_id,
@@ -1021,7 +1021,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 				   srcHost, dstHost, hostFlow));
     }
   }
-  
+
  decode_ip:
   if(iph != NULL) {
     /* IPv4 */
@@ -1237,7 +1237,7 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
 	  if(id == 12 /* Host Name */) {
 	    char name[64], buf[24], *client_mac, key[64];
 	    int j;
-	    
+
 	    j = ndpi_min(len, sizeof(name)-1);
 	    strncpy((char*)name, (char*)&payload[i+2], j);
 	    name[j] = '\0';
@@ -1991,7 +1991,7 @@ static bool update_host_host_pool_l7policy(GenericHashEntry *node, void *user_da
 
 void NetworkInterface::refreshHostPools() {
   if(isView()) return;
-  
+
   struct update_host_pool_l7policy update_host;
   update_host.update_pool_id = true;
   update_host.update_l7policy = false;
@@ -2039,7 +2039,7 @@ void NetworkInterface::updateHostsL7Policy(u_int16_t host_pool_id) {
   struct update_host_pool_l7policy update_host;
   update_host.update_pool_id = false;
   update_host.update_l7policy = true;
-  
+
   hosts_hash->walk(update_host_host_pool_l7policy, &update_host);
 }
 
@@ -2192,7 +2192,7 @@ void NetworkInterface::updateFlowProfiles() {
 
   if(ntop->getPro()->has_valid_license()) {
     FlowProfiles *newP;
-    
+
     if(shadow_flow_profiles) {
       delete shadow_flow_profiles;
       shadow_flow_profiles = NULL;
@@ -2443,7 +2443,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data) {
   case column_num_flows:
     r->elems[r->actNumEntries++].numericValue = h->getNumActiveFlows();
     break;
-    
+
   case column_traffic:
     r->elems[r->actNumEntries++].numericValue = h->getNumBytes();
     break;

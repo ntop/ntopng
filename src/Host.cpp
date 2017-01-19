@@ -510,7 +510,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_push_bool_table_entry(vm, "is_blacklisted", blacklisted_host);
   lua_push_int_table_entry(vm, "source_id", source_id);
   lua_push_int_table_entry(vm, "asn", asn);
-
+  lua_push_int_table_entry(vm, "host_pool_id", host_pool);
   lua_push_str_table_entry(vm, "asname", asname);
   lua_push_str_table_entry(vm, "os", os);
 

@@ -267,7 +267,7 @@ void Ntop::start() {
   char daybuf[64], buf[32];
   time_t when = time(NULL);
   int i = 0;
-  
+
   getTrace()->traceEvent(TRACE_NORMAL,
 			 "Welcome to ntopng %s v.%s - (C) 1998-17 ntop.org",
 			 PACKAGE_MACHINE, PACKAGE_VERSION);
@@ -515,7 +515,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
       if(inet_ntop(ifa->ifa_addr->sa_family, (void *)&(s4->sin_addr), buf, sizeof(buf)) != NULL) {
 	char buf_orig[32];
-	
+
 	snprintf(buf_orig, bufsize, "%s/%d", buf, 32);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s", buf_orig, iface[ifId]->get_name());
 	local_interface_addresses.addAddress(buf_orig);
@@ -670,12 +670,12 @@ void Ntop::getUsers(lua_State* vm) {
     snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
     if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
       lua_push_int_table_entry(vm, "host_pool_id", true);
-    
+
 
     snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
     if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
       lua_push_bool_table_entry(vm, "limited_lifetime", true);
-    
+
     lua_pushstring(vm, username);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -1309,7 +1309,7 @@ void Ntop::reloadInterfacesLuaInterpreter() {
 
 void Ntop::registerInterface(NetworkInterface *_if) {
   _if->checkAggregationMode();
-  
+
   for(int i=0; i<num_defined_interfaces; i++) {
     if(strcmp(iface[i]->get_name(), _if->get_name()) == 0) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -1392,6 +1392,21 @@ bool Ntop::isBlacklistedIP(IpAddress *ip) {
   bool rc = (hostBlacklist && ip->findAddress(hostBlacklist)) ? true : false;
 
   // if(rc) ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** Found blacklist [%p]", n);
-	      
+
   return(rc);
 }
+
+/* ******************************************* */
+
+#ifdef NTOPNG_PRO
+
+void Ntop::addIPToLRUMatches(u_int32_t client_ip,
+			     u_int16_t user_pool_id,
+			     bool permanentAuthorization) {
+  for(int i=0; i<num_defined_interfaces; i++) {
+    if(iface[i]->is_bridge_interface())
+      iface[i]->addIPToLRUMatches(client_ip, user_pool_id, permanentAuthorization);
+  }
+}
+
+#endif

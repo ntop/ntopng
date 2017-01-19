@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+/* #define HOST_POOLS_DEBUG 1 */
+
 /* *************************************** */
 
 HostPools::HostPools(NetworkInterface *_iface) {
@@ -169,12 +171,23 @@ u_int16_t HostPools::getPool(Host *h) {
 
 /* *************************************** */
 
-void HostPools::addToPool(u_int16_t pool_id, u_int16_t vlan_id, int family, void *addr) {
-  /* Avoid race conditions with getPool */
+void HostPools::addToPool(u_int32_t client_ipv4 /* network byte order */,
+			  u_int16_t user_pool_id,
+			  bool permanentAuthorization) {
+  char key[64], host[64], buf[32], pool_buf[16];
 
-  if(tree[vlan_id] || (tree[vlan_id] = new AddressTree())) {
-    /* TODO: */
-    // tree[vlan_id]->addAddress(&pool_id, family, addr);
+  snprintf(host, sizeof(host), "%s/32@0", 
+	   Utils::intoaV4(ntohl(client_ipv4), buf, sizeof(buf)));
+
+  snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);
+  snprintf(key, sizeof(key), HOST_POOL_MEMBERS_KEY, iface->get_id(), pool_buf);
+
+  if(ntop->getRedis()->sadd(key, host) /* New member added */) {
+    if(!permanentAuthorization) {
+      snprintf(key, sizeof(key), HOST_POOL_VOLATILE_MEMBERS, iface->get_id());
+      ntop->getRedis()->set(key, host, sizeof(host));
+    }
+
+    reloadPools();
   }
-
 }

@@ -392,25 +392,36 @@ static int handle_lua_request(struct mg_connection *conn) {
     return(1);
   }
 
+#ifdef NTOPNG_PRO
   if(ntop->getPrefs()->isCaptivePortalEnabled()
      && ntop->isCaptivePortalUser(username)) {
     /* 
        This user logged onto ntopng via the captive portal
     */
     char buf[32];
+    u_int16_t host_pool_id;
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s", 
-				 username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)));
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s/%08X", 
+				 username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
+				 (unsigned int)conn->request_info.remote_ip);
 
-    if(ntop->hasUserLimitedLifetime(username)) {
-      /* Add it to the temporary list of authorized MACs */
+    ntop->getUserHostPool(username, &host_pool_id);
+    ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
+			    host_pool_id,
+			    !ntop->hasUserLimitedLifetime(username));
 
-      
-    } else {
-      /* Permanently add it to its user group */
+    /*
+      As this is a captive portal user, we are good so far and we
+      redirect to the requested web site
+     */
 
-    }
+    mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+	      "Location: http%s://%s%s\r\n\r\n",
+	      "" /* conn->request_info.is_ssl ? "s" : "" */,
+	      (char*)mg_get_header(conn, "Host"), request_info->uri);
+    return(1);
   }
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s", request_info->uri);
 

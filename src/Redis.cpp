@@ -1132,6 +1132,8 @@ int Redis::msg_push(const char *cmd, const char *queue_name, char *msg, u_int qu
   if(reply) {
     if(reply->type == REDIS_REPLY_ERROR)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???"), rc = -1;
+    else
+      rc = reply->integer;
 
     freeReplyObject(reply);
 

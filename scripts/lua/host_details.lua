@@ -456,6 +456,10 @@ if((page == "overview") or (page == nil)) then
       if(host["local_network_name"] ~= nil) then
 	 print(" [ <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"])..">".. host["local_network_name"].."</A> ]")
       end
+
+      local key = "ntopng.prefs.".. ifId ..".host_pools.details."..host["host_pool_id"]
+      local pool_name = ntop.getHashCache(key, "name")
+      print(' <span class="label label-default">Pool: '..pool_name.."</span>")
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")

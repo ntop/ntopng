@@ -448,6 +448,9 @@ class NetworkInterface {
   inline void incAlertLevel()               { alertLevel++;                        }
   inline void decAlertLevel()               { if(--alertLevel < 0) alertLevel = 0; }
   inline int8_t getAlertLevel()             { return(alertLevel);                  }
+#ifdef NTOPNG_PRO
+  virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, bool permanentAuthorization) { ; }
+#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
