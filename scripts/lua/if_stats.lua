@@ -1101,7 +1101,6 @@ print [[<div id="protocols" class="tab-pane"><br>
    <input type="hidden" name="del_l7_proto" value="">
 </form>
 
-<table class="table table-striped table-bordered"><tr><th>Manage</th></tr><tr><td>
 ]] print(i18n("host_pools.pool")..":") print[[ <select id="target_pool" class="form-control pool-selector" name="pool" style="display:inline;">
 ]]
    for _,pool in ipairs(available_pools) do
@@ -1109,7 +1108,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 	    if(pool.id == selected_pool.id) then print(" selected") end
 	    print(">"..(pool.name).."</option>\n")
    end
-print('</select> <A HREF='..  ntop.getHttpPrefix()..'/lua/admin/host_pools.lua><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></A>')
+print('</select> <A HREF='..  ntop.getHttpPrefix()..'/lua/admin/host_pools.lua?pool=') print(selected_pool.id) print('><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></A>')
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
    <input type="hidden" name="target_pool" value="]] print(selected_pool.id) print[[">
@@ -1170,8 +1169,7 @@ end
 
    print [[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
-</form></td></tr>
-</table>
+</form>
 
 NOTES:
 <ul>

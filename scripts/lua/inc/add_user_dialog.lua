@@ -124,7 +124,6 @@ else -- a captive portal user is being added
 <div class="form-group has-feedback">
   <label class="form-label">Host Pool</label>
   <select name="host_pool_id" id="host_pool_id" class="form-control">
-    <option value="">No host pool</option>
 ]]
 
    local pool_ids = host_pools_utils.listPools(getInterfaceId(ifname))
@@ -168,11 +167,6 @@ print[[<div class="form-group has-feedback">
     }
     if($("#username_input").val().length < 5) {
       add_user_alert.error("Username too short (5 or more characters)");
-      return(false);
-    }
-
-    if($("#full_name_input").val().length < 5) {
-      add_user_alert.error("Full name too short (5 or more characters)");
       return(false);
     }
 

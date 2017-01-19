@@ -116,7 +116,7 @@ end
 
 print [[
 <hr>
-<H2>Edit Host Pools</H2>
+<h2>]] print(i18n("host_pools.edit_host_pools")) print[[</h2>
 <br>
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
     <li><a data-toggle="tab" role="tab" href="#manage">]] print(i18n("host_pools.manage_pools")) print[[</a></li>
@@ -168,7 +168,7 @@ print[[
       if (! member)
         return true;
 
-      return is_valid_pool_member(member);
+      return is_mac_address(member) || is_network_mask(member, true);
     }
   
     function memberValidator(input) {
@@ -336,7 +336,12 @@ print [[
           else
             original = "";
 
-          settings[$(this).val() + "@" + vlan_field.val()] = original;
+          var member;
+          if((member = is_network_mask($(this).val(), true)))
+            member = member.address + "/" + member.mask;
+          else
+            member = $(this).val();
+          settings[member + "@" + vlan_field.val()] = original;
         }
       });
 
@@ -435,6 +440,7 @@ print [[
          {
             title: "]] print(i18n("host_pools.pool_id")) print[[",
             field: "column_pool_id",
+            hidden: true,
             css: {
                textAlign: 'center',
                width: '5%',

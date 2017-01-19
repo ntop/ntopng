@@ -51,35 +51,53 @@ function is_mac_address(what) {
     return /^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$/.test(what);
 }
 
-function is_valid_pool_member(what) {
-    return is_mac_address(what) || is_network_mask(what);
-}
-
-function is_network_mask(what) {
+function is_network_mask(what, optional_mask) {
     var elems = what.split("/");
-    var mask;
+    var mask = null;
+    var ip_addr;
 
-    if(elems.length != 2)
-	return(false);
+    if(elems.length != 2) {
+      if (! optional_mask)
+         return null;
+      else
+         ip_addr = what;
+   } else {
+      ip_addr = elems[0];
 
-    if(!isNumeric(elems[1])) {
-	return(false);
-    }
+      if(!isNumeric(elems[1]))
+         return null;
 
-    mask = parseInt(elems[1]);
-    if(mask < 0) {
-	return(false);
-    }
+      mask = parseInt(elems[1]);
 
-    if(is_good_ipv4(elems[0])) {
-	if(mask > 32) { return(false); }
-	return(true);
-    } else if(is_good_ipv6(elems[0])) {
-	if(mask > 128) { return(false); }
-	return(true);
-    }
+      if(mask < 0)
+         return null;
+   }
 
-    return(false);
+   if(is_good_ipv4(ip_addr)) {
+      if (mask === null)
+         mask = 32;
+      else if (mask > 32)
+         return null;
+
+      return {
+         type: "ipv4",
+         address: ip_addr,
+         mask: mask
+      };
+   } else if(is_good_ipv6(elems[0])) {
+      if (mask === null)
+         mask = 128;
+      else if (mask > 128)
+         return(false);
+
+      return {
+         type: "ipv6",
+         address: ip_addr,
+         mask: mask
+      };
+   }
+
+   return null;
 }
 
 function makeUniqueValidator(items_function) {

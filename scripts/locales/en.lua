@@ -183,6 +183,7 @@ local  en = {
    },
 
    host_pools = {
+      edit_host_pools = "Edit Host Pools",
       pool = "Pool Name",
       manage_pools = "Manage Pools",
       create_pools = "Create Pools",
@@ -193,7 +194,7 @@ local  en = {
       default_pool_read_only = "The default pool is where unassigned hosts will go. Create new pools from the 'Create Pools' tab to start modifing them.",
       member_address = "Member Address",
       specify_pool_name = "Specify a pool name",
-      specify_member_address = "Specify a IPv4/IPv6 address or a MAC address",
+      specify_member_address = "Specify an IPv4/IPv6 address or network or a MAC address",
       invalid_member = "Invalid member address format",
       duplicate_member = "Duplicate member address",
       duplicate_pool = "Duplicate pool name",
