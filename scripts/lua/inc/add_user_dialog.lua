@@ -135,9 +135,10 @@ else -- a captive portal user is being added
 
 ]]
 
-   local pool_ids = host_pools_utils.listPools(getInterfaceId(ifname))
-   for _, pool_id in pool_ids do
-      print('<option value="'..pool_id..'"> '..host_pools_utils.getPoolName(getInterfaceId(ifname), pool_id)..'</option>')
+   local pools = host_pools_utils.getPoolsList(getInterfaceId(ifname))
+
+   for _, pool in ipairs(pools) do
+      print('<option value="'.. pool.id ..'"> '.. pool.name ..'</option>')
    end
 
    print[[

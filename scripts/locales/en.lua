@@ -24,6 +24,8 @@ local  en = {
    duration = "Duration",
    traffic = "Traffic",
    save = "Save",
+   close = "Close",
+   remove = "Remove",
    save_settings = "Save Settings",
    all = "All",
    define = "Define",
@@ -68,6 +70,11 @@ local  en = {
       protocol_families = "Protocol Families",
       traffic_to = "Traffic to",
       traffic_from = "Traffic from",
+      delete_policy = "Delete Policy",
+      confirm_delete_policy = "Do you really want to delete",
+      policy_from_pool = "policy from pool",
+      delete_shaper = "Delete Shaper",
+      confirm_delete_shaper = "Do you really want to delete shaper ",
    },
 
    alert_messages = {
@@ -179,7 +186,9 @@ local  en = {
       enter_profile_name = "Enter a profile name",
       enter_profile_filter = "Enter the profile filter",
       invalid_bpf = "Invalid BPF filter",
-      duplicate_profile = "Duplicate profile name"
+      duplicate_profile = "Duplicate profile name",
+      delete_profile = "Delete Profile",
+      confirm_delete_profile = "Do you really want to delete the profile",
    },
 
    host_pools = {
@@ -189,6 +198,7 @@ local  en = {
       create_pools = "Create Pools",
       empty_pool = "Empty Pool",
       delete_pool = "Delete Pool",
+      remove_member = "Remove Member",
       pool_id = "Pool ID",
       pool_name = "Pool Name",
       default_pool_read_only = "The default pool is where unassigned hosts will go. Create new pools from the 'Create Pools' tab to start modifing them.",
@@ -198,6 +208,10 @@ local  en = {
       invalid_member = "Invalid member address format",
       duplicate_member = "Duplicate member address",
       duplicate_pool = "Duplicate pool name",
+      confirm_delete_pool = "Do you really want to delete host pool",
+      confirm_remove_member = "Do you really want to remove member",
+      from_pool = "from host pool",
+      and_associated_members = "and associated members",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",
