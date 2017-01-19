@@ -43,6 +43,8 @@ static void* divertPacketPollLoop(void* ptr) {
     socklen_t sin_len = sizeof(struct sockaddr_in);
     u_int16_t c;
     struct pcap_pkthdr h;
+    Host *srcHost = NULL, *dstHost = NULL;
+    Flow *flow = NULL;
     
     len = recvfrom(fd, packet, sizeof(packet), 0,
 		   (struct sockaddr *)&sin, &sin_len);
@@ -58,7 +60,7 @@ static void* divertPacketPollLoop(void* ptr) {
     }
    
     h.len = h.caplen = len, gettimeofday(&h.ts, NULL);
-    iface->dissectPacket(&h, packet, &c);
+    iface->dissectPacket(&h, packet, &c, &srcHost, &dstHost, &flow);
 
     /* Enable the row below to specify the firewall rule corresponding to the protocol */
 #if 0
