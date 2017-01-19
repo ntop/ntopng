@@ -14,6 +14,7 @@ end
 
 local json = require "dkjson"
 local host_pools_utils = require "host_pools_utils"
+local template = require "template_utils"
 
 require "lua_utils"
 require "prefs_utils"
@@ -1002,13 +1003,12 @@ end
    local selected_pool_id = _GET["pool"] or _POST["target_pool"]
    local selected_pool = nil
 
-   local available_pools = {}
-   for _, pool_id in host_pools_utils.listPools(ifid) do
-      local pool = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
-      available_pools[#available_pools + 1] = pool
-      if pool_id == selected_pool_id then
-         selected_pool = pool
-      end
+   local available_pools = host_pools_utils.getPoolsList(ifId)
+
+   for _, pool in ipairs(available_pools) do
+     if pool.id == selected_pool_id then
+       selected_pool = pool
+     end
    end
 
    if selected_pool == nil then
@@ -1088,6 +1088,35 @@ function print_shapers(shapers, curshaper_id, terminator)
       print(shaper_utils.shaperRateToString(shaper.rate)..")</option>"..terminator)
    end
 end
+
+-- ******************************************
+
+-- Create delete dialogs
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "delete_policy_dialog",
+      action  = "deleteShapedProtocol(delete_protocol_id)",
+      title   = i18n("shaping.delete_policy"),
+      message = i18n("shaping.confirm_delete_policy") .. ' <span id=\"delete_policy_dialog_protocol\"></span> ' .. i18n("shaping.policy_from_pool") .. " \"" .. selected_pool.name .. "\"",
+      confirm = i18n("delete"),
+    }
+  })
+)
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "delete_shaper_dialog",
+      action  = "deleteShaper(delete_shaper_id)",
+      title   = i18n("shaping.delete_shaper"),
+      message = i18n("shaping.confirm_delete_shaper") .. ' <span id=\"delete_shaper_dialog_shaper\"></span>',
+      confirm = i18n("delete"),
+    }
+  })
+)
+
 
 -- ******************************************
 
@@ -1372,8 +1401,9 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
             }, function() {
                makeShapersDropdownCallback.bind(this)(proto_id, 2, 3);
             }, function() {
+               var value = $("td:nth-child(1) span", $(this)).html();
                if (proto_id != ']] print(shaper_utils.POOL_SHAPER_DEFAULT_PROTO_KEY) print[[')
-                  datatableAddDeleteButtonCallback.bind(this)(4, "deleteShapedProtocol('" + proto_id + "')", "]] print(i18n('delete')) print[[");
+                  datatableAddDeleteButtonCallback.bind(this)(4, "delete_protocol_id ='" + proto_id + "'; $('#delete_policy_dialog_protocol').html('" + value +"'); $('#delete_policy_dialog').modal('show');", "]] print(i18n('delete')) print[[");
             }
          ]);
 
@@ -1473,13 +1503,12 @@ print[[
 
    function addShaperActionsToRow(tr_obj, shaper_id) {
       if ((shaper_id != ]] print(shaper_utils.DEFAULT_SHAPER_ID) print[[) && (shaper_id != ]] print(shaper_utils.BLOCK_SHAPER_ID) print[[)) {
-         var td_obj = $("td:nth-child(4)", tr_obj);
-         td_obj.html('<a href="javascript:void(0)" class="add-on btn" onclick="deleteShaper(' + shaper_id + ')" role="button"><span class="label label-danger">Delete</span></a>');
+         datatableAddDeleteButtonCallback.bind(tr_obj)(4, "delete_shaper_id ='" + shaper_id + "'; $('#delete_shaper_dialog_shaper').html('" + shaper_id +"'); $('#delete_shaper_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
          var applied_to = $("td:nth-child(3)", tr_obj);
          if (applied_to.html() != "&nbsp;")
             // this shaper is in use
-            $("a", td_obj).attr("disabled", "disabled");
+            $("td:nth-child(4) a", tr_obj).attr("disabled", "disabled");
       }
    }
 

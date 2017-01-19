@@ -46,7 +46,7 @@ function datatableForEachRow(table, callbacks) {
 }
 
 function datatableAddDeleteButtonCallback(td_idx, callback_str, label) {
-   $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on" onclick="' + callback_str + '" role="button"><span class="label label-danger">' + label + '</span></a>');
+   $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on btn" onclick="' + callback_str + '" role="button"><span class="label label-danger">' + label + '</span></a>');
 }
 
 function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {

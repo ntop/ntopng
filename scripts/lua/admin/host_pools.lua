@@ -6,6 +6,8 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local host_pools_utils = require "host_pools_utils"
+local template = require "template_utils"
+
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
   shaper_utils = require "shaper_utils"
@@ -40,7 +42,14 @@ if _POST["edit_pools"] ~= nil then
   end
   -- Note: do not call reload here
 elseif _POST["pool_to_delete"] ~= nil then
-  host_pools_utils.deletePool(ifId, _POST["pool_to_delete"])
+  local pool_id = _POST["pool_to_delete"]
+  host_pools_utils.deletePool(ifId, pool_id)
+
+  if(interface.isBridgeInterface(ifId) == true) then
+    shaper_utils.flushPoolRules(ifId, pool_id)
+  end
+
+  -- Note: this will also realod the shaping rules
   interface.reloadHostPools()
 elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool_id"]
@@ -72,14 +81,14 @@ end
 
 function printPoolNameField(pool_id_str)
   print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
-  print[[<input name="pool_' + ]] print(pool_id_str) print[[ + '" class="form-control" data-unique="unique" placeholder="]] print(i18n("host_pools.specify_pool_name")) print[[" required/>]]
+  print[[<input name="pool_' + ]] print(pool_id_str) print[[ + '" class="form-control" spellcheck="false" data-unique="unique" placeholder="]] print(i18n("host_pools.specify_pool_name")) print[[" required/>]]
   print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
   print[[</div>]]
 end
 
-function printMemberNameField(member_str, origin_value_str)
+function printMemberAddressField(member_str, origin_value_str)
   print[[<div class="form-group has-feedback" style="margin-bottom:0;">]]
-  print[[<input name="member_' + ]] print(member_str) print[[ + '" class="form-control" data-address="address" data-member="member" placeholder="]] print(i18n("host_pools.specify_member_address")) print[["]]
+  print[[<input name="member_' + ]] print(member_str) print[[ + '" class="form-control" spellcheck="false" data-address="address" data-member="member" placeholder="]] print(i18n("host_pools.specify_member_address")) print[["]]
   if not isEmptyString(origin_value_str) then
     print[[ data-origin-value="' + ]] print(origin_value_str) print[[ + '"]]
   end
@@ -98,18 +107,18 @@ end
 --------------------------------------------------------------------------------
 
 local selected_pool_id = _GET["pool"]
-local available_pools = {}
 
-for _, pool_id in host_pools_utils.listPools(ifId) do
-  available_pools[#available_pools + 1] = {id=pool_id, name=host_pools_utils.getPoolName(ifId, pool_id)}
+local selected_pool = nil
+local available_pools = host_pools_utils.getPoolsList(ifId)
+
+for _, pool in ipairs(available_pools) do
+  if pool.id == selected_pool_id then
+    selected_pool = pool
+  end
 end
 
-if tonumber(selected_pool_id) == nil then
-  if #available_pools > 0 then
-    selected_pool_id = available_pools[1].id
-  else
-    selected_pool_id = "0"
-  end
+if selected_pool == nil then
+  selected_pool = available_pools[1]
 end
 
 --------------------------------------------------------------------------------
@@ -129,7 +138,7 @@ print [[
   print('<br/>') print(i18n("host_pools.pool")) print(': <select class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
   for _,pool in ipairs(available_pools) do
     print('<option value="'..tostring(pool.id)..'"')
-    if pool.id == selected_pool_id then
+    if pool.id == selected_pool.id then
       print(" selected")
     end
     print('>'..(pool.name)..'</option>\n')
@@ -156,10 +165,46 @@ print[[
   </div>
 ]]
 
+-- Create delete dialogs
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "delete_pool_dialog",
+      action  = "deletePool(delete_pool_id)",
+      title   = i18n("host_pools.delete_pool"),
+      message = i18n("host_pools.confirm_delete_pool") .. ' "<span id=\"delete_pool_dialog_pool\"></span>" ' .. i18n("host_pools.and_associated_members"),
+      confirm = i18n("delete"),
+    }
+  })
+)
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "delete_member_dialog",
+      action  = "deletePoolMember(delete_member_id)",
+      title   = i18n("host_pools.remove_member"),
+      message = i18n("host_pools.confirm_remove_member") .. ' "<span id=\"delete_member_dialog_member\"></span>" ' .. i18n("host_pools.from_pool") .. ' "' .. selected_pool.name .. '" ',
+      confirm = i18n("remove"),
+    }
+  })
+)
+
 --------------------------------------------------------------------------------
 
 print[[
   <script>
+    function hideShowVlan(input) {
+      var member = input.val();
+      var vlan_field = input.closest("tr").find("td:nth-child(2) input");
+
+      if (is_mac_address(member))
+        vlan_field.attr("disabled", "disabled");
+      else if (is_network_mask(member, true))
+        vlan_field.removeAttr("disabled");
+    }
+    
     /* Make the pair address,vlan unique */
     function addressValidator(input) {
       var member = input.val();
@@ -168,6 +213,7 @@ print[[
       if (! member)
         return true;
 
+      hideShowVlan(input);
       return is_mac_address(member) || is_network_mask(member, true);
     }
   
@@ -178,27 +224,42 @@ print[[
       if (! member)
         return true;
 
-      var address_value;
-      var vlan_value;
-      if (input.attr("name").endsWith("_vlan")) {
-        var name = input.attr("name").split("_vlan")[0];
-        address_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
-        vlan_value = member;
+      var is_mac = is_mac_address(member);
+      var identifier;
+
+      if(is_mac) {
+        identifier = member;
       } else {
-        var name = input.attr("name") + "_vlan";
-        address_value = member;
-        vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
+        var address_value;
+        var vlan_value;
+        
+        if (input.attr("name").endsWith("_vlan")) {
+          var name = input.attr("name").split("_vlan")[0];
+          address_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
+          vlan_value = member;
+        } else {
+          var name = input.attr("name") + "_vlan";
+          address_value = member;
+          vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
+        }
+
+        identifier = address_value + "@" + vlan_value;
       }
 
-      var identifier = address_value + "@" + vlan_value;
       var count = 0;
 
       $('input[name^="member_"]:not([name$="_vlan"])', $("#table-manage-form")).each(function() {
         var address_value = $(this).val();
-        var name = $(this).attr("name") + "_vlan";
-        vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
 
-        var aggregated = address_value + "@" + vlan_value;
+        var aggregated;
+        if (is_mac) {
+          aggregated = address_value;
+        } else {
+          var name = $(this).attr("name") + "_vlan";
+          vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
+          aggregated = address_value + "@" + vlan_value;
+        }
+
         if (aggregated === identifier)
           count++;
       });
@@ -223,7 +284,7 @@ print [[
       var member_id = addedMemberCtr++;
       var newid = "member_" + member_id;
 
-      var tr = $('<tr id=' + newid + '><td>]] printMemberNameField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td class="text-center"></td></tr>');
+      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td class="text-center"></td></tr>');
       datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
@@ -238,7 +299,7 @@ print [[
 
       if (field.attr("data-origin-value")) {
         var params = {};
-        params.pool_id = ]] print(selected_pool_id) print[[;
+        params.pool_id = ]] print(selected_pool.id) print[[;
         params.member_to_delete = field.attr("data-origin-value");
         params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
         paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
@@ -248,7 +309,7 @@ print [[
     $("#table-manage").datatable({
       url: "]]
    print (ntop.getHttpPrefix())
-   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool_id) print[[",
+   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[",
       title: "",
       hidePerPage: true,
       hideDetails: true,
@@ -283,7 +344,7 @@ print [[
             }
          }
       ], tableCallback: function() {
-        if (]] print(selected_pool_id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
+        if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.default_pool_read_only")) print[[");
           $("#addPoolMemberBtn").attr("disabled", "disabled");
         } else if(datatableIsEmpty("#table-manage")) {
@@ -295,16 +356,29 @@ print [[
             var member_id = addedMemberCtr++;
 
             /* Make member name editable */
-            var input = $(']] printMemberNameField('member_id', 'member_address.html() + \'@\' + vlan.html()') print[[');
-            $("input", input).first().val(member_address.html());
+            var value = member_address.html();
+            var is_network = is_network_mask(value);
+            if (is_network)
+              old_value = member_address.html() + '@' + vlan.html();
+            else
+              old_value = member_address.html();
+            var input = $(']] printMemberAddressField('member_id', 'old_value') print[[');
+            var address_input = $("input", input).first();
+            address_input.val(value);
             member_address.html(input);
 
             /* Make vlan editable */
             var input = $(']] printMemberVlanField('member_id') print[[');
-            $("input", input).first().val(vlan.html());
+            var vlan_value = parseInt(vlan.html());
+            $("input", input).first().val(vlan_value);
             vlan.html(input);
 
-            datatableAddDeleteButtonCallback.bind(this)(3, "deletePoolMember('" + member_id + "')", "]] print(i18n('delete')) print[[");
+            hideShowVlan(address_input);
+
+            if ((vlan_value > 0) && (is_network))
+              value = value + " [VLAN " + vlan_value + "]";
+
+            datatableAddDeleteButtonCallback.bind(this)(3, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           aysResetForm('#table-manage-form');
@@ -325,24 +399,28 @@ print [[
       
       // build the settings object
       var settings = {};
-      $("input[name^='member_']", form).each(function() {
-        var vlan_name = $(this).attr("name") + "_vlan";
-        var vlan_field = $("input[name=" + vlan_name + "]", form);
-        if (vlan_field.length == 1) {
-          var original;
+      $('input[name^="member_"]:not([name$="_vlan"])', form).each(function() {
+        var address = null;
 
-          if($(this).attr("data-origin-value"))
-            original = $(this).attr("data-origin-value");
-          else
-            original = "";
-
-          var member;
-          if((member = is_network_mask($(this).val(), true)))
-            member = member.address + "/" + member.mask;
-          else
-            member = $(this).val();
-          settings[member + "@" + vlan_field.val()] = original;
+        if((member = is_network_mask($(this).val(), true))) {
+          /* this is a network */
+          var vlan_name = $(this).attr("name") + "_vlan";
+          var vlan_field = $("input[name=" + vlan_name + "]", form);
+          if (vlan_field.length == 1)
+            address = member.address + "/" + member.mask + "@" + vlan_field.val();
+        } else {
+          /* this is a mac */
+          address = $(this).val();
         }
+
+        var original;
+        if($(this).attr("data-origin-value"))
+          original = $(this).attr("data-origin-value");
+        else
+          original = "";
+
+        if (address !== null)
+          settings[address] = original;
       });
 
       // reset ays so that we can submit a custom form
@@ -351,7 +429,7 @@ print [[
       // create a form with key-values encoded
       var params = paramsPairsEncode(settings);
       params.edit_members = "";
-      params.pool_id = ]] print(selected_pool_id) print[[;
+      params.pool_id = ]] print(selected_pool.id) print[[;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
       paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
       return false;
@@ -377,7 +455,7 @@ print [[
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
       var form = paramsToForm('<form method="post"></form>', params);
-      if (pool_id == ]] print(selected_pool_id) print[[)
+      if (pool_id == ]] print(selected_pool.id) print[[)
         form.attr("action", "?#create");
 
       form.appendTo('body').submit();
@@ -406,7 +484,7 @@ print [[
       if (pool_id < maxPoolNum) {
         var newid = "added_pool_" + pool_id;
 
-        var tr = $('<tr id=' + newid + '><td class="text-center">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="text-center"></td></tr>');
+        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="text-center"></td></tr>');
         datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
         datatableOrderedInsert("#table-create table", 1, tr, pool_id);
         $("input", tr).focus();
@@ -471,13 +549,15 @@ print [[
             var pool_name = $("td:nth-child(2)", $(this));
 
             /* Make pool name editable */
-            if (pool_id != ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
-              var input = $(']] printPoolNameField('pool_id') print[[');
-              $("input", input).first().val(pool_name.html());
-              pool_name.html(input);
+            var input = $(']] printPoolNameField('pool_id') print[[');
+            var value = pool_name.html();
+            $("input", input).first().val(value);
+            pool_name.html(input);
 
-              datatableAddDeleteButtonCallback.bind(this)(3, "deletePool('" + pool_id + "')", "]] print(i18n('delete')) print[[");
-            }
+            if (pool_id != ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[)
+              datatableAddDeleteButtonCallback.bind(this)(3, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            else
+              $("input", input).first().attr("disabled", "disabled");
          });
 
          /* pick the first unused pool ID */

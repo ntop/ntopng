@@ -75,17 +75,10 @@ function host_pools_utils.getPoolsList(ifid)
   local pools = {}
 
   for _, pool_id in pairsByValues(ntop.getMembersCache(ids_key) or {}, asc) do
-    pools[#pools + 1] = {id=pool_id, name=host_pools_utils.getPoolName(ifId, pool_id)}
+    pools[#pools + 1] = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
   end
 
   return pools
-end
-
--- TODO remove
-function host_pools_utils.listPools(ifid)
-  local ids_key = get_pool_ids_key(ifid)
-
-  return pairsByValues(ntop.getMembersCache(ids_key) or {}, asc)
 end
 
 function host_pools_utils.getPoolMembers(ifid, pool_id)
