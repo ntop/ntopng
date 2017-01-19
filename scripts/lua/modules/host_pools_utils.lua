@@ -51,9 +51,11 @@ end
 function host_pools_utils.deletePool(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local details_key = get_pool_details_key(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
 
   ntop.delMembersCache(ids_key, pool_id)
   ntop.delCache(details_key)
+  ntop.delCache(members_key)
 end
 
 function host_pools_utils.addToPool(ifid, pool_id, member_and_vlan)
@@ -68,6 +70,18 @@ function host_pools_utils.deleteFromPoll(ifid, pool_id, member_and_vlan)
   ntop.delMembersCache(members_key, member_and_vlan)
 end
 
+function host_pools_utils.getPoolsList(ifid)
+  local ids_key = get_pool_ids_key(ifid)
+  local pools = {}
+
+  for _, pool_id in pairsByValues(ntop.getMembersCache(ids_key) or {}, asc) do
+    pools[#pools + 1] = {id=pool_id, name=host_pools_utils.getPoolName(ifId, pool_id)}
+  end
+
+  return pools
+end
+
+-- TODO remove
 function host_pools_utils.listPools(ifid)
   local ids_key = get_pool_ids_key(ifid)
 
