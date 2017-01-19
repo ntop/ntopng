@@ -4,7 +4,7 @@ local messages = {ntopng="Add ntopng User", captive_portal="Add Captive Portal U
 
 local add_user_msg = messages["ntopng"]
 local captive_portal_user = false
-if is_bridge_iface then
+if is_bridge_iface and is_captive_portal_enabled then
    if _GET["captive_portal_users"] ~= nil then
       add_user_msg = messages["captive_portal"]
       captive_portal_user = true

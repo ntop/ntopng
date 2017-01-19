@@ -1203,6 +1203,7 @@ void Prefs::lua(lua_State* vm) {
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_flow_activity_enabled", enable_flow_activity);
+  lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
 
   /* RRD prefs */
