@@ -111,19 +111,28 @@ if captive_portal_user == false then
   </div>
 </div>
 
-<div class="form-group has-feedback">
-  <label class="form-label">Allowed Networks</label>
-  <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-    <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
+<div class="row">
+  <div class='col-md-12'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Allowed Networks</label>
+      <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
+        <input id="allowed_networks_input" type="text" name="allowed_networks" value="" class="form-control">
+      </div>
+      <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
+    </div>
   </div>
-  <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
+
 </div>]]
 
 else -- a captive portal user is being added
    print[[
-<div class="form-group has-feedback">
-  <label class="form-label">Host Pool</label>
-  <select name="host_pool_id" id="host_pool_id" class="form-control">
+
+<div class="row">
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label">Host Pool</label>
+      <select name="host_pool_id" id="host_pool_id" class="form-control">
+
 ]]
 
    local pool_ids = host_pools_utils.listPools(getInterfaceId(ifname))
@@ -132,12 +141,38 @@ else -- a captive portal user is being added
    end
 
    print[[
-  </select>
+      </select>
 
-  <input id="host_role" name="host_role" type="hidden" value="captive_portal" />
-  <input id="allowed_networks" name="allowed_networks" type="hidden" value="0.0.0.0/0,::/0" />
-  <input id="allowed_interface" name="allowed_interface" type="hidden" value="]] print(getInterfaceId(ifname)) print[[" />
+      <input id="host_role" name="host_role" type="hidden" value="captive_portal" />
+      <input id="allowed_networks" name="allowed_networks" type="hidden" value="0.0.0.0/0,::/0" />
+      <input id="allowed_interface" name="allowed_interface" type="hidden" value="]] print(tostring(getInterfaceId(ifname))) print[[" />
+
+    </div>
+  </div>
+
+  <div class='col-md-6'>
+    <div class="form-group has-feedback">
+      <label class="form-label" style="display:block;">User Lifetime</label>
+      <div class="input-group" style="display:inline;">
+        <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
+        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Today at midnight</label>
+      </div>
+      <!-- optionally allow to specify a certain number of days
+      <input id="lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
+      -->
+    </div>
+  </div>
 </div>
+
+<div class="row">
+  <div class='col-md-6' style='padding:0; margin-top:-15px;'>
+    <small>The host pool that will be associated to the user upon successfull authentication.</small>
+  </div>
+  <div class='col-md-6' style='padding:0; margin-top:-15px;'>
+    <small>The lifetime of the user. The user can be perpetual or can be deleted at midnigth.</small>
+  </div>
+</div>
+
 ]]
 end
 
@@ -147,6 +182,19 @@ print[[<div class="form-group has-feedback">
 
 </form>
 <script>
+
+<!-- use the following scripts when the user lifetime can be specified in days
+
+  $("#lifetime_unlimited").click(function(){
+    $("#lifetime_days").prop("disabled", true);
+    $("#lifetime_limited").removeAttr("checked");
+  });
+  $("#lifetime_limited").click(function() {
+    $("#lifetime_days").prop("disabled", false);
+    $("#lifetime_unlimited").removeAttr("checked");
+  });
+
+-->
 
   var frmadduser = $('#form_add_user');
 

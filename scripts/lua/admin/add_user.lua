@@ -17,7 +17,8 @@ if(haveAdminPrivileges()) then
    networks = _POST["allowed_networks"]
    allowed_interface = _POST["allowed_interface"]
    host_pool_id = _POST["host_pool_id"]
-   
+   limited_lifetime = _POST["lifetime_limited"]
+
    if(username == nil or full_name == nil or password == nil or confirm_password == nil or host_role == nil or networks == nil or allowed_interface == nil) then
       print ("{ \"result\" : -1, \"message\" : \"Invalid parameters\" }")
       return
@@ -27,8 +28,18 @@ if(haveAdminPrivileges()) then
       print ("{ \"result\" : -1, \"message\" : \"Passwords do not match: typo?\" }")
       return
    end
-   
+
+   local ret = false
    if(ntop.addUser(username, full_name, password, host_role, networks, getInterfaceName(allowed_interface), host_pool_id)) then
+      ret = true
+
+      if limited_lifetime and not ntop.addUserLifetime(username) then
+	 ret = false
+      end
+
+   end
+
+   if ret then
       print ("{ \"result\" : 0, \"message\" : \"User added successfully\" }")
    else
       print ("{ \"result\" : -1, \"message\" : \"Error while adding new user\" }")

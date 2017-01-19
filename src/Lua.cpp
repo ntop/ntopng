@@ -3094,6 +3094,21 @@ static int ntop_add_user(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_add_user_lifetime(lua_State* vm) {
+  char *username;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  return ntop->addUserLifetime(username);
+}
+
+/* ****************************************** */
+
 static int ntop_delete_user(lua_State* vm) {
   char *username;
 
@@ -5433,6 +5448,7 @@ static const luaL_Reg ntop_reg[] = {
   { "changeAllowedNets",  ntop_change_allowed_nets },
   { "changeAllowedIfname",ntop_change_allowed_ifname },
   { "addUser",            ntop_add_user },
+  { "addUserLifetime",    ntop_add_user_lifetime },
   { "deleteUser",         ntop_delete_user },
   { "isLoginDisabled",    ntop_is_login_disabled },
   { "getNetworkNameById", ntop_network_name_by_id },

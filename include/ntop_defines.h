@@ -162,6 +162,7 @@
 #define CONST_STR_USER_NETS           "ntopng.user.%s.allowed_nets"
 #define CONST_STR_USER_ALLOWED_IFNAME "ntopng.user.%s.allowed_ifname"
 #define CONST_STR_USER_HOST_POOL_ID   "ntopng.user.%s.host_pool_id"
+#define CONST_STR_USER_EXPIRE         "ntopng.user.%s.expire"
 #define CONST_ALLOWED_NETS            "allowed_nets"
 #define CONST_ALLOWED_IFNAME          "allowed_ifname"
 #define CONST_USER                     "user"

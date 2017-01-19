@@ -667,6 +667,10 @@ void Ntop::getUsers(lua_State* vm) {
     else
       lua_push_str_table_entry(vm, CONST_ALLOWED_IFNAME, (char*)"");
 
+    snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
+    if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+      lua_push_bool_table_entry(vm, "limited_lifetime", true);
+    
     lua_pushstring(vm, username);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -981,6 +985,36 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
   ntop->getRedis()->set(key, val, 0);
 
   return(true);
+}
+
+/* ******************************************* */
+
+bool Ntop::addUserLifetime(const char * const username) {
+  char key[64], val[64];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
+    ntop->getRedis()->set(key, (char*)"true" /* May contain a date in the future */, 0);
+    return(true);
+  }
+
+  return(false);
+}
+
+/* ******************************************* */
+
+bool Ntop::hasUserLimitedLifetime(const char * const username) {
+  char key[64], val[64];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    return(true);
+  }
+
+  return(false);
 }
 
 /* ******************************************* */
