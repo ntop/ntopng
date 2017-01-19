@@ -31,29 +31,40 @@ if(haveAdminPrivileges()) then
 	    <h2>Runtime Preferences</h2>
       ]]
 
-subpage_active = _GET["subpage_active"]
+   if(false) then
+      io.write("------- SERVER ----------------\n")
+      tprint(_SERVER)
+      io.write("-------- GET ---------------\n")
+      tprint(_GET)
+      io.write("-------- POST ---------------\n")
+      tprint(_POST)
+      io.write("-----------------------\n")
+   end
 
-if toboolean(_POST["show_advanced_prefs"]) ~= nil then
-  ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
-  show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
-  notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
-else
-   show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
-  if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
-end
+   subpage_active = _GET["subpage_active"]
+   
 
-local menu_subpages = {
-  {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
-  {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
-  {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
-  {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
-  {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
-  {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
-  {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
-  {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
-  {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
-  {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
-}
+   if toboolean(_POST["show_advanced_prefs"]) ~= nil then
+      ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+      show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
+      notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+   else
+      show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
+      if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
+   end
+   
+   local menu_subpages = {
+      {id="users",         label="Users",                advanced=false, pro_only=false,  disabled=false},
+      {id="ifaces",        label="Network Interfaces",   advanced=true,  pro_only=false,  disabled=false},
+      {id="in_memory",     label="In-Memory Data",       advanced=true,  pro_only=false,  disabled=false},
+      {id="on_disk_rrds",  label="On-Disk Timeseries",   advanced=false, pro_only=false,  disabled=false},
+      {id="on_disk_dbs",   label="On-Disk Databases",    advanced=true,  pro_only=false,  disabled=false},
+      {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
+      {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
+      {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
+      {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
+      {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
+   }
 
 if(info["version.enterprise_edition"]) then
    table.insert(menu_subpages, {id="bridging",          label="Traffic Bridging",     advanced=false,  pro_only=true,   disabled=false})
@@ -746,9 +757,10 @@ aysHandleForm("form[id!='search-host-form']");
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
-if(_POST["disable_alerts_generation"] ~= nil) then
-  -- Check if we navigate the page or if we have set something
+if(_SERVER["REQUEST_METHOD"] == "POST") then
+   -- Something has changed
   ntop.reloadPreferences()
+  io.write("$$$$$$$$$$$ RELOAD $$$$$$$$$$$")
 end
 
 if(_POST["toggle_malware_probing"] ~= nil) then

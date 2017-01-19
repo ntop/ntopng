@@ -5844,8 +5844,6 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 
       tok = strtok_r(NULL, "&", &where);
     } /* while */
-
-
   }
 
   if(query_string) free(query_string);
@@ -5893,7 +5891,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
     if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
         || (strcmp(rsp, user) != 0)) {
-      const char *msg = "The submitted form is expired. Please reload the page and try again";
+      const char *msg = "The submitted form is expired. Please reload the page and try again. <p>[ <A HREF=/>Home</A> ]";
 
       ntop->getTrace()->traceEvent(TRACE_WARNING,
           "Invalid CSRF parameter specified [%s][%s][%s][%s]: page expired?",
@@ -5908,25 +5906,49 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
     /* CSRF is valid here, now fill the _POST table with POST parameters */
     setParamsTable(L, "_POST", post_data);
-  } else
+
+    if(request_info->query_string) {
+      char *k, *t1;
+
+      lua_newtable(L);
+      
+      k = strtok_r((char*)request_info->query_string, "&", &t1);
+      while(k != NULL) {
+	char *a, *b, *t2;
+	
+	if((a = strtok_r(k, "=", &t2)) != NULL) {
+	  b = strtok_r(NULL, "=", &t2);
+	  
+	  if(b) lua_push_str_table_entry(L, a, b);
+	  
+	}
+
+	k = strtok_r(NULL, "&", &t1);
+      }
+
+      lua_setglobal(L, (char*)"_GET");
+    } else
+      setParamsTable(L, "_GET", NULL /* Empty */);
+  } else {
     setParamsTable(L, "_POST", NULL /* Empty */);
 
-  /* Put the GET params into the environment */
-  setParamsTable(L, "_GET", request_info->query_string);
-
-  lua_newtable(L);
-  for(int i=0; request_info->http_headers[i].name != NULL; i++)
-    lua_push_str_table_entry(L,
-			     request_info->http_headers[i].name,
-			     (char*)request_info->http_headers[i].value);
-  lua_setglobal(L, (char*)"_SERVER");
+    /* Put the GET params into the environment */
+    setParamsTable(L, "_GET", request_info->query_string);
+  }
 
   /* _SERVER */
   lua_newtable(L);
-  lua_push_str_table_entry(L, "HTTP_REFERER", (char*)mg_get_header(conn, "Referer"));
-  lua_push_str_table_entry(L, "HTTP_USER_AGENT", (char*)mg_get_header(conn, "User-Agent"));
-  lua_push_str_table_entry(L, "SERVER_NAME", (char*)mg_get_header(conn, "Host"));
-  lua_setglobal(L, "_SERVER"); /* Like in php */
+  lua_push_str_table_entry(L, "REQUEST_METHOD", (char*)request_info->request_method);
+  lua_push_str_table_entry(L, "URI", (char*)request_info->uri);
+  if(request_info->remote_user)  lua_push_str_table_entry(L, "REMOTE_USER", (char*)request_info->remote_user);
+  if(request_info->query_string) lua_push_str_table_entry(L, "QUERY_STRING", (char*)request_info->query_string);
+
+  for(int i=0; ((request_info->http_headers[i].name != NULL) 
+		&& request_info->http_headers[i].name[0] != '\0'); i++)
+    lua_push_str_table_entry(L,
+			     request_info->http_headers[i].name,
+			     (char*)request_info->http_headers[i].value);  
+  lua_setglobal(L, (char*)"_SERVER");
 
   /* Cookies */
   lua_newtable(L);
