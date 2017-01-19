@@ -27,5 +27,5 @@ Enabling Captive Portal
 Captive portal is used to authenticate legitimate users and bind them to the
 correct host pool. In order to enable this feature
 - you need the enterprise version of ntopng
-- the captive portal option must be enabled in the ntoopng preferences menu
+- the captive portal option must be enabled in the ntopng preferences menu
 - ntopng must be active on port 80 and 443 for authenticating users (-w 80 -W 443)

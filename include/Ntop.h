@@ -364,6 +364,7 @@ class Ntop {
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id);
   bool addUserLifetime(const char * const username); /* Captive portal users may expire */
+  bool isCaptivePortalUser(const char * const username);
   bool deleteUser(char *username);
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);
   bool hasUserLimitedLifetime(const char * const username);

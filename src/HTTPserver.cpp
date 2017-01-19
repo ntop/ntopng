@@ -392,6 +392,26 @@ static int handle_lua_request(struct mg_connection *conn) {
     return(1);
   }
 
+  if(ntop->getPrefs()->isCaptivePortalEnabled()
+     && ntop->isCaptivePortalUser(username)) {
+    /* 
+       This user logged onto ntopng via the captive portal
+    */
+    char buf[32];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s", 
+				 username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)));
+
+    if(ntop->hasUserLimitedLifetime(username)) {
+      /* Add it to the temporary list of authorized MACs */
+
+      
+    } else {
+      /* Permanently add it to its user group */
+
+    }
+  }
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s", request_info->uri);
 
   if(strstr(request_info->uri, "//")

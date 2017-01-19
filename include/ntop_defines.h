@@ -375,9 +375,13 @@
 #define CONST_PROFILES_PREFS               "ntopng.prefs.profiles"
 #define CONST_PROFILES_COUNTERS            "ntopng.profiles_counters.ifid_%i"
 #define CONST_PREFS_CAPTIVE_PORTAL         "ntopng.prefs.enable_captive_portal"
-#define HOST_POOL_IDS_KEY             "ntopng.prefs.%u.host_pools.pool_ids"
-#define HOST_POOL_MEMBERS_KEY         "ntopng.prefs.%u.host_pools.members.%s"
-#define HOST_POOL_SHAPERS_KEY         "ntopng.prefs.%u.l7_policies.%s"
+#define HOST_POOL_IDS_KEY                  "ntopng.prefs.%u.host_pools.pool_ids"
+#define HOST_POOL_MEMBERS_KEY              "ntopng.prefs.%u.host_pools.members.%s"
+#define HOST_POOL_SHAPERS_KEY              "ntopng.prefs.%u.l7_policies.%s"
+
+#define CONST_USER_GROUP_ADMIN             "administrator"
+#define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"
+#define CONST_USER_GROUP_CAPTIVE_PORTAL    "captive_portal"
 
 #define CONST_LOCAL_HOST_CACHE_DURATION_PREFS  "ntopng.prefs.local_host_cache_duration"
 #define CONST_LOCAL_HOST_IDLE_PREFS            "ntopng.prefs.local_host_max_idle"

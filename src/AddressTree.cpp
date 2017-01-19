@@ -25,10 +25,7 @@
 
 /* **************************************** */
 
-AddressTree::AddressTree() {
-  numAddresses = 0;
-  ptree_v4 = New_Patricia(32), ptree_v6 = New_Patricia(128), macs = NULL;
-}
+AddressTree::AddressTree() { init(); }
 
 /* **************************************** */
 
@@ -36,18 +33,15 @@ static void free_ptree_data(void *data) { ; }
 
 /* **************************************** */
 
-AddressTree::~AddressTree() {
-  if(ptree_v4)  Destroy_Patricia(ptree_v4, free_ptree_data);
-  if(ptree_v6)  Destroy_Patricia(ptree_v6, free_ptree_data);
+void AddressTree::init() {
+  numAddresses = 0;
+  ptree_v4 = New_Patricia(32), ptree_v6 = New_Patricia(128), macs = NULL;
+}
 
-  if(macs) {
-    MacKey_t *current, *tmp;
-    
-    HASH_ITER(hh, macs, current, tmp) {
-      HASH_DEL(macs, current);  /* delete it */
-      free(current);         /* free it */
-    }
-  }  
+/* **************************************** */
+
+AddressTree::~AddressTree() {
+  cleanup();
 }
 
 /* ******************************************* */
@@ -201,3 +195,18 @@ void AddressTree::dump() {
   }
 }
 
+/* **************************************************** */
+
+void AddressTree::cleanup() {
+  if(ptree_v4)  Destroy_Patricia(ptree_v4, free_ptree_data);
+  if(ptree_v6)  Destroy_Patricia(ptree_v6, free_ptree_data);
+
+  if(macs) {
+    MacKey_t *current, *tmp;
+    
+    HASH_ITER(hh, macs, current, tmp) {
+      HASH_DEL(macs, current);  /* delete it */
+      free(current);         /* free it */
+    }
+  }  
+}

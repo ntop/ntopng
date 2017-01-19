@@ -770,7 +770,7 @@ void Redis::setDefaults() {
   if(get((char*)"ntopng.user.admin.password", value, sizeof(value)) < 0) {
     set((char*)"ntopng.user.admin.password", (char*)"21232f297a57a5a743894a0e4a801fc3");
     set((char*)"ntopng.user.admin.full_name", (char*)"ntopng Administrator");
-    set((char*)"ntopng.user.admin.group", (char*)"administrator");
+    set((char*)"ntopng.user.admin.group", (char*)CONST_USER_GROUP_ADMIN);
     set((char*)"ntopng.user.admin.allowed_nets", (char*)"0.0.0.0/0,::/0");
   }
 }

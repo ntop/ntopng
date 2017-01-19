@@ -42,6 +42,9 @@ class AddressTree {
   AddressTree();
   ~AddressTree();
 
+  void init();
+  void cleanup();
+
   inline u_int16_t getNumAddresses() { return(numAddresses); }
 
   inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }

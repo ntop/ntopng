@@ -703,7 +703,7 @@ void Ntop::getUserGroup(lua_State* vm) {
   mg_get_cookie(conn, CONST_USER, username, sizeof(username));
 
   if(!strncmp(username, NTOP_NOLOGIN_USER, sizeof(username))) {
-    lua_pushstring(vm, "administrator");
+    lua_pushstring(vm, CONST_USER_GROUP_ADMIN);
     return;
   }
 
@@ -845,7 +845,7 @@ bool Ntop::checkUserPassword(const char *user, const char *password) {
 
 	if(ret) {
 	  snprintf(key, sizeof(key), PREF_LDAP_GROUP_OF_USER, user);
-	  ntop->getRedis()->set(key, is_admin ?  (char*)"administrator" : (char*)"unprivileged", 0);
+	  ntop->getRedis()->set(key, is_admin ?  (char*)CONST_USER_GROUP_ADMIN : (char*)CONST_USER_GROUP_UNPRIVILEGED, 0);
           snprintf(key, sizeof(key), PREF_USER_TYPE_LOG, user);
 	  ntop->getRedis()->set(key, (char*)"ldap", 0);
 	  return(true);
@@ -1014,6 +1014,21 @@ bool Ntop::hasUserLimitedLifetime(const char * const username) {
   snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    return(true);
+  }
+
+  return(false);
+}
+
+/* ******************************************* */
+
+bool Ntop::isCaptivePortalUser(const char * const username) {
+  char key[64], val[64];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+
+  if((ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
+     && (!strcmp(val, CONST_USER_GROUP_CAPTIVE_PORTAL))) {
     return(true);
   }
 

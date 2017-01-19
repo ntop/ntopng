@@ -88,7 +88,7 @@ if captive_portal_user == false then
       <label class="form-label">User Role</label>
       <div class="controls">
         <select id="host_role_select" name="host_role" class="form-control">
-          <option value="standard">Non Privileged User</option>
+          <option value="unprivileged">Non Privileged User</option>
           <option value="administrator">Administrator</option>
         </select>
       </div>
