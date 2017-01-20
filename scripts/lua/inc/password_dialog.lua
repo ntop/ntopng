@@ -73,6 +73,7 @@ print [[
 <div id="pref_part_separator"><hr/></div>
 <form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="get" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
+  <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
 
   <div class="form-group has-feedback">
     <label class="input-label">User Role</label>

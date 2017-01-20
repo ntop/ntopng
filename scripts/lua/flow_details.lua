@@ -116,6 +116,7 @@ if(flow == nil) then
    print('<div class=\"alert alert-danger\"><i class="fa fa-warning fa-lg"></i> This flow cannot be found. '.. purgedErrorString()..'</div>')
 else
 
+if _GET["csrf"] ~= nil then
    if(_GET["drop_flow_policy"] == "true") then
       interface.dropFlowTraffic(tonumber(flow_key))
       flow["verdict.pass"] = false
@@ -124,6 +125,7 @@ else
       interface.dumpFlowTraffic(tonumber(flow_key), ternary(_GET["dump_flow_to_disk"] == "true", 1, 0))
       flow["dump.disk"] = ternary(_GET["dump_flow_to_disk"] == "true", true, false)
    end
+end
 
    ifstats = aggregateInterfaceStats(interface.getStats())
    print("<table class=\"table table-bordered table-striped\">\n")

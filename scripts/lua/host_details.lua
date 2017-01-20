@@ -136,7 +136,7 @@ else
       host_info["host"] = host["ip"]
    end
 
-   if(_GET["custom_name"] ~=nil) then
+   if((_GET["custom_name"] ~=nil) and (_GET["csrf"] ~= nil)) then
    	setHostAltName(hostinfo2hostkey(host_info), _GET["custom_name"])
    end
 
@@ -343,8 +343,7 @@ if((page == "overview") or (page == nil)) then
 
       if(host["localhost"] == true and is_packetdump_enabled) then
 	 dump_status = host["dump_host_traffic"]
-
-	 if(_GET["dump_traffic"] ~= nil) then
+	 if((_GET["dump_traffic"] ~= nil) and (_GET["csrf"] ~= nil)) then
 	    if(_GET["dump_traffic"] == "true") then
 	       dump_status = true
 	    else
@@ -390,7 +389,10 @@ if((page == "overview") or (page == nil)) then
       print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
    end
 
-   drop_host_traffic = _GET["drop_host_traffic"]
+   if _GET["csrf"] ~= nil then
+      drop_host_traffic = _GET["drop_host_traffic"]
+   end
+
    host_key = hostinfo2hostkey(host_info)
    if(drop_host_traffic ~= nil) then
       if(drop_host_traffic == "false") then
@@ -501,7 +503,7 @@ print [[
    end
 
    if(ifstats.inline and (host.localhost or host.systemhost) and isAdministrator()) then
-	 if(_GET["host_quota"] ~= nil) then
+	 if((_GET["host_quota"] ~= nil) and (_GET["csrf"] ~= nil)) then
 	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
 	    interface.setHostQuota(tonumber(_GET["host_quota"]), host_info["host"], host_vlan)
 	 end
