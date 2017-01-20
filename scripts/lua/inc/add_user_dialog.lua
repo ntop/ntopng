@@ -145,7 +145,7 @@ else -- a captive portal user is being added
     </div>
 
     <div class="form-group col-md-6 has-feedback">
-      <label class="form-label">Authorization Lifetime</label>
+      <label class="form-label">Authentication Lifetime</label>
       <div class="input-group">
         <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
         <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires at midnight</label>

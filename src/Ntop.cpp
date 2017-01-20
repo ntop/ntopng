@@ -982,7 +982,7 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
     ntop->getRedis()->set(key, allowed_ifname, 0);
   }
 
-  if(host_pool_id) {
+  if(host_pool_id && host_pool_id[0] != '\0') {
     snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
     ntop->getRedis()->set(key, host_pool_id, 0);
   }
@@ -1013,9 +1013,9 @@ bool Ntop::hasUserLimitedLifetime(const char * const username) {
 
   snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
 
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
-    return(true);
-  }
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0
+     && !strncmp(val, (char*)"true", strlen("true")))
+      return(true);
 
   return(false);
 }
