@@ -42,7 +42,7 @@ end
   password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
 </script>
 
-  <form data-toggle="validator" id="form_password_reset" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua">
+  <form data-toggle="validator" id="form_password_reset" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua">
 ]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
@@ -54,45 +54,44 @@ print [[
 local user_group = ntop.getUserGroup()
 local col_md_size = "6"
 
-print('<div class="row">')
+print('<br><div class="row">')
 
 if(user_group ~= "administrator") then
    col_md_size = "4"
 print [[
-  <div class='col-md-]] print(col_md_size) print[['>
-    <div class="form-group has-feedback">
-      <label for="" class="control-label">Old User Password</label>
+  <div class='form-group col-md-]] print(col_md_size) print[[ has-feedback'>
+      <label for="" class="control-label">Old Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="old_password_input" type="password" name="old_password" value="" class="form-control">
+        <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
       </div>
-    </div>
   </div>
    ]]
 end
 
 print [[
-  <div class='col-md-]] print(col_md_size) print[['>
-    <div class="form-group has-feedback">
-      <label for="" class="control-label">New User Password</label>
+  <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
+      <label for="" class="control-label">New Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
         <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
       </div>
-    </div>
   </div>
 
-  <div class='col-md-]] print(col_md_size) print[['>
-    <div class="form-group has-feedback">
-      <label for="" class="control-label">Confirm New User Password</label>
+  <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
+      <label for="" class="control-label">Confirm New Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
         <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
       </div>
-    </div>
   </div>
 </div>
 
 <div><small>Allowed characters are ISO 8895-1 (latin1) upper and lower case letters, numbers and special symbols.  </small></div>
-<div class="form-group has-feedback">
-  <button id="password_reset_submit" class="btn btn-primary btn-block">Change User Password</button>
+
+<br>
+
+<div class="row">
+    <div class="form-group col-md-12 has-feedback">
+      <button id="password_reset_submit" class="btn btn-primary btn-block">Change User Password</button>
+    </div>
 </div>
 
 </form>
@@ -105,55 +104,61 @@ print [[
 </div>
 <div class="tab-pane" id="change-prefs-dialog">
 
-  <form data-toggle="validator" id="form_pref_change" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">]]
+  <form data-toggle="validator" id="form_pref_change" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">]]
 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 print [[
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
+<br>
+
 <div class="row">
-  <div class='col-md-6'>
-    <div class="form-group has-feedback">
+  <div class='col-md-6 form-group has-feedback'>
       <label class="input-label">User Role</label>
-      <div class="controls">
+      <div class="input-group" style="width:100%;">
         <select id="host_role_select" name="host_role" class="form-control">
           <option value="unprivileged">Non Privileged User</option>
           <option value="administrator">Administrator</option>
         </select>
       </div>
-    </div>
   </div>
 
-  <div class='col-md-6'>
-    <div class="form-group has-feedback">
+  <div class='col-md-6 form-group has-feedback'>
       <label class="form-label">Allowed Interface</label>
-      <select name="allowed_interface" id="allowed_interface" class="form-control">
-        <option value="">Any Interface</option>
+      <div class="input-group" style="width:100%;">
+        <select name="allowed_interface" id="allowed_interface" class="form-control">
+          <option value="">Any Interface</option>
 ]]
 for _, interface_name in pairsByValues(interface.getIfNames(), asc) do
    -- io.write(interface_name.."\n")
    print('<option value="'..getInterfaceId(interface_name)..'"> '..interface_name..'</option>')
 end
 print[[
-      </select>
+        </select>
     </div>
   </div>
 </div>
 
+<br>
+
 <div class="row">
-  <div class='col-md-12'>
-    <div class="form-group has-feedback">
+    <div class="form-group col-md-12 has-feedback">
       <label class="control-label">Allowed Networks</label>
       <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
         <input id="networks_input" type="text" name="networks" value="" class="form-control" required>
       </div>
       <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
-  </div>
 </div>
 
-  <div class="form-group has-feedback">
-  <button id="pref_change" class="btn btn-primary btn-block">Change User Preferences</button>
-  </div>
+<br>
+
+<div class="row">
+    <div class="form-group col-md-12 has-feedback">
+      <button id="pref_change" class="btn btn-primary btn-block">Change User Preferences</button>
+    </div>
+</div>
+
+<br>
 
   </form>
 </div> <!-- closes div "change-prefs-dialog" -->
