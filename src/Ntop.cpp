@@ -947,7 +947,7 @@ bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
   if(allowed_ifname != NULL && allowed_ifname[0] != '\0') {
     return (ntop->getRedis()->set(key, allowed_ifname, 0) >= 0);
   } else {
-    ntop->getRedis()->delKey(key);
+    ntop->getRedis()->del(key);
   }
 
   return(true);
@@ -1041,22 +1041,25 @@ bool Ntop::deleteUser(char *username) {
   char key[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
-  ntop->getRedis()->delKey(key);
+  ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
-  ntop->getRedis()->delKey(key);
+  ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, username);
-  ntop->getRedis()->delKey(key);
+  ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
-  ntop->getRedis()->delKey(key);
+  ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username);
-  ntop->getRedis()->delKey(key);
+  ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
-  ntop->getRedis()->delKey(key);
+  ntop->getRedis()->del(key);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
+  ntop->getRedis()->del(key);
 
   return true;
 }

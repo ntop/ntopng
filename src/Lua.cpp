@@ -1037,7 +1037,7 @@ static int ntop_delete_redis_key(lua_State* vm) {
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-  ntop->getRedis()->delKey(key);
+  ntop->getRedis()->del(key);
   return(CONST_LUA_OK);
 }
 
@@ -5917,7 +5917,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
           msg, PAGE_ERROR, script_path, msg));
     } else {
       /* Invalidate csrf */
-      ntop->getRedis()->delKey(csrf);
+      ntop->getRedis()->del(csrf);
     }
 
     /* CSRF is valid here, now fill the _POST table with POST parameters */

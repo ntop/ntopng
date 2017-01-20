@@ -124,7 +124,6 @@ class Redis {
    * @param key The key whose value will be incremented.
    */
   u_int32_t incrKey(char *key);
-  int delKey(char *key)              { return(oneOperator("DEL", key));            };
   int rename(char *oldk, char *newk) { return(twoOperators("RENAME", oldk, newk)); };
   void lua(lua_State *vm);
 
