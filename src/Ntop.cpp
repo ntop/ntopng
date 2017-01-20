@@ -984,7 +984,7 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
 
   if(host_pool_id) {
     snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
-    ntop->getRedis()->set(key, val, 0);
+    ntop->getRedis()->set(key, host_pool_id, 0);
   }
 
   return(true);
