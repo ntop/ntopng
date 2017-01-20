@@ -669,7 +669,7 @@ void Ntop::getUsers(lua_State* vm) {
 
     snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
     if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
-      lua_push_int_table_entry(vm, "host_pool_id", true);
+      lua_push_int_table_entry(vm, "host_pool_id", atoi(val));
 
 
     snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
@@ -946,6 +946,26 @@ bool Ntop::changeAllowedIfname(char *username, char *allowed_ifname) const {
 
   if(allowed_ifname != NULL && allowed_ifname[0] != '\0') {
     return (ntop->getRedis()->set(key, allowed_ifname, 0) >= 0);
+  } else {
+    ntop->getRedis()->del(key);
+  }
+
+  return(true);
+}
+
+bool Ntop::changeUserHostPool(const char * const username, const char * const host_pool_id) const {
+  if (username == NULL || username[0] == '\0')
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Changing host pool id to %s for %s",
+			       host_pool_id, username);
+
+  char key[64];
+  snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
+
+  if(host_pool_id != NULL && host_pool_id[0] != '\0') {
+    return (ntop->getRedis()->set(key, (char*)host_pool_id, 0) >= 0);
   } else {
     ntop->getRedis()->del(key);
   }

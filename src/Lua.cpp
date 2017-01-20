@@ -3037,6 +3037,23 @@ static int ntop_change_allowed_ifname(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_change_user_host_pool(lua_State* vm) {
+  char *username, *host_pool_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!Utils::isUserAdministrator(vm)) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((host_pool_id = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  return ntop->changeUserHostPool(username, host_pool_id);
+}
+
+/* ****************************************** */
+
 static int ntop_post_http_json_data(lua_State* vm) {
   char *username, *password, *url, *json;
 
@@ -3267,6 +3284,22 @@ static int ntop_reload_host_pools(lua_State *vm) {
   if(ntop_interface) {
 
     ntop_interface->getHostPools()->reloadPools();
+
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+/* ****************************************** */
+
+static int ntop_purge_expired_host_pools_members(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface) {
+
+    ntop_interface->getHostPools()->purgeExpiredMembers();
 
     return(CONST_LUA_OK);
   } else
@@ -5311,7 +5344,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadShapers",                  ntop_reload_shapers },
 
   /* Host pools */
-  { "reloadHostPools",                ntop_reload_host_pools },
+  { "reloadHostPools",                ntop_reload_host_pools                },
+  { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
 
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },
@@ -5447,6 +5481,7 @@ static const luaL_Reg ntop_reg[] = {
   { "changeUserRole",     ntop_change_user_role },
   { "changeAllowedNets",  ntop_change_allowed_nets },
   { "changeAllowedIfname",ntop_change_allowed_ifname },
+  { "changeUserHostPool", ntop_change_user_host_pool },
   { "addUser",            ntop_add_user },
   { "addUserLifetime",    ntop_add_user_lifetime },
   { "deleteUser",         ntop_delete_user },

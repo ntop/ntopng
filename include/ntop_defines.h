@@ -377,7 +377,8 @@
 #define CONST_PREFS_CAPTIVE_PORTAL         "ntopng.prefs.enable_captive_portal"
 #define HOST_POOL_IDS_KEY                  "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY              "ntopng.prefs.%u.host_pools.members.%s"
-#define HOST_POOL_VOLATILE_MEMBERS         "ntopng.prefs.%u.host_pools.volatile_members"
+#define HOST_POOL_VOLATILE_MEMBERS_KEY     "ntopng.prefs.%u.host_pools.volatile_members.%s"
+#define HOST_POOL_VOLATILE_MEMBER_EXPIRE   "ntopng.prefs.%u.host_pools.volatile_member_expire.%s"
 #define HOST_POOL_SHAPERS_KEY              "ntopng.prefs.%u.l7_policies.%s"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"

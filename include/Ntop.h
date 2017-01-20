@@ -361,6 +361,7 @@ class Ntop {
   bool changeUserRole(char *username, char *user_role) const;
   bool changeAllowedNets(char *username, char *allowed_nets)     const;
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
+  bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id);
   bool addUserLifetime(const char * const username); /* Captive portal users may expire */

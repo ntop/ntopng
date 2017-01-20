@@ -174,7 +174,7 @@ u_int16_t HostPools::getPool(Host *h) {
 void HostPools::addToPool(u_int32_t client_ipv4 /* network byte order */,
 			  u_int16_t user_pool_id,
 			  bool permanentAuthorization) {
-  char key[64], host[64], buf[32], pool_buf[16];
+  char key[128], host[128], buf[64], pool_buf[16];
 
   snprintf(host, sizeof(host), "%s/32@0", 
 	   Utils::intoaV4(ntohl(client_ipv4), buf, sizeof(buf)));
@@ -184,10 +184,102 @@ void HostPools::addToPool(u_int32_t client_ipv4 /* network byte order */,
 
   if(ntop->getRedis()->sadd(key, host) /* New member added */) {
     if(!permanentAuthorization) {
-      snprintf(key, sizeof(key), HOST_POOL_VOLATILE_MEMBERS, iface->get_id());
-      ntop->getRedis()->set(key, host, sizeof(host));
+
+      snprintf(key, sizeof(key), HOST_POOL_VOLATILE_MEMBERS_KEY, iface->get_id(), pool_buf);
+      if(!ntop->getRedis()->sadd(key, host)) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Unable to add %s as VOLATILE host pool member [pool id: %s]",
+				     host, pool_buf);
+	return;
+      }
+
+      snprintf(key, sizeof(key), HOST_POOL_VOLATILE_MEMBER_EXPIRE, iface->get_id(), host);
+      if(ntop->getRedis()->set(key,
+			       host, /* Just a placeholder, we only care about the expire time */
+			       3600 * 24 /* 1 Day, TODO: make it configurable */)) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Unable to set expire key for VOLATILE pool member %s [pool id: %s]",
+				     host, pool_buf);
+	return;
+      }
     }
 
     reloadPools();
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Unable to add %s as PERMANENT host pool member [pool id: %s]",
+				 host, pool_buf);
   }
+}
+
+/* *************************************** */
+
+void HostPools::purgeExpiredMembers() {
+  char kname[CONST_MAX_LEN_REDIS_KEY], volatile_member[128];
+  char **pools, **volatile_pool_members;
+  int num_pools, num_volatile_members;
+  bool purged = false;
+  Redis *redis = ntop->getRedis();
+
+  if(!iface || iface->get_id() == -1)
+    return;
+
+  snprintf(kname, sizeof(kname),
+	   HOST_POOL_IDS_KEY, iface->get_id());
+
+  if((num_pools = redis->smembers(kname, &pools)) <= 0) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "No host pools for interface %s", iface->get_name());
+    return;
+  }
+
+  for(int i = 0; i < num_pools; i++) {
+    if(!pools[i]) continue;
+
+    /* Read VOLATILE pool members */
+    snprintf(kname, sizeof(kname),
+	     HOST_POOL_VOLATILE_MEMBERS_KEY, iface->get_id(), pools[i]);
+    if((num_volatile_members = redis->smembers(kname, &volatile_pool_members)) > 0) {
+
+      for(int k = 0; k < num_volatile_members; k++) {
+
+	if(!volatile_pool_members[k]) continue;
+
+	snprintf(kname, sizeof(kname),
+		 HOST_POOL_VOLATILE_MEMBER_EXPIRE, iface->get_id(), volatile_pool_members[k]);
+
+	if(redis->get(kname, volatile_member, sizeof(volatile_member), false) < 0
+	   || strcmp(volatile_member, volatile_pool_members[k])) { /* The key is expired */
+	  purged = true;
+	  /* Delete both from the members and volatile members sets */
+	  
+	  snprintf(kname, sizeof(kname),
+		   HOST_POOL_VOLATILE_MEMBERS_KEY, iface->get_id(), pools[i]);
+	  redis->srem(kname, volatile_pool_members[k]);
+
+	  snprintf(kname, sizeof(kname),
+		   HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
+	  redis->srem(kname, volatile_pool_members[k]);
+
+#ifdef HOST_POOLS_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				       "Purged %s that was expired [host pool: %s]",
+				       volatile_pool_members[k],
+				       pools[i]);
+#endif
+	}
+
+	free(volatile_pool_members[k]);
+      }
+
+      free(volatile_pool_members);
+    }
+
+    free(pools[i]);
+  }
+
+  if(pools)
+    free(pools);
+
+  if(purged)
+    reloadPools();
 }

@@ -125,4 +125,16 @@ function host_pools_utils.getUndeletablePools()
   return pools
 end
 
+function host_pools_utils.purgeExpiredPoolsMembers()
+   local ifnames = interface.getIfNames()
+
+   for _, ifname in pairs(ifnames) do
+      interface.select(ifname)
+
+      if isCaptivePortalActive() then
+	 interface.purgeExpiredPoolsMembers()
+      end
+   end
+end
+
 return host_pools_utils
