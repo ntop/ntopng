@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.
 
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
-host_pools_utils.DEFAULT_POOL_NAME = "Default"
+host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 16
 host_pools_utils.MAX_MEMBERS_NUM = 32
 
@@ -21,6 +21,10 @@ end
 
 local function get_pool_details_key(ifid, pool_id)
   return "ntopng.prefs." .. ifid .. ".host_pools.details." .. pool_id
+end
+
+local function get_user_pool_id_key(username)
+  return "ntopng.user." .. username .. ".host_pool_id"
 end
 
 local function get_pool_detail(ifid, pool_id, detail)
@@ -104,6 +108,21 @@ function host_pools_utils.initPools()
     -- Note: possible shapers are initialized in shaper_utils::initShapers
     host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
   end
+end
+
+function host_pools_utils.getUndeletablePools()
+  -- TODO fix interface-local pools VS global users inconsistence
+  local key = get_user_pool_id_key("*")
+  local pools = {}
+
+  for user_key,_ in pairs(ntop.getKeysCache(key) or {}) do
+    local pool_id = ntop.getCache(user_key)
+    if tonumber(pool_id) ~= nil then
+        pools[pool_id] = true
+    end
+  end
+
+  return pools
 end
 
 return host_pools_utils

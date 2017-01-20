@@ -25,10 +25,15 @@ if((ifid ~= nil) and (isAdministrator())) then
     end
   else
     for _,pool in ipairs(host_pools_utils.getPoolsList(ifid)) do
-      res.data[#res.data + 1] = {
-        column_pool_id = pool.id,
-        column_pool_name = pool.name,
-      }
+      local undeletable_pools = host_pools_utils.getUndeletablePools()
+
+      if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+        res.data[#res.data + 1] = {
+          column_pool_id = pool.id,
+          column_pool_name = pool.name,
+          column_pool_undeletable = undeletable_pools[pool.id] or false,
+        }
+      end
     end
   end
 end

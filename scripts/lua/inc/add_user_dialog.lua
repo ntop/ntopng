@@ -4,7 +4,7 @@ local messages = {ntopng="Add ntopng User", captive_portal="Add Captive Portal U
 
 local add_user_msg = messages["ntopng"]
 local captive_portal_user = false
-if is_bridge_iface and is_captive_portal_enabled then
+if is_captive_portal_active then
    if _GET["captive_portal_users"] ~= nil then
       add_user_msg = messages["captive_portal"]
       captive_portal_user = true
@@ -27,7 +27,7 @@ print [[
 
 <script>
   add_user_alert = function() {}
-  add_user_alert.error =   function(message) { $('#add_user_alert_placeholder').html('<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>');
+  add_user_alert.error =   function(message, no_close) { $('#add_user_alert_placeholder').html('<div class="alert alert-danger">' + (no_close ? '' : '<button type="button" class="close" data-dismiss="alert">x</button>') + message + '</div>');
  }
   add_user_alert.success = function(message) { $('#add_user_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
 
@@ -131,9 +131,13 @@ else -- a captive portal user is being added
 ]]
 
    local pools = host_pools_utils.getPoolsList(getInterfaceId(ifname))
+   local no_pools = true
 
    for _, pool in ipairs(pools) do
-      print('<option value="'.. pool.id ..'"> '.. pool.name ..'</option>')
+      if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+        print('<option value="'.. pool.id ..'"> '.. pool.name ..'</option>')
+        no_pools = false
+      end
    end
 
    print[[
@@ -167,6 +171,18 @@ else -- a captive portal user is being added
 </div>
 
 ]]
+
+if no_pools then
+  print[[
+    <script>
+      $(function() {
+        add_user_alert.error("No Host Pools defined. Please create one <a href=']] print(ntop.getHttpPrefix()) print[[/lua/admin/host_pools.lua#create'>here</a>.", true);
+        $("#add_user_dialog").find("input,select,button[type='submit']").attr("disabled", "disabled");
+      });
+    </script>
+  ]]
+end
+
 end
 
 print[[

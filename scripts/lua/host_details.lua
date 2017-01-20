@@ -17,6 +17,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "historical_utils"
+local host_pools_utils = require "host_pools_utils"
 
 debug_hosts = false
 page        = _GET["page"]
@@ -457,8 +458,7 @@ if((page == "overview") or (page == nil)) then
 	 print(" [ <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"])..">".. host["local_network_name"].."</A> ]")
       end
 
-      local key = "ntopng.prefs.".. ifId ..".host_pools.details."..host["host_pool_id"]
-      local pool_name = ntop.getHashCache(key, "name")
+      local pool_name = host_pools_utils.getPoolName(ifId, host["host_pool_id"])
       print(' <span class="label label-default">Pool: '..pool_name.."</span>")
    else
       if(host["mac"] ~= nil) then

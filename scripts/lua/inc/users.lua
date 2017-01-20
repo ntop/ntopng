@@ -4,7 +4,7 @@ local get_users_url = ntop.getHttpPrefix().."/lua/admin/get_users.lua"
 local users_type = {ntopng="ntopng Users", captive_portal="Captive Portal Users"}
 
 local title = users_type["ntopng"]
-if is_bridge_iface and is_captive_portal_enabled then
+if is_captive_portal_active then
    if _GET["captive_portal_users"] ~= nil then
       title = users_type["captive_portal"]
       get_users_url = get_users_url.."?captive_portal_users=1"

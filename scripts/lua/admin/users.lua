@@ -11,9 +11,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 if(haveAdminPrivileges()) then
    interface.select(ifname)
 
-   ifstats = interface.getStats()
-   is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
-   is_captive_portal_enabled = ntop.getPrefs()["is_captive_portal_enabled"]
+   is_captive_portal_active = isCaptivePortalActive()
 
    ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
    

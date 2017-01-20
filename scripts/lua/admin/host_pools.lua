@@ -118,7 +118,12 @@ for _, pool in ipairs(available_pools) do
 end
 
 if selected_pool == nil then
-  selected_pool = available_pools[1]
+  if #available_pools == 1 then
+    -- only the default pool is available
+    selected_pool = available_pools[1]
+  else
+    selected_pool = available_pools[2]
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -135,15 +140,23 @@ print [[
     <div id="manage" class="tab-pane">
 ]]
 
-  print('<br/>') print(i18n("host_pools.pool")) print(': <select class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
-  for _,pool in ipairs(available_pools) do
+print('<br/>') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
+local no_pools = true
+for _,pool in ipairs(available_pools) do
+  if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
     print('<option value="'..tostring(pool.id)..'"')
     if pool.id == selected_pool.id then
       print(" selected")
     end
     print('>'..(pool.name)..'</option>\n')
+    no_pools = false
   end
-  print('</select>\n')
+end
+print('</select>\n')
+
+if no_pools then
+  print[[<script>$("#pool_selector").attr("disabled", "disabled");</script>]]
+end
 
   print[[
       <form id="table-manage-form">
@@ -160,7 +173,18 @@ print[[
         <br/><div id="table-create"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
-      <br/><br/>
+      <br/><br/>]]
+
+if isCaptivePortalActive() then
+  print[[
+      NOTES:
+      <ul>
+        <li>A pool cannot be deleted if there is any Captive Portal user associated. Manage Captive Portal users <a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/users.lua?captive_portal_users=1">here</a>.</li>
+      </ul>
+  ]]
+end
+
+print[[
     </div>
   </div>
 ]]
@@ -243,21 +267,26 @@ print[[
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
         }
 
-        identifier = address_value + "@" + vlan_value;
+        network = is_network_mask(address_value, true);
+        if (! network)
+           /* this will be handled by addressValidator */
+          return true;
+        identifier = network.address + "/" + network.mask + "@" + vlan_value;
       }
 
       var count = 0;
 
       $('input[name^="member_"]:not([name$="_vlan"])', $("#table-manage-form")).each(function() {
         var address_value = $(this).val();
+        var is_network = is_network_mask(address_value, true);
 
         var aggregated;
-        if (is_mac) {
+        if (! is_network) {
           aggregated = address_value;
         } else {
           var name = $(this).attr("name") + "_vlan";
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
-          aggregated = address_value + "@" + vlan_value;
+          aggregated = is_network.address + "/" + is_network.mask + "@" + vlan_value;
         }
 
         if (aggregated === identifier)
@@ -345,7 +374,7 @@ print [[
          }
       ], tableCallback: function() {
         if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
-          datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.default_pool_read_only")) print[[");
+          datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.no_pools_defined") .. " " .. i18n("host_pools.create_pool_hint")) print[[");
           $("#addPoolMemberBtn").attr("disabled", "disabled");
         } else if(datatableIsEmpty("#table-manage")) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.empty_pool")) print[[");
@@ -484,8 +513,8 @@ print [[
       if (pool_id < maxPoolNum) {
         var newid = "added_pool_" + pool_id;
 
-        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="text-center"></td></tr>');
-        datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
+        var tr = $('<tr id=' + newid + '><td class="text-center hidden">' + pool_id + '</td><td>]] printPoolNameField('pool_id') print[[</td><td class="hidden"></td><td class="text-center"></td></tr>');
+        datatableAddDeleteButtonCallback.bind(tr)(4, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
         datatableOrderedInsert("#table-create table", 1, tr, pool_id);
         $("input", tr).focus();
 
@@ -516,14 +545,8 @@ print [[
          '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
          {
-            title: "]] print(i18n("host_pools.pool_id")) print[[",
             field: "column_pool_id",
             hidden: true,
-            css: {
-               textAlign: 'center',
-               width: '5%',
-               verticalAlign: 'middle'
-            }
          }, {
             title: "]] print(i18n("host_pools.pool_name")) print[[",
             field: "column_pool_name",
@@ -532,6 +555,9 @@ print [[
                width: '50%',
                verticalAlign: 'middle'
             }
+         }, {
+            field: "column_pool_undeletable",
+            hidden: true,
          }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
@@ -542,11 +568,12 @@ print [[
          }
       ], tableCallback: function() {
         if(datatableIsEmpty("#table-create")) {
-          datatableAddEmptyRow("#table-create", "]] print(i18n("host_pools.no_pools")) print[[");
+          datatableAddEmptyRow("#table-create", "]] print(i18n("host_pools.no_pools_defined")) print[[");
         } else {
          datatableForEachRow("#table-create", function() {
             var pool_id = $("td:nth-child(1)", $(this)).html();
             var pool_name = $("td:nth-child(2)", $(this));
+            var pool_undeletable = $("td:nth-child(3)", $(this)).html() === "true";
 
             /* Make pool name editable */
             var input = $(']] printPoolNameField('pool_id') print[[');
@@ -554,10 +581,14 @@ print [[
             $("input", input).first().val(value);
             pool_name.html(input);
 
-            if (pool_id != ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[)
-              datatableAddDeleteButtonCallback.bind(this)(3, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
-            else
+            if (pool_id == ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
               $("input", input).first().attr("disabled", "disabled");
+            } else {
+              datatableAddDeleteButtonCallback.bind(this)(4, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+
+              if (pool_undeletable)
+                $("td:nth-child(4) a", $(this)).attr("disabled", "disabled");
+            }
          });
 
          /* pick the first unused pool ID */
