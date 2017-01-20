@@ -1350,6 +1350,10 @@ int Prefs::refresh(const char *pref_name, const char *pref_value) {
 		    (char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 		    strlen((char*)CONST_RUNTIME_PREFS_ALERT_SYSLOG)))
     enable_syslog_alerts = pref_value[0] == '1' ? true : false;
+  else if(!strncmp(pref_name,
+		   (char*)CONST_PREFS_CAPTIVE_PORTAL,
+		   strlen((char*)CONST_PREFS_CAPTIVE_PORTAL)))
+    enable_captive_portal = pref_value[0] == '1' ? true : false;
 
   return 0;
 }
