@@ -48,8 +48,8 @@ class AddressTree {
   inline u_int16_t getNumAddresses() { return(numAddresses); }
 
   inline patricia_tree_t* getTree(bool isV4) { return(isV4 ? ptree_v4 : ptree_v6); }
-  bool addAddress(char *_net, const int16_t user_data = 0);
-  bool addAddresses(char *net, const int16_t user_data = 0);
+  bool addAddress(char *_net, const int16_t user_data = -1);
+  bool addAddresses(char *net, const int16_t user_data = -1);
   void getAddresses(lua_State* vm);
   int16_t findAddress(int family, void *addr);
   int16_t findMac(u_int8_t addr[]);

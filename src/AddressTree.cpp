@@ -48,7 +48,8 @@ AddressTree::~AddressTree() {
 
 bool AddressTree::addAddress(char *_what, const int16_t user_data) {
   u_int32_t _mac[6];
-
+  int16_t id = (user_data == -1) ? numAddresses : user_data;
+  
   if(sscanf(_what, "%02X:%02X:%02X:%02X:%02X:%02X",
 	    &_mac[0], &_mac[1], &_mac[2],
 	    &_mac[3], &_mac[4], &_mac[5]) == 6) {
@@ -62,7 +63,7 @@ bool AddressTree::addAddress(char *_what, const int16_t user_data) {
       MacKey_t *s;
 
       if((s = (MacKey_t*)malloc(sizeof(MacKey_t))) != NULL) {
-	memcpy(s->mac, mac, 6), s->value = user_data;
+	memcpy(s->mac, mac, 6), s->value = id;
 	HASH_ADD(hh, macs, mac, 6, s);
       } else
 	return(false);
@@ -71,10 +72,11 @@ bool AddressTree::addAddress(char *_what, const int16_t user_data) {
     patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
 
     if(node)
-      node->user_data = user_data;
+      node->user_data = id;
   }
 
   numAddresses++;
+  
   return(true);
 }
 
