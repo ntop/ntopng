@@ -289,11 +289,11 @@ for k,v in pairsByKeys(ifnames, asc) do
    if(v == ifname) then
       print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..k.."\">")
    else
-      print[[<form id="switch_interface_form" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?id=]] print(tostring(k)) print[[">]]
+      print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?id=]] print(tostring(k)) print[[">]]
       print[[<input name="switch_interface" type="hidden" value="1" />]]
       print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
       print[[</form>]]
-      print[[<a href="javascript:void(0);" onclick="$('#switch_interface_form').submit();">]]
+      print[[<a href="javascript:void(0);" onclick="$('#switch_interface_form_]] print(tostring(k)) print[[').submit();">]]
    end
 
    if(v == ifname) then print("<i class=\"fa fa-check\"></i> ") end
