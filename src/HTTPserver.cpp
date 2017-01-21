@@ -257,11 +257,8 @@ static void redirect_to_login(struct mg_connection *conn,
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
 	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
-	    "Location: http%s://192.168.1.131:%u%s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
+	    "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
 	    session_id,
-	    request_info->is_ssl ? "s" : "",
-	    request_info->is_ssl ? ntop->getPrefs()->get_https_port() : ntop->getPrefs()->get_http_port(),
-
 	    ntop->getPrefs()->get_http_prefix(),
 	    Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
 	    (char*)mg_get_header(conn, "Host"),
