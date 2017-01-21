@@ -174,32 +174,42 @@ u_int16_t HostPools::getPool(Host *h) {
 void HostPools::addToPool(u_int32_t client_ipv4 /* network byte order */,
 			  u_int16_t user_pool_id,
 			  bool permanentAuthorization) {
-  char key[128], host[128], buf[64], pool_buf[16];
+  char buf[64], host[128];
 
   snprintf(host, sizeof(host), "%s/32@0", 
 	   Utils::intoaV4(ntohl(client_ipv4), buf, sizeof(buf)));
 
+  addToPool(host, user_pool_id, permanentAuthorization);
+}
+
+/* *************************************** */
+
+void HostPools::addToPool(char *host_or_mac,
+			  u_int16_t user_pool_id,
+			  bool permanentAuthorization) {
+  char key[128], pool_buf[16];
+
   snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);
   snprintf(key, sizeof(key), HOST_POOL_MEMBERS_KEY, iface->get_id(), pool_buf);
 
-  if(ntop->getRedis()->sadd(key, host) /* New member added */) {
+  if(ntop->getRedis()->sadd(key, host_or_mac) /* New member added */) {
     if(!permanentAuthorization) {
 
       snprintf(key, sizeof(key), HOST_POOL_VOLATILE_MEMBERS_KEY, iface->get_id(), pool_buf);
-      if(!ntop->getRedis()->sadd(key, host)) {
+      if(!ntop->getRedis()->sadd(key, host_or_mac)) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Unable to add %s as VOLATILE host pool member [pool id: %s]",
-				     host, pool_buf);
+				     host_or_mac, pool_buf);
 	return;
       }
 
-      snprintf(key, sizeof(key), HOST_POOL_VOLATILE_MEMBER_EXPIRE, iface->get_id(), host);
+      snprintf(key, sizeof(key), HOST_POOL_VOLATILE_MEMBER_EXPIRE, iface->get_id(), host_or_mac);
       if(ntop->getRedis()->set(key,
-			       host, /* Just a placeholder, we only care about the expire time */
+			       host_or_mac, /* Just a placeholder, we only care about the expire time */
 			       3600 * 24 /* 1 Day, TODO: make it configurable */)) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Unable to set expire key for VOLATILE pool member %s [pool id: %s]",
-				     host, pool_buf);
+				     host_or_mac, pool_buf);
 	return;
       }
     }
@@ -208,7 +218,7 @@ void HostPools::addToPool(u_int32_t client_ipv4 /* network byte order */,
   } else {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
 				 "Unable to add %s as PERMANENT host pool member [pool id: %s]",
-				 host, pool_buf);
+				 host_or_mac, pool_buf);
   }
 }
 

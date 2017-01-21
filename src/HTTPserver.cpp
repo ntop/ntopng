@@ -71,10 +71,10 @@ static void redirect_to_ssl(struct mg_connection *conn,
                             const struct mg_request_info *request_info) {
   const char *host = mg_get_header(conn, "Host");
   //  u_int16_t port = ntop->get_HTTPserver()->get_port();
-  
+
   if(host != NULL) {
     const char *p = strchr(host, ':');
-    
+
     if(p)
       mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 		"Location: https://%.*s:%u/%s\r\n\r\n",
@@ -245,18 +245,26 @@ static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info) {
   char session_id[33], buf[128];
 
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
+#endif
+
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
-  mg_printf(conn, 
+  mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
 	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
-	    "Location: %s%s?referer=%s%s%s\r\n\r\n",
+	    "Location: http%s://192.168.1.131:%u%s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
 	    session_id,
-	    ntop->getPrefs()->get_http_prefix(), 
+	    request_info->is_ssl ? "s" : "",
+	    request_info->is_ssl ? ntop->getPrefs()->get_https_port() : ntop->getPrefs()->get_http_port(),
+
+	    ntop->getPrefs()->get_http_prefix(),
 	    Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
+	    (char*)mg_get_header(conn, "Host"),
 	    conn->request_info.uri,
 	    conn->request_info.query_string ? "%3F" /* ? */: "",
 	    conn->request_info.query_string ? conn->request_info.query_string : "");
@@ -299,10 +307,98 @@ static void get_qsvar(const struct mg_request_info *request_info,
 
 /* ****************************************** */
 
+static int checkCaptive(struct mg_connection *conn,
+			const struct mg_request_info *request_info,
+			char *username) {
+#ifdef NTOPNG_PRO
+    if(ntop->getPrefs()->isCaptivePortalEnabled()
+       && ntop->isCaptivePortalUser(username)) {
+      /*
+	 This user logged onto ntopng via the captive portal
+      */
+      char *referer = NULL;
+      u_int16_t host_pool_id;
+      const char *r = mg_get_header(conn, "Referer");
+
+#ifdef DEBUG
+      char buf[32];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]",
+				   username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
+				   (unsigned int)conn->request_info.remote_ip,
+				   (char*)mg_get_header(conn, "Host"), request_info->uri);
+#endif
+
+      ntop->getUserHostPool(username, &host_pool_id);
+      ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
+			      host_pool_id,
+			      !ntop->hasUserLimitedLifetime(username));
+
+      /*
+	As this is a captive portal user, we are good so far and we
+	redirect to the requested web site
+      */
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "QUERY_STRING=%s", request_info->query_string ? request_info->query_string : "");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Referer=%s", r);
+#endif
+
+      if(r) {
+	char *k, *t1;
+
+	k = strtok_r((char*)r, "?", &t1);
+	while(k != NULL) {
+	  char *a, *b, *t2;
+
+	  if((a = strtok_r(k, "=", &t2)) != NULL) {
+	    b = strtok_r(NULL, "=", &t2);
+
+	    if(!strcmp(a, "referer")) {
+	      referer = strdup(b);
+	      break;
+	    }
+	  }
+
+	  k = strtok_r(NULL, "&", &t1);
+	}
+      }
+
+      if(referer == NULL) referer = strdup("www.ntop.org");
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "############# ==>>> Redirecting to http://%s", referer);
+#endif
+
+#if 1
+      mg_printf(conn, "HTTP/1.1 301 Moved Permanently\r\n"
+		"Location: http://%s\r\n\r\n",
+		referer);
+#else
+      mg_printf(conn, "HTTP/1.1 200 OK\r\n"
+		"Set-Cookie: session=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+		"\r\n"
+		"<html>\n<head>\n<title>Successful Authentication</title>"
+		"<meta http-equiv=\"refresh\" content=\"1;URL=http://%s\"></head>\n"
+		"<body><p>Successful Authentication. Ready to surf</p></body></html>",
+		referer);
+#endif
+
+      free(referer);
+
+      return(1);
+    }
+#endif
+
+    return(0);
+}
+
+/* ****************************************** */
+
 // A handler for the /authorize endpoint.
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
-                      const struct mg_request_info *request_info) {
+                      const struct mg_request_info *request_info,
+		      char *username) {
   char user[32], password[32], referer[256];
 
   if(!strcmp(request_info->request_method, "POST")) {
@@ -364,6 +460,10 @@ static int handle_lua_request(struct mg_connection *conn) {
   u_int len = (u_int)strlen(request_info->uri);
   char username[33] = { 0 };
 
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
+#endif
+
   if((ntop->getGlobals()->isShutdown())
      //|| (strcmp(request_info->request_method, "GET"))
      || (ntop->getRedis() == NULL /* Starting up... */)
@@ -388,42 +488,14 @@ static int handle_lua_request(struct mg_connection *conn) {
     redirect_to_login(conn, request_info);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
-    authorize(conn, request_info);
+    authorize(conn, request_info, username);
     return(1);
   }
-
-#ifdef NTOPNG_PRO
-  if(ntop->getPrefs()->isCaptivePortalEnabled()
-     && ntop->isCaptivePortalUser(username)) {
-    /* 
-       This user logged onto ntopng via the captive portal
-    */
-    char buf[32];
-    u_int16_t host_pool_id;
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s/%08X", 
-				 username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
-				 (unsigned int)conn->request_info.remote_ip);
-
-    ntop->getUserHostPool(username, &host_pool_id);
-    ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
-			    host_pool_id,
-			    !ntop->hasUserLimitedLifetime(username));
-
-    /*
-      As this is a captive portal user, we are good so far and we
-      redirect to the requested web site
-     */
-
-    mg_printf(conn, "HTTP/1.1 302 Found\r\n"
-	      "Location: http%s://%s%s\r\n\r\n",
-	      "" /* conn->request_info.is_ssl ? "s" : "" */,
-	      (char*)mg_get_header(conn, "Host"), request_info->uri);
-    return(1);
-  }
-#endif
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s", request_info->uri);
+
+  if(checkCaptive(conn, request_info, username))
+    return(1);
 
   if(strstr(request_info->uri, "//")
      || strstr(request_info->uri, "&&")
@@ -457,7 +529,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
     ntop->fixPath(path);
     found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
-      
+
     if(found) {
       Lua *l = new Lua();
 
@@ -509,7 +581,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   if(port == 0) use_http = false;
 
   if(use_http)
-    snprintf(ports, sizeof(ports), "%s%s%d", 
+    snprintf(ports, sizeof(ports), "%s%s%d",
 	     http_binding_addr,
 	     (http_binding_addr[0] == '\0') ? "" : ":",
 	     port);
@@ -523,9 +595,9 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     use_ssl = true;
     if(use_http)
       snprintf(ports, sizeof(ports), "%s%s%d,%s%s%ds",
-	       http_binding_addr, 
+	       http_binding_addr,
 	       (http_binding_addr[0] == '\0') ? "" : ":",
-	       port, 
+	       port,
 	       https_binding_addr,
 	       (https_binding_addr[0] == '\0') ? "" : ":",
 	       ntop->getPrefs()->get_https_port());

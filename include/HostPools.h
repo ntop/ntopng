@@ -39,6 +39,7 @@ public:
   void reloadPools();
   u_int16_t getPool(Host *h);
   void addToPool(u_int32_t client_ipv4, u_int16_t user_pool_id, bool permanentAuthorization);
+  void addToPool(char *host_or_mac, u_int16_t user_pool_id, bool permanentAuthorization);
   void purgeExpiredMembers();
 };
 

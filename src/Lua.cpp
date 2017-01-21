@@ -5934,6 +5934,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
     char csrf[64] = { '\0' };
     char user[64] = { '\0' };
     int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+    u_int8_t valid_csrf = 1;
+
     post_data[sizeof(post_data)-1] = '\0';
 
     /* CSRF is mandatory in POST request */
@@ -5942,6 +5944,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
     if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
         || (strcmp(rsp, user) != 0)) {
+#if 0
       const char *msg = "The submitted form is expired. Please reload the page and try again. <p>[ <A HREF=/>Home</A> ]";
 
       ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -5950,13 +5953,21 @@ int Lua::handle_script_request(struct mg_connection *conn,
 
       return(send_error(conn, 500 /* Internal server error */,
           msg, PAGE_ERROR, script_path, msg));
+#else
+      valid_csrf = 0;
+#endif
     } else {
       /* Invalidate csrf */
       ntop->getRedis()->del(csrf);
     }
 
-    /* CSRF is valid here, now fill the _POST table with POST parameters */
-    setParamsTable(L, "_POST", post_data);
+    if(valid_csrf) {
+      /* CSRF is valid here, now fill the _POST table with POST parameters */
+      setParamsTable(L, "_POST", post_data);
+    } else {
+      lua_newtable(L);
+      lua_setglobal(L, (char*)"_POST"); /* Empty */
+    }
 
     if(request_info->query_string) {
       char *k, *t1;

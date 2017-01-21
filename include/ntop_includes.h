@@ -151,6 +151,7 @@ using namespace std;
 #include "FlowProfile.h"
 #include "FlowProfiles.h"
 #include "CounterTrend.h"
+#include "LRUMacIP.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
 #endif
