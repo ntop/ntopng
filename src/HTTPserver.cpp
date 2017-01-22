@@ -168,13 +168,21 @@ static int is_authorized(const struct mg_connection *conn,
   // Always authorize accesses to login page and to authorize URI
   if((!strcmp(request_info->uri, LOGIN_URL))
      || (!strcmp(request_info->uri, AUTHORIZE_URL))
-     || (!strcmp(request_info->uri, PLEASE_WAIT_URL))) {
+     || (!strcmp(request_info->uri, PLEASE_WAIT_URL))
+     || (!strcmp(request_info->uri, HOTSPOT_DETECT_URL))
+     || (!strcmp(request_info->uri, HOTSPOT_DETECT_LUA_URL))
+     || (!strcmp(request_info->uri, CAPTIVE_PORTAL_URL))
+     ) {
     return 1;
   }
 
   if((!strcmp(request_info->uri, Utils::getURL((char*)LOGIN_URL,          buf, sizeof(buf))))
      || (!strcmp(request_info->uri, Utils::getURL((char*)AUTHORIZE_URL,   buf, sizeof(buf))))
-     || (!strcmp(request_info->uri, Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf))))) {
+     || (!strcmp(request_info->uri, Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf))))
+     || (!strcmp(request_info->uri, Utils::getURL((char*)HOTSPOT_DETECT_URL, buf, sizeof(buf))))
+     || (!strcmp(request_info->uri, Utils::getURL((char*)HOTSPOT_DETECT_LUA_URL, buf, sizeof(buf))))
+     || (!strcmp(request_info->uri, Utils::getURL((char*)CAPTIVE_PORTAL_URL, buf, sizeof(buf))))
+     ) {
     return 1;
   }
 
@@ -257,11 +265,8 @@ static void redirect_to_login(struct mg_connection *conn,
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
 	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
-	    "Location: http%s://192.168.1.131:%u%s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
+	    "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
 	    session_id,
-	    request_info->is_ssl ? "s" : "",
-	    request_info->is_ssl ? ntop->getPrefs()->get_https_port() : ntop->getPrefs()->get_http_port(),
-
 	    ntop->getPrefs()->get_http_prefix(),
 	    Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
 	    (char*)mg_get_header(conn, "Host"),
@@ -343,6 +348,9 @@ static int checkCaptive(struct mg_connection *conn,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Referer=%s", r);
 #endif
 
+      if(!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL))
+	return(0);
+
       if(r) {
 	char *k, *t1;
 
@@ -369,22 +377,10 @@ static int checkCaptive(struct mg_connection *conn,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "############# ==>>> Redirecting to http://%s", referer);
 #endif
 
-#if 1
       mg_printf(conn, "HTTP/1.1 301 Moved Permanently\r\n"
-		"Location: http://%s\r\n\r\n",
-		referer);
-#else
-      mg_printf(conn, "HTTP/1.1 200 OK\r\n"
-		"Set-Cookie: session=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
-		"\r\n"
-		"<html>\n<head>\n<title>Successful Authentication</title>"
-		"<meta http-equiv=\"refresh\" content=\"1;URL=http://%s\"></head>\n"
-		"<body><p>Successful Authentication. Ready to surf</p></body></html>",
-		referer);
-#endif
+		"Location: http://%s\r\n\r\n", referer);
 
       free(referer);
-
       return(1);
     }
 #endif
@@ -459,6 +455,9 @@ static int handle_lua_request(struct mg_connection *conn) {
   struct mg_request_info *request_info = mg_get_request_info(conn);
   u_int len = (u_int)strlen(request_info->uri);
   char username[33] = { 0 };
+  char *referer = (char*)mg_get_header(conn, "Referer");
+
+  if(referer == NULL) referer = (char*)"";
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
@@ -471,28 +470,48 @@ static int handle_lua_request(struct mg_connection *conn) {
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
 		      "Unexpected HTTP method or ntopng still starting up..."));
 
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
+			       request_info->uri, referer);
+#endif
+
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      && !MySQLDB::isDbCreated()
-     && strcmp(request_info->uri, PLEASE_WAIT_URL)){
+     && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
     redirect_to_please_wait(conn, request_info);
-  }
-
-  if(ntop->get_HTTPserver()->is_ssl_enabled() && (!request_info->is_ssl))
+  } else if(ntop->get_HTTPserver()->is_ssl_enabled() 
+	    && (!request_info->is_ssl)
+	    && strcmp(request_info->uri, HOTSPOT_DETECT_URL)
+	    && strcmp(request_info->uri, HOTSPOT_DETECT_LUA_URL)
+	    && strcmp(request_info->uri, CAPTIVE_PORTAL_URL)
+	    && strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)
+	    && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
+	    && (!strstr(referer, CAPTIVE_PORTAL_URL))
+	    )
     redirect_to_ssl(conn, request_info);
+  else if(!strcmp(request_info->uri, HOTSPOT_DETECT_URL)) {
+    mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+	      "Location: %s%s%s\r\n\r\n",
+	      HOTSPOT_DETECT_LUA_URL, 
+	      request_info->query_string ? "?" : "",
+	      request_info->query_string ? request_info->query_string : "");
+  }    
 
   if((len > 4)
      && ((strcmp(&request_info->uri[len-4], ".css") == 0)
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
-  else if(!is_authorized(conn, request_info, username, sizeof(username))) {
+  else if(ntop->getPrefs()->isCaptivePortalEnabled()
+	  && (!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL))
+	  /* && ntop->isCaptivePortalUser(username) */) {
+    ; /* Ok, no need to authenticate */
+  } else if(!is_authorized(conn, request_info, username, sizeof(username))) {
     redirect_to_login(conn, request_info);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
     authorize(conn, request_info, username);
     return(1);
   }
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s", request_info->uri);
 
   if(checkCaptive(conn, request_info, username))
     return(1);

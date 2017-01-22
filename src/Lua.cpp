@@ -6001,7 +6001,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
   /* _SERVER */
   lua_newtable(L);
   lua_push_str_table_entry(L, "REQUEST_METHOD", (char*)request_info->request_method);
-  lua_push_str_table_entry(L, "URI", (char*)request_info->uri);
+  lua_push_str_table_entry(L, "URI", (char*)request_info->uri ? (char*)request_info->uri : (char*)"");
+  lua_push_str_table_entry(L, "REFERER", (char*)mg_get_header(conn, "Referer") ? (char*)mg_get_header(conn, "Referer") : (char*)"");
   if(request_info->remote_user)  lua_push_str_table_entry(L, "REMOTE_USER", (char*)request_info->remote_user);
   if(request_info->query_string) lua_push_str_table_entry(L, "QUERY_STRING", (char*)request_info->query_string);
 
