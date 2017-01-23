@@ -525,16 +525,27 @@ function printInMemory()
 			 "toggle_local_host_cache_enabled",
 			 "ntopng.prefs.is_local_host_cache_enabled", "1")
 
+  local elementToSwitchLocalCache = {"active_local_host_cache_interval"}
+
   toggleTableButtonPrefs("Active Local Hosts Cache",
-			 "Toggle the hourly creation of cache entries for active local hosts. "..
-			 "Caching active local hosts on an hourly basis can be useful to protect host counters against "..
+			 "Toggle the creation of cache entries for active local hosts. "..
+			 "Caching active local hosts periodically can be useful to protect host counters against "..
 			 "failures (e.g., power losses). This is particularly important for local hosts that seldomly go idle "..
-			 "as it guarantees that their counters will be cached at least once per hour.  ",
+			 "as it guarantees that their counters will be cached after the specified time interval.  ",
 			 "On", "1", "success", "Off", "0", "danger",
 			 "toggle_active_local_host_cache_enabled",
-			 "ntopng.prefs.is_active_local_host_cache_enabled", "0")
+			 "ntopng.prefs.is_active_local_host_cache_enabled", "0", nil, elementToSwitchLocalCache)
+
+  local showActiveLocalHostCacheInterval
+  if ntop.getPref("ntopng.prefs.is_active_local_host_cache_enabled") == "1" then
+    showActiveLocalHostCacheInterval = true
+  else
+    showActiveLocalHostCacheInterval = false
+  end
+  prefsInputFieldPrefs("Active Local Host Cache Timeout", "Interval between Active Local Hosts Cache dump. Default: 1 hour.", "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
+
   prefsInputFieldPrefs("Local Hosts Cache Duration", "Time after which a cached local host is deleted from the cache. "..
-			 "Default: 1 hour.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, max=60*60*24*60, tformat="smhd" --[[ TODO check min/max ]]})
+			 "Default: 1 hour.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, tformat="smhd" --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">Hosts Statistics Update Frequency</th></tr>')
   prefsInputFieldPrefs("Update frequency",
