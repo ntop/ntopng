@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "top_structure"
+local host_pools_utils = require "host_pools_utils"
 
 prefs = ntop.getPrefs()
 -- ########################################################
@@ -384,6 +385,20 @@ for _,_ifname in pairs(ifnames) do
 		  end
 	       end
             end -- for
+
+            -- Save Host Pools stats every 5 minutes
+         for _,pool in ipairs(host_pools_utils.getPoolsList(ifstats.id, true --[[ without any additional pool info ]])) do
+            local pool_base = host_pools_utils.getRRDBase(ifstats.id, pool.id)
+
+            if(not(ntop.exists(pool_base))) then
+               ntop.mkdir(pool_base)
+            end
+
+            local rrdpath = fixPath(pool_base .. "/bytes.rrd")
+            createRRDcounter(rrdpath, 300, verbose)
+            --TODO bytes and protocols
+            ntop.rrd_update(rrdpath, "N:"..tolongint(0) .. ":" .. tolongint(0))
+         end
 
 	    -- Create RRDs for flow devices
 	    if(tostring(flow_devices_rrd_creation) == "1") then

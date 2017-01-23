@@ -238,6 +238,7 @@ typedef enum {
   column_unknowers,
   column_incomingflows,
   column_outgoingflows,
+  column_pool_id,
   /* Macs */
   column_num_hosts,
 } sortField;

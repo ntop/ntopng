@@ -57,6 +57,9 @@ bool Grouper::inGroup(Host *h) {
   case column_local_network_id:
     return h->get_local_network_id() == group_id_i;
 
+  case column_pool_id:
+    return h->get_host_pool() == group_id_i;
+
   case column_mac:
     return Utils::macaddr_int(h->get_mac()) == (u_int64_t)group_id_i;
 
@@ -113,6 +116,12 @@ int8_t Grouper::newGroup(Host *h) {
       group_label = strdup(ntop->getLocalNetworkName(h->get_local_network_id()));
     else
       group_label = strdup((char*)UNKNOWN_LOCAL_NETWORK);
+    break;
+
+  case column_pool_id:
+    group_id_i = h->get_host_pool();
+    sprintf(buf, "%i", h->get_host_pool());
+    group_label = strdup(buf);
     break;
 
   case column_mac:

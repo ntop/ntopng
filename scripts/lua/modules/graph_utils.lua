@@ -4,6 +4,7 @@
 require "lua_utils"
 require "db_utils"
 require "historical_utils"
+local host_pools_utils = require "host_pools_utils"
 
 top_rrds = {
    ["bytes.rrd"] = "Traffic",
@@ -178,6 +179,7 @@ end
 -- host_or_network: host or network name.
 -- If network, must be prefixed with 'net:'
 -- If profile, must be prefixed with 'profile:'
+-- If host pool, must be prefixed with 'pool:'
 function getRRDName(ifid, host_or_network, rrdFile)
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
        host_or_network = string.gsub(host_or_network, 'net:', '')
@@ -189,6 +191,9 @@ function getRRDName(ifid, host_or_network, rrdFile)
 
       host_or_network = string.gsub(host_or_network, 'vlan:', '')
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/vlanstats/")
+   elseif host_or_network ~= nil and string.starts(host_or_network, 'pool:') then
+       host_or_network = string.gsub(host_or_network, 'pool:', '')
+       rrdname = host_pools_utils.getRRDBase(ifid, "")
    else
        rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/rrd/")
    end
@@ -479,8 +484,9 @@ font-family: Arial, Helvetica, sans-serif;
 ]]
 
 if ntop.getPrefs().is_dump_flows_to_mysql_enabled
-   -- hide historical tabs for networks
+   -- hide historical tabs for networks and pools
    and not string.starts(host, 'net:')
+   and not string.starts(host, 'pool:')
 then
    print('<li><a href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
 end
@@ -540,7 +546,7 @@ for k,v in ipairs(zoom_vals) do
    -- every 5 minutes
    local net_or_profile = false
 
-   if host and (string.starts(host, 'net:') or string.starts(host, 'profile:')) then
+   if host and (string.starts(host, 'net:') or string.starts(host, 'profile:') or string.starts(host, 'pool:')) then
        net_or_profile = true
    end
    if zoom_vals[k][1] == '1m' and (net_or_profile or (not net_or_profile and not top_rrds[rrdFile])) then
@@ -632,8 +638,9 @@ print[[</div></td></tr></table>
 ]]
 
 if ntop.getPrefs().is_dump_flows_to_mysql_enabled
-   -- hide historical tabs for networks and profiles
+   -- hide historical tabs for networks and profiles and pools
    and not string.starts(host, 'net:')
+   and not string.starts(host, 'pool:')
 then
    print('<div class="tab-pane fade" id="historical-flows">')
    if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then

@@ -5,6 +5,7 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local host_pools_utils = require "host_pools_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
@@ -20,7 +21,8 @@ as_n        = _GET["as"]
 vlan_n      = _GET["vlan"]
 network_n   = _GET["network"]
 country_n   = _GET["country"]
-os_n   	    = _GET["os"]
+os_n        = _GET["os"]
+pool_n      = _GET["pool"]
 
 if(_GET["mode"] == "hostsonly") then
   mac_n = true
@@ -84,7 +86,7 @@ vals = {}
 stats_by_group_col = {}
 
 interface.select(ifname)
-stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), mac_n) -- false = little details)
+stats_by_group_key = interface.getGroupedHosts(false, "column_"..group_col, country_n, os_n, tonumber(vlan_n), tonumber(as_n), tonumber(network_n), mac_n, tonumber(pool_n)) -- false = little details)
 stats_by_group_col = stats_by_group_key
 
 --[[
@@ -110,6 +112,8 @@ function print_single_group(value)
       end      
    elseif (group_col == "local_network_id" or network_n ~= nil) then
       print("hosts_stats.lua?network="..tostring(value["id"]).."'>")
+   elseif (group_col == "pool_id" or pool_n ~= nil) then
+      print("hosts_stats.lua?pool="..tostring(value["id"]).."'>")
    elseif (group_col == "mac") then
       print("hosts_stats.lua?mac="..value["name"].."'>")
    else
@@ -138,6 +142,12 @@ function print_single_group(value)
       manufacturer = get_manufacturer_mac(value["name"])
       if(manufacturer == nil) then manufacturer = "" end
       print(manufacturer..'</A>", ')
+   elseif(group_col == "pool_id") then
+      pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
+      print(pool_name..'</A> ')
+      print('", "column_chart": "')
+      print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+      print('", ')
    elseif(group_col == "country" and value["id"] == "Uncategorized") then
       print('</A>'..value["id"]..'", ')
    else
@@ -253,6 +263,14 @@ elseif (network_n ~= nil) then
       print('{}')
    else
       print_single_group(network_val)
+   end
+   stats_by_group_col = {}
+elseif (pool_n ~= nil) then
+   pool_val = stats_by_group_col[tonumber(pool_val)]
+   if (pool_val == nil) then
+      print('{}')
+   else
+      print_single_group(pool_val)
    end
    stats_by_group_col = {}
 end
