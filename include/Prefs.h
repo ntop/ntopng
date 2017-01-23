@@ -52,6 +52,7 @@ class Prefs {
     enable_top_talkers, enable_captive_portal;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
+  u_int active_local_hosts_cache_interval;
   u_int16_t intf_rrd_raw_days, intf_rrd_1min_days, intf_rrd_1h_days, intf_rrd_1d_days;
   u_int16_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days, other_rrd_1d_days;
   u_int16_t host_activity_rrd_raw_hours, host_activity_rrd_1h_days, host_activity_rrd_1d_days;
@@ -176,7 +177,8 @@ class Prefs {
   inline char* get_pid_path()                           { return(pid_path);       };
   inline char* get_packet_filter()                      { return(packet_filter);  };
   inline u_int get_host_max_idle(bool localHost)        { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
-  inline u_int get_local_host_cache_duration()          { return(local_host_cache_duration);  };
+  inline u_int get_local_host_cache_duration()          { return(local_host_cache_duration);          };
+  inline u_int get_active_local_hosts_cache_interval()  { return(active_local_hosts_cache_interval);  };
   inline u_int16_t get_housekeeping_frequency()         { return(housekeeping_frequency); };
   inline u_int16_t get_flow_max_idle()                  { return(flow_max_idle);          };
   inline u_int32_t get_max_num_hosts()                  { return(max_num_hosts);          };

@@ -517,6 +517,7 @@ function printInMemory()
   prefsInputFieldPrefs("Flow Idle Timeout", "Inactivity time after which a flow is considered idle. Default: 1 min.", "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle, "number", nil, nil, nil, {min=1, max=3600, tformat="smh" --[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 class="info">Local Hosts Cache Settings</th></tr>')
+
   toggleTableButtonPrefs("Idle Local Hosts Cache",
 			 "Toggle the creation of cache entries for idle local hosts. "..
 			 "Cached local hosts counters are restored automatically to their previous values "..
@@ -536,16 +537,16 @@ function printInMemory()
 			 "toggle_active_local_host_cache_enabled",
 			 "ntopng.prefs.is_active_local_host_cache_enabled", "0", nil, elementToSwitchLocalCache)
 
-  local showActiveLocalHostCacheInterval
+  local showActiveLocalHostCacheInterval = false
   if ntop.getPref("ntopng.prefs.is_active_local_host_cache_enabled") == "1" then
     showActiveLocalHostCacheInterval = true
-  else
-    showActiveLocalHostCacheInterval = false
   end
-  prefsInputFieldPrefs("Active Local Host Cache Timeout", "Interval between Active Local Hosts Cache dump. Default: 1 hour.", "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
+
+  prefsInputFieldPrefs("Active Local Host Cache Interval", "Interval between consecutive active local hosts cache dumps. Default: 1 hour.", "ntopng.prefs.", "active_local_host_cache_interval", prefs.active_local_host_cache_interval, "number", showActiveLocalHostCacheInterval, nil, nil, {min=60, tformat="mhd"})
+
 
   prefsInputFieldPrefs("Local Hosts Cache Duration", "Time after which a cached local host is deleted from the cache. "..
-			 "Default: 1 hour.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, tformat="smhd" --[[ TODO check min/max ]]})
+			  "Default: 1 hour.", "ntopng.prefs.","local_host_cache_duration", prefs.local_host_cache_duration, "number", nil, nil, nil, {min=60, tformat="mhd"})
 
   print('<tr><th colspan=2 class="info">Hosts Statistics Update Frequency</th></tr>')
   prefsInputFieldPrefs("Update frequency",

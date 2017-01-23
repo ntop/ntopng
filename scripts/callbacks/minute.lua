@@ -425,3 +425,28 @@ end -- for ifname,_ in pairs(ifnames) do
 -- check MySQL open files status
 -- NOTE: performed on startup.lua
 -- checkOpenFiles()
+
+-- when the active local hosts cache is enabled, ntopng periodically dumps active local hosts statistics to redis
+-- in order to protect from failures (e.g., power losses)
+if prefs.is_active_local_hosts_cache_enabled then
+   local interval = prefs.active_local_hosts_cache_interval
+   local diff = when % tonumber((interval or 3600 --[[ default 1 h --]]))
+
+   --[[
+   tprint("interval: "..tostring(interval))
+   tprint("when: "..tostring(when))
+   tprint("diff: "..tostring(diff))
+   --]]
+
+   if diff < 60 then
+      for _, ifname in pairs(ifnames) do
+	 -- tprint("dumping ifname: "..ifname)
+
+	 -- to protect from failures (e.g., power losses) it is possible to save
+	 -- local hosts counters to redis once per hour
+	 interface.select(ifname)
+	 interface.dumpLocalHosts2redis()
+      end
+
+   end
+end

@@ -302,6 +302,7 @@
 #define CONST_DEFAULT_ALERT_PROBING_ENABLED               0
 #define CONST_DEFAULT_ALERT_SYSLOG_ENABLED                0
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
+#define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_FLOWACTIVITY_SCRIPT    "flowactivity.lua"
@@ -396,6 +397,7 @@
 #define CONST_RUNTIME_IS_AUTOLOGOUT_ENABLED            "ntopng.prefs.is_autologon_enabled"
 #define CONST_RUNTIME_IDLE_LOCAL_HOSTS_CACHE_ENABLED   "ntopng.prefs.is_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED "ntopng.prefs.is_active_local_host_cache_enabled"
+#define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL "ntopng.prefs.active_local_host_cache_interval"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     "ntopng.prefs.housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_HOST_RRD_CREATION          "ntopng.prefs.host_rrd_creation" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_HOST_NDPI_RRD_CREATION     "ntopng.prefs.host_ndpi_rrd_creation" /* 0 / 1 */

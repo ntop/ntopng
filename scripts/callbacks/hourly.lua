@@ -13,20 +13,8 @@ if (ntop.isPro()) then
   require("hourly")
 end
 
-
-local active_local_host_cache_enabled = ntop.getCache("ntopng.prefs.is_active_local_host_cache_enabled")
-
 -- Scan "hour" alerts
 for _, ifname in pairs(interface.getIfNames()) do
    scanAlerts("hour", ifname)
-
-
-   if active_local_host_cache_enabled == "1" then
-      -- to protect from failures (e.g., power losses) it is possible to save
-      -- local hosts counters to redis once per hour
-      interface.select(ifname)
-      interface.dumpLocalHosts2redis()
-   end
-
 end
 
