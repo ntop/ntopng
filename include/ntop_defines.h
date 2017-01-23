@@ -89,7 +89,8 @@
 #define PLEASE_WAIT_URL           "/lua/please_wait.lua"
 #define AUTHORIZE_URL             "/authorize.html"
 #define AUTHORIZE_CAPTIVE_LUA_URL "/lua/authorize_captive.lua"
-#define HOTSPOT_DETECT_URL        "/hotspot-detect.html"
+#define HOTSPOT_DETECT_URL        "/hotspot-detect.html"       /* iOS    */
+#define KINDLE_WIFISTUB_URL       "/kindle-wifi/wifistub.html" /* Kindle */
 #define HOTSPOT_DETECT_LUA_URL    "/lua/hotspot-detect.lua"
 #define HTTP_SESSION_DURATION     43200
 #define CONST_HTTPS_CERT_NAME     "ntopng-cert.pem"

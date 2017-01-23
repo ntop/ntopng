@@ -12,10 +12,11 @@ print [[
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
-        <TITLE>Success</TITLE>
+<TITLE>Authentication Successful</TITLE>
+<meta http-equiv="refresh" Content="0; url=http://www.ntop.org"/>
 </HEAD>
 <BODY>
-Success
+Success.
 </BODY>
 </HTML>
    ]]

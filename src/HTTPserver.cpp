@@ -145,6 +145,58 @@ static void set_cookie(const struct mg_connection *conn,
 
 /* ****************************************** */
 
+static int checkCaptive(const struct mg_connection *conn,
+			const struct mg_request_info *request_info,
+			char *username, char *password) {
+#ifdef NTOPNG_PRO
+  if(ntop->getPrefs()->isCaptivePortalEnabled()
+     && ntop->isCaptivePortalUser(username)) {
+    /*
+      This user logged onto ntopng via the captive portal
+    */
+    u_int16_t host_pool_id;
+
+#ifdef DEBUG
+    char buf[32];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]",
+				 username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
+				 (unsigned int)conn->request_info.remote_ip,
+				 (char*)mg_get_header(conn, "Host"), request_info->uri);
+#endif
+
+    ntop->getUserHostPool(username, &host_pool_id);
+    ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
+			    host_pool_id,
+			    !ntop->hasUserLimitedLifetime(username));
+
+    /* FIX ADD non iOS authorization */
+    return(1);
+  }
+#endif
+
+  return(0);
+}
+
+/* ****************************************** */
+
+static int isWhitelistedURI(char *uri) {
+  /* URL whitelist */
+  if((!strcmp(uri,    LOGIN_URL))
+     || (!strcmp(uri, AUTHORIZE_URL))
+     || (!strcmp(uri, PLEASE_WAIT_URL))
+     || (!strcmp(uri, HOTSPOT_DETECT_URL))
+     || (!strcmp(uri, HOTSPOT_DETECT_LUA_URL))
+     || (!strcmp(uri, CAPTIVE_PORTAL_URL))
+     || (!strcmp(uri, KINDLE_WIFISTUB_URL))
+     )
+    return(1);
+  else
+    return(0);
+}
+
+/* ****************************************** */
+
 // Return 1 if request is authorized, 0 otherwise.
 static int is_authorized(const struct mg_connection *conn,
                          const struct mg_request_info *request_info,
@@ -157,32 +209,56 @@ static int is_authorized(const struct mg_connection *conn,
   bool user_login_disabled = !ntop->getPrefs()->is_users_login_enabled() ||
     authorized_localhost_users_login_disabled(conn);
 
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] [%s][%s]",
+			       request_info->uri, request_info->query_string ? request_info->query_string : "");
+#endif
+
+  /*
+    iOS / MacOS
+    1. HOTSPOT_DETECT_URL        "/hotspot-detect.html"
+    2. HOTSPOT_DETECT_LUA_URL    "/lua/hotspot-detect.lua"
+    3. CAPTIVE_PORTAL_URL        "/lua/captive_portal.lua"
+    4. AUTHORIZE_CAPTIVE_LUA_URL "/lua/authorize_captive.lua"
+    5. logged in
+
+    Kindle
+    1. KINDLE_WIFISTUB_URL
+  */
+  if(!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)) {
+    if(request_info->query_string) {
+      char *k, *tmp;
+	
+      if((k = strtok_r((char*)request_info->query_string, "%3F", &tmp)) != NULL) {
+	char *key, *value;
+	
+	key = strtok_r(k, "=",  &tmp);
+
+	while(key != NULL) {
+	  value = strtok_r(NULL, "&",  &tmp);
+	    
+	  if(value) {
+	    if(!strcmp(key, "user"))          snprintf(username, username_len, "%s", value);
+	    else if(!strcmp(key, "password")) snprintf(password, sizeof(password), "%s", value);
+	    else {
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "[AUTHORIZATION] %s=%s", key, value);
+	    }
+	  }
+
+	  key = strtok_r(NULL, "=",  &tmp);
+	}	
+      }
+    }
+      
+    return(ntop->checkUserPassword(username, password)
+	   && checkCaptive(conn, request_info, username, password));
+  }
+
   if(user_login_disabled) {
     mg_get_cookie(conn, "user", username, username_len);
     if(strncmp(username, NTOP_NOLOGIN_USER, username_len)) {
       set_cookie(conn, (char *)NTOP_NOLOGIN_USER, NULL);
     }
-    return 1;
-  }
-
-  // Always authorize accesses to login page and to authorize URI
-  if((!strcmp(request_info->uri, LOGIN_URL))
-     || (!strcmp(request_info->uri, AUTHORIZE_URL))
-     || (!strcmp(request_info->uri, PLEASE_WAIT_URL))
-     || (!strcmp(request_info->uri, HOTSPOT_DETECT_URL))
-     || (!strcmp(request_info->uri, HOTSPOT_DETECT_LUA_URL))
-     || (!strcmp(request_info->uri, CAPTIVE_PORTAL_URL))
-     ) {
-    return 1;
-  }
-
-  if((!strcmp(request_info->uri, Utils::getURL((char*)LOGIN_URL,          buf, sizeof(buf))))
-     || (!strcmp(request_info->uri, Utils::getURL((char*)AUTHORIZE_URL,   buf, sizeof(buf))))
-     || (!strcmp(request_info->uri, Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf))))
-     || (!strcmp(request_info->uri, Utils::getURL((char*)HOTSPOT_DETECT_URL, buf, sizeof(buf))))
-     || (!strcmp(request_info->uri, Utils::getURL((char*)HOTSPOT_DETECT_LUA_URL, buf, sizeof(buf))))
-     || (!strcmp(request_info->uri, Utils::getURL((char*)CAPTIVE_PORTAL_URL, buf, sizeof(buf))))
-     ) {
     return 1;
   }
 
@@ -250,9 +326,31 @@ static int is_authorized(const struct mg_connection *conn,
 // Redirect user to the login form. In the cookie, store the original URL
 // we came from, so that after the authorization we could redirect back.
 static void redirect_to_login(struct mg_connection *conn,
-                              const struct mg_request_info *request_info) {
-  char session_id[33], buf[128];
+                              const struct mg_request_info *request_info,
+			      const char *redirect) {
+  char session_id[33], buf[128], *target;
 
+  if((!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)) || redirect) {
+    target = (char*)CAPTIVE_PORTAL_URL;
+
+    if(redirect)
+      mg_printf(conn,
+		"HTTP/1.1 302 Found\r\n"
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+		"Location: %s%s?referer=%s\r\n\r\n", /* FIX */
+		session_id,
+		ntop->getPrefs()->get_http_prefix(), target, redirect);
+    else
+      mg_printf(conn,
+		"HTTP/1.1 302 Found\r\n"
+		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
+		"Location: %s%s\r\n\r\n", /* FIX */
+		session_id,
+		ntop->getPrefs()->get_http_prefix(), target);
+    return;
+  } else
+    target = Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf));
+  
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
 #endif
@@ -262,13 +360,11 @@ static void redirect_to_login(struct mg_connection *conn,
 
   mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
-	    // "HTTP/1.1 401 Unauthorized\r\n"
-	    // "WWW-Authenticate: Basic\r\n"
 	    "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
 	    "Location: %s%s?referer=%s%s%s%s\r\n\r\n", /* FIX */
 	    session_id,
 	    ntop->getPrefs()->get_http_prefix(),
-	    Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
+	    target,
 	    (char*)mg_get_header(conn, "Host"),
 	    conn->request_info.uri,
 	    conn->request_info.query_string ? "%3F" /* ? */: "",
@@ -312,90 +408,12 @@ static void get_qsvar(const struct mg_request_info *request_info,
 
 /* ****************************************** */
 
-static int checkCaptive(struct mg_connection *conn,
-			const struct mg_request_info *request_info,
-			char *username) {
-#ifdef NTOPNG_PRO
-    if(ntop->getPrefs()->isCaptivePortalEnabled()
-       && ntop->isCaptivePortalUser(username)) {
-      /*
-	 This user logged onto ntopng via the captive portal
-      */
-      char *referer = NULL;
-      u_int16_t host_pool_id;
-      const char *r = mg_get_header(conn, "Referer");
-
-#ifdef DEBUG
-      char buf[32];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]",
-				   username, Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
-				   (unsigned int)conn->request_info.remote_ip,
-				   (char*)mg_get_header(conn, "Host"), request_info->uri);
-#endif
-
-      ntop->getUserHostPool(username, &host_pool_id);
-      ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
-			      host_pool_id,
-			      !ntop->hasUserLimitedLifetime(username));
-
-      /*
-	As this is a captive portal user, we are good so far and we
-	redirect to the requested web site
-      */
-#if 0
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "QUERY_STRING=%s", request_info->query_string ? request_info->query_string : "");
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Referer=%s", r);
-#endif
-
-      if(!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL))
-	return(0);
-
-      if(r) {
-	char *k, *t1;
-
-	k = strtok_r((char*)r, "?", &t1);
-	while(k != NULL) {
-	  char *a, *b, *t2;
-
-	  if((a = strtok_r(k, "=", &t2)) != NULL) {
-	    b = strtok_r(NULL, "=", &t2);
-
-	    if(!strcmp(a, "referer")) {
-	      referer = strdup(b);
-	      break;
-	    }
-	  }
-
-	  k = strtok_r(NULL, "&", &t1);
-	}
-      }
-
-      if(referer == NULL) referer = strdup("www.ntop.org");
-
-#ifdef DEBUG
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "############# ==>>> Redirecting to http://%s", referer);
-#endif
-
-      mg_printf(conn, "HTTP/1.1 301 Moved Permanently\r\n"
-		"Location: http://%s\r\n\r\n", referer);
-
-      free(referer);
-      return(1);
-    }
-#endif
-
-    return(0);
-}
-
-/* ****************************************** */
-
 // A handler for the /authorize endpoint.
 // Login page form sends user name and password to this endpoint.
 static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username) {
-  char user[32], password[32], referer[256];
+  char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -409,17 +427,28 @@ static void authorize(struct mg_connection *conn,
     get_qsvar(request_info, "user", user, sizeof(user));
     get_qsvar(request_info, "password", password, sizeof(password));
     get_qsvar(request_info, "ref", referer, sizeof(referer));
+
+    if(referer[0] == '\0') {
+      for(int i=0; request_info->http_headers[i].name != NULL; i++) {
+	if(strcmp(request_info->http_headers[i].name, "Referer") == 0) {
+	  snprintf(referer, sizeof(referer), "%s", request_info->http_headers[i].value);
+	  break;
+	}
+      }
+    }
   }
 
-  /* Referer url must begin with '/' */
-  if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0))
-    strcpy(referer, "/");
-
-  if(ntop->checkUserPassword(user, password)) {
-    set_cookie(conn, user, referer);
+  if((ntop->getPrefs()->isCaptivePortalEnabled() && ntop->isCaptivePortalUser(user))
+     || (!ntop->checkUserPassword(user, password))) {
+    // Authentication failure, redirect to login
+    redirect_to_login(conn, request_info, 
+		      (referer[0] == '\0') ? NULL : referer);
   } else {
-    // Authentication failure, redirect to login.
-    redirect_to_login(conn, request_info);
+    /* Referer url must begin with '/' */
+    if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0))
+      strcpy(referer, "/");
+    
+    set_cookie(conn, user, referer);
   }
 }
 
@@ -456,6 +485,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   u_int len = (u_int)strlen(request_info->uri);
   char username[33] = { 0 };
   char *referer = (char*)mg_get_header(conn, "Referer");
+  u_int8_t whitelisted;
 
   if(referer == NULL) referer = (char*)"";
 
@@ -479,42 +509,73 @@ static int handle_lua_request(struct mg_connection *conn) {
      && !MySQLDB::isDbCreated()
      && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
     redirect_to_please_wait(conn, request_info);
-  } else if(ntop->get_HTTPserver()->is_ssl_enabled() 
+  } else if(ntop->get_HTTPserver()->is_ssl_enabled()
 	    && (!request_info->is_ssl)
+	    && strcmp(request_info->uri, KINDLE_WIFISTUB_URL)
 	    && strcmp(request_info->uri, HOTSPOT_DETECT_URL)
 	    && strcmp(request_info->uri, HOTSPOT_DETECT_LUA_URL)
 	    && strcmp(request_info->uri, CAPTIVE_PORTAL_URL)
 	    && strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)
 	    && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
 	    && (!strstr(referer, CAPTIVE_PORTAL_URL))
-	    )
+	    && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
+	    ) {
     redirect_to_ssl(conn, request_info);
-  else if(!strcmp(request_info->uri, HOTSPOT_DETECT_URL)) {
+    return(1);
+  } else if((!strcmp(request_info->uri, HOTSPOT_DETECT_URL))
+	  || (!strcmp(request_info->uri, KINDLE_WIFISTUB_URL))
+	  ) {
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
-	      "Location: %s%s%s\r\n\r\n",
-	      HOTSPOT_DETECT_LUA_URL, 
+	      "Expires: 0\r\n"
+	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
+	      "Pragma: no-cache\r\n"
+	      "Location: http://%s%s%s%s\r\n\r\n",
+	      (char*)mg_get_header(conn, "Host"),
+	      HOTSPOT_DETECT_LUA_URL,
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
-  }    
+    return(1);
+  }
+
+  whitelisted = isWhitelistedURI(request_info->uri);
 
   if((len > 4)
      && ((strcmp(&request_info->uri[len-4], ".css") == 0)
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
-  else if(ntop->getPrefs()->isCaptivePortalEnabled()
-	  && (!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL))
-	  /* && ntop->isCaptivePortalUser(username) */) {
-    ; /* Ok, no need to authenticate */
-  } else if(!is_authorized(conn, request_info, username, sizeof(username))) {
-    redirect_to_login(conn, request_info);
+  else if((!whitelisted) && (!is_authorized(conn, request_info, username, sizeof(username)))) {
+    const char *redirect_to = NULL;
+
+#if KINDLE
+    if(// (request_info->query_string == NULL) && 
+       (request_info->is_ssl == 0)
+       && ((!strcmp(request_info->uri, "/")) || !strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL))
+       ) {
+      /* Check if this is a connection attempt */
+      
+      for(int i=0; request_info->http_headers[i].name != NULL; i++) {
+	if(strcmp(request_info->http_headers[i].name, "Host") == 0) {
+	  redirect_to = request_info->http_headers[i].value;
+	  break;
+	}
+      }
+      
+      if(redirect_to) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] Redirect to %s", redirect_to);
+      }
+    }
+#endif
+
+    redirect_to_login(conn, request_info, redirect_to);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
     authorize(conn, request_info, username);
     return(1);
   }
 
-  if(checkCaptive(conn, request_info, username))
-    return(1);
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Username = %s", username);
+#endif
 
   if(strstr(request_info->uri, "//")
      || strstr(request_info->uri, "&&")
@@ -654,6 +715,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
     (char*)"document_root",  (char*)_docs_dir,
+    (char*)"access_log_file",  (char*)"/tmp/ntopng.log",
     /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
     (char*)"num_threads", (char*)"5",
     _a, _b,
