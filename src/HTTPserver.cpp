@@ -327,19 +327,20 @@ static int is_authorized(const struct mg_connection *conn,
 // we came from, so that after the authorization we could redirect back.
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
-			      const char *redirect) {
-  char session_id[33], buf[128], *target;
+			      u_int8_t do_captive,
+			      const char *referer) {
+  char session_id[33], buf[128], *target = Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf));
+  
+  if(do_captive || referer) {
+    if(do_captive) target = (char*)CAPTIVE_PORTAL_URL;
 
-  if((!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)) || redirect) {
-    target = (char*)CAPTIVE_PORTAL_URL;
-
-    if(redirect)
+    if(referer)
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
 		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0; HttpOnly\r\n"  // Session ID
 		"Location: %s%s?referer=%s\r\n\r\n", /* FIX */
 		session_id,
-		ntop->getPrefs()->get_http_prefix(), target, redirect);
+		ntop->getPrefs()->get_http_prefix(), target, referer);
     else
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
@@ -348,8 +349,7 @@ static void redirect_to_login(struct mg_connection *conn,
 		session_id,
 		ntop->getPrefs()->get_http_prefix(), target);
     return;
-  } else
-    target = Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf));
+  }    
   
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
@@ -414,7 +414,8 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
-
+  u_int8_t do_captive;
+  
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data));
@@ -438,10 +439,11 @@ static void authorize(struct mg_connection *conn,
     }
   }
 
-  if((ntop->getPrefs()->isCaptivePortalEnabled() && ntop->isCaptivePortalUser(user))
-     || (!ntop->checkUserPassword(user, password))) {
+  do_captive = ntop->getPrefs()->isCaptivePortalEnabled() && ntop->isCaptivePortalUser(user);
+
+  if(do_captive || (!ntop->checkUserPassword(user, password))) {
     // Authentication failure, redirect to login
-    redirect_to_login(conn, request_info, 
+    redirect_to_login(conn, request_info, do_captive,
 		      (referer[0] == '\0') ? NULL : referer);
   } else {
     /* Referer url must begin with '/' */
@@ -566,7 +568,9 @@ static int handle_lua_request(struct mg_connection *conn) {
     }
 #endif
 
-    redirect_to_login(conn, request_info, redirect_to);
+    redirect_to_login(conn, request_info,
+		      ntop->getPrefs()->isCaptivePortalEnabled() && ntop->isCaptivePortalUser(username),
+		      redirect_to);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
     authorize(conn, request_info, username);
