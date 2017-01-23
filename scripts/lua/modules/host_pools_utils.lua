@@ -74,12 +74,20 @@ function host_pools_utils.deleteFromPoll(ifid, pool_id, member_and_vlan)
   ntop.delMembersCache(members_key, member_and_vlan)
 end
 
-function host_pools_utils.getPoolsList(ifid)
+function host_pools_utils.getPoolsList(ifid, without_info)
   local ids_key = get_pool_ids_key(ifid)
   local pools = {}
 
   for _, pool_id in pairsByValues(ntop.getMembersCache(ids_key) or {}, asc) do
-    pools[#pools + 1] = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
+    local pool
+
+    if without_info then
+      pool = {id=pool_id}
+    else
+      pool = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
+    end
+
+    pools[#pools + 1] = pool
   end
 
   return pools
@@ -135,6 +143,11 @@ function host_pools_utils.purgeExpiredPoolsMembers()
 	 interface.purgeExpiredPoolsMembers()
       end
    end
+end
+
+function host_pools_utils.getRRDBase(ifid, pool_id)
+  local dirs = ntop.getDirs()
+  return fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
 end
 
 return host_pools_utils

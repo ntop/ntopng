@@ -9,10 +9,6 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-if (group_col == nil) then
-   group_col = "network"
-end
-
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 active_page = "hosts"
