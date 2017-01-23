@@ -195,6 +195,7 @@
 #define CONST_EST_MAX_HOSTS            200000
 #define MIN_HOST_RESOLUTION_FREQUENCY  60  /* 1 min */
 #define HOST_SITES_REFRESH             300 /* 5 min */
+#define HOST_SITES_TOP_NUMBER          10
 #define HOST_MAX_SERIALIZED_LEN        16348 /* bytes */
 
 #define CONST_MAX_NUM_NETWORKS         255

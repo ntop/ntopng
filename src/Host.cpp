@@ -54,13 +54,6 @@ Host::~Host() {
   if(num_uses > 0)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u", num_uses);
 
-  if(topSitesKey && ntop->getPrefs()->are_top_talkers_enabled()) {
-    char oldk[64];
-
-    snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-    ntop->getRedis()->rename(topSitesKey, oldk);
-  }
-
   if(!ip.isEmpty()) dumpStats(false);
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleting %s (%s)", k, localHost ? "local": "remote");
@@ -88,7 +81,8 @@ Host::~Host() {
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
   if(m) delete m;
-  if(topSitesKey) free(topSitesKey);
+  if(top_sites)       delete top_sites;
+  if(old_sites)       free(old_sites);
 }
 
 /* *************************************** */
@@ -155,11 +149,11 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   longitude = 0, latitude = 0, host_quota_mb = 0;
   k = get_string_key(key, sizeof(key));
   snprintf(redis_key, sizeof(redis_key), HOST_SERIALIZED_KEY, iface->get_id(), k, vlan_id);
-  dns = NULL, http = NULL, categoryStats = NULL, topSitesKey = NULL,
+  dns = NULL, http = NULL, categoryStats = NULL, top_sites = NULL, old_sites = NULL,
     user_activities = NULL, ifa_stats = NULL;
 
   if(init_all) {
-    char sitesBuf[64], *strIP = ip.print(buf, sizeof(buf));
+    char *strIP = ip.print(buf, sizeof(buf));
 
     snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
 
@@ -167,15 +161,9 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     updateHostTrafficPolicy(host);
     
     if(localHost) {
-      /* initialize this key in any case to support runtime 'are_top_talkers_enabled' changes */
-      snprintf(sitesBuf, sizeof(sitesBuf), "sites.%s", strIP);
-      topSitesKey = strdup(sitesBuf);
-
-      if (ntop->getPrefs()->are_top_talkers_enabled()) {
-        char oldk[64];
-        snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-        ntop->getRedis()->rename(topSitesKey, oldk);
-      }
+      /* initialize this in any case to support runtime 'are_top_talkers_enabled' changes */
+      top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
+      old_sites = strdup("{}");
 
       readDHCPCache();
     }
@@ -421,34 +409,6 @@ void Host::set_mac(char *m) {
 
 /* *************************************** */
 
-void Host::getSites(lua_State* vm, char *k, const char *label) {
-  int rc;
-  char **sites;
-
-  lua_newtable(vm);
-
-  if((rc = ntop->getRedis()->zRevRange(k, &sites)) > 0) {
-
-    for(int i = 0; i < rc; i++) {
-      if((sites[i] == NULL) || (sites[i+1] == NULL))
-	continue; /* safety check */
-
-      lua_push_int_table_entry(vm, sites[i], atoi(sites[i+1]));
-
-      free(sites[i]), free(sites[i+1]);
-      i++;
-    }
-
-    free(sites);
-  }
-
-  lua_pushstring(vm, label);
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-}
-
-/* *************************************** */
-
 void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
 	       bool returnHost, bool asListElement,
@@ -573,13 +533,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_push_int_table_entry(vm, "low_goodput_flows.as_client", low_goodput_client_flows);
     lua_push_int_table_entry(vm, "low_goodput_flows.as_server", low_goodput_server_flows);
 
-    if(topSitesKey && ntop->getPrefs()->are_top_talkers_enabled()) {
-      char oldk[64];
-
-      snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-
-      getSites(vm, topSitesKey, "sites");
-      getSites(vm, oldk, "sites.old");
+    if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
+      lua_push_str_table_entry(vm, "sites", top_sites->json());
+      lua_push_str_table_entry(vm, "sites.old", old_sites);
     }
   }
 
@@ -1270,14 +1226,11 @@ void Host::updateStats(struct timeval *tv) {
 
   if(!localHost) return;
 
-  if(topSitesKey && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
+  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
     if(nextSitesUpdate > 0) {
-      char oldk[64];
-
-      snprintf(oldk, sizeof(oldk), "%s.old", topSitesKey);
-      ntop->getRedis()->rename(topSitesKey, oldk);
-
-      ntop->getRedis()->zTrim(oldk, 10);
+      if(old_sites)
+        free(old_sites);
+      old_sites = top_sites->json();
     }
 
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
@@ -1509,7 +1462,7 @@ void Host::decLowGoodputFlows(bool asClient) {
 void Host::incrVisitedWebSite(char *hostname) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
 
-  if(topSitesKey
+  if(top_sites
      && ntop->getPrefs()->are_top_talkers_enabled()
      && (strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
@@ -1523,7 +1476,7 @@ void Host::incrVisitedWebSite(char *hostname) {
       ntop->getRedis()->zIncr(topSitesKey, nextdot ? &firstdot[1] : hostname);
     }
 #else
-    ntop->getRedis()->zIncr(topSitesKey, hostname);
+    top_sites->add(hostname, 1);
 #endif
   }
 }

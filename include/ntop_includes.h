@@ -159,6 +159,8 @@ using namespace std;
 #include "KafkaManager.h"
 #endif
 #endif
+#include "FrequentStringItems.h"
+#include "FrequentNumericItems.h"
 #include "HostPools.h"
 #include "Prefs.h"
 #include "Mutex.h"

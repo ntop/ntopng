@@ -17,6 +17,7 @@ require "lua_utils"
 require "graph_utils"
 require "alert_utils"
 require "historical_utils"
+local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
 
 debug_hosts = false
@@ -1352,18 +1353,20 @@ end
 	 print("<table class=\"table table-bordered table-striped\">\n")
 
 	 if(host["sites"] ~= nil) then
-	    old_top_len = table.len(host["sites.old"])  if(old_top_len > 10) then old_top_len = 10 end
-	    top_len = table.len(host["sites"])          if(top_len > 10) then top_len = 10 end
+	    local top_sites = json.decode(host["sites"], 1, nil)
+	    local top_sites_old = json.decode(host["sites.old"], 1, nil)
+	    old_top_len = table.len(top_sites_old)  if(old_top_len > 10) then old_top_len = 10 end
+	    top_len = table.len(top_sites)          if(top_len > 10) then top_len = 10 end
 	    if(old_top_len > top_len) then num = old_top_len else num = top_len end
 
 	    print("<tr><th rowspan="..(1+num)..">Top Visited Sites</th><th>Current Sites</th><th>Contacts</th><th>Last 5 Minute Sites</th><th>Contacts</th></tr>\n")
 	    sites = {} 
-	    for k,v in pairsByValues(host["sites"], rev) do
+	    for k,v in pairsByValues(top_sites, rev) do
 	       table.insert(sites, { k, v })
 	    end
 
 	    sites_old = {} 
-	    for k,v in pairsByValues(host["sites.old"], rev) do
+	    for k,v in pairsByValues(top_sites_old, rev) do
 	       table.insert(sites_old, { k, v })
 	    end
 

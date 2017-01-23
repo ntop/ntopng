@@ -326,7 +326,7 @@ function printProtocolPrefs()
   print('<tr><th colspan=2 class="info">HTTP</th></tr>')
 
   toggleTableButtonPrefs("Top HTTP Sites",
-        "Toggle the creation of top visited sites for local hosts. This may increase the disk usage.",
+        "Toggle the creation of top visited sites for local hosts. This will increase memory and cpu usage.",
         "On", "1", "success",
         "Off", "0", "danger",
         "toggle_top_sites", "ntopng.prefs.host_top_sites_creation", "0")

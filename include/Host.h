@@ -34,7 +34,9 @@ typedef struct {
 class Host : public GenericHost {
  private:
   u_int32_t asn;
-  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *topSitesKey;
+  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12];
+  FrequentStringItems *top_sites;
+  char * old_sites;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated;
   u_int32_t host_quota_mb;
   int16_t local_network_id, deviceIfIdx;
@@ -83,7 +85,6 @@ class Host : public GenericHost {
   void loadFlowRateAlertPrefs(void);
   void loadSynAlertPrefs(void);
   void loadFlowsAlertPrefs(void);
-  void getSites(lua_State* vm, char *k, const char *label);
   bool readDHCPCache();
 #ifdef NTOPNG_PRO
   u_int8_t get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress);
