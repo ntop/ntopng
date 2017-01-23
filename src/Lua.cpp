@@ -272,6 +272,7 @@ static int ntop_select_interface(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
 /* ****************************************** */
 
 /**
@@ -296,6 +297,30 @@ static int ntop_get_ndpi_interface_stats(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
+
+#ifdef NTOPNG_PRO
+/**
+ * @brief Get the Host Pool statistics of interface.
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK
+ */
+static int ntop_get_host_pool_interface_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  nDPIStats stats;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface && ntop_interface->getHostPools()) {
+    ntop_interface->luaHostPools(vm);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+
+}
+#endif
 
 /* ****************************************** */
 
@@ -5271,6 +5296,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "select",                 ntop_select_interface },
   { "getStats",               ntop_get_interface_stats },
   { "resetCounters",          ntop_interface_reset_counters },
+#ifdef NTOPNG_PRO
+  { "getHostPoolsStats",      ntop_get_host_pool_interface_stats },
+#endif
   { "getnDPIStats",           ntop_get_ndpi_interface_stats },
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },

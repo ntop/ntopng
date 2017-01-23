@@ -827,8 +827,11 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
     diff_rcvd_packets, diff_rcvd_bytes, diff_rcvd_goodput_bytes;
   bool updated = false;
   bool cli_and_srv_in_same_subnet = false;
-  int16_t cli_network_id;
-  int16_t srv_network_id;
+  int16_t cli_network_id, srv_network_id;
+#ifdef NTOPNG_PRO
+  HostPools *hp;
+  u_int16_t cli_host_pool_id, srv_host_pool_id;
+#endif
 
   if(check_tor && (ndpiDetectedProtocol.protocol == NDPI_PROTOCOL_SSL)) {
     char rsp[256];
@@ -864,12 +867,25 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
   if(cli_host && srv_host) {
     cli_network_id = cli_host->get_local_network_id();
     srv_network_id = srv_host->get_local_network_id();
+#ifdef NTOPNG_PRO
+    cli_host_pool_id = cli_host->get_host_pool();
+    srv_host_pool_id = srv_host->get_host_pool();
+#endif
     if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
       cli_and_srv_in_same_subnet = true;
 
     if(diff_sent_packets || diff_rcvd_packets) {
 #ifdef NTOPNG_PRO
       if(trafficProfile && ntop->getPro()->has_valid_license()) trafficProfile->incBytes(diff_sent_bytes+diff_rcvd_bytes);
+
+      hp = iface->getHostPools();
+      if(hp) {
+	hp->incPoolStats(cli_host_pool_id, ndpiDetectedProtocol.protocol,
+			 diff_sent_packets, diff_sent_bytes, diff_rcvd_packets, diff_rcvd_bytes);
+	hp->incPoolStats(srv_host_pool_id, ndpiDetectedProtocol.protocol,
+			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
+      }
+      
 #endif
 
       if(cli_host) {

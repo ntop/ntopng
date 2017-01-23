@@ -27,11 +27,51 @@
 
 HostPools::HostPools(NetworkInterface *_iface) {
   tree = tree_shadow = NULL;
+#ifdef NTOPNG_PRO
+  stats = stats_shadow = NULL;
+#endif
   if(_iface)
     iface = _iface;
 
   reloadPools();
 }
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+
+void HostPools::incPoolStats(u_int16_t host_pool_id, u_int ndpi_proto,
+			     u_int64_t sent_packets, u_int64_t sent_bytes,
+			     u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+  if(host_pool_id == 0 || host_pool_id > MAX_NUM_HOST_POOLS || !stats || !stats[host_pool_id])
+    return;
+  stats[host_pool_id]->incStats(ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+};
+
+/* *************************************** */
+
+void HostPools::updateStats(struct timeval *tv) {
+  if(tv) {
+    for(int i = 1; i < MAX_NUM_HOST_POOLS; i++)
+      if(stats[i])
+	stats[i]->updateStats(tv);
+  }
+};
+
+/* *************************************** */
+
+void HostPools::lua(lua_State *vm) {
+  if(stats && vm) {
+    lua_newtable(vm);
+    for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
+      if(stats[i]) {
+	stats[i]->lua(vm, iface);
+	lua_rawseti(vm, -2, i);
+      }
+    }
+  }
+};
+#endif
 
 /* *************************************** */
 
@@ -41,17 +81,28 @@ void HostPools::reloadPools() {
   int num_pools, num_members;
   u_int16_t _pool_id, vlan_id;
   AddressTree **new_tree;
+#ifdef NTOPNG_PRO
+  HostPoolStats **new_stats;
+#endif
   Redis *redis = ntop->getRedis();
 
   if(!iface || iface->get_id() == -1)
     return;
 
-  if((new_tree = new AddressTree*[MAX_NUM_VLAN]) == NULL) {
+  if((new_tree = new AddressTree*[MAX_NUM_VLAN]) == NULL
+#ifdef NTOPNG_PRO
+     || (new_stats = new HostPoolStats*[MAX_NUM_HOST_POOLS]) == NULL
+#endif
+     ) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
   for(u_int32_t i = 0; i < MAX_NUM_VLAN; i++)
     new_tree[i] = NULL;
+#ifdef NTOPNG_PRO
+  for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
+    new_stats[i] = NULL;
+#endif
 
   snprintf(kname, sizeof(kname),
 	   HOST_POOL_IDS_KEY, iface->get_id());
@@ -64,7 +115,19 @@ void HostPools::reloadPools() {
   }
 
   for(int i = 0; i < num_pools; i++) {
-    if(!pools[i]) continue;
+    if(!pools[i])
+      continue;
+
+    _pool_id = (u_int16_t)atoi(pools[i]);
+    if(_pool_id == 0 || _pool_id > MAX_NUM_HOST_POOLS)
+      continue;
+
+#ifdef NTOPNG_PRO
+    if(stats && stats[_pool_id]) /* Duplicate existing statistics */
+      new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
+    else /* Brand new statistics */
+      new_stats[_pool_id] = new HostPoolStats();
+#endif
 
     snprintf(kname, sizeof(kname),
 	     HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
@@ -86,7 +149,6 @@ void HostPools::reloadPools() {
 	if(new_tree[vlan_id] || (new_tree[vlan_id] = new AddressTree())) {
 	  bool rc;
 
-	  _pool_id = (u_int16_t)atoi(pools[i]);
 	  if(!(rc = new_tree[vlan_id]->addAddress(member, _pool_id))
 #ifdef HOST_POOLS_DEBUG
 	     || true
@@ -113,14 +175,23 @@ void HostPools::reloadPools() {
   if(pools)
     free(pools);
 
-
+  /* Swap address trees */
   if(tree) {
     if(tree_shadow)
       delete []tree_shadow; /* Invokes the destructor */
     tree_shadow = tree;
   }
-
   tree = new_tree;
+
+#ifdef NTOPNG_PRO
+  /* Swap statistics */
+  if(stats) {
+    if(stats_shadow)
+      delete []stats_shadow;
+    stats_shadow = stats;
+  }
+  stats = new_stats;
+#endif
 
   iface->refreshHostPools();
 }

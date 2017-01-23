@@ -26,18 +26,32 @@
 
 class NetworkInterface;
 class Host;
+#ifdef NTOPNG_PRO
+class HostPoolStats;
+#endif
 
 #define NO_HOST_POOL_ID 0
 
 class HostPools {
  private:
+#ifdef NTOPNG_PRO
+  HostPoolStats **stats, **stats_shadow;
+#endif
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
+  void reloadPoolStats();
 
 public:
   HostPools(NetworkInterface *_iface);
   void reloadPools();
   u_int16_t getPool(Host *h);
+#ifdef NTOPNG_PRO
+  void incPoolStats(u_int16_t host_pool_id, u_int ndpi_proto,
+		    u_int64_t sent_packets, u_int64_t sent_bytes,
+		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+  void updateStats(struct timeval *tv);
+  void lua(lua_State *vm);
+#endif
   void addToPool(u_int32_t client_ipv4, u_int16_t user_pool_id, bool permanentAuthorization);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, bool permanentAuthorization);
   void purgeExpiredMembers();

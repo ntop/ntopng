@@ -217,6 +217,7 @@ using namespace std;
 #include "FlowChecker.h"
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
+#include "HostPoolStats.h"
 #ifdef HAVE_NETFILTER
 #include "NetfilterInterface.h"
 #endif

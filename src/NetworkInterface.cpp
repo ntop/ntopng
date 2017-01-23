@@ -1945,6 +1945,11 @@ void NetworkInterface::periodicStatsUpdate() {
     static_cast<MySQLDB*>(db)->updateStats(&tv);
     db->flush(false /* not idle, periodic activities */);
   }
+
+#ifdef NTOPNG_PRO
+  if(host_pools)
+    host_pools->updateStats(&tv);
+#endif
 }
 
 /* **************************************************** */
