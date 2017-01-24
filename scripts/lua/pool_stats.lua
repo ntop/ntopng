@@ -11,6 +11,10 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
+if (not ntop.isPro()) then
+  return
+end
+
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 

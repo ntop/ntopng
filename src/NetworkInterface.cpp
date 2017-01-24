@@ -492,6 +492,7 @@ NetworkInterface::~NetworkInterface() {
     cleanup();
   }
 
+  if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   deleteDataStructures();
 
   if(remoteIfname)      free(remoteIfname);
@@ -501,7 +502,6 @@ NetworkInterface::~NetworkInterface() {
   if(db)             delete db;
   if(statsManager)   delete statsManager;
   if(alertsManager)  delete alertsManager;
-  if(host_pools)     delete host_pools;
   if(networkStats)   delete []networkStats;
   if(pkt_dumper)     delete pkt_dumper;
   if(pkt_dumper_tap) delete pkt_dumper_tap;

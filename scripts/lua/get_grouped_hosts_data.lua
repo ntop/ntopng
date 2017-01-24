@@ -138,10 +138,13 @@ function print_single_group(value)
       print(manufacturer..'</A>", ')
    elseif(group_col == "pool_id") then
       pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
-      print(pool_name..'</A> ')
-      print('", "column_chart": "')
-      print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
-      print('", ')
+      print(pool_name..'</A> " , ')
+
+      if tostring(value["id"]) ~= host_pools_utils.DEFAULT_POOL_ID then
+         print('"column_chart": "')
+         print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+         print('", ')
+      end
    elseif(group_col == "country" and value["id"] == "Uncategorized") then
       print('</A>'..value["id"]..'", ')
    else

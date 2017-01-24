@@ -110,6 +110,7 @@ host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
+host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1") then
    local info = ntop.getInfo()
@@ -390,20 +391,6 @@ for _,_ifname in pairs(ifnames) do
 	       end
             end -- for
 
-            -- Save Host Pools stats every 5 minutes
-         for _,pool in ipairs(host_pools_utils.getPoolsList(ifstats.id, true --[[ without any additional pool info ]])) do
-            local pool_base = host_pools_utils.getRRDBase(ifstats.id, pool.id)
-
-            if(not(ntop.exists(pool_base))) then
-               ntop.mkdir(pool_base)
-            end
-
-            local rrdpath = fixPath(pool_base .. "/bytes.rrd")
-            createRRDcounter(rrdpath, 300, verbose)
-            --TODO bytes and protocols
-            ntop.rrd_update(rrdpath, "N:"..tolongint(0) .. ":" .. tolongint(0))
-         end
-
 	    -- Create RRDs for flow devices
 	    if(tostring(flow_devices_rrd_creation) == "1") then
 	       local flowdevs = interface.getFlowDevices()
@@ -437,6 +424,11 @@ for _,_ifname in pairs(ifnames) do
 	       foreachHost(_ifname, saveLocalHostsActivity)
 	    end
 	 end -- if rrd
+
+	 -- Save Host Pools stats every 5 minutes
+	 if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1")) then
+	    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
+	 end
       end -- if(diff
    end -- if(good interface type
 end -- for ifname,_ in pairs(ifnames) do

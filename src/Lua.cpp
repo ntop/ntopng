@@ -5050,7 +5050,7 @@ static int ntop_set_redis_preference(lua_State* vm) {
      ntop->getPrefs()->refresh(key, value))
       return(CONST_LUA_ERROR);
 
-      return(CONST_LUA_OK);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */

@@ -60,6 +60,10 @@ class HostPools {
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
 
+  void reloadPoolStats();
+  void loadFromRedis();
+  void dumpToRedis();
+
 public:
   HostPools(NetworkInterface *_iface);
   virtual ~HostPools();

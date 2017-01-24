@@ -184,7 +184,10 @@ print [[/lua/hosts_stats.lua">Hosts</a></li>
       ]]
 
   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/network_stats.lua">Networks</a></li>')
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">Host Pools</a></li>')
+
+  if (ntop.isPro()) then
+     print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pool_stats.lua">Host Pools</a></li>')
+  end
 
   if(ntop.hasGeoIP()) then
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/as_stats.lua">Autonomous Systems</a></li>')

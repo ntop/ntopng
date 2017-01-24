@@ -150,4 +150,33 @@ function host_pools_utils.getRRDBase(ifid, pool_id)
   return fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
 end
 
+function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
+  -- NOTE: requires graph_utils
+
+  for pool_id, pool_stats in pairs(interface.getHostPoolsStats()) do
+    -- possibly skip the default pool (it should not be there anyway)
+    if pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
+      local pool_base = host_pools_utils.getRRDBase(ifid, pool_id)
+
+      if(not(ntop.exists(pool_base))) then
+        ntop.mkdir(pool_base)
+      end
+
+      -- Traffic stats
+      local rrdpath = fixPath(pool_base .. "/bytes.rrd")
+      createRRDcounter(rrdpath, 300, verbose)
+      ntop.rrd_update(rrdpath, "N:"..tolongint(pool_stats["packets.sent"]) .. ":" .. tolongint(pool_stats["packets.recv"]))
+
+      -- nDPI stats
+      if dump_ndpi then
+        for proto,v in pairs(pool_stats["ndpi"] or {}) do
+          local ndpiname = fixPath(pool_base.."/"..proto..".rrd")
+          createRRDcounter(ndpiname, 300, verbose)
+          ntop.rrd_update(ndpiname, "N:"..tolongint(v["bytes.sent"])..":"..tolongint(v["bytes.rcvd"]))
+        end
+      end
+    end
+  end
+end
+
 return host_pools_utils

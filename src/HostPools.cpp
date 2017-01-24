@@ -49,7 +49,12 @@ HostPools::HostPools(NetworkInterface *_iface) {
     iface = _iface;
 
   reloadPools();
+
+#ifdef NTOPNG_PRO
+  loadFromRedis();
+#endif
 }
+
 /* *************************************** */
 
 HostPools::~HostPools() {
@@ -59,6 +64,8 @@ HostPools::~HostPools() {
     delete []tree;
 
 #ifdef NTOPNG_PRO
+  dumpToRedis();
+
   if(stats)
     delete []stats;
   if(stats_shadow)
@@ -212,6 +219,64 @@ void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, tim
 }
 
 /* *************************************** */
+
+void HostPools::dumpToRedis() {
+  char key[128];
+  char buf[32];
+  Redis *redis = ntop->getRedis();
+
+  if((!redis) || (! stats) || (! iface)) return;
+
+  snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
+
+  for (int i = 1 /*exclude default*/; i<MAX_NUM_HOST_POOLS; i++) {
+    if(stats[i]) {
+      snprintf(buf, sizeof(buf), "%d", i);
+      char *value = stats[i]->serialize(iface);
+      if (value) {
+        redis->hashSet(key, buf, value);
+        free(value);
+      }
+    }
+  }
+}
+
+void HostPools::loadFromRedis() {
+  char key[128];
+  char buf[32];
+  char *value;
+  json_object *obj;
+  enum json_tokener_error jerr = json_tokener_success;
+  Redis *redis = ntop->getRedis();
+
+  snprintf(key, sizeof(key), HOST_POOL_DUMP_KEY, iface->get_id());
+
+  if((!redis) || (! stats) || (! iface)) return;
+  if((value = (char *) malloc(POOL_MAX_SERIALIZED_LEN)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to allocate memory to deserialize %s", key);
+    return;
+  }
+
+  for (int i = 1 /*exclude default*/; i<MAX_NUM_HOST_POOLS; i++) {
+    if(stats[i]) {
+      snprintf(buf, sizeof(buf), "%d", i);
+      if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) != 1) {
+        if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
+                  json_tokener_error_desc(jerr),
+                  key,
+                  value);
+        } else {
+          stats[i]->deserialize(iface, obj);
+          json_object_put(obj);
+        }
+      }
+    }
+  }
+
+  free(value);
+}
 
 void HostPools::incPoolStats(u_int16_t host_pool_id, u_int ndpi_proto,
 			     u_int64_t sent_packets, u_int64_t sent_bytes,
