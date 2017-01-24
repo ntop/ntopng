@@ -492,7 +492,10 @@ static int handle_lua_request(struct mg_connection *conn) {
   if(referer == NULL) referer = (char*)"";
 
 #ifdef DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Host: %s][URI: %s][%s][Referer: %s]",
+			       (char*)mg_get_header(conn, "Host"), request_info->uri,
+			       request_info->query_string ? request_info->query_string : "",
+			       (char*)mg_get_header(conn, "Referer"));
 #endif
 
   if((ntop->getGlobals()->isShutdown())
@@ -524,9 +527,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	    ) {
     redirect_to_ssl(conn, request_info);
     return(1);
-  } else if((!strcmp(request_info->uri, HOTSPOT_DETECT_URL))
-	  || (!strcmp(request_info->uri, KINDLE_WIFISTUB_URL))
-	  ) {
+  } else if(!strcmp(request_info->uri, HOTSPOT_DETECT_URL)) {
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 	      "Expires: 0\r\n"
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
@@ -534,6 +535,19 @@ static int handle_lua_request(struct mg_connection *conn) {
 	      "Location: http://%s%s%s%s\r\n\r\n",
 	      (char*)mg_get_header(conn, "Host"),
 	      HOTSPOT_DETECT_LUA_URL,
+	      request_info->query_string ? "?" : "",
+	      request_info->query_string ? request_info->query_string : "");
+    return(1);
+  } else if(!strcmp(request_info->uri, KINDLE_WIFISTUB_URL)) {
+    mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+	      "Expires: 0\r\n"
+	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
+	      "Pragma: no-cache\r\n"
+	      "Referer: %s\r\n"
+	      "Location: http://%s%s%s%s\r\n\r\n",
+	      request_info->uri,
+	      (char*)mg_get_header(conn, "Host"),
+	      CAPTIVE_PORTAL_URL,
 	      request_info->query_string ? "?" : "",
 	      request_info->query_string ? request_info->query_string : "");
     return(1);
@@ -546,31 +560,25 @@ static int handle_lua_request(struct mg_connection *conn) {
 	 || (strcmp(&request_info->uri[len-3], ".js")) == 0))
     ;
   else if((!whitelisted) && (!is_authorized(conn, request_info, username, sizeof(username)))) {
+    const char *referer = mg_get_header(conn, "Referer");
     const char *redirect_to = NULL;
 
-#if KINDLE
-    if(// (request_info->query_string == NULL) && 
-       (request_info->is_ssl == 0)
-       && ((!strcmp(request_info->uri, "/")) || !strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL))
-       ) {
-      /* Check if this is a connection attempt */
-      
-      for(int i=0; request_info->http_headers[i].name != NULL; i++) {
-	if(strcmp(request_info->http_headers[i].name, "Host") == 0) {
-	  redirect_to = request_info->http_headers[i].value;
-	  break;
-	}
-      }
-      
-      if(redirect_to) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] Redirect to %s", redirect_to);
-      }
-    }
-#endif
+    if(referer == NULL) referer = "";
 
-    redirect_to_login(conn, request_info,
-		      ntop->getPrefs()->isCaptivePortalEnabled() && ntop->isCaptivePortalUser(username),
-		      redirect_to);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] %s", request_info->uri);
+
+    if((!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL))
+       || ((!strcmp(request_info->uri, "/")) && (!strcmp(referer, "amazon.com")))) {
+      mg_printf(conn,
+		"HTTP/1.1 302 Found\r\n"
+		"Location: http://%s%s%s\r\n\r\n", /* FIX */
+		(char*)mg_get_header(conn, "Host"), ntop->getPrefs()->get_http_prefix(), 
+		(char*)CAPTIVE_PORTAL_URL);
+      return(1);
+    } else
+      redirect_to_login(conn, request_info,
+			ntop->getPrefs()->isCaptivePortalEnabled() && ntop->isCaptivePortalUser(username),
+			redirect_to);
     return(1);
   } else if(strcmp(request_info->uri, AUTHORIZE_URL) == 0) {
     authorize(conn, request_info, username);
