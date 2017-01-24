@@ -51,7 +51,7 @@ void HostPools::incPoolStats(u_int16_t host_pool_id, u_int ndpi_proto,
 /* *************************************** */
 
 void HostPools::updateStats(struct timeval *tv) {
-  if(tv) {
+  if(stats && tv) {
     for(int i = 1; i < MAX_NUM_HOST_POOLS; i++)
       if(stats[i])
 	stats[i]->updateStats(tv);
