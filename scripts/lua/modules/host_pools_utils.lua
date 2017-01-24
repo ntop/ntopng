@@ -27,6 +27,10 @@ local function get_user_pool_id_key(username)
   return "ntopng.user." .. username .. ".host_pool_id"
 end
 
+local function get_user_pool_dump_key(ifid)
+  return "ntopng.prefs." .. ifid .. ".host_pools.dump"
+end
+
 local function get_pool_detail(ifid, pool_id, detail)
   local details_key = get_pool_details_key(ifid, pool_id)
 
@@ -56,10 +60,12 @@ function host_pools_utils.deletePool(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local details_key = get_pool_details_key(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
+  local dump_key = get_user_pool_dump_key(ifid)
 
   ntop.delMembersCache(ids_key, pool_id)
   ntop.delCache(details_key)
   ntop.delCache(members_key)
+  ntop.delHashCache(dump_key, pool_id)
 end
 
 function host_pools_utils.addToPool(ifid, pool_id, member_and_vlan)
