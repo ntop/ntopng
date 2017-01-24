@@ -600,6 +600,12 @@ function printStatsRrds()
 			 "On", "1", "success", "Off", "0", "danger", "toggle_flow_rrds", "ntopng.prefs.flow_devices_rrd_creation", "0",
 			    not info["version.enterprise_edition"])
 
+  if ntop.isPro() then
+    toggleTableButtonPrefs("Host Pools Timeseries",
+			 "Toggle the creation of bytes and nDPI timeseries for defined Host Pools.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_pools_rrds", "ntopng.prefs.host_pools_rrd_creation", "0")
+  end
+
   toggleTableButtonPrefs("Category Timeseries",
 			 "Toggle the creation of Category timeseries for local hosts and defined networks. Enabling their creation allows you "..
 			    "to keep persistent traffic category statistics (e.g., social networks, news) at the cost of using more disk space.<br>"..

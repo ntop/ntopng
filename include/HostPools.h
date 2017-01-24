@@ -40,9 +40,12 @@ class HostPools {
   AddressTree **tree, **tree_shadow;
   NetworkInterface *iface;
   void reloadPoolStats();
+  void loadFromRedis();
+  void dumpToRedis();
 
 public:
   HostPools(NetworkInterface *_iface);
+  ~HostPools();
   void reloadPools();
   u_int16_t getPool(Host *h);
 #ifdef NTOPNG_PRO

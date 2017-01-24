@@ -18,6 +18,10 @@ local host_pools_utils = require "host_pools_utils"
 local pool_id     = _GET["pool"]
 local page        = _GET["page"]
 
+if (not ntop.isPro()) then
+  return
+end
+
 interface.select(ifname)
 ifstats = interface.getStats()
 ifId = ifstats.id
