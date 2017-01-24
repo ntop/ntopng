@@ -1215,18 +1215,21 @@ function housekeepingAlertsMakeRoom()
       interface.select(n)
 
       local ifId = getInterfaceId(n)
-      local k = get_housekeeping_set_name(ifId)
 
-      local members = ntop.getMembersCache(k)
-      for _, m in pairs(members) do
-	 ntop.delMembersCache(k, m)
-	 m = m:split("|")
+      if interface.makeRoomRequested() then
+	 local k = get_housekeeping_set_name(ifId)
 
-	 local alert_entity = tonumber(m[1])
-	 local alert_entity_value = m[2]
-	 local table_name = m[3]
+	 local members = ntop.getMembersCache(k)
+	 for _, m in pairs(members) do
+	    ntop.delMembersCache(k, m)
+	    m = m:split("|")
 
-	 interface.makeRoomAlerts(alert_entity, alert_entity_value, table_name)
+	    local alert_entity = tonumber(m[1])
+	    local alert_entity_value = m[2]
+	    local table_name = m[3]
+
+	    interface.makeRoomAlerts(alert_entity, alert_entity_value, table_name)
+	 end
       end
    end
 end

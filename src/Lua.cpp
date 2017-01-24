@@ -4836,6 +4836,25 @@ static int ntop_interface_make_room_alerts(lua_State* vm) {
   return CONST_LUA_OK;
 }
 
+
+/* ****************************************** */
+
+static int ntop_interface_make_room_requested(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  AlertsManager *am;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if((!ntop_interface)
+     || ((am = ntop_interface->getAlertsManager()) == NULL))
+    return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, am->makeRoomRequested());
+
+  return(CONST_LUA_OK);
+
+}
+
 /* ****************************************** */
 
 static int ntop_interface_query_alerts_raw(lua_State* vm) {
@@ -5396,6 +5415,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "disableHostAlerts",    ntop_interface_host_disable_alerts      },
   { "refreshNumAlerts",     ntop_interface_refresh_num_alerts       },
   { "makeRoomAlerts",       ntop_interface_make_room_alerts         },
+  { "makeRoomRequested",    ntop_interface_make_room_requested      },
   { NULL,                             NULL }
 };
 

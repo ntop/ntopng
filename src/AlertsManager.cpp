@@ -51,6 +51,7 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
 
   store_initialized = init(fileFullPath) == 0 ? true : false;
   store_opened      = openStore()        == 0 ? true : false;
+  make_room         = false;
 
   if(!store_initialized)
     ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -404,13 +405,15 @@ void AlertsManager::markForMakeRoom(AlertEntity alert_entity, const char *alert_
 	     table_name ? table_name : "");
 
     r->sadd(k, buf);
+    make_room = true;
   }
 }
 
 /* **************************************************** */
 
 void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name) {
-  if(!ntop->getPrefs()->are_alerts_disabled()) {
+  if(!ntop->getPrefs()->are_alerts_disabled() && make_room) {
+    make_room = false;
     int max_num = strncmp(table_name, ALERTS_MANAGER_FLOWS_TABLE_NAME, strlen(ALERTS_MANAGER_FLOWS_TABLE_NAME))
       ? ntop->getPrefs()->get_max_num_alerts_per_entity() : ntop->getPrefs()->get_max_num_flow_alerts();
     int num = 0;

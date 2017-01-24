@@ -32,6 +32,7 @@ class AlertsManager : protected StoreManager {
   bool store_opened, store_initialized;
   u_int32_t num_alerts_engaged;
   bool alerts_stored;
+  bool make_room;
   int openStore();
   
   /* methods used for alerts that have a timespan */
@@ -106,6 +107,7 @@ class AlertsManager : protected StoreManager {
   int storeAlert(lua_State *L, int index);
 #endif
 
+  inline bool makeRoomRequested() { return(make_room); };
   void makeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
 
   /*
