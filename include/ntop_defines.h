@@ -344,6 +344,7 @@
 #define CONST_SQL_BATCH_SIZE               32
 #define CONST_MAX_SQL_QUERY_LEN            8192
 #define CONST_ALERT_DISABLED_PREFS         "ntopng.prefs.disable_alerts_generation"
+#define CONST_PREFS_ENABLE_ACCESS_LOG      "ntopng.prefs.enable_access_log"
 #define CONST_TOP_TALKERS_ENABLED          "ntopng.prefs.host_top_sites_creation"
 #define CONST_ALERT_PREFS                  "ntopng.prefs.alerts"
 #ifdef NTOPNG_PRO

@@ -127,6 +127,8 @@ int main(int argc, char *argv[])
   ntop->registerNagios();
 #endif
 
+  prefs->reloadPrefsFromRedis();
+  
   if(prefs->daemonize_ntopng())
     ntop->daemonize();
 

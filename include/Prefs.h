@@ -49,7 +49,7 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     enable_idle_local_hosts_cache,  enable_active_local_hosts_cache,
     enable_probing_alerts, enable_syslog_alerts, dump_flow_alerts_when_iface_alerted,
-    enable_top_talkers, enable_captive_portal;
+    enable_top_talkers, enable_captive_portal, enable_access_log;
   LocationPolicy dump_hosts_to_db, sticky_hosts;
   u_int non_local_host_max_idle, local_host_cache_duration, local_host_max_idle, flow_max_idle;
   u_int active_local_hosts_cache_interval;
@@ -136,6 +136,8 @@ class Prefs {
   inline bool is_flashstart_enabled()                   { return(flashstart ? true : false); };
   inline bool do_change_user()                          { return(change_user);            };
   inline void dont_change_user()                        { change_user = false;            };
+  inline bool is_access_log_enabled()                   { return(enable_access_log);      };
+  inline void do_enable_access_log(bool state = true)   { enable_access_log = state;      };
   inline bool are_ixia_timestamps_enabled()             { return(enable_ixia_timestamps); };
   inline bool are_vss_apcon_timestamps_enabled()        { return(enable_vss_apcon_timestamps); };
   inline char* get_user()                               { return(user);                   };

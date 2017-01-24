@@ -62,7 +62,7 @@ if(haveAdminPrivileges()) then
       {id="alerts",        label="Alerts",               advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_disable_alerts == true)},
       {id="protocols",     label="Protocols",            advanced=false, pro_only=false,  disabled=false},
       {id="report",        label="Units of Measurement", advanced=false, pro_only=false,  disabled=false},
-      {id="logging",       label="Log Level",            advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
+      {id="logging",       label="Logging",              advanced=false, pro_only=false,  disabled=(prefs.has_cmdl_trace_lvl == true)},
       {id="nbox",          label="nBox Integration",     advanced=true,  pro_only=true,   disabled=false},
    }
 
@@ -646,6 +646,13 @@ function printLogging()
   print('<tr><th colspan=2 class="info">Logging</th></tr>')
 
   loggingSelector("Log level", "Choose the runtime logging level.", "toggle_logging_level", "ntopng.prefs.logging_level")
+
+  toggleTableButtonPrefs("Enable HTTP Access Log",
+        "Toggle the creation of HTTP access log in the data dump directory. Settings will have effect at next ntop startup.",
+        "On", "1", "success",
+        "Off", "0", "danger",
+        "toggle_access_log", "ntopng.prefs.enable_access_log", "0")
+
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
 

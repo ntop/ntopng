@@ -228,15 +228,15 @@ static int is_authorized(const struct mg_connection *conn,
   if(!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)) {
     if(request_info->query_string) {
       char *k, *tmp;
-	
+
       if((k = strtok_r((char*)request_info->query_string, "%3F", &tmp)) != NULL) {
 	char *key, *value;
-	
+
 	key = strtok_r(k, "=",  &tmp);
 
 	while(key != NULL) {
 	  value = strtok_r(NULL, "&",  &tmp);
-	    
+
 	  if(value) {
 	    if(!strcmp(key, "user"))          snprintf(username, username_len, "%s", value);
 	    else if(!strcmp(key, "password")) snprintf(password, sizeof(password), "%s", value);
@@ -246,10 +246,10 @@ static int is_authorized(const struct mg_connection *conn,
 	  }
 
 	  key = strtok_r(NULL, "=",  &tmp);
-	}	
+	}
       }
     }
-      
+
     return(ntop->checkUserPassword(username, password)
 	   && checkCaptive(conn, request_info, username, password));
   }
@@ -330,7 +330,7 @@ static void redirect_to_login(struct mg_connection *conn,
 			      u_int8_t do_captive,
 			      const char *referer) {
   char session_id[33], buf[128], *target = Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf));
-  
+
   if(do_captive || referer) {
     if(do_captive) target = (char*)CAPTIVE_PORTAL_URL;
 
@@ -349,8 +349,8 @@ static void redirect_to_login(struct mg_connection *conn,
 		session_id,
 		ntop->getPrefs()->get_http_prefix(), target);
     return;
-  }    
-  
+  }
+
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[LOGIN] [Host: %s][URI: %s]", (char*)mg_get_header(conn, "Host"), request_info->uri);
 #endif
@@ -415,7 +415,7 @@ static void authorize(struct mg_connection *conn,
 		      char *username) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
   u_int8_t do_captive;
-  
+
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
     int post_data_len = mg_read(conn, post_data, sizeof(post_data));
@@ -449,7 +449,7 @@ static void authorize(struct mg_connection *conn,
     /* Referer url must begin with '/' */
     if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0))
       strcpy(referer, "/");
-    
+
     set_cookie(conn, user, referer);
   }
 }
@@ -572,7 +572,7 @@ static int handle_lua_request(struct mg_connection *conn) {
       mg_printf(conn,
 		"HTTP/1.1 302 Found\r\n"
 		"Location: http://%s%s%s\r\n\r\n", /* FIX */
-		(char*)mg_get_header(conn, "Host"), ntop->getPrefs()->get_http_prefix(), 
+		(char*)mg_get_header(conn, "Host"), ntop->getPrefs()->get_http_prefix(),
 		(char*)CAPTIVE_PORTAL_URL);
       return(1);
     } else
@@ -659,7 +659,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
-  static char ports[256], ssl_cert_path[MAX_PATH] = { 0 };
+  static char ports[256], ssl_cert_path[MAX_PATH] = { 0 }, access_log_path[MAX_PATH] = { 0 };
   char *_a = NULL, *_b = NULL;
   const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
   const char *https_binding_addr = ntop->getPrefs()->get_https_binding_address();
@@ -667,6 +667,17 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   bool use_http = true;
   struct stat buf;
   int stat_rc;
+
+  static char *http_options[] = {
+    (char*)"listening_ports", ports,
+    (char*)"enable_directory_listing", (char*)"no",
+    (char*)"document_root",  (char*)_docs_dir,
+    /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
+    (char*)"num_threads", (char*)"5",
+    _a, _b, NULL, NULL,
+    NULL
+  };
+
 
   port = _port, docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   httpserver = this;
@@ -722,17 +733,19 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     snprintf(ports, sizeof(ports), "%d", port);
     use_http = true;
   }
+  
+  if(ntop->getPrefs()->is_access_log_enabled()) {
+    int i;
+    
+    snprintf(access_log_path, sizeof(access_log_path), "%s/ntopng_access.log", 
+	     ntop->get_working_dir());
+    
+    for(i=0; http_options[i] != NULL; i++)
+      ;
 
-  static char *http_options[] = {
-    (char*)"listening_ports", ports,
-    (char*)"enable_directory_listing", (char*)"no",
-    (char*)"document_root",  (char*)_docs_dir,
-    (char*)"access_log_file",  (char*)"/tmp/ntopng.log",
-    /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
-    (char*)"num_threads", (char*)"5",
-    _a, _b,
-    NULL
-  };
+    http_options[i] = (char*)"access_log_file", http_options[i+1] = access_log_path;
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP logs will be stored on %s", access_log_path);
+  }
 
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;

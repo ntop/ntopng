@@ -291,7 +291,6 @@ void Ntop::start() {
 
   runtimeprefs = new RuntimePrefs();
 
-  prefs->reloadPrefsFromRedis();
 #ifdef NTOPNG_PRO
   pro->printLicenseInfo();
 #endif

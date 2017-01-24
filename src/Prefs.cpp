@@ -34,6 +34,7 @@ Prefs::Prefs(Ntop *_ntop) {
   resolve_all_host_ip = false, online_license_check = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS, max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
+  enable_access_log = false;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
   docs_dir = strdup(CONST_DEFAULT_DOCS_DIR);
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
@@ -110,7 +111,6 @@ Prefs::Prefs(Ntop *_ntop) {
 
   has_cmdl_trace_lvl      = false;
   has_cmdl_disable_alerts = false;
-
 }
 
 /* ******************************************* */
@@ -138,7 +138,6 @@ Prefs::~Prefs() {
   if(es_user)          free(es_user);
   if(es_pwd)           free(es_pwd);
   if(instance_name)    free(instance_name);
-
   free(http_prefix);
   free(local_networks);
   free(redis_host);
@@ -455,8 +454,9 @@ void Prefs::reloadPrefsFromRedis() {
   enable_syslog_alerts  = getDefaultPrefsValue(CONST_RUNTIME_PREFS_ALERT_SYSLOG,
 					       CONST_DEFAULT_ALERT_SYSLOG_ENABLED);
 
-  slack_enabled = getDefaultBoolPrefsValue(ALERTS_MANAGER_NOTIFICATION_WEBHOOK, false);
+  slack_enabled         = getDefaultBoolPrefsValue(ALERTS_MANAGER_NOTIFICATION_WEBHOOK, false);
   enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
+  enable_access_log     = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
 
   setTraceLevelFromRedis();
   setAlertsEnabledFromRedis();
