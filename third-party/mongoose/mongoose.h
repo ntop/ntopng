@@ -39,7 +39,7 @@ struct mg_request_info {
   const char *http_version;   // E.g. "1.0", "1.1"
   const char *query_string;   // URL part after '?', not including '?', or NULL
   const char *remote_user;    // Authenticated user, or NULL if no auth used
-  long remote_ip;             // Client's IP address
+  unsigned long remote_ip;    // Client's IP address
   int remote_port;            // Client's port
   int is_ssl;                 // 1 if SSL-ed, 0 if not
   void *user_data;            // User data pointer passed to mg_start()

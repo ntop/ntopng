@@ -59,6 +59,7 @@ print [[
 
       <input type="text" class="form-control" name="user" placeholder="Username" pattern="^[\w\.%]{1,}$" required>
       <input type="password" class="form-control" name="password" placeholder="Password" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}$" required>
+      <input type="text" class="form-control" name="label" placeholder="Device Label" pattern="^[ \w\.%]{1,}$" required>
 </div>
 	 <input type="hidden" class="form-control" name="referer" value="]] 
 

@@ -69,9 +69,9 @@ class Ntop {
   FlowChecker *flow_checker;
 #endif
   AddressTree *hostBlacklist, *hostBlacklistShadow;
-  
+
   void loadLocalInterfaceAddress();
-  
+
  public:
   /**
    * @brief A Constructor
@@ -401,7 +401,8 @@ class Ntop {
   bool isBlacklistedIP(IpAddress *ip);
 
 #ifdef NTOPNG_PRO
-  void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, bool permanentAuthorization);
+  void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
+			 char *label, bool permanentAuthorization);
 #endif
 };
 

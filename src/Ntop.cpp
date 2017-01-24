@@ -1424,10 +1424,11 @@ bool Ntop::isBlacklistedIP(IpAddress *ip) {
 
 void Ntop::addIPToLRUMatches(u_int32_t client_ip,
 			     u_int16_t user_pool_id,
+			     char *label,
 			     bool permanentAuthorization) {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->is_bridge_interface())
-      iface[i]->addIPToLRUMatches(client_ip, user_pool_id, permanentAuthorization);
+      iface[i]->addIPToLRUMatches(client_ip, user_pool_id, label, permanentAuthorization);
   }
 }
 

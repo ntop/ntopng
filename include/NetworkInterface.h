@@ -64,7 +64,7 @@ class NetworkInterface {
   u_int16_t numVirtualInterfaces;
   FlowHashingEnum flowHashingMode;
   FlowHashing *flowHashing;
-	  
+
   string ip_addresses;
   int id;
   bool bridge_interface;
@@ -173,7 +173,7 @@ class NetworkInterface {
   void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 		LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 		PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats);
-  
+
  public:
   /**
   * @brief A Constructor
@@ -373,7 +373,7 @@ class NetworkInterface {
   void refreshShapers();
   inline L7Policer* getL7Policer()         { return(policer);     }
 #endif
-  inline HostPools* getHostPools()         { return(host_pools);  } 
+  inline HostPools* getHostPools()         { return(host_pools);  }
 
   PacketDumper *getPacketDumper(void)      { return pkt_dumper; }
   PacketDumperTuntap *getPacketDumperTap(void)      { return pkt_dumper_tap; }
@@ -450,7 +450,8 @@ class NetworkInterface {
   inline void decAlertLevel()               { if(--alertLevel < 0) alertLevel = 0; }
   inline int8_t getAlertLevel()             { return(alertLevel);                  }
 #ifdef NTOPNG_PRO
-  virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, bool permanentAuthorization) { ; }
+  virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
+				 char *label, bool permanentAuthorization) { ; }
 #endif
 };
 

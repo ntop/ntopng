@@ -16,7 +16,7 @@ print [[
 <meta http-equiv="refresh" Content="0; url=http://www.ntop.org"/>
 </HEAD>
 <BODY>
-Success.
+Success ']] print(_GET["label"]) print [['.
 </BODY>
 </HTML>
    ]]
