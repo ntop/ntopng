@@ -3138,6 +3138,7 @@ static int ntop_add_user(lua_State* vm) {
 
 static int ntop_add_user_lifetime(lua_State* vm) {
   char *username;
+  int32_t num_secs;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -3146,7 +3147,13 @@ static int ntop_add_user_lifetime(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  return ntop->addUserLifetime(username);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  num_secs = (int32_t)lua_tonumber(vm, 2);
+
+  if(num_secs > 0)
+    return ntop->addUserLifetime(username, num_secs) ? CONST_LUA_OK : CONST_LUA_ERROR;
+
+  return CONST_LUA_OK; /* Negative or zero lifetimes means unlimited */
 }
 
 /* ****************************************** */
@@ -3316,7 +3323,7 @@ static int ntop_reload_host_pools(lua_State *vm) {
 }
 
 /* ****************************************** */
-
+#ifdef NTOPNG_PRO
 static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3324,13 +3331,13 @@ static int ntop_purge_expired_host_pools_members(lua_State *vm) {
 
   if(ntop_interface) {
 
-    ntop_interface->getHostPools()->purgeExpiredMembers();
+    ntop_interface->getHostPools()->purgeExpiredVolatileMembers();
 
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
 }
-
+#endif
 /* ****************************************** */
 
 static int ntop_reload_l7_rules(lua_State *vm) {
@@ -5315,9 +5322,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "select",                 ntop_select_interface },
   { "getStats",               ntop_get_interface_stats },
   { "resetCounters",          ntop_interface_reset_counters },
-#ifdef NTOPNG_PRO
-  { "getHostPoolsStats",      ntop_get_host_pool_interface_stats },
-#endif
+
   { "getnDPIStats",           ntop_get_ndpi_interface_stats },
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
@@ -5392,7 +5397,11 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Host pools */
   { "reloadHostPools",                ntop_reload_host_pools                },
+  #ifdef NTOPNG_PRO
+  { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
+#endif
+
 
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },

@@ -451,7 +451,7 @@ class NetworkInterface {
   inline int8_t getAlertLevel()             { return(alertLevel);                  }
 #ifdef NTOPNG_PRO
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
-				 char *label, bool permanentAuthorization) { ; }
+				 char *label, int32_t lifetime_secs) { ; }
 #endif
 };
 

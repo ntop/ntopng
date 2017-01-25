@@ -29,6 +29,24 @@ AddressTree::AddressTree() { init(); }
 
 /* **************************************** */
 
+AddressTree::AddressTree(const AddressTree &at) {
+  MacKey_t *current, *tmp, *s;
+
+  ptree_v4 = patricia_clone(at.ptree_v4);
+  ptree_v6 = patricia_clone(at.ptree_v6);
+
+  macs = NULL;
+  HASH_ITER(hh, at.macs, current, tmp) {
+    if((s = (MacKey_t*)calloc(1, sizeof(MacKey_t))) != NULL)
+      memcpy(s, current, sizeof(MacKey_t));
+      HASH_ADD(hh, macs, mac, 6, s);
+  }
+
+  numAddresses = at.numAddresses;
+}
+
+/* **************************************** */
+
 static void free_ptree_data(void *data) { ; }
 
 /* **************************************** */

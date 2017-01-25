@@ -18,6 +18,7 @@ if(haveAdminPrivileges()) then
    allowed_interface = _POST["allowed_interface"]
    host_pool_id = _POST["host_pool_id"]
    limited_lifetime = _POST["lifetime_limited"]
+   lifetime_secs = tonumber((_POST["lifetime_secs"] or -1))
 
    if(username == nil or full_name == nil or password == nil or confirm_password == nil or host_role == nil or networks == nil or allowed_interface == nil) then
       print ("{ \"result\" : -1, \"message\" : \"Invalid parameters\" }")
@@ -33,7 +34,7 @@ if(haveAdminPrivileges()) then
    if(ntop.addUser(username, full_name, password, host_role, networks, getInterfaceName(allowed_interface), host_pool_id)) then
       ret = true
 
-      if limited_lifetime and not ntop.addUserLifetime(username) then
+      if limited_lifetime and not ntop.addUserLifetime(username, lifetime_secs) then
 	 ret = false
       end
 
