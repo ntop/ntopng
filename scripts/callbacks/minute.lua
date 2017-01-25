@@ -124,15 +124,18 @@ for _,_ifname in pairs(ifnames) do
    ifstats = interface.getStats()
 
    if(verbose) then print("\n["..__FILE__()..":"..__LINE__().."]===============================\n["..__FILE__()..":"..__LINE__().."] Processing interface " .. _ifname .. " ["..ifstats.id.."]\n") end
-   -- Dump topTalkers every minute
 
    if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
-      talkers = makeTopJSON(ifstats.id, _ifname)
-      if(verbose) then
-         print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
-	 print(talkers)
+      -- NOTE: this limits talkers lifetime to reduce memory footprint later on this script
+      do
+        -- Dump topTalkers every minute
+        local talkers = makeTopJSON(ifstats.id, _ifname)
+        if(verbose) then
+          print("Computed talkers for interfaceId "..ifstats.id.."/"..ifstats.name.."\n")
+          print(talkers)
+        end
+        ntop.insertMinuteSampling(ifstats.id, talkers)
       end
-      ntop.insertMinuteSampling(ifstats.id, talkers)
 
       -- TODO secondStats = interface.getLastMinuteTrafficStats()
       -- TODO send secondStats to collector
