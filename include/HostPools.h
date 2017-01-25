@@ -62,6 +62,7 @@ class HostPools {
 
 public:
   HostPools(NetworkInterface *_iface);
+  virtual ~HostPools();
   void reloadPools();
   u_int16_t getPool(Host *h);
 #ifdef NTOPNG_PRO
