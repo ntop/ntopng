@@ -297,6 +297,9 @@ print[[
       if (!data.valid) {
         add_user_alert.error(data.msg);
       } else {
+        /* convert expire resolution into appropriate value */
+        resol_selector_finalize(frmadduser);
+
         $.ajax({
           type: frmadduser.attr('method'),
           url: frmadduser.attr('action'),
