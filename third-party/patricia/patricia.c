@@ -503,6 +503,47 @@ patricia_process (patricia_tree_t *patricia, void_fn2_t func)
   } PATRICIA_WALK_END;
 }
 
+static size_t
+patricia_clone_walk(patricia_node_t *node, patricia_tree_t *dst)
+{
+  patricia_node_t *cloned_node;
+  size_t n = 0;
+
+  if(node->l) {
+    n += patricia_clone_walk(node->l, dst);
+  }
+
+  if(node->prefix) {
+    cloned_node = patricia_lookup(dst, node->prefix);
+
+    if(cloned_node)
+      cloned_node->user_data = node->user_data; /* TODO: clone void * data */
+
+    n++;
+  }
+
+  if(node->r) {
+    n += patricia_clone_walk(node->r, dst);
+  }
+
+  return n;
+}
+
+patricia_tree_t *
+patricia_clone (const patricia_tree_t * const from)
+{
+  if(!from) return (NULL);
+
+  patricia_tree_t *patricia = New_Patricia(from->maxbits);
+
+  if(!patricia) return (NULL);
+
+  if(from->head)
+    patricia_clone_walk(from->head, patricia);
+
+  return (patricia);
+}
+
 size_t
 patricia_walk_inorder(patricia_node_t *node, void_fn3_t func, void *data)
 {
