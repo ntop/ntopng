@@ -214,19 +214,19 @@ void HostPools::lua(lua_State *vm) {
 
 void HostPools::addToPool(char *host_or_mac,
 			  u_int16_t user_pool_id,
-			  bool permanentAuthorization) {
+			  int32_t lifetime_secs) {
   char key[128], pool_buf[16];
 
 #ifdef HOST_POOLS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Adding %s as %s host pool member [pool id: %i]",
 			       host_or_mac,
-			       permanentAuthorization ? "PERMANENT" : "VOLATILE",
+			       lifetime_secs <= 0 ? "PERMANENT" : "VOLATILE",
 			       user_pool_id);
 #endif
 
-  if(!permanentAuthorization)
-    addVolatileMember(host_or_mac, user_pool_id, 10 /* Todo, make it configurable */);
+  if(lifetime_secs > 0)
+    addVolatileMember(host_or_mac, user_pool_id, (u_int32_t)lifetime_secs);
 
   else {
     snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);

@@ -1011,14 +1011,15 @@ bool Ntop::addUser(char *username, char *full_name, char *password, char *host_r
 
 /* ******************************************* */
 
-bool Ntop::addUserLifetime(const char * const username) {
-  char key[64], val[64];
+bool Ntop::addUserLifetime(const char * const username, u_int32_t lifetime_secs) {
+  char key[64], val[64], lifetime_val[16];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    snprintf(lifetime_val, sizeof(lifetime_val), "%u", lifetime_secs);
     snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
-    ntop->getRedis()->set(key, (char*)"true" /* May contain a date in the future */, 0);
+    ntop->getRedis()->set(key, lifetime_val, 0);
     return(true);
   }
 
@@ -1027,14 +1028,17 @@ bool Ntop::addUserLifetime(const char * const username) {
 
 /* ******************************************* */
 
-bool Ntop::hasUserLimitedLifetime(const char * const username) {
+bool Ntop::hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs) {
   char key[64], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
 
   if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0
-     && !strncmp(val, (char*)"true", strlen("true")))
-      return(true);
+     && val[0] != '\0' /* Caching may set an empty string as default value */) {
+    if(lifetime_secs)
+      *lifetime_secs = atoi(val);
+    return(true);
+  }
 
   return(false);
 }
@@ -1425,10 +1429,10 @@ bool Ntop::isBlacklistedIP(IpAddress *ip) {
 void Ntop::addIPToLRUMatches(u_int32_t client_ip,
 			     u_int16_t user_pool_id,
 			     char *label,
-			     bool permanentAuthorization) {
+			     int32_t lifetime_secs) {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->is_bridge_interface())
-      iface[i]->addIPToLRUMatches(client_ip, user_pool_id, label, permanentAuthorization);
+      iface[i]->addIPToLRUMatches(client_ip, user_pool_id, label, lifetime_secs);
   }
 }
 
