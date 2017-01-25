@@ -27,6 +27,10 @@ local function get_user_pool_id_key(username)
   return "ntopng.user." .. username .. ".host_pool_id"
 end
 
+local function get_user_pool_dump_key(ifid)
+  return "ntopng.prefs." .. ifid .. ".host_pools.dump"
+end
+
 local function get_pool_detail(ifid, pool_id, detail)
   local details_key = get_pool_details_key(ifid, pool_id)
 
@@ -56,10 +60,12 @@ function host_pools_utils.deletePool(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local details_key = get_pool_details_key(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
+  local dump_key = get_user_pool_dump_key(ifid)
 
   ntop.delMembersCache(ids_key, pool_id)
   ntop.delCache(details_key)
   ntop.delCache(members_key)
+  ntop.delHashCache(dump_key, pool_id)
 end
 
 function host_pools_utils.addToPool(ifid, pool_id, member_and_vlan)
@@ -74,12 +80,20 @@ function host_pools_utils.deleteFromPoll(ifid, pool_id, member_and_vlan)
   ntop.delMembersCache(members_key, member_and_vlan)
 end
 
-function host_pools_utils.getPoolsList(ifid)
+function host_pools_utils.getPoolsList(ifid, without_info)
   local ids_key = get_pool_ids_key(ifid)
   local pools = {}
 
   for _, pool_id in pairsByValues(ntop.getMembersCache(ids_key) or {}, asc) do
-    pools[#pools + 1] = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
+    local pool
+
+    if without_info then
+      pool = {id=pool_id}
+    else
+      pool = {id=pool_id, name=host_pools_utils.getPoolName(ifid, pool_id)}
+    end
+
+    pools[#pools + 1] = pool
   end
 
   return pools
@@ -135,6 +149,40 @@ function host_pools_utils.purgeExpiredPoolsMembers()
 	 interface.purgeExpiredPoolsMembers()
       end
    end
+end
+
+function host_pools_utils.getRRDBase(ifid, pool_id)
+  local dirs = ntop.getDirs()
+  return fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
+end
+
+function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
+  -- NOTE: requires graph_utils
+
+  for pool_id, pool_stats in pairs(interface.getHostPoolsStats()) do
+    -- possibly skip the default pool (it should not be there anyway)
+    if pool_id ~= host_pools_utils.DEFAULT_POOL_ID then
+      local pool_base = host_pools_utils.getRRDBase(ifid, pool_id)
+
+      if(not(ntop.exists(pool_base))) then
+        ntop.mkdir(pool_base)
+      end
+
+      -- Traffic stats
+      local rrdpath = fixPath(pool_base .. "/bytes.rrd")
+      createRRDcounter(rrdpath, 300, verbose)
+      ntop.rrd_update(rrdpath, "N:"..tolongint(pool_stats["packets.sent"]) .. ":" .. tolongint(pool_stats["packets.recv"]))
+
+      -- nDPI stats
+      if dump_ndpi then
+        for proto,v in pairs(pool_stats["ndpi"] or {}) do
+          local ndpiname = fixPath(pool_base.."/"..proto..".rrd")
+          createRRDcounter(ndpiname, 300, verbose)
+          ntop.rrd_update(ndpiname, "N:"..tolongint(v["bytes.sent"])..":"..tolongint(v["bytes.rcvd"]))
+        end
+      end
+    end
+  end
 end
 
 return host_pools_utils

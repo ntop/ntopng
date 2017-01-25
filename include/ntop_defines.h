@@ -197,6 +197,7 @@
 #define HOST_SITES_REFRESH             300 /* 5 min */
 #define HOST_SITES_TOP_NUMBER          10
 #define HOST_MAX_SERIALIZED_LEN        16348 /* bytes */
+#define POOL_MAX_SERIALIZED_LEN        16348 /* bytes */
 
 #define CONST_MAX_NUM_NETWORKS         255
 
@@ -385,6 +386,7 @@
 #define CONST_PREFS_CAPTIVE_PORTAL         "ntopng.prefs.enable_captive_portal"
 #define HOST_POOL_IDS_KEY                  "ntopng.prefs.%u.host_pools.pool_ids"
 #define HOST_POOL_MEMBERS_KEY              "ntopng.prefs.%u.host_pools.members.%s"
+#define HOST_POOL_DUMP_KEY                 "ntopng.prefs.%u.host_pools.dump"
 #define HOST_POOL_VOLATILE_MEMBERS_KEY     "ntopng.prefs.%u.host_pools.volatile_members.%s"
 #define HOST_POOL_VOLATILE_MEMBER_EXPIRE   "ntopng.prefs.%u.host_pools.volatile_member_expire.%s"
 #define HOST_POOL_SHAPERS_KEY              "ntopng.prefs.%u.l7_policies.%s"

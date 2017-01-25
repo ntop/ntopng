@@ -27,6 +27,7 @@ tracked     = _GET["tracked"]
 asn          = _GET["asn"]
 vlan         = _GET["vlan"]
 network      = _GET["network"]
+pool         = _GET["pool"]
 country      = _GET["country"]
 os_    	     = _GET["os"]
 mac          = _GET["mac"]
@@ -119,7 +120,7 @@ end
 
 hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
 	                           country, os_, tonumber(vlan), tonumber(asn),
-				   tonumber(network), mac) -- false = little details
+				   tonumber(network), mac, tonumber(pool)) -- false = little details
 --io.write("hello\n")
 --tprint(hosts_stats)
 --io.write("---\n")

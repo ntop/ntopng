@@ -18,8 +18,9 @@ vlan         = _GET["vlan"]
 network      = _GET["network"]
 country      = _GET["country"]
 mac          = _GET["mac"]
-os_   	     = _GET["os"]
+os_          = _GET["os"]
 community    = _GET["community"]
+pool         = _GET["pool"]
 
 mode = _GET["mode"]
 if(mode == nil) then mode = "all" end
@@ -74,6 +75,7 @@ filter_url_params["community"] = community
 filter_url_params["vlan"] = vlan
 filter_url_params["country"] = country
 filter_url_params["mac"] = mac
+filter_url_params["pool"] = pool
 
 if(protocol ~= nil) then
    -- Example HTTP.Facebook
@@ -183,7 +185,7 @@ print [[    showPagination: true, ]]
 if(filter_url_params.network == nil) then
    local hosts_filter_params = table.clone(filter_url_params)
 
-   print('buttons: [ \'<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
+   print('buttons: [ \'<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
 
    hosts_filter_params.mode = nil
    print (getPageUrl(hosts_filter_params))
@@ -196,7 +198,7 @@ if(filter_url_params.network == nil) then
    hosts_filter_params.mode = "remote"
    print (getPageUrl(hosts_filter_params))
    print ('">Remote Hosts Only</a></li>')
-   print("</ul>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' ],")
+   print("</ul></div>' ],")
 else
    print('buttons: [ \'')
 

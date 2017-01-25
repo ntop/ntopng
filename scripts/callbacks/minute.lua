@@ -13,6 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 require "top_structure"
+local host_pools_utils = require "host_pools_utils"
 
 prefs = ntop.getPrefs()
 -- ########################################################
@@ -108,6 +109,7 @@ host_rrd_creation = ntop.getCache("ntopng.prefs.host_rrd_creation")
 host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
+host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1") then
    local info = ntop.getInfo()
@@ -421,6 +423,11 @@ for _,_ifname in pairs(ifnames) do
 	       foreachHost(_ifname, saveLocalHostsActivity)
 	    end
 	 end -- if rrd
+
+	 -- Save Host Pools stats every 5 minutes
+	 if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1")) then
+	    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
+	 end
       end -- if(diff
    end -- if(good interface type
 end -- for ifname,_ in pairs(ifnames) do
