@@ -40,6 +40,7 @@ class AddressTree {
   
  public:
   AddressTree();
+  AddressTree(const AddressTree &at);
   ~AddressTree();
 
   void init();
