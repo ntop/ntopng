@@ -1403,15 +1403,14 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_push_int_table_entry(vm, "cli2srv.packets", cli2srv_packets);
     lua_push_int_table_entry(vm, "srv2cli.packets", srv2cli_packets);
+    lua_push_int_table_entry(vm, "cli2srv.last", get_current_bytes_cli2srv());
+    lua_push_int_table_entry(vm, "srv2cli.last", get_current_bytes_srv2cli());
 
     /* ********************* */
     dumpPacketStats(vm, true);
     dumpPacketStats(vm, false);
 
     if(details_level >= details_higher) {
-      lua_push_int_table_entry(vm, "cli2srv.last", get_current_bytes_cli2srv());
-      lua_push_int_table_entry(vm, "srv2cli.last", get_current_bytes_srv2cli());
-
       lua_push_int_table_entry(vm, "cli2srv.goodput_bytes.last", get_current_goodput_bytes_cli2srv());
       lua_push_int_table_entry(vm, "srv2cli.goodput_bytes.last", get_current_goodput_bytes_srv2cli());
 

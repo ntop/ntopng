@@ -20,11 +20,11 @@ print [[
  []]
 
 
-    max_num = 100
+    local max_num = 100
     num = 0
 
     if (host_info["host"] == nil) then
-       hosts_stats = interface.getHostsInfo()
+       hosts_stats = interface.getHostsInfo(true, "column_traffic", max_num)
        hosts_stats = hosts_stats["hosts"]
 
        for key, value in pairs(hosts_stats) do
@@ -46,7 +46,6 @@ print [[
 	     print('} ] }\n')
 	     num = num + 1
 	     
-	     if(num > max_num) then break end      
 	  end
        end
 
@@ -58,7 +57,7 @@ print [[
     -- Flows with trajectory
 
     interface.select(ifname)
-    peers = interface.getFlowPeers(host_info["host"],host_info["vlan"])
+    peers = getTopFlowPeers(host2name(host_info["host"], host_info["vlan"]), max_num - num)
 
     maxval = 0
     for key, values in pairs(peers) do
@@ -108,8 +107,6 @@ print [[
 	     print('}\n],\n"flusso": '.. pctg..',"html":"Flow '.. hostinfo2hostkey(values, "cli").." "..hostinfo2hostkey(values, "srv") .. '"\n')
 	     print('}\n')
 	     num = num + 1
-	     
-	     if(num > max_num) then break end
 	  end
        end
     end
