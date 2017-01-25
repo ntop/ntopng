@@ -3323,7 +3323,7 @@ static int ntop_reload_host_pools(lua_State *vm) {
 }
 
 /* ****************************************** */
-
+#ifdef NTOPNG_PRO
 static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -3337,7 +3337,7 @@ static int ntop_purge_expired_host_pools_members(lua_State *vm) {
   } else
     return(CONST_LUA_ERROR);
 }
-
+#endif
 /* ****************************************** */
 
 static int ntop_reload_l7_rules(lua_State *vm) {
@@ -5322,9 +5322,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "select",                 ntop_select_interface },
   { "getStats",               ntop_get_interface_stats },
   { "resetCounters",          ntop_interface_reset_counters },
-#ifdef NTOPNG_PRO
-  { "getHostPoolsStats",      ntop_get_host_pool_interface_stats },
-#endif
+
   { "getnDPIStats",           ntop_get_ndpi_interface_stats },
   { "getnDPIProtoName",       ntop_get_ndpi_protocol_name },
   { "getnDPIProtoId",         ntop_get_ndpi_protocol_id },
@@ -5399,7 +5397,11 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Host pools */
   { "reloadHostPools",                ntop_reload_host_pools                },
+  #ifdef NTOPNG_PRO
+  { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
+#endif
+
 
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },
