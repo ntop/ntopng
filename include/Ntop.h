@@ -364,11 +364,11 @@ class Ntop {
   bool changeUserHostPool(const char * const username, const char * const host_pool_id) const;
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id);
-  bool addUserLifetime(const char * const username); /* Captive portal users may expire */
+  bool addUserLifetime(const char * const username, u_int32_t lifetime_secs); /* Captive portal users may expire */
   bool isCaptivePortalUser(const char * const username);
   bool deleteUser(char *username);
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);
-  bool hasUserLimitedLifetime(const char * const username);
+  bool hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);
   void removeTrailingSlash(char *str);
@@ -402,7 +402,7 @@ class Ntop {
 
 #ifdef NTOPNG_PRO
   void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
-			 char *label, bool permanentAuthorization);
+			 char *label, int32_t lifetime_secs);
 #endif
 };
 
