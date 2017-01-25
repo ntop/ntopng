@@ -181,29 +181,38 @@ void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, tim
 void HostPools::incPoolStats(u_int16_t host_pool_id, u_int ndpi_proto,
 			     u_int64_t sent_packets, u_int64_t sent_bytes,
 			     u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-  if(host_pool_id == 0 || host_pool_id >= MAX_NUM_HOST_POOLS || !stats || !stats[host_pool_id])
+  HostPoolStats *hps;
+  if(host_pool_id == NO_HOST_POOL_ID
+     || host_pool_id >= MAX_NUM_HOST_POOLS
+     || !stats
+     || !(hps = stats[host_pool_id]))
     return;
-  stats[host_pool_id]->incStats(ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+  /* Fundamental to use the assigned hps as a swap can make stats[host_pool_id] NULL */
+  hps->incStats(ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
 };
 
 /* *************************************** */
 
 void HostPools::updateStats(struct timeval *tv) {
+  HostPoolStats *hps;
   if(stats && tv) {
     for(int i = 1; i < MAX_NUM_HOST_POOLS; i++)
-      if(stats[i])
-	stats[i]->updateStats(tv);
+      if((hps = stats[i]))
+	hps->updateStats(tv); /* Use hps, stats[i] can become NULL after a swap */
   }
 };
 
 /* *************************************** */
 
 void HostPools::lua(lua_State *vm) {
+  HostPoolStats *hps;
   if(stats && vm) {
     lua_newtable(vm);
     for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
-      if(stats[i]) {
-	stats[i]->lua(vm, iface);
+      if((hps = stats[i])) {
+	/* Must use the assigned hps as stats can be swapped 
+	 and accesses such as stats[i] could yield a NULL value */
+	hps->lua(vm, iface);
 	lua_rawseti(vm, -2, i);
       }
     }
