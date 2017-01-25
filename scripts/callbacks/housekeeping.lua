@@ -16,3 +16,9 @@ require "slack_utils"
 
 housekeepingAlertsMakeRoom()
 sendSlackMessages()
+
+tprint("purging")
+package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
+local host_pools_utils = require "host_pools_utils"
+-- check and possibly purge expired captive portal members
+host_pools_utils.purgeExpiredPoolsMembers()
