@@ -212,8 +212,8 @@ Directory where lua scripts reside. Default: scripts.
 .It \-3|\-\-callbacks\-dir\ <path>
 Directory where callback scripts reside. Default: scripts/callbacks.
 
-.It \-w|\-\-http\-port\ <[:]http_port>
-Sets the HTTP port of the embedded web server. If set to 0, the http server will be disabled. If you prepend a : before the port (i.e. -w :80) ntopng will listen to the loopback address.
+.It \-w|\-\-http\-port\ <[:]http_port[,<alt_http_port>]>
+Sets the HTTP port of the embedded web server. If set to 0, the http server will be disabled. If you prepend a : before the port (i.e. -w :80) ntopng will listen to the loopback address. You can specify a second HTTP port so that ntopng can isten on both ports. Example -w 80,3000 will start ntopn on both port 80 adn 3000. Note that for enabling the captive portal (not available on the community edition) you need to start ntopng on port 80.
 NOTE: omitting the -w option won't disable http: ntopng will fallback to the default http port.
 
 .It \-W|\-\-https\-port\ <[:]https_port>

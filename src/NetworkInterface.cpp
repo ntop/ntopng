@@ -4831,4 +4831,4 @@ bool NetworkInterface::getMacInfo(lua_State* vm, char *mac, u_int16_t vlan_id) {
     return(false);
 }
 
-/* **************************************** */
+

@@ -341,18 +341,32 @@ end
 -- ================================================================================
 
 function printBridgingPrefs()
+  local show
+  local label
+
+  label = "Enable the web captive portal for authenticating network users."
+
+  if((prefs["http.port"] == 80) and (prefs["http.alt_port"] ~= 0)) then
+     show = true
+  else
+     show = false
+     label = label.."<p>This button is <b>disabled</b> as then ntopng web GUI has NOT been started on port 80 that is required by the captive portal (-w command line parameter)."
+  end
+
   print('<form method="post">')
 
   print('<table class="table">')
 
   print('<tr><th colspan=2 class="info">User Authentication</th></tr>')
 
-  toggleTableButtonPrefs("Captive Portal",
-        "Enable the web captive portal for authenticating network users.",
-        "On", "1", "success",
-        "Off", "0", "danger",
-        "toggle_captive_portal", "ntopng.prefs.enable_captive_portal", "0")
+  local elementToSwitchSlack = { "toggle_captive_portal" }
 
+  toggleTableButtonPrefs("Captive Portal", label,
+			 "On", "1", "success",
+			 "Off", "0", "danger",
+			 "toggle_captive_portal", "ntopng.prefs.enable_captive_portal", "0",
+			 not(show), nil, nil, elementToSwitch)
+  
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px">Save</button></th></tr>')
 
   print('</table>')

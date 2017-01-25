@@ -40,7 +40,7 @@ Prefs::Prefs(Ntop *_ntop) {
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   config_file_path = ndpi_proto_path = NULL;
-  http_port = CONST_DEFAULT_NTOP_PORT;
+  http_port = CONST_DEFAULT_NTOP_PORT, alt_http_port = 0;
   http_prefix = strdup(""), zmq_encryption_pwd = NULL;
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
@@ -540,6 +540,23 @@ static const struct option long_options[] = {
 
 /* ******************************************* */
 
+void Prefs::parseHTTPPort(char *arg) {
+  char tmp[32], *a, *_t;
+
+  snprintf(tmp, sizeof(tmp), "%s", arg);
+
+  a = strtok_r(tmp, ",", &_t);
+  if(a) {  
+    http_port = atoi(a);
+
+    a = strtok_r(NULL, ",", &_t);
+    if(a)
+      alt_http_port = atoi(a);
+  }
+}
+
+/* ******************************************* */
+
 int Prefs::setOption(int optkey, char *optarg) {
   char *double_dot, *p, *opt = NULL;
   int len = (optarg ? strlen(optarg) : 0)+6;
@@ -703,12 +720,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'w':
-    if(strchr(optarg, ':') == NULL){
+    if(strchr(optarg, ':') == NULL) {
       // only the port
-      http_port = atoi(optarg);
+      parseHTTPPort(optarg);
     } else if(optarg[0] == ':'){
       // first char == ':' binds to the loopback address
-      http_port = atoi(&optarg[1]);
+      parseHTTPPort(&optarg[1]);
       bind_http_to_loopback();
     } else {
       // ':' is after the first character, so
@@ -716,7 +733,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       double_dot = strrchr(optarg, ':');
       u_int len = double_dot - optarg;
       http_binding_address = strndup(optarg, len);
-      http_port = atoi(&double_dot[1]);
+      parseHTTPPort(&double_dot[1]);
     }
     break;
 
@@ -1218,6 +1235,9 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_flow_activity_enabled", enable_flow_activity);
   lua_push_bool_table_entry(vm, "is_captive_portal_enabled", enable_captive_portal);
   lua_push_int_table_entry(vm, "dump_hosts", dump_hosts_to_db);
+
+  lua_push_int_table_entry(vm, "http.port", get_http_port());
+  lua_push_int_table_entry(vm, "http.alt_port", get_alt_http_port());
 
   /* RRD prefs */
   lua_push_int_table_entry(vm, "intf_rrd_raw_days", intf_rrd_raw_days);

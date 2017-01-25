@@ -314,7 +314,9 @@ static int is_authorized(const struct mg_connection *conn,
 /* ****************************************** */
 
 static int isCaptiveConnection(struct mg_connection *conn) {
-  return(ntop->getPrefs()->isCaptivePortalEnabled() && (ntohs(conn->client.lsa.sin.sin_port) == 80));
+  return(ntop->getPrefs()->isCaptivePortalEnabled()
+	 && (ntohs(conn->client.lsa.sin.sin_port) == 80)
+	 && (ntop->getPrefs()->get_alt_http_port() != 0));
 }
 
 /* ****************************************** */
@@ -622,7 +624,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 /* ****************************************** */
 
-HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scripts_dir) {
+HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   struct mg_callbacks callbacks;
   static char ports[256], ssl_cert_path[MAX_PATH] = { 0 }, access_log_path[MAX_PATH] = { 0 };
   const char *http_binding_addr = ntop->getPrefs()->get_http_binding_address();
@@ -642,16 +644,23 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
     NULL
   };
 
-
-  port = _port, docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
+  docs_dir = strdup(_docs_dir), scripts_dir = strdup(_scripts_dir);
   httpserver = this;
-  if(port == 0) use_http = false;
+  if(ntop->getPrefs()->get_http_port() == 0) use_http = false;
 
-  if(use_http)
-    snprintf(ports, sizeof(ports), "%s%s%d",
+  if(use_http) {
+    char tmp[16];
+
+    if(ntop->getPrefs()->get_alt_http_port() != 0)
+      snprintf(tmp, sizeof(tmp), ",%d", ntop->getPrefs()->get_alt_http_port());
+    else
+      tmp[0] = '\0';
+
+    snprintf(ports, sizeof(ports), "%s%s%d%s",
 	     http_binding_addr,
 	     (http_binding_addr[0] == '\0') ? "" : ":",
-	     port);
+	     ntop->getPrefs()->get_http_port(), tmp);
+  }
 
   snprintf(ssl_cert_path, sizeof(ssl_cert_path), "%s/ssl/%s",
 	   docs_dir, CONST_HTTPS_CERT_NAME);
@@ -666,7 +675,7 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
       snprintf(ports, sizeof(ports), "%s%s%d,%s%s%ds",
 	       http_binding_addr,
 	       (http_binding_addr[0] == '\0') ? "" : ":",
-	       port,
+	       ntop->getPrefs()->get_http_port(),
 	       https_binding_addr,
 	       (https_binding_addr[0] == '\0') ? "" : ":",
 	       ntop->getPrefs()->get_https_port());
@@ -692,14 +701,12 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   }
 
   if((!use_http) && (!use_ssl) & (!ssl_enabled)) {
-
     if(stat_rc != 0)
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Unable to start HTTP server: HTTP is disabled and the SSL certificate is missing.");
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-				 "Starting the HTTP server on the default port");
-    port = CONST_DEFAULT_NTOP_PORT;
-    snprintf(ports, sizeof(ports), "%d", port);
+				 "Starting the HTTP server on the default port");   
+    snprintf(ports, sizeof(ports), "%d", ntop->getPrefs()->get_http_port());
     use_http = true;
   }
   
@@ -737,10 +744,12 @@ HTTPserver::HTTPserver(u_int16_t _port, const char *_docs_dir, const char *_scri
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Web server dirs [%s][%s]", docs_dir, scripts_dir);
 
   if(use_http)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on port %d", port);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server listening on port(s) %s", 
+				 ports);
 
   if(use_ssl & ssl_enabled)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTPS server listening on port %d", ntop->getPrefs()->get_https_port());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTPS server listening on port %d",
+				 ntop->getPrefs()->get_https_port());
 };
 
 /* ****************************************** */

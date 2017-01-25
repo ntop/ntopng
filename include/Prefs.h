@@ -59,7 +59,7 @@ class Prefs {
   bool enable_flow_activity;
   u_int16_t housekeeping_frequency;
   u_int32_t max_num_hosts, max_num_flows;
-  u_int http_port, https_port;
+  u_int http_port, alt_http_port, https_port;
   u_int8_t num_interfaces;
   bool dump_flows_on_es, dump_flows_on_mysql;
   bool enable_taps;
@@ -98,7 +98,7 @@ class Prefs {
 
   void setTraceLevelFromRedis();
   void setAlertsEnabledFromRedis();
-
+  void parseHTTPPort(char *arg);
   void bind_http_to_loopback()  { http_binding_address  = strdup((char*)CONST_LOOPBACK_ADDRESS); };
   void bind_https_to_loopback() { https_binding_address = strdup((char*)CONST_LOOPBACK_ADDRESS); };
   bool getDefaultBoolPrefsValue(const char *pref_key, const bool default_value);
@@ -171,6 +171,7 @@ class Prefs {
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);   };
   inline u_int get_http_port()                          { return(http_port);      };
+  inline u_int get_alt_http_port()                      { return(alt_http_port);  };
   inline u_int get_https_port()                         { return(https_port);     };
   inline char* get_redis_host()                         { return(redis_host);     }
   inline char* get_redis_password()                     { return(redis_password); }

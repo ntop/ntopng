@@ -218,9 +218,20 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   memset(iface, 0, sizeof(iface));
 
   initRedis();
+
+  if(ntop->getRedis() == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize redis. Quitting...");
+    exit(-1);
+  }
+
   initElasticSearch();
 
 #ifdef NTOPNG_PRO
+  if(((ntop->getPrefs()->get_http_port() != 80) && (ntop->getPrefs()->get_alt_http_port() != 80))
+     || ((ntop->getPrefs()->get_http_port() == 80) && (ntop->getPrefs()->get_alt_http_port() == 0))) {
+    redis->del((char*)CONST_PREFS_CAPTIVE_PORTAL);
+  }    
+
   pro->init_license();
 #endif
 }
@@ -426,13 +437,16 @@ void Ntop::loadLocalInterfaceAddress() {
       return;
     }
   }
+
   // Make a second call to GetIpAddrTable to get the
   // actual data we want
   if((dwRetVal = GetIpAddrTable(pIPAddrTable, &dwSize, 0)) != NO_ERROR) {
-    if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+    if(FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		     NULL, dwRetVal, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
 		      (LPTSTR)& lpMsgBuf, 0, NULL)) {
       LocalFree(lpMsgBuf);
     }
+
     return;
   }
 

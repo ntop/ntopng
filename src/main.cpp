@@ -113,9 +113,6 @@ int main(int argc, char *argv[])
 
   ntop->registerPrefs(prefs, false);
 
-  if(ntop->getRedis() == NULL)
-    return(-1);
-
   prefs->registerNetworkInterfaces();
 
   if(prefs->get_num_user_specified_interfaces() == 0) {
@@ -269,8 +266,7 @@ int main(int argc, char *argv[])
     Utils::dropPrivileges();
 
   ntop->loadGeolocation(prefs->get_docs_dir());
-  ntop->registerHTTPserver(new HTTPserver(prefs->get_http_port(),
-					  prefs->get_docs_dir(),
+  ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(),
 					  prefs->get_scripts_dir()));
 
   /*
