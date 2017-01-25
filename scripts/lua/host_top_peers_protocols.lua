@@ -11,15 +11,16 @@ local json = require("dkjson")
 sendHTTPHeader('application/json')
 
 interface.select(ifname)
+local max_num_peers = 10
 local host_info = url2hostinfo(_GET)
-local flows     = interface.getFlowPeers(host_info["host"],host_info["vlan"])
+local flows     = getTopFlowPeers(host2name(host_info["host"], host_info["vlan"]), max_num_peers)
 
 local tot = 0
 local peers = {}
 local peers_proto = {}
 local ndpi = {}
 
-for _, flow in pairs(flows) do
+for _, flow in ipairs(flows) do
 
    if(flow["cli.ip"] == _GET["host"]) then
       peer = hostinfo2hostkey(flow, "srv")
@@ -47,10 +48,6 @@ for _, flow in pairs(flows) do
    tot = tot + v
 end
 
--- Print up to this number of entries
-local max_num_peers = 10
-local num = 0
-
 local res = {}
 
 for peer,value in pairsByValues(peers, rev) do
@@ -70,11 +67,6 @@ for peer,value in pairsByValues(peers, rev) do
 	      res[#res + 1] = r
 	    end
 	 end
-      end
-
-      num = num + 1
-      if(num == max_num_peers) then
-	 break
       end
    end
 end

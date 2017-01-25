@@ -777,10 +777,10 @@ print [[/lua/iface_ports_list.lua', { mode: "server", ifname: "]] print(ifId..""
 
    elseif((page == "peers")) then
 host_info = url2hostinfo(_GET)
-flows     = interface.getFlowPeers(host_info["host"], host_info["vlan"])
+peers     = getTopFlowPeers(host2name(host_info["host"], host_info["vlan"]), 1 --[[exists query]])
 found     = 0
 
-for key, value in pairs(flows) do
+for key, value in pairs(peers) do
    found = 1
    break
 end
@@ -834,6 +834,7 @@ var ndx = crossfilter(content),
     protocolDim  = ndx.dimension(function(d) {return d.l7proto;}),
     trafficDim = ndx.dimension(function(d) {return Math.floor(d.traffic/10);}),
     nameDim  = ndx.dimension(function(d) {return d.name;});
+    // actually this script expects input data to be aggregated by host, otherwise we are making the sum of logarithmns here
     trafficPerl7proto = protocolDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficPerhost = nameDim.group().reduceSum(function(d) {return +d.traffic;}),
     trafficHist    = trafficDim.group().reduceCount();
