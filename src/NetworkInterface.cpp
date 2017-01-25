@@ -3126,47 +3126,6 @@ void NetworkInterface::getNetworksStats(lua_State* vm) {
 
 /* **************************************************** */
 
-struct flow_peers_info {
-  lua_State *vm;
-  char *numIP;
-  u_int16_t vlanId;
-  AddressTree *allowed_hosts;
-  u_int32_t peer_num;
-};
-
-static bool flow_peers_walker(GenericHashEntry *h, void *user_data) {
-  Flow *flow = (Flow*)h;
-  struct flow_peers_info *info = (struct flow_peers_info*)user_data;
-
-  if((info->numIP == NULL) || flow->isFlowPeer(info->numIP, info->vlanId)) {
-    //flow->print_peers(info->vm, info->allowed_hosts, (info->numIP == NULL) ? false : true);
-    flow->lua(info->vm, info->allowed_hosts, (info->numIP == NULL) ? details_higher : details_max, false);
-
-    info->peer_num++;
-    lua_pushnumber(info->vm, info->peer_num);
-    lua_insert(info->vm, -2);
-    lua_settable(info->vm, -3);
-  }
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::getFlowPeersList(lua_State* vm,
-					AddressTree *allowed_hosts,
-					char *numIP, u_int16_t vlanId) {
-  struct flow_peers_info info;
-
-  lua_newtable(vm);
-
-  info.vm = vm, info.numIP = numIP, info.vlanId = vlanId, info.allowed_hosts = allowed_hosts;
-  info.peer_num = 0;
-  walker(walker_flows, flow_peers_walker, (void*)&info);
-}
-
-/* **************************************************** */
-
 static bool host_activity_walker(GenericHashEntry *he, void *user_data) {
   HostActivityRetriever * r = (HostActivityRetriever *)user_data;
   Host *h = (Host*)he;

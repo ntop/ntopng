@@ -116,13 +116,6 @@ function getFlowsInfo()
 function getLocalFlowsInfo()
 
 --! @memberof interface
---! @brief Get the flow peers information of network interface.
---! @details For more information please read the @ref ntop_get_interface_flows_peers documentation.
---! @tparam string host_name The host name.
---! @return An hashtable of hashtable containing the flow peers information of network interface.
-function getFlowPeers(host_name)
-
---! @memberof interface
 --! @brief Get the flow peers information identified by key of network interface.
 --! @details For more information please read the @ref ntop_get_interface_find_flow_by_key documentation.
 --! @tparam number key The flow key.

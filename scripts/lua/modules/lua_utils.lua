@@ -2714,3 +2714,20 @@ function isCaptivePortalActive(ifstats)
 
   return is_bridge_iface and is_captive_portal_enabled
 end
+
+function getTopFlowPeers(hostname_vlan, max_hits, detailed)
+  local detailed = detailed or false
+
+  local paginator_options = {
+    sortColumn = "column_bytes",
+    detailedResults = detailed,
+    maxHits = max_hits,
+  }
+
+  local res = interface.getFlowsInfo(hostname_vlan, paginator_options)
+  if ((res ~= nil) and (res.flows ~= nil)) then
+    return res.flows
+  else
+    return {}
+  end
+end
