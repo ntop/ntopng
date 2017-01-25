@@ -2623,16 +2623,22 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       function resol_selector_on_form_submit(event) {
         var form = $(this);
 
-        if (event.isDefaultPrevented())   /* isDefaultPrevented is true when the form is invalid */
-          return false;
+]]
 
+  if false then
+     js_init_code = js_init_code..[[
+        if (event.isDefaultPrevented())   /* isDefaultPrevented is true when the form is invalid */
+	return false;
+]]
+  end
+
+  js_init_code = js_init_code..[[
         $.each(_resol_inputs, function(i, elem) {
           var selected = $(elem).find("input[checked]");
           var input = resol_selector_get_input(selected);
 
           /* remove added input names */
           $(elem).find("input").removeAttr("name");
-
           /* transform in raw units */
           var new_input = $("<input type=\"hidden\"/>");
           new_input.attr("name", input.attr("name"));

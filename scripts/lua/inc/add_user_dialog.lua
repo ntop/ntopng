@@ -1,4 +1,5 @@
 local host_pools_utils = require 'host_pools_utils'
+require("prefs_utils")
 
 local messages = {ntopng="Add ntopng User", captive_portal="Add Captive Portal User"}
 
@@ -152,13 +153,36 @@ else -- a captive portal user is being added
       <label class="form-label">Authentication Lifetime</label>
       <div class="input-group">
         <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
-        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires at midnight</label>
+        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires at</label>
       </div>
       <!-- optionally allow to specify a certain number of days
       <input id="lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
       -->
     </div>
+</div>
 
+<div class="row">
+    <div class="form-group col-md-6 has-feedback">
+    </div>
+
+    <div class="col-md-6 has-feedback text-center">
+
+      <table class="form-group" id="lifetime_selection_table">
+        <tr>
+
+          <td style="vertical-align:top;">
+]]
+   --   require("prefs_utils")
+   local res = prefsResolutionButtons("hd", 3600)
+   tprint(res)
+   print[[
+          </td>
+          <td style="padding-left: 2em;">
+        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
+          </td>
+        </tr>
+      </table>
+    </div>
 </div>
 
 <div class="row">
@@ -197,18 +221,17 @@ print[[
 </form>
 <script>
 
-<!-- use the following scripts when the user lifetime can be specified in days
+  $("#lifetime_selection_table input,label").attr("disabled", "disabled")
 
   $("#lifetime_unlimited").click(function(){
-    $("#lifetime_days").prop("disabled", true);
+    $("#lifetime_selection_table input,label").attr("disabled", "disabled")
     $("#lifetime_limited").removeAttr("checked");
   });
+
   $("#lifetime_limited").click(function() {
-    $("#lifetime_days").prop("disabled", false);
+    $("#lifetime_selection_table input,label").removeAttr("disabled")
     $("#lifetime_unlimited").removeAttr("checked");
   });
-
--->
 
   var frmadduser = $('#form_add_user');
 

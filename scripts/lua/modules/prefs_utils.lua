@@ -25,7 +25,7 @@ end
 local options_script_loaded = false
 local options_ctr = 0
 
-local function prefsResolutionButtons(fmt, value)
+function prefsResolutionButtons(fmt, value)
   local fmt_to_data = {
     ["s"] = {label="Secs",  value=1},
     ["m"] = {label="Mins",  value=60},
@@ -35,6 +35,7 @@ local function prefsResolutionButtons(fmt, value)
 
   local ctrl_id = "options_group_" .. options_ctr
   options_ctr = options_ctr + 1
+
   local res = makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, {classes={"pull-right"}})
 
   print(res.html)
