@@ -50,6 +50,41 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   reloadPools();
 }
+/* *************************************** */
+
+HostPools::~HostPools() {
+  if(tree_shadow)
+    delete []tree_shadow;
+  if(tree)
+    delete []tree;
+
+#ifdef NTOPNG_PRO
+  if(stats)
+    delete []stats;
+  if(stats_shadow)
+    delete []stats_shadow;
+
+  if(volatile_members_lock)
+    delete []volatile_members_lock;
+
+  if(volatile_members) {
+    for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
+      volatile_members_t *current, *tmp;
+
+      HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
+	HASH_DEL(volatile_members[pool_id], current);
+	free(current->host_or_mac);
+	free(current);
+      }
+
+      if(volatile_members[pool_id])
+	free(volatile_members[pool_id]);
+    }
+    free(volatile_members);
+  }
+
+#endif
+}
 
 /* *************************************** */
 
