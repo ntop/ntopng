@@ -3324,7 +3324,7 @@ static int ntop_purge_expired_host_pools_members(lua_State *vm) {
 
   if(ntop_interface) {
 
-    ntop_interface->getHostPools()->purgeExpiredMembers();
+    ntop_interface->getHostPools()->purgeExpiredVolatileMembers();
 
     return(CONST_LUA_OK);
   } else
