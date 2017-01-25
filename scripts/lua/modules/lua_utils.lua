@@ -2623,16 +2623,14 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       function resol_selector_on_form_submit(event) {
         var form = $(this);
 
-]]
-
-  if false then
-     js_init_code = js_init_code..[[
         if (event.isDefaultPrevented())   /* isDefaultPrevented is true when the form is invalid */
-	return false;
-]]
-  end
+          return false;
 
-  js_init_code = js_init_code..[[
+        resol_selector_finalize(form);
+        return true;
+      }
+
+      function resol_selector_finalize(form) {
         $.each(_resol_inputs, function(i, elem) {
           var selected = $(elem).find("input[checked]");
           var input = resol_selector_get_input(selected);
