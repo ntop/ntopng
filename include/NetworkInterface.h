@@ -219,14 +219,14 @@ class NetworkInterface {
   inline u_int get_flow_size()                 { return(ndpi_detection_get_sizeof_ndpi_flow_struct()); };
   inline u_int get_size_id()                   { return(ndpi_detection_get_sizeof_ndpi_id_struct());   };
   inline char* get_name()                      { return(ifname);                                       };
-  inline int get_id()                          { return(id);                                           };
-  inline bool get_sprobe_interface()           { return sprobe_interface; }
-  inline bool get_inline_interface()           { return inline_interface; }
-  inline bool get_has_vlan_packets()           { return has_vlan_packets; }
-  inline bool  hasSeenVlanTaggedPackets()      { return(has_vlan_packets); }
-  inline void  setSeenVlanTaggedPackets()      { has_vlan_packets = true; }
+  inline int  get_id()                         { return(id);                                           };
+  inline bool get_sprobe_interface()           { return sprobe_interface;  }
+  inline bool get_inline_interface()           { return inline_interface;  }
+  inline bool get_has_vlan_packets()           { return has_vlan_packets;  }
+  inline bool hasSeenVlanTaggedPackets()       { return(has_vlan_packets); }
+  inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
   inline struct ndpi_detection_module_struct* get_ndpi_struct() { return(ndpi_struct);         };
-  inline bool is_sprobe_interface()            { return(sprobe_interface); };
+  inline bool is_sprobe_interface()            { return(sprobe_interface);                     };
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   inline void enable_sprobe()                  { sprobe_interface = true; };
   int dumpFlow(time_t when, bool idle_flow, Flow *f);

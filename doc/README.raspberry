@@ -1,0 +1,68 @@
+
+Using ntopng as a WiFi Access Point/Router+NAT
+----------------------------------------------
+Suppose you have a device (e.g. a Raspberry PI) that has a wifi device you want to turn into
+a an access point that connects to the Internet though the ethernet port. ntopng can be used
+to enforce traffic policies as described below (valid for Debian-based distributions).
+
+- Edit /etc/wpa_supplicant/wpa_supplicant.conf and edit the configuration (e.g. edit the coutnry field
+
+- If not previously installed do
+  # apt-get install hostapd
+
+- Edit /etc/network/interfaces and comment the following lines
+
+  #allow-hotplug wlan0
+  #iface wlan0 inet manual
+  #    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+
+- Create a file name /etc/hostapd/hostapd.conf and put the following text
+
+  interface=wlan0
+  ssid=ntopng
+  hw_mode=g
+  channel=6
+  auth_algs=1
+  wmm_enabled=0
+  # The lines below are only for the built-in Raspberry Pi 3 Wi-Fi module
+  ieee80211n=1          # 802.11n support
+  wmm_enabled=1         # QoS support
+  ht_capab=[HT40][SHORT-GI-20][DSSS_CCK-40]
+
+- Edit /etc/default/hostapd and set
+  DAEMON_CONF="/etc/hostapd/hostapd.conf"
+
+- Enable hostapd
+  # update-rc.d hostapd enable
+
+  and start it
+
+  # service hostapd start
+
+- Install (if not present) DHCPd
+  apt-get install isc-dhcp-server
+
+- Configure DHCP by adding this line at the end of /etc/dhcp/dhcpd.conf
+  subnet 192.168.42.0 netmask 255.255.255.0 {
+   range 192.168.42.10 192.168.42.50;
+   option broadcast-address 192.168.42.255;
+   option routers 192.168.42.1;
+   default-lease-time 600;
+   max-lease-time 7200;
+   option domain-name "local";
+   option domain-name-servers 8.8.8.8, 8.8.4.4;
+  }
+
+- Edit /etc/default/isc-dhcp-server
+  and set
+  INTERFACES="wlan0"
+
+Read More
+---------
+See also the following examples:
+
+- ../tools/wifi_router.sh
+  Use ntopng in routing mode
+
+- ../tools/wifi_bridge.sh
+  Use ntopng on bridge mode

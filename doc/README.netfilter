@@ -9,8 +9,8 @@ marked with protocol identifier 125.
 # ntopng -h|grep Skype
 [125] Skype
 
-You can leverage protocol identifiers to assign different QoS classes to your traffic(e.g., shape, drop, etc). In
-essence you can implement an application-level firewall.
+You can leverage protocol identifiers to assign different QoS classes to your traffic
+(e.g., shape, drop, etc). In essence you can implement an application-level firewall.
 
 Using NetFilter
 ---------------
@@ -89,3 +89,4 @@ NOTE
 When you send traffic to NFQUEUE if ntopng is NOT running, packets will be
 blocked in the IP stack as they don’t get processed. So make sure ntopng
 is running all the time before using this mechanism.
+
