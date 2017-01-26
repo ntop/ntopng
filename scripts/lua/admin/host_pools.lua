@@ -413,6 +413,9 @@ print [[
                width: '20%',
                textAlign: 'center',
             }
+         } , {
+            field: "column_link",
+            hidden: true,
          }
       ], tableCallback: function() {
         if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
@@ -426,6 +429,7 @@ print [[
             var vlan = $("td:nth-child(2)", $(this));
             var alias = $("td:nth-child(3)", $(this));
             var icon = $("td:nth-child(4)", $(this));
+            var link_value = $("td:nth-child(6)", $(this)).html().replace(/&nbsp;/gi,'');
 
             var member_id = addedMemberCtr++;
 
@@ -462,6 +466,8 @@ print [[
             if ((vlan_value > 0) && (is_network))
               value = value + " [VLAN " + vlan_value + "]";
 
+            if (link_value)
+              datatableAddLinkButtonCallback.bind(this)(5, link_value, "View");
             datatableAddDeleteButtonCallback.bind(this)(5, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
@@ -663,7 +669,7 @@ print [[
                nextPoolId += 1;
          });
 
-         aysResetForm('#table-creaate-form');
+         aysResetForm('#table-create-form');
         }
 
         recheckPoolAddButton();

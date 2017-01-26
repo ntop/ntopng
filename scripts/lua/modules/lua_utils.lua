@@ -1095,43 +1095,54 @@ end
 -- Moreover, IPv4 and IPv4 can have a vlan suffix "@vlan"
 --
 function getRedisHostKey(host_ip)
-   local simple_name = host_ip
+   local base_name = host_ip
    local full_name
-   local vlan_id
-   local network_suffix
 
-   local vlan_idx = string.find(simple_name, "@")
-   if vlan_idx ~= nil then
-      vlan_id = string.sub(simple_name, vlan_idx+1)
-      if tonumber(vlan_id) == 0 then
-         -- strip
-         simple_name = string.sub(simple_name, 1, vlan_idx-1)
+   -- get the 
+   if isMacAddress(host_ip) then
+      full_name = base_name
+      simple_name = base_name
+   else
+      -- strip the VLAN
+      local vlan_idx = string.find(base_name, "@")
+      local vlan_id
+
+      if vlan_idx ~= nil then
+         vlan_id = string.sub(base_name, vlan_idx+1)
+         base_name = string.sub(base_name, 1, vlan_idx-1)
+      else
+         vlan_id = "0"
       end
-      vlan_id = "@" .. vlan_id
-   elseif not isMacAddress(simple_name) then
-      -- is an IPv4 or IPv6
-      vlan_id = "@0"
-   else
-      vlan_id = ""
-   end
 
-   local suffix_idx = string.find(simple_name, "/")
-   if suffix_idx ~= nil then
-      network_suffix = "/" .. string.sub(simple_name, suffix_idx+1)
-      simple_name = string.sub(simple_name, 1, suffix_idx-1)
-   elseif isIPv4(simple_name) then
-      network_suffix = "/32"
-   elseif not isMacAddress(simple_name) then
-      -- IPv6 address
-      network_suffix = "/128"
-   else
-      network_suffix = ""
-   end
+      -- strip network suffixes
+      local suffix_idx = string.find(base_name, "/")
+      local network_suffix
 
-   full_name = simple_name .. network_suffix .. vlan_id
-   if vlan_id ~= "@0" then
-      -- in this case vlan is part of the simple name
-      simple_name = simple_name .. vlan_id
+      if suffix_idx ~= nil then
+         network_suffix = string.sub(base_name, suffix_idx+1)
+         base_name = string.sub(base_name, 1, suffix_idx-1)
+      elseif isIPv4(base_name) then
+         network_suffix = "32"
+      else
+         network_suffix = "128"
+      end
+
+      -- Compute the names
+      local full_name_parts = {base_name, "/", network_suffix, "@", vlan_id}
+      local simple_name_parts = {base_name}
+
+      if(((isIPv4(base_name)) and (network_suffix ~= "32")) or
+         (((isIPv6(base_name)) and (network_suffix ~= "128")))) then
+         simple_name_parts[#simple_name_parts + 1] = "/"
+         simple_name_parts[#simple_name_parts + 1] = network_suffix
+      end
+      if vlan_id ~= "0" then
+         simple_name_parts[#simple_name_parts + 1] = "@"
+         simple_name_parts[#simple_name_parts + 1] = vlan_id
+      end
+
+      full_name = table.concat(full_name_parts, "")
+      simple_name = table.concat(simple_name_parts, "")
    end
 
    return full_name, simple_name

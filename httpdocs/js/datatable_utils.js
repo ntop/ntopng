@@ -45,8 +45,16 @@ function datatableForEachRow(table, callbacks) {
    });
 }
 
+function datatableAddActionButtonCallback(td_idx, label, bs_class, callback_str, link) {
+   $("td:nth-child("+td_idx+")", $(this)).append('<a href="' + link + '" class="add-on btn" style="padding:0.2em;" onclick="' + callback_str + '" role="button"><span class="label ' + bs_class + '">' + label + '</span></a>');
+}
+
 function datatableAddDeleteButtonCallback(td_idx, callback_str, label) {
-   $("td:nth-child("+td_idx+")", $(this)).html('<a href="javascript:void(0)" class="add-on btn" onclick="' + callback_str + '" role="button"><span class="label label-danger">' + label + '</span></a>');
+   datatableAddActionButtonCallback.bind(this)(td_idx, label, "label-danger", callback_str, "javascript:void(0)");
+}
+
+function datatableAddLinkButtonCallback(td_idx, link, label) {
+   datatableAddActionButtonCallback.bind(this)(td_idx, label, "label-info", "", link);
 }
 
 function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {

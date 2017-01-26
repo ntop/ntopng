@@ -17,14 +17,32 @@ local res = {data={}, sort={{"column_", "asc"}}, totalRows=0}
 
 if((ifid ~= nil) and (isAdministrator())) then
   if pool_id ~= nil then
+    local active_hosts = interface.getHostsInfo(false, nil, nil, nil, nil, nil, nil, nil, nil, nil, true--[[no macs]], tonumber(pool_id)).hosts
+    local network_stats = interface.getNetworksStats()
+
     for _,member in ipairs(host_pools_utils.getPoolMembers(ifid, pool_id)) do
+      local _, key = getRedisHostKey(member.key)
+      local link
+
+      if active_hosts[key] then
+        link = ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url(active_hosts[key])
+      elseif interface.getMacInfo(key) ~= nil then
+        link = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. key
+      elseif network_stats[key] ~= nil then
+        link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?network=" .. network_stats[key].network_id
+      else
+        link = ""
+      end
+
       local alias = getHostAltName(member.key, true --[[ accept null result ]])
       if alias == nil then alias = "" end
+
       res.data[#res.data + 1] = {
         column_member = member.address,
         column_alias = alias,
         column_icon = ntop.getHashCache("ntopng.host_icons",  member.key),
         column_vlan = member.vlan,
+        column_link = link,
       }
     end
   else
