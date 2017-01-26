@@ -77,8 +77,8 @@ print [[
            },
                          {
 			     title: "MAC Address",
-				 field: "column_link",
-				 sortable: false,
+				 field: "column_mac",
+				 sortable: true,
                              css: {
 			        textAlign: 'left'
 			     }

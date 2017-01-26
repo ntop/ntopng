@@ -74,7 +74,7 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
 					 tonumber(vlan),
 					 include_special_macs == false --[[ skip special macs ]],
-host_macs_only)
+					 host_macs_only)
 
 local total_rows = 0
 

@@ -16,7 +16,7 @@ function mac2record(mac)
 	 link = link.."&nbsp;"..icon
       end
    end
-   record["column_link"] = link
+   record["column_mac"] = link
 
    local manufacturer = get_manufacturer_mac(mac["mac"])
    if(manufacturer == nil) then manufacturer = "" end

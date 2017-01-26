@@ -10,7 +10,7 @@ function mac_table_setID (row) {
   row.attr('id', mac_key);
 
   row.find("td").eq(index++).attr('id', mac_key+"_key");
-  row.find("td").eq(index++).attr('id', mac_key+"_link");
+  row.find("td").eq(index++).attr('id', mac_key+"_mac");
   row.find("td").eq(index++).attr('id', mac_key+"_manufacturer");
 
   // mac_stats_top
