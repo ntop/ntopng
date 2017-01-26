@@ -46,8 +46,9 @@ Redis::Redis(char *_redis_host, char *_redis_password, u_int16_t _redis_port, u_
 /* **************************************** */
 
 Redis::~Redis() {
-  redisFree(redis);
   flushCache();
+  redisFree(redis);
+  // flushCache();
   delete l;
 }
 
