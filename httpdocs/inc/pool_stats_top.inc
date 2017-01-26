@@ -1,13 +1,4 @@
 			     {
-			     title: "Chart",
-				 field: "column_chart",
-				 sortable: false,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
-			     {
 			     title: "Hosts",
 				 field: "column_hosts",
 				 sortable: true,

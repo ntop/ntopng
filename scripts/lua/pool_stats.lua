@@ -11,12 +11,6 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-if (not ntop.isPro()) then
-  return
-end
-
-local test = interface.getHostPoolsStats()
-
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -63,6 +57,18 @@ print [[
               sortable: false,
                 css: {
                   textAlign: 'left'
+              }
+            },{
+              title: "Chart",
+              field: "column_chart",
+]]
+if not ntop.isPro() then
+   print('hidden: true,')
+end
+print[[
+              sortable: false,
+                css: {
+                  textAlign: 'center'
               }
             },
 			  ]]
