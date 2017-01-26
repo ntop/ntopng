@@ -505,16 +505,17 @@ u_int16_t HostPools::getPool(Host *h) {
   Mac *mac;
   IpAddress *ip;
   patricia_node_t *node;
+  AddressTree *cur_tree; /* must use this as tree can be swapped */
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
   char *k;
 #endif
 
-  if(!h || !tree || !tree[h->get_vlan_id()])
+  if(!h || !tree || !(cur_tree = tree[h->get_vlan_id()]))
     return NO_HOST_POOL_ID;
 
   if((mac = h->getMac()) && !mac->isSpecialMac()) {
-    int16_t ret = mac->findAddress(tree[h->get_vlan_id()]);
+    int16_t ret = mac->findAddress(cur_tree);
 
     if(ret != -1) {
 #ifdef HOST_POOLS_DEBUG
@@ -529,7 +530,7 @@ u_int16_t HostPools::getPool(Host *h) {
   }
 
   if((ip = h->get_ip())) {
-    node = (patricia_node_t*)ip->findAddress(tree[h->get_vlan_id()]);
+    node = (patricia_node_t*)ip->findAddress(cur_tree);
     if(node) {
 #ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
