@@ -92,10 +92,12 @@ else
     print("\n<li><a href=\""..nav_url.."&page=historical\"><i class='fa fa-area-chart fa-lg'></i></a></li>")
 end
 
-if(page == "alerts") then
-    print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
-else
-    print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+if areAlertsEnabled() then
+    if(page == "alerts") then
+        print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-warning fa-lg\"></i></a></li>\n")
+    else
+        print("\n<li><a href=\""..nav_url.."&page=alerts\"><i class=\"fa fa-warning fa-lg\"></i></a></li>")
+    end
 end
 
    if(ntop.isEnterprise()) then
@@ -108,7 +110,7 @@ end
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
    end
    
-if(network ~= nil) then
+if((network ~= nil) and (areAlertsEnabled())) then
     if(page == "config") then
         print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
 

@@ -378,6 +378,11 @@ function alertEntityRaw(entity_idx)
    return nil
 end
 
+function areAlertsEnabled()
+  return ((not ntop.getPrefs().has_cmdl_disable_alerts) and
+          (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1"))
+end
+
 function firstToUpper(str)
    str = tostring(str)
    return (str:gsub("^%l", string.upper))

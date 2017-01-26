@@ -250,7 +250,7 @@ if is_packetdump_enabled then
    end
 end
 
-if(isAdministrator()) then
+if(isAdministrator() and areAlertsEnabled()) then
    if(page == "alerts") then
       print("\n<li class=\"active\"><a href=\"#\">")
    elseif interface.isPcapDumpInterface() == false then
@@ -273,7 +273,7 @@ else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
 end
 
-if(isAdministrator()) then
+if(isAdministrator() and (areAlertsEnabled())) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
