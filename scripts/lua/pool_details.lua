@@ -23,8 +23,8 @@ if (not ntop.isPro()) then
 end
 
 interface.select(ifname)
-ifstats = interface.getStats()
-ifId = ifstats.id
+local ifstats = interface.getStats()
+local ifId = ifstats.id
 local pool_name = host_pools_utils.getPoolName(ifId, pool_id)
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
@@ -36,10 +36,29 @@ if(pool_id == nil) then
     return
 end
 
+print [[
+<div class="bs-docs-example">
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+]]
+
+print("<li><a href=\"#\">Host Pool: "..pool_name.."</A> </li>")
+print("<li class=\"active\"><a href=\"#\"><i class='fa fa-area-chart fa-lg'></i>\n")
+
+print [[
+<li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
+      </ul>
+    </div>
+  </nav>
+</div>
+]]
+
 local rrdbase = host_pools_utils.getRRDBase(ifId, pool_id)
 
 if(not ntop.exists(rrdbase.."/bytes.rrd")) then
-  print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available stats for Host Pool '"..pool_name.."'</div>")
+  print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No available data for Host Pool '"..pool_name.."'. ")
+  print('Host Pool timeseries can be enabled from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua"><i class="fa fa-flask"></i> Preferences</A>. Few minutes are necessary to see the first data points.</div>')
 else
   local rrdfile
   if(not isEmptyString(_GET["rrd_file"])) then

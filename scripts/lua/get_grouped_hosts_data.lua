@@ -68,7 +68,7 @@ if (all ~= nil) then
    currentPage = 0
 end
 
-if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil) then -- single group info requested
+if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
    print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 end
 num = 0
@@ -137,7 +137,7 @@ function print_single_group(value)
       if(manufacturer == nil) then manufacturer = "" end
       print(manufacturer..'</A>", ')
    elseif(group_col == "pool_id") then
-      pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
+      local pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
       print(pool_name..'</A> " , ')
 
       if tostring(value["id"]) ~= host_pools_utils.DEFAULT_POOL_ID then
@@ -263,7 +263,7 @@ elseif (network_n ~= nil) then
    end
    stats_by_group_col = {}
 elseif (pool_n ~= nil) then
-   pool_val = stats_by_group_col[tonumber(pool_val)]
+   pool_val = stats_by_group_col[tonumber(pool_n)]
    if (pool_val == nil) then
       print('{}')
    else
@@ -329,7 +329,7 @@ for _key, _value in pairsByValues(vals, funct) do
    end
 end -- for
 
-if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil) then -- single group info requested
+if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
    print ("\n], \"perPage\" : " .. perPage .. ",\n")
 end
 
@@ -341,7 +341,7 @@ if(sortOrder == nil) then
    sortOrder = ""
 end
 
-if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil) then -- single group info requested
+if (as_n == nil and vlan_n == nil and network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
    print ("\"sort\" : [ [ \"" .. sortColumn .. "\", \"" .. sortOrder .."\" ] ],\n")
    print ("\"totalRows\" : " .. total .. " \n}")
 end

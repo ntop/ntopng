@@ -15,6 +15,8 @@ if (not ntop.isPro()) then
   return
 end
 
+local test = interface.getHostPoolsStats()
+
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -42,7 +44,7 @@ preference = tablePreferences("rows_number",_GET["perPage"])
 if (preference ~= "") then print ('perPage: '..preference.. ",\n") end
 
 -- Automatic default sorted. NB: the column must exist.
-print ('sort: [ ["' .. getDefaultTableSort("pool") ..'","' .. getDefaultTableSortOrder("pool").. '"] ],')
+print ('sort: [ ["' .. getDefaultTableSort("pool_id") ..'","' .. getDefaultTableSortOrder("pool_id").. '"] ],')
 
 
 print [[

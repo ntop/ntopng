@@ -10,7 +10,7 @@ function pool_table_setID (row) {
   row.attr('id', pool_key);
 
   row.find("td").eq(index++).attr('id', pool_key+"_key");
-  row.find("td").eq(index++).attr('id', pool_key+"_number");
+  row.find("td").eq(index++).attr('id', pool_key+"_id");
   // pool_stats_top
   row.find("td").eq(index++).attr('id', pool_key+"_chart");
   row.find("td").eq(index++).attr('id', pool_key+"_hosts");
