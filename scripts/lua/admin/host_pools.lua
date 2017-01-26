@@ -633,9 +633,12 @@ print [[
          }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
-               width: '10%',
+               width: '15%',
                textAlign: 'center',
             }
+         }, {
+           field: "column_pool_link",
+           hidden: true,
          }
       ], tableCallback: function() {
         if(datatableIsEmpty("#table-create")) {
@@ -645,6 +648,7 @@ print [[
             var pool_id = $("td:nth-child(1)", $(this)).html();
             var pool_name = $("td:nth-child(2)", $(this));
             var pool_undeletable = $("td:nth-child(3)", $(this)).html() === "true";
+            var pool_link = $("td:nth-child(5)", $(this)).html();
 
             /* Make pool name editable */
             var input = $(']] printPoolNameField('pool_id') print[[');
@@ -655,10 +659,11 @@ print [[
             if (pool_id == ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
               $("input", input).first().attr("disabled", "disabled");
             } else {
+              datatableAddLinkButtonCallback.bind(this)(4, pool_link, "View");
               datatableAddDeleteButtonCallback.bind(this)(4, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
               if (pool_undeletable)
-                $("td:nth-child(4) a", $(this)).attr("disabled", "disabled");
+                $("td:nth-child(4) a", $(this)).last().attr("disabled", "disabled");
             }
          });
 
