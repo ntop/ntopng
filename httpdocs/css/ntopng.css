@@ -148,6 +148,10 @@ min-width: 100px;
   margin-left: 1em;
 }
 
+.text-middle, .table > tbody > tr > td.text-middle {
+  vertical-align: middle;
+}
+
 /*Hide numeric input box spinners for 'no-spinner' class */
 input.no-spinner[type=number]::-webkit-inner-spin-button,
 input.no-spinner[type=number]::-webkit-outer-spin-button {

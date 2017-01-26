@@ -42,7 +42,7 @@ local function addressSplitVlan(mixed)
   if #parts == 2 then
     return parts[1], parts[2]
   else
-    return mixed, "0"
+    return mixed, nil
   end
 end
 
@@ -105,7 +105,7 @@ function host_pools_utils.getPoolMembers(ifid, pool_id)
 
   for _,v in pairsByValues(ntop.getMembersCache(members_key) or {}, asc) do
     local address, vlan = addressSplitVlan(v)
-    members[#members + 1] = {address=address, vlan=vlan}
+    members[#members + 1] = {address=address, vlan=vlan, key=v}
   end
 
   return members

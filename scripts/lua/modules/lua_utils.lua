@@ -133,6 +133,15 @@ end
 
 -- ##############################################
 
+function isMacAddress(address)
+   if(string.match(address, "^[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]$") ~= nil) then
+      return true
+   end
+   return false
+end
+
+-- ##############################################
+
 function findString(str, tofind)
   if(str == nil) then return(nil) end
   if(tofind == nil) then return(nil) end
@@ -1077,29 +1086,96 @@ end
 
 -- ##############################################
 
+--
+-- The input host_ip can be either:
+--    - a simple IPv4 or IPv6 or MAC address
+--    - an IPv4 in CIDR form
+--    - an IPv4 in CIDR form
+--
+-- Moreover, IPv4 and IPv4 can have a vlan suffix "@vlan"
+--
+function getRedisHostKey(host_ip)
+   local simple_name = host_ip
+   local full_name
+   local vlan_id
+   local network_suffix
+
+   local vlan_idx = string.find(simple_name, "@")
+   if vlan_idx ~= nil then
+      vlan_id = string.sub(simple_name, vlan_idx+1)
+      if tonumber(vlan_id) == 0 then
+         -- strip
+         simple_name = string.sub(simple_name, 1, vlan_idx-1)
+      end
+      vlan_id = "@" .. vlan_id
+   elseif not isMacAddress(simple_name) then
+      -- is an IPv4 or IPv6
+      vlan_id = "@0"
+   else
+      vlan_id = ""
+   end
+
+   local suffix_idx = string.find(simple_name, "/")
+   if suffix_idx ~= nil then
+      network_suffix = "/" .. string.sub(simple_name, suffix_idx+1)
+      simple_name = string.sub(simple_name, 1, suffix_idx-1)
+   elseif isIPv4(simple_name) then
+      network_suffix = "/32"
+   elseif not isMacAddress(simple_name) then
+      -- IPv6 address
+      network_suffix = "/128"
+   else
+      network_suffix = ""
+   end
+
+   full_name = simple_name .. network_suffix .. vlan_id
+   if vlan_id ~= "@0" then
+      -- in this case vlan is part of the simple name
+      simple_name = simple_name .. vlan_id
+   end
+
+   return full_name, simple_name
+end
+
 -- Used to avoid resolving host names too many times
 resolved_host_labels_cache = {}
 
-function getHostAltName(host_ip)
-   local alt_name = resolved_host_labels_cache[host_ip]
+function getHostAltName(host_ip, accept_empty)
+   local full_name, simple_name = getRedisHostKey(host_ip)
 
+   local alt_name = resolved_host_labels_cache[full_name]
+   if((alt_name == nil) and (simple_name ~= full_name)) then
+      -- support old style keys (without network suffixes and vlan 0)
+      alt_name = resolved_host_labels_cache[simple_name]
+   end
+
+   -- cache hit
    if(alt_name ~= nil) then
       return(alt_name)
    end
 
-   alt_name = ntop.getHashCache("ntopng.host_labels", host_ip)
+   local key = "ntopng.host_labels"
 
-   if((alt_name == nil) or (alt_name == "")) then
-     alt_name = host_ip
+   alt_name = ntop.getHashCache(key, full_name)
+   if((alt_name == nil) and (simple_name ~= full_name)) then
+      -- support old style keys (without network suffixes and vlan 0)
+      alt_name = ntop.getHashCache(key, simple_name)
    end
 
-   resolved_host_labels_cache[host_ip] = alt_name
+   if (isEmptyString(alt_name) and (not accept_empty)) then
+     alt_name = simple_name
+   end
+
+   if not isEmptyString(alt_name) then
+      resolved_host_labels_cache[host_ip] = alt_name
+   end
 
    return(alt_name)
 end
 
 function setHostAltName(host_ip, alt_name)
-  ntop.setHashCache("ntopng.host_labels", host_ip, alt_name)
+  local key = getRedisHostKey(host_ip)
+  ntop.setHashCache("ntopng.host_labels", key, alt_name)
 end
 
 -- Mac Addresses --
@@ -2314,8 +2390,30 @@ local icon_keys = {
   [ "Router"]  = "fa-arrows"
 }
 
+function getHostIcons()
+   return pairsByKeys(icon_keys, asc)
+end
+
+function getHostIconName(key)
+   local hash_key = "ntopng.host_icons"
+   local full_name, simple_name = getRedisHostKey(key)
+   local icon = ntop.getHashCache(hash_key, full_name)
+
+   local icon = ntop.getHashCache(hash_key, full_name)
+   if((icon == nil) and (simple_name ~= full_name)) then
+      -- support old style keys (without network suffixes and vlan 0)
+      icon = ntop.getHashCache(hash_key, simple_name)
+   end
+
+   if (icon == nil) then
+      icon = ""
+   end
+
+   return icon
+end
+
 function getHostIcon(key)
-  local icon = ntop.getHashCache("ntopng.host_icons", key)
+  local icon = getHostIconName(key)
   if((icon == nil) or (icon == "")) then
      return(guessHostIcon(key))
   else
@@ -2324,32 +2422,22 @@ function getHostIcon(key)
 end
 
 function setHostIcon(key, icon)
+  local key = getRedisHostKey(key)
   ntop.setHashCache("ntopng.host_icons", key, icon)
 end
 
 function pickIcon(key)
-  local icon = ntop.getHashCache("ntopng.host_icons", key)
-  if((icon == nil) or (icon == "")) then
-     icon = ""
-   end
+  local icon = getHostIconName(key)
 
-print [[
- <div class="form-group">
+print [[<div class="form-group"><select name="custom_icon" class="form-control">]]
 
-   <select name="custom_icon" class="form-control">
-]]
-
-  for k,v in pairsByKeys(icon_keys, asc) do
+  for k,v in getHostIcons() do
       print("<option value=\"".. v.."\"")
       if(v == icon) then print(" selected") end
-      print(">".. k .."</option>\n")
+      print(">".. k .."</option>")
   end
 
-print [[
-   </select>
-
-</div>
-]]
+print [[</select></div>]]
 
 end
 

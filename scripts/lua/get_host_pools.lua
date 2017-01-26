@@ -18,8 +18,12 @@ local res = {data={}, sort={{"column_", "asc"}}, totalRows=0}
 if((ifid ~= nil) and (isAdministrator())) then
   if pool_id ~= nil then
     for _,member in ipairs(host_pools_utils.getPoolMembers(ifid, pool_id)) do
+      local alias = getHostAltName(member.key, true --[[ accept null result ]])
+      if alias == nil then alias = "" end
       res.data[#res.data + 1] = {
         column_member = member.address,
+        column_alias = alias,
+        column_icon = ntop.getHashCache("ntopng.host_icons",  member.key),
         column_vlan = member.vlan,
       }
     end

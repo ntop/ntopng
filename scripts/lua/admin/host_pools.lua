@@ -59,15 +59,31 @@ elseif (_POST["edit_members"] ~= nil) then
 
   -- delete old addresses
   for k,old_member in pairs(config) do
-    if((not isEmptyString(old_member)) and (k ~= old_member)) then
-      host_pools_utils.deleteFromPoll(ifId, pool_to_edit, old_member)
+    if not starts(k, "_") then
+      if((not isEmptyString(old_member)) and (k ~= old_member)) then
+        host_pools_utils.deleteFromPoll(ifId, pool_to_edit, old_member)
+      end
     end
   end
 
   -- add new addresses
   for new_member,k in pairs(config) do
-    if k ~= new_member then
-      host_pools_utils.addToPool(ifId, pool_to_edit, new_member)
+    if not starts(new_member, "_") then
+      local is_new_member = (k ~= new_member)
+
+      if is_new_member then
+        host_pools_utils.addToPool(ifId, pool_to_edit, new_member)
+      end
+
+      local alias = config["_alias_" .. new_member]
+      if((not is_new_member) or (not isEmptyString(alias))) then
+        setHostAltName(new_member, alias)
+      end
+
+      local icon = config["_icon_" .. new_member]
+      if((not is_new_member) or (not isEmptyString(icon))) then
+        setHostIcon(new_member, icon)
+      end
     end
   end
 
@@ -102,6 +118,20 @@ function printMemberVlanField(member_str)
   print[[<input name="member_' + ]] print(member_str) print[[ + '_vlan" class="form-control text-right" data-member="member" style="width:5em; padding-right:1em; margin: 0 auto;" type="number" min="0" value="0" required/>]]
   print[[<div class="help-block with-errors" style="margin-bottom:0;"></div>]]
   print[[</div>]]
+end
+
+function printIconField(member_str)
+  print[[<select name="icon_member_' + ]] print(member_str) print[[ + '" class="form-control">]]
+  for k,v in getHostIcons() do
+      print[[<option value="]] print(v) print[["]]
+      if(v == icon) then print[[ selected]] end
+      print[[>]] print(k) print[[</option>]]
+  end
+  print[[</select>]]
+end
+
+function printAliasField(member_str)
+  print[[<input name="alias_member_' + ]] print(member_str) print[[ + '" class="form-control" />]]
 end
 
 --------------------------------------------------------------------------------
@@ -313,10 +343,13 @@ print [[
       var member_id = addedMemberCtr++;
       var newid = "member_" + member_id;
 
-      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
+      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center"></td></tr>');
+      datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
+
+      var icon = $("td:nth-child(4)", tr);
+      var icon_input = $("select", icon).first();
 
       aysRecheckForm("#table-manage-form");
       recheckMemberAddButton();
@@ -354,22 +387,31 @@ print [[
             field: "column_member",
             css: {
                textAlign: 'left',
-               verticalAlign: 'middle'
             }
          }, {
             title: "VLAN",
             field: "column_vlan",
             css: {
-               width: '10%',
+               width: '1%',
                textAlign: 'center',
-               verticalAlign: 'middle'
+            }
+         }, {
+            title: "Alias",
+            field: "column_alias",
+            css: {
+              width: '25%',
+            }
+         }, {
+            title: "Device Type",
+            field: "column_icon",
+            css: {
+              width: '12%',
             }
          }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
-               width: '10%',
+               width: '20%',
                textAlign: 'center',
-               verticalAlign: 'middle'
             }
          }
       ], tableCallback: function() {
@@ -382,6 +424,9 @@ print [[
           datatableForEachRow("#table-manage", function() {
             var member_address = $("td:nth-child(1)", $(this));
             var vlan = $("td:nth-child(2)", $(this));
+            var alias = $("td:nth-child(3)", $(this));
+            var icon = $("td:nth-child(4)", $(this));
+
             var member_id = addedMemberCtr++;
 
             /* Make member name editable */
@@ -396,6 +441,16 @@ print [[
             address_input.val(value);
             member_address.html(input);
 
+            /* Alias field */
+            var input = $(']] printAliasField('member_id') print[[');
+            input.val(alias.html().replace(/&nbsp;/gi,''));
+            alias.html(input);
+
+            /* Icon field */
+            var input = $(']] printIconField('member_id') print[[');
+            input.val(icon.html().replace(/&nbsp;/gi,''));
+            icon.html(input);
+
             /* Make vlan editable */
             var input = $(']] printMemberVlanField('member_id') print[[');
             var vlan_value = parseInt(vlan.html());
@@ -407,7 +462,7 @@ print [[
             if ((vlan_value > 0) && (is_network))
               value = value + " [VLAN " + vlan_value + "]";
 
-            datatableAddDeleteButtonCallback.bind(this)(3, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            datatableAddDeleteButtonCallback.bind(this)(5, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           aysResetForm('#table-manage-form');
@@ -448,8 +503,20 @@ print [[
         else
           original = "";
 
-        if (address !== null)
+        if (address !== null) {
+          var alias_name = "alias_" + $(this).attr("name");
+          var alias_field = $("input[name=" + alias_name + "]", form);
+          var alias = alias_field.val();
+
+          var icon_name = "icon_" + $(this).attr("name");
+          var icon_field = $("select[name=" + icon_name + "]", form);
+          var icon = icon_field.val();
+          debugger;
+
           settings[address] = original;
+          settings["_alias_" + address] = alias;
+          settings["_icon_" + address] = icon;
+        }
       });
 
       // reset ays so that we can submit a custom form
@@ -553,7 +620,6 @@ print [[
             css: {
                textAlign: 'left',
                width: '50%',
-               verticalAlign: 'middle'
             }
          }, {
             field: "column_pool_undeletable",
@@ -563,7 +629,6 @@ print [[
             css : {
                width: '10%',
                textAlign: 'center',
-               verticalAlign: 'middle'
             }
          }
       ], tableCallback: function() {
@@ -632,19 +697,7 @@ print [[
 
       return false;
     }
-  </script>
-]]
 
-print[[
-  <script>
-    handle_tab_state($("#hostPoolsNav"), "manage");
-
-    aysHandleForm("form", {
-      handle_datatable: true,
-      handle_tabs: true,
-      ays_options: {addRemoveFieldsMarksDirty: true}
-    });
-    
     var validator_options = {
       disable: true,
       custom: {
@@ -659,6 +712,18 @@ print[[
          unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
       }
     }
+  </script>
+]]
+
+print[[
+  <script>
+    handle_tab_state($("#hostPoolsNav"), "manage");
+
+    aysHandleForm("form", {
+      handle_datatable: true,
+      handle_tabs: true,
+      ays_options: {addRemoveFieldsMarksDirty: true}
+    });
 
     /* Retrigger the validation every second to clear outdated errors */
     setInterval(function() {
