@@ -13,7 +13,7 @@ sendHTTPHeader('application/json')
 interface.select(ifname)
 local max_num_peers = 10
 local host_info = url2hostinfo(_GET)
-local flows     = getTopFlowPeers(host2name(host_info["host"], host_info["vlan"]), max_num_peers)
+local flows     = getTopFlowPeers(hostinfo2hostkey(host_info), max_num_peers)
 
 local tot = 0
 local peers = {}

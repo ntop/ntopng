@@ -777,7 +777,7 @@ print [[/lua/iface_ports_list.lua', { mode: "server", ifname: "]] print(ifId..""
 
    elseif((page == "peers")) then
 host_info = url2hostinfo(_GET)
-peers     = getTopFlowPeers(host2name(host_info["host"], host_info["vlan"]), 1 --[[exists query]])
+peers     = getTopFlowPeers(hostinfo2hostkey(host_info), 1 --[[exists query]])
 found     = 0
 
 for key, value in pairs(peers) do

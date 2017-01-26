@@ -57,7 +57,7 @@ print [[
     -- Flows with trajectory
 
     interface.select(ifname)
-    peers = getTopFlowPeers(host2name(host_info["host"], host_info["vlan"]), max_num - num)
+    peers = getTopFlowPeers(hostinfo2hostkey(host_info), max_num - num)
 
     maxval = 0
     for key, values in pairs(peers) do

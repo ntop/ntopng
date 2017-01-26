@@ -2729,6 +2729,7 @@ function getTopFlowPeers(hostname_vlan, max_hits, detailed)
 
   local paginator_options = {
     sortColumn = "column_bytes",
+    a2zSortOrder = false,
     detailedResults = detailed,
     maxHits = max_hits,
   }
