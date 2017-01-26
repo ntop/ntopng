@@ -1408,8 +1408,7 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
          ]);
 
          /* Only enable add button if we are in the last page */
-         var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $("#table-protos"));
-         $("#addNewShapedProtoBtn").attr("disabled", (((lastpage.length == 1) && (lastpage.hasClass("active") == false))));
+         $("#addNewShapedProtoBtn").attr("disabled", ! datatableIsLastPage("#table-protos"));
 
          aysResetForm('#l7ProtosForm');
       }

@@ -152,3 +152,8 @@ function datatableOrderedInsert(table, td_idx, to_insert, to_insert_val, cmp_fn)
       // default: append
       $(table).append(to_insert);
 }
+
+function datatableIsLastPage(table) {
+   var lastpage = $("#dt-bottom-details .pagination li:nth-last-child(3)", $(table));
+   return !((lastpage.length == 1) && (lastpage.hasClass("active") == false));
+}

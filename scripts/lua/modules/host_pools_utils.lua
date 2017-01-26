@@ -9,7 +9,6 @@ local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
 host_pools_utils.MAX_NUM_POOLS = 16
-host_pools_utils.MAX_MEMBERS_NUM = 32
 
 local function get_pool_members_key(ifid, pool_id)
   return "ntopng.prefs." .. ifid .. ".host_pools.members." .. pool_id

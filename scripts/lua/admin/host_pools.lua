@@ -333,7 +333,6 @@ print[[
 print [[
 
   <script>
-    var maxMembersNum = ]] print(tostring(host_pools_utils.MAX_MEMBERS_NUM)) print[[;
     var addedMemberCtr = 0;
 
     function addPoolMember() {
@@ -352,7 +351,6 @@ print [[
       var icon_input = $("select", icon).first();
 
       aysRecheckForm("#table-manage-form");
-      recheckMemberAddButton();
     }
 
     function deletePoolMember(member_id) {
@@ -373,10 +371,7 @@ print [[
    print (ntop.getHttpPrefix())
    print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[",
       title: "",
-      hidePerPage: true,
-      hideDetails: true,
-      showPagination: false,
-      perPage: maxMembersNum,
+      perPage: 5,
       forceTable: true,
       
       buttons: [
@@ -400,12 +395,14 @@ print [[
             field: "column_alias",
             css: {
               width: '25%',
+              textAlign: 'center',
             }
          }, {
             title: "Device Type",
             field: "column_icon",
             css: {
               width: '12%',
+              textAlign: 'center',
             }
          }, {
             title: "]] print(i18n("actions")) print[[",
@@ -474,7 +471,8 @@ print [[
           aysResetForm('#table-manage-form');
         }
 
-        recheckMemberAddButton();
+        $("#addPoolMemberBtn").attr("disabled", ! datatableIsLastPage("#table-manage-form"));
+
         $("#table-manage-form")
             .validator(validator_options)
             .on('submit', checkManagePoolForm);
@@ -535,11 +533,6 @@ print [[
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
       paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
       return false;
-    }
-
-    function recheckMemberAddButton() {
-      if(addedMemberCtr >= maxMembersNum)
-        $("#addPoolMemberBtn").attr("disabled", "disabled");
     }
   </script>
 ]]
@@ -607,13 +600,13 @@ print [[
    print (ntop.getHttpPrefix())
    print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
       title: "",
+      perPage: 5,
       hidePerPage: true,
       hideDetails: true,
       showPagination: false,
       perPage: maxPoolNum,
       forceTable: true,
-      
-      perPage: maxPoolNum,
+
       buttons: [
          '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
