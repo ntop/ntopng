@@ -117,7 +117,7 @@ if mode == "local" then
 elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
 end
-tprint(sortColumn)
+
 hosts_stats = interface.getHostsInfo() -- false = little details
 --io.write("hello\n")
 --tprint(hosts_stats)
