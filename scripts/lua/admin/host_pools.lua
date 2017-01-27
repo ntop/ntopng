@@ -59,15 +59,35 @@ elseif (_POST["edit_members"] ~= nil) then
 
   -- delete old addresses
   for k,old_member in pairs(config) do
-    if((not isEmptyString(old_member)) and (k ~= old_member)) then
-      host_pools_utils.deleteFromPoll(ifId, pool_to_edit, old_member)
+    if not starts(k, "_") then
+      if((not isEmptyString(old_member)) and (k ~= old_member)) then
+        host_pools_utils.deleteFromPoll(ifId, pool_to_edit, old_member)
+      end
     end
   end
 
   -- add new addresses
   for new_member,k in pairs(config) do
-    if k ~= new_member then
-      host_pools_utils.addToPool(ifId, pool_to_edit, new_member)
+    if not starts(new_member, "_") then
+      local is_new_member = (k ~= new_member)
+
+      if is_new_member then
+        host_pools_utils.addToPool(ifId, pool_to_edit, new_member)
+      end
+
+      local host_key, is_network = host_pools_utils.getMemberKey(new_member)
+
+      if not is_network then
+        local alias = config["_alias_" .. new_member]
+        if((not is_new_member) or (not isEmptyString(alias))) then
+          setHostAltName(host_key, alias)
+        end
+
+        local icon = config["_icon_" .. new_member]
+        if((not is_new_member) or (not isEmptyString(icon))) then
+          setHostIcon(host_key, icon)
+        end
+      end
     end
   end
 
@@ -104,6 +124,20 @@ function printMemberVlanField(member_str)
   print[[</div>]]
 end
 
+function printIconField(member_str)
+  print[[<select name="icon_member_' + ]] print(member_str) print[[ + '" class="form-control">]]
+  for k,v in getHostIcons() do
+      print[[<option value="]] print(v) print[["]]
+      if(v == icon) then print[[ selected]] end
+      print[[>]] print(k) print[[</option>]]
+  end
+  print[[</select>]]
+end
+
+function printAliasField(member_str)
+  print[[<input name="alias_member_' + ]] print(member_str) print[[ + '" class="form-control" />]]
+end
+
 --------------------------------------------------------------------------------
 
 local selected_pool_id = _GET["pool"]
@@ -124,6 +158,13 @@ if selected_pool == nil then
   else
     selected_pool = available_pools[2]
   end
+end
+
+local perPageMembers
+if tonumber(tablePreferences("hostPoolMembers")) == nil then
+  perPageMembers = "10"
+else
+  perPageMembers = tablePreferences("hostPoolMembers")
 end
 
 --------------------------------------------------------------------------------
@@ -219,14 +260,35 @@ print(
 
 print[[
   <script>
-    function hideShowVlan(input) {
+    function recheckFields(input) {
       var member = input.val();
-      var vlan_field = input.closest("tr").find("td:nth-child(2) input");
+      var tr = input.closest("tr");
+      var vlan_field = tr.find("td:nth-child(2) input");
+      var icon_field = tr.find("td:nth-child(3) input");
+      var select_field = tr.find("td:nth-child(4) select");
+      var vlanicon_disabled = null;
 
-      if (is_mac_address(member))
-        vlan_field.attr("disabled", "disabled");
-      else if (is_network_mask(member, true))
-        vlan_field.removeAttr("disabled");
+      if (is_mac_address(member)) {
+        vlan_field.attr("disabled", true);
+        vlanicon_disabled = false;
+      } else {
+        var is_cidr = is_network_mask(member, true);
+
+        if (is_cidr) {
+          vlan_field.removeAttr("disabled");
+
+          if ((is_cidr.type == "ipv4" && is_cidr.mask != 32) ||
+             ((is_cidr.type == "ipv6" && is_cidr.mask != 128)))
+            vlanicon_disabled = true
+          else
+            vlanicon_disabled = false;
+        }
+      }
+
+      if (vlanicon_disabled != null) {
+        icon_field.attr("disabled", vlanicon_disabled);
+        select_field.attr("disabled", vlanicon_disabled);
+      }
     }
     
     /* Make the pair address,vlan unique */
@@ -237,7 +299,7 @@ print[[
       if (! member)
         return true;
 
-      hideShowVlan(input);
+      recheckFields(input);
       return is_mac_address(member) || is_network_mask(member, true);
     }
   
@@ -267,27 +329,29 @@ print[[
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
         }
 
-        network = is_network_mask(address_value, true);
-        if (! network)
+        is_cidr = is_network_mask(address_value, true);
+        if (! is_cidr)
            /* this will be handled by addressValidator */
           return true;
-        identifier = network.address + "/" + network.mask + "@" + vlan_value;
+        identifier = is_cidr.address + "/" + is_cidr.mask + "@" + vlan_value;
       }
 
+      identifier = identifier.toLowerCase();
       var count = 0;
 
       $('input[name^="member_"]:not([name$="_vlan"])', $("#table-manage-form")).each(function() {
         var address_value = $(this).val();
-        var is_network = is_network_mask(address_value, true);
+        var is_cidr = is_network_mask(address_value, true);
 
         var aggregated;
-        if (! is_network) {
+        if (! is_cidr) {
           aggregated = address_value;
         } else {
           var name = $(this).attr("name") + "_vlan";
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
-          aggregated = is_network.address + "/" + is_network.mask + "@" + vlan_value;
+          aggregated = is_cidr.address + "/" + is_cidr.mask + "@" + vlan_value;
         }
+        aggregated = aggregated.toLowerCase()
 
         if (aggregated === identifier)
           count++;
@@ -303,7 +367,6 @@ print[[
 print [[
 
   <script>
-    var maxMembersNum = ]] print(tostring(host_pools_utils.MAX_MEMBERS_NUM)) print[[;
     var addedMemberCtr = 0;
 
     function addPoolMember() {
@@ -313,13 +376,15 @@ print [[
       var member_id = addedMemberCtr++;
       var newid = "member_" + member_id;
 
-      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
+      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center"></td></tr>');
+      datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
 
+      var icon = $("td:nth-child(4)", tr);
+      var icon_input = $("select", icon).first();
+
       aysRecheckForm("#table-manage-form");
-      recheckMemberAddButton();
     }
 
     function deletePoolMember(member_id) {
@@ -340,10 +405,7 @@ print [[
    print (ntop.getHttpPrefix())
    print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[",
       title: "",
-      hidePerPage: true,
-      hideDetails: true,
-      showPagination: false,
-      perPage: maxMembersNum,
+      perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
       
       buttons: [
@@ -354,47 +416,81 @@ print [[
             field: "column_member",
             css: {
                textAlign: 'left',
-               verticalAlign: 'middle'
             }
          }, {
             title: "VLAN",
             field: "column_vlan",
             css: {
-               width: '10%',
+               width: '1%',
                textAlign: 'center',
-               verticalAlign: 'middle'
+            }
+         }, {
+            title: "Alias",
+            field: "column_alias",
+            css: {
+              width: '25%',
+              textAlign: 'center',
+            }
+         }, {
+            title: "Device Type",
+            field: "column_icon",
+            css: {
+              width: '12%',
+              textAlign: 'center',
             }
          }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
-               width: '10%',
+               width: '20%',
                textAlign: 'center',
-               verticalAlign: 'middle'
             }
+         } , {
+            field: "column_link",
+            hidden: true,
          }
       ], tableCallback: function() {
+        var no_pools = false;
+
         if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.no_pools_defined") .. " " .. i18n("host_pools.create_pool_hint")) print[[");
-          $("#addPoolMemberBtn").attr("disabled", "disabled");
+          no_pools = true;
         } else if(datatableIsEmpty("#table-manage")) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.empty_pool")) print[[");
         } else {
           datatableForEachRow("#table-manage", function() {
             var member_address = $("td:nth-child(1)", $(this));
             var vlan = $("td:nth-child(2)", $(this));
+            var alias = $("td:nth-child(3)", $(this));
+            var icon = $("td:nth-child(4)", $(this));
+            var link_value = $("td:nth-child(6)", $(this)).html().replace(/&nbsp;/gi,'');
+
             var member_id = addedMemberCtr++;
 
             /* Make member name editable */
             var value = member_address.html();
-            var is_network = is_network_mask(value);
-            if (is_network)
+            var is_cidr = is_network_mask(value);
+            if (is_cidr) {
               old_value = member_address.html() + '@' + vlan.html();
-            else
+              if (((is_cidr.type == "ipv4" && is_cidr.mask == 32)) ||
+                 ((is_cidr.type == "ipv6" && is_cidr.mask == 128)))
+                value = is_cidr.address;
+            } else {
               old_value = member_address.html();
+            }
             var input = $(']] printMemberAddressField('member_id', 'old_value') print[[');
             var address_input = $("input", input).first();
             address_input.val(value);
             member_address.html(input);
+
+            /* Alias field */
+            var input = $(']] printAliasField('member_id') print[[');
+            input.val(alias.html().replace(/&nbsp;/gi,''));
+            alias.html(input);
+
+            /* Icon field */
+            var input = $(']] printIconField('member_id') print[[');
+            input.val(icon.html().replace(/&nbsp;/gi,''));
+            icon.html(input);
 
             /* Make vlan editable */
             var input = $(']] printMemberVlanField('member_id') print[[');
@@ -402,18 +498,21 @@ print [[
             $("input", input).first().val(vlan_value);
             vlan.html(input);
 
-            hideShowVlan(address_input);
+            recheckFields(address_input);
 
-            if ((vlan_value > 0) && (is_network))
+            if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
 
-            datatableAddDeleteButtonCallback.bind(this)(3, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            if (link_value)
+              datatableAddLinkButtonCallback.bind(this)(5, link_value, "View");
+            datatableAddDeleteButtonCallback.bind(this)(5, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           aysResetForm('#table-manage-form');
         }
 
-        recheckMemberAddButton();
+        $("#addPoolMemberBtn").attr("disabled", (! datatableIsLastPage("#table-manage-form")) || (no_pools));
+
         $("#table-manage-form")
             .validator(validator_options)
             .on('submit', checkManagePoolForm);
@@ -448,8 +547,19 @@ print [[
         else
           original = "";
 
-        if (address !== null)
+        if (address !== null) {
+          var alias_name = "alias_" + $(this).attr("name");
+          var alias_field = $("input[name=" + alias_name + "]", form);
+          var alias = alias_field.val();
+
+          var icon_name = "icon_" + $(this).attr("name");
+          var icon_field = $("select[name=" + icon_name + "]", form);
+          var icon = icon_field.val();
+
           settings[address] = original;
+          settings["_alias_" + address] = alias;
+          settings["_icon_" + address] = icon;
+        }
       });
 
       // reset ays so that we can submit a custom form
@@ -462,11 +572,6 @@ print [[
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
       paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
       return false;
-    }
-
-    function recheckMemberAddButton() {
-      if(addedMemberCtr >= maxMembersNum)
-        $("#addPoolMemberBtn").attr("disabled", "disabled");
     }
   </script>
 ]]
@@ -534,13 +639,13 @@ print [[
    print (ntop.getHttpPrefix())
    print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
       title: "",
+      perPage: 5,
       hidePerPage: true,
       hideDetails: true,
       showPagination: false,
       perPage: maxPoolNum,
       forceTable: true,
-      
-      perPage: maxPoolNum,
+
       buttons: [
          '<a id="addNewPoolBtn" onclick="addPool()" role="button" class="add-on btn" data-toggle="modal"><i class="fa fa-plus" aria-hidden="true"></i></a>'
       ], columns: [
@@ -553,7 +658,6 @@ print [[
             css: {
                textAlign: 'left',
                width: '50%',
-               verticalAlign: 'middle'
             }
          }, {
             field: "column_pool_undeletable",
@@ -561,10 +665,12 @@ print [[
          }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
-               width: '10%',
+               width: '15%',
                textAlign: 'center',
-               verticalAlign: 'middle'
             }
+         }, {
+           field: "column_pool_link",
+           hidden: true,
          }
       ], tableCallback: function() {
         if(datatableIsEmpty("#table-create")) {
@@ -574,6 +680,7 @@ print [[
             var pool_id = $("td:nth-child(1)", $(this)).html();
             var pool_name = $("td:nth-child(2)", $(this));
             var pool_undeletable = $("td:nth-child(3)", $(this)).html() === "true";
+            var pool_link = $("td:nth-child(5)", $(this)).html();
 
             /* Make pool name editable */
             var input = $(']] printPoolNameField('pool_id') print[[');
@@ -584,10 +691,11 @@ print [[
             if (pool_id == ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
               $("input", input).first().attr("disabled", "disabled");
             } else {
+              datatableAddLinkButtonCallback.bind(this)(4, pool_link, "View");
               datatableAddDeleteButtonCallback.bind(this)(4, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
               if (pool_undeletable)
-                $("td:nth-child(4) a", $(this)).attr("disabled", "disabled");
+                $("td:nth-child(4) a", $(this)).last().attr("disabled", "disabled");
             }
          });
 
@@ -598,7 +706,7 @@ print [[
                nextPoolId += 1;
          });
 
-         aysResetForm('#table-creaate-form');
+         aysResetForm('#table-create-form');
         }
 
         recheckPoolAddButton();
@@ -632,19 +740,7 @@ print [[
 
       return false;
     }
-  </script>
-]]
 
-print[[
-  <script>
-    handle_tab_state($("#hostPoolsNav"), "manage");
-
-    aysHandleForm("form", {
-      handle_datatable: true,
-      handle_tabs: true,
-      ays_options: {addRemoveFieldsMarksDirty: true}
-    });
-    
     var validator_options = {
       disable: true,
       custom: {
@@ -659,6 +755,18 @@ print[[
          unique: "]] print(i18n("host_pools.duplicate_pool")) print[[.",
       }
     }
+  </script>
+]]
+
+print[[
+  <script>
+    handle_tab_state($("#hostPoolsNav"), "manage");
+
+    aysHandleForm("form", {
+      handle_datatable: true,
+      handle_tabs: true,
+      ays_options: {addRemoveFieldsMarksDirty: true}
+    });
 
     /* Retrigger the validation every second to clear outdated errors */
     setInterval(function() {

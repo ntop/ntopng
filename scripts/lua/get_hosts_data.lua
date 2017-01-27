@@ -118,9 +118,7 @@ elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
 end
 
-hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sOrder,
-	                           country, os_, tonumber(vlan), tonumber(asn),
-				   tonumber(network), mac, tonumber(pool)) -- false = little details
+hosts_stats = interface.getHostsInfo() -- false = little details
 --io.write("hello\n")
 --tprint(hosts_stats)
 --io.write("---\n")

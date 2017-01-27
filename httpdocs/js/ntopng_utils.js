@@ -20,33 +20,6 @@ function isNumeric(value) {
     return /^\d+$/.test(value);
 }
 
-function is_network_mask(what) {
-    var elems = what.split("/");
-    var mask;
-
-    if(elems.length != 2)
-	return(false);
-
-    if(!isNumeric(elems[1])) {
-	return(false);
-    }
-
-    mask = parseInt(elems[1]);
-    if(mask < 0) {
-	return(false);
-    }
-
-    if(is_good_ipv4(elems[0])) {
-	if(mask > 32) { return(false); }
-	return(true);
-    } else if(is_good_ipv6(elems[0])) {
-	if(mask > 128) { return(false); }
-	return(true);
-    }
-
-    return(false);
-}
-
 function is_mac_address(what) {
     return /^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$/.test(what);
 }

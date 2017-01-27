@@ -133,6 +133,15 @@ end
 
 -- ##############################################
 
+function isMacAddress(address)
+   if(string.match(address, "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$") ~= nil) then
+      return true
+   end
+   return false
+end
+
+-- ##############################################
+
 function findString(str, tofind)
   if(str == nil) then return(nil) end
   if(tofind == nil) then return(nil) end
@@ -865,7 +874,7 @@ end
 
 
 function isIPv6(ip)
-   if string.find(ip, ":") then
+   if((string.find(ip, ":")) and (not isMacAddress(ip))) then
      return true
   end
   return false
@@ -1077,23 +1086,34 @@ end
 
 -- ##############################################
 
+function splitNetworkPrefix(net)
+   local prefix = tonumber(net:match("/(.+)"))
+   local address = net:gsub("/.+","")
+   return address, prefix
+end
+
 -- Used to avoid resolving host names too many times
 resolved_host_labels_cache = {}
 
 function getHostAltName(host_ip)
    local alt_name = resolved_host_labels_cache[host_ip]
 
+   -- cache hit
    if(alt_name ~= nil) then
       return(alt_name)
    end
 
-   alt_name = ntop.getHashCache("ntopng.host_labels", host_ip)
+   local key = "ntopng.host_labels"
 
-   if((alt_name == nil) or (alt_name == "")) then
+   alt_name = ntop.getHashCache(key, host_ip)
+
+   if isEmptyString(alt_name) then
      alt_name = host_ip
    end
 
-   resolved_host_labels_cache[host_ip] = alt_name
+   if not isEmptyString(alt_name) then
+      resolved_host_labels_cache[host_ip] = alt_name
+   end
 
    return(alt_name)
 end
@@ -2314,8 +2334,23 @@ local icon_keys = {
   [ "Router"]  = "fa-arrows"
 }
 
+function getHostIcons()
+   return pairsByKeys(icon_keys, asc)
+end
+
+function getHostIconName(key)
+   local hash_key = "ntopng.host_icons"
+   local icon = ntop.getHashCache(hash_key, key)
+
+   if (icon == nil) then
+      icon = ""
+   end
+
+   return icon
+end
+
 function getHostIcon(key)
-  local icon = ntop.getHashCache("ntopng.host_icons", key)
+  local icon = getHostIconName(key)
   if((icon == nil) or (icon == "")) then
      return(guessHostIcon(key))
   else
@@ -2328,28 +2363,17 @@ function setHostIcon(key, icon)
 end
 
 function pickIcon(key)
-  local icon = ntop.getHashCache("ntopng.host_icons", key)
-  if((icon == nil) or (icon == "")) then
-     icon = ""
-   end
+  local icon = getHostIconName(key)
 
-print [[
- <div class="form-group">
+print [[<div class="form-group"><select name="custom_icon" class="form-control">]]
 
-   <select name="custom_icon" class="form-control">
-]]
-
-  for k,v in pairsByKeys(icon_keys, asc) do
+  for k,v in getHostIcons() do
       print("<option value=\"".. v.."\"")
       if(v == icon) then print(" selected") end
-      print(">".. k .."</option>\n")
+      print(">".. k .."</option>")
   end
 
-print [[
-   </select>
-
-</div>
-]]
+print [[</select></div>]]
 
 end
 

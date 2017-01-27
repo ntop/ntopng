@@ -22,8 +22,7 @@ end
 
 
 function expandIpV4Network(net)
-   local prefix = tonumber(net:match("/(.+)"))
-   local address = net:gsub("/.+","")
+   local address, prefix = splitNetworkPrefix(net)
 
    if(prefix == nil or prefix > 32 or prefix <= 0) then prefix = 32 end
 
