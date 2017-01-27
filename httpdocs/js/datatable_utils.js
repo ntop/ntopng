@@ -5,7 +5,8 @@ function datatableRemoveEmptyRow(table) {
 }
 
 function datatableAddEmptyRow(table, empty_str) {
-  $("tbody", $(table)).html('<tr class="emptyRow"><td colspan="3"><i>' + empty_str + '</i></td></tr>');
+  var columns = $("thead th:visible", $(table)).length;
+  $("tbody", $(table)).html('<tr class="emptyRow"><td colspan="' + columns + '"><i>' + empty_str + '</i></td></tr>');
 }
 
 function datatableIsEmpty(table) {
