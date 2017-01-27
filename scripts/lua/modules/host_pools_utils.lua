@@ -36,15 +36,6 @@ local function get_pool_detail(ifid, pool_id, detail)
   return ntop.getHashCache(details_key, detail)
 end
 
-local function addressSplitVlan(mixed)
-  local parts = split(mixed, "@")
-  if #parts == 2 then
-    return parts[1], parts[2]
-  else
-    return mixed, nil
-  end
-end
-
 --------------------------------------------------------------------------------
 
 function host_pools_utils.createPool(ifid, pool_id, pool_name)
@@ -103,11 +94,38 @@ function host_pools_utils.getPoolMembers(ifid, pool_id)
   local members = {}
 
   for _,v in pairsByValues(ntop.getMembersCache(members_key) or {}, asc) do
-    local address, vlan = addressSplitVlan(v)
-    members[#members + 1] = {address=address, vlan=vlan, key=v}
+    local hostinfo = hostkey2hostinfo(v)
+    members[#members + 1] = {address=hostinfo["host"], vlan=hostinfo["vlan"], key=v}
   end
 
   return members
+end
+
+function host_pools_utils.getMemberKey(member)
+  -- handle vlan
+  local is_network
+  local host_key
+  local address = hostkey2hostinfo(member)["host"]
+
+  if isMacAddress(address) then
+    host_key = address
+    is_network = false
+  else
+    local network, prefix = splitNetworkPrefix(address)
+
+    if(((isIPv4(network)) and (prefix ~= 32)) or
+      ((isIPv6(network)) and (prefix ~= 128))) then
+      -- this is a network
+      host_key = address
+      is_network = true
+    else
+      -- this is an host
+      host_key = network
+      is_network = false
+    end
+  end
+
+  return host_key, is_network
 end
 
 function host_pools_utils.getPoolName(ifid, pool_id)

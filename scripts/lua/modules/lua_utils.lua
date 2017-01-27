@@ -874,7 +874,7 @@ end
 
 
 function isIPv6(ip)
-   if string.find(ip, ":") then
+   if((string.find(ip, ":")) and (not isMacAddress(ip))) then
      return true
   end
   return false
@@ -1086,79 +1086,17 @@ end
 
 -- ##############################################
 
---
--- The input host_ip can be either:
---    - a simple IPv4 or IPv6 or MAC address
---    - an IPv4 in CIDR form
---    - an IPv4 in CIDR form
---
--- Moreover, IPv4 and IPv4 can have a vlan suffix "@vlan"
---
-function getRedisHostKey(host_ip)
-   local base_name = host_ip
-   local full_name
-
-   -- get the 
-   if isMacAddress(host_ip) then
-      full_name = base_name
-      simple_name = base_name
-   else
-      -- strip the VLAN
-      local vlan_idx = string.find(base_name, "@")
-      local vlan_id
-
-      if vlan_idx ~= nil then
-         vlan_id = string.sub(base_name, vlan_idx+1)
-         base_name = string.sub(base_name, 1, vlan_idx-1)
-      else
-         vlan_id = "0"
-      end
-
-      -- strip network suffixes
-      local suffix_idx = string.find(base_name, "/")
-      local network_suffix
-
-      if suffix_idx ~= nil then
-         network_suffix = string.sub(base_name, suffix_idx+1)
-         base_name = string.sub(base_name, 1, suffix_idx-1)
-      elseif isIPv4(base_name) then
-         network_suffix = "32"
-      else
-         network_suffix = "128"
-      end
-
-      -- Compute the names
-      local full_name_parts = {base_name, "/", network_suffix, "@", vlan_id}
-      local simple_name_parts = {base_name}
-
-      if(((isIPv4(base_name)) and (network_suffix ~= "32")) or
-         (((isIPv6(base_name)) and (network_suffix ~= "128")))) then
-         simple_name_parts[#simple_name_parts + 1] = "/"
-         simple_name_parts[#simple_name_parts + 1] = network_suffix
-      end
-      if vlan_id ~= "0" then
-         simple_name_parts[#simple_name_parts + 1] = "@"
-         simple_name_parts[#simple_name_parts + 1] = vlan_id
-      end
-
-      full_name = table.concat(full_name_parts, "")
-      simple_name = table.concat(simple_name_parts, "")
-   end
-
-   return full_name, simple_name
+function splitNetworkPrefix(net)
+   local prefix = tonumber(net:match("/(.+)"))
+   local address = net:gsub("/.+","")
+   return address, prefix
 end
 
 -- Used to avoid resolving host names too many times
 resolved_host_labels_cache = {}
 
-function getHostAltName(host_ip, accept_empty)
-   local full_name, simple_name = getRedisHostKey(host_ip)
-
-   local alt_name = resolved_host_labels_cache[full_name]
-   if((alt_name == nil) and (simple_name ~= full_name)) then
-      -- support old style keys (without network suffixes and vlan 0)
-      alt_name = resolved_host_labels_cache[simple_name]
-   end
+function getHostAltName(host_ip)
+   local alt_name = resolved_host_labels_cache[host_ip]
 
    -- cache hit
    if(alt_name ~= nil) then
@@ -1167,14 +1105,10 @@ function getHostAltName(host_ip, accept_empty)
 
    local key = "ntopng.host_labels"
 
-   alt_name = ntop.getHashCache(key, full_name)
-   if((alt_name == nil) and (simple_name ~= full_name)) then
-      -- support old style keys (without network suffixes and vlan 0)
-      alt_name = ntop.getHashCache(key, simple_name)
-   end
+   alt_name = ntop.getHashCache(key, host_ip)
 
-   if (isEmptyString(alt_name) and (not accept_empty)) then
-     alt_name = simple_name
+   if isEmptyString(alt_name) then
+     alt_name = host_ip
    end
 
    if not isEmptyString(alt_name) then
@@ -1185,8 +1119,7 @@ function getHostAltName(host_ip, accept_empty)
 end
 
 function setHostAltName(host_ip, alt_name)
-  local key = getRedisHostKey(host_ip)
-  ntop.setHashCache("ntopng.host_labels", key, alt_name)
+  ntop.setHashCache("ntopng.host_labels", host_ip, alt_name)
 end
 
 -- Mac Addresses --
@@ -2407,14 +2340,7 @@ end
 
 function getHostIconName(key)
    local hash_key = "ntopng.host_icons"
-   local full_name, simple_name = getRedisHostKey(key)
-   local icon = ntop.getHashCache(hash_key, full_name)
-
-   local icon = ntop.getHashCache(hash_key, full_name)
-   if((icon == nil) and (simple_name ~= full_name)) then
-      -- support old style keys (without network suffixes and vlan 0)
-      icon = ntop.getHashCache(hash_key, simple_name)
-   end
+   local icon = ntop.getHashCache(hash_key, key)
 
    if (icon == nil) then
       icon = ""
@@ -2433,7 +2359,6 @@ function getHostIcon(key)
 end
 
 function setHostIcon(key, icon)
-  local key = getRedisHostKey(key)
   ntop.setHashCache("ntopng.host_icons", key, icon)
 end
 

@@ -15,45 +15,57 @@ local ifid = _GET["ifid"]
 local pool_id = _GET["pool"]
 local res = {data={}, sort={{"column_", "asc"}}, totalRows=0}
 local currpage = tonumber(_GET["currentPage"]) or 1
-local perpage = tonumber(_GET["perPage"]) or 5
+local perpage = tonumber(_GET["perPage"]) or 10
 
 local start_i = (currpage-1) * perpage
 local stop_i = start_i + perpage - 1
 local i = 0
 
 if((ifid ~= nil) and (isAdministrator())) then
+  interface.select(getInterfaceName(ifid))
+
   if pool_id ~= nil then
     local active_hosts = interface.getHostsInfo(false, nil, nil, nil, nil, nil, nil, nil, nil, nil, true--[[no macs]], tonumber(pool_id)).hosts
     local network_stats = interface.getNetworksStats()
 
     for _,member in ipairs(host_pools_utils.getPoolMembers(ifid, pool_id)) do
       if (i >= start_i) and (i <= stop_i) then
-        local _, key = getRedisHostKey(member.key)
+        local host_key, is_network = host_pools_utils.getMemberKey(member.key)
         local link
 
-        if active_hosts[key] then
-          link = ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url(active_hosts[key])
-        elseif interface.getMacInfo(key) ~= nil then
-          link = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. key
-        elseif network_stats[key] ~= nil then
-          link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?network=" .. network_stats[key].network_id
+        if active_hosts[host_key] then
+          link = ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url(active_hosts[host_key])
+        elseif interface.getMacInfo(host_key) ~= nil then
+          link = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. host_key
+        elseif network_stats[host_key] ~= nil then
+          link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?network=" .. network_stats[host_key].network_id
         else
           link = ""
         end
 
-        local alias = getHostAltName(member.key, true --[[ accept null result ]])
-        if alias == nil then alias = "" end
+        local alias = ""
+        local icon = ""
+        if not is_network then
+          icon = getHostIconName(host_key)
+          alias = getHostAltName(host_key)
+
+          if alias == host_key then
+            alias = ""
+          end
+        end
 
         res.data[#res.data + 1] = {
           column_member = member.address,
           column_alias = alias,
-          column_icon = ntop.getHashCache("ntopng.host_icons",  member.key),
-          column_vlan = member.vlan,
+          column_icon = icon,
+          column_vlan = tostring(member.vlan),
           column_link = link,
         }
       end
       i = i + 1
     end
+
+    tablePreferences("hostPoolMembers", perpage)
   else
     for _,pool in ipairs(host_pools_utils.getPoolsList(ifid)) do
       if (i >= start_i) and (i <= stop_i) then

@@ -75,14 +75,18 @@ elseif (_POST["edit_members"] ~= nil) then
         host_pools_utils.addToPool(ifId, pool_to_edit, new_member)
       end
 
-      local alias = config["_alias_" .. new_member]
-      if((not is_new_member) or (not isEmptyString(alias))) then
-        setHostAltName(new_member, alias)
-      end
+      local host_key, is_network = host_pools_utils.getMemberKey(new_member)
 
-      local icon = config["_icon_" .. new_member]
-      if((not is_new_member) or (not isEmptyString(icon))) then
-        setHostIcon(new_member, icon)
+      if not is_network then
+        local alias = config["_alias_" .. new_member]
+        if((not is_new_member) or (not isEmptyString(alias))) then
+          setHostAltName(host_key, alias)
+        end
+
+        local icon = config["_icon_" .. new_member]
+        if((not is_new_member) or (not isEmptyString(icon))) then
+          setHostIcon(host_key, icon)
+        end
       end
     end
   end
@@ -154,6 +158,13 @@ if selected_pool == nil then
   else
     selected_pool = available_pools[2]
   end
+end
+
+local perPageMembers
+if tonumber(tablePreferences("hostPoolMembers")) == nil then
+  perPageMembers = "10"
+else
+  perPageMembers = tablePreferences("hostPoolMembers")
 end
 
 --------------------------------------------------------------------------------
@@ -249,14 +260,35 @@ print(
 
 print[[
   <script>
-    function hideShowVlan(input) {
+    function recheckFields(input) {
       var member = input.val();
-      var vlan_field = input.closest("tr").find("td:nth-child(2) input");
+      var tr = input.closest("tr");
+      var vlan_field = tr.find("td:nth-child(2) input");
+      var icon_field = tr.find("td:nth-child(3) input");
+      var select_field = tr.find("td:nth-child(4) select");
+      var vlanicon_disabled = null;
 
-      if (is_mac_address(member))
-        vlan_field.attr("disabled", "disabled");
-      else if (is_network_mask(member, true))
-        vlan_field.removeAttr("disabled");
+      if (is_mac_address(member)) {
+        vlan_field.attr("disabled", true);
+        vlanicon_disabled = false;
+      } else {
+        var is_cidr = is_network_mask(member, true);
+
+        if (is_cidr) {
+          vlan_field.removeAttr("disabled");
+
+          if ((is_cidr.type == "ipv4" && is_cidr.mask != 32) ||
+             ((is_cidr.type == "ipv6" && is_cidr.mask != 128)))
+            vlanicon_disabled = true
+          else
+            vlanicon_disabled = false;
+        }
+      }
+
+      if (vlanicon_disabled != null) {
+        icon_field.attr("disabled", vlanicon_disabled);
+        select_field.attr("disabled", vlanicon_disabled);
+      }
     }
     
     /* Make the pair address,vlan unique */
@@ -267,7 +299,7 @@ print[[
       if (! member)
         return true;
 
-      hideShowVlan(input);
+      recheckFields(input);
       return is_mac_address(member) || is_network_mask(member, true);
     }
   
@@ -297,26 +329,26 @@ print[[
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
         }
 
-        network = is_network_mask(address_value, true);
-        if (! network)
+        is_cidr = is_network_mask(address_value, true);
+        if (! is_cidr)
            /* this will be handled by addressValidator */
           return true;
-        identifier = network.address + "/" + network.mask + "@" + vlan_value;
+        identifier = is_cidr.address + "/" + is_cidr.mask + "@" + vlan_value;
       }
 
       var count = 0;
 
       $('input[name^="member_"]:not([name$="_vlan"])', $("#table-manage-form")).each(function() {
         var address_value = $(this).val();
-        var is_network = is_network_mask(address_value, true);
+        var is_cidr = is_network_mask(address_value, true);
 
         var aggregated;
-        if (! is_network) {
+        if (! is_cidr) {
           aggregated = address_value;
         } else {
           var name = $(this).attr("name") + "_vlan";
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
-          aggregated = is_network.address + "/" + is_network.mask + "@" + vlan_value;
+          aggregated = is_cidr.address + "/" + is_cidr.mask + "@" + vlan_value;
         }
 
         if (aggregated === identifier)
@@ -371,7 +403,7 @@ print [[
    print (ntop.getHttpPrefix())
    print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[",
       title: "",
-      perPage: 5,
+      perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
       
       buttons: [
@@ -432,11 +464,15 @@ print [[
 
             /* Make member name editable */
             var value = member_address.html();
-            var is_network = is_network_mask(value);
-            if (is_network)
+            var is_cidr = is_network_mask(value);
+            if (is_cidr) {
               old_value = member_address.html() + '@' + vlan.html();
-            else
+              if (((is_cidr.type == "ipv4" && is_cidr.mask == 32)) ||
+                 ((is_cidr.type == "ipv6" && is_cidr.mask == 128)))
+                value = is_cidr.address;
+            } else {
               old_value = member_address.html();
+            }
             var input = $(']] printMemberAddressField('member_id', 'old_value') print[[');
             var address_input = $("input", input).first();
             address_input.val(value);
@@ -458,9 +494,9 @@ print [[
             $("input", input).first().val(vlan_value);
             vlan.html(input);
 
-            hideShowVlan(address_input);
+            recheckFields(address_input);
 
-            if ((vlan_value > 0) && (is_network))
+            if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
 
             if (link_value)
@@ -515,7 +551,6 @@ print [[
           var icon_name = "icon_" + $(this).attr("name");
           var icon_field = $("select[name=" + icon_name + "]", form);
           var icon = icon_field.val();
-          debugger;
 
           settings[address] = original;
           settings["_alias_" + address] = alias;
