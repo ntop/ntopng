@@ -336,6 +336,7 @@ print[[
         identifier = is_cidr.address + "/" + is_cidr.mask + "@" + vlan_value;
       }
 
+      identifier = identifier.toLowerCase();
       var count = 0;
 
       $('input[name^="member_"]:not([name$="_vlan"])', $("#table-manage-form")).each(function() {
@@ -350,6 +351,7 @@ print[[
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
           aggregated = is_cidr.address + "/" + is_cidr.mask + "@" + vlan_value;
         }
+        aggregated = aggregated.toLowerCase()
 
         if (aggregated === identifier)
           count++;
@@ -447,9 +449,11 @@ print [[
             hidden: true,
          }
       ], tableCallback: function() {
+        var no_pools = false;
+
         if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.no_pools_defined") .. " " .. i18n("host_pools.create_pool_hint")) print[[");
-          $("#addPoolMemberBtn").attr("disabled", "disabled");
+          no_pools = true;
         } else if(datatableIsEmpty("#table-manage")) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.empty_pool")) print[[");
         } else {
@@ -507,7 +511,7 @@ print [[
           aysResetForm('#table-manage-form');
         }
 
-        $("#addPoolMemberBtn").attr("disabled", ! datatableIsLastPage("#table-manage-form"));
+        $("#addPoolMemberBtn").attr("disabled", (! datatableIsLastPage("#table-manage-form")) || (no_pools));
 
         $("#table-manage-form")
             .validator(validator_options)

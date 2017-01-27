@@ -5,7 +5,9 @@ function datatableRemoveEmptyRow(table) {
 }
 
 function datatableAddEmptyRow(table, empty_str) {
-  var columns = $("thead th:visible", $(table)).length;
+  var columns = $("thead th", $(table)).filter(function() {
+   return $(this).css('display') != 'none';
+  }).length;
   $("tbody", $(table)).html('<tr class="emptyRow"><td colspan="' + columns + '"><i>' + empty_str + '</i></td></tr>');
 }
 
