@@ -330,7 +330,7 @@ print [[
 ]]
 
 if(asn ~= "0") then
-   print ("<i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i> <A HREF=https://stat.ripe.net/AS"..asn..">More Information about AS"..asn.."</A>  <i class=\"fa fa-external-link\"></i>")
+   print ("<i class=\"fa fa-info-circle fa-lg\" aria-hidden=\"true\"></i> <A HREF=\"https://stat.ripe.net/AS"..asn..">More Information about AS"..asn.."\"</A>  <i class=\"fa fa-external-link\"></i>")
 end
 end
 

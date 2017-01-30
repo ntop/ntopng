@@ -5728,36 +5728,6 @@ static char* http_encode(char *str) {
 
 /* ****************************************** */
 
-/* Converts a hex character to its integer value */
-static char from_hex(char ch) {
-  return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
-}
-
-/* ****************************************** */
-
-/* Returns a url-decoded version of str */
-/* IMPORTANT: be sure to free() the returned string after use */
-static char* http_decode(char *str) {
-  char *pstr = str, *buf = (char*)malloc(strlen(str) + 1), *pbuf = buf;
-  while (*pstr) {
-    if(*pstr == '%') {
-      if(pstr[1] && pstr[2]) {
-        *pbuf++ = from_hex(pstr[1]) << 4 | from_hex(pstr[2]);
-        pstr += 2;
-      }
-    } else if(*pstr == '+') {
-      *pbuf++ = ' ';
-    } else {
-      *pbuf++ = *pstr;
-    }
-    pstr++;
-  }
-  *pbuf = '\0';
-  return buf;
-}
-
-/* ****************************************** */
-
 void Lua::purifyHTTPParameter(char *param) {
   char *ampercent;
 
@@ -5883,7 +5853,7 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
       char *_equal = strchr(tok, '=');
 
       if(_equal) {
-        char *equal;
+	char *decoded_buf;
         int len;
 
         _equal[0] = '\0';
@@ -5894,38 +5864,33 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 
         // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", tok, _equal);
 
-        if((equal = (char*)malloc(len+1)) != NULL) {
-          char *decoded_buf;
+        if((decoded_buf = (char*)malloc(len+1)) != NULL) {
 
-          Utils::urlDecode(_equal, equal, len+1);
+          Utils::urlDecode(_equal, decoded_buf, len+1);
 
-          if((decoded_buf = http_decode(equal)) != NULL) {
-            FILE *fd;
+	  Utils::purifyHTTPparam(tok, true, false);
+	  Utils::purifyHTTPparam(decoded_buf, false, false);
 
-            Utils::purifyHTTPparam(tok, true, false);
-            Utils::purifyHTTPparam(decoded_buf, false, false);
+	  /* Now make sure that decoded_buf is not a file path */
+	  FILE *fd;
+	  if((decoded_buf[0] == '.')
+	     && ((fd = fopen(decoded_buf, "r"))
+		 || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
 
-            /* Now make sure that decoded_buf is not a file path */
-            if((decoded_buf[0] == '.')
-                && ((fd = fopen(decoded_buf, "r"))
-                || (fd = fopen(realpath(decoded_buf, outbuf), "r")))) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
+					 tok, decoded_buf);
+	    decoded_buf[0] = '\0';
+	    fclose(fd);
+	  }
 
-              ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarded '%s'='%s' as argument is a valid file path",
-                  tok, decoded_buf);
-              decoded_buf[0] = '\0';
-              fclose(fd);
-            }
+	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
 
-            /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
+	  /* Do not put csrf into the table */
+	  if(strcmp(tok, "csrf") != 0)
+	    lua_push_str_table_entry(vm, tok, decoded_buf);
 
-            /* Do not put csrf into the table */
-            if(strcmp(tok, "csrf") != 0)
-              lua_push_str_table_entry(vm, tok, decoded_buf);
 
-            free(decoded_buf);
-          }
-
-          free(equal);
+          free(decoded_buf);
         } else
           ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
       }

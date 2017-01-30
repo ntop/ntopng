@@ -680,6 +680,8 @@ char* Utils::urlDecode(const char *src, char *dst, u_int dst_len) {
 	*dst++ = hexval;
 
       src += 3;
+    } else if(*src == '+') {
+      *dst++ = ' '; src++;
     } else
       *dst++ = *src++;
 
@@ -804,7 +806,9 @@ void Utils::purifyHTTPparam(char *param, bool strict, bool allowURL) {
     } else {
       is_good = Utils::isPrintableChar(param[i])
 	&& (param[i] != '<')
-	&& (param[i] != '>');
+	&& (param[i] != '>')
+	&& (param[i] != '"') /* Prevents injections */
+	&& (param[i] != '\'');
     }
 
     if(is_good)
