@@ -211,7 +211,7 @@ local  en = {
       confirm_delete_pool = "Do you really want to delete host pool",
       confirm_remove_member = "Do you really want to remove member",
       from_pool = "from host pool",
-      and_associated_members = "and associated members",
+      and_associated_members = "its RRD data and any associated members",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

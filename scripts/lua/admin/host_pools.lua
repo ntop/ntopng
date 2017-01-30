@@ -238,7 +238,7 @@ print(
       id      = "delete_pool_dialog",
       action  = "deletePool(delete_pool_id)",
       title   = i18n("host_pools.delete_pool"),
-      message = i18n("host_pools.confirm_delete_pool") .. ' "<span id=\"delete_pool_dialog_pool\"></span>" ' .. i18n("host_pools.and_associated_members"),
+      message = i18n("host_pools.confirm_delete_pool") .. ' "<span id=\"delete_pool_dialog_pool\"></span>", ' .. i18n("host_pools.and_associated_members"),
       confirm = i18n("delete"),
     }
   })

@@ -43,6 +43,7 @@ function host_pools_utils.createPool(ifid, pool_id, pool_name)
 end
 
 function host_pools_utils.deletePool(ifid, pool_id)
+  local rrd_base = host_pools_utils.getRRDBase(ifid, pool_id)
   local ids_key = get_pool_ids_key(ifid)
   local details_key = get_pool_details_key(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
@@ -52,6 +53,7 @@ function host_pools_utils.deletePool(ifid, pool_id)
   ntop.delCache(details_key)
   ntop.delCache(members_key)
   ntop.delHashCache(dump_key, pool_id)
+  ntop.rmdir(rrd_base)
 end
 
 function host_pools_utils.addToPool(ifid, pool_id, member_and_vlan)
