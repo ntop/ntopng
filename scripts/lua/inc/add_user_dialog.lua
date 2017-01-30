@@ -174,7 +174,6 @@ else -- a captive portal user is being added
 ]]
    --   require("prefs_utils")
    local res = prefsResolutionButtons("hd", 3600)
-   tprint(res)
    print[[
           </td>
           <td style="padding-left: 2em;">
@@ -297,9 +296,15 @@ print[[
       if (!data.valid) {
         add_user_alert.error(data.msg);
       } else {
-        /* convert expire resolution into appropriate value */
-        resol_selector_finalize(frmadduser);
+]]
 
+if captive_portal_user == true then
+  print[[
+        /* Converts expire resolution into appropriate value */
+        resol_selector_finalize(frmadduser);]]
+end
+
+print[[
         $.ajax({
           type: frmadduser.attr('method'),
           url: frmadduser.attr('action'),
