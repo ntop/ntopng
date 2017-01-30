@@ -304,7 +304,7 @@ void HostPools::updateStats(struct timeval *tv) {
 
 /* *************************************** */
 
-void HostPools::lua(lua_State *vm) {
+void HostPools::luaStats(lua_State *vm) {
   HostPoolStats *hps;
   if(stats && vm) {
     lua_newtable(vm);
@@ -316,6 +316,47 @@ void HostPools::lua(lua_State *vm) {
 	lua_rawseti(vm, -2, i);
       }
     }
+  }
+};
+
+/* *************************************** */
+
+void HostPools::luaVolatileMembers(lua_State *vm) {
+  volatile_members_t *current, *tmp;
+  int i;
+  time_t now = time(NULL);
+  
+  if(!vm)
+    return;
+
+  lua_newtable(vm);
+
+  for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
+
+    if(!volatile_members[pool_id])
+      continue;
+
+    volatile_members_lock[pool_id]->lock(__FILE__, __LINE__);
+
+    if(stats && stats[pool_id]) { /* The pool exists */
+      lua_newtable(vm);
+
+      i = 0;
+      HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
+	lua_newtable(vm);
+
+	lua_push_str_table_entry(vm, "member", current->host_or_mac);
+	lua_push_float_table_entry(vm, "residual_lifetime", current->lifetime - now);
+	lua_push_bool_table_entry(vm, "expired", current->lifetime - now < 0);
+
+	lua_rawseti(vm, -2, ++i);
+      }
+
+      lua_rawseti(vm, -2, pool_id);
+    }
+
+    volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
+
   }
 };
 
@@ -350,6 +391,7 @@ void HostPools::addToPool(char *host_or_mac,
 void HostPools::purgeExpiredVolatileMembers() {
   volatile_members_t *current, *tmp;
   bool purged = false;
+  time_t now = time(NULL);
 
   for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
     volatile_members_lock[pool_id]->lock(__FILE__, __LINE__);
@@ -362,7 +404,7 @@ void HostPools::purgeExpiredVolatileMembers() {
 				   pool_id);
 #endif
 
-      if(current->lifetime < time(NULL)) {
+      if(current->lifetime < now) {
 	purged = true;
 
 #ifdef HOST_POOLS_DEBUG

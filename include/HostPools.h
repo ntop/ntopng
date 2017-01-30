@@ -74,7 +74,8 @@ public:
 		    u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
   void updateStats(struct timeval *tv);
-  void lua(lua_State *vm);
+  void luaStats(lua_State *vm);
+  void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
   void purgeExpiredVolatileMembers();
 #endif

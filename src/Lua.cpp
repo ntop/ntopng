@@ -314,12 +314,34 @@ static int ntop_get_host_pool_interface_stats(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface && ntop_interface->getHostPools()) {
-    ntop_interface->luaHostPools(vm);
+    ntop_interface->luaHostPoolsStats(vm);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
 
 }
+
+/**
+ * @brief Get the Host Pool volatile members
+ *
+ * @param vm The lua state.
+ * @return @ref CONST_LUA_OK
+ */
+static int ntop_get_host_pool_volatile_members(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  nDPIStats stats;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface && ntop_interface->getHostPools()) {
+    ntop_interface->luaHostPoolsVolatileMembers(vm);
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+
+}
+
+
 #endif
 
 /* ****************************************** */
@@ -5379,6 +5401,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadHostPools",                ntop_reload_host_pools                },
   #ifdef NTOPNG_PRO
   { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
+  { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
 #endif
 
