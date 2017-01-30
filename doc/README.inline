@@ -1,0 +1,116 @@
+Using ntopng Inline
+-------------------
+Traditionally ntopng has been used to passively monitor traffic. However
+ntopng can be used inline to block/shape traffic according to various
+criteria such as host and application protocol.
+
+In README.netfilter you can read how to do this with netfilter that
+is mostly used when using it on network routers. Instead you can use ntopng
+on a totally passive way (transparent bridge) so that you can enforce
+network policies without having to change IP address or any other
+network setup such as the DNS address or the gateway IP address.
+
+When used inline ntopng bridges the traffic of two network interfaces.
+There are two possible setups for using ntopng inline on a transparent
+fashion, when operating on an existing network.
+
+Supposing to have this network
+
+	  +------------------+        +-----------+
+	  | Internet Gateway |  <---> |   Switch  |
+	  +------------------+        +-----------+
+	                                |       |
+					V       V
+				       PC1     PC2
+
+where we want to use ntopng to enforce Internet traffic policies.
+
+
+ +------------------+       +-----------+       +-----------+
+ | Internet Gateway | <---> |  ntopng   | <---> |   Switch  |
+ +------------------+       +-----------+       +-----------+
+  	                                          |       |
+ 					          V       V
+				                 PC1     PC2
+
+
+You can use a box with 1+1 interfaces (one for reaching the box and
+one for connecting to the Internet) or with 2+1 (two for connecting the
+switch to the Internet and one for reaching the box).
+
+Netfilter (Linux-only) traffic policy is available in all ntopng
+versions, whereas interface bridging needs at least the Pro version.
+Packages are available at http://packages.ntop.org/
+
+
+Using ntopng bridging in 2+1 mode
+----------------------------------
+In this setup the management interface is used to access the box, and
+two additional interfaces are use for bridging traffic.
+
+0. Suppose you want to bridge zc:eth3 with zc:eth4. If the 
+   interface names are different please adapt tools/load_hugepages.sh
+   In case you are using non-ZC interfaces there is no need to
+   run load_hugepages.sh
+
+1. We suppose that you have PF_RING compiled with this layout
+   - PF_RING
+   - ntopng
+
+   if not modify tools/load_hugepages.sh
+
+3. Make sure you have executed once ../tools/load_hugepages.sh
+
+3. Start ntopng as follows
+   ntopng -i "bridge:zc:eth3,zc:eth4"
+
+
+Using ntopng bridging in 1+1 mode
+----------------------------------
+You can implement this setup very easily using for instance a Raspberry PI3
+that is equipped with a ethernet interface (eth0) that connect the box
+to the Internet, and a WiFi interface (wlan0) to which network clients
+can attach.
+
+In this setup you need to configure the interfaces as described below. The
+notes are for Debian-based distributinons such as Raspbian.
+
+$ cat /etc/network/interfaces
+...
+auto eth0
+iface eth0 inet manual
+up ifconfig eth0 up
+
+
+# https://help.ubuntu.com/community/Network%20Bridge%20with%20a%20Tap!
+auto br0
+iface br0 inet dhcp
+   bridge_ports eth0
+   bridge stp off
+   bridge_maxwait 0
+   bridge_fd 0
+
+allow-hotplug wlan0
+iface wlan0 inet manual
+   wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+...
+
+Done this and installed ntopng from the ntop repository you can start
+ntopng as follows:
+
+# ntopng -i bridge:br0,wlan0 -w 80,3000
+
+
+Enabling Captive Portal
+-----------------------
+Captive portal is used to authenticate legitimate users and bind them to the
+correct host pool. In order to enable this feature
+- you need the enterprise version of ntopng
+- the captive portal option must be enabled in the ntopng preferences menu
+- ntopng must be active on port 80 (and port a different port) for authenticating users (-w 80,3000)
+- you can optionally start ntopng also in SSL (port 443) but you must have port 80 active
+
+When the captive portal is used, port 80 is used only for that purpose (i.e. it cannot be
+used to connect to the ntop GUI), whereas ntopng users can connect to port 3000. Please
+refer to README.captive_portal for more information about this topic.
+

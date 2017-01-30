@@ -1,0 +1,41 @@
+What is a Captive Portal ?
+--------------------------
+A captive portal (https://en.wikipedia.org/wiki/Captive_portal) is
+a web page usually employed to allow legitimate users to enter a
+network and keep intruders out. When using ntopng in inline mode
+(see README.inline for more information) you can enable the
+captive portal from the ntop preferences menu (note that you need
+to make sure you have started ntopng on HTTP port 80). At this point
+the comunications between the two bridged interfaces can happen only
+for the known hosts.
+
+
+How to use the captive portal
+-----------------------------
+Once the captive portal is enabled, you need to create users for
+the captive portal. They are different from standard ntopng users
+as they are not meant to be used for accessing the ntopng GUI but
+just for authenticating on the captive portal. The idea is to create
+a portal user for a physical user, or create generic users such
+as guest or anonymous. Authenticating on the captive portal is not
+used just to enable network access, but to bind assets to people.
+Example if John owns a phone, a tablet and a laptop, when these
+devices access the network they are bound to John in addition to
+having granted network access. This way you can forget identifying
+computers and start thinking in terms of humans.
+
+When creating a captive portal user, ntopng will ask you to 
+create a network pool that is a set of assets falling under the same
+administrative domaain. They can be identified both by IP and MAC
+address. A captive portal user is bound to exactly one network pool.
+During captive portal creation, you can specify how long an asset
+can be bound to a user, either permanently or temporarely (e.g. until
+midnight). As long as an asset is bound to a user, it does not need
+to authenticate all the time it accesses the network but only
+at the first access. 
+
+The use of the captive portal is useful for preventing unauthorized
+assets to access the network (e.g. a television or an IP phone) and
+for enforcing network access. In fact for every network pool it is
+possible to associate some network policies for blocking selected
+protocols or shaping traffic to a specific threshold.
