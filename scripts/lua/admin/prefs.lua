@@ -790,7 +790,7 @@ print[[
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
    print([[<script>
-aysHandleForm("form[id!='search-host-form']");
+aysHandleForm("form");
 
 /* Use the validator plugin to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});

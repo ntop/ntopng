@@ -212,6 +212,7 @@ local  en = {
       confirm_remove_member = "Do you really want to remove member",
       from_pool = "from host pool",
       and_associated_members = "its RRD data and any associated members",
+      search_member = "Search Member",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

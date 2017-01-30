@@ -179,9 +179,10 @@ print [[
   </ul>
   <div class="tab-content">
     <div id="manage" class="tab-pane">
+<br/><table><tbody><tr>
 ]]
 
-print('<br/>') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
+print('<td style="white-space:nowrap;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
 local no_pools = true
 for _,pool in ipairs(available_pools) do
   if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
@@ -193,7 +194,24 @@ for _,pool in ipairs(available_pools) do
     no_pools = false
   end
 end
-print('</select>\n')
+print('</select></td>\n')
+print('<td>')
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "t_member",
+      action      = "/lua/admin/host_pools.lua#manage",
+      parameters  = {pool=selected_pool.id},
+      json_key    = "key",
+      query_field = "member",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_member.lua",
+      query_title = i18n("host_pools.search_member"),
+      style       = "margin-left:1em; width:25em;",
+    }
+  })
+)
+print('</td>')
+print('</tr></tbody></table>')
 
 if no_pools then
   print[[<script>$("#pool_selector").attr("disabled", "disabled");</script>]]
@@ -403,7 +421,7 @@ print [[
     $("#table-manage").datatable({
       url: "]]
    print (ntop.getHttpPrefix())
-   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[",
+   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[&member=]] print(_GET["member"] or "") print[[",
       title: "",
       perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
