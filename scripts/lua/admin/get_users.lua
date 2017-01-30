@@ -2,18 +2,29 @@
 -- (C) 2013 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 sendHTTPHeader('application/json')
 
 if(haveAdminPrivileges()) then
-currentPage     = _GET["currentPage"]
-perPage         = _GET["perPage"]
-sortColumn      = _GET["sortColumn"]
-sortOrder       = _GET["sortOrder"]
-captivePortal   = _GET["captive_portal_users"]
+local currentPage     = _GET["currentPage"]
+local perPage         = _GET["perPage"]
+local sortColumn      = _GET["sortColumn"]
+local sortOrder       = _GET["sortOrder"]
+local captivePortal   = _GET["captive_portal_users"]
+
+local host_pools_utils = nil
+local pool_names = nil
+if captivePortal then
+   local host_pools_utils = require "host_pools_utils"
+   local names = host_pools_utils.getPoolsList(getInterfaceId(ifname), false)
+   pool_names = {}
+   for _, p in pairs(names) do
+      pool_names[tonumber(p["id"])] = p["name"]
+   end
+end
 
 if(sortColumn == nil) then
   sortColumn = "column_"
@@ -31,15 +42,14 @@ else
    perPage = tonumber(perPage)
 end
 
-users_list = ntop.getUsers()
+local users_list = ntop.getUsers()
 
 print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
-num = 0
-total = 0
-to_skip = (currentPage-1) * perPage
+local num = 0
+local total = 0
+local to_skip = (currentPage-1) * perPage
 
-vals = {}
-num = 0
+local vals = {}
 for key, value in pairs(users_list) do
    if captivePortal and value["group"] ~= "captive_portal" then
       goto continue
@@ -47,20 +57,18 @@ for key, value in pairs(users_list) do
       goto continue
    end
 
-   num = num + 1
-   postfix = string.format("0.%04u", num)
-
    if(sortColumn == "column_full_name") then
-      vals[users_list[key]["full_name"]..postfix] = key
+      vals[key] = value["full_name"]
    elseif(sortColumn == "column_group") then
-      vals[users_list[key]["group"]..postfix] = key
+      vals[key] = value["group"]
+   elseif(pool_names and sortColumn == "column_host_pool_name") then
+      local pool_n = pool_names[tonumber(value["host_pool_id"])]
+      vals[key] = pool_n
    else -- if(sortColumn == "column_username") then
       vals[key] = key
    end
    ::continue::
 end
-
-table.sort(vals)
 
 if(sortOrder == "asc") then
    funct = asc
@@ -68,10 +76,10 @@ else
    funct = rev
 end
 
-num = 0
-for _key, _value in pairsByKeys(vals, funct) do
-   key = vals[_key]   
-   value = users_list[key]
+local num = 0
+for _key, _value in pairsByValues(vals, funct) do
+   local key = _key
+   local value = users_list[_key]
 
    if(to_skip > 0) then
       to_skip = to_skip-1
@@ -84,6 +92,11 @@ for _key, _value in pairsByKeys(vals, funct) do
 	 print ("{")
 	 print ("  \"column_username\"  : \"" .. key .. "\", ")
 	 print ("  \"column_full_name\" : \"" .. value["full_name"] .. "\", ")
+
+	 if pool_names and value["host_pool_id"] then
+	    print ("  \"column_host_pool_id\" : \"" .. value["host_pool_id"] .. "\", ")
+	    print ("  \"column_host_pool_name\" : \"" .. pool_names[value["host_pool_id"]].. "\", ")
+	 end
 
 	 print ("  \"column_group\"     : \"" .. value["group"] .. "\", ")
 	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. key.."\\\"));'><span class='label label-info'>Manage</span></a> ")

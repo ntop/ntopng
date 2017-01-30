@@ -1,7 +1,7 @@
 local host_pools_utils = require 'host_pools_utils'
 require("prefs_utils")
 
-local messages = {ntopng="Add ntopng User", captive_portal="Add Captive Portal User"}
+local messages = {ntopng="Add Web User", captive_portal="Add Captive Portal User"}
 
 local add_user_msg = messages["ntopng"]
 local captive_portal_user = false
@@ -153,7 +153,7 @@ else -- a captive portal user is being added
       <label class="form-label">Authentication Lifetime</label>
       <div class="input-group">
         <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
-        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires at</label>
+        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires after</label>
       </div>
       <!-- optionally allow to specify a certain number of days
       <input id="lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
@@ -189,7 +189,7 @@ else -- a captive portal user is being added
     <small>The host pool that will be associated to the user upon successfull authentication.</small>
   </div>
   <div class='col-md-6'>
-    <small>The authentication lifetime. The authentication can be perpetual or can be expired at midnigth.</small>
+    <small>The authentication can be perpetual or can expire after the specified time.</small>
   </div>
 </div>
 

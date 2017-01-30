@@ -350,7 +350,7 @@ function printBridgingPrefs()
      show = true
   else
      show = false
-     label = label.."<p>This button is <b>disabled</b> as then ntopng web GUI has NOT been started on port 80 that is required by the captive portal (-w command line parameter)."
+     label = label.."<p>This button is <b>disabled</b> as the ntopng web GUI has NOT been started on port 80 that is required by the captive portal (-w command line parameter)."
   end
 
   print('<form method="post">')

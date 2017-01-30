@@ -11,14 +11,14 @@ sendHTTPHeader('application/json')
 if(haveAdminPrivileges()) then
    print("{\n")
    
-   users_list = ntop.getUsers()
+   local users_list = ntop.getUsers()
    for key, value in pairs(users_list) do
       if(key == _GET["user"]) then
 
 	 if value["group"] == "captive_portal" then
 	    print(' "host_pool_id": "'..value["host_pool_id"]..'",\n')
 	    if value["limited_lifetime"] then
-	       print(' "limited_lifetime": true,\n')
+	       print(' "limited_lifetime": '..value["limited_lifetime"]..',\n')
 	    end
 	 else
 	    print(' "allowed_nets": "'..value["allowed_nets"]..'",\n')

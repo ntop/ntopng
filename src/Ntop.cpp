@@ -687,7 +687,7 @@ void Ntop::getUsers(lua_State* vm) {
 
     snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
     if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0)
-      lua_push_bool_table_entry(vm, "limited_lifetime", true);
+      lua_push_float_table_entry(vm, "limited_lifetime", atoi(val));
 
     lua_pushstring(vm, username);
     lua_insert(vm, -2);

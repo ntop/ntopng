@@ -1,4 +1,5 @@
 local host_pools_utils = require 'host_pools_utils'
+require("prefs_utils")
 
 print [[
 
@@ -159,11 +160,11 @@ else -- captive portal user
    print[[
 
 <div class="row">
-    <div class="form-group col-md-12 has-feedback">
+    <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Host Pool</label>
       <div class="input-group" style="width:100%;">
         <input id="old_host_pool_id" type="hidden" name="old_host_pool_id" value="" />
-        <select name="host_pool_id" id="host_pool_id" class="form-control">
+        <select name="host_pool_id" id="host_pool_id" class="form-control" disabled>
 
 ]]
 
@@ -180,6 +181,40 @@ else -- captive portal user
    print[[
         </select>
       </div>
+    </div>
+
+    <div class="form-group col-md-6 has-feedback">
+      <label class="form-label">Authentication Lifetime</label>
+      <div class="input-group">
+        <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
+        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires after</label>
+      </div>
+      <!-- optionally allow to specify a certain number of days
+      <input id="lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
+      -->
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-md-6 has-feedback">
+    </div>
+
+    <div class="col-md-6 has-feedback text-center">
+
+      <table class="form-group" id="lifetime_selection_table">
+        <tr>
+
+          <td style="vertical-align:top;">
+]]
+   --   require("prefs_utils")
+   local res = prefsResolutionButtons("hd", 3600)
+   print[[
+          </td>
+          <td style="padding-left: 2em;">
+        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
+          </td>
+        </tr>
+      </table>
     </div>
 </div>
 
@@ -324,6 +359,9 @@ function reset_pwd_dialog(user) {
       if(data.host_pool_id) {
         $('#old_host_pool_id').val(data.host_pool_id);
         $('#host_pool_id option[value = '+data.host_pool_id+']').attr('selected','selected');
+      }
+      if(data.limited_lifetime) {
+        /* TODO: properly populate the existing field */
       }
 
       $('#form_pref_change').show();
