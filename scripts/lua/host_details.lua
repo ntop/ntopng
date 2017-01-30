@@ -461,7 +461,9 @@ if((page == "overview") or (page == nil)) then
       end
 
       local pool_name = host_pools_utils.getPoolName(ifId, host["host_pool_id"])
-      print(' <span class="label label-default">Pool: '..pool_name.."</span>")
+      print(' <a href="'.. ntop.getHttpPrefix().. '/lua/hosts_stats.lua?pool=' .. host["host_pool_id"] ..'">')
+      print('<span class="label label-default">Pool: '..pool_name.."</span>")
+      print('</a>')
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
