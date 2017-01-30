@@ -250,7 +250,7 @@ bool PcapInterface::set_packet_filter(char *filter) {
 
   if((pcap_compile(pcap_handle, &fcode, filter, 1, netmask.s_addr) < 0)
      || (pcap_setfilter(pcap_handle, &fcode) < 0)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set on %s filter %s. Filter ignored.\n", ifname, filter);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set on %s filter %s. Filter ignored.", ifname, filter);
     return(false);
   } else {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Packet capture filter on %s set to \"%s\"", ifname, filter);
