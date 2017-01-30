@@ -468,12 +468,19 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 
 static int handle_lua_request(struct mg_connection *conn) {
   struct mg_request_info *request_info = mg_get_request_info(conn);
-  u_int len = (u_int)strlen(request_info->uri);
+  char *crlf;
+  u_int len;
   char username[33] = { 0 };
   char *referer = (char*)mg_get_header(conn, "Referer");
   u_int8_t whitelisted;
 
-  if(referer == NULL) referer = (char*)"";
+  if(referer == NULL)
+    referer = (char*)"";
+
+  if((crlf = strstr(request_info->uri, "\r\n")))
+    *crlf = '\0'; /* Prevents HTTP splitting attacks */
+
+  len = (u_int)strlen(request_info->uri);
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Host: %s][URI: %s][%s][Referer: %s]",
@@ -585,7 +592,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     }
 
     snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
-	     Utils::getURL((strlen(request_info->uri) == 1) ? (char*)"/lua/index.lua" : request_info->uri,
+	     Utils::getURL(len == 1 ? (char*)"/lua/index.lua" : request_info->uri,
 			   uri, sizeof(uri)));
 
     ntop->fixPath(path);
