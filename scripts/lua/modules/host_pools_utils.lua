@@ -22,10 +22,6 @@ local function get_pool_details_key(ifid, pool_id)
   return "ntopng.prefs." .. ifid .. ".host_pools.details." .. pool_id
 end
 
-local function get_user_pool_id_key(username)
-  return "ntopng.user." .. username .. ".host_pool_id"
-end
-
 local function get_user_pool_dump_key(ifid)
   return "ntopng.prefs." .. ifid .. ".host_pools.dump"
 end
@@ -141,15 +137,20 @@ function host_pools_utils.initPools()
   end
 end
 
-function host_pools_utils.getUndeletablePools()
-  -- TODO fix interface-local pools VS global users inconsistence
-  local key = get_user_pool_id_key("*")
+function host_pools_utils.getUndeletablePools(ifid)
   local pools = {}
 
-  for user_key,_ in pairs(ntop.getKeysCache(key) or {}) do
+  for user_key,_ in pairs(ntop.getKeysCache("ntopng.user.*.host_pool_id") or {}) do
     local pool_id = ntop.getCache(user_key)
+
     if tonumber(pool_id) ~= nil then
+      local username = string.split(user_key, "%.")[3]
+      local allowed_ifname = ntop.getCache("ntopng.user."..username..".allowed_ifname")
+
+      -- verify if the Captive Portal User is actually active for the interface
+      if getInterfaceName(ifid) == allowed_ifname then
         pools[pool_id] = true
+      end
     end
   end
 

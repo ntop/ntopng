@@ -69,7 +69,7 @@ if((ifid ~= nil) and (isAdministrator())) then
   else
     for _,pool in ipairs(host_pools_utils.getPoolsList(ifid)) do
       if (i >= start_i) and (i <= stop_i) then
-        local undeletable_pools = host_pools_utils.getUndeletablePools()
+        local undeletable_pools = host_pools_utils.getUndeletablePools(ifid)
 
         if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
           res.data[#res.data + 1] = {
