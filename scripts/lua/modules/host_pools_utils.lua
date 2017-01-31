@@ -93,7 +93,8 @@ function host_pools_utils.getPoolMembers(ifid, pool_id)
 
   local all_members = ntop.getMembersCache(members_key) or {}
   local volatile = {}
-  for _,v in pairs(interface.getHostPoolsVolatileMembers()[1] or {}) do
+
+  for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
     if not v.expired then
       all_members[#all_members + 1] = v["member"]
       volatile[v["member"]] = v["residual_lifetime"]

@@ -13,11 +13,6 @@ if(ntop.isPro()) then
   shaper_utils = require "shaper_utils"
 end
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-active_page = "admin"
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if not isAdministrator() then
   return
@@ -184,7 +179,7 @@ print [[
 <br/><table><tbody><tr>
 ]]
 
-print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
+print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?id=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
 local no_pools = true
 for _,pool in ipairs(available_pools) do
   if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
@@ -201,7 +196,7 @@ print('</select>')
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 if is_bridge_iface then
-  print("<a href='/lua/if_stats.lua?page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-exchange fa-lg' aria-hidden='true'></i></a>")
+  print("<a href='/lua/if_stats.lua?id=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-exchange fa-lg' aria-hidden='true'></i></a>")
 end
 
 print('</td>\n')
@@ -209,7 +204,7 @@ if member_filtering ~= nil then
   local member_name = split(member_filtering, "/")[1]
   print[[
   <td>
-    <form action="?pool=]] print(selected_pool.id) print[[#manage">
+    <form action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?id=]] print(ifId.."") print[[&page=pools&pool=]] print(selected_pool.id) print[[">
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> Filter: ]] print(member_name) print[[
       </button>
@@ -222,8 +217,12 @@ print(
   template.gen("typeahead_input.html", {
     typeahead={
       base_id     = "t_member",
-      action      = "/lua/admin/host_pools.lua#manage",
-      parameters  = {pool=selected_pool.id},
+      action      = ntop.getHttpPrefix() .. "/lua/if_stats.lua#manage",
+      parameters  = {
+                      pool=selected_pool.id,
+                      id=tostring(ifId),
+                      page="pools",
+                    },
       json_key    = "key",
       query_field = "member",
       query_url   = ntop.getHttpPrefix() .. "/lua/find_member.lua",
@@ -441,7 +440,7 @@ print [[
         params.pool_id = ]] print(selected_pool.id) print[[;
         params.member_to_delete = field.attr("data-origin-value");
         params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-        paramsToForm('<form method="post" action="?pool=]] print(selected_pool.id) print[["></form>', params).appendTo('body').submit();
+        paramsToForm('<form method="post" action="?id=]] print(tostring(ifId)) print[[&page=pools&pool=]] print(selected_pool.id) print[[#manage"></form>', params).appendTo('body').submit();
       }
     }
 
@@ -503,6 +502,9 @@ print[[            css : {
          }, {
             field: "column_link",
             hidden: true,
+         }, {
+            field: "column_editable",
+            hidden: true,
          }
       ], tableCallback: function() {
         var no_pools = false;
@@ -518,7 +520,8 @@ print[[            css : {
             var vlan = $("td:nth-child(2)", $(this));
             var alias = $("td:nth-child(3)", $(this));
             var icon = $("td:nth-child(4)", $(this));
-            var link_value = $("td:nth-child(6)", $(this)).html().replace(/&nbsp;/gi,'');
+            var link_value = $("td:nth-child(7)", $(this)).html().replace(/&nbsp;/gi,'');
+            var editable = $("td:nth-child(8)", $(this)).html() == "true";
 
             var member_id = addedMemberCtr++;
 
@@ -551,10 +554,16 @@ print[[            css : {
             /* Make vlan editable */
             var input = $(']] printMemberVlanField('member_id') print[[');
             var vlan_value = parseInt(vlan.html());
-            $("input", input).first().val(vlan_value);
+            var vlan_input = $("input", input).first()
+            vlan_input.val(vlan_value);
             vlan.html(input);
 
             recheckFields(address_input);
+
+            if (! editable) {
+              address_input.attr("disabled", "disabled");
+              vlan_input.attr("disabled", "disabled");
+            }
 
             if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
@@ -646,7 +655,7 @@ print [[
 
       var form = paramsToForm('<form method="post"></form>', params);
       if (pool_id == ]] print(selected_pool.id) print[[)
-        form.attr("action", "?#create");
+        form.attr("action", "?id=]] print(tostring(ifId)) print[[&page=pools#create");
 
       form.appendTo('body').submit();
     }
@@ -833,4 +842,3 @@ print[[
   </script>
 ]]
 
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

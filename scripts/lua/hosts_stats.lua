@@ -197,10 +197,9 @@ if(filter_url_params.network ~= nil) then
 
    print('<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A>')
    print('\' ],')
-elseif ((filter_url_params.pool ~= nil) and (isAdministrator())) then
+elseif ((filter_url_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID)) then
    print('buttons: [ \'')
-
-   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/admin/host_pools.lua?page=historical&pool='..pool..'#manage"><i class=\"fa fa-cog fa-lg\"></i></A>')
+   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A>')
    print('\' ],')
 else
    local hosts_filter_params = table.clone(filter_url_params)

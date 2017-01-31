@@ -352,7 +352,6 @@ if(user_group == "administrator") then
       end
    end
 
-   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/host_pools.lua\"><i class=\"fa fa-users\"></i> Host Pools</a></li>\n")
 end
 
 print [[

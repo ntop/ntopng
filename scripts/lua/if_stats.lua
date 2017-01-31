@@ -281,6 +281,14 @@ if(isAdministrator() and (areAlertsEnabled())) then
    end
 end
 
+if isAdministrator() then
+   if(page == "pools") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-users\"></i></a></li>\n")
+   else
+      print("\n<li><a href=\""..url.."&page=pools\"><i class=\"fa fa-users\"></i></a></li>")
+   end
+end
+
 if(ifstats.inline and isAdministrator()) then
    if(page == "filtering") then
       print("<li class=\"active\"><a href=\""..url.."&page=filtering\">Traffic Policing</a></li>")
@@ -957,6 +965,8 @@ local if_name = ifstats.name
     </form></tr>]]
 
     print("</table>")
+elseif(page == "pools") then
+    dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
 elseif(page == "filtering") then
    if not isAdministrator() then
       error()
@@ -1137,7 +1147,11 @@ print [[<div id="protocols" class="tab-pane"><br>
 	    if(pool.id == selected_pool.id) then print(" selected") end
 	    print(">"..(pool.name).."</option>\n")
    end
-print('</select> <A HREF='..  ntop.getHttpPrefix()..'/lua/admin/host_pools.lua?pool=') print(selected_pool.id) print(' title="Edit Host Pool"><i class="fa fa-users fa-lg" aria-hidden="true"></i></A>')
+print('</select>')
+
+if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?id='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users fa-lg" aria-hidden="true"></i></A>')
+end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
    <input type="hidden" name="target_pool" value="]] print(selected_pool.id) print[[">
