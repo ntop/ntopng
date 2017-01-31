@@ -2647,7 +2647,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       function resol_selector_change_selection(selected) {
          selected.attr('checked', 'checked')
           .closest("label").removeClass('btn-default').addClass('btn-primary')
-          .siblings().removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
+          .siblings().removeClass('active').removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
 
         resol_selector_reset_input_range(selected);
       }

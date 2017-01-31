@@ -152,11 +152,11 @@ else -- a captive portal user is being added
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">Authentication Lifetime</label>
       <div class="input-group">
-        <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
-        <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires after</label>
+        <label class="radio-inline"><input type="radio" id="add_lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
+        <label class="radio-inline"><input type="radio" id="add_lifetime_limited" name="lifetime_limited">Expires after</label>
       </div>
       <!-- optionally allow to specify a certain number of days
-      <input id="lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
+      <input id="add_lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
       -->
     </div>
 </div>
@@ -167,7 +167,7 @@ else -- a captive portal user is being added
 
     <div class="col-md-6 has-feedback text-center">
 
-      <table class="form-group" id="lifetime_selection_table">
+      <table class="form-group" id="add_lifetime_selection_table">
         <tr>
 
           <td style="vertical-align:top;">
@@ -177,7 +177,7 @@ else -- a captive portal user is being added
    print[[
           </td>
           <td style="padding-left: 2em;">
-        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
+        <input class="form-control text-right" style="display:inline; width:5em; padding-right:1em;" name="lifetime_secs" id="add_lifetime_secs" type="number" data-min="3600" value="]] print(tostring(res)) print[[">
           </td>
         </tr>
       </table>
@@ -220,16 +220,19 @@ print[[
 </form>
 <script>
 
-  $("#lifetime_selection_table input,label").attr("disabled", "disabled")
+  $("#add_lifetime_selection_table label").attr("disabled", "disabled");
+  $("#add_lifetime_selection_table input").attr("disabled", "disabled");
 
-  $("#lifetime_unlimited").click(function(){
-    $("#lifetime_selection_table input,label").attr("disabled", "disabled")
-    $("#lifetime_limited").removeAttr("checked");
+  $("#add_lifetime_unlimited").click(function(){
+    $("#add_lifetime_selection_table label").attr("disabled", "disabled");
+    $("#add_lifetime_selection_table input").attr("disabled", "disabled");
+    $("#add_lifetime_limited").removeAttr("checked");
   });
 
-  $("#lifetime_limited").click(function() {
-    $("#lifetime_selection_table input,label").removeAttr("disabled")
-    $("#lifetime_unlimited").removeAttr("checked");
+  $("#add_lifetime_limited").click(function() {
+    $("#add_lifetime_selection_table label").removeAttr("disabled");
+    $("#add_lifetime_selection_table input").removeAttr("disabled");
+    $("#add_lifetime_unlimited").removeAttr("checked");
   });
 
   var frmadduser = $('#form_add_user');
