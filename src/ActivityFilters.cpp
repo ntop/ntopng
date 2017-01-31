@@ -325,10 +325,10 @@ static bool activity_filter_fun_interflow(const activity_filter_config * config,
   bool rv = false;
 
   switch(flow->get_detected_protocol().protocol) {
-  case NDPI_SERVICE_FACEBOOK:
+  case NDPI_PROTOCOL_FACEBOOK:
     proto = ifa_facebook_stats;
     break;
-  case NDPI_SERVICE_TWITTER:
+  case NDPI_PROTOCOL_TWITTER:
     proto = ifa_twitter_stats;
     break;
   default:
