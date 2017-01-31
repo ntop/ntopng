@@ -1891,18 +1891,38 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 /* **************************************************** */
 
-static bool flow_sum_protos(GenericHashEntry *f, void *user_data) {
-  nDPIStats *stats = (nDPIStats*)user_data;
-  Flow *flow = (Flow*)f;
+struct ndpiStatsRetrieverData {
+  nDPIStats *stats;
+  Host *host;
+};
 
-  flow->sumStats(stats);
+static bool flow_sum_protos(GenericHashEntry *flow, void *user_data) {
+  ndpiStatsRetrieverData *retriever = (ndpiStatsRetrieverData*)user_data;
+  nDPIStats *stats = retriever->stats;
+  Flow *f = (Flow*)flow;
+
+  if(retriever->host
+       && (retriever->host != f->get_cli_host())
+       && (retriever->host != f->get_srv_host()))
+    return(false); /* false = keep on walking */
+
+  f->sumStats(stats);
   return(false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-void NetworkInterface::getnDPIStats(nDPIStats *stats) {
-  walker(walker_flows, flow_sum_protos, (void*)stats);
+void NetworkInterface::getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts,
+          const char *host_ip, u_int16_t vlan_id) {
+  ndpiStatsRetrieverData retriever;
+
+  Host *h = NULL;
+  if (host_ip)
+    h = findHostsByIP(allowed_hosts, (char *)host_ip, vlan_id);
+
+  retriever.stats = stats;
+  retriever.host = h;
+  walker(walker_flows, flow_sum_protos, (void*)&retriever);
 }
 
 /* **************************************************** */

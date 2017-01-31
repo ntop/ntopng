@@ -285,7 +285,7 @@ class NetworkInterface {
   void processFlow(ZMQ_Flow *zflow);
   void processInterfaceStats(sFlowInterfaceStats *stats);
   void dumpFlows();
-  void getnDPIStats(nDPIStats *stats);
+  void getnDPIStats(nDPIStats *stats, AddressTree *allowed_hosts, const char *host_ip, u_int16_t vlan_id);
   void periodicStatsUpdate();
   virtual void lua(lua_State* vm);
   void getnDPIProtocols(lua_State *vm);
