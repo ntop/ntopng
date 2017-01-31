@@ -167,7 +167,7 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 
   networkStats = NULL;
-
+  
 #ifdef NTOPNG_PRO
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
   flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
@@ -186,6 +186,21 @@ NetworkInterface::NetworkInterface(const char *name,
     throw "Not enough memory";
 
   alertLevel = alertsManager->getNumAlerts(true);
+
+#ifdef linux
+  /*
+    A bit aggressive but as people usually
+    ignore warnings let's be proactive
+  */
+  if(ifname && (!isViewInterface) && ((!strstr(ifname, ":")) && strncmp(ifname, "lo", 2))) {
+    char buf[64];
+    
+    snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off", ifname);
+    system(buf);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing %s", buf);
+  }
+#endif  
+
 }
 
 /* **************************************************** */
@@ -1444,7 +1459,7 @@ bool NetworkInterface::dissectPacket(const struct pcap_pkthdr *h,
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max-len: %u].", h->len, ifMTU);
       ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
 #ifdef linux
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Use: sudo ethtool -K %s gro off gso off tso off", ifname);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
 #endif
       mtuWarningShown = true;
     }
