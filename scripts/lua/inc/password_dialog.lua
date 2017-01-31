@@ -267,15 +267,7 @@ print [[<script>
     $('#old_password_input').val(escape($('#old_password_input').val()))
     $('#new_password_input').val(escape($('#new_password_input').val()))
     $('#confirm_new_password_input').val(escape($('#confirm_new_password_input').val()))
-]]
 
-if captive_portal_user == true then
-  print[[
-        /* Converts expire resolution into appropriate value */
-        resol_selector_finalize(frmpassreset);]]
-end
-
-print[[
     $.ajax({
       type: frmpassreset.attr('method'),
       url: frmpassreset.attr('action'),
@@ -333,6 +325,15 @@ end
 
 print[[
   if(ok) {
+]]
+
+if captive_portal_user == true then
+  print[[
+        /* Converts expire resolution into appropriate value */
+        resol_selector_finalize(frmprefchange);]]
+end
+
+print[[
     $.ajax({
       type: frmprefchange.attr('method'),
       url: frmprefchange.attr('action'),
