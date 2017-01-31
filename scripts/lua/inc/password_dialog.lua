@@ -189,9 +189,6 @@ else -- captive portal user
         <label class="radio-inline"><input type="radio" id="lifetime_unlimited" name="lifetime_unlimited" checked>Unlimited</label>
         <label class="radio-inline"><input type="radio" id="lifetime_limited" name="lifetime_limited">Expires after</label>
       </div>
-      <!-- optionally allow to specify a certain number of days
-      <input id="lifetime_days" name="lifetime_days" type="number" min="1" max="100" value="" class="form-control pull-right text-right" style="display: inline; width: 8em; padding-right: 1em;" disabled required>
-      -->
     </div>
 </div>
 
@@ -207,7 +204,7 @@ else -- captive portal user
           <td style="vertical-align:top;">
 ]]
    --   require("prefs_utils")
-   local res = prefsResolutionButtons("hd", 3600)
+   local res = prefsResolutionButtons("hd", 3600, "user_lifetime_sel")
    print[[
           </td>
           <td style="padding-left: 2em;">
@@ -239,6 +236,18 @@ print[[
 end
 
 print [[<script>
+  $("#lifetime_unlimited").click(function() {
+    $("#lifetime_selection_table label").attr("disabled", "disabled");
+    $("#lifetime_selection_table input").attr("disabled", "disabled");
+    $("#lifetime_limited").removeAttr("checked");
+  });
+
+  $("#lifetime_limited").click(function() {
+    $("#lifetime_selection_table input").removeAttr("disabled");
+    $("#lifetime_selection_table label").removeAttr("disabled");
+    $("#lifetime_unlimited").removeAttr("checked");
+  });
+
   function isValid(str) { /* return /^[\w%]+$/.test(str); */ return true; }
   function isValidPassword(str) { return /^[\w\$\\!\/\(\)=\?\^\*@_\-^\u0000-\u00ff]{1,}$/.test(str); }
 
@@ -316,6 +325,15 @@ end
 
 print[[
   if(ok) {
+]]
+
+if captive_portal_user == true then
+  print[[
+        /* Converts expire resolution into appropriate value */
+        resol_selector_finalize(frmprefchange);]]
+end
+
+print[[
     $.ajax({
       type: frmprefchange.attr('method'),
       url: frmprefchange.attr('action'),
@@ -361,7 +379,15 @@ function reset_pwd_dialog(user) {
         $('#host_pool_id option[value = '+data.host_pool_id+']').attr('selected','selected');
       }
       if(data.limited_lifetime) {
-        /* TODO: properly populate the existing field */
+        $("#lifetime_selection_table label").removeAttr("disabled");
+        $("#lifetime_selection_table input").removeAttr("disabled");
+        $("#lifetime_limited").click();
+        resol_selector_set_value("#lifetime_secs", data.limited_lifetime);
+      } else {
+        $("#lifetime_selection_table label").attr("disabled", "disabled");
+        $("#lifetime_selection_table input").attr("disabled", "disabled");
+        $("#lifetime_unlimited").click();
+        resol_selector_set_value("#lifetime_secs", 3600);
       }
 
       $('#form_pref_change').show();

@@ -3341,9 +3341,31 @@ static int ntop_purge_expired_host_pools_members(lua_State *vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop_interface) {
+  if(ntop_interface && ntop_interface->getHostPools()) {
 
     ntop_interface->getHostPools()->purgeExpiredVolatileMembers();
+
+    return(CONST_LUA_OK);
+  } else
+    return(CONST_LUA_ERROR);
+}
+
+static int ntop_remove_volatile_member_from_pool(lua_State *vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *host_or_mac;
+  u_int16_t pool_id;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING)) return(CONST_LUA_PARAM_ERROR);
+  if((host_or_mac = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER)) return(CONST_LUA_PARAM_ERROR);
+  pool_id = (u_int16_t)lua_tonumber(vm, 2);
+
+  if(ntop_interface && ntop_interface->getHostPools()) {
+
+    ntop_interface->getHostPools()->removeVolatileMemberFromPool(host_or_mac, pool_id);
 
     return(CONST_LUA_OK);
   } else
@@ -5412,8 +5434,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getHostPoolsStats",              ntop_get_host_pool_interface_stats    },
   { "getHostPoolsVolatileMembers",    ntop_get_host_pool_volatile_members   },
   { "purgeExpiredPoolsMembers",       ntop_purge_expired_host_pools_members },
+  { "removeVolatileMemberFromPool",   ntop_remove_volatile_member_from_pool },
 #endif
-
 
   /* DB */
   { "execSQLQuery",                   ntop_interface_exec_sql_query },
