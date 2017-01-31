@@ -5881,10 +5881,10 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
     tok = strtok_r(query_string, "&", &where);
 
     while(tok != NULL) {
-      /* key=val */
-      char *_equal = strchr(tok, '=');
+      char *_equal;
 
-      if(_equal) {
+      if(strncmp(tok, "csrf", strlen("csrf")) /* Do not put csrf into the params table */
+	 && (_equal = strchr(tok, '='))) {
 	char *decoded_buf;
         int len;
 
@@ -5917,10 +5917,8 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 
 	  /* ntop->getTrace()->traceEvent(TRACE_WARNING, "'%s'='%s'", tok, decoded_buf); */
 
-	  /* Do not put csrf into the table */
-	  if(strcmp(tok, "csrf") != 0)
-	    lua_push_str_table_entry(vm, tok, decoded_buf);
-
+	  /* put tok and the decoded buffer in to the table */
+	  lua_push_str_table_entry(vm, tok, decoded_buf);
 
           free(decoded_buf);
         } else
@@ -5977,7 +5975,7 @@ int Lua::handle_script_request(struct mg_connection *conn,
     mg_get_cookie(conn, "user", user, sizeof(user));
 
     if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1)
-        || (strcmp(rsp, user) != 0)) {
+       || (strcmp(rsp, user) != 0)) {
 #if 0
       const char *msg = "The submitted form is expired. Please reload the page and try again. <p>[ <A HREF=/>Home</A> ]";
 
@@ -5995,42 +5993,18 @@ int Lua::handle_script_request(struct mg_connection *conn,
       ntop->getRedis()->del(csrf);
     }
 
-    if(valid_csrf) {
-      /* CSRF is valid here, now fill the _POST table with POST parameters */
-      setParamsTable(L, "_POST", post_data);
-    } else {
-      lua_newtable(L);
-      lua_setglobal(L, (char*)"_POST"); /* Empty */
-    }
-
-    if(request_info->query_string) {
-      char *k, *t1;
-
-      lua_newtable(L);
-      
-      k = strtok_r((char*)request_info->query_string, "&", &t1);
-      while(k != NULL) {
-	char *a, *b, *t2;
-	
-	if((a = strtok_r(k, "=", &t2)) != NULL) {
-	  b = strtok_r(NULL, "=", &t2);
-	  
-	  if(b) lua_push_str_table_entry(L, a, b);
-	  
-	}
-
-	k = strtok_r(NULL, "&", &t1);
-      }
-
-      lua_setglobal(L, (char*)"_GET");
-    } else
-      setParamsTable(L, "_GET", NULL /* Empty */);
-  } else {
+    if(valid_csrf)
+      setParamsTable(L, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
+    else
+      setParamsTable(L, "_POST", NULL /* Empty */);
+  } else
     setParamsTable(L, "_POST", NULL /* Empty */);
 
-    /* Put the GET params into the environment */
+  /* Put the GET params into the environment */
+  if(request_info->query_string)
     setParamsTable(L, "_GET", request_info->query_string);
-  }
+  else
+    setParamsTable(L, "_GET", NULL /* Empty */);
 
   /* _SERVER */
   lua_newtable(L);
