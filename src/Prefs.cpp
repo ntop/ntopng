@@ -613,7 +613,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       if(user) pwd = strtok_r(NULL, ":", &tmp);
 
       if(user && pwd) {
-	if((flashstart = new Flashstart(user, pwd)) != NULL)
+	if((flashstart = new Flashstart(user, pwd, false)) != NULL)
 	  ntop->set_flashstart(flashstart);
       } else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for --%s<user>:<pwd>",

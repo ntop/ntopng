@@ -34,11 +34,12 @@ struct dns_header {
 
 /* **************************************** */
 
-Flashstart::Flashstart(char *_user, char *_pwd) {
+Flashstart::Flashstart(char *_user, char *_pwd, bool synchronousClassification) {
   user = strdup(_user), pwd = strdup(_pwd);
   num_flashstart_categorizations = num_flashstart_fails = 0;
   sock = socket(AF_INET, SOCK_DGRAM, 0);
-
+  syncClassification = synchronousClassification;
+  
   dnsServer[0].sin_addr.s_addr = inet_addr("188.94.192.215"), dnsServer[0].sin_family = AF_INET, dnsServer[0].sin_port  = htons(53);
   dnsServer[1].sin_addr.s_addr = inet_addr("85.18.248.198"), dnsServer[1].sin_family = AF_INET, dnsServer[1].sin_port  = htons(53);
   dnsServerIdx = 0, numCategories = 0;
@@ -57,8 +58,8 @@ Flashstart::~Flashstart() {
   void *res;
 
   if(user && pwd) {
-    pthread_join(flashstartThreadLoop, &res);
-
+    if(!syncClassification) pthread_join(flashstartThreadLoop, &res);
+    
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Flashstart resolution stats [%u categorized][%u failures]",
 				 num_flashstart_categorizations, num_flashstart_fails);
@@ -205,12 +206,20 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
 bool Flashstart::findCategory(char *name, struct site_categories *category, bool add_if_needed) {
   if(ntop->getPrefs()->is_flashstart_enabled()) {
     char buf[64] = { 0 };
-    
-    ntop->getRedis()->getTrafficFilteringCategory(name, buf, sizeof(buf), add_if_needed);
+
+    /* Searching in cache first... */
+    ntop->getRedis()->getTrafficFilteringCategory(name, buf, sizeof(buf), false);
     
     if(buf[0] != 0) {
+#ifdef DEBUG_CATEGORIZATION
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Categorized %s as %s", name, buf);
+#endif
+    
       setCategory(category, buf);
       return(true);
+    } else if(add_if_needed) {
+      /* Nothing on cache: let's query Flashstart */
+      queryFlashstart(name);
     }
   }
    
@@ -222,7 +231,7 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 char* Flashstart::getCategoryName(u_int8_t id) {
   struct category_mapping *s;
   
-  for(s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
+  for(s = mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
     if(s->category == id)
       return(s->name);
 
@@ -277,23 +286,15 @@ void Flashstart::dumpCategories(struct site_categories *category, char *buf, u_i
 
 /* **************************************************** */
 
-void Flashstart::queryFlashstart(char* symbolic_name, bool skipCache) {
-  char buf[32], *rsp;
-  
-  if(!skipCache)
-    rsp = ntop->getRedis()->getTrafficFilteringCategory(symbolic_name, buf, sizeof(buf)-1, false);
-  else
-    rsp = NULL;
+void Flashstart::queryFlashstart(char* symbolic_name) {
+#ifdef DEBUG_CATEGORIZATION
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Looking for %s", symbolic_name);
+#endif
 
-  if((rsp == NULL) || (rsp[0] == '\0')) {
-    ntop->getRedis()->setTrafficFilteringAddress(symbolic_name, (char*)NTOP_UNKNOWN_CATEGORY_STR);
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Categorizing %s", symbolic_name);
-    queryDomain(sock, symbolic_name, ++num_flashstart_categorizations,
-		(struct sockaddr*)&dnsServer[dnsServerIdx],
-		sizeof(dnsServer[dnsServerIdx]));
-    if(++dnsServerIdx == 2) dnsServerIdx = 0;
-  }
+  queryDomain(sock, symbolic_name, ++num_flashstart_categorizations,
+	      (struct sockaddr*)&dnsServer[dnsServerIdx],
+	      sizeof(dnsServer[dnsServerIdx]));
+  if(++dnsServerIdx == 2) dnsServerIdx = 0;
 }
 
 /* **************************************************** */
@@ -305,6 +306,8 @@ void Flashstart::queryDomain(int sock, char *domain, u_int queryId,
   u_int domain_len = strlen(domain), query_len;
   int i, n;
 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Sending request for %s", domain);
+  
   header->transaction_id = queryId,
     header->flags = htons(0x100),
     header->num_questions = htons(1); /* 1 query */
@@ -410,18 +413,9 @@ u_int Flashstart::recvResponses(u_int msecTimeout) {
 
 void* Flashstart::flashstartLoop(void* ptr) {
   Flashstart *h = (Flashstart*)ptr;
-  Redis *r = ntop->getRedis();
 
   while(!ntop->getGlobals()->isShutdown()) {
-    char symbolic_ip[64];
-
-    int rc = r->popHostToTrafficFiltering(symbolic_ip, sizeof(symbolic_ip));
-
-    if(rc == 0) {
-      h->queryFlashstart(symbolic_ip, false);
-      h->recvResponses(1);
-    } else
-      h->recvResponses(1000);
+    h->recvResponses(1000);
   }
 
   return(NULL);
@@ -447,7 +441,7 @@ void Flashstart::startLoop() {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for Flashstart to initialize. Please wait...");
       
       while(true) {
-	queryFlashstart((char*)"ntop.org", true);
+	queryFlashstart((char*)"ntop.org");
 	if(recvResponses(1000) > 0)
 	  break;
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, ".");
@@ -458,8 +452,8 @@ void Flashstart::startLoop() {
       }
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flashstart ready to serve requests...");
 
-      pthread_create(&flashstartThreadLoop, NULL,
-		     flashstartThreadInfiniteLoop, (void*)this);
+      if(!syncClassification)
+	pthread_create(&flashstartThreadLoop, NULL, flashstartThreadInfiniteLoop, (void*)this);
     }
   }
 }

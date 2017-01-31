@@ -306,4 +306,17 @@ struct keyval {
   char *val;
 };
 
+typedef struct {
+  u_int64_t shadow_head;
+  u_char __cacheline_padding_1[56];
+  volatile u_int64_t head;
+  u_char __cacheline_padding_2[56];
+  volatile u_int64_t tail;
+  u_char __cacheline_padding_3[56];
+  u_int64_t shadow_tail;
+  u_char __cacheline_padding_4[56];	
+  void *items[QUEUE_ITEMS];
+} spsc_queue_t;
+
+
 #endif /* _NTOP_TYPEDEFS_H_ */

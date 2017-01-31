@@ -615,7 +615,7 @@ int Redis::twoOperators(const char *operation, char *op1, char *op2) {
 /* **************************************** */
 
 int Redis::pushHostToTrafficFiltering(char *hostname, bool dont_check_for_existance, bool localHost) {
-  if(ntop->getPrefs()->is_httpbl_enabled()) {
+  if(ntop->getPrefs()->is_httpbl_enabled() || ntop->getPrefs()->is_flashstart_enabled()) {
     if(hostname == NULL) return(-1);
     return(pushHost(TRAFFIC_FILTERING_CACHE, TRAFFIC_FILTERING_TO_RESOLVE,
 		    hostname, dont_check_for_existance, localHost));
@@ -711,7 +711,7 @@ char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
   char key[CONST_MAX_LEN_REDIS_KEY];
   redisReply *reply;
 
-  if(!ntop->getPrefs()->is_httpbl_enabled()
+  if((!ntop->getPrefs()->is_httpbl_enabled())
      && (!ntop->getPrefs()->is_flashstart_enabled()))
     return(NULL);
 
@@ -737,11 +737,14 @@ char* Redis::getTrafficFilteringCategory(char *numeric_ip, char *buf,
 
     if(categorize_if_unknown) {
       num_requests++;
-      reply = (redisReply*)redisCommand(redis, "RPUSH %s %s", TRAFFIC_FILTERING_TO_RESOLVE, numeric_ip);
-      if(!reply) reconnectRedis();
-      if(reply && (reply->type == REDIS_REPLY_ERROR))
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-      if(reply) freeReplyObject(reply);
+
+      if(ntop->getPrefs()->is_httpbl_enabled()) {
+	reply = (redisReply*)redisCommand(redis, "RPUSH %s %s", TRAFFIC_FILTERING_TO_RESOLVE, numeric_ip);
+	if(!reply) reconnectRedis();
+	if(reply && (reply->type == REDIS_REPLY_ERROR))
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+	if(reply) freeReplyObject(reply);
+      }
     }
   }
 

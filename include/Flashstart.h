@@ -43,11 +43,11 @@ class Flashstart {
   struct category_mapping *mapping;
   pthread_t flashstartThreadLoop;
   u_int8_t numCategories;
-
+  bool syncClassification;
+  
   void initMapping();
   void purgeMapping();
   void addMapping(const char *label, u_int8_t id);
-  void queryFlashstart(char *symbolic_name, bool skipCache);
   int parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockaddr_in *from);
   u_int recvResponses(u_int msecTimeout);
   void queryDomain(int sock, char *domain, u_int queryId,
@@ -55,12 +55,13 @@ class Flashstart {
   void setCategory(struct site_categories *category, char *rsp);
 
  public:
-  Flashstart(char *_user, char *_pwd);
+  Flashstart(char *_user, char *_pwd, bool synchronousClassification);
   ~Flashstart();
 
   inline u_int8_t getNumCategories() { return(numCategories); }
   int findMapping(char *label);
   void startLoop();
+  void queryFlashstart(char *symbolic_name);
   void* flashstartLoop(void* ptr);
   bool findCategory(char *name, struct site_categories *category, bool add_if_needed); 
   void dumpCategories(lua_State* vm, struct site_categories *category);

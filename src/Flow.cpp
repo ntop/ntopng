@@ -153,18 +153,37 @@ void Flow::freeDPIMemory() {
 
 /* *************************************** */
 
+bool Flow::skipProtocolFamilyCategorization(u_int16_t proto_id) {
+  switch(proto_id) {
+  case NDPI_PROTOCOL_SSL:
+  case NDPI_PROTOCOL_HTTP:
+  case NDPI_PROTOCOL_HTTP_PROXY:
+    return(false);
+    break;
+
+  default:
+    return(true);
+  }
+}
+
+/* *************************************** */
+
 void Flow::categorizeFlow() {
   bool toRequest = false, toQuery = false;
   char *what;
 
-  switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
-    /* case NDPI_PROTOCOL_DNS: */
-  case NDPI_PROTOCOL_SSL:
-  case NDPI_PROTOCOL_HTTP:
-  case NDPI_PROTOCOL_HTTP_PROXY:
-    break;
+  if(skipProtocolFamilyCategorization(ndpiDetectedProtocol.protocol)
+     && skipProtocolFamilyCategorization(ndpiDetectedProtocol.master_protocol)) {
+#ifdef DEBUG_CATEGORIZATION
+    if(0) {
+      char pbuf[256];
 
-  default:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping categorization for %s",
+				   print(pbuf, sizeof(pbuf)));
+
+    }
+#endif
+
     return;
   }
 
@@ -185,8 +204,7 @@ void Flow::categorizeFlow() {
 
   if(toRequest) {
     if(ntop->get_flashstart()->findCategory(Utils::get2ndLevelDomain(what),
-					    &categorization.category,
-					    toQuery))
+					    &categorization.category, toQuery))
       checkFlowCategory();
   }
 }
@@ -239,14 +257,14 @@ void Flow::dumpFlowAlert() {
     AlertType aType;
     const char *msg = Utils::flowStatus2str(status, &aType);
     bool do_dump = true;
-    
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, f);
 
     switch(status) {
     case status_normal:
       do_dump = false;
       break;
-	
+
     case status_slow_tcp_connection: /* 1 */
     case status_slow_application_header: /* 2 */
     case status_slow_data_exchange: /* 3 */
@@ -345,9 +363,8 @@ void Flow::checkBlacklistedFlow() {
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
 
-  if(protocol_processed || (ndpiFlow == NULL)) {
+  if(protocol_processed || (ndpiFlow == NULL))
     return;
-  }
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
@@ -396,7 +413,7 @@ void Flow::processDetectedProtocol() {
 	  name = (char*)ndpiFlow->host_server_name;
 
 	if(name) {
-	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);	  
+	  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", (char*)ndpiFlow->host_server_name);
 
 	  if(ndpiFlow->protos.dns.reply_code == 0) {
 	    if(ndpiFlow->protos.dns.num_answers > 0) {
@@ -742,8 +759,11 @@ char* Flow::print(char *buf, u_int buf_len) {
 		      tcp_stats_s2d.pktRetr, tcp_stats_d2s.pktRetr);
   }
 
+  if(ndpiDetectedProtocol.master_protocol == 0)
+    ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.protocol;
+
   snprintf(buf, buf_len,
-	   "%s %s:%u > %s:%u [proto: %u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
+	   "%s %s:%u > %s:%u [proto: %u.%u/%s][%u/%u pkts][%llu/%llu bytes][%s]%s%s%s"
 #ifdef NTOPNG_PRO
 	   "%s"
 #endif
@@ -751,7 +771,8 @@ char* Flow::print(char *buf, u_int buf_len) {
 	   get_protocol_name(),
 	   cli_host->get_ip()->print(buf1, sizeof(buf1)), ntohs(cli_port),
 	   srv_host->get_ip()->print(buf2, sizeof(buf2)), ntohs(srv_port),
-	   ndpiDetectedProtocol.protocol, get_detected_protocol_name(pbuf, sizeof(pbuf)),
+	   ndpiDetectedProtocol.master_protocol, ndpiDetectedProtocol.protocol,
+	   get_detected_protocol_name(pbuf, sizeof(pbuf)),
 	   cli2srv_packets, srv2cli_packets,
 	   (long long unsigned) cli2srv_bytes, (long long unsigned) srv2cli_bytes,
 	   printTCPflags(getTcpFlags(), buf3, sizeof(buf3)),
@@ -771,7 +792,7 @@ char* Flow::print(char *buf, u_int buf_len) {
 bool Flow::dumpFlow(bool idle_flow) {
   bool rc = false;
   time_t now;
-  
+
   dumpFlowAlert();
 
   if(((cli2srv_packets - last_db_dump.cli2srv_packets) == 0)
@@ -885,7 +906,7 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	hp->incPoolStats(srv_host_pool_id, ndpiDetectedProtocol.protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
       }
-      
+
 #endif
 
       if(cli_host) {
@@ -1500,25 +1521,6 @@ bool Flow::isFlowPeer(char *numIP, u_int16_t vlanId) {
 
   return(false);
 }
-
-/* *************************************** */
-
-#ifdef NOTUSED
-struct site_categories* Flow::getFlowCategory(bool force_categorization) {
-  if(!categorization.categorized_requested) {
-    if(ndpiFlow == NULL)
-      categorization.categorized_requested = true;
-    else if(host_server_name && (host_server_name[0] != '\0')) {
-      if(!Utils::isGoodNameToCategorize(host_server_name))
-	categorization.categorized_requested = true;
-      else
-	categorizeFlow();
-    }
-  }
-
-  return(&categorization.category);
-}
-#endif
 
 /* *************************************** */
 

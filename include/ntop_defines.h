@@ -642,6 +642,12 @@
 #define INTER_FLOW_ACTIVITY_MAX_INTERVAL             5
 #define INTER_FLOW_ACTIVITY_MAX_CONTINUITY_INTERVAL 20
 
+#define CACHE_LINE_LEN          64
+#define QUEUE_ITEMS             2048 /* pow of 2 */
+#define QUEUE_ITEMS_MASK        (QUEUE_ITEMS - 1)
+#define QUEUE_WATERMARK         8 /* pow of 2 */
+#define QUEUE_WATERMARK_MASK    (QUEUE_WATERMARK - 1)
+
 #define SSL_HANDSHAKE_PACKET          0x16
 #define SSL_PAYLOAD_PACKET            0x17
 #define SSL_CLIENT_HELLO              0x01
