@@ -184,7 +184,7 @@ print [[
 <br/><table><tbody><tr>
 ]]
 
-print('<td style="white-space:nowrap;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
+print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
 local no_pools = true
 for _,pool in ipairs(available_pools) do
   if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
@@ -421,8 +421,8 @@ print [[
       var member_id = addedMemberCtr++;
       var newid = "member_" + member_id;
 
-      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
+      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center text-middle]] if not (isCaptivePortalActive()) then print(" hidden") end print[[">Persistent</td><td class="text-center"></td></tr>');
+      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
 
@@ -484,12 +484,23 @@ print [[
               textAlign: 'center',
             }
          }, {
+            title: "Residual Lifetime",
+            field: "column_residual",
+]] if not (isCaptivePortalActive()) then
+  print[[   hidden: true,]]
+end
+print[[            css : {
+               width: '10%',
+               textAlign: 'center',
+               verticalAlign: 'middle',
+            }
+         }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
                width: '20%',
                textAlign: 'center',
             }
-         } , {
+         }, {
             field: "column_link",
             hidden: true,
          }
@@ -549,8 +560,8 @@ print [[
               value = value + " [VLAN " + vlan_value + "]";
 
             if (link_value)
-              datatableAddLinkButtonCallback.bind(this)(5, link_value, "View");
-            datatableAddDeleteButtonCallback.bind(this)(5, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+              datatableAddLinkButtonCallback.bind(this)(6, link_value, "View");
+            datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           aysResetForm('#table-manage-form');

@@ -62,6 +62,7 @@ if((ifid ~= nil) and (isAdministrator())) then
             column_icon = icon,
             column_vlan = tostring(member.vlan),
             column_link = link,
+            column_residual = tonumber(member.residual) and secondsToTime(member.residual) or "Persistent",
           }
         end
         i = i + 1

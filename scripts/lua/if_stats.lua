@@ -1137,7 +1137,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 	    if(pool.id == selected_pool.id) then print(" selected") end
 	    print(">"..(pool.name).."</option>\n")
    end
-print('</select> <A HREF='..  ntop.getHttpPrefix()..'/lua/admin/host_pools.lua?pool=') print(selected_pool.id) print(' title="Edit Host Pool"><i class="fa fa-cog fa-lg" aria-hidden="true"></i></A>')
+print('</select> <A HREF='..  ntop.getHttpPrefix()..'/lua/admin/host_pools.lua?pool=') print(selected_pool.id) print(' title="Edit Host Pool"><i class="fa fa-users fa-lg" aria-hidden="true"></i></A>')
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
    <input type="hidden" name="target_pool" value="]] print(selected_pool.id) print[[">

@@ -91,9 +91,23 @@ function host_pools_utils.getPoolMembers(ifid, pool_id)
   local members_key = get_pool_members_key(ifid, pool_id)
   local members = {}
 
-  for _,v in pairsByValues(ntop.getMembersCache(members_key) or {}, asc) do
+  local all_members = ntop.getMembersCache(members_key) or {}
+  local volatile = {}
+  for _,v in pairs(interface.getHostPoolsVolatileMembers()[1] or {}) do
+    if not v.expired then
+      all_members[#all_members + 1] = v["member"]
+      volatile[v["member"]] = v["residual_lifetime"]
+    end
+  end
+
+  for _,v in pairsByValues(all_members, asc) do
     local hostinfo = hostkey2hostinfo(v)
-    members[#members + 1] = {address=hostinfo["host"], vlan=hostinfo["vlan"], key=v}
+    local residual_lifetime = NULL
+    if volatile[v] ~= nil then
+      residual_lifetime = volatile[v];
+    end
+
+    members[#members + 1] = {address=hostinfo["host"], vlan=hostinfo["vlan"], key=v, residual=residual_lifetime}
   end
 
   return members
