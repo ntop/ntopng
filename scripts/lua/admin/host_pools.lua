@@ -196,7 +196,15 @@ for _,pool in ipairs(available_pools) do
     no_pools = false
   end
 end
-print('</select></td>\n')
+print('</select>')
+
+local ifstats = interface.getStats()
+local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+if is_bridge_iface then
+  print("<a href='/lua/if_stats.lua?page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-exchange fa-lg' aria-hidden='true'></i></a>")
+end
+
+print('</td>\n')
 if member_filtering ~= nil then
   local member_name = split(member_filtering, "/")[1]
   print[[
