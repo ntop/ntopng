@@ -25,7 +25,7 @@ end
 local options_script_loaded = false
 local options_ctr = 0
 
-function prefsResolutionButtons(fmt, value)
+function prefsResolutionButtons(fmt, value, fixed_id)
   local fmt_to_data = {
     ["s"] = {label="Secs",  value=1},
     ["m"] = {label="Mins",  value=60},
@@ -33,8 +33,13 @@ function prefsResolutionButtons(fmt, value)
     ["d"] = {label="Days",  value=3600*24},
   }
 
-  local ctrl_id = "options_group_" .. options_ctr
-  options_ctr = options_ctr + 1
+  local ctrl_id
+  if fixed_id ~= nil then
+    ctrl_id = fixed_id
+  else
+    ctrl_id = "options_group_" .. options_ctr
+    options_ctr = options_ctr + 1
+  end
 
   local res = makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, {classes={"pull-right"}})
 

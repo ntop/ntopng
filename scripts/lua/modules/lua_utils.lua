@@ -2622,8 +2622,12 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
   local js_init_code = [[
       var _resol_inputs = [];
 
-      function resol_selector_get_input(an_input) {
-        return $("input", $(an_input).closest(".form-group")).last();
+      function resol_selector_get_input(a_button) {
+        return $("input", $(a_button).closest(".form-group")).last();
+      }
+
+      function resol_selector_get_buttons(an_input) {
+        return $(".btn-group", $(an_input).closest(".form-group")).first().find("input");
       }
 
       /* This function scales values wrt selected resolution */
@@ -2640,13 +2644,16 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
           input.attr("max", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
       }
 
-      function resol_selector_change_callback(event) {
-        var selected = $(this);
-        selected.attr('checked', 'checked')
+      function resol_selector_change_selection(selected) {
+         selected.attr('checked', 'checked')
           .closest("label").removeClass('btn-default').addClass('btn-primary')
           .siblings().removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
 
         resol_selector_reset_input_range(selected);
+      }
+
+      function resol_selector_change_callback(event) {
+        resol_selector_change_selection($(this));
       }
 
       function resol_selector_on_form_submit(event) {
@@ -2657,6 +2664,29 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
 
         resol_selector_finalize(form);
         return true;
+      }
+
+      /* Helper function to set a selector value by raw value */
+      function resol_selector_set_value(input_id, its_value) {
+         var input = $(input_id);
+         var buttons = resol_selector_get_buttons(input_id);
+         var values = [];
+
+         buttons.each(function() {
+            values.push(parseInt($(this).val()));
+         });
+
+         /* highest divisor */
+         var highest_i = 0;
+         for (var i=1; i<values.length; i++) {
+            if(((values[i] > values[highest_i]) && (its_value % values[i] == 0)))
+               highest_i = i;
+         }
+         var new_value = its_value / values[highest_i];
+
+         /* Set */
+         input.val(new_value);
+         resol_selector_change_selection($(buttons[highest_i]));
       }
 
       function resol_selector_finalize(form) {
