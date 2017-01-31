@@ -87,6 +87,22 @@ int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type) 
 
 /* ****************************************** */
 
+static void get_host_vlan_info(char* lua_ip, char** host_ip,
+			       u_int16_t* vlan_id,
+			       char *buf, u_int buf_len) {
+  char *where, *vlan = NULL;
+
+  snprintf(buf, buf_len, "%s", lua_ip);
+
+  if(((*host_ip) = strtok_r(buf, "@", &where)) != NULL)
+    vlan = strtok_r(NULL, "@", &where);
+
+  if(vlan)
+    (*vlan_id) = (u_int16_t)atoi(vlan);
+}
+
+/* ****************************************** */
+
 static NetworkInterface* handle_null_interface(lua_State* vm) {
   char allowed_ifname[MAX_INTERFACE_NAME_LEN];
 
@@ -285,11 +301,20 @@ static int ntop_select_interface(lua_State* vm) {
 static int ntop_get_ndpi_interface_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats stats;
+  char *host_ip = NULL;
+  u_int16_t vlan_id = 0;
+  char buf[64];
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  /* Optional host */
+  if(lua_type(vm, 1) == LUA_TSTRING) get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  /* Optional VLAN id */
+  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
   if(ntop_interface) {
-    ntop_interface->getnDPIStats(&stats);
+    ntop_interface->getnDPIStats(&stats, get_allowed_nets(vm), host_ip, vlan_id);
 
     lua_newtable(vm);
     stats.lua(ntop_interface, vm);
@@ -1368,22 +1393,6 @@ static int ntop_send_udp_data(lua_State* vm) {
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static void get_host_vlan_info(char* lua_ip, char** host_ip,
-			       u_int16_t* vlan_id,
-			       char *buf, u_int buf_len) {
-  char *where, *vlan = NULL;
-
-  snprintf(buf, buf_len, "%s", lua_ip);
-
-  if(((*host_ip) = strtok_r(buf, "@", &where)) != NULL)
-    vlan = strtok_r(NULL, "@", &where);
-
-  if(vlan)
-    (*vlan_id) = (u_int16_t)atoi(vlan);
 }
 
 /* ****************************************** */

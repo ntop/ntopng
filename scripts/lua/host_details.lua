@@ -23,6 +23,7 @@ local host_pools_utils = require "host_pools_utils"
 debug_hosts = false
 page        = _GET["page"]
 protocol_id = _GET["protocol"]
+application = _GET["application"]
 host_info   = url2hostinfo(_GET)
 host_ip     = host_info["host"]
 host_name   = hostinfo2hostkey(host_info)
@@ -1457,6 +1458,9 @@ print [[
 print (ntop.getHttpPrefix())
 print [[/lua/get_flows_data.lua?ifname=]]
 print(ifId.."&")
+if (application ~= nil) then
+   print("application="..application.."&")
+end
 print (hostinfo2url(host_info)..'";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")
@@ -1474,6 +1478,25 @@ elseif interface.isPcapDumpInterface() then
    active_flows_msg = "Flows"
 end
 
+local application_filter = ''
+if(application ~= nil) then
+   application_filter = '<span class="glyphicon glyphicon-filter"></span>'
+end
+local dt_buttons = "['<div class=\"btn-group\"><button class=\"btn btn-link dropdown-toggle\" data-toggle=\"dropdown\">Applications " .. application_filter .. "<span class=\"caret\"></span></button> <ul class=\"dropdown-menu\" role=\"menu\" >"
+dt_buttons = dt_buttons..'<li><a href="'..ntop.getHttpPrefix()..url..'&page=flows">All Proto</a></li>'
+
+local ndpi_stats = interface.getnDPIStats(host_info["host"], host_vlan)
+
+for key, value in pairsByKeys(ndpi_stats["ndpi"], asc) do
+   local class_active = ''
+   if(key == application) then
+      class_active = ' class="active"'
+   end
+   dt_buttons = dt_buttons..'<li '..class_active..'><a href="'..ntop.getHttpPrefix()..url..'&page=flows&application='..key..'">'..key..'</a></li>'
+end
+
+dt_buttons = dt_buttons .. "</ul></div>']"
+
 if(show_sprobe) then
 print [[
   //console.log(url_update);
@@ -1481,6 +1504,7 @@ print [[
    flow_rows_option["type"] = 'host';
    $("#table-flows").datatable({
       url: url_update ,
+      buttons: ]] print(dt_buttons) print[[,
       rowCallback: function ( row ) { return flow_table_setID(row); },
          showPagination: true,
 ]]
@@ -1502,6 +1526,7 @@ print [[
   flow_rows_option["type"] = 'host';
 	 $("#table-flows").datatable({
          url: url_update,
+         buttons: ]] print(dt_buttons) print[[,
          rowCallback: function ( row ) { return flow_table_setID(row); },
 	       showPagination: true,
 	       ]]
@@ -1523,7 +1548,7 @@ print [[
          hidden: true
          },
 			     {
-			     title: "Info",
+			     title: "",
 				 field: "column_key",
 	 	             css: {
 			        textAlign: 'center'
