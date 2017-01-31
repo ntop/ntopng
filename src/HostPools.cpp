@@ -142,10 +142,10 @@ void HostPools::reloadVolatileMembers(AddressTree **_trees) {
   char *at, *member;
   bool rc;
   u_int16_t vlan_id;
-  
+
   if(!_trees)
     return;
-  
+
   for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
 
     if(!volatile_members[pool_id])
@@ -207,7 +207,7 @@ void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, tim
     m->host_or_mac = strdup(host_or_mac);
     HASH_ADD_STR(volatile_members[host_pool_id], host_or_mac, m);
   }
-  m->lifetime = time(NULL) + lifetime;  
+  m->lifetime = time(NULL) + lifetime;
 
 #ifdef HOST_POOLS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -234,8 +234,8 @@ void HostPools::dumpToRedis() {
       snprintf(buf, sizeof(buf), "%d", i);
       char *value = stats[i]->serialize(iface);
       if (value) {
-        redis->hashSet(key, buf, value);
-        free(value);
+	redis->hashSet(key, buf, value);
+	free(value);
       }
     }
   }
@@ -262,15 +262,15 @@ void HostPools::loadFromRedis() {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
       if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) != 1) {
-        if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
-                  json_tokener_error_desc(jerr),
-                  key,
-                  value);
-        } else {
-          stats[i]->deserialize(iface, obj);
-          json_object_put(obj);
-        }
+	if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
+		  json_tokener_error_desc(jerr),
+		  key,
+		  value);
+	} else {
+	  stats[i]->deserialize(iface, obj);
+	  json_object_put(obj);
+	}
       }
     }
   }
@@ -310,7 +310,7 @@ void HostPools::luaStats(lua_State *vm) {
     lua_newtable(vm);
     for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
       if((hps = stats[i])) {
-	/* Must use the assigned hps as stats can be swapped 
+	/* Must use the assigned hps as stats can be swapped
 	 and accesses such as stats[i] could yield a NULL value */
 	hps->lua(vm, iface);
 	lua_rawseti(vm, -2, i);
@@ -325,7 +325,7 @@ void HostPools::luaVolatileMembers(lua_State *vm) {
   volatile_members_t *current, *tmp;
   int i;
   time_t now = time(NULL);
-  
+
   if(!vm)
     return;
 
@@ -426,6 +426,32 @@ void HostPools::purgeExpiredVolatileMembers() {
   if(purged)
     reloadPools();
 }
+
+/* *************************************** */
+
+void HostPools::removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id) {
+  volatile_members_t *m;
+  bool purged = false;
+
+  if(user_pool_id == NO_HOST_POOL_ID || user_pool_id >= MAX_NUM_HOST_POOLS || !host_or_mac)
+    return;
+
+  volatile_members_lock[user_pool_id]->lock(__FILE__, __LINE__);
+
+  HASH_FIND_STR(volatile_members[user_pool_id], host_or_mac, m);
+  if(m) {
+    HASH_DEL(volatile_members[user_pool_id], m);
+    free(m->host_or_mac);
+    free(m);
+    purged = true;
+  }
+
+  volatile_members_lock[user_pool_id]->unlock(__FILE__, __LINE__);
+
+  if(purged)
+    reloadPools();
+}
+
 #endif
 
 /* *************************************** */

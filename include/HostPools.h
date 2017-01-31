@@ -77,6 +77,7 @@ public:
   void luaStats(lua_State *vm);
   void luaVolatileMembers(lua_State *vm);
   void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
+  void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);
   void purgeExpiredVolatileMembers();
 #endif
 };
