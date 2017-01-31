@@ -76,7 +76,7 @@ static int value_sort(FrequentNumericKey_t *a, FrequentNumericKey_t *b) {
 /* ******************************************************** */
 
 void FrequentNumericItems::prune() {
-  FrequentNumericKey_t *curr;
+  FrequentNumericKey_t *curr, *tmp;
   u_int32_t num = 0;
 
   /* No lock here */
@@ -86,9 +86,7 @@ void FrequentNumericItems::prune() {
   */
   HASH_SORT(q, value_sort);
 
-  for(curr=q; curr != NULL; curr = (FrequentNumericKey_t*)curr->hh.next) {
-    // ntop->getTrace()->traceEvent(TRACE_INFO, "%u = %u\n", curr->key, curr->value);
-
+  HASH_ITER(hh, q, curr, tmp) {
     if(++num > max_items) {
       HASH_DEL(q, curr);  /* delete it */
       free(curr);         /* free it */
