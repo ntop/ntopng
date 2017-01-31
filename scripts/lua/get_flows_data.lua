@@ -228,13 +228,6 @@ for key, value in ipairs(flows_stats) do
    end
    if(debug and (not process)) then io.write("Stop name\n") end
 
-   ---------------- APP ----------------
-   if(application ~= nil) then
-      process = process and (string.ends(flows_stats[key]["proto.ndpi"], application))
-      -- print(flows_stats[key]["proto.ndpi"].." "..application.."<br>")
-   end
-   if(debug and (not process)) then io.write("Stop ndpi\n") end
-
    ---------------- PORT ----------------
    if(port ~= nil) then
       process = process and ((flows_stats[key]["cli.port"] == port) or (flows_stats[key]["srv.port"] == port))
