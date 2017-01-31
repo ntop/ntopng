@@ -22,17 +22,19 @@ interface.select(ifname)
 local members = host_pools_utils.getPoolMembers(getInterfaceId(ifname), pool_id)
 
 for _,member in ipairs(members) do
-  local name = member.address
+  if string.contains(member.address, query) then
+    local name = member.address
 
-  if tonumber(member.vlan) > 0 then
-    name = name .. " [VLAN " .. member.vlan .. "]"
-  end
+    if tonumber(member.vlan) > 0 then
+      name = name .. " [VLAN " .. member.vlan .. "]"
+    end
 
-  -- Note: the 'name' field is used by typeahead
-  results[#results + 1] = {name=name, key=member.key}
+    -- Note: the 'name' field is used by typeahead
+    results[#results + 1] = {name=name, key=member.key}
 
-  if #results == max_num_to_find then
-    break
+    if #results == max_num_to_find then
+      break
+    end
   end
 end
 

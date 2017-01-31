@@ -167,6 +167,8 @@ else
   perPageMembers = tablePreferences("hostPoolMembers")
 end
 
+local member_filtering = _GET["member"]
+
 --------------------------------------------------------------------------------
 
 print [[
@@ -195,7 +197,19 @@ for _,pool in ipairs(available_pools) do
   end
 end
 print('</select></td>\n')
-print('<td>')
+if member_filtering ~= nil then
+  local member_name = split(member_filtering, "/")[1]
+  print[[
+  <td>
+    <form action="?pool=]] print(selected_pool.id) print[[#manage">
+      <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
+        <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> Filter: ]] print(member_name) print[[
+      </button>
+    </form>
+  </td>
+  ]]
+end
+print('<div style="float:right;">')
 print(
   template.gen("typeahead_input.html", {
     typeahead={
@@ -210,7 +224,7 @@ print(
     }
   })
 )
-print('</td>')
+print('</div>')
 print('</tr></tbody></table>')
 
 if no_pools then
@@ -377,6 +391,11 @@ print[[
 
       return count == 1;
     }
+]]
+if member_filtering ~= nil then
+  print[[$("#pool_selector").attr("disabled", true);]]
+end
+print[[
   </script>
 ]]
 
@@ -414,7 +433,7 @@ print [[
         params.pool_id = ]] print(selected_pool.id) print[[;
         params.member_to_delete = field.attr("data-origin-value");
         params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-        paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+        paramsToForm('<form method="post" action="?pool=]] print(selected_pool.id) print[["></form>', params).appendTo('body').submit();
       }
     }
 
@@ -529,7 +548,7 @@ print [[
           aysResetForm('#table-manage-form');
         }
 
-        $("#addPoolMemberBtn").attr("disabled", (! datatableIsLastPage("#table-manage-form")) || (no_pools));
+        $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form")) || (no_pools)) || (]] if member_filtering ~= nil then print("true") else print("false") end print[[));
 
         $("#table-manage-form")
             .validator(validator_options)
