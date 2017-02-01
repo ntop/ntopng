@@ -47,6 +47,7 @@ void MacManufacturers::init() {
   size_t len = 0;
   ssize_t read;
   u_int8_t mac[3];
+  char short_name[9];
   mac_manufacturers_t *s;
 
   if(!(stat(manufacturers_file, &buf) == 0) && (S_ISREG(buf.st_mode)))
@@ -57,7 +58,10 @@ void MacManufacturers::init() {
 
   if(fd) {
     while ((read = getline(&line, &len, fd)) != -1) {
-      if(sscanf(line, "%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2]) == 3) {
+      char *tab = strchr(line, '\t');
+
+      if((sscanf(line, "%02hhx:%02hhx:%02hhx", &mac[0], &mac[1], &mac[2]) == 3) &&
+         (tab != NULL)) {
 
 	// printf("Retrieved line of length %zu :\n", read);
 	// printf("%s", line);
@@ -78,6 +82,8 @@ void MacManufacturers::init() {
 	  if((s = (mac_manufacturers_t*)calloc(1, sizeof(mac_manufacturers_t))) != NULL) {
 	    memcpy(s->mac_manufacturer, mac, 3);
 	    s->manufacturer_name = strdup(manuf);
+	    sscanf(tab, "%8s", short_name);
+	    s->short_name = strdup(short_name);
 	    HASH_ADD(hh, mac_manufacturers, mac_manufacturer, 3, s);
 
 #ifdef MANUF_DEBUG

@@ -27,6 +27,7 @@
 typedef struct {
   u_int8_t mac_manufacturer[3];
   char *manufacturer_name;
+  char *short_name;
   UT_hash_handle hh;
 } mac_manufacturers_t;
 
@@ -44,6 +45,19 @@ class MacManufacturers {
     mac_manufacturers_t *m = NULL;
     HASH_FIND(hh, mac_manufacturers, mac, 3, m);
     return m ? m->manufacturer_name : NULL;
+  };
+
+  inline void getMacManufacturer(u_int8_t mac[], lua_State *vm) {
+    mac_manufacturers_t *m = NULL;
+    HASH_FIND(hh, mac_manufacturers, mac, 3, m);
+
+    if (m) {
+      lua_newtable(vm);
+      lua_push_str_table_entry(vm, "short", m->short_name);
+      lua_push_str_table_entry(vm, "extended", m->manufacturer_name);
+    } else {
+      lua_pushnil(vm);
+    }
   };
 };
 

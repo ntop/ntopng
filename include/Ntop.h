@@ -150,6 +150,13 @@ class Ntop {
    * @param dir Path to database home directory.
    */
   void loadMacManufacturers(char *dir);
+
+  inline void getMacManufacturer(const char *mac, lua_State *vm) {
+    u_int8_t mac_bytes[6];
+    Utils::parseMac(mac_bytes, mac);
+    mac_manufacturers->getMacManufacturer(mac_bytes, vm);
+  }
+
   /**
    * @brief Set the local networks.
    * @details Set the local networks to @ref AddressResolution instance.

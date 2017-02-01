@@ -1913,48 +1913,14 @@ function makeTopStatsScriptsArray()
    return(topArray)
 end
 
-local mac_cache = nil
 -- get_mac_classification
 function get_mac_classification(m, extended_name)
-   local path = fixPath(dirs.installdir.."/httpdocs/other/EtherOUI.txt")
-   local file_mac
+   local short_extended = ntop.getMacManufacturer(m) or {}
 
-   if(string.len(m) > 8) then m = string.sub(m, 1, 8) end
-
-   if mac_cache == nil then
-      -- lazy initialization
-      local file_mac = io.open(path)
-      if (file_mac == nil) then return m end
-
-      mac_cache = {}
-
-      while true do
-	 local mac_line = file_mac:read("*l")
-	 if mac_line == nil then break
-	 elseif mac_line == "" or string.starts(mac_line, "#") then goto continue end
-
-	 local mac_manuf_id  = string.upper(string.sub(mac_line, 1, 8))
-	 if not string.match(mac_manuf_id, "^%x%x:%x%x:%x%x$") then goto continue end
-	 local t             = split(mac_line, "\t")
-
-	 local mac_manuf_txt     = split(t[2], " ")[1] -- Apple
-	 local mac_manuf_txt_ext = split(t[2], "# ")[2] -- Apple, Inc.
-
-	 mac_cache[mac_manuf_id] = {mac_manuf_txt, mac_manuf_txt_ext}
-
-	 ::continue::
-      end
-
-      file_mac.close()
-   end
-
-   if(mac_cache[m] ~= nil) then
-      -- io.write("Cached "..m.."\n")
-      if extended_name then
-	 return mac_cache[m][2] or mac_cache[m][1] or m
-      else
-	 return mac_cache[m][1] or m
-      end
+   if extended_name then
+      return short_extended.extended or short_extended.short or m
+   else
+      return short_extended.short or m
    end
 
    return m

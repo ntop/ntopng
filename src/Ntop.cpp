@@ -1055,7 +1055,7 @@ bool Ntop::addUserLifetime(const char * const username, u_int32_t lifetime_secs)
 /* ******************************************* */
 
 bool Ntop::clearUserLifetime(const char * const username) {
-  char key[64], val[64], lifetime_val[16];
+  char key[64], val[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
 
