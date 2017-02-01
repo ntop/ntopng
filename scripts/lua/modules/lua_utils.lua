@@ -1095,7 +1095,8 @@ end
 -- Used to avoid resolving host names too many times
 resolved_host_labels_cache = {}
 
-function getHostAltName(host_ip)
+-- host_ip can be a mac. host_mac can be null.
+function getHostAltName(host_ip, host_mac)
    local alt_name = resolved_host_labels_cache[host_ip]
 
    -- cache hit
@@ -1106,6 +1107,9 @@ function getHostAltName(host_ip)
    local key = "ntopng.host_labels"
 
    alt_name = ntop.getHashCache(key, host_ip)
+   if (isEmptyString(alt_name) and (host_mac ~= nil)) then
+      alt_name = ntop.getHashCache(key, host_mac)
+   end
 
    if isEmptyString(alt_name) then
      alt_name = host_ip
@@ -1975,7 +1979,7 @@ local magic_short_macs = {
 }
 
 function macInfo(mac)
-  return(' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?mac='.. mac ..'">'..mac..'</A> ')
+  return(' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='.. mac ..'">'..mac..'</A> ')
 end
 
 -- get_symbolic_mac
@@ -2362,8 +2366,11 @@ function setHostIcon(key, icon)
   ntop.setHashCache("ntopng.host_icons", key, icon)
 end
 
-function pickIcon(key)
+function pickIcon(key, alt_key)
   local icon = getHostIconName(key)
+  if (isEmptyString(icon) and (alt_key ~= nil)) then
+    icon = getHostIconName(alt_key)
+  end
 
 print [[<div class="form-group"><select name="custom_icon" class="form-control">]]
 

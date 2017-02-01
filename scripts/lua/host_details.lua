@@ -170,7 +170,7 @@ else
       setHostAltName(hostinfo2hostkey(host_info), _POST["custom_name"])
    end
 
-   host["label"] = getHostAltName(hostinfo2hostkey(host_info))
+   host["label"] = getHostAltName(hostinfo2hostkey(host_info), host["mac"])
 
    hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
    rrdname = hostbase .. "/bytes.rrd"
@@ -645,7 +645,7 @@ if(host["ip"] ~= nil) then
       if(host["label"] ~= nil) then print(host["label"]) end
 print("\"></input>")
 
-pickIcon(labelKey)
+pickIcon(labelKey, host["mac"])
 
 print [[
 	 &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]
