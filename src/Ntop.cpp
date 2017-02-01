@@ -1042,6 +1042,22 @@ bool Ntop::addUserLifetime(const char * const username, u_int32_t lifetime_secs)
 
 /* ******************************************* */
 
+bool Ntop::clearUserLifetime(const char * const username) {
+  char key[64], val[64], lifetime_val[16];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
+    ntop->getRedis()->del(key);
+    return(true);
+  }
+
+  return(false);
+}
+
+/* ******************************************* */
+
 bool Ntop::hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs) {
   char key[64], val[64];
 

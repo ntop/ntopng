@@ -2607,7 +2607,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       else
 	 line[#line+1] = [[ btn-default]]
       end
-      line[#line+1] = [[ btn-sm"><input value="]] .. v.value .. [[" title="]] .. v.label .. [[" name="options_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
+      line[#line+1] = [[ btn-sm"><input value="]] .. v.value .. [[" title="]] .. v.label .. [[" name="opt_resbt_]] .. k .. [[_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
       if selected == k then line[#line+1] = [[ checked="checked"]] end
       line[#line+1] = [[/>]] .. v.label .. [[</label>]]
 
@@ -2691,11 +2691,13 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
 
       function resol_selector_finalize(form) {
         $.each(_resol_inputs, function(i, elem) {
+          /* Skip elements which are not part of the form */
+          if (! $(elem).closest("form").is(form))
+            return;
+
           var selected = $(elem).find("input[checked]");
           var input = resol_selector_get_input(selected);
 
-          /* remove added input names */
-          $(elem).find("input").removeAttr("name");
           /* transform in raw units */
           var new_input = $("<input type=\"hidden\"/>");
           new_input.attr("name", input.attr("name"));
@@ -2703,6 +2705,9 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
           new_input.val(parseInt(selected.val()) * parseInt(input.val()));
           new_input.appendTo(form);
         });
+
+        /* remove added input names */
+        $("input[name^=opt_resbt_]", form).removeAttr("name");
       }]]
 
   local js_specific_code = [[
