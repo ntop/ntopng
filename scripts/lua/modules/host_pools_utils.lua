@@ -56,16 +56,31 @@ function host_pools_utils.deletePool(ifid, pool_id)
   ntop.rmdir(rrd_base)
 end
 
-function host_pools_utils.addToPool(ifid, pool_id, member_and_vlan)
+function host_pools_utils.addPoolMember(ifid, pool_id, member_and_vlan)
   local members_key = get_pool_members_key(ifid, pool_id)
 
   ntop.setMembersCache(members_key, member_and_vlan)
 end
 
-function host_pools_utils.deleteFromPoll(ifid, pool_id, member_and_vlan)
+function host_pools_utils.deletePoolMember(ifid, pool_id, member_and_vlan)
   local members_key = get_pool_members_key(ifid, pool_id)
 
+  -- Possible delete volatile member
+  interface.removeVolatileMemberFromPool(member_and_vlan, tonumber(pool_id))
+  -- Possible delete non-volatile member
   ntop.delMembersCache(members_key, member_and_vlan)
+end
+
+function host_pools_utils.emptyPool(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
+
+  -- Remove volatile members
+  for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
+    interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
+  end
+
+  -- Remove non-volatile members
+  ntop.delCache(members_key)
 end
 
 function host_pools_utils.getPoolsList(ifid, without_info)
@@ -181,7 +196,7 @@ function host_pools_utils.purgeExpiredPoolsMembers()
       interface.select(ifname)
 
       if isCaptivePortalActive() then
-	 interface.purgeExpiredPoolsMembers()
+        interface.purgeExpiredPoolsMembers()
       end
    end
 end

@@ -56,7 +56,7 @@ elseif (_POST["edit_members"] ~= nil) then
   for k,old_member in pairs(config) do
     if not starts(k, "_") then
       if((not isEmptyString(old_member)) and (k ~= old_member)) then
-        host_pools_utils.deleteFromPoll(ifId, pool_to_edit, old_member)
+        host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
       end
     end
   end
@@ -67,7 +67,7 @@ elseif (_POST["edit_members"] ~= nil) then
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
-        host_pools_utils.addToPool(ifId, pool_to_edit, new_member)
+        host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
       end
 
       local host_key, is_network = host_pools_utils.getMemberKey(new_member)
@@ -87,10 +87,13 @@ elseif (_POST["edit_members"] ~= nil) then
   end
 
   interface.reloadHostPools()
-elseif (_POST["member_to_delete"] ~= nil) then
+elseif _POST["member_to_delete"] ~= nil then
   local pool_to_edit = _POST["pool_id"]
 
-  host_pools_utils.deleteFromPoll(ifId, pool_to_edit, _POST["member_to_delete"])
+  host_pools_utils.deletePoolMember(ifId, pool_to_edit, _POST["member_to_delete"])
+  interface.reloadHostPools()
+elseif _POST["empty_pool"] ~= nil then
+  host_pools_utils.emptyPool(ifId, _POST["empty_pool"])
   interface.reloadHostPools()
 end
 
@@ -163,6 +166,7 @@ else
 end
 
 local member_filtering = _GET["member"]
+local manage_url = "?id="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
 
 --------------------------------------------------------------------------------
 
@@ -204,7 +208,10 @@ if member_filtering ~= nil then
   local member_name = split(member_filtering, "/")[1]
   print[[
   <td>
-    <form action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?id=]] print(ifId.."") print[[&page=pools&pool=]] print(selected_pool.id) print[[">
+    <form action="#manage">
+      <input type="hidden" name="id" value="]] print(ifId.."") print[[" />
+      <input type="hidden" name="page" value="pools" />
+      <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
       <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
         <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> Filter: ]] print(member_name) print[[
       </button>
@@ -243,6 +250,7 @@ end
         <br/><div id="table-manage"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
+      <button id="emptyPoolButton" class="btn btn-default" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
 ]]
 
 print[[
@@ -291,6 +299,18 @@ print(
       title   = i18n("host_pools.remove_member"),
       message = i18n("host_pools.confirm_remove_member") .. ' "<span id=\"delete_member_dialog_member\"></span>" ' .. i18n("host_pools.from_pool") .. ' "' .. selected_pool.name .. '" ',
       confirm = i18n("remove"),
+    }
+  })
+)
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "empty_pool_dialog",
+      action  = "emptyCurrentPool()",
+      title   = i18n("host_pools.empty_pool"),
+      message = i18n("host_pools.confirm_empty_pool") .. " " .. selected_pool.name,
+      confirm = i18n("host_pools.empty_pool"),
     }
   })
 )
@@ -440,8 +460,15 @@ print [[
         params.pool_id = ]] print(selected_pool.id) print[[;
         params.member_to_delete = field.attr("data-origin-value");
         params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-        paramsToForm('<form method="post" action="?id=]] print(tostring(ifId)) print[[&page=pools&pool=]] print(selected_pool.id) print[[#manage"></form>', params).appendTo('body').submit();
+        paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       }
+    }
+
+    function emptyCurrentPool() {
+      var params = {};
+      params.empty_pool = ]] print(selected_pool.id) print[[;
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
     }
 
     $("#table-manage").datatable({
@@ -514,6 +541,7 @@ print[[            css : {
           no_pools = true;
         } else if(datatableIsEmpty("#table-manage")) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.empty_pool")) print[[");
+          $("#emptyPoolButton").attr("disabled", "disabled");
         } else {
           datatableForEachRow("#table-manage", function() {
             var member_address = $("td:nth-child(1)", $(this));
@@ -635,7 +663,7 @@ print[[            css : {
       params.edit_members = "";
       params.pool_id = ]] print(selected_pool.id) print[[;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       return false;
     }
   </script>
