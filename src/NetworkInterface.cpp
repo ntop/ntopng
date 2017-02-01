@@ -2293,6 +2293,7 @@ struct flowHostRetriever {
   AddressTree *allowed_hosts;
   Host *host;
   Mac *mac;
+  char *manufacturer;
   bool skipSpecialMacs, hostMacsOnly;
   char *country;
   int ndpi_proto;
@@ -2543,6 +2544,10 @@ static bool mac_search_walker(GenericHashEntry *he, void *user_data) {
 
   case column_num_hosts:
     r->elems[r->actNumEntries++].numericValue = m->getNumHosts();
+    break;
+
+  case column_manufacturer:
+    r->elems[r->actNumEntries++].stringValue = m->get_manufacturer() ? (char*)m->get_manufacturer() : (char*)"zzz";
     break;
 
   default:
@@ -2940,11 +2945,12 @@ int NetworkInterface::sortMacs(struct flowHostRetriever *retriever,
   }
 
   if((!strcmp(sortColumn, "column_mac")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_mac, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_vlan"))    retriever->sorter = column_vlan, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_since"))   retriever->sorter = column_since, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_thpt"))    retriever->sorter = column_thpt, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_traffic")) retriever->sorter = column_traffic, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_hosts"))   retriever->sorter = column_num_hosts, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_vlan"))         retriever->sorter = column_vlan,         sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt,         sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_traffic"))      retriever->sorter = column_traffic,      sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_manufacturer")) retriever->sorter = column_manufacturer, sorter = stringSorter;
   else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
 
   // make sure the caller has disabled the purge!!

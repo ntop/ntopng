@@ -306,14 +306,18 @@ void HostPools::updateStats(struct timeval *tv) {
 
 void HostPools::luaStats(lua_State *vm) {
   HostPoolStats *hps;
-  if(stats && vm) {
+
+  if(vm) {
     lua_newtable(vm);
-    for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
-      if((hps = stats[i])) {
-	/* Must use the assigned hps as stats can be swapped
-	 and accesses such as stats[i] could yield a NULL value */
-	hps->lua(vm, iface);
-	lua_rawseti(vm, -2, i);
+
+    if(stats) {
+      for(int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
+	if((hps = stats[i])) {
+	  /* Must use the assigned hps as stats can be swapped
+	     and accesses such as stats[i] could yield a NULL value */
+	  hps->lua(vm, iface);
+	  lua_rawseti(vm, -2, i);
+	}
       }
     }
   }

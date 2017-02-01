@@ -266,6 +266,7 @@ int main(int argc, char *argv[])
     Utils::dropPrivileges();
 
   ntop->loadGeolocation(prefs->get_docs_dir());
+  ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(),
 					  prefs->get_scripts_dir()));
 

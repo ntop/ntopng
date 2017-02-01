@@ -231,6 +231,7 @@ using namespace std;
 #include "DummyInterface.h"
 #include "ExportInterface.h"
 #include "Geolocation.h"
+#include "MacManufacturers.h"
 #include "Flashstart.h"
 #include "GenericHost.h"
 #include "CategoryStats.h"

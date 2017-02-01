@@ -57,6 +57,7 @@ class Ntop {
   Prefs *prefs;
   RuntimePrefs *runtimeprefs;
   Geolocation *geo;
+  MacManufacturers *mac_manufacturers;
   HTTPBL *httpbl;
   Flashstart *flashstart;
   ExportInterface *export_interface;
@@ -143,6 +144,13 @@ class Ntop {
    */
   void loadGeolocation(char *dir);
   /**
+   * @brief Load the @ref MacManufacturers module.
+   * @details Initialize the variable @ref dir with the input directory.
+   *
+   * @param dir Path to database home directory.
+   */
+  void loadMacManufacturers(char *dir);
+  /**
    * @brief Set the local networks.
    * @details Set the local networks to @ref AddressResolution instance.
    *
@@ -180,7 +188,13 @@ class Ntop {
    *
    * @return Current geolocation instance.
    */
-  inline Geolocation* getGeolocation()               { return(geo);                        };
+  inline Geolocation* getGeolocation()               { return(geo);                };
+  /**
+   * @brief Get the mac manufacturers instance.
+   *
+   * @return Current mac manufacturers instance.
+   */
+  inline MacManufacturers* getMacManufacturers()     { return(mac_manufacturers); };
   /**
    * @brief Get the ifName.
    * @details Find the ifName by id parameter.
