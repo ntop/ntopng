@@ -171,7 +171,6 @@ local manage_url = "?id="..ifId.."&page=pools&pool="..selected_pool.id.."#manage
 --------------------------------------------------------------------------------
 
 print [[
-<hr>
 <h2>]] print(i18n("host_pools.edit_host_pools")) print[[</h2>
 <br>
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
@@ -200,7 +199,7 @@ print('</select>')
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 if is_bridge_iface then
-  print("<a href='/lua/if_stats.lua?id=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-exchange fa-lg' aria-hidden='true'></i></a>")
+  print("<a href='/lua/if_stats.lua?id=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
 end
 
 print('</td>\n')

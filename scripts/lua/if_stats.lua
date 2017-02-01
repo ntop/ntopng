@@ -1150,7 +1150,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 print('</select>')
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?id='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users fa-lg" aria-hidden="true"></i></A>')
+  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?id='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users" aria-hidden="true"></i></A>')
 end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
