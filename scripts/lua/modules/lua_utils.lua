@@ -2773,3 +2773,11 @@ function getTopFlowPeers(hostname_vlan, max_hits, detailed)
     return {}
   end
 end
+
+-- ###########################################
+--
+-- IMPORTANT
+-- Leave it at the end so it can use the functions
+-- defined in this file
+--
+require "http_lint"
