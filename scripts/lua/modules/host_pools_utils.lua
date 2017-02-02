@@ -5,6 +5,8 @@ dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
 
+require "lua_utils"
+
 local host_pools_utils = {}
 host_pools_utils.DEFAULT_POOL_ID = "0"
 host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
