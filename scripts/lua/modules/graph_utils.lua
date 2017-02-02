@@ -127,7 +127,7 @@ function navigatedir(url, label, base, path, go_deep, print_html, ifid, host, st
 
 		  if(print_html) then
 		     if(not(printed)) then print('<li class="divider"></li>\n') printed = true end
-		     print("<li> <A HREF="..url..what..">"..label.."</A>  </li>\n")
+		     print("<li> <A HREF=\""..url..what.."\">"..label.."</A>  </li>\n")
 		  end
 	       end
 	    end
