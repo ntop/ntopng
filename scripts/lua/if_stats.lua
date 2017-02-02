@@ -706,7 +706,7 @@ print [[
 		    url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/network_load.lua',
-		    data: { ifname: "]] print(if_name) print [[" },
+		    data: { iffilter: "]] print(if_name) print [[" },
 		    success: function(content) {
 			var profiles = content;
 
@@ -1712,7 +1712,7 @@ setInterval(function() {
 	  url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/network_load.lua',
-	  data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
+	  data: { iffilter: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
 	  success: function(rsp) {
 
 	var v = bytesToVolume(rsp.bytes);

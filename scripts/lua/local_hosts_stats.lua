@@ -85,7 +85,10 @@ function hostkey2hostInfo(host_key) {
 
 function row_update(host_key) {
    var hostInfo = hostkey2hostInfo(host_key);
-   var url = "]] print(ntop.getHttpPrefix()) print [[/lua/get_host_data.lua?criteria=]] print(criteria) print [[&host="+hostInfo[0]+"&vlan=" + hostInfo[1];
+   var vlan = "";
+   if (hostInfo[1])
+     vlan = "&vlan=" + hostInfo[1];
+   var url = "]] print(ntop.getHttpPrefix()) print [[/lua/get_host_data.lua?criteria=]] print(criteria) print [[&host="+hostInfo[0]+vlan;
 
   $.ajax({
     type: 'GET',

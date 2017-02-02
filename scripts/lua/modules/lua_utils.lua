@@ -38,7 +38,7 @@ end
 
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
-  ifname = _GET["ifname"]
+  ifname = _GET["ifid"]
 
   if(ifname ~= nil) then
      if(ifname.."" == tostring(tonumber(ifname)).."") then

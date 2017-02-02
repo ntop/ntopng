@@ -6,71 +6,114 @@ local pragma_once = 1
 
 -- #################################################################
 
-function validateNumber(p)
-   return(tonumber(p))
-end
+-- UTILITY FUNCTIONS
 
--- Remove all chars after % (if any)
-function validateString(p)
-   local percent = string.find(p, "%%")
-
-   if(percent == nil) then
-      return(p)
+function validateChoiceByKeys(defaults, v)
+   if defaults[v] ~= nil then
+      return true
    else
-      return(string.sub(p, 1, percent-1))
+      return false
    end
 end
 
-function validateMode(p)
-   -- some code
-   return p
+function validateChoice(defaults, v)
+   for _,d in pairs(defaults) do
+      if d == v then
+         return true
+      end
+   end
+
+   return false
 end
 
-function validateNumberAsString(p)
-   return(tostring(tonumber(p)).."")
+function validateSingleWord(w)
+   if ((string.find(w, "%=") ~= nil) or
+       (string.find(w, "% ") ~= nil)) then
+      return false
+   else
+      return true
+   end
+end
+
+-- #################################################################
+
+-- FRONT-END VALIDATORS
+
+function validateNumber(p)
+   if tonumber(p) ~= nil then
+      return true
+   else
+      return false
+   end
+end
+
+function validateUnchecked(p)
+   -- base validation is already performed by C side.
+   -- you should use this function as last resort
+   return true
+end
+
+function validateMode(mode)
+   local modes = {"all", "local", "remote"}
+
+   return validateChoice(modes, mode)
 end
 
 function validateIPv4IPv6Mac(p)
+   -- TODO stricter checks
    if(isIPv4(p) or isIPv6(p) or isMacAddress(p)) then
-      return(p)
+      return true
    else
-      return("")
+      return false
    end
 end
 
 function validateBool(p)
-   if(p == "true") then
-      return(p)
-   else      
-      return("false")
+   if((p == "true") or (p == "false")) then
+      return true
+   else
+      return false
    end
 end
 
 function validateSortOrder(p)
-   local defaults = { "asc", "desc" }
+   local defaults = {"asc", "desc"}
    
-   return(validateDefaultValue(defaults, p))
+   return validateChoice(defaults, p)
 end
 
-function validateDefaultValue(defaults, v)
-   if(defaults[v] ~= nil) then
-      return(v)
-   else
-      return(defaults[1])
-   end
+function validateApplication(app)
+   local ndpi_protos = interface.getnDPIProtocols()
+
+   return validateChoiceByKeys(ndpi_protos, app)
 end
 
 function validateSortColumn(p)
-   if(string.starts(p, "column_")) then
-      return(p)
+   if((validateSingleWord(p)) and (string.starts(p, "column_"))) then
+      return true
    else
-      io.write("*** validateSortColumn() = "..p.."\n")
-      return("column_ip")
+      return false
    end
 end
 
 function validateCountry(p)
-   return(string.sub(validateString(p), 1, 2))
+   if string.len(p) == 2 then
+      return true
+   else
+      return false
+   end
+end
+
+function validateInterface(i)
+   return validateNumber(i)
+end
+
+function validateIfFilter(i)
+   if validateNumber(i) or i == "all" then
+      return true
+   else
+      return false
+   end
 end
 
 -- #################################################################
@@ -78,68 +121,90 @@ end
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
-   ["ifname"]       =  validateNumber, -- NOTE: obsolete modify to ifid in all scripts
-   ["ifid"]         =  validateNumber,
-   ["id"]           =  validateNumber,
-   ["epoch"]        =  validateNumber,
-   ["network"]      =  validateNumber,
-   ["ifname"]       =  validateNumberAsString,
-   ["perPage"]      =  validateNumber,
-   ["flow_key"]     =  validateNumber,
-   ["num_minutes"]  =  validateNumber,
-   ["pool"]         =  validateNumber,
-   ["long_names"]   =  validateNumber,
-   ["period_begin"] =  validateNumber,
-   ["period_end"]   =  validateNumber,
-   ["period_mins"]  =  validateNumber,   
-   ["host"]         =  validateIPv4IPv6Mac,
-   ["_"]            =  validateNumber,
-   ["vlan"]         =  validateNumber,
-   ["sortOrder"]    =  validateSortOrder,
-   ["sortColumn"]   =  validateSortColumn,
-   ["currentPage"]  =  validateNumber,
-   ["mode"]         =  validateMode,
-   ["country"]      =  validateCountry,
-   ["breed"]        =  validateBool,
-   ["label"]        =  validateString,
-   ["page"]         =  validateString,
-   ["grouped_by"]   =  validateString,
-   ["page"]         =  validateString,
-   ["distr"]        =  validateString,
-   ["format"]       =  validateString,
-   ["criteria"]     =  validateString,
-   ["member"]       =  validateString,
-   ["status"]       =  validateString,
-   ["tab"]          =  validateString,
-   ["host_type"]    =  validateString,
-   ["group_by"]     =  validateString,
-   ["hosts_type"]   =  validateString,
+-- FILTERING
+   ["application"]  =  validateApplication,           -- An nDPI application protocol name
+   ["mode"]         =  validateMode,                  -- Remote or Local users
+   ["country"]      =  validateCountry,               -- Country code
+   ["flow_key"]     =  validateNumber,                -- The ID of a flow hash
+   ["pool"]         =  validateNumber,                -- A pool ID
+   ["vlan"]         =  validateNumber,                -- A VLAN id
+   ["host"]         =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
+   ["network"]      =  validateNumber,                -- A network ID
+   ["ifid"]         =  validateInterface,             -- An ntopng interface ID
+   ["iffilter"]     =  validateIfFilter,              -- A network ID or 'all'
+
+-- PAGINATION
+   ["perPage"]      =  validateNumber,                -- Number of results per page (used for pagination)
+   ["sortOrder"]    =  validateSortOrder,             -- A sort order
+   ["sortColumn"]   =  validateSortColumn,            -- A sort column
+   ["currentPage"]  =  validateNumber,                -- The currently displayed page number (used for pagination)
+
+-- AGGREGATION
+   ["grouped_by"]   =  validateSingleWord,            -- A group criteria
+
+-- NAVIGATION
+   ["page"]         =  validateSingleWord,            -- Currently active subpage tab
+   ["tab"]          =  validateSingleWord,            -- Currently active tab, handled by javascript
+
+-- OTHER
+   ["_"]            =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
+
+--
+   --~ ["ifname"]       =  validateNumber,                -- NOTE: obsolete modify to ifid in all scripts
+   --~ ["id"]           =  validateNumber,                -- NOTE: obsolete modify to ifid in all scripts
+   --~ ["epoch"]        =  validateNumber,                -- A timestamp value
+   
+   
+   --~ ["num_minutes"]  =  validateNumber,                --
+   --~ ["long_names"]   =  validateNumber,                -- 
+   --~ ["period_begin"] =  validateNumber,                --
+   --~ ["period_end"]   =  validateNumber,                --
+   --~ ["period_mins"]  =  validateNumber,                --
+   
+   
+   --~ ["breed"]        =  validateBool,                  --
+   --~ ["label"]        =  validateUnchecked,             --
+   
+   
+   --~ ["group_by"]     =  validateUnchecked,             --
+   --~ ["distr"]        =  validateUnchecked,             --
+   --~ ["format"]       =  validateUnchecked,             --
+   --~ ["criteria"]     =  validateUnchecked,             --
+   
+   --~ ["host_type"]    =  validateUnchecked,             -- 
+   --~ ["hosts_type"]   =  validateUnchecked,             --
+   
 }
 
 -- #################################################################
 
-local function validateParameter(k, v)
-   if(known_parameters[k] == nil) then      
-      io.write("Missing validation for ["..k.."]["..v.."]\n")
-      return(v)
+function validateParameter(k, v)
+   if(known_parameters[k] == nil) then
+      io.write("[LINT] Missing validation for ["..k.."]["..v.."]\n")
+      return false
    else
-      return(known_parameters[k](v))
+      return known_parameters[k](v)
    end
 end
 
 -- #################################################################
 
-local function lintParams()
+function lintParams()
    local params_to_validate = { _GET, _POST }
    local id, p, k, v
    local debug = false
-   local disableValidation = true -- <<<=== ENABLE HERE
+   local disableValidation = false -- <<<=== ENABLE HERE
    
    for id,p in pairs(params_to_validate) do
       for k,v in pairs(p) do
-	 if(debug) then io.write("[LINT] Validating ["..k.."]["..p[k].."]\n") end
-	 if(not(disableValidation)) then p[k] = validateParameter(k, v) end
-	 if(debug) then io.write("[LINT] ["..k.."]["..p[k].."]\n") end
+         if(debug) then io.write("[LINT] Validating ["..k.."]["..p[k].."]\n") end
+
+         if not(disableValidation) then
+            if not validateParameter(k, v) then
+               -- TODO gracefull error
+               error("BAD parameter " .. k .. " [" .. v .. "]")
+            end
+         end
       end
    end
 end
