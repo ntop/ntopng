@@ -64,6 +64,7 @@ class Flashstart {
   void* flashstartLoop(void* ptr);
   bool findCategory(char *name, struct site_categories *category, bool add_if_needed); 
   void dumpCategories(lua_State* vm, struct site_categories *category);
+  void lua(lua_State* vm);
   void dumpCategories(struct site_categories *category, char *buf, u_int buf_len);
   char* getCategoryName(u_int8_t id);
 };

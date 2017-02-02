@@ -1070,6 +1070,11 @@ end
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper)
             shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, false)
          end)
+
+         if (_POST["blocked_categories"] ~= nil)  then
+            local sites_categories = split(_POST["blocked_categories"], ",")
+            shaper_utils.setBlockedSitesCategories(ifid, sites_categories)
+         end
       end
 
       interface.reloadL7Rules(tonumber(selected_pool.id))
@@ -1210,6 +1215,22 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
    print('</optgroup>')
 end
 
+local sites_categories = ntop.getSiteCategories()
+if sites_categories ~= nil then
+   -- flashstart is enabled here
+   local blocked_categories = shaper_utils.getBlockedSitesCategories(ifid)
+
+   print[[<br><span style="float:left;">Flashstart Categories:</span><select title="Select a category to block it" name="sites_categories" style="width:25em; height:10em; margin-left:2em;" multiple>]]
+   for cat_id, cat_name in pairs(sites_categories) do
+      print[[<option value="]] print(cat_id.."") print[["]]
+      if blocked_categories[cat_id] then
+         print(" selected")
+      end
+      print[[>]] print(cat_name) print[[</option>]]
+   end
+   print [[</select>]]
+end
+
    print [[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
@@ -1259,6 +1280,21 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
          $("select", td_ingress_shaper).attr('name', 'ishaper_'+proto_id);
          $("select", td_egress_shaper).attr('name', 'eshaper_'+proto_id);
       });
+
+      /* Possibly handle multiple blocked categories */
+      var sites_categories = $("#l7ProtosForm select[name='sites_categories']");
+      if (sites_categories) {
+         var selection = [];
+         $("option:selected", sites_categories).each(function() {
+            selection.push($(this).val());
+         });
+
+         /* Create the joint field */
+         sites_categories.attr('name', '');
+         $('<input name="blocked_categories" type="hidden"/>')
+            .val(selection.join(","))
+            .appendTo($("#l7ProtosForm"));
+      }
 
       return true;
    }

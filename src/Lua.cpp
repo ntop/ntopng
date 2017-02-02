@@ -695,6 +695,8 @@ static int ntop_get_interface_mac_info(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
 static int ntop_get_mac_manufacturer(lua_State* vm) {
   const char *mac = NULL;
 
@@ -702,6 +704,19 @@ static int ntop_get_mac_manufacturer(lua_State* vm) {
   mac = (char*)lua_tostring(vm, 1);
 
   ntop->getMacManufacturer(mac, vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_site_categories(lua_State* vm) {
+  Flashstart *flash = ntop->get_flashstart();
+
+  if (!flash)
+    lua_pushnil(vm);
+  else
+    flash->lua(vm);
+
   return(CONST_LUA_OK);
 }
 
@@ -5708,6 +5723,7 @@ static const luaL_Reg ntop_reg[] = {
   /* Misc */
   { "getservbyport",      ntop_getservbyport      },
   { "getMacManufacturer", ntop_get_mac_manufacturer },
+  { "getSiteCategories",  ntop_get_site_categories },
 
   { NULL,          NULL}
 };
