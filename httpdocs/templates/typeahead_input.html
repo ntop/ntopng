@@ -1,0 +1,48 @@
+<form action="{{typeahead.action}}" data-toggle="validator">
+<div class="control-group" style="{{typeahead.style}}">
+  <div class="input-group">
+    <span class="input-group-btn">
+      <button class="btn btn-default" type="submit" id="{{typeahead.base_id}}_submit" data-ays-ignore="true">
+        <span class="glyphicon glyphicon-search"></span>
+      </button>
+    </span>
+  {% for k,v in pairs(typeahead.parameters or {}) do %}
+    <input type="hidden" name="{{k}}" value="{{v}}" />
+  {% end %}
+    <input id="{{typeahead.base_id}}_query" type="hidden" name="{{typeahead.query_field}}" data-ays-ignore="true"/>
+    <input id="{{typeahead.base_id}}_search_field" type="text" data-minlength="1" class="form-control search-query span2" placeholder="{{typeahead.query_title}}" data-provide="typeahead" autocomplete="off"></input>
+  </div>
+</div>
+
+<script type='text/javascript'>
+  $('#{{typeahead.base_id}}_search_field').typeahead({
+    source: function (query, process) {
+      var _get = {};
+    {% for k,v in pairs(typeahead.parameters or {}) do %}
+      _get["{{k}}"] = "{{v}}";
+    {% end %}
+      _get["query"] = query;
+
+      return $.get("{*typeahead.query_url*}", _get, function (data) {
+        if (data.results)
+          return process(data.results);
+      });
+    }, afterSelect: function(item) {
+      $("#{{typeahead.base_id}}_query").val(item["{{typeahead.json_key}}"]);
+    }
+  });
+
+  $('#{{typeahead.base_id}}_submit').click(function(e) {
+    if ($('#{{typeahead.base_id}}_query').val() === '') {
+      /* No typeahead result has been selected by the user */
+      if($('#{{typeahead.base_id}}_search_field').val() === '') {
+        /* Do not submit if also the typeahead content is empty */
+        e.preventDefault();
+      } else {
+        /* Populate the search field with the user submitted values */
+        $("#{{typeahead.base_id}}_query").val($('#{{typeahead.base_id}}_search_field').val());
+      }
+    }
+  });
+</script>
+</form>

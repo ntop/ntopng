@@ -57,6 +57,7 @@ class Ntop {
   Prefs *prefs;
   RuntimePrefs *runtimeprefs;
   Geolocation *geo;
+  MacManufacturers *mac_manufacturers;
   HTTPBL *httpbl;
   Flashstart *flashstart;
   ExportInterface *export_interface;
@@ -143,6 +144,20 @@ class Ntop {
    */
   void loadGeolocation(char *dir);
   /**
+   * @brief Load the @ref MacManufacturers module.
+   * @details Initialize the variable @ref dir with the input directory.
+   *
+   * @param dir Path to database home directory.
+   */
+  void loadMacManufacturers(char *dir);
+
+  inline void getMacManufacturer(const char *mac, lua_State *vm) {
+    u_int8_t mac_bytes[6];
+    Utils::parseMac(mac_bytes, mac);
+    mac_manufacturers->getMacManufacturer(mac_bytes, vm);
+  }
+
+  /**
    * @brief Set the local networks.
    * @details Set the local networks to @ref AddressResolution instance.
    *
@@ -180,7 +195,13 @@ class Ntop {
    *
    * @return Current geolocation instance.
    */
-  inline Geolocation* getGeolocation()               { return(geo);                        };
+  inline Geolocation* getGeolocation()               { return(geo);                };
+  /**
+   * @brief Get the mac manufacturers instance.
+   *
+   * @return Current mac manufacturers instance.
+   */
+  inline MacManufacturers* getMacManufacturers()     { return(mac_manufacturers); };
   /**
    * @brief Get the ifName.
    * @details Find the ifName by id parameter.
@@ -365,6 +386,7 @@ class Ntop {
   bool addUser(char *username, char *full_name, char *password, char *host_role,
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id);
   bool addUserLifetime(const char * const username, u_int32_t lifetime_secs); /* Captive portal users may expire */
+  bool clearUserLifetime(const char * const username);
   bool isCaptivePortalUser(const char * const username);
   bool deleteUser(char *username);
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);

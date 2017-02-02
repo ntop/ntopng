@@ -1095,7 +1095,8 @@ end
 -- Used to avoid resolving host names too many times
 resolved_host_labels_cache = {}
 
-function getHostAltName(host_ip)
+-- host_ip can be a mac. host_mac can be null.
+function getHostAltName(host_ip, host_mac)
    local alt_name = resolved_host_labels_cache[host_ip]
 
    -- cache hit
@@ -1106,6 +1107,9 @@ function getHostAltName(host_ip)
    local key = "ntopng.host_labels"
 
    alt_name = ntop.getHashCache(key, host_ip)
+   if (isEmptyString(alt_name) and (host_mac ~= nil)) then
+      alt_name = ntop.getHashCache(key, host_mac)
+   end
 
    if isEmptyString(alt_name) then
      alt_name = host_ip
@@ -1909,48 +1913,14 @@ function makeTopStatsScriptsArray()
    return(topArray)
 end
 
-local mac_cache = nil
 -- get_mac_classification
 function get_mac_classification(m, extended_name)
-   local path = fixPath(dirs.installdir.."/httpdocs/other/EtherOUI.txt")
-   local file_mac
+   local short_extended = ntop.getMacManufacturer(m) or {}
 
-   if(string.len(m) > 8) then m = string.sub(m, 1, 8) end
-
-   if mac_cache == nil then
-      -- lazy initialization
-      local file_mac = io.open(path)
-      if (file_mac == nil) then return m end
-
-      mac_cache = {}
-
-      while true do
-	 local mac_line = file_mac:read("*l")
-	 if mac_line == nil then break
-	 elseif mac_line == "" or string.starts(mac_line, "#") then goto continue end
-
-	 local mac_manuf_id  = string.upper(string.sub(mac_line, 1, 8))
-	 if not string.match(mac_manuf_id, "^%x%x:%x%x:%x%x$") then goto continue end
-	 local t             = split(mac_line, "\t")
-
-	 local mac_manuf_txt     = split(t[2], " ")[1] -- Apple
-	 local mac_manuf_txt_ext = split(t[2], "# ")[2] -- Apple, Inc.
-
-	 mac_cache[mac_manuf_id] = {mac_manuf_txt, mac_manuf_txt_ext}
-
-	 ::continue::
-      end
-
-      file_mac.close()
-   end
-
-   if(mac_cache[m] ~= nil) then
-      -- io.write("Cached "..m.."\n")
-      if extended_name then
-	 return mac_cache[m][2] or mac_cache[m][1] or m
-      else
-	 return mac_cache[m][1] or m
-      end
+   if extended_name then
+      return short_extended.extended or short_extended.short or m
+   else
+      return short_extended.short or m
    end
 
    return m
@@ -1975,7 +1945,7 @@ local magic_short_macs = {
 }
 
 function macInfo(mac)
-  return(' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?mac='.. mac ..'">'..mac..'</A> ')
+  return(' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/mac_details.lua?host='.. mac ..'">'..mac..'</A> ')
 end
 
 -- get_symbolic_mac
@@ -2362,8 +2332,11 @@ function setHostIcon(key, icon)
   ntop.setHashCache("ntopng.host_icons", key, icon)
 end
 
-function pickIcon(key)
+function pickIcon(key, alt_key)
   local icon = getHostIconName(key)
+  if (isEmptyString(icon) and (alt_key ~= nil)) then
+    icon = getHostIconName(alt_key)
+  end
 
 print [[<div class="form-group"><select name="custom_icon" class="form-control">]]
 
@@ -2607,7 +2580,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
       else
 	 line[#line+1] = [[ btn-default]]
       end
-      line[#line+1] = [[ btn-sm"><input value="]] .. v.value .. [[" title="]] .. v.label .. [[" name="options_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
+      line[#line+1] = [[ btn-sm"><input value="]] .. v.value .. [[" title="]] .. v.label .. [[" name="opt_resbt_]] .. k .. [[_]] .. ctrl_id .. [[" autocomplete="off" type="radio"]]
       if selected == k then line[#line+1] = [[ checked="checked"]] end
       line[#line+1] = [[/>]] .. v.label .. [[</label>]]
 
@@ -2691,11 +2664,13 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
 
       function resol_selector_finalize(form) {
         $.each(_resol_inputs, function(i, elem) {
+          /* Skip elements which are not part of the form */
+          if (! $(elem).closest("form").is(form))
+            return;
+
           var selected = $(elem).find("input[checked]");
           var input = resol_selector_get_input(selected);
 
-          /* remove added input names */
-          $(elem).find("input").removeAttr("name");
           /* transform in raw units */
           var new_input = $("<input type=\"hidden\"/>");
           new_input.attr("name", input.attr("name"));
@@ -2703,6 +2678,9 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
           new_input.val(parseInt(selected.val()) * parseInt(input.val()));
           new_input.appendTo(form);
         });
+
+        /* remove added input names */
+        $("input[name^=opt_resbt_]", form).removeAttr("name");
       }]]
 
   local js_specific_code = [[
@@ -2795,3 +2773,11 @@ function getTopFlowPeers(hostname_vlan, max_hits, detailed)
     return {}
   end
 end
+
+-- ###########################################
+--
+-- IMPORTANT
+-- Leave it at the end so it can use the functions
+-- defined in this file
+--
+require "http_lint"

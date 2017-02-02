@@ -27,6 +27,7 @@
 class Mac : public GenericHashEntry, public GenericTrafficElement {
  private:
   u_int8_t mac[6];
+  const char * manuf;
   u_int16_t vlan_id;
   bool special_mac;
 
@@ -34,10 +35,11 @@ class Mac : public GenericHashEntry, public GenericTrafficElement {
   Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId);
   ~Mac();
 
-  inline u_int16_t getNumHosts() { return getUses();            }
-  inline bool isSpecialMac()     { return(special_mac);         }
-  inline u_int32_t key()         { return(Utils::macHash(mac)); }
-  inline u_int8_t* get_mac()     { return(mac);                 }
+  inline u_int16_t getNumHosts()               { return getUses();            }
+  inline bool isSpecialMac()                   { return(special_mac);         }
+  inline u_int32_t key()                       { return(Utils::macHash(mac)); }
+  inline u_int8_t* get_mac()                   { return(mac);                 }
+  inline const char * const get_manufacturer() { return manuf ? manuf : NULL; }
   inline u_int16_t get_vlan_id() { return(vlan_id);             }
   inline bool isNull()           { for(int i=0; i<6; i++) { if(mac[i] != 0) return(false); } return(true); }      
     

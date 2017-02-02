@@ -241,6 +241,7 @@ typedef enum {
   column_pool_id,
   /* Macs */
   column_num_hosts,
+  column_manufacturer,
 } sortField;
 
 typedef struct {

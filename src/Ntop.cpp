@@ -59,7 +59,8 @@ Ntop::Ntop(char *appName) {
   export_interface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   memset(iface, 0, sizeof(iface));
-  httpd = NULL, runtimeprefs = NULL, geo = NULL, hostBlacklistShadow = hostBlacklist = NULL;
+  httpd = NULL, runtimeprefs = NULL, geo = NULL, mac_manufacturers = NULL,
+    hostBlacklistShadow = hostBlacklist = NULL;
 
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL,
@@ -151,6 +152,8 @@ void Ntop::initTimezone() {
 /* ******************************************* */
 
 Ntop::~Ntop() {
+  if(httpd)      delete httpd; /* Stop the http server before tearing down network interfaces */
+
   for(int i=0; i<num_defined_interfaces; i++) {
     iface[i]->shutdown();
     delete(iface[i]);
@@ -160,7 +163,7 @@ Ntop::~Ntop() {
 
   if(httpbl)     delete httpbl;
   if(flashstart) delete flashstart;
-  if(httpd)      delete httpd;
+
   if(custom_ndpi_protos)  delete(custom_ndpi_protos);
   if(elastic_search)      delete(elastic_search);
 
@@ -170,6 +173,7 @@ Ntop::~Ntop() {
   delete address;
   delete pa;
   if(geo)   delete geo;
+  if(mac_manufacturers) delete mac_manufacturers;
   if(redis) delete redis;
   delete globals;
   delete prefs;
@@ -599,6 +603,14 @@ void Ntop::loadLocalInterfaceAddress() {
 void Ntop::loadGeolocation(char *dir) {
   if(geo != NULL) delete geo;
   geo = new Geolocation(dir);
+}
+
+/* ******************************************* */
+
+void Ntop::loadMacManufacturers(char *dir) {
+  if(mac_manufacturers != NULL) delete mac_manufacturers;
+  if((mac_manufacturers = new MacManufacturers(dir)) == NULL)
+    throw "Not enough memory";
 }
 
 /* ******************************************* */
@@ -1034,6 +1046,22 @@ bool Ntop::addUserLifetime(const char * const username, u_int32_t lifetime_secs)
     snprintf(lifetime_val, sizeof(lifetime_val), "%u", lifetime_secs);
     snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
     ntop->getRedis()->set(key, lifetime_val, 0);
+    return(true);
+  }
+
+  return(false);
+}
+
+/* ******************************************* */
+
+bool Ntop::clearUserLifetime(const char * const username) {
+  char key[64], val[64];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, username);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0) {
+    snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
+    ntop->getRedis()->del(key);
     return(true);
   }
 

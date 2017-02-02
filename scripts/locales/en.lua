@@ -210,8 +210,10 @@ local  en = {
       duplicate_pool = "Duplicate pool name",
       confirm_delete_pool = "Do you really want to delete host pool",
       confirm_remove_member = "Do you really want to remove member",
+      confirm_empty_pool = "Do you really want to remove all members from the host pool",
       from_pool = "from host pool",
-      and_associated_members = "and associated members",
+      and_associated_members = "its RRD data and any associated members",
+      search_member = "Search Member",
    },
 
    noTraffic = "No traffic has been reported for the specified date/time selection",

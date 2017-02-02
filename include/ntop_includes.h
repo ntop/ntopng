@@ -243,6 +243,7 @@ using namespace std;
 #include "HostHash.h"
 #include "PeriodicActivities.h"
 #include "Lua.h"
+#include "MacManufacturers.h"
 #include "AddressResolution.h"
 #include "HTTPBL.h"
 #include "HTTPserver.h"

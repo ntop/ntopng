@@ -170,7 +170,7 @@ else
       setHostAltName(hostinfo2hostkey(host_info), _POST["custom_name"])
    end
 
-   host["label"] = getHostAltName(hostinfo2hostkey(host_info))
+   host["label"] = getHostAltName(hostinfo2hostkey(host_info), host["mac"])
 
    hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(hostinfo2hostkey(host_info))
    rrdname = hostbase .. "/bytes.rrd"
@@ -461,7 +461,9 @@ if((page == "overview") or (page == nil)) then
       end
 
       local pool_name = host_pools_utils.getPoolName(ifId, host["host_pool_id"])
-      print(' <span class="label label-default">Pool: '..pool_name.."</span>")
+      print(' <a href="'.. ntop.getHttpPrefix().. '/lua/hosts_stats.lua?pool=' .. host["host_pool_id"] ..'">')
+      print('<span class="label label-default">Pool: '..pool_name.."</span>")
+      print('</a>')
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
@@ -643,7 +645,7 @@ if(host["ip"] ~= nil) then
       if(host["label"] ~= nil) then print(host["label"]) end
 print("\"></input>")
 
-pickIcon(labelKey)
+pickIcon(labelKey, host["mac"])
 
 print [[
 	 &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]

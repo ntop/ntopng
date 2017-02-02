@@ -13,11 +13,6 @@ if(ntop.isPro()) then
   shaper_utils = require "shaper_utils"
 end
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
-
-ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
-active_page = "admin"
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if not isAdministrator() then
   return
@@ -61,7 +56,7 @@ elseif (_POST["edit_members"] ~= nil) then
   for k,old_member in pairs(config) do
     if not starts(k, "_") then
       if((not isEmptyString(old_member)) and (k ~= old_member)) then
-        host_pools_utils.deleteFromPoll(ifId, pool_to_edit, old_member)
+        host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
       end
     end
   end
@@ -72,7 +67,7 @@ elseif (_POST["edit_members"] ~= nil) then
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
-        host_pools_utils.addToPool(ifId, pool_to_edit, new_member)
+        host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
       end
 
       local host_key, is_network = host_pools_utils.getMemberKey(new_member)
@@ -92,10 +87,13 @@ elseif (_POST["edit_members"] ~= nil) then
   end
 
   interface.reloadHostPools()
-elseif (_POST["member_to_delete"] ~= nil) then
+elseif _POST["member_to_delete"] ~= nil then
   local pool_to_edit = _POST["pool_id"]
 
-  host_pools_utils.deleteFromPoll(ifId, pool_to_edit, _POST["member_to_delete"])
+  host_pools_utils.deletePoolMember(ifId, pool_to_edit, _POST["member_to_delete"])
+  interface.reloadHostPools()
+elseif _POST["empty_pool"] ~= nil then
+  host_pools_utils.emptyPool(ifId, _POST["empty_pool"])
   interface.reloadHostPools()
 end
 
@@ -167,10 +165,12 @@ else
   perPageMembers = tablePreferences("hostPoolMembers")
 end
 
+local member_filtering = _GET["member"]
+local manage_url = "?id="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
+
 --------------------------------------------------------------------------------
 
 print [[
-<hr>
 <h2>]] print(i18n("host_pools.edit_host_pools")) print[[</h2>
 <br>
   <ul id="hostPoolsNav" class="nav nav-tabs" role="tablist">
@@ -179,9 +179,10 @@ print [[
   </ul>
   <div class="tab-content">
     <div id="manage" class="tab-pane">
+<br/><table><tbody><tr>
 ]]
 
-print('<br/>') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?pool=\' + $(this).val() + \'#manage\';">')
+print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?id=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
 local no_pools = true
 for _,pool in ipairs(available_pools) do
   if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
@@ -193,7 +194,51 @@ for _,pool in ipairs(available_pools) do
     no_pools = false
   end
 end
-print('</select>\n')
+print('</select>')
+
+local ifstats = interface.getStats()
+local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
+if is_bridge_iface then
+  print("<a href='/lua/if_stats.lua?id=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
+end
+
+print('</td>\n')
+if member_filtering ~= nil then
+  local member_name = split(member_filtering, "/")[1]
+  print[[
+  <td>
+    <form action="#manage">
+      <input type="hidden" name="id" value="]] print(ifId.."") print[[" />
+      <input type="hidden" name="page" value="pools" />
+      <input type="hidden" name="pool" value="]] print(selected_pool.id) print[[" />
+      <button type="button" class="btn btn-default btn-sm" onclick="$(this).closest('form').submit();">
+        <i class="fa fa-close fa-lg" aria-hidden="true" data-original-title="" title=""></i> Filter: ]] print(member_name) print[[
+      </button>
+    </form>
+  </td>
+  ]]
+end
+print('<div style="float:right;">')
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "t_member",
+      action      = ntop.getHttpPrefix() .. "/lua/if_stats.lua#manage",
+      parameters  = {
+                      pool=selected_pool.id,
+                      id=tostring(ifId),
+                      page="pools",
+                    },
+      json_key    = "key",
+      query_field = "member",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_member.lua",
+      query_title = i18n("host_pools.search_member"),
+      style       = "margin-left:1em; width:25em;",
+    }
+  })
+)
+print('</div>')
+print('</tr></tbody></table>')
 
 if no_pools then
   print[[<script>$("#pool_selector").attr("disabled", "disabled");</script>]]
@@ -204,6 +249,7 @@ end
         <br/><div id="table-manage"></div>
         <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
       </form>
+      <button id="emptyPoolButton" class="btn btn-default" onclick="$('#empty_pool_dialog').modal('show');" style="float:right; margin-right:1em;"><i class="fa fa-trash" aria-hidden="true"></i> ]] print(i18n("host_pools.empty_pool")) print[[</button>
 ]]
 
 print[[
@@ -238,7 +284,7 @@ print(
       id      = "delete_pool_dialog",
       action  = "deletePool(delete_pool_id)",
       title   = i18n("host_pools.delete_pool"),
-      message = i18n("host_pools.confirm_delete_pool") .. ' "<span id=\"delete_pool_dialog_pool\"></span>" ' .. i18n("host_pools.and_associated_members"),
+      message = i18n("host_pools.confirm_delete_pool") .. ' "<span id=\"delete_pool_dialog_pool\"></span>", ' .. i18n("host_pools.and_associated_members"),
       confirm = i18n("delete"),
     }
   })
@@ -252,6 +298,18 @@ print(
       title   = i18n("host_pools.remove_member"),
       message = i18n("host_pools.confirm_remove_member") .. ' "<span id=\"delete_member_dialog_member\"></span>" ' .. i18n("host_pools.from_pool") .. ' "' .. selected_pool.name .. '" ',
       confirm = i18n("remove"),
+    }
+  })
+)
+
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "empty_pool_dialog",
+      action  = "emptyCurrentPool()",
+      title   = i18n("host_pools.empty_pool"),
+      message = i18n("host_pools.confirm_empty_pool") .. " " .. selected_pool.name,
+      confirm = i18n("host_pools.empty_pool"),
     }
   })
 )
@@ -359,6 +417,11 @@ print[[
 
       return count == 1;
     }
+]]
+if member_filtering ~= nil then
+  print[[$("#pool_selector").attr("disabled", true);]]
+end
+print[[
   </script>
 ]]
 
@@ -376,8 +439,8 @@ print [[
       var member_id = addedMemberCtr++;
       var newid = "member_" + member_id;
 
-      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
+      var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center text-middle]] if not (isCaptivePortalActive()) then print(" hidden") end print[[">Persistent</td><td class="text-center"></td></tr>');
+      datatableAddDeleteButtonCallback.bind(tr)(6, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn')", "]] print(i18n('undo')) print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
 
@@ -396,14 +459,21 @@ print [[
         params.pool_id = ]] print(selected_pool.id) print[[;
         params.member_to_delete = field.attr("data-origin-value");
         params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-        paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+        paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       }
+    }
+
+    function emptyCurrentPool() {
+      var params = {};
+      params.empty_pool = ]] print(selected_pool.id) print[[;
+      params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
     }
 
     $("#table-manage").datatable({
       url: "]]
    print (ntop.getHttpPrefix())
-   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[",
+   print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(selected_pool.id) print[[&member=]] print(_GET["member"] or "") print[[",
       title: "",
       perPage: ]] print(perPageMembers) print[[,
       forceTable: true,
@@ -439,13 +509,27 @@ print [[
               textAlign: 'center',
             }
          }, {
+            title: "Residual Lifetime",
+            field: "column_residual",
+]] if not (isCaptivePortalActive()) then
+  print[[   hidden: true,]]
+end
+print[[            css : {
+               width: '10%',
+               textAlign: 'center',
+               verticalAlign: 'middle',
+            }
+         }, {
             title: "]] print(i18n("actions")) print[[",
             css : {
                width: '20%',
                textAlign: 'center',
             }
-         } , {
+         }, {
             field: "column_link",
+            hidden: true,
+         }, {
+            field: "column_editable",
             hidden: true,
          }
       ], tableCallback: function() {
@@ -456,13 +540,15 @@ print [[
           no_pools = true;
         } else if(datatableIsEmpty("#table-manage")) {
           datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.empty_pool")) print[[");
+          $("#emptyPoolButton").attr("disabled", "disabled");
         } else {
           datatableForEachRow("#table-manage", function() {
             var member_address = $("td:nth-child(1)", $(this));
             var vlan = $("td:nth-child(2)", $(this));
             var alias = $("td:nth-child(3)", $(this));
             var icon = $("td:nth-child(4)", $(this));
-            var link_value = $("td:nth-child(6)", $(this)).html().replace(/&nbsp;/gi,'');
+            var link_value = $("td:nth-child(7)", $(this)).html().replace(/&nbsp;/gi,'');
+            var editable = $("td:nth-child(8)", $(this)).html() == "true";
 
             var member_id = addedMemberCtr++;
 
@@ -495,23 +581,29 @@ print [[
             /* Make vlan editable */
             var input = $(']] printMemberVlanField('member_id') print[[');
             var vlan_value = parseInt(vlan.html());
-            $("input", input).first().val(vlan_value);
+            var vlan_input = $("input", input).first()
+            vlan_input.val(vlan_value);
             vlan.html(input);
 
             recheckFields(address_input);
+
+            if (! editable) {
+              address_input.attr("disabled", "disabled");
+              vlan_input.attr("disabled", "disabled");
+            }
 
             if ((vlan_value > 0) && (is_cidr))
               value = value + " [VLAN " + vlan_value + "]";
 
             if (link_value)
-              datatableAddLinkButtonCallback.bind(this)(5, link_value, "View");
-            datatableAddDeleteButtonCallback.bind(this)(5, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+              datatableAddLinkButtonCallback.bind(this)(6, link_value, "View");
+            datatableAddDeleteButtonCallback.bind(this)(6, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
           });
 
           aysResetForm('#table-manage-form');
         }
 
-        $("#addPoolMemberBtn").attr("disabled", (! datatableIsLastPage("#table-manage-form")) || (no_pools));
+        $("#addPoolMemberBtn").attr("disabled", ((! datatableIsLastPage("#table-manage-form")) || (no_pools)) || (]] if member_filtering ~= nil then print("true") else print("false") end print[[));
 
         $("#table-manage-form")
             .validator(validator_options)
@@ -570,7 +662,7 @@ print [[
       params.edit_members = "";
       params.pool_id = ]] print(selected_pool.id) print[[;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       return false;
     }
   </script>
@@ -590,7 +682,7 @@ print [[
 
       var form = paramsToForm('<form method="post"></form>', params);
       if (pool_id == ]] print(selected_pool.id) print[[)
-        form.attr("action", "?#create");
+        form.attr("action", "?id=]] print(tostring(ifId)) print[[&page=pools#create");
 
       form.appendTo('body').submit();
     }
@@ -777,4 +869,3 @@ print[[
   </script>
 ]]
 
-dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

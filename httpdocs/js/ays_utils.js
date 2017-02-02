@@ -7,6 +7,7 @@ function aysHandleForm(form_selector, options) {
   if (! form_selector) form_selector = "form";      /* Form selector to attach are-you-sure to. Default is to apply it to every form in the page. */
   
   var default_options = {
+    submit_selector:   'button[type="submit"]:not([data-ays-ignore="true"])',
     on_dirty_callback: $.noop,      /* The callback to invoke when ays detects changes */
     on_clean_callback: $.noop,      /* The callback to invoke when ays detects form is clean */
     handle_submit_buttons: true,    /* If true, form submit buttons will be disabled when the form is clean, enabled when it's dirty */
@@ -24,11 +25,11 @@ function aysHandleForm(form_selector, options) {
 
     if (o.handle_submit_buttons)
       // Initially submit buttons
-      $(o.form_selector).find('button[type="submit"]').attr("disabled", "disabled");
+      $(o.form_selector).find(o.submit_selector).attr("disabled", "disabled");
 
     $(o.form_selector).on('dirty.areYouSure', function() {
       if (o.handle_submit_buttons)
-        $(o.form_selector).find('button[type="submit"]').removeAttr('disabled');
+        $(o.form_selector).find(o.submit_selector).removeAttr('disabled');
 
       if (o.handle_datatable) {
         // Disable pagination controls
@@ -49,7 +50,7 @@ function aysHandleForm(form_selector, options) {
 
    $(o.form_selector).on('clean.areYouSure', function() {
     if (o.handle_submit_buttons)
-      $(o.form_selector).find('button[type="submit"]').attr("disabled", "disabled");
+      $(o.form_selector).find(o.submit_selector).attr("disabled", "disabled");
 
     if (o.handle_datatable) {
         // Enabled pagination controls

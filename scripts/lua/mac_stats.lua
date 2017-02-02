@@ -86,7 +86,7 @@ print [[
                          {
 			     title: "Manufacturer",
 				 field: "column_manufacturer",
-				 sortable: false,
+				 sortable: true,
                              css: {
 			        textAlign: 'left'
 			     }

@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
+local template = require "template_utils"
 
 prefs = ntop.getPrefs()
 names = interface.getIfNames()
@@ -351,7 +352,6 @@ if(user_group == "administrator") then
       end
    end
 
-   print("<li><a href=\""..ntop.getHttpPrefix().."/lua/admin/host_pools.lua\"><i class=\"fa fa-users\"></i> Host Pools</a></li>\n")
 end
 
 print [[
@@ -382,7 +382,21 @@ end
 if(user_group ~= "administrator") then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
-dofile(dirs.installdir .. "/scripts/lua/inc/search_host_box.lua")
+print("<li>")
+print(
+  template.gen("typeahead_input.html", {
+    typeahead={
+      base_id     = "host_search",
+      action      = "/lua/host_details.lua",
+      json_key    = "ip",
+      query_field = "host",
+      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
+      query_title = "Search Host",
+      style       = "width:15em;",
+    }
+  })
+)
+print("</li>")
 
 function file_exists(name)
    local f=io.open(name,"r")

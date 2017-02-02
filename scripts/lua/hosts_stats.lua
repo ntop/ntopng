@@ -6,6 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local host_pools_utils = require "host_pools_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
@@ -146,25 +147,34 @@ else
    os_ = "" 
 end
 
+if(_GET["pool"] ~= nil) then
+   pool_ = "for Pool "..host_pools_utils.getPoolName(ifstats.id, _GET["pool"])
+else
+   pool_ = ""
+end
+
 if(mode == "all") then
 	if ( country ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	elseif ( asninfo ~= "" ) then print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	elseif ( mac ~= "" ) then print('title: "All local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n') 
+	elseif ( os_ ~= "" ) then print('title: "All '..os_..' Hosts",\n')
+	elseif ( pool_ ~= "" ) then print('title: "All Hosts '..pool_..'",\n')
 	else print('title: "All '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	end
 elseif(mode == "local") then
 	if ( country ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	elseif ( asninfo ~= "" ) then print('title: "Local '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	elseif ( mac ~= "" ) then print('title: "Local local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n') 
+	elseif ( os_ ~= "" ) then print('title: "Local Hosts'..os_..' Hosts",\n')
+	elseif ( pool_ ~= "" ) then print('title: "Local Hosts '..pool_..'",\n')
 	else  print('title: "Local '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	end
 elseif(mode == "remote") then
 	if ( country ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	elseif ( asninfo ~= "" ) then print('title: "Remote '..protocol..' '..network_name..' Hosts'..asninfo..'",\n')
 	elseif ( mac ~= "" ) then print('title: "Remote local '..protocol..' '..network_name..' Hosts'..mac..'",\n')
-	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n') 
+	elseif ( os_ ~= "" ) then print('title: "Remote '..os_..' Hosts",\n')
+	elseif ( pool_ ~= "" ) then print('title: "Remote Hosts '..pool_..'",\n')
 	else print('title: "Remote '..protocol..' '..network_name..' Hosts'..country..'",\n')
 	end
 else
@@ -182,7 +192,16 @@ print ('sort: [ ["' .. getDefaultTableSort("hosts") ..'","' .. getDefaultTableSo
 
 print [[    showPagination: true, ]]
 
-if(filter_url_params.network == nil) then
+if(filter_url_params.network ~= nil) then
+   print('buttons: [ \'')
+
+   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A>')
+   print('\' ],')
+elseif ((filter_url_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID)) then
+   print('buttons: [ \'')
+   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A>')
+   print('\' ],')
+else
    local hosts_filter_params = table.clone(filter_url_params)
 
    print('buttons: [ \'<div class="btn-group pull-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Filter Hosts<span class="caret"></span></button> <ul class="dropdown-menu" role="menu" style="min-width: 90px;"><li><a href="')
@@ -199,11 +218,6 @@ if(filter_url_params.network == nil) then
    print (getPageUrl(hosts_filter_params))
    print ('">Remote Hosts Only</a></li>')
    print("</ul></div>' ],")
-else
-   print('buttons: [ \'')
-
-   print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'><i class=\"fa fa-area-chart fa-lg\"></i></A>')
-   print('\' ],')
 end
 
 print [[

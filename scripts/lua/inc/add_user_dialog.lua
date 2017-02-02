@@ -199,7 +199,7 @@ if no_pools then
   print[[
     <script>
       $(function() {
-        add_user_alert.error("No Host Pools defined. Please create one <a href=']] print(ntop.getHttpPrefix()) print[[/lua/admin/host_pools.lua#create'>here</a>.", true);
+        add_user_alert.error("No Host Pools defined. Please create one <a href=']] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?page=pools#create'>here</a>.", true);
         $("#add_user_dialog").find("input,select,button[type='submit']").attr("disabled", "disabled");
       });
     </script>

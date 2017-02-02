@@ -31,6 +31,18 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6], u_int16_t _vlanId) : Generi
   else
     first_seen = last_seen = time(NULL);
 
+  if(ntop->getMacManufacturers())
+    manuf = ntop->getMacManufacturers()->getManufacturer(mac);
+  else
+    manuf = NULL;
+
+#ifdef MANUF_DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Assigned manufacturer [mac: %02x:%02x:%02x:%02x:%02x:%02x] [manufacturer: %s]",
+			       mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
+			       manuf ? manuf : "- not available -");
+#endif
+
 #ifdef DEBUG
   char buf[32];
 
@@ -99,6 +111,9 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
   lua_push_int_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
 
   if(show_details) {
+    if(manuf)
+      lua_push_str_table_entry(vm, "manufacturer", (char*)manuf);
+
     lua_push_bool_table_entry(vm, "special_mac", special_mac);
     ((GenericTrafficElement*)this)->lua(vm, show_details);
   }
