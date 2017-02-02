@@ -18,7 +18,7 @@ if(mode ~= "embed") then
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 end
 
-print("<hr><h2><A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..host_ip..">"..host_name.."</A> Processes Interaction</H2>")
+print("<hr><h2><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..host_ip.."'>"..host_name.."</A> Processes Interaction</H2>")
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/sprobe_process_header.inc")
 

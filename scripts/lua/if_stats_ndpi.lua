@@ -97,7 +97,7 @@ for _k in pairsByKeys(vals, rev) do
   t = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
 
   if(not(json_format)) then
-     if(k ~= "ARP") then print(" <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."><i class=\"fa fa-search-plus\"></i></A>") end
+     if(k ~= "ARP") then print(" <A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fa fa-search-plus\"></i></A>") end
      print("</th><td class=\"text-right\" style=\"width: 20%;\">" .. bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      percentageBar(total, t, "") -- k

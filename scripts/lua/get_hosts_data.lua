@@ -239,7 +239,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    if(value["systemhost"] == true) then print("&nbsp;<i class='fa fa-flag'></i>") end
 
    if((value["country"] ~= nil) and (value["country"] ~= "")) then
-      print("&nbsp;<a href=".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
+      print("&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..value["country"].."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(value["country"]) .."'></a>")
    end
 
    print("&nbsp;")
@@ -310,7 +310,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       if(value["asn"] == 0) then
 	 print(", \"column_asn\" : 0")
       else
-	 print(", \"column_asn\" : \"<A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. value["asn"] ..">"..value["asname"].."</A>\"")
+	 print(", \"column_asn\" : \"<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. value["asn"] .."'>"..value["asname"].."</A>\"")
       end
    end
 

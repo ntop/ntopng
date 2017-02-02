@@ -25,9 +25,9 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 warn_shown = 0
 
 function displayProc(proc)
-   print("<tr><th width=30%>User Name</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/get_user_info.lua?user=".. proc.user_name .."&".. hostinfo2url(flow,"cli")..">".. proc.user_name .."</A></td></tr>\n")
-   print("<tr><th width=30%>Process PID/Name</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.pid .."&".. hostinfo2url(flow,"srv").. ">".. proc.pid .. "/" .. proc.name .. "</A>")
-   print(" [son of <A HREF="..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.father_pid .. ">" .. proc.father_pid .. "/" .. proc.father_name .."</A>]</td></tr>\n")
+   print("<tr><th width=30%>User Name</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_user_info.lua?user=".. proc.user_name .."&".. hostinfo2url(flow,"cli").."\">".. proc.user_name .."</A></td></tr>\n")
+   print("<tr><th width=30%>Process PID/Name</th><td colspan=2><A HREF=\""..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.pid .."&".. hostinfo2url(flow,"srv").. "\">".. proc.pid .. "/" .. proc.name .. "</A>")
+   print(" [son of <A HREF=\""..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. proc.father_pid .. "\">" .. proc.father_pid .. "/" .. proc.father_name .."</A>]</td></tr>\n")
 
    if(proc.actual_memory > 0) then
       print("<tr><th width=30%>Average CPU Load</th><td colspan=2><span id=average_cpu_load_"..proc.pid..">")
@@ -70,7 +70,7 @@ function displayProc(proc)
    if(proc.actual_memory == 0) then
       if(warn_shown == 0) then
 	 warn_shown = 1
-	 print('<tr><th colspan=2><i class="fa fa-warning fa-lg" style="color: #B94A48;"></i> Process information report is limited unless you use ntopng with <A HREF=http://www.ntop.org/products/nprobe/>nProbe</A> and the sprobe plugin</th></tr>\n')
+	 print('<tr><th colspan=2><i class="fa fa-warning fa-lg" style="color: #B94A48;"></i> Process information report is limited unless you use ntopng with <A HREF="http://www.ntop.org/products/nprobe/">nProbe</A> and the sprobe plugin</th></tr>\n')
 	 end
    end
 end
@@ -222,7 +222,7 @@ else
 
    print("<tr><th width=30% rowspan=3>Total Traffic</th><td>Total: <span id=volume>" .. bytesToSize(flow["bytes"]) .. "</span> <span id=volume_trend></span></td>")
    if((ifstats.type ~= "zmq") and ((flow["proto.l4"] == "TCP") or (flow["proto.l4"] == "UDP")) and (flow["goodput_bytes"] > 0)) then
-      print("<td><A HREF=https://en.wikipedia.org/wiki/Goodput>Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
+      print("<td><A HREF=\"https://en.wikipedia.org/wiki/Goodput\">Goodput</A>: <span id=goodput_volume>" .. bytesToSize(flow["goodput_bytes"]) .. "</span> (<span id=goodput_percentage>")
       pctg = round(((flow["goodput_bytes"]*100)/flow["bytes"]), 2)
       if(pctg < 50) then
 	 pctg = "<font color=red>"..pctg.."</font>"
@@ -435,7 +435,7 @@ else
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
 	 print(flow["protos.dns.last_query"])
       else
-	 print("<A HREF=http://"..flow["protos.dns.last_query"]..">"..flow["protos.dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
+	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..flow["protos.dns.last_query"].."</A> <i class='fa fa-external-link'></i>")
       end
 
       if(flow["category"] ~= nil) then
@@ -457,7 +457,7 @@ else
       else
 	 s = flowinfo2hostname(flow,"srv",ifstats.vlan)
       end
-      print("<A HREF=http://"..s..">"..s.."</A> <i class=\"fa fa-external-link\">")
+      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fa fa-external-link\">")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
 
       print("</td></tr>\n")
@@ -475,12 +475,12 @@ else
       print("<tr><th>Response Code</th><td>"..flow["protos.http.last_return_code"].."</td></tr>\n")
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>Server Name</th><td colspan=2><A HREF=http://"..flow["host_server_name"]..">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")
+	 print("<tr><th width=30%>Server Name</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fa fa-external-link\"></td></tr>\n")
       end
    end
 
    if(flow["profile"] ~= nil) then
-      print("<tr><th width=30%><A HREF=".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua>Profile Name</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
+      print("<tr><th width=30%><A HREF=\"".. ntop.getHttpPrefix() .."/lua/pro/admin/edit_profiles.lua\">Profile Name</A></th><td colspan=2><span class='label label-primary'>"..flow["profile"].."</span></td></tr>\n")
    end
 
    if is_packetdump_enabled then

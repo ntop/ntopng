@@ -41,7 +41,7 @@ print [[
 <div id='chart'></div>
 
 <span class="row-fluid marketing">
-<div class="span11">&nbsp;</div><div><small><A HREF=http://bl.ocks.org/mbostock/4063582><i class="fa fa-question-sign fa-lg"></i></A></small></div>
+<div class="span11">&nbsp;</div><div><small><A HREF="http://bl.ocks.org/mbostock/4063582"><i class="fa fa-question-sign fa-lg"></i></A></small></div>
 </span>
 <script>
 

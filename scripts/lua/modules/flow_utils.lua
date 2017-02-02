@@ -491,7 +491,7 @@ function handleCustomFlowField(key, value)
       local ipaddr = string.format('%d.%d.%d.%d', b4, b3, b2, b1)
       local res = ntop.getResolvedAddress(ipaddr)
 
-      local ret = "<A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..ipaddr..">"
+      local ret = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..ipaddr.."\">"
 
       if((res == "") or (res == nil)) then
 	 ret = ret .. ipaddr
@@ -515,7 +515,7 @@ function handleCustomFlowField(key, value)
 	  end
 
           r = r .. "<th>IMSI (International mobile Subscriber Identity)</th><td>"..elems[1]..mcc_name
-	  r = r .. " <A HREF=http://www.numberingplans.com/?page=analysis&sub=imsinr><i class='fa fa-info'></i></A></td></tr>"
+	  r = r .. " <A HREF='http://www.numberingplans.com/?page=analysis&sub=imsinr'><i class='fa fa-info'></i></A></td></tr>"
 	  r = r .. "<th>NSAPI</th><td>".. elems[2].."</td></tr>"
 	  r = r .. "<th>GSM Cell LAC (Location Area Code)</th><td>".. elems[3].."</td></tr>"
 	  r = r .. "<th>GSM Cell Identifier</th><td>".. elems[4].."</td></tr>"
@@ -559,7 +559,7 @@ function formatTcpFlags(flags)
       return("")
    end
 
-   rsp = "<A HREF=http://en.wikipedia.org/wiki/Transmission_Control_Protocol>"
+   rsp = "<A HREF=\"http://en.wikipedia.org/wiki/Transmission_Control_Protocol\">"
    if(bit.band(flags, 1) == 2)  then rsp = rsp .. " SYN "  end
    if(bit.band(flags, 16) == 16) then rsp = rsp .. " ACK "  end
    if(bit.band(flags, 1) == 1)  then rsp = rsp .. " FIN "  end

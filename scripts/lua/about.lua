@@ -27,9 +27,9 @@ print("<tr><th>License</th><td>")
 
 info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
-   print("<A HREF=http://www.gnu.org/licenses/gpl.html target=\"_blank\">".. info["license"] .."</A>")
+   print("<A HREF=\"http://www.gnu.org/licenses/gpl.html\" target=\"_blank\">".. info["license"] .."</A>")
 else
-   print("<A HREF=https://svn.ntop.org/svn/ntop/trunk/legal/LicenseAgreement/ target=\"_blank\">EULA</A>")
+   print("<A HREF=\"https://svn.ntop.org/svn/ntop/trunk/legal/LicenseAgreement/\" target=\"_blank\">EULA</A>")
 end
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
@@ -49,8 +49,8 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 
 print [[
     <br><small>Click on the above URL to generate your professional version license, or 
-	       <br>purchase a license at <A HREF=http://shop.ntop.org/>e-shop</A>. If you are no-profit, research or an education<br>
-institution please read <A HREF=http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/>this</A>.</small>
+	       <br>purchase a license at <A HREF="http://shop.ntop.org/">e-shop</A>. If you are no-profit, research or an education<br>
+institution please read <A HREF="http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research"/>this</A>.</small>
 	 <p>
    ]]
 
@@ -78,7 +78,7 @@ print("</td></tr>")
 
 vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then
-   ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. vers[2] ..">"..info["version"].."</A>"
+   ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].."</A>"
 else
    ntopng_git_url = info["version"]
 end
@@ -117,28 +117,28 @@ if (ndpi_ver ~= nil) then
      vers = string.split(v_all, ":")
      ndpi_hash = vers[1]
      ndpi_date = vers[2]
-     print("<tr><th><A href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</a></th><td> <A HREF=https://github.com/ntop/nDPI/commit/".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</a></th><td> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
   else
-     print("<tr><th><A href=http://www.ntop.org/products/ndpi/ target=\"_blank\">nDPI</A></th><td> <A HREF=https://github.com/ntop/nDPI/>"..ndpi_ver.."</A></td></tr>\n")
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</A></th><td> <A HREF=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.."</A></td></tr>\n")
   end
 end
 
-print("<tr><th><a href=http://twitter.github.io/ target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
-print("<tr><th><a href=http://fortawesome.github.io/Font-Awesome/ target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
-print("<tr><th><a href=http://www.rrdtool.org/ target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")
-print("<tr><th><a href=http://www.redis.io target=\"_blank\">Redis</A> Server</th><td>"..info["version.redis"].."</td></tr>\n")
-print("<tr><th><a href=https://github.com/valenok/mongoose target=\"_blank\">Mongoose web server</A></th><td>"..info["version.httpd"].."</td></tr>\n")
-print("<tr><th><a href=http://www.luajit.org target=\"_blank\">LuaJIT</A></th><td>"..info["version.luajit"].."</td></tr>\n")
-print("<tr><th><a href=http://www.zeromq.org target=\"_blank\">ØMQ</A></th><td>"..info["version.zmq"].."</td></tr>\n")
+print("<tr><th><a href=\"http://twitter.github.io/\" target=\"_blank\"><i class=\'fa fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td>3.x</td></tr>\n")
+print("<tr><th><a href=\"http://fortawesome.github.io/Font-Awesome/\" target=\"_blank\"><i class=\'fa fa-flag fa-lg'></i> Font Awesome</A></th><td>4.x</td></tr>\n")
+print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td>"..info["version.rrd"].."</td></tr>\n")
+print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A> Server</th><td>"..info["version.redis"].."</td></tr>\n")
+print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A></th><td>"..info["version.httpd"].."</td></tr>\n")
+print("<tr><th><a href=\"http://www.luajit.org\" target=\"_blank\">LuaJIT</A></th><td>"..info["version.luajit"].."</td></tr>\n")
+print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A></th><td>"..info["version.zmq"].."</td></tr>\n")
 if(info["version.geoip"] ~= nil) then
-print("<tr><th><a href=http://www.maxmind.com target=\"_blank\">GeoIP</A></th><td>"..info["version.geoip"])
+print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoIP</A></th><td>"..info["version.geoip"])
 
 print [[ <br>&nbsp;<br><small>This product includes GeoLite data created by <a href="http://www.maxmind.com">MaxMind</a>.</small>
 ]]
 
 print("</td></tr>\n")
 end
-print("<tr><th><a href=http://www.d3js.org target=\"_blank\">Data-Driven Documents (d3js)</A></th><td>2.9.1 / 3.0</td></tr>\n")
+print("<tr><th><a href=\"http://www.d3js.org\" target=\"_blank\">Data-Driven Documents (d3js)</A></th><td>2.9.1 / 3.0</td></tr>\n")
 
 
 

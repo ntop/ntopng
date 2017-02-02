@@ -118,7 +118,7 @@ function print_single_group(value)
       print(value["name"]..'</A> ')
       print('", "column_chart": "')
       if tonumber(value["id"]) ~= -1 and interface.isPcapDumpInterface() == false then
-	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       else
 	 print("-")
       end
@@ -128,7 +128,7 @@ function print_single_group(value)
       print(value["id"]..'</A> ')
       print('", "column_chart": "')
       if value["id"] ~= "0" then
-	 print('<A HREF='..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan_id='..value["id"]..'&page=historical><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan_id='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
       print('", ')
 
@@ -154,7 +154,7 @@ function print_single_group(value)
    local alt = getHostAltName(value["id"])
    
    if((alt ~= nil) and (alt ~= value["id"])) then alt = " ("..alt..")" else alt = "" end
-   print('"column_link": "<A HREF='..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'>'.. value["id"]..alt..'</A>')
+   print('"column_link": "<A HREF=\''..ntop.getHttpPrefix()..'/lua/mac_details.lua?mac='.. value["id"] ..'\'>'.. value["id"]..alt..'</A>')
 
    if(not(isSpecialMac(value["id"]))) then
         local icon = getHostIcon(value["id"])

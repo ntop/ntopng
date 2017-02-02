@@ -53,7 +53,7 @@ print('</span></a>')
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
    local do_show = false
 
-   print('<br><A HREF='..ntop.getHttpPrefix()..'/lua/about.lua> <span class="badge badge-warning">')
+   print('<br><A HREF="'..ntop.getHttpPrefix()..'/lua/about.lua"> <span class="badge badge-warning">')
    if(info["pro.release"]) then
       if(info["pro.demo_ends_at"] ~= nil) then
 	 local rest = info["pro.demo_ends_at"] - os.time()
@@ -230,9 +230,9 @@ print[[
                    var color = error_color;
                    var label = error_label;
 
-		   msg += "&nbsp;<a href=]]
+		   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/show_alerts.lua><i class=\"fa fa-warning\" style=\"color: " + color + ";\"></i>"
+print [[/lua/show_alerts.lua\"><i class=\"fa fa-warning\" style=\"color: " + color + ";\"></i>"
 
                    msg += "&nbsp;<span class=\"label " + label + "\">"+addCommas(rsp.engaged_alerts)+" Engaged Alert";
                    if(rsp.engaged_alerts > 1) msg += "s";
@@ -249,9 +249,9 @@ print [[/lua/show_alerts.lua><i class=\"fa fa-warning\" style=\"color: " + color
 		var alarm_threshold_high = 90; /* 90% */
 		var alert = 0;    
             
-            msg += "<a href=]]
+            msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/hosts_stats.lua>";
+print [[/lua/hosts_stats.lua\">";
 		if(rsp.hosts_pctg < alarm_threshold_low) {
 		  msg += "<span class=\"label label-default\">";
 		} else if(rsp.hosts_pctg < alarm_threshold_high) {
@@ -264,15 +264,15 @@ print [[/lua/hosts_stats.lua>";
 
 		msg += addCommas(rsp.num_hosts)+" Hosts</span></a> ";
 
-            msg += "<a href=]]
+            msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/mac_stats.lua>";
+print [[/lua/mac_stats.lua\">";
 		  msg += "<span class=\"label label-default\">";
 		msg += addCommas(rsp.num_devices)+" Devices</span></a> ";
 
-    msg += "<a href=]]
+    msg += "<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/flows_stats.lua>";
+print [[/lua/flows_stats.lua\">";
 		if(rsp.flows_pctg < alarm_threshold_low) {
 		  msg += "<span class=\"label label-default\">";
 		} else if(rsp.flows_pctg < alarm_threshold_high) {
@@ -286,9 +286,9 @@ print [[/lua/flows_stats.lua>";
 		msg += addCommas(rsp.num_flows)+" Flows </span> </a>";
 
 		if(rsp.flow_export_drops > 0) {
-		   msg += "&nbsp;<a href=]]
+		   msg += "&nbsp;<a href=\"]]
 print (ntop.getHttpPrefix())
-print [[/lua/if_stats.lua><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
+print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"></i> <span class=\"label label-danger\">"+addCommas(rsp.flow_export_drops)+" Dropped flow";
 		   if(rsp.flow_export_drops > 1) msg += "s";
 
 		   msg += "</span></A> ";

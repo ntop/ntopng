@@ -1469,7 +1469,7 @@ function ntop_version_check()
       this_version   = version2int(version_elems[1])
 
       if(new_version > this_version) then
-	 print("<p><div class=\"alert alert-warning\"><font color=red><i class=\"fa fa-cloud-download fa-lg\"></i> A new "..info["product"].." (v." .. rsp .. ") is available for <A HREF=http://www.ntop.org/get-started/download/>download</A>: please upgrade.</font></div></p>")
+	 print("<p><div class=\"alert alert-warning\"><font color=red><i class=\"fa fa-cloud-download fa-lg\"></i> A new "..info["product"].." (v." .. rsp .. ") is available for <A HREF=\"http://www.ntop.org/get-started/download/\">download</A>: please upgrade.</font></div></p>")
       end
    end
 end
@@ -1804,7 +1804,7 @@ function getFlag(country)
    if((country == nil) or (country == "")) then
       return("")
    else
-      return(" <A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></A> ")
+      return(" <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></A> ")
    end
 end
 
@@ -2081,7 +2081,7 @@ end
 -- ###############################################
 
 function formatWebSite(site)
-   return("<A target=\"_blank\" HREF=http://"..site..">"..site.."</A> <i class=\"fa fa-external-link\"></i></th>")
+   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fa fa-external-link\"></i></th>")
 end
 
 -- Update Utils::flowstatus2str

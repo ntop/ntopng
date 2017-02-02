@@ -440,8 +440,8 @@ if((page == "overview") or (page == nil)) then
 	    if(rsps > 1) then
 	    	    print("<tr><th width=35% rowspan="..rsps..">Host SNMP Location</th><th>SNMP Device</th><th>Device Port</th></tr>\n")
 	    	    for host,port in pairs(ports) do
-		    	       print("<tr><td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host="..host..">"..ntop.getResolvedAddress(host).."</A></td>")
-			       	       print("<td align=right><A HREF=" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port..">"..port.."</td></tr>\n")
+		    	       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/host_details.lua?host="..host.."'>"..ntop.getResolvedAddress(host).."</A></td>")
+			       	       print("<td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..host .. "&ifIdx="..port.."'>"..port.."</td></tr>\n")
 		    end
 	    end
 	 end
@@ -449,7 +449,7 @@ if((page == "overview") or (page == nil)) then
 
    
       if host.deviceIfIdx ~= nil and host.deviceIfIdx ~= 0 and ntop.isPro() then
-	 print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF="..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIndex=".. host.deviceIfIdx..">".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
+	 print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIndex=".. host.deviceIfIdx.."'>".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
       end
 
       print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
@@ -457,7 +457,7 @@ if((page == "overview") or (page == nil)) then
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
       
       if(host["local_network_name"] ~= nil) then
-	 print(" [ <A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"])..">".. host["local_network_name"].."</A> ]")
+	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"]).."'>".. host["local_network_name"].."</A> ]")
       end
 
       local pool_name = host_pools_utils.getPoolName(ifId, host["host_pool_id"])
@@ -565,7 +565,7 @@ print [[
    if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
    print("<tr>")
    if(host["os"] ~= "") then
-     print("<th>OS</th><td> <A HREF="..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. ">"..mapOS2Icon(host["os"]) .. "</A></td>\n")
+     print("<th>OS</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td>\n")
    else
      print("<th></th><td></td>\n")
    end
@@ -603,7 +603,7 @@ end
    if((host["asn"] ~= nil) and (host["asn"] > 0)) then
       print("<tr><th>ASN</th><td>")
 
-      print("<A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn ..">"..host.asname.."</A> [ ASN <A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn..">".. host.asn.."</A> ]</td>")
+      print("<A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn .."'>"..host.asname.."</A> [ ASN <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=".. host.asn.."'>".. host.asn.."</A> ]</td>")
       print('<td><A HREF="http://itools.com/tool/arin-whois-domain-search?q='.. host["ip"] ..'&submit=Look+up">Whois Lookup</A> <i class="fa fa-external-link"></i></td>')
       print("</td></tr>\n")
    end
@@ -661,7 +661,7 @@ end
 
 
 if(host["num_alerts"] > 0) then
-   print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts>Alerts</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
+   print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>Alerts</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
 end
 
    print("<tr><th>First / Last Seen</th><td nowrap><span id=first_seen>" .. formatEpoch(host["seen.first"]) ..  " [" .. secondsToTime(os.time()-host["seen.first"]) .. " ago]" .. "</span></td>\n")
@@ -706,7 +706,7 @@ end
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
    end
 
-   if(host["json"] ~= nil) then print("<tr><th><A HREF=http://en.wikipedia.org/wiki/JSON>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF="..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifId="..ifId.."&"..hostinfo2url(host_info)..">Download<A></td></tr>\n") end
+   if(host["json"] ~= nil) then print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifId="..ifId.."&"..hostinfo2url(host_info).."'>Download<A></td></tr>\n") end
 
 
 
@@ -1392,7 +1392,7 @@ end
 	    end	    
 	 end
 
-	 print("<tr><th rowspan=6 width=20%><A HREF=http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods>HTTP Queries</A></th><th width=20%>Method</th><th width=20%>Requests</th><th colspan=2>Distribution</th></tr>")
+	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods'>HTTP Queries</A></th><th width=20%>Method</th><th width=20%>Requests</th><th colspan=2>Distribution</th></tr>")
 	 print("<tr><th>GET</th><td style=\"text-align: right;\"><span id=http_query_num_get>".. formatValue(http["sender"]["query"]["num_get"]) .."</span> <span id=trend_http_query_num_get></span></td><td colspan=2 rowspan=5>")
 
 print [[
@@ -1411,7 +1411,7 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 	 print("<tr><th>PUT</th><td style=\"text-align: right;\"><span id=http_query_num_put>".. formatValue(http["sender"]["query"]["num_put"]) .."</span> <span id=trend_http_query_num_put></span></td></tr>")
 	 print("<tr><th>Other Method</th><td style=\"text-align: right;\"><span id=http_query_num_other>".. formatValue(http["sender"]["query"]["num_other"]) .."</span> <span id=trend_http_query_num_other></span></td></tr>")
 	 print("<tr><th colspan=4>&nbsp;</th></tr>")
-	 print("<tr><th rowspan=6 width=20%><A HREF=http://en.wikipedia.org/wiki/List_of_HTTP_status_codes>HTTP Responses</A></th><th width=20%>Response code</th><th width=20%>Responses</th><th colspan=2>Distribution</th></tr>")
+	 print("<tr><th rowspan=6 width=20%><A HREF='http://en.wikipedia.org/wiki/List_of_HTTP_status_codes'>HTTP Responses</A></th><th width=20%>Response code</th><th width=20%>Responses</th><th colspan=2>Distribution</th></tr>")
 	 print("<tr><th>1xx (Informational)</th><td style=\"text-align: right;\"><span id=http_response_num_1xx>".. formatValue(http["receiver"]["response"]["num_1xx"]) .."</span> <span id=trend_http_response_num_1xx></span></td><td colspan=2 rowspan=5>")
 
 print [[
@@ -1439,7 +1439,7 @@ print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) prin
 	       print("<tr><th rowspan="..(num+1).." width=20%>Virtual Hosts</th><th>Name</th><th>Traffic Sent</th><th>Traffic Received</th><th>Requests Served</th></tr>\n")
 	       for k,v in pairsByKeys(vh, asc) do
 		  local j = string.gsub(k, "%.", "___")
-		  print("<tr><td><A HREF=http://"..k..">"..k.."</A> <i class='fa fa-external-link'></i>")
+		  print("<tr><td><A HREF='http://"..k.."'>"..k.."</A> <i class='fa fa-external-link'></i>")
 		  historicalProtoHostHref(ifId, host, nil, nil, k)
 		  print("</td>")
 		  print("<td align=right><span id="..j.."_bytes_vhost_sent>"..bytesToSize(vh[k]["bytes.sent"]).."</span></td>")
@@ -1828,8 +1828,8 @@ for v,k in pairsByKeys(vals, rev) do
 
          -- print the host row together with the Jaccard coefficient
 	 print("<tr>")
-   -- print("<th align=left><A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k..">"..correlated_host["name"].."</a></th>")
-	 print("<th align=left><A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(correlated_host)..">"..hostinfo2hostkey(correlated_host).."</a></th>")
+   -- print("<th align=left><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..k.."'>"..correlated_host["name"].."</a></th>")
+	 print("<th align=left><A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifId.."&"..hostinfo2url(correlated_host).."'>"..hostinfo2hostkey(correlated_host).."</a></th>")
 	 print("<th>"..round(v,2).."</th>");
 
 	 -- print the activity map row
@@ -1892,10 +1892,10 @@ end
 print [[
 <b>Note</b>:
 <ul>
-	 <li>Jaccard Similarity considers only activity map as shown in the <A HREF=]]
+	 <li>Jaccard Similarity considers only activity map as shown in the <A HREF="]]
 print (ntop.getHttpPrefix())
-print [[/lua/host_details.lua?ifname="]] print(ifId.."&"..hostinfo2url(host_info)) print [[>host overview</A>.
-<li>Two hosts are similar according to the Jaccard coefficient when their activity tends to overlap. In particular when their activity map is very similar. The <A HREF=http://en.wikipedia.org/wiki/Jaccard_index>Jaccard similarity coefficient</A> is a number between +1 and 0.
+print [[/lua/host_details.lua?ifname=]] print(ifId.."&"..hostinfo2url(host_info)) print [[">host overview</A>.
+<li>Two hosts are similar according to the Jaccard coefficient when their activity tends to overlap. In particular when their activity map is very similar. The <A HREF="http://en.wikipedia.org/wiki/Jaccard_index">Jaccard similarity coefficient</A> is a number between +1 and 0.
 </ul>
 ]]
 end

@@ -28,7 +28,7 @@ end
 
 vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then
-   ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. vers[2] ..">"..info["version"].."</A>"
+   ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].."</A>"
 else
    ntopng_git_url = info["version"]
 end

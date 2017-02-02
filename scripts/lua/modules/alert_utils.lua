@@ -363,7 +363,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
             if(rc) then
 	       alert_status = 1 -- alert on
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key.."\">"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
 	       -- only if the alert is not in its re-arming period...
 	       if not is_alert_re_arming(key, t[1], ifname) then
@@ -448,7 +448,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
 
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
             if(rc) then
-                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF="..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF=\""..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical\">"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
                 if not is_alert_re_arming(network_name, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
@@ -521,8 +521,8 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
-                ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
+                "\">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
