@@ -733,14 +733,14 @@ function performAlertsQuery(statement, what, opts)
       wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.period_end)
    end
 
-   if not isEmptyString(opts.hosts_type) then
-      if opts.hosts_type ~= "all_hosts" then
+   if not isEmptyString(opts.flowhosts_type) then
+      if opts.flowhosts_type ~= "all_hosts" then
          local cli_local, srv_local = 0, 0
 
-         if opts.hosts_type == "local_only" then cli_local, srv_local = 1, 1
-         elseif opts.hosts_type == "remote_only" then cli_local, srv_local = 0, 0
-         elseif opts.hosts_type == "local_origin_remote_target" then cli_local, srv_local = 1, 0
-         elseif opts.hosts_type == "remote_origin_local_target" then cli_local, srv_local = 0, 1
+         if opts.flowhosts_type == "local_only" then cli_local, srv_local = 1, 1
+         elseif opts.flowhosts_type == "remote_only" then cli_local, srv_local = 0, 0
+         elseif opts.flowhosts_type == "local_origin_remote_target" then cli_local, srv_local = 1, 0
+         elseif opts.flowhosts_type == "remote_origin_local_target" then cli_local, srv_local = 0, 1
          end
 
          if what == "historical-flows" then

@@ -109,6 +109,29 @@ function validateClientOrServer(mode)
    return validateChoice(modes, mode)
 end
 
+function validateStatsType(mode)
+   local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins",
+      "top_targets", "duration_pie", "longest_engaged", "counts_pie",
+      "counts_plain"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateAlertStatsType(mode)
+   local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins",
+      "top_targets", "duration_pie", "longest_engaged", "counts_pie",
+      "counts_plain"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateFlowHostsType(mode)
+   local modes = {"local_only", "remote_only",
+      "local_origin_remote_target", "remote_origin_local_target"}
+
+   return validateChoice(modes, mode)
+end
+
 -- #################################################################
 
 function validateIPv4IPv6Mac(p)
@@ -206,6 +229,10 @@ local known_parameters = {
    ["procstats_mode"]   =  validateProcessesStatsMode,    -- A mode for processes_stats.lua
    ["direction"]        =  validateDirection,             -- Sent or Received direction
    ["clisrv"]           =  validateClientOrServer,        -- Client or Server filter
+   ["tracked"]          =  validateNumber,                -- A limit for the results
+   ["stats_type"]       =  validateStatsType,             -- A mode for historical stats queries
+   ["alertstats_type"]  =  validateAlertStatsType,        -- A mode for alerts stats queries
+   ["flowhosts_type"]   =  validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
 
 -- PAGINATION
    ["perPage"]          =  validateNumber,                -- Number of results per page (used for pagination)
@@ -225,10 +252,9 @@ local known_parameters = {
    ["referer"]          =  validateUnchecked,             -- An URL referer
    ["module"]           =  validateTopModule,             -- A top script module
    ["addvlan"]          =  validateBool,                  -- True if VLAN must be added to the result
+   ["tracked"]          =  validateNumber,                -- 
 
---
-   --~ ["id"]           =  validateNumber,                -- NOTE: obsolete modify to ifid in all scripts
-   
+--   
    
    
    --~ ["num_minutes"]  =  validateNumber,                --
