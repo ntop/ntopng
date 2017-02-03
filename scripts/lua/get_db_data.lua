@@ -9,8 +9,7 @@ require "lua_utils"
 require "db_utils"
 local json = require ("dkjson")
 
-local ifId        = _GET["ifId"]
-local ip_version  = _GET["version"]
+local ifId        = _GET["ifid"]
 local host        = _GET["host"]
 local epoch_end   = tonumber(_GET["epoch_end"]   or os.time())
 local epoch_begin = tonumber(_GET["epoch_begin"] or epoch_end - 3600)
@@ -22,9 +21,6 @@ local info        = _GET["info"]
 local limit       = _GET["limit"]
 local format      = _GET["format"]
 local action      = _GET["action"]
-
-if ip_version == nil then ip_version = "4" end
-ip_version = tonumber(ip_version)
 
 if epoch_begin> epoch_end then
    local tmp = epoch_end
@@ -41,7 +37,7 @@ headerShown = false
 -- os.execute("sleep 30") -- this is to test slow responses
 
 for k,v in pairs(versions) do
-   local res = getNumFlows(_GET["ifId"], k, _GET["host"], _GET["l4proto"], _GET["port"], _GET["protocol"], _GET["info"], _GET["epoch_begin"], _GET["epoch_end"])
+   local res = getNumFlows(ifId, k, _GET["host"], _GET["l4proto"], _GET["port"], _GET["protocol"], _GET["info"], _GET["epoch_begin"], _GET["epoch_end"])
 
    if res == nil or res[1] == nil then
       totals["status"] = "error"

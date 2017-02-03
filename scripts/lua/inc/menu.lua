@@ -82,7 +82,7 @@ end
 
 if ntop.isPro() and prefs.is_dump_flows_to_mysql_enabled then
   print('<li class="divider"></li>')
-  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifId='..ifId..'"><i class="fa fa-history"></i> Historical Data Explorer</a></li>')
+  print('<li><a href="'..ntop.getHttpPrefix()..'/lua/pro/db_explorer.lua?ifid='..ifId..'"><i class="fa fa-history"></i> Historical Data Explorer</a></li>')
 end
 
 

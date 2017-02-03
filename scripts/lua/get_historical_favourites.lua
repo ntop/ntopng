@@ -11,7 +11,7 @@ local json = require ("dkjson")
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-local ifid = _GET["ifId"]
+local ifid = _GET["ifid"]
 if ifid == nil or ifid == "" then
    ifid = getInterfaceId(ifname)
 end

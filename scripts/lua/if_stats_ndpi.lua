@@ -8,13 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
-if_name = _GET["if_name"]
-ifid = _GET["id"]
+ifid = _GET["ifid"]
 
 if ifid ~= nil and ifid ~= "" then
    if_name = getInterfaceName(ifid)
-elseif if_name ~= nil and if_name ~= "" then
-   ifid = tostring(interface.name2id(if_name))
 else
    if_name = ifname
    ifid = interface.name2id(ifname)

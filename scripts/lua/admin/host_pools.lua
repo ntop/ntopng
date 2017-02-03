@@ -166,7 +166,7 @@ else
 end
 
 local member_filtering = _GET["member"]
-local manage_url = "?id="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
+local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
 
 --------------------------------------------------------------------------------
 
@@ -182,7 +182,7 @@ print [[
 <br/><table><tbody><tr>
 ]]
 
-print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?id=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
+print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
 local no_pools = true
 for _,pool in ipairs(available_pools) do
   if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
@@ -682,7 +682,7 @@ print [[
 
       var form = paramsToForm('<form method="post"></form>', params);
       if (pool_id == ]] print(selected_pool.id) print[[)
-        form.attr("action", "?id=]] print(tostring(ifId)) print[[&page=pools#create");
+        form.attr("action", "?ifid=]] print(tostring(ifId)) print[[&page=pools#create");
 
       form.appendTo('body').submit();
     }

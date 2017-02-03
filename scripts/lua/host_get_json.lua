@@ -54,7 +54,7 @@ function flows2protocolthpt(flows)
 end
 
 if_name = (_GET["if_name"] or _GET["ifname"])
-ifid = (_GET["id"] or _GET["ifId"])
+ifid = _GET["ifid"]
 -- parse interface names and possibly fall back to the selected interface:
 -- priority goes to the interface id
 if ifid ~= nil and ifid ~= "" then

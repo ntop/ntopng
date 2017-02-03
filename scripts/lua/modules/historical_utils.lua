@@ -743,7 +743,7 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..tostring(ifId)..interface_talkers_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
@@ -1160,7 +1160,7 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..tostring(ifId)..top_apps_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
@@ -1424,8 +1424,8 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
    local div_data = ""
 
    if ifId ~= "" and ifId ~= nil then
-      _GET["ifId"] = ifId
-      div_data = div_data..' ifId="'..tostring(ifId)..'" '
+      _GET["ifid"] = ifId
+      div_data = div_data..' ifid="'..tostring(ifId)..'" '
    end
    if epoch_begin ~= "" and epoch_begin ~= nil then
       _GET["epoch_begin"] = epoch_begin
@@ -1539,7 +1539,7 @@ $('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
 
   xhr = $.ajax({
     type: 'GET',]]
-print("url: '"..ntop.getHttpPrefix().."/lua/get_db_data.lua?ifname="..tostring(_GET["ifId"]).."', ")
+print("url: '"..ntop.getHttpPrefix().."/lua/get_db_data.lua?ifid="..tostring(_GET["ifid"]).."', ")
 print("data: "..json.encode(_GET, nil)..",")
 print[[
     complete: function() {
@@ -1610,7 +1610,7 @@ end
 -- ##########################################
 
 function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
-   local url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
+   local url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..ifId.. "&host="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
 
    if(l7proto ~= "") then
       if(not(isnumber(l7proto))) then
@@ -1936,7 +1936,7 @@ end
 
 function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
    if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
-      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId
+      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifid="..ifId
       local now    = os.time()
       local ago1h  = now - 3600
 

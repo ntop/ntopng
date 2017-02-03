@@ -2131,7 +2131,7 @@ end
 
 function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
    if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
-      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId
+      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifid="..ifId
       local now    = os.time()
       local ago1h  = now - 3600
 
