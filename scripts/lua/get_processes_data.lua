@@ -12,7 +12,7 @@ local debug = false
 -- setTraceLevel(TRACE_DEBUG) -- Debug mode
 
 -- Output parameters
-mode = _GET["mode"]
+mode = _GET["procstats_mode"]
 
 -- Table parameters
 currentPage = _GET["currentPage"]
@@ -270,7 +270,7 @@ if (mode == "table") then
      cli_tooltip = ""
 
      print ("{ \"key\" : \"" .. key..'\"')
-     print (", \"column_name\" : \"".."<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?name=" .. key .. "'>".. value["name"] .. "</A>")
+     print (", \"column_name\" : \"".."<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid_name=" .. key .. "'>".. value["name"] .. "</A>")
 
      print ("\", \"column_duration\" : \"" .. secondsToTime(value["duration"]))
      print ("\", \"column_count\" : \"" .. value["count"])

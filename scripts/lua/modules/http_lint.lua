@@ -53,11 +53,63 @@ function validateUnchecked(p)
    return true
 end
 
+-- #################################################################
+
 function validateMode(mode)
    local modes = {"all", "local", "remote"}
 
    return validateChoice(modes, mode)
 end
+
+function validateHttpMode(mode)
+   local modes = {"responses", "queries"}
+
+   return validateChoice(modes, mode)
+end
+
+function validatePidMode(mode)
+   local modes = {"l4", "l7", "host", "apps"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateNdpiStatsMode(mode)
+   local modes = {"sinceStartup", "count", "host"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateSflowDistroMode(mode)
+   local modes = {"host", "process", "user"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateIfaceLocalStatsMode(mode)
+   local modes = {"distribution"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateProcessesStatsMode(mode)
+   local modes = {"table", "timeline"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateDirection(mode)
+   local modes = {"sent", "recv"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateClientOrServer(mode)
+   local modes = {"client", "server"}
+
+   return validateChoice(modes, mode)
+end
+
+-- #################################################################
 
 function validateIPv4IPv6Mac(p)
    -- TODO stricter checks
@@ -116,43 +168,67 @@ function validateIfFilter(i)
    end
 end
 
+function validateTopModule(m)
+   -- TODO check for existance
+   return validateSingleWord(m)
+end
+
 -- #################################################################
 
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
--- FILTERING
-   ["application"]  =  validateApplication,           -- An nDPI application protocol name
-   ["mode"]         =  validateMode,                  -- Remote or Local users
-   ["country"]      =  validateCountry,               -- Country code
-   ["flow_key"]     =  validateNumber,                -- The ID of a flow hash
-   ["pool"]         =  validateNumber,                -- A pool ID
-   ["vlan"]         =  validateNumber,                -- A VLAN id
-   ["host"]         =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
-   ["network"]      =  validateNumber,                -- A network ID
-   ["ifid"]         =  validateInterface,             -- An ntopng interface ID
-   ["iffilter"]     =  validateIfFilter,              -- A network ID or 'all'
+-- FILTERING & STATUS
+   ["application"]      =  validateApplication,           -- An nDPI application protocol name
+   --~ ["mode"]         =  validateMode,                  -- Remote or Local users
+   ["country"]          =  validateCountry,               -- Country code
+   ["flow_key"]         =  validateNumber,                -- The ID of a flow hash
+   ["pool"]             =  validateNumber,                -- A pool ID
+   ["vlan"]             =  validateNumber,                -- A VLAN id
+   ["host"]             =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
+   ["network"]          =  validateNumber,                -- A network ID
+   ["ifid"]             =  validateInterface,             -- An ntopng interface ID
+   --~ ["ifname"]       =  validateNumber,                -- NOTE: obsolete, but some scripts still depend on it (see et_host_info_ntopng.sh, read_metrics.lua)
+   ["ifIdx"]            =  validateNumber,                -- A switch port id
+   ["iffilter"]         =  validateIfFilter,              -- A network ID or 'all'
+   ["epoch"]            =  validateNumber,                -- A timestamp value
+   ["epoch_begin"]      =  validateNumber,                -- A timestamp value to indicate start time
+   ["epoch_end"]        =  validateNumber,                -- A timestamp value to indicate end time
+   ["http_mode"]        =  validateHttpMode,              -- HTTP mode for host_http_breakdown.lua
+   ["pid_mode"]         =  validatePidMode,               -- pid mode for pid_stats.lua
+   ["pid_name"]         =  validateSingleWord,            -- A process name
+   ["pid"]              =  validateNumber,                -- A process ID
+   ["breed"]            =  validateBool,                  -- True if nDPI breed should be shown
+   ["ndpistats_mode"]   =  validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua
+   ["user"]             =  validateSingleWord,            -- A ntopng user name
+   ["sflowdistro_mode"] =  validateSflowDistroMode,       -- A mode for host_sflow_distro
+   ["iflocalstat_mode"] =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
+   ["procstats_mode"]   =  validateProcessesStatsMode,    -- A mode for processes_stats.lua
+   ["direction"]        =  validateDirection,             -- Sent or Received direction
+   ["clisrv"]           =  validateClientOrServer,        -- Client or Server filter
 
 -- PAGINATION
-   ["perPage"]      =  validateNumber,                -- Number of results per page (used for pagination)
-   ["sortOrder"]    =  validateSortOrder,             -- A sort order
-   ["sortColumn"]   =  validateSortColumn,            -- A sort column
-   ["currentPage"]  =  validateNumber,                -- The currently displayed page number (used for pagination)
+   ["perPage"]          =  validateNumber,                -- Number of results per page (used for pagination)
+   ["sortOrder"]        =  validateSortOrder,             -- A sort order
+   ["sortColumn"]       =  validateSortColumn,            -- A sort column
+   ["currentPage"]      =  validateNumber,                -- The currently displayed page number (used for pagination)
 
 -- AGGREGATION
-   ["grouped_by"]   =  validateSingleWord,            -- A group criteria
+   ["grouped_by"]       =  validateSingleWord,            -- A group criteria
 
 -- NAVIGATION
-   ["page"]         =  validateSingleWord,            -- Currently active subpage tab
-   ["tab"]          =  validateSingleWord,            -- Currently active tab, handled by javascript
+   ["page"]             =  validateSingleWord,            -- Currently active subpage tab
+   ["tab"]              =  validateSingleWord,            -- Currently active tab, handled by javascript
 
 -- OTHER
-   ["_"]            =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
+   ["_"]                =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
+   ["referer"]          =  validateUnchecked,             -- An URL referer
+   ["module"]           =  validateTopModule,             -- A top script module
+   ["addvlan"]          =  validateBool,                  -- True if VLAN must be added to the result
 
 --
-   --~ ["ifname"]       =  validateNumber,                -- NOTE: obsolete modify to ifid in all scripts
    --~ ["id"]           =  validateNumber,                -- NOTE: obsolete modify to ifid in all scripts
-   --~ ["epoch"]        =  validateNumber,                -- A timestamp value
+   
    
    
    --~ ["num_minutes"]  =  validateNumber,                --
@@ -160,9 +236,6 @@ local known_parameters = {
    --~ ["period_begin"] =  validateNumber,                --
    --~ ["period_end"]   =  validateNumber,                --
    --~ ["period_mins"]  =  validateNumber,                --
-   
-   
-   --~ ["breed"]        =  validateBool,                  --
    --~ ["label"]        =  validateUnchecked,             --
    
    
@@ -193,7 +266,7 @@ function lintParams()
    local params_to_validate = { _GET, _POST }
    local id, p, k, v
    local debug = false
-   local disableValidation = false -- <<<=== ENABLE HERE
+   local disableValidation = true -- <<<=== ENABLE HERE
    
    for id,p in pairs(params_to_validate) do
       for k,v in pairs(p) do

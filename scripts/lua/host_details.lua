@@ -457,7 +457,7 @@ if((page == "overview") or (page == nil)) then
       historicalProtoHostHref(getInterfaceId(ifname), host["ip"], nil, nil, nil)
       
       if(host["local_network_name"] ~= nil) then
-	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network_id="..host["local_network_id"].."&network_name="..escapeHTML(host["local_network_name"]).."'>".. host["local_network_name"].."</A> ]")
+	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A> ]")
       end
 
       local pool_name = host_pools_utils.getPoolName(ifId, host["host_pool_id"])
@@ -706,7 +706,7 @@ end
       print("<tr></th><th>Lost</th><td align=right><span id=pkt_lost>".. formatPackets(host["tcp.packets.lost"]) .."</span> <span id=pkt_lost_trend></span></td></tr>\n")
    end
 
-   if(host["json"] ~= nil) then print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifId="..ifId.."&"..hostinfo2url(host_info).."'>Download<A></td></tr>\n") end
+   if(host["json"] ~= nil) then print("<tr><th><A HREF='http://en.wikipedia.org/wiki/JSON'>JSON</A></th><td colspan=2><i class=\"fa fa-download fa-lg\"></i> <A HREF='"..ntop.getHttpPrefix().."/lua/host_get_json.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>Download<A></td></tr>\n") end
 
 
 
@@ -733,11 +733,11 @@ end
 
 		   do_pie("#sizeSentDistro", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_pkt_distro.lua', { distr: "size", mode: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 	print [[
 		   do_pie("#sizeRecvDistro", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_pkt_distro.lua', { distr: "size", mode: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+print [[/lua/host_pkt_distro.lua', { distr: "size", direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 	print [[
 
 		}
@@ -766,11 +766,11 @@ print [[/lua/host_pkt_distro.lua', { distr: "size", mode: "recv", ifid: "]] prin
 
 		   do_pie("#clientPortsDistro", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/iface_ports_list.lua', { mode: "client", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+print [[/lua/iface_ports_list.lua', { clisrv: "client", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 	print [[
 		   do_pie("#serverPortsDistro", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/iface_ports_list.lua', { mode: "server", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+print [[/lua/iface_ports_list.lua', { clisrv: "server", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 	print [[
 
 		}
@@ -1321,7 +1321,7 @@ end
 
 					 do_pie("#dnsSent", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, mode: "sent" }, "", refresh);
+print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
 				      </script>
 					 </td></tr>
            ]]
@@ -1341,7 +1341,7 @@ print [[
 
 	     do_pie("#dnsRcvd", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, mode: "rcvd" }, "", refresh);
+print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
          </script>
          </td></tr>
 ]]
@@ -1401,7 +1401,7 @@ print [[
 
 	     do_pie("#httpQueries", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, mode: "queries" }, "", refresh);
+print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "queries" }, "", refresh);
          </script>
 ]]
 
@@ -1420,7 +1420,7 @@ print [[
 
 	     do_pie("#httpResponses", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, mode: "responses" }, "", refresh);
+print [[/lua/host_http_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, http_mode: "responses" }, "", refresh);
          </script>
 ]]
 	 print("</td></tr>")
@@ -2305,7 +2305,7 @@ print [[
 print [[
       users = do_pie("#topUsers", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua', { distr: users_type, mode: "user", filter: users_filter , ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
+print [[/lua/host_sflow_distro.lua', { distr: users_type, sflowdistro_mode: "user", filter: users_filter , ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
 
 print [[
 
@@ -2321,7 +2321,7 @@ print [[
     }
     if(sprobe_debug) { alert("]]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&mode=user&filter="+users_filter); }
+print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&filter="+users_filter); }
     users.setUrlParams({ type: users_type, mode: "user", filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
     }); ]]
 
@@ -2331,7 +2331,7 @@ $("#show_users input:radio").change(function() {
     if(sprobe_debug) { alert("users_type: "+users_type+"\n users_filter: "+users_filter); }
     if(sprobe_debug) { alert("url: ]]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&mode=user&filter="+users_filter); }
+print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&filter="+users_filter); }
     users.setUrlParams({ type: users_type, mode: "user", filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
 });]]
 
@@ -2341,7 +2341,7 @@ print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&mode=user&filter
 print [[
 processes = do_pie("#topProcess", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua', { distr: processes_type, mode: "process", filter: processes_filter , ifid: "]] print(ifId.."")print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
+print [[/lua/host_sflow_distro.lua', { distr: processes_type, sflowdistro_mode: "process", filter: processes_filter , ifid: "]] print(ifId.."")print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
 
 print [[
 
@@ -2356,14 +2356,14 @@ print [[
       processes_type = "bytes";
     }
     if(sprobe_debug) { alert(this.innerHTML+"-"+processes_type); }
-    processes.setUrlParams({ type: processes_type, mode: "process", filter: processes_filter , ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", filter: processes_filter , ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
     }); ]]
 
 print [[
 $("#show_processes input:radio").change(function() {
     processes_filter = this.value
     if(sprobe_debug) { alert("processes_type: "+processes_type+"\n processes_filter: "+processes_filter); }
-    processes.setUrlParams({ type: processes_type, mode: "process", filter: processes_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", filter: processes_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
 });]]
 
 

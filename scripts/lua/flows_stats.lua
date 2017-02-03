@@ -21,8 +21,7 @@ key = _GET["key"]
 host = _GET["host"]
 vhost = _GET["vhost"]
 
-network_id=_GET["network_id"]
-network_name=_GET["network_name"]
+network_id = _GET["network"]
 
 prefs = ntop.getPrefs()
 interface.select(ifname)
@@ -30,8 +29,8 @@ ifstats = interface.getStats()
 ndpistats = interface.getnDPIStats()
 
 if (network_id ~= nil) then
-
-url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network_id='..network_id.."&network_name="..network_name
+network_name = ntop.getNetworkNameById(tonumber(network_id))
+url = ntop.getHttpPrefix()..'/lua/flows_stats.lua?network='..network_id
 
 print [[
   <nav class="navbar navbar-default" role="navigation">
@@ -118,7 +117,7 @@ if(network_id ~= nil) then
   else
     print("?")
   end
-  print("network_id="..network_id)
+  print("network="..network_id)
   num_param = num_param + 1
 end
 
@@ -176,8 +175,7 @@ if(vhost ~= nil) then
 end
 if(network_id ~= nil) then 
    if(n == 0) then print("?") else print("&") end
-   print('network_id='..network_id) 
-   if(network_name ~= nil) then print('&network_name='..network_name) end
+   print('network='..network_id) 
 end
 
 print('">All Proto</a></li>')
@@ -190,8 +188,7 @@ for key, value in pairsByKeys(ndpistats["ndpi"], asc) do
    print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?application=' .. key)
    if(host ~= nil) then print('&host='..host) end
    if(vhost ~= nil) then print('&vhost='..vhost) end
-   if(network_id ~= nil) then print('&network_id='..network_id) end
-   if(network_name ~= nil) then print('&network_name='..network_name) end
+   if(network_id ~= nil) then print('&network='..network_id) end
    print('">'..key..'</a></li>')
 end
 

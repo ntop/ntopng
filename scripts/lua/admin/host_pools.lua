@@ -199,7 +199,7 @@ print('</select>')
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 if is_bridge_iface then
-  print("<a href='/lua/if_stats.lua?id=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
+  print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
 end
 
 print('</td>\n')
@@ -226,7 +226,7 @@ print(
       action      = ntop.getHttpPrefix() .. "/lua/if_stats.lua#manage",
       parameters  = {
                       pool=selected_pool.id,
-                      id=tostring(ifId),
+                      ifid=tostring(ifId),
                       page="pools",
                     },
       json_key    = "key",

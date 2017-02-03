@@ -9,7 +9,7 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-mode = _GET["mode"] --l4,l7,host
+mode = _GET["pid_mode"] --l4,l7,host
 pid = tonumber(_GET["pid"])
 name = _GET["name"]
 host = _GET["host"]

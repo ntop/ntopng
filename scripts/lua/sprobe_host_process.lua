@@ -41,7 +41,7 @@ print [[/lua/sprobe_host_process.lua?host="+link.source+"&name="+link.source_nam
 		   /* PID -> IP Address */
 		   _link = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_process_info.lua?pid="+link.source_pid+"&name="+link.source_name+"&host=]] print(host_ip) print [[&page=Flows";
+print [[/lua/get_process_info.lua?pid="+link.source_pid+"&pid_name="+link.source_name+"&host=]] print(host_ip) print [[&page=Flows";
 		}
 		link.source = nodes[link.source] || (nodes[link.source] = {name: link.source_name, num:link.source, link: _link, type: link.source_type, pid: link.source_pid });
 
@@ -54,7 +54,7 @@ print [[/lua/sprobe_host_process.lua?host="+link.target+"&name="+link.target_nam
 		   /* PID -> IP Address */
 		   _link = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_process_info.lua?pid="+link.target_pid+"&name="+link.target_name+"&host=]] print(host_ip) print [[&page=Flows";
+print [[/lua/get_process_info.lua?pid="+link.target_pid+"&pid_name="+link.target_name+"&host=]] print(host_ip) print [[&page=Flows";
 		}
 
 		link.target = nodes[link.target] || (nodes[link.target] = {name: link.target_name, num: link.target, link: _link, type: link.target_type, pid: link.target_pid });

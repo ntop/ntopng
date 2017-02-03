@@ -29,8 +29,8 @@ end
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 page = _GET["page"]
-if_name = _GET["if_name"]
-ifid = (_GET["id"] or _GET["ifId"])
+ifid = _GET["ifid"]
+
 ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
@@ -73,12 +73,6 @@ end
 -- priority goes to the interface id
 if ifid ~= nil and ifid ~= "" then
    if_name = getInterfaceName(ifid)
-
--- if not interface id is specified we look for the interface name
-elseif if_name ~= nil and if_name ~= "" then
-   ifid = tostring(interface.name2id(if_name))
-
--- finally, we fall back to the default selected interface name
 else
    -- fall-back to the default interface
    if_name = ifname
@@ -182,7 +176,7 @@ print(msg)
 
 rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
-url = ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
+url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
@@ -445,12 +439,12 @@ print [[
 	       window.onload=function() {
 				   do_pie("#ifaceTrafficBreakdown", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. " }, \"\", refresh); \n")
+print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. " }, \"\", refresh); \n")
 
 if(ifstats.type ~= "zmq") then
 print [[				   do_pie("#ifaceTrafficDistribution", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. ", mode: \"distribution\" }, \"\", refresh); \n")
+print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. ", iflocalstat_mode: \"distribution\" }, \"\", refresh); \n")
 end
 print [[ }
 
@@ -616,15 +610,15 @@ elseif(page == "ndpi") then
 
        do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "count", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "count", id: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topTCPFlowsStats", ']]
    print (ntop.getHttpPrefix())
@@ -1155,7 +1149,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 print('</select>')
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?id='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users" aria-hidden="true"></i></A>')
+  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users" aria-hidden="true"></i></A>')
 end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">

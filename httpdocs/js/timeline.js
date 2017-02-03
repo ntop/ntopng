@@ -10,7 +10,7 @@ function do_timeline(p_update_url, p_url_params, p_url_id_name, p_timeInterval, 
 }
 
 // Timeline class
-// "/lua/get_processes_data.lua",{ mode: "timeline"},"name",2,300);
+// "/lua/get_processes_data.lua",{ procstats_mode: "timeline"},"name",2,300);
 function Timeline(p_update_url, p_url_params, p_url_id_name, p_timeInterval, p_init_period) {
 
   // Window update interval name

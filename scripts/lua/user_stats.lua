@@ -9,10 +9,9 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-mode = _GET["mode"]
+mode = _GET["pid_mode"]
 host = _GET["host"]
 user = _GET["user"]
-
 
 interface.select(ifname)
 flows_stats = interface.getFlowsInfo()

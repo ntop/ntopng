@@ -12,7 +12,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 interface.select(ifname)
 
 host_info = url2hostinfo(_GET)
-mode = _GET["mode"]
+mode = _GET["http_mode"]
 
 host = interface.getHostInfo(host_info["host"],host_info["vlan"])
 

@@ -90,7 +90,7 @@ function setMode(p_mode)
     url = ntop.getHttpPrefix().."/lua/get_user_info.lua?user="
   elseif (p_mode == "process") then
     what = "name"
-    url = ntop.getHttpPrefix().."/lua/get_process_info.lua?name="
+    url = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid_name="
   end
   if (debug) then io.write("what:"..what..",url:"..url.."\n"); end
 end
@@ -112,7 +112,7 @@ end
 
 -----------------------------------
 
-mode = _GET["mode"] -- memory(actual-memory),bytes,latency
+mode = _GET["sflowdistro_mode"] -- memory(actual-memory),bytes,latency
 type = _GET["distr"] -- user,process(proc_name)
 host = _GET["host"]
 filter = _GET["filter"] -- all,client,server

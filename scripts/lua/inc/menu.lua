@@ -289,9 +289,9 @@ for k,v in pairsByKeys(ifnames, asc) do
    print("      <li>")
 
    if(v == ifname) then
-      print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id="..k.."\">")
+      print("<a href=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..k.."\">")
    else
-      print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?id=]] print(tostring(k)) print[[">]]
+      print[[<form id="switch_interface_form_]] print(tostring(k)) print[[" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(tostring(k)) print[[">]]
       print[[<input name="switch_interface" type="hidden" value="1" />]]
       print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
       print[[</form>]]

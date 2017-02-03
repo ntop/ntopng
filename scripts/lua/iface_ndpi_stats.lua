@@ -18,9 +18,9 @@ else
    show_breed = false
 end
 
-if(_GET["mode"] == "sinceStartup") then
+if(_GET["ndpistats_mode"] == "sinceStartup") then
    stats = interface.getStats()
-   elseif(_GET["mode"] == "count") then
+   elseif(_GET["ndpistats_mode"] == "count") then
    stats = interface.getnDPIFlowsCount()
    elseif(host_info["host"] == nil) then
    stats = interface.getnDPIStats()
@@ -34,7 +34,7 @@ if(stats ~= nil) then
    tot = 0
    _ifstats = {}
 
-   if(_GET["mode"] == "count") then
+   if(_GET["ndpistats_mode"] == "count") then
       tot = 0
 
       for k, v in pairs(stats) do

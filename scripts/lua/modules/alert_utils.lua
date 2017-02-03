@@ -521,7 +521,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..tostring(getInterfaceId(ifname))..
                 "\">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then

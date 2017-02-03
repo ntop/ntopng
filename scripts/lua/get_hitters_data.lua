@@ -24,7 +24,7 @@ sortOrder   = _GET["sortOrder"]
 host_info   = url2hostinfo(_GET)
 port        = _GET["port"]
 application = _GET["application"]
-network_id  = _GET["network_id"]
+network_id  = _GET["network"]
 vhost       = _GET["vhost"]
 
 -- Host comparison parameters
