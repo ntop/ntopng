@@ -318,6 +318,7 @@ static int is_authorized(const struct mg_connection *conn,
 static int isCaptiveConnection(struct mg_connection *conn) {
   return(ntop->getPrefs()->isCaptivePortalEnabled()
 	 && (ntohs(conn->client.lsa.sin.sin_port) == 80)
+	 && (strcasestr((char*)mg_get_header(conn, "Host"), CONST_HELLO_HOST) == NULL)
 	 && (ntop->getPrefs()->get_alt_http_port() != 0));
 }
 

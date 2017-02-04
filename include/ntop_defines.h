@@ -657,5 +657,6 @@
 #define HTTP_MAX_HEADER_LINES           20
 
 #define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
+#define CONST_HELLO_HOST         "hello"
 
 #endif /* _NTOP_DEFINES_H_ */
