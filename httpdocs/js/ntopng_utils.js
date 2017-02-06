@@ -226,7 +226,7 @@ function toggleAllTabs(enabled){
     if(enabled === true)
 	$("#historical-tabs-container").find("li").removeClass("disabled").find("a").attr("data-toggle", "tab");
     else
-	$("#historical-tabs-container").find("li").addClass("disabled").find("a").removeAttr("data-toggle");
+	$("#historical-tabs-container").find("li:not(.active)").addClass("disabled").find("a").removeAttr("data-toggle");
 }
 
 function disableAllDropdownsAndTabs(){
@@ -241,6 +241,15 @@ function enableAllDropdownsAndTabs(){
 	$(this).prop("disabled", false);
     });
     toggleAllTabs(true)
+}
+
+function enableNavTabs(nav, selector, toEnable) {
+    var items = $(selector, $(nav));
+
+    if (toEnable)
+        items.attr("data-toggle", "tab").closest('li').removeClass("disabled");
+    else
+        items.removeAttr("data-toggle").closest('li').addClass("disabled");
 }
 
 function capitalize(s) {

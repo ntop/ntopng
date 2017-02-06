@@ -127,7 +127,7 @@ end
 
 --- ====================================================================
 
-function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch)
+function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, begin_epoch, end_epoch, limit)
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
@@ -178,6 +178,10 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       else
 	 sql = sql .." AND (IP_SRC_ADDR='"..host.."' OR IP_DST_ADDR='"..host.."')"
       end
+   end
+
+   if tonumber(limit) ~= nil then
+      sql = sql .. " LIMIT " .. limit
    end
 
    if(db_debug == true) then io.write(sql.."\n") end
