@@ -49,6 +49,11 @@ else
 	endif
 endif
 ######
+ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD))
+	LIBNBPF_HOME=${PWD}/../PF_RING/userland/nbpf
+	LIBNBPF_LIB=$(LIBNBPF_HOME)/libnbpf.a
+endif
+######
 HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/
 ######
 HAS_JSON=$(shell pkg-config --exists json-c; echo $$?)
@@ -86,7 +91,7 @@ else
 endif
 ######
 TARGET = ntopng
-LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
+LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
 CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(SODIUM_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @MYSQL_INC@ @CPPFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INC@ -DDATA_DIR='"$(datadir)"' -I${PWD}/third-party/libgeohash -I${PWD}/third-party/patricia # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm

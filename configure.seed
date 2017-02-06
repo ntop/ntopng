@@ -103,9 +103,14 @@ if test -d "pro"; then :
 AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
-if test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
+if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
+   cd ../PF_RING/userland; ./configure; cd -
    cd ../PF_RING/userland/nbpf; make; cd -
-   LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
+
+   dnl> nbpf for FreeBSD is linked statically
+   if test $SYSTEM != "FreeBSD"; then
+      LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
+   fi
 fi
 
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
