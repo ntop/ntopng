@@ -196,10 +196,13 @@ print [[/lua/logout.lua");  }, */
 		var bps_local2remote = Math.round((local_diff*8) / epoch_diff);
 		var bps_remote2local = Math.round((remote_diff*8) / epoch_diff);
 
-		/* don't use the remote_{b,p}ps values to update the gauge
-                if(rsp.remote_pps != 0)  { pps = Math.max(rsp.remote_pps, 0); }
-                if(rsp.remote_bps != 0)  { bps = Math.max(rsp.remote_bps, 0); }
-		*/
+                if(rsp.remote_pps != 0) {
+                  pps = Math.max(rsp.remote_pps, 0);
+                }
+                if(rsp.remote_bps != 0) {
+                  bps = Math.max(rsp.remote_bps, 0);
+                  bps = Math.min(bps, rsp.speed * 1e6);
+                }
 ]]
 
    if interface.isPcapDumpInterface() == false then
