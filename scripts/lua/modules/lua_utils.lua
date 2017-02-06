@@ -2102,7 +2102,7 @@ end
 
 -- prints purged information for hosts / flows
 function purgedErrorString()
-    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=in_memory"><i class="fa fa-flask"></i> Preferences</A>.'
+    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?tab=in_memory"><i class="fa fa-flask"></i> Preferences</A>.'
 end
 
 -- print TCP flags

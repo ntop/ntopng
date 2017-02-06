@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 host_ip   = _GET["host"]
-host_name = _GET["name"]
+host_name = _GET["pid_name"]
 host_id   = _GET["pid"]
 
 if(mode ~= "embed") then
@@ -36,7 +36,7 @@ print [[
 		   /* IP Address -> PID */
 		   _link = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/sprobe_host_process.lua?host="+link.source+"&name="+link.source_name+"&pid=0";
+print [[/lua/sprobe_host_process.lua?host="+link.source+"&pid_name="+link.source_name+"&pid=0";
 		} else {
 		   /* PID -> IP Address */
 		   _link = "]]
@@ -49,7 +49,7 @@ print [[/lua/get_process_info.lua?pid="+link.source_pid+"&pid_name="+link.source
 		   /* IP Address -> PID */
 		   _link = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/sprobe_host_process.lua?host="+link.target+"&name="+link.target_name+"&pid=0";
+print [[/lua/sprobe_host_process.lua?host="+link.target+"&pid_name="+link.target_name+"&pid=0";
 		} else {
 		   /* PID -> IP Address */
 		   _link = "]]

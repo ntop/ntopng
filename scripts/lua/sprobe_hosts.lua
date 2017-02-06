@@ -37,11 +37,11 @@ print [[/lua/sprobe_hosts_data.lua", function(error, json) {
 			link.source = nodes[link.source] || (nodes[link.source] = {name: link.source_name, num:link.source, num_procs: link.source_num,
 										   link: "]]
 print (ntop.getHttpPrefix())
-print [[/lua/sprobe_host_process.lua?host="+link.source+"&pid="+link.sourceId+"&name="+link.source_name });
+print [[/lua/sprobe_host_process.lua?host="+link.source+"&pid="+link.sourceId+"&pid_name="+link.source_name });
 			link.target = nodes[link.target] || (nodes[link.target] = { name: link.target_name, num: link.target, num_procs: link.target_num,
 										    link: "]]
 print (ntop.getHttpPrefix())
-print [[/lua/sprobe_host_process.lua?host="+link.target+"&pid="+link.targetId+"&name="+link.target_name});
+print [[/lua/sprobe_host_process.lua?host="+link.target+"&pid="+link.targetId+"&pid_name="+link.target_name});
 		     });
 ]]
 

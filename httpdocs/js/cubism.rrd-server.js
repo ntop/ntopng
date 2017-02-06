@@ -83,7 +83,7 @@ cubism.rrdserver = function(context, resolution) {
 
       d3.json(rrd
 	      + '&cf=' + cf
-	      + '&epoch_start=' + start
+	      + '&epoch_begin=' + start
 	      + '&epoch_end=' + stop
 	      + '&step=' + step,
 		function(data) {

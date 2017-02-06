@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
-host_ip = _GET["hostip"]
+host_ip = _GET["host"]
 ifid = _GET["ifid"]
 
 sendHTTPHeader('text/html; charset=iso-8859-1')

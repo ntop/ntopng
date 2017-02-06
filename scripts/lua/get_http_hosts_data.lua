@@ -17,8 +17,6 @@ sortOrder   = _GET["sortOrder"]
 protocol    = _GET["protocol"]
 key         = _GET["host"]
 
--- table_id = _GET["table"]
-
 if((sortColumn == nil) or (sortColumn == "column_")) then
    sortColumn = getDefaultTableSort("http_hosts")
 else

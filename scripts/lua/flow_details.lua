@@ -609,7 +609,7 @@ function update () {
 		    url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/flow_stats.lua',
-		    data: { ifname: "]] print(tostring(ifid)) print [[", flow_key: "]] print(flow_key) print [[" },
+		    data: { ifid: "]] print(tostring(ifid)) print [[", flow_key: "]] print(flow_key) print [[" },
 		    success: function(content) {
 			var rsp = jQuery.parseJSON(content);
 			$('#first_seen').html(rsp["seen.first"]);

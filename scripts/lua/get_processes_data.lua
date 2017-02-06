@@ -27,7 +27,7 @@ application = _GET["application"]
 hosts = _GET["hosts"]
 user = _GET["user"]
 pid = tonumber(_GET["pid"])
-name = _GET["name"]
+name = _GET["pid_name"]
 process_sourceId = 0
 
 if (name ~= nil) then

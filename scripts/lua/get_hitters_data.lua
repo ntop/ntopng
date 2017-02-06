@@ -32,7 +32,7 @@ hosts  = _GET["hosts"]
 user   = _GET["user"]
 host   = _GET["host"]
 pid    = tonumber(_GET["pid"])
-name   = _GET["name"]
+name   = _GET["pid_name"]
 
 interface.select(ifname)
 flows_stats = interface.getFlowsInfo(host)

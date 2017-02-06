@@ -576,7 +576,7 @@ elseif((page == "packets")) then
 
        do_pie("#sizeDistro", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/if_pkt_distro.lua', { distr: "size", ifname: "]] print(if_name.."\"")
+   print [[/lua/if_pkt_distro.lua', { distr: "size", ifid: "]] print(ifstats.id.."\"")
    print [[
 	   }, "", refresh);
     }

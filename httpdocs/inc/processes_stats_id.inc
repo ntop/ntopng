@@ -58,7 +58,7 @@ function get_trend (key,param,actual_value) {
 }
 
 function row_update(process_key) {
-   var url = "@HTTP_PREFIX@/lua/get_processes_data.lua?name="+process_key;
+   var url = "@HTTP_PREFIX@/lua/get_processes_data.lua?pid_name="+process_key;
   
   $.ajax({
     type: 'GET',

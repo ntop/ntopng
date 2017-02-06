@@ -67,7 +67,7 @@ else
     rrdfile = "bytes.rrd"
   end
 
-  local host_url = ntop.getHttpPrefix()..'/lua/pool_details.lua?ifname='..ifId..'&pool='..pool_id..'&page=historical'
+  local host_url = ntop.getHttpPrefix()..'/lua/pool_details.lua?ifid='..ifId..'&pool='..pool_id..'&page=historical'
   drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["graph_zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 end
 

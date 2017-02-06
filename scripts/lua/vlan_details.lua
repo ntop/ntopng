@@ -71,7 +71,7 @@ print [[
 Selectively render information pages
 --]]
 if page == "historical" then
-    vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifname='..ifId..'&vlan'..vlan_id..'&page=historical'
+    vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan'..vlan_id..'&page=historical'
     drawRRD(ifId, 'vlan:'..vlan_id, rrdfile, _GET["graph_zoom"], vlan_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 end
 

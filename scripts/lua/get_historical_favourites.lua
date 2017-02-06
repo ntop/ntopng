@@ -18,8 +18,8 @@ end
 
 -- use this two params to see statistics of a single host
 -- or for a pair of them
-local host = _GET["host"]
-local peer = _GET["peer"]
+local host = _GET["peer1"]
+local peer = _GET["peer2"]
 if peer and not host then
    host = peer
    peer = nil

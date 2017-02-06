@@ -11,7 +11,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 mode = _GET["pid_mode"] --l4,l7,host
 pid = tonumber(_GET["pid"])
-name = _GET["name"]
+name = _GET["pid_name"]
 host = _GET["host"]
 local debug = false
 if (debug) then setTraceLevel(TRACE_DEBUG) end

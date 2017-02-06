@@ -14,7 +14,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 ifid = getInterfaceId(ifname)
 
 -- query parameters
-local epoch_start = _GET["epoch_start"]
+local epoch_start = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
 
 -- use this two params to see statistics of a single host

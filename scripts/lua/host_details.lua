@@ -449,7 +449,7 @@ if((page == "overview") or (page == nil)) then
 
    
       if host.deviceIfIdx ~= nil and host.deviceIfIdx ~= 0 and ntop.isPro() then
-	 print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIndex=".. host.deviceIfIdx.."'>".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
+	 print("<tr><th>Device IP / Port Index</th><td colspan=2><A HREF='"..ntop.getHttpPrefix().."/lua/pro/flow_device_info.lua?ip="..host.deviceIP.."&ifIdx=".. host.deviceIfIdx.."'>".. host.deviceIP .."</A>@"..host.deviceIfIdx.."</td></tr>\n")
       end
 
       print("<tr><th>IP Address</th><td colspan=1>" .. host["ip"])
@@ -1169,7 +1169,7 @@ print [[
 ]]
 
 if(ntop.getCache("ntopng.prefs.host_activity_rrd_creation") == "0") then
-  print('Please enable <A HREF="/lua/admin/prefs.lua?subpage_active=on_disk_rrds">Activities Timeseries</A> preferences to save historical host activities.<p>')
+  print('Please enable <A HREF="/lua/admin/prefs.lua?tab=on_disk_rrds">Activities Timeseries</A> preferences to save historical host activities.<p>')
 end
 
 print [[

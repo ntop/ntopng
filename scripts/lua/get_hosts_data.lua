@@ -31,8 +31,6 @@ country      = _GET["country"]
 os_    	     = _GET["os"]
 mac          = _GET["mac"]
 
--- table_id = _GET["table"]
-
 function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then

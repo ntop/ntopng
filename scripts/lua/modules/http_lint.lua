@@ -8,6 +8,7 @@ local pragma_once = 1
 
 -- UTILITY FUNCTIONS
 
+-- Searches into the keys of the table
 function validateChoiceByKeys(defaults, v)
    if defaults[v] ~= nil then
       return true
@@ -16,10 +17,18 @@ function validateChoiceByKeys(defaults, v)
    end
 end
 
-function validateChoice(defaults, v)
+-- Searches into the value of the table
+-- Optional key can be used to access fields of the array element
+function validateChoice(defaults, v, key)
    for _,d in pairs(defaults) do
-      if d == v then
-         return true
+      if key ~= nil then
+         if d[key] == v then
+            return true
+         end
+      else
+         if d == v then
+            return true
+         end
       end
    end
 
@@ -54,6 +63,15 @@ end
 
 function validateNumber(p)
    if tonumber(p) ~= nil then
+      return true
+   else
+      return false
+   end
+end
+
+function validatePort(p)
+   local n = tonumber(p)
+   if ((n ~= nil) and (n >= 1) and (n <= 65535)) then
       return true
    else
       return false
@@ -102,6 +120,18 @@ end
 
 function validateSflowDistroMode(mode)
    local modes = {"host", "process", "user"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateSflowDistroType(mode)
+   local modes = {"size", "memory", "bytes", "latency", "server"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateSflowFilter(mode)
+   local modes = {"All", "Client", "Server"}
 
    return validateChoice(modes, mode)
 end
@@ -235,6 +265,14 @@ function validateIpAddress(p)
    end
 end
 
+function validateHTTPHost(p)
+   if (validateIpAddress(p) or true --[[ TODO ]]) then
+      return true
+   else
+      return false
+   end
+end
+
 function validateIpVersion(p)
    if ((p == "4") or (p == "6")) then
       return true
@@ -261,7 +299,12 @@ function validateBool(p)
    if((p == "true") or (p == "false")) then
       return true
    else
-      return false
+      local n = tonumber(p)
+      if ((n == 0) or (n == 1)) then
+         return true
+      else
+         return false
+      end
    end
 end
 
@@ -284,6 +327,11 @@ end
 
 function validateTrafficProfile(p)
    -- TODO implement
+   return validateUnchecked(p)
+end
+
+function validateActivityName(p)
+   -- TODO implement, read user activities from C
    return validateUnchecked(p)
 end
 
@@ -331,6 +379,14 @@ function validateIfFilter(i)
    end
 end
 
+function validateLookingGlassCriteria(c)
+   if validateChoice(looking_glass_criteria, c, 1) then
+      return true
+   else
+      return false
+   end
+end
+
 function validateTopModule(m)
    -- TODO check for existance
    return validateSingleWord(m)
@@ -341,102 +397,135 @@ end
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
--- HOST RELATED
-   ["host"]             =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
-   ["versus_host"]      =  validateIPv4IPv6Mac,           -- an host for comparison
-   ["mac"]              =  validateMac,                   -- a MAC address
-   ["peer1"]            =  validateIPv4IPv6Mac,           -- a Peer in a connection
-   ["peer2"]            =  validateIPv4IPv6Mac,           -- another Peer in a connection
-   ["origin"]           =  validateIPv4IPv6Mac,           -- the source of the alert
-   ["target"]           =  validateIPv4IPv6Mac,           -- the target of the alert
-   ["member"]           =  validateMember,                -- an IPv4 (optional @vlan, optional /suffix), IPv6 (optional @vlan, optional /suffix), or MAC address
-   ["network"]          =  validateNumber,                -- A network ID
-   ["ip"]               =  validateIpAddress,               -- An IPv4 or IPv6 address
+-- HOST SPECIFICATION
+   ["host"]                    =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
+   ["versus_host"]             =  validateIPv4IPv6Mac,           -- an host for comparison
+   ["mac"]                     =  validateMac,                   -- a MAC address
+   ["peer1"]                   =  validateIPv4IPv6Mac,           -- a Peer in a connection
+   ["peer2"]                   =  validateIPv4IPv6Mac,           -- another Peer in a connection
+   ["origin"]                  =  validateIPv4IPv6Mac,           -- the source of the alert
+   ["target"]                  =  validateIPv4IPv6Mac,           -- the target of the alert
+   ["member"]                  =  validateMember,                -- an IPv4 (optional @vlan, optional /suffix), IPv6 (optional @vlan, optional /suffix), or MAC address
+   ["network"]                 =  validateNumber,                -- A network ID
+   ["ip"]                      =  validateIpAddress,             -- An IPv4 or IPv6 address
+   ["vhost"]                   =  validateHTTPHost,              -- HTTP server name or IP address
+   ["version"]                 =  validateIpVersion,             -- To specify an IPv4 or IPv6
+   ["vlan"]                    =  validateNumber,                -- A VLAN id
 
--- FILTERING & STATUS
-   ["application"]      =  validateApplication,           -- An nDPI application protocol name
-   --~ ["mode"]         =  validateMode,                  -- Remote or Local users
-   ["country"]          =  validateCountry,               -- Country code
-   ["flow_key"]         =  validateNumber,                -- The ID of a flow hash
-   ["pool"]             =  validateNumber,                -- A pool ID
-   ["vlan"]             =  validateNumber,                -- A VLAN id
-   ["ifid"]             =  validateInterface,             -- An ntopng interface ID
-   --~ ["ifname"]       =  validateNumber,                -- NOTE: obsolete, but some scripts still depend on it (see et_host_info_ntopng.sh, read_metrics.lua)
-   ["ifIdx"]            =  validateNumber,                -- A switch port id
-   ["iffilter"]         =  validateIfFilter,              -- A network ID or 'all'
-   ["epoch"]            =  validateNumber,                -- A timestamp value
-   ["epoch_begin"]      =  validateNumber,                -- A timestamp value to indicate start time
-   ["epoch_end"]        =  validateNumber,                -- A timestamp value to indicate end time
-   ["http_mode"]        =  validateHttpMode,              -- HTTP mode for host_http_breakdown.lua
-   ["pid_mode"]         =  validatePidMode,               -- pid mode for pid_stats.lua
-   ["pid_name"]         =  validateSingleWord,            -- A process name
-   ["pid"]              =  validateNumber,                -- A process ID
-   ["breed"]            =  validateBool,                  -- True if nDPI breed should be shown
-   ["ndpistats_mode"]   =  validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua
-   ["user"]             =  validateSingleWord,            -- A ntopng user name
-   ["sflowdistro_mode"] =  validateSflowDistroMode,       -- A mode for host_sflow_distro
-   ["iflocalstat_mode"] =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
-   ["procstats_mode"]   =  validateProcessesStatsMode,    -- A mode for processes_stats.lua
-   ["direction"]        =  validateDirection,             -- Sent or Received direction
-   ["clisrv"]           =  validateClientOrServer,        -- Client or Server filter
-   ["tracked"]          =  validateNumber,                -- A limit for the results
-   ["stats_type"]       =  validateStatsType,             -- A mode for historical stats queries
-   ["alertstats_type"]  =  validateAlertStatsType,        -- A mode for alerts stats queries
-   ["flowhosts_type"]   =  validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
-   ["version"]          =  validateIpVersion,             -- To specify an IPv4 or IPv6
-   ["period_begin_str"] =  validateDate,                  -- Specifies a start date in JS format
-   ["period_end_str"]   =  validateDate,                  -- Specifies an end date in JS format
-   ["search"]           =  validateEmpty,                 -- When set, a search should be performed
-   ["status"]           =  validateAlertStatus,           -- An alert type to filter
-   ["aggregation"]      =  validateAggregation,           -- A mode for graphs aggregation
-   ["report"]           =  validateReportMode,            -- A mode for traffic report
-   ["showall"]          =  validateBool,                  -- report.lua
-   ["l4_proto_id"]      =  validateProtocolId,            -- get_historical_data.lua
-   ["l7_proto_id"]      =  validateProtocolId,            -- get_historical_data.lua
-   ["profile"]          =  validateTrafficProfile,        -- Traffic Profile name
-   ["alert_type"]       =  validateNumber,                -- An alert type
-   ["entity"]           =  validateNumber,                -- An alert entity type
-   ["asn"]              =  validateNumber,                -- An ASN number
-   ["ajax_format"]      =  validateAjaxFormat,            -- iface_hosts_list
-   ["format"]           =  validatePrintFormat,           -- a print format
+-- NDPI
+   ["application"]             =  validateApplication,           -- An nDPI application protocol name
+   ["breed"]                   =  validateBool,                  -- True if nDPI breed should be shown
+   ["ndpistats_mode"]          =  validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua
+   ["l4_proto_id"]             =  validateProtocolId,            -- get_historical_data.lua
+   ["l7_proto_id"]             =  validateProtocolId,            -- get_historical_data.lua
+   ["l4proto"]                 =  validateApplication,           -- An nDPI application protocol name, layer 4
+   ["l7proto"]                 =  validateApplication,           -- An nDPI application protocol name, layer 7
+   ["protocol"]                =  validateApplication,           -- An nDPI application protocol name, layer 7 (duplicate?)
+   ["ndpi"]                    =  validateApplicationsList,      -- a list applications
+
+-- Remote probe
+   ["ifIdx"]                   =  validateNumber,                -- A switch port id
+   ["pid_mode"]                =  validatePidMode,               -- pid mode for pid_stats.lua
+   ["pid_name"]                =  validateSingleWord,            -- A process name
+   ["pid"]                     =  validateNumber,                -- A process ID
+   ["procstats_mode"]          =  validateProcessesStatsMode,    -- A mode for processes_stats.lua
+   ["sflowdistro_mode"]        =  validateSflowDistroMode,       -- A mode for host_sflow_distro
+   ["distr"]                   =  validateSflowDistroType,       -- A type for host_sflow_distro
+   ["filter"]                  =  validateSflowFilter,           -- sflow host filter
+
+-- TIME SPECIFICATION
+   ["epoch"]                   =  validateNumber,                -- A timestamp value
+   ["epoch_begin"]             =  validateNumber,                -- A timestamp value to indicate start time
+   ["epoch_end"]               =  validateNumber,                -- A timestamp value to indicate end time
+   ["period_begin_str"]        =  validateDate,                  -- Specifies a start date in JS format
+   ["period_end_str"]          =  validateDate,                  -- Specifies an end date in JS format
 
 -- PAGINATION
-   ["perPage"]          =  validateNumber,                -- Number of results per page (used for pagination)
-   ["sortOrder"]        =  validateSortOrder,             -- A sort order
-   ["sortColumn"]       =  validateSortColumn,            -- A sort column
-   ["currentPage"]      =  validateNumber,                -- The currently displayed page number (used for pagination)
-   ["totalRows"]        =  validateNumber,                -- The total number of rows
+   ["perPage"]                 =  validateNumber,                -- Number of results per page (used for pagination)
+   ["sortOrder"]               =  validateSortOrder,             -- A sort order
+   ["sortColumn"]              =  validateSortColumn,            -- A sort column
+   ["currentPage"]             =  validateNumber,                -- The currently displayed page number (used for pagination)
+   ["totalRows"]               =  validateNumber,                -- The total number of rows
 
 -- AGGREGATION
-   ["grouped_by"]       =  validateSingleWord,            -- A group criteria
+   ["grouped_by"]              =  validateSingleWord,            -- A group criteria
+   ["aggregation"]             =  validateAggregation,           -- A mode for graphs aggregation
+   ["limit"]                   =  validateNumber,                -- To limit results
+   ["all"]                     =  validateEmpty,                 -- To remove limit on results
 
 -- NAVIGATION
-   ["page"]             =  validateSingleWord,            -- Currently active subpage tab
-   ["tab"]              =  validateSingleWord,            -- Currently active tab, handled by javascript
+   ["page"]                    =  validateSingleWord,            -- Currently active subpage tab
+   ["tab"]                     =  validateSingleWord,            -- Currently active tab, handled by javascript
+   ["referer"]                 =  validateUnchecked,             -- An URL referer
+   ["url"]                     =  validateUnchecked,             -- An URL
 
 -- OTHER
-   ["_"]                =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
-   ["referer"]          =  validateUnchecked,             -- An URL referer
-   ["module"]           =  validateTopModule,             -- A top script module
-   ["addvlan"]          =  validateBool,                  -- True if VLAN must be added to the result
-   ["tracked"]          =  validateNumber,                --
-   ["step"]             =  validateNumber,                -- A step value
-   ["cf"]               =  validateConsolidationFunction, -- An RRD consolidation function
-   ["label"]            =  validateUnchecked,             -- A device label
-   ["extended"]         =  validateBool,                  -- Flag for extended report
-   ["url"]              =  validateUnchecked,             -- a URL
-   ["render"]           =  validateBool,                  -- True if report should be rendered
-   ["printable"]        =  validateBool,                  -- True if report should be printable
-   ["daily"]            =  validateBool,                  -- used by report.lua
-   ["verbose"]          =  validateBool,                  -- True if script should be verbose
-   ["locale"]           =  validateCountry,               -- locale used in test_locale.lua
-   ["nbox_action"]      =  validateNboxAction,            -- get_nbox_data.lua
-   ["fav_action"]       =  validateFavouriteAction,       -- get_historical_favourites.lua
-   ["favourite_type"]   =  validateFavouriteType,         -- get_historical_favourites.lua
-   ["intfs"]            =  validateInterfacesList,        -- a list of network interfaces ids
-   ["ndpi"]             =  validateApplicationsList,      -- a list applications
-   ["num_minutes"]      =  validateNumber,                -- number of minutes
-   ["zoom"]             =  validateZoom,                  -- a graph zoom specifier
+   ["_"]                       =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
+   ["ifid"]                    =  validateInterface,             -- An ntopng interface ID
+   ["iffilter"]                =  validateIfFilter,              -- An interface ID or 'all'
+   ["user"]                    =  validateSingleWord,            -- A ntopng user name
+   ["mode"]                    =  validateMode,                  -- Remote or Local users
+   ["country"]                 =  validateCountry,               -- Country code
+   ["flow_key"]                =  validateNumber,                -- The ID of a flow hash
+   ["pool"]                    =  validateNumber,                -- A pool ID
+   ["direction"]               =  validateDirection,             -- Sent or Received direction
+   ["stats_type"]              =  validateStatsType,             -- A mode for historical stats queries
+   ["alertstats_type"]         =  validateAlertStatsType,        -- A mode for alerts stats queries
+   ["flowhosts_type"]          =  validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
+   ["status"]                  =  validateAlertStatus,           -- An alert type to filter
+   ["profile"]                 =  validateTrafficProfile,        -- Traffic Profile name
+   ["activity"]                =  validateActivityName,          -- User Activity name
+   ["alert_type"]              =  validateNumber,                -- An alert type enum
+   ["alert_severity"]          =  validateNumber,                -- An alert severity enum
+   ["entity"]                  =  validateNumber,                -- An alert entity type
+   ["entity_val"]              =  validateUnchecked,             -- An alert entity value
+   ["asn"]                     =  validateNumber,                -- An ASN number
+   ["module"]                  =  validateTopModule,             -- A top script module
+   ["step"]                    =  validateNumber,                -- A step value
+   ["cf"]                      =  validateConsolidationFunction, -- An RRD consolidation function
+   ["label"]                   =  validateUnchecked,             -- A device label
+   ["verbose"]                 =  validateBool,                  -- True if script should be verbose
+   ["num_minutes"]             =  validateNumber,                -- number of minutes
+   ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
+   ["community"]               =  validateSingleWord,            -- SNMP community
+   ["intfs"]                   =  validateInterfacesList,        -- a list of network interfaces ids
+   ["search"]                  =  validateEmpty,                 -- When set, a search should be performed
+   ["os"]                      =  validateUnchecked,             -- An Operating System string
+   ["criteria"]                =  validateLookingGlassCriteria,  -- A looking glass criteria
+   ["row_id"]                  =  validateNumber,                -- A number used to identify a record in a database
+   ["rrd_file"]                =  validateSingleWord,            -- A path or special identifier to read an RRD file
+   ["info"]                    =  validateUnchecked,             -- An information message
+   ["port"]                    =  validatePort,                  -- An application port
+
+-- PAGE SPECIFIC
+   ["iflocalstat_mode"]        =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
+   ["clisrv"]                  =  validateClientOrServer,        -- Client or Server filter
+   ["report"]                  =  validateReportMode,            -- A mode for traffic report
+   ["format"]                  =  validatePrintFormat,           -- a print format
+   ["nbox_action"]             =  validateNboxAction,            -- get_nbox_data.lua
+   ["fav_action"]              =  validateFavouriteAction,       -- get_historical_favourites.lua
+   ["favourite_type"]          =  validateFavouriteType,         -- get_historical_favourites.lua
+   ["locale"]                  =  validateCountry,               -- locale used in test_locale.lua
+   ["render"]                  =  validateBool,                  -- True if report should be rendered
+   ["printable"]               =  validateBool,                  -- True if report should be printable
+   ["daily"]                   =  validateBool,                  -- used by report.lua
+   ["json"]                    =  validateBool,                  -- True if json output should be generated
+   ["extended"]                =  validateBool,                  -- Flag for extended report
+   ["tracked"]                 =  validateNumber,                --
+   ["ajax_format"]             =  validateAjaxFormat,            -- iface_hosts_list
+   ["include_special_macs"]    =  validateBool,                  --
+   ["host_macs_only"]          =  validateBool,                  --
+   ["host_stats_flows"]        =  validateBool,                  -- True if host_get_json should return statistics regarding host flows
+   ["showall"]                 =  validateBool,                  -- report.lua
+   ["addvlan"]                 =  validateBool,                  -- True if VLAN must be added to the result
+   ["http_mode"]               =  validateHttpMode,              -- HTTP mode for host_http_breakdown.lua
+   ["refresh"]                 =  validateNumber,                -- top flow refresh in seconds, index.lua
+   ["sprobe"]                  =  validateEmpty,                 -- sankey.lua
+   ["always_show_hist"]        =  validateBool,                  -- host_details.lua
+   ["task_id"]                 =  validateSingleWord,            -- get_nbox_data
+   ["host_stats"]              =  validateBool,                  -- host_get_json
+   ["captive_portal_users"]    =  validateBool,                  -- to show or hide captive portal users
+   ["long_names"]              =  validateBool,                  -- get_hosts_data
 }
 
 -- #################################################################
