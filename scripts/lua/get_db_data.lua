@@ -15,12 +15,9 @@ local epoch_end   = tonumber(_GET["epoch_end"]   or os.time())
 local epoch_begin = tonumber(_GET["epoch_begin"] or epoch_end - 3600)
 local l4proto     = _GET["l4proto"]
 local l7proto     = _GET["l7proto"]
-local profile     = _GET["profile"]
 local port        = _GET["port"]
 local info        = _GET["info"]
 local limit       = _GET["limit"]
-local format      = _GET["format"]
-local action      = _GET["action"]
 
 if epoch_begin> epoch_end then
    local tmp = epoch_end

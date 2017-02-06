@@ -35,12 +35,33 @@ function validateSingleWord(w)
    end
 end
 
+function validateListOfType(l, validate_callback, separator)
+   local separator = separator or ","
+   local items = split(l, separator)
+
+   for _,item in pairs(items) do
+      if not validate_callback(item) then
+         return false
+      end
+   end
+
+   return true
+end
+
 -- #################################################################
 
 -- FRONT-END VALIDATORS
 
 function validateNumber(p)
    if tonumber(p) ~= nil then
+      return true
+   else
+      return false
+   end
+end
+
+function validateEmpty(s)
+   if s == "" then
       return true
    else
       return false
@@ -132,15 +153,108 @@ function validateFlowHostsType(mode)
    return validateChoice(modes, mode)
 end
 
+function validateConsolidationFunction(mode)
+   local modes = {"average", "max", "min"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateAlertStatus(mode)
+   local modes = {"engaged", "historical", "historical-flows"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateAggregation(mode)
+   local modes = {"ndpi", "l4proto", "port"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateReportMode(mode)
+   local modes = {"daily", "weekly", "monthly"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateNboxAction(mode)
+   local modes = {"status", "schedule"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateFavouriteAction(mode)
+   local modes = {"set", "get", "del", "del_all"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateFavouriteType(mode)
+   local modes = {"apps_per_host_pair", "top_applications", "talker", "app"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateAjaxFormat(mode)
+   local modes = {"d3"}
+
+   return validateChoice(modes, mode)
+end
+
+function validatePrintFormat(mode)
+   local modes = {"txt", "json"}
+
+   return validateChoice(modes, mode)
+end
+
 -- #################################################################
 
 function validateIPv4IPv6Mac(p)
-   -- TODO stricter checks
+   -- TODO stricter checks, allow @vlan
    if(isIPv4(p) or isIPv6(p) or isMacAddress(p)) then
       return true
    else
       return false
    end
+end
+
+function validateMac(p)
+   -- TODO stricter checks
+   if isMacAddress(p) then
+      return true
+   else
+      return false
+   end
+end
+
+function validateIpAddress(p)
+   if (isIPv4(p) or isIPv6(p)) then
+      return true
+   else
+      return false
+   end
+end
+
+function validateIpVersion(p)
+   if ((p == "4") or (p == "6")) then
+      return true
+   else
+      return false
+   end
+end
+
+function validateDate(p)
+   -- TODO
+   if string.find(p, ":") then
+      return true
+   else
+      return false
+   end
+end
+
+function validateMember(m)
+   -- TODO
+   return true
 end
 
 function validateBool(p)
@@ -163,6 +277,16 @@ function validateApplication(app)
    return validateChoiceByKeys(ndpi_protos, app)
 end
 
+function validateProtocolId(p)
+   -- TODO implement
+   return validateUnchecked(p)
+end
+
+function validateTrafficProfile(p)
+   -- TODO implement
+   return validateUnchecked(p)
+end
+
 function validateSortColumn(p)
    if((validateSingleWord(p)) and (string.starts(p, "column_"))) then
       return true
@@ -183,6 +307,22 @@ function validateInterface(i)
    return validateNumber(i)
 end
 
+function validateZoom(zoom)
+   if string.match(zoom, "%d+%a") == zoom then
+      return true
+   else
+      return false
+   end
+end
+
+function validateInterfacesList(l)
+   return validateListOfType(l, validateInterface)
+end
+
+function validateApplicationsList(l)
+   return validateListOfType(l, validateApplication)
+end
+
 function validateIfFilter(i)
    if validateNumber(i) or i == "all" then
       return true
@@ -201,6 +341,18 @@ end
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
+-- HOST RELATED
+   ["host"]             =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
+   ["versus_host"]      =  validateIPv4IPv6Mac,           -- an host for comparison
+   ["mac"]              =  validateMac,                   -- a MAC address
+   ["peer1"]            =  validateIPv4IPv6Mac,           -- a Peer in a connection
+   ["peer2"]            =  validateIPv4IPv6Mac,           -- another Peer in a connection
+   ["origin"]           =  validateIPv4IPv6Mac,           -- the source of the alert
+   ["target"]           =  validateIPv4IPv6Mac,           -- the target of the alert
+   ["member"]           =  validateMember,                -- an IPv4 (optional @vlan, optional /suffix), IPv6 (optional @vlan, optional /suffix), or MAC address
+   ["network"]          =  validateNumber,                -- A network ID
+   ["ip"]               =  validateIpAddress,               -- An IPv4 or IPv6 address
+
 -- FILTERING & STATUS
    ["application"]      =  validateApplication,           -- An nDPI application protocol name
    --~ ["mode"]         =  validateMode,                  -- Remote or Local users
@@ -208,8 +360,6 @@ local known_parameters = {
    ["flow_key"]         =  validateNumber,                -- The ID of a flow hash
    ["pool"]             =  validateNumber,                -- A pool ID
    ["vlan"]             =  validateNumber,                -- A VLAN id
-   ["host"]             =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
-   ["network"]          =  validateNumber,                -- A network ID
    ["ifid"]             =  validateInterface,             -- An ntopng interface ID
    --~ ["ifname"]       =  validateNumber,                -- NOTE: obsolete, but some scripts still depend on it (see et_host_info_ntopng.sh, read_metrics.lua)
    ["ifIdx"]            =  validateNumber,                -- A switch port id
@@ -233,12 +383,29 @@ local known_parameters = {
    ["stats_type"]       =  validateStatsType,             -- A mode for historical stats queries
    ["alertstats_type"]  =  validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]   =  validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
+   ["version"]          =  validateIpVersion,             -- To specify an IPv4 or IPv6
+   ["period_begin_str"] =  validateDate,                  -- Specifies a start date in JS format
+   ["period_end_str"]   =  validateDate,                  -- Specifies an end date in JS format
+   ["search"]           =  validateEmpty,                 -- When set, a search should be performed
+   ["status"]           =  validateAlertStatus,           -- An alert type to filter
+   ["aggregation"]      =  validateAggregation,           -- A mode for graphs aggregation
+   ["report"]           =  validateReportMode,            -- A mode for traffic report
+   ["showall"]          =  validateBool,                  -- report.lua
+   ["l4_proto_id"]      =  validateProtocolId,            -- get_historical_data.lua
+   ["l7_proto_id"]      =  validateProtocolId,            -- get_historical_data.lua
+   ["profile"]          =  validateTrafficProfile,        -- Traffic Profile name
+   ["alert_type"]       =  validateNumber,                -- An alert type
+   ["entity"]           =  validateNumber,                -- An alert entity type
+   ["asn"]              =  validateNumber,                -- An ASN number
+   ["ajax_format"]      =  validateAjaxFormat,            -- iface_hosts_list
+   ["format"]           =  validatePrintFormat,           -- a print format
 
 -- PAGINATION
    ["perPage"]          =  validateNumber,                -- Number of results per page (used for pagination)
    ["sortOrder"]        =  validateSortOrder,             -- A sort order
    ["sortColumn"]       =  validateSortColumn,            -- A sort column
    ["currentPage"]      =  validateNumber,                -- The currently displayed page number (used for pagination)
+   ["totalRows"]        =  validateNumber,                -- The total number of rows
 
 -- AGGREGATION
    ["grouped_by"]       =  validateSingleWord,            -- A group criteria
@@ -252,27 +419,24 @@ local known_parameters = {
    ["referer"]          =  validateUnchecked,             -- An URL referer
    ["module"]           =  validateTopModule,             -- A top script module
    ["addvlan"]          =  validateBool,                  -- True if VLAN must be added to the result
-   ["tracked"]          =  validateNumber,                -- 
-
---   
-   
-   
-   --~ ["num_minutes"]  =  validateNumber,                --
-   --~ ["long_names"]   =  validateNumber,                -- 
-   --~ ["period_begin"] =  validateNumber,                --
-   --~ ["period_end"]   =  validateNumber,                --
-   --~ ["period_mins"]  =  validateNumber,                --
-   --~ ["label"]        =  validateUnchecked,             --
-   
-   
-   --~ ["group_by"]     =  validateUnchecked,             --
-   --~ ["distr"]        =  validateUnchecked,             --
-   --~ ["format"]       =  validateUnchecked,             --
-   --~ ["criteria"]     =  validateUnchecked,             --
-   
-   --~ ["host_type"]    =  validateUnchecked,             -- 
-   --~ ["hosts_type"]   =  validateUnchecked,             --
-   
+   ["tracked"]          =  validateNumber,                --
+   ["step"]             =  validateNumber,                -- A step value
+   ["cf"]               =  validateConsolidationFunction, -- An RRD consolidation function
+   ["label"]            =  validateUnchecked,             -- A device label
+   ["extended"]         =  validateBool,                  -- Flag for extended report
+   ["url"]              =  validateUnchecked,             -- a URL
+   ["render"]           =  validateBool,                  -- True if report should be rendered
+   ["printable"]        =  validateBool,                  -- True if report should be printable
+   ["daily"]            =  validateBool,                  -- used by report.lua
+   ["verbose"]          =  validateBool,                  -- True if script should be verbose
+   ["locale"]           =  validateCountry,               -- locale used in test_locale.lua
+   ["nbox_action"]      =  validateNboxAction,            -- get_nbox_data.lua
+   ["fav_action"]       =  validateFavouriteAction,       -- get_historical_favourites.lua
+   ["favourite_type"]   =  validateFavouriteType,         -- get_historical_favourites.lua
+   ["intfs"]            =  validateInterfacesList,        -- a list of network interfaces ids
+   ["ndpi"]             =  validateApplicationsList,      -- a list applications
+   ["num_minutes"]      =  validateNumber,                -- number of minutes
+   ["zoom"]             =  validateZoom,                  -- a graph zoom specifier
 }
 
 -- #################################################################

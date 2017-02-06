@@ -2,8 +2,8 @@ require "lua_utils"
 
 local json = require ("dkjson")
 		      
-local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=status"
-local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=schedule"
+local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=status"
+local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=schedule"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
 local flows_download_url = ntop.getHttpPrefix().."/lua/get_db_flows.lua"
 
@@ -109,7 +109,7 @@ function buildRequestData(source_div_id){
 }
 
 function addToFavourites(source_div_id, stats_type, favourite_type, select_id){
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=set&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=set&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
@@ -122,7 +122,7 @@ function addToFavourites(source_div_id, stats_type, favourite_type, select_id){
 }
 
 function removeFromFavourites(source_div_id, stats_type, favourite_type, select_id){
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=del&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=del&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
@@ -139,7 +139,7 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
   var multival_separator = " <---> ";
 
   $('#'+select_id).find('option').remove();
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=get&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=get&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
@@ -213,7 +213,7 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
 
 
 function removeAllFavourites(stats_type, favourite_type, select_id){
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=del_all&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=del_all&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     success:function(data){
       // remove all the exising options...
       $('#'+select_id).find('option').remove();
@@ -1348,7 +1348,7 @@ function download_pcap_from_nbox(task_id){
 var populatePcapsTable = function(){
   $("#table-pcaps").datatable({
     title: "Pcaps",
-    url: "]] print (ntop.getHttpPrefix()) print [[/lua/get_nbox_data.lua?action=status" ,
+    url: "]] print (ntop.getHttpPrefix()) print [[/lua/get_nbox_data.lua?nbox_action=status" ,
     title: "Pcap Requests and Statuses",
 ]]
 

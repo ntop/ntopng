@@ -28,9 +28,6 @@ application = _GET["application"]
 network_id  = _GET["network"]
 vhost       = _GET["vhost"]
 
--- Host comparison parameters
-key = _GET["key"]
-
 -- System host parameters
 hosts  = _GET["hosts"]
 user   = _GET["user"]

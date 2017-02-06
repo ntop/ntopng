@@ -15,7 +15,6 @@ perPage     = _GET["perPage"]
 sortColumn  = _GET["sortColumn"]
 sortOrder   = _GET["sortOrder"]
 protocol    = _GET["protocol"]
-net         = _GET["net"]
 long_names  = _GET["long_names"]
 criteria    = _GET["criteria"]
 

@@ -40,7 +40,6 @@ if l4proto == nil or l4proto == "" then
 end
 port = _GET["port"]
 info = _GET["info"]
-profile = _GET["profile"]
 limit = _GET["limit"]
 
 format = _GET["format"]

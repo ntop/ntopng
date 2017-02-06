@@ -29,7 +29,7 @@ end
 local l7_proto_id = _GET["l7_proto_id"]
 
 -- specify the type of stats
-local action = _GET["action"]
+local action = _GET["fav_action"]
 if action == nil or (action ~= "set" and action ~= "get" and action ~= "del" and action ~= "del_all") then
    -- default to get
    stats_type = "get"

@@ -100,8 +100,8 @@ for _key,_value in ipairs(alerts) do
 	    url = url..'&target='..target
 	 end
 	 if _value["alert_tstamp"] ~= nil then
-	    url = url..'&period_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
-	    url = url..'&period_end='..(tonumber(_value["alert_tstamp"]) + 1800)
+	    url = url..'&epoch_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
+	    url = url..'&epoch_end='..(tonumber(_value["alert_tstamp"]) + 1800)
 	 end
 	 return "&nbsp;<a class='btn btn-default btn-xs' href='"..url.."' title='"..i18n("flow_alerts_explorer.label").."'><i class='fa fa-history'></i><sup><i class='fa fa-exclamation-triangle' aria-hidden='true' style='position:absolute; margin-left:-19px; margin-top:4px;'></i></sup></a>&nbsp;"
       end

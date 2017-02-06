@@ -23,9 +23,6 @@ host        = _GET["host"]
 port        = _GET["port"]
 application = _GET["application"]
 
--- Host comparison parameters
-key = _GET["key"]
-
 -- System host parameters
 hosts = _GET["hosts"]
 user = _GET["user"]

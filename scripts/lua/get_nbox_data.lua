@@ -22,7 +22,7 @@ local status_url = base_url.."/ntop-bin/check_status_tasks_external.cgi"
 local schedule_url = base_url.."/ntop-bin/sudowrapper_external.cgi?script=npcapextract_external.cgi"
 
 -- Query parameters
-action       = _GET["action"]
+action       = _GET["nbox_action"]
 epoch_begin  = _GET["epoch_begin"]
 epoch_end    = _GET["epoch_end"]
 host         = _GET["host"]

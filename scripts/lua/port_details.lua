@@ -41,7 +41,7 @@ print [[
 	       if(_GET["host"] ~= nil) then 
 	         print("for ".._GET["host"]..":".._GET["port"])
 	      else
-		 symbolic_port = getservbyport(_GET["port"], _GET["proto"])
+		 symbolic_port = getservbyport(_GET["port"])
 		  print("on Port ".._GET["port"])
 		  if(symbolic_port ~= _GET["port"]) then
 		     print(" [".. symbolic_port .."]")

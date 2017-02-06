@@ -725,12 +725,12 @@ function performAlertsQuery(statement, what, opts)
       wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
    end
 
-   if tonumber(opts.period_begin) ~= nil then
-      wargs[#wargs+1] = 'AND alert_tstamp >= '..(opts.period_begin)
+   if tonumber(opts.epoch_begin) ~= nil then
+      wargs[#wargs+1] = 'AND alert_tstamp >= '..(opts.epoch_begin)
    end
 
-   if tonumber(opts.period_end) ~= nil then
-      wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.period_end)
+   if tonumber(opts.epoch_end) ~= nil then
+      wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.epoch_end)
    end
 
    if not isEmptyString(opts.flowhosts_type) then
@@ -936,7 +936,7 @@ function checkDeleteStoredAlerts()
       -- to avoid filtering by id
       _GET["row_id"] = nil
       -- in case of delete "older than" button, resets the time period after the delete took place
-      if isEmptyString(_GET["period_begin"]) then _GET["period_end"] = nil end
+      if isEmptyString(_GET["epoch_begin"]) then _GET["epoch_end"] = nil end
 
       local new_num = getNumAlerts(_GET["status"], _GET)
       if new_num == 0 then
@@ -1392,7 +1392,7 @@ function getCurrentStatus() {
       local title = t["label"]
 
       -- TODO this condition should be removed and page integration support implemented
-      if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["period_begin"]) and isEmptyString(_GET["period_end"])) then
+      if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) then
 	 -- alert_level_keys and alert_type_keys are defined in lua_utils
 	 local alert_severities = {}
 	 for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
@@ -1541,7 +1541,7 @@ $("[clicked=1]").trigger("click");
 ]]
 
 if not alt_nav_tabs then print [[</div> <!-- closes tab-content -->]] end
-local has_fixed_period = ((not isEmptyString(_GET["period_begin"])) or (not isEmptyString(_GET["period_end"])))
+local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
 
 print('<div id="alertsActionsPanel">')
 print('<br>Alerts to Purge: ')

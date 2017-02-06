@@ -15,8 +15,7 @@ perPage     = _GET["perPage"]
 sortColumn  = _GET["sortColumn"]
 sortOrder   = _GET["sortOrder"]
 protocol    = _GET["protocol"]
-net         = _GET["net"]
-key         = _GET["key"]
+key         = _GET["host"]
 
 -- table_id = _GET["table"]
 

@@ -203,7 +203,7 @@ print [[/lua/sprobe_hosts_interactions_data.lua");
         label: nodes[node_id].name,
         ip: nodes[node_id].system_id,
         ondoubleclick: function(n) {
-	  //TODO /lua/sprobe_host_process.lua?host=" + link.source + "&id=" + link.source_system_id + "&name="+link.source_name
+	  //TODO /lua/sprobe_host_process.lua?host=" + link.source + "&pid=" + link.source_system_id + "&name="+link.source_name
           //refreshGraph();
         },
         image: image

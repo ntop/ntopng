@@ -13,7 +13,7 @@ end
 require "lua_utils"
 require "graph_utils"
 
-local vlan_id        = _GET["vlan_id"]
+local vlan_id        = _GET["vlan"]
 local page           = "historical" -- only historical for now _GET["page"]
 local rrdfile        = "bytes.rrd"
 if(_GET["rrd_file"] ~= nil) then
@@ -42,7 +42,7 @@ end
 --[[
 Create Menu Bar with buttons
 --]]
-local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan_id="..vlan_id
+local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan"..vlan_id
 print [[
 <div class="bs-docs-example">
             <nav class="navbar navbar-default" role="navigation">
@@ -71,7 +71,7 @@ print [[
 Selectively render information pages
 --]]
 if page == "historical" then
-    vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifname='..ifId..'&vlan_id='..vlan_id..'&page=historical'
+    vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifname='..ifId..'&vlan'..vlan_id..'&page=historical'
     drawRRD(ifId, 'vlan:'..vlan_id, rrdfile, _GET["graph_zoom"], vlan_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 end
 

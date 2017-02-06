@@ -114,8 +114,8 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
             table.insert(res.bg, data.background)
          end
       else
-         local start_time = tonumber(_GET["start"])
-         local end_time = tonumber(_GET["stop"])
+         local start_time = tonumber(_GET["epoch_start"])
+         local end_time = tonumber(_GET["epoch_end"])
          local cf = _GET["cf"] or "AVERAGE"
          local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrd, cf, start_time, end_time)
          res.step = fstep

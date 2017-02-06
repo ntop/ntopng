@@ -41,7 +41,7 @@ if(haveAdminPrivileges()) then
       io.write("-----------------------\n")
    end
 
-   subpage_active = _GET["subpage_active"]
+   tab = _GET["tab"]
    
 
    if toboolean(_POST["show_advanced_prefs"]) ~= nil then
@@ -77,16 +77,16 @@ for _, subpage in ipairs(menu_subpages) do
 
     subpage.disabled = true
     
-    if subpage.id == subpage_active then
+    if subpage.id == tab then
       -- will set to default
-      subpage_active = nil
+      tab = nil
     end
   end
 end
 
 -- default subpage
-if isEmptyString(subpage_active) then
-  subpage_active = "users"
+if isEmptyString(tab) then
+  tab = "users"
 end
 
 -- ================================================================================
@@ -691,7 +691,7 @@ end
 
 for _, subpage in ipairs(menu_subpages) do
   if not subpage.disabled then
-    print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?subpage_active=]] print(subpage.id) print[[" class="list-group-item]] if(subpage_active == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
+    print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/admin/prefs.lua?tab=]] print(subpage.id) print[[" class="list-group-item]] if(tab == subpage.id) then print(" active") end print[[">]] print(subpage.label) print[[</a>]]
   end
 end
 
@@ -736,49 +736,49 @@ print[[
 
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
-if(subpage_active == "report") then
+if(tab == "report") then
    printReportVisualization()
 end
 
-if(subpage_active == "in_memory") then
+if(tab == "in_memory") then
    printInMemory()
 end
 
-if(subpage_active == "on_disk_rrds") then
+if(tab == "on_disk_rrds") then
    printStatsRrds()
 end
 
-if(subpage_active == "on_disk_dbs") then
+if(tab == "on_disk_dbs") then
    printStatsDatabases()
 end
 
-if(subpage_active == "alerts") then
+if(tab == "alerts") then
    printAlerts()
 end
 
-if(subpage_active == "protocols") then
+if(tab == "protocols") then
    printProtocolPrefs()
 end
 
-if(subpage_active == "nbox") then
+if(tab == "nbox") then
   if(ntop.isPro()) then
      printNbox()
   end
 end
 
-if(subpage_active == "bridging") then
+if(tab == "bridging") then
   if(info["version.enterprise_edition"]) then
      printBridgingPrefs()
   end
 end
 
-if(subpage_active == "users") then
+if(tab == "users") then
    printUsers()
 end
-if(subpage_active == "ifaces") then
+if(tab == "ifaces") then
    printInterfaces()
 end
-if(subpage_active == "logging") then
+if(tab == "logging") then
    printLogging()
 end
 
