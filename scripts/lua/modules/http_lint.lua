@@ -110,6 +110,12 @@ function validateMode(mode)
    return validateChoice(modes, mode)
 end
 
+function validateOperator(mode)
+   local modes = {"gt", "eq", "lt"}
+
+   return validateChoice(modes, mode)
+end
+
 function validateHttpMode(mode)
    local modes = {"responses", "queries"}
 
@@ -323,14 +329,6 @@ function validateMember(m)
    return true
 end
 
-function validateBpfFilter(filter)
-   if ntop.checkProfileSyntax(filter) then
-      return true
-   else
-      return false
-   end
-end
-
 function validateIdToDelete(i)
    if ((i == "__all__") or validateNumber(i)) then
       return true
@@ -414,6 +412,26 @@ end
 
 function validateZoom(zoom)
    if string.match(zoom, "%d+%a") == zoom then
+      return true
+   else
+      return false
+   end
+end
+
+function validateShapedElement(elem_id)
+   local id
+   if starts(elem_id, "cat_") then
+      id = split(elem_id, "cat_")
+   else
+      id = elem_id
+   end
+
+   return validateNumber(elem_id)
+end
+
+function validateAlertDescriptor(d)
+   if ((validateChoiceByKeys(alert_functions_description, d)) or
+       (validateChoiceByKeys(network_alert_functions_description, d))) then
       return true
    else
       return false
@@ -599,7 +617,9 @@ local known_parameters = {
    ["flow_rate_alert_threshold"] =  validateNumber,              --
    ["re_arm_minutes"]          =  validateNumber,                -- Number of minute before alert re-arm check
    ["custom_icon"]             =  validateSingleWord,            -- A custom icon for the host
-   ["bpf_filter"]              =  validateBpfFilter,             -- A valid BPF filter
+
+-- PREFERENCES
+   --[[ TODO ]]
 
 -- PAGE SPECIFIC
    ["iflocalstat_mode"]        =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
@@ -631,8 +651,8 @@ local known_parameters = {
    ["captive_portal_users"]    =  validateBool,                  -- to show or hide captive portal users
    ["long_names"]              =  validateBool,                  -- get_hosts_data
    ["id_to_delete"]            =  validateIdToDelete,            -- alert_utils.lua, alert ID to delete
-   ["to_delete"]               =  validateBool,                  -- alert_utils.lua, set if alert configuration should be dropped
-   ["SaveAlerts"]              =  validateBool,                  -- alert_utils.lua, set if alert configuration should change
+   ["to_delete"]               =  validateEmpty,                 -- alert_utils.lua, set if alert configuration should be dropped
+   ["SaveAlerts"]              =  validateEmpty,                 -- alert_utils.lua, set if alert configuration should change
    ["host_pool_id"]            =  validateNumber,                -- change_user_prefs, new pool id for host
    ["old_host_pool_id"]        =  validateNumber,                -- change_user_prefs, old pool id for host
    ["del_l7_proto"]            =  validateProtocolId,            -- if_stats.lua, ID of the protocol to delete from rule
@@ -646,8 +666,8 @@ local known_parameters = {
    ["sampling_rate"]           =  validateNumber,                -- if_stats.lua
    ["resetstats_mode"]         =  validateResetStatsMode,        -- reset_stats.lua
    ["snmp_action"]             =  validateSnmpAction,            -- snmp specific
-   ["host_quota"]              =  validateEmptyOr(validateNumber),         -- max traffi quota for host
-   ["allowed_interface"]       =  validateEmptyOr(validateInterface),      -- the interface an user is allowed to configure
+   ["host_quota"]              =  validateEmptyOr(validateNumber),            -- max traffi quota for host
+   ["allowed_interface"]       =  validateEmptyOr(validateInterface),         -- the interface an user is allowed to configure
    ["allowed_networks"]        =  validateNetworksList,          -- a list of networks the user is allowed to monitor
    ["switch_interface"]        =  validateInterface,             -- a new active ntopng interface
    ["edit_members"]            =  validateEmpty,                 -- set if we are editing pool members
@@ -665,15 +685,60 @@ local known_parameters = {
    ["blocked_categories"]      =  validateCategoriesList,        -- if_stats.lua
 }
 
+-- A special parameter is formed by a prefix, followed by a variable suffix
+local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
+-- SHAPING
+   ["shaper_"]                 =  {validateNumber,            validateNumber},      -- key: a shaper ID, value: max rate
+   ["ishaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
+   ["eshaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
+
+-- ALERTS (see alert_utils.lua)
+   ["operator_"]               =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator
+   ["value_"]                  =  {validateAlertDescriptor,   validateEmptyOr(validateNumber)}, -- key: an alert descriptor, value: alert value
+
+-- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
+   ["key_"]                    =  {validateNumber,   validateSingleWord},      -- key: an index, value: the pair key
+   ["val_"]                    =  {validateNumber,   validateUnchecked},       -- key: an index, value: the pair value
+}
+
 -- #################################################################
 
 function validateParameter(k, v)
    if(known_parameters[k] == nil) then
-      io.write("[LINT] Missing validation for ["..k.."]["..v.."]\n")
       return false
    else
-      return known_parameters[k](v)
+      if known_parameters[k](v) then
+         return true
+      else
+         return false, "Validation error"
+      end
    end
+end
+
+function validateSpecialParameter(param, value)
+   -- These parameters are made up of one string prefix plus a string suffix
+   for k, v in pairs(special_parameters) do
+      if starts(param, k) then
+         local suffix = split(param, k)[2]
+
+         if not v[1](suffix) then
+            return false, "Special Validation, parameter key"
+         elseif not v[2](value) then
+            return false, "Special Validation, parameter value"
+         else
+            return true
+         end
+      end
+   end
+
+   return false
+end
+
+function validationError(t, param, value, message)
+   -- TODO gracefull exit
+   local s_id
+   if id == _GET then s_id = "_GET" else s_id = "_POST" end
+   error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. value .. "\" parameter error: " .. message)
 end
 
 -- #################################################################
@@ -697,11 +762,26 @@ function lintParams()
                 (((id == _GET) and relaxGetValidation) or
                  ((id == _POST) and relaxPostValidation))) then
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
-            elseif not validateParameter(k, v) then
-               -- TODO gracefull error
-               local s_id
-               if id == _GET then s_id = "_GET" else s_id = "_POST" end
-               error("BAD " .. s_id .. " parameter " .. k .. " [" .. v .. "]")
+            else
+               local success, message = validateParameter(k, v)
+               if not success then
+                  if message ~= nil then
+                     validationError(id, k, v, message)
+                  else
+                     success, message = validateSpecialParameter(k, v)
+
+                     if not success then
+                        if message ~= nil then
+                           validationError(id, k, v, message)
+                        else
+                           -- Here we have an unhandled parameter
+                           validationError(id, k, v, "Missing validation")
+                        end
+                     end
+                  end
+               else
+                  if(debug) then io.write("[LINT] Special Parameter "..k.." validated successfully\n") end
+               end
             end
          end
       end
@@ -714,3 +794,6 @@ if(pragma_once) then
    lintParams()
    pragma_once = 0
 end
+
+-- Do not pollute global context
+return nil

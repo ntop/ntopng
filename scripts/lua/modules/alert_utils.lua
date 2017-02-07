@@ -18,21 +18,6 @@ alarmable_metrics = {'bytes', 'dns', 'idle', 'packets', 'p2p', 'throughput', 'in
 
 default_re_arm_minutes = 1
 
-alert_functions_description = {
-    ["bytes"]   = "Bytes delta (sent + received)",
-    ["dns"]     = "DNS traffic delta bytes (sent + received)",
-    ["idle"]    = "Idle time since last packet sent (seconds)",	
-    ["packets"] = "Packets delta (sent + received)",
-    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
-    ["throughput"]   = "Avergage throughput (sent + received) [Mbps]",
-}
-
-network_alert_functions_description = {
-    ["ingress"] = "Ingress Bytes delta",
-    ["egress"]  = "Egress Bytes delta",
-    ["inner"]   = "Inner Bytes delta",
-}
-
 -- ##############################################################################
 
 function bytes(old, new, interval)
@@ -1171,7 +1156,9 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       print [[
       <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
 
-      <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
+         <input type="hidden" name="SaveAlerts" value="">
+         <input type="submit" class="btn btn-primary" value="Save Configuration">
+      </form>
 
       <a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> ]] print(delete_button_msg) print[[ ]</button></a>
       <!-- Modal -->
@@ -1187,14 +1174,13 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
         </div>
         <div class="modal-footer">
           <form class=form-inline style="margin-bottom: 0px;" method="post">
-          <input type=hidden name=to_delete value="__all__">
+          <input type=hidden name=to_delete value="">
       ]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
           <button class="btn btn-primary" type="submit">Delete All</button>
-
+         </form>
         </div>
-      </form>
       </div>
       </div>
 

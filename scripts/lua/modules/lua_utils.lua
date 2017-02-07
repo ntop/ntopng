@@ -316,6 +316,21 @@ alert_entity_keys = {
   { "Flow",            4, "flow"          }
 }
 
+alert_functions_description = {
+    ["bytes"]   = "Bytes delta (sent + received)",
+    ["dns"]     = "DNS traffic delta bytes (sent + received)",
+    ["idle"]    = "Idle time since last packet sent (seconds)",	
+    ["packets"] = "Packets delta (sent + received)",
+    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
+    ["throughput"]   = "Avergage throughput (sent + received) [Mbps]",
+}
+
+network_alert_functions_description = {
+    ["ingress"] = "Ingress Bytes delta",
+    ["egress"]  = "Egress Bytes delta",
+    ["inner"]   = "Inner Bytes delta",
+}
+
 function noHtml(s)
    if s == nil then return nil end
    return s:gsub("<.->(.-)</.->","%1"):gsub("^%s*(.-)%s*$", "%1")
@@ -2780,4 +2795,4 @@ end
 -- Leave it at the end so it can use the functions
 -- defined in this file
 --
-require "http_lint"
+local _ = require "http_lint"
