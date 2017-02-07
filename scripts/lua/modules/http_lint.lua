@@ -35,6 +35,16 @@ function validateChoice(defaults, v, key)
    return false
 end
 
+function validateChoiceInline(choices)
+   return function(choice)
+      if (validateChoice(choices, choice)) then
+         return true
+      else
+         return false
+      end
+   end
+end
+
 function validateSingleWord(w)
    if ((string.find(w, "%=") ~= nil) or
        (string.find(w, "% ") ~= nil)) then
@@ -55,6 +65,16 @@ function validateListOfType(l, validate_callback, separator)
    end
 
    return true
+end
+
+function validateEmptyOr(other_validation)
+   return function(s)
+      if (validateEmpty(s) or other_validation(s)) then
+         return true
+      else
+         return false
+      end
+   end
 end
 
 -- #################################################################
@@ -78,21 +98,16 @@ function validatePort(p)
    end
 end
 
+function validatePath(p)
+   -- TODO
+   return true
+end
+
 function validateEmpty(s)
    if s == "" then
       return true
    else
       return false
-   end
-end
-
-function validateEmptyOr(other_validation)
-   return function(s)
-      if (validateEmpty(s) or other_validation(s)) then
-         return true
-      else
-         return false
-      end
    end
 end
 
@@ -364,11 +379,10 @@ end
 
 function validateProtocolId(p)
    -- TODO implement
-   return validateUnchecked(p)
+   return tonumber(p)
 end
 
 function validateTrafficProfile(p)
-   -- TODO implement
    return validateUnchecked(p)
 end
 
@@ -579,7 +593,7 @@ local known_parameters = {
    ["max_files"]               =  validateNumber,                --
 
 -- OTHER
-   ["_"]                       =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
+   ["_"]                       =  validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["ifid"]                    =  validateInterface,             -- An ntopng interface ID
    ["iffilter"]                =  validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    =  validateMode,                  -- Remote or Local users
@@ -618,8 +632,81 @@ local known_parameters = {
    ["re_arm_minutes"]          =  validateNumber,                -- Number of minute before alert re-arm check
    ["custom_icon"]             =  validateSingleWord,            -- A custom icon for the host
 
--- PREFERENCES
-   --[[ TODO ]]
+-- PREFERENCES - see prefs.lua for details
+   -- Toggle Buttons
+   ["dynamic_iface_vlan_creation"]                 =  validateBool,
+   ["toggle_mysql_check_open_files_limit"]         =  validateBool,
+   ["disable_alerts_generation"]                   =  validateBool,
+   ["toggle_alert_probing"]                        =  validateBool,
+   ["toggle_flow_alerts_iface"]                    =  validateBool,
+   ["toggle_malware_probing"]                      =  validateBool,
+   ["toggle_alert_syslog"]                         =  validateBool,
+   ["toggle_slack_notification"]                   =  validateBool,
+   ["toggle_alert_nagios"]                         =  validateBool,
+   ["toggle_top_sites"]                            =  validateBool,
+   ["toggle_captive_portal"]                       =  validateBool,
+   ["toggle_nbox_integration"]                     =  validateBool,
+   ["toggle_autologout"]                           =  validateBool,
+   ["toggle_ldap_anonymous_bind"]                  =  validateBool,
+   ["toggle_local_host_cache_enabled"]             =  validateBool,
+   ["toggle_active_local_host_cache_enabled"]      =  validateBool,
+   ["toggle_local"]                                =  validateBool,
+   ["toggle_local_ndpi"]                           =  validateBool,
+   ["toggle_local_activity"]                       =  validateBool,
+   ["toggle_flow_rrds"]                            =  validateBool,
+   ["toggle_pools_rrds"]                           =  validateBool,
+   ["toggle_local_categorization"]                 =  validateBool,
+   ["toggle_access_log"]                           =  validateBool,
+
+   -- Input fields
+   ["minute_top_talkers_retention"]                =  validateNumber,
+   ["mysql_retention"]                             =  validateNumber,
+   ["minute_top_talkers_retention"]                =  validateNumber,
+   ["max_num_alerts_per_entity"]                   =  validateNumber,
+   ["max_num_flow_alerts"]                         =  validateNumber,
+   ["sender_username"]                             =  validateUnchecked,
+   ["slack_webhook"]                               =  validateUnchecked,
+   ["nagios_nsca_host"]                            =  validateUnchecked,
+   ["nagios_nsca_port"]                            =  validatePort,
+   ["nagios_send_nsca_executable"]                 =  validatePath,
+   ["nagios_send_nsca_config"]                     =  validatePath,
+   ["nagios_host_name"]                            =  validateUnchecked,
+   ["nagios_service_name"]                         =  validateUnchecked,
+   ["nbox_user"]                                   =  validateSingleWord,
+   ["nbox_password"]                               =  validateSingleWord,
+   ["google_apis_browser_key"]                     =  validateSingleWord,
+   ["ldap_server_address"]                         =  validateSingleWord,
+   ["bind_dn"]                                     =  validateSingleWord,
+   ["bind_pwd"]                                    =  validateSingleWord,
+   ["search_path"]                                 =  validateSingleWord,
+   ["user_group"]                                  =  validateSingleWord,
+   ["admin_group"]                                 =  validateSingleWord,
+   ["local_host_max_idle"]                         =  validateNumber,
+   ["non_local_host_max_idle"]                     =  validateNumber,
+   ["flow_max_idle"]                               =  validateNumber,
+   ["active_local_host_cache_interval"]            =  validateNumber,
+   ["local_host_cache_duration"]                   =  validateNumber,
+   ["housekeeping_frequency"]                      =  validateNumber,
+   ["intf_rrd_raw_days"]                           =  validateNumber,
+   ["intf_rrd_1min_days"]                          =  validateNumber,
+   ["intf_rrd_1h_days"]                            =  validateNumber,
+   ["intf_rrd_1d_days"]                            =  validateNumber,
+   ["other_rrd_raw_days"]                          =  validateNumber,
+   ["other_rrd_1min_days"]                         =  validateNumber,
+   ["other_rrd_1h_days"]                           =  validateNumber,
+   ["other_rrd_1d_days"]                           =  validateNumber,
+   ["host_activity_rrd_1h_days"]                   =  validateNumber,
+   ["host_activity_rrd_1d_days"]                   =  validateNumber,
+   ["host_activity_rrd_raw_hours"]                 =  validateNumber,
+   -- Multiple Choice
+
+   ["multiple_flow_collection"]                    =  validateChoiceInline({"none","probe_ip","ingress_iface_idx"}),
+   ["slack_notification_severity_preference"]      =  validateChoiceInline({"only_errors","errors_and_warnings","all_alerts"}),
+   ["multiple_ldap_authentication"]                =  validateChoiceInline({"local","ldap","ldap_local"}),
+   ["multiple_ldap_account_type"]                  =  validateChoiceInline({"posix","samaccount"}),
+   ["toggle_logging_level"]                        =  validateChoiceInline({"trace", "debug", "info", "normal", "warning", "error"}),
+   ["toggle_thpt_content"]                         =  validateChoiceInline({"bps", "pps"}),
+--
 
 -- PAGE SPECIFIC
    ["iflocalstat_mode"]        =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
