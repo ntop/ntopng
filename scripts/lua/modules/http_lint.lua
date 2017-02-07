@@ -3,13 +3,14 @@
 --
 
 local pragma_once = 1
+local http_lint = {}
 
 -- #################################################################
 
 -- UTILITY FUNCTIONS
 
 -- Searches into the keys of the table
-function validateChoiceByKeys(defaults, v)
+local function validateChoiceByKeys(defaults, v)
    if defaults[v] ~= nil then
       return true
    else
@@ -19,7 +20,7 @@ end
 
 -- Searches into the value of the table
 -- Optional key can be used to access fields of the array element
-function validateChoice(defaults, v, key)
+local function validateChoice(defaults, v, key)
    for _,d in pairs(defaults) do
       if key ~= nil then
          if d[key] == v then
@@ -35,7 +36,7 @@ function validateChoice(defaults, v, key)
    return false
 end
 
-function validateChoiceInline(choices)
+local function validateChoiceInline(choices)
    return function(choice)
       if (validateChoice(choices, choice)) then
          return true
@@ -45,7 +46,7 @@ function validateChoiceInline(choices)
    end
 end
 
-function validateSingleWord(w)
+local function validateSingleWord(w)
    if ((string.find(w, "%=") ~= nil) or
        (string.find(w, "% ") ~= nil)) then
       return false
@@ -54,20 +55,34 @@ function validateSingleWord(w)
    end
 end
 
-function validateListOfType(l, validate_callback, separator)
+local function validateListOfType(l, validate_callback, separator)
    local separator = separator or ","
+   if isEmptyString(l) then
+      return true
+   end
+
    local items = split(l, separator)
 
    for _,item in pairs(items) do
-      if not validate_callback(item) then
-         return false
+      if item ~= "" then
+         if not validate_callback(item) then
+            return false
+         end
       end
    end
 
    return true
 end
 
-function validateEmptyOr(other_validation)
+local function validateEmpty(s)
+   if s == "" then
+      return true
+   else
+      return false
+   end
+end
+
+local function validateEmptyOr(other_validation)
    return function(s)
       if (validateEmpty(s) or other_validation(s)) then
          return true
@@ -81,7 +96,7 @@ end
 
 -- FRONT-END VALIDATORS
 
-function validateNumber(p)
+local function validateNumber(p)
    if tonumber(p) ~= nil then
       return true
    else
@@ -89,7 +104,7 @@ function validateNumber(p)
    end
 end
 
-function validatePort(p)
+local function validatePort(p)
    local n = tonumber(p)
    if ((n ~= nil) and (n >= 1) and (n <= 65535)) then
       return true
@@ -98,20 +113,16 @@ function validatePort(p)
    end
 end
 
-function validatePath(p)
-   -- TODO
-   return true
-end
-
-function validateEmpty(s)
-   if s == "" then
+local function validatePath(p)
+   -- path should not contain dots
+   if string.find(p, "%.") == nil then
       return true
    else
       return false
    end
 end
 
-function validateUnchecked(p)
+local function validateUnchecked(p)
    -- base validation is already performed by C side.
    -- you should use this function as last resort
    return true
@@ -119,79 +130,79 @@ end
 
 -- #################################################################
 
-function validateMode(mode)
+local function validateMode(mode)
    local modes = {"all", "local", "remote"}
 
    return validateChoice(modes, mode)
 end
 
-function validateOperator(mode)
+local function validateOperator(mode)
    local modes = {"gt", "eq", "lt"}
 
    return validateChoice(modes, mode)
 end
 
-function validateHttpMode(mode)
+local function validateHttpMode(mode)
    local modes = {"responses", "queries"}
 
    return validateChoice(modes, mode)
 end
 
-function validatePidMode(mode)
+local function validatePidMode(mode)
    local modes = {"l4", "l7", "host", "apps"}
 
    return validateChoice(modes, mode)
 end
 
-function validateNdpiStatsMode(mode)
+local function validateNdpiStatsMode(mode)
    local modes = {"sinceStartup", "count", "host"}
 
    return validateChoice(modes, mode)
 end
 
-function validateSflowDistroMode(mode)
+local function validateSflowDistroMode(mode)
    local modes = {"host", "process", "user"}
 
    return validateChoice(modes, mode)
 end
 
-function validateSflowDistroType(mode)
+local function validateSflowDistroType(mode)
    local modes = {"size", "memory", "bytes", "latency", "server"}
 
    return validateChoice(modes, mode)
 end
 
-function validateSflowFilter(mode)
+local function validateSflowFilter(mode)
    local modes = {"All", "Client", "Server"}
 
    return validateChoice(modes, mode)
 end
 
-function validateIfaceLocalStatsMode(mode)
+local function validateIfaceLocalStatsMode(mode)
    local modes = {"distribution"}
 
    return validateChoice(modes, mode)
 end
 
-function validateProcessesStatsMode(mode)
+local function validateProcessesStatsMode(mode)
    local modes = {"table", "timeline"}
 
    return validateChoice(modes, mode)
 end
 
-function validateDirection(mode)
+local function validateDirection(mode)
    local modes = {"sent", "recv"}
 
    return validateChoice(modes, mode)
 end
 
-function validateClientOrServer(mode)
+local function validateClientOrServer(mode)
    local modes = {"client", "server"}
 
    return validateChoice(modes, mode)
 end
 
-function validateStatsType(mode)
+local function validateStatsType(mode)
    local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins",
       "top_targets", "duration_pie", "longest_engaged", "counts_pie",
       "counts_plain", "top_talkers", "top_applications"}
@@ -199,7 +210,7 @@ function validateStatsType(mode)
    return validateChoice(modes, mode)
 end
 
-function validateAlertStatsType(mode)
+local function validateAlertStatsType(mode)
    local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins",
       "top_targets", "duration_pie", "longest_engaged", "counts_pie",
       "counts_plain"}
@@ -207,80 +218,81 @@ function validateAlertStatsType(mode)
    return validateChoice(modes, mode)
 end
 
-function validateFlowHostsType(mode)
+local function validateFlowHostsType(mode)
    local modes = {"local_only", "remote_only",
       "local_origin_remote_target", "remote_origin_local_target"}
 
    return validateChoice(modes, mode)
 end
 
-function validateConsolidationFunction(mode)
-   local modes = {"average", "max", "min"}
+local function validateConsolidationFunction(mode)
+   local modes = {"AVERAGE", "MAX", "MIN"}
 
    return validateChoice(modes, mode)
 end
 
-function validateAlertStatus(mode)
+local function validateAlertStatus(mode)
    local modes = {"engaged", "historical", "historical-flows"}
 
    return validateChoice(modes, mode)
 end
 
-function validateAggregation(mode)
+local function validateAggregation(mode)
    local modes = {"ndpi", "l4proto", "port"}
 
    return validateChoice(modes, mode)
 end
 
-function validateReportMode(mode)
+local function validateReportMode(mode)
    local modes = {"daily", "weekly", "monthly"}
 
    return validateChoice(modes, mode)
 end
 
-function validateNboxAction(mode)
+local function validateNboxAction(mode)
    local modes = {"status", "schedule"}
 
    return validateChoice(modes, mode)
 end
 
-function validateFavouriteAction(mode)
+local function validateFavouriteAction(mode)
    local modes = {"set", "get", "del", "del_all"}
 
    return validateChoice(modes, mode)
 end
 
-function validateFavouriteType(mode)
-   local modes = {"apps_per_host_pair", "top_applications", "talker", "app"}
+local function validateFavouriteType(mode)
+   local modes = {"apps_per_host_pair", "top_applications", "talker", "app",
+      "host_peers_by_app"}
 
    return validateChoice(modes, mode)
 end
 
-function validateAjaxFormat(mode)
+local function validateAjaxFormat(mode)
    local modes = {"d3"}
 
    return validateChoice(modes, mode)
 end
 
-function validatePrintFormat(mode)
+local function validatePrintFormat(mode)
    local modes = {"txt", "json"}
 
    return validateChoice(modes, mode)
 end
 
-function validateResetStatsMode(mode)
+local function validateResetStatsMode(mode)
    local modes = {"reset_drops", "reset_all"}
 
    return validateChoice(modes, mode)
 end
 
-function validateSnmpAction(mode)
+local function validateSnmpAction(mode)
    local modes = {"delete", "add", "addNewDevice"}
 
    return validateChoice(modes, mode)
 end
 
-function validateUserRole(mode)
+local function validateUserRole(mode)
    local modes = {"administrator", "unprivileged", "captive_portal"}
 
    return validateChoice(modes, mode)
@@ -288,7 +300,7 @@ end
 
 -- #################################################################
 
-function validateHost(p)
+local function validateHost(p)
    -- TODO stricter checks, allow @vlan
    if(isIPv4(p) or isIPv6(p) or isMacAddress(p)) then
       return true
@@ -297,8 +309,7 @@ function validateHost(p)
    end
 end
 
-function validateMac(p)
-   -- TODO stricter checks
+local function validateMac(p)
    if isMacAddress(p) then
       return true
    else
@@ -306,7 +317,7 @@ function validateMac(p)
    end
 end
 
-function validateIpAddress(p)
+local function validateIpAddress(p)
    if (isIPv4(p) or isIPv6(p)) then
       return true
    else
@@ -314,15 +325,16 @@ function validateIpAddress(p)
    end
 end
 
-function validateHTTPHost(p)
-   if (validateIpAddress(p) or true --[[ TODO ]]) then
+local function validateHTTPHost(p)
+   -- TODO maybe stricter check?
+   if validateSingleWord(p) then
       return true
    else
       return false
    end
 end
 
-function validateIpVersion(p)
+local function validateIpVersion(p)
    if ((p == "4") or (p == "6")) then
       return true
    else
@@ -330,21 +342,24 @@ function validateIpVersion(p)
    end
 end
 
-function validateDate(p)
-   -- TODO
-   if string.find(p, ":") then
+local function validateDate(p)
+   -- TODO this validation function should be removed and dates should always be passed as timestamp
+   if string.find(p, ":") ~= nil then
       return true
    else
       return false
    end
 end
 
-function validateMember(m)
-   -- TODO
-   return true
+local function validateMember(m)
+   if isValidPoolMember(m) then
+      return true
+   else
+      return false
+   end
 end
 
-function validateIdToDelete(i)
+local function validateIdToDelete(i)
    if ((i == "__all__") or validateNumber(i)) then
       return true
    else
@@ -352,7 +367,7 @@ function validateIdToDelete(i)
    end
 end
 
-function validateBool(p)
+local function validateBool(p)
    if((p == "true") or (p == "false")) then
       return true
    else
@@ -365,33 +380,37 @@ function validateBool(p)
    end
 end
 
-function validateSortOrder(p)
+local function validateSortOrder(p)
    local defaults = {"asc", "desc"}
    
    return validateChoice(defaults, p)
 end
 
-function validateApplication(app)
-   local ndpi_protos = interface.getnDPIProtocols()
+local ndpi_protos = interface.getnDPIProtocols()
+local ndpi_categories = interface.getnDPICategories()
+local site_categories = ntop.getSiteCategories()
 
+local function validateApplication(app)
    return validateChoiceByKeys(ndpi_protos, app)
 end
 
-function validateProtocolId(p)
-   -- TODO implement
-   return tonumber(p)
+local function validateProtocolId(p)
+   return validateChoice(ndpi_protos, p)
 end
 
-function validateTrafficProfile(p)
+local function validateCategory(cat)
+   return validateChoiceByKeys(site_categories, cat)
+end
+
+local function validateActivityName(p)
+   return validateChoiceByKeys(ndpi_categories, p)
+end
+
+local function validateTrafficProfile(p)
    return validateUnchecked(p)
 end
 
-function validateActivityName(p)
-   -- TODO implement, read user activities from C
-   return validateUnchecked(p)
-end
-
-function validateSortColumn(p)
+local function validateSortColumn(p)
    -- Note: this is also used in some scripts to specify the ordering, so the "column_"
    -- prefix is not honored
    if((validateSingleWord(p)) --[[and (string.starts(p, "column_"))]]) then
@@ -401,7 +420,7 @@ function validateSortColumn(p)
    end
 end
 
-function validateCountry(p)
+local function validateCountry(p)
    if string.len(p) == 2 then
       return true
    else
@@ -409,22 +428,17 @@ function validateCountry(p)
    end
 end
 
-function validateInterface(i)
+local function validateInterface(i)
    -- TODO
    return validateNumber(i)
 end
 
-function validateNetwork(i)
+local function validateNetwork(i)
    -- TODO
    return validateSingleWord(i)
 end
 
-function validateCategory(i)
-   -- TODO
-   return validateNumber(i)
-end
-
-function validateZoom(zoom)
+local function validateZoom(zoom)
    if string.match(zoom, "%d+%a") == zoom then
       return true
    else
@@ -432,18 +446,22 @@ function validateZoom(zoom)
    end
 end
 
-function validateShapedElement(elem_id)
+local function validateShapedElement(elem_id)
    local id
    if starts(elem_id, "cat_") then
-      id = split(elem_id, "cat_")
+      id = split(elem_id, "cat_")[2]
    else
       id = elem_id
    end
 
-   return validateNumber(elem_id)
+   if ((elem_id == "default") or validateNumber(id)) then
+      return true
+   else
+      return false
+   end
 end
 
-function validateAlertDescriptor(d)
+local function validateAlertDescriptor(d)
    if ((validateChoiceByKeys(alert_functions_description, d)) or
        (validateChoiceByKeys(network_alert_functions_description, d))) then
       return true
@@ -452,27 +470,27 @@ function validateAlertDescriptor(d)
    end
 end
 
-function validateInterfacesList(l)
+local function validateInterfacesList(l)
    return validateListOfType(l, validateInterface)
 end
 
-function validateNetworksList(l)
+local function validateNetworksList(l)
    return validateListOfType(l, validateNetwork)
 end
 
-function validateCategoriesList(mode)
+local function validateCategoriesList(mode)
    return validateListOfType(l, validateCategory)
 end
 
-function validateApplicationsList(l)
+local function validateApplicationsList(l)
    return validateListOfType(l, validateApplication)
 end
 
-function validateHostsList(l)
+local function validateHostsList(l)
    return validateListOfType(l, validateHost)
 end
 
-function validateIfFilter(i)
+local function validateIfFilter(i)
    if validateNumber(i) or i == "all" then
       return true
    else
@@ -480,7 +498,7 @@ function validateIfFilter(i)
    end
 end
 
-function validateLookingGlassCriteria(c)
+local function validateLookingGlassCriteria(c)
    if validateChoice(looking_glass_criteria, c, 1) then
       return true
    else
@@ -488,8 +506,8 @@ function validateLookingGlassCriteria(c)
    end
 end
 
-function validateTopModule(m)
-   -- TODO check for existance
+local function validateTopModule(m)
+   -- TODO check for existance?
    return validateSingleWord(m)
 end
 
@@ -790,7 +808,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- #################################################################
 
-function validateParameter(k, v)
+local function validateParameter(k, v)
    if(known_parameters[k] == nil) then
       return false
    else
@@ -802,7 +820,7 @@ function validateParameter(k, v)
    end
 end
 
-function validateSpecialParameter(param, value)
+local function validateSpecialParameter(param, value)
    -- These parameters are made up of one string prefix plus a string suffix
    for k, v in pairs(special_parameters) do
       if starts(param, k) then
@@ -821,16 +839,16 @@ function validateSpecialParameter(param, value)
    return false
 end
 
-function validationError(t, param, value, message)
+function http_lint.validationError(t, param, value, message)
    -- TODO gracefull exit
    local s_id
-   if id == _GET then s_id = "_GET" else s_id = "_POST" end
+   if t == _GET then s_id = "_GET" else s_id = "_POST" end
    error("[LINT] " .. s_id .. "[\"" .. param .. "\"] = \"" .. value .. "\" parameter error: " .. message)
 end
 
 -- #################################################################
 
-function lintParams()
+local function lintParams()
    local params_to_validate = { _GET, _POST }
    local id, _, k, v
 
@@ -853,16 +871,16 @@ function lintParams()
                local success, message = validateParameter(k, v)
                if not success then
                   if message ~= nil then
-                     validationError(id, k, v, message)
+                     http_lint.validationError(id, k, v, message)
                   else
                      success, message = validateSpecialParameter(k, v)
 
                      if not success then
                         if message ~= nil then
-                           validationError(id, k, v, message)
+                           http_lint.validationError(id, k, v, message)
                         else
                            -- Here we have an unhandled parameter
-                           validationError(id, k, v, "Missing validation")
+                           http_lint.validationError(id, k, v, "Missing validation")
                         end
                      end
                   end
@@ -882,5 +900,4 @@ if(pragma_once) then
    pragma_once = 0
 end
 
--- Do not pollute global context
-return nil
+return http_lint

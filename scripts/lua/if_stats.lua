@@ -58,7 +58,7 @@ if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
    ntop.setCache(key, ifname)
 
    msg = "<div class=\"alert alert-success\">The selected interface <b>" .. getHumanReadableInterfaceName(ifid)
-   msg = msg .. "</b> [id: ".. ifid .."] is now active</div>"
+   msg = msg .. "</b> [ifid: ".. ifid .."] is now active</div>"
 
    ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
 else
@@ -610,19 +610,19 @@ elseif(page == "ndpi") then
 
        do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "count", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "count", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topTCPFlowsStats", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_tcp_stats.lua', { id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_tcp_stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
     }
 
       </script><p>
@@ -646,7 +646,7 @@ function update_ndpi_table() {
     url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/if_stats_ndpi.lua',
-    data: { id: "]] print(ifid) print [[" },
+    data: { ifid: "]] print(ifid) print [[" },
     success: function(content) {
       $('#if_stats_ndpi_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
@@ -700,7 +700,7 @@ print [[
 		    url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/network_load.lua',
-		    data: { iffilter: "]] print(if_name) print [[" },
+		    data: { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" },
 		    success: function(content) {
 			var profiles = content;
 

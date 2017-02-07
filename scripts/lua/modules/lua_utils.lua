@@ -946,6 +946,39 @@ function get_timezone()
   return os.difftime(now, os.time(os.date("!*t", now)))
 end
 
+function isValidPoolMember(member)
+  if isEmptyString(member) then
+    return false
+  end
+
+  if isMacAddress(member) then
+    return true
+  end
+
+  -- vlan is mandatory here
+  local vlan_idx = string.find(member, "@")
+  if ((vlan_idx == nil) or (vlan_idx == 1)) then
+    return false
+  end
+  local other = string.sub(member, 1, vlan_idx-1)
+  local vlan = tonumber(string.sub(member, vlan_idx+1))
+  if (vlan == nil) or (vlan < 0) then
+    return false
+  end
+
+  -- prefix is mandatory here
+  local address, prefix = splitNetworkPrefix(other)
+  if prefix == nil then
+    return false
+  end
+  if isIPv4(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 32) then
+    return true
+  elseif isIPv6(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 128) then
+    return true
+  end
+
+  return false
+end
 
 function isLocal(host_ip)
   host = interface.getHostInfo(host_ip)
@@ -2795,4 +2828,4 @@ end
 -- Leave it at the end so it can use the functions
 -- defined in this file
 --
-local _ = require "http_lint"
+http_lint = require "http_lint"

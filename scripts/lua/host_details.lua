@@ -1259,8 +1259,9 @@ print [[
 		  resetContext(newstep);
                   
                   var metrics = [];
-                  JSON.parse(content).sort().map(function(activity) {
-                     metrics.push(rrdserver.metric(activitiesurl+"&activity="+activity, activity, mode === "bg"));
+                  var parsed = JSON.parse(content);
+                  Object.keys(parsed).sort().map(function(activity_name) {
+                     metrics.push(rrdserver.metric(activitiesurl+"&activity="+parsed[activity_name], activity_name, mode === "bg"));
                   });
 		  if (metrics.length > 0) {
 		     // data

@@ -22,6 +22,10 @@ if _POST["edit_pools"] ~= nil then
   local config = paramsPairsDecode(_POST, true)
 
   for pool_id, pool_name in pairs(config) do
+    if tonumber(pool_id) == nil then
+      http_lint.validationError(_POST, "pool_id", pool_id, "Invalid pool id")
+    end
+
     -- create or rename
     host_pools_utils.createPool(ifId, pool_id, pool_name)
 
@@ -50,13 +54,17 @@ elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool"]
   local config = paramsPairsDecode(_POST, true)
 
-  -- This code handles member address changes
+  -- This code handles member address changes. The starting '_' is used for icons and alias
 
   -- delete old addresses
   for k,old_member in pairs(config) do
     if not starts(k, "_") then
       if((not isEmptyString(old_member)) and (k ~= old_member)) then
-        host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
+        if not isValidPoolMember(old_member) then
+          http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
+        else
+          host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
+        end
       end
     end
   end
@@ -64,6 +72,9 @@ elseif (_POST["edit_members"] ~= nil) then
   -- add new addresses
   for new_member,k in pairs(config) do
     if not starts(new_member, "_") then
+      if not isValidPoolMember(new_member) then
+        http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
+      end
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
