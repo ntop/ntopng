@@ -97,14 +97,25 @@ end
 -- FRONT-END VALIDATORS
 
 local function validateNumber(p)
-   if tonumber(p) ~= nil then
+   -- integer number validation
+   local num = tonumber(p)
+   if num == nil then
+      return false
+   end
+
+   if math.floor(num) == num then
       return true
    else
+      -- this is a float number
       return false
    end
 end
 
 local function validatePort(p)
+   if not validateNumber(p) then
+      return false
+   end
+
    local n = tonumber(p)
    if ((n ~= nil) and (n >= 1) and (n <= 65535)) then
       return true
