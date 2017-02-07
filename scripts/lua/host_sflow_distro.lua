@@ -87,7 +87,7 @@ end
 function setMode(p_mode)
   if((p_mode == nil) or (p_mode == "user")) then
     what = "user_name"
-    url = ntop.getHttpPrefix().."/lua/get_user_info.lua?user="
+    url = ntop.getHttpPrefix().."/lua/get_user_info.lua?username="
   elseif (p_mode == "process") then
     what = "name"
     url = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid_name="

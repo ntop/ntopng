@@ -359,7 +359,7 @@ print[[
 <script>
 
 function reset_pwd_dialog(user) {
-      $.getJSON(']] print(ntop.getHttpPrefix()) print[[/lua/admin/get_user_info.lua?user='+user, function(data) {
+      $.getJSON(']] print(ntop.getHttpPrefix()) print[[/lua/admin/get_user_info.lua?username='+user, function(data) {
 
       $('#password_dialog_title').text(data.username);
       $('#password_dialog_username').val(data.username);

@@ -30,7 +30,7 @@ vhost       = _GET["vhost"]
 
 -- System host parameters
 hosts  = _GET["hosts"]
-user   = _GET["user"]
+user   = _GET["username"]
 host   = _GET["host"]
 pid    = tonumber(_GET["pid"])
 name   = _GET["pid_name"]
@@ -489,12 +489,12 @@ for _key, _value in pairsByValues(vals, funct) do
    if(value["client_process"] ~= nil) then
       print ("\", \"column_client_process\" : \"")
       print("<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["client_process"]["pid"] .."&pid_name="..value["client_process"]["name"].."&host="..value["cli.ip"].."'>" .. processColor(value["client_process"]).."</A>")
-      print ("\", \"column_client_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?user=" .. value["client_process"]["user_name"] .."&host="..value["cli.ip"].."'>" .. value["client_process"]["user_name"].."</A>")
+      print ("\", \"column_client_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=" .. value["client_process"]["user_name"] .."&host="..value["cli.ip"].."'>" .. value["client_process"]["user_name"].."</A>")
    end
    if(value["server_process"] ~= nil) then
       print ("\", \"column_server_process\" : \"")
       print("<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["server_process"]["pid"] .."&pid_name="..value["server_process"]["name"].."&host="..value["srv.ip"].."'>" .. processColor(value["server_process"]).."</A>")
-      print ("\", \"column_server_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?user=" .. value["server_process"]["user_name"] .."&host="..value["srv.ip"].."'>" .. value["server_process"]["user_name"].."</A>")
+      print ("\", \"column_server_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=" .. value["server_process"]["user_name"] .."&host="..value["srv.ip"].."'>" .. value["server_process"]["user_name"].."</A>")
    end
 
    print ("\", \"column_duration\" : \"" .. secondsToTime(value["duration"]))

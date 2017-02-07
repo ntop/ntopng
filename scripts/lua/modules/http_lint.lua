@@ -163,7 +163,7 @@ end
 function validateStatsType(mode)
    local modes = {"severity_pie", "type_pie", "count_sparkline", "top_origins",
       "top_targets", "duration_pie", "longest_engaged", "counts_pie",
-      "counts_plain"}
+      "counts_plain", "top_talkers", "top_applications"}
 
    return validateChoice(modes, mode)
 end
@@ -239,7 +239,7 @@ end
 
 -- #################################################################
 
-function validateIPv4IPv6Mac(p)
+function validateHost(p)
    -- TODO stricter checks, allow @vlan
    if(isIPv4(p) or isIPv6(p) or isMacAddress(p)) then
       return true
@@ -336,7 +336,9 @@ function validateActivityName(p)
 end
 
 function validateSortColumn(p)
-   if((validateSingleWord(p)) and (string.starts(p, "column_"))) then
+   -- Note: this is also used in some scripts to specify the ordering, so the "column_"
+   -- prefix is not honored
+   if((validateSingleWord(p)) --[[and (string.starts(p, "column_"))]]) then
       return true
    else
       return false
@@ -371,6 +373,10 @@ function validateApplicationsList(l)
    return validateListOfType(l, validateApplication)
 end
 
+function validateHostsList(l)
+   return validateListOfType(l, validateHost)
+end
+
 function validateIfFilter(i)
    if validateNumber(i) or i == "all" then
       return true
@@ -397,20 +403,32 @@ end
 -- NOTE: Put here al the parameters to validate
 
 local known_parameters = {
+-- UNCHECKED (Potentially Dangerous)
+   ["referer"]                 =  validateUnchecked,             -- An URL referer
+   ["url"]                     =  validateUnchecked,             -- An URL
+   ["label"]                   =  validateUnchecked,             -- A device label
+   ["os"]                      =  validateUnchecked,             -- An Operating System string
+   ["info"]                    =  validateUnchecked,             -- An information message
+   ["entity_val"]              =  validateUnchecked,             -- An alert entity value
+   ["query"]                   =  validateUnchecked,             -- This field should be used to perform partial queries.
+                                                                 -- It up to the script to implement proper validation.
+                                                                 -- In NO case query should be executed directly without validation.
+
 -- HOST SPECIFICATION
-   ["host"]                    =  validateIPv4IPv6Mac,           -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
-   ["versus_host"]             =  validateIPv4IPv6Mac,           -- an host for comparison
+   ["host"]                    =  validateHost,                  -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
+   ["versus_host"]             =  validateHost,                  -- an host for comparison
    ["mac"]                     =  validateMac,                   -- a MAC address
-   ["peer1"]                   =  validateIPv4IPv6Mac,           -- a Peer in a connection
-   ["peer2"]                   =  validateIPv4IPv6Mac,           -- another Peer in a connection
-   ["origin"]                  =  validateIPv4IPv6Mac,           -- the source of the alert
-   ["target"]                  =  validateIPv4IPv6Mac,           -- the target of the alert
+   ["peer1"]                   =  validateHost,                  -- a Peer in a connection
+   ["peer2"]                   =  validateHost,                  -- another Peer in a connection
+   ["origin"]                  =  validateHost,                  -- the source of the alert
+   ["target"]                  =  validateHost,                  -- the target of the alert
    ["member"]                  =  validateMember,                -- an IPv4 (optional @vlan, optional /suffix), IPv6 (optional @vlan, optional /suffix), or MAC address
    ["network"]                 =  validateNumber,                -- A network ID
    ["ip"]                      =  validateIpAddress,             -- An IPv4 or IPv6 address
    ["vhost"]                   =  validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 =  validateIpVersion,             -- To specify an IPv4 or IPv6
    ["vlan"]                    =  validateNumber,                -- A VLAN id
+   ["hosts"]                   =  validateHostsList,             -- A list of hosts
 
 -- NDPI
    ["application"]             =  validateApplication,           -- An nDPI application protocol name
@@ -418,9 +436,9 @@ local known_parameters = {
    ["ndpistats_mode"]          =  validateNdpiStatsMode,         -- A mode for iface_ndpi_stats.lua
    ["l4_proto_id"]             =  validateProtocolId,            -- get_historical_data.lua
    ["l7_proto_id"]             =  validateProtocolId,            -- get_historical_data.lua
-   ["l4proto"]                 =  validateApplication,           -- An nDPI application protocol name, layer 4
-   ["l7proto"]                 =  validateApplication,           -- An nDPI application protocol name, layer 7
-   ["protocol"]                =  validateApplication,           -- An nDPI application protocol name, layer 7 (duplicate?)
+   ["l4proto"]                 =  validateProtocolId,            -- An nDPI application protocol ID, layer 4
+   ["l7proto"]                 =  validateProtocolId,            -- An nDPI application protocol ID, layer 7
+   ["protocol"]                =  validateProtocolId,            -- An nDPI application protocol ID, (layer 7? Duplicate?)
    ["ndpi"]                    =  validateApplicationsList,      -- a list applications
 
 -- Remote probe
@@ -456,14 +474,12 @@ local known_parameters = {
 -- NAVIGATION
    ["page"]                    =  validateSingleWord,            -- Currently active subpage tab
    ["tab"]                     =  validateSingleWord,            -- Currently active tab, handled by javascript
-   ["referer"]                 =  validateUnchecked,             -- An URL referer
-   ["url"]                     =  validateUnchecked,             -- An URL
 
 -- OTHER
    ["_"]                       =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
    ["ifid"]                    =  validateInterface,             -- An ntopng interface ID
    ["iffilter"]                =  validateIfFilter,              -- An interface ID or 'all'
-   ["user"]                    =  validateSingleWord,            -- A ntopng user name
+   ["username"]                =  validateSingleWord,            -- A ntopng user name, new or existing
    ["mode"]                    =  validateMode,                  -- Remote or Local users
    ["country"]                 =  validateCountry,               -- Country code
    ["flow_key"]                =  validateNumber,                -- The ID of a flow hash
@@ -478,23 +494,19 @@ local known_parameters = {
    ["alert_type"]              =  validateNumber,                -- An alert type enum
    ["alert_severity"]          =  validateNumber,                -- An alert severity enum
    ["entity"]                  =  validateNumber,                -- An alert entity type
-   ["entity_val"]              =  validateUnchecked,             -- An alert entity value
    ["asn"]                     =  validateNumber,                -- An ASN number
    ["module"]                  =  validateTopModule,             -- A top script module
    ["step"]                    =  validateNumber,                -- A step value
    ["cf"]                      =  validateConsolidationFunction, -- An RRD consolidation function
-   ["label"]                   =  validateUnchecked,             -- A device label
    ["verbose"]                 =  validateBool,                  -- True if script should be verbose
    ["num_minutes"]             =  validateNumber,                -- number of minutes
    ["zoom"]                    =  validateZoom,                  -- a graph zoom specifier
    ["community"]               =  validateSingleWord,            -- SNMP community
    ["intfs"]                   =  validateInterfacesList,        -- a list of network interfaces ids
    ["search"]                  =  validateEmpty,                 -- When set, a search should be performed
-   ["os"]                      =  validateUnchecked,             -- An Operating System string
    ["criteria"]                =  validateLookingGlassCriteria,  -- A looking glass criteria
    ["row_id"]                  =  validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                =  validateSingleWord,            -- A path or special identifier to read an RRD file
-   ["info"]                    =  validateUnchecked,             -- An information message
    ["port"]                    =  validatePort,                  -- An application port
 
 -- PAGE SPECIFIC
@@ -544,15 +556,20 @@ end
 function lintParams()
    local params_to_validate = { _GET, _POST }
    local id, p, k, v
-   local debug = false
-   local disableValidation = true -- <<<=== ENABLE HERE
-   
+
+   -- VALIDATION SETTINGS
+   local enableValidation = true                   --[[ To enable validation ]]
+   local debug = false                             --[[ To enable validation debug messages ]]
+   local relaxValidation = true                    --[[ To consider empty fields as valid ]]
+
    for id,p in pairs(params_to_validate) do
       for k,v in pairs(p) do
          if(debug) then io.write("[LINT] Validating ["..k.."]["..p[k].."]\n") end
 
-         if not(disableValidation) then
-            if not validateParameter(k, v) then
+         if enableValidation then
+            if ((v == "") and (relaxValidation)) then
+               if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
+            elseif not validateParameter(k, v) then
                -- TODO gracefull error
                error("BAD parameter " .. k .. " [" .. v .. "]")
             end

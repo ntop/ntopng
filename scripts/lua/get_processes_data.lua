@@ -25,7 +25,7 @@ application = _GET["application"]
 
 -- System host parameters
 hosts = _GET["hosts"]
-user = _GET["user"]
+user = _GET["username"]
 pid = tonumber(_GET["pid"])
 name = _GET["pid_name"]
 process_sourceId = 0

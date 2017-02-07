@@ -29,7 +29,7 @@ vhost       = _GET["vhost"]
 
 -- System host parameters
 hosts  = _GET["hosts"]
-user   = _GET["user"]
+user   = _GET["username"]
 host   = _GET["host"]
 pid    = tonumber(_GET["pid"])
 name   = _GET["pid_name"]

@@ -295,7 +295,7 @@ if captive_portal_user then
 end
 
 print[[
-    $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?user='+$("#username_input").val()+"&networks="+$("#allowed_networks_input").val(), function(data){
+    $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?username='+$("#username_input").val()+"&networks="+$("#allowed_networks_input").val(), function(data){
       if (!data.valid) {
         add_user_alert.error(data.msg);
       } else {
