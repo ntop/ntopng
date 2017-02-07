@@ -86,6 +86,16 @@ function validateEmpty(s)
    end
 end
 
+function validateEmptyOr(other_validation)
+   return function(s)
+      if (validateEmpty(s) or other_validation(s)) then
+         return true
+      else
+         return false
+      end
+   end
+end
+
 function validateUnchecked(p)
    -- base validation is already performed by C side.
    -- you should use this function as last resort
@@ -237,6 +247,24 @@ function validatePrintFormat(mode)
    return validateChoice(modes, mode)
 end
 
+function validateResetStatsMode(mode)
+   local modes = {"reset_drops", "reset_all"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateSnmpAction(mode)
+   local modes = {"delete", "add", "addNewDevice"}
+
+   return validateChoice(modes, mode)
+end
+
+function validateUserRole(mode)
+   local modes = {"administrator", "unprivileged", "captive_portal"}
+
+   return validateChoice(modes, mode)
+end
+
 -- #################################################################
 
 function validateHost(p)
@@ -293,6 +321,22 @@ end
 function validateMember(m)
    -- TODO
    return true
+end
+
+function validateBpfFilter(filter)
+   if ntop.checkProfileSyntax(filter) then
+      return true
+   else
+      return false
+   end
+end
+
+function validateIdToDelete(i)
+   if ((i == "__all__") or validateNumber(i)) then
+      return true
+   else
+      return false
+   end
 end
 
 function validateBool(p)
@@ -354,6 +398,17 @@ function validateCountry(p)
 end
 
 function validateInterface(i)
+   -- TODO
+   return validateNumber(i)
+end
+
+function validateNetwork(i)
+   -- TODO
+   return validateSingleWord(i)
+end
+
+function validateCategory(i)
+   -- TODO
    return validateNumber(i)
 end
 
@@ -367,6 +422,14 @@ end
 
 function validateInterfacesList(l)
    return validateListOfType(l, validateInterface)
+end
+
+function validateNetworksList(l)
+   return validateListOfType(l, validateNetwork)
+end
+
+function validateCategoriesList(mode)
+   return validateListOfType(l, validateCategory)
 end
 
 function validateApplicationsList(l)
@@ -410,6 +473,8 @@ local known_parameters = {
    ["os"]                      =  validateUnchecked,             -- An Operating System string
    ["info"]                    =  validateUnchecked,             -- An information message
    ["entity_val"]              =  validateUnchecked,             -- An alert entity value
+   ["custom_name"]             =  validateUnchecked,             -- A custom interface name
+   ["full_name"]               =  validateUnchecked,             -- A user full name
    ["query"]                   =  validateUnchecked,             -- This field should be used to perform partial queries.
                                                                  -- It up to the script to implement proper validation.
                                                                  -- In NO case query should be executed directly without validation.
@@ -430,6 +495,14 @@ local known_parameters = {
    ["vlan"]                    =  validateNumber,                -- A VLAN id
    ["hosts"]                   =  validateHostsList,             -- A list of hosts
 
+-- AUTHENTICATION
+   ["username"]                =  validateSingleWord,            -- A ntopng user name, new or existing
+   ["password"]                =  validateSingleWord,            -- User password
+   ["new_password"]            =  validateSingleWord,            -- The new user password
+   ["old_password"]            =  validateSingleWord,            -- The old user password
+   ["confirm_password"]        =  validateSingleWord,            -- Confirm user password
+   ["user_role"]               =  validateUserRole,              -- User role
+
 -- NDPI
    ["application"]             =  validateApplication,           -- An nDPI application protocol name
    ["breed"]                   =  validateBool,                  -- True if nDPI breed should be shown
@@ -449,7 +522,7 @@ local known_parameters = {
    ["procstats_mode"]          =  validateProcessesStatsMode,    -- A mode for processes_stats.lua
    ["sflowdistro_mode"]        =  validateSflowDistroMode,       -- A mode for host_sflow_distro
    ["distr"]                   =  validateSflowDistroType,       -- A type for host_sflow_distro
-   ["filter"]                  =  validateSflowFilter,           -- sflow host filter
+   ["sflow_filter"]            =  validateSflowFilter,           -- sflow host filter
 
 -- TIME SPECIFICATION
    ["epoch"]                   =  validateNumber,                -- A timestamp value
@@ -475,11 +548,22 @@ local known_parameters = {
    ["page"]                    =  validateSingleWord,            -- Currently active subpage tab
    ["tab"]                     =  validateSingleWord,            -- Currently active tab, handled by javascript
 
+-- TRAFFIC DUMP
+   ["dump_flow_to_disk"]       =  validateBool,                  -- true if target flow should be dumped to disk
+   ["dump_traffic"]            =  validateBool,                  -- true if target host traffic should be dumped to disk
+   ["dump_all_traffic"]        =  validateBool,                  -- true if interface traffic should be dumped to disk
+   ["dump_traffic_to_tap"]     =  validateBool,                  --
+   ["dump_traffic_to_disk"]    =  validateBool,                  --
+   ["dump_unknown_to_disk"]    =  validateBool,                  --
+   ["dump_security_to_disk"]   =  validateBool,                  --
+   ["max_pkts_file"]           =  validateNumber,                --
+   ["max_sec_file"]            =  validateNumber,                --
+   ["max_files"]               =  validateNumber,                --
+
 -- OTHER
    ["_"]                       =  validateNumber,                -- jQuery nonce in ajax requests used to prevent browser caching
    ["ifid"]                    =  validateInterface,             -- An ntopng interface ID
    ["iffilter"]                =  validateIfFilter,              -- An interface ID or 'all'
-   ["username"]                =  validateSingleWord,            -- A ntopng user name, new or existing
    ["mode"]                    =  validateMode,                  -- Remote or Local users
    ["country"]                 =  validateCountry,               -- Country code
    ["flow_key"]                =  validateNumber,                -- The ID of a flow hash
@@ -490,6 +574,7 @@ local known_parameters = {
    ["flowhosts_type"]          =  validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
    ["status"]                  =  validateAlertStatus,           -- An alert type to filter
    ["profile"]                 =  validateTrafficProfile,        -- Traffic Profile name
+   ["delete_profile"]          =  validateTrafficProfile,        -- A Traffic Profile to delete
    ["activity"]                =  validateActivityName,          -- User Activity name
    ["alert_type"]              =  validateNumber,                -- An alert type enum
    ["alert_severity"]          =  validateNumber,                -- An alert severity enum
@@ -508,6 +593,13 @@ local known_parameters = {
    ["row_id"]                  =  validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                =  validateSingleWord,            -- A path or special identifier to read an RRD file
    ["port"]                    =  validatePort,                  -- An application port
+   ["ntopng_license"]          =  validateSingleWord,            -- ntopng licence string
+   ["syn_alert_threshold"]     =  validateNumber,                -- Threashold to trigger a syn alert
+   ["flows_alert_threshold"]   =  validateNumber,                --
+   ["flow_rate_alert_threshold"] =  validateNumber,              --
+   ["re_arm_minutes"]          =  validateNumber,                -- Number of minute before alert re-arm check
+   ["custom_icon"]             =  validateSingleWord,            -- A custom icon for the host
+   ["bpf_filter"]              =  validateBpfFilter,             -- A valid BPF filter
 
 -- PAGE SPECIFIC
    ["iflocalstat_mode"]        =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
@@ -538,6 +630,39 @@ local known_parameters = {
    ["host_stats"]              =  validateBool,                  -- host_get_json
    ["captive_portal_users"]    =  validateBool,                  -- to show or hide captive portal users
    ["long_names"]              =  validateBool,                  -- get_hosts_data
+   ["id_to_delete"]            =  validateIdToDelete,            -- alert_utils.lua, alert ID to delete
+   ["to_delete"]               =  validateBool,                  -- alert_utils.lua, set if alert configuration should be dropped
+   ["SaveAlerts"]              =  validateBool,                  -- alert_utils.lua, set if alert configuration should change
+   ["host_pool_id"]            =  validateNumber,                -- change_user_prefs, new pool id for host
+   ["old_host_pool_id"]        =  validateNumber,                -- change_user_prefs, old pool id for host
+   ["del_l7_proto"]            =  validateProtocolId,            -- if_stats.lua, ID of the protocol to delete from rule
+   ["target_pool"]             =  validateNumber,                -- if_stats.lua, ID of the pool to perform the action on
+   ["add_shapers"]             =  validateEmpty,                 -- if_stats.lua, set when adding shapers
+   ["delete_shaper"]           =  validateNumber,                -- shaper ID to delete
+   ["empty_pool"]              =  validateNumber,                -- host_pools.lua, action to empty a pool by ID
+   ["pool_to_delete"]          =  validateNumber,                -- host_pools.lua, pool ID to delete
+   ["edit_pools"]              =  validateEmpty,                 -- host_pools.lua, set if pools are being edited
+   ["member_to_delete"]        =  validateMember,                -- host_pools.lua, member to delete from pool
+   ["sampling_rate"]           =  validateNumber,                -- if_stats.lua
+   ["resetstats_mode"]         =  validateResetStatsMode,        -- reset_stats.lua
+   ["snmp_action"]             =  validateSnmpAction,            -- snmp specific
+   ["host_quota"]              =  validateEmptyOr(validateNumber),         -- max traffi quota for host
+   ["allowed_interface"]       =  validateEmptyOr(validateInterface),      -- the interface an user is allowed to configure
+   ["allowed_networks"]        =  validateNetworksList,          -- a list of networks the user is allowed to monitor
+   ["switch_interface"]        =  validateInterface,             -- a new active ntopng interface
+   ["edit_members"]            =  validateEmpty,                 -- set if we are editing pool members
+   ["trigger_alerts"]          =  validateBool,                  -- true if alerts should be active for this entity
+   ["show_advanced_prefs"]     =  validateBool,                  -- true if advanced preferences should be shown
+   ["ifSpeed"]                 =  validateNumber,                -- interface speed
+   ["scaling_factor"]          =  validateNumber,                -- interface scaling factor
+   ["drop_host_traffic"]       =  validateBool,                  -- to drop an host traffic
+   ["lifetime_limited"]        =  validateEmpty,                 -- set if user should have a limited lifetime
+   ["lifetime_unlimited"]      =  validateEmpty,                 -- set if user should have an unlimited lifetime
+   ["lifetime_secs"]           =  validateNumber,                -- user lifetime in seconds
+   ["edit_profiles"]           =  validateEmpty,                 -- set when editing traffic profiles
+   ["drop_flow_policy"]        =  validateBool,                  -- true if target flow should be dropped
+   ["export"]                  =  validateEmpty,                 -- set if data has to be exported
+   ["blocked_categories"]      =  validateCategoriesList,        -- if_stats.lua
 }
 
 -- #################################################################
@@ -555,23 +680,28 @@ end
 
 function lintParams()
    local params_to_validate = { _GET, _POST }
-   local id, p, k, v
+   local id, _, k, v
 
    -- VALIDATION SETTINGS
    local enableValidation = true                   --[[ To enable validation ]]
+   local relaxGetValidation = true                 --[[ To consider empty fields as valid in _GET parameters ]]
+   local relaxPostValidation = false               --[[ To consider empty fields as valid in _POST parameters ]]
    local debug = false                             --[[ To enable validation debug messages ]]
-   local relaxValidation = true                    --[[ To consider empty fields as valid ]]
 
-   for id,p in pairs(params_to_validate) do
-      for k,v in pairs(p) do
+   for _,id in pairs(params_to_validate) do
+      for k,v in pairs(id) do
          if(debug) then io.write("[LINT] Validating ["..k.."]["..p[k].."]\n") end
 
          if enableValidation then
-            if ((v == "") and (relaxValidation)) then
+            if ((v == "") and
+                (((id == _GET) and relaxGetValidation) or
+                 ((id == _POST) and relaxPostValidation))) then
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
             elseif not validateParameter(k, v) then
                -- TODO gracefull error
-               error("BAD parameter " .. k .. " [" .. v .. "]")
+               local s_id
+               if id == _GET then s_id = "_GET" else s_id = "_POST" end
+               error("BAD " .. s_id .. " parameter " .. k .. " [" .. v .. "]")
             end
          end
       end

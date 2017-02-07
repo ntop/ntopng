@@ -10,7 +10,7 @@ local json = require("dkjson")
 
 sendHTTPHeader('application/json; charset=iso-8859-1')
 
-local action = _POST["action"]
+local action = _POST["resetstats_mode"]
 
 interface.select(ifname)
 

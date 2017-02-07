@@ -1691,7 +1691,7 @@ var resetInterfaceCounters = function(drops_only) {
     url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/reset_stats.lua',
-    data: 'action=' + action + "&csrf=]] print(ntop.getRandomCSRFValue()) print[[",
+    data: 'resetstats_mode=' + action + "&csrf=]] print(ntop.getRandomCSRFValue()) print[[",
     success: function(rsp) {},
     complete: function() {
       /* reload the page to generate a new CSRF */

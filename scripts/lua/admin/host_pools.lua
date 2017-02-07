@@ -47,7 +47,7 @@ elseif _POST["pool_to_delete"] ~= nil then
   -- Note: this will also realod the shaping rules
   interface.reloadHostPools()
 elseif (_POST["edit_members"] ~= nil) then
-  local pool_to_edit = _POST["pool_id"]
+  local pool_to_edit = _POST["pool"]
   local config = paramsPairsDecode(_POST, true)
 
   -- This code handles member address changes
@@ -88,7 +88,7 @@ elseif (_POST["edit_members"] ~= nil) then
 
   interface.reloadHostPools()
 elseif _POST["member_to_delete"] ~= nil then
-  local pool_to_edit = _POST["pool_id"]
+  local pool_to_edit = _POST["pool"]
 
   host_pools_utils.deletePoolMember(ifId, pool_to_edit, _POST["member_to_delete"])
   interface.reloadHostPools()
@@ -456,7 +456,7 @@ print [[
 
       if (field.attr("data-origin-value")) {
         var params = {};
-        params.pool_id = ]] print(selected_pool.id) print[[;
+        params.pool = ]] print(selected_pool.id) print[[;
         params.member_to_delete = field.attr("data-origin-value");
         params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
         paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
@@ -660,7 +660,7 @@ print[[            css : {
       // create a form with key-values encoded
       var params = paramsPairsEncode(settings);
       params.edit_members = "";
-      params.pool_id = ]] print(selected_pool.id) print[[;
+      params.pool = ]] print(selected_pool.id) print[[;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
       paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       return false;

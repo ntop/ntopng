@@ -1049,7 +1049,7 @@ function update_ndpi_table() {
 print (ntop.getHttpPrefix())
 print [[/lua/host_details_ndpi.lua',
     data: { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
-    if direction ~= nil then print(", filter:\"") print(direction..'"') end
+    if direction ~= nil then print(", sflow_filter:\"") print(direction..'"') end
     print [[ },
     //data: { ifid: ]] print('"') print(tostring(ifId)) print('"') print(", hostip: ") print('"'..host["ip"]..'"') print [[ },
     success: function(content) {
@@ -2305,7 +2305,7 @@ print [[
 print [[
       users = do_pie("#topUsers", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua', { distr: users_type, sflowdistro_mode: "user", filter: users_filter , ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
+print [[/lua/host_sflow_distro.lua', { distr: users_type, sflowdistro_mode: "user", sflow_filter: users_filter , ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
 
 print [[
 
@@ -2321,8 +2321,8 @@ print [[
     }
     if(sprobe_debug) { alert("]]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&filter="+users_filter); }
-    users.setUrlParams({ type: users_type, mode: "user", filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&sflow_filter="+users_filter); }
+    users.setUrlParams({ type: users_type, mode: "user", sflow_filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
     }); ]]
 
 print [[
@@ -2331,8 +2331,8 @@ $("#show_users input:radio").change(function() {
     if(sprobe_debug) { alert("users_type: "+users_type+"\n users_filter: "+users_filter); }
     if(sprobe_debug) { alert("url: ]]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&filter="+users_filter); }
-    users.setUrlParams({ type: users_type, mode: "user", filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode=user&sflow_filter="+users_filter); }
+    users.setUrlParams({ type: users_type, mode: "user", sflow_filter: users_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
 });]]
 
 
@@ -2341,7 +2341,7 @@ print [[/lua/host_sflow_distro.lua?host=..&distr="+users_type+"&sflowdistro_mode
 print [[
 processes = do_pie("#topProcess", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/host_sflow_distro.lua', { distr: processes_type, sflowdistro_mode: "process", filter: processes_filter , ifid: "]] print(ifId.."")print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
+print [[/lua/host_sflow_distro.lua', { distr: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter , ifid: "]] print(ifId.."")print ('", '..hostinfo2json(host_info).." }, \"\", refresh); \n")
 
 print [[
 
@@ -2356,14 +2356,14 @@ print [[
       processes_type = "bytes";
     }
     if(sprobe_debug) { alert(this.innerHTML+"-"+processes_type); }
-    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", filter: processes_filter , ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter , ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
     }); ]]
 
 print [[
 $("#show_processes input:radio").change(function() {
     processes_filter = this.value
     if(sprobe_debug) { alert("processes_type: "+processes_type+"\n processes_filter: "+processes_filter); }
-    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", filter: processes_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
+    processes.setUrlParams({ type: processes_type, sflowdistro_mode: "process", sflow_filter: processes_filter, ifid: "]] print(ifId.."") print ('",'.. hostinfo2json(host_info) .. "}") print [[ );
 });]]
 
 
@@ -2371,7 +2371,7 @@ $("#show_processes input:radio").change(function() {
 print [[
   tree = do_sequence_sunburst("chart_processTree","sequence_processTree",refresh,']]
 print (ntop.getHttpPrefix())
-print [[/lua/sflow_tree.lua',{distr: "bytes" , filter: tree_filter ]] print (','.. hostinfo2json(host_info)) print [[ },"","Bytes"); ]]
+print [[/lua/sflow_tree.lua',{distr: "bytes" , sflow_filter: tree_filter ]] print (','.. hostinfo2json(host_info)) print [[ },"","Bytes"); ]]
 
 print [[
 
@@ -2386,7 +2386,7 @@ print [[
       tree_type = "bytes";
     }
     if(sprobe_debug) { alert(this.innerHTML+"-"+tree_type); }
-    tree[0].setUrlParams({type: tree_type , filter: tree_filter ]] print (','.. hostinfo2json(host_info).." }") print [[ );
+    tree[0].setUrlParams({type: tree_type , sflow_filter: tree_filter ]] print (','.. hostinfo2json(host_info).." }") print [[ );
     }); ]]
 
 print [[
@@ -2394,7 +2394,7 @@ print [[
   $("#show_tree input:radio").change(function() {
     tree_filter = this.value
     if(sprobe_debug) { alert("tree_type: "+tree_type+"\ntree_filter: "+tree_filter); }
-    tree[0].setUrlParams({type: tree_type , filter: tree_filter]] print (','.. hostinfo2json(host_info).." }") print [[ );
+    tree[0].setUrlParams({type: tree_type , sflow_filter: tree_filter]] print (','.. hostinfo2json(host_info).." }") print [[ );
 });]]
 
 print [[ </script>]]

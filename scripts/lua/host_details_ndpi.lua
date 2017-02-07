@@ -13,7 +13,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 
 ifid = _GET["ifid"]
-direction = _GET["filter"]
+direction = _GET["sflow_filter"]
 
 interface.select(ifid)
 host_info = url2hostinfo(_GET)

@@ -113,7 +113,7 @@ end
 mode = _GET["sflowdistro_mode"] -- memory(actual-memory),bytes,latency
 type = _GET["distr"] -- user,process(proc_name)
 host = _GET["host"]
-filter = _GET["filter"] -- all,client,server
+filter = _GET["sflow_filter"] -- all,client,server
 
 interface.select(ifname)
 
