@@ -10,7 +10,7 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-interface.select(_GET["id"])
+interface.select(_GET["ifid"])
 ifstats = interface.getFlowsStatus()
 --tprint(ifstats)
 

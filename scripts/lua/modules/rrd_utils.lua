@@ -135,7 +135,7 @@ function rrd_interval_integrate(epoch_start, epoch_end, resolution, start, rawda
   -- check resolution consinstency
   if rawstep > resolution then
     -- TODO i18n should be available
-    --~ return {error=i18n('error_rrd_low_resolution', {prefs=ntop.getHttpPrefix().."/lua/admin/prefs.lua?subpage_active=on_disk_rrds"})}
+    --~ return {error=i18n('error_rrd_low_resolution', {prefs=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_rrds"})}
     return {error='error_rrd_low_resolution'}
   end
 

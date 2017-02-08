@@ -17,7 +17,7 @@ sortColumn  = _GET["sortColumn"]
 sortOrder   = _GET["sortOrder"]
 
 group_col   = _GET["grouped_by"]
-as_n        = _GET["as"]
+as_n        = _GET["asn"]
 vlan_n      = _GET["vlan"]
 network_n   = _GET["network"]
 country_n   = _GET["country"]
@@ -128,7 +128,7 @@ function print_single_group(value)
       print(value["id"]..'</A> ')
       print('", "column_chart": "')
       if value["id"] ~= "0" then
-	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan_id='..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
+	 print('<A HREF=\''..ntop.getHttpPrefix()..'/lua/vlan_details.lua?vlan'..value["id"]..'&page=historical\'><i class=\'fa fa-area-chart fa-lg\'></i></A>')
       end
       print('", ')
 

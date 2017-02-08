@@ -9,8 +9,8 @@ require "lua_utils"
 sendHTTPHeader('application/json')
 
 local username = _POST["username"]
-local host_role = _POST["host_role"]
-local networks = _POST["networks"]
+local host_role = _POST["user_role"]
+local networks = _POST["allowed_networks"]
 local allowed_interface = _POST["allowed_interface"]
 
 -- for captive portal users

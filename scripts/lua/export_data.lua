@@ -37,7 +37,7 @@ print [[
   <div class="control-group">
     <label class="control-label">Host</label>
     <div class="controls">
-      <input type="hidden" id="hostIP" name="hostIP">
+      <input type="hidden" id="hostIP" name="ip">
       <input type="text" id="hostIPSearch" placeholder="IP or MAC Address" class="form-control">
     </div>
 <label><small>NOTE: If the field is empty all hosts will be exported</small></label>
@@ -47,7 +47,7 @@ print [[
 <div class="control-group">
     <label class="control-label" for="hostVlan">Vlan:</label>
     <div class="controls">
-      <input type="text" id="hostVlan" name="hostVlan" placeholder="Vlan" class="form-control">
+      <input type="text" id="hostVlan" name="vlan" placeholder="Vlan" class="form-control">
     </div>
      <label><small>NOTE: If the field is empty vlan is set to 0.</small></label>
   </div>

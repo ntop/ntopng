@@ -13,7 +13,7 @@ local host_stats           = _GET["host_stats"]
 
 -- whether to return statistics regarding host flows: off by default
 local host_stats_flows     = _GET["host_stats_flows"]
-local host_stats_flows_num = _GET["host_stats_flows_num"]
+local host_stats_flows_num = _GET["limit"]
 
 host_info = url2hostinfo(_GET)
 host = _GET["host"]
@@ -53,17 +53,11 @@ function flows2protocolthpt(flows)
    return protocol_thpt
 end
 
-if_name = (_GET["if_name"] or _GET["ifname"])
-ifid = (_GET["id"] or _GET["ifId"])
+ifid = _GET["ifid"]
 -- parse interface names and possibly fall back to the selected interface:
 -- priority goes to the interface id
 if ifid ~= nil and ifid ~= "" then
    if_name = getInterfaceName(ifid)
-
--- if not interface id is specified we look for the interface name
-elseif if_name ~= nil and if_name ~= "" then
-   ifid = tostring(interface.name2id(if_name))
-
 -- finally, we fall back to the default selected interface name
 else
    -- fall-back to the default interface

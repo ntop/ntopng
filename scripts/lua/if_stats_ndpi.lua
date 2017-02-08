@@ -8,13 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
-if_name = _GET["if_name"]
-ifid = _GET["id"]
+ifid = _GET["ifid"]
 
 if ifid ~= nil and ifid ~= "" then
    if_name = getInterfaceName(ifid)
-elseif if_name ~= nil and if_name ~= "" then
-   ifid = tostring(interface.name2id(if_name))
 else
    if_name = ifname
    ifid = interface.name2id(ifname)
@@ -82,7 +79,7 @@ for _k in pairsByKeys(vals, rev) do
   fname = getRRDName(ifstats.id, nil, k..".rrd")
   if(ntop.exists(fname)) then
      if(not(json_format)) then
-	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?id=" .. ifid .. "&page=historical&rrd_file=".. k ..".rrd\">".. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
+	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&rrd_file=".. k ..".rrd\">".. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
      else
 	print('{ "proto": "'..k..'", "breed": "'..ifstats["ndpi"][k]["breed"]..'", ')
      end

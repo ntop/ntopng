@@ -15,7 +15,6 @@ perPage     = _GET["perPage"]
 sortColumn  = _GET["sortColumn"]
 sortOrder   = _GET["sortOrder"]
 protocol    = _GET["protocol"]
-net         = _GET["net"]
 long_names  = _GET["long_names"]
 criteria    = _GET["criteria"]
 
@@ -31,8 +30,6 @@ pool         = _GET["pool"]
 country      = _GET["country"]
 os_    	     = _GET["os"]
 mac          = _GET["mac"]
-
--- table_id = _GET["table"]
 
 function update_host_name(h)
    if(h["name"] == nil) then

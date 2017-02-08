@@ -22,6 +22,10 @@ if _POST["edit_pools"] ~= nil then
   local config = paramsPairsDecode(_POST, true)
 
   for pool_id, pool_name in pairs(config) do
+    if tonumber(pool_id) == nil then
+      http_lint.validationError(_POST, "pool_id", pool_id, "Invalid pool id")
+    end
+
     -- create or rename
     host_pools_utils.createPool(ifId, pool_id, pool_name)
 
@@ -47,16 +51,20 @@ elseif _POST["pool_to_delete"] ~= nil then
   -- Note: this will also realod the shaping rules
   interface.reloadHostPools()
 elseif (_POST["edit_members"] ~= nil) then
-  local pool_to_edit = _POST["pool_id"]
+  local pool_to_edit = _POST["pool"]
   local config = paramsPairsDecode(_POST, true)
 
-  -- This code handles member address changes
+  -- This code handles member address changes. The starting '_' is used for icons and alias
 
   -- delete old addresses
   for k,old_member in pairs(config) do
     if not starts(k, "_") then
       if((not isEmptyString(old_member)) and (k ~= old_member)) then
-        host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
+        if not isValidPoolMember(old_member) then
+          http_lint.validationError(_POST, "old_member", old_member, "Invalid pool member")
+        else
+          host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
+        end
       end
     end
   end
@@ -64,6 +72,9 @@ elseif (_POST["edit_members"] ~= nil) then
   -- add new addresses
   for new_member,k in pairs(config) do
     if not starts(new_member, "_") then
+      if not isValidPoolMember(new_member) then
+        http_lint.validationError(_POST, "new_member", new_member, "Invalid pool member")
+      end
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
@@ -88,7 +99,7 @@ elseif (_POST["edit_members"] ~= nil) then
 
   interface.reloadHostPools()
 elseif _POST["member_to_delete"] ~= nil then
-  local pool_to_edit = _POST["pool_id"]
+  local pool_to_edit = _POST["pool"]
 
   host_pools_utils.deletePoolMember(ifId, pool_to_edit, _POST["member_to_delete"])
   interface.reloadHostPools()
@@ -166,7 +177,7 @@ else
 end
 
 local member_filtering = _GET["member"]
-local manage_url = "?id="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
+local manage_url = "?ifid="..ifId.."&page=pools&pool="..selected_pool.id.."#manage"
 
 --------------------------------------------------------------------------------
 
@@ -182,7 +193,7 @@ print [[
 <br/><table><tbody><tr>
 ]]
 
-print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?id=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
+print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
 local no_pools = true
 for _,pool in ipairs(available_pools) do
   if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
@@ -199,7 +210,7 @@ print('</select>')
 local ifstats = interface.getStats()
 local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 if is_bridge_iface then
-  print("<a href='/lua/if_stats.lua?id=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
+  print("<a href='/lua/if_stats.lua?ifid=") print(ifId.."") print("&page=filtering&pool="..(selected_pool.id).."#protocols' title='Manage Traffic Policies'><i class='fa fa-toggle-on' aria-hidden='true'></i></a>")
 end
 
 print('</td>\n')
@@ -226,7 +237,7 @@ print(
       action      = ntop.getHttpPrefix() .. "/lua/if_stats.lua#manage",
       parameters  = {
                       pool=selected_pool.id,
-                      id=tostring(ifId),
+                      ifid=tostring(ifId),
                       page="pools",
                     },
       json_key    = "key",
@@ -456,7 +467,7 @@ print [[
 
       if (field.attr("data-origin-value")) {
         var params = {};
-        params.pool_id = ]] print(selected_pool.id) print[[;
+        params.pool = ]] print(selected_pool.id) print[[;
         params.member_to_delete = field.attr("data-origin-value");
         params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
         paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
@@ -660,7 +671,7 @@ print[[            css : {
       // create a form with key-values encoded
       var params = paramsPairsEncode(settings);
       params.edit_members = "";
-      params.pool_id = ]] print(selected_pool.id) print[[;
+      params.pool = ]] print(selected_pool.id) print[[;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
       paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       return false;
@@ -682,7 +693,7 @@ print [[
 
       var form = paramsToForm('<form method="post"></form>', params);
       if (pool_id == ]] print(selected_pool.id) print[[)
-        form.attr("action", "?id=]] print(tostring(ifId)) print[[&page=pools#create");
+        form.attr("action", "?ifid=]] print(tostring(ifId)) print[[&page=pools#create");
 
       form.appendTo('body').submit();
     }

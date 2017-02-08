@@ -12,13 +12,13 @@ sendHTTPHeader('application/json')
 if(_POST["export"] ~= nil) then
 
 interface.select(ifname)
-if((_POST["hostIP"] ~= nil) and (_POST["hostIP"] ~= "")) then
+if((_POST["ip"] ~= nil) and (_POST["ip"] ~= "")) then
    vlan = 0
-   if ((_POST["hostVlan"] ~= nil) and (_POST["hostIP"] ~= "")) then
-      vlan = tonumber(_POST["hostVlan"])
+   if ((_POST["vlan"] ~= nil) and (_POST["vlan"] ~= "")) then
+      vlan = tonumber(_POST["vlan"])
    end
   
-   host = interface.getHostInfo(_POST["hostIP"], vlan)
+   host = interface.getHostInfo(_POST["ip"], vlan)
 
    if(host == nil) then 
       print("{ }\n")

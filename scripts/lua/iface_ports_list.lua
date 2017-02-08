@@ -38,7 +38,7 @@ flows_stats = flows_stats["flows"]
 client_ports = fill_ports_array("cli", flows_stats, host)
 server_ports = fill_ports_array("srv", flows_stats, host)
 
-if(_GET["mode"] == "server") then
+if(_GET["clisrv"] == "server") then
   ports = server_ports
 else
   ports = client_ports

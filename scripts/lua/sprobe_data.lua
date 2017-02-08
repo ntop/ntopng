@@ -112,7 +112,7 @@ for key, value in pairs(hosts) do
        m = m + 1
        v = _v[1]
        -- Process
-       link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..v["pid"].."&name="..k.."&host=".. key .."&page=Flows"
+       link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..v["pid"].."&pid_name="..k.."&host=".. key .."&page=Flows"
        print('\n\t\t{ "name": "'..k..' (pid '.. v["pid"]..')", "link": "'.. link ..'", "type": "proc", "children": [ ')
        o = 0
        for peer,_ in pairs(_v[2]) do
@@ -129,7 +129,7 @@ for key, value in pairs(hosts) do
 	     if(o > 0) then print(",") end
 	     o = o + 1
 	     link = ntop.getHttpPrefix().."/lua/host_details.lua?host="..pid .."&page=flows"
-	     link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..pid.."&name="..k.."&host=".. key .."&page=Flows"
+	     link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..pid.."&pid_name="..k.."&host=".. key .."&page=Flows"
 	     print('\n\t\t\t{ "name": "'..p_val["name"]..' (pid '.. pid..')", "link": "'.. link ..'", "type": "proc", "children": [ ] } ')
 	  end
        end

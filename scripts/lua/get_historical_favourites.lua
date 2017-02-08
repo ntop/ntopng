@@ -11,15 +11,15 @@ local json = require ("dkjson")
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-local ifid = _GET["ifId"]
+local ifid = _GET["ifid"]
 if ifid == nil or ifid == "" then
    ifid = getInterfaceId(ifname)
 end
 
 -- use this two params to see statistics of a single host
 -- or for a pair of them
-local host = _GET["host"]
-local peer = _GET["peer"]
+local host = _GET["peer1"]
+local peer = _GET["peer2"]
 if peer and not host then
    host = peer
    peer = nil
@@ -29,7 +29,7 @@ end
 local l7_proto_id = _GET["l7_proto_id"]
 
 -- specify the type of stats
-local action = _GET["action"]
+local action = _GET["fav_action"]
 if action == nil or (action ~= "set" and action ~= "get" and action ~= "del" and action ~= "del_all") then
    -- default to get
    stats_type = "get"

@@ -45,7 +45,7 @@ end
 begin = os.clock()
 t = os.time()-86400
 
-if((_GET ~= nil) and (_GET["debug"] ~= nil)) then
+if((_GET ~= nil) and (_GET["verbose"] ~= nil)) then
    debug = true
    t = t + 86400
 end

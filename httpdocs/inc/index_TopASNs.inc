@@ -6,7 +6,7 @@
 window.onload=function() {
    var refresh = 3000 /* ms */;
 
-   do_pie("#topASN", '@HTTP_PREFIX@/lua/top_generic.lua?m=top_asn&param=senders', { mode : "senders" }, "", refresh);
+   do_pie("#topASN", '@HTTP_PREFIX@/lua/top_generic.lua?module=top_asn', { mode : "senders" }, "", refresh);
 }
 
 </script>

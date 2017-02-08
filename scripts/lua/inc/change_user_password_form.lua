@@ -45,7 +45,7 @@ print [[
 <div class="input-group">
   <label for="" class="control-label">Confirm New Password</label>
 <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>  
-  <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+  <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control"  pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
 </div>
 </div>
 

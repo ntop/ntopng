@@ -10,13 +10,13 @@ require "lua_utils"
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
-ifid = _GET["id"]
+ifid = _GET["ifid"]
 interface.select(ifid)
 ifstats = interface.getStats()
 
 print('[')
 
-if(_GET["mode"] == "distribution") then
+if(_GET["iflocalstat_mode"] == "distribution") then
    if(ifstats["localstats"]["bytes"] == 0) then 
       print('{ "label": "No traffic yet", "value": 0 }\n') 
    else

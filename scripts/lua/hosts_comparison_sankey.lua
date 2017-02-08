@@ -22,7 +22,7 @@ compared_hosts_size = 0;
 if(debug) then io.write("==== hosts_compared_sankey ====\n") end
 hosts = _GET["hosts"]
 if(debug) then io.write("Host:"..hosts.."\n") end
-
+tprint(_GET)
 if (_GET["hosts"] ~= nil) then
 
   compared_hosts, compared_hosts_size = getHostCommaSeparatedList(_GET["hosts"])

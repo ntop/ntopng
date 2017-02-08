@@ -14,9 +14,9 @@ require "template"
 interface.select(ifname)
 ifstats = interface.getStats()
 
-ifId = _GET["ifId"]
-host = _GET["host"]
-peer = _GET["peer"]
+ifId = _GET["ifid"]
+host = _GET["peer1"]
+peer = _GET["peer2"]
 epoch = _GET["epoch"]
 l7proto = _GET["l7proto"]
 if l7proto == nil or l7proto == "" then
@@ -29,9 +29,6 @@ sortColumn = _GET["sortColumn"]
 sortOrder = _GET["sortOrder"]
 
 epoch_begin = _GET["epoch_begin"]
-if epoch_begin == nil or epoch_begin == "" then
-   epoch_begin = _GET["epoch_start"]
-end
 epoch_end = _GET["epoch_end"]
 
 l4proto = _GET["l4proto"]
@@ -40,7 +37,6 @@ if l4proto == nil or l4proto == "" then
 end
 port = _GET["port"]
 info = _GET["info"]
-profile = _GET["profile"]
 limit = _GET["limit"]
 
 format = _GET["format"]
@@ -131,7 +127,7 @@ else
 
       for _,flow in pairs(res) do
 	 local num = 0
-	 local base = "<A HREF='"..ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId.."&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
+	 local base = "<A HREF='"..ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifid="..ifId.."&epoch_begin="..epoch_begin.."&epoch_end="..epoch_end
 
 	 if(flow["L4_SRC_PORT"] ~= nil) then
 	    local base_host_url = base.."&host="
@@ -157,7 +153,7 @@ else
 
 	       flow["PROTOCOL"] = base.."&l4proto="..flow["PROTOCOL"].."'>"..pname.."</A>"
 	       flow["L7_PROTO"] = base.."&protocol="..flow["L7_PROTO"].."'>"..getApplicationLabel(interface.getnDPIProtoName(tonumber(flow["L7_PROTO"]))).."</A>"
-	       flow["FLOW_URL"] = base.."&flow_idx="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
+	       flow["FLOW_URL"] = base.."&row_id="..flow["idx"].."&version="..ip_version.."'><span class='label label-info'>Info</span></A>"
 	       flow["INFO"] = base.."&info="..flow["INFO"].."'>"..flow["INFO"].."</A>"
                if flow["PROFILE"] ~= nil and flow["PROFILE"] ~="" then
                    flow["INFO"] = "<span class='label label-primary'>"..flow["PROFILE"].."</span>&nbsp;"..flow["INFO"]

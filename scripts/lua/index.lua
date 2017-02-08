@@ -16,7 +16,7 @@ if(ntop.isPro()) then
       return
    else
       -- it doesn't make sense to show the dashboard for pcap files...
-      print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/if_stats.lua?id="..getInterfaceId(ifname)))
+      print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..getInterfaceId(ifname)))
       return
    end
 end

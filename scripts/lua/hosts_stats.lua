@@ -13,7 +13,6 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
 protocol     = _GET["protocol"]
-net          = _GET["net"]
 asn          = _GET["asn"]
 vlan         = _GET["vlan"]
 network      = _GET["network"]
@@ -70,7 +69,6 @@ local filter_url_params = {}
 
 filter_url_params["mode"] = mode
 filter_url_params["os"] = os_
-filter_url_params["net"] = net
 filter_url_params["asn"] = asn
 filter_url_params["community"] = community
 filter_url_params["vlan"] = vlan

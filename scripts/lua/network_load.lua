@@ -109,7 +109,7 @@ end
 -- ###############################
 
 local res = {}
-if(_GET["ifname"] == "all") then
+if(_GET["iffilter"] == "all") then
    local names = interface.getIfNames()
    local n = 1
    local sortedKeys = getKeysSortedByValue(names, function(a, b) return a < b end)

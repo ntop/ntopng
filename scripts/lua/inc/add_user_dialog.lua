@@ -85,7 +85,7 @@ if captive_portal_user == false then
     <div class="form-group col-md-6 has-feedback">
       <label class="form-label">User Role</label>
       <div class="input-group" style="width:100%;">
-        <select id="host_role_select" name="host_role" class="form-control" style="width:100%;">
+        <select id="host_role_select" name="user_role" class="form-control" style="width:100%;">
           <option value="unprivileged">Non Privileged User</option>
           <option value="administrator">Administrator</option>
         </select>
@@ -144,7 +144,7 @@ else -- a captive portal user is being added
    print[[
         </select>
       </div>
-      <input id="host_role" name="host_role" type="hidden" value="captive_portal" />
+      <input id="host_role" name="user_role" type="hidden" value="captive_portal" />
       <input id="allowed_networks" name="allowed_networks" type="hidden" value="0.0.0.0/0,::/0" />
       <input id="allowed_interface" name="allowed_interface" type="hidden" value="]] print(tostring(getInterfaceId(ifname))) print[[" />
     </div>
@@ -295,7 +295,7 @@ if captive_portal_user then
 end
 
 print[[
-    $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?user='+$("#username_input").val()+"&networks="+$("#allowed_networks_input").val(), function(data){
+    $.getJSON(']]  print(ntop.getHttpPrefix())  print[[/lua/admin/validate_new_user.lua?username='+$("#username_input").val()+"&allowed_networks="+$("#allowed_networks_input").val(), function(data){
       if (!data.valid) {
         add_user_alert.error(data.msg);
       } else {

@@ -85,7 +85,7 @@ for cat_name, cat_contents in pairs(categories) do
    local label = getCategoryLabel(cat_name)
    local fname = getRRDName(ifid, hostinfo2hostkey(host_info), "categories/"..label..".rrd")
    if ntop.exists(fname) then
-      cat_contents["column_label"] = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=categories/".. label ..".rrd\"><b>"..cat_contents["column_label"].."</b></A>"
+      cat_contents["column_label"] = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=categories/".. label ..".rrd\"><b>"..cat_contents["column_label"].."</b></A>"
    end
 end
 

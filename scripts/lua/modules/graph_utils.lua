@@ -744,7 +744,7 @@ infoHTML += "<ul>";
 $.ajax({
 	  type: 'GET',
 	  url: ']]
-	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?m=top_talkers&epoch='+point.value.x+'&addvlan=true&id="..tostring(ifid))
+	  print(ntop.getHttpPrefix().."/lua/top_generic.lua?module=top_talkers&epoch='+point.value.x+'&addvlan=true")
 	    print [[',
 		  data: { epoch: point.value.x },
 		  async: false,

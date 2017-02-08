@@ -2,8 +2,8 @@ require "lua_utils"
 
 local json = require ("dkjson")
 		      
-local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=status"
-local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?action=schedule"
+local pcap_status_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=status"
+local pcap_request_url = ntop.getHttpPrefix().."/lua/get_nbox_data.lua?nbox_action=schedule"
 local favourites_url = ntop.getHttpPrefix().."/lua/get_historical_favourites.lua"
 local flows_download_url = ntop.getHttpPrefix().."/lua/get_db_flows.lua"
 
@@ -60,7 +60,7 @@ var style = $('<style>#search-criteria:before {content:"Observation period:";}</
 $('html > head').append(style);
 function addObservationPeriodToBreadCrumb(params_url, breadcrumb_id){
   var params = getParams(params_url);
-  var begin = params["epoch_start"]
+  var begin = params["epoch_begin"]
   if (typeof begin === 'undefined') {
     if (typeof params["epoch_begin"] !== 'undefined')
       begin = params["epoch_begin"]
@@ -84,7 +84,6 @@ function addObservationPeriodToBreadCrumb(params_url, breadcrumb_id){
 function buildRequestData(source_div_id){
   var epoch_begin = $('#' + source_div_id).attr("epoch_begin");
   var epoch_end = $('#' + source_div_id).attr("epoch_end");
-  var ifname = $('#' + source_div_id).attr("ifname");
   var ifId = "]] print(tostring(ifId)) print [[";
   var host = $('#' + source_div_id).attr("host");
   var peer = $('#' + source_div_id).attr("peer");
@@ -92,10 +91,9 @@ function buildRequestData(source_div_id){
   var l4_proto_id = $('#' + source_div_id).attr("l4_proto_id");
   var port = $('#' + source_div_id).attr("port");
   var res = {epoch_begin: epoch_begin, epoch_end: epoch_end};
-  if (typeof ifname != 'undefined') res.ifname = ifname;
-  if (typeof ifId != 'undefined') res.ifId = ifId;
-  if (typeof host != 'undefined') res.host = host;
-  if (typeof peer != 'undefined') res.peer = peer;
+  if (typeof ifId != 'undefined') res.ifid = ifId;
+  if (typeof host != 'undefined') res.peer1 = host;
+  if (typeof peer != 'undefined') res.peer2 = peer;
   if (typeof port != 'undefined') res.port = port;
   if (typeof l7_proto_id != 'undefined'){
     res.l7_proto_id = l7_proto_id;
@@ -109,7 +107,7 @@ function buildRequestData(source_div_id){
 }
 
 function addToFavourites(source_div_id, stats_type, favourite_type, select_id){
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=set&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=set&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
@@ -122,7 +120,7 @@ function addToFavourites(source_div_id, stats_type, favourite_type, select_id){
 }
 
 function removeFromFavourites(source_div_id, stats_type, favourite_type, select_id){
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=del&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=del&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
@@ -139,7 +137,7 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
   var multival_separator = " <---> ";
 
   $('#'+select_id).find('option').remove();
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=get&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=get&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     data:buildRequestData(source_div_id),
     success:function(data){
       data=jQuery.parseJSON(data);
@@ -213,7 +211,7 @@ function populateFavourites(source_div_id, stats_type, favourite_type, select_id
 
 
 function removeAllFavourites(stats_type, favourite_type, select_id){
-  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?action=del_all&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
+  $.ajax({type:'GET',url:"]]print(favourites_url)print[[?fav_action=del_all&stats_type=" + stats_type + "&favourite_type=" + favourite_type,
     success:function(data){
       // remove all the exising options...
       $('#'+select_id).find('option').remove();
@@ -377,7 +375,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
    local breadcrumb_root = "interface"
    local host_talkers_url_params = ""
    local interface_talkers_url_params = ""
-   interface_talkers_url_params = interface_talkers_url_params.."&epoch_start="..epoch_begin
+   interface_talkers_url_params = interface_talkers_url_params.."&epoch_begin="..epoch_begin
    interface_talkers_url_params = interface_talkers_url_params.."&epoch_end="..epoch_end
 
    if l7proto ~= "" and l7proto ~= nil and not string.starts(tostring(l7proto), 'all') then
@@ -422,7 +420,7 @@ function historicalTopTalkersTable(ifid, epoch_begin, epoch_end, host, l7proto, 
 
 
 <!-- attach some status information to the historical container -->
-<div id="historical-container" epoch_begin="" epoch_end="" ifname="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="">
+<div id="historical-container" epoch_begin="" epoch_end="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="">
 
 
   <div class="row">
@@ -743,7 +741,7 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..tostring(ifId)..interface_talkers_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
@@ -780,8 +778,6 @@ $('a[href="#historical-top-talkers"]').on('shown.bs.tab', function (e) {
   }
 
   var target = $(e.target).attr("href"); // activated tab
-
-  $('#historical-container').attr("ifname", "]] print(getInterfaceName(ifid)) print [[");
 
   // populate favourites dropdowns
   populateFavourites('historical-container', 'top_talkers', 'talker', 'top_talkers_talker');
@@ -823,7 +819,7 @@ end
 function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
    local breadcrumb_root = "interface"
    local top_apps_url_params=""
-   top_apps_url_params = top_apps_url_params.."&epoch_start="..epoch_begin
+   top_apps_url_params = top_apps_url_params.."&epoch_begin="..epoch_begin
    top_apps_url_params = top_apps_url_params.."&epoch_end="..epoch_end
    if host and host ~= "" then
       breadcrumb_root="host"
@@ -837,7 +833,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host)
 <ol class="breadcrumb" id="bc-apps" style="margin-bottom: 5px;"]] print('root="'..breadcrumb_root..'"') print [[>
 </ol>
 
-<div id="historical-apps-container" epoch_begin="" epoch_end="" ifname="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="">
+<div id="historical-apps-container" epoch_begin="" epoch_end="" host="" peer="" l7_proto_id="" l7_proto="" l4_proto_id="" l4_proto="">
 
 
   <div class="row">
@@ -1160,7 +1156,7 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
     $(div_id).attr("l7_proto_id", l7_proto_id);
     $(div_id).datatable({
 	title: "",]]
-	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..tostring(ifId)..top_apps_url_params.."&host=' + peer1 + '&peer=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
+	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id + '&limit=' + num_flows,")
   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
   -- Automatic default sorted. NB: the column must be exists.
 	print [[
@@ -1250,7 +1246,7 @@ This event is triggered every time the user focuses the "Protocols" tab.
 
 The Protocols tab can be focused from two different pages:
 - from the historical interface chart (e.g., http://localhost:3000/lua/if_stats.lua?if_name=en4&page=historical), and;
-- from the historical host chart (e.g., http://localhost:3000/lua/host_details.lua?ifname=0&host=192.168.2.130&page=historical)
+- from the historical host chart (e.g., http://localhost:3000/lua/host_details.lua?ifid=0&host=192.168.2.130&page=historical)
 
 Depending on the page that triggers the event, there is a slightly different behavior
 of the ajax navigation.
@@ -1298,7 +1294,6 @@ $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
   // set epoch_begin and epoch_end status information to the container div
   $('#historical-apps-container').attr("epoch_begin", "]] print(tostring(epoch_begin)) print[[");
   $('#historical-apps-container').attr("epoch_end", "]] print(tostring(epoch_end)) print[[");
-  $("#historical-apps-container").attr("ifname", "]] print(getInterfaceName(ifid)) print [[");
 
   // populate favourites dropdowns
   populateFavourites('historical-apps-container', 'top_applications', 'app', 'top_applications_app');
@@ -1348,7 +1343,7 @@ function download_pcap_from_nbox(task_id){
 var populatePcapsTable = function(){
   $("#table-pcaps").datatable({
     title: "Pcaps",
-    url: "]] print (ntop.getHttpPrefix()) print [[/lua/get_nbox_data.lua?action=status" ,
+    url: "]] print (ntop.getHttpPrefix()) print [[/lua/get_nbox_data.lua?nbox_action=status" ,
     title: "Pcap Requests and Statuses",
 ]]
 
@@ -1424,8 +1419,8 @@ function historicalFlowsTab(ifId, host, epoch_begin, epoch_end, l7proto, l4proto
    local div_data = ""
 
    if ifId ~= "" and ifId ~= nil then
-      _GET["ifId"] = ifId
-      div_data = div_data..' ifId="'..tostring(ifId)..'" '
+      _GET["ifid"] = ifId
+      div_data = div_data..' ifid="'..tostring(ifId)..'" '
    end
    if epoch_begin ~= "" and epoch_begin ~= nil then
       _GET["epoch_begin"] = epoch_begin
@@ -1539,7 +1534,7 @@ $('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
 
   xhr = $.ajax({
     type: 'GET',]]
-print("url: '"..ntop.getHttpPrefix().."/lua/get_db_data.lua?ifname="..tostring(_GET["ifId"]).."', ")
+print("url: '"..ntop.getHttpPrefix().."/lua/get_db_data.lua?ifid="..tostring(_GET["ifid"]).."', ")
 print("data: "..json.encode(_GET, nil)..",")
 print[[
     complete: function() {
@@ -1610,7 +1605,7 @@ end
 -- ##########################################
 
 function historicalFlowsTabTables(ifId, host, epoch_begin, epoch_end, l7proto, l4proto, port, info, limitv4, limitv6)
-   local url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifId="..ifId.. "&host="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
+   local url_update = ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..ifId.. "&peer1="..(host or '') .. "&epoch_begin="..(epoch_begin or '').."&epoch_end="..(epoch_end or '').."&l4proto="..(l4proto or '').."&port="..(port or '').."&info="..(info or '')
 
    if(l7proto ~= "") then
       if(not(isnumber(l7proto))) then
@@ -1936,7 +1931,7 @@ end
 
 function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
    if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
-      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId
+      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifid="..ifId
       local now    = os.time()
       local ago1h  = now - 3600
 

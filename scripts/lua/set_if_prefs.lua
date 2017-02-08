@@ -19,8 +19,8 @@ print('<hr><h2>'..ifstats.name..' Preferences</H2></br>\n')
 
 key = 'ntopng.prefs.'..ifname..'.name'
 
-if(_POST["ifName"] ~= nil) then
-   custom_name = tostring(_POST["ifName"])
+if(_POST["custom_name"] ~= nil) then
+   custom_name = tostring(_POST["custom_name"])
    ntop.setCache(key, custom_name)
 else
    custom_name = ntop.getCache(key)
@@ -82,7 +82,7 @@ print [[
 
 	 <br />
 	 
-	 <input type="text" name="ifName" id="IfName" value="]] print(custom_name) print [["/>
+	 <input type="text" name="custom_name" id="IfName" value="]] print(custom_name) print [["/>
       
       </div>
 	 	 

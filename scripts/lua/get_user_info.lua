@@ -16,7 +16,7 @@ page = _GET["page"]
 if(page == nil) then page = "UserApps" end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-user_key = _GET["user"]
+user_key = _GET["username"]
 host_key = _GET["host"]
 application = _GET["application"]
 
@@ -38,13 +38,13 @@ else
 
 
 if(page == "UserApps") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?user='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserApps">Applications</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserApps">Applications</a></li>\n')
 
 if(page == "UserProtocols") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?user='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserProtocols">Protocols</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=UserProtocols">Protocols</a></li>\n')
 
 if(page == "Flows") then active=' class="active"' else active = "" end
-print('<li'..active..'><a href="?user='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">Flow</a></li>\n')
+print('<li'..active..'><a href="?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">Flow</a></li>\n')
 
 
 print('</ul>\n\t</div>\n\t\t</nav>\n')
@@ -67,7 +67,7 @@ window.onload=function() {
    var refresh = 3000 /* ms */;
 		    do_pie("#topApps", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { user: "]] print(user_key) print [[", mode: "apps" ]] 
+print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "apps" ]] 
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
@@ -121,13 +121,13 @@ window.onload=function() {
    var refresh = 3000 /* ms */;
 		    do_pie("#topL7", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { user: "]] print(user_key) print [[", mode: "l7" ]] 
+print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l7" ]] 
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
 		    do_pie("#topL4", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/user_stats.lua', { user: "]] print(user_key) print [[", mode: "l4" ]] 
+print [[/lua/user_stats.lua', { username: "]] print(user_key) print [[", mode: "l4" ]] 
 if (host_key ~= nil) then print(", host: \""..host_key.."\"") end
 print [[
  }, "", refresh);
@@ -158,7 +158,7 @@ if(user_key ~= nil) then
   else
     print("?")
   end
-   print("user="..user_key)
+   print("username="..user_key)
    num_param = num_param + 1
 end
 
@@ -176,13 +176,13 @@ print [[",
          showPagination: true,
          buttons: [ '<div class="btn-group"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Applications<span class="caret"></span></button> <ul class="dropdown-menu" id="flow_dropdown">]]
 
-print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?user='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">All Proto</a></li>')
+print('<li><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows">All Proto</a></li>')
 for key, value in pairsByKeys(stats["ndpi"], asc) do
    class_active = ''
    if(key == application) then
       class_active = ' class="active"'
    end
-   print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?user='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
+   print('<li '..class_active..'><a href="'..ntop.getHttpPrefix()..'/lua/get_user_info.lua?username='.. user_key) if(host_key ~= nil) then print("&host="..host_key) end print('&page=Flows&application=' .. key..'">'..key..'</a></li>')
 end
 
 

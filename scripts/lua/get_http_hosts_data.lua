@@ -15,10 +15,7 @@ perPage     = _GET["perPage"]
 sortColumn  = _GET["sortColumn"]
 sortOrder   = _GET["sortOrder"]
 protocol    = _GET["protocol"]
-net         = _GET["net"]
-key         = _GET["key"]
-
--- table_id = _GET["table"]
+key         = _GET["host"]
 
 if((sortColumn == nil) or (sortColumn == "column_")) then
    sortColumn = getDefaultTableSort("http_hosts")
