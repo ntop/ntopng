@@ -980,6 +980,18 @@ function isValidPoolMember(member)
   return false
 end
 
+function host2member(ip, vlan)
+  local prefix
+
+  if isIPv4(ip) then
+    prefix = 32
+  else
+    prefix = 128
+  end
+
+  return ip .. "/" .. tostring(prefix) .. "@" .. tostring(vlan)
+end
+
 function isLocal(host_ip)
   host = interface.getHostInfo(host_ip)
 
@@ -1218,7 +1230,6 @@ function host2name(name, vlan)
 
    return name
 end
-
 
 function flowinfo2hostname(flow_info, host_type, vlan)
    local name

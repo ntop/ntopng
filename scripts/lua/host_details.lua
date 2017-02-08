@@ -459,11 +459,6 @@ if((page == "overview") or (page == nil)) then
       if(host["local_network_name"] ~= nil) then
 	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A> ]")
       end
-
-      local pool_name = host_pools_utils.getPoolName(ifId, host["host_pool_id"])
-      print(' <a href="'.. ntop.getHttpPrefix().. '/lua/hosts_stats.lua?pool=' .. host["host_pool_id"] ..'">')
-      print('<span class="label label-default">Pool: '..pool_name.."</span>")
-      print('</a>')
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
@@ -489,7 +484,40 @@ if((page == "overview") or (page == nil)) then
       if(drop_host_traffic == nil) then drop_host_traffic = "false" end
    end
 
-   print('</td></tr>')
+   print('</td><td>')
+
+   local host_pool_id
+   if _POST["pool"] ~= nil then
+     host_pool_id = _POST["pool"]
+     local prev_pool = tostring(host["host_pool_id"])
+
+     if host_pool_id ~= prev_pool then
+       local key = host2member(host["ip"], host["vlan"])
+       host_pools_utils.deletePoolMember(ifId, prev_pool, key)
+       host_pools_utils.addPoolMember(ifId, host_pool_id, key)
+       interface.reloadHostPools()
+     end
+   else
+     host_pool_id = tostring(host["host_pool_id"])
+   end
+
+   print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">Host Pool</a>
+     <i class="fa fa-external-link"></i>
+     <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
+     <select name="pool" class="form-control" style="width:10em; display:inline; margin-left:1em;">]]
+     for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
+       print[[<option value="]] print(pool.id) print[["]]
+       if pool.id == host_pool_id then
+         print[[ selected]]
+       end
+       print[[>]] print(pool.name) print[[</option>]]
+     end
+   print[[</select>]]
+   print[[&nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]
+   print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
+   print [[</form>]]
+
+   print("</td></tr>")
 
    if(ifstats.vlan and (host["vlan"] ~= nil)) then
       print("<tr><th>")
