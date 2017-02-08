@@ -395,7 +395,7 @@ for _key, _value in pairsByValues(vals, funct) do
    src_key = src_key .. "</A>"
 
    if(value["cli.port"] > 0) then
-      src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
+      src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
          else
       src_port=""
          end
@@ -410,7 +410,7 @@ for _key, _value in pairsByValues(vals, funct) do
    dst_key = dst_key .. "</A>"
 
    if(value["srv.port"] > 0) then
-      dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
+      dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
          else
       dst_port=""
          end
@@ -484,7 +484,7 @@ for _key, _value in pairsByValues(vals, funct) do
    if(value["verdict.pass"] == false) then
       app = "<strike>"..app.."</strike>"
    end
-   print ("\", \"column_ndpi\" : \"<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>")
+   print ("\", \"column_ndpi\" : \"<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>")
 
    if(value["client_process"] ~= nil) then
       print ("\", \"column_client_process\" : \"")

@@ -28,8 +28,14 @@ local function get_user_pool_dump_key(ifid)
   return "ntopng.prefs." .. ifid .. ".host_pools.dump"
 end
 
+-- It is safe to call this multiple times
+local function initInterfacePools(ifid)
+  host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
+end
+
 local function get_pool_detail(ifid, pool_id, detail)
   local details_key = get_pool_details_key(ifid, pool_id)
+  initInterfacePools(ifid)
 
   return ntop.getHashCache(details_key, detail)
 end
@@ -88,6 +94,9 @@ end
 function host_pools_utils.getPoolsList(ifid, without_info)
   local ids_key = get_pool_ids_key(ifid)
   local pools = {}
+  local reads = 
+
+  initInterfacePools(ifid)
 
   for _, pool_id in pairsByValues(ntop.getMembersCache(ids_key) or {}, asc) do
     local pool
@@ -167,7 +176,7 @@ function host_pools_utils.initPools()
     local ifid = getInterfaceId(ifname)
 
     -- Note: possible shapers are initialized in shaper_utils::initShapers
-    host_pools_utils.createPool(ifid, host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
+    initInterfacePools(ifid)
   end
 end
 

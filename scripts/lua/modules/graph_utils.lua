@@ -516,7 +516,7 @@ for k,v in pairs(top_rrds) do
    if(ntop.notEmptyFile(rrdname)) then
       rrd = singlerrd2json(ifid, host, k, start_time, end_time, true, false)
       if((rrd.totalval ~= nil) and (rrd.totalval > 0)) then
-	 print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
+	 print('<li><a  href="'..baseurl .. '&rrd_file=' .. k .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '') .. '">'.. v ..'</a></li>\n')
       end
    end
 end
@@ -529,7 +529,7 @@ end
 d = fixPath(p)
 
    go_deep = false
-   navigatedir(baseurl .. '&graph_zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
+   navigatedir(baseurl .. '&zoom=' .. zoomLevel .. '&epoch=' .. (selectedEpoch or '')..'&rrd_file=',
 	       "*", d, d, go_deep, true, ifid, host, start_time, end_time)
 
    print [[
@@ -558,7 +558,7 @@ for k,v in ipairs(zoom_vals) do
       print("active")
    end
    print('">')
-   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
+   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..baseurl .. '&rrd_file=' .. rrdFile .. '&zoom=' .. zoom_vals[k][1] .. '">'.. zoom_vals[k][1] ..'</input></label>\n')
    ::continue::
 end
 
@@ -841,7 +841,7 @@ yAxis.render();
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
-print(baseurl .. '&rrd_file=' .. rrdFile .. '&graph_zoom=' .. nextZoomLevel .. '&epoch=')
+print(baseurl .. '&rrd_file=' .. rrdFile .. '&zoom=' .. nextZoomLevel .. '&epoch=')
 print[['+hover.selected_epoch;
 });
 

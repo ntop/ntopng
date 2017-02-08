@@ -1804,7 +1804,7 @@ print [[";
         $('#btn_reset_all').disable(btn_disabled);
 
         btn_disabled = true;
-	if(rsp.drops + rsp.flow_export_drops == 0) {
+	if(rsp.drops + rsp.flow_export_drops != 0) {
           btn_disabled = false;
           $('#btn_reset_drops').removeClass("disabled");
         }
