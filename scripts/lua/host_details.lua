@@ -505,39 +505,12 @@ if((page == "overview") or (page == nil)) then
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       print("<tr><th>Host Traffic Policy</th><td>")
-      print('<div class="dropdown">')
 
-      if(host["l7_traffic_policy"] ~= nil) then
-print [[
-      <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
-        Blacklisted Protocols
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-]]
-
-	 for k,v in pairs(host["l7_traffic_policy"]) do
-	    print('<li role="presentation"><a role="menuitem" tabindex="-1">'..k.."</a></li>\n")
-	 end
-
-	 print("</ul>")
-      end
-
-      print('<A class="btn btn-default btn-xs" HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=filtering&view_network='..host["ip"])
-      if(host["ip"]:match(":")) then print("/128") else print("/32") end
-      print("@")
-      if(host["vlan"] ~= nil) then print(""..host["vlan"]) else print("0") end
-      print('">Modify Host Traffic Policy</A></div>')
-
-      if(host["bridge.ingress_shaper_id"] ~= nil) then
-	 ingress_max_rate = shaper_utils.getShaperMaxRate(ifId, host["bridge.ingress_shaper_id"])
-	 egress_max_rate = shaper_utils.getShaperMaxRate(ifId, host["bridge.egress_shaper_id"])
-	 print("<p><table class=\"table table-bordered table-striped\"width=100%>")
-	 print("<tr><th>Ingress Policer</th><td>"..shaper_utils.shaperRateToString(ingress_max_rate).."</td></tr>")
-	 print("<tr><th>Egress Policer</th><td>"..shaper_utils.shaperRateToString(egress_max_rate).."</td></tr>")
-         print("</table>")
-      end
-
+      print[[<a class="btn btn-default btn-xs" href="]]
+      print(ntop.getHttpPrefix())
+      print[[/lua/if_stats.lua?page=filtering&pool=]]
+      print(tostring(host["host_pool_id"]))
+      print[[#protocols">Modify Host Pool policy</a>]]
       print('</td>')
 
       print('<td>')
