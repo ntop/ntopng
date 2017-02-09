@@ -17,8 +17,8 @@ before_script:
 script:
   - ./configure
   - make
- 
- notifications:
+
+notifications:
   email:
     recipients:
       - packager@ntop.org
