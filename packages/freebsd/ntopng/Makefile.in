@@ -7,6 +7,13 @@ CATEGORIES=	net
 MAINTAINER=	mainardi@ntop.org
 COMMENT=	
 
+LICENSE=	GPLv3
+
+USES=           ssl sqlite mysql
+
+LIB_DEPENDS=	librrd.so:databases/rrdtool \
+		libcurl.so:ftp/curl 
+
 PLIST_FILES=	bin/ntopng
 PLIST_DIRS=     share/${PORTNAME}/httpdocs/ \
 		share/${PORTNAME}/scripts/ \
