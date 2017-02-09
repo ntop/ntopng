@@ -1,0 +1,69 @@
+# $FreeBSD$
+
+PORTNAME=	ntopng
+PORTVERSION=	@NTOPNG_VERS@
+CATEGORIES=	net
+
+MAINTAINER=	mainardi@ntop.org
+COMMENT=	
+
+PLIST_FILES=	bin/ntopng
+PLIST_DIRS=     share/${PORTNAME}/httpdocs/ \
+		share/${PORTNAME}/scripts/ \
+		share/${PORTNAME}/pro/httpdocs/ \
+		share/${PORTNAME}/pro/scripts/
+
+NO_ARCH=	yes
+
+WRKSRC=	${WRKDIR}
+
+NTOPNG_HOME=${PWD}/../../../
+
+verify: checksum
+
+
+pre-fetch:
+	echo $(NTOPNG_HOME)
+#	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
+#	 cd ${NTOPNG_HOME}; gmake geoip; cd - # decide when to do it (e.g., only on sunday)
+#	 cd ${NTOPNG_HOME}; gmake -j9; cd -
+	cd ${NTOPNG_HOME}../; sudo tar cfvzh ${DISTDIR}/${DISTNAME}.tar.gz ntopng/ntopng ntopng/ntopng.8 ntopng/scripts/ ntopng/httpdocs/ ntopng/pro/scripts/ ntopng/pro/httpdocs/
+	 make makesum
+
+do-build:
+
+
+do-install:
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME}/ntopng \
+	    ${STAGEDIR}${PREFIX}/bin
+
+post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/httpdocs
+	(cd ${WRKSRC}/${PORTNAME}/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/httpdocs)
+
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts
+	(cd ${WRKSRC}/${PORTNAME}/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts)
+
+#	make a symlink for the pro files
+	${RM} -rf ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro
+	cd ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua; ln -s ../../pro/scripts/lua pro; cd -
+
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/httpdocs
+	(cd ${WRKSRC}/${PORTNAME}/pro/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/httpdocs)
+
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/scripts
+	(cd ${WRKSRC}/${PORTNAME}/pro/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/scripts)
+
+#	compress the files and build the luar
+	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}pro/utils/snzip -c -i {} -o {}r \;
+#	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}pro/utils/snzip -c -i {} -o {}r \;
+
+#	remove plaintext lua files
+	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro -name "*.lua" -type f -exec ${RM}  {} ';';
+#	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro -name "*.lua" -type f -exec ${RM}  {} ';';
+
+#	move the luar as if they were normal lua files for installation
+	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro -name "*.luar" -type f -exec echo {} \; | sed 's/.luar//' | xargs -I '{}' mv '{}'.luar '{}'.lua
+#	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro -name "*.luar" -type f -exec echo {} \; | sed 's/.luar//' | xargs -I '{}' mv '{}'.luar '{}'.lua
+
+.include <bsd.port.mk>
