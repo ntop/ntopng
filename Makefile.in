@@ -1,6 +1,7 @@
 @PRO_MAKEFILE_INC@
 prefix = @prefix@
 datadir = @datadir@
+datarootdir = @datarootdir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
 PWD=@PWD@
@@ -49,7 +50,7 @@ else
 	endif
 endif
 ######
-ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD))
+ifeq ($(OS), $(filter $(OS), FreeBSD))
 	LIBNBPF_HOME=${PWD}/../PF_RING/userland/nbpf
 	LIBNBPF_LIB=$(LIBNBPF_HOME)/libnbpf.a
 endif

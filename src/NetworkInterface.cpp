@@ -1191,7 +1191,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       break;
     }
 
+#ifdef __OpenBSD__
+    struct timeval tv_ts;
+    tv_ts.tv_sec  = h->ts.tv_sec;
+    tv_ts.tv_usec = h->ts.tv_usec;
+    flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &tv_ts);
+#else
     flow->incStats(src2dst_direction, rawsize, payload, payload_len, l4_proto, &h->ts);
+#endif
   }
 
   /* Protocol Detection */
@@ -1382,7 +1389,14 @@ bool NetworkInterface::processPacket(const struct bpf_timeval *when,
       u_int64_t up = 0, down = 0, backgr = 0, bytes = payload_len;
 
       if(flow->getActivityId(&activity)) {
+#ifdef __OpenBSD__
+        struct timeval* tv_when;
+        tv_when->tv_sec  = when->tv_sec;
+        tv_when->tv_usec = when->tv_usec;
+        if(flow->invokeActivityFilter(tv_when, src2dst_direction, payload_len)) {
+#else 
         if(flow->invokeActivityFilter(when, src2dst_direction, payload_len)) {
+#endif
           if(src2dst_direction)
             up = bytes;
           else
