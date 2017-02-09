@@ -7,22 +7,31 @@ CATEGORIES=	net
 MAINTAINER=	mainardi@ntop.org
 COMMENT=	
 
+WRKSRC=	        ${WRKDIR}
 LICENSE=	GPLv3
+LICENSE_FILE=	${WRKSRC}/${PORTNAME}/COPYING
 
 USES=           ssl sqlite mysql
+
+USERS=		ntopng
+GROUPS=		ntopng
 
 LIB_DEPENDS=	librrd.so:databases/rrdtool \
 		libcurl.so:ftp/curl 
 
-PLIST_FILES=	bin/ntopng
-PLIST_DIRS=     share/${PORTNAME}/httpdocs/ \
-		share/${PORTNAME}/scripts/ \
-		share/${PORTNAME}/pro/httpdocs/ \
-		share/${PORTNAME}/pro/scripts/
+# DATADIR gets expanded to PREFIX/share/PORTNAME
+# DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME
+
+PLIST_FILES=	${PREFIX}/bin/ntopng \
+		${PREFIX}/man/man8/ntopng.8.gz
+PLIST_DIRS=     ${DATADIR}/httpdocs/ \
+		${DATADIR}/scripts/ \
+		${DATADIR}/pro/httpdocs/ \
+		${DATADIR}/pro/scripts/ \
+		${DOCSDIR}
 
 NO_ARCH=	yes
 
-WRKSRC=	${WRKDIR}
 
 NTOPNG_HOME=${PWD}/../../../
 
@@ -34,8 +43,12 @@ pre-fetch:
 #	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
 #	 cd ${NTOPNG_HOME}; gmake geoip; cd - # decide when to do it (e.g., only on sunday)
 #	 cd ${NTOPNG_HOME}; gmake -j9; cd -
-	cd ${NTOPNG_HOME}../; sudo tar cfvzh ${DISTDIR}/${DISTNAME}.tar.gz ntopng/ntopng ntopng/ntopng.8 ntopng/scripts/ ntopng/httpdocs/ ntopng/pro/scripts/ ntopng/pro/httpdocs/
-	 make makesum
+	cd ${NTOPNG_HOME}../; sudo tar cfvzh ${DISTDIR}/${DISTNAME}.tar.gz \
+	ntopng/ntopng \
+	ntopng/ntopng.8 ntopng/doc/ \
+	ntopng/scripts/ ntopng/httpdocs/ ntopng/pro/scripts/ ntopng/pro/httpdocs/ \
+	ntopng/COPYING
+	make makesum
 
 do-build:
 
@@ -45,32 +58,40 @@ do-install:
 	    ${STAGEDIR}${PREFIX}/bin
 
 post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/httpdocs
-	(cd ${WRKSRC}/${PORTNAME}/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/httpdocs)
+#	install the documentation (DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME)
+	${MKDIR} ${STAGEDIR}${DOCSDIR}
+	(cd ${WRKSRC}/${PORTNAME}/doc && ${COPYTREE_SHARE} . ${STAGEDIR}${DOCSDIR})
 
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts
-	(cd ${WRKSRC}/${PORTNAME}/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts)
+#	install the manual
+	${MKDIR} ${STAGEDIR}${PREFIX}/man/man8/
+	${INSTALL_MAN} ${WRKSRC}/${PORTNAME}/ntopng.8 ${STAGEDIR}${PREFIX}/man/man8/
+
+	${MKDIR} ${STAGEDIR}${DATADIR}/httpdocs
+	(cd ${WRKSRC}/${PORTNAME}/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/httpdocs)
+
+	${MKDIR} ${STAGEDIR}${DATADIR}/scripts
+	(cd ${WRKSRC}/${PORTNAME}/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/scripts)
 
 #	make a symlink for the pro files
-	${RM} -rf ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro
-	cd ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua; ln -s ../../pro/scripts/lua pro; cd -
+	${RM} -rf ${STAGEDIR}${DATADIR}/scripts/lua/pro
+	cd ${STAGEDIR}${DATADIR}/scripts/lua; ln -s ../../pro/scripts/lua pro; cd -
 
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/httpdocs
-	(cd ${WRKSRC}/${PORTNAME}/pro/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/httpdocs)
+	${MKDIR} ${STAGEDIR}${DATADIR}/pro/httpdocs
+	(cd ${WRKSRC}/${PORTNAME}/pro/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/pro/httpdocs)
 
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/scripts
-	(cd ${WRKSRC}/${PORTNAME}/pro/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro/scripts)
+	${MKDIR} ${STAGEDIR}${DATADIR}/pro/scripts
+	(cd ${WRKSRC}/${PORTNAME}/pro/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/pro/scripts)
 
 #	compress the files and build the luar
-	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}pro/utils/snzip -c -i {} -o {}r \;
-#	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}pro/utils/snzip -c -i {} -o {}r \;
+	find ${STAGEDIR}${DATADIR}/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}pro/utils/snzip -c -i {} -o {}r \;
+#	find ${STAGEDIR}${DATADIR}/scripts/lua/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}pro/utils/snzip -c -i {} -o {}r \;
 
 #	remove plaintext lua files
-	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro -name "*.lua" -type f -exec ${RM}  {} ';';
-#	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro -name "*.lua" -type f -exec ${RM}  {} ';';
+	find ${STAGEDIR}${DATADIR}/pro -name "*.lua" -type f -exec ${RM}  {} ';';
+#	find ${STAGEDIR}${DATADIR}/scripts/lua/pro -name "*.lua" -type f -exec ${RM}  {} ';';
 
 #	move the luar as if they were normal lua files for installation
-	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/pro -name "*.luar" -type f -exec echo {} \; | sed 's/.luar//' | xargs -I '{}' mv '{}'.luar '{}'.lua
-#	find ${STAGEDIR}${PREFIX}/share/${PORTNAME}/scripts/lua/pro -name "*.luar" -type f -exec echo {} \; | sed 's/.luar//' | xargs -I '{}' mv '{}'.luar '{}'.lua
+	find ${STAGEDIR}${DATADIR}/pro -name "*.luar" -type f -exec echo {} \; | sed 's/.luar//' | xargs -I '{}' mv '{}'.luar '{}'.lua
+#	find ${STAGEDIR}${DATADIR}/scripts/lua/pro -name "*.luar" -type f -exec echo {} \; | sed 's/.luar//' | xargs -I '{}' mv '{}'.luar '{}'.lua
 
 .include <bsd.port.mk>
