@@ -15,7 +15,6 @@ gmake
 cd ../ntopng
 ./autogen.sh
 ./configure
-perl -p -i -e 's/CC= gcc/CC= cc/' third-party/LuaJIT-2.0.3/src/Makefile
 gmake geoip
 gmake
 gmake install

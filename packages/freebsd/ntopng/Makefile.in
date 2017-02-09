@@ -11,10 +11,10 @@ WRKSRC=	        ${WRKDIR}
 LICENSE=	GPLv3
 LICENSE_FILE=	${WRKSRC}/${PORTNAME}/COPYING
 
-USES=           ssl sqlite mysql
-
 USERS=		ntopng
 GROUPS=		ntopng
+
+USES=           ssl sqlite mysql
 
 LIB_DEPENDS=	librrd.so:databases/rrdtool \
 		libcurl.so:ftp/curl 
