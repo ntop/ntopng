@@ -58,8 +58,15 @@ static void* divertPacketPollLoop(void* ptr) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Packet too short (%d bytes)", len);
       break;
     }
-   
+  
+#ifdef __OpenBSD__
+    struct timeval tv;
+    h.len = h.caplen = len, gettimeofday(&tv, NULL);
+    h.ts.tv_sec  = tv.tv_sec;
+    h.ts.tv_usec = tv.tv_usec;
+#else
     h.len = h.caplen = len, gettimeofday(&h.ts, NULL);
+#endif /* __OpenBSD__ */
     iface->dissectPacket(&h, packet, &c, &srcHost, &dstHost, &flow);
 
     /* Enable the row below to specify the firewall rule corresponding to the protocol */
