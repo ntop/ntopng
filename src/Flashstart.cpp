@@ -189,6 +189,7 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown category '%s'", elem);
     else {
       category->categories[n++] = id, found = true;
+
       if(n == MAX_NUM_CATEGORIES) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: too many categories (%d)", n);
 	break;

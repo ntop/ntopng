@@ -383,8 +383,12 @@ void Flow::processDetectedProtocol() {
       Host server name equals the Host: HTTP header field.
     */
     host_server_name = strdup((char*)ndpiFlow->host_server_name);
-    categorizeFlow();
   }
+
+  categorizeFlow(); /*
+		      Categorize every flow including DNS so we cache
+		      information before future requests arrive
+		    */
 
   switch(l7proto) {
   case NDPI_PROTOCOL_BITTORRENT:
@@ -906,7 +910,6 @@ void Flow::update_hosts_stats(struct timeval *tv, bool inDeleteMethod) {
 	hp->incPoolStats(srv_host_pool_id, ndpiDetectedProtocol.protocol,
 			 diff_rcvd_packets, diff_rcvd_bytes, diff_sent_packets, diff_sent_bytes);
       }
-
 #endif
 
       if(cli_host) {
