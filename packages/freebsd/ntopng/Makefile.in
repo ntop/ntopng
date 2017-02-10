@@ -7,14 +7,18 @@ CATEGORIES=	net
 MAINTAINER=	mainardi@ntop.org
 COMMENT=	
 
-WRKSRC=	        ${WRKDIR}
+#WRKSRC=	        ${WRKDIR}
+NO_WRKSUBDIR=	yes
+
 LICENSE=	GPLv3
-LICENSE_FILE=	${WRKSRC}/${PORTNAME}/COPYING
+LICENSE_FILE=	${WRKSRC}/COPYING
 
 USERS=		ntopng
 GROUPS=		ntopng
 
-USES=           ssl sqlite mysql
+USE_RC_SUBR=    ntopng
+
+USES=           ssl sqlite mysql shebangfix
 
 LIB_DEPENDS=	librrd.so:databases/rrdtool \
 		libcurl.so:ftp/curl 
@@ -23,6 +27,7 @@ LIB_DEPENDS=	librrd.so:databases/rrdtool \
 # DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME
 
 PLIST_FILES=	${PREFIX}/bin/ntopng \
+		${PREFIX}/sbin/ntopng-control.sh \
 		${PREFIX}/man/man8/ntopng.8.gz
 PLIST_DIRS=     ${DATADIR}/httpdocs/ \
 		${DATADIR}/scripts/ \
@@ -43,44 +48,50 @@ pre-fetch:
 #	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
 #	 cd ${NTOPNG_HOME}; gmake geoip; cd - # decide when to do it (e.g., only on sunday)
 #	 cd ${NTOPNG_HOME}; gmake -j9; cd -
-	cd ${NTOPNG_HOME}../; sudo tar cfvzh ${DISTDIR}/${DISTNAME}.tar.gz \
-	ntopng/ntopng \
-	ntopng/ntopng.8 ntopng/doc/ \
-	ntopng/scripts/ ntopng/httpdocs/ ntopng/pro/scripts/ ntopng/pro/httpdocs/ \
-	ntopng/COPYING
+	cd ${NTOPNG_HOME}../ntopng/; sudo tar cfvzh ${DISTDIR}/${DISTNAME}.tar.gz \
+	ntopng \
+	packages/etc/init.d/ntopng \
+	ntopng.8 doc/ \
+	scripts/ httpdocs/ pro/scripts/ pro/httpdocs/ \
+	COPYING
 	make makesum
 
 do-build:
 
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME}/ntopng \
+	${INSTALL_PROGRAM} ${WRKSRC}/ntopng \
 	    ${STAGEDIR}${PREFIX}/bin
 
 post-install:
+#	copy the bash init script and replace with the right shebang
+#	that assumes bash is installed as port
+	${INSTALL_SCRIPT} ${WRKSRC}/packages/etc/init.d/ntopng ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
+	sed -I '' -e's/\bin\/bash/\usr\/local\/bin\/bash/' ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
+
 #	install the documentation (DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME)
 	${MKDIR} ${STAGEDIR}${DOCSDIR}
-	(cd ${WRKSRC}/${PORTNAME}/doc && ${COPYTREE_SHARE} . ${STAGEDIR}${DOCSDIR})
+	(cd ${WRKSRC}/doc && ${COPYTREE_SHARE} . ${STAGEDIR}${DOCSDIR})
 
 #	install the manual
 	${MKDIR} ${STAGEDIR}${PREFIX}/man/man8/
-	${INSTALL_MAN} ${WRKSRC}/${PORTNAME}/ntopng.8 ${STAGEDIR}${PREFIX}/man/man8/
+	${INSTALL_MAN} ${WRKSRC}/ntopng.8 ${STAGEDIR}${PREFIX}/man/man8/
 
 	${MKDIR} ${STAGEDIR}${DATADIR}/httpdocs
-	(cd ${WRKSRC}/${PORTNAME}/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/httpdocs)
+	(cd ${WRKSRC}/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/httpdocs)
 
 	${MKDIR} ${STAGEDIR}${DATADIR}/scripts
-	(cd ${WRKSRC}/${PORTNAME}/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/scripts)
+	(cd ${WRKSRC}/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/scripts)
 
 #	make a symlink for the pro files
 	${RM} -rf ${STAGEDIR}${DATADIR}/scripts/lua/pro
 	cd ${STAGEDIR}${DATADIR}/scripts/lua; ln -s ../../pro/scripts/lua pro; cd -
 
 	${MKDIR} ${STAGEDIR}${DATADIR}/pro/httpdocs
-	(cd ${WRKSRC}/${PORTNAME}/pro/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/pro/httpdocs)
+	(cd ${WRKSRC}/pro/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/pro/httpdocs)
 
 	${MKDIR} ${STAGEDIR}${DATADIR}/pro/scripts
-	(cd ${WRKSRC}/${PORTNAME}/pro/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/pro/scripts)
+	(cd ${WRKSRC}/pro/scripts && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/pro/scripts)
 
 #	compress the files and build the luar
 	find ${STAGEDIR}${DATADIR}/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}pro/utils/snzip -c -i {} -o {}r \;

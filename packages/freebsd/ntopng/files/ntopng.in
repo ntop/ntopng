@@ -1,0 +1,9 @@
+#!/bin/sh
+
+. /etc/rc.subr
+
+name="ntopng"
+start_cmd="%%PREFIX%%/sbin/ntopng-control.sh start"
+
+load_rc_config $name
+run_rc_command "$1"
