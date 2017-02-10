@@ -64,10 +64,11 @@ do-install:
 	    ${STAGEDIR}${PREFIX}/bin
 
 post-install:
-#	copy the bash init script and replace with the right shebang
-#	that assumes bash is installed as port
+#	copy the bash init script and replace /usr/bin with /usr/local/bin that is the standard place
+#	for ports in freebsd
 	${INSTALL_SCRIPT} ${WRKSRC}/packages/etc/init.d/ntopng ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
 	sed -I '' -e's/\bin\/bash/\usr\/local\/bin\/bash/' ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
+	sed -I '' -e's/\usr\/bin/\usr\/local\/bin/' ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
 
 #	install the documentation (DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME)
 	${MKDIR} ${STAGEDIR}${DOCSDIR}
