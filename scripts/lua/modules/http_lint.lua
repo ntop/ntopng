@@ -821,8 +821,10 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- SHAPING
    ["shaper_"]                 =  {validateNumber,            validateNumber},      -- key: a shaper ID, value: max rate
-   ["ishaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
-   ["eshaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
+   ["ishaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: ingress shaper ID
+   ["eshaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: egress shaper ID
+   ["qtraffic_"]               =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: traffic quota
+   ["qtime_"]                  =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: time quota
 
 -- ALERTS (see alert_utils.lua)
    ["operator_"]               =  {validateAlertDescriptor,   validateOperator},    -- key: an alert descriptor, value: alert operator

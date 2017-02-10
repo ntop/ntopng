@@ -2647,6 +2647,29 @@ end
 
 -- ###########################################
 
+-- Note: the base unit is Kbit/s here
+FMT_TO_DATA_RATES_KBPS = {
+   ["k"] = {label="Kbit/s", value=1},
+   ["m"] = {label="Mbit/s", value=1000},
+   ["g"] = {label="Gbit/s", value=1000*1000},
+}
+
+FMT_TO_DATA_BYTES = {
+  ["b"] = {label="B",  value=1},
+  ["k"] = {label="KB", value=1024},
+  ["m"] = {label="MB", value=1024*1024},
+  ["g"] = {label="GB", value=1024*1024*1024},
+}
+
+FMT_TO_DATA_TIME = {
+  ["s"] = {label="Secs",  value=1},
+  ["m"] = {label="Mins",  value=60},
+  ["h"] = {label="Hours", value=3600},
+  ["d"] = {label="Days",  value=3600*24},
+}
+
+-- ###########################################
+
 -- Note: use data-min and data-max to setup ranges
 function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
   local extra = extra or {}
@@ -2725,6 +2748,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
         raw = parseInt(input.attr("data-max"));
         if (! isNaN(raw))
           input.attr("max", Math.sign(raw) * Math.ceil(Math.abs(raw) / selected.val()));
+        resol_recheck_input_range(input);
       }
 
       function resol_selector_change_selection(selected) {
@@ -2733,6 +2757,19 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
           .siblings().removeClass('active').removeClass('btn-primary').addClass('btn-default').find("input").removeAttr('checked');
 
         resol_selector_reset_input_range(selected);
+      }
+
+      function resol_recheck_input_range(input) {
+        var value = input.val();
+
+        if (input[0].hasAttribute("min"))
+          value = Math.max(value, input.attr("min"));
+        if (input[0].hasAttribute("max"))
+          value = Math.min(value, input.attr("max"));
+
+        var old_val = input.val();
+        if ((old_val != "") && (old_val != value))
+          input.val(value);
       }
 
       function resol_selector_change_callback(event) {
@@ -2759,17 +2796,30 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
             values.push(parseInt($(this).val()));
          });
 
-         /* highest divisor */
-         var highest_i = 0;
-         for (var i=1; i<values.length; i++) {
-            if(((values[i] > values[highest_i]) && (its_value % values[i] == 0)))
-               highest_i = i;
+         var new_value;
+         var new_i;
+         if (its_value > 0) {
+            /* highest divisor */
+            var highest_i = 0;
+            for (var i=1; i<values.length; i++) {
+              if(((values[i] > values[highest_i]) && (its_value % values[i] == 0)))
+                highest_i = i;
+            }
+
+            new_value = its_value / values[highest_i];
+            new_i = highest_i;
+         } else {
+            /* smallest value */
+            new_value = Math.max(its_value, -1);
+            new_i = values.indexOf(Math.min.apply(Math, values));
          }
-         var new_value = its_value / values[highest_i];
 
          /* Set */
          input.val(new_value);
-         resol_selector_change_selection($(buttons[highest_i]));
+         resol_selector_change_selection($(buttons[new_i]));
+
+         /* This must be set manually on initialization */
+         $(buttons[new_i]).closest("label").addClass("active");
       }
 
       function resol_selector_get_raw(input) {
@@ -2787,6 +2837,7 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra)
 
           var selected = $(elem).find("input[checked]");
           var input = resol_selector_get_input(selected);
+          resol_recheck_input_range(input);
 
           /* transform in raw units */
           var new_input = $("<input type=\"hidden\"/>");
