@@ -155,11 +155,7 @@ end
 
 _ifstats = interface.getStats()
 
-if(_ifstats.iface_sprobe) then
-   url = ntop.getHttpPrefix().."/lua/sflows_stats.lua"
-else
-   url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
-end
+url = ntop.getHttpPrefix().."/lua/flows_stats.lua"
 
 if(active_page == "flows") then
    print('<li class="active"><a href="'..url..'">Flows</a></li>')
@@ -197,10 +193,6 @@ print [[/lua/hosts_stats.lua">Hosts</a></li>
      print('<li><a href="'..ntop.getHttpPrefix()..'/lua/vlan_stats.lua">VLANs</a></li>')
   end
 
-  if(_ifstats.iface_sprobe) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/processes_stats.lua">Processes</a></li>')
-end
-
 print('<li class="divider"></li>')
 print('<li class="dropdown-header">Local Traffic</li>')
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/local_hosts_stats.lua"><i class="fa fa-binoculars" aria-hidden="true"></i> Looking Glass</a></li>')
@@ -208,10 +200,6 @@ print('<li><a href="'..ntop.getHttpPrefix()..'/lua/http_servers_stats.lua">HTTP 
 print('<li><a href="'..ntop.getHttpPrefix()..'/lua/top_hosts.lua"><i class="fa fa-trophy"></i> Top Hosts</a></li>')
 
 print('<li class="divider"></li>')
-
-if(_ifstats.iface_sprobe) then
-   print('<li><a href="'..ntop.getHttpPrefix()..'/lua/sprobe.lua"><i class="fa fa-flag"></i> System Interactions</a></li>\n')
-end
 
 
 if(not(isLoopback(ifname))) then

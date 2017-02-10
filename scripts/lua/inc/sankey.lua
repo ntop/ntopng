@@ -68,9 +68,6 @@ function sankey() {
 active_sankey = "host"
 local debug = false
 
-if(_GET["sprobe"] ~= nil) then
-   print('d3.json("'..ntop.getHttpPrefix()..'/lua/sprobe_hosts_data.lua"');
-else
    if(_GET["host"] ~= nil) then
       print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifid='..(_ifstats.id)..'&' ..hostinfo2url(host_info).. '"')
    elseif((_GET["hosts"] ~= nil) and (_GET["aggregation"] ~= nil)) then
@@ -82,7 +79,6 @@ else
    else
       print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua"')
    end
-end
 
 if (debug) then io.write("Active sankey: "..active_sankey.."\n") end
 
@@ -204,11 +200,8 @@ elseif(active_sankey == "comparison") then
 
 _ifstats = interface.getStats()
 
-if(_ifstats.iface_sprobe) then
-   url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"
-else
-   url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"
-end
+
+url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"
 
 print [[
 

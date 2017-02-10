@@ -55,12 +55,7 @@ compared_hosts = {}
 compared_hosts_size = 0;
 
 ifstats = interface.getStats()
-
-if(ifstats.sprobe) then
-   base_url = ntop.getHttpPrefix().."/lua/sflows_stats.lua?"
-else
-   base_url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"
-end
+base_url = ntop.getHttpPrefix().."/lua/flows_stats.lua?"
 
 hosts = _GET["hosts"]
 aggregation = _GET["aggregation"]

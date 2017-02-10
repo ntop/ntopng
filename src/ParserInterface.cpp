@@ -663,11 +663,11 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
 	  flow.outIndex = atoi(value);
 	  break;
         case SRC_PROC_PID:
-          iface->enable_sprobe(); /* We're collecting system flows */
+          //iface->enable_sprobe(); /* We're collecting system flows */
           flow.src_process.pid = atoi(value);
           break;
         case SRC_PROC_NAME:
-          iface->enable_sprobe(); /* We're collecting system flows */
+          //iface->enable_sprobe(); /* We're collecting system flows */
           snprintf(flow.src_process.name, sizeof(flow.src_process.name), "%s", value);
           break;
         case SRC_PROC_USER_NAME:
@@ -696,11 +696,11 @@ u_int8_t ParserInterface::parseFlow(char *payload, int payload_size, u_int8_t so
           break;
 
         case DST_PROC_PID:
-          iface->enable_sprobe(); /* We're collecting system flows */
+          //iface->enable_sprobe(); /* We're collecting system flows */
           flow.dst_process.pid = atoi(value);
           break;
         case DST_PROC_NAME:
-          iface->enable_sprobe(); /* We're collecting system flows */
+          //iface->enable_sprobe(); /* We're collecting system flows */
           snprintf(flow.dst_process.name, sizeof(flow.dst_process.name), "%s", value);
           break;
         case DST_PROC_USER_NAME:

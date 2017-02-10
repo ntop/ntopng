@@ -760,7 +760,6 @@ local known_parameters = {
    ["addvlan"]                 =  validateBool,                  -- True if VLAN must be added to the result
    ["http_mode"]               =  validateHttpMode,              -- HTTP mode for host_http_breakdown.lua
    ["refresh"]                 =  validateNumber,                -- top flow refresh in seconds, index.lua
-   ["sprobe"]                  =  validateEmpty,                 -- sankey.lua
    ["always_show_hist"]        =  validateBool,                  -- host_details.lua
    ["task_id"]                 =  validateSingleWord,            -- get_nbox_data
    ["host_stats"]              =  validateBool,                  -- host_get_json

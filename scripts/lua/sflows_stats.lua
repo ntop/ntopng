@@ -57,7 +57,6 @@ print ('";')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/flows_stats_id.inc")    
    print [[
-   flow_rows_option["sprobe"] = true;
    $("#table-flows").datatable({
       url: url_update ,
 ]]
