@@ -11,7 +11,6 @@ require "blacklist_utils"
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
-  require "report_utils"
 end
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
