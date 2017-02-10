@@ -71,6 +71,7 @@ local  en = {
       protocol_families = "Protocol Families",
       traffic_to = "Traffic to",
       traffic_from = "Traffic from",
+      traffic_through = "Traffic through",
       delete_policy = "Delete Policy",
       confirm_delete_policy = "Do you really want to delete",
       policy_from_pool = "policy from pool",

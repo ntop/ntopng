@@ -1392,6 +1392,8 @@ if sites_categories ~= nil then
    <br>]]
 end
 
+local split_shaping_directions = (ntop.getPref("ntopng.prefs.split_shaping_directions") == "1")
+
    print [[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
@@ -1442,6 +1444,20 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
          $("select", td_egress_shaper).attr('name', 'eshaper_'+proto_id);
       });
 
+      ]]
+if not split_shaping_directions then
+   print[[
+      /* Since shaping directions are linked, we have to set both shapers to the same value */
+      var tprotos = $("#table-protos");
+      $("select[name^='ishaper_']", tprotos).each(function() {
+         var proto_id = $(this).attr("name").split("ishaper_")[1];
+         var egress = $("select[name='eshaper_" + proto_id + "']", tprotos);
+         egress.val($(this).val());
+      });
+   ]]
+end
+print[[
+
       /* Possibly handle multiple blocked categories */
       var sites_categories = $("#l7ProtosForm select[name='sites_categories']");
       if (sites_categories) {
@@ -1470,7 +1486,8 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
 
       var tr = $('<tr id="' + newid + '" ><td><select class="form-control" name="new_protocol_id">\
             ]] print_ndpi_families_and_protocols(protocol_categories, protos, categories_in_use, protos_in_use, "\\") print[[
-      </select></td><td class="text-center"><select class="form-control shaper-selector" name="ingress_shaper_id">\
+      </select></td><td class="text-center]] if not split_shaping_directions then print(" hidden") end
+      print[["><select class="form-control shaper-selector" name="ingress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
       </select></td><td class="text-center"><select class="form-control shaper-selector" name="egress_shaper_id">\
 ]] print_shapers(shapers, "0", "\\") print[[
@@ -1579,15 +1596,30 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
                width: '15%',
                verticalAlign: 'middle'
             }
-         }, {
+         }, {]]
+   if split_shaping_directions then
+      print[[
             title: "]] print(i18n("shaping.traffic_to") .. " " .. selected_pool.name) print[[",
+      ]]
+   else
+      print[[
+            title: "]] print(i18n("shaping.traffic_through") .. " " .. selected_pool.name) print[[",
+      ]]
+   end
+   print[[
             field: "column_ingress_shaper",
             css: {
                width: '20%',
                textAlign: 'center',
                verticalAlign: 'middle'
             }
-         }, {
+         }, {]]
+   if not split_shaping_directions then
+      print[[
+            hidden: true,
+      ]]
+   end
+   print[[
             title: "]] print(i18n("shaping.traffic_from") .. " " .. selected_pool.name) print[[",
             field: "column_egress_shaper",
             css: {
