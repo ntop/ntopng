@@ -787,7 +787,7 @@ void AlertsManager::notifyAlert(AlertEntity alert_entity, const char *alert_enti
     json_alert = json_object_to_json_string(notification);
 
     if(ntop->getRedis()->lpush(ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME,
-			       (char*)json_alert, ALERTS_MANAGER_MAX_ENTITY_ALERTS))
+			       (char*)json_alert, ALERTS_MANAGER_MAX_ENTITY_ALERTS) < 0)
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "An error occurred when pushing alert %s to redis list %s.",
 				   json_alert, ALERTS_MANAGER_NOTIFICATION_QUEUE_NAME);

@@ -18,21 +18,6 @@ alarmable_metrics = {'bytes', 'dns', 'idle', 'packets', 'p2p', 'throughput', 'in
 
 default_re_arm_minutes = 1
 
-alert_functions_description = {
-    ["bytes"]   = "Bytes delta (sent + received)",
-    ["dns"]     = "DNS traffic delta bytes (sent + received)",
-    ["idle"]    = "Idle time since last packet sent (seconds)",	
-    ["packets"] = "Packets delta (sent + received)",
-    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
-    ["throughput"]   = "Avergage throughput (sent + received) [Mbps]",
-}
-
-network_alert_functions_description = {
-    ["ingress"] = "Ingress Bytes delta",
-    ["egress"]  = "Egress Bytes delta",
-    ["inner"]   = "Inner Bytes delta",
-}
-
 -- ##############################################################################
 
 function bytes(old, new, interval)
@@ -363,7 +348,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
             if(rc) then
 	       alert_status = 1 -- alert on
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key..">"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key.."\">"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
 	       -- only if the alert is not in its re-arming period...
 	       if not is_alert_re_arming(key, t[1], ifname) then
@@ -448,7 +433,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
 
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
             if(rc) then
-                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF="..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF=\""..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical\">"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
                 if not is_alert_re_arming(network_name, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
@@ -521,8 +506,8 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF="..ntop.getHttpPrefix().."/lua/if_stats.lua?ifId="..tostring(getInterfaceId(ifname))..
-                ">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
+	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..tostring(getInterfaceId(ifname))..
+                "\">"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
@@ -725,22 +710,22 @@ function performAlertsQuery(statement, what, opts)
       wargs[#wargs+1] = 'AND vlan_id='..(info.vlan)
    end
 
-   if tonumber(opts.period_begin) ~= nil then
-      wargs[#wargs+1] = 'AND alert_tstamp >= '..(opts.period_begin)
+   if tonumber(opts.epoch_begin) ~= nil then
+      wargs[#wargs+1] = 'AND alert_tstamp >= '..(opts.epoch_begin)
    end
 
-   if tonumber(opts.period_end) ~= nil then
-      wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.period_end)
+   if tonumber(opts.epoch_end) ~= nil then
+      wargs[#wargs+1] = 'AND alert_tstamp <= '..(opts.epoch_end)
    end
 
-   if not isEmptyString(opts.hosts_type) then
-      if opts.hosts_type ~= "all_hosts" then
+   if not isEmptyString(opts.flowhosts_type) then
+      if opts.flowhosts_type ~= "all_hosts" then
          local cli_local, srv_local = 0, 0
 
-         if opts.hosts_type == "local_only" then cli_local, srv_local = 1, 1
-         elseif opts.hosts_type == "remote_only" then cli_local, srv_local = 0, 0
-         elseif opts.hosts_type == "local_origin_remote_target" then cli_local, srv_local = 1, 0
-         elseif opts.hosts_type == "remote_origin_local_target" then cli_local, srv_local = 0, 1
+         if opts.flowhosts_type == "local_only" then cli_local, srv_local = 1, 1
+         elseif opts.flowhosts_type == "remote_only" then cli_local, srv_local = 0, 0
+         elseif opts.flowhosts_type == "local_origin_remote_target" then cli_local, srv_local = 1, 0
+         elseif opts.flowhosts_type == "remote_origin_local_target" then cli_local, srv_local = 0, 1
          end
 
          if what == "historical-flows" then
@@ -936,7 +921,7 @@ function checkDeleteStoredAlerts()
       -- to avoid filtering by id
       _GET["row_id"] = nil
       -- in case of delete "older than" button, resets the time period after the delete took place
-      if isEmptyString(_GET["period_begin"]) then _GET["period_end"] = nil end
+      if isEmptyString(_GET["epoch_begin"]) then _GET["epoch_end"] = nil end
 
       local new_num = getNumAlerts(_GET["status"], _GET)
       if new_num == 0 then
@@ -1171,7 +1156,9 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
       print [[
       <tr><th colspan=2  style="text-align: center; white-space: nowrap;" >
 
-      <input type="submit" class="btn btn-primary" name="SaveAlerts" value="Save Configuration">
+         <input type="hidden" name="SaveAlerts" value="">
+         <input type="submit" class="btn btn-primary" value="Save Configuration">
+      </form>
 
       <a href="#myModal" role="button" class="btn" data-toggle="modal">[ <i type="submit" class="fa fa-trash-o"></i> ]] print(delete_button_msg) print[[ ]</button></a>
       <!-- Modal -->
@@ -1187,14 +1174,13 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
         </div>
         <div class="modal-footer">
           <form class=form-inline style="margin-bottom: 0px;" method="post">
-          <input type=hidden name=to_delete value="__all__">
+          <input type=hidden name=to_delete value="">
       ]]
       print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
       print [[    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
           <button class="btn btn-primary" type="submit">Delete All</button>
-
+         </form>
         </div>
-      </form>
       </div>
       </div>
 
@@ -1392,7 +1378,7 @@ function getCurrentStatus() {
       local title = t["label"]
 
       -- TODO this condition should be removed and page integration support implemented
-      if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["period_begin"]) and isEmptyString(_GET["period_end"])) then
+      if((isEmptyString(_GET["entity"])) and isEmptyString(_GET["epoch_begin"]) and isEmptyString(_GET["epoch_end"])) then
 	 -- alert_level_keys and alert_type_keys are defined in lua_utils
 	 local alert_severities = {}
 	 for _, s in pairs(alert_level_keys) do alert_severities[#alert_severities +1 ] = s[3] end
@@ -1541,7 +1527,7 @@ $("[clicked=1]").trigger("click");
 ]]
 
 if not alt_nav_tabs then print [[</div> <!-- closes tab-content -->]] end
-local has_fixed_period = ((not isEmptyString(_GET["period_begin"])) or (not isEmptyString(_GET["period_end"])))
+local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
 
 print('<div id="alertsActionsPanel">')
 print('<br>Alerts to Purge: ')

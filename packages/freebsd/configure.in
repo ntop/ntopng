@@ -1,0 +1,28 @@
+AC_INIT([Makefile.in], 1.0)
+
+MACHINE=`uname -m`
+SHORT_MACHINE=`uname -m | cut -b1-3`
+
+if [ test -d ../../pro/ ] && [ ! test -f ../../pro/utils/snzip ]; then
+   echo "snzip is missing: please compile it and try again"
+   exit
+fi
+
+NTOPNG_VERS=`cat ../../configure.ac | head -2|grep 'C_INIT' | cut -d " " -f 2|cut -d ')' -f 1|cut -d ',' -f 2| tail -c +2 |sed 's/.\{1\}$//'`
+GIT_RELEASE=`git rev-parse HEAD`
+GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
+
+DATE=`date -R`
+KERNEL=`uname -r`
+
+AC_SUBST(NTOPNG_VERS)
+AC_SUBST(MACHINE)
+AC_SUBST(DATE)
+AC_SUBST(KERNEL)
+AC_SUBST(GIT_RELEASE)
+AC_SUBST(GIT_COMMITS)
+
+AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES(ntopng/Makefile)
+
+AC_OUTPUT

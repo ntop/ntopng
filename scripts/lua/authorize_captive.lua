@@ -13,10 +13,12 @@ print [[
 <HTML>
 <HEAD>
 <TITLE>Authentication Successful</TITLE>
-<meta http-equiv="refresh" Content="0; url=http://www.ntop.org"/>
+<meta http-equiv="refresh" Content="5; url=http://www.ntop.org"/>
 </HEAD>
 <BODY>
 Success ']] print(_GET["label"]) print [['.
+<p>
+We're redirecting you to the Internet...
 </BODY>
 </HTML>
    ]]

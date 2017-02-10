@@ -634,7 +634,7 @@
 #define _STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(!!(COND))*2-1]
 #define _COMPILE_TIME_ASSERT3(X,L) _STATIC_ASSERT(X,static_assertion_at_line_##L)
 #define _COMPILE_TIME_ASSERT2(X,L) _COMPILE_TIME_ASSERT3(X,L)
-#define COMPILE_TIME_ASSERT(X)    _COMPILE_TIME_ASSERT2(X,__LINE__)
+#define COMPILE_TIME_ASSERT(X)     _COMPILE_TIME_ASSERT2(X,__LINE__)
 
 #define MAX_NUM_HTTP_REPLACEMENTS                    3
 
@@ -663,5 +663,6 @@
 #define HTTP_MAX_HEADER_LINES           20
 
 #define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
+#define CONST_HELLO_HOST         "hello"
 
 #endif /* _NTOP_DEFINES_H_ */

@@ -38,7 +38,7 @@ end
 
 -- Note that ifname can be set by Lua.cpp so don't touch it if already defined
 if((ifname == nil) and (_GET ~= nil)) then
-  ifname = _GET["ifname"]
+  ifname = _GET["ifid"]
 
   if(ifname ~= nil) then
      if(ifname.."" == tostring(tonumber(ifname)).."") then
@@ -314,6 +314,21 @@ alert_entity_keys = {
   { "Network",         2, "network"       },
   { "SNMP device",     3, "snmp_device"   },
   { "Flow",            4, "flow"          }
+}
+
+alert_functions_description = {
+    ["bytes"]   = "Bytes delta (sent + received)",
+    ["dns"]     = "DNS traffic delta bytes (sent + received)",
+    ["idle"]    = "Idle time since last packet sent (seconds)",	
+    ["packets"] = "Packets delta (sent + received)",
+    ["p2p"]     = "Peer-to-peer traffic delta bytes (sent + received)",
+    ["throughput"]   = "Avergage throughput (sent + received) [Mbps]",
+}
+
+network_alert_functions_description = {
+    ["ingress"] = "Ingress Bytes delta",
+    ["egress"]  = "Egress Bytes delta",
+    ["inner"]   = "Inner Bytes delta",
 }
 
 function noHtml(s)
@@ -931,6 +946,39 @@ function get_timezone()
   return os.difftime(now, os.time(os.date("!*t", now)))
 end
 
+function isValidPoolMember(member)
+  if isEmptyString(member) then
+    return false
+  end
+
+  if isMacAddress(member) then
+    return true
+  end
+
+  -- vlan is mandatory here
+  local vlan_idx = string.find(member, "@")
+  if ((vlan_idx == nil) or (vlan_idx == 1)) then
+    return false
+  end
+  local other = string.sub(member, 1, vlan_idx-1)
+  local vlan = tonumber(string.sub(member, vlan_idx+1))
+  if (vlan == nil) or (vlan < 0) then
+    return false
+  end
+
+  -- prefix is mandatory here
+  local address, prefix = splitNetworkPrefix(other)
+  if prefix == nil then
+    return false
+  end
+  if isIPv4(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 32) then
+    return true
+  elseif isIPv6(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 128) then
+    return true
+  end
+
+  return false
+end
 
 function isLocal(host_ip)
   host = interface.getHostInfo(host_ip)
@@ -1469,7 +1517,7 @@ function ntop_version_check()
       this_version   = version2int(version_elems[1])
 
       if(new_version > this_version) then
-	 print("<p><div class=\"alert alert-warning\"><font color=red><i class=\"fa fa-cloud-download fa-lg\"></i> A new "..info["product"].." (v." .. rsp .. ") is available for <A HREF=http://www.ntop.org/get-started/download/>download</A>: please upgrade.</font></div></p>")
+	 print("<p><div class=\"alert alert-warning\"><font color=red><i class=\"fa fa-cloud-download fa-lg\"></i> A new "..info["product"].." (v." .. rsp .. ") is available for <A HREF=\"http://www.ntop.org/get-started/download/\">download</A>: please upgrade.</font></div></p>")
       end
    end
 end
@@ -1804,7 +1852,7 @@ function getFlag(country)
    if((country == nil) or (country == "")) then
       return("")
    else
-      return(" <A HREF=" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></A> ")
+      return(" <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></A> ")
    end
 end
 
@@ -2081,7 +2129,7 @@ end
 -- ###############################################
 
 function formatWebSite(site)
-   return("<A target=\"_blank\" HREF=http://"..site..">"..site.."</A> <i class=\"fa fa-external-link\"></i></th>")
+   return("<A target=\"_blank\" HREF=\"http://"..site.."\">"..site.."</A> <i class=\"fa fa-external-link\"></i></th>")
 end
 
 -- Update Utils::flowstatus2str
@@ -2102,7 +2150,7 @@ end
 
 -- prints purged information for hosts / flows
 function purgedErrorString()
-    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?subpage_active=in_memory"><i class="fa fa-flask"></i> Preferences</A>.'
+    return 'Very likely it is expired and ntopng has purged it from memory. You can set purge idle timeout settings from the <A HREF="'..ntop.getHttpPrefix()..'/lua/admin/prefs.lua?tab=in_memory"><i class="fa fa-flask"></i> Preferences</A>.'
 end
 
 -- print TCP flags
@@ -2131,7 +2179,7 @@ end
 
 function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
    if ntop.isPro() and ntop.getPrefs().is_dump_flows_to_mysql_enabled == true then
-      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifId="..ifId
+      local hist_url = ntop.getHttpPrefix().."/lua/pro/db_explorer.lua?search=true&ifid="..ifId
       local now    = os.time()
       local ago1h  = now - 3600
 
@@ -2780,4 +2828,4 @@ end
 -- Leave it at the end so it can use the functions
 -- defined in this file
 --
-require "http_lint"
+http_lint = require "http_lint"

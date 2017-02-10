@@ -10,7 +10,6 @@ require "lua_utils"
 sendHTTPHeader('application/json')
 
 host_ip = _GET["host"]
-host_id = _GET["host_id"]
 
 interface.select(ifname)
 flows_stats = interface.getFlowsInfo(host_ip)

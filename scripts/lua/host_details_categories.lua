@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "graph_utils"
 
-host_ip = _GET["hostip"]
+host_ip = _GET["host"]
 ifid = _GET["ifid"]
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
@@ -43,7 +43,7 @@ for _k,_label in pairsByKeys(vals , desc) do
   print("<tr><th>")
   fname = getRRDName(ifid, hostinfo2hostkey(host_info), "categories/"..label..".rrd")
   if ntop.exists(fname) then
-    print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifname="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=categories/".. label ..".rrd\">"..label.."</A>")
+    print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&rrd_file=categories/".. label ..".rrd\">"..label.."</A>")
   else
     print(label)
   end

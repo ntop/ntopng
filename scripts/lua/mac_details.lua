@@ -55,7 +55,7 @@ print [[
 print("<li><a href=\"#\">Mac: "..mac.."</A> </li>")
    print("<li class=\"active\"><a href=\"#\"><i class=\"fa fa-home fa-lg\"></i>\n")
 
-print("<li><a href="..ntop.getHttpPrefix().."/lua/mac_stats.lua><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
+print("<li><a href=\""..ntop.getHttpPrefix().."/lua/mac_stats.lua\"><i class='fa fa-reply'></i></a></li></ul></div></nav></div>")
 
 print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th width=35%>MAC Address</th><td> "..mac)
@@ -78,7 +78,7 @@ print(getHostIcon(mac))
 local label = getHostAltName(mac)
 
 if mac_info["num_hosts"] > 0 then
-   print(" [ <A HREF=".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac..">Show Hosts</A> ]")
+   print(" [ <A HREF=\"".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac.."\">Show Hosts</A> ]")
 end
 
 print("</td>")

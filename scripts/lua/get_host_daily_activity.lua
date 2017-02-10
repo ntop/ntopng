@@ -29,7 +29,6 @@ sortOrder   = _GET["sortOrder"]
 protocol_id = _GET["protocol"]
 mode        = _GET["mode"]
 host        = _GET["host"]
-format      = _GET["format"]
 
 t = os.time() -- -86400
 when = os.date("%y%m%d", t)

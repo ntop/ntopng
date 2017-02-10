@@ -25,10 +25,10 @@ NODOTABIVER= 51
 # with "make clean", followed by "make" if you change any options.
 #
 # LuaJIT builds as a native 32 or 64 bit binary by default.
-CC= gcc 
+CC= cc # Simone Mainardi: was gcc, required to build on FreeBSD
 #
 # Use this if you want to force a 32 bit build on a 64 bit multilib OS.
-#CC= gcc -m32
+#CC= cc -m32
 #
 # Since the assembler part does NOT maintain a frame pointer, it's pointless
 # to slow down the C part by not omitting it. Debugging, tracebacks and

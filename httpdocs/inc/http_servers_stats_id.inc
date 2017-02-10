@@ -23,7 +23,7 @@ function http_table_setID (row) {
 }
 
 function http_row_update(http_key) {
-   var url = "@HTTP_PREFIX@/lua/get_http_hosts_data.lua?key="+http_key.split("___").join("."); /* Needed as JQuery does not like . in id= field */
+   var url = "@HTTP_PREFIX@/lua/get_http_hosts_data.lua?host="+http_key.split("___").join("."); /* Needed as JQuery does not like . in id= field */
    
   $.ajax({
     type: 'GET',

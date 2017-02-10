@@ -29,8 +29,8 @@ end
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
 page = _GET["page"]
-if_name = _GET["if_name"]
-ifid = (_GET["id"] or _GET["ifId"])
+ifid = _GET["ifid"]
+
 ifname_clean = "iface_"..tostring(ifid)
 msg = ""
 
@@ -58,7 +58,7 @@ if((ifname ~= nil) and (_SESSION["session"] ~= nil)) then
    ntop.setCache(key, ifname)
 
    msg = "<div class=\"alert alert-success\">The selected interface <b>" .. getHumanReadableInterfaceName(ifid)
-   msg = msg .. "</b> [id: ".. ifid .."] is now active</div>"
+   msg = msg .. "</b> [ifid: ".. ifid .."] is now active</div>"
 
    ntop.setCache(getRedisPrefix("ntopng.prefs")..'.iface', ifid)
 else
@@ -73,12 +73,6 @@ end
 -- priority goes to the interface id
 if ifid ~= nil and ifid ~= "" then
    if_name = getInterfaceName(ifid)
-
--- if not interface id is specified we look for the interface name
-elseif if_name ~= nil and if_name ~= "" then
-   ifid = tostring(interface.name2id(if_name))
-
--- finally, we fall back to the default selected interface name
 else
    -- fall-back to the default interface
    if_name = ifname
@@ -182,7 +176,7 @@ print(msg)
 
 rrdname = fixPath(dirs.workingdir .. "/" .. ifstats.id .. "/rrd/bytes.rrd")
 
-url = ntop.getHttpPrefix()..'/lua/if_stats.lua?id=' .. ifid
+url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
 --  of historical interface
@@ -336,7 +330,7 @@ if((page == "overview") or (page == nil)) then
       if(ifstats["remote.if_addr"] ~= "") then print("<td nowrap><b>Interface IP</b>: "..ifstats["remote.if_addr"].."</td>") end
       if(ifstats["probe.ip"] ~= "") then print("<td nowrap><b>Probe IP</b>: "..ifstats["probe.ip"].."</td><td></td>") end
       if(ifstats["probe.public_ip"] ~= "") then
-         print("<td nowrap><b>Public Probe IP</b>: <A HREF=http://"..ifstats["probe.public_ip"]..">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
+         print("<td nowrap><b>Public Probe IP</b>: <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fa fa-external-link'></i></td>\n")
       else
          print("<td colspan=2>&nbsp;</td>\n")
       end
@@ -399,7 +393,7 @@ if((page == "overview") or (page == nil)) then
             host = interface.getHostInfo(t[1])
 
             if(host ~= nil) then
-               addresses[#addresses+1] = "<a href="..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1]..">".. t[1].."</a>"
+               addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>"
             else
                addresses[#addresses+1] = t[1]
             end
@@ -445,12 +439,12 @@ print [[
 	       window.onload=function() {
 				   do_pie("#ifaceTrafficBreakdown", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. " }, \"\", refresh); \n")
+print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. " }, \"\", refresh); \n")
 
 if(ifstats.type ~= "zmq") then
 print [[				   do_pie("#ifaceTrafficDistribution", ']]
 print (ntop.getHttpPrefix())
-print [[/lua/iface_local_stats.lua', { id: ]] print(ifstats.id .. ", mode: \"distribution\" }, \"\", refresh); \n")
+print [[/lua/iface_local_stats.lua', { ifid: ]] print(ifstats.id .. ", iflocalstat_mode: \"distribution\" }, \"\", refresh); \n")
 end
 print [[ }
 
@@ -563,7 +557,7 @@ print("</script>\n")
    end
 
    print [[
-   <tr><td colspan=7> <small> <b>NOTE</b>:<p>In ethernet networks, each packet has an <A HREF=https://en.wikipedia.org/wiki/Ethernet_frame>overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=http://en.wikipedia.org/wiki/Interframe_gap>IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values. </small> </td></tr>
+   <tr><td colspan=7> <small> <b>NOTE</b>:<p>In ethernet networks, each packet has an <A HREF=\"https://en.wikipedia.org/wiki/Ethernet_frame\">overhead of 24 bytes</A> [preamble (7 bytes), start of frame (1 byte), CRC (4 bytes), and <A HREF=\"http://en.wikipedia.org/wiki/Interframe_gap\">IFG</A> (12 bytes)]. Such overhead needs to be accounted to the interface traffic, but it is not added to the traffic being exchanged between IP addresses. This is because such data contributes to interface load, but it cannot be accounted in the traffic being exchanged by hosts, and thus expect little discrepancies between host and interface traffic values. </small> </td></tr>
    ]]
 
    print("</table>\n")
@@ -582,7 +576,7 @@ elseif((page == "packets")) then
 
        do_pie("#sizeDistro", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/if_pkt_distro.lua', { distr: "size", ifname: "]] print(if_name.."\"")
+   print [[/lua/if_pkt_distro.lua', { distr: "size", ifid: "]] print(ifstats.id.."\"")
    print [[
 	   }, "", refresh);
     }
@@ -616,19 +610,19 @@ elseif(page == "ndpi") then
 
        do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "sinceStartup", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", mode: "count", id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "count", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topTCPFlowsStats", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_tcp_stats.lua', { id: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/iface_tcp_stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
     }
 
       </script><p>
@@ -652,7 +646,7 @@ function update_ndpi_table() {
     url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/if_stats_ndpi.lua',
-    data: { id: "]] print(ifid) print [[" },
+    data: { ifid: "]] print(ifid) print [[" },
     success: function(content) {
       $('#if_stats_ndpi_tbody').html(content);
       // Let the TableSorter plugin know that we updated the table
@@ -689,7 +683,7 @@ elseif(page == "trafficprofiles") then
      local rrdname = fixPath(dirs.workingdir .. "/" .. ifid .. "/profilestats/" .. getPathFromKey(trimmed) .. "/bytes.rrd")
      local statschart_icon = ''
      if ntop.exists(rrdname) then
-	 statschart_icon = '<A HREF='..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'><i class=\'fa fa-area-chart fa-lg\'></i></A>'
+	 statschart_icon = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/profile_details.lua?profile='..trimmed..'\"><i class=\'fa fa-area-chart fa-lg\'></i></A>'
      end
 
      print("<tr><th>"..pname.."</th><td align=center>"..statschart_icon.."</td><td><span id=profile_"..trimmed..">"..bytesToSize(pbytes).."</span> <span id=profile_"..trimmed.."_trend></span></td></tr>\n")
@@ -706,7 +700,7 @@ print [[
 		    url: ']]
    print (ntop.getHttpPrefix())
    print [[/lua/network_load.lua',
-		    data: { ifname: "]] print(if_name) print [[" },
+		    data: { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" },
 		    success: function(content) {
 			var profiles = content;
 
@@ -1070,6 +1064,11 @@ end
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper)
             shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, false)
          end)
+
+         if (_POST["blocked_categories"] ~= nil)  then
+            local sites_categories = split(_POST["blocked_categories"], ",")
+            shaper_utils.setBlockedSitesCategories(ifid, sites_categories)
+         end
       end
 
       interface.reloadL7Rules(tonumber(selected_pool.id))
@@ -1150,7 +1149,7 @@ print [[<div id="protocols" class="tab-pane"><br>
 print('</select>')
 
 if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
-  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?id='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users" aria-hidden="true"></i></A>')
+  print(' <A HREF="'..  ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..ifid..'&page=pools&pool=') print(selected_pool.id) print('#manage" title="Edit Host Pool"><i class="fa fa-users" aria-hidden="true"></i></A>')
 end
 
 print[[<form id="l7ProtosForm" onsubmit="return checkShapedProtosFormCallback();" method="post">
@@ -1210,6 +1209,22 @@ function print_ndpi_families_and_protocols(categories, protos, categories_disabl
    print('</optgroup>')
 end
 
+local sites_categories = ntop.getSiteCategories()
+if sites_categories ~= nil then
+   -- flashstart is enabled here
+   local blocked_categories = shaper_utils.getBlockedSitesCategories(ifid)
+
+   print[[<br><span style="float:left;">Flashstart Categories:</span><select title="Select a category to block it" name="sites_categories" style="width:25em; height:10em; margin-left:2em;" multiple>]]
+   for cat_id, cat_name in pairs(sites_categories) do
+      print[[<option value="]] print(cat_id.."") print[["]]
+      if blocked_categories[cat_id] then
+         print(" selected")
+      end
+      print[[>]] print(cat_name) print[[</option>]]
+   end
+   print [[</select>]]
+end
+
    print [[<div id="table-protos"></div>
 <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
@@ -1259,6 +1274,21 @@ function makeShapersDropdownCallback(suffix, ingress_shaper_idx, egress_shaper_i
          $("select", td_ingress_shaper).attr('name', 'ishaper_'+proto_id);
          $("select", td_egress_shaper).attr('name', 'eshaper_'+proto_id);
       });
+
+      /* Possibly handle multiple blocked categories */
+      var sites_categories = $("#l7ProtosForm select[name='sites_categories']");
+      if (sites_categories) {
+         var selection = [];
+         $("option:selected", sites_categories).each(function() {
+            selection.push($(this).val());
+         });
+
+         /* Create the joint field */
+         sites_categories.attr('name', '');
+         $('<input name="blocked_categories" type="hidden"/>')
+            .val(selection.join(","))
+            .appendTo($("#l7ProtosForm"));
+      }
 
       return true;
    }
@@ -1661,7 +1691,7 @@ var resetInterfaceCounters = function(drops_only) {
     url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/reset_stats.lua',
-    data: 'action=' + action + "&csrf=]] print(ntop.getRandomCSRFValue()) print[[",
+    data: 'resetstats_mode=' + action + "&csrf=]] print(ntop.getRandomCSRFValue()) print[[",
     success: function(rsp) {},
     complete: function() {
       /* reload the page to generate a new CSRF */
@@ -1676,7 +1706,7 @@ setInterval(function() {
 	  url: ']]
 print (ntop.getHttpPrefix())
 print [[/lua/network_load.lua',
-	  data: { ifname: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
+	  data: { iffilter: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
 	  success: function(rsp) {
 
 	var v = bytesToVolume(rsp.bytes);
@@ -1774,7 +1804,7 @@ print [[";
         $('#btn_reset_all').disable(btn_disabled);
 
         btn_disabled = true;
-	if(rsp.drops + rsp.flow_export_drops == 0) {
+	if(rsp.drops + rsp.flow_export_drops != 0) {
           btn_disabled = false;
           $('#btn_reset_drops').removeClass("disabled");
         }

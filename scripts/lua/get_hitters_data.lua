@@ -24,18 +24,15 @@ sortOrder   = _GET["sortOrder"]
 host_info   = url2hostinfo(_GET)
 port        = _GET["port"]
 application = _GET["application"]
-network_id  = _GET["network_id"]
+network_id  = _GET["network"]
 vhost       = _GET["vhost"]
-
--- Host comparison parameters
-key         = _GET["key"]
 
 -- System host parameters
 hosts  = _GET["hosts"]
-user   = _GET["user"]
+user   = _GET["username"]
 host   = _GET["host"]
 pid    = tonumber(_GET["pid"])
-name   = _GET["name"]
+name   = _GET["pid_name"]
 
 interface.select(ifname)
 flows_stats = interface.getFlowsInfo(host)

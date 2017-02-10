@@ -16,7 +16,6 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 application = _GET["application"]
 hosts       = _GET["hosts"]
 aggregation = _GET["aggregation"]
-key         = _GET["key"]
 perPage     = _GET["perPage"]
 
 stats = interface.getnDPIStats()
@@ -51,16 +50,6 @@ if(aggregation ~= nil) then
     print("?")
   end
   print("aggregation="..aggregation)
-  num_param = num_param + 1
-end
-
-if(key ~= nil) then
-  if (num_param > 0) then
-    print("&")
-  else
-    print("?")
-  end
-  print("key="..key)
   num_param = num_param + 1
 end
 

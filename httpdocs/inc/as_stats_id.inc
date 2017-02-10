@@ -27,7 +27,7 @@ function as_table_setID (row) {
 }
 
 function as_row_update(as_key) {
-   var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=asn&as="+as_key;
+   var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=asn&asn="+as_key;
 
   $.ajax({
     type: 'GET',

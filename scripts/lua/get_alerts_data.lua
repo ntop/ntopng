@@ -86,7 +86,7 @@ for _key,_value in ipairs(alerts) do
    column_msg      = _value["alert_json"]
 
    column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method='post'>"
-   column_id = column_id.."<input type=hidden name=id_to_delete value="..alert_id.."><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
+   column_id = column_id.."<input type=hidden name='id_to_delete' value='"..alert_id.."'><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
 
    if ntop.isEnterprise() and (status == "historical-flows" or status == "historical") then
       local explore = function()
@@ -100,8 +100,8 @@ for _key,_value in ipairs(alerts) do
 	    url = url..'&target='..target
 	 end
 	 if _value["alert_tstamp"] ~= nil then
-	    url = url..'&period_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
-	    url = url..'&period_end='..(tonumber(_value["alert_tstamp"]) + 1800)
+	    url = url..'&epoch_begin='..(tonumber(_value["alert_tstamp"]) - 1800)
+	    url = url..'&epoch_end='..(tonumber(_value["alert_tstamp"]) + 1800)
 	 end
 	 return "&nbsp;<a class='btn btn-default btn-xs' href='"..url.."' title='"..i18n("flow_alerts_explorer.label").."'><i class='fa fa-history'></i><sup><i class='fa fa-exclamation-triangle' aria-hidden='true' style='position:absolute; margin-left:-19px; margin-top:4px;'></i></sup></a>&nbsp;"
       end

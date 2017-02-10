@@ -263,6 +263,18 @@ void Flashstart::dumpCategories(lua_State* vm, struct site_categories *category)
 
 /* **************************************************** */
 
+void Flashstart::lua(lua_State* vm) {
+  lua_newtable(vm);
+
+  for(struct category_mapping *s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next) {
+    lua_pushnumber(vm, s->category);
+    lua_pushstring(vm, s->name);
+    lua_settable(vm, -3);
+  }
+}
+
+/* **************************************************** */
+
 void Flashstart::dumpCategories(struct site_categories *category, char *buf, u_int buf_len) {
   if(category->categories[0] != NTOP_UNKNOWN_CATEGORY_ID) {
     buf[0] = '\0';

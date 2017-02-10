@@ -15,6 +15,7 @@ local res = {}
 
 local MIN_STEP = 300
 
+-- TODO these names should be in sync with ndpi
 local name_map = {
       { "Chat", "Chat and Realtime Communications" },
       { "RemoteControl", "Remote Access" },
@@ -26,7 +27,7 @@ local name_map = {
       { "SocialNetwork", "Social Networks" },
       { "Web", "Web Browsing" },
       { "Game", "Online Gaming" },
-      { "Other", "Other Traffic" }
+      { "Unspecified", "Other Traffic" }
 }
 
 function mapRRDname(name) 	 
@@ -40,24 +41,13 @@ function mapRRDname(name)
   return(name)
 end
 
-function mapnametoRRD(name) 	 
-  for id,_ in ipairs(name_map) do
-    local m = name_map[id]
-    if(name == m[2]) then
-      return(m[1])
-     end
-  end
-
-  return(name)
-end
-
 if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
    local host_info = url2hostinfo(_GET)
    local ifId = _GET["ifid"]
    local host = hostinfo2hostkey(host_info)
    local hostbase = dirs.workingdir .. "/" .. ifId .. "/rrd/" .. getPathFromKey(host)
    local activbase = hostbase .. "/activity"
-   local actname = mapnametoRRD(_GET["activity"])
+   local actname = _GET["activity"]
 
    local islive = _GET["step"] and tonumber(_GET["step"]) < MIN_STEP
    local fetchData = false
@@ -70,7 +60,7 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
          local activities = interface.getHostActivity(host)
          if activities then
             for key,value in pairs(activities) do
-               table.insert(res, mapRRDname(key))
+               res[mapRRDname(key)] = key
             end
          end
       else
@@ -83,7 +73,8 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
             -- mode=list
             for key,value in pairs(ntop.readdir(activbase)) do
                if string.ends(key, ".rrd") then
-                  table.insert(res, mapRRDname(string.sub(key, 1, -5)))
+                  local clean = string.sub(key, 1, -5)
+                  res[mapRRDname(clean)] = clean
                end
             end
          else
@@ -114,8 +105,8 @@ if (_GET["host"] ~= nil and _GET["ifid"] ~= nil and _GET["step"] ~= nil) then
             table.insert(res.bg, data.background)
          end
       else
-         local start_time = tonumber(_GET["start"])
-         local end_time = tonumber(_GET["stop"])
+         local start_time = tonumber(_GET["epoch_begin"])
+         local end_time = tonumber(_GET["epoch_end"])
          local cf = _GET["cf"] or "AVERAGE"
          local fstart, fstep, fnames, fdata = ntop.rrd_fetch(rrd, cf, start_time, end_time)
          res.step = fstep

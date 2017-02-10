@@ -137,7 +137,7 @@ if page == "historical" then
         rrdfile=_GET["rrd_file"]
     end
 
-    host_url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifname='..ifId..'&network='..network..'&page=historical'
+    host_url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
     drawRRD(ifId, 'net:'..network_name, rrdfile, _GET["graph_zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 
 elseif (page == "config") then

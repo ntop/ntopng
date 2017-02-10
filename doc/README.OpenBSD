@@ -1,0 +1,46 @@
+OpenBSD 5.9+ README
+-------------------
+
+A number of packages has to be installed to satisfy build dependencies.
+Let's start with GNU build tools:
+
+# pkg_add autoconf-2.69p2
+# pkg_add autogen-5.8.7p4
+# pkg_add automake-1.9.6p12
+# pkg_add gettext-0.19.7
+# pkg_add gmake-4.2.1
+# pkg_add libtool-2.4.2p0
+
+
+Then we have to install client libraries, llvm compiler, and of course git.
+
+# pkg_add wget
+# pkg_add json-c-0.12p1 mysqlcc GeoIP rrdtool llvm git
+
+
+git clone and build
+___________________
+
+$ cd /some/path
+$ git clone https://github.com/ntopng/ntopng.git
+$ cd ntopng
+$ git clone https://github.com/ntopng/nDPI.git
+
+$ AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.9 ./autogen.sh
+$ AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.9 ./configure
+$ gmake
+$ gmake geoip
+$ gmake install
+
+
+Redis server and first start
+____________________________
+
+Before you can launch ntopng, a Redis server has to be installed and started.
+
+# pkg_add redis
+
+Enable and start redis, which will listen on 631/TCP port.
+
+# rcctl enable redis
+# rcctl start redis

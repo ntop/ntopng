@@ -13,7 +13,7 @@ if(haveAdminPrivileges()) then
    
    local users_list = ntop.getUsers()
    for key, value in pairs(users_list) do
-      if(key == _GET["user"]) then
+      if(key == _GET["username"]) then
 
 	 if value["group"] == "captive_portal" then
 	    print(' "host_pool_id": "'..value["host_pool_id"]..'",\n')

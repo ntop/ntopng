@@ -67,7 +67,7 @@ else
 	 
 	 if(add_init or (proc.father_pid ~= 1)) then
 	    -- No link for father
-	    -- link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid.."&name="..proc.father_name.."&host=".. host .."&page=flows"
+	    -- link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.father_pid.."&pid_name="..proc.father_name.."&host=".. host .."&page=flows"
 	    nest2tab(nest)
 	    if(add_comma) then print(',') add_comma = false end
 	    print(' { "name": "'..proc.father_name..' (pid '.. proc.father_pid..')", "type": "proc", "children": [ ')
@@ -75,7 +75,7 @@ else
 	 end
       end
 
-      link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.pid.."&name="..proc.name.."&host=".. host .."&page=Flows"
+      link = ntop.getHttpPrefix().."/lua/get_process_info.lua?pid="..proc.pid.."&pid_name="..proc.name.."&host=".. host .."&page=Flows"
       nest2tab(nest)
       if(add_comma) then print(',') add_comma = false end
       print('{ "name": "'..proc.name..' (pid '.. proc.pid..')", "link": "'.. link ..'", "type": "proc", "children": [ ] }')

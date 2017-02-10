@@ -25,18 +25,15 @@ sortOrder   = _GET["sortOrder"]
 host_info   = url2hostinfo(_GET)
 port        = _GET["port"]
 application = _GET["application"]
-network_id  = _GET["network_id"]
+network_id  = _GET["network"]
 vhost       = _GET["vhost"]
-
--- Host comparison parameters
-key = _GET["key"]
 
 -- System host parameters
 hosts  = _GET["hosts"]
-user   = _GET["user"]
+user   = _GET["username"]
 host   = _GET["host"]
 pid    = tonumber(_GET["pid"])
-name   = _GET["name"]
+name   = _GET["pid_name"]
 
 -- Get from redis the throughput type bps or pps
 throughput_type = getThroughputType()
@@ -398,7 +395,7 @@ for _key, _value in pairsByValues(vals, funct) do
    src_key = src_key .. "</A>"
 
    if(value["cli.port"] > 0) then
-      src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
+      src_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
          else
       src_port=""
          end
@@ -413,7 +410,7 @@ for _key, _value in pairsByValues(vals, funct) do
    dst_key = dst_key .. "</A>"
 
    if(value["srv.port"] > 0) then
-      dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?proto=".. value["proto.l4"].. "&port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
+      dst_port=":<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
          else
       dst_port=""
          end
@@ -487,17 +484,17 @@ for _key, _value in pairsByValues(vals, funct) do
    if(value["verdict.pass"] == false) then
       app = "<strike>"..app.."</strike>"
    end
-   print ("\", \"column_ndpi\" : \"<A HREF=".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi"] ..">"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>")
+   print ("\", \"column_ndpi\" : \"<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. value["proto.ndpi_id"] .."'>"..app.." " .. formatBreed(value["proto.ndpi_breed"]) .."</A>")
 
    if(value["client_process"] ~= nil) then
       print ("\", \"column_client_process\" : \"")
-      print("<A HREF="..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["client_process"]["pid"] .."&name="..value["client_process"]["name"].."&host="..value["cli.ip"]..">" .. processColor(value["client_process"]).."</A>")
-      print ("\", \"column_client_user_name\" : \"<A HREF="..ntop.getHttpPrefix().."/lua/get_user_info.lua?user=" .. value["client_process"]["user_name"] .."&host="..value["cli.ip"]..">" .. value["client_process"]["user_name"].."</A>")
+      print("<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["client_process"]["pid"] .."&pid_name="..value["client_process"]["name"].."&host="..value["cli.ip"].."'>" .. processColor(value["client_process"]).."</A>")
+      print ("\", \"column_client_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=" .. value["client_process"]["user_name"] .."&host="..value["cli.ip"].."'>" .. value["client_process"]["user_name"].."</A>")
    end
    if(value["server_process"] ~= nil) then
       print ("\", \"column_server_process\" : \"")
-      print("<A HREF="..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["server_process"]["pid"] .."&name="..value["server_process"]["name"].."&host="..value["srv.ip"]..">" .. processColor(value["server_process"]).."</A>")
-      print ("\", \"column_server_user_name\" : \"<A HREF="..ntop.getHttpPrefix().."/lua/get_user_info.lua?user=" .. value["server_process"]["user_name"] .."&host="..value["srv.ip"]..">" .. value["server_process"]["user_name"].."</A>")
+      print("<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid=".. value["server_process"]["pid"] .."&pid_name="..value["server_process"]["name"].."&host="..value["srv.ip"].."'>" .. processColor(value["server_process"]).."</A>")
+      print ("\", \"column_server_user_name\" : \"<A HREF='"..ntop.getHttpPrefix().."/lua/get_user_info.lua?username=" .. value["server_process"]["user_name"] .."&host="..value["srv.ip"].."'>" .. value["server_process"]["user_name"].."</A>")
    end
 
    print ("\", \"column_duration\" : \"" .. secondsToTime(value["duration"]))

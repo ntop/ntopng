@@ -24,8 +24,9 @@
 
 #include "config.h"
 
-#ifdef __FreeBSD
+#if defined (__FreeBSD) || defined(__FreeBSD__)
 #define _XOPEN_SOURCE
+#define _WITH_GETLINE
 #endif
 
 #include <stdio.h>

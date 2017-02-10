@@ -12,7 +12,7 @@ local debug = false
 -- setTraceLevel(TRACE_DEBUG) -- Debug mode
 
 -- Output parameters
-mode = _GET["mode"]
+mode = _GET["procstats_mode"]
 
 -- Table parameters
 currentPage = _GET["currentPage"]
@@ -23,14 +23,11 @@ host        = _GET["host"]
 port        = _GET["port"]
 application = _GET["application"]
 
--- Host comparison parameters
-key = _GET["key"]
-
 -- System host parameters
 hosts = _GET["hosts"]
-user = _GET["user"]
+user = _GET["username"]
 pid = tonumber(_GET["pid"])
-name = _GET["name"]
+name = _GET["pid_name"]
 process_sourceId = 0
 
 if (name ~= nil) then
@@ -270,7 +267,7 @@ if (mode == "table") then
      cli_tooltip = ""
 
      print ("{ \"key\" : \"" .. key..'\"')
-     print (", \"column_name\" : \"".."<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?name=" .. key .. "'>".. value["name"] .. "</A>")
+     print (", \"column_name\" : \"".."<A HREF='"..ntop.getHttpPrefix().."/lua/get_process_info.lua?pid_name=" .. key .. "'>".. value["name"] .. "</A>")
 
      print ("\", \"column_duration\" : \"" .. secondsToTime(value["duration"]))
      print ("\", \"column_count\" : \"" .. value["count"])

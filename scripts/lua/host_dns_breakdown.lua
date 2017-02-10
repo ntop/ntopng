@@ -12,7 +12,7 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 interface.select(ifname)
 
 host_info = url2hostinfo(_GET)
-mode = _GET["mode"]
+mode = _GET["direction"]
 
 if(mode == "sent") then
    what = "sent"

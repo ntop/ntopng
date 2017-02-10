@@ -1,6 +1,7 @@
 @PRO_MAKEFILE_INC@
 prefix = @prefix@
 datadir = @datadir@
+datarootdir = @datarootdir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
 PWD=@PWD@
@@ -42,11 +43,16 @@ ifeq ($(HAS_LIBRRDTOOL), 0)
 	LIBRRDTOOL_LIB = $(shell pkg-config --libs librrd)
 else
 	LIBRRDTOOL_INC=-I$(LIBRRDTOOL_HOME)/src/
-	ifeq ($(OS), OpenBSD)
+	ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD))
 		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm -lgobject-2.0 -lgmodule-2.0 -lglib-2.0	
 	else
 		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0
 	endif
+endif
+######
+ifeq ($(OS), $(filter $(OS), FreeBSD))
+	LIBNBPF_HOME=${PWD}/../PF_RING/userland/nbpf
+	LIBNBPF_LIB=$(LIBNBPF_HOME)/libnbpf.a
 endif
 ######
 HTTPCLIENT_INC=${PWD}/third-party/http-client-c/src/
@@ -86,7 +92,7 @@ else
 endif
 ######
 TARGET = ntopng
-LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
+LIBS = $(NDPI_LIB) $(LIBPCAP) $(LUAJIT_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @SSL_LIB@ @LINK_OPTS@ @GEOIP_LIB@ @LDFLAGS@ @PRO_LIBS@ -lm -lpthread
 CPPFLAGS = -g @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(SODIUM_INC) $(NDPI_INC) $(LUAJIT_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @MYSQL_INC@ @CPPFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INC@ -DDATA_DIR='"$(datadir)"' -I${PWD}/third-party/libgeohash -I${PWD}/third-party/patricia # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm

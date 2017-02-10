@@ -12,9 +12,6 @@ sendHTTPHeader('text/html; charset=iso-8859-1')
 
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 
-mode = _GET["mode"]
-if(mode == nil) then mode = "all" end
-
 active_page = "hosts"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -122,7 +119,7 @@ print [[
 <script>
   do_timeline("]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_processes_data.lua",{ mode: "timeline" }, "name" ,2,300,2000);
+print [[/lua/get_processes_data.lua",{ procstats_mode: "timeline" }, "name" ,2,300,2000);
 </script>
 
 </div>

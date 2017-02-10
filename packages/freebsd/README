@@ -1,0 +1,8 @@
+To build the freebsd package run, in this directory:
+
+autoconf
+./configure
+make
+
+Upon successful completion, the package will be placed under
+./ntopng/ntopng-vers.txz

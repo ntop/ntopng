@@ -318,9 +318,24 @@ static int is_authorized(const struct mg_connection *conn,
 static int isCaptiveConnection(struct mg_connection *conn) {
   return(ntop->getPrefs()->isCaptivePortalEnabled()
 	 && (ntohs(conn->client.lsa.sin.sin_port) == 80)
+	 && (strcasestr((char*)mg_get_header(conn, "Host"), CONST_HELLO_HOST) == NULL)
 	 && (ntop->getPrefs()->get_alt_http_port() != 0));
 }
 
+/* ****************************************** */
+
+static int isCaptiveURL(char *url) {
+  if((!strcmp(url, KINDLE_WIFISTUB_URL))
+     || (!strcmp(url, HOTSPOT_DETECT_URL))
+     || (!strcmp(url, HOTSPOT_DETECT_LUA_URL))
+     || (!strcmp(url, CAPTIVE_PORTAL_URL))
+     || (!strcmp(url, AUTHORIZE_CAPTIVE_LUA_URL))
+     || (!strcmp(url, "/"))
+     )
+    return(1);
+  else
+    return(0);
+}
 /* ****************************************** */
 
 // Redirect user to the login form. In the cookie, store the original URL
@@ -500,18 +515,14 @@ static int handle_lua_request(struct mg_connection *conn) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
 			       request_info->uri, referer);
 #endif
-
+  
   if(ntop->getPrefs()->do_dump_flows_on_mysql()
      && !MySQLDB::isDbCreated()
      && strcmp(request_info->uri, PLEASE_WAIT_URL)) {
     redirect_to_please_wait(conn, request_info);
   } else if(ntop->get_HTTPserver()->is_ssl_enabled()
-	    && (!request_info->is_ssl)
-	    && strcmp(request_info->uri, KINDLE_WIFISTUB_URL)
-	    && strcmp(request_info->uri, HOTSPOT_DETECT_URL)
-	    && strcmp(request_info->uri, HOTSPOT_DETECT_LUA_URL)
-	    && strcmp(request_info->uri, CAPTIVE_PORTAL_URL)
-	    && strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)
+	    && (!request_info->is_ssl)	     
+	    && isCaptiveURL(request_info->uri)
 	    && (!strstr(referer, HOTSPOT_DETECT_LUA_URL))
 	    && (!strstr(referer, CAPTIVE_PORTAL_URL))
 	    && ((mg_get_header(conn, "Host") == NULL) || (mg_get_header(conn, "Host")[0] == '\0'))
@@ -591,12 +602,17 @@ static int handle_lua_request(struct mg_connection *conn) {
 			"Enterprise edition license required: this features in still under development and it will be released in the near future"));
     }
 
-    snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
-	     Utils::getURL(len == 1 ? (char*)"/lua/index.lua" : request_info->uri,
-			   uri, sizeof(uri)));
-
-    ntop->fixPath(path);
-    found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+    if(isCaptiveConnection(conn) && (!isCaptiveURL(request_info->uri))) {
+      redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
+      return(0);
+    } else {
+      snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
+	       Utils::getURL(len == 1 ? (char*)"/lua/index.lua" : request_info->uri,
+			     uri, sizeof(uri)));
+      
+      ntop->fixPath(path);
+      found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+    }
 
     if(found) {
       Lua *l = new Lua();

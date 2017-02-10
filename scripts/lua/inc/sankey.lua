@@ -72,12 +72,12 @@ if(_GET["sprobe"] ~= nil) then
    print('d3.json("'..ntop.getHttpPrefix()..'/lua/sprobe_hosts_data.lua"');
 else
    if(_GET["host"] ~= nil) then
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifname='..ifname..'&' ..hostinfo2url(host_info).. '"')
+      print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua?ifid='..(_ifstats.id)..'&' ..hostinfo2url(host_info).. '"')
    elseif((_GET["hosts"] ~= nil) and (_GET["aggregation"] ~= nil)) then
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifname='..ifname..'&'..'hosts='.._GET["hosts"] .. '&aggregation='.._GET["aggregation"] ..'"')
+      print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] .. '&aggregation='.._GET["aggregation"] ..'"')
       active_sankey = "comparison"
    elseif(_GET["hosts"] ~= nil) then
-      print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifname='..ifname..'&'..'hosts='.._GET["hosts"] ..'"')
+      print('d3.json("'..ntop.getHttpPrefix()..'/lua/hosts_comparison_sankey.lua?ifid='..(_ifstats.id)..'&'..'hosts='.._GET["hosts"] ..'"')
       active_sankey = "comparison"
    else
       print('d3.json("'..ntop.getHttpPrefix()..'/lua/iface_flows_sankey.lua"')

@@ -86,10 +86,10 @@ print [[">
       <div >&nbsp;</div>
       <div class="col-lg-12">
         <small>
-      <p>If you find ]] print(info["product"]) print [[ useful, please support us by making a small <A href=http://shop.ntop.org>donation</A>. Your funding will help to run and foster the development of this project. Thank you.
+      <p>If you find ]] print(info["product"]) print [[ useful, please support us by making a small <A href="http://shop.ntop.org">donation</A>. Your funding will help to run and foster the development of this project. Thank you.
           </p>
 
-      <p>]] print(info["copyright"]) print [[<br> ]] print(info["product"]) print [[ is released under <A HREF=http://www.gnu.org/copyleft/gpl.html>GPLv3</A>.</p>
+      <p>]] print(info["copyright"]) print [[<br> ]] print(info["product"]) print [[ is released under <A HREF="http://www.gnu.org/copyleft/gpl.html">GPLv3</A>.</p>
 
   	      <p class="text-muted">Hint: the default user and password are admin</p>
         </small>

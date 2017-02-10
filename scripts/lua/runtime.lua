@@ -13,11 +13,6 @@ ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/header.inc")
 active_page = "about"
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if(_GET["ntopng_license"] ~= nil) then
-   ntop.setCache('ntopng.license', _GET["ntopng_license"])
-   ntop.checkLicense()
-end
-
 info = ntop.getInfo()
 print("<hr /><h2>"..info["product"].." Runtime Status</h2>")
 
@@ -28,7 +23,7 @@ end
 
 vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then
-   ntopng_git_url = "<A HREF=https://github.com/ntop/ntopng/commit/".. vers[2] ..">"..info["version"].."</A>"
+   ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].."</A>"
 else
    ntopng_git_url = info["version"]
 end

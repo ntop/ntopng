@@ -81,7 +81,7 @@ print [[
   <div class='form-group has-feedback col-md-]] print(col_md_size) print[['>
       <label for="" class="control-label">Confirm New Password</label>
       <div class="input-group"><span class="input-group-addon"><i class="fa fa-lock"></i></span>
-        <input id="confirm_new_password_input" type="password" name="confirm_new_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
+        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="^[\w\$\\!\/\(\)=\?\^\*@_\-\u0000-\u00ff]{1,}" required>
       </div>
   </div>
 </div>
@@ -119,7 +119,7 @@ if not captive_portal_user then
   <div class='col-md-6 form-group has-feedback'>
       <label class="input-label">User Role</label>
       <div class="input-group" style="width:100%;">
-        <select id="host_role_select" name="host_role" class="form-control">
+        <select id="host_role_select" name="user_role" class="form-control">
           <option value="unprivileged">Non Privileged User</option>
           <option value="administrator">Administrator</option>
         </select>
@@ -148,7 +148,7 @@ if not captive_portal_user then
     <div class="form-group col-md-12 has-feedback">
       <label class="control-label">Allowed Networks</label>
       <div class="input-group"><span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
-        <input id="networks_input" type="text" name="networks" value="" class="form-control" required>
+        <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
       </div>
       <small>Comma separated list of networks this user can view. Example: 192.168.1.0/24,172.16.0.0/16</small>
     </div>
@@ -359,7 +359,7 @@ print[[
 <script>
 
 function reset_pwd_dialog(user) {
-      $.getJSON(']] print(ntop.getHttpPrefix()) print[[/lua/admin/get_user_info.lua?user='+user, function(data) {
+      $.getJSON(']] print(ntop.getHttpPrefix()) print[[/lua/admin/get_user_info.lua?username='+user, function(data) {
 
       $('#password_dialog_title').text(data.username);
       $('#password_dialog_username').val(data.username);
@@ -382,12 +382,14 @@ function reset_pwd_dialog(user) {
         $("#lifetime_selection_table label").removeAttr("disabled");
         $("#lifetime_selection_table input").removeAttr("disabled");
         $("#lifetime_limited").click();
-        resol_selector_set_value("#lifetime_secs", data.limited_lifetime);
+        if (typeof resol_selector_set_value === "function")
+          resol_selector_set_value("#lifetime_secs", data.limited_lifetime);
       } else {
         $("#lifetime_selection_table label").attr("disabled", "disabled");
         $("#lifetime_selection_table input").attr("disabled", "disabled");
         $("#lifetime_unlimited").click();
-        resol_selector_set_value("#lifetime_secs", 3600);
+        if (typeof resol_selector_set_value === "function")
+          resol_selector_set_value("#lifetime_secs", 3600);
       }
 
       $('#form_pref_change').show();

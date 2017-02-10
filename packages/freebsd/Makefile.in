@@ -1,0 +1,36 @@
+NTOPNG_HOME=$(PWD)/../..
+PACKAGE_HOME=$(PWD)/ntopng
+
+all:	clean ntopng
+
+ntopng: package
+
+build:
+	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
+#	 cd ${NTOPNG_HOME}; gmake geoip; cd - # decide when to do it (e.g., only on sunday)
+	 cd ${NTOPNG_HOME}; gmake -j9; cd -
+
+fetch: build
+#	build ntopng and creates a tar.gz under /usr/ports/ distfiles
+#	e.g.,  /usr/ports/distfiles/ntopng-2.5.tar.gz
+#	also populates file distinfo with proper checksum
+	cd ${PACKAGE_HOME}; make fetch;
+
+pkg-plist: build
+#	build the list of files that goes into pkg-plist
+#	the first is a dry run that generates some extra output for this reason
+#	we need to run it twice
+	cd ${PACKAGE_HOME}; make makeplist; make makeplist | grep -v /you/have/to/check/what/makeplist/gives/you > pkg-plist
+
+install: pkg-plist
+	cd ${PACKAGE_HOME}; sudo make clean; sudo make install
+
+package: install
+	cd ${PACKAGE_HOME}; sudo make package
+
+clean:
+	rm -rf configure config.log config.status autom4te.cache *~
+	cd ${PACKAGE_HOME}; sudo make clean; sudo make deinstall;
+	cd ${PACKAGE_HOME}; rm -rf distinfo pkg-plist;
+
+.PHONY: all ntopng build fetch pkg-plist install package clean

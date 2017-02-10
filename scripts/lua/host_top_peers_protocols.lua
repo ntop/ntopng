@@ -62,7 +62,7 @@ for peer,value in pairsByValues(peers, rev) do
 	        host["name"] = ntop.getResolvedAddress(hostinfo2hostkey(host))	
 	      end
 
-	      local r = {host=peer, name=host.name, url="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. hostinfo2hostkey(host) .."'>"..host.name .."</A>", l7proto=proto, l7proto_url="<A HREF="..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(host) .."&application="..proto..">"..proto.."</A>", traffic=math.log10(peers_proto[peer][proto])}
+	      local r = {host=peer, name=host.name, url="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. hostinfo2hostkey(host) .."'>"..host.name .."</A>", l7proto=proto, l7proto_url="<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(host) .."&application="..proto.."'>"..proto.."</A>", traffic=math.log10(peers_proto[peer][proto])}
 
 	      res[#res + 1] = r
 	    end

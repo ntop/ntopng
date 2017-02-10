@@ -13,7 +13,7 @@ if(haveAdminPrivileges()) then
    full_name = _POST["full_name"]
    password = _POST["password"]
    confirm_password = _POST["confirm_password"]
-   host_role = _POST["host_role"]
+   host_role = _POST["user_role"]
    networks = _POST["allowed_networks"]
    allowed_interface = _POST["allowed_interface"]
    host_pool_id = _POST["host_pool_id"]

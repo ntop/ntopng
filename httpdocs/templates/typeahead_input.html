@@ -35,8 +35,8 @@
   $('#{{typeahead.base_id}}_submit').click(function(e) {
     if ($('#{{typeahead.base_id}}_query').val() === '') {
       /* No typeahead result has been selected by the user */
-      if($('#{{typeahead.base_id}}_search_field').val() === '') {
-        /* Do not submit if also the typeahead content is empty */
+      if($('#{{typeahead.base_id}}_search_field').val() === '' || "${{typeahead.allow_partial}}" !== "true") {
+        /* Do not submit if also the typeahead content is empty or if we do not allow partial inputs */
         e.preventDefault();
       } else {
         /* Populate the search field with the user submitted values */
