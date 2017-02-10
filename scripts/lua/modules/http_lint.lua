@@ -231,7 +231,7 @@ end
 
 local function validateFlowHostsType(mode)
    local modes = {"local_only", "remote_only",
-      "local_origin_remote_target", "remote_origin_local_target"}
+      "local_origin_remote_target", "remote_origin_local_target", "all_hosts"}
 
    return validateChoice(modes, mode)
 end
