@@ -449,6 +449,10 @@ else
       print("<tr><th>BitTorrent hash</th><td colspan=4><A HREF=\"https://www.google.it/search?q="..flow["bittorrent_hash"].."\">".. flow["bittorrent_hash"].."</A></td></tr>\n")
    end
 
+   if(flow["protos.ssh.client_signature"] ~= nil) then
+      print("<tr><th>SSH Signature</th><td>Client: "..flow["protos.ssh.client_signature"].."</td><td>Server: "..flow["protos.ssh.server_signature"].."</td></tr>\n")
+   end
+
    if(flow["protos.http.last_url"] ~= nil) then
       print("<tr><th width=30% rowspan=4>HTTP</th><th>HTTP Method</th><td>"..flow["protos.http.last_method"].."</td></tr>\n")
       print("<tr><th>Server Name</th><td>")
