@@ -103,9 +103,11 @@ int main(int argc, char *argv[])
   if((prefs = new(std::nothrow) Prefs(ntop)) == NULL)   _exit(0);
 
 #ifndef WIN32
-  if((argc == 2) && (argv[1][0] != '-'))
+  if((argc >= 2) && (argv[1][0] != '-')) {
     rc = prefs->loadFromFile(argv[1]);
-  else
+    if(argc > 2)
+      rc = prefs->loadFromCLI(argc, argv);
+  } else
 #endif
     rc = prefs->loadFromCLI(argc, argv);
 
