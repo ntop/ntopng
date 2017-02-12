@@ -1,6 +1,6 @@
-Note that you need to edit third-party/LuaJIT-2.0.3/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
+Note that you need to edit third-party/LuaJIT-X.Y.Z/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
 
-pkg install git wget autoconf autoconf-wrapper automake automake-wrapper fontconfig libtool sqlite3 mysql56-client libxml2 glib gmake bash rrdtool redis pkgconf
+pkg install git wget autoconf autoconf-wrapper automake automake-wrapper fontconfig libtool sqlite3 mysql56-client libxml2 glib gmake bash rrdtool redis pkgconf flex bison sudo
 
 echo 'redis_enable="YES"' >> /etc/rc.conf
 service redis start
@@ -8,11 +8,15 @@ service redis start
 mkdir ~/build
 cd ~/build
 git clone https://github.com/ntop/nDPI.git
+git clone https://github.com/ntop/PF_RING.git
 git clone https://github.com/ntop/ntopng.git
 cd nDPI
 ./autogen.sh
 gmake
-cd ../ntopng
+cd ../PF_RING/userland
+./configure
+cd nbpf
+cd ../../../ntopng/
 ./autogen.sh
 ./configure
 gmake geoip
