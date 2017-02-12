@@ -103,6 +103,10 @@ class Flow : public GenericHashEntry {
     } dns;
 
     struct {
+      char *client_signature, *server_signature;
+    } ssh;
+
+    struct {
       char *certificate;
       FlowSSLStage cli_stage, srv_stage;
       u_int8_t hs_packets;
@@ -222,6 +226,7 @@ class Flow : public GenericHashEntry {
   void freeDPIMemory();
   bool isTiny();
   inline bool isSSL()                  { return(isProtoSSL(NDPI_PROTOCOL_SSL));  }
+  inline bool isSSH()                  { return(isProtoSSL(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()                  { return(isProtoSSL(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProtoSSL(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP()                 { return(isProtoSSL(NDPI_PROTOCOL_IP_ICMP) || isProtoSSL(NDPI_PROTOCOL_IP_ICMPV6)); }

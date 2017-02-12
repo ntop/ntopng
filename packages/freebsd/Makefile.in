@@ -6,9 +6,9 @@ all:	clean ntopng
 ntopng: package
 
 build:
-	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
+#	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
 #	 cd ${NTOPNG_HOME}; gmake geoip; cd - # decide when to do it (e.g., only on sunday)
-	 cd ${NTOPNG_HOME}; gmake -j9; cd -
+#	 cd ${NTOPNG_HOME}; gmake -j9; cd -
 
 fetch: build
 #	build ntopng and creates a tar.gz under /usr/ports/ distfiles

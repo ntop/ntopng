@@ -238,6 +238,9 @@ Flow::~Flow() {
     if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
     if(protos.dns.last_query)   free(protos.dns.last_query);
+  } else if(isSSH()) {
+    if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
+    if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
   } else if(isSSL()) {
     if(protos.ssl.certificate)  free(protos.ssl.certificate);
   }
@@ -446,6 +449,11 @@ void Flow::processDetectedProtocol() {
     }
     break;
 
+  case NDPI_PROTOCOL_SSH:
+    protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);
+    protos.ssh.server_signature = strdup(ndpiFlow->protos.ssh.server_signature);
+    break;
+    
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_SSL:
 #if 0
@@ -1402,6 +1410,11 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(isDNS() && protos.dns.last_query)
       lua_push_str_table_entry(vm, "protos.dns.last_query", protos.dns.last_query);
+
+    if(isSSH()) {
+      if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
+      if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
+    }
 
     if(isSSL() && protos.ssl.certificate)
       lua_push_str_table_entry(vm, "protos.ssl.certificate", protos.ssl.certificate);

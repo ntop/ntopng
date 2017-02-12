@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# $FreeBSD$
+#
+# PROVIDE: ntopng
+# REQUIRE: LOGIN netif redis
+# KEYWORD: shutdown
+#
+# Add these lines to /etc/rc.conf.local or /etc/rc.conf
+# to enable this service:
+#
+# ntopng_enable (bool):		Set it to "YES" to enable ntopng
+#				Default is "NO".
+#
+
+. /etc/rc.subr
+
+name="ntopng"
+desc="Realtime network traffic monitor"
+rcvar="${name}_enable"
+
+load_rc_config $name
+: ${ntopng_enable:="NO"}
+
+control_script="%%PREFIX%%/sbin/ntopng-control.sh"
+
+start_cmd="${control_script} start"
+stop_cmd="${control_script} stop"
+
+run_rc_command "$1"
