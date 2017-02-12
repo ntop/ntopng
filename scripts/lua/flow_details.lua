@@ -323,7 +323,7 @@ else
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
-     '<a href="#" data-toggle="tooltip" title="Computed as TCP Window Size / RTT">'..
+     '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" title="Computed as TCP Window Size / RTT">'..
      "Max (Estimated) TCP Throughput</a><td nowrap> Client <i class=\"fa fa-arrow-right\"></i> Server: ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
      print("</td><td> Client <i class=\"fa fa-arrow-left\"></i> Server: ")
