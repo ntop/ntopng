@@ -10,7 +10,6 @@ Prerequisites
 
 To build the freebsd package run, in this directory:
 
-autoconf
 ./configure
 make
 
