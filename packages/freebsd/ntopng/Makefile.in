@@ -27,7 +27,6 @@ LIB_DEPENDS=	librrd.so:databases/rrdtool \
 # DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME
 
 PLIST_FILES=	${PREFIX}/bin/ntopng \
-		${PREFIX}/sbin/ntopng-control.sh \
 		${PREFIX}/man/man8/ntopng.8.gz
 PLIST_DIRS=     ${DATADIR}/httpdocs/ \
 		${DATADIR}/scripts/ \
@@ -64,12 +63,6 @@ do-install:
 	    ${STAGEDIR}${PREFIX}/bin
 
 post-install:
-#	copy the bash init script and replace /usr/bin with /usr/local/bin that is the standard place
-#	for ports in freebsd
-	${INSTALL_SCRIPT} ${WRKSRC}/packages/etc/init.d/ntopng ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
-	sed -I '' -e's/\bin\/bash/\usr\/local\/bin\/bash/' ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
-	sed -I '' -e's/\usr\/bin/\usr\/local\/bin/' ${STAGEDIR}${PREFIX}/sbin/ntopng-control.sh
-
 #	install the documentation (DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME)
 	${MKDIR} ${STAGEDIR}${DOCSDIR}
 	(cd ${WRKSRC}/doc && ${COPYTREE_SHARE} . ${STAGEDIR}${DOCSDIR})

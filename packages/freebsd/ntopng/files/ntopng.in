@@ -1,5 +1,12 @@
 #!/bin/sh
 #
+# This file has been adapted from the FreeBSD Ports Collection that is:
+#   Copyright (C) 1994-2017 The FreeBSD Project. All rights reserved.
+#
+# Credits:
+#   Thanks goes to Guido Falsi <madpilot@freebsd.org> for his useful
+#   suggestions and hints.
+#
 # $FreeBSD$
 #
 # PROVIDE: ntopng
@@ -11,6 +18,29 @@
 #
 # ntopng_enable (bool):		Set it to "YES" to enable ntopng
 #				Default is "NO".
+# ntopng_flags (flags):		Set extra flags to ntopng
+#				Empty by default.
+# ntopng_pidfile (path):	Path to the pidfile
+#				Default /var/run/ntopng/ntopng.pid
+
+# ntopng_flags can be used to specify custom startup options as well as
+# to indicate the absolute path of an ntopng configuration file.
+
+# For example, valid ntopng_flags are:
+# ntopng_flags="-i vtnet0 --dns-mode 1 -w 3001 -W 3002"
+# ntopng_flags="/etc/ntopng/ntopng.conf"
+
+# To make sure the execution is consistent with what is declared
+# into the Makefile, the daemon is always run with user "ntopng".
+#
+# The pid file is always assumed to be that declared in ntopng_pidfile.
+#
+# Directories scripts/ httpdocs/ and callbacks/ are assumed
+# to be those installed by the package manager.
+#
+# Attempts to change the forementioned user, pid file, or directories
+# will not have any effect.
+#
 #
 
 . /etc/rc.subr
@@ -20,11 +50,25 @@ desc="Realtime network traffic monitor"
 rcvar="${name}_enable"
 
 load_rc_config $name
-: ${ntopng_enable:="NO"}
 
-control_script="%%PREFIX%%/sbin/ntopng-control.sh"
+: ${ntopng_enable:=NO}
+: ${ntopng_pidfile:=/var/run/ntopng/ntopng.pid}
 
-start_cmd="${control_script} start"
-stop_cmd="${control_script} stop"
+httpdocs_path=%%DATADIR%%/httpdocs
+scripts_path=%%DATADIR%%/scripts
+callbacks_path=%%DATADIR%%/scripts/callbacks
 
+start_precmd=ntopng_precmd
+command=%%PREFIX%%/bin/ntopng
+command_args="-U ntopng -G ${ntopng_pidfile} -1 ${httpdocs_path} -2 ${scripts_path} -3 ${callbacks_path} -e"
+
+ntopng_precmd()
+{
+	local rundir=${ntopng_pidfile%/*}
+	if [ ! -d $rundir ] ; then
+		install -d -m 0755 -o ntopng -g ntopng $rundir
+	fi
+}
+
+# The command is actually executed as $command $rc_flags $command_args
 run_rc_command "$1"
