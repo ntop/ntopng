@@ -1,3 +1,13 @@
+Prerequisites
+--------------
+
+1. Make sure you have installed all the dependencies
+   specified in ../../doc/README.FreeBSD
+
+2. Install/refresh ports
+   # portsnap fetch extract
+
+
 To build the freebsd package run, in this directory:
 
 autoconf
