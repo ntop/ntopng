@@ -86,9 +86,13 @@
 #include <sys/stat.h>
 #include <zmq.h>
 #include <assert.h>
-#ifdef linux
+#if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
+#elif defined(__FreeBSD)
+#include <netinet/in.h>
+#include <net/if_dl.h>
+#include <ifaddrs.h>
 #endif
 
 #ifdef __APPLE__

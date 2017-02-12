@@ -23,14 +23,14 @@ pkg-plist: build
 	cd ${PACKAGE_HOME}; make makeplist; make makeplist | grep -v /you/have/to/check/what/makeplist/gives/you > pkg-plist
 
 install: pkg-plist
-	cd ${PACKAGE_HOME}; sudo make clean; sudo make install
+	cd ${PACKAGE_HOME}; make clean; make build; sudo make install
 
 package: install
-	cd ${PACKAGE_HOME}; sudo make package
+	cd ${PACKAGE_HOME}; make package
 
 clean:
 	rm -rf configure config.log config.status autom4te.cache *~
-	cd ${PACKAGE_HOME}; sudo make clean; sudo make deinstall;
+	cd ${PACKAGE_HOME}; make clean; sudo make deinstall;
 	cd ${PACKAGE_HOME}; rm -rf distinfo pkg-plist;
 
 .PHONY: all ntopng build fetch pkg-plist install package clean
