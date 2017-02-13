@@ -1214,15 +1214,32 @@ if sites_categories ~= nil then
    -- flashstart is enabled here
    local blocked_categories = shaper_utils.getBlockedSitesCategories(ifid)
 
-   print[[<br><span style="float:left;">Flashstart Categories:</span><select title="Select a category to block it" name="sites_categories" style="width:25em; height:10em; margin-left:2em;" multiple>]]
+   print[[<br><br>
+      <b>Flashstart Categories</b><br>
+      <table>
+         <tr>
+            <td style="padding-right:1em;">Select the categories to block</td>
+            <td><select id="flashstart_to_block" title="Select a category to block it" name="sites_categories" style="width:25em; height:10em;" multiple>]]
    for cat_id, cat_name in pairs(sites_categories) do
       print[[<option value="]] print(cat_id.."") print[["]]
       if blocked_categories[cat_id] then
          print(" selected")
       end
-      print[[>]] print(cat_name) print[[</option>]]
+      print[[>]] print(firstToUpper(cat_name)) print[[</option>]]
    end
-   print [[</select>]]
+   print [[</select></td>
+   </tr>
+   <tr>
+      <td></td>
+      <td>
+         <div class="text-center" style="margin-top:0.5em;">
+            <input type="button" value="All" style="margin-right:1em;" onclick="$('#flashstart_to_block option').prop('selected', true); aysRecheckForm('#l7ProtosForm');">
+            <input type="button" value="None" onclick="$('#flashstart_to_block option').prop('selected', false); aysRecheckForm('#l7ProtosForm');">
+         </div>
+      </td>
+   </tr>
+   </table>
+   <br>]]
 end
 
    print [[<div id="table-protos"></div>
