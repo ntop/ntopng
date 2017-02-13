@@ -6018,7 +6018,8 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
       char *_equal;
 
       if(strncmp(tok, "csrf", strlen("csrf")) /* Do not put csrf into the params table */
-	 && (_equal = strchr(tok, '='))) {
+	 && (_equal = strchr(tok, '='))
+	 && (strlen(_equal) > 1)) {
 	char *decoded_buf;
         int len;
 

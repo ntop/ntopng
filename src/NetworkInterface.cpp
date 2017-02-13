@@ -2200,6 +2200,8 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id) {
   struct in6_addr a6;
   Host *h = NULL;
 
+  if(!host_ip) return(NULL);
+
   /* Check if address is invalid */
   if((inet_pton(AF_INET, (const char*)host_ip, &a4) == 0)
      && (inet_pton(AF_INET6, (const char*)host_ip, &a6) == 0)) {
