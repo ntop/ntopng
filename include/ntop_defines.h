@@ -285,6 +285,9 @@
 #define CONST_LUA_FLOW_DELETE       "flowDelete"
 #define CONST_LUA_FLOW_UPDATE       "flowUpdate"
 #define CONST_LUA_FLOW_NDPI_DETECT  "flowProtocolDetected"
+#define CONST_LUA_WEBSOCKET_INIT    "onWsInit"
+#define CONST_LUA_WEBSOCKET_READY   "onWsReady"
+#define CONST_LUA_WEBSOCKET_MESSAGE "onWsMessage"
 
 #ifdef WIN32
 #define ntop_mkdir(a, b) _mkdir(a)

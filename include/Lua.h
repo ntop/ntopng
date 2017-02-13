@@ -27,6 +27,12 @@
  * Main ntopng lua group.
  */
 
+enum lua_print_mode {
+  LUA_PRINT_MODE_HTTP,
+  LUA_PRINT_MODE_WEBSOCKET,
+  LUA_PRINT_MODE_CONSOLE
+};
+
 /* ******************************* */
 
 /** @class Lua
@@ -39,7 +45,12 @@ class Lua {
  private:
   lua_State *L; /**< The Lua state.*/
   
-  void lua_register_classes(lua_State *L, bool http_mode);
+  void lua_register_classes(lua_State *L, lua_print_mode print_mode);
+  int prepare_script_request(struct mg_connection *conn,
+             const struct mg_request_info *request_info,
+             char *script_path,
+             AddressTree *allowed_nets,
+             lua_print_mode print_mode);
 
  public:
   /**
@@ -79,6 +90,11 @@ class Lua {
 			    const struct mg_request_info *request_info, 
 			    char *script_path);
 
+  int handle_websocket_init(struct mg_connection *conn,
+          const struct mg_request_info *request_info,
+          const char *script_path, AddressTree *allowed_nets);
+  void handle_websocket_ready(const char *script_path);
+  int handle_websocket_message(const char * data, const char *script_path);
 
   void setParamsTable(lua_State* vm,
 		      const char* table_name,

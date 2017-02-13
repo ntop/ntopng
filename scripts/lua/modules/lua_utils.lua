@@ -2929,6 +2929,14 @@ function paramsPairsDecode(params, strict_mode)
    return res
 end
 
+function isWebsocketConnection()
+  if _SERVER["Upgrade"] == "websocket" then
+    return true
+  else
+    return false
+  end
+end
+
 function isCaptivePortalActive(ifstats)
   if not ntop.isEnterprise() then
     return false

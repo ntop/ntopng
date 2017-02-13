@@ -5408,6 +5408,35 @@ static int ntop_lua_http_print(lua_State* vm) {
 
 /* ****************************************** */
 
+int ntop_lua_websocket_print(lua_State* vm) {
+  struct mg_connection *conn;
+  int t;
+  char *str;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_getglobal(vm, CONST_HTTP_CONN);
+  if((conn = (struct mg_connection*)lua_touserdata(vm, lua_gettop(vm))) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "INTERNAL ERROR: null HTTP connection");
+    return(CONST_LUA_OK);
+  }
+
+  switch(t = lua_type(vm, 1)) {
+    case LUA_TSTRING:
+      str = (char*)lua_tostring(vm, 1);
+      mg_send_websocket_frame(conn, str, strlen(str));
+      break;
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
+         __FUNCTION__, t);
+      return(CONST_LUA_ERROR);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 int ntop_lua_cli_print(lua_State* vm) {
   int t;
 
@@ -5856,7 +5885,7 @@ static const luaL_Reg ntop_reg[] = {
 
 /* ****************************************** */
 
-void Lua::lua_register_classes(lua_State *L, bool http_mode) {
+void Lua::lua_register_classes(lua_State *L, lua_print_mode print_mode) {
   static const luaL_Reg _meta[] = { { NULL, NULL } };
   int i;
 
@@ -5893,11 +5922,17 @@ void Lua::lua_register_classes(lua_State *L, bool http_mode) {
     lua_setglobal(L, ntop_lua_reg[i].class_name);
   }
 
-  if(http_mode) {
-    /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */
-    lua_register(L, "print", ntop_lua_http_print);
-  } else
-    lua_register(L, "print", ntop_lua_cli_print);
+  switch(print_mode) {
+    case LUA_PRINT_MODE_CONSOLE:
+      lua_register(L, "print", ntop_lua_cli_print);
+      break;
+    case LUA_PRINT_MODE_HTTP:
+      /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */
+      lua_register(L, "print", ntop_lua_http_print);
+      break;
+    case LUA_PRINT_MODE_WEBSOCKET:
+      lua_register(L, "print", ntop_lua_websocket_print);
+  }
 
 #ifdef NTOPNG_PRO
   if(ntop->getPro()->has_valid_license()) {
@@ -5962,7 +5997,7 @@ int Lua::run_script(char *script_path) {
 
   try {
     luaL_openlibs(L); /* Load base libraries */
-    lua_register_classes(L, false); /* Load custom classes */
+    lua_register_classes(L, LUA_PRINT_MODE_CONSOLE); /* Load custom classes */
 
 #ifndef NTOPNG_PRO
     rc = luaL_dofile(L, script_path);
@@ -6200,18 +6235,56 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
 /* ****************************************** */
 
 int Lua::handle_script_request(struct mg_connection *conn,
-			       const struct mg_request_info *request_info,
-			       char *script_path) {
+             const struct mg_request_info *request_info,
+             char *script_path) {
+  /*
+   * NOTE: This variable must be defined outside the prepare_script_request context
+   * as it is passed to the Lua interpreter as lightuserdata and, as such, its
+   * scope must be preserved.
+   */
+  AddressTree allowed_nets;
+
+  int rc = prepare_script_request(conn, request_info,
+          script_path, &allowed_nets, LUA_PRINT_MODE_HTTP);
+
+  if (rc != CONST_LUA_OK)
+    return rc;
+
+#ifndef NTOPNG_PRO
+  rc = luaL_dofile(L, script_path);
+#else
+  if(ntop->getPro()->has_valid_license())
+    rc = __ntop_lua_handlefile(L, script_path, true);
+  else
+    rc = luaL_dofile(L, script_path);
+#endif
+
+  if(rc != 0) {
+    const char *err = lua_tostring(L, -1);
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
+    return(send_error(conn, 500 /* Internal server error */,
+          "Internal server error", PAGE_ERROR, script_path, err));
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+int Lua::prepare_script_request(struct mg_connection *conn,
+             const struct mg_request_info *request_info,
+             char *script_path,
+             AddressTree *allowed_nets,
+             lua_print_mode print_mode) {
   char buf[64], key[64], ifname[MAX_INTERFACE_NAME_LEN];
   char *_cookies, user[64] = { '\0' };
-  AddressTree ptree;
-  int rc;
   const char * content_type;
 
   if(!L) return(-1);
 
   luaL_openlibs(L); /* Load base libraries */
-  lua_register_classes(L, true); /* Load custom classes */
+  lua_register_classes(L, print_mode); /* Load custom classes */
 
   lua_pushlightuserdata(L, (char*)conn);
   lua_setglobal(L, CONST_HTTP_CONN);
@@ -6329,8 +6402,8 @@ int Lua::handle_script_request(struct mg_connection *conn,
     snprintf(key, sizeof(key), "ntopng.user.%s.allowed_nets", user);
     if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
        && (val[0] != '\0')) {
-      ptree.addAddresses(val);
-      lua_pushlightuserdata(L, &ptree);
+      allowed_nets->addAddresses(val);
+      lua_pushlightuserdata(L, allowed_nets);
       lua_setglobal(L, CONST_ALLOWED_NETS);
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "SET %p", ptree);
     }
@@ -6343,22 +6416,88 @@ int Lua::handle_script_request(struct mg_connection *conn,
     }
   }
 
-#ifndef NTOPNG_PRO
-  rc = luaL_dofile(L, script_path);
-#else
-  if(ntop->getPro()->has_valid_license())
-    rc = __ntop_lua_handlefile(L, script_path, true);
-  else
-    rc = luaL_dofile(L, script_path);
-#endif
+  return(CONST_LUA_OK);
+}
 
-  if(rc != 0) {
-    const char *err = lua_tostring(L, -1);
+/* ****************************************** */
+int Lua::handle_websocket_init(struct mg_connection *conn,
+          const struct mg_request_info *request_info,
+          const char *script_path, AddressTree *allowed_nets) {
+  int rc;
 
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path, err);
-    return(send_error(conn, 500 /* Internal server error */,
-		      "Internal server error", PAGE_ERROR, script_path, err));
+  if (prepare_script_request(conn, request_info, (char *)script_path,
+          allowed_nets, LUA_PRINT_MODE_WEBSOCKET) != CONST_LUA_OK)
+    return(1);
+
+  if(luaL_loadfile(L, script_path) || lua_pcall(L, 0, 0, 0)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Cannot run lua file %s: %s",
+         script_path, lua_tostring(L, -1));
+    lua_close(L);
+    L = NULL;
+    return(1);
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully interpreted %s", script_path);
+
+    /* Check for a Lua init function to call. It should return true to make the connection continue */
+    lua_getglobal(L, CONST_LUA_WEBSOCKET_INIT);
+    if (lua_isfunction(L, -1)) {
+      if((rc = lua_pcall(L, 0 /* 0 parameters */, 1 /* return value */, 0)) != 0) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s::" CONST_LUA_WEBSOCKET_INIT " [rc=%d][%s]", script_path, rc, lua_tostring(L, -1));
+        return(1);
+      }
+
+      /* Check if the init function wants to abort the connection */
+      if ((lua_isboolean(L, -1)) && (lua_toboolean(L, -1) == false)) {
+        ntop->getTrace()->traceEvent(TRACE_INFO, "Callback %s::" CONST_LUA_WEBSOCKET_INIT " abort websocket connection", script_path);
+        return(1);
+      }
+    }
+
+    return(0);
+  }
+}
+
+void Lua::handle_websocket_ready(const char *script_path) {
+  int rc;
+
+  if (! L)
+    return;
+
+  lua_settop(L, 0); /* Reset stack */
+
+  lua_getglobal(L, CONST_LUA_WEBSOCKET_READY); /* function to be called */
+
+  if (lua_isfunction(L, -1)) {
+    if ((rc = lua_pcall(L, 0 /* no parameters */, 0 /* no return value */, 0)) != 0)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s::" CONST_LUA_WEBSOCKET_READY " [rc=%d][%s]", script_path, rc, lua_tostring(L, -1));
+  }
+}
+
+int Lua::handle_websocket_message(const char * data, const char *script_path) {
+  int rc;
+
+  if (! L)
+    return(CONST_LUA_ERROR);
+
+  lua_settop(L, 0); /* Reset stack */
+
+  /* Prepare stack for call: the callback should return true to make the connection continue */
+  lua_getglobal(L, CONST_LUA_WEBSOCKET_MESSAGE); /* function to be called */
+
+  if (lua_isfunction(L, -1)) {
+    lua_pushstring(L, data);
+
+    if((rc = lua_pcall(L, 1 /* 1 parameter */, 1 /* return value */, 0)) != 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while executing %s::" CONST_LUA_WEBSOCKET_MESSAGE " [rc=%d][%s]", script_path, rc, lua_tostring(L, -1));
+      return(1);
+    }
+
+    if ((lua_isboolean(L, -1)) && (lua_toboolean(L, -1) == false)) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Callback %s::" CONST_LUA_WEBSOCKET_MESSAGE " abort websocket connection", script_path);
+      return(1);
+    }
   }
 
-  return(CONST_LUA_OK);
+  /* continue */
+  return(0);
 }

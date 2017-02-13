@@ -147,18 +147,11 @@ var prev_local   = 0;
 var prev_remote  = 0;
 var prev_epoch   = 0;
 
-var footerRefresh = function() {
-    $.ajax({
-      type: 'GET',
-	  url: ']]
-print (ntop.getHttpPrefix())
-print [[/lua/network_load.lua',
-	  data: { },
-	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]]
-print (ntop.getHttpPrefix())
-print [[/lua/logout.lua");  }, */
-	  success: function(rsp) {
-    
+var ws_network_load = new NtopngWebSocket("]] print(_SERVER["Host"]..ntop.getHttpPrefix()) print[[");
+ws_network_load.connect("network_load.lua", {iffilter:""});
+ws_network_load.poll(3000);
+
+ws_network_load.onmessage = function(rsp) {
 	  try {
 
 	    if (prev_bytes > 0) {
@@ -315,12 +308,7 @@ print [[/lua/if_stats.lua\"><i class=\"fa fa-warning\" style=\"color: #B94A48;\"
 print (ntop.getHttpPrefix())
 print [[/lua/logout.lua");  */
 	  }
-	}
-      });
-}
-
-footerRefresh();  /* call immediately to give the UI a more responsive look */
-setInterval(footerRefresh, 3000);  /* re-schedule every three seconds */
+      }
 
 //Enable tooltip without a fixer placement
 $(document).ready(function () { $("[rel='tooltip']").tooltip(); });

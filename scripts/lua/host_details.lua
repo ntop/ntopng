@@ -2326,16 +2326,11 @@ if (host ~= nil) then
    end
 
    print [[
-   var host_details_interval = window.setInterval(function() {
-   	  $.ajax({
-   		    type: 'GET',
-   		    url: ']]
-   print (ntop.getHttpPrefix())
-   print [[/lua/host_stats.lua',
-   		    data: { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ },
-   		    /* error: function(content) { alert("JSON Error: inactive host purged or ntopng terminated?"); }, */
-   		    success: function(content) {
-   			var host = jQuery.parseJSON(content);
+   var ws_host_details = new NtopngWebSocket("]] print(_SERVER["Host"]..ntop.getHttpPrefix()) print[[");
+   ws_host_details.connect("host_stats.lua", { ifid: "]] print(ifId.."")  print('", '..hostinfo2json(host_info)) print [[ });
+   ws_host_details.poll(3000);
+
+   ws_host_details.onmessage = function(host) {
                         var http = host.http;
    			$('#first_seen').html(epoch2Seen(host["seen.first"]));
    			$('#last_seen').html(epoch2Seen(host["seen.last"]));
@@ -2494,10 +2489,7 @@ if (host ~= nil) then
    			values.push(rsp.throughput_raw);
    			thptChart.text(values.join(",")).change();
    			*/
-   		     }
-   	           });
-   		 }, 3000);
-
+   }
    </script>
     ]]
 end

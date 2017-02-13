@@ -481,6 +481,44 @@ static void uri_encode(const char *src, char *dst, u_int dst_len) {
 
 /* ****************************************** */
 
+static int validate_conn_url(const char *uri) {
+  if(strstr(uri, "//")
+     || strstr(uri, "&&")
+     || strstr(uri, "??")
+     || strstr(uri, "..")
+     || strstr(uri, "\r")
+     || strstr(uri, "\n")
+     ) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] The URL %s is invalid/dangerous", uri);
+    return(1);
+  }
+
+  return(0);
+}
+
+/* ****************************************** */
+
+static bool file_found(const char *path) {
+  struct stat buf;
+  return ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+}
+
+static void get_script_path(char *url, char *path, size_t path_len, char *uri, size_t uri_len) {
+  snprintf(path, path_len, "%s%s", httpserver->get_scripts_dir(),
+          Utils::getURL(url, uri, uri_len));
+  ntop->fixPath(path);
+}
+
+static bool ntopng_is_busy() {
+  return ((ntop->getGlobals()->isShutdown())
+     //|| (strcmp(request_info->request_method, "GET"))
+     || (ntop->getRedis() == NULL /* Starting up... */)
+     || (ntop->get_HTTPserver() == NULL));
+}
+
+/* ****************************************** */
+
+/* NOTE: this is called both for HTTP and WebSocket requests */
 static int handle_lua_request(struct mg_connection *conn) {
   struct mg_request_info *request_info = mg_get_request_info(conn);
   char *crlf;
@@ -504,10 +542,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 			       (char*)mg_get_header(conn, "Referer"));
 #endif
 
-  if((ntop->getGlobals()->isShutdown())
-     //|| (strcmp(request_info->request_method, "GET"))
-     || (ntop->getRedis() == NULL /* Starting up... */)
-     || (ntop->get_HTTPserver() == NULL))
+  if(ntopng_is_busy())
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
 		      "Unexpected HTTP method or ntopng still starting up..."));
 
@@ -576,25 +611,20 @@ static int handle_lua_request(struct mg_connection *conn) {
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Username = %s", username);
 #endif
 
-  if(strstr(request_info->uri, "//")
-     || strstr(request_info->uri, "&&")
-     || strstr(request_info->uri, "??")
-     || strstr(request_info->uri, "..")
-     || strstr(request_info->uri, "\r")
-     || strstr(request_info->uri, "\n")
-     ) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[HTTP] The URL %s is invalid/dangerous",
-				 request_info->uri);
-    return(send_error(conn, 400 /* Bad Request */, request_info->uri,
-		      "The URL specified contains invalid/dangerous characters"));
-  }
+  int rc = validate_conn_url(request_info->uri);
+  if (rc != 0)
+    return send_error(conn, 400 /* Bad Request */, request_info->uri,
+          "The URL specified contains invalid/dangerous characters");
 
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
-    struct stat buf;
     bool found;
+    bool is_websocket_request = false;
+    
+    if ((mg_get_header(conn, "Upgrade") != NULL) && (strcmp(mg_get_header(conn, "Upgrade"), "websocket") == 0))
+      is_websocket_request = true;
 
     if(strstr(request_info->uri, "/lua/pro/enterprise/")
        && (!ntop->getPrefs()->is_enterprise_edition())) {
@@ -606,15 +636,18 @@ static int handle_lua_request(struct mg_connection *conn) {
       redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
       return(0);
     } else {
-      snprintf(path, sizeof(path), "%s%s", httpserver->get_scripts_dir(),
-	       Utils::getURL(len == 1 ? (char*)"/lua/index.lua" : request_info->uri,
-			     uri, sizeof(uri)));
-      
-      ntop->fixPath(path);
-      found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+      get_script_path(len == 1 ? (char*)"/lua/index.lua" : request_info->uri,
+              path, sizeof(path),
+              uri, sizeof(uri));
+      found = file_found(path);
     }
 
     if(found) {
+      if(is_websocket_request) {
+        /* The websocket will be handled by mongoose */
+        return(0);
+      }
+
       Lua *l = new Lua();
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s [%s]", request_info->uri, path);
@@ -644,6 +677,129 @@ static int handle_lua_request(struct mg_connection *conn) {
       request_info->query_string = ""; /* Discard things like ?v=4.4.0 */
       return(0); /* This is a static document so let mongoose handle it */
     }
+  }
+}
+
+/* ****************************************** */
+
+/* This structure is used to keep connection state in WebSocket connections */
+struct websocket_user_data {
+  Lua *lua;
+  AddressTree *allowed_nets;
+  char *script_path;
+};
+
+/*
+ * This is called when a new websocket connection takes place. It should either
+ * allow or abort the connection by returning a non-zero value.
+ */
+static int handle_websocket_connect(const struct mg_connection *conn) {
+  char path[255] = { 0 }, uri[2048];
+  struct mg_request_info *request_info = mg_get_request_info((struct mg_connection *) conn);
+
+  if (ntopng_is_busy())
+    return(1);
+
+  /* Note: handle_lua_request already verified that this path exists */
+  get_script_path(request_info->uri,
+            path, sizeof(path),
+            uri, sizeof(uri));
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[WebSocket] incoming connection for script %s", path);
+
+  /* Allocate structures */
+  websocket_user_data *user_data;
+  user_data = (websocket_user_data *) calloc(1, sizeof(websocket_user_data));
+  if (user_data == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "[WebSocket] Unable to allocate websocket_user_data");
+    return(1);
+  }
+  user_data->script_path = strdup(path);
+  if (user_data->script_path == NULL) {
+    free(user_data);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "[WebSocket] Unable to allocate path string");
+    return(1);
+  }
+  user_data->lua = new Lua();
+  if(user_data->lua == NULL) {
+    free(user_data->script_path);
+    free(user_data);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "[WebSocket] Unable to allocate Lua interpreter");
+    return(1);
+  }
+  user_data->allowed_nets = new AddressTree();
+
+  request_info->user_data = user_data;
+
+  if (user_data->lua->handle_websocket_init((struct mg_connection *)conn,
+          request_info,
+          user_data->script_path,
+          user_data->allowed_nets) != 0)
+    /* Close the connection */
+    return(1);
+
+  /* Keep connection open */
+  return(0);
+}
+
+/*
+ * This is called when the websocket becomes ready. Application can send data.
+ */
+static void handle_websocket_ready(struct mg_connection *conn) {
+  struct mg_request_info *request_info = mg_get_request_info(conn);
+  websocket_user_data *user_data = (websocket_user_data *)request_info->user_data;
+
+  if (ntopng_is_busy())
+    return;
+
+  user_data->lua->handle_websocket_ready(user_data->script_path);
+}
+
+/*
+ * This is called when new incoming data is available from a websocket
+ * connection.
+ * This callback can close the connection by returning a zero value.
+ */
+static int handle_websocket_data(struct mg_connection *conn, int bits, char *data, size_t data_len) {
+  int rc = 0;
+  struct mg_request_info *request_info = mg_get_request_info(conn);
+  websocket_user_data *user_data = (websocket_user_data *)request_info->user_data;
+
+  if (ntopng_is_busy())
+    return(1);
+
+  char *str_data = (char*) malloc(data_len + 1);
+
+  if (str_data != NULL) {
+    memcpy(str_data, data, data_len);
+    str_data[data_len] = '\0';
+
+    rc = user_data->lua->handle_websocket_message(str_data, user_data->script_path);
+    free(str_data);
+  }
+
+  if (rc != 0)
+    /* Close the connection */
+    return(0);
+  else
+    /* Keep connection open */
+    return(1);
+}
+
+/* NOTE: This is always called for any client connection, closed either by the server or by the client */
+void handle_end_request(const struct mg_connection *conn, int reply_status_code) {
+  struct mg_request_info *request_info = mg_get_request_info((struct mg_connection *) conn);
+
+  if (request_info->user_data != NULL) {
+    /* Free Lua interpreter */
+    websocket_user_data *user_data = (websocket_user_data *)request_info->user_data;
+    ntop->getTrace()->traceEvent(TRACE_INFO, "[WebSocket] closing connection for script %s", user_data->script_path);
+
+    delete user_data->lua;
+    free(user_data->script_path);
+    free(user_data);
+    delete user_data->allowed_nets;
+    request_info->user_data = NULL;
   }
 }
 
@@ -750,12 +906,18 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   memset(&callbacks, 0, sizeof(callbacks));
   callbacks.begin_request = handle_lua_request;
+  callbacks.websocket_connect = handle_websocket_connect;
+  callbacks.websocket_ready = handle_websocket_ready;
+  callbacks.websocket_data = handle_websocket_data;
+  callbacks.end_request = handle_end_request;
 
   /* mongoose */
   http_prefix = ntop->getPrefs()->get_http_prefix(),
     http_prefix_len = strlen(ntop->getPrefs()->get_http_prefix());
 
-  httpd_v4 = mg_start(&callbacks, NULL, (const char**)http_options);
+  httpd_v4 = mg_start(&callbacks,
+          NULL /* no user_data, we will manually set user_data for WebSocket connection */,
+          (const char**)http_options);
 
   if(httpd_v4 == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start HTTP server (IPv4) on ports %s", ports);

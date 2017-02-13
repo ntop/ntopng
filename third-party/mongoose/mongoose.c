@@ -1582,6 +1582,26 @@ static int pull(FILE *fp, struct mg_connection *conn, char *buf, int len) {
   return conn->ctx->stop_flag ? -1 : nread;
 }
 
+static int pull_all(FILE *fp, struct mg_connection *conn, char *buf, int len) {
+  int n, nread = 0;
+
+  while (len > 0 && conn->ctx->stop_flag == 0) {
+    n = pull(fp, conn, buf + nread, len);
+    if (n < 0) {
+      nread = n;  // Propagate the error
+      break;
+    } else if (n == 0) {
+      break;  // No more data to read
+    } else {
+      conn->consumed_content += n;
+      nread += n;
+      len -= n;
+    }
+  }
+
+  return nread;
+}
+
 int mg_read(struct mg_connection *conn, void *buf, size_t len) {
   int n, buffered_len, nread;
   const char *body;
@@ -3903,40 +3923,135 @@ static void send_websocket_handshake(struct mg_connection *conn) {
 	    "Sec-WebSocket-Accept: ", b64_sha, "\r\n\r\n");
 }
 
-static void read_websocket(struct mg_connection *conn) {
-  unsigned char *buf = (unsigned char *) conn->buf + conn->request_len;
-  int n, len, mask_len, body_len, discard_len;
+static int mg_send_ws_header(struct mg_connection *conn, int op, size_t len) {
+  int header_len;
+  unsigned char header[10];
 
-  for (;;) {
+  header[0] = 0x80 + (op & 0x0f);
+  if (len < 126) {
+    header[1] = (unsigned char) len;
+    header_len = 2;
+  } else if (len < 65535) {
+    uint16_t tmp = htons((uint16_t) len);
+    header[1] = 126;
+    memcpy(&header[2], &tmp, sizeof(tmp));
+    header_len = 4;
+  } else {
+    uint32_t tmp;
+    header[1] = 127;
+    tmp = htonl((uint32_t)((uint64_t) len >> 32));
+    memcpy(&header[2], &tmp, sizeof(tmp));
+    tmp = htonl((uint32_t)(len & 0xffffffff));
+    memcpy(&header[6], &tmp, sizeof(tmp));
+    header_len = 10;
+  }
+
+  return mg_write(conn, header, header_len);
+}
+
+int mg_send_websocket_frame(struct mg_connection *conn, const void *data, size_t len) {
+  mg_send_ws_header(conn, WEBSOCKET_OPCODE_TEXT, len);
+  return mg_write(conn, data, len);
+}
+
+static void read_websocket(struct mg_connection *conn) {
+  // Pointer to the beginning of the portion of the incoming websocket message
+  // queue. The original websocket upgrade request is never removed,
+  // so the queue begins after it.
+  unsigned char *buf = (unsigned char *) conn->buf + conn->request_len;
+  int bits, n, stop = 0;
+  size_t i, len, mask_len, data_len, header_len, body_len;
+  // data points to the place where the message is stored when passed to the
+  // websocket_data callback. This is either mem on the stack,
+  // or a dynamically allocated buffer if it is too large.
+  char mem[4 * 1024], mask[4], *data;
+
+  assert(conn->content_len == 0);
+
+  // Loop continuously, reading messages from the socket, invoking the callback,
+  // and waiting repeatedly until an error occurs.
+  while (!stop) {
+    header_len = 0;
+    // body_len is the length of the entire queue in bytes
+    // len is the length of the current message
+    // data_len is the length of the current message's data payload
+    // header_len is the length of the current message's header
     if ((body_len = conn->data_len - conn->request_len) >= 2) {
       len = buf[1] & 127;
       mask_len = buf[1] & 128 ? 4 : 0;
-      if (len < 126) {
-	conn->content_len = 2 + mask_len + len;
-      } else if (len == 126 && body_len >= 4) {
-	conn->content_len = 4 + mask_len + ((((int) buf[2]) << 8) + buf[3]);
-      } else if (body_len >= 10) {
-	conn->content_len = 10 + mask_len +
-	  (((uint64_t) htonl(* (uint32_t *) &buf[2])) << 32) +
-	  htonl(* (uint32_t *) &buf[6]);
+      if (len < 126 && body_len >= mask_len) {
+        data_len = len;
+        header_len = 2 + mask_len;
+      } else if (len == 126 && body_len >= 4 + mask_len) {
+        header_len = 4 + mask_len;
+        data_len = ((((int) buf[2]) << 8) + buf[3]);
+      } else if (body_len >= 10 + mask_len) {
+        header_len = 10 + mask_len;
+        data_len = (((uint64_t) htonl(* (uint32_t *) &buf[2])) << 32) +
+          htonl(* (uint32_t *) &buf[6]);
       }
     }
 
-    if (conn->content_len > 0) {
-      if (conn->ctx->callbacks.websocket_data != NULL &&
-	  conn->ctx->callbacks.websocket_data(conn) == 0) {
-	break;  // Callback signalled to exit
+    // Data layout is as follows:
+    //  conn->buf               buf
+    //     v                     v              frame1           | frame2
+    //     |---------------------|----------------|--------------|-------
+    //     |                     |<--header_len-->|<--data_len-->|
+    //     |<-conn->request_len->|<-----body_len----------->|
+    //     |<-------------------conn->data_len------------->|
+
+    if (header_len > 0) {
+      // Allocate space to hold websocket payload
+      data = mem;
+      if (data_len > sizeof(mem) && (data = (char*) malloc(data_len)) == NULL) {
+        // Allocation failed, exit the loop and then close the connection
+        // TODO: notify user about the failure
+        break;
       }
-      discard_len = conn->content_len > body_len ?
-	body_len : (int) conn->content_len;
-      memmove(buf, buf + discard_len, conn->data_len - discard_len);
-      conn->data_len -= discard_len;
-      conn->content_len = conn->consumed_content = 0;
+
+      // Save mask and bits, otherwise it may be clobbered by memmove below
+      bits = buf[0];
+      memcpy(mask, buf + header_len - mask_len, mask_len);
+
+      // Read frame payload into the allocated buffer.
+      assert(body_len >= header_len);
+      if (data_len + header_len > body_len) {
+        len = body_len - header_len;
+        memcpy(data, buf + header_len, len);
+        // TODO: handle pull error
+        pull_all(NULL, conn, data + len, data_len - len);
+        conn->data_len = conn->request_len;
+      } else {
+        len = data_len + header_len;
+        memcpy(data, buf + header_len, data_len);
+        memmove(buf, buf + len, body_len - len);
+        conn->data_len -= len;
+      }
+
+      // Apply mask if necessary
+      if (mask_len > 0) {
+        for (i = 0; i < data_len; i++) {
+          data[i] ^= mask[i % 4];
+        }
+      }
+
+      // Exit the loop if callback signalled to exit,
+      // or "connection close" opcode received.
+      if ((bits & WEBSOCKET_OPCODE_CONNECTION_CLOSE) ||
+          (conn->ctx->callbacks.websocket_data != NULL &&
+           !conn->ctx->callbacks.websocket_data(conn, bits, data, data_len))) {
+        stop = 1;
+      }
+
+      if (data != mem) {
+        free(data);
+      }
+      // Not breaking the loop, process next websocket frame.
     } else {
-      n = pull(NULL, conn, conn->buf + conn->data_len,
-	       conn->buf_size - conn->data_len);
-      if (n <= 0) {
-	break;
+      // Buffering websocket request
+      if ((n = pull(NULL, conn, conn->buf + conn->data_len,
+                    conn->buf_size - conn->data_len)) <= 0) {
+        break;
       }
       conn->data_len += n;
     }

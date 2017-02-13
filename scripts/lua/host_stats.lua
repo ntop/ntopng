@@ -10,20 +10,33 @@ require "flow_utils"
 
 local json = require ("dkjson")
 
-host_info = url2hostinfo(_GET)
+function serveRequest()
+   host_info = url2hostinfo(_GET)
 
-if((host_info ~= nil) and (host_info["host"] ~= nil)) then
-   interface.select(ifname)
-   host = interface.getHostInfo(host_info["host"], host_info["vlan"]) 
-   if(host == nil) then
+   if((host_info ~= nil) and (host_info["host"] ~= nil)) then
+      interface.select(ifname)
+      host = interface.getHostInfo(host_info["host"], host_info["vlan"]) 
+      if(host == nil) then
+         host = "{}"
+      end
+   else
       host = "{}"
    end
-else
-   host = "{}"
+
+   print(json.encode(host, { indent = true }))
+   return true
 end
 
+--------------------------------------------------------------------------------
 
-sendHTTPHeader('text/html; charset=iso-8859-1')
---sendHTTPHeader('application/json')
+function onWsMessage(message)
+   serveRequest()
+end
 
-print(json.encode(host, { indent = true }))
+--------------------------------------------------------------------------------
+
+-- This script can either be invoked as a standard HTTP request or a WebSocket request
+if not isWebsocketConnection() then
+   sendHTTPHeader('application/json; charset=iso-8859-1')
+   serveRequest()
+end
