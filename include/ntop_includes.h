@@ -89,8 +89,7 @@
 #if defined(linux)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
-#elif defined(__FreeBSD)
-#include <netinet/in.h>
+#elif defined(__FreeBSD__)
 #include <net/if_dl.h>
 #include <ifaddrs.h>
 #endif

@@ -1367,16 +1367,13 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 
 /* **************************************** */
 
-#ifdef linux
+#if defined(linux) || defined(__FreeBSD__)
 
 void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
-  int _sock, res;
-  struct ifreq ifr;
-  macstr_t mac_addr_buf;
-  char *colon, *at;
   char ifname[32];
-
-  memset (&ifr, 0, sizeof(struct ifreq));
+  char *colon, *at;
+  macstr_t mac_addr_buf;
+  int res;
 
   /* Handle PF_RING interfaces zc:ens2f1@3 */
   colon = strchr(_ifname, ':');
@@ -1388,20 +1385,48 @@ void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   if(at != NULL)
     at[0] = '\0';
 
+#ifndef __FreeBSD__
+  int _sock;
+  struct ifreq ifr;
+
+  memset (&ifr, 0, sizeof(struct ifreq));
+
   /* Dummy socket, just to make ioctls with */
   _sock = socket(PF_INET, SOCK_DGRAM, 0);
   strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
-  res = ioctl(_sock, SIOCGIFHWADDR, &ifr);
-  if(res < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr for %s", ifname);
-  } else
+
+  if((res = ioctl(_sock, SIOCGIFHWADDR, &ifr)) >= 0)
     memcpy(mac_addr, ifr.ifr_ifru.ifru_hwaddr.sa_data, 6);
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC %s",
-			       ifname,
-			       formatMac((u_int8_t *)mac_addr, mac_addr_buf, sizeof(mac_addr_buf)));
   close(_sock);
+
+#else /* defined(__FreeBSD__) */
+  struct ifaddrs *ifap, *ifaptr;
+  unsigned char *ptr;
+
+  if((res = getifaddrs(&ifap)) == 0) {
+    for(ifaptr = ifap; ifaptr != NULL; ifaptr = ifaptr->ifa_next) {
+      if (!strcmp(ifaptr->ifa_name, ifname) && (ifaptr->ifa_addr->sa_family == AF_LINK)) {
+
+	ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)ifaptr->ifa_addr);
+	memcpy(mac_addr, ptr, 6);
+
+	break;
+
+      }
+    }
+    freeifaddrs(ifap);
+  }
+#endif
+
+  if(res < 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Cannot get hw addr for %s", ifname);
+  else
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Interface %s has MAC %s",
+				 ifname,
+				 formatMac((u_int8_t *)mac_addr, mac_addr_buf, sizeof(mac_addr_buf)));
 }
+
 #else
 void Utils::readMac(char *ifname, dump_mac_t mac_addr) {
   memset(mac_addr, 0, 6);
