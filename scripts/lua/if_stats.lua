@@ -267,13 +267,13 @@ else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
 end
 
-if(isAdministrator() and (areAlertsEnabled())) then
+--[[if(isAdministrator()) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
-end
+end]]
 
 if isAdministrator() then
    if(page == "pools") then
@@ -292,11 +292,6 @@ if(ifstats.inline and isAdministrator()) then
 end
 
 local ifname_clean = "iface_"..tostring(ifid)
-
-if _POST["re_arm_minutes"] ~= nil then
-   page = "config"
-   ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean), _POST["re_arm_minutes"])
-end
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
@@ -911,54 +906,8 @@ elseif(page == "alerts") then
       "if_stats.lua", {ifid=ifid},
       if_name)
 
-elseif(page == "config") then
-local re_arm_minutes = nil
-local if_name = ifstats.name
-
-   if(isAdministrator()) then
-      trigger_alerts = _POST["trigger_alerts"]
-      if(trigger_alerts ~= nil) then
-	 if(trigger_alerts == "true") then
-	    ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), ifname_clean)
-	 else
-	    ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), ifname_clean, trigger_alerts)
-	 end
-      end
-   end
-
-   re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, ifname_clean))
-   if re_arm_minutes == "" then re_arm_minutes=default_re_arm_minutes end
-
-   print("<table class=\"table table-striped table-bordered\">\n")
-       suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), ifname_clean)
-       if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-	  alerts_checked = 'checked="checked"'
-	  alerts_value = "false" -- Opposite
-       else
-	  alerts_checked = ""
-	  alerts_value = "true" -- Opposite
-       end
-
-       print [[
-	    <tr><th>Interface Alerts</th><td nowrap>
-	    <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	 print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for interface '..if_name..'</input>')
-	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('</form>')
-	 print('</td>')
-	 print [[</tr>]]
-
-   print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-         <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
-         <td>
-            <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
-            &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-            <br><small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
-         </td>
-    </form></tr>]]
-
-    print("</table>")
+--[[elseif(page == "config") then
+   ]]
 elseif(page == "pools") then
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
 elseif(page == "filtering") then

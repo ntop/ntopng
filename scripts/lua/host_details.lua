@@ -54,35 +54,6 @@ if((host_name == nil) or (host_ip == nil)) then
    return
 end
 
-if _POST["flow_rate_alert_threshold"] ~= nil then
-   if (tonumber(_POST["flow_rate_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_POST["flow_rate_alert_threshold"] ~= "0", _POST["flow_rate_alert_threshold"], "25")
-     ntop.setCache('ntopng.prefs.'..host_name..':'..tostring(host_vlan)..'.flow_rate_alert_threshold', val)
-     interface.loadHostAlertPrefs(host_ip, host_vlan)
-   end
-end
-if _POST["syn_alert_threshold"] ~= nil then
-   if (tonumber(_POST["syn_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_POST["syn_alert_threshold"] ~= "0", _POST["syn_alert_threshold"], "10")
-     ntop.setCache('ntopng.prefs.'..host_name..':'..tostring(host_vlan)..'.syn_alert_threshold', val)
-     interface.loadHostAlertPrefs(host_ip, host_vlan)
-   end
-end
-if _POST["flows_alert_threshold"] ~= nil then
-   if (tonumber(_POST["flows_alert_threshold"]) ~= nil) then
-     page = "config"
-     val = ternary(_POST["flows_alert_threshold"] ~= "0", _POST["flows_alert_threshold"], "32768")
-     ntop.setCache('ntopng.prefs.'..host_name..':'..tostring(host_vlan)..'.flows_alert_threshold', val)
-     interface.loadHostAlertPrefs(host_ip, host_vlan)
-   end
-end
-if _POST["re_arm_minutes"] ~= nil then
-     page = "config"
-     ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, hostkey), _POST["re_arm_minutes"])
-end
-
 if(protocol_id == nil) then protocol_id = "" end
 
 
@@ -365,15 +336,13 @@ if host["localhost"] == true then
    end
 end
 
-if ((host["ip"] ~= nil) and host['localhost']) then
-   if((host["ip"] ~= nil) and (areAlertsEnabled())) then
-      if(page == "config") then
-	 print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
-      elseif interface.isPcapDumpInterface() == false then
-	 print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
-      end
+--[[if (host["ip"] ~= nil) then
+   if(page == "config") then
+      print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
+   elseif interface.isPcapDumpInterface() == false then
+      print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
-end
+end]]
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
@@ -502,7 +471,6 @@ if((page == "overview") or (page == nil)) then
    end
 
    print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">Host Pool</a>
-     <i class="fa fa-external-link"></i>
      <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
      <select name="pool" class="form-control" style="width:10em; display:inline; margin-left:1em;">]]
      for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
@@ -2000,142 +1968,8 @@ elseif(page == "alerts") then
       "host_details.lua", {ifid=ifId, host=host_ip},
       host_name, "host")
 
-elseif (page == "config") then
-   local re_arm_minutes = ""
-   
-   if(isAdministrator()) then
-      trigger_alerts = _POST["trigger_alerts"]
-      if(trigger_alerts ~= nil) then
-         if(trigger_alerts == "true") then
-	    ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), hostkey)
-	    interface.enableHostAlerts(host_ip, host_vlan)
-         else
-	    ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), hostkey, trigger_alerts)
-	    interface.disableHostAlerts(host_ip, host_vlan)
-         end
-      end
-   end
-
-   local flow_rate_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
-   local syn_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
-   local flows_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold'
-   
-   if _POST["flow_rate_alert_threshold"] ~= nil and _POST["flow_rate_alert_threshold"] ~= "" then
-      ntop.setPref(flow_rate_alert_thresh, _POST["flow_rate_alert_threshold"])
-      flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
-   else
-      local v = ntop.getPref(flow_rate_alert_thresh)
-      if v ~= nil and v ~= "" then
-	 flow_rate_alert_thresh = v
-      else
-	 flow_rate_alert_thresh = 25
-      end
-   end
-
-   if _POST["syn_alert_threshold"] ~= nil and _POST["syn_alert_threshold"] ~= "" then
-      ntop.setPref(syn_alert_thresh, _POST["syn_alert_threshold"])
-      syn_alert_thresh = _POST["syn_alert_threshold"]
-   else
-      local v = ntop.getPref(syn_alert_thresh)
-      if v ~= nil and v ~= "" then
-	 syn_alert_thresh = v
-      else
-	 syn_alert_thresh = 10
-      end
-   end
-   if _POST["flows_alert_threshold"] ~= nil and _POST["flows_alert_threshold"] ~= "" then
-      ntop.setPref(flows_alert_thresh, _POST["flows_alert_threshold"])
-      flows_alert_thresh = _POST["flows_alert_threshold"]
-   else
-      local v = ntop.getPref(flows_alert_thresh)
-      if v ~= nil and v ~= "" then
-	 flows_alert_thresh = v
-      else
-	 flows_alert_thresh = 32768
-      end
-   end
-
-   re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, hostkey))
-   if re_arm_minutes == "" then re_arm_minutes=default_re_arm_minutes end
-
-   print("<table class=\"table table-striped table-bordered\">\n")
-   print("<tr><th width=250>Host Flow Alert Threshold</th>\n")
-   print [[<td>]]
-   print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-   print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-   print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
-   print(tostring(flow_rate_alert_thresh))
-   print [["></input>
-	&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-       print("<tr><th width=250>Host SYN Alert Threshold</th>\n")
-      print [[<td>]]
-      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
-         print(tostring(syn_alert_thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-
-       print("<tr><th width=250>Host Flows Threshold</th>\n")
-      print [[<td>]]
-      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
-         print(tostring(flows_alert_thresh))
-         print [["></input>
-      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-    </form>
-<small>
-    Max number of flows over which a host is considered a flooder. Default: 32768.<br>
-</small>]]
-  print[[
-    </td></tr>
-       ]]
-    local suppressAlerts = ntop.getHashCache(get_alerts_suppressed_hash_name(ifname), hostkey)
-    if((suppressAlerts == "") or (suppressAlerts == nil) or (suppressAlerts == "true")) then
-       alerts_checked = 'checked="checked"'
-       alerts_value = "false" -- Opposite
-    else
-       alerts_checked = ""
-       alerts_value = "true" -- Opposite
-    end
-
-    print [[
-         <tr><th>Host Alerts</th><td nowrap>
-         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print[[<input type="hidden" name="tab" value="alerts_preferences">]]
-      print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for host '..host_ip..'</input>')
-      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-      print('</form>')
-      print('</td>')
-      print [[</tr>]]
-
-   print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-         <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
-         <td>
-            <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
-            &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
-            <br><small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
-         </td>
-      </form></tr>]]
-
-    print("</table>")
+--[[elseif (page == "config") then
+]]
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then

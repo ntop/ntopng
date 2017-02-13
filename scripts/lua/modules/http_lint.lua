@@ -655,10 +655,10 @@ local known_parameters = {
    ["rrd_file"]                =  validateSingleWord,            -- A path or special identifier to read an RRD file
    ["port"]                    =  validatePort,                  -- An application port
    ["ntopng_license"]          =  validateSingleWord,            -- ntopng licence string
-   ["syn_alert_threshold"]     =  validateNumber,                -- Threashold to trigger a syn alert
-   ["flows_alert_threshold"]   =  validateNumber,                --
-   ["flow_rate_alert_threshold"] =  validateNumber,              --
-   ["re_arm_minutes"]          =  validateNumber,                -- Number of minute before alert re-arm check
+   ["syn_alert_threshold"]     =  validateEmptyOr(validateNumber),                -- Threashold to trigger a syn alert
+   ["flows_alert_threshold"]   =  validateEmptyOr(validateNumber),                --
+   ["flow_rate_alert_threshold"] =  validateEmptyOr(validateNumber),              --
+   ["re_arm_minutes"]          =  validateEmptyOr(validateNumber),                -- Number of minute before alert re-arm check
    ["custom_icon"]             =  validateSingleWord,            -- A custom icon for the host
 
 -- PREFERENCES - see prefs.lua for details

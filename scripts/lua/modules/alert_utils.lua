@@ -1005,6 +1005,261 @@ end
 
 -- #################################
 
+-- This function makes a consistent abstraction on entities
+function getAlertSource(entity, entity_value, alt_name)
+   if entity == "host" then
+      local host_name
+
+      if alt_name then
+         host_name = alt_name
+      else
+         local hostInfo = hostkey2hostinfo(entity_value)
+         host_name = ntop.resolveAddress(hostInfo["host"])
+      end
+
+      return {
+         source = "host",
+         title = "Host",
+         label = "Host " .. host_name,
+         friendly_value = host_name,
+      }
+   else
+      if string.find(entity_value, "/") ~= nil then
+         local network_name
+         if alt_name then
+            network_name = alt_name
+         else
+            local hostInfo = hostkey2hostinfo(entity_value)
+            network_name = hostInfo["host"]
+         end
+
+         return {
+            source = "network",
+            title = "Network",
+            label = "Network " .. network_name,
+            friendly_value = network_name,
+         }
+      else
+         local interface_name
+         if alt_name then
+            interface_name = alt_name
+         else
+            -- TODO
+            interface_name = ""
+         end
+
+         return {
+            source = "interface",
+            title = "Interface",
+            label = "Interface " .. interface_name,
+            friendly_value = interface_name,
+         }
+      end
+   end
+end
+
+-- #################################
+
+function drawAlertSettings(alert_source, alert_val)
+   local re_arm_minutes
+   local alerts_enabled
+   local host_or_network = ((alert_source.source == "host") or (alert_source.source == "network"))
+
+   -- host specific
+   local flow_rate_alert_thresh
+   local syn_alert_thresh
+   local flows_alert_thresh
+
+   if not isAdministrator() then
+      return
+   end
+
+   -- handle settings change
+   if _POST["re_arm_minutes"] ~= nil then
+      re_arm_minutes = _POST["re_arm_minutes"]
+      ntop.setHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, alert_val), re_arm_minutes)
+   else
+      re_arm_minutes = ntop.getHashCache(get_re_arm_alerts_hash_name(), get_re_arm_alerts_hash_key(ifId, alert_val))
+   end
+   if re_arm_minutes == "" then re_arm_minutes=default_re_arm_minutes end
+
+   local trigger_alerts = _POST["trigger_alerts"]
+   if(trigger_alerts ~= nil) then
+      if(trigger_alerts == "true") then
+         ntop.delHashCache(get_alerts_suppressed_hash_name(ifname), alert_val)
+         alerts_enabled = true
+      else
+         ntop.setHashCache(get_alerts_suppressed_hash_name(ifname), alert_val, trigger_alerts)
+         alerts_enabled = false
+      end
+   else
+      if are_alerts_suppressed(alert_val, ifname) then
+         alerts_enabled = false
+      else
+         alerts_enabled = true
+      end
+   end
+
+   if alert_source.source == "host" then
+      local hostInfo = hostkey2hostinfo(alert_val)
+      local host_ip = hostInfo["host"]
+      local host_vlan = hostInfo["vlan"]
+
+      -- host needs special treatment
+      if (_POST["trigger_alerts"]) then
+         if(_POST["trigger_alerts"] == "true") then
+            interface.enableHostAlerts(host_ip, host_vlan)
+         else
+            interface.disableHostAlerts(host_ip, host_vlan)
+         end
+      end
+   end
+
+   if host_or_network then
+      local hostInfo = hostkey2hostinfo(alert_val)
+      local host_ip = hostInfo["host"]
+      local host_vlan = hostInfo["vlan"]
+
+      flow_rate_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flow_rate_alert_threshold'
+      syn_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.syn_alert_threshold'
+      flows_alert_thresh = 'ntopng.prefs.'..host_ip..':'..tostring(host_vlan)..'.flows_alert_threshold'
+
+      if _POST["flow_rate_alert_threshold"] ~= nil and _POST["flow_rate_alert_threshold"] ~= "" then
+         ntop.setPref(flow_rate_alert_thresh, _POST["flow_rate_alert_threshold"])
+         flow_rate_alert_thresh = _POST["flow_rate_alert_threshold"]
+      else
+         local v = nil
+         if _POST["flow_rate_alert_threshold"] == nil then
+            v = ntop.getPref(flow_rate_alert_thresh)
+         end
+
+         if v ~= nil and v ~= "" then
+            flow_rate_alert_thresh = v
+         else
+            flow_rate_alert_thresh = 25
+         end
+      end
+
+      if _POST["syn_alert_threshold"] ~= nil and _POST["syn_alert_threshold"] ~= "" then
+         ntop.setPref(syn_alert_thresh, _POST["syn_alert_threshold"])
+         syn_alert_thresh = _POST["syn_alert_threshold"]
+      else
+         local v = nil
+         if _POST["syn_alert_threshold"] == nil then
+            v = ntop.getPref(syn_alert_thresh)
+         end
+
+         if v ~= nil and v ~= "" then
+            syn_alert_thresh = v
+         else
+            syn_alert_thresh = 10
+         end
+      end
+      if _POST["flows_alert_threshold"] ~= nil and _POST["flows_alert_threshold"] ~= "" then
+         ntop.setPref(flows_alert_thresh, _POST["flows_alert_threshold"])
+         flows_alert_thresh = _POST["flows_alert_threshold"]
+      else
+         local v = nil
+         if _POST["flows_alert_threshold"] == nil then
+            v = ntop.getPref(flows_alert_thresh)
+         end
+
+         if v ~= nil and v ~= "" then
+            flows_alert_thresh = v
+         else
+            flows_alert_thresh = 32768
+         end
+      end
+   end
+
+   print("<table class=\"table table-striped table-bordered\">\n")
+
+   -- Source agnostic settings
+
+   local alerts_checked
+   local alerts_value
+   if alerts_enabled then
+      alerts_checked = 'checked="checked"'
+      alerts_value = "false" -- Opposite
+   else
+      alerts_checked = ""
+      alerts_value = "true" -- Opposite
+   end
+
+   print [[
+         <tr><th>]] print(alert_source.title) print[[ Alerts</th><td nowrap>
+         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print[[<input type="hidden" name="tab" value="alerts_preferences">]]
+      print('<input type="hidden" name="trigger_alerts" value="'..alerts_value..'"><input type="checkbox" value="1" '..alerts_checked..' onclick="this.form.submit();"> <i class="fa fa-exclamation-triangle fa-lg"></i> Trigger alerts for '.. alert_source.label ..'</input>')
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print('</form>')
+      print('</td>')
+      print [[</tr>]]
+
+   print[[<tr><form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+         <td style="text-align: left; white-space: nowrap;" ><b>Rearm minutes</b></td>
+         <td>
+            <input type="number" name="re_arm_minutes" min="1" value=]] print(tostring(re_arm_minutes)) print[[>
+            &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+            <br><small>The rearm is the dead time between one alert generation and the potential generation of the next alert of the same kind. </small>
+         </td>
+      </form></tr>]]
+
+   -- Source specific settings
+   if host_or_network then
+      print("<tr><th width=250>" .. alert_source.title .. " Flow Alert Threshold</th>\n")
+      print [[<td>]]
+      print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+      print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print('<input type="number" name="flow_rate_alert_threshold" placeholder="" min="0" step="1" max="100000" value="')
+      print(tostring(flow_rate_alert_thresh))
+      print [["></input>
+      &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+       </form>
+   <small>
+       Max number of new flows/sec over which a host is considered a flooder. Default: 25.<br>
+   </small>]]
+     print[[
+       </td></tr>
+          ]]
+
+          print("<tr><th width=250>" .. alert_source.title .. " SYN Alert Threshold</th>\n")
+         print [[<td>]]
+         print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         print [[<input type="number" name="syn_alert_threshold" placeholder="" min="0" step="5" max="100000" value="]]
+            print(tostring(syn_alert_thresh))
+            print [["></input>
+         &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+       </form>
+   <small>
+       Max number of sent TCP SYN packets/sec over which a host is considered a flooder. Default: 10.<br>
+   </small>]]
+     print[[
+       </td></tr>
+          ]]
+
+          print("<tr><th width=250>" .. alert_source.title .. " Flows Threshold</th>\n")
+         print [[<td>]]
+         print[[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
+         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         print [[<input type="number" name="flows_alert_threshold" placeholder="" min="0" step="1" max="100000" value="]]
+            print(tostring(flows_alert_thresh))
+            print [["></input>
+         &nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>
+       </form>
+   <small>
+       Max number of flows over which a host is considered a flooder. Default: 32768.<br>
+   </small>]]
+     print[[
+       </td></tr>
+          ]]
+   end
+
+    print("</table>")
+end
+
 function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm_msg, page_name, page_params, alt_name, show_entity)
    local num_engaged_alerts, num_past_alerts, num_flow_alerts = 0,0,0
    local tab = _GET["tab"]
@@ -1013,7 +1268,6 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
    if alert_source:match("/") then
       descr = network_alert_functions_description
    end
-   
 
    print('<ul class="nav nav-tabs">')
 
@@ -1049,12 +1303,14 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
          printTab("alert_list", "Detected Alerts", tab)
       else
-         -- if there are no alerts, we show the first alert granularity configuration page
+         -- if there are no alerts, we show the alert settings
          if(tab=="alert_list") then tab = nil end
       end
    end
 
-   if(tab == nil) then tab = alerts_granularity[1][1] end
+   if(tab == nil) then tab = "alert_settings" end
+
+   printTab("alert_settings", '<i class="fa fa-cog" aria-hidden="true"></i>&nbsp;General Settings', tab)
 
    for _,e in pairs(alerts_granularity) do
       local k = e[1]
@@ -1067,6 +1323,8 @@ function drawAlertSourceSettings(alert_source, delete_button_msg, delete_confirm
 
    if((show_entity) and (tab == "alert_list")) then
       drawAlertTables(num_past_alerts, num_engaged_alerts, num_flow_alerts, _GET, true)
+   elseif(tab == "alert_settings") then
+      drawAlertSettings(getAlertSource(show_entity, alert_source, alt_name), alert_source)
    else
       -- Before doing anything we need to check if we need to save values
 
@@ -1395,13 +1653,7 @@ function getCurrentStatus() {
 	 print(drawDropdown(t["status"], "severity", a_severity, alert_severities))
       elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	 if entity == "host" then
-	    local host_ip = _GET["entity_val"]
-	    local sp = split(host_ip, "@")
-	    if #sp == 2 then
-	       host_ip = ntop.resolveAddress(sp[1])
-	    end
-	    
-	    title = title .. " - Host " .. host_ip
+	    title = title .. " - " .. getAlertSource(entity, _GET["entity_val"]).label
 	 end
       end
 
