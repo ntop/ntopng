@@ -1,6 +1,6 @@
 Note that you need to edit third-party/LuaJIT-X.Y.Z/src/Makefile and change "CC= gcc" into "CC= cc" prior to start the compilation.
 
-pkg install git wget autoconf autoconf-wrapper automake automake-wrapper fontconfig libtool sqlite3 mysql56-client libxml2 glib gmake bash rrdtool redis pkgconf flex bison sudo
+pkg install git wget autoconf autoconf-wrapper automake automake-wrapper fontconfig libtool sqlite3 mysql56-client libxml2 glib gmake bash rrdtool redis pkgconf flex bison sudo GeoIP
 
 echo 'redis_enable="YES"' >> /etc/rc.conf
 service redis start

@@ -1,14 +1,19 @@
 NTOPNG_HOME=$(PWD)/../..
+
 PACKAGE_HOME=$(PWD)/ntopng
 
 all:	clean ntopng
+
+# ########################################################################
+# Rules to build ntopng-data package
+# ########################################################################
 
 ntopng: package
 
 build:
 	sudo mkdir -p /usr/ports/distfiles
 	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
-#	 cd ${NTOPNG_HOME}; gmake geoip; cd - # decide when to do it (e.g., only on sunday)
+#	 cd ${NTOPNG_HOME}; gmake geoip; cd - # GeoIP data is handled with package GeoIP
 	 cd ${NTOPNG_HOME}; gmake; cd -
 
 fetch: build
@@ -22,10 +27,12 @@ pkg-plist: build
 #	the first is a dry run that generates some extra output for this reason
 #	we need to run it twice
 #	Note: files listed in package Makefile PLIST_FILES are excluded
-#	to avoid pkg-static: duplicate file listing: errors
+#	to avoid pkg-static: duplicate file listing: errors.
+#	Also the GeoIp data is excluded as it is part of ntopng-data package
 	cd ${PACKAGE_HOME}; make makeplist; make makeplist \
 	| grep -v /you/have/to/check/what/makeplist/gives/you \
-	| grep -v bin/ntopng | grep -v etc/rc.d/ntopng | grep -v man/man8/ntopng.8.gz > pkg-plist
+	| grep -v bin/ntopng | grep -v etc/rc.d/ntopng | grep -v man/man8/ntopng.8.gz \
+	| grep -v httpdocs/geoip/* > pkg-plist
 
 install: pkg-plist
 	cd ${PACKAGE_HOME}; make clean; make build; sudo make install
