@@ -195,10 +195,6 @@ if(filter_url_params.network ~= nil) then
 
    print('<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fa fa-area-chart fa-lg\"></i></A>')
    print('\' ],')
-elseif ((filter_url_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID)) then
-   print('buttons: [ \'')
-   print('<A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A>')
-   print('\' ],')
 else
    local hosts_filter_params = table.clone(filter_url_params)
 
@@ -215,7 +211,22 @@ else
    hosts_filter_params.mode = "remote"
    print (getPageUrl(hosts_filter_params))
    print ('">Remote Hosts Only</a></li>')
-   print("</ul></div>' ],")
+
+   -- Host pools
+   hosts_filter_params.mode = nil
+   print('<li role="separator" class="divider"></li>')
+   for _, pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
+      hosts_filter_params.pool = pool.id
+      print('<li><a href="'..getPageUrl(hosts_filter_params)..'">Host Pool '..(pool.name)..'</li>')
+   end
+   local more_buttons
+   if (filter_url_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
+      more_buttons = '<A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fa fa-users fa-lg\"></i></A>'
+   else
+      more_buttons = ''
+   end
+
+   print('</ul>'..more_buttons..'</div>\' ],')
 end
 
 print [[
