@@ -49,7 +49,6 @@ pre-fetch:
 #	 cd ${NTOPNG_HOME}; gmake -j9; cd -
 	cd ${NTOPNG_HOME}../ntopng/; sudo tar cfvzh ${DISTDIR}/${DISTNAME}.tar.gz \
 	ntopng \
-	packages/etc/init.d/ntopng \
 	ntopng.8 doc/ \
 	scripts/ httpdocs/ pro/scripts/ pro/httpdocs/ \
 	COPYING

@@ -21,7 +21,11 @@ pkg-plist: build
 #	build the list of files that goes into pkg-plist
 #	the first is a dry run that generates some extra output for this reason
 #	we need to run it twice
-	cd ${PACKAGE_HOME}; make makeplist; make makeplist | grep -v /you/have/to/check/what/makeplist/gives/you > pkg-plist
+#	Note: files listed in package Makefile PLIST_FILES are excluded
+#	to avoid pkg-static: duplicate file listing: errors
+	cd ${PACKAGE_HOME}; make makeplist; make makeplist \
+	| grep -v /you/have/to/check/what/makeplist/gives/you \
+	| grep -v bin/ntopng | grep -v etc/rc.d/ntopng | grep -v man/man8/ntopng.8.gz > pkg-plist
 
 install: pkg-plist
 	cd ${PACKAGE_HOME}; make clean; make build; sudo make install
@@ -30,7 +34,7 @@ package: install
 	cd ${PACKAGE_HOME}; make package
 
 clean:
-	rm -rf configure config.log config.status autom4te.cache *~
+	rm -rf config.log config.status autom4te.cache *~ \#*
 	cd ${PACKAGE_HOME}; sudo make clean; sudo make deinstall;
 	cd ${PACKAGE_HOME}; rm -rf distinfo pkg-plist;
 
