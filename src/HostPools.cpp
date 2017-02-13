@@ -261,7 +261,7 @@ void HostPools::loadFromRedis() {
   for (int i = 1 /*exclude default*/; i<MAX_NUM_HOST_POOLS; i++) {
     if(stats[i]) {
       snprintf(buf, sizeof(buf), "%d", i);
-      if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) != 1) {
+      if (redis->hashGet(key, buf, value, POOL_MAX_SERIALIZED_LEN) == 0) {
 	if((obj = json_tokener_parse_verbose(value, &jerr)) == NULL) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] key: %s: %s",
 		  json_tokener_error_desc(jerr),
