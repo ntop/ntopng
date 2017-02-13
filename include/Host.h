@@ -34,7 +34,7 @@ typedef struct {
 class Host : public GenericHost {
  private:
   u_int32_t asn;
-  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12];
+  char *symbolic_name, *country, *city, *asname, os[16], trafficCategory[12], *info;
   FrequentStringItems *top_sites;
   char * old_sites;
   bool blacklisted_host, drop_all_host_traffic, dump_host_traffic, dhcpUpdated;
@@ -144,7 +144,7 @@ class Host : public GenericHost {
 	   bool exclude_deserialized_bytes);
   void resolveHostName();
   void setName(char *name);
-  void set_host_label(char *label_name);
+  void set_host_label(char *label_name, bool ignoreIfPresent);
   inline int compare(Host *h) { return(ip.compare(&h->ip)); };
   inline bool equal(IpAddress *_ip)  { return(_ip && ip.equal(_ip)); };
   void incStats(u_int8_t l4_proto, u_int ndpi_proto,
@@ -196,6 +196,8 @@ class Host : public GenericHost {
   inline void incIngressNetworkStats(int16_t networkId, u_int64_t num_bytes) { if(networkStats) networkStats->incIngress(num_bytes); };
   inline void incEgressNetworkStats(int16_t networkId, u_int64_t num_bytes)  { if(networkStats) networkStats->incEgress(num_bytes);  };
   inline void incInnerNetworkStats(int16_t networkId, u_int64_t num_bytes)   { if(networkStats) networkStats->incInner(num_bytes);   };
+  inline void setInfo(char *s) { if(info) free(info); info = strdup(s); }
+  inline char* getInfo()       { return(info); }
   void incrVisitedWebSite(char *hostname);
   const UserActivityCounter * getActivityBytes(UserActivityID id);
   void incActivityBytes(UserActivityID id, u_int64_t upbytes, u_int64_t downbytes, u_int64_t bgbytes);
@@ -206,6 +208,7 @@ class Host : public GenericHost {
   inline u_int32_t getNumIncomingFlows()  { return(num_active_flows_as_server); }
   inline u_int32_t getNumActiveFlows()    { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   static void splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id);
+  void setMDSNInfo(char *str);
 };
 
 #endif /* _HOST_H_ */

@@ -80,18 +80,23 @@ Host::~Host() {
   if(categoryStats)   delete categoryStats;
   if(syn_flood_attacker_alert) delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)   delete syn_flood_victim_alert;
-  if(m) delete m;
+  if(m)               delete m;
   if(top_sites)       delete top_sites;
   if(old_sites)       free(old_sites);
+  if(info)            free(info);
 }
 
 /* *************************************** */
 
-void Host::set_host_label(char *label_name) {
+void Host::set_host_label(char *label_name, bool ignoreIfPresent) {
   if(label_name) {
-    char buf[64], *host = ip.print(buf, sizeof(buf));
+    char buf[64], buf1[64], *host = ip.print(buf, sizeof(buf));
 
-    ntop->getRedis()->hashSet((char*)HOST_LABEL_NAMES, host, label_name);
+    if(ignoreIfPresent
+       && (!ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, buf, buf1, (u_int)sizeof(buf1))))
+      return;
+    else
+      ntop->getRedis()->hashSet((char*)HOST_LABEL_NAMES, host, label_name);
   }
 }
 
@@ -131,7 +136,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   max_new_flows_sec_threshold = CONST_MAX_NEW_FLOWS_SECOND;
   max_num_syn_sec_threshold = CONST_MAX_NUM_SYN_PER_SECOND;
   max_num_active_flows = CONST_MAX_NUM_HOST_ACTIVE_FLOWS, good_low_flow_detected = false;
-  networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0;
+  networkStats = NULL, local_network_id = -1, nextResolveAttempt = 0, info = NULL;
   syn_flood_attacker_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   syn_flood_victim_alert = new AlertCounter(max_num_syn_sec_threshold, CONST_MAX_THRESHOLD_CROSS_DURATION);
   flow_flood_attacker_alert = flow_flood_victim_alert = false;
@@ -482,6 +487,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   if(host_details) {
     lua_push_str_table_entry(vm, "deviceIP", Utils::intoaV4(deviceIP, buf, sizeof(buf)));
     lua_push_int_table_entry(vm, "deviceIfIdx", deviceIfIdx);
+    if(info) lua_push_str_table_entry(vm, "info", info);
     lua_push_float_table_entry(vm, "latitude", latitude);
     lua_push_float_table_entry(vm, "longitude", longitude);
     lua_push_str_table_entry(vm, "city", city ? city : (char*)"");
@@ -1606,4 +1612,28 @@ void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16
   size = min(bufsize, (int)(vlan_ptr - at_sign_str + 1));
   strncpy(buf, at_sign_str, size);
   buf[size-1] = '\0';
+}
+
+/* *************************************** */
+
+void Host::setMDSNInfo(char *str) {
+  const char *tokens[] = {
+    "._http._tcp.local",
+    "._sftp-ssh._tcp.local",
+    "._smb._tcp.local",
+    NULL
+  };
+  
+  if(strstr(str, ".ip6.arpa")) return; /* Ingnored for the time being */
+
+  for(int i=0; tokens[i] != NULL; i++) {
+    if(strstr(str, tokens[i])) {
+      str[strlen(str)-strlen(tokens[i])] = '\0';
+      setInfo(str);
+
+      set_host_label(info, true);
+      return;
+    }
+  }
+  
 }

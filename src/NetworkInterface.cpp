@@ -192,7 +192,12 @@ NetworkInterface::NetworkInterface(const char *name,
     A bit aggressive but as people usually
     ignore warnings let's be proactive
   */
-  if(ifname && (!isViewInterface) && ((!strstr(ifname, ":")) && strncmp(ifname, "lo", 2))) {
+  if(ifname
+     && (!isViewInterface)
+     && (!strstr(ifname, ":"))
+     && (!strstr(ifname, ".pcap"))
+     && strncmp(ifname, "lo", 2)
+     ) {
     char buf[64];
     
     snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off", ifname);

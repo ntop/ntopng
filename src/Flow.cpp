@@ -401,6 +401,11 @@ void Flow::processDetectedProtocol() {
     }
     break;
 
+  case NDPI_PROTOCOL_MDNS:
+    if(ndpiFlow->protos.mdns.answer && cli_host)
+      cli_host->setMDSNInfo(ndpiFlow->protos.mdns.answer);
+    break;
+    
   case NDPI_PROTOCOL_DNS:
     if(ndpiFlow->host_server_name[0] != '\0') {
       if(protos.dns.last_query) free(protos.dns.last_query);
@@ -444,7 +449,7 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_NETBIOS:
     if(ndpiFlow->host_server_name[0] != '\0') {
-      get_cli_host()->set_host_label((char*)ndpiFlow->host_server_name);
+      get_cli_host()->set_host_label((char*)ndpiFlow->host_server_name, false);
       protocol_processed = true;
     }
     break;
