@@ -28,11 +28,7 @@ LIB_DEPENDS=	librrd.so:databases/rrdtool \
 # DOCSDIR gets expanded to PREFIX/share/doc/PORTNAME
 
 PLIST_FILES=	${PREFIX}/bin/ntopng \
-		${PREFIX}/man/man8/ntopng.8.gz \
-		${DATADIR}/httpdocs/geoip/GeoLiteCityv6.dat \
-		${DATADIR}/httpdocs/geoip/GeoIPASNumv6.dat \
-		${DATADIR}/httpdocs/geoip/GeoLiteCity.dat \
-		${DATADIR}/httpdocs/geoip/GeoIPASNum.dat
+		${PREFIX}/man/man8/ntopng.8.gz
 PLIST_DIRS=     ${DATADIR}/httpdocs/ \
 		${DATADIR}/scripts/ \
 		${DATADIR}/pro/httpdocs/ \
@@ -93,10 +89,10 @@ post-install:
 #	make symlinks for geo data
 #	first, download GeoIP .dat files using the geoipupdate.sh script provided by package GeoIP
 #	download is performed only if at least file GeoLiteCity.dat doesn't exists
-	[ -f ${GEO_PREFIX}/share/GeoIP/GeoLiteCity.dat ] || sudo GEOIP_FETCH_CITY=1 GEOIP_FETCH_ASN=1 geoipupdate.sh
+#	[ -f ${GEO_PREFIX}/share/GeoIP/GeoLiteCity.dat ] || sudo GEOIP_FETCH_CITY=1 GEOIP_FETCH_ASN=1 geoipupdate.sh
 #	second, symlink downloaded files so ntopng can use them
-	${MKDIR} ${STAGEDIR}${DATADIR}/httpdocs/geoip
-	cd ${STAGEDIR}${DATADIR}/httpdocs/geoip; rm -rf *.dat; ln -s ${GEO_PREFIX}/share/GeoIP/Geo*.dat .; cd -
+#	${MKDIR} ${STAGEDIR}${DATADIR}/httpdocs/geoip
+#	cd ${STAGEDIR}${DATADIR}/httpdocs/geoip; rm -rf *.dat; ln -s ${GEO_PREFIX}/share/GeoIP/Geo*.dat .; cd -
 
 	${MKDIR} ${STAGEDIR}${DATADIR}/pro/httpdocs
 	(cd ${WRKSRC}/pro/httpdocs && ${COPYTREE_SHARE} . ${STAGEDIR}${DATADIR}/pro/httpdocs)

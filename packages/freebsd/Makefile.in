@@ -12,9 +12,12 @@ ntopng: package
 
 build:
 	sudo mkdir -p /usr/ports/distfiles
-	 cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
-#	 cd ${NTOPNG_HOME}; gmake geoip; cd - # GeoIP data is handled with package GeoIP
-	 cd ${NTOPNG_HOME}; gmake; cd -
+	cd ${NTOPNG_HOME}; ./autogen.sh; ./configure; cd -
+#	rebuild Geolocation data only if it is older than a week (3600 * 24 * 7 = 604800 seconds)
+#	-amin -600000 means the difference between the time of last change of file
+#	and the time find was started is less than 6000000 seconds
+	cd ${NTOPNG_HOME}; find httpdocs/geoip/ -type f -name "*.dat" -amin -600000 | egrep '.*' || gmake geoip
+	cd ${NTOPNG_HOME}; gmake; cd -
 
 fetch: build
 #	build ntopng and creates a tar.gz under /usr/ports/ distfiles
@@ -32,7 +35,7 @@ pkg-plist: build
 	cd ${PACKAGE_HOME}; make makeplist; make makeplist \
 	| grep -v /you/have/to/check/what/makeplist/gives/you \
 	| grep -v bin/ntopng | grep -v etc/rc.d/ntopng | grep -v man/man8/ntopng.8.gz \
-	| grep -v httpdocs/geoip/* > pkg-plist
+	> pkg-plist
 
 install: pkg-plist
 	cd ${PACKAGE_HOME}; make clean; make build; sudo make install
