@@ -1899,7 +1899,7 @@ elseif (page == "config") then
                <input type="hidden" name="dump_traffic" value="]] print(dump_traffic_value) print[[">
                <input type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
                   <i class="fa fa-hdd-o fa-lg"></i>
-                  <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname)) print[[&page=packetdump&]] print(hostinfo2url(host_info)) print[[">Dump Traffic</a>
+                  <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname).."") print[[&page=packetdump">Dump Traffic</a>
                </input>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
             </form>
