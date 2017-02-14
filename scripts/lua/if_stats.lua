@@ -41,7 +41,7 @@ function inline_input_form(name, placeholder, tooltip, value, can_edit, input_op
    if(can_edit) then
       print('<input style="width:12em;" title="'..tooltip..'" '..(input_opts or "")..' class="form-control '..(input_clss or "")..'" name="'..name..'" placeholder="'..placeholder..'" value="')
       if(value ~= nil) then print(value) end
-      print[["></input>&nbsp;<button type="submit" style="position: absolute; margin-top: 0; height: 26px" class="btn btn-default btn-xs">Save</button>]]
+      print[[">&nbsp;</input>&nbsp;<button type="submit" class="btn btn-default btn">Save</button>]]
    else
       if(value ~= nil) then print(value) end
    end
@@ -267,13 +267,13 @@ else
       print("\n<li><a href=\"#\" title=\""..i18n('enterpriseOnly').."\"><i class='fa fa-file-text report-icon'></i></A></li>\n")
 end
 
---[[if(isAdministrator()) then
+if(isAdministrator()) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
-end]]
+end
 
 if isAdministrator() then
    if(page == "pools") then
@@ -336,48 +336,29 @@ if((page == "overview") or (page == nil)) then
    local is_bridge_iface = (ifstats["bridge.device_a"] ~= nil) and (ifstats["bridge.device_b"] ~= nil)
 
    if not is_bridge_iface then
-      print('<tr><th width="250">Name</th><td colspan="2">' .. ifstats.name..'</td>\n')
+      local label = getInterfaceNameAlias(ifstats.name)
+      local s
+      if ((not isEmptyString(label)) and (label ~= ifstats.name)) then
+         s = label .. " (" .. ifstats.name .. ")"
+      else
+         s = ifstats.name
+      end
+      print('<tr><th width="250">Name</th><td colspan="2">' .. s ..'</td>\n')
    else
-      print("<tr><th>Bridge</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"> "..ifstats["bridge.device_b"].."</td>")
+      print("<tr><th>Bridge</th><td colspan=2>"..ifstats["bridge.device_a"].." <i class=\"fa fa-arrows-h\"></i> "..ifstats["bridge.device_b"].."</td>")
    end
 
-   if not interface.isPcapDumpInterface() then
-      if((ifstats.name ~= nil) and (ifstats.name ~= "dummy")) then
-          print('<th>Custom Name</th><td colspan="3">')
-          label = getInterfaceNameAlias(ifstats.name)
-          inline_input_form("custom_name", "Custom Name",
-         "Specify an alias for the interface",
-         label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9 ]*$"')
-          print("</td></tr>\n")
-      else
-         print("<td colspan=2></td></tr>")
-      end
+   print("<th>Family</th><td colspan=2>")
+   print(ifstats.type)
+   if(ifstats.inline) then
+      print(" In-Path Interface (Bump in the Wire)")
    end
+   print("</tr>")
 
    if not is_bridge_iface then
-      if is_physical_iface then
-         local speed_key = 'ntopng.prefs.'..ifname..'.speed'
-         local speed = ntop.getCache(speed_key)
-         if speed == nil or speed == "" or tonumber(speed) == nil then
-            speed = ifstats.speed
-         end
-         print("<tr><th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
-
-         if interface.isPacketInterface() then
-            print("</td><th>Scaling Factor</th><td colspan=3>")
-            local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
-            if((label == nil) or (label == "")) then label = "1" end
-               inline_input_form("scaling_factor", "Scaling Factor",
-               "This should match your capture interface sampling rate",
-               label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
-            end
-
-            print("</td></tr>\n")
-         end
-      end
-
       if(ifstats.ip_addresses ~= "") then
          tokens = split(ifstats.ip_addresses, ",")
+      end
 
       if(tokens ~= nil) then
          print("<tr><th width=250>IP Address</th><td colspan=5>")
@@ -400,17 +381,20 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   print("<tr><th>Family </th><td colspan=2>")
-
-   print(ifstats.type)
-   if(ifstats.inline) then
-      print(" In-Path Interface (Bump in the Wire)")
-   end
-
    if is_physical_iface then
-      print("<th>MTU</th><td colspan=3  nowrap>"..ifstats.mtu.." bytes</td></tr>\n")
-   else
-      print("<td colspan=4></td>")
+      print("<tr>")
+      print("<th>MTU</th><td colspan=2  nowrap>"..ifstats.mtu.." bytes</td>\n")
+      if (not is_bridge_iface) then
+         local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+         local speed = ntop.getCache(speed_key)
+         if (tonumber(speed) == nil) then
+            speed = ifstats.speed
+         end
+         print("<th width=250>Speed</th><td colspan=2>" .. maxRateToString(speed*1000) .. "</td>")
+      else
+         print("<td colspan=3></td></tr>")
+      end
+      print("</tr>")
    end
 
    if(ifstats["pkt_dumper"] ~= nil) then
@@ -906,8 +890,52 @@ elseif(page == "alerts") then
       "if_stats.lua", {ifid=ifid},
       if_name)
 
---[[elseif(page == "config") then
-   ]]
+elseif(page == "config") then
+
+   if(not isAdministrator()) then
+      return
+   end
+
+   print[[
+   <table class="table table-bordered table-striped">]]
+
+   -- Custom name
+   if ((not interface.isPcapDumpInterface()) and
+       (ifstats.name ~= nil) and
+       (ifstats.name ~= "dummy")) then
+      print[[
+      <tr>
+         <th>Custom Name</th>
+         <td>]]
+      local label = getInterfaceNameAlias(ifstats.name)
+      inline_input_form("custom_name", "Custom Name",
+         "Specify an alias for the interface",
+         label, isAdministrator(), 'autocorrect="off" spellcheck="false" pattern="^[_\\-a-zA-Z0-9 ]*$"')
+      print[[
+         </td>
+      </tr>]]
+   end
+
+   -- Scaling factor
+   if interface.isPacketInterface() then
+      local label = ntop.getCache(getRedisIfacePrefix(ifid)..".scaling_factor")
+      if((label == nil) or (label == "")) then label = "1" end
+
+      print[[
+      <tr>
+         <th>Scaling Factor</th>
+         <td>]]
+      inline_input_form("scaling_factor", "Scaling Factor",
+         "This should match your capture interface sampling rate",
+         label, isAdministrator(), 'type="number" min="1" step="1"', 'no-spinner')
+      print[[
+         </td>
+      </tr>]]
+   end
+
+   print[[
+   </table>]]
+
 elseif(page == "pools") then
     dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
 elseif(page == "filtering") then
