@@ -45,6 +45,7 @@ family = nil
 prefs = ntop.getPrefs()
 
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
+local labelKey = host_info["host"].."@"..host_info["vlan"]
 
 if((host_name == nil) or (host_ip == nil)) then
    sendHTTPHeader('text/html; charset=iso-8859-1')
@@ -72,6 +73,21 @@ if((host == nil) and ((_POST["mode"] == "restore") or (page == "historical"))) t
 end
 
 only_historical = false
+
+local host_pool_id
+if (isAdministrator() and (_POST["pool"] ~= nil)) then
+   host_pool_id = _POST["pool"]
+   local prev_pool = tostring(host["host_pool_id"])
+
+   if host_pool_id ~= prev_pool then
+      local key = host2member(host["ip"], host["vlan"])
+      host_pools_utils.deletePoolMember(ifId, prev_pool, key)
+      host_pools_utils.addPoolMember(ifId, host_pool_id, key)
+      interface.reloadHostPools()
+   end
+else
+  host_pool_id = tostring(host["host_pool_id"])
+end
 
 if(host == nil) then
    if (rrd_exists(host_ip, "bytes.rrd") and always_show_hist == "true") then
@@ -336,13 +352,13 @@ if host["localhost"] == true then
    end
 end
 
---[[if (host["ip"] ~= nil) then
+if ((isAdministrator()) and (host["ip"] ~= nil)) then
    if(page == "config") then
       print("\n<li class=\"active\"><a href=\"#\"><i class=\"fa fa-cog fa-lg\"></i></a></li>\n")
    elseif interface.isPcapDumpInterface() == false then
       print("\n<li><a href=\""..url.."&page=config\"><i class=\"fa fa-cog fa-lg\"></i></a></li>")
    end
-end]]
+end
 
 print [[
 <li><a href="javascript:history.go(-1)"><i class='fa fa-reply'></i></a></li>
@@ -364,37 +380,7 @@ if((page == "overview") or (page == nil)) then
 	       print("<tr><th width=35%>Traffic Dump</th><td colspan=2>")
 	    end
        end
-
-      if(host["localhost"] == true and is_packetdump_enabled) then
-	 dump_status = host["dump_host_traffic"]
-
-	 if(_POST["dump_traffic"] ~= nil) then
-	    if(_POST["dump_traffic"] == "true") then
-	       dump_status = true
-	    else
-	       dump_status = false
-	    end
-	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
-	    interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
-	 end
-
-	 if(dump_status) then
-	    dump_traffic_checked = 'checked="checked"'
-	    dump_traffic_value = "false" -- Opposite
-	 else
-	    dump_traffic_checked = ""
-	    dump_traffic_value = "true" -- Opposite
-	 end
-
-	 if(isAdministrator()) then
-	 print [[
-<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	 print('<input type="hidden" name="dump_traffic" value="'..dump_traffic_value..'"><input type="checkbox" value="1" '..dump_traffic_checked..' onclick="this.form.submit();"> <i class="fa fa-hdd-o fa-lg"></i> <a href="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid='..getInterfaceId(ifname)..'&page=packetdump&'..hostinfo2url(host_info)..'">Dump Traffic</a> </input>')
-	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('</form>')
-	 end
-	 print('</td></tr>')
-      end
+   print('</td></tr>')
 
       if((host["mac"] ~= "") and (info["version.enterprise_edition"])) then
 	 local ports = find_mac_snmp_ports(host["mac"])
@@ -428,6 +414,9 @@ if((page == "overview") or (page == nil)) then
       if(host["local_network_name"] ~= nil) then
 	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A> ]")
       end
+
+      print[[&nbsp;&nbsp;<span>Host Pool <a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+      print("</td>")
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
@@ -438,54 +427,7 @@ if((page == "overview") or (page == nil)) then
       print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
    end
 
-   drop_host_traffic = _POST["drop_host_traffic"]
-   host_key = hostinfo2hostkey(host_info)
-   if(drop_host_traffic ~= nil) then
-      if(drop_host_traffic == "false") then
-	 ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
-      else
-	 ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, drop_host_traffic)
-      end
-
-      interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
-   else
-      drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-      if(drop_host_traffic == nil) then drop_host_traffic = "false" end
-   end
-
-   print('</td><td>')
-
-   local host_pool_id
-   if _POST["pool"] ~= nil then
-     host_pool_id = _POST["pool"]
-     local prev_pool = tostring(host["host_pool_id"])
-
-     if host_pool_id ~= prev_pool then
-       local key = host2member(host["ip"], host["vlan"])
-       host_pools_utils.deletePoolMember(ifId, prev_pool, key)
-       host_pools_utils.addPoolMember(ifId, host_pool_id, key)
-       interface.reloadHostPools()
-     end
-   else
-     host_pool_id = tostring(host["host_pool_id"])
-   end
-
-   print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">Host Pool</a>
-     <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
-     <select name="pool" class="form-control" style="width:10em; display:inline; margin-left:1em;">]]
-     for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
-       print[[<option value="]] print(pool.id) print[["]]
-       if pool.id == host_pool_id then
-         print[[ selected]]
-       end
-       print[[>]] print(pool.name) print[[</option>]]
-     end
-   print[[</select>]]
-   print[[&nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]
-   print[[<input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-   print [[</form>]]
-
-   print("</td></tr>")
+   print('</td><td></td></tr>')
 
    if(ifstats.vlan and (host["vlan"] ~= nil)) then
       print("<tr><th>")
@@ -499,75 +441,15 @@ if((page == "overview") or (page == nil)) then
       print("</th><td colspan=2>"..host["vlan"].."</td></tr>\n")
    end
 
-   if(ifstats.inline and (host.localhost or host.systemhost)) then
-      print("<tr><th>Host Traffic Policy</th><td>")
-
-      print[[<a class="btn btn-default btn-xs" href="]]
-      print(ntop.getHttpPrefix())
-      print[[/lua/if_stats.lua?page=filtering&pool=]]
-      print(tostring(host["host_pool_id"]))
-      print[[#protocols">Modify Host Pool policy</a>]]
-      print('</td>')
-
-      print('<td>')
-      if(host["localhost"] == true) then
-	 drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-	 if(drop_traffic == "true") then
-	    drop_traffic_checked = 'checked="checked"'
-	    drop_traffic_value = "false" -- Opposite
-	 else
-	    drop_traffic_checked = ""
-	    drop_traffic_value = "true" -- Opposite
-	 end
-
-	 print[[<form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	 print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
-	 print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-	 print('</form>')
-      else
-	 print('&nbsp;')
-      end
-
-      print('</td></tr></tr>')
-   end
-
    if((ifstats.inline and (host.localhost or host.systemhost)) or (host["os"] ~= "")) then
-   print("<tr>")
-   if(host["os"] ~= "") then
-     print("<th>OS</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td>\n")
-   else
-     print("<th></th><td></td>\n")
+      print("<tr>")
+      if(host["os"] ~= "") then
+         print("<th>OS</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. string.gsub(host["os"], " ", '%%20').. "'>"..mapOS2Icon(host["os"]) .. "</A></td><td></td>\n")
+      else
+         print("<th></th><td></td>\n")
+      end
+      print("</tr>")
    end
-
-   if(ifstats.inline and (host.localhost or host.systemhost) and isAdministrator()) then
-	 host_quota_value = host["host_quota_mb"]
-
-         if(_POST["host_quota"] ~= nil) then
-	    if(_POST["host_quota"] == "") then
-	       -- default: unlimited
-	       host_quota_value = "0"
-	    else
-	       host_quota_value = _POST["host_quota"]
-	    end
-
-	    interface.select(ifname) -- if we submitted a form, nothing is select()ed
-	    interface.setHostQuota(tonumber(host_quota_value), host_info["host"], host_vlan)
-	 end
-	 print [[<td><form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">]]
-	 print('<input type="hidden"/>Host quota &nbsp;<input type="number" name="host_quota" placeholder="" min="0" step="10" max="100000" value="')print(tostring(host_quota_value))
-         print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-         print('</form>')
-	 print('</td></tr>')
-   else
-     print("<td></td></tr>")
-   end
-end
-
-local labelKey = host_info["host"].."@"..host_info["vlan"]
-
-if(_POST["custom_icon"] ~=nil) then
- setHostIcon(labelKey, _POST["custom_icon"])
-end
 
    if((host["asn"] ~= nil) and (host["asn"] > 0)) then
       print("<tr><th>ASN</th><td>")
@@ -601,33 +483,8 @@ end
       if(host["is_blacklisted"] == true) then print(' <span class="label label-danger">Blacklisted Host</span>') end
 
       print(getHostIcon(labelKey))
-      print("</td>\n")
+      print("</td><td></td>\n")
    end
-
-
-if(host["ip"] ~= nil) then
-    if(isAdministrator()) then
-       print("<td>")
-
-       print [[<form class="form-inline" style="margin-bottom: 0px;" method="post">]]
-       print[[<input type="text" name="custom_name" placeholder="Custom Name" value="]]
-      if(host["label"] ~= nil) then print(host["label"]) end
-print("\"></input>")
-
-pickIcon(labelKey, host["mac"])
-
-print [[
-	 &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]
-print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
-
-print [[</form>
-</td></tr>
-   ]]
-end
-    else
---       print("<td colspan=2>"..host_info["host"].."</td></tr>")
-    end
-
 
 if(host["num_alerts"] > 0) then
    print("<tr><th><i class=\"fa fa-warning fa-lg\" style='color: #B94A48;'></i>  <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'>Alerts</A></th><td colspan=2></li> <span id=num_alerts>"..host["num_alerts"] .. "</span> <span id=alerts_trend></span></td></tr>\n")
@@ -1968,8 +1825,155 @@ elseif(page == "alerts") then
       "host_details.lua", {ifid=ifId, host=host_ip},
       host_name, "host")
 
---[[elseif (page == "config") then
-]]
+elseif (page == "config") then
+
+   if(not isAdministrator()) then
+      return
+   end
+
+   if(host["localhost"] == true and is_packetdump_enabled) then
+      local dump_status = host["dump_host_traffic"]
+
+      if(_POST["dump_traffic"] ~= nil) then
+         if(_POST["dump_traffic"] == "true") then
+            dump_status = true
+         else
+            dump_status = false
+         end
+         interface.select(ifname) -- if we submitted a form, nothing is select()ed
+         interface.setHostDumpPolicy(dump_status, host_info["host"], host_vlan)
+      end
+
+      if(dump_status) then
+         dump_traffic_checked = 'checked="checked"'
+         dump_traffic_value = "false" -- Opposite
+      else
+         dump_traffic_checked = ""
+         dump_traffic_value = "true" -- Opposite
+      end
+   end
+
+   if(_POST["custom_icon"] ~= nil) then
+      setHostIcon(labelKey, _POST["custom_icon"])
+   end
+
+   print[[
+   <table class="table table-bordered table-striped">
+      <tr>
+         <th>Host Alias</th>
+         <td>
+            <form class="form-inline" style="margin-bottom: 0px;" method="post">
+               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" value="]]
+   if(host["label"] ~= nil) then print(host["label"]) end
+   print[["></input> ]]
+   pickIcon(labelKey, host["mac"])
+   print [[
+               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+               &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
+            </form>
+         </td>
+      </tr>
+      <tr>
+         <th>Host Pool</th>
+         <td>
+            <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
+               <select name="pool" class="form-control" style="width:20em; display:inline;">]]
+   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
+      print[[<option value="]] print(pool.id) print[["]]
+      if pool.id == host_pool_id then
+         print[[ selected]]
+      end
+      print[[>]] print(pool.name) print[[</option>]]
+   end
+   print[[
+               </select>&nbsp;
+               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+               <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
+            </form>
+         </td>
+      </tr>
+      <tr>
+         <th>Dump Host Traffic</th>
+         <td>
+            <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
+               <input type="hidden" name="dump_traffic" value="]] print(dump_traffic_value) print[[">
+               <input type="checkbox" value="1" ]] print(dump_traffic_checked) print[[ onclick="this.form.submit();">
+                  <i class="fa fa-hdd-o fa-lg"></i>
+                  <a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=]] print(getInterfaceId(ifname)) print[[&page=packetdump&]] print(hostinfo2url(host_info)) print[[">Dump Traffic</a>
+               </input>
+               <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
+            </form>
+         </td>
+      </tr>]]
+
+   if(ifstats.inline and (host.localhost or host.systemhost)) then
+      -- Traffic policy
+      drop_host_traffic = _POST["drop_host_traffic"]
+      host_key = hostinfo2hostkey(host_info)
+      if(drop_host_traffic ~= nil) then
+         if(drop_host_traffic == "false") then
+            ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
+         else
+            ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, drop_host_traffic)
+         end
+
+         interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
+      else
+         drop_host_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
+         if(drop_host_traffic == nil) then drop_host_traffic = "false" end
+      end
+
+      print("<tr><th>Host Traffic Policy</th><td>")
+
+      if(host["localhost"] == true) then
+         drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
+         if(drop_traffic == "true") then
+            drop_traffic_checked = 'checked="checked"'
+            drop_traffic_value = "false" -- Opposite
+         else
+            drop_traffic_checked = ""
+            drop_traffic_value = "true" -- Opposite
+         end
+
+         print[[<form id="alert_prefs" class="form-inline" style="margin-bottom:0px; margin-right:1em; display:inline;" method="post">]]
+         print('<input type="hidden" name="drop_host_traffic" value="'..drop_traffic_value..'"><input type="checkbox" value="1" '..drop_traffic_checked..' onclick="this.form.submit();"> Drop All Host Traffic</input>')
+         print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+         print('</form>')
+      end
+
+      print[[<a class="btn btn-default btn-sm" href="]]
+      print(ntop.getHttpPrefix())
+      print[[/lua/if_stats.lua?page=filtering&pool=]]
+      print(tostring(host["host_pool_id"]))
+      print[[#protocols">Modify Host Pool Policy</a>]]
+      print('</td></tr>')
+
+      -- Host quota
+      local host_quota_value = host["host_quota_mb"]
+
+      if(_POST["host_quota"] ~= nil) then
+         if(_POST["host_quota"] == "") then
+            -- default: unlimited
+            host_quota_value = "0"
+         else
+            host_quota_value = _POST["host_quota"]
+         end
+
+         interface.select(ifname) -- if we submitted a form, nothing is select()ed
+         interface.setHostQuota(tonumber(host_quota_value), host_info["host"], host_vlan)
+      end
+
+      print [[<th>Host Quota</th>
+      <td>
+         <form id="alert_prefs" class="form-inline" style="margin-bottom: 0px;" method="post">
+            <input type="number" name="host_quota" placeholder="" min="0" step="10" max="100000" value="]] print(tostring(host_quota_value))
+      print [["> MB</input> &nbsp;<button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>]]print('<input id="csrf" name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
+      print('</form>')
+      print('</td></tr>')
+   end
+
+   print[[
+   </table>]]
 
 elseif(page == "historical") then
 if(_GET["rrd_file"] == nil) then
