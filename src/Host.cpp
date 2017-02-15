@@ -1621,6 +1621,9 @@ void Host::setMDSNInfo(char *str) {
     "._http._tcp.local",
     "._sftp-ssh._tcp.local",
     "._smb._tcp.local",
+    "._device-info._tcp.local",
+    "._privet._tcp.local",
+    "._afpovertcp._tcp.local",
     NULL
   };
   
@@ -1630,6 +1633,11 @@ void Host::setMDSNInfo(char *str) {
     if(strstr(str, tokens[i])) {
       str[strlen(str)-strlen(tokens[i])] = '\0';
       setInfo(str);
+
+      for(i=0; info[i] != '\0'; i++) {
+	if(!isascii(info[i]))
+	  info[i] = ' ';
+      }
 
       set_host_label(info, true);
       return;

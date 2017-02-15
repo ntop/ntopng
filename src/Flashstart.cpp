@@ -34,14 +34,23 @@ struct dns_header {
 
 /* **************************************** */
 
-Flashstart::Flashstart(char *_user, char *_pwd, bool synchronousClassification) {
+Flashstart::Flashstart(char *_user, char *_pwd,
+		       char *alt_dns_ip, u_int16_t alt_dns_port,
+		       bool synchronousClassification) {
   user = strdup(_user), pwd = strdup(_pwd);
   num_flashstart_categorizations = num_flashstart_fails = 0;
   sock = socket(AF_INET, SOCK_DGRAM, 0);
   syncClassification = synchronousClassification;
-  
-  dnsServer[0].sin_addr.s_addr = inet_addr("188.94.192.215"), dnsServer[0].sin_family = AF_INET, dnsServer[0].sin_port  = htons(53);
-  dnsServer[1].sin_addr.s_addr = inet_addr("85.18.248.198"), dnsServer[1].sin_family = AF_INET, dnsServer[1].sin_port  = htons(53);
+
+  if(alt_dns_ip && alt_dns_port) {
+    dnsServer[0].sin_addr.s_addr = inet_addr(alt_dns_ip), dnsServer[0].sin_family = AF_INET, dnsServer[0].sin_port  = htons(alt_dns_port);
+    numDnsServers = 1;
+  } else {
+    dnsServer[0].sin_addr.s_addr = inet_addr("188.94.192.215"), dnsServer[0].sin_family = AF_INET, dnsServer[0].sin_port  = htons(53);
+    dnsServer[1].sin_addr.s_addr = inet_addr("85.18.248.198"), dnsServer[1].sin_family = AF_INET, dnsServer[1].sin_port  = htons(53);
+    numDnsServers = 2;
+  }
+
   dnsServerIdx = 0, numCategories = 0;
 
   if(sock >= 0)
@@ -59,7 +68,7 @@ Flashstart::~Flashstart() {
 
   if(user && pwd) {
     if(!syncClassification) pthread_join(flashstartThreadLoop, &res);
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Flashstart resolution stats [%u categorized][%u failures]",
 				 num_flashstart_categorizations, num_flashstart_fails);
@@ -84,7 +93,7 @@ void Flashstart::addMapping(const char *label, u_int8_t id) {
 
 void Flashstart::purgeMapping() {
   struct category_mapping *current, *tmp;
-  
+
   HASH_ITER(hh, mapping, current, tmp) {
     HASH_DEL(mapping, current);
     free(current->name);
@@ -98,7 +107,7 @@ int Flashstart::findMapping(char *label) {
   struct category_mapping *s;
 
   HASH_FIND_STR(mapping, label, s);
-  
+
   return((s == NULL) ? -1 : s->category);
 }
 
@@ -181,7 +190,7 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
 
   while(elem != NULL) {
     int id = findMapping(elem);
-       
+
     if((id == -1) && (!strcmp(elem, NTOP_UNKNOWN_CATEGORY_STR)))
       id = NTOP_UNKNOWN_CATEGORY_ID;
 
@@ -210,12 +219,12 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 
     /* Searching in cache first... */
     ntop->getRedis()->getTrafficFilteringCategory(name, buf, sizeof(buf), false);
-    
+
     if(buf[0] != 0) {
 #ifdef DEBUG_CATEGORIZATION
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Categorized %s as %s", name, buf);
 #endif
-    
+
       setCategory(category, buf);
       return(true);
     } else if(add_if_needed) {
@@ -223,7 +232,7 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
       queryFlashstart(name);
     }
   }
-   
+
   return(false);
 }
 
@@ -231,7 +240,7 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 
 char* Flashstart::getCategoryName(u_int8_t id) {
   struct category_mapping *s;
-  
+
   for(s = mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
     if(s->category == id)
       return(s->name);
@@ -244,7 +253,7 @@ char* Flashstart::getCategoryName(u_int8_t id) {
 void Flashstart::dumpCategories(lua_State* vm, struct site_categories *category) {
   if(category->categories[0] != NTOP_UNKNOWN_CATEGORY_ID) {
     lua_newtable(vm);
-    
+
     for(int i=0; i<MAX_NUM_CATEGORIES; i++) {
       if(category->categories[i] != NTOP_UNKNOWN_CATEGORY_ID) {
 	for(struct category_mapping *s=mapping; s != NULL; s = (struct category_mapping*)s->hh.next)
@@ -254,7 +263,7 @@ void Flashstart::dumpCategories(lua_State* vm, struct site_categories *category)
 	  }
       }
     }
-    
+
     lua_pushstring(vm, "category"); // Key
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -278,7 +287,7 @@ void Flashstart::lua(lua_State* vm) {
 void Flashstart::dumpCategories(struct site_categories *category, char *buf, u_int buf_len) {
   if(category->categories[0] != NTOP_UNKNOWN_CATEGORY_ID) {
     buf[0] = '\0';
-    
+
     for(int i=0; i<MAX_NUM_CATEGORIES; i++) {
       if(category->categories[i] != NTOP_UNKNOWN_CATEGORY_ID) {
 	struct category_mapping *s;
@@ -293,7 +302,7 @@ void Flashstart::dumpCategories(struct site_categories *category, char *buf, u_i
 	    break;
 	  }
       }
-    }    
+    }
   }
 }
 
@@ -307,7 +316,7 @@ void Flashstart::queryFlashstart(char* symbolic_name) {
   queryDomain(sock, symbolic_name, ++num_flashstart_categorizations,
 	      (struct sockaddr*)&dnsServer[dnsServerIdx],
 	      sizeof(dnsServer[dnsServerIdx]));
-  if(++dnsServerIdx == 2) dnsServerIdx = 0;
+  if(++dnsServerIdx == numDnsServers) dnsServerIdx = 0;
 }
 
 /* **************************************************** */
@@ -320,7 +329,7 @@ void Flashstart::queryDomain(int sock, char *domain, u_int queryId,
   int i, n;
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Sending request for %s", domain);
-  
+
   header->transaction_id = queryId,
     header->flags = htons(0x100),
     header->num_questions = htons(1); /* 1 query */
@@ -349,7 +358,7 @@ void Flashstart::queryDomain(int sock, char *domain, u_int queryId,
   query_len = p - data;
 
   if(sendto(sock, data, query_len, 0, to, tolen) == -1)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Send error %d/%s\n", errno, strerror(errno));  
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Send error %d/%s\n", errno, strerror(errno));
 }
 
 /* **************************************************** */
@@ -361,7 +370,7 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
   char qname[128], txt[128], *p;
 
   if(ntohs(header->num_questions) != 1) return(rc);
-  
+
   p = (char*)&rsp[sizeof(struct dns_header)-1];
 
   for(i=0; (i < (rsp_len-sizeof(struct dns_header))) && (p[i] != 0); i++) {
@@ -372,10 +381,10 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
   qtype = htons(*((uint16_t *)&rsp[sizeof(struct dns_header)+i]));
 
   if(qtype != 0x10 /* TXT*/) return(-1);
-  
+
   offset = sizeof(struct dns_header)+i+16+1;
   rsp[rsp_len] = 0;
-  
+
   snprintf(txt, sizeof(txt), "%s", &rsp[offset]);
 
   if(qname[0] && txt[0]) {
@@ -452,7 +461,7 @@ void Flashstart::startLoop() {
 
     if(rsp) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting for Flashstart to initialize. Please wait...");
-      
+
       while(true) {
 	queryFlashstart((char*)"ntop.org");
 	if(recvResponses(1000) > 0)

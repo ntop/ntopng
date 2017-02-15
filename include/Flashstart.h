@@ -39,23 +39,25 @@ class Flashstart {
   struct sockaddr_in dnsServer[NUM_FLASHSTART_SERVERS];
   u_int32_t num_flashstart_categorizations, num_flashstart_fails;
   char *user, *pwd;
-  u_int8_t dnsServerIdx;
+  u_int8_t numDnsServers, dnsServerIdx;
   struct category_mapping *mapping;
   pthread_t flashstartThreadLoop;
   u_int8_t numCategories;
   bool syncClassification;
-  
+
   void initMapping();
   void purgeMapping();
   void addMapping(const char *label, u_int8_t id);
   int parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockaddr_in *from);
   u_int recvResponses(u_int msecTimeout);
   void queryDomain(int sock, char *domain, u_int queryId,
-		   const struct sockaddr *to, socklen_t tolen);     
+		   const struct sockaddr *to, socklen_t tolen);
   void setCategory(struct site_categories *category, char *rsp);
 
  public:
-  Flashstart(char *_user, char *_pwd, bool synchronousClassification);
+  Flashstart(char *_user, char *_pwd,
+	     char *alt_dns_ip, u_int16_t alt_dns_port,
+	     bool synchronousClassification);
   ~Flashstart();
 
   inline u_int8_t getNumCategories() { return(numCategories); }
@@ -63,7 +65,7 @@ class Flashstart {
   void startLoop();
   void queryFlashstart(char *symbolic_name);
   void* flashstartLoop(void* ptr);
-  bool findCategory(char *name, struct site_categories *category, bool add_if_needed); 
+  bool findCategory(char *name, struct site_categories *category, bool add_if_needed);
   void dumpCategories(lua_State* vm, struct site_categories *category);
   void lua(lua_State* vm);
   void dumpCategories(struct site_categories *category, char *buf, u_int buf_len);
