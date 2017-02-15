@@ -415,19 +415,17 @@ if((page == "overview") or (page == nil)) then
 	 print(" [ <A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?network="..host["local_network_id"].."'>".. host["local_network_name"].."</A> ]")
       end
 
+      if((host["city"] ~= nil) and (host["city"] ~= "")) then
+         print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
+      end
+
       print[[&nbsp;&nbsp;<span>Host Pool <a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
-      print("</td>")
+      print("</td><td></td></tr>")
    else
       if(host["mac"] ~= nil) then
 	 print("<tr><th>MAC Address</th><td colspan=2>" .. host["mac"].. "</td></tr>\n")
       end
    end
-   
-   if((host["city"] ~= nil) and (host["city"] ~= "")) then
-      print(" [ " .. host["city"] .." "..getFlag(host["country"]).." ]")
-   end
-
-   print('</td><td></td></tr>')
 
    if(ifstats.vlan and (host["vlan"] ~= nil)) then
       print("<tr><th>")

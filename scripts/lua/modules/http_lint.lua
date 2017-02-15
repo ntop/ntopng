@@ -741,6 +741,7 @@ local known_parameters = {
    ["iflocalstat_mode"]        =  validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
    ["clisrv"]                  =  validateClientOrServer,        -- Client or Server filter
    ["report"]                  =  validateReportMode,            -- A mode for traffic report
+   ["report_zoom"]             =  validateBool,                  -- True if we are zooming in the report
    ["format"]                  =  validatePrintFormat,           -- a print format
    ["nbox_action"]             =  validateNboxAction,            -- get_nbox_data.lua
    ["fav_action"]              =  validateFavouriteAction,       -- get_historical_favourites.lua
