@@ -22,14 +22,31 @@ all you need to do is divert traffic to it. Example:
 #
 # kldload ipdivert.ko
 #
+
+Traffic diversion is done by configuring the firewall to divert
+packets matching certain rules. For example, to divert all
+UDP/TCP/ICMP traffic on port 7777 and let the rest of the traffic
+go through, the following rules can be used (and possibly added to
+configuration file /usr/local/etc/ipfw.rules):
+
 ipfw -f flush
 ipfw add 410 divert 7777 udp from any to any via em0
 ipfw add 411 divert 7777 tcp from any to any via em0
 ipfw add 412 divert 7777 icmp from any to any via em0
 ipfw add 1000 allow ip from any to any
 
-The above examble sends to the divert port 7777 all UDP/TCP/ICMP traffic,
-while letting all the rest of the traffic pass through.
+Similarly, to divert only ICMP traffic one can use the following
+rules:
+
+ipfw -f flush
+ipfw add 400 divert 7777 icmp from any to any
+ipfw add 401 allow icmp from any to any
+
+ntopng let diverted packets received go through. Diverted packets re-enter the
+firewall at the rule number following the rule number that caused the
+diversion. This is fundamental to avoid loops. In the case described
+above, packets diverted at rule 410 will re-enter the firewall at rule
+401 and so on.
 
 Make sure you start ntopng as follows (ntopng will inspect the traffic and
 let it go through)
