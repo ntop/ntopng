@@ -75,18 +75,20 @@ end
 only_historical = false
 
 local host_pool_id
-if (isAdministrator() and (_POST["pool"] ~= nil)) then
-   host_pool_id = _POST["pool"]
-   local prev_pool = tostring(host["host_pool_id"])
+if (host ~= nil) then
+   if (isAdministrator() and (_POST["pool"] ~= nil)) then
+      host_pool_id = _POST["pool"]
+      local prev_pool = tostring(host["host_pool_id"])
 
-   if host_pool_id ~= prev_pool then
-      local key = host2member(host["ip"], host["vlan"])
-      host_pools_utils.deletePoolMember(ifId, prev_pool, key)
-      host_pools_utils.addPoolMember(ifId, host_pool_id, key)
-      interface.reloadHostPools()
+      if host_pool_id ~= prev_pool then
+         local key = host2member(host["ip"], host["vlan"])
+         host_pools_utils.deletePoolMember(ifId, prev_pool, key)
+         host_pools_utils.addPoolMember(ifId, host_pool_id, key)
+         interface.reloadHostPools()
+      end
+   else
+     host_pool_id = tostring(host["host_pool_id"])
    end
-else
-  host_pool_id = tostring(host["host_pool_id"])
 end
 
 if(host == nil) then

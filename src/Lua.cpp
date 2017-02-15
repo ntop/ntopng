@@ -97,6 +97,9 @@ static void get_host_vlan_info(char* lua_ip, char** host_ip,
   if(((*host_ip) = strtok_r(buf, "@", &where)) != NULL)
     vlan = strtok_r(NULL, "@", &where);
 
+  if(host_ip == NULL)
+    *host_ip = lua_ip;
+
   if(vlan)
     (*vlan_id) = (u_int16_t)atoi(vlan);
 }
@@ -6018,8 +6021,7 @@ void Lua::setParamsTable(lua_State* vm, const char* table_name,
       char *_equal;
 
       if(strncmp(tok, "csrf", strlen("csrf")) /* Do not put csrf into the params table */
-	 && (_equal = strchr(tok, '='))
-	 && (strlen(_equal) > 1)) {
+	 && (_equal = strchr(tok, '='))){
 	char *decoded_buf;
         int len;
 
