@@ -31,12 +31,7 @@ if _POST["edit_pools"] ~= nil then
 
     if(interface.isBridgeInterface(ifId) == true) then
       -- create default shapers
-      shaper_utils.setProtocolShapers(ifId,
-          pool_id,
-          shaper_utils.POOL_SHAPER_DEFAULT_PROTO_KEY,
-          shaper_utils.DEFAULT_SHAPER_ID --[[ ingress shaper --]],
-          shaper_utils.DEFAULT_SHAPER_ID --[[ egress shaper --]],
-          true) -- Set only if the key does NOT exist
+      shaper_utils.initDefaultShapers(ifid, pool_id)
     end
   end
   -- Note: do not call reload here

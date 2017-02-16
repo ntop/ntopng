@@ -1218,8 +1218,7 @@ end
       else
          -- set protocols policy for the pool
          get_shapers_from_parameters(function(proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
-            shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, false)
-            shaper_utils.setProtocolQuota(ifid, target_pool, proto_id, traffic_quota, time_quota)
+            shaper_utils.setProtocolShapers(ifid, target_pool, proto_id, ingress_shaper, egress_shaper, traffic_quota, time_quota)
          end)
 
          if (_POST["blocked_categories"] ~= nil)  then
