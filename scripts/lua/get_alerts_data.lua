@@ -83,7 +83,7 @@ for _key,_value in ipairs(alerts) do
 
    column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
    column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
-   column_msg      = _value["alert_json"]
+   column_msg      = string.gsub(_value["alert_json"], '"', "'")
 
    column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method='post'>"
    column_id = column_id.."<input type=hidden name='id_to_delete' value='"..alert_id.."'><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"
