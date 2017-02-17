@@ -24,14 +24,24 @@
 
 #include "ntop_includes.h"
 
+#define IDLE_DOMAIN_USE 300
+
 struct site_categories {
   u_int8_t categories[MAX_NUM_CATEGORIES];
 };
 
 struct category_mapping {
-  char *name;   /* key */
-  u_int8_t category; /* value */
-  UT_hash_handle hh;         /* makes this structure hashable */
+  char *name;         /* key */
+  u_int8_t category;  /* value */
+  UT_hash_handle hh;  /* makes this structure hashable */
+};
+
+struct domain_cache_entry {
+  char *domain;      /* key */
+  bool query_in_progress;
+  struct site_categories categories;
+  u_int32_t last_use;
+  UT_hash_handle hh; /* makes this structure hashable */
 };
 
 class Flashstart {
@@ -41,10 +51,12 @@ class Flashstart {
   char *user, *pwd;
   u_int8_t numDnsServers, dnsServerIdx;
   struct category_mapping *mapping;
+  struct domain_cache_entry *domain_cache;
   pthread_t flashstartThreadLoop;
   u_int8_t numCategories;
   bool syncClassification;
-
+  Mutex m;
+  
   void initMapping();
   void purgeMapping();
   void addMapping(const char *label, u_int8_t id);
@@ -53,7 +65,9 @@ class Flashstart {
   void queryDomain(int sock, char *domain, u_int queryId,
 		   const struct sockaddr *to, socklen_t tolen);
   void setCategory(struct site_categories *category, char *rsp);
-
+  bool cacheDomainCategory(char *name, struct site_categories *category, bool check_if_present);
+  void purgeCache(u_int32_t idle_purge_time);
+  
  public:
   Flashstart(char *_user, char *_pwd,
 	     char *alt_dns_ip, u_int16_t alt_dns_port,

@@ -58,6 +58,7 @@ Flashstart::Flashstart(char *_user, char *_pwd,
   else
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to start Flashstart traffic categorization");
 
+  domain_cache = NULL;
   initMapping();
 }
 
@@ -78,7 +79,10 @@ Flashstart::~Flashstart() {
   if(pwd)  free(pwd);
   closesocket(sock);
   purgeMapping();
+  purgeCache(0);
 }
+
+/* TODO: periodically calls purgeCache() */
 
 /* **************************************************** */
 
@@ -98,6 +102,22 @@ void Flashstart::purgeMapping() {
     HASH_DEL(mapping, current);
     free(current->name);
     free(current);
+  }
+}
+
+/* **************************************************** */
+
+void Flashstart::purgeCache(u_int32_t idle_purge_time) {
+  struct domain_cache_entry *current, *tmp;
+
+  HASH_ITER(hh, domain_cache, current, tmp) {
+    if((idle_purge_time > 0) && (current->last_use > idle_purge_time))
+      ;
+    else {
+      HASH_DEL(domain_cache, current);
+      free(current->domain);
+      free(current);
+    }
   }
 }
 
@@ -213,9 +233,56 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
 
 /* **************************************************** */
 
+bool Flashstart::cacheDomainCategory(char *name, struct site_categories *category, bool check_if_present) {
+  struct domain_cache_entry *entry;
+
+  m.lock(__FILE__, __LINE__);
+  
+  if(check_if_present) {    
+    HASH_FIND_STR(domain_cache, name, entry);
+
+    if(entry) {
+      entry->last_use = time(NULL), entry->query_in_progress = false;
+      memcpy(&entry->categories, category, sizeof(struct site_categories));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s", name);
+      m.unlock(__FILE__, __LINE__);
+      return(true);
+    }
+  }
+
+  /* Add to memory cache */
+  if((entry = (struct domain_cache_entry*)malloc(sizeof(struct domain_cache_entry))) != NULL) {
+    entry->domain = strdup(name), entry->last_use = time(NULL);
+    if(category)
+      memcpy(&entry->categories, category, sizeof(struct site_categories)), entry->query_in_progress = false;
+    else
+      entry->query_in_progress = true;
+    HASH_ADD_STR(domain_cache, domain, entry);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s", name);
+  }
+
+  m.unlock(__FILE__, __LINE__);
+  return(false);
+}
+
+/* **************************************************** */
+
 bool Flashstart::findCategory(char *name, struct site_categories *category, bool add_if_needed) {
   if(ntop->getPrefs()->is_flashstart_enabled()) {
     char buf[64] = { 0 };
+    struct domain_cache_entry *entry;
+
+    /* Search first in memory */
+    m.lock(__FILE__, __LINE__);
+    HASH_FIND_STR(domain_cache, name, entry);
+    if(entry != NULL) {
+      /* Entry found */
+      entry->last_use = time(NULL);
+      if(category) memcpy(category, &entry->categories, sizeof(struct site_categories));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s", name);
+      m.unlock(__FILE__, __LINE__);
+      return(true);
+    }
 
     /* Searching in cache first... */
     ntop->getRedis()->getTrafficFilteringCategory(name, buf, sizeof(buf), false);
@@ -226,9 +293,14 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 #endif
 
       setCategory(category, buf);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Caching %s as %s", name, buf);
+      m.unlock(__FILE__, __LINE__);
+      cacheDomainCategory(name, category, false);
+
       return(true);
     } else if(add_if_needed) {
       /* Nothing on cache: let's query Flashstart */
+      m.unlock(__FILE__, __LINE__);
       queryFlashstart(name);
     }
   }
@@ -330,6 +402,9 @@ void Flashstart::queryDomain(int sock, char *domain, u_int queryId,
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] Sending request for %s", domain);
 
+  if(cacheDomainCategory(domain, NULL, true))
+    return;
+
   header->transaction_id = queryId,
     header->flags = htons(0x100),
     header->num_questions = htons(1); /* 1 query */
@@ -389,6 +464,7 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
 
   if(qname[0] && txt[0]) {
     char *category = (char*)NTOP_UNKNOWN_CATEGORY_STR;
+    struct site_categories c;
 
     if(!strncmp(txt, "BLACKLIST:", 10)) {
       category = &txt[10], rc = 1;
@@ -396,7 +472,9 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
     } else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
 
+    setCategory(&c, category);
     ntop->getRedis()->setTrafficFilteringAddress(qname, category);
+    cacheDomainCategory(qname, &c, true);
   }
 
   return(rc);

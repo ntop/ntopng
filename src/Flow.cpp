@@ -402,7 +402,7 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_MDNS:
-    if(ndpiFlow->protos.mdns.answer && cli_host)
+    if((ndpiFlow->protos.mdns.answer[0] != '\0') && cli_host)
       cli_host->setMDSNInfo(ndpiFlow->protos.mdns.answer);
     break;
     

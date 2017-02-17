@@ -205,6 +205,7 @@ void usage() {
 	 "[--traffic-filtering|-k] <param>    | Filter traffic using cloud services.\n"
 	 "                                    | (default: disabled). Available options:\n"
 	 "                                    | httpbl:<api_key>        See README.httpbl\n"
+	 "                                    | flashstart:<options>    See README.flashstart\n"
 	 "[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.\n"
 	 "                                    | Addr can be any valid ipv4 (e.g., 192.168.1.1)\n"
 	 "                                    | or ipv6 (e.g., [3ffe:2a00:100:7031::1]) address.\n"
