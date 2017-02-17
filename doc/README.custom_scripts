@@ -1,0 +1,30 @@
+Creating custom scripts
+-----------------------
+Users can create custom scripts to interact with ntopng. Scripts must be placed
+under the `scripts/lua` directory.
+
+This is an example script located at `scripts/lua/my_script.lua`
+
+```
+dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
+require "lua_utils"
+
+local a = tonumber(_GET["p_a"])
+local b = tonumber(_GET["p_a"])
+
+if ((a ~= nil) and (b ~= nil)) then
+  print(a .. " + " .. b .. " = " .. a+b)
+end
+```
+
+It can be invoked visiting the URL `http://127.0.0.1:3000/lua/my_script.lua?p_a=2&p_b=3`.
+
+Scripts parameters
+------------------
+User defined parameters must begin with *p_* prefix as shown in the example.
+The prefix disables custom parameter validation, which is performed by ntopng by default on internal
+parameters for security reasons. It is up to the script writer to correctly validate
+custom parameters in order to avoid XSS attacks.
+See [scripts/lua/modules/http_lint.lua](../scripts/lua/modules/http_lint.lua) for the list of ntopng built-in parameters.

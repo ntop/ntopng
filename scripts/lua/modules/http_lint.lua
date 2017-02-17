@@ -804,6 +804,11 @@ local known_parameters = {
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
 local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
+-- The following parameter is *not* used inside ntopng
+-- It allows third-party users to write their own scripts with custom
+-- (unverified) parameters
+   ["p_"]                      =  {validateUnchecked,         validateUnchecked},
+
 -- SHAPING
    ["shaper_"]                 =  {validateNumber,            validateNumber},      -- key: a shaper ID, value: max rate
    ["ishaper_"]                =  {validateShapedElement,     validateNumber},      -- key: category or protocol ID, value: shaper ID
