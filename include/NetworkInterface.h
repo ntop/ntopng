@@ -436,7 +436,7 @@ class NetworkInterface {
   inline FlowProfile* getFlowProfile(Flow *f)  { return(flow_profiles ? flow_profiles->getFlowProfile(f) : NULL);           }
   inline bool checkProfileSyntax(char *filter) { return(flow_profiles ? flow_profiles->checkProfileSyntax(filter) : false); }
 
-  bool passShaperPacket(int a_shaper_id, int b_shaper_id, struct pcap_pkthdr *h);
+  virtual bool passShaperPacket(Flow *f, bool src2dst_direction, struct pcap_pkthdr *h) { return true; };
   void initL7Policer();
 #endif
   void setRemoteStats(char *name, char *address, u_int32_t speedMbit,
