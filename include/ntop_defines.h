@@ -105,6 +105,7 @@
 #define MAX_NUM_VIEW_INTERFACES   8
 #define MAX_NUM_HOST_POOLS        16
 #define MAX_NUM_PROFILES          16
+#define MAX_NUM_MAPPED_CATEGORIES 64
 #define MAX_INTERFACE_NAME_LEN    256
 
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
@@ -664,5 +665,8 @@
 
 #define HTTP_CONTENT_TYPE_HEADER "Content-Type: "
 #define CONST_HELLO_HOST         "hello"
+
+#define CACHED_ENTRIES_THRESHOLD      1024
+#define MAX_CATEGORY_CACHE_DURATION    300 /* Purge entries more than 5 mins old */
 
 #endif /* _NTOP_DEFINES_H_ */

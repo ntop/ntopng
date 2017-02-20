@@ -91,6 +91,11 @@ void Flashstart::addMapping(const char *label, u_int8_t id) {
 
   s->name = strdup(label), s->category = id;
   HASH_ADD_STR(mapping, name, s);
+
+  if(id < MAX_NUM_MAPPED_CATEGORIES)
+    rev_mapping[id] = s->name;
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many categories (%d)", id);
 }
 
 /* **************************************************** */
@@ -136,6 +141,8 @@ int Flashstart::findMapping(char *label) {
 void Flashstart::initMapping() {
   mapping = NULL;
 
+  memset(rev_mapping, 0, sizeof(rev_mapping));
+  
   /* NOTE: keep in sync with host_categories in lua_utils.lua */
   addMapping("freetime", ++numCategories);
   addMapping("chat", ++numCategories);
@@ -206,10 +213,16 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
   bool found = false;
   int n = 0;
 
+  memset(category, 0, sizeof(struct site_categories));
   elem = strtok_r(rsp, ",", &tmp);
 
   while(elem != NULL) {
     int id = findMapping(elem);
+
+    if(n == MAX_NUM_CATEGORIES) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: too many categories (%d)", n);
+      break;
+    }
 
     if((id == -1) && (!strcmp(elem, NTOP_UNKNOWN_CATEGORY_STR)))
       id = NTOP_UNKNOWN_CATEGORY_ID;
@@ -218,33 +231,28 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown category '%s'", elem);
     else {
       category->categories[n++] = id, found = true;
-
-      if(n == MAX_NUM_CATEGORIES) {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: too many categories (%d)", n);
-	break;
-      }
     }
 
     elem = strtok_r(NULL, ",", &tmp);
   }
-
-  if(!found) memset(category, 0, sizeof(struct site_categories));
 }
 
 /* **************************************************** */
 
 bool Flashstart::cacheDomainCategory(char *name, struct site_categories *category, bool check_if_present) {
   struct domain_cache_entry *entry;
-
-  m.lock(__FILE__, __LINE__);
+  char buf[64];
   
-  if(check_if_present) {    
+  m.lock(__FILE__, __LINE__);
+
+  if(check_if_present) {
     HASH_FIND_STR(domain_cache, name, entry);
 
-    if(entry) {
+    if(entry) {     
       entry->last_use = time(NULL), entry->query_in_progress = false;
-      memcpy(&entry->categories, category, sizeof(struct site_categories));
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s", name);
+      if(category) memcpy(&entry->categories, category, sizeof(struct site_categories));
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s]", name,
+				   category2str(category, buf, sizeof(buf)));
       m.unlock(__FILE__, __LINE__);
       return(true);
     }
@@ -256,13 +264,38 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
     if(category)
       memcpy(&entry->categories, category, sizeof(struct site_categories)), entry->query_in_progress = false;
     else
-      entry->query_in_progress = true;
+      memset(&entry->categories, 0, sizeof(struct site_categories)), entry->query_in_progress = true;
+    
     HASH_ADD_STR(domain_cache, domain, entry);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s", name);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s [%s]", name,
+				 category2str(category, buf, sizeof(buf)));
+
+    if(++num_cached_entries > CACHED_ENTRIES_THRESHOLD)
+      purgeCache(MAX_CATEGORY_CACHE_DURATION);
   }
 
   m.unlock(__FILE__, __LINE__);
   return(false);
+}
+
+/* **************************************************** */
+
+char* Flashstart::category2str(struct site_categories *category, char *buf, int buf_len) {
+  buf[0] = 0;
+
+  if(category) {
+    for(int i=0, idx=0; i<MAX_NUM_CATEGORIES; i++) {
+      if(category->categories[i] == 0) break;
+
+      if(category->categories[i] < MAX_NUM_MAPPED_CATEGORIES) {
+	snprintf(&buf[idx], buf_len-idx-1,
+		 "%s%s", (idx > 0) ? "," : "", rev_mapping[category->categories[i]]);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid category %d", category->categories[i]);
+    }
+  }
+  
+  return(buf);
 }
 
 /* **************************************************** */
@@ -277,9 +310,12 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
     HASH_FIND_STR(domain_cache, name, entry);
     if(entry != NULL) {
       /* Entry found */
+      char buf[64];
+
       entry->last_use = time(NULL);
       if(category) memcpy(category, &entry->categories, sizeof(struct site_categories));
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s", name);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s]",
+				   name, category2str(&entry->categories, buf, sizeof(buf)));
       m.unlock(__FILE__, __LINE__);
       return(true);
     }
@@ -293,7 +329,8 @@ bool Flashstart::findCategory(char *name, struct site_categories *category, bool
 #endif
 
       setCategory(category, buf);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Caching %s as %s", name, buf);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Caching %s as [%s]", name,
+				   category2str(category, buf, sizeof(buf)));
       m.unlock(__FILE__, __LINE__);
       cacheDomainCategory(name, category, false);
 
@@ -471,9 +508,10 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] %s=%s", qname, category);
     } else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
-
-    setCategory(&c, category);
+    
     ntop->getRedis()->setTrafficFilteringAddress(qname, category);
+    /* Do not swap the lines as category buffer wll be modified */
+    setCategory(&c, category);
     cacheDomainCategory(qname, &c, true);
   }
 
@@ -504,6 +542,9 @@ u_int Flashstart::recvResponses(u_int msecTimeout) {
 
     if(len > 0 && (u_int)len > sizeof(struct dns_header))
       num += parseDNSResponse(rsp, len, &from);
+
+    if(num > 0)
+      break;
   }
 
   return(num);

@@ -155,6 +155,7 @@ void Flow::freeDPIMemory() {
 
 bool Flow::skipProtocolFamilyCategorization(u_int16_t proto_id) {
   switch(proto_id) {
+  case NDPI_PROTOCOL_DNS:
   case NDPI_PROTOCOL_SSL:
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
@@ -186,8 +187,8 @@ void Flow::categorizeFlow() {
 
     return;
   }
-
-  what = (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : host_server_name;
+ 
+  what = (isSSL() && protos.ssl.certificate) ? protos.ssl.certificate : (isDNS() ? protos.dns.last_query : host_server_name);
 
   if((what == NULL)
      || (what[0] == '\0')

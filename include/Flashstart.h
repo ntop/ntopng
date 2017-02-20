@@ -47,8 +47,9 @@ struct domain_cache_entry {
 class Flashstart {
   int sock;
   struct sockaddr_in dnsServer[NUM_FLASHSTART_SERVERS];
+  u_int16_t num_cached_entries;
   u_int32_t num_flashstart_categorizations, num_flashstart_fails;
-  char *user, *pwd;
+  char *user, *pwd, *rev_mapping[MAX_NUM_MAPPED_CATEGORIES];
   u_int8_t numDnsServers, dnsServerIdx;
   struct category_mapping *mapping;
   struct domain_cache_entry *domain_cache;
@@ -67,6 +68,7 @@ class Flashstart {
   void setCategory(struct site_categories *category, char *rsp);
   bool cacheDomainCategory(char *name, struct site_categories *category, bool check_if_present);
   void purgeCache(u_int32_t idle_purge_time);
+  char* category2str(struct site_categories *category, char *buf, int buf_len);
   
  public:
   Flashstart(char *_user, char *_pwd,
