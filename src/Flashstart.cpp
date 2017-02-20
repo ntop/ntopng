@@ -142,7 +142,7 @@ void Flashstart::initMapping() {
   mapping = NULL;
 
   memset(rev_mapping, 0, sizeof(rev_mapping));
-  
+
   /* NOTE: keep in sync with host_categories in lua_utils.lua */
   addMapping("freetime", ++numCategories);
   addMapping("chat", ++numCategories);
@@ -210,7 +210,6 @@ static void* flashstartThreadInfiniteLoop(void* ptr) {
 
 void Flashstart::setCategory(struct site_categories *category, char *rsp) {
   char *tmp, *elem;
-  bool found = false;
   int n = 0;
 
   memset(category, 0, sizeof(struct site_categories));
@@ -229,9 +228,8 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
 
     if(id == -1)
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown category '%s'", elem);
-    else {
-      category->categories[n++] = id, found = true;
-    }
+    else
+      category->categories[n++] = id;
 
     elem = strtok_r(NULL, ",", &tmp);
   }
@@ -242,13 +240,13 @@ void Flashstart::setCategory(struct site_categories *category, char *rsp) {
 bool Flashstart::cacheDomainCategory(char *name, struct site_categories *category, bool check_if_present) {
   struct domain_cache_entry *entry;
   char buf[64];
-  
+
   m.lock(__FILE__, __LINE__);
 
   if(check_if_present) {
     HASH_FIND_STR(domain_cache, name, entry);
 
-    if(entry) {     
+    if(entry) {
       entry->last_use = time(NULL), entry->query_in_progress = false;
       if(category) memcpy(&entry->categories, category, sizeof(struct site_categories));
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Found on cache %s [%s]", name,
@@ -265,7 +263,7 @@ bool Flashstart::cacheDomainCategory(char *name, struct site_categories *categor
       memcpy(&entry->categories, category, sizeof(struct site_categories)), entry->query_in_progress = false;
     else
       memset(&entry->categories, 0, sizeof(struct site_categories)), entry->query_in_progress = true;
-    
+
     HASH_ADD_STR(domain_cache, domain, entry);
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLAHSTART] Cached %s [%s]", name,
 				 category2str(category, buf, sizeof(buf)));
@@ -294,7 +292,7 @@ char* Flashstart::category2str(struct site_categories *category, char *buf, int 
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid category %d", category->categories[i]);
     }
   }
-  
+
   return(buf);
 }
 
@@ -508,7 +506,7 @@ int Flashstart::parseDNSResponse(unsigned char *rsp, int rsp_len, struct sockadd
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] %s=%s", qname, category);
     } else
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[FLASHSTART] **** %s=%s", qname, category);
-    
+
     ntop->getRedis()->setTrafficFilteringAddress(qname, category);
     /* Do not swap the lines as category buffer wll be modified */
     setCategory(&c, category);
