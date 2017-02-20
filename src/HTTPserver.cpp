@@ -35,6 +35,101 @@ static HTTPserver *httpserver;
 
 /* ****************************************** */
 
+/* The total number of threads to use in mongoose */
+#define SERVER_NUM_THREADS 16
+
+/* The maximum number of threads to dedicate do WebSocket connections */
+#define SERVER_MAX_WEBSOCKET_THREADS 4
+
+/* The maximum number of active connections (busy threads) per host */
+#define SERVER_MAX_THREADS_PER_HOST 8
+
+/* ****************************************** */
+
+class ConnectionsLimiter {
+  private:
+    Mutex *mutex;
+    int active_threads;
+    int active_websockets;
+    struct {
+      uint32_t ip;
+      int port;
+      bool websocket;
+    } active_hosts[SERVER_NUM_THREADS];
+
+  public:
+    ConnectionsLimiter() {
+      mutex = new Mutex();
+      active_threads = 0;
+      active_websockets = 0;
+      memset(active_hosts, 0, sizeof(active_hosts));
+    }
+
+    ~ConnectionsLimiter() {
+      delete mutex;
+    }
+
+    bool connectHost(uint32_t ip, int port, bool is_websocket) {
+      bool success = true;
+
+      mutex->lock(__FILE__, __LINE__);
+
+      if (((is_websocket) && (active_websockets >= SERVER_MAX_WEBSOCKET_THREADS)) ||
+          (active_threads >= SERVER_NUM_THREADS)) {
+        success = false;
+      } else {
+        int num_hits = 0;
+        for (int i=0; i<active_threads; i++) {
+          if (active_hosts[i].ip == ip)
+            num_hits++;
+        }
+
+        if (num_hits >= SERVER_MAX_THREADS_PER_HOST)
+          success = false;
+      }
+
+      if (success) {
+        active_hosts[active_threads].ip = ip;
+        active_hosts[active_threads].port = port;
+
+        if (is_websocket) {
+          active_hosts[active_threads].websocket = true;
+          active_websockets++;
+        } else {
+          active_hosts[active_threads].websocket = false;
+        }
+        
+        active_threads++;
+      }
+
+      mutex->unlock(__FILE__, __LINE__);
+
+      return success;
+    }
+
+    void disconnectHost(uint32_t ip, int port) {
+      mutex->lock(__FILE__, __LINE__);
+
+      for (int i=0; i<active_threads; i++) {
+        if ((active_hosts[i].ip == ip) && (active_hosts[i].port == port)) {
+          bool is_websocket = active_hosts[i].websocket;
+
+          memmove(&active_hosts[i], &active_hosts[i+1], (active_threads - i - 1) * sizeof(active_hosts[0]));
+          memset(&active_hosts[--active_threads], 0, sizeof(active_hosts[0]));
+
+          if (is_websocket)
+            active_websockets--;
+
+          break;
+        }
+      }
+
+      mutex->unlock(__FILE__, __LINE__);
+    }
+};
+
+/* ****************************************** */
+
 /*
  * Send error message back to a client.
  */
@@ -525,6 +620,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   u_int len;
   char username[33] = { 0 };
   char *referer = (char*)mg_get_header(conn, "Referer");
+  bool is_websocket_request = false;
   u_int8_t whitelisted;
 
   if(referer == NULL)
@@ -615,16 +711,21 @@ static int handle_lua_request(struct mg_connection *conn) {
   if (rc != 0)
     return send_error(conn, 400 /* Bad Request */, request_info->uri,
           "The URL specified contains invalid/dangerous characters");
+    
+  if ((mg_get_header(conn, "Upgrade") != NULL) && (strcmp(mg_get_header(conn, "Upgrade"), "websocket") == 0))
+    is_websocket_request = true;
+
+  /* Limit connections */
+  if (! httpserver->get_connections_limiter()->connectHost(request_info->remote_ip, request_info->remote_port, is_websocket_request)) {
+    return send_error(conn, 503 /* Service Unavailable */, request_info->uri,
+      "Too many concurrent requests");
+  }
 
   if((strncmp(request_info->uri, "/lua/", 5) == 0)
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
     bool found;
-    bool is_websocket_request = false;
-    
-    if ((mg_get_header(conn, "Upgrade") != NULL) && (strcmp(mg_get_header(conn, "Upgrade"), "websocket") == 0))
-      is_websocket_request = true;
 
     if(strstr(request_info->uri, "/lua/pro/enterprise/")
        && (!ntop->getPrefs()->is_enterprise_edition())) {
@@ -801,6 +902,8 @@ void handle_end_request(const struct mg_connection *conn, int reply_status_code)
     delete user_data->allowed_nets;
     request_info->user_data = NULL;
   }
+
+  httpserver->get_connections_limiter()->disconnectHost(request_info->remote_ip, request_info->remote_port);
 }
 
 /* ****************************************** */
@@ -814,13 +917,18 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   bool use_http = true;
   struct stat buf;
   int stat_rc;
+  char num_threads[4];
+
+  limiter = new ConnectionsLimiter();
+
+  snprintf(num_threads, sizeof(num_threads), "%d", SERVER_NUM_THREADS);
 
   static char *http_options[] = {
     (char*)"listening_ports", ports,
     (char*)"enable_directory_listing", (char*)"no",
     (char*)"document_root",  (char*)_docs_dir,
     /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
-    (char*)"num_threads", (char*)"5",
+    (char*)"num_threads", num_threads,
     NULL, NULL, NULL, NULL,
     NULL
   };
@@ -945,6 +1053,7 @@ HTTPserver::~HTTPserver() {
   if(httpd_v4) mg_stop(httpd_v4);
 
   free(docs_dir), free(scripts_dir);
+  delete limiter;
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "HTTP server terminated");
 };
 
