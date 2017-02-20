@@ -68,7 +68,7 @@ else
   end
 
   local host_url = ntop.getHttpPrefix()..'/lua/pool_details.lua?ifid='..ifId..'&pool='..pool_id..'&page=historical'
-  drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["graph_zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
+  drawRRD(ifId, 'pool:'..pool_id, rrdfile, _GET["zoom"], host_url, 1, _GET["epoch"], nil, makeTopStatsScriptsArray())
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
