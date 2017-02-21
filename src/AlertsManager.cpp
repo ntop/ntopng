@@ -344,14 +344,17 @@ int AlertsManager::storeAlert(lua_State *L, int index) {
 
 /* **************************************************** */
 
-bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id) {
+bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value,
+        const char *engaged_alert_id, char **output_json) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc;
   bool found = false;
 
-  snprintf(query, sizeof(query),
-	   "SELECT 1 "
+  snprintf(query, sizeof(query), (output_json != NULL) ? ("SELECT alert_json ") : ("SELECT 1 "));
+  size_t len = strlen(query);
+
+  snprintf(query+len, sizeof(query)-len,
 	   "FROM %s "
 	   "WHERE alert_entity = ? AND alert_entity_val = ? AND alert_id = ? ",
            ALERTS_MANAGER_ENGAGED_TABLE_NAME);
@@ -370,6 +373,8 @@ bool AlertsManager::isAlertEngaged(AlertEntity alert_entity, const char *alert_e
   while((rc = sqlite3_step(stmt)) != SQLITE_DONE) {
     if(rc == SQLITE_ROW) {
       found = true;
+      if (output_json != NULL)
+        *output_json = strdup((const char*) sqlite3_column_text(stmt, 0));
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\n", sqlite3_column_text(stmt, 0));
     } else if(rc == SQLITE_ERROR) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
@@ -530,7 +535,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
     if(!store_initialized || !store_opened)
       return -1;
 
-    if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
+    if(isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id, NULL)) {
       rc = 1; /* Already engaged */
     } else {
       if(getNetworkInterface() && (alert_severity == alert_level_error))
@@ -587,16 +592,18 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
 /* **************************************************** */
 
 int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
-				const char *engaged_alert_id) {
+				const char *engaged_alert_id, char **output_json) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
     sqlite3_stmt *stmt = NULL;
     int rc = 0;
+    char *alert_json = NULL;
+    time_t when = time(NULL);
 
     if(!store_initialized || !store_opened)
       return -1;
 
-    if(!isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id)) {
+    if(!isAlertEngaged(alert_entity, alert_entity_value, engaged_alert_id, &alert_json)) {
       /* Cannot release an alert that has not been engaged */
       return 1;
     } else
@@ -613,14 +620,30 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
 		alert_type, alert_severity, alert_json,
 		alert_origin, alert_target);
 #endif
-  
+
+    /* Update alert JSON */
+    json_object *alert;
+    enum json_tokener_error jerr = json_tokener_success;
+
+    if((alert = json_tokener_parse_verbose(alert_json, &jerr)) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] %s",
+           json_tokener_error_desc(jerr),
+           alert_json);
+    } else {
+      /* Set end timestamp and regen alert string */
+      json_object_object_add(alert, JSON_ALERT_TIMESTAMP_END, json_object_new_int64(when));
+      free(alert_json);
+      alert_json = strdup(json_object_to_json_string(alert));
+      json_object_put(alert);
+    }
+
     /* Move the alert from engaged to closed */
     snprintf(query, sizeof(query),
 	     "INSERT INTO %s "
 	     "(alert_tstamp, alert_tstamp_end, alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, "
 	     "alert_origin, alert_target) "
 	     "SELECT "
-	     "alert_tstamp, strftime('%%s','now'), alert_type, alert_severity, alert_entity, alert_entity_val, alert_json, "
+	     "alert_tstamp, ?, alert_type, alert_severity, alert_entity, alert_entity_val, ?, "
 	     "alert_origin, alert_target "
 	     "FROM %s "
 	     "WHERE alert_entity = ? AND alert_entity_val = ? AND alert_id = ? "
@@ -630,9 +653,11 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
 
     m.lock(__FILE__, __LINE__);
     if(sqlite3_prepare(db, query, -1, &stmt, 0)
-       || sqlite3_bind_int(stmt,   1, static_cast<int>(alert_entity))
-       || sqlite3_bind_text(stmt,  2, alert_entity_value, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt,  3, engaged_alert_id, -1, SQLITE_STATIC)) {
+       || sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
+       || sqlite3_bind_text(stmt,  2, alert_json, -1, SQLITE_STATIC)
+       || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_entity))
+       || sqlite3_bind_text(stmt,  4, alert_entity_value, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt,  5, engaged_alert_id, -1, SQLITE_STATIC)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind values to prepared statement for query %s.", query);
       rc = -1;
       goto out;
@@ -681,6 +706,13 @@ int AlertsManager::releaseAlert(AlertEntity alert_entity, const char *alert_enti
   out:
     if(stmt) sqlite3_finalize(stmt);
     m.unlock(__FILE__, __LINE__);
+
+    if(output_json != NULL)
+      /* now it's up to the caller to free data */
+      *output_json = alert_json;
+    else
+      free(alert_json);
+
     return rc;
   } else
     return(0);
@@ -1029,10 +1061,11 @@ bool AlertsManager::isValidHost(Host *h, char *host_string, size_t host_string_l
 
 int AlertsManager::engageReleaseHostAlert(Host *h,
 					  const char *engaged_alert_id,
-            time_t when,
+					  time_t when,
 					  AlertType alert_type, AlertLevel alert_severity,
 					  Host *alert_origin, Host *alert_target,
-					  bool engage, const char *alert_json) {
+					  bool engage,
+					  const char *alert_json, char **output_json) {
   char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
   int rc;
 
@@ -1051,7 +1084,7 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
       h->incNumAlerts(); /* Only if the alert wasn't already engaged */
   } else {
     rc = releaseAlert(alert_entity_host, ipbuf_id,
-		      engaged_alert_id);
+		      engaged_alert_id, output_json);
     if(!rc)
       h->decNumAlerts(); /* Only if the alter was actually engaged */
   }
@@ -1063,10 +1096,10 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 
 int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
 					     const char *engaged_alert_id,
-               time_t when,
+					     time_t when,
 					     AlertType alert_type, AlertLevel alert_severity,
 					     bool engage,
-					     const char *alert_json) {
+					     const char *alert_json, char **output_json) {
   struct in_addr addr4;
   struct in6_addr addr6;
   char ip_buf[256];
@@ -1089,7 +1122,7 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
           engaged_alert_id, when, alert_type, alert_severity, alert_json, NULL, NULL);
   else
       rc = releaseAlert(alert_entity_network, cidr,
-          engaged_alert_id);
+          engaged_alert_id, output_json);
 
   return rc;
 };
@@ -1098,9 +1131,9 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
 
 int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 					       const char *engaged_alert_id,
-                 time_t when,
+					       time_t when,
 					       AlertType alert_type, AlertLevel alert_severity, bool engage,
-					       const char *alert_json) {
+					       const char *alert_json, char **output_json) {
   char id_buf[8];
   if(!n) return -1;
 
@@ -1111,7 +1144,7 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 		       engaged_alert_id, when, alert_type, alert_severity, alert_json, NULL, NULL);
   else
       return releaseAlert(alert_entity_interface, id_buf,
-			engaged_alert_id);
+			engaged_alert_id, output_json);
 };
 
 /* ******************************************* */

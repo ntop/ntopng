@@ -225,7 +225,7 @@ function delete_alert_configuration(alert_source, ifname)
 	    if ntop.isPro() then
 	       ntop.withdrawNagiosAlert(alert_source, timespan, metric, "OK, alarm deactivated")
 	    end
-       interface.releaseThresholdAlert(timespan.."_"..metric, getAlertSource(nil, alert_source).source, alert_source)
+       interface.releaseThresholdAlert(timespan.."_"..metric, alertEntity(getAlertSource(nil, alert_source).source), alert_source)
 	 end
 	 ntop.delHashCache(key, alert_source)
       end
@@ -274,7 +274,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
       timespan = timespan[1]
       for k2, metric in pairs(alarmable_metrics) do
 	 if new_alert_ids[timespan.."_"..metric] ~= true then
-	    interface.releaseThresholdAlert(timespan.."_"..metric, getAlertSource(nil, alert_source).source, alert_source)
+	    interface.releaseThresholdAlert(timespan.."_"..metric, alertEntity(getAlertSource(nil, alert_source).source), alert_source)
 	 end
       end
    end
@@ -333,6 +333,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
             if(rc) then
 	       alert_status = 1 -- alert on
+          local alert_msg
 
 	       -- only if the alert is not in its re-arming period...
 	       if not is_alert_re_arming(key, t[1], ifname) then
@@ -340,11 +341,11 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		  -- re-arm the alert
 		  re_arm_alert(key, t[1], ifname)
 		  -- and send it to ntopng
-		  local alert_json = interface.engageThresholdAlert(alert_id, alertEntity("host"), key, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
+		  alert_msg = interface.engageThresholdAlert(alert_id, alertEntity("host"), key, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
 		  if ntop.isPro() then
 		     -- possibly send the alert to nagios as well
 		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					  mode, t[1], makeAlertMessage(alert_json))
+					  mode, t[1], makeAlertMessage(alert_msg))
 		  end
 	       else
 		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -416,10 +417,11 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
 
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
             if(rc) then
+                local alert_msg
                 if not is_alert_re_arming(network_name, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, t[1], ifname)
-		    local alert_msg = interface.engageThresholdAlert(alert_id, alertEntity("network"), network_name, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
+                    alert_msg = interface.engageThresholdAlert(alert_id, alertEntity("network"), network_name, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
 		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
@@ -486,10 +488,11 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
+               local alert_msg
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, t[1], ifname)
-		    local alert_msg = interface.engageThresholdAlert(alert_id, alertEntity("interface"), ifname_clean, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
+                    alert_msg = interface.engageThresholdAlert(alert_id, alertEntity("interface"), ifname_clean, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
 		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)

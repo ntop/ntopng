@@ -36,7 +36,7 @@ class AlertsManager : protected StoreManager {
   int openStore();
   
   /* methods used for alerts that have a timespan */
-  bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id);
+  bool isAlertEngaged(AlertEntity alert_entity, const char *alert_entity_value, const char *engaged_alert_id, char **output_json);
   void markForMakeRoom(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name);
   int deleteOldestAlert(AlertEntity alert_entity, const char *alert_entity_value, const char *table_name, u_int32_t max_num_rows);
   int engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
@@ -44,7 +44,7 @@ class AlertsManager : protected StoreManager {
 		  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		  const char *alert_origin, const char *alert_target);
   int releaseAlert(AlertEntity alert_entity, const char *alert_entity_value,
-		   const char *engaged_alert_id);
+		   const char *engaged_alert_id, char **alert_json);
   int storeAlert(AlertEntity alert_entity, const char *alert_entity_value,
 		 AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		 const char *alert_origin, const char *alert_target,
@@ -70,19 +70,19 @@ class AlertsManager : protected StoreManager {
 			     time_t when,
 			     AlertType alert_type, AlertLevel alert_severity,
 			     Host *alert_origin, Host *alert_target,
-			     bool engage, const char *alert_json);
+			     bool engage, const char *alert_json, char **output_json);
 
   int engageReleaseNetworkAlert(const char *cidr,
 				const char *engaged_alert_id,
 				time_t when,
 				AlertType alert_type, AlertLevel alert_severity,
-				bool engage, const char *alert_json);
+				bool engage, const char *alert_json, char **output_json);
 
   int engageReleaseInterfaceAlert(NetworkInterface *n,
 				  const char *engaged_alert_id,
 				  time_t when,
 				  AlertType alert_type, AlertLevel alert_severity,
-				  bool engage, const char *alert_json);
+				  bool engage, const char *alert_json, char **output_json);
 
   /* methods used to retrieve alerts and counters with possible sql clause to filter */
   int queryAlertsRaw(lua_State *vm, const char *selection, const char *clauses, const char *table_name);
@@ -123,12 +123,13 @@ class AlertsManager : protected StoreManager {
 			     AlertType alert_type, AlertLevel alert_severity,
 			     Host *alert_origin, Host *alert_target,
 			     const char *alert_json) {
-    return engageReleaseHostAlert(h, engaged_alert_id, when, alert_type, alert_severity, alert_origin, alert_target, true /* engage */, alert_json);
+    return engageReleaseHostAlert(h, engaged_alert_id, when, alert_type, alert_severity, alert_origin, alert_target, true /* engage */, alert_json, 0);
   };
   inline int releaseHostAlert(Host *h,
 			      const char *engaged_alert_id,
-			      AlertType alert_type) {
-    return engageReleaseHostAlert(h, engaged_alert_id, 0, alert_type, (AlertLevel)0, NULL, NULL, false /* release */, NULL);
+			      AlertType alert_type,
+			      char **output_json) {
+    return engageReleaseHostAlert(h, engaged_alert_id, 0, alert_type, (AlertLevel)0, NULL, NULL, false /* release */, NULL, output_json);
   };
   int storeHostAlert(Host *h, AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 		     Host *alert_origin, Host *alert_target);
@@ -170,12 +171,13 @@ class AlertsManager : protected StoreManager {
 			     time_t when,
 			     AlertType alert_type, AlertLevel alert_severity,
 			     const char *alert_json) {
-    return engageReleaseNetworkAlert(cidr, engaged_alert_id, when, alert_type, alert_severity, true /* engage */, alert_json);
+    return engageReleaseNetworkAlert(cidr, engaged_alert_id, when, alert_type, alert_severity, true /* engage */, alert_json, 0);
   };
   inline int releaseNetworkAlert(const char *cidr,
 			      const char *engaged_alert_id,
-			      AlertType alert_type) {
-    return engageReleaseNetworkAlert(cidr, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL);
+			      AlertType alert_type,
+			      char **output_json) {
+    return engageReleaseNetworkAlert(cidr, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL, output_json);
   };
   int storeNetworkAlert(const char *cidr, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 
@@ -187,12 +189,13 @@ class AlertsManager : protected StoreManager {
 				  time_t when,
 				  AlertType alert_type, AlertLevel alert_severity,
 				  const char *alert_json) {
-    return engageReleaseInterfaceAlert(n, engaged_alert_id, when, alert_type, alert_severity, true /* engage */, alert_json);
+    return engageReleaseInterfaceAlert(n, engaged_alert_id, when, alert_type, alert_severity, true /* engage */, alert_json, 0);
   };
   inline int releaseInterfaceAlert(NetworkInterface *n,
 				   const char *engaged_alert_id,
-				   AlertType alert_type) {
-    return engageReleaseInterfaceAlert(n, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL);
+				   AlertType alert_type,
+				   char **output_json) {
+    return engageReleaseInterfaceAlert(n, engaged_alert_id, 0, alert_type, (AlertLevel)0, false /* release */, NULL, output_json);
   };
   int storeInterfaceAlert(NetworkInterface *n, AlertType alert_type, AlertLevel alert_severity, const char *alert_json);
 

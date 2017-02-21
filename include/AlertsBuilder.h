@@ -26,6 +26,7 @@
 
 /* Generic */
 #define JSON_ALERT_DETAIL_THRESHOLD_CROSS "thresholdCross"
+#define JSON_ALERT_TIMESTAMP_END "timestampEnd"
 
 /* Host */
 #define JSON_ALERT_DETAIL_HOST_BLACKLISTED "hostBlacklisted"

@@ -1095,16 +1095,18 @@ void Host::incNumFlows(bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(bool as_client) {
+  char *msg = NULL;
+
   if(as_client) {
     if(num_active_flows_as_client) {
       num_active_flows_as_client--;
 
       if(num_active_flows_as_client <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_attacker_alert) {
-  
 	iface->getAlertsManager()->releaseHostAlert(this,
 						    (char*)"scan_attacker",
-						    alert_flow_flood);
-	//~ ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
+						    alert_flow_flood,
+						    &msg);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg);
 	flow_flood_attacker_alert = false;
       }
     } else
@@ -1116,13 +1118,16 @@ void Host::decNumFlows(bool as_client) {
       if(num_active_flows_as_server <= max_num_active_flows && localHost && triggerAlerts() && flow_flood_victim_alert) {
 	iface->getAlertsManager()->releaseHostAlert(this,
 						    (char*)"scan_victim",
-						    alert_flow_flood);
-	//~ ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
+						    alert_flow_flood,
+						    &msg);
+	ntop->getTrace()->traceEvent(TRACE_INFO, "End scan attack: %s", msg); // TODO: remove
 	flow_flood_victim_alert = false;
       }
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
+
+  if (msg)  free(msg);
 }
 
 /* *************************************** */

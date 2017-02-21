@@ -793,7 +793,8 @@ void NetworkInterface::triggerTooManyHostsAlert() {
   if(!tooManyHostsAlertTriggered) {
     alertsManager->releaseInterfaceAlert(this,
 					 (char*)"app_misconfiguration",
-					 alert_app_misconfiguration);
+					 alert_app_misconfiguration,
+					 NULL);
     tooManyHostsAlertTriggered = true;
   }
 }
