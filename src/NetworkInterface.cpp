@@ -771,17 +771,19 @@ Flow* NetworkInterface::getFlow(u_int8_t *src_eth, u_int8_t *dst_eth,
 
 void NetworkInterface::triggerTooManyFlowsAlert() {
   if(!tooManyFlowsAlertTriggered) {
-    char alert_msg[512];
+    AlertLevel severity = alert_level_error;
+    AlertsBuilder *builder = ntop->getAlertsBuilder();
+    json_object *alert = builder->json_alert(severity, this, time(NULL));
+    json_object *detail = builder->json_interface_detail(alert, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+    builder->json_app_misconfiguration_fill(detail, JSON_ALERT_DETAIL_APP_MISCONFIGURATION_FLOWS);
 
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='%s/lua/if_stats.lua?ifid=%d'>%s</A> has too many flows. Please extend the --max-num-flows/-X command line option",
-	     ntop->getPrefs()->get_http_prefix(),
-	     id, get_name());
+    const char *msg = json_object_to_json_string(alert);
 
     alertsManager->engageInterfaceAlert(this,
-					(char*)"app_misconfiguration",
-					alert_app_misconfiguration, alert_level_error, alert_msg);
+					(char*)"app_misconfiguration", time(0),
+					alert_app_misconfiguration, severity, msg);
     tooManyFlowsAlertTriggered = true;
+    json_object_put(alert);
   }
 }
 
@@ -789,16 +791,9 @@ void NetworkInterface::triggerTooManyFlowsAlert() {
 
 void NetworkInterface::triggerTooManyHostsAlert() {
   if(!tooManyHostsAlertTriggered) {
-    char alert_msg[512];
-
-    snprintf(alert_msg, sizeof(alert_msg),
-	     "Interface <A HREF='%s/lua/if_stats.lua?ifid=%d'>%s</A> has too many hosts. Please extend the --max-num-hosts/-x command line option",
-	     ntop->getPrefs()->get_http_prefix(),
-	     id, get_name());
-
     alertsManager->releaseInterfaceAlert(this,
 					 (char*)"app_misconfiguration",
-					 alert_app_misconfiguration, alert_level_error, alert_msg);
+					 alert_app_misconfiguration);
     tooManyHostsAlertTriggered = true;
   }
 }

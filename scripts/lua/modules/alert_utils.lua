@@ -20,6 +20,11 @@ default_re_arm_minutes = 1
 
 -- ##############################################################################
 
+function makeAlertMessage(alert_json)
+   io.write("TODO: this function should parse alert_json and return an human-readable string")
+   return ""
+end
+
 function bytes(old, new, interval)
     -- io.write(debug.traceback().."\n")
     if(verbose) then print("bytes("..interval..")") end
@@ -208,7 +213,6 @@ end
 
 function delete_alert_configuration(alert_source, ifname)
    local ifid = getInterfaceId(ifname)
-   local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    delete_re_arming_alerts(alert_source, ifid)
@@ -221,17 +225,7 @@ function delete_alert_configuration(alert_source, ifname)
 	    if ntop.isPro() then
 	       ntop.withdrawNagiosAlert(alert_source, timespan, metric, "OK, alarm deactivated")
 	    end
-	    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
-	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	       is_host = true
-	    -- check if this is a subnet
-	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    -- finally assume it's an interface alert
-	    else
-	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    end
+       interface.releaseThresholdAlert(timespan.."_"..metric, getAlertSource(nil, alert_source).source, alert_source)
 	 end
 	 ntop.delHashCache(key, alert_source)
       end
@@ -248,7 +242,6 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    if tostring(alerts_string) == nil then return nil end
    if is_allowed_timespan(timespan) == false then return nil end
    local ifid = getInterfaceId(ifname)
-   local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
@@ -281,14 +274,7 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
       timespan = timespan[1]
       for k2, metric in pairs(alarmable_metrics) do
 	 if new_alert_ids[timespan.."_"..metric] ~= true then
-	    if string.match(alert_source, "@") then
-	       interface.releaseHostAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	       is_host = true
-	    elseif string.match(alert_source, "/") then
-	       interface.releaseNetworkAlert(alert_source, timespan.."_"..metric, alert_type, alert_level, "released.")
-	    else
-	       interface.releaseInterfaceAlert(timespan.."_"..metric, alert_type, alert_level, "Alarm released.")
-	    end
+	    interface.releaseThresholdAlert(timespan.."_"..metric, getAlertSource(nil, alert_source).source, alert_source)
 	 end
       end
    end
@@ -310,7 +296,6 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
         print("<p>--------------------------------------------<p>\n")
     end
 
-   local alert_level  = 2 -- alert_level_error
    local alert_type   = 2 -- alert_threshold_exceeded
    local alert_status     -- to be set later
 
@@ -348,7 +333,6 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 
             if(rc) then
 	       alert_status = 1 -- alert on
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by host <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host="..key.."'>"..key:gsub("@0","").."</A> [".. val .." ".. op .. " " .. t[3].."]"
 
 	       -- only if the alert is not in its re-arming period...
 	       if not is_alert_re_arming(key, t[1], ifname) then
@@ -356,11 +340,11 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 		  -- re-arm the alert
 		  re_arm_alert(key, t[1], ifname)
 		  -- and send it to ntopng
-		  interface.engageHostAlert(key, alert_id, alert_type, alert_level, alert_msg)
+		  local alert_json = interface.engageThresholdAlert(alert_id, alertEntity("host"), key, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
 		  if ntop.isPro() then
 		     -- possibly send the alert to nagios as well
 		     ntop.sendNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
-					  mode, t[1], alert_msg)
+					  mode, t[1], makeAlertMessage(alert_json))
 		  end
 	       else
 		  if verbose then io.write("alarm silenced, re-arm in progress\n") end
@@ -370,7 +354,7 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
 	       alert_status = 2 -- alert off
 	       if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..key.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
 	       if not is_alert_re_arming(key, t[1], ifname) then
-		  interface.releaseHostAlert(key, alert_id, alert_type, alert_level, "released!")
+		  interface.releaseThresholdAlert(alert_id, alertEntity("host"), key)
 		  if ntop.isPro() then
 		     ntop.withdrawNagiosAlert(string.gsub(key, "@0", "") --[[ vlan 0 is implicit for hosts --]],
 					      mode, t[1], "service OK")
@@ -390,7 +374,6 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
         tprint(old_table)
     end
 
-   local alert_level = 2 -- alert_level_error
    local alert_status = 1 -- alert_on
    local alert_type = 2 -- alert_threshold_exceeded
 
@@ -433,12 +416,10 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
 
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
             if(rc) then
-                local alert_msg = "Threshold <b>"..t[1].."</b> crossed by network <A HREF='"..ntop.getHttpPrefix().."/lua/network_details.lua?network="..key.."&page=historical'>"..network_name.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-
                 if not is_alert_re_arming(network_name, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(network_name, t[1], ifname)
-		    interface.engageNetworkAlert(network_name, alert_id, alert_type, alert_level, alert_msg)
+		    local alert_msg = interface.engageThresholdAlert(alert_id, alertEntity("network"), network_name, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
 		       ntop.sendNagiosAlert(network_name, mode, t[1], alert_msg)
@@ -450,7 +431,7 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
             else
                 if(verbose) then print("<p><font color=green><b>Network threshold "..t[1].."@"..network_name.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
                 if not is_alert_re_arming(network_name, t[1], ifname) then
-		   interface.releaseNetworkAlert(network_name, alert_id, alert_type, alert_level, "released!")
+		   interface.releaseThresholdAlert(alert_id, alertEntity("network"), network_name)
 		   if ntop.isPro() then
 		      ntop.withdrawNagiosAlert(network_name, mode, t[1], "service OK")
 		   end
@@ -468,7 +449,6 @@ function check_interface_alert(ifname, mode, old_table, new_table)
         print("check_interface_alert("..ifname..", "..mode..")<br>\n")
     end
 
-    local alert_level  = 2 -- alert_level_error
     local alert_status = 1 -- alert_on
     local alert_type   = 2 -- alert_threshold_exceeded
 
@@ -506,13 +486,10 @@ function check_interface_alert(ifname, mode, old_table, new_table)
 	    local alert_id = mode.."_"..t[1] -- the alert identifies is the concat. of time granularity and condition, e.g., min_bytes
 
             if(rc) then
-	       local alert_msg = "Threshold <b>"..t[1].."</b> crossed by interface <A HREF='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..tostring(getInterfaceId(ifname))..
-                "'>"..ifname.."</A> [".. val .." ".. op .. " " .. t[3].."]"
-
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then
                     if verbose then io.write("queuing alert\n") end
                     re_arm_alert(ifname_clean, t[1], ifname)
-		    interface.engageInterfaceAlert(alert_id, alert_type, alert_level, alert_msg)
+		    local alert_msg = interface.engageThresholdAlert(alert_id, alertEntity("interface"), ifname_clean, t[1]--[[allarmable]], tonumber(t[3])--[[edge]])
                     if ntop.isPro() then
                         -- possibly send the alert to nagios as well
 		       ntop.sendNagiosAlert(ifname_clean, mode, t[1], alert_msg)
@@ -525,7 +502,7 @@ function check_interface_alert(ifname, mode, old_table, new_table)
             else
                 if(verbose) then print("<p><font color=green><b>Threshold "..t[1].."@"..ifname.." not crossed</b> [value="..val.."]["..op.." "..t[3].."]</font><p>\n") end
                 if not is_alert_re_arming(ifname_clean, t[1], ifname) then
-		   interface.releaseInterfaceAlert(alert_id, alert_type, alert_level, "released!")
+         interface.releaseThresholdAlert(alert_id, alertEntity("interface"), ifname_clean)
 		   if ntop.isPro() then
 		      ntop.withdrawNagiosAlert(ifname_clean, mode, t[1], "service OK")
 		   end
@@ -1007,7 +984,7 @@ end
 
 -- This function makes a consistent abstraction on entities
 function getAlertSource(entity, entity_value, alt_name)
-   if entity == "host" then
+   if ((entity == "host") or (string.find(entity_value, "@") ~= nil)) then
       local host_name
 
       if alt_name then

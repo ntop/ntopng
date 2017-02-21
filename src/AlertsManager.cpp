@@ -448,15 +448,19 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
       /* make room by deleting the oldest alert matching the input criteria */
       deleteOldestAlert(alert_entity, alert_entity_value, table_name, max_num - 1);
 
-      char msg[256];
-      snprintf(msg, sizeof(msg), "Too many %s alerts. Oldest alerts will be overwritten "
-	       "unless you delete some alerts or increase their maximum number.",
-	       alert_entity_value ? alert_entity_value : "");
-    
+      AlertsBuilder *builder = ntop->getAlertsBuilder();
+      json_object *alert = builder->json_alert(alert_level_error, getNetworkInterface(), time(NULL));
+      json_object *detail = builder->json_interface_detail(alert, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
+      builder->json_app_misconfiguration_fill(detail, JSON_ALERT_DETAIL_APP_MISCONFIGURATION_ALERTS);
+
+      const char* msg = json_object_to_json_string(alert);
+
       storeAlert(alert_entity, alert_entity_value,
 		 alert_too_many_alerts, alert_level_error, msg,
 		 NULL, NULL,
 		 false /* force store alert, do not check maximum here */);
+
+      json_object_put(alert);
     }
   }
 }
@@ -515,7 +519,7 @@ int AlertsManager::deleteOldestAlert(AlertEntity alert_entity, const char *alert
 /* **************************************************** */
 
 int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entity_value,
-			       const char *engaged_alert_id,
+			       const char *engaged_alert_id, time_t when,
 			       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
 			       const char *alert_origin, const char *alert_target) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
@@ -544,7 +548,7 @@ int AlertsManager::engageAlert(AlertEntity alert_entity, const char *alert_entit
 
       if(sqlite3_prepare(db, query, -1, &stmt, 0)
 	 || sqlite3_bind_text(stmt,  1, engaged_alert_id, -1, SQLITE_STATIC)
-	 || sqlite3_bind_int64(stmt, 2, static_cast<long int>(time(NULL)))
+	 || sqlite3_bind_int64(stmt, 2, static_cast<long int>(when))
 	 || sqlite3_bind_int(stmt,   3, static_cast<int>(alert_type))
 	 || sqlite3_bind_int(stmt,   4, static_cast<int>(alert_severity))
 	 || sqlite3_bind_int(stmt,   5, static_cast<int>(alert_entity))
@@ -895,7 +899,7 @@ int AlertsManager::storeAlert(AlertEntity alert_entity, const char *alert_entity
 /* **************************************************** */
 
 int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
-				  AlertLevel alert_severity,
+				  AlertLevel alert_severity, time_t when,
 				  const char *alert_json) {
   if(!ntop->getPrefs()->are_alerts_disabled()) {
     char query[STORE_MANAGER_MAX_QUERY];
@@ -947,7 +951,7 @@ int AlertsManager::storeFlowAlert(Flow *f, AlertType alert_type,
       goto out;
     }
 
-    if(sqlite3_bind_int64(stmt, 1, static_cast<long int>(time(NULL)))
+    if(sqlite3_bind_int64(stmt, 1, static_cast<long int>(when))
        || sqlite3_bind_int(stmt,   2, (int)(alert_type))
        || sqlite3_bind_int(stmt,   3, (int)(alert_severity))
        || sqlite3_bind_text(stmt,  4, alert_json, -1, SQLITE_STATIC)
@@ -1025,9 +1029,10 @@ bool AlertsManager::isValidHost(Host *h, char *host_string, size_t host_string_l
 
 int AlertsManager::engageReleaseHostAlert(Host *h,
 					  const char *engaged_alert_id,
-					  AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
+            time_t when,
+					  AlertType alert_type, AlertLevel alert_severity,
 					  Host *alert_origin, Host *alert_target,
-					  bool engage) {
+					  bool engage, const char *alert_json) {
   char ipbuf_id[256], ipbuf_origin[256], ipbuf_target[256];
   int rc;
 
@@ -1039,31 +1044,34 @@ int AlertsManager::engageReleaseHostAlert(Host *h,
 
   if(engage) {
     rc = engageAlert(alert_entity_host, ipbuf_id,
-		     engaged_alert_id, alert_type, alert_severity, alert_json,
+		     engaged_alert_id, when, alert_type, alert_severity, alert_json,
 		     isValidHost(alert_origin, ipbuf_origin, sizeof(ipbuf_origin)) ? ipbuf_origin : NULL,
 		     isValidHost(alert_target, ipbuf_target, sizeof(ipbuf_target)) ? ipbuf_target : NULL);
     if(!rc)
       h->incNumAlerts(); /* Only if the alert wasn't already engaged */
-    return rc;
   } else {
     rc = releaseAlert(alert_entity_host, ipbuf_id,
 		      engaged_alert_id);
     if(!rc)
       h->decNumAlerts(); /* Only if the alter was actually engaged */
-    return rc;
   }
+
+  return rc;
 };
 
 /* ******************************************* */
 
 int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
 					     const char *engaged_alert_id,
+               time_t when,
 					     AlertType alert_type, AlertLevel alert_severity,
-					     const char *alert_json, bool engage) {
+					     bool engage,
+					     const char *alert_json) {
   struct in_addr addr4;
   struct in6_addr addr6;
   char ip_buf[256];
   char *slash;
+  int rc;
 
   if(!cidr) return -1;
 
@@ -1077,19 +1085,22 @@ int AlertsManager::engageReleaseNetworkAlert(const char *cidr,
   }
 
   if(engage)
-      return engageAlert(alert_entity_network, cidr,
-		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
+      rc = engageAlert(alert_entity_network, cidr,
+          engaged_alert_id, when, alert_type, alert_severity, alert_json, NULL, NULL);
   else
-      return releaseAlert(alert_entity_network, cidr,
-			engaged_alert_id);
+      rc = releaseAlert(alert_entity_network, cidr,
+          engaged_alert_id);
+
+  return rc;
 };
 
 /* ******************************************* */
 
 int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 					       const char *engaged_alert_id,
-					       AlertType alert_type, AlertLevel alert_severity, const char *alert_json,
-					       bool engage) {
+                 time_t when,
+					       AlertType alert_type, AlertLevel alert_severity, bool engage,
+					       const char *alert_json) {
   char id_buf[8];
   if(!n) return -1;
 
@@ -1097,7 +1108,7 @@ int AlertsManager::engageReleaseInterfaceAlert(NetworkInterface *n,
 
   if(engage)
       return engageAlert(alert_entity_interface, id_buf,
-		       engaged_alert_id, alert_type, alert_severity, alert_json, NULL, NULL);
+		       engaged_alert_id, when, alert_type, alert_severity, alert_json, NULL, NULL);
   else
       return releaseAlert(alert_entity_interface, id_buf,
 			engaged_alert_id);

@@ -2032,6 +2032,25 @@ u_int32_t Utils::getHostManagementIPv4Address() {
 
 /* ****************************************************** */
 
+void Utils::getHostVlanInfo(char* lua_ip, char** host_ip,
+			       u_int16_t* vlan_id,
+			       char *buf, u_int buf_len) {
+  char *where, *vlan = NULL;
+
+  snprintf(buf, buf_len, "%s", lua_ip);
+
+  if(((*host_ip) = strtok_r(buf, "@", &where)) != NULL)
+    vlan = strtok_r(NULL, "@", &where);
+
+  if(host_ip == NULL)
+    *host_ip = lua_ip;
+
+  if(vlan)
+    (*vlan_id) = (u_int16_t)atoi(vlan);
+}
+
+/* ****************************************************** */
+
 bool Utils::isInterfaceUp(char *ifname) {
   struct ifreq ifr;
   int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -2047,4 +2066,36 @@ bool Utils::isInterfaceUp(char *ifname) {
   close(sock);
 
   return(!!(ifr.ifr_flags & IFF_UP) ? true : false);
+}
+
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Copy src to string dst of size siz.  At most siz-1 characters
+ * will be copied.  Always NUL terminates (unless siz == 0).
+ * Returns strlen(src); if retval >= siz, truncation occurred.
+ *
+ */
+size_t Utils::strlcpy(char *dst, const char *src, size_t size) {
+  char *d = dst;
+  const char *s = src;
+  size_t n = size;
+
+  /* Copy as many bytes as will fit */
+  if (n != 0) {
+    while (--n != 0) {
+      if ((*d++ = *s++) == '\0')
+        break;
+    }
+  }
+
+  /* Not enough room in dst, add NUL and traverse rest of src */
+  if (n == 0) {
+    if (size != 0)
+      *d = '\0';		/* NUL-terminate dst */
+    while (*s++)
+      ;
+  }
+
+  return(s - src - 1);	/* count does not include NUL */
 }

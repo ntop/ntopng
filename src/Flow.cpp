@@ -290,29 +290,17 @@ void Flow::dumpFlowAlert() {
     }
 
     if(do_dump && cli_host && srv_host) {
-      char c_buf[256], s_buf[256], *c, *s, fbuf[256], alert_msg[1024];
+      AlertsBuilder *builder = ntop->getAlertsBuilder();
+      AlertLevel severity = alert_level_warning;
+      time_t when = time(NULL);
+      json_object *alert = builder->json_alert(severity, getInterface(), when);
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      if(c && cli_host->get_vlan_id())
-	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+      builder->json_flow_detail(alert, this, JSON_ALERT_DETAIL_FLOW_PROBING);
+      const char* alert_msg = json_object_to_json_string(alert);
 
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-      if(s && srv_host->get_vlan_id())
-	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+      iface->getAlertsManager()->storeFlowAlert(this, aType, severity, when, alert_msg);
 
-      snprintf(alert_msg, sizeof(alert_msg),
-	       "%s: <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> &gt; "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-	       msg, /* TODO: remove string and save numeric status */
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_name(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_name(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
-	       print(fbuf, sizeof(fbuf)));
-
-      iface->getAlertsManager()->storeFlowAlert(this, aType, alert_level_warning, alert_msg);
+      json_object_put(alert);
     }
 
     setFlowAlerted();
@@ -327,35 +315,19 @@ void Flow::checkBlacklistedFlow() {
        && srv_host
        && (cli_host->isBlacklisted()
 	   || srv_host->isBlacklisted())) {
-      char c_buf[64], s_buf[64], *c, *s, fbuf[256], alert_msg[1024];
 
-      c = cli_host->get_ip()->print(c_buf, sizeof(c_buf));
-      if(c && cli_host->get_vlan_id())
-	sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
+      AlertsBuilder *builder = ntop->getAlertsBuilder();
+      AlertLevel severity = alert_level_warning;
+      time_t when = time(NULL);
+      json_object *alert = builder->json_alert(severity, getInterface(), when);
 
-      s = srv_host->get_ip()->print(s_buf, sizeof(s_buf));
-      if(s && srv_host->get_vlan_id())
-	sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
-
-      snprintf(alert_msg, sizeof(alert_msg),
-	       "%s <A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> contacted %s host "
-	       "<A HREF='%s/lua/host_details.lua?host=%s&ifname=%s&page=alerts'>%s</A> [%s]",
-	       cli_host->isBlacklisted() ? "blacklisted" : "",
-	       ntop->getPrefs()->get_http_prefix(),
-	       c, iface->get_name(),
-	       cli_host->get_name() ? cli_host->get_name() : c,
-	       srv_host->isBlacklisted() ? "blacklisted" : "",
-	       ntop->getPrefs()->get_http_prefix(),
-	       s, iface->get_name(),
-	       srv_host->get_name() ? srv_host->get_name() : s,
-	       print(fbuf, sizeof(fbuf)));
-
-      /* force the vlan in the alert source and target */
-      if(!strstr(c, "@")) sprintf(&c[strlen(c)], "@%i", cli_host->get_vlan_id());
-      if(!strstr(s, "@")) sprintf(&s[strlen(s)], "@%i", srv_host->get_vlan_id());
+      builder->json_flow_detail(alert, this, JSON_ALERT_DETAIL_FLOW_BLACKLISTED_HOSTS);
+      const char* alert_msg = json_object_to_json_string(alert);
 
       iface->getAlertsManager()->storeFlowAlert(this, alert_dangerous_host,
-						alert_level_error, alert_msg);
+						alert_level_error, when, alert_msg);
+
+      json_object_put(alert);
     }
 
     blacklist_alarm_emitted = true;

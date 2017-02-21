@@ -50,6 +50,7 @@ Ntop::Ntop(char *appName) {
   globals = new NtopGlobals();
   pa = new PeriodicActivities();
   address = new AddressResolution();
+  alertsBuilder = new AlertsBuilder(0);
   httpbl = NULL, flashstart = NULL;
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
@@ -171,6 +172,7 @@ Ntop::~Ntop() {
   if(hostBlacklistShadow) delete hostBlacklistShadow;
 
   delete address;
+  delete alertsBuilder;
   delete pa;
   if(geo)   delete geo;
   if(mac_manufacturers) delete mac_manufacturers;
