@@ -1821,7 +1821,7 @@ print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myMo
 
       -- we need to dynamically modify parameters at js-time because we switch tab
       local delete_params = getTabParameters(url_params, nil)
-      delete_params.period_end = -1
+      delete_params.epoch_end = -1
 
       print [[
     <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -1841,7 +1841,7 @@ function getTabSpecificParams() {
    var tab_specific = {status:getCurrentStatus()};
    var period_end = $('#modalDeleteAlertsOlderThan').val();
    if (parseInt(period_end) > 0)
-      tab_specific.period_end = period_end;
+      tab_specific.epoch_end = period_end;
 
    if (tab_specific.status == "]] print(_GET["status"]) print[[") {
       tab_specific.alert_severity = ]] if tonumber(_GET["alert_severity"]) ~= nil then print(_GET["alert_severity"]) else print('""') end print[[;
