@@ -213,7 +213,6 @@ end
 
 function delete_alert_configuration(alert_source, ifname)
    local ifid = getInterfaceId(ifname)
-   local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    delete_re_arming_alerts(alert_source, ifid)
    for k1,timespan in pairs(alerts_granularity) do
@@ -242,7 +241,6 @@ function refresh_alert_configuration(alert_source, ifname, timespan, alerts_stri
    if tostring(alerts_string) == nil then return nil end
    if is_allowed_timespan(timespan) == false then return nil end
    local ifid = getInterfaceId(ifname)
-   local alert_type   = 2 -- alert_threshold_exceeded
    local is_host = false
    -- check if we are processing a pair ip-vlan such as 192.168.1.0@0
 
@@ -296,7 +294,6 @@ function check_host_alert(ifname, hostname, mode, key, old_json, new_json)
         print("<p>--------------------------------------------<p>\n")
     end
 
-   local alert_type   = 2 -- alert_threshold_exceeded
    local alert_status     -- to be set later
 
     old = j.decode(old_json, 1, nil)
@@ -376,7 +373,6 @@ function check_network_alert(ifname, network_name, mode, key, old_table, new_tab
     end
 
    local alert_status = 1 -- alert_on
-   local alert_type = 2 -- alert_threshold_exceeded
 
     deltas = {}
     local delta_names = {'ingress', 'egress', 'inner'}
@@ -452,7 +448,6 @@ function check_interface_alert(ifname, mode, old_table, new_table)
     end
 
     local alert_status = 1 -- alert_on
-    local alert_type   = 2 -- alert_threshold_exceeded
 
     -- Needed because Lua. loadstring() won't work otherwise.
     old = old_table

@@ -94,7 +94,7 @@ json_object* AlertsBuilder::json_alert(AlertLevel severity, NetworkInterface *if
 }
 
 json_object* AlertsBuilder::json_alert_ends(json_object *alert, time_t end_time) {
-  json_object_object_add(alert, "timestampEnd", json_object_new_int64(end_time));
+  json_object_object_add(alert, JSON_ALERT_TIMESTAMP_END, json_object_new_int64(end_time));
   return alert;
 }
 
@@ -110,6 +110,13 @@ json_object* AlertsBuilder::json_interface_detail(json_object *alert, const char
 }
 
 json_object* AlertsBuilder::json_flow_detail(json_object *alert, Flow *flow_obj, const char *detail_name) {
+  json_object *startTime;
+
+  if(json_object_object_get_ex(alert, "timestampStart", &startTime))
+    json_alert_ends(alert, json_object_get_int64(startTime));
+  else
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "No start timestamp found");
+
   json_object *flow_subject = json_subject(alert, "flowAlert");
   if (flow_obj != NULL) {
     json_object *flow = json_flow(flow_obj);

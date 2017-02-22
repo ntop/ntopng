@@ -4949,7 +4949,7 @@ static int ntop_interface_engage_release_threshold_alert(lua_State* vm, bool eng
   const char *engaged_alert_id;
   AlertEntity entity;
   AlertType alert_type = alert_threshold_exceeded;
-  AlertLevel alert_severity = alert_level_warning;
+  AlertLevel alert_severity = alert_level_error;
   const char *entity_value;
   const char *alarmable;
   u_long threshold;
