@@ -261,6 +261,7 @@ void Flow::dumpFlowAlert() {
     AlertType aType;
     const char *msg = Utils::flowStatus2str(status, &aType);
     bool do_dump = true;
+    const char * detail;
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", msg, f);
 
@@ -282,9 +283,11 @@ void Flow::dumpFlowAlert() {
     case status_suspicious_tcp_probing:     /* 7 */
     case status_tcp_connection_refused: /* 9 */
       do_dump = ntop->getPrefs()->are_probing_alerts_enabled();
+      detail = JSON_ALERT_DETAIL_FLOW_PROBING;
       break;
 
     case status_flow_when_interface_alerted /* 8 */:
+      detail = JSON_ALERT_DETAIL_FLOW_ALERTED_INTERFACE;
       do_dump = ntop->getPrefs()->do_dump_flow_alerts_when_iface_alerted();
       break;
     }
@@ -295,7 +298,7 @@ void Flow::dumpFlowAlert() {
       time_t when = time(NULL);
       json_object *alert = builder->json_alert(severity, getInterface(), when);
 
-      builder->json_flow_detail(alert, this, JSON_ALERT_DETAIL_FLOW_PROBING);
+      builder->json_flow_detail(alert, this, detail);
       const char* alert_msg = json_object_to_json_string(alert);
 
       iface->getAlertsManager()->storeFlowAlert(this, aType, severity, when, alert_msg);
@@ -1775,6 +1778,68 @@ json_object* Flow::flow2json() {
 			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
 
   return(my_object);
+}
+
+/* *************************************** */
+
+json_object* Flow::flow2alert() {
+  char buf[32];
+  json_object *flow = json_object_new_object();
+
+  /* Meta */
+  snprintf(buf, sizeof(buf), "%u", key());
+  json_object_object_add(flow, "ref", json_object_new_string(buf));
+
+  if(protocol == IPPROTO_TCP) {
+    printTCPflags(getTcpFlags(), buf, sizeof(buf));
+    json_object_object_add(flow, "tcpFlags", json_object_new_string(buf));
+  }
+
+  if (get_cli_host())
+    json_object_object_add(flow, "clientHost", ntop->getAlertsBuilder()->json_host(get_cli_host()));
+  if (get_srv_host())
+    json_object_object_add(flow, "serverHost", ntop->getAlertsBuilder()->json_host(get_srv_host()));
+
+  json_object_object_add(flow, "clientPort", json_object_new_int64(ntohs(cli_port)));
+  json_object_object_add(flow, "serverPort", json_object_new_int64(ntohs(srv_port)));
+
+  if(isSSL() && protos.ssl.certificate)
+    json_object_object_add(flow, "sslCertificate", json_object_new_string(protos.ssl.certificate));
+
+  /* Protocol */
+  if(ndpiDetectedProtocol.master_protocol == 0)
+    ndpiDetectedProtocol.master_protocol = ndpiDetectedProtocol.protocol;
+
+  json_object_object_add(flow, "protocol", ntop->getAlertsBuilder()->json_protocol(ndpiDetectedProtocol, get_protocol_name()));
+
+  /* Stats */
+  json_object *cli2srv = json_object_new_object();
+  json_object *srv2cli = json_object_new_object();
+  json_object_object_add(flow, "clientToServerStats", cli2srv);
+  json_object_object_add(flow, "serverToClientStats", srv2cli);
+
+  json_object_object_add(cli2srv, "packets", json_object_new_int64(cli2srv_packets));
+  json_object_object_add(srv2cli, "packets", json_object_new_int64(srv2cli_packets));
+  json_object_object_add(cli2srv, "bytes", json_object_new_int64(cli2srv_bytes));
+  json_object_object_add(srv2cli, "bytes", json_object_new_int64(srv2cli_bytes));
+
+  if(protocol == IPPROTO_TCP) {
+    json_object *cli2srvTCP = json_object_new_object();
+    json_object *srv2cliTCP = json_object_new_object();
+    json_object_object_add(cli2srv, "tcpStats", cli2srvTCP);
+    json_object_object_add(srv2cli, "tcpStats", srv2cliTCP);
+
+    json_object_object_add(cli2srvTCP, "outOfOrder", json_object_new_int64(tcp_stats_s2d.pktOOO));
+    json_object_object_add(srv2cliTCP, "outOfOrder", json_object_new_int64(tcp_stats_d2s.pktOOO));
+
+    json_object_object_add(cli2srvTCP, "lost", json_object_new_int64(tcp_stats_s2d.pktLost));
+    json_object_object_add(srv2cliTCP, "lost", json_object_new_int64(tcp_stats_d2s.pktLost));
+
+    json_object_object_add(cli2srvTCP, "retransmissions", json_object_new_int64(tcp_stats_s2d.pktRetr));
+    json_object_object_add(srv2cliTCP, "retransmissions", json_object_new_int64(tcp_stats_d2s.pktRetr));
+  }
+
+  return flow;
 }
 
 /* *************************************** */

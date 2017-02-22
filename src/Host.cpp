@@ -118,7 +118,7 @@ void Host::computeHostSerial() {
 
 void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
   char key[64], redis_key[128], *k;
-  char buf[64], host[96];
+  char host[96];
 
 #ifdef NTOPNG_PRO
   sent_to_sketch = rcvd_from_sketch = NULL;
@@ -158,9 +158,7 @@ void Host::initialize(u_int8_t _mac[6], u_int16_t _vlanId, bool init_all) {
     user_activities = NULL, ifa_stats = NULL;
 
   if(init_all) {
-    char *strIP = ip.print(buf, sizeof(buf));
-
-    snprintf(host, sizeof(host), "%s@%u", strIP, vlan_id);
+    get_host_key(host, sizeof(host));
 
     updateLocal();
     updateHostTrafficPolicy(host);
@@ -668,6 +666,15 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
     setName(addr);
 
   return(symbolic_name);
+}
+
+/* ***************************************** */
+
+char* Host::get_host_key(char *buf, u_int buf_len) {
+  char buf2[64];
+
+  snprintf(buf, buf_len, "%s@%u", ip.print(buf2, sizeof(buf2)), get_vlan_id());
+  return buf;
 }
 
 /* ***************************************** */
@@ -1186,7 +1193,7 @@ u_int8_t Host::get_shaper_id(ndpi_protocol ndpiProtocol, bool isIngress) {
 void Host::setQuota(u_int32_t new_quota) {
   char buf[64], host[96];
 
-  snprintf(host, sizeof(host), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
+  get_host_key(host, sizeof(host));
   snprintf(buf, sizeof(buf), "%u", new_quota);
   if(ntop->getRedis()->hashSet((char*)HOST_TRAFFIC_QUOTA, host, (char *)buf) == -1) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Error updating host quota");
@@ -1320,14 +1327,14 @@ void Host::updateHTTPHostRequest(char *virtual_host_name, u_int32_t num_req,
 /* *************************************** */
 
 void Host::setDumpTrafficPolicy(bool new_policy) {
-  char buf[64], host[96];
+  char host[96];
 
   if(dump_host_traffic == new_policy)
     return; /* Nothing to do */
   else
     dump_host_traffic = new_policy;
 
-  snprintf(host, sizeof(host), "%s@%u", ip.print(buf, sizeof(buf)), vlan_id);
+  get_host_key(host, sizeof(host));
 
   ntop->getRedis()->hashSet((char*)DUMP_HOST_TRAFFIC, host,
 			    (char*)(dump_host_traffic ? "true" : "false"));

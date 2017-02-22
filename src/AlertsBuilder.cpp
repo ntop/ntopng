@@ -47,9 +47,7 @@ json_object* AlertsBuilder::json_interface(NetworkInterface *iface) {
 }
 
 json_object* AlertsBuilder::json_flow(Flow *flow) {
-  json_object *flow_json = json_object_new_object();
-  /* TODO */
-  return flow_json;
+  return flow->flow2alert();
 }
 
 json_object* AlertsBuilder::json_network(const char *cidr) {
@@ -58,10 +56,52 @@ json_object* AlertsBuilder::json_network(const char *cidr) {
   return network_json;
 }
 
-json_object* AlertsBuilder::json_host(Host *host) {
-  json_object *host_json = json_object_new_object();
+json_object* AlertsBuilder::json_protocol(ndpi_protocol proto, const char *name) {
+  json_object *proto_json = json_object_new_object();
 
-  /* TODO */
+  json_object_object_add(proto_json, "name", json_object_new_string(name));
+  json_object_object_add(proto_json, "master", json_object_new_int64(proto.master_protocol));
+  json_object_object_add(proto_json, "sub", json_object_new_int64(proto.protocol));
+  return proto_json;
+}
+
+json_object* AlertsBuilder::json_ip(IpAddress *ip) {
+  char buf[64];
+  char *ip_str;
+
+  json_object* json = json_object_new_object();
+  ip_str = ip->print(buf, sizeof(buf));
+
+  json_object_object_add(json, ip->isIPv4() ? "ipv4" : "ipv6", json_object_new_string(ip_str));
+  return json;
+}
+
+json_object* AlertsBuilder::json_host(Host *host) {
+  char buf[96];
+  char ipbuf[64];
+  IpAddress *host_ip = host->get_ip();
+
+  json_object *host_json = json_object_new_object();
+  json_object_object_add(host_json, "ref", json_object_new_string(host->get_host_key(buf, sizeof(buf))));
+  json_object_object_add(host_json, "address", json_ip(host_ip));
+
+  char *host_name = host->get_name(buf, sizeof(buf), false);
+  char *ip_str = host_ip->print(ipbuf, sizeof(ipbuf));
+  if((host_name != NULL) && (strcmp(ip_str, host_name) != 0))
+    json_object_object_add(host_json, "name", json_object_new_string(host_name));
+
+  json_object_object_add(host_json, "isLocal", json_object_new_boolean(host->isLocalHost()));
+  json_object_object_add(host_json, "isBlacklisted", json_object_new_boolean(host->isBlacklisted()));
+
+  if(host->get_country() && host->get_country()[0]) json_object_object_add(host_json, "country", json_object_new_string(host->get_country()));
+  if(host->get_os() && host->get_os()[0]) json_object_object_add(host_json, "os", json_object_new_string(host->get_os()));
+  if(host->get_asn()) {
+    json_object *asn = json_object_new_object();
+    json_object_object_add(host_json, "asn", asn);
+    json_object_object_add(asn, "id", json_object_new_int64(host->get_asn()));
+    json_object_object_add(asn, "name", json_object_new_string(host->get_asname()));
+  }
+
   return host_json;
 }
 
@@ -187,7 +227,7 @@ json_object* AlertsBuilder::json_threshold_cross_detail(json_object *alert, Aler
 }
 
 json_object* AlertsBuilder::json_threshold_cross_fill(json_object *detail, const char *allarmable, u_long threshold) {
-  json_object_object_add(detail, "allarmable", json_object_new_string(allarmable));
+  json_object_object_add(detail, "alarmable", json_object_new_string(allarmable));
   json_object_object_add(detail, "threshold", json_object_new_int64(threshold));
   return detail;
 }
@@ -196,12 +236,3 @@ json_object* AlertsBuilder::json_app_misconfiguration_fill(json_object *detail, 
   json_object_object_add(detail, "setting", json_object_new_string(setting));
   return detail;
 }
-
-/*
- * Example usage:
- 
-  json_object* flowAlertSlowApplicationHeader(NetworkInterface *iface, Flow *flow) {
-  json_object *alert = json_alert(alert_level_warning, iface);
-  json_flow_detail(alert, flow, "slowApplicationHeader");
-  return alert;
-}*/

@@ -233,6 +233,7 @@ class Flow : public GenericHashEntry {
   char* serialize(bool es_json = false);
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
+  json_object* flow2alert();
   inline u_int8_t getTcpFlags()        { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() { return(src2dst_tcp_flags);                      };
   inline u_int8_t getTcpFlagsSrv2Cli() { return(dst2src_tcp_flags);                      };

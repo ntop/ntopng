@@ -46,6 +46,7 @@
 #define JSON_ALERT_DETAIL_FLOW_PROBING "flowProbing"
 #define JSON_ALERT_DETAIL_FLOW_BLACKLISTED_HOSTS "flowBlacklistedHosts"
 #define JSON_ALERT_DETAIL_FLOW_MALWARE_SITE "flowMalwareSite"
+#define JSON_ALERT_DETAIL_FLOW_ALERTED_INTERFACE "alertedInterface"
 
 class AlertsBuilder {
   private:
@@ -64,6 +65,8 @@ class AlertsBuilder {
     json_object* json_flow(Flow *flow);
     json_object* json_network(const char *cidr);
     json_object* json_host(Host *host);
+    json_object* json_protocol(ndpi_protocol proto, const char *name);
+    json_object* json_ip(IpAddress *ip);
 
     /* Exposed API */
     json_object* json_alert(AlertLevel severity, NetworkInterface *iface, time_t start_time);
