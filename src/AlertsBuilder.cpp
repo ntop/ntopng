@@ -226,8 +226,11 @@ json_object* AlertsBuilder::json_threshold_cross_detail(json_object *alert, Aler
   return detail;
 }
 
-json_object* AlertsBuilder::json_threshold_cross_fill(json_object *detail, const char *allarmable, u_long threshold) {
+json_object* AlertsBuilder::json_threshold_cross_fill(json_object *detail, const char *allarmable,
+        const char *op, u_long value, u_long threshold) {
   json_object_object_add(detail, "alarmable", json_object_new_string(allarmable));
+  json_object_object_add(detail, "operator", json_object_new_string(op));
+  json_object_object_add(detail, "value", json_object_new_int64(value));
   json_object_object_add(detail, "threshold", json_object_new_int64(threshold));
   return detail;
 }

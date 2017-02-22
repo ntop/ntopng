@@ -455,8 +455,7 @@ void AlertsManager::makeRoom(AlertEntity alert_entity, const char *alert_entity_
 
       AlertsBuilder *builder = ntop->getAlertsBuilder();
       json_object *alert = builder->json_alert(alert_level_error, getNetworkInterface(), time(NULL));
-      json_object *detail = builder->json_interface_detail(alert, JSON_ALERT_DETAIL_APP_MISCONFIGURATION);
-      builder->json_app_misconfiguration_fill(detail, JSON_ALERT_DETAIL_APP_MISCONFIGURATION_ALERTS);
+      builder->json_entity_detail(alert, alert_entity, alert_entity_value, JSON_ALERT_DETAIL_TOO_MANY_ALERTS, getNetworkInterface());      
 
       const char* msg = json_object_to_json_string(alert);
 

@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "alert_utils"
+local json = require ("dkjson")
 
 sendHTTPHeader('text/html; charset=iso-8859-1')
 
@@ -83,7 +84,29 @@ for _key,_value in ipairs(alerts) do
 
    column_severity = alertSeverityLabel(tonumber(_value["alert_severity"]))
    column_type     = alertTypeLabel(tonumber(_value["alert_type"]))
-   column_msg      = string.gsub(_value["alert_json"], '"', "'")
+   column_msg      = _value["alert_json"]
+
+   local is_json = false
+
+   if (string.len(column_msg) and string.sub(column_msg, 1, 1) == "{") then
+      local alert_object, pos, err = json.decode(column_msg, 1, nil)
+
+      if err == nil then
+         local msg = makeAlertDescription(alert_object)
+
+         if msg ~= nil then
+            column_msg = msg
+            is_json = true
+         end
+      else
+         io.write("Alert JSON parse error: " .. err .. "\n")
+      end
+   end
+
+   if not is_json then
+      -- to fix double quotes previously used in a commit and causing issues
+      column_msg = string.gsub(column_msg, '"', "'")
+   end
 
    column_id = "<form class=form-inline style='display:inline; margin-bottom: 0px;' method='post'>"
    column_id = column_id.."<input type=hidden name='id_to_delete' value='"..alert_id.."'><button class='btn btn-default btn-xs' type='submit'><input id=csrf name=csrf type=hidden value='"..ntop.getRandomCSRFValue().."' /><i type='submit' class='fa fa-trash-o'></i></button></form>"

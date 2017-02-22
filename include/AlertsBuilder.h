@@ -27,6 +27,8 @@
 /* Generic */
 #define JSON_ALERT_DETAIL_THRESHOLD_CROSS "thresholdCross"
 #define JSON_ALERT_TIMESTAMP_END "timestampEnd"
+#define JSON_ALERT_DETAIL_ABOVE_QUOTA "aboveQuota"
+#define JSON_ALERT_DETAIL_TOO_MANY_ALERTS "tooManyAlerts"
 
 /* Host */
 #define JSON_ALERT_DETAIL_HOST_BLACKLISTED "hostBlacklisted"
@@ -36,6 +38,7 @@
 #define JSON_ALERT_DETAIL_SYN_FLOOD_VICTIM "synFloodVictim"
 #define JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_ATTACKER "flowLowGoodputAttacker"
 #define JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_VICTIM "flowLowGoodputVictim"
+#define JSON_ALERT_DETAIL_HOST_LOW_GOODPUT_FLOWS "lowGoodputFlows"
 
 /* Interface */
 #define JSON_ALERT_DETAIL_APP_MISCONFIGURATION "appMisconfiguration"
@@ -85,7 +88,8 @@ class AlertsBuilder {
     /* Specific */
     json_object* json_threshold_cross_detail(json_object *alert, AlertEntity alert_entity,
             const char *alert_entity_value, NetworkInterface *iface);
-    json_object* json_threshold_cross_fill(json_object *detail, const char *allarmable, u_long threshold);
+    json_object* json_threshold_cross_fill(json_object *detail, const char *allarmable,
+            const char *op, u_long value, u_long threshold);
 
     json_object* json_app_misconfiguration_fill(json_object *detail, const char *setting);
 };

@@ -4952,7 +4952,8 @@ static int ntop_interface_engage_release_threshold_alert(lua_State* vm, bool eng
   AlertLevel alert_severity = alert_level_error;
   const char *entity_value;
   const char *alarmable;
-  u_long threshold;
+  const char *op;
+  u_long threshold, value;
   int ret;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4975,14 +4976,22 @@ static int ntop_interface_engage_release_threshold_alert(lua_State* vm, bool eng
     alarmable = lua_tostring(vm, 4);
 
     if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER)) return(CONST_LUA_ERROR);
-    threshold = lua_tonumber(vm, 5);
+    value = lua_tonumber(vm, 5);
+
+    if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING)) return(CONST_LUA_ERROR);
+    op = lua_tostring(vm, 6);
+
+    if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TNUMBER)) return(CONST_LUA_ERROR);
+    threshold = lua_tonumber(vm, 7);
   }
 
   time_t when = time(0);
   AlertsBuilder *builder = ntop->getAlertsBuilder();
   json_object *alert = builder->json_alert(alert_severity, ntop_interface, when);
-  json_object *detail = builder->json_threshold_cross_detail(alert, entity, entity_value, ntop_interface);
-  builder->json_threshold_cross_fill(detail, alarmable, threshold);
+  if (engage) {
+    json_object *detail = builder->json_threshold_cross_detail(alert, entity, entity_value, ntop_interface);
+    builder->json_threshold_cross_fill(detail, alarmable, op, value, threshold);
+  }
 
   ret = engage_release_entity_alert(alert, vm, alert_type, alert_severity,
           entity, entity_value, engage, engaged_alert_id, when);

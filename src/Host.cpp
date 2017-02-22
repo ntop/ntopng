@@ -1037,8 +1037,10 @@ void Host::updateSynFlags(time_t when, u_int8_t flags, Flow *f, bool syn_sent) {
       detail = builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_SYN_FLOOD_VICTIM);
       json_object_object_add(detail, "attacker", builder->json_host(f->get_srv_host()));
     }
-    json_object_object_add(detail, "currentHits", json_object_new_int64(counter->getCurrentHits()));
-    json_object_object_add(detail, "duration", json_object_new_int64(counter->getOverThresholdDuration()));
+    json_object *attack_counter = json_object_new_object();
+    json_object_object_add(detail, "attackCounter", attack_counter);
+    json_object_object_add(attack_counter, "currentHits", json_object_new_int64(counter->getCurrentHits()));
+    json_object_object_add(attack_counter, "duration", json_object_new_int64(counter->getOverThresholdDuration()));
 
     const char* msg = json_object_to_json_string(alert);
     ntop->getTrace()->traceEvent(TRACE_INFO, "SynFlood: %s", msg);
@@ -1230,8 +1232,7 @@ void Host::updateStats(struct timeval *tv) {
   if(isAboveQuota() && triggerAlerts()) {
     AlertsBuilder *builder = ntop->getAlertsBuilder();
     json_object *alert = builder->json_alert(alert_level_error, getInterface(), time(NULL));
-    json_object *detail = builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_THRESHOLD_CROSS);
-    builder->json_threshold_cross_fill(detail, "quota", host_quota_mb);
+    builder->json_host_detail(alert, this, JSON_ALERT_DETAIL_ABOVE_QUOTA);
 
     const char *msg = json_object_to_json_string(alert);
 
@@ -1413,13 +1414,14 @@ void Host::incLowGoodputFlows(bool asClient) {
     time_t when = time(NULL);
     json_object *alert = builder->json_alert(severity, getInterface(), when);
 
-    builder->json_host_detail(alert, this, asClient ? JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_VICTIM : JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_ATTACKER);
+    json_object *detail = builder->json_host_detail(alert, this, asClient ? JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_VICTIM : JSON_ALERT_DETAIL_FLOW_LOW_GOODPUT_ATTACKER);
+    json_object_object_add(detail, JSON_ALERT_DETAIL_HOST_LOW_GOODPUT_FLOWS, json_object_new_int64(HOST_LOW_GOODPUT_THRESHOLD));
     const char* msg = json_object_to_json_string(alert);
 
     iface->getAlertsManager()->engageHostAlert(this,
 					       asClient ? (char*)"low_goodput_victim" : (char*)"low_goodput_attacker", when,
 					       asClient ? alert_host_under_attack : alert_host_attacker,
-					       severity, NULL, NULL);
+					       severity, NULL, NULL, msg);
 
     json_object_put(alert);
 #endif
