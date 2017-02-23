@@ -687,6 +687,7 @@ local known_parameters = {
    ["toggle_pools_rrds"]                           =  validateBool,
    ["toggle_local_categorization"]                 =  validateBool,
    ["toggle_access_log"]                           =  validateBool,
+   ["toggle_snmp_rrds"]                            =  validateBool,
 
    -- Input fields
    ["minute_top_talkers_retention"]                =  validateNumber,

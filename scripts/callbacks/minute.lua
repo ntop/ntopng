@@ -9,6 +9,9 @@ require "alert_utils"
 if (ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
    require("minute")
+
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   require "snmp_utils"
 end
 
 require "lua_utils"
@@ -111,6 +114,7 @@ host_ndpi_rrd_creation = ntop.getCache("ntopng.prefs.host_ndpi_rrd_creation")
 host_categories_rrd_creation = ntop.getCache("ntopng.prefs.host_categories_rrd_creation")
 flow_devices_rrd_creation = ntop.getCache("ntopng.prefs.flow_devices_rrd_creation")
 host_pools_rrd_creation = ntop.getCache("ntopng.prefs.host_pools_rrd_creation")
+snmp_devices_rrd_creation = ntop.getCache("ntopng.prefs.snmp_devices_rrd_creation")
 
 if(tostring(flow_devices_rrd_creation) == "1") then
    local info = ntop.getInfo()
@@ -120,6 +124,13 @@ if(tostring(flow_devices_rrd_creation) == "1") then
    end
 end
 
+if(tostring(snmp_devices_rrd_creation) == "1") then
+   local info = ntop.getInfo()
+
+   if(info["version.enterprise_edition"] ~= true) then
+      snmp_devices_rrd_creation = "0"
+   end
+end
 
 -- id = 0
 for _,_ifname in pairs(ifnames) do
@@ -428,6 +439,11 @@ for _,_ifname in pairs(ifnames) do
 	 -- Save Host Pools stats every 5 minutes
 	 if((ntop.isPro()) and (tostring(host_pools_rrd_creation) == "1")) then
 	    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
+	 end
+
+	 -- Save SNMP stats every 5 minutes
+	 if(tostring(snmp_devices_rrd_creation) == "1") then
+	    snmp_update_rrds(ifstats.id, verbose)
 	 end
       end -- if(diff
    end -- if(good interface type

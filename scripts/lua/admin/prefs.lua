@@ -621,6 +621,12 @@ function printStatsRrds()
     toggleTableButtonPrefs("Host Pools Timeseries",
 			 "Toggle the creation of bytes and nDPI timeseries for defined Host Pools.",
 			 "On", "1", "success", "Off", "0", "danger", "toggle_pools_rrds", "ntopng.prefs.host_pools_rrd_creation", "0")
+
+    toggleTableButtonPrefs("SNMP Devices Timeseries",
+			 "Toggle the creation of bytes timeseries for each port of the SNMP devices. For each device port" ..
+			 " will be created an RRD with ingress/egress bytes.",
+			 "On", "1", "success", "Off", "0", "danger", "toggle_snmp_rrds", "ntopng.prefs.snmp_devices_rrd_creation", "0",
+			    not info["version.enterprise_edition"])
   end
 
   toggleTableButtonPrefs("Category Timeseries",
