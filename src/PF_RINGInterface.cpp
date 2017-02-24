@@ -60,11 +60,12 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
   pfring_set_direction(pfring_handle, rx_only_direction);
   pfring_set_poll_watermark(pfring_handle, 8);
   pfring_set_application_name(pfring_handle, (char*)"ntopng");
-
+  pfring_enable_rss_rehash(pfring_handle);
+  
   switch(ntop->getPrefs()->getCaptureDirection()) {
   case PCAP_D_INOUT: direction = rx_and_tx_direction; break;
-  case PCAP_D_IN:    direction = rx_only_direction; break;
-  case PCAP_D_OUT:   direction = tx_only_direction; break;
+  case PCAP_D_IN:    direction = rx_only_direction;   break;
+  case PCAP_D_OUT:   direction = tx_only_direction;   break;
   }
 
   if(pfring_set_direction(pfring_handle, direction) != 0)
