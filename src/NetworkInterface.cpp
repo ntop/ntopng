@@ -198,11 +198,17 @@ NetworkInterface::NetworkInterface(const char *name,
      && (!strstr(ifname, ".pcap"))
      && strncmp(ifname, "lo", 2)
      ) {
-    char buf[64];
-    
-    snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off", ifname);
-    system(buf);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing %s", buf);
+    char buf[64], ifaces[128], *tmp, iface;
+
+    snprintf(ifaces, sizeof(ifaces), "%s", ifname);
+    iface = strtok_r(ifaces, ",", &tmp);
+
+    while(iface != NULL) {
+      snprintf(buf, sizeof(buf), "ethtool -K %s gro off gso off tso off", iface);
+      system(buf);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing %s", buf);
+      iface = strtok_r(NULL, ",", &tmp);
+    }
   }
 #endif  
 
